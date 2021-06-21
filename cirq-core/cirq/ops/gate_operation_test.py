@@ -249,11 +249,11 @@ def test_unitary():
 def test_channel():
     a = cirq.NamedQubit('a')
     op = cirq.bit_flip(0.5).on(a)
-    np.testing.assert_allclose(cirq.channel(op), cirq.channel(op.gate))
-    assert cirq.has_channel(op)
+    np.testing.assert_allclose(cirq.kraus(op), cirq.kraus(op.gate))
+    assert cirq.has_kraus(op)
 
-    assert cirq.channel(cirq.SingleQubitGate()(a), None) is None
-    assert not cirq.has_channel(cirq.SingleQubitGate()(a))
+    assert cirq.kraus(cirq.SingleQubitGate()(a), None) is None
+    assert not cirq.has_kraus(cirq.SingleQubitGate()(a))
 
 
 def test_measurement_key():

@@ -84,7 +84,7 @@ def circuit_to_density_matrix_tensors(
 
     Args:
         circuit: The circuit containing operations that support the
-            cirq.unitary() or cirq.channel() protocols.
+            cirq.unitary() or cirq.kraus() protocols.
         qubits: The qubits in the circuit.
 
     Returns:
@@ -161,8 +161,8 @@ def circuit_to_density_matrix_tensors(
                         tags={f'Q{len(op.qubits)}', f'i{mi + 1}b', _qpos_tag(op.qubits)},
                     )
                 )
-            elif cirq.has_channel(op):
-                K = np.asarray(cirq.channel(op), dtype=np.complex128)
+            elif cirq.has_kraus(op):
+                K = np.asarray(cirq.kraus(op), dtype=np.complex128)
                 kraus_inds = [f'k{kraus_frontier}']
                 tensors.append(
                     qtn.Tensor(

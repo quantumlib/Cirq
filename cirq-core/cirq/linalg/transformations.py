@@ -506,6 +506,16 @@ def merge_state_vectors(
     t1: np.ndarray,
     t2: np.ndarray,
 ) -> np.ndarray:
+    """Merges two state vectors into a single unified state vector.
+
+    The resulting vector's shape will be `t1.shape + t2.shape`.
+
+    Args:
+        t1: The first state vector.
+        t2: The second state vector.
+    Returns:
+        A new state vector representing the unified state.
+    """
     return np.outer(t1, t2).reshape(t1.shape + t2.shape)
 
 
@@ -513,6 +523,18 @@ def merge_density_matrices(
     t1: np.ndarray,
     t2: np.ndarray,
 ) -> np.ndarray:
+    """Merges two density matrices into a single unified density matrix.
+
+    The resulting matrix's shape will be `(t1.shape/2 + t2.shape/2) * 2`. In
+    other words, if t1 has shape [A,B,C,A,B,C] and t2 has shape [X,Y,Z,X,Y,Z],
+    the resulting matrix will have shape [A,B,C,X,Y,Z,A,B,C,X,Y,Z].
+
+    Args:
+        t1: The first density matrix.
+        t2: The second density matrix.
+    Returns:
+        A density matrix representing the unified state.
+    """
     t = merge_state_vectors(t1, t2)
     t1_len = len(t1.shape)
     t1_dim = int(t1_len / 2)
@@ -528,6 +550,23 @@ def split_state_vectors(
     t: np.ndarray,
     axes: Sequence[int],
 ) -> Tuple[np.ndarray, np.ndarray]:
+    """Splits a state vector into two independent state vectors.
+
+    This function should only be called on state vectors that are known to be
+    separable, such as immediately after a measurement or reset operation. It
+    does not verify that the provided state vector is indeed separable, and
+    will return nonsense results for vectors representing entangled states.
+
+    Args:
+        t: The state vector to split.
+        axes: The axes to split on.
+    Returns:
+        A tuple with the `(extracted, remainder)` state vectors, where
+        `extracted` means the sub-state vector which corresponds to the axes
+        requested, and with the axes in the requested order, and where
+        `remainder` means the sub-state vector on the remaining axes, in the
+        same order as the original state vector.
+    """
     n_axes = len(axes)
     t = np.moveaxis(t, axes, range(n_axes))
     pivot = np.unravel_index(np.abs(t).argmax(), t.shape)
@@ -544,5 +583,26 @@ def split_density_matrices(
     t: np.ndarray,
     axes: Sequence[int],
 ) -> Tuple[np.ndarray, np.ndarray]:
+    """Splits a density matrix into two independent density matrices.
+
+    This function should only be called on density matrices that are known to
+    be separable, such as immediately after a measurement or reset operation.
+    It does not verify that the provided density matrix is indeed separable,
+    and will return nonsense results for matrices representing entangled
+    states.
+
+    Args:
+        t: The density matrix to split.
+        axes: The axes to split on. Only the left axes should be provided. For
+            example, to extract [C,A] from density matrix of shape
+            [A,B,C,D,A,B,C,D], `axes` should be [2,0], and the return value
+            will be two density matrices ([C,A,C,A], [B,D,B,D]).
+    Returns:
+        A tuple with the `(extracted, remainder)` density matrices, where
+        `extracted` means the sub-matrix which corresponds to the axes
+        requested, and with the axes in the requested order, and where
+        `remainder` means the sub-matrix on the remaining axes, in the same
+        order as the original density matrix.
+    """
     axes = list(axes) + [i + int(t.ndim / 2) for i in axes]
     return split_state_vectors(t, axes)

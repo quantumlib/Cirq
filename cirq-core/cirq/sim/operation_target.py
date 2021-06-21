@@ -13,7 +13,7 @@
 # limitations under the License.
 """An interface for quantum states as targets for operations."""
 import abc
-from typing import TypeVar, TYPE_CHECKING, Generic, Set, Dict, Any, Tuple
+from typing import TypeVar, TYPE_CHECKING, Generic, Dict, Any, Tuple, Optional, Iterator
 
 if TYPE_CHECKING:
     import cirq
@@ -23,7 +23,7 @@ TSelfTarget = TypeVar('TSelfTarget', bound='OperationTarget')
 TActOnArgs = TypeVar('TActOnArgs', bound='cirq.ActOnArgs')
 
 
-class OperationTarget(Generic[TActOnArgs]):
+class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     """An interface for quantum states as targets for operations."""
 
     @abc.abstractmethod
@@ -47,3 +47,12 @@ class OperationTarget(Generic[TActOnArgs]):
     @abc.abstractmethod
     def log_of_measurement_results(self) -> Dict[str, Any]:
         """Gets the log of measurement results."""
+
+    def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
+        """Gets the item associated with the qubit."""
+
+    def __len__(self) -> int:
+        """Gets the number of items in the mapping."""
+
+    def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
+        """Iterates the keys of the mapping."""
