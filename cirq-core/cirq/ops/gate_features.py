@@ -18,7 +18,6 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
-from typing import Union, Iterable, Any, List
 
 from cirq.ops import raw_types
 

@@ -403,7 +403,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                             f' qubits, but it contained {q} of type: {type(q)}'
                         )
                 if self.num_qubits() == len(first_targets):
-                    operations.append(self.on(*first_targets))
+                    operations.append(self.on(*first_targets))  # type: ignore
                     targets = targets[self.num_qubits() :]
                 else:
                     raise ValueError(
