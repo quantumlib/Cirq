@@ -27,8 +27,10 @@ listing modules:
 optional arguments:
   -h, --help            show this help message and exit
   --mode {folder,package-path}
-                        'folder' to list root folder for module, 'package-path' for top level
-                        python package path
+                        'folder' to list root folder for module (e.g. cirq-google),
+                        'package-path' for top level python package path
+                            (e.g. cirq-google/cirq_google),
+                        'package' for top level python package (e.g cirq_google),
   --include-parent      whether to include the parent package or not
 """
 
@@ -41,6 +43,7 @@ from typing import List, Dict, Any
 
 _FOLDER = 'folder'
 _PACKAGE_PATH = 'package-path'
+_PACKAGE = 'package'
 
 
 @dataclasses.dataclass
@@ -142,6 +145,9 @@ def _print_list_modules(mode: str, include_parent: bool = False):
         elif mode == _PACKAGE_PATH:
             for p in m.top_level_package_paths:
                 print(p, end=" ")
+        elif mode == _PACKAGE:
+            for package in m.top_level_packages:
+                print(package, end=" ")
 
 
 def main(argv: List[str]):
@@ -169,10 +175,11 @@ def _add_list_modules_cmd(subparsers):
     list_modules_cmd.add_argument(
         "--mode",
         default=_FOLDER,
-        choices=[_FOLDER, _PACKAGE_PATH],
+        choices=[_FOLDER, _PACKAGE_PATH, _PACKAGE],
         type=str,
-        help="'folder' to list root folder for module,\n"
-        "'package-path' for top level python package path",
+        help="'folder' to list root folder for module (e.g. cirq-google),\n"
+        "'package-path' for top level python package path (e.g. cirq-google/cirq_google),\n"
+        "'package' for top level python package (e.g cirq_google),\n",
     )
     list_modules_cmd.add_argument(
         "--include-parent",
