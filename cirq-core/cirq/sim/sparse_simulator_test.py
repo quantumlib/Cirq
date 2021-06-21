@@ -257,7 +257,7 @@ def test_run_mixture(dtype: Type[np.number], split: bool):
 @pytest.mark.parametrize('split', [True, False])
 def test_run_mixture_with_gates(dtype: Type[np.number], split: bool):
     q0 = cirq.LineQubit(0)
-    simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
+    simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split, seed=23)
     circuit = cirq.Circuit(cirq.H(q0), cirq.phase_flip(0.5)(q0), cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
     assert sum(result.measurements['0'])[0] < 80  # type: ignore
