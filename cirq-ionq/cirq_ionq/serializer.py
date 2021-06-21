@@ -13,7 +13,6 @@
 # limitations under the License.
 """Support for serializing gates supported by IonQ's API."""
 import dataclasses
-
 from typing import (
     Callable,
     cast,
@@ -23,17 +22,13 @@ from typing import (
     Optional,
     Sequence,
     Type,
-    TYPE_CHECKING,
 )
 
 import numpy as np
 
-from cirq import protocols
-from cirq.ops import common_gates, parity_gates
+import cirq
 from cirq.devices import line_qubit
-
-if TYPE_CHECKING:
-    import cirq
+from cirq.ops import common_gates, parity_gates
 
 
 @dataclasses.dataclass
@@ -78,7 +73,7 @@ class Serializer:
             common_gates.MeasurementGate: self._serialize_measurement_gate,
         }
 
-    def serialize(self, circuit: 'cirq.Circuit') -> SerializedProgram:
+    def serialize(self, circuit: cirq.Circuit) -> SerializedProgram:
         """Serialize the given circuit.
 
         Raises:
@@ -98,7 +93,7 @@ class Serializer:
         metadata = self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
         return SerializedProgram(body=body, metadata=metadata)
 
-    def _validate_circuit(self, circuit: 'cirq.Circuit'):
+    def _validate_circuit(self, circuit: cirq.Circuit):
         if len(circuit) == 0:
             raise ValueError('Cannot serialize empty circuit.')
         if not circuit.are_all_measurements_terminal():
@@ -118,10 +113,10 @@ class Serializer:
         num_qubits = cast(line_qubit.LineQubit, max(all_qubits)).x + 1
         return num_qubits
 
-    def _serialize_circuit(self, circuit: 'cirq.Circuit') -> list:
+    def _serialize_circuit(self, circuit: cirq.Circuit) -> list:
         return [self._serialize_op(op) for moment in circuit for op in moment]
 
-    def _serialize_op(self, op: 'cirq.Operation') -> dict:
+    def _serialize_op(self, op: cirq.Operation) -> dict:
         if op.gate is None:
             raise ValueError(
                 'Attempt to serialize circuit with an operation which does not have a gate. '
@@ -129,7 +124,7 @@ class Serializer:
             )
         targets = [cast(line_qubit.LineQubit, q).x for q in op.qubits]
         gate = op.gate
-        if protocols.is_parameterized(gate):
+        if cirq.is_parameterized(gate):
             raise ValueError(
                 f'IonQ API does not support parameterized gates. Gate {gate} was parameterized. '
                 'Consider resolving before sending.'
@@ -143,7 +138,7 @@ class Serializer:
                     return serialized_op
         raise ValueError(f'Gate {gate} acting on {targets} cannot be serialized by IonQ API.')
 
-    def _serialize_x_pow_gate(self, gate: 'cirq.XPowGate', targets: Sequence[int]) -> dict:
+    def _serialize_x_pow_gate(self, gate: cirq.XPowGate, targets: Sequence[int]) -> dict:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'x', 'targets': targets}
         elif self._near_mod_n(gate.exponent, 0.5, 2):
@@ -152,7 +147,7 @@ class Serializer:
             return {'gate': 'vi', 'targets': targets}
         return {'gate': 'rx', 'targets': targets, 'rotation': gate.exponent * np.pi}
 
-    def _serialize_y_pow_gate(self, gate: 'cirq.YPowGate', targets: Sequence[int]) -> dict:
+    def _serialize_y_pow_gate(self, gate: cirq.YPowGate, targets: Sequence[int]) -> dict:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {
                 'gate': 'y',
@@ -160,7 +155,7 @@ class Serializer:
             }
         return {'gate': 'ry', 'targets': targets, 'rotation': gate.exponent * np.pi}
 
-    def _serialize_z_pow_gate(self, gate: 'cirq.ZPowGate', targets: Sequence[int]) -> dict:
+    def _serialize_z_pow_gate(self, gate: cirq.ZPowGate, targets: Sequence[int]) -> dict:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {
                 'gate': 'z',
@@ -182,22 +177,22 @@ class Serializer:
             }
         return {'gate': 'rz', 'targets': targets, 'rotation': gate.exponent * np.pi}
 
-    def _serialize_xx_pow_gate(self, gate: 'cirq.XXPowGate', targets: Sequence[int]) -> dict:
+    def _serialize_xx_pow_gate(self, gate: cirq.XXPowGate, targets: Sequence[int]) -> dict:
         return self._serialize_parity_pow_gate(gate, targets, 'xx')
 
-    def _serialize_yy_pow_gate(self, gate: 'cirq.YYPowGate', targets: Sequence[int]) -> dict:
+    def _serialize_yy_pow_gate(self, gate: cirq.YYPowGate, targets: Sequence[int]) -> dict:
         return self._serialize_parity_pow_gate(gate, targets, 'yy')
 
-    def _serialize_zz_pow_gate(self, gate: 'cirq.ZZPowGate', targets: Sequence[int]) -> dict:
+    def _serialize_zz_pow_gate(self, gate: cirq.ZZPowGate, targets: Sequence[int]) -> dict:
         return self._serialize_parity_pow_gate(gate, targets, 'zz')
 
     def _serialize_parity_pow_gate(
-        self, gate: 'cirq.EigenGate', targets: Sequence[int], name: str
+        self, gate: cirq.EigenGate, targets: Sequence[int], name: str
     ) -> dict:
         return {'gate': name, 'targets': targets, 'rotation': gate.exponent * np.pi}
 
     def _serialize_swap_gate(
-        self, gate: 'cirq.SwapPowGate', targets: Sequence[int]
+        self, gate: cirq.SwapPowGate, targets: Sequence[int]
     ) -> Optional[dict]:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {
@@ -206,9 +201,7 @@ class Serializer:
             }
         return None
 
-    def _serialize_h_pow_gate(
-        self, gate: 'cirq.HPowGate', targets: Sequence[int]
-    ) -> Optional[dict]:
+    def _serialize_h_pow_gate(self, gate: cirq.HPowGate, targets: Sequence[int]) -> Optional[dict]:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {
                 'gate': 'h',
@@ -217,16 +210,16 @@ class Serializer:
         return None
 
     def _serialize_cnot_pow_gate(
-        self, gate: 'cirq.CNotPowGate', targets: Sequence[int]
+        self, gate: cirq.CNotPowGate, targets: Sequence[int]
     ) -> Optional[dict]:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'cnot', 'control': targets[0], 'target': targets[1]}
         return None
 
     def _serialize_measurement_gate(
-        self, gate: 'cirq.MeasurementGate', targets: Sequence[int]
+        self, gate: cirq.MeasurementGate, targets: Sequence[int]
     ) -> dict:
-        key = protocols.measurement_key(gate)
+        key = cirq.measurement_key(gate)
         if chr(31) in key or chr(30) in key:
             raise ValueError(
                 'Measurement gates for IonQ API cannot have a key with a ascii unit'
