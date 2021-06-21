@@ -24,7 +24,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install dependencies
-        run: pip install virtualenv
+        run: pip install -r dev_tools/requirements/deps/packaging.txt
       - name: Run packaging test
         run: ./dev_tools/packaging/packaging_test.sh
   format:
