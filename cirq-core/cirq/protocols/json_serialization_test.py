@@ -577,7 +577,7 @@ def test_to_from_json_gzip():
 
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]):
     content = path.read_text()
-    ctx_managers = [contextlib.suppress()]
+    ctx_managers: List[contextlib.AbstractContextManager] = [contextlib.suppress()]
     if deprecation_deadline:
         ctx_managers = [cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)]
 
