@@ -128,7 +128,7 @@ def test_deprecated():
         assert old_func(1, 2) == 3
 
     with pytest.raises(
-        ValueError, match='During testing using Cirq deprecated functionality ' 'is not allowed'
+        ValueError, match='During testing using Cirq deprecated functionality is not allowed'
     ):
         old_func(1, 2)
 
@@ -173,7 +173,7 @@ def test_deprecated_parameter():
         # pylint: enable=unexpected-keyword-arg
 
     with pytest.raises(
-        ValueError, match='During testing using Cirq deprecated functionality ' 'is not allowed'
+        ValueError, match='During testing using Cirq deprecated functionality is not allowed'
     ):
         # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
@@ -273,7 +273,7 @@ def test_deprecated_class():
         assert 'OldClass' in old_obj.hello()
 
     with pytest.raises(
-        ValueError, match='During testing using Cirq deprecated functionality ' 'is not allowed'
+        ValueError, match='During testing using Cirq deprecated functionality is not allowed'
     ):
         OldClass('1')
 
