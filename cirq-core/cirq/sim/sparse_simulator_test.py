@@ -774,6 +774,7 @@ def test_simulator_step_state_mixin():
     result = cirq.SparseSimulatorStep(
         sim_state=args,
         dtype=np.complex64,
+        simulator=None,  # type: ignore
     )
     rho = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
     np.testing.assert_array_almost_equal(rho, result.density_matrix_of(qubits))
@@ -1233,7 +1234,7 @@ def test_separated_measurements():
 
 
 def test_state_vector_copy():
-    sim = cirq.Simulator()
+    sim = cirq.Simulator(split_untangled_states=False)
 
     class InplaceGate(cirq.SingleQubitGate):
         """A gate that modifies the target tensor in place, multiply by -1."""

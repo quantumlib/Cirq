@@ -34,7 +34,6 @@ from cirq.sim import (
     state_vector,
     state_vector_simulator,
     act_on_state_vector_args,
-    simulator_base,
 )
 
 if TYPE_CHECKING:
@@ -211,8 +210,8 @@ class Simulator(
     ):
         return SparseSimulatorStep(
             sim_state=sim_state,
+            simulator=self,
             dtype=self._dtype,
-            split_untangled_states=self._split_untangled_states,
         )
 
     def simulate_expectation_values_sweep_iter(
@@ -246,23 +245,20 @@ class Simulator(
 class SparseSimulatorStep(
     state_vector.StateVectorMixin,
     state_vector_simulator.StateVectorStepResult,
-    simulator_base.StepResultBase[
-        state_vector_simulator.StateVectorSimulatorState,
-        act_on_state_vector_args.ActOnStateVectorArgs,
-    ],
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
+        simulator: Simulator,
         dtype: 'DTypeLike' = np.complex64,
-        split_untangled_states: bool = True,
     ):
         """Results of a step of the simulator.
 
         Args:
             sim_state: The qubit:ActOnArgs lookup for this step.
+            simulator: The simulator used to create this.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
         """
@@ -270,7 +266,7 @@ class SparseSimulatorStep(
         super().__init__(sim_state=sim_state, qubit_map=qubit_map)
         self._dtype = dtype
         self._state_vector: Optional[np.ndarray] = None
-        self._split_untangled_states = split_untangled_states
+        self._simulator = simulator
 
     def _simulator_state(self) -> state_vector_simulator.StateVectorSimulatorState:
         return state_vector_simulator.StateVectorSimulatorState(
@@ -327,20 +323,9 @@ class SparseSimulatorStep(
         will be set to lie entirely in the computation basis state for the
         binary expansion of the passed integer.
 
-        Note that this feature is incompatible with the simulation setting
-        `split_untangled_states=True`, and will throw an error if attempted.
-
         Args:
             state: If an int, the state vector set is the state vector
                 corresponding to a computational basis state. If a numpy
                 array this is the full state vector.
         """
-        if self._split_untangled_states:
-            # TODO: Fix in #4110
-            raise ValueError(  # coverage: ignore
-                'Cannot set states when using `split_untangled_states` option.'  # coverage: ignore
-            )  # coverage: ignore
-        update_state = qis.to_valid_state_vector(
-            state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
-        )
-        np.copyto(self._state_vector, update_state)
+        self._sim_state = self._simulator._create_act_on_args(state, self._qubits)

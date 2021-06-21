@@ -28,6 +28,7 @@ from typing import (
     Type,
     Sequence,
     Optional,
+    TypeVar,
 )
 
 import numpy as np
@@ -36,7 +37,6 @@ from cirq import circuits, ops, protocols, study, value, devices
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
-    TStepResult,
     TSimulationTrialResult,
     TSimulatorState,
     TActOnArgs,
@@ -51,9 +51,14 @@ if TYPE_CHECKING:
     import cirq
 
 
+TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
+
+
 class SimulatorBase(
-    Generic[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
-    SimulatesIntermediateState[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
+    Generic[TStepResultBase, TSimulationTrialResult, TSimulatorState, TActOnArgs],
+    SimulatesIntermediateState[
+        TStepResultBase, TSimulationTrialResult, TSimulatorState, TActOnArgs
+    ],
     SimulatesSamples,
     metaclass=abc.ABCMeta,
 ):
@@ -137,7 +142,7 @@ class SimulatorBase(
     def _create_step_result(
         self,
         sim_state: OperationTarget[TActOnArgs],
-    ) -> TStepResult:
+    ) -> TStepResultBase:
         """This method should be implemented to create a step result.
 
         Args:
@@ -174,7 +179,7 @@ class SimulatorBase(
         circuit: circuits.Circuit,
         sim_state: OperationTarget[TActOnArgs],
         all_measurements_are_terminal: bool = False,
-    ) -> Iterator[TStepResult]:
+    ) -> Iterator[TStepResultBase]:
         """Standard iterator over StepResult from Moments of a Circuit.
 
         Args:
@@ -214,7 +219,9 @@ class SimulatorBase(
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
-            yield self._create_step_result(sim_state)
+            step_result = self._create_step_result(sim_state)
+            yield step_result
+            sim_state = step_result._sim_state
             sim_state.log_of_measurement_results.clear()
 
     def _run(

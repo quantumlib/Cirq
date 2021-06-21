@@ -214,8 +214,8 @@ class DensityMatrixSimulator(
     ):
         return DensityMatrixStepResult(
             sim_state=sim_state,
+            simulator=self,
             dtype=self._dtype,
-            split_untangled_states=self._split_untangled_states,
         )
 
     def _create_simulator_trial_result(
@@ -278,29 +278,27 @@ class DensityMatrixStepResult(
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
+        simulator: DensityMatrixSimulator,
         dtype: 'DTypeLike' = np.complex64,
-        split_untangled_states: bool = True,
     ):
         """DensityMatrixStepResult.
 
         Args:
             sim_state: The qubit:ActOnArgs lookup for this step.
+            simulator: The simulator used to create this.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
         """
         super().__init__(sim_state)
         self._dtype = dtype
         self._density_matrix: Optional[np.ndarray] = None
-        self._split_untangled_states = split_untangled_states
+        self._simulator = simulator
 
     def _simulator_state(self) -> 'DensityMatrixSimulatorState':
         return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_mapping)
 
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
         """Set the density matrix to a new density matrix.
-
-        Note that this feature is incompatible with the simulation setting
-        `split_untangled_states=True`, and will throw an error if attempted.
 
         Args:
             density_matrix_repr: If this is an int, the density matrix is set to
@@ -312,20 +310,7 @@ class DensityMatrixStepResult(
             mixed state it must be correctly sized and positive semidefinite
             with trace one.
         """
-        if self._split_untangled_states:
-            # TODO: Fix in #4110
-            raise ValueError(  # coverage: ignore
-                'Cannot set states when using `split_untangled_states` option.'  # coverage: ignore
-            )  # coverage: ignore
-        density_matrix = qis.to_valid_density_matrix(
-            density_matrix_repr,
-            len(self._qubit_mapping),
-            qid_shape=self._qubit_shape,
-            dtype=self._dtype,
-        )
-        sim_state_matrix = self._simulator_state().density_matrix
-        density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)
-        np.copyto(dst=sim_state_matrix, src=density_matrix)
+        self._sim_state = self._simulator._create_act_on_args(density_matrix_repr, self._qubits)
 
     def density_matrix(self, copy=True):
         """Returns the density matrix at this step in the simulation.
