@@ -18,79 +18,91 @@ import {
   createHorizontalChordMeridians,
   createVerticalMeridians,
 } from './components/meridians';
-import {loadAndDisplayText} from './components/text';
+import {generateLabels} from './components/text';
+import {generateVector} from './components/vector';
 
-import {Group} from 'three';
+import {BlochSphereScene} from './components/scene';
+import {Group, Scene, Vector3} from 'three';
 
 /**
  * Class bringinging together the individual components like the
- * Sphere, Axes, Meridicans, and Text into the overall visualization
+ * Sphere, Axes, Meridians, and Text into the overall visualization
  * of the Bloch sphere.
  */
-export class BlochSphere {
+
+export class BlochSphere extends Group {
   private radius: number;
   private group: Group;
 
+  // Pull logic of where labels are into here, and not 
+  // into the bloch sphere
+
+  // Class that contains the default config paramaters, which
+  // are overridable, and then sets up all the components
+  // with the right configuration
+
   constructor(radius = 5) {
+    super();
+
     this.radius = radius;
+    this.userData.radius = radius;
+
     this.group = new Group();
-    this.add3dSphere();
+    this.addSphere();
     this.addHorizontalMeridians();
     this.addVerticalMeridians();
     this.addAxes();
-    this.loadAndDisplayText();
+    this.addLabels();
+
+    return this;
   }
 
   /**
-   * Returns the the group of three.js components that
-   * make up the Bloch sphere.
-   * @returns A Group object of all the added components of the
-   * sphere.
+   * Adds the Bloch sphere to the designated Three.js Scene.
+   * @param scene A Three.js scene object
    */
-  getBlochSphere(): Group {
-    // Return a clone of the group to avoid mutation.
-    return this.group.clone();
+  addToScene(scene: Scene | BlochSphereScene) {
+    scene.add(this);
   }
 
-  /**
-   * Returns the radius of the bloch_sphere.
-   * Used for testing purposes.
-   */
-  getRadius(): number {
-    const radius = this.radius;
-    return radius;
+  public addVector(vectorData?: string) {
+    const vector = generateVector(vectorData);
+    this.add(vector);
   }
 
-  private add3dSphere() {
+  private addSphere() {
     const sphere = createSphere(this.radius);
-    this.group.add(sphere);
+    this.add(sphere);
   }
 
   private addAxes() {
     const axes = generateAxis(this.radius);
-    this.group.add(axes.x);
-    this.group.add(axes.y);
-    this.group.add(axes.z);
+    this.add(axes);
   }
 
   private addHorizontalMeridians() {
-    const meridians = createHorizontalChordMeridians(this.radius);
-    for (const meridian of meridians) {
-      this.group.add(meridian);
-    }
+    const meridians = createHorizontalChordMeridians(this.radius, 7);
+    this.add(meridians);
   }
 
   private addVerticalMeridians() {
-    const meridians = createVerticalMeridians(this.radius);
-    for (const meridian of meridians) {
-      this.group.add(meridian);
-    }
+    const meridians = createVerticalMeridians(this.radius, 4);
+    this.add(meridians);
   }
 
-  private loadAndDisplayText() {
-    const sprites = loadAndDisplayText();
-    for (const sprite of sprites) {
-      this.group.add(sprite);
+  private addLabels() {
+    // Location of labels go's here
+    // label = new Label(text, direction)\
+    const spacing = 0.5;
+    const labels = {
+      '|+⟩' : new Vector3(this.radius + spacing, 0, 0),
+      '|-⟩' : new Vector3(-this.radius - spacing, 0, 0),
+      '|i⟩' : new Vector3(0, 0, -this.radius - spacing),
+      '|-i⟩' : new Vector3(0, 0, this.radius + spacing),
+      '|0⟩' : new Vector3(0, this.radius + spacing, 0),
+      '|1⟩' : new Vector3(0, -this.radius - spacing, 0),
     }
+
+    this.add(generateLabels(labels));
   }
 }

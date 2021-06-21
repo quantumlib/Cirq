@@ -13,8 +13,9 @@
 // limitations under the License.
 
 import {expect} from 'chai';
-import {loadAndDisplayText} from './text';
+import {generateLabels} from './text';
 import {JSDOM} from 'jsdom';
+import {Vector3} from 'three';
 
 /**
  * Using JSDOM to create a global document which the canvas elements
@@ -24,15 +25,20 @@ const {window} = new JSDOM('<!doctype html><html><body></body></html>');
 global.document = window.document;
 
 describe('Text methods', () => {
-  const textItems = loadAndDisplayText();
+  const mock_label = {
+    'test': new Vector3(0, 0, 0),
+  }
+  const labels = generateLabels(mock_label);
 
-  it('returns a list of Sprite objects', () => {
-    for (const text of textItems) {
-      expect(text.type).to.equal('Sprite');
-    }
+  it('returns a type Group as Labels', () => {
+    expect(labels.type).to.equal('Group');
+    expect(labels.constructor.name).to.equal('Labels');
   });
 
-  it('returns 6 valid labels, one for each state', () => {
-    expect(textItems.length).to.equal(6);
+  it('has one child with one label', () => {
+    let children = labels.children;
+    expect(children.length).to.equal(1);
+    expect(children[0].type).to.equal('Sprite');
+    expect(children[0].constructor.name).to.equal('Label');
   });
 });

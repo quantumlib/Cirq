@@ -14,7 +14,6 @@
 
 import {BlochSphereScene} from './components/scene';
 import {BlochSphere} from './bloch_sphere';
-import {createVector} from './components/vector';
 /**
  * Adds a Bloch sphere element with relevant, configurable data for the
  * sphere shape of the Bloch sphere and the state vector displayed with it.
@@ -27,17 +26,22 @@ import {createVector} from './components/vector';
  * @param containerId A string containing the container (div, span, etc.) id that will contain the visualization
  * output.
  */
+
 export function blochSphere(
   circleData: string,
   vectorData?: string,
   containerId?: string
 ) {
-  const inputData = JSON.parse(circleData);
-  const scene = new BlochSphereScene(containerId);
 
-  const bloch_sphere = new BlochSphere(inputData.radius).getBlochSphere();
+  const sphereData = JSON.parse(circleData);
+
+  const scene = new BlochSphereScene();
+  scene.addSceneToHTMLContainer(containerId || 'container');
+
+  const bloch_sphere = new BlochSphere(sphereData.radius);
   scene.add(bloch_sphere);
+  //bloch_sphere.addToScene(scene);
 
-  const vector = createVector(vectorData || undefined);
-  scene.add(vector);
+  bloch_sphere.addVector(vectorData || undefined);
+
 }

@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from 'chai';
+import {assert, expect} from 'chai';
 import {createSphere} from './sphere';
 
 describe('Sphere methods', () => {
   const DEFAULT_RADIUS = 5;
   const sphere = createSphere(DEFAULT_RADIUS);
 
-  it('returns a Mesh', () => {
-    expect(sphere.type).to.equal('Mesh');
+  it('returns a type Group as Sphere', () => {
+    expect(sphere.type).to.equal('Group');
+    expect(sphere.constructor.name).to.equal('Sphere')
   });
 
   it('returns a transparent sphere', () => {
-    expect(sphere.material.transparent).to.equal(true);
+    assert(false, 'Not implemented')
   });
 });

@@ -12,7 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Vector3, LineBasicMaterial, BufferGeometry, Line} from 'three';
+import {Vector3, LineBasicMaterial, BufferGeometry, Line, Group, AxesHelper} from 'three';
+
+class Axes extends Group {
+  constructor(x: Line, y: Line, z: Line){
+    super();
+    this.add(x);
+    this.add(y);
+    this.add(z);
+    return this;
+  }
+}
 
 interface Axis {
   points: [Vector3, Vector3];
@@ -45,11 +55,14 @@ export function generateAxis(
     new Vector3(0, -radius, 0),
     new Vector3(0, radius, 0),
   ];
-  return {
+
+  const axesMap = {
     x: asLine({points: xPoints, hexColor: xAxisColor, lineWidth: LINE_WIDTH}),
     y: asLine({points: yPoints, hexColor: yAxisColor, lineWidth: LINE_WIDTH}),
     z: asLine({points: zPoints, hexColor: zAxisColor, lineWidth: LINE_WIDTH}),
   };
+
+  return new Axes(axesMap.x, axesMap.y, axesMap.z);
 }
 
 function asLine(axis: Axis): Line {

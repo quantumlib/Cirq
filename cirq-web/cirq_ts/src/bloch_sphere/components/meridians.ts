@@ -12,11 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {EllipseCurve, BufferGeometry, LineBasicMaterial, Line} from 'three';
-
+import {EllipseCurve, BufferGeometry, LineBasicMaterial, Line, Group} from 'three';
 enum Orientation {
   HORIZONTAL,
   VERTICAL,
+}
+
+class Meridians extends Group {
+  constructor(){
+    super();
+  }
 }
 
 interface CurveData {
@@ -41,25 +46,47 @@ function curveDataWithRadius(radius: number): CurveData {
   };
 }
 
+function sanitizeCircleInput(input: number, defaultValue: number){
+  // Don't fail if given an invalid number of circles, but print to the console
+  // that it's not allowed
+  if (input < 0) {
+    console.log("A negative number of meridians are not supported. Showing default.");
+    return defaultValue;
+  } else if (input > 300) {
+    console.log("Over 300 meridians are not supported. Showing default.");
+    return defaultValue;
+  }
+
+  return input;
+}
+
 /**
  * Creates the special horizontal meridian lines of the Bloch
  * sphere, each with a different radius and location.
  * @param radius The radius of the overall Bloch sphere
+ * @param numCircles The number of circles displayed. The number must be odd,
+ * if an even number is provided, the function will add one more meridian.
  * @returns A list of circles (represented as Line objects) to draw on the scene
  */
-export function createHorizontalChordMeridians(radius: number): Line[] {
+export function createHorizontalChordMeridians(radius: number, numCircles: number): Meridians {
+  const circles = sanitizeCircleInput(numCircles, 7);
+
+  let nonEquatorCircles: number;
+  circles % 2 !== 0 ? nonEquatorCircles = circles-1 : nonEquatorCircles = circles;
+  const circlesPerHalf = nonEquatorCircles / 2;
+
   // Creates chords proportionally to radius 5 circle.
   const initialFactor = (0.5 * radius) / 5;
 
   const chordYPositions = [0]; // equator
   const topmostChordPos = radius - initialFactor;
-  for (let i = topmostChordPos; i > 0; i -= topmostChordPos / 3) {
+  for (let i = topmostChordPos; i > 0; i -= topmostChordPos / circlesPerHalf) {
     chordYPositions.push(i);
     chordYPositions.push(-i);
   }
 
   // Calculate the lengths of the chords of the circle, and then add them
-  const meridians = [];
+  const meridians = new Meridians();
   for (const position of chordYPositions) {
     const hyp2 = Math.pow(radius, 2);
     const distance2 = Math.pow(position, 2);
@@ -73,7 +100,7 @@ export function createHorizontalChordMeridians(radius: number): Line[] {
       Orientation.HORIZONTAL,
       position
     );
-    meridians.push(meridianLine);
+    meridians.add(meridianLine);
   }
   return meridians;
 }
@@ -84,13 +111,15 @@ export function createHorizontalChordMeridians(radius: number): Line[] {
  * @param radius The radius of the overall Bloch sphere
  * @returns A list of circles (represented as Line objs) to draw on the scene
  */
-export function createHorizontalCircleMeridians(radius: number): Line[] {
+export function createHorizontalCircleMeridians(radius: number, numCircles: number): Meridians {
+  const circles = sanitizeCircleInput(numCircles, 4)
+
   const curveData = curveDataWithRadius(radius);
   const curve = createMeridianCurve(curveData);
-  const meridians = [];
-  for (let i = 0; i < Math.PI; i += Math.PI / 4) {
+  const meridians = new Meridians();
+  for (let i = 0; i < Math.PI; i += Math.PI / circles) {
     const meridianLine = createMeridianLine(curve, i, Orientation.HORIZONTAL);
-    meridians.push(meridianLine);
+    meridians.add(meridianLine);
   }
   return meridians;
 }
@@ -101,7 +130,9 @@ export function createHorizontalCircleMeridians(radius: number): Line[] {
  * @param radius The radius of the overall bloch sphere
  * @returns A list of circles (represented as Line objs) to draw on the scene
  */
-export function createVerticalMeridians(radius: number): Line[] {
+export function createVerticalMeridians(radius: number, numCircles: number): Meridians {
+  const circles = sanitizeCircleInput(numCircles, 4);
+
   const curveData = {
     anchorX: 0,
     anchorY: 0,
@@ -112,11 +143,11 @@ export function createVerticalMeridians(radius: number): Line[] {
     rotation: 0,
   };
 
-  const meridians = [];
-  for (let i = 0; i < Math.PI; i += Math.PI / 4) {
+  const meridians = new Meridians();
+  for (let i = 0; i < Math.PI; i += Math.PI / circles) {
     const curve = createMeridianCurve(curveData);
     const meridianLine = createMeridianLine(curve, i, Orientation.VERTICAL);
-    meridians.push(meridianLine);
+    meridians.add(meridianLine);
   }
   return meridians;
 }

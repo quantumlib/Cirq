@@ -12,57 +12,58 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Vector3, Sprite, Texture, SpriteMaterial} from 'three';
+import {Vector3, Sprite, Texture, SpriteMaterial, Group} from 'three';
 
 /**
  * Displays the state labels onto the bloch sphere.
- * @returns A list of text Mesh objects to be rendered by the scene
+ * @returns A list of text Sprite objects to be rendered by the scene
  */
-export function loadAndDisplayText(): Sprite[] {
-  const resultLabels: Sprite[] = [];
 
-  const labelSize = 0.5;
-  const labelHeight = 0.1;
-  const labels: Map<string, Vector3> = new Map();
 
-  labels.set('|+⟩', new Vector3(5.5, 0, -0.1)); // z proportional to the height
-  labels.set('|-⟩', new Vector3(-5.5 - labelSize, 0, -0.1));
-  labels.set('|-i⟩', new Vector3(0, 0, 5.5));
-  labels.set('|i⟩', new Vector3(0, 0, -5.5 - labelHeight));
-  labels.set('|0⟩', new Vector3(0, 5.5, 0));
-  labels.set('|1⟩', new Vector3(0, -5.5 - labelSize, 0));
 
-  for (const [text, vector] of labels) {
-    const sprite = createSprite(text, vector);
-    resultLabels.push(sprite);
+class Labels extends Group {
+  constructor() {
+    super();
   }
-
-  return resultLabels;
 }
 
-function createSprite(text: string, location: Vector3): Sprite {
-  const size = 256;
+class Label extends Sprite {
+  constructor(text: string, positionVector: Vector3) {
+    const material = createSpriteMaterial(text);
+    super(material);
+    this.position.copy(positionVector);
+    return this;
+  }
+}
+
+export function generateLabels(labels: Object) : Labels {
+  const labelGroup = new Labels();
+
+  for (const [text, location] of Object.entries(labels)) {
+    labelGroup.add(new Label(text, location))
+  }
+
+  return labelGroup;
+}
+
+function createSpriteMaterial(text: string) {
+  const CANVAS_SIZE = 256;
 
   const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = CANVAS_SIZE;
+  canvas.height = CANVAS_SIZE;
 
   const context = canvas.getContext('2d')!;
   context.fillStyle = '#000000';
   context.textAlign = 'center';
   context.font = '120px Arial';
-  context.fillText(text, size / 2, size / 2);
+  context.fillText(text, CANVAS_SIZE / 2, CANVAS_SIZE / 2);
 
   const map = new Texture(canvas);
   map.needsUpdate = true;
 
-  const material = new SpriteMaterial({
+  return new SpriteMaterial({
     map: map,
-    transparent: true,
-  });
-
-  const sprite = new Sprite(material);
-  sprite.position.copy(location);
-
-  return sprite;
+    transparent: true, // for a transparent canvas background
+  })
 }

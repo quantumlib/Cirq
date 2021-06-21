@@ -12,34 +12,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from 'chai';
+import {assert, expect} from 'chai';
 import {
   createHorizontalChordMeridians,
   createVerticalMeridians,
   createHorizontalCircleMeridians,
 } from './meridians';
 
-describe('Meridians methods', () => {
+describe('Meridians', () => {
   const DEFAULT_RADIUS = 5;
+  const DEFAULT_H_MERIDIANS = 7;
+  const DEFAULT_V_MERIDIANS = 4;
 
-  it('createHorizontalChordMeridians() returns an array of Line objects', () => {
-    const meridians = createHorizontalChordMeridians(DEFAULT_RADIUS);
-    for (const meridian of meridians) {
-      expect(meridian.type).to.equal('Line');
-    }
+  describe('defaults', () => {
+    it('createHorizontalChordMeridians() returns type Group from Meridians', () => {
+      const meridians = createHorizontalChordMeridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS);
+      expect(meridians.type).to.equal('Group')
+      expect(meridians.constructor.name).to.equal('Meridians')
+    });
+
+    it('createHorizontalCircleMeridians() returns type Group from Meridians', () => {
+      const meridians = createHorizontalCircleMeridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS);
+      expect(meridians.type).to.equal('Group')
+      expect(meridians.constructor.name).to.equal('Meridians')
+    });
+
+    it('createVerticalMeridians() returns type Group from Meridians', () => {
+      const meridians = createVerticalMeridians(DEFAULT_RADIUS, DEFAULT_V_MERIDIANS);
+      expect(meridians.type).to.equal('Group')
+      expect(meridians.constructor.name).to.equal('Meridians')
+    });
   });
 
-  it('createHorizontalCircleMeridians() returns an array of Line objects', () => {
-    const meridians = createHorizontalCircleMeridians(DEFAULT_RADIUS);
-    for (const meridian of meridians) {
-      expect(meridian.type).to.equal('Line');
-    }
-  });
-
-  it('createVerticalMeridians() returns an array of Line objects', () => {
-    const meridians = createVerticalMeridians(DEFAULT_RADIUS);
-    for (const meridian of meridians) {
-      expect(meridian.type).to.equal('Line');
-    }
-  });
+  describe('configurables', () => {
+    it('change the number of horizontal meridians', () => {
+      const meridians = createHorizontalChordMeridians(DEFAULT_RADIUS, 51);
+      expect(meridians.children.length).to.equal(51);
+    });
+    it('change the number of vertical meridians', () => {
+      const meridians = createVerticalMeridians(DEFAULT_RADIUS, 16);
+      expect(meridians.children.length).to.equal(16);
+    });
+  }); 
 });

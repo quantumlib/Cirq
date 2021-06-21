@@ -13,17 +13,13 @@
 // limitations under the License.
 
 import {expect} from 'chai';
-import {createVector} from './vector';
+import {generateVector} from './vector';
 
 describe('Vector methods', () => {
-  it('returns an ArrowHelper type', () => {
-    const vector = createVector();
-    expect(vector.type).to.equal('ArrowHelper');
-  });
+  const vectors = generateVector(undefined);
 
-  it('can parse correct JSON data', () => {
-    const jsonString = '{"x": 0, "y": 1, "z": 2}';
-    const vector = createVector(jsonString);
-    expect(vector.type).to.equal('ArrowHelper');
+  it('returns type Group as Vectors', () => {
+    expect(vectors.type).to.equal('Group');
+    expect(vectors.constructor.name).to.equal('Vectors');
   });
 });

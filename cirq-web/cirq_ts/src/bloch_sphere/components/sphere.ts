@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {SphereGeometry, MeshNormalMaterial, Mesh} from 'three';
+import {SphereGeometry, MeshNormalMaterial, Mesh, Group} from 'three';
 
+class Sphere extends Group {
+  constructor() {
+    super();
+  }
+}
 /**
  * Generates a sphere Mesh object, which serves as the foundation
  * of the bloch sphere visualization.
@@ -23,16 +28,19 @@ import {SphereGeometry, MeshNormalMaterial, Mesh} from 'three';
 export function createSphere(radius: number) {
   const geometry = new SphereGeometry(radius, 32, 32);
   const properties = {
-    opacity: 0.4,
+    opacity: 0.6,
     transparent: true,
   };
 
   const material = new MeshNormalMaterial(properties);
 
-  const sphere = new Mesh(geometry, material);
+  const mesh = new Mesh(geometry, material);
 
   // Smooth out the shape
-  sphere.geometry.computeVertexNormals();
+  mesh.geometry.computeVertexNormals();
 
+  const sphere = new Sphere();
+  sphere.add(mesh);
+  
   return sphere;
 }

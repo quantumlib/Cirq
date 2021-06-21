@@ -17,23 +17,24 @@ import {generateAxis} from './axes';
 
 describe('Axes methods', () => {
   // Sanity check
-  it('returns an object', () => {
+  it('returns a type Group from Axes', () => {
     const axes = generateAxis(5);
-    assert.typeOf(axes, 'object');
+    expect(axes.type).to.equal('Group')
+    expect(axes.constructor.name).to.equal('Axes')
   });
 
-  it('returns a mapping of Line objects to axis labels', () => {
+  it('returns 3 Line objects', () => {
     const axes = generateAxis(5);
-    expect(axes.x.type).to.equal('Line');
-    expect(axes.y.type).to.equal('Line');
-    expect(axes.z.type).to.equal('Line');
+    const children = axes.children;
+    for(const child of children){
+      expect(child.type).to.equal('Line');
+    }
+    expect(children.length).to.equal(3);
   });
 
   it('has configurable axis colors', () => {
-    // No way access color attribute in three.js, looking into it
     const axes = generateAxis(5, '#fff', '#fff', '#fff');
-    expect(axes.x.type).to.equal('Line');
-    expect(axes.y.type).to.equal('Line');
-    expect(axes.z.type).to.equal('Line');
+    const children = axes.children;
+    assert(false, "Not implemented");
   });
 });

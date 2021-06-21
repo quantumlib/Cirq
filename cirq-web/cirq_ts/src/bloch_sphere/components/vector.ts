@@ -12,34 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ArrowHelper, Vector3} from 'three';
+import {ArrowHelper, Vector3, Group} from 'three';
 
 /**
  * Adds a state vector to the bloch sphere.
  * @param vectorData information representing the location of the vector.
  * @returns an ArrowHelper object to be rendered by the scene.
  */
+
+class Vectors extends Group {
+  constructor(){
+    super();
+  }
+}
+
 interface Vector {
   x: number;
   y: number;
   z: number;
-  v_length: number;
+  length: number;
 }
 
-export function createVector(vectorData?: string): ArrowHelper {
-  let inputData: Vector;
-  if (vectorData) {
-    inputData = JSON.parse(vectorData);
+
+export function generateVector(inputData?: string): Vectors {
+  let vectorData: Vector;
+  if (inputData) {
+    vectorData = JSON.parse(inputData);
   } else {
-    inputData = {
-      x: 0,
-      y: 0,
-      z: 0,
-      v_length: 5,
-    };
+    vectorData = {x: 0, y: 0, z: 0, length: 5,};
   }
 
-  const directionVector = new Vector3(inputData.x, inputData.y, inputData.z);
+  const directionVector = new Vector3(vectorData.x, vectorData.y, vectorData.z);
 
   // Apply a -90 degree correction rotation across the x axis
   // to match coords of Cirq with coords of three.js scene.
@@ -53,7 +56,7 @@ export function createVector(vectorData?: string): ArrowHelper {
 
   // Set base properties of the vector
   const origin = new Vector3(0, 0, 0);
-  const length = inputData.v_length;
+  const length = vectorData.length;
   const hex = '#800080';
   const headWidth = 1;
 
@@ -67,5 +70,8 @@ export function createVector(vectorData?: string): ArrowHelper {
     headWidth
   );
 
-  return arrowHelper;
+  const vectors = new Vectors();
+  vectors.add(arrowHelper);
+
+  return vectors;
 }
