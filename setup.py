@@ -54,7 +54,7 @@ assert __version__, 'Version string cannot be empty'
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
 
 dev_requirements = explode('dev_tools/requirements/deps/dev-tools.txt')
-dev_requirements = [r.strip() for r in dev_requirements]
+dev_requirements = [r.strip() for r in dev_requirements if "git+http" not in r]
 
 setup(
     name=name,
