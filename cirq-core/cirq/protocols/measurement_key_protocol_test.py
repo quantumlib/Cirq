@@ -22,6 +22,7 @@ def test_measurement_key():
         def _measurement_key_(self):
             return 'door locker'
 
+    assert cirq.is_measurement(ReturnsStr())
     assert cirq.measurement_key(ReturnsStr()) == 'door locker'
 
     assert cirq.measurement_key(ReturnsStr(), None) == 'door locker'
@@ -84,6 +85,36 @@ def test_is_measurement():
     assert not cirq.is_measurement(NotImplementedOperation())
 
 
+def test_measurement_without_key():
+    class MeasurementWithoutKey:
+        def _is_measurement_(self):
+            return True
+
+    with pytest.raises(TypeError, match='no measurement keys'):
+        _ = cirq.measurement_key(MeasurementWithoutKey())
+
+    assert cirq.is_measurement(MeasurementWithoutKey())
+
+
+def test_non_measurement_with_key():
+    class NonMeasurementGate(cirq.Gate):
+        def _is_measurement_(self):
+            return False
+
+        def _decompose_(self, qubits):
+            # Decompose should not be called by `is_measurement`
+            assert False
+
+        def _measurement_key_(self):
+            # `measurement_key`` should not be called by `is_measurement`
+            assert False
+
+        def num_qubits(self) -> int:
+            return 2  # coverage: ignore
+
+    assert not cirq.is_measurement(NonMeasurementGate())
+
+
 def test_measurement_keys():
     class Composite(cirq.Gate):
         def _decompose_(self, qubits):
@@ -102,8 +133,10 @@ def test_measurement_keys():
             return 1
 
     a, b = cirq.LineQubit.range(2)
+    assert cirq.is_measurement(Composite())
     assert cirq.measurement_keys(Composite()) == {'inner1', 'inner2'}
     assert cirq.measurement_keys(Composite().on(a, b)) == {'inner1', 'inner2'}
+    assert not cirq.is_measurement(Composite(), allow_decompose=False)
     assert cirq.measurement_keys(Composite(), allow_decompose=False) == set()
     assert cirq.measurement_keys(Composite().on(a, b), allow_decompose=False) == set()
 

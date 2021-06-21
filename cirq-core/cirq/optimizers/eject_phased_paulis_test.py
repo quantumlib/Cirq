@@ -536,3 +536,16 @@ def test_blocked_by_unknown_and_symbols(sym):
         ),
         compare_unitaries=False,
     )
+
+
+def test_zero_x_rotation():
+    a = cirq.NamedQubit('a')
+
+    assert_optimizes(
+        before=quick_circuit(
+            [cirq.rx(0)(a)],
+        ),
+        expected=quick_circuit(
+            [cirq.rx(0)(a)],
+        ),
+    )

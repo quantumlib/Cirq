@@ -1,10 +1,10 @@
-# Copyright 2020 The Cirq Authors. All Rights Reserved.
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -73,6 +73,8 @@ def filter_unwanted_inherited_methods(path, parent, children):
 def main(unused_argv):
     generate_cirq()
     generate_cirq_google()
+    generate_cirq_aqt()
+    generate_cirq_ionq()
 
 
 def generate_cirq():
@@ -89,6 +91,58 @@ def generate_cirq():
     doc_controls.decorate_all_class_attributes(
         doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
     )
+    doc_generator.build(output_dir=FLAGS.output_dir)
+
+
+def generate_cirq_aqt():
+    # This try-catch can go after v0.12 is released
+    try:
+        # should be present in the nightly (pre-release) build
+        import cirq_aqt
+    except ImportError:
+        # as cirq.aqt is under cirq, it should be generated correctly
+        return
+
+    doc_generator = generate_lib.DocGenerator(
+        root_title="Cirq-aqt",
+        py_modules=[("cirq_aqt", cirq_aqt)],
+        base_dir=os.path.dirname(cirq_aqt.__file__),
+        code_url_prefix=FLAGS.code_url_prefix + "/cirq-aqt/cirq_aqt",
+        search_hints=FLAGS.search_hints,
+        site_path=FLAGS.site_path,
+        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        extra_docs=_doc.RECORDED_CONST_DOCS,
+    )
+    doc_controls.decorate_all_class_attributes(
+        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
+    )
+
+    doc_generator.build(output_dir=FLAGS.output_dir)
+
+
+def generate_cirq_ionq():
+    # This try-catch can go after v0.12 is released
+    try:
+        # should be present in the nightly (pre-release) build
+        import cirq_ionq
+    except ImportError:
+        # as cirq.ionq is under cirq, it should be generated correctly
+        return
+
+    doc_generator = generate_lib.DocGenerator(
+        root_title="Cirq_ionq",
+        py_modules=[("cirq_ionq", cirq_ionq)],
+        base_dir=os.path.dirname(cirq_ionq.__file__),
+        code_url_prefix=FLAGS.code_url_prefix + "/cirq-ionq/cirq_ionq",
+        search_hints=FLAGS.search_hints,
+        site_path=FLAGS.site_path,
+        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        extra_docs=_doc.RECORDED_CONST_DOCS,
+    )
+    doc_controls.decorate_all_class_attributes(
+        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
+    )
+
     doc_generator.build(output_dir=FLAGS.output_dir)
 
 

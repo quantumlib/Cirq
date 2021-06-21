@@ -1229,7 +1229,7 @@ def test_phase_corrected_fsim_operations_with_phase_exponent(
     assert corrected.moment_to_calibration == [None, 5, None]
 
 
-def test_zeta_chi_gamma_calibration_for_moments():
+def test_make_zeta_chi_gamma_compensation_for_moments():
     a, b = cirq.LineQubit.range(2)
 
     characterizations = [
@@ -1252,7 +1252,32 @@ def test_zeta_chi_gamma_calibration_for_moments():
         assert calibrated_circuit.moment_to_calibration == [None, 0, None]
 
 
-def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None:
+def test_make_zeta_chi_gamma_compensation_for_moments_circuit():
+    a, b = cirq.LineQubit.range(2)
+
+    characterizations = [
+        PhasedFSimCalibrationResult(
+            parameters={(a, b): SQRT_ISWAP_INV_PARAMETERS},
+            gate=SQRT_ISWAP_INV_GATE,
+            options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+        )
+    ]
+
+    for circuit, expected_moment_to_calibration in [
+        (cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b)), [None, 0, None]),
+        (
+            cirq.Circuit([cirq.Z.on(a), cirq.FSimGate(theta=-np.pi / 4, phi=0.0).on(a, b)]),
+            [None, None, 0, None],
+        ),
+    ]:
+        calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_moments(
+            circuit, characterizations
+        )
+        assert np.allclose(cirq.unitary(circuit), cirq.unitary(calibrated_circuit.circuit))
+        assert calibrated_circuit.moment_to_calibration == expected_moment_to_calibration
+
+
+def test_zmake_zeta_chi_gamma_compensation_for_moments_invalid_argument_fails() -> None:
     a, b, c = cirq.LineQubit.range(3)
 
     with pytest.raises(ValueError):
@@ -1264,6 +1289,11 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
             cirq.Circuit(SQRT_ISWAP_INV_GATE.on(a, b)), [None]
         )
         workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
+
+    with pytest.raises(ValueError):
+        workflow.make_zeta_chi_gamma_compensation_for_moments(
+            cirq.Circuit(SQRT_ISWAP_INV_GATE.on(a, b)), []
+        )
 
     with pytest.raises(ValueError):
         circuit_with_calibration = workflow.CircuitWithCalibration(

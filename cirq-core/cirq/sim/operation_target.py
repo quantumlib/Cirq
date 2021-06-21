@@ -13,7 +13,7 @@
 # limitations under the License.
 """An interface for quantum states as targets for operations."""
 import abc
-from typing import TypeVar, TYPE_CHECKING, Generic, Set, Dict, Any, Tuple, List
+from typing import TypeVar, TYPE_CHECKING, Generic, Dict, Any, Tuple, Optional, Iterator, List
 
 import numpy as np
 
@@ -25,7 +25,7 @@ TSelfTarget = TypeVar('TSelfTarget', bound='OperationTarget')
 TActOnArgs = TypeVar('TActOnArgs', bound='cirq.ActOnArgs')
 
 
-class OperationTarget(Generic[TActOnArgs]):
+class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     """An interface for quantum states as targets for operations."""
 
     @abc.abstractmethod
@@ -58,3 +58,12 @@ class OperationTarget(Generic[TActOnArgs]):
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
         """Samples the state value."""
+
+    def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
+        """Gets the item associated with the qubit."""
+
+    def __len__(self) -> int:
+        """Gets the number of items in the mapping."""
+
+    def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
+        """Iterates the keys of the mapping."""

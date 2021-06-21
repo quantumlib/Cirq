@@ -52,7 +52,7 @@ class SimulatesIntermediateStateVector(
         dtype: Type[np.number] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        split_untangled_states: bool = True,
+        split_untangled_states: bool = False,
     ):
         super().__init__(
             dtype=dtype,
