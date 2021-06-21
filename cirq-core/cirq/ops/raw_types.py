@@ -405,7 +405,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                         )
                 if protocols.num_qubits(self) == len(first_targets):
                     operations.append(self.on(*first_targets))  # type: ignore
-                    targets = targets[self.protocols.num_qubits(self) :]
+                    targets = targets[protocols.num_qubits(self) :]
                 else:
                     raise ValueError(
                         f'Called with {len(targets)} qubits in a {protocols.num_qubits(self)}-qubit'
