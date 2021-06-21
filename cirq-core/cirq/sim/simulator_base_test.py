@@ -104,7 +104,7 @@ class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArg
     ) -> np.ndarray:
         measurements: List[List[int]] = []
         for _ in range(repetitions):
-            measurements.append(self._sim_state._perform_measurement(qubits))
+            measurements.append(self.merged_sim_state._perform_measurement(qubits))
         return np.array(measurements, dtype=int)
 
     def _simulator_state(self) -> CountingActOnArgs:
