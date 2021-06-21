@@ -19,12 +19,13 @@ https://arxiv.org/abs/2002.07730
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union
 
 import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, study, ops, protocols, value
+from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -84,7 +85,7 @@ class MPSSimulator(
             seed=seed,
         )
 
-    def _create_act_on_arg(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
@@ -222,9 +223,16 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
         return np.array(measurements, dtype=int)
 
 
+@value.value_equality
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
+    @deprecated_parameter(
+        deadline='v0.13',
+        fix='No longer needed. `protocols.act_on` infers axes.',
+        parameter_desc='axes',
+        match=lambda args, kwargs: 'axes' in kwargs or len(args) > 6,
+    )
     def __init__(
         self,
         qubits: Sequence['cirq.Qid'],
@@ -305,17 +313,11 @@ class MPSState(ActOnArgs):
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.M, self.simulation_options, self.grouping
 
-    def copy(self) -> 'MPSState':
-        state = MPSState(
-            qubits=self.qubits,
-            prng=self.prng,
-            simulation_options=self.simulation_options,
-            grouping=self.grouping,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
-        )
-        state.M = [x.copy() for x in self.M]
-        state.estimated_gate_error_list = self.estimated_gate_error_list
-        return state
+    def _on_copy(self, target: 'MPSState'):
+        target.simulation_options = self.simulation_options
+        target.grouping = self.grouping
+        target.M = [x.copy() for x in self.M]
+        target.estimated_gate_error_list = self.estimated_gate_error_list
 
     def state_vector(self) -> np.ndarray:
         """Returns the full state vector.
@@ -453,7 +455,7 @@ class MPSState(ActOnArgs):
             raise ValueError('Can only handle 1 and 2 qubit operations')
         return True
 
-    def _act_on_fallback_(self, op: Any, allow_decompose: bool):
+    def _act_on_fallback_(self, op: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         """Delegates the action to self.apply_op"""
         return self.apply_op(op, self.prng)
 
@@ -526,7 +528,6 @@ class MPSState(ActOnArgs):
 
         return results
 
-    def _perform_measurement(self) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
-        qubits = [self.qubits[key] for key in self.axes]
         return self.perform_measurement(qubits, self.prng)

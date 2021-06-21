@@ -23,13 +23,13 @@ class EmptyActOnArgs(cirq.ActOnArgs):
             log_of_measurement_results=logs,
         )
 
-    def _perform_measurement(self) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
         return []
 
     def _on_copy(self, target: 'EmptyActOnArgs'):
         pass
 
-    def _act_on_fallback_(self, action: Any, allow_decompose: bool):
+    def _act_on_fallback_(self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool):
         return True
 
     def _on_join(self, other: 'EmptyActOnArgs', target: 'EmptyActOnArgs'):

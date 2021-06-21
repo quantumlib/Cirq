@@ -431,14 +431,19 @@ def test_tagged_operation():
     assert op.gate == cirq.X
     assert op.with_qubits(q2) == cirq.X(q2).with_tags('tag1')
     assert op.with_qubits(q2).qubits == (q2,)
+    assert not cirq.is_measurement(op)
 
 
 def test_tagged_measurement():
+    assert not cirq.is_measurement(cirq.GlobalPhaseOperation(coefficient=-1.0).with_tags('tag0'))
+
     a = cirq.LineQubit(0)
     op = cirq.measure(a, key='m').with_tags('tag')
+    assert cirq.is_measurement(op)
 
     remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
     assert remap_op.tags == ('tag',)
+    assert cirq.is_measurement(remap_op)
     assert cirq.measurement_keys(remap_op) == {'k'}
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) == op
 
@@ -584,7 +589,7 @@ def test_tagged_operation_forwards_protocols():
     assert cirq.decompose(tagged_h) == cirq.decompose(h)
     assert cirq.pauli_expansion(tagged_h) == cirq.pauli_expansion(h)
     assert cirq.equal_up_to_global_phase(h, tagged_h)
-    assert np.isclose(cirq.channel(h), cirq.channel(tagged_h)).all()
+    assert np.isclose(cirq.kraus(h), cirq.kraus(tagged_h)).all()
 
     assert cirq.measurement_key(cirq.measure(q1, key='blah').with_tags(tag)) == 'blah'
 
@@ -626,7 +631,7 @@ def test_tagged_operation_forwards_protocols():
     flip = cirq.bit_flip(0.5)(q1)
     tagged_flip = cirq.bit_flip(0.5)(q1).with_tags(tag)
     assert cirq.has_mixture(tagged_flip)
-    assert cirq.has_channel(tagged_flip)
+    assert cirq.has_kraus(tagged_flip)
 
     flip_mixture = cirq.mixture(flip)
     tagged_mixture = cirq.mixture(tagged_flip)
@@ -707,14 +712,14 @@ def test_tagged_act_on():
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args):
+        def _act_on_(self, args, qubits):
             return True
 
     class NoActOn(cirq.Gate):
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args):
+        def _act_on_(self, args, qubits):
             return NotImplemented
 
     class MissingActOn(cirq.Operation):
@@ -723,11 +728,14 @@ def test_tagged_act_on():
 
         @property
         def qubits(self):
-            raise NotImplementedError()
+            pass
 
     q = cirq.LineQubit(1)
-    cirq.act_on(YesActOn()(q).with_tags("test"), object())
+    from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+
+    args = DummyActOnArgs()
+    cirq.act_on(YesActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(NoActOn()(q).with_tags("test"), object())
+        cirq.act_on(NoActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(MissingActOn().with_tags("test"), object())
+        cirq.act_on(MissingActOn().with_tags("test"), args)
