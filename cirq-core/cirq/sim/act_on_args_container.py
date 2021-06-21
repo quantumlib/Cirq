@@ -135,8 +135,9 @@ class ActOnArgsContainer(
     ) -> np.ndarray:
         columns = []
         selected_order: List[ops.Qid] = []
+        q_set = set(qubits)
         for v in set(self.args.values()):
-            qs = [q for q in qubits if q in v.qubits]
+            qs = [q for q in v.qubits if q in q_set]
             if any(qs):
                 column = v.sample(qs, repetitions, seed)
                 columns.append(column)
