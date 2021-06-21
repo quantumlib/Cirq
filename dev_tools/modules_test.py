@@ -113,6 +113,10 @@ def test_main():
         modules.main(["list", "--mode", "folder", "--include-parent"])
         assert output.getvalue() == ' '.join(["mod1", "mod2", ".", ""])
 
+    with mock.patch('sys.stdout', new=StringIO()) as output:
+        modules.main(["list", "--mode", "package"])
+        assert output.getvalue() == ' '.join(["pack1", "pack2", ""])
+
 
 @chdir(target_dir=None)
 def test_error():
