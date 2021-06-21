@@ -1058,6 +1058,9 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         If provided gate is equivalent to some PhaseCalibratedFSimGate, returns that gate.
         Otherwise returns None.
     """
+    if cirq.is_parameterized(gate):
+        return None
+
     phi = 0.0
     theta = 0.0
     phase_exponent = 0.0
@@ -1068,8 +1071,6 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         theta = gate.theta
         phi = gate.phi
     elif isinstance(gate, cirq.ISwapPowGate):
-        if not isinstance(gate.exponent, float):
-            return None
         if not np.isclose(np.exp(np.pi * 1j * gate.global_shift * gate.exponent), 1.0):
             return None
         theta = -gate.exponent * np.pi / 2
@@ -1083,18 +1084,10 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         theta = -gate.exponent * np.pi / 2
         phase_exponent = -gate.phase_exponent
     elif isinstance(gate, cirq.ops.CZPowGate):
-        if not isinstance(gate.exponent, float):
-            return None
         if not np.isclose(np.exp(np.pi * 1j * gate.global_shift * gate.exponent), 1.0):
             return None
         phi = -np.pi * gate.exponent
     else:
-        return None
-
-    # Parameterized gates are not supported.
-    if not (
-        isinstance(phi, float) and isinstance(theta, float) and isinstance(phase_exponent, float)
-    ):
         return None
 
     phi = phi % (2 * np.pi)
