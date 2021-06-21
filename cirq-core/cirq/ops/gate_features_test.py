@@ -38,26 +38,6 @@ def test_single_qubit_gate_validate_args():
         g.validate_args([q1, q2])
 
 
-def test_single_qubit_gate_validates_on_each():
-    class Dummy(cirq.SingleQubitGate):
-        def matrix(self):
-            pass
-
-    g = Dummy()
-    assert g.num_qubits() == 1
-
-    test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]
-
-    _ = g.on_each(*test_qubits)
-    _ = g.on_each(test_qubits)
-
-    test_non_qubits = [str(i) for i in range(3)]
-    with pytest.raises(ValueError):
-        _ = g.on_each(*test_non_qubits)
-    with pytest.raises(ValueError):
-        _ = g.on_each(*test_non_qubits)
-
-
 def test_single_qubit_validates_on():
     class Dummy(cirq.SingleQubitGate):
         def matrix(self):
@@ -137,41 +117,6 @@ def test_three_qubit_gate_validate():
         g.validate_args([a, b, c, d])
 
 
-def test_on_each():
-    class CustomGate(cirq.SingleQubitGate):
-        pass
-
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    c = CustomGate()
-
-    assert c.on_each() == []
-    assert c.on_each(a) == [c(a)]
-    assert c.on_each(a, b) == [c(a), c(b)]
-    assert c.on_each(b, a) == [c(b), c(a)]
-
-    assert c.on_each([]) == []
-    assert c.on_each([a]) == [c(a)]
-    assert c.on_each([a, b]) == [c(a), c(b)]
-    assert c.on_each([b, a]) == [c(b), c(a)]
-    assert c.on_each([a, [b, a], b]) == [c(a), c(b), c(a), c(b)]
-
-    with pytest.raises(ValueError):
-        c.on_each('abcd')
-    with pytest.raises(ValueError):
-        c.on_each(['abcd'])
-    with pytest.raises(ValueError):
-        c.on_each([a, 'abcd'])
-
-    def iterator(qubits):
-        for i in range(len(qubits)):
-            yield qubits[i]
-
-    qubit_iterator = iterator([a, b, a, b])
-    assert isinstance(qubit_iterator, Iterator)
-    assert c.on_each(qubit_iterator) == [c(a), c(b), c(a), c(b)]
-
-
 def test_qasm_output_args_validate():
     args = cirq.QasmArgs(version='2.0')
     args.validate_version('2.0')
@@ -229,18 +174,3 @@ def test_multi_qubit_gate_validate():
         g.validate_args([a, b])
     with pytest.raises(ValueError):
         g.validate_args([a, b, c, d])
-
-
-def test_on_each_iterable_qid():
-    class QidIter(cirq.Qid):
-        @property
-        def dimension(self) -> int:
-            return 2
-
-        def _comparison_key(self) -> Any:
-            return 1
-
-        def __iter__(self):
-            raise NotImplementedError()
-
-    assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())

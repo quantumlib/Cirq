@@ -246,7 +246,7 @@ def asymmetric_depolarize(
 
 
 @value.value_equality
-class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
+class DepolarizingChannel(raw_types.Gate):
     """A channel that depolarizes one or several qubits."""
 
     def __init__(self, p: float, n_qubits: int = 1) -> None:

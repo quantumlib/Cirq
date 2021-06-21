@@ -29,6 +29,8 @@ from typing import (
     TypeVar,
     TYPE_CHECKING,
     Union,
+    Iterable,
+    List,
 )
 
 import numpy as np
@@ -374,6 +376,47 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=[])
+
+    def on_each(self, *targets: Union[Qid, Iterable[Any]]) -> List['Operation']:
+        """Returns a list of operations applying the gate to all targets.
+
+        Args:
+            *targets: The qubits to apply this gate to. This can be provided as
+            nested iterables, but each leaf level must contain an exact
+            multiple of `self.num_qubits` qubits.
+
+        Returns:
+            Operations applying this gate to the target qubits.
+
+        Raises:
+            ValueError if targets are not instances of Qid or Iterable[Qid].
+            ValueError if the gate qubit number is incompatible.
+        """
+        operations: List['Operation'] = []
+        while any(targets):
+            if isinstance(targets[0], Qid):
+                first_targets = targets[: self.num_qubits()]
+                for q in first_targets:
+                    if not isinstance(q, Qid):
+                        raise ValueError(
+                            f'Expected {first_targets} to be a sequence of {self.num_qubits}'
+                            f' qubits, but it contained {q} of type: {type(q)}'
+                        )
+                if self.num_qubits() == len(first_targets):
+                    operations.append(self.on(*first_targets))
+                    targets = targets[self.num_qubits() :]
+                else:
+                    raise ValueError(
+                        f'Called with {len(targets)} qubits in a {self.num_qubits()}-qubit gate.'
+                    )
+            elif isinstance(targets[0], Iterable) and not isinstance(targets[0], str):
+                operations.extend(self.on_each(*targets[0]))
+                targets = targets[1:]
+            else:
+                raise ValueError(
+                    f'Gate was called with type different than Qid. Type: {type(targets[0])}'
+                )
+        return operations
 
 
 TSelf = TypeVar('TSelf', bound='Operation')

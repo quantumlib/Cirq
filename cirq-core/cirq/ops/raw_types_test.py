@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet
+from typing import AbstractSet, Any, Iterator
 
 import pytest
 import numpy as np
@@ -739,3 +739,107 @@ def test_tagged_act_on():
         cirq.act_on(NoActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(MissingActOn().with_tags("test"), args)
+
+
+def test_single_qubit_gate_validates_on_each():
+    class Dummy(cirq.SingleQubitGate):
+        def matrix(self):
+            pass
+
+    g = Dummy()
+    assert g.num_qubits() == 1
+
+    test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]
+
+    _ = g.on_each(*test_qubits)
+    _ = g.on_each(test_qubits)
+
+    test_non_qubits = [str(i) for i in range(3)]
+    with pytest.raises(ValueError):
+        _ = g.on_each(*test_non_qubits)
+    with pytest.raises(ValueError):
+        _ = g.on_each(*test_non_qubits)
+
+
+def test_on_each():
+    class CustomGate(cirq.SingleQubitGate):
+        pass
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = CustomGate()
+
+    assert c.on_each() == []
+    assert c.on_each(a) == [c(a)]
+    assert c.on_each(a, b) == [c(a), c(b)]
+    assert c.on_each(b, a) == [c(b), c(a)]
+
+    assert c.on_each([]) == []
+    assert c.on_each([a]) == [c(a)]
+    assert c.on_each([a, b]) == [c(a), c(b)]
+    assert c.on_each([b, a]) == [c(b), c(a)]
+    assert c.on_each([a, [b, a], b]) == [c(a), c(b), c(a), c(b)]
+
+    with pytest.raises(ValueError):
+        c.on_each('abcd')
+    with pytest.raises(ValueError):
+        c.on_each(['abcd'])
+    with pytest.raises(ValueError):
+        c.on_each([a, 'abcd'])
+
+    def iterator(qubits):
+        for i in range(len(qubits)):
+            yield qubits[i]
+
+    qubit_iterator = iterator([a, b, a, b])
+    assert isinstance(qubit_iterator, Iterator)
+    assert c.on_each(qubit_iterator) == [c(a), c(b), c(a), c(b)]
+
+
+def test_on_each_two_qubits():
+    class CustomGate(cirq.TwoQubitGate):
+        pass
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = CustomGate()
+
+    assert c.on_each() == []
+    assert c.on_each(a, b) == [c(a, b)]
+    assert c.on_each(b, a) == [c(b, a)]
+
+    assert c.on_each([]) == []
+    assert c.on_each([a, b]) == [c(a, b)]
+    assert c.on_each([b, a]) == [c(b, a)]
+    assert c.on_each(a, b, a, b) == [c(a, b), c(a, b)]
+    assert c.on_each([[a, b], [[a, b]]]) == [c(a, b), c(a, b)]
+
+    with pytest.raises(ValueError):
+        c.on_each('abcd')
+    with pytest.raises(ValueError):
+        c.on_each(['abcd'])
+    with pytest.raises(ValueError):
+        c.on_each([a, 'abcd'])
+
+    def iterator(qubits):
+        for i in range(len(qubits)):
+            yield qubits[i]
+
+    qubit_iterator = iterator([a, b, a, b])
+    assert isinstance(qubit_iterator, Iterator)
+    assert c.on_each(qubit_iterator) == [c(a, b), c(a, b)]
+
+
+def test_on_each_iterable_qid():
+    class QidIter(cirq.Qid):
+        @property
+        def dimension(self) -> int:
+            return 2
+
+        def _comparison_key(self) -> Any:
+            return 1
+
+        def __iter__(self):
+            raise NotImplementedError()
+
+    assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
