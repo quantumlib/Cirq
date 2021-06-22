@@ -53,9 +53,6 @@ assert __version__, 'Version string cannot be empty'
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
 
-dev_requirements = explode('dev_tools/requirements/deps/dev-tools.txt')
-dev_requirements = [r.strip() for r in dev_requirements]
-
 setup(
     name=name,
     version=__version__,
@@ -64,9 +61,6 @@ setup(
     author_email='cirq-dev@googlegroups.com',
     python_requires='>=3.6.0',
     install_requires=requirements,
-    extras_require={
-        'dev_env': dev_requirements,
-    },
     license='Apache 2',
     description=description,
     long_description=long_description,
