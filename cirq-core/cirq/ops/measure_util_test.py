@@ -26,12 +26,22 @@ def test_measure_qubits():
     with pytest.raises(ValueError, match='empty set of qubits'):
         _ = cirq.measure()
 
-    assert cirq.measure(a) == cirq.MeasurementGate(num_qubits=1, key='a').on(a)
-    assert cirq.measure(a, b) == cirq.MeasurementGate(num_qubits=2, key='a,b').on(a, b)
-    assert cirq.measure(b, a) == cirq.MeasurementGate(num_qubits=2, key='b,a').on(b, a)
+    assert cirq.measure(a) == cirq.MeasurementGate(num_qubits=1, key='').on(a)
+    assert cirq.measure(a) != cirq.measure(a, key='a')
+    assert cirq.measure(a) != cirq.MeasurementGate(num_qubits=1, key='').on(b)
+    assert cirq.measure(a) != cirq.MeasurementGate(num_qubits=1, key='a').on(a)
+    assert cirq.measure(a) == cirq.MeasurementGate(
+        num_qubits=1, key=cirq.MeasurementKey(qubits=(a,))
+    ).on(a)
+    assert cirq.measurement_key(cirq.measure(a)) == 'a'
+    assert cirq.measure(a, b) == cirq.MeasurementGate(num_qubits=2, key='').on(a, b)
+    assert cirq.measurement_key(cirq.measure(a, b)) == 'a,b'
+    assert cirq.measure(b, a) == cirq.MeasurementGate(num_qubits=2, key='').on(b, a)
+    assert cirq.measurement_key(cirq.measure(b, a)) == 'b,a'
     assert cirq.measure(a, key='b') == cirq.MeasurementGate(num_qubits=1, key='b').on(a)
+    assert cirq.measure(a, key='b') != cirq.MeasurementGate(num_qubits=1, key='b').on(b)
     assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(
-        num_qubits=1, key='a', invert_mask=(True,)
+        num_qubits=1, invert_mask=(True,)
     ).on(a)
     assert cirq.measure(*cirq.LineQid.for_qid_shape((1, 2, 3)), key='a') == cirq.MeasurementGate(
         num_qubits=3, key='a', qid_shape=(1, 2, 3)
