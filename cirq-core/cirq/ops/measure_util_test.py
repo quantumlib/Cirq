@@ -27,6 +27,7 @@ def test_measure_qubits():
         _ = cirq.measure()
 
     assert cirq.measure(a) == cirq.MeasurementGate(num_qubits=1, key='').on(a)
+    assert cirq.measure(a) != cirq.measure(a, key='a')
     assert cirq.measure(a) != cirq.MeasurementGate(num_qubits=1, key='').on(b)
     assert cirq.measure(a) != cirq.MeasurementGate(num_qubits=1, key='a').on(a)
     assert cirq.measure(a) == cirq.MeasurementGate(
