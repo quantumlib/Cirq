@@ -41,6 +41,7 @@ from cirq.experiments.xeb_fitting import (
 )
 from cirq_google.api import v2
 from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
+from cirq_google.ops import SycamoreGate
 
 if TYPE_CHECKING:
     import cirq_google
@@ -996,6 +997,13 @@ class PhaseCalibratedFSimGate:
             (cirq.rz(0.5 * gamma - beta).on(a), cirq.rz(0.5 * gamma + beta).on(b)),
         )
 
+    def _unitary_(self) -> np.array:
+        """Implements Cirq's `unitary` protocol for this object."""
+        p = np.exp(-np.pi * 1j * self.phase_exponent)
+        return (
+            np.diag([1, p, 1 / p, 1]) @ cirq.unitary(self.engine_gate) @ np.diag([1, 1 / p, p, 1])
+        )
+
 
 def try_convert_sqrt_iswap_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGate]:
     """Converts an equivalent gate to FSimGate(theta=π/4, phi=0) if possible.
@@ -1038,3 +1046,54 @@ def try_convert_sqrt_iswap_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedF
         return PhaseCalibratedFSimGate(cirq.FSimGate(theta=np.pi / 4, phi=0.0), 0.5)
 
     return None
+
+
+def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGate]:
+    """Converts a gate to equivalent PhaseCalibratedFSimGate if possible.
+
+    Args:
+        gate: Gate to convert.
+
+    Returns:
+        If provided gate is equivalent to some PhaseCalibratedFSimGate, returns that gate.
+        Otherwise returns None.
+    """
+    if cirq.is_parameterized(gate):
+        return None
+
+    phi = 0.0
+    theta = 0.0
+    phase_exponent = 0.0
+    if isinstance(gate, SycamoreGate):
+        phi = np.pi / 6
+        theta = np.pi / 2
+    elif isinstance(gate, cirq.FSimGate):
+        theta = gate.theta
+        phi = gate.phi
+    elif isinstance(gate, cirq.ISwapPowGate):
+        if not np.isclose(np.exp(np.pi * 1j * gate.global_shift * gate.exponent), 1.0):
+            return None
+        theta = -gate.exponent * np.pi / 2
+    elif isinstance(gate, cirq.PhasedFSimGate):
+        if not np.isclose(gate.zeta, 0.0) or not np.isclose(gate.gamma, 0.0):
+            return None
+        theta = gate.theta
+        phi = gate.phi
+        phase_exponent = -gate.chi / (2 * np.pi)
+    elif isinstance(gate, cirq.PhasedISwapPowGate):
+        theta = -gate.exponent * np.pi / 2
+        phase_exponent = -gate.phase_exponent
+    elif isinstance(gate, cirq.ops.CZPowGate):
+        if not np.isclose(np.exp(np.pi * 1j * gate.global_shift * gate.exponent), 1.0):
+            return None
+        phi = -np.pi * gate.exponent
+    else:
+        return None
+
+    phi = phi % (2 * np.pi)
+    theta = theta % (2 * np.pi)
+    if theta >= np.pi:
+        theta = 2 * np.pi - theta
+        phase_exponent = phase_exponent + 0.5
+    phase_exponent %= 1
+    return PhaseCalibratedFSimGate(cirq.FSimGate(theta=theta, phi=phi), phase_exponent)
