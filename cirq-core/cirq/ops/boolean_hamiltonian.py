@@ -253,7 +253,7 @@ def _get_gates_from_hamiltonians(
         theta: A single float scaling the rotations.
         ladder_target: Whether to use convention of figure 7a or 7b of [4]. The two formulations
             yield the same output, but can be simplified differently.
-            For example for 3 qubits, the ladder target would be:
+            For example for 3 qubits, the `ladder_target=True` results in:
             ───@───────────
                │
             ───┼───@───────
