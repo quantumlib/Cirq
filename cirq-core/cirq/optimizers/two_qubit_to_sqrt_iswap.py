@@ -11,7 +11,7 @@ from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops, linalg, protocols
-from cirq.optimizers import two_qubit_decompositions
+from cirq.optimizers import decompositions, two_qubit_decompositions
 
 if TYPE_CHECKING:
     import cirq
@@ -25,9 +25,8 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     required_sqrt_iswap_count: Optional[int] = None,
     atol: float = 1e-8,
     check_preconditions: bool = True,
-    clean_operations: bool = True,
 ) -> Sequence['cirq.Operation']:
-    """Decomposes a two-qubit operation into sqrt-iSWAP and single-qubit gates.
+    """Decomposes a two-qubit operation into ZPow/XPow/YPow/sqrt-iSWAP gates.
 
     All operations can be synthesized with exactly three sqrt-iSWAP gates and
     about 79% of operations (randomly chosen under the Harr measure) can also be
@@ -35,10 +34,6 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     equivalent to identity or sqrt-iSWAP can be synthesized with zero or one
     sqrt-iSWAP respectively.  Unless ``required_sqrt_iswap_count`` is specified,
     the fewest possible number of sqrt-iSWAP will be used.
-
-    By default the single-qubit gates generated will be ``PhasedXPowGate`` and
-    ``ZPowGate``.  If ``clean_operations`` is set to False, ``MatrixGate`` will
-    be output instead.
 
     Args:
         q0: The first qubit being operated on.
@@ -51,8 +46,6 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
             construction.
         check_preconditions: If set, verifies that the input corresponds to a
             4x4 unitary before decomposing.
-        clean_operations: Uses PhasedX and Z gates and cleans the resulting
-            operation list by ejecting Z operations.
 
     Returns:
         A list of operations implementing the matrix including at most three
@@ -74,10 +67,8 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
         mat, atol=atol / 10, rtol=0, check_preconditions=check_preconditions
     )
     operations = _kak_decomposition_to_sqrt_iswap_operations(
-        q0, q1, kak, required_sqrt_iswap_count, include_global_phase=not clean_operations, atol=atol
+        q0, q1, kak, required_sqrt_iswap_count, atol=atol
     )
-    if clean_operations:
-        return two_qubit_decompositions._cleanup_operations(operations)
     return operations
 
 
@@ -86,7 +77,6 @@ def _kak_decomposition_to_sqrt_iswap_operations(
     q1: 'cirq.Qid',
     kak: linalg.KakDecomposition,
     required_sqrt_iswap_count: Optional[int] = None,
-    include_global_phase: bool = False,
     atol: float = 1e-8,
 ) -> Sequence['cirq.Operation']:
     single_qubit_operations, global_phase = _single_qubit_matrices_with_sqrt_iswap(
@@ -97,7 +87,6 @@ def _kak_decomposition_to_sqrt_iswap_operations(
         q1,
         ops.SQRT_ISWAP,
         single_qubit_operations,
-        global_phase if include_global_phase else None,
         atol=atol,
     )
 
@@ -107,27 +96,46 @@ def _decomp_to_operations(
     q1: 'cirq.Qid',
     two_qubit_gate: 'cirq.Gate',
     single_qubit_operations: Sequence[Tuple[np.ndarray, np.ndarray]],
-    global_phase: Optional[complex] = None,
     atol: float = 1e-8,
 ) -> Sequence['cirq.Operation']:
     """Converts a sequence of single-qubit unitary matrices on two qubits into a
     list of operations with interleaved two-qubit gates."""
     two_qubit_op = two_qubit_gate(q0, q1)
     operations = []
-    if global_phase is not None:
-        operations.append(ops.GlobalPhaseOperation(global_phase, atol))
 
-    def append(matrix0, matrix1):
-        operations.append(ops.MatrixGate(matrix0).on(q0))
-        operations.append(ops.MatrixGate(matrix1).on(q1))
+    prev_commute = 1
+    def append(matrix0, matrix1, final_layer=False):
+        nonlocal prev_commute
+        # Commute previous Z(q0)**a, Z(q1)**a through earlier sqrt-iSWAP
+        rots1 = list(decompositions.single_qubit_matrix_to_pauli_rotations(np.dot(matrix1, prev_commute), atol=atol))
+        new_commute = np.eye(2, dtype=matrix0.dtype)
+        if not final_layer:
+            # Commute rightmost Z(q0)**b, Z(q1)**b through next sqrt-iSWAP
+            if len(rots1) > 0 and rots1[-1][0] == ops.Z:
+                _, prev_z = rots1.pop()
+                z_unitary = protocols.unitary(ops.Z ** prev_z)
+                new_commute = new_commute @ z_unitary
+                matrix0 = z_unitary.T.conj() @ matrix0
+            # Commute rightmost whole X(q0), X(q0) or Y, Y through next sqrt-iSWAP
+            if len(rots1) > 0 and linalg.tolerance.near_zero_mod(rots1[-1][1], 1, atol=atol):
+                pauli, half_turns = rots1.pop()
+                p_unitary = protocols.unitary(pauli ** half_turns)
+                new_commute = new_commute @ p_unitary
+                matrix0 = p_unitary.T.conj() @ matrix0
+        rots0 = list(decompositions.single_qubit_matrix_to_pauli_rotations(np.dot(matrix0, prev_commute), atol=atol))
+        # Append single qubit ops
+        operations.extend((pauli ** half_turns).on(q0)
+                          for pauli, half_turns in rots0)
+        operations.extend((pauli ** half_turns).on(q1)
+                          for pauli, half_turns in rots1)
+        prev_commute = new_commute
 
-    iter_ops = iter(single_qubit_operations)
-    for matrix0, matrix1 in iter_ops:
-        append(matrix0, matrix1)  # Append first pair of single qubit gates
-        break
-    for matrix0, matrix1 in iter_ops:
+    single_ops = list(single_qubit_operations)
+    for matrix0, matrix1 in single_ops[:-1]:
+        append(matrix0, matrix1)  # Append pair of single qubit gates
         operations.append(two_qubit_op)  # Append two-qubit gate between each pair
-        append(matrix0, matrix1)  # Append other pairs of single qubit gates
+    for matrix0, matrix1 in single_ops[-1:]:
+        append(matrix0, matrix1, final_layer=True)  # Append final pair of single qubit gates
     return operations
 
 
