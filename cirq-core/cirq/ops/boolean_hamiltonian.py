@@ -251,7 +251,24 @@ def _get_gates_from_hamiltonians(
             _build_hamiltonian_from_boolean().
         qubit_map: map of string (boolean variable name) to qubit.
         theta: A single float scaling the rotations.
-        ladder_target: has the same meaning as on BooleanHamiltonian.
+        ladder_target: Whether to use convention of figure 7a or 7b of [4]. The two formulations
+            yield the same output, but can be simplified differently.
+            For example for 3 qubits, the `ladder_target=True` results in:
+            ───@───────────
+               │
+            ───┼───@───────
+               │   │
+            ───┼───┼───@───
+               │   │   │
+            ───X───X───X───
+            Otherwise, it would be:
+            ───@───────────
+               │
+            ───X───@───────
+                   │
+            ───────X───@───
+                       │
+            ───────────X───
 
     Yields:
         Gates that are the decomposition of the Hamiltonian.
