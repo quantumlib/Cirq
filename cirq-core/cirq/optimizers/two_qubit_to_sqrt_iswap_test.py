@@ -211,11 +211,6 @@ def assert_valid_decomp(
     # Compare unitaries
     c = cirq.Circuit(operations)
     u_decomp = c.unitary(qubit_order)
-    print(c)
-    print('Expected:')
-    print(repr(u_target))
-    print('Actual:')
-    print(repr(u_decomp))
     if not cirq.allclose_up_to_global_phase(u_decomp, u_target, atol=atol, rtol=rtol):
         # Check if they are close and output a helpful message
         cirq.testing.assert_allclose_up_to_global_phase(

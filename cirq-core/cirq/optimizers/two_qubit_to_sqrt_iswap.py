@@ -28,12 +28,16 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
 ) -> Sequence['cirq.Operation']:
     """Decomposes a two-qubit operation into ZPow/XPow/YPow/sqrt-iSWAP gates.
 
+    This method uses the KAK decomposition of the matrix to determine how many
+    sqrt-iSWAP gates are needed and which single-qubit gates to use in between
+    each sqrt-iSWAP.
+
     All operations can be synthesized with exactly three sqrt-iSWAP gates and
     about 79% of operations (randomly chosen under the Harr measure) can also be
     synthesized with two sqrt-iSWAP gates.  Only special cases locally
     equivalent to identity or sqrt-iSWAP can be synthesized with zero or one
-    sqrt-iSWAP respectively.  Unless ``required_sqrt_iswap_count`` is specified,
-    the fewest possible number of sqrt-iSWAP will be used.
+    sqrt-iSWAP gates respectively.  Unless ``required_sqrt_iswap_count`` is
+    specified, the fewest possible number of sqrt-iSWAP will be used.
 
     Args:
         q0: The first qubit being operated on.
@@ -153,32 +157,26 @@ def _single_qubit_matrices_with_sqrt_iswap(
 ) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
     """Computes the sequence of interleaved single-qubit unitary matrices in the
     sqrt-iSWAP decomposition."""
+    decomposers = [
+        (_in_0_region, _decomp_0_matrices),
+        (_in_1sqrt_iswap_region, _decomp_1sqrt_iswap_matrices),
+        (_in_2sqrt_iswap_region, _decomp_2sqrt_iswap_matrices),
+        (_in_3sqrt_iswap_region, _decomp_3sqrt_iswap_matrices),
+    ]
     if required_sqrt_iswap_count is not None:
         if not 0 <= required_sqrt_iswap_count <= 3:
             raise ValueError('the argument `required_sqrt_iswap_count` must be 0, 1, 2, or 3.')
-        if not [
-            _in_0_region,
-            _in_1sqrt_iswap_region,
-            _in_2sqrt_iswap_region,
-            _in_3sqrt_iswap_region,
-        ][required_sqrt_iswap_count](kak.interaction_coefficients, weyl_tol=atol / 10):
+        can_decompose, decomposer = decomposers[required_sqrt_iswap_count]
+        if not can_decompose(kak.interaction_coefficients, weyl_tol=atol / 10):
             raise ValueError(
                 f'the given gate cannot be decomposed into exactly '
                 f'{required_sqrt_iswap_count} sqrt-iSWAP gates.'
             )
-        return [
-            _decomp_0_matrices,
-            _decomp_1sqrt_iswap_matrices,
-            _decomp_2sqrt_iswap_matrices,
-            _decomp_3sqrt_iswap_matrices,
-        ][required_sqrt_iswap_count](kak, atol=atol)
-    if _in_0_region(kak.interaction_coefficients, weyl_tol=atol / 10):
-        return _decomp_0_matrices(kak, atol)
-    elif _in_1sqrt_iswap_region(kak.interaction_coefficients, weyl_tol=atol / 10):
-        return _decomp_1sqrt_iswap_matrices(kak, atol)
-    elif _in_2sqrt_iswap_region(kak.interaction_coefficients, weyl_tol=atol / 10):
-        return _decomp_2sqrt_iswap_matrices(kak, atol)
-    return _decomp_3sqrt_iswap_matrices(kak, atol)
+        return decomposer(kak, atol=atol)
+    for can_decompose, decomposer in decomposers:
+        if can_decompose(kak.interaction_coefficients, weyl_tol=atol / 10):
+            return decomposer(kak, atol)
+    assert False, 'The final can_decompose should always returns True'
 
 
 def _in_0_region(
@@ -238,6 +236,9 @@ def _decomp_0_matrices(
 
     Assumes canonical x, y, z and (x, y, z) = (0, 0, 0) within tolerance.
     """
+    # Pairs of single-qubit unitaries, SQRT_ISWAP between each is implied
+    # Only a single pair of single-qubit unitaries is returned here so
+    # _decomp_to_operations will not insert any sqrt-iSWAP gates in between
     return [
         (
             kak.single_qubit_operations_after[0] @ kak.single_qubit_operations_before[0],
