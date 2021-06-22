@@ -242,18 +242,14 @@ def test_invalid_required_sqrt_iswap_count(cnt):
     u = TWO_SQRT_ISWAP_UNITARIES[0]
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='required_sqrt_iswap_count'):
-        cirq.two_qubit_matrix_to_sqrt_iswap_operations(
-            q0, q1, u, required_sqrt_iswap_count=cnt
-        )
+        cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=cnt)
 
 
 @pytest.mark.parametrize('u', ZERO_UNITARIES)
 def test_decomp0(u):
     # Decompose unitaries into zero sqrt-iSWAP gates
     q0, q1 = cirq.LineQubit.range(2)
-    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(
-        q0, q1, u, required_sqrt_iswap_count=0
-    )
+    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=0)
     assert_valid_decomp(u, ops)
     assert_specific_sqrt_iswap_count(ops, 0)
 
@@ -265,17 +261,13 @@ def test_decomp0_invalid(u):
     # Attempt to decompose other unitaries into zero SQRT_ISWAP gates
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 0 sqrt-iSWAP gates'):
-        cirq.two_qubit_matrix_to_sqrt_iswap_operations(
-            q0, q1, u, required_sqrt_iswap_count=0
-        )
+        cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=0)
 
 
 @pytest.mark.parametrize('u', ONE_SQRT_ISWAP_UNITARIES)
 def test_decomp1(u):
     q0, q1 = cirq.LineQubit.range(2)
-    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(
-        q0, q1, u, required_sqrt_iswap_count=1
-    )
+    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=1)
     assert_valid_decomp(u, ops)
     assert_specific_sqrt_iswap_count(ops, 1)
 
@@ -286,17 +278,13 @@ def test_decomp1(u):
 def test_decomp1_invalid(u):
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 1 sqrt-iSWAP gates'):
-        cirq.two_qubit_matrix_to_sqrt_iswap_operations(
-            q0, q1, u, required_sqrt_iswap_count=1
-        )
+        cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=1)
 
 
 @pytest.mark.parametrize('u', ZERO_UNITARIES + ONE_SQRT_ISWAP_UNITARIES + TWO_SQRT_ISWAP_UNITARIES)
 def test_decomp2(u):
     q0, q1 = cirq.LineQubit.range(2)
-    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(
-        q0, q1, u, required_sqrt_iswap_count=2
-    )
+    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=2)
     assert_valid_decomp(u, ops)
     assert_specific_sqrt_iswap_count(ops, 2)
 
@@ -305,9 +293,7 @@ def test_decomp2(u):
 def test_decomp2_invalid(u):
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 2 sqrt-iSWAP gates'):
-        cirq.two_qubit_matrix_to_sqrt_iswap_operations(
-            q0, q1, u, required_sqrt_iswap_count=2
-        )
+        cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=2)
 
 
 @pytest.mark.parametrize(
@@ -319,9 +305,7 @@ def test_decomp2_invalid(u):
 )
 def test_decomp3(u):
     q0, q1 = cirq.LineQubit.range(2)
-    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(
-        q0, q1, u, required_sqrt_iswap_count=3
-    )
+    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=3)
     assert_valid_decomp(u, ops)
     assert_specific_sqrt_iswap_count(ops, 3)
 
@@ -331,17 +315,13 @@ def test_decomp3_invalid():
     u = cirq.unitary(cirq.X ** 0.2)  # Pass an invalid size unitary
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='Input must correspond to a 4x4 unitary matrix'):
-        cirq.two_qubit_matrix_to_sqrt_iswap_operations(
-            q0, q1, u, required_sqrt_iswap_count=3
-        )
+        cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=3)
 
 
 @pytest.mark.parametrize('u', TWO_SQRT_ISWAP_UNITARIES[:1])
 def test_qubit_order(u):
     q0, q1 = cirq.LineQubit.range(2)
-    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(
-        q1, q0, u, required_sqrt_iswap_count=2
-    )
+    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q1, q0, u, required_sqrt_iswap_count=2)
     assert_valid_decomp(u, ops, qubit_order=(q1, q0))
     assert_specific_sqrt_iswap_count(ops, 2)
 
@@ -402,9 +382,7 @@ def test_valid_check_raises():
     with pytest.raises(
         AssertionError, match='Global phase operation was output when it should not'
     ):
-        assert_valid_decomp(
-            np.eye(4), [cirq.GlobalPhaseOperation(np.exp(1j * 0.01))]
-        )
+        assert_valid_decomp(np.eye(4), [cirq.GlobalPhaseOperation(np.exp(1j * 0.01))])
     with pytest.raises(AssertionError, match='Disallowed operation was output'):
         assert_valid_decomp(
             np.eye(4),

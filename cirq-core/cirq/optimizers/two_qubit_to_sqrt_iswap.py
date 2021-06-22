@@ -11,7 +11,7 @@ from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops, linalg, protocols
-from cirq.optimizers import decompositions, two_qubit_decompositions
+from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
     import cirq
@@ -49,8 +49,8 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
 
     Returns:
         A list of operations implementing the matrix including at most three
-        ``SQRT_ISWAP`` (sqrt-iSWAP) gates, single-qubit gates, and a global
-        phase gate.
+        ``SQRT_ISWAP`` (sqrt-iSWAP) gates and ZPow, XPow, and YPow single-qubit
+        gates.
 
     Raises:
         ValueError:
@@ -79,7 +79,7 @@ def _kak_decomposition_to_sqrt_iswap_operations(
     required_sqrt_iswap_count: Optional[int] = None,
     atol: float = 1e-8,
 ) -> Sequence['cirq.Operation']:
-    single_qubit_operations, global_phase = _single_qubit_matrices_with_sqrt_iswap(
+    single_qubit_operations, _ = _single_qubit_matrices_with_sqrt_iswap(
         kak, required_sqrt_iswap_count, atol=atol
     )
     return _decomp_to_operations(
@@ -104,10 +104,15 @@ def _decomp_to_operations(
     operations = []
 
     prev_commute = 1
+
     def append(matrix0, matrix1, final_layer=False):
         nonlocal prev_commute
         # Commute previous Z(q0)**a, Z(q1)**a through earlier sqrt-iSWAP
-        rots1 = list(decompositions.single_qubit_matrix_to_pauli_rotations(np.dot(matrix1, prev_commute), atol=atol))
+        rots1 = list(
+            decompositions.single_qubit_matrix_to_pauli_rotations(
+                np.dot(matrix1, prev_commute), atol=atol
+            )
+        )
         new_commute = np.eye(2, dtype=matrix0.dtype)
         if not final_layer:
             # Commute rightmost Z(q0)**b, Z(q1)**b through next sqrt-iSWAP
@@ -122,12 +127,14 @@ def _decomp_to_operations(
                 p_unitary = protocols.unitary(pauli ** half_turns)
                 new_commute = new_commute @ p_unitary
                 matrix0 = p_unitary.T.conj() @ matrix0
-        rots0 = list(decompositions.single_qubit_matrix_to_pauli_rotations(np.dot(matrix0, prev_commute), atol=atol))
+        rots0 = list(
+            decompositions.single_qubit_matrix_to_pauli_rotations(
+                np.dot(matrix0, prev_commute), atol=atol
+            )
+        )
         # Append single qubit ops
-        operations.extend((pauli ** half_turns).on(q0)
-                          for pauli, half_turns in rots0)
-        operations.extend((pauli ** half_turns).on(q1)
-                          for pauli, half_turns in rots1)
+        operations.extend((pauli ** half_turns).on(q0) for pauli, half_turns in rots0)
+        operations.extend((pauli ** half_turns).on(q1) for pauli, half_turns in rots1)
         prev_commute = new_commute
 
     single_ops = list(single_qubit_operations)
