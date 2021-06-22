@@ -1,4 +1,81 @@
-"""Runs the Quantum Approximate Optimization Algorithm on Max-Cut."""
+"""Runs the Quantum Approximate Optimization Algorithm on Max-Cut.
+
+=== EXAMPLE CIRCUIT ===
+  x0    x1    x2     x3
+  │     │     │      │
+  H     H     H      H
+  │     │     │      │
+  │     │     Y^-0.5 Y^-0.5
+  │     │     │      │
+  │     @─────@      │
+  │     │     │      │
+  │     │     Y^0.5  │
+  │     │     │      │
+  │     │     Rz(0)  │
+  │     │     │      │
+  │     │     Y^-0.5 │
+  │     │     │      │
+  │     @─────@      │
+  │     │     │      │
+┌╴│     │     │      │     ╶┐
+│ │     │     Y^0.5  │      │
+│ │     @─────┼──────@      │
+└╴│     │     │      │     ╶┘
+  │     │     │      │
+  │     │     Y^-0.5 Y^0.5
+  │     │     │      │
+  @─────┼─────@      Rz(0)
+  │     │     │      │
+  │     │     Y^0.5  Y^-0.5
+  │     │     │      │
+┌╴│     │     │      │     ╶┐
+│ │     │     Rz(0)  │      │
+│ │     @─────┼──────@      │
+└╴│     │     │      │     ╶┘
+  │     │     │      │
+  │     Rx(0) Y^-0.5 Y^0.5
+  │     │     │      │
+  @─────┼─────@      Y^-0.5
+  │     │     │      │
+┌╴│     │     │      │     ╶┐
+│ │     │     Y^0.5  │      │
+│ @─────┼─────┼──────@      │
+└╴│     │     │      │     ╶┘
+  │     │     │      │
+  │     │     Rx(0)  Y^0.5
+  │     │     │      │
+  │     │     │      Rz(0)
+  │     │     │      │
+  │     │     │      Y^-0.5
+  │     │     │      │
+  @─────┼─────┼──────@
+  │     │     │      │
+  Rx(0) │     │      Y^0.5
+  │     │     │      │
+  │     │     │      Rx(0)
+  │     │     │      │
+  M─────M─────M──────M('m')
+  │     │     │      │
+
+=== EXAMPLE OUTPUT ===
+Brute force max cut: 16
+μ=7.80 max=12
+μ=7.40 max=8
+μ=8.60 max=10
+μ=8.00 max=10
+μ=8.80 max=12
+μ=8.20 max=12
+μ=10.00 max=16
+μ=8.00 max=16
+μ=4.40 max=12
+μ=5.80 max=12
+
+   Return from subroutine COBYLA because the MAXFUN limit has been reached.
+
+   NFVALS =   10   F =-1.000000E+01    MAXCV = 0.000000E+00
+   X = 0.000000E+00   1.000000E+00   0.000000E+00   1.000000E+00   0.000000E+00
+       1.000000E+00   0.000000E+00   0.000000E+00   0.000000E+00   0.000000E+00
+"""
 import itertools
 from typing import List
 
