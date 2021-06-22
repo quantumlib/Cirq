@@ -393,32 +393,59 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             ValueError if the gate qubit number is incompatible.
         """
         operations: List['Operation'] = []
-        while any(targets):
-            if isinstance(targets[0], Qid):
-                first_targets = targets[: protocols.num_qubits(self)]
-                for q in first_targets:
-                    if not isinstance(q, Qid):
-                        raise ValueError(
-                            f'Expected {first_targets} to be a sequence of '
-                            f'{protocols.num_qubits(self)} qubits, but it contained {q} of type: '
-                            f'{type(q)}'
-                        )
-                if protocols.num_qubits(self) == len(first_targets):
-                    operations.append(self.on(*first_targets))  # type: ignore
-                    targets = targets[protocols.num_qubits(self) :]
+        if self._num_qubits_() > 1:
+            for target in targets:
+                if not isinstance(target, Sequence):
+                    raise ValueError(
+                        f'Inputs to multi-qubit gates must be Sequence[Qid]. Type: {type(target)}'
+                    )
+                if not all(isinstance(x, Qid) for x in target):
+                    raise ValueError(
+                        f'All values in sequence should be Qids, but got {target}'
+                    )
+                if len(target) != self._num_qubits_():
+                    raise ValueError(
+                        f'Expected {self._num_qubits_()} qubits, got {target}'
+                    )
+                operations.append(self.on(*target))
+        else:
+            for target in targets:
+                if isinstance(target, Qid):
+                    operations.append(self.on(target))
+                elif isinstance(target, Iterable) and not isinstance(target, str):
+                    operations.extend(self.on_each(*target))
                 else:
                     raise ValueError(
-                        f'Called with {len(targets)} qubits in a {protocols.num_qubits(self)}-qubit'
-                        f' gate.'
+                        f'Gate was called with type different than Qid. Type: {type(target)}'
                     )
-            elif isinstance(targets[0], Iterable) and not isinstance(targets[0], str):
-                operations.extend(self.on_each(*targets[0]))
-                targets = targets[1:]
-            else:
-                raise ValueError(
-                    f'Gate was called with type different than Qid. Type: {type(targets[0])}'
-                )
         return operations
+        # operations: List['Operation'] = []
+        # while any(targets):
+        #     if isinstance(targets[0], Qid):
+        #         first_targets = targets[: protocols.num_qubits(self)]
+        #         for q in first_targets:
+        #             if not isinstance(q, Qid):
+        #                 raise ValueError(
+        #                     f'Expected {first_targets} to be a sequence of '
+        #                     f'{protocols.num_qubits(self)} qubits, but it contained {q} of type: '
+        #                     f'{type(q)}'
+        #                 )
+        #         if protocols.num_qubits(self) == len(first_targets):
+        #             operations.append(self.on(*first_targets))  # type: ignore
+        #             targets = targets[protocols.num_qubits(self) :]
+        #         else:
+        #             raise ValueError(
+        #                 f'Called with {len(targets)} qubits in a {protocols.num_qubits(self)}-qubit'
+        #                 f' gate.'
+        #             )
+        #     elif isinstance(targets[0], Iterable) and not isinstance(targets[0], str):
+        #         operations.extend(self.on_each(*targets[0]))
+        #         targets = targets[1:]
+        #     else:
+        #         raise ValueError(
+        #             f'Gate was called with type different than Qid. Type: {type(targets[0])}'
+        #         )
+        # return operations
 
 
 TSelf = TypeVar('TSelf', bound='Operation')

@@ -244,12 +244,15 @@ def test_deprecated_on_each_for_depolarizing_channel_two_qubits():
     q0, q1 = cirq.LineQubit.range(2)
     op = cirq.DepolarizingChannel(p=0.1, n_qubits=2)
 
-    op.on_each(q0, q1)
     op.on_each([q0, q1])
-    with pytest.raises(ValueError, match="Gate was called with type different than Qid"):
-        op.on_each('bogus object 0', 'bogus object 1')
-    with pytest.raises(ValueError, match="Gate was called with type different than Qid"):
+    with pytest.raises(ValueError, match="Inputs to multi-qubit gates must be Sequence"):
+        op.on_each(q0, q1)
+    with pytest.raises(ValueError, match="All values in sequence should be Qids"):
         op.on_each(['bogus object 0', 'bogus object 1'])
+    with pytest.raises(ValueError, match="All values in sequence should be Qids"):
+        op.on_each('01')
+    with pytest.raises(ValueError, match="All values in sequence should be Qids"):
+        op.on_each([False, None])
 
 
 def test_depolarizing_channel_apply_two_qubits():
