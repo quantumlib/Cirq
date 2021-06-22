@@ -17,6 +17,7 @@
 from cirq.protocols.act_on_protocol import (
     act_on,
     SupportsActOn,
+    SupportsActOnQubits,
 )
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
@@ -38,7 +39,7 @@ from cirq.protocols.approximate_equality_protocol import (
     approx_eq,
     SupportsApproximateEquality,
 )
-from cirq.protocols.channel import (
+from cirq.protocols.kraus import (
     channel,
     kraus,
     has_channel,

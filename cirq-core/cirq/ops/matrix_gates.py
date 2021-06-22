@@ -30,7 +30,13 @@ class MatrixGate(raw_types.Gate):
     """A unitary qubit or qudit gate defined entirely by its matrix."""
 
     def __init__(
-        self, matrix: np.ndarray, *, qid_shape: Optional[Iterable[int]] = None, name: str = None
+        self,
+        matrix: np.ndarray,
+        *,
+        name: str = None,
+        qid_shape: Optional[Iterable[int]] = None,
+        unitary_check_rtol: float = 1e-5,
+        unitary_check_atol: float = 1e-8,
     ) -> None:
         """Initializes a matrix gate.
         Args:
@@ -63,7 +69,7 @@ class MatrixGate(raw_types.Gate):
                 f'qid_shape: {self._qid_shape}\n'
             )
 
-        if not linalg.is_unitary(matrix):
+        if not linalg.is_unitary(matrix, rtol=unitary_check_rtol, atol=unitary_check_atol):
             raise ValueError(f'Not a unitary matrix: {self._matrix}')
 
     def _json_dict_(self) -> Dict[str, Any]:

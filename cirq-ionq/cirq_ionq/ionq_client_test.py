@@ -19,7 +19,7 @@ from unittest import mock
 import requests
 import pytest
 
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 
 
 def test_ionq_exception_str():
