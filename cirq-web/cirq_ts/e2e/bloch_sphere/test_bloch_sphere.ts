@@ -68,7 +68,7 @@ const newVectorBrowserContent = `
 // Automatically track and cleanup files on exit
 temp.track();
 
-describe('Check Bloch Sphere looks correct', function() {
+describe('Check Bloch Sphere looks correct', function () {
   // Create the temporary directory first, then run everything.
   temp.mkdir('tmp', (err, dirPath) => {
     const output_path = path.join(dirPath, 'bloch_sphere.png');
