@@ -299,3 +299,26 @@ def test_protocols_and_repr():
     cirq.testing.assert_implements_consistent_protocols(
         cirq.MatrixGate(np.diag([1, 1j, -1]), qid_shape=(3,))
     )
+
+
+def test_matrixgate_unitary_tolerance():
+    ## non-unitary matrix
+    with pytest.raises(ValueError):
+        _ = cirq.MatrixGate(np.array([[1, 0], [0, -0.6]]), unitary_check_atol=0.5)
+
+    # very high atol -> check converges quickly
+    _ = cirq.MatrixGate(np.array([[1, 0], [0, 1]]), unitary_check_atol=1)
+
+    # very high rtol -> check converges quickly
+    _ = cirq.MatrixGate(np.array([[1, 0], [0, -0.6]]), unitary_check_rtol=1)
+
+    ## unitary matrix
+    _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_atol=0.5)
+
+    # very low atol -> the check never converges
+    with pytest.raises(ValueError):
+        _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_atol=1e-10)
+
+    # very low atol -> the check never converges
+    with pytest.raises(ValueError):
+        _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_rtol=1e-10)
