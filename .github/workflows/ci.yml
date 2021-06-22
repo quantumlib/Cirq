@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Misc
         run: check/misc
@@ -36,7 +36,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/deps/format.txt
@@ -49,7 +49,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install mypy
         run: pip install -r dev_tools/requirements/mypy.env.txt
@@ -62,7 +62,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install mypy
         run: pip install -r dev_tools/requirements/mypy.env.txt
@@ -77,7 +77,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
@@ -90,7 +90,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install pylint
         run: pip install -r dev_tools/requirements/deps/pylint.txt
@@ -105,7 +105,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
@@ -120,7 +120,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/deps/tensorflow-docs.txt
@@ -143,7 +143,6 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        # TODO(#3800): remove 3.6 when Colab switches to 3.7
         python-version: [ '3.6', '3.7', '3.8' ]
     runs-on: ubuntu-20.04
     steps:
@@ -167,7 +166,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: |
@@ -183,7 +182,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: |
@@ -204,7 +203,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
@@ -258,7 +257,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-notebooks.env.txt
@@ -276,7 +275,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/notebooks.env.txt
