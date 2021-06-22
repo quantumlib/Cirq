@@ -13,32 +13,31 @@
 // limitations under the License.
 
 import {expect} from 'chai';
-import {Labels} from './text';
+import {Labels, Label} from './text';
 import {JSDOM} from 'jsdom';
 import {Vector3} from 'three';
 
 /**
  * Using JSDOM to create a global document which the canvas elements
- * generated in loadAndDisplayText can be created on.
+ * generated can be created on.
  */
 const {window} = new JSDOM('<!doctype html><html><body></body></html>');
 global.document = window.document;
 
-describe('Text methods', () => {
+describe('Labels', () => {
+  const mockCanvas = document.createElement('canvas');
+  mockCanvas.width = 256;
+  mockCanvas.height = 256;
+
   const mock_label = {
     test: new Vector3(0, 0, 0),
   };
   const labels = new Labels(mock_label);
 
-  it('returns a type Group as Labels', () => {
-    expect(labels.type).to.equal('Group');
-    expect(labels.constructor.name).to.equal('Labels');
-  });
-
-  it('has one child with one label', () => {
-    const children = labels.children;
-    expect(children.length).to.equal(1);
-    expect(children[0].type).to.equal('Sprite');
-    expect(children[0].constructor.name).to.equal('Label');
+  it('successfully generates an arbitrary label at the correct position', () => {
+    const label = labels.children[0] as Label;
+    expect(label.position).to.eql(new Vector3(0, 0, 0));
+    // Need to figure out how to extract text from .fillText() on canvas.
+    // May not be possible.
   });
 });

@@ -32,7 +32,7 @@ const browserContent = `
     <div id="container"></div>
     <script>${bundle_string}</script>
     <script>
-        CirqTS.blochSphere('{"radius": 5}');
+        CirqTS.blochSphere('{"radius": 5}', '{"x": 1,"y": 1, "z": 2, "length": 5}');
     </script>
     </body>
 </html>

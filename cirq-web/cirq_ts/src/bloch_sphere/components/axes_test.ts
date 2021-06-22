@@ -12,27 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {assert, expect} from 'chai';
+import {expect} from 'chai';
 import {Axes} from './axes';
-import {Line, LineBasicMaterial, Color} from 'three';
+import {Line, LineDashedMaterial, Color} from 'three';
 
-describe('Axes methods', () => {
-  it('returns 3 Line objects', () => {
+describe('Axes', () => {
+  describe('defaults', () => {
     const axes = new Axes(5);
-    const children = axes.children;
-    for (const child of children) {
-      expect(child.type).to.equal('Line');
-    }
-    expect(children.length).to.equal(3);
+    const children = axes.children as Line[];
+
+    it('returns 3 Line objects', () => {
+      expect(children.length).to.equal(3);
+    });
+
+    it('returns the correct default colors for each line', () => {
+      const defaultColors = ['#1f51ff', '#ff3131', '#39ff14'];
+
+      children.forEach((el, index) => {
+        const material = el.material as LineDashedMaterial;
+        expect(material.color).to.eql(new Color(defaultColors[index]));
+      });
+    });
+
+    it('returns all lines with a constant linewidth (1.5)', () => {
+      children.forEach(el => {
+        const material = el.material as LineDashedMaterial;
+        expect(material.linewidth).to.equal(1.5);
+      });
+    });
   });
 
-  it('has configurable axis colors', () => {
-    const axes = new Axes(5, '#fff', '#fff', '#fff');
-    const children = axes.children as Line[];
-    for (const child of children) {
-      const material = child.material as LineBasicMaterial;
-      //.eql is deep equal, which can be used to compare objects
-      expect(material.color).to.eql(new Color(1, 1, 1));
-    }
+  describe('configurables', () => {
+    it('has configurable axis colors', () => {
+      const axes = new Axes(5, '#fff', '#fff', '#fff');
+      const children = axes.children as Line[];
+      for (const child of children) {
+        const material = child.material as LineDashedMaterial;
+        //.eql is deep equal, which can be used to compare objects
+        expect(material.color).to.eql(new Color(1, 1, 1));
+      }
+    });
   });
 });

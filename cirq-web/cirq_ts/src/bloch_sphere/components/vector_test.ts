@@ -13,20 +13,25 @@
 // limitations under the License.
 
 import {expect} from 'chai';
+import {ArrowHelper, Vector3} from 'three';
 import {Vector} from './vector';
 
 describe('Vector methods', () => {
-  const vector = new Vector(undefined);
-
-  it('returns type Group as Vector', () => {
-    expect(vector.type).to.equal('Group');
-    expect(vector.constructor.name).to.equal('Vector');
+  describe('defaults', () => {
+    // Example test case
+    const vector = new Vector(undefined);
+    it('Empty vector initializes to the correct values', () => {
+      const nestedVector = vector.children[0] as ArrowHelper;
+      expect(nestedVector.position).to.eql(new Vector3(0, 0, 0));
+    });
   });
 
-  it('Empty vector initializes to the correct values', () => {
-    expect(vector.x).to.equal(0);
-    expect(vector.y).to.equal(0);
-    expect(vector.z).to.equal(0);
-    expect(vector.length).to.equal(5);
+  describe('configurables', () => {
+    // Example test case
+    const vector = new Vector('{"x": 1,"y": 1, "z": 2, "length": 5}');
+    it('Mocked vector initializes to the correct values', () => {
+      const nestedVector = vector.children[0] as ArrowHelper;
+      expect(nestedVector.position).to.eql(new Vector3(0, 0, 0));
+    });
   });
 });

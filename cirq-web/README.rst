@@ -3,7 +3,7 @@
 `Cirq <https://quantumai.google/cirq>`__ is a Python library for writing, manipulating, and optimizing quantum
 circuits and running them against quantum computers and simulators.
 
-This module is **cirq-web**, which allows users to take advantage of Typescript-based 3d visualization tools
+This module is **cirq-web**, which allows users to take advantage of browser based 3d visualization tools
 and features in Cirq. cirq-web also provides a development environment for contributors to create and add 
 their own visualizations to the module.
 

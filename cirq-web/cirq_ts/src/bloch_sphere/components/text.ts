@@ -14,9 +14,19 @@
 
 import {Vector3, Sprite, Texture, SpriteMaterial, Group} from 'three';
 
+/**
+ * Generates and groups together many Labels. This should be used when generating
+ * labels for dedicated visualizations.
+ */
 export class Labels extends Group {
   readonly labels: Object;
 
+  /**
+   * Class constructor.
+   * @param labels An object mapping the desired text to be rendered with its location on the scene
+   * @returns an instance of the class containing all of the generated labels. All labels can
+   * be added to the Bloch sphere instance as well as the scene.
+   */
   constructor(labels: Object) {
     super();
     this.labels = labels;
@@ -32,7 +42,12 @@ export class Labels extends Group {
   }
 }
 
-class Label extends Sprite {
+/**
+ * Creates a Sprite rendering of text which can be added to the visualization.
+ * For dedicated visualizations, all Labels should be grouped together and created
+ * by using the Labels constructor.
+ */
+export class Label extends Sprite {
   constructor(text: string, positionVector: Vector3) {
     const material = createSpriteMaterial(text);
     super(material);
@@ -41,6 +56,11 @@ class Label extends Sprite {
   }
 }
 
+/**
+ * Turns text into a Sprite.
+ * @param text The text you want to turn into a Sprite.
+ * @returns A SpriteMaterial that can be rendered by three.js
+ */
 function createSpriteMaterial(text: string) {
   const CANVAS_SIZE = 256;
 

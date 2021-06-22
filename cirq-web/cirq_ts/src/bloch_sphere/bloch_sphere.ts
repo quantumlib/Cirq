@@ -27,22 +27,24 @@ import {Group, Scene, Vector3} from 'three';
  * Sphere, Axes, Meridians, and Text into the overall visualization
  * of the Bloch sphere.
  */
-
 export class BlochSphere extends Group {
   private radius: number;
+  private hMeridians: number;
+  private vMeridians: number;
 
-  // Pull logic of where labels are into here, and not
-  // into the bloch sphere
-
-  // Class that contains the default config paramaters, which
-  // are overridable, and then sets up all the components
-  // with the right configuration
-
-  constructor(radius = 5) {
+  /**
+   * Class constructor.
+   * @param radius The radius of the Bloch sphere
+   * @param hMeridians The number of horizontal meridians desired for the Bloch sphere.
+   * @param vMeridians The number of vertical meridians desired for the Bloch sphere.
+   * @returns An instance of the class which can be easily added to a scene.
+   */
+  constructor(radius = 5, hMeridians = 7, vMeridians = 4) {
     super();
 
     this.radius = radius;
-    this.userData.radius = radius;
+    this.hMeridians = hMeridians;
+    this.vMeridians = vMeridians;
 
     this.addSphere();
     this.addHorizontalMeridians();
@@ -61,6 +63,12 @@ export class BlochSphere extends Group {
     scene.add(this);
   }
 
+  /**
+   * Adds a vector to the Bloch sphere based on information from a
+   * JSON string
+   * @param vectorData A JSON string reprensenting the location of
+   * the vector.
+   */
   public addVector(vectorData?: string) {
     const vector = new Vector(vectorData);
     this.add(vector);
@@ -79,14 +87,18 @@ export class BlochSphere extends Group {
   private addHorizontalMeridians() {
     const meridians = new Meridians(
       this.radius,
-      7,
+      this.hMeridians,
       Orientation.HORIZONTAL_CHORD
     );
     this.add(meridians);
   }
 
   private addVerticalMeridians() {
-    const meridians = new Meridians(this.radius, 4, Orientation.VERTICAL);
+    const meridians = new Meridians(
+      this.radius,
+      this.vMeridians,
+      Orientation.VERTICAL
+    );
     this.add(meridians);
   }
 

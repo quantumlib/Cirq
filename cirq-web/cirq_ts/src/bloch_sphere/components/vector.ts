@@ -12,14 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ArrowHelper, Vector3, Group} from 'three';
+import {ArrowHelper, Vector3, Group, LineBasicMaterial} from 'three';
 
+/**
+ * Generates a vector to add to the Bloch sphere. The length and direction of the vector are configurable.
+ */
 export class Vector extends Group {
   readonly length: number;
   readonly x: number;
   readonly y: number;
   readonly z: number;
 
+  /**
+   * Class constructor.
+   * @param vectorData A JSON string containing information used to build the vector.
+   * @returns An instance of the class containing the generated vector. This can be
+   * added to the Bloch sphere instance as well as the scene.
+   */
   constructor(vectorData?: string) {
     super();
 
@@ -44,8 +53,10 @@ export class Vector extends Group {
    * Generates a vector starting at (0, 0) and ending at the coordinates
    * of the given parameters, and adds to group.
    * Utilizes three.js ArrowHelper function generate the vector.
-   *
-   * @param vectorData information representing the location of the vector.
+   * @param x The x coordinate of the vector tip.
+   * @param y The y coordinate of the vector tip.
+   * @param z The z coordinate of the vector tip.
+   * @param length The length of the vector.
    */
   private generateVector(x: number, y: number, z: number, length: number) {
     const directionVector = new Vector3(x, y, z);
@@ -74,6 +85,9 @@ export class Vector extends Group {
       undefined,
       headWidth
     );
+
+    const arrowLine = arrowHelper.line.material as LineBasicMaterial;
+    arrowLine.linewidth = 20;
 
     this.add(arrowHelper);
   }

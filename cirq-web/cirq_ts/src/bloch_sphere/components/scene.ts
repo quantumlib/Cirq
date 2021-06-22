@@ -19,21 +19,16 @@ export class BlochSphereScene extends Scene {
   private static readonly VIZ_WIDTH: number = 500;
   private static readonly VIZ_HEIGHT: number = 500;
 
-  /**
-   * The following declarations represent the Camera, Renderer,
-   * and Controls objects for the scene.
-   * camera - the Three.js camera object responsible for seeing the
-   *  visualization from different locations
-   * renderer - the Three.js renderer object resposible for rendering
-   *  the visualization into the browser. We will be using the WebGL
-   * renderer
-   * controls - the Three.js OrbitControls object reponsible for managing
-   *  mouse input and moving the camera, zooming in and out, etc.
-   * containerId - the id of the HTML container (<div>, <span>, etc.)
-   *  that will contain the scene output
-   */
+  // The Three.js camera object responsible for seeing the
+  // visualization from different locations
   camera: Camera;
+
+  // The Three.js renderer object resposible for rendering
+  // the visualization into the browser. We will be using the WebGL renderer
   renderer: WebGLRenderer;
+
+  // The Three.js OrbitControls object reponsible for managing
+  // mouse input and moving the camera, zooming in and out, etc.
   controls: OrbitControls;
 
   /**
@@ -43,6 +38,7 @@ export class BlochSphereScene extends Scene {
    * @param aspect The aspect ratio for the Scene's Perspective Camera
    * @param near The near plane for the Scene's Perspective Camera
    * @param far The far plane for the Scene's Perspective Camera
+   * @returns An instance of the scene.
    */
   public constructor(
     fov = 75,
@@ -84,7 +80,7 @@ export class BlochSphereScene extends Scene {
     this.camera.position.z = 2;
 
     this.setUpControls();
-    this.setRenderSize();
+    this.setRenderSize(BlochSphereScene.VIZ_WIDTH, BlochSphereScene.VIZ_HEIGHT);
     this.animate();
   }
 
@@ -107,10 +103,7 @@ export class BlochSphereScene extends Scene {
    * @param width The desired width of the rendering canvas.
    * @param height The desired height of the rendering canvas.
    */
-  public setRenderSize(
-    width: number = BlochSphereScene.VIZ_WIDTH,
-    height: number = BlochSphereScene.VIZ_HEIGHT
-  ) {
+  public setRenderSize(width: number, height: number) {
     this.renderer.setSize(width, height);
   }
 

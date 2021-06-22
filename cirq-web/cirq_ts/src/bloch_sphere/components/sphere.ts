@@ -14,12 +14,21 @@
 
 import {SphereGeometry, MeshNormalMaterial, Mesh, Group} from 'three';
 
+/**
+ * Generates the sphere shape of the Bloch sphere. The radius is configurable.
+ */
 export class Sphere extends Group {
   readonly radius: number;
 
+  /**
+   * Class constructor
+   * @param radius the desired radius of the sphere
+   * @returns An instance of the class containing the generated sphere. This can be
+   * added to the Bloch sphere instance as well as the scene.
+   */
   constructor(radius: number) {
     super();
-    this.radius = radius;
+    this.radius = this.sanitizeRadiusInput(radius);
 
     this.createSphere(this.radius);
     return this;
@@ -27,7 +36,7 @@ export class Sphere extends Group {
 
   /**
    * Generates a sphere Mesh object, which serves as the foundation
-   * of the bloch sphere visualization, adding the mesh object
+   * of the Bloch sphere visualization, adding the mesh object
    * to the group.
    * @param radius The desired radius of the overall bloch sphere.
    */
@@ -46,5 +55,16 @@ export class Sphere extends Group {
     mesh.geometry.computeVertexNormals();
 
     this.add(mesh);
+  }
+
+  private sanitizeRadiusInput(radius: number) {
+    if (radius < 1) {
+      console.warn(
+        'The radius must be greater than or equal to 1. Showing default.'
+      );
+      return 5;
+    } else {
+      return Math.ceil(radius);
+    }
   }
 }

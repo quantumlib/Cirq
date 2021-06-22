@@ -14,6 +14,7 @@
 
 import {BlochSphereScene} from './components/scene';
 import {BlochSphere} from './bloch_sphere';
+
 /**
  * Adds a Bloch sphere element with relevant, configurable data for the
  * sphere shape of the Bloch sphere and the state vector displayed with it.
@@ -26,7 +27,6 @@ import {BlochSphere} from './bloch_sphere';
  * @param containerId A string containing the container (div, span, etc.) id that will contain the visualization
  * output.
  */
-
 export function blochSphere(
   circleData: string,
   vectorData?: string,

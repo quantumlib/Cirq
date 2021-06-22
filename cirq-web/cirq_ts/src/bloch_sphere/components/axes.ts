@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Vector3, LineBasicMaterial, BufferGeometry, Line, Group} from 'three';
+import {Vector3, LineDashedMaterial, BufferGeometry, Line, Group} from 'three';
 
 interface Axis {
   points: [Vector3, Vector3];
@@ -20,12 +20,25 @@ interface Axis {
   readonly lineWidth: number;
 }
 
+/**
+ * Generates the axes for the Bloch sphere. The radius
+ * (length of the axes) and color of each axis are configurable.
+ */
 export class Axes extends Group {
   readonly radius: number;
   readonly xAxisColor: string;
   readonly yAxisColor: string;
   readonly zAxisColor: string;
 
+  /**
+   * Class constructor.
+   * @param radius The radius of the circle the axes will belong to. This should be the same as the sphere.
+   * @param xAxisColor The color of the x axis as a string.
+   * @param yAxisColor The color of the y axis as a string.
+   * @param zAxisColor The color of the z axis as a string.
+   * @returns An instance of the class containing the generated axes. This can be easily
+   * added to the Bloch sphere instance, or the scene itself.
+   */
   constructor(
     radius: number,
     xAxisColor = '#1f51ff',
@@ -51,6 +64,9 @@ export class Axes extends Group {
    * Creates the x, y, and z axis for the Bloch sphere, adding
    * them to the group.
    * @param radius The overall radius of the bloch sphere.
+   * @param xAxisColor The color of the x axis as string.
+   * @param yAxisColor The color of the z axis as string.
+   * @param zAxisColor The color of the z axis as string.
    */
   private generateAxes(
     radius: number,
@@ -98,7 +114,13 @@ export class Axes extends Group {
   private asLine(axis: Axis): Line {
     return new Line(
       new BufferGeometry().setFromPoints(axis.points),
-      new LineBasicMaterial({color: axis.hexColor, linewidth: axis.lineWidth})
-    );
+      new LineDashedMaterial({
+        color: axis.hexColor,
+        linewidth: axis.lineWidth,
+        scale: 1,
+        dashSize: 0.1,
+        gapSize: 0.1,
+      })
+    ).computeLineDistances();
   }
 }
