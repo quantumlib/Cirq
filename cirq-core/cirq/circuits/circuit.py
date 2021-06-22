@@ -883,11 +883,21 @@ class AbstractCircuit(abc.ABC):
         """
         return (op for moment in self for op in moment.operations)
 
-    def map_ops(
+    def map_operations(
         self: CIRCUIT_TYPE, func: Callable[['cirq.Operation'], 'cirq.OP_TREE']
     ) -> CIRCUIT_TYPE:
+        """Applies the given function to all operations in this circuit.
+
+        Args:
+            func: a mapping function from operations to OP_TREEs.
+
+        Returns:
+            A circuit with the same basic structure as the original, but with
+            each operation `op` replaced with `func(op)`.
+        """
+
         def map_moment(moment: 'cirq.Moment') -> 'cirq.Circuit':
-            # Apply func to expand each op into a circuit, then zip up the circuits.
+            """Apply func to expand each op into a circuit, then zip up the circuits."""
             return Circuit.zip(*[Circuit(func(op)) for op in moment])
 
         return self._with_sliced_moments(m for moment in self for m in map_moment(moment))

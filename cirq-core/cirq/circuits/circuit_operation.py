@@ -186,6 +186,17 @@ class CircuitOperation(ops.Operation):
         }
 
     def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
+        """Applies all maps to the cotained circuit and returns the result.
+
+        Args:
+            deep: If true, this will also call mapped_circuit on any
+            CircuitOperations this object contains.
+
+        Returns:
+            The contained circuit with all other member variables (repetitions,
+            qubit mapping, parameterization, etc.) applied to it. This behaves
+            like `cirq.decompose(self)`, but preserving moment structure.
+        """
         circuit = self.circuit.unfreeze()
         circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
         if self.repetitions < 0:
@@ -196,40 +207,39 @@ class CircuitOperation(ops.Operation):
         circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if deep:
 
-            def remap_op_fn(op: 'cirq.Operation'):
-                if isinstance(op, CircuitOperation):
-                    return op.mapped_circuit(deep=True)
-                return op
+            def map_deep(op: 'cirq.Operation') -> 'cirq.OP_TREE':
+                return op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
 
-            mapped_circuit = circuit.map_ops(remap_op_fn)
             if self.repetition_ids is None:
-                return mapped_circuit
+                return circuit.map_operations(map_deep)
             if not has_measurements:
-                return mapped_circuit * abs(self.repetitions)
+                return circuit.map_operations(map_deep) * abs(self.repetitions)
 
             # Path must be constructed from the top down.
             rekeyed_circuit = circuits.Circuit(
                 protocols.with_key_path(circuit, self.parent_path + (rep,))
                 for rep in self.repetition_ids
             )
-            return rekeyed_circuit.map_ops(remap_op_fn)
+            return rekeyed_circuit.map_operations(map_deep)
 
         if self.repetition_ids is None:
             return circuit
         if not has_measurements:
             return circuit * abs(self.repetitions)
 
-        def func(op: 'cirq.Operation', rep: str):
+        def rekey_op(op: 'cirq.Operation', rep: str):
+            """Update measurement keys in `op` to include repetition ID `rep`."""
             rekeyed_op = protocols.with_key_path(op, self.parent_path + (rep,))
             if rekeyed_op is NotImplemented:
                 return op
             return rekeyed_op
 
         return circuits.Circuit(
-            circuit.map_ops(lambda op: func(op, rep)) for rep in self.repetition_ids
+            circuit.map_operations(lambda op: rekey_op(op, rep)) for rep in self.repetition_ids
         )
 
     def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
+        """As `mapped_circuit`, but wraps the result in a CircuitOperation."""
         return CircuitOperation(circuit=self.mapped_circuit(deep=deep).freeze())
 
     def _decompose_(self) -> 'cirq.OP_TREE':

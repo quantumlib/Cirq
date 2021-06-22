@@ -693,9 +693,7 @@ def test_decompose_nested():
     )
     assert cirq.Circuit(cirq.decompose(final_op)) == expected_circuit
     # Verify that mapped_circuit gives the same operations.
-    assert list(final_op.mapped_circuit(deep=True).all_operations()) == list(
-        expected_circuit.all_operations()
-    )
+    assert final_op.mapped_circuit(deep=True) == expected_circuit
 
 
 def test_decompose_repeated_nested_measurements():
@@ -747,9 +745,7 @@ def test_decompose_repeated_nested_measurements():
     assert cirq.measurement_keys(expected_circuit) == set(expected_measurement_keys_in_order)
 
     # Verify that mapped_circuit gives the same operations.
-    assert list(op3.mapped_circuit(deep=True).all_operations()) == list(
-        expected_circuit.all_operations()
-    )
+    assert op3.mapped_circuit(deep=True) == expected_circuit
 
 
 def test_mapped_circuit_preserves_moments():
