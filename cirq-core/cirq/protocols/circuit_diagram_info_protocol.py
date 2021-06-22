@@ -157,10 +157,10 @@ class CircuitDiagramInfo:
     ) -> 'cirq.CircuitDiagramInfo':
         info = protocols.circuit_diagram_info(op, args, None)
         if info is not None:
-            if len(op.qubits) != len(info.wire_symbols):
+            if max(1, len(op.qubits)) != len(info.wire_symbols):
                 raise ValueError(
-                    'Wanted diagram info from {!r} for {} '
-                    'qubits but got {!r}'.format(op, len(op.qubits), info)
+                    f'Wanted diagram info from {op!r} for {len(op.qubits)} '
+                    f'qubits but got {info!r}'
                 )
             return info
 
