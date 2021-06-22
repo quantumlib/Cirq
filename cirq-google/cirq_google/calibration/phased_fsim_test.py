@@ -18,6 +18,7 @@ from unittest import mock
 import numpy as np
 import pandas as pd
 import pytest
+import sympy
 from google.protobuf import text_format
 
 import cirq
@@ -35,6 +36,7 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
+    try_convert_gate_to_fsim,
     try_convert_sqrt_iswap_to_fsim,
     XEBPhasedFSimCalibrationRequest,
     XEBPhasedFSimCalibrationOptions,
@@ -874,3 +876,95 @@ def test_options_phase_corrected_override():
         ).zeta_chi_gamma_correction_override()
         == PhasedFSimCharacterization()
     )
+
+
+def test_try_convert_gate_to_fsim():
+    def check(gate: cirq.Gate, expected: PhaseCalibratedFSimGate):
+        assert np.allclose(cirq.unitary(gate), cirq.unitary(expected))
+        assert try_convert_gate_to_fsim(gate) == expected
+
+    check(
+        cirq.FSimGate(theta=0.3, phi=0.5),
+        PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.3, phi=0.5), 0.0),
+    )
+
+    check(
+        cirq.FSimGate(7 * np.pi / 4, 0.0),
+        PhaseCalibratedFSimGate(cirq.FSimGate(np.pi / 4, 0.0), 0.5),
+    )
+
+    check(
+        cirq.ISwapPowGate(exponent=-0.5),
+        PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.25 * np.pi, phi=0.0), 0.0),
+    )
+
+    check(
+        cirq.ops.ISwapPowGate(exponent=0.8, global_shift=2.5),
+        PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.4 * np.pi, phi=0.0), 0.5),
+    )
+
+    gate = cirq.ops.ISwapPowGate(exponent=0.3, global_shift=0.4)
+    assert try_convert_gate_to_fsim(gate) is None
+
+    check(
+        cirq.PhasedFSimGate(theta=0.2, phi=0.5, chi=1.5 * np.pi),
+        PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.2, phi=0.5), 0.25),
+    )
+
+    gate = cirq.PhasedFSimGate(theta=0.2, phi=0.5, zeta=1.5 * np.pi)
+    assert try_convert_gate_to_fsim(gate) is None
+
+    check(
+        cirq.PhasedISwapPowGate(exponent=-0.5, phase_exponent=0.75),
+        PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.25 * np.pi, phi=0.0), 0.25),
+    )
+
+    check(cirq.CZ, PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.0, phi=np.pi), 0.0))
+
+    check(
+        cirq.ops.CZPowGate(exponent=0.3),
+        PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.0, phi=-0.3 * np.pi), 0.0),
+    )
+
+    check(
+        cirq.ops.CZPowGate(exponent=0.8, global_shift=2.5),
+        PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.0, phi=-0.8 * np.pi), 0.0),
+    )
+
+    gate = cirq.ops.CZPowGate(exponent=0.3, global_shift=0.4)
+    assert try_convert_gate_to_fsim(gate) is None
+
+    check(
+        cirq_google.ops.SYC,
+        PhaseCalibratedFSimGate(cirq.FSimGate(phi=np.pi / 6, theta=np.pi / 2), 0.0),
+    )
+
+    assert try_convert_gate_to_fsim(cirq.CX) is None
+
+    # Parameterized gates are not supported.
+    x = sympy.Symbol('x')
+    assert try_convert_gate_to_fsim(cirq.ops.ISwapPowGate(exponent=x)) is None
+    assert try_convert_gate_to_fsim(cirq.PhasedFSimGate(theta=x)) is None
+    assert try_convert_gate_to_fsim(cirq.PhasedISwapPowGate(exponent=x)) is None
+    assert try_convert_gate_to_fsim(cirq.CZPowGate(exponent=x)) is None
+
+
+# Test that try_convert_gate_to_fsim is extension of try_convert_sqrt_iswap_to_fsim.
+# In other words, that both function return the same result for all gates on which
+# try_convert_sqrt_iswap_to_fsim is defined.
+# TODO: instead of having multiple gate translators, we should have one, the most general, and
+# restrict it to different gate sets.
+def test_gate_translators_are_consistent():
+    def check(gate):
+        result1 = try_convert_gate_to_fsim(gate)
+        result2 = try_convert_sqrt_iswap_to_fsim(gate)
+        assert result1 == result2
+        assert result1 is not None
+
+    check(cirq.FSimGate(theta=np.pi / 4, phi=0))
+    check(cirq.FSimGate(theta=-np.pi / 4, phi=0))
+    check(cirq.FSimGate(theta=7 * np.pi / 4, phi=0))
+    check(cirq.PhasedFSimGate(theta=np.pi / 4, phi=0))
+    check(cirq.ISwapPowGate(exponent=0.5))
+    check(cirq.ISwapPowGate(exponent=-0.5))
+    check(cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=-0.5))
