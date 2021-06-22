@@ -24,7 +24,7 @@ def qaoa(booleans: List[str], repetitions: int, maxiter: int, p: int):
 
     Args:
         booleans: A list of Boolean expressions (we want as many of them to be true).
-        repetitions: How many times to repeat the measurements.
+        repetitions: The number of times to repeat the measurements.
         maxiter: The number of iterations of the optimizer.
         p: The number of times to repeat the Hamiltonian gate.
     """
