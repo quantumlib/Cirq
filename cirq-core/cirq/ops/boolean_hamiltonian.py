@@ -251,24 +251,7 @@ def _get_gates_from_hamiltonians(
             _build_hamiltonian_from_boolean().
         qubit_map: map of string (boolean variable name) to qubit.
         theta: A single float scaling the rotations.
-        ladder_target: Whether to use convention of figure 7a or 7b of [4]. The two formulations
-            yield the same output, but can be simplified differently.
-            For example for 3 qubits, the ladder target would be:
-            ───@───────────
-               │
-            ───┼───@───────
-               │   │
-            ───┼───┼───@───
-               │   │   │
-            ───X───X───X───
-            Otherwise, it would be:
-            ───@───────────
-               │
-            ───X───@───────
-                   │
-            ───────X───@───
-                       │
-            ───────────X───
+        ladder_target: has the same meaning as on BooleanHamiltonian.
 
     Yields:
         Gates that are the decomposition of the Hamiltonian.
@@ -334,8 +317,7 @@ class BooleanHamiltonian(raw_types.Operation):
         theta: float,
         ladder_target: bool,
     ):
-        """
-        Builds an BooleanHamiltonian.
+        """Builds an BooleanHamiltonian.
 
         For each element of a sequence of Boolean expressions, the code first transforms it into a
         polynomial of Pauli Zs that represent that particular expression. Then, we sum all the
@@ -354,7 +336,26 @@ class BooleanHamiltonian(raw_types.Operation):
             boolean_strs: The list of Sympy-parsable Boolean expressions.
             qubit_map: map of string (boolean variable name) to qubit.
             theta: The list of thetas to scale the Hamiltonian.
-            ladder_target: Whether to use convention of figure 7a or 7b.
+            ladder_target: Whether to use convention of figure 7a or 7b of [4]. The two
+                formulations yield the same output, but can be simplified differently.
+                For example for 3 qubits, the ladder target would be:
+                ───@───────────
+                   │
+                ───X───@───────
+                       │
+                ───────X───@───
+                           │
+                ───────────X───
+                Otherwise, it would be:
+                ───@───────────
+                   │
+                ───┼───@───────
+                   │   │
+                ───┼───┼───@───
+                   │   │   │
+                ───X───X───X───
+                The papers do not provide a formula for which option yields a smaller number of
+                gates, so the option is provided as an input.
         """
         self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
         self._boolean_strs: Sequence[str] = boolean_strs
