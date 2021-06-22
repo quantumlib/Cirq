@@ -27,23 +27,43 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     check_preconditions: bool = True,
     clean_operations: bool = True,
 ) -> Sequence['cirq.Operation']:
-    """Decomposes a two-qubit operation into Z/XY/sqrt-iSWAP gates.
+    """Decomposes a two-qubit operation into sqrt-iSWAP and single-qubit gates.
+
+    All operations can be synthesized with exactly three sqrt-iSWAP gates and
+    about 79% of operations (randomly chosen under the Harr measure) can also be
+    synthesized with two sqrt-iSWAP gates.  Only special cases locally
+    equivalent to identity or sqrt-iSWAP can be synthesized with zero or one
+    sqrt-iSWAP respectively.  Unless ``required_sqrt_iswap_count`` is specified,
+    the fewest possible number of sqrt-iSWAP will be used.
+
+    By default the single-qubit gates generated will be ``PhasedXPowGate`` and
+    ``ZPowGate``.  If ``clean_operations`` is set to False, ``MatrixGate`` will
+    be output instead.
 
     Args:
         q0: The first qubit being operated on.
         q1: The other qubit being operated on.
         mat: Defines the operation to apply to the pair of qubits.
         required_sqrt_iswap_count: When specified, exactly this many sqrt-iSWAP
-            gates will be used even if fewer is possible (maximum 3).
+            gates will be used even if fewer is possible (maximum 3).  Raises
+            ``ValueError`` if impossible.
         atol: A limit on the amount of absolute error introduced by the
             construction.
-        clean_operations: Enables optimizing resulting operation list by
-            merging operations and ejecting phased Paulis and Z operations.
+        check_preconditions: If set, verifies that the input corresponds to a
+            4x4 unitary before decomposing.
+        clean_operations: Uses PhasedX and Z gates and cleans the resulting
+            operation list by ejecting Z operations.
 
     Returns:
         A list of operations implementing the matrix including at most three
-        SQRT_ISWAP (sqrt-iSWAP) gates, single-qubit gates, and a global phase
-        gate.
+        ``SQRT_ISWAP`` (sqrt-iSWAP) gates, single-qubit gates, and a global
+        phase gate.
+
+    Raises:
+        ValueError:
+            If ``required_sqrt_iswap_count`` is specified, the minimum number of
+            sqrt-iSWAP gates needed to decompose the given matrix is greater
+            than ``required_sqrt_iswap_count``.
 
     References:
         Towards ultra-high fidelity quantum operations: SQiSW gate as a native
@@ -69,7 +89,6 @@ def _kak_decomposition_to_sqrt_iswap_operations(
     include_global_phase: bool = False,
     atol: float = 1e-8,
 ) -> Sequence['cirq.Operation']:
-    """Computes the list of operations in the sqrt-iSWAP decomposition."""
     single_qubit_operations, global_phase = _single_qubit_matrices_with_sqrt_iswap(
         kak, required_sqrt_iswap_count, atol=atol
     )
