@@ -110,6 +110,17 @@ def _decomp_to_operations(
     prev_commute = 1
 
     def append(matrix0, matrix1, final_layer=False):
+        """Appends the decomposed single-qubit operations for matrix0 and
+        matrix1.
+
+        The cleanup logic, specific to sqrt-iSWAP, commutes the final Z**a gate
+        and any whole X or Y gate on q1 through the following sqrt-iSWAP.
+
+        Commutation rules:
+        - Z(q0)**a, Z(q1)**a together commute with sqrt-iSWAP for all a
+        - X(q0), X(q0) together commute with sqrt-iSWAP
+        - Y(q0), Y(q0) together commute with sqrt-iSWAP
+        """
         nonlocal prev_commute
         # Commute previous Z(q0)**a, Z(q1)**a through earlier sqrt-iSWAP
         rots1 = list(
