@@ -400,13 +400,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                         f'Inputs to multi-qubit gates must be Sequence[Qid]. Type: {type(target)}'
                     )
                 if not all(isinstance(x, Qid) for x in target):
-                    raise ValueError(
-                        f'All values in sequence should be Qids, but got {target}'
-                    )
+                    raise ValueError(f'All values in sequence should be Qids, but got {target}')
                 if len(target) != self._num_qubits_():
-                    raise ValueError(
-                        f'Expected {self._num_qubits_()} qubits, got {target}'
-                    )
+                    raise ValueError(f'Expected {self._num_qubits_()} qubits, got {target}')
                 operations.append(self.on(*target))
         else:
             for target in targets:
