@@ -57,7 +57,7 @@ def _build_hamiltonian_from_boolean(
         qubit_map: map of string (boolean variable name) to qubit.
 
     Return:
-        The HamiltonianPolynomial that represents the Boolean expression.
+        The PauliString that represents the Boolean expression.
     """
     if isinstance(boolean_expr, Symbol):
         # Table 1 of [1], entry for 'x' is '1/2.I - 1/2.Z'
