@@ -2,6 +2,7 @@ import subprocess
 import pathlib
 import pytest
 
+
 @pytest.mark.docker
 def test_docker():
     root_folder = pathlib.Path(__file__).parent.parent
