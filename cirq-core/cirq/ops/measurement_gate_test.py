@@ -266,6 +266,15 @@ def test_op_repr():
         "key='out', "
         "invert_mask=(False, True))"
     )
+    assert repr(
+        cirq.measure(
+            a, b, key=cirq.MeasurementKey(name='out', path=('a', 'b')), invert_mask=(False, True)
+        )
+    ) == (
+        "cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), "
+        "key=cirq.MeasurementKey(path=('a', 'b'), name='out'), "
+        "invert_mask=(False, True))"
+    )
 
 
 def test_act_on_state_vector():

@@ -33,6 +33,7 @@ class MatrixGate(raw_types.Gate):
         self,
         matrix: np.ndarray,
         *,
+        name: str = None,
         qid_shape: Optional[Iterable[int]] = None,
         unitary_check_rtol: float = 1e-5,
         unitary_check_atol: float = 1e-8,
@@ -43,6 +44,7 @@ class MatrixGate(raw_types.Gate):
             qid_shape: The shape of state tensor that the matrix applies to.
                 If not specified, this value is inferred by assuming that the
                 matrix is supposed to apply to qubits.
+            name: The optional name of the gate to be displayed.
         """
         if len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1]:
             raise ValueError('`matrix` must be a square 2d numpy array.')
@@ -58,6 +60,7 @@ class MatrixGate(raw_types.Gate):
 
         self._matrix = matrix
         self._qid_shape = tuple(qid_shape)
+        self._name = name
         m = int(np.prod(self._qid_shape))
         if self._matrix.shape != (m, m):
             raise ValueError(
@@ -113,8 +116,16 @@ class MatrixGate(raw_types.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
+        n_qubits = len(self._qid_shape)
+        if self._name is not None:
+            symbols = (
+                [self._name]
+                if n_qubits == 1
+                else [f'{self._name}[{i+1}]' for i in range(0, n_qubits)]
+            )
+            return protocols.CircuitDiagramInfo(wire_symbols=symbols)
         main = _matrix_to_diagram_symbol(self._matrix, args)
-        rest = [f'#{i+1}' for i in range(1, len(self._qid_shape))]
+        rest = [f'#{i+1}' for i in range(1, n_qubits)]
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
 
     def __hash__(self) -> int:
