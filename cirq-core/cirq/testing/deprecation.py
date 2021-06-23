@@ -65,16 +65,12 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
             self.assert_logs.__enter__()
 
         def __exit__(self, exc_type, exc_val, exc_tb):
-            try:
-                if self.orig_exist:
-                    # mypy can't resolve that orig_exist ensures that orig_value
-                    # of type Optional[str] can't be None
-                    os.environ[ALLOW_DEPRECATION_IN_TEST] = self.orig_value  # type: ignore
-                else:
-                    del os.environ[ALLOW_DEPRECATION_IN_TEST]
-            except:
-                # this is only for nested deprecation checks
-                pass
+            if self.orig_exist:
+                # mypy can't resolve that orig_exist ensures that orig_value
+                # of type Optional[str] can't be None
+                os.environ[ALLOW_DEPRECATION_IN_TEST] = self.orig_value  # type: ignore
+            else:
+                del os.environ[ALLOW_DEPRECATION_IN_TEST]
             self.assert_logs.__exit__(exc_type, exc_val, exc_tb)
 
     return DeprecationAssertContext()

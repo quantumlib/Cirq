@@ -573,6 +573,9 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
     content = path.read_text()
     ctx_managers: List[contextlib.AbstractContextManager] = [contextlib.suppress()]
     if deprecation_deadline:
+        # we ignore coverage here, because sometimes there are no deprecations at all in any of the
+        # modules
+        # coverage: ignore
         ctx_managers = [cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)]
 
     for deprecation in TESTED_MODULES.values():
