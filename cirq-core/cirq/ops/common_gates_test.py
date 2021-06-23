@@ -532,7 +532,7 @@ def test_cz_act_on_tableau():
         cirq.act_on(cirq.CZ ** 1.5, args, cirq.LineQubit.range(2))
 
 
-def test_cz_act_on_equivalent_to_HCXH_tableau():
+def test_cz_act_on_equivalent_to_h_cx_h_tableau():
     args1 = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=2),
         qubits=cirq.LineQubit.range(2),
