@@ -278,6 +278,10 @@ class Moment:
     def __str__(self) -> str:
         return self.to_text_diagram()
 
+    def _decompose_(self) -> 'cirq.OP_TREE':
+        """See `cirq.SupportsDecompose`."""
+        return self._operations
+
     def transform_qubits(
         self: TSelf_Moment,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
