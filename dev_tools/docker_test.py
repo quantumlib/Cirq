@@ -1,7 +1,7 @@
 import subprocess
 import pathlib
-import pytest
 import platform
+import pytest
 
 
 def test_docker():
