@@ -1,10 +1,10 @@
 import subprocess
 import pathlib
+import pytest
 
-
+@pytest.mark.docker
 def test_docker():
     root_folder = pathlib.Path(__file__).parent.parent
-    print(root_folder, "Bingo")
     buildResult = subprocess.run(['docker', 'build', '-t', 'cirq_image', '.'], cwd=root_folder)
     assert buildResult.returncode == 0
 
