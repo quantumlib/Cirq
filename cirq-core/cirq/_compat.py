@@ -421,7 +421,6 @@ def _should_dedupe_module_deprecation() -> bool:
     We should always dedupe when not called from test.
     We should only dedupe during tests if forced.
     """
-
     force_dedupe = "CIRQ_FORCE_DEDUPE_MODULE_DEPRECATION" in os.environ
     return not _called_from_test() or force_dedupe
 
