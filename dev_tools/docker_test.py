@@ -1,10 +1,11 @@
 import subprocess
 import pathlib
 import pytest
+import platform
 
-
-@pytest.mark.docker
 def test_docker():
+    if platform.system() != 'Linux':
+        pytest.skip("Unsupported os")
     root_folder = pathlib.Path(__file__).parent.parent
     buildResult = subprocess.run(['docker', 'build', '-t', 'cirq_image', '.'], cwd=root_folder)
     assert buildResult.returncode == 0
