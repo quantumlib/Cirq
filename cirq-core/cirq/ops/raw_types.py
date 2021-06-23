@@ -656,10 +656,10 @@ class TaggedOperation(Operation):
         return protocols.mixture(self.sub_operation, NotImplemented)
 
     def _has_kraus_(self) -> bool:
-        return protocols.has_channel(self.sub_operation)
+        return protocols.has_kraus(self.sub_operation)
 
     def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
-        return protocols.channel(self.sub_operation, NotImplemented)
+        return protocols.kraus(self.sub_operation, NotImplemented)
 
     def _measurement_key_(self) -> str:
         return protocols.measurement_key(self.sub_operation, NotImplemented)
@@ -675,7 +675,7 @@ class TaggedOperation(Operation):
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _act_on_(self, args: Any) -> bool:
+    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
         sub = getattr(self.sub_operation, "_act_on_", None)
         if sub is not None:
             return sub(args)

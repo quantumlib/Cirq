@@ -373,12 +373,11 @@ def direct_fidelity_estimation(
     n_qubits = len(qubits)
 
     clifford_circuit = True
-    qubit_map = {qubits[i]: i for i in range(n_qubits)}
     clifford_tableau = cirq.CliffordTableau(n_qubits)
     try:
         for gate in circuit.all_operations():
             tableau_args = clifford.ActOnCliffordTableauArgs(
-                clifford_tableau, [qubit_map[i] for i in gate.qubits], np.random.RandomState(), {}
+                clifford_tableau, np.random.RandomState(), {}, qubits
             )
             cirq.act_on(gate, tableau_args)
     except TypeError:

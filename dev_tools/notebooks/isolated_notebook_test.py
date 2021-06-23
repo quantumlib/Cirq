@@ -16,9 +16,13 @@
 #
 # In these tests are only changed notebooks are tested. It is assumed that notebooks install cirq
 # conditionally if they can't import cirq. This installation path is the main focus and it is
-# excercised in an isolated virtual environment for each notebook. This is also the path that is
+# exercised in an isolated virtual environment for each notebook. This is also the path that is
 # tested in the devsite workflows, these tests meant to provide earlier feedback.
-
+#
+# In case the dev environment changes or this particular file changes, all notebooks are executed!
+# This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
+# tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
+# pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
 import os
 import subprocess
 import sys
@@ -35,8 +39,15 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
 # note that these notebooks are still tested in dev_tools/notebook_test.py
+# Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
+    # these all depend on cirq.kraus
+    "docs/protocols.ipynb",
+    "docs/noise.ipynb",
+    "docs/operators_and_observables.ipynb",
+    "docs/tutorials/educators/intro.ipynb",
+]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -96,8 +107,12 @@ def _list_changed_notebooks() -> Set[str]:
         rev = _find_base_revision()
         output = subprocess.check_output(f'git diff --name-only {rev}'.split())
         lines = output.decode('utf-8').splitlines()
-        # run all tests if this file or any of the dependencies change
-        if any(l for l in lines if l.endswith("isolated_notebook_test.py") or l.endswith(".txt")):
+        # run all tests if this file or any of the dev tool dependencies change
+        if any(
+            l
+            for l in lines
+            if l.endswith("isolated_notebook_test.py") or l.startswith("dev_tools/requirements")
+        ):
             return list_all_notebooks()
         return set(l for l in lines if l.endswith(".ipynb"))
     except ValueError as e:
@@ -140,11 +155,17 @@ def _create_base_env(proto_dir):
     shell_tools.run_cmd(pip_path, "install", *PACKAGES)
 
 
+def _partitioned_test_cases(notebooks):
+    n_partitions = int(os.environ.get("NOTEBOOK_PARTITIONS", "1"))
+    return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "notebook_path", filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)
+    "partition, notebook_path",
+    _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_notebooks_against_released_cirq(notebook_path, base_env):
+def test_notebooks_against_released_cirq(partition, notebook_path, base_env):
     """Tests the notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
@@ -180,6 +201,9 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
         raise_on_fail=False,
         out=shell_tools.TeeCapture(),
         err=shell_tools.TeeCapture(),
+        # important to get rid of PYTHONPATH specifically, which contains
+        # the Cirq repo path due to check/pytest
+        env={},
     )
 
     if status != 0:
@@ -187,8 +211,31 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
         pytest.fail(
             f"Notebook failure: {notebook_file}, please see {out_path} for the output "
             f"notebook (in Github Actions, you can download it from the workflow artifact"
-            f" 'notebook-outputs')"
+            f" 'notebook-outputs'). \n"
+            f"If this is a new failure in this notebook due to a new change, "
+            f"that is only available in master for now, consider adding `pip install --pre cirq` "
+            f"instead of `pip install cirq` to this notebook, and exclude it from "
+            f"dev_tools/notebooks/isolated_notebook_test.py."
         )
 
     if rewritten_notebook_descriptor:
         os.close(rewritten_notebook_descriptor)
+
+
+@pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
+def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
+    # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
+    with open(notebook_path, encoding="utf-8") as notebook:
+        content = notebook.read()
+        mandatory_lines = [
+            "!pip install --quiet cirq --pre",
+            "Note: this notebook relies on unreleased Cirq features. "
+            "If you want to try these features, make sure you install cirq via "
+            "`pip install cirq --pre`.",
+        ]
+
+        for m in mandatory_lines:
+            assert m in content, (
+                f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
+                f"however it is missing the mandatory line:\n{m}"
+            )

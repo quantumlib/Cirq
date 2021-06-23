@@ -60,7 +60,7 @@ def filter_notebooks(all_notebooks: Set[str], skip_list: List[str]):
 
 
 def rewrite_notebook(notebook_path):
-    """Rewrtes a notebook given an extra file describing the replacements.
+    """Rewrites a notebook given an extra file describing the replacements.
 
     This rewrites a notebook of a given path, by looking for a file corresponding to the given
     one, but with the suffix replaced with `.tst`.
