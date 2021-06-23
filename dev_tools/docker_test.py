@@ -3,6 +3,7 @@ import pathlib
 import pytest
 import platform
 
+
 def test_docker():
     if platform.system() != 'Linux':
         pytest.skip("Unsupported os")

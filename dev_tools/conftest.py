@@ -17,6 +17,7 @@ import pytest
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "slow: mark tests as slow")
+    config.addinivalue_line("markers", "docker: mark tests for docker images")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -26,6 +27,9 @@ def pytest_collection_modifyitems(config, items):
         return  # let pytest handle this
 
     skip_slow_marker = pytest.mark.skip(reason='slow marker not selected')
+    skip_docker_marker = pytest.mark.skip(reason='skipping docker tests')
     for item in items:
         if 'slow' in item.keywords:
             item.add_marker(skip_slow_marker)
+        if 'docker' in item.keywords:
+            item.add_marker(skip_docker_marker)
