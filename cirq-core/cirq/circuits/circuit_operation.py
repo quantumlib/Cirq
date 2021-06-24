@@ -186,11 +186,11 @@ class CircuitOperation(ops.Operation):
         }
 
     def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
-        """Applies all maps to the cotained circuit and returns the result.
+        """Applies all maps to the contained circuit and returns the result.
 
         Args:
             deep: If true, this will also call mapped_circuit on any
-            CircuitOperations this object contains.
+                CircuitOperations this object contains.
 
         Returns:
             The contained circuit with all other member variables (repetitions,
