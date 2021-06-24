@@ -381,9 +381,11 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """Returns a list of operations applying the gate to all targets.
 
         Args:
-            *targets: The qubits to apply this gate to. This can be provided as
-            nested iterables, but each leaf level must contain an exact
-            multiple of `num_qubits` qubits.
+            *targets: The qubits to apply this gate to. For single-qubit gates
+            this can be provided as varargs or a combination of nested
+            iterables. For multi-qubit gates this must be provided as an
+            `Iterable[Sequence[Qid]]`, where each sequence has `num_qubits`
+            qubits.
 
         Returns:
             Operations applying this gate to the target qubits.
@@ -394,11 +396,21 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         operations: List['Operation'] = []
         if self._num_qubits_() > 1:
+            if len(targets) != 1 or not isinstance(targets[0], Iterable):
+                raise ValueError(
+                    f'The inputs for multi-qubit gates cannot be in varargs form.'
+                )
+            targets = targets[0]
             for target in targets:
                 if not isinstance(target, Sequence):
-                    raise ValueError(
-                        f'Inputs to multi-qubit gates must be Sequence[Qid]. Type: {type(target)}'
-                    )
+                    if isinstance(target, Qid):
+                        raise ValueError(
+                            f'The inputs for multi-qubit gates cannot be in varargs form.'
+                        )
+                    else:
+                        raise ValueError(
+                            f'Inputs to multi-qubit gates must be Sequence[Qid]. Type: {type(target)}'
+                        )
                 if not all(isinstance(x, Qid) for x in target):
                     raise ValueError(f'All values in sequence should be Qids, but got {target}')
                 if len(target) != self._num_qubits_():

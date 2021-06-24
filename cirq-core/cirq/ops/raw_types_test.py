@@ -802,35 +802,46 @@ def test_on_each_two_qubits():
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    c = CustomGate()
+    g = CustomGate()
 
-    assert c.on_each() == []
-
-    assert c.on_each([a, b]) == [c(a, b)]
-    assert c.on_each([b, a]) == [c(b, a)]
-    assert c.on_each([a, b], [b, a]) == [c(a, b), c(b, a)]
-    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
-        c.on_each(a, b)
-    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
-        c.on_each(b, a)
-    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
-        c.on_each(a, b, a, b)
+    assert g.on_each([]) == []
+    assert g.on_each([(a, b)]) == [g(a, b)]
+    assert g.on_each([[a, b]]) == [g(a, b)]
+    assert g.on_each([(b, a)]) == [g(b, a)]
+    assert g.on_each([(a, b), (b, a)]) == [g(a, b), g(b, a)]
+    assert g.on_each(zip([a, b], [b, a])) == [g(a, b), g(b, a)]
+    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+        g.on_each()
+    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+        g.on_each(a, b)
+    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+        g.on_each((b, a))
+    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+        g.on_each((a, b), (a, b))
+    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+        g.on_each(*zip([a, b], [b, a]))
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
-        c.on_each([a, b], [[a, b]])
+        g.on_each([(a, b), [(a, b)]])
     with pytest.raises(ValueError, match='Expected 2 qubits'):
-        c.on_each([])
+        g.on_each([()])
     with pytest.raises(ValueError, match='Expected 2 qubits'):
-        c.on_each([a])
+        g.on_each([(a,)])
     with pytest.raises(ValueError, match='Expected 2 qubits'):
-        c.on_each([a, b, a])
+        g.on_each([(a, b, a)])
+    with pytest.raises(ValueError, match='Expected 2 qubits'):
+        g.on_each(zip([a, a]))
+    with pytest.raises(ValueError, match='Expected 2 qubits'):
+        g.on_each(zip([a, a], [b, b], [a, a]))
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
-        c.on_each('ab')
+        g.on_each('ab')
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
-        c.on_each(['ab'])
+        g.on_each(('ab',))
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
-        c.on_each([a, 'ab'])
+        g.on_each([('ab',)])
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
-        c.on_each([a, 'b'])
+        g.on_each([(a, 'ab')])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each([(a, 'b')])
 
     def iterator(qubits):
         for i in range(len(qubits)):
@@ -838,7 +849,7 @@ def test_on_each_two_qubits():
 
     qubit_iterator = iterator([[a, b], [a, b]])
     assert isinstance(qubit_iterator, Iterator)
-    assert c.on_each(*qubit_iterator) == [c(a, b), c(a, b)]
+    assert g.on_each(qubit_iterator) == [g(a, b), g(a, b)]
 
 
 def test_on_each_three_qubits():
@@ -850,33 +861,42 @@ def test_on_each_three_qubits():
     c = cirq.NamedQubit('c')
     g = CustomGate()
 
-    assert g.on_each() == []
-
-    assert g.on_each([a, b, c]) == [g(a, b, c)]
-    assert g.on_each([c, b, a]) == [g(c, b, a)]
-    assert g.on_each([a, b, c], [c, b, a]) == [g(a, b, c), g(c, b, a)]
-    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+    assert g.on_each([]) == []
+    assert g.on_each([(a, b, c)]) == [g(a, b, c)]
+    assert g.on_each([[a, b, c]]) == [g(a, b, c)]
+    assert g.on_each([(c, b, a)]) == [g(c, b, a)]
+    assert g.on_each([(a, b, c), (c, b, a)]) == [g(a, b, c), g(c, b, a)]
+    assert g.on_each(zip([a, c], [b, b], [c, a])) == [g(a, b, c), g(c, b, a)]
+    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+        g.on_each()
+    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
         g.on_each(a, b, c)
-    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
-        g.on_each(c, b, a)
-    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
-        g.on_each(a, b, c, a, b, c)
+    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+        g.on_each((c, b, a))
+    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+        g.on_each((a, b, c), (a, b, c))
+    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+        g.on_each(*zip([a, c], [b, b], [c, a]))
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
-        g.on_each([a, b, c], [[a, b, c]])
+        g.on_each([(a, b, c), [(a, b, c)]])
     with pytest.raises(ValueError, match='Expected 3 qubits'):
-        g.on_each([])
+        g.on_each([(a,)])
     with pytest.raises(ValueError, match='Expected 3 qubits'):
-        g.on_each([a, b])
+        g.on_each([(a, b)])
     with pytest.raises(ValueError, match='Expected 3 qubits'):
-        g.on_each([a, b, c, a])
+        g.on_each([(a, b, c, a)])
+    with pytest.raises(ValueError, match='Expected 3 qubits'):
+        g.on_each(zip([a, a], [b, b]))
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
         g.on_each('abc')
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
-        g.on_each(['abc'])
+        g.on_each(('abc',))
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
-        g.on_each([a, 'abc'])
+        g.on_each([('abc',)])
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
-        g.on_each([a, 'bc'])
+        g.on_each([(a, 'abc')])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each([(a, 'bc')])
 
     def iterator(qubits):
         for i in range(len(qubits)):
@@ -884,7 +904,7 @@ def test_on_each_three_qubits():
 
     qubit_iterator = iterator([[a, b, c], [a, b, c]])
     assert isinstance(qubit_iterator, Iterator)
-    assert g.on_each(*qubit_iterator) == [g(a, b, c), g(a, b, c)]
+    assert g.on_each(qubit_iterator) == [g(a, b, c), g(a, b, c)]
 
 
 def test_on_each_iterable_qid():
