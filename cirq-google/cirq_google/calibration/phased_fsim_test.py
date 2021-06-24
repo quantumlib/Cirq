@@ -37,7 +37,7 @@ from cirq_google.calibration.phased_fsim import (
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
     try_convert_gate_to_fsim,
-    try_convert_gate_to_fsim_hardware_supported,
+    try_convert_syc_or_sqrt_iswap_to_fsim,
     try_convert_sqrt_iswap_to_fsim,
     XEBPhasedFSimCalibrationRequest,
     XEBPhasedFSimCalibrationOptions,
@@ -950,17 +950,17 @@ def test_try_convert_gate_to_fsim():
     assert try_convert_gate_to_fsim(cirq.CZPowGate(exponent=x)) is None
 
 
-def test_try_convert_gate_to_fsim_hardware_supported():
+def test_try_convert_syc_or_sqrt_iswap_to_fsim():
     def check_converts(gate: cirq.Gate):
-        result = try_convert_gate_to_fsim_hardware_supported(gate)
+        result = try_convert_syc_or_sqrt_iswap_to_fsim(gate)
         assert np.allclose(cirq.unitary(gate), cirq.unitary(result))
 
     def check_none(gate: cirq.Gate):
-        assert try_convert_gate_to_fsim_hardware_supported(gate) is None
+        assert try_convert_syc_or_sqrt_iswap_to_fsim(gate) is None
 
     check_converts(cirq_google.ops.SYC)
     check_converts(cirq.FSimGate(np.pi / 2, np.pi / 6))
-    check_converts(cirq.FSimGate(0, np.pi))
+    check_none(cirq.FSimGate(0, np.pi))
     check_converts(cirq.FSimGate(np.pi / 4, 0.0))
     check_none(cirq.FSimGate(0.2, 0.3))
     check_converts(cirq.ISwapPowGate(exponent=0.5))
@@ -970,8 +970,7 @@ def test_try_convert_gate_to_fsim_hardware_supported():
     check_none(cirq.PhasedFSimGate(theta=0.3, phi=0.4))
     check_converts(cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=0.75))
     check_none(cirq.PhasedISwapPowGate(exponent=0.4, phase_exponent=0.75))
-    check_converts(cirq.ops.CZPowGate(exponent=1.0))
-    check_none(cirq.ops.CZPowGate(exponent=0.3))
+    check_none(cirq.ops.CZPowGate(exponent=1.0))
     check_none(cirq.CX)
 
 

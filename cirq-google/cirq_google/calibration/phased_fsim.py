@@ -15,6 +15,7 @@ import abc
 import collections
 import dataclasses
 import functools
+import math
 import re
 from typing import (
     Any,
@@ -1016,11 +1017,12 @@ def try_convert_sqrt_iswap_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedF
         either FSimGate, ISWapPowGate, PhasedFSimGate or PhasedISwapPowGate that is equivalent to
         FSimGate(theta=±π/4, phi=0). None otherwise.
     """
-    gate = try_convert_gate_to_fsim(gate)
-    if gate is None:
+    result = try_convert_gate_to_fsim(gate)
+    if result is None:
         return None
-    if np.allclose(gate.engine_gate.theta, np.pi / 4) and np.allclose(gate.engine_gate.phi, 0.0):
-        return gate
+    engine_gate = result.engine_gate
+    if math.isclose(engine_gate.theta, np.pi / 4) and math.isclose(engine_gate.phi, 0.0):
+        return result
     return None
 
 
@@ -1075,31 +1077,26 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
     return PhaseCalibratedFSimGate(cirq.FSimGate(theta=theta, phi=phi), phase_exponent)
 
 
-# Engine gates supported by hardware.
-# These are gates of type PhasedFSimGate given by parameters theta and phi.
-_HARDWARE_SUPPORTED_ENGINE_GATES_THETA_PHI = [
-    (np.pi / 2, np.pi / 6),  # Sycamore gate.
-    (0, np.pi),  # Controlled-Z gate.
-    (np.pi / 4, 0.0),  # Inverse sqrt(iSWAP) gate.
-]
-
-
-def try_convert_gate_to_fsim_hardware_supported(
+def try_convert_syc_or_sqrt_iswap_to_fsim(
     gate: cirq.Gate,
 ) -> Optional[PhaseCalibratedFSimGate]:
-    """Converts a gate to equivalent PhaseCalibratedFSimGate, if engine gate of resulting gate is supported by hardware.
+    """Converts a gate to equivalent PhaseCalibratedFSimGate if possible.
 
     Args:
         gate: Gate to convert.
 
     Returns:
-        If provided gate is equivalent to some PhaseCalibratedFSimGate which is supported by hardware, returns that
+        Equivalent PhaseCalibratedFSimGate if its `engine_gate` is Sycamore or inverse sqrt(iSWAP)
         gate. Otherwise returns None.
     """
-    gate = try_convert_gate_to_fsim(gate)
-    if gate is None:
+    result = try_convert_gate_to_fsim(gate)
+    if result is None:
         return None
-    for theta, phi in _HARDWARE_SUPPORTED_ENGINE_GATES_THETA_PHI:
-        if np.allclose(phi, gate.engine_gate.phi) and np.allclose(theta, gate.engine_gate.theta):
-            return gate
+    engine_gate = result.engine_gate
+    if math.isclose(engine_gate.theta, np.pi / 2) and math.isclose(engine_gate.phi, np.pi / 6):
+        # Sycamore gate.
+        return result
+    if math.isclose(engine_gate.theta, np.pi / 4) and math.isclose(engine_gate.phi, 0.0):
+        # Inverse sqrt(iSWAP) gate.
+        return result
     return None
