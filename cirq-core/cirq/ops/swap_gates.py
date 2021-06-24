@@ -17,9 +17,10 @@ This module creates Gate instances for the following gates:
     SWAP: the swap gate.
     ISWAP: a swap gate with a phase on the swapped subspace.
     SQRT_ISWAP: square root of the ISWAP gate.
+    SQRT_ISWAP_INV: inverse square root of the ISWAP gate.
 
 Each of these are implemented as EigenGates, which means that they can be
-raised to a power (i.e. SQRT_ISWAP=cirq.ISWAP**0.5). See the definition in
+raised to a power (i.e. SQRT_ISWAP_INV=cirq.ISWAP**-0.5). See the definition in
 EigenGate.
 """
 
@@ -348,6 +349,21 @@ document(
          [0, 1/√2, i/√2, 0],
          [0, i/√2, 1/√2, 0],
          [0, 0,    0,    1]]
+    ```
+    """,
+)
+
+SQRT_ISWAP_INV = ISwapPowGate(exponent=-0.5)
+document(
+    SQRT_ISWAP_INV,
+    """The inverse square root of iswap gate.
+
+    Matrix:
+    ```
+        [[1, 0,     0,     0],
+         [0, 1/√2,  -i/√2, 0],
+         [0, -i/√2, 1/√2,  0],
+         [0, 0,     0,     1]]
     ```
     """,
 )

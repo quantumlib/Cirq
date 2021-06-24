@@ -272,6 +272,7 @@ from cirq.ops import (
     SingleQubitGate,
     SingleQubitPauliStringGateOperation,
     SQRT_ISWAP,
+    SQRT_ISWAP_INV,
     SWAP,
     SwapPowGate,
     T,
