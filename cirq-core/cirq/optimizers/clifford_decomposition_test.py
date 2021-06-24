@@ -31,13 +31,13 @@ def test_clifford_decompose_one_qubit():
     qubits = cirq.LineQubit.range(1)
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=1),
-        axes=[0],
+        qubits=qubits,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(cirq.X, args, allow_decompose=False)
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    cirq.act_on(cirq.S, args, allow_decompose=False)
+    cirq.act_on(cirq.X, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.S, args, qubits=[qubits[0]], allow_decompose=False)
     expect_circ = cirq.Circuit(cirq.X(qubits[0]), cirq.H(qubits[0]), cirq.S(qubits[0]))
     ops = cirq.decompose_clifford_tableau_to_operations(qubits, args.tableau)
     circ = cirq.Circuit(ops)
@@ -46,15 +46,15 @@ def test_clifford_decompose_one_qubit():
     qubits = cirq.LineQubit.range(1)
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=1),
-        axes=[0],
+        qubits=qubits,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(cirq.Z, args, allow_decompose=False)
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    cirq.act_on(cirq.S, args, allow_decompose=False)
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    cirq.act_on(cirq.X, args, allow_decompose=False)
+    cirq.act_on(cirq.Z, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.S, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.X, args, qubits=[qubits[0]], allow_decompose=False)
     expect_circ = cirq.Circuit(
         cirq.Z(qubits[0]),
         cirq.H(qubits[0]),
@@ -72,13 +72,12 @@ def test_clifford_decompose_two_qubits():
     qubits = cirq.LineQubit.range(2)
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=2),
-        axes=[0],
+        qubits=qubits,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    args.axes = [0, 1]
-    cirq.act_on(cirq.CNOT, args, allow_decompose=False)
+    cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CNOT, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
     expect_circ = cirq.Circuit(cirq.H(qubits[0]), cirq.CNOT(qubits[0], qubits[1]))
     ops = cirq.decompose_clifford_tableau_to_operations(qubits, args.tableau)
     circ = cirq.Circuit(ops)
@@ -87,18 +86,15 @@ def test_clifford_decompose_two_qubits():
     qubits = cirq.LineQubit.range(2)
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=2),
-        axes=[0],
+        qubits=qubits,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    args.axes = [0, 1]
-    cirq.act_on(cirq.CNOT, args, allow_decompose=False)
-    args.axes = [0]
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    cirq.act_on(cirq.S, args, allow_decompose=False)
-    args.axes = [1]
-    cirq.act_on(cirq.X, args, allow_decompose=False)
+    cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CNOT, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
+    cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.S, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.X, args, qubits=[qubits[1]], allow_decompose=False)
     expect_circ = cirq.Circuit(
         cirq.H(qubits[0]),
         cirq.CNOT(qubits[0], qubits[1]),
@@ -125,13 +121,14 @@ def test_clifford_decompose_by_unitary():
         qubits = cirq.LineQubit.range(n)
         expect_circ = cirq.Circuit()
         args = cirq.ActOnCliffordTableauArgs(
-            tableau=t, axes=[], prng=prng, log_of_measurement_results={}
+            tableau=t, qubits=qubits, prng=prng, log_of_measurement_results={}
         )
         for _ in range(num_ops):
             g = prng.randint(len(gate_candidate))
             indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
-            args.axes = indices
-            cirq.act_on(gate_candidate[g], args, allow_decompose=False)
+            cirq.act_on(
+                gate_candidate[g], args, qubits=[qubits[i] for i in indices], allow_decompose=False
+            )
             expect_circ.append(gate_candidate[g].on(*[qubits[i] for i in indices]))
         ops = cirq.decompose_clifford_tableau_to_operations(qubits, args.tableau)
         circ = cirq.Circuit(ops)
@@ -153,22 +150,22 @@ def test_clifford_decompose_by_reconstruction():
         qubits = cirq.LineQubit.range(n)
         expect_circ = cirq.Circuit()
         args = cirq.ActOnCliffordTableauArgs(
-            tableau=t, axes=[], prng=prng, log_of_measurement_results={}
+            tableau=t, qubits=qubits, prng=prng, log_of_measurement_results={}
         )
         for _ in range(num_ops):
             g = prng.randint(len(gate_candidate))
             indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
-            args.axes = indices
-            cirq.act_on(gate_candidate[g], args, allow_decompose=False)
+            cirq.act_on(
+                gate_candidate[g], args, qubits=[qubits[i] for i in indices], allow_decompose=False
+            )
             expect_circ.append(gate_candidate[g].on(*[qubits[i] for i in indices]))
         ops = cirq.decompose_clifford_tableau_to_operations(qubits, args.tableau)
 
         reconstruct_t = cirq.CliffordTableau(num_qubits=n)
         reconstruct_args = cirq.ActOnCliffordTableauArgs(
-            tableau=reconstruct_t, axes=[], prng=prng, log_of_measurement_results={}
+            tableau=reconstruct_t, qubits=qubits, prng=prng, log_of_measurement_results={}
         )
         for op in ops:
-            reconstruct_args.axes = [q.x for q in op.qubits]
-            cirq.act_on(op.gate, reconstruct_args, allow_decompose=False)
+            cirq.act_on(op.gate, reconstruct_args, qubits=op.qubits, allow_decompose=False)
 
         assert t == reconstruct_t

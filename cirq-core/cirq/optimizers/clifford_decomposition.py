@@ -30,8 +30,7 @@ def _X(
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
-    args.axes = (q,)
-    protocols.act_on(ops.X, args, allow_decompose=False)
+    protocols.act_on(ops.X, args, qubits=[qubits[q]], allow_decompose=False)
     operations.append(ops.X(qubits[q]))
 
 
@@ -41,8 +40,7 @@ def _Z(
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
-    args.axes = (q,)
-    protocols.act_on(ops.Z, args, allow_decompose=False)
+    protocols.act_on(ops.Z, args, qubits=[qubits[q]], allow_decompose=False)
     operations.append(ops.Z(qubits[q]))
 
 
@@ -53,8 +51,7 @@ def _Sdg(
     qubits: List['cirq.Qid'],
 ):
     # Apply the tableau with S^\{dagger}
-    args.axes = (q,)
-    protocols.act_on(ops.S ** -1, args, allow_decompose=False)
+    protocols.act_on(ops.S ** -1, args, qubits=[qubits[q]], allow_decompose=False)
     operations.append(ops.S(qubits[q]))
 
 
@@ -64,8 +61,7 @@ def _H(
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
-    args.axes = (q,)
-    protocols.act_on(ops.H, args, allow_decompose=False)
+    protocols.act_on(ops.H, args, qubits=[qubits[q]], allow_decompose=False)
     operations.append(ops.H(qubits[q]))
 
 
@@ -76,8 +72,7 @@ def _CNOT(
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
-    args.axes = (q1, q2)
-    protocols.act_on(ops.CNOT, args, allow_decompose=False)
+    protocols.act_on(ops.CNOT, args, qubits=[qubits[q1], qubits[q2]], allow_decompose=False)
     operations.append(ops.CNOT(qubits[q1], qubits[q2]))
 
 
@@ -88,8 +83,7 @@ def _SWAP(
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
-    args.axes = (q1, q2)
-    protocols.act_on(ops.SWAP, args, allow_decompose=False)
+    protocols.act_on(ops.SWAP, args, qubits=[qubits[q1], qubits[q2]], allow_decompose=False)
     operations.append(ops.SWAP(qubits[q1], qubits[q2]))
 
 
@@ -116,7 +110,7 @@ def decompose_clifford_tableau_to_operations(
     t: qis.CliffordTableau = clifford_tableau.copy()
     operations: List[ops.Operation] = []
     args = sim.ActOnCliffordTableauArgs(
-        tableau=t, axes=[], prng=np.random.RandomState(), log_of_measurement_results={}
+        tableau=t, qubits=qubits, prng=np.random.RandomState(), log_of_measurement_results={}
     )
 
     _X_with_ops = functools.partial(_X, args=args, operations=operations, qubits=qubits)
