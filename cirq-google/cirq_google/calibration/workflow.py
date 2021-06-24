@@ -328,6 +328,9 @@ def prepare_characterization_for_moments(
             sort_pairs=True,
         )
 
+        print("Prepared calibration for moment []")
+        print(calibration)
+
         if calibration is not None:
             if merge_subsets:
                 index = _merge_into_calibrations(calibration, calibrations, pairs_map, options)
@@ -680,8 +683,10 @@ def _merge_into_calibrations(
     """
     new_pairs = set(calibration.pairs)
     for index in pairs_map.values():
-        assert calibration.gate == calibrations[index].gate
-        assert calibration.options == calibrations[index].options
+        if calibration.gate != calibrations[index].gate:
+            continue
+        if calibration.options != calibrations[index].options:
+            continue
         existing_pairs = calibrations[index].pairs
         if new_pairs.issubset(existing_pairs):
             return index
@@ -1058,6 +1063,7 @@ class FSimPhaseCorrections:
         """Creates an operation that compensates for zeta, chi and gamma angles of the supplied
         gate and characterization.
 
+        Args:
         Args:
             qubits: Qubits that the gate should act on.
             gate_calibration: Original, imperfect gate that is supposed to run on the hardware
