@@ -90,7 +90,33 @@
                 "gate": {
                   "cirq_type": "MeasurementGate",
                   "num_qubits": 5,
-                  "key": "0,1,2,3,4",
+                  "key":  {
+                    "cirq_type": "MeasurementKey",
+                    "name": "",
+                    "path": [],
+                    "qubits": [
+                      {
+                        "cirq_type": "LineQubit",
+                        "x": 0
+                      },
+                      {
+                        "cirq_type": "LineQubit",
+                        "x": 1
+                      },
+                      {
+                        "cirq_type": "LineQubit",
+                        "x": 2
+                      },
+                      {
+                        "cirq_type": "LineQubit",
+                        "x": 3
+                      },
+                      {
+                        "cirq_type": "LineQubit",
+                        "x": 4
+                      }
+                    ]
+                  },
                   "invert_mask": []
                 },
                 "qubits": [

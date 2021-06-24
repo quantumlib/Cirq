@@ -7,7 +7,7 @@
         cirq.H(cirq.LineQubit(4)),
     ),
     cirq.Moment(
-        cirq.MeasurementGate(5, '0,1,2,3,4', ()).on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3), cirq.LineQubit(4)),
+        cirq.MeasurementGate(5, '', ()).on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3), cirq.LineQubit(4)),
     ),
 ]), cirq.FrozenCircuit([
     cirq.Moment(

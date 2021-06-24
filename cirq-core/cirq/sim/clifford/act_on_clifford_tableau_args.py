@@ -14,10 +14,11 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING, List, Sequence
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
 
 import numpy as np
 
+from cirq._compat import deprecated_parameter
 from cirq.ops import common_gates
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -29,6 +30,18 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _rewrite_deprecated_args(args, kwargs):
+    if len(args) > 2:
+        kwargs['axes'] = args[2]
+    if len(args) > 3:
+        kwargs['prng'] = args[3]
+    if len(args) > 4:
+        kwargs['log_of_measurement_results'] = args[4]
+    if len(args) > 5:
+        kwargs['qubits'] = args[5]
+    return args[:2], kwargs
+
+
 class ActOnCliffordTableauArgs(ActOnArgs):
     """State and context for an operation acting on a clifford tableau.
     There are two common ways to act on this object:
@@ -37,13 +50,22 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     2. Call `record_measurement_result(key, val)` to log a measurement result.
     """
 
+    @deprecated_parameter(
+        deadline='v0.13',
+        fix='No longer needed. `protocols.act_on` infers axes.',
+        parameter_desc='axes',
+        match=lambda args, kwargs: 'axes' in kwargs
+        or ('prng' in kwargs and len(args) == 3)
+        or (len(args) > 3 and isinstance(args[3], np.random.RandomState)),
+        rewrite=_rewrite_deprecated_args,
+    )
     def __init__(
         self,
         tableau: CliffordTableau,
-        axes: Iterable[int],
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
+        axes: Iterable[int] = None,
     ):
         """
         Args:
@@ -52,23 +74,23 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into. Edit it easily by calling
                 `ActOnCliffordTableauArgs.record_measurement_result`.
+            axes: The indices of axes corresponding to the qubits that the
+                operation is supposed to act upon.
         """
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.tableau = tableau
 
-    def _act_on_fallback_(self, action: Any, allow_decompose: bool):
+    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         strats = []
         if allow_decompose:
             strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)
         for strat in strats:
-            result = strat(action, self)
+            result = strat(action, self, qubits)
             if result is False:
                 break  # coverage: ignore
             if result is True:
@@ -77,22 +99,21 @@ class ActOnCliffordTableauArgs(ActOnArgs):
 
         return NotImplemented
 
-    def _perform_measurement(self) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Returns the measurement from the tableau."""
-        return [self.tableau._measure(q, self.prng) for q in self.axes]
+        return [self.tableau._measure(self.qubit_map[q], self.prng) for q in qubits]
 
     def copy(self) -> 'cirq.ActOnCliffordTableauArgs':
         return ActOnCliffordTableauArgs(
             tableau=self.tableau.copy(),
             qubits=self.qubits,
-            axes=self.axes,
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
 
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
-    val: Any, args: 'cirq.ActOnCliffordTableauArgs'
+    val: Any, args: 'cirq.ActOnCliffordTableauArgs', qubits: Sequence['cirq.Qid']
 ) -> bool:
     if num_qubits(val) == 1:
         if not has_unitary(val):
@@ -102,12 +123,12 @@ def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
         if clifford_gate is not None:
             for axis, quarter_turns in clifford_gate.decompose_rotation():
                 if axis == pauli_gates.X:
-                    common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_(args)
+                    common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
                 elif axis == pauli_gates.Y:
-                    common_gates.YPowGate(exponent=quarter_turns / 2)._act_on_(args)
+                    common_gates.YPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
                 else:
                     assert axis == pauli_gates.Z
-                    common_gates.ZPowGate(exponent=quarter_turns / 2)._act_on_(args)
+                    common_gates.ZPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
             return True
 
     return NotImplemented

@@ -2,28 +2,45 @@ name: Continuous Integration
 
 on: [ pull_request ]
 
+concurrency: 
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   quick_test:
     name: Misc check
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+      - name: Misc
+        run: check/misc
+  packaging_test:
+    name: Packaging test
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.7'
           architecture: 'x64'
-      - name: Misc
-        run: check/misc
+      - name: Install dependencies
+        run: pip install -r dev_tools/requirements/deps/packaging.txt
+      - name: Run packaging test
+        run: ./dev_tools/packaging/packaging_test.sh
   format:
     name: Format check
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/deps/format.txt
@@ -31,12 +48,12 @@ jobs:
         run: check/format-incremental
   mypy:
     name: Type check
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install mypy
         run: pip install -r dev_tools/requirements/mypy.env.txt
@@ -44,12 +61,12 @@ jobs:
         run: check/mypy
   mypy-next:
     name: Type check (next)
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install mypy
         run: pip install -r dev_tools/requirements/mypy.env.txt
@@ -57,14 +74,14 @@ jobs:
         run: check/mypy --next || true
   changed_files:
     name: Changed files test
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
@@ -72,12 +89,12 @@ jobs:
         run: check/pytest-changed-files
   lint:
     name: Lint check
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install pylint
         run: pip install -r dev_tools/requirements/deps/pylint.txt
@@ -87,12 +104,12 @@ jobs:
         run: check/pylint -v
   doc_test:
     name: Doc test
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
@@ -102,18 +119,20 @@ jobs:
         run: check/doctest -q
   nbformat:
     name: Notebook formatting
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
+      - name: Install requirements
+        run: pip install -r dev_tools/requirements/deps/tensorflow-docs.txt
       - name: Doc check
         run: check/nbformat
   cirq-only:
     name: Pytest (cirq-only) Ubuntu
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -128,9 +147,8 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        # TODO(#3800): remove 3.6 when Colab switches to 3.7
         python-version: [ '3.6', '3.7', '3.8' ]
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -147,12 +165,12 @@ jobs:
         run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
   build_docs:
     name: Build docs
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: |
@@ -161,32 +179,35 @@ jobs:
         run: dev_tools/docs/build-rtd-docs.sh
   build_protos:
     name: Build protos
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: |
           pip install -r dev_tools/requirements/deps/protos.txt
-          wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
-          sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
+          sudo apt install curl gnupg
+          curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
+          sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
+          echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+          sudo apt update && sudo apt install bazel
       - name: Build protos
         run: check/build-changed-protos
   coverage:
     name: Coverage check
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
@@ -197,7 +218,7 @@ jobs:
     strategy:
       matrix:
         python-version: [ '3.7', '3.8' ]
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -227,19 +248,25 @@ jobs:
         run: check/pytest --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
-    runs-on: ubuntu-16.04
+    env:
+      NOTEBOOK_PARTITIONS: 4
+    strategy:
+      matrix:
+        # partitions should be named partition-0 to partition-(NOTEBOOK_PARTITIONS-1)
+        partition: [partition-0, partition-1, partition-2, partition-3]
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-notebooks.env.txt
       - name: Notebook tests
-        run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py
+        run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
@@ -247,12 +274,12 @@ jobs:
           path: out
   notebooks-branch:
     name: Notebook Tests against PR
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/notebooks.env.txt

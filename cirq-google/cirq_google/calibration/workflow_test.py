@@ -45,6 +45,7 @@ from cirq_google.calibration.phased_fsim import (
 SQRT_ISWAP_INV_PARAMETERS = cirq_google.PhasedFSimCharacterization(
     theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
 )
+SQRT_ISWAP_GATE = cirq.FSimGate(7 * np.pi / 4, 0.0)
 SQRT_ISWAP_INV_GATE = cirq.FSimGate(np.pi / 4, 0.0)
 
 
@@ -1229,7 +1230,67 @@ def test_phase_corrected_fsim_operations_with_phase_exponent(
     assert corrected.moment_to_calibration == [None, 5, None]
 
 
-def test_zeta_chi_gamma_calibration_for_moments():
+def test_make_zeta_chi_gamma_compensation_for_moments():
+    a, b = cirq.LineQubit.range(2)
+
+    moment_allocations = [0]
+
+    for gate_to_calibrate, engine_gate in [
+        (cirq.FSimGate(theta=np.pi / 4, phi=0.0), SQRT_ISWAP_INV_GATE),
+        (cirq.FSimGate(theta=-np.pi / 4, phi=0.0), SQRT_ISWAP_INV_GATE),
+        (cirq.ISwapPowGate(exponent=0.2), cirq.FSimGate(theta=0.1 * np.pi, phi=0.0)),
+        (cirq.PhasedFSimGate(theta=0.1, phi=0.2), cirq.FSimGate(theta=0.1, phi=0.2)),
+        (cirq.PhasedFSimGate(theta=0.1, phi=0.2, chi=0.3), cirq.FSimGate(theta=0.1, phi=0.2)),
+        (cirq.PhasedISwapPowGate(exponent=0.2), cirq.FSimGate(theta=0.1 * np.pi, phi=0.0)),
+        (
+            cirq.PhasedISwapPowGate(exponent=0.2, phase_exponent=0.4),
+            cirq.FSimGate(theta=0.1 * np.pi, phi=0.0),
+        ),
+        (cirq.CZ, cirq.FSimGate(theta=0.0, phi=np.pi)),
+        (cirq.ops.CZPowGate(exponent=0.5), cirq.FSimGate(theta=0.0, phi=1.5 * np.pi)),
+        (cirq_google.ops.SycamoreGate(), cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)),
+    ]:
+        circuit = cirq.Circuit(gate_to_calibrate.on(a, b))
+        characterizations = [
+            PhasedFSimCalibrationResult(
+                # Assume that the engine gate is perfect.
+                parameters={
+                    (a, b): cirq_google.PhasedFSimCharacterization(
+                        theta=engine_gate.theta, phi=engine_gate.phi, zeta=0.0, chi=0.0, gamma=0.0
+                    )
+                },
+                gate=engine_gate,
+                options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+            )
+        ]
+        calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_moments(
+            workflow.CircuitWithCalibration(circuit, moment_allocations), characterizations
+        )
+        assert np.allclose(cirq.unitary(circuit), cirq.unitary(calibrated_circuit.circuit))
+        assert calibrated_circuit.moment_to_calibration == [None, 0, None]
+
+
+def test_make_zeta_chi_gamma_compensation_for_moments_wrong_engine_gate_error():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.2).on(a, b))
+    characterizations = [
+        PhasedFSimCalibrationResult(
+            parameters={
+                (a, b): cirq_google.PhasedFSimCharacterization(
+                    theta=np.pi / 4, phi=0.2, zeta=0.0, chi=0.0, gamma=0.0
+                )
+            },
+            gate=SQRT_ISWAP_INV_GATE,
+            options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+        )
+    ]
+    with pytest.raises(ValueError, match="Engine gate .+ doesn't match characterized gate .+"):
+        workflow.make_zeta_chi_gamma_compensation_for_moments(
+            workflow.CircuitWithCalibration(circuit, [0]), characterizations
+        )
+
+
+def test_make_zeta_chi_gamma_compensation_for_moments_circuit():
     a, b = cirq.LineQubit.range(2)
 
     characterizations = [
@@ -1239,20 +1300,22 @@ def test_zeta_chi_gamma_calibration_for_moments():
             options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
         )
     ]
-    moment_allocations = [0]
 
-    for circuit in [
-        cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b)),
-        cirq.Circuit(cirq.FSimGate(theta=-np.pi / 4, phi=0.0).on(a, b)),
+    for circuit, expected_moment_to_calibration in [
+        (cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b)), [None, 0, None]),
+        (
+            cirq.Circuit([cirq.Z.on(a), cirq.FSimGate(theta=-np.pi / 4, phi=0.0).on(a, b)]),
+            [None, None, 0, None],
+        ),
     ]:
         calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_moments(
-            workflow.CircuitWithCalibration(circuit, moment_allocations), characterizations
+            circuit, characterizations
         )
         assert np.allclose(cirq.unitary(circuit), cirq.unitary(calibrated_circuit.circuit))
-        assert calibrated_circuit.moment_to_calibration == [None, 0, None]
+        assert calibrated_circuit.moment_to_calibration == expected_moment_to_calibration
 
 
-def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None:
+def test_zmake_zeta_chi_gamma_compensation_for_moments_invalid_argument_fails() -> None:
     a, b, c = cirq.LineQubit.range(3)
 
     with pytest.raises(ValueError):
@@ -1264,6 +1327,11 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
             cirq.Circuit(SQRT_ISWAP_INV_GATE.on(a, b)), [None]
         )
         workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
+
+    with pytest.raises(ValueError):
+        workflow.make_zeta_chi_gamma_compensation_for_moments(
+            cirq.Circuit(SQRT_ISWAP_INV_GATE.on(a, b)), []
+        )
 
     with pytest.raises(ValueError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
@@ -1288,7 +1356,7 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
-            cirq.Circuit(cirq.CZ.on(a, b)), [None]
+            cirq.Circuit(cirq.CX.on(a, b)), [None]
         )
         workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
@@ -1310,6 +1378,82 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
         workflow.make_zeta_chi_gamma_compensation_for_moments(
             circuit_with_calibration, characterizations
         )
+
+
+def test_make_zeta_chi_gamma_compensation_for_moments_imperfect_gates():
+    params_cz_ab = cirq_google.PhasedFSimCharacterization(
+        zeta=0.02, chi=0.05, gamma=0.04, theta=0.0, phi=np.pi
+    )
+    params_cz_cd = cirq_google.PhasedFSimCharacterization(
+        zeta=0.03, chi=0.08, gamma=0.03, theta=0.0, phi=np.pi
+    )
+    params_syc_ab = cirq_google.PhasedFSimCharacterization(
+        zeta=0.01, chi=0.09, gamma=0.02, theta=np.pi / 2, phi=np.pi / 6
+    )
+    params_sqrt_iswap_ac = cirq_google.PhasedFSimCharacterization(
+        zeta=0.05, chi=0.06, gamma=0.07, theta=np.pi / 4, phi=0.0
+    )
+    params_sqrt_iswap_bd = cirq_google.PhasedFSimCharacterization(
+        zeta=0.01, chi=0.02, gamma=0.03, theta=np.pi / 4, phi=0.0
+    )
+
+    a, b, c, d = cirq.LineQubit.range(4)
+    engine_simulator = cirq_google.PhasedFSimEngineSimulator.create_from_dictionary(
+        parameters={
+            (a, b): {
+                cirq.FSimGate(theta=0, phi=np.pi): params_cz_ab,
+                cirq_google.SYC: params_syc_ab,
+            },
+            (c, d): {cirq.FSimGate(theta=0, phi=np.pi): params_cz_cd},
+            (a, c): {SQRT_ISWAP_INV_GATE: params_sqrt_iswap_ac},
+            (b, d): {SQRT_ISWAP_INV_GATE: params_sqrt_iswap_bd},
+        }
+    )
+
+    circuit = cirq.Circuit(
+        [
+            [cirq.X(a), cirq.H(c)],
+            [cirq.CZ.on(a, b), cirq.CZ.on(d, c)],
+            [cirq_google.SYC.on(a, b)],
+            [SQRT_ISWAP_GATE.on(a, c), SQRT_ISWAP_INV_GATE.on(b, d)],
+        ]
+    )
+
+    options = cirq_google.FloquetPhasedFSimCalibrationOptions(
+        characterize_theta=False,
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_phi=False,
+    )
+
+    characterizations = [
+        cirq_google.PhasedFSimCalibrationResult(
+            gate=cirq.FSimGate(theta=0, phi=np.pi),
+            parameters={(a, b): params_cz_ab, (c, d): params_cz_cd},
+            options=options,
+        ),
+        cirq_google.PhasedFSimCalibrationResult(
+            gate=cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6),
+            parameters={(a, b): params_syc_ab},
+            options=options,
+        ),
+        cirq_google.PhasedFSimCalibrationResult(
+            gate=cirq.FSimGate(theta=np.pi / 4, phi=0),
+            parameters={(a, c): params_sqrt_iswap_ac, (b, d): params_sqrt_iswap_bd},
+            options=options,
+        ),
+    ]
+
+    circuit_with_calibration = workflow.make_zeta_chi_gamma_compensation_for_moments(
+        circuit,
+        characterizations,
+    )
+
+    assert cirq.allclose_up_to_global_phase(
+        engine_simulator.final_state_vector(circuit_with_calibration.circuit),
+        cirq.final_state_vector(circuit),
+    )
 
 
 def test_run_zeta_chi_gamma_calibration_for_moments() -> None:

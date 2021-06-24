@@ -4,13 +4,11 @@
 -r pylint.txt
 -r protos.txt
 -r notebook.txt
+-r tensorflow-docs.txt
+-r packaging.txt
 
 # For testing and analyzing code.
 asv
-virtualenv
-
-# For uploading packages to pypi.
-twine
 
 # For verifying behavior of Quil output.
 pyquil~=2.21.0
