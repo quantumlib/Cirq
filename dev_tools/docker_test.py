@@ -12,7 +12,7 @@ def test_docker():
     assert buildResult.returncode == 0
 
     result = subprocess.run(
-        ["docker run cirq_image python -c \"import cirq; assert cirq.__version__ is not None\""],
+        ['docker run cirq_image python -c "import cirq; assert cirq.__version__ is not None"'],
         cwd=root_folder,
         shell=True,
     )
