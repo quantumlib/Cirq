@@ -18,12 +18,4 @@ ENV LC_ALL en_US.UTF-8
 RUN rm -f /usr/bin/python \
      && ln -s /usr/bin/python3 /usr/bin/python
 
-#RUN python -m venv /opt/venv
-#ENV PATH="/opt/venv/bin:$PATH"
-# Install cirq
 RUN pip3 install cirq
-
-#FROM python:3.8-slim AS build-image
-#COPY --from=compile-image /opt/venv /opt/venv
-## Make sure scripts in .local are usable:
-#EXPOSE 8888
