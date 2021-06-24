@@ -160,6 +160,9 @@ class CircuitOperation(ops.Operation):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return tuple(q.dimension for q in self.qubits)
 
+    def _is_measurement_(self) -> bool:
+        return self.circuit._is_measurement_()
+
     def _measurement_keys_(self) -> AbstractSet[str]:
         circuit_keys = [
             value.MeasurementKey.parse_serialized(key_str)

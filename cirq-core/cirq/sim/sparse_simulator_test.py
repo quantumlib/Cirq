@@ -1270,6 +1270,12 @@ def test_nondeterministic_mixture_noise():
     assert result1 != result2
 
 
-def test_unsupported_noise_fails():
-    with pytest.raises(ValueError, match='noise'):
-        cirq.Simulator(noise=cirq.amplitude_damp(0.5))
+def test_noise_model():
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
+
+    noise_model = cirq.NoiseModel.from_noise_model_like(cirq.depolarize(p=0.01))
+    simulator = cirq.Simulator(noise=noise_model)
+    result = simulator.run(circuit, repetitions=100)
+
+    assert 40 <= sum(result.measurements['0'])[0] < 60
