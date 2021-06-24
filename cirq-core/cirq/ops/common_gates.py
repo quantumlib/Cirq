@@ -1079,8 +1079,11 @@ class CZPowGate(
                     tableau.zs[:, q2].copy(),
                     tableau.xs[:, q2].copy(),
                 )
+                tableau.rs[:] ^= tableau.xs[:, q2] & tableau.zs[:, q2]
                 tableau.rs[:] ^= (
-                    tableau.xs[:, q1] & tableau.zs[:, q2] & (tableau.xs[:, q2] ^ tableau.zs[:, q1])
+                    tableau.xs[:, q1]
+                    & tableau.zs[:, q2]
+                    & (~(tableau.xs[:, q2] ^ tableau.zs[:, q1]))
                 )
                 tableau.xs[:, q2] ^= tableau.xs[:, q1]
                 tableau.zs[:, q1] ^= tableau.zs[:, q2]
