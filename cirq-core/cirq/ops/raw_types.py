@@ -406,7 +406,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                         )
                     else:
                         raise ValueError(
-                            f'Inputs to multi-qubit gates must be Sequence[Qid]. Type: {type(target)}'
+                            f'Inputs to multi-qubit gates must be Sequence[Qid].'
+                            f' Type: {type(target)}'
                         )
                 if not all(isinstance(x, Qid) for x in target):
                     raise ValueError(f'All values in sequence should be Qids, but got {target}')
