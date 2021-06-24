@@ -14,6 +14,8 @@
 
 """Basic types defining qubits, gates, and operations."""
 
+import abc
+import functools
 from typing import (
     AbstractSet,
     Any,
@@ -29,13 +31,10 @@ from typing import (
     Union,
 )
 
-import abc
-import functools
 import numpy as np
 
 from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
@@ -446,16 +445,6 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return TaggedOperation(self, *new_tags)
 
-    @deprecated_parameter(
-        deadline='v0.11',
-        fix='Use qubit_map instead.',
-        parameter_desc='positional func',
-        match=lambda args, kwargs: 'func' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
-        ),
-    )
     def transform_qubits(
         self: TSelf,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
@@ -666,21 +655,27 @@ class TaggedOperation(Operation):
     def _mixture_(self) -> Sequence[Tuple[float, Any]]:
         return protocols.mixture(self.sub_operation, NotImplemented)
 
-    def _has_channel_(self) -> bool:
-        return protocols.has_channel(self.sub_operation)
+    def _has_kraus_(self) -> bool:
+        return protocols.has_kraus(self.sub_operation)
 
-    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
-        return protocols.channel(self.sub_operation, NotImplemented)
+    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        return protocols.kraus(self.sub_operation, NotImplemented)
 
     def _measurement_key_(self) -> str:
         return protocols.measurement_key(self.sub_operation, NotImplemented)
+
+    def _is_measurement_(self) -> bool:
+        sub = getattr(self.sub_operation, "_is_measurement_", None)
+        if sub is not None:
+            return sub()
+        return NotImplemented
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation) or any(
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _act_on_(self, args: Any) -> bool:
+    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
         sub = getattr(self.sub_operation, "_act_on_", None)
         if sub is not None:
             return sub(args)

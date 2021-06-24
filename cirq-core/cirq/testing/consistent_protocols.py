@@ -82,7 +82,7 @@ def assert_implements_consistent_protocols(
 def assert_eigengate_implements_consistent_protocols(
     eigen_gate_type: Type[ops.EigenGate],
     *,
-    exponents: Sequence[value.TParamVal] = (0, 1, -1, 0.25, -0.5, 0.1, sympy.Symbol('s')),
+    exponents: Sequence[value.TParamVal] = (0, 0.5, 1, -1, 0.25, -0.5, 0.1, sympy.Symbol('s')),
     global_shifts: Sequence[float] = (0, -0.5, 0.1),
     qubit_count: Optional[int] = None,
     ignoring_global_phase: bool = False,

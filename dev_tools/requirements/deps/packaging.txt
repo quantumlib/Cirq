@@ -1,0 +1,9 @@
+# for testing packaging in isolation
+virtualenv
+
+# for creating packages
+setuptools
+wheel
+
+# for uploading packages to pypi
+twine

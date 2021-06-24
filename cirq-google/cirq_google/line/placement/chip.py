@@ -14,16 +14,16 @@
 
 from typing import Dict, List, Tuple, TYPE_CHECKING
 
-from cirq.devices import GridQubit
+import cirq
 
 if TYPE_CHECKING:
     import cirq_google
 
 
-EDGE = Tuple[GridQubit, GridQubit]
+EDGE = Tuple[cirq.GridQubit, cirq.GridQubit]
 
 
-def above(qubit: GridQubit) -> GridQubit:
+def above(qubit: cirq.GridQubit) -> cirq.GridQubit:
     """Gives qubit with one unit less on the second coordinate.
 
     Args:
@@ -32,10 +32,10 @@ def above(qubit: GridQubit) -> GridQubit:
     Returns:
         New translated qubit.
     """
-    return GridQubit(qubit.row, qubit.col - 1)
+    return cirq.GridQubit(qubit.row, qubit.col - 1)
 
 
-def left_of(qubit: GridQubit) -> GridQubit:
+def left_of(qubit: cirq.GridQubit) -> cirq.GridQubit:
     """Gives qubit with one unit less on the first coordinate.
 
     Args:
@@ -44,10 +44,10 @@ def left_of(qubit: GridQubit) -> GridQubit:
     Returns:
         New translated qubit.
     """
-    return GridQubit(qubit.row - 1, qubit.col)
+    return cirq.GridQubit(qubit.row - 1, qubit.col)
 
 
-def below(qubit: GridQubit) -> GridQubit:
+def below(qubit: cirq.GridQubit) -> cirq.GridQubit:
     """Gives qubit with one unit more on the second coordinate.
 
     Args:
@@ -56,10 +56,10 @@ def below(qubit: GridQubit) -> GridQubit:
     Returns:
         New translated qubit.
     """
-    return GridQubit(qubit.row, qubit.col + 1)
+    return cirq.GridQubit(qubit.row, qubit.col + 1)
 
 
-def right_of(qubit: GridQubit) -> GridQubit:
+def right_of(qubit: cirq.GridQubit) -> cirq.GridQubit:
     """Gives node with one unit more on the first coordinate.
 
     Args:
@@ -68,12 +68,12 @@ def right_of(qubit: GridQubit) -> GridQubit:
     Returns:
         New translated node.
     """
-    return GridQubit(qubit.row + 1, qubit.col)
+    return cirq.GridQubit(qubit.row + 1, qubit.col)
 
 
 def chip_as_adjacency_list(
     device: 'cirq_google.XmonDevice',
-) -> Dict[GridQubit, List[GridQubit]]:
+) -> Dict[cirq.GridQubit, List[cirq.GridQubit]]:
     """Gives adjacency list representation of a chip.
 
     The adjacency list is constructed in order of above, left_of, below and
@@ -87,7 +87,7 @@ def chip_as_adjacency_list(
         given qubit.
     """
     c_set = set(device.qubits)
-    c_adj = {}  # type: Dict[GridQubit, List[GridQubit]]
+    c_adj: Dict[cirq.GridQubit, List[cirq.GridQubit]] = {}
     for n in device.qubits:
         c_adj[n] = []
         for m in [above(n), left_of(n), below(n), right_of(n)]:

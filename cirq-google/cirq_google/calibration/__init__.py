@@ -28,10 +28,14 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCharacterization,
     XEBPhasedFSimCalibrationOptions,
     XEBPhasedFSimCalibrationRequest,
+    LocalXEBPhasedFSimCalibrationOptions,
+    LocalXEBPhasedFSimCalibrationRequest,
     SQRT_ISWAP_INV_PARAMETERS,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
+    try_convert_sqrt_iswap_to_fsim,
+    try_convert_syc_or_sqrt_iswap_to_fsim,
 )
 
 from cirq_google.calibration.workflow import (
@@ -48,5 +52,4 @@ from cirq_google.calibration.workflow import (
     run_calibrations,
     run_floquet_characterization_for_moments,
     run_zeta_chi_gamma_compensation_for_moments,
-    try_convert_sqrt_iswap_to_fsim,
 )

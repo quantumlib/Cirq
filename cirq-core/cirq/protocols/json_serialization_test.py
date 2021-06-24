@@ -33,7 +33,13 @@ from cirq.testing import assert_json_roundtrip_works
 from cirq.testing.json import ModuleJsonTestSpec, spec_for
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
-TESTED_MODULES = ['cirq_google', 'cirq.protocols', 'non_existent_should_be_fine']
+TESTED_MODULES = [
+    'cirq_aqt',
+    'cirq_ionq',
+    'cirq_google',
+    'cirq.protocols',
+    'non_existent_should_be_fine',
+]
 
 
 def _get_testspecs_for_modules():

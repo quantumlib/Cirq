@@ -16,6 +16,7 @@
 from cirq.value.abc_alt import (
     ABCMetaImplementAnyOneOf,
     alternative,
+    GenericMetaImplementAnyOneOf,
 )
 
 from cirq.value.angle import (
@@ -42,6 +43,8 @@ from cirq.value.linear_dict import (
 )
 
 from cirq.value.measurement_key import (
+    default_measurement_key_str,
+    MEASUREMENT_KEY_SEPARATOR,
     MeasurementKey,
 )
 

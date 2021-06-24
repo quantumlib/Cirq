@@ -124,7 +124,7 @@ def test_run_repetitions_measure_at_end(dtype):
                 np.testing.assert_equal(result.measurements, {'0': [[b0]] * 3, '1': [[b1]] * 3})
                 assert result.repetitions == 3
         # We expect one call per b0,b1.
-        assert mock_sim.call_count == 4
+        assert mock_sim.call_count == 8
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -1270,6 +1270,12 @@ def test_nondeterministic_mixture_noise():
     assert result1 != result2
 
 
-def test_unsupported_noise_fails():
-    with pytest.raises(ValueError, match='noise'):
-        cirq.Simulator(noise=cirq.amplitude_damp(0.5))
+def test_noise_model():
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
+
+    noise_model = cirq.NoiseModel.from_noise_model_like(cirq.depolarize(p=0.01))
+    simulator = cirq.Simulator(noise=noise_model)
+    result = simulator.run(circuit, repetitions=100)
+
+    assert 40 <= sum(result.measurements['0'])[0] < 60

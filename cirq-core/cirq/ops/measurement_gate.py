@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING
+from typing import Any, Dict, Optional, Tuple, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types
+from cirq.ops import raw_types, gate_operation
 
 if TYPE_CHECKING:
     import cirq
@@ -34,7 +34,7 @@ class MeasurementGate(raw_types.Gate):
     def __init__(
         self,
         num_qubits: Optional[int] = None,
-        key: str = '',
+        key: Union[str, value.MeasurementKey] = '',
         invert_mask: Tuple[bool, ...] = (),
         qid_shape: Tuple[int, ...] = None,
     ) -> None:
@@ -64,7 +64,7 @@ class MeasurementGate(raw_types.Gate):
         self._qid_shape = qid_shape
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
-        self.key = key
+        self.key = key  # type: ignore
         self.invert_mask = invert_mask or ()
         if self.invert_mask is not None and len(self.invert_mask) > self.num_qubits():
             raise ValueError('len(invert_mask) > num_qubits')
@@ -74,22 +74,37 @@ class MeasurementGate(raw_types.Gate):
         return str(self.mkey)
 
     @key.setter
-    def key(self, key_str: str):
-        self.mkey = value.MeasurementKey(key_str)
+    def key(self, key: Union[str, value.MeasurementKey]):
+        if isinstance(key, value.MeasurementKey):
+            self.mkey = key
+        else:
+            self.mkey = value.MeasurementKey(name=key)
+
+    def on(self, *qubits: raw_types.Qid) -> raw_types.Operation:
+        """Returns an application of this gate to the given qubits.
+
+        Args:
+            *qubits: The collection of qubits to potentially apply the gate to.
+        """
+        maybe_rekeyed_gate = self.with_key(self.mkey.with_qubits(qubits))
+        return gate_operation.GateOperation(maybe_rekeyed_gate, list(qubits))
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def with_key(self, key: str) -> 'MeasurementGate':
+    def with_key(self, key: Union[str, value.MeasurementKey]) -> 'MeasurementGate':
         """Creates a measurement gate with a new key but otherwise identical."""
+        if isinstance(key, value.MeasurementKey) and key == self.mkey:
+            return self
         return MeasurementGate(
             self.num_qubits(), key=key, invert_mask=self.invert_mask, qid_shape=self._qid_shape
         )
 
+    def _with_key_path_(self, path: Tuple[str, ...]):
+        return self.with_key(self.mkey._with_key_path_(path))
+
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
-        if self.key not in key_map:
-            return self
-        return self.with_key(key_map[self.key])
+        return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
@@ -99,7 +114,7 @@ class MeasurementGate(raw_types.Gate):
         for b in bit_positions:
             new_mask[b] = not new_mask[b]
         return MeasurementGate(
-            self.num_qubits(), key=self.key, invert_mask=tuple(new_mask), qid_shape=self._qid_shape
+            self.num_qubits(), key=self.mkey, invert_mask=tuple(new_mask), qid_shape=self._qid_shape
         )
 
     def full_invert_mask(self):
@@ -116,10 +131,13 @@ class MeasurementGate(raw_types.Gate):
         mask += (False,) * deficit
         return mask
 
+    def _is_measurement_(self) -> bool:
+        return True
+
     def _measurement_key_(self):
         return self.key
 
-    def _channel_(self):
+    def _kraus_(self):
         size = np.prod(self._qid_shape, dtype=int)
 
         def delta(i):
@@ -129,7 +147,7 @@ class MeasurementGate(raw_types.Gate):
 
         return tuple(delta(i) for i in range(size))
 
-    def _has_channel_(self):
+    def _has_kraus_(self):
         return True
 
     def _circuit_diagram_info_(
@@ -143,8 +161,8 @@ class MeasurementGate(raw_types.Gate):
                 if b:
                     symbols[i] = '!M'
 
-        # Mention the measurement key.
-        if not args.known_qubits or self.key != _default_measurement_key(args.known_qubits):
+        # Mention the measurement key if it is non-trivial or there are no known qubits.
+        if self.mkey.name or self.mkey.path or not args.known_qubits:
             symbols[0] += f"('{self.key}')"
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
@@ -182,8 +200,13 @@ class MeasurementGate(raw_types.Gate):
 
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
         args = list(repr(q) for q in qubits)
-        if self.key != _default_measurement_key(qubits):
-            args.append(f'key={self.key!r}')
+        if self.mkey.name or self.mkey.path:
+            if self.mkey == self.mkey.name:
+                args.append(f'key={self.mkey.name!r}')
+            else:
+                # Remove qubits from the `MeasurementKey` representation since we already have
+                # qubits from the op.
+                args.append(f'key={self.mkey.with_qubits(tuple())!r}')
         if self.invert_mask:
             args.append(f'invert_mask={self.invert_mask!r}')
         arg_list = ', '.join(args)
@@ -196,13 +219,13 @@ class MeasurementGate(raw_types.Gate):
         return (
             f'cirq.MeasurementGate('
             f'{self.num_qubits()!r}, '
-            f'{self.key!r}, '
+            f'{self.mkey.name if self.mkey == self.mkey.name else self.mkey!r}, '
             f'{self.invert_mask}'
             f'{qid_shape_arg})'
         )
 
     def _value_equality_values_(self) -> Any:
-        return self.key, self.invert_mask, self._qid_shape
+        return self.mkey, self.invert_mask, self._qid_shape
 
     def _json_dict_(self) -> Dict[str, Any]:
         other = {}
@@ -211,7 +234,7 @@ class MeasurementGate(raw_types.Gate):
         return {
             'cirq_type': self.__class__.__name__,
             'num_qubits': len(self._qid_shape),
-            'key': self.key,
+            'key': self.mkey,
             'invert_mask': self.invert_mask,
             **other,
         }
@@ -220,7 +243,7 @@ class MeasurementGate(raw_types.Gate):
     def _from_json_dict_(cls, num_qubits, key, invert_mask, qid_shape=None, **kwargs):
         return cls(
             num_qubits=num_qubits,
-            key=key,
+            key=value.MeasurementKey.parse_serialized(key) if isinstance(key, str) else key,
             invert_mask=tuple(invert_mask),
             qid_shape=None if qid_shape is None else tuple(qid_shape),
         )
@@ -228,15 +251,6 @@ class MeasurementGate(raw_types.Gate):
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         return True
 
-    def _act_on_(self, args: Any) -> bool:
-        from cirq import sim
-
-        if isinstance(args, sim.ActOnArgs):
-            args.measure(self.key, self.full_invert_mask())
-            return True
-
-        return NotImplemented
-
-
-def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
-    return ','.join(str(q) for q in qubits)
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
+        args.measure(qubits, self.key, self.full_invert_mask())
+        return True

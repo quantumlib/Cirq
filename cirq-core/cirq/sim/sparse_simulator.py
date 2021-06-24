@@ -14,37 +14,32 @@
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
-import collections
 from typing import (
     Any,
     Dict,
+    Iterator,
     List,
     Type,
     TYPE_CHECKING,
-    DefaultDict,
     Union,
-    cast,
     Sequence,
 )
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, qis, study, value, devices
-from cirq.ops import flatten_to_ops
+from cirq import ops, protocols, qis
 from cirq.sim import (
     simulator,
     state_vector,
     state_vector_simulator,
     act_on_state_vector_args,
 )
-from cirq.sim.simulator import check_all_resolved, split_into_matching_protocol_then_general
 
 if TYPE_CHECKING:
     import cirq
 
 
 class Simulator(
-    simulator.SimulatesSamples,
     state_vector_simulator.SimulatesIntermediateStateVector['SparseSimulatorStep'],
     simulator.SimulatesExpectationValues,
 ):
@@ -159,70 +154,11 @@ class Simulator(
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
-        self._dtype = dtype
-        self._prng = value.parse_random_state(seed)
-        noise_model = devices.NoiseModel.from_noise_model_like(noise)
-        if not protocols.has_mixture(noise_model):
-            raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
-        self.noise = noise_model
-
-    def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        """See definition in `cirq.SimulatesSamples`."""
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-        qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        act_on_args = self._create_act_on_args(0, qubits)
-
-        # Simulate as many unitary operations as possible before having to
-        # repeat work for each sample.
-        unitary_prefix, general_suffix = (
-            split_into_matching_protocol_then_general(resolved_circuit, protocols.has_unitary)
-            if protocols.has_unitary(self.noise)
-            else (resolved_circuit[0:0], resolved_circuit)
+        super().__init__(
+            dtype=dtype,
+            noise=noise,
+            seed=seed,
         )
-        step_result = None
-        for step_result in self._core_iterator(
-            circuit=unitary_prefix,
-            sim_state=act_on_args,
-        ):
-            pass
-        assert step_result is not None
-
-        # When an otherwise unitary circuit ends with non-demolition computation
-        # basis measurements, we can sample the results more efficiently.
-        general_ops = list(general_suffix.all_operations())
-        if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
-            return step_result.sample_measurement_ops(
-                measurement_ops=cast(List[ops.GateOperation], general_ops),
-                repetitions=repetitions,
-                seed=self._prng,
-            )
-
-        return self._brute_force_samples(
-            act_on_args=act_on_args,
-            circuit=general_suffix,
-            repetitions=repetitions,
-        )
-
-    def _brute_force_samples(
-        self,
-        act_on_args: act_on_state_vector_args.ActOnStateVectorArgs,
-        circuit: circuits.Circuit,
-        repetitions: int,
-    ) -> Dict[str, np.ndarray]:
-        """Repeatedly simulate a circuit in order to produce samples."""
-
-        measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
-        for _ in range(repetitions):
-            all_step_results = self._core_iterator(circuit, sim_state=act_on_args.copy())
-
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    measurements[k].append(np.array(v, dtype=np.uint8))
-        return {k: np.array(v) for k, v in measurements.items()}
 
     def _create_act_on_args(
         self,
@@ -254,81 +190,48 @@ class Simulator(
             target_tensor=np.reshape(state, qid_shape),
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
             qubits=qubits,
-            axes=[],
             prng=self._prng,
             log_of_measurement_results={},
         )
 
-    def _core_iterator(
+    def _create_step_result(
         self,
-        circuit: circuits.Circuit,
         sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
+        qubit_map: Dict['cirq.Qid', int],
     ):
-        """Iterator over SparseSimulatorStep from Moments of a Circuit
+        return SparseSimulatorStep(
+            state_vector=sim_state.target_tensor,
+            measurements=dict(sim_state.log_of_measurement_results),
+            qubit_map=qubit_map,
+            dtype=self._dtype,
+        )
 
-        Args:
-            circuit: The circuit to simulate.
-            sim_state: The initial state args for the simulation in the
-                computational basis.
-
-        Yields:
-            SparseSimulatorStep from simulating a Moment of the Circuit.
-        """
-        if len(circuit) == 0:
-            yield SparseSimulatorStep(
-                state_vector=sim_state.target_tensor,
-                measurements=dict(sim_state.log_of_measurement_results),
-                qubit_map=sim_state.qubit_map,
-                dtype=self._dtype,
-            )
-            return
-
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        for op_tree in noisy_moments:
-            for op in flatten_to_ops(op_tree):
-                sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
-                protocols.act_on(op, sim_state)
-
-            yield SparseSimulatorStep(
-                state_vector=sim_state.target_tensor,
-                measurements=dict(sim_state.log_of_measurement_results),
-                qubit_map=sim_state.qubit_map,
-                dtype=self._dtype,
-            )
-            sim_state.log_of_measurement_results.clear()
-
-    def simulate_expectation_values_sweep(
+    def simulate_expectation_values_sweep_iter(
         self,
         program: 'cirq.Circuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
-        params: 'study.Sweepable',
+        params: 'cirq.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> List[List[float]]:
+    ) -> Iterator[List[float]]:
         if not permit_terminal_measurements and program.are_any_measurements_terminal():
             raise ValueError(
                 'Provided circuit has terminal measurements, which may '
                 'skew expectation values. If this is intentional, set '
                 'permit_terminal_measurements=True.'
             )
-        swept_evs = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
         if not isinstance(observables, List):
             observables = [observables]
         pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
-        for param_resolver in study.to_resolvers(params):
-            result = self.simulate(
-                program, param_resolver, qubit_order=qubit_order, initial_state=initial_state
+        yield from (
+            [obs.expectation_from_state_vector(result.final_state_vector, qmap) for obs in pslist]
+            for result in self.simulate_sweep_iter(
+                program, params, qubit_order=qubit_order, initial_state=initial_state
             )
-            swept_evs.append(
-                [
-                    obs.expectation_from_state_vector(result.final_state_vector, qmap)
-                    for obs in pslist
-                ]
-            )
-        return swept_evs
+        )
 
 
 class SparseSimulatorStep(
