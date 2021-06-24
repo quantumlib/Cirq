@@ -327,9 +327,6 @@ def prepare_characterization_for_moments(
             sort_pairs=True,
         )
 
-        print("Prepared calibration for moment []")
-        print(calibration)
-
         if calibration is not None:
             if merge_subsets:
                 index = _merge_into_calibrations(calibration, calibrations, pairs_map, options)
