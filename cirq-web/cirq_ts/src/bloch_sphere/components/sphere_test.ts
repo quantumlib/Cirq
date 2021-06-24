@@ -37,16 +37,16 @@ describe('Sphere', () => {
   describe('defaults', () => {
     const sphereInfo = getSphereInfo(sphere);
 
-    it('createSphere() has a default radius of 5', () => {
+    it('has a default radius of 5', () => {
       expect(sphereInfo.params.radius).to.equal(5);
     });
 
-    it('createSphere() uses 32 width and height segments for the sphere shape', () => {
+    it('uses 32 width and height segments for the sphere shape', () => {
       expect(sphereInfo.params.widthSegments).to.equal(32);
       expect(sphereInfo.params.widthSegments).to.equal(32);
     });
 
-    it('createSphere() returns a transparent sphere', () => {
+    it('returns a transparent sphere', () => {
       expect(sphereInfo.material.opacity).to.equal(0.6);
       expect(sphereInfo.material.transparent).to.equal(true);
     });
@@ -67,12 +67,10 @@ describe('Sphere', () => {
 
     it('createSphere() defaults correctly invalid radius inputs (-1, 0)', () => {
       const radiusInputs = [-1, 0];
-      const expectedRadius = [5, 5];
-
-      radiusInputs.forEach((el, index) => {
-        const sphere = new Sphere(el);
-        const sphereInfo = getSphereInfo(sphere);
-        expect(sphereInfo.params.radius).to.equal(expectedRadius[index]);
+      const expectedErrorMessage =
+        'The radius of a Sphere must be greater than or equal to 1';
+      radiusInputs.forEach(el => {
+        expect(() => new Sphere(el)).to.throw(expectedErrorMessage);
       });
     });
   });

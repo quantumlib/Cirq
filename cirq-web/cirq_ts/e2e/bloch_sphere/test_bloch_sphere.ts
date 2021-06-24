@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import puppeteer, {Browser} from 'puppeteer';
+import puppeteer from 'puppeteer';
 import {expect} from 'chai';
 import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
@@ -25,7 +25,8 @@ import * as path from 'path';
  * that we will use to compare.
  */
 
-// Due to the path, reading the file will only work by running "npm run start"
+// Due to the path, reading the file will only work by running this file in the same directory
+// as the package.json file.
 const bundle_string = readFileSync('dist/bloch_sphere.bundle.js');
 const browserContent = `
 <!doctype html>
@@ -38,7 +39,8 @@ const browserContent = `
     <div id="container"></div>
     <script>${bundle_string}</script>
     <script>
-        CirqTS.blochSphere('{"radius": 5}');
+        const blochSphere = renderBlochSphere('{"radius": 5}');
+        blochSphere.addVector();
     </script>
     </body>
 </html>
@@ -55,7 +57,8 @@ const newVectorBrowserContent = `
     <div id="container"></div>
     <script>${bundle_string}</script>
     <script>
-        CirqTS.blochSphere('{"radius": 5}', '{"x": 1,"y": 1, "z": 2, "length": 5}');
+        const blochSphere = renderBlochSphere('{"radius": 5}');
+        blochSphere.addVector('{"x": 1,"y": 1, "z": 2, "length": 5}');
     </script>
     </body>
 </html>
@@ -68,29 +71,20 @@ const newVectorBrowserContent = `
 // Automatically track and cleanup files on exit
 temp.track();
 
-describe('Check Bloch Sphere looks correct', function () {
+describe('Check Bloch Sphere looks correct', () => {
   // Create the temporary directory first, then run everything.
   temp.mkdir('tmp', (err, dirPath) => {
     const output_path = path.join(dirPath, 'bloch_sphere.png');
     const new_vector_output_path = path.join(dirPath, 'bloch_sphere_vec.png');
 
-    let browser: Browser;
-
     before(async () => {
-      // Set a special timeout for these tests.
-      this.timeout(10000);
-
       //Opens a headless browser with the generated HTML file and takes a screenshot.
-      browser = await puppeteer.launch();
+      const browser = await puppeteer.launch();
       const page = await browser.newPage();
 
       // Take a screenshot of the first image
       await page.setContent(browserContent);
       await page.screenshot({path: output_path});
-
-      // Take a screenshot of the second image
-      await page.setContent(newVectorBrowserContent);
-      await page.screenshot({path: new_vector_output_path});
       await browser.close();
     });
 
@@ -114,6 +108,17 @@ describe('Check Bloch Sphere looks correct', function () {
       expect(pixels).to.be.below(700);
     });
 
+    before(async () => {
+      //Opens a headless browser with the generated HTML file and takes a screenshot.
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+
+      // Take a screenshot of the second image
+      await page.setContent(newVectorBrowserContent);
+      await page.screenshot({path: new_vector_output_path});
+      await browser.close();
+    });
+
     it('Bloch sphere with custom statevector matches the standard PNG copy', () => {
       const expected = PNG.PNG.sync.read(
         readFileSync('e2e/bloch_sphere/bloch_sphere_expected_custom.png')
@@ -130,7 +135,7 @@ describe('Check Bloch Sphere looks correct', function () {
         height,
         {threshold: 0.1}
       );
-      // Accouting for the difference in unicode symbols
+      // Accouting for the difference in unicode symbols in browsers
       expect(pixels).to.be.below(700);
     });
   });

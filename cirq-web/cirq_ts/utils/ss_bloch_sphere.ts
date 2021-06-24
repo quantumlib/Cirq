@@ -16,6 +16,10 @@
  * Usage:
  * From the cirq_ts directory, run:
  *  ts-node e2e/utils/ss_bloch_sphere.ts
+ *
+ * Note that you will need to modify the destination path and the content of the
+ * HTML to create the desired testing images. This file should serve moreso as
+ * an example.
  */
 import puppeteer from 'puppeteer';
 import {readFileSync} from 'fs';
@@ -32,7 +36,8 @@ const browserContent = `
     <div id="container"></div>
     <script>${bundle_string}</script>
     <script>
-        CirqTS.blochSphere('{"radius": 5}', '{"x": 1,"y": 1, "z": 2, "length": 5}');
+        const blochSphere = renderBlochSphere('{"radius": 5}');
+        blochSphere.addVector();
     </script>
     </body>
 </html>

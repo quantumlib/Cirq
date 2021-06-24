@@ -4,7 +4,6 @@
  * of meridian they are
  */
 export enum Orientation {
-  HORIZONTAL_CHORD,
   HORIZONTAL,
   VERTICAL,
 }

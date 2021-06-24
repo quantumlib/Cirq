@@ -91,7 +91,7 @@ describe('BlochSphere defaults', () => {
     ) as Meridians[];
 
     const horizontalMeridians = meridians.find(
-      child => child.orientation === Orientation.HORIZONTAL_CHORD
+      child => child.orientation === Orientation.HORIZONTAL
     ) as Meridians;
 
     const verticalMeridians = meridians.find(
@@ -165,7 +165,7 @@ describe('BlochSphere defaults', () => {
   });
 });
 
-describe('Blochsphere configurables', () => {
+describe('BlochSphere configurables', () => {
   const bloch_sphere = new BlochSphere(3, 9, 6);
   const children = bloch_sphere.children;
 
@@ -178,7 +178,7 @@ describe('Blochsphere configurables', () => {
   ) as Meridians[];
 
   const horizontalMeridians = meridians.find(
-    child => child.orientation === Orientation.HORIZONTAL_CHORD
+    child => child.orientation === Orientation.HORIZONTAL
   ) as Meridians;
 
   const verticalMeridians = meridians.find(
@@ -190,13 +190,10 @@ describe('Blochsphere configurables', () => {
       expect(sphere.radius).to.equal(3);
     });
 
-    it('defaults correctly to an invalid radius', () => {
-      const bloch_sphere = new BlochSphere(-100);
-      const children = bloch_sphere.children;
-      const sphere = children.find(
-        child => child.constructor.name === 'Sphere'
-      ) as Sphere;
-      expect(sphere.radius).to.equal(5);
+    it('throws an error correctly with an invalid radius', () => {
+      expect(() => new BlochSphere(-100)).to.throw(
+        'Invalid radius provided in the BlochSphere constructor'
+      );
     });
   });
 
@@ -207,26 +204,6 @@ describe('Blochsphere configurables', () => {
 
     it('accepts vertical meridians of 6', () => {
       expect(verticalMeridians.numCircles).to.equal(6);
-    });
-
-    it('defaults corretly to invalid meridian numbers', () => {
-      const bloch_sphere = new BlochSphere(5, -10, 301);
-      const children = bloch_sphere.children;
-
-      const meridians = children.filter(
-        child => child.constructor.name === 'Meridians'
-      ) as Meridians[];
-
-      const horizontalMeridians = meridians.find(
-        child => child.orientation === Orientation.HORIZONTAL_CHORD
-      ) as Meridians;
-
-      const verticalMeridians = meridians.find(
-        child => child.orientation === Orientation.VERTICAL
-      ) as Meridians;
-
-      expect(horizontalMeridians.numCircles).to.equal(7);
-      expect(verticalMeridians.numCircles).to.equal(4);
     });
   });
 

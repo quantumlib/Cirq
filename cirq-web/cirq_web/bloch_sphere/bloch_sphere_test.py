@@ -41,7 +41,7 @@ def test_init_bloch_sphere_type():
 def test_valid_bloch_sphere_radius_json_info(sphere_radius):
     bloch_sphere = cirq_web.BlochSphere(sphere_radius=sphere_radius)
     expected_object = {'radius': sphere_radius}
-    expected = to_json(expected_object)
+    expected = to_json(expected_object, indent=None)
     assert expected == bloch_sphere.sphere_json
 
 
@@ -61,9 +61,9 @@ def test_valid_bloch_sphere_vector_json(state_vector):
         'x': bloch_vector[0].item(),
         'y': bloch_vector[1].item(),
         'z': bloch_vector[2].item(),
-        'v_length': 5,  # This is the default value
+        'length': 5,  # This is the default value
     }
-    expected = to_json(expected_object)
+    expected = to_json(expected_object, indent=None)
     assert expected == bloch_sphere.vector_json
 
 
@@ -85,7 +85,8 @@ def test_repr_html():
         <div id="container"></div>
         {bundle_script}
         <script>
-        CirqTS.blochSphere('{bloch_sphere.sphere_json}', '{bloch_sphere.vector_json}');
+        const blochSphere = renderBlochSphere('{bloch_sphere.sphere_json}');
+        blochSphere.addVector('{bloch_sphere.vector_json}');
         </script>
         """
     assert expected == bloch_sphere._repr_html_()
@@ -107,7 +108,8 @@ def test_generate_html_file_with_browser(tmpdir):
 
     template_script = f"""
         <script>
-        CirqTS.blochSphere('{bloch_sphere.sphere_json}', '{bloch_sphere.vector_json}');
+        const blochSphere = renderBlochSphere('{bloch_sphere.sphere_json}');
+        blochSphere.addVector('{bloch_sphere.vector_json}');
         </script>
         """
 

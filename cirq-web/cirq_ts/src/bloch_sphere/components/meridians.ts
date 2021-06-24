@@ -57,25 +57,18 @@ export class Meridians extends Group {
     this.orientation = orientation;
 
     switch (orientation) {
-      case Orientation.HORIZONTAL_CHORD: {
-        this.numCircles = this.sanitizeCircleInput(numCircles, 7);
+      case Orientation.HORIZONTAL: {
+        this.numCircles = this.sanitizeCircleInput(numCircles);
         this.createHorizontalChordMeridians(this.radius, this.numCircles);
         return this;
       }
-      case Orientation.HORIZONTAL: {
-        this.numCircles = this.sanitizeCircleInput(numCircles, 4);
-        this.createHorizontalCircleMeridians(this.radius, this.numCircles);
-        return this;
-      }
       case Orientation.VERTICAL: {
-        this.numCircles = this.sanitizeCircleInput(numCircles, 4);
+        this.numCircles = this.sanitizeCircleInput(numCircles);
         this.createVerticalMeridians(this.radius, this.numCircles);
         return this;
       }
       default:
-        this.numCircles = 0;
-        // Return nothing if given an invalid orientation.
-        return this;
+        throw new Error('Invalid orientation input in Meridians constructor');
     }
   }
 
@@ -102,8 +95,14 @@ export class Meridians extends Group {
     // Creates chords proportionally to radius 5 circle.
     const initialFactor = (0.5 * radius) / 5;
 
+    // Start building the chords from the top down.
+    // If the user only wants one chord, skip the loop.
+    let topmostChordPos: number;
+    numCircles === 1
+      ? (topmostChordPos = 0)
+      : (topmostChordPos = radius - initialFactor);
+
     const chordYPositions = [0]; // equator
-    const topmostChordPos = radius - initialFactor;
     for (
       let i = topmostChordPos;
       i > 0;
@@ -124,33 +123,8 @@ export class Meridians extends Group {
       const meridianLine = this.createMeridianLine(
         curve,
         Math.PI / 2,
-        Orientation.HORIZONTAL_CHORD,
+        Orientation.HORIZONTAL,
         position
-      );
-      this.add(meridianLine);
-    }
-  }
-
-  /**
-   * Creates equally spaced and sized horizontal meridian lines which rotate
-   * by varying degrees across the same axis and adds them to the
-   * group.
-   * @param radius The radius of the overall Bloch sphere
-   * @param numCircles The number of circles to add. This number must be even,
-   * if an odd number is provided, one more circle will be generated to ensure it is even.
-   */
-  private createHorizontalCircleMeridians(radius: number, numCircles: number) {
-    if (numCircles === 0) {
-      return;
-    }
-    const curveData = this.curveDataWithRadius(radius);
-    const curve = this.createMeridianCurve(curveData);
-
-    for (let i = 0; i < Math.PI; i += Math.PI / numCircles) {
-      const meridianLine = this.createMeridianLine(
-        curve,
-        i,
-        Orientation.HORIZONTAL
       );
       this.add(meridianLine);
     }
@@ -209,10 +183,6 @@ export class Meridians extends Group {
     const meridianGeom = new BufferGeometry().setFromPoints(points);
 
     switch (orientation) {
-      case Orientation.HORIZONTAL_CHORD: {
-        meridianGeom.rotateX(rotationAngle);
-        break;
-      }
       case Orientation.HORIZONTAL: {
         meridianGeom.rotateX(rotationAngle);
         break;
@@ -266,17 +236,11 @@ export class Meridians extends Group {
     };
   }
 
-  private sanitizeCircleInput(input: number, defaultValue: number) {
-    // Don't fail if given an invalid number of circles, but print to the console
-    // that it's not allowed
+  private sanitizeCircleInput(input: number) {
     if (input < 0) {
-      console.warn(
-        'A negative number of meridians are not supported. Showing default.'
-      );
-      return defaultValue;
+      throw new Error('A negative number of meridians are not supported');
     } else if (input > 300) {
-      console.warn('Over 300 meridians are not supported. Showing default.');
-      return defaultValue;
+      throw new Error('Over 300 meridians are not supported');
     }
 
     return Math.floor(input);

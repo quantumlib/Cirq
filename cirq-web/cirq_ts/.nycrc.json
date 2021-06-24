@@ -17,7 +17,8 @@
         "**/*_test.ts",
         "dist/**",
         "build/**",
-        "utils/**"
+        "utils/**",
+        "e2e/**"
     ],
     "all": true,
     "instrument": true

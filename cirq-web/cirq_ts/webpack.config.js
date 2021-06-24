@@ -1,9 +1,5 @@
 const path = require('path');
 
-// devServer holds files in memory: https://webpack.js.org/guides/development/
-// Need compiled files to work w/ notebook
-// Nbextension needed to work with Colab?
-
 module.exports = {
   entry: {
     bloch_sphere: './src/bloch_sphere/main.ts',
@@ -27,7 +23,6 @@ module.exports = {
   output: {
     filename: '[name].bundle.js',
     library: {
-      name: 'CirqTS',
       type: 'global',
     },
     path: path.resolve(__dirname, 'dist'),

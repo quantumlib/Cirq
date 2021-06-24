@@ -42,6 +42,10 @@ export class BlochSphere extends Group {
   constructor(radius = 5, hMeridians = 7, vMeridians = 4) {
     super();
 
+    if (radius < 1) {
+      throw new Error('Invalid radius provided in the BlochSphere constructor');
+    }
+
     this.radius = radius;
     this.hMeridians = hMeridians;
     this.vMeridians = vMeridians;
@@ -88,7 +92,7 @@ export class BlochSphere extends Group {
     const meridians = new Meridians(
       this.radius,
       this.hMeridians,
-      Orientation.HORIZONTAL_CHORD
+      Orientation.HORIZONTAL
     );
     this.add(meridians);
   }

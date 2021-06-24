@@ -68,7 +68,8 @@ class BlochSphere(widget.Widget):
         <div id="container"></div>
         {bundle_script}
         <script>
-        CirqTS.blochSphere('{self.sphere_json}', '{self.vector_json}');
+        const blochSphere = renderBlochSphere('{self.sphere_json}');
+        blochSphere.addVector('{self.vector_json}');
         </script>
         """
 
@@ -104,11 +105,12 @@ class BlochSphere(widget.Widget):
 
         template_script = f"""
         <script>
-        CirqTS.blochSphere('{self.sphere_json}', '{self.vector_json}');
+        const blochSphere = renderBlochSphere('{self.sphere_json}');
+        blochSphere.addVector('{self.vector_json}');
         </script>
         """
 
-        bundle_script = bundle_script = super().get_bundle_script()
+        bundle_script = super().get_bundle_script()
         contents = template_div + bundle_script + template_script
         path_of_html_file = widget.write_output_file(output_directory, file_name, contents)
 
@@ -122,7 +124,7 @@ class BlochSphere(widget.Widget):
             raise (BaseException('You must input a positive radius for the sphere'))
 
         obj = {'radius': radius}
-        return to_json(obj)
+        return to_json(obj, indent=None)
 
     def _create_vector(self, state_vector: ndarray) -> ndarray:
         """Any state_vector input will need to come from cirq.to_valid_state_vector,
@@ -144,6 +146,6 @@ class BlochSphere(widget.Widget):
             'x': x.item(),
             'y': y.item(),
             'z': z.item(),
-            'v_length': length,
+            'length': length,
         }
-        return to_json(obj)
+        return to_json(obj, indent=None)

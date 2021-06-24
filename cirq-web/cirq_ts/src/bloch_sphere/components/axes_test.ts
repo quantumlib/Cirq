@@ -49,6 +49,7 @@ describe('Axes', () => {
       for (const child of children) {
         const material = child.material as LineDashedMaterial;
         //.eql is deep equal, which can be used to compare objects
+        // Color(1, 1, 1) is equivalent to #fff/"white" in three.js
         expect(material.color).to.eql(new Color(1, 1, 1));
       }
     });
