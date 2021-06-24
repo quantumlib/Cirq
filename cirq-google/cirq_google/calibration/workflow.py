@@ -679,9 +679,11 @@ def _merge_into_calibrations(
     """
     new_pairs = set(calibration.pairs)
     for index in pairs_map.values():
-        if calibration.gate != calibrations[index].gate:
-            continue
-        if calibration.options != calibrations[index].options:
+        can_merge = (
+            calibration.gate == calibrations[index].gate
+            and calibration.options == calibrations[index].options
+        )
+        if not can_merge:
             continue
         existing_pairs = calibrations[index].pairs
         if new_pairs.issubset(existing_pairs):
