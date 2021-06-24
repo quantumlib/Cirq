@@ -70,7 +70,6 @@ def _qid_tree_flatten(qids: QID_TREE) -> Iterator[raw_types.Qid]:
         raise ValueError(f'Expected Qids, got {type(qids)}: {qids}')
 
 
-
 def _qid_tree_flatten_partial(qids: QID_TREE) -> Iterator[Iterable[raw_types.Qid]]:
     if isinstance(qids, (raw_types.Qid, str)) or not isinstance(qids, Iterable):
         raise ValueError(f'Expected Iterable[Qid], got {type(qids)}: {qids}')
