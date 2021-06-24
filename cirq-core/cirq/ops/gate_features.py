@@ -18,7 +18,6 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
-import itertools
 from typing import Iterable, Iterator, List, Protocol, Union
 
 from cirq.ops import raw_types
@@ -33,22 +32,15 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 
 class QidTree(Protocol):
-    """The recursive type consumed by circuit builder methods.
+    """The recursive type consumed by on_each.
 
-    An OpTree is a type protocol, satisfied by anything that can be recursively
-    flattened into Operations. We also define the Union type OP_TREE which
-    can be an OpTree or just a single Operation.
-
-    For example:
-    - An Operation is an OP_TREE all by itself.
-    - A list of operations is an OP_TREE.
-    - A list of tuples of operations is an OP_TREE.
-    - A list with a mix of operations and lists of operations is an OP_TREE.
-    - A generator yielding operations is an OP_TREE.
+    A QidTree is a type protocol, satisfied by anything that can be recursively
+    flattened into Qid's. We also define the Union type QID_TREE which
+    can be a QidTree or just a single Qid. For reference, see OpTree/OP_TREE.
 
     Note: once mypy supports recursive types this could be defined as an alias:
 
-    OP_TREE = Union[Operation, Iterable['OP_TREE']]
+    QID_TREE = Union[Qid, Iterable['QID_TREE']]
 
     See: https://github.com/python/mypy/issues/731
     """
