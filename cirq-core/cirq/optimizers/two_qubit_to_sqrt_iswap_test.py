@@ -193,6 +193,7 @@ def assert_valid_decomp(
     operations,
     *,
     single_qubit_gate_types=(cirq.ZPowGate, cirq.XPowGate, cirq.YPowGate),
+    two_qubit_gate=cirq.SQRT_ISWAP,
     atol=1e-6,
     rtol=0,
     qubit_order=cirq.LineQubit.range(2),
@@ -203,7 +204,7 @@ def assert_valid_decomp(
             assert False, 'Global phase operation was output when it should not.'
         elif len(op.qubits) == 1 and isinstance(op.gate, single_qubit_gate_types):
             pass
-        elif len(op.qubits) == 2 and op.gate == cirq.SQRT_ISWAP:
+        elif len(op.qubits) == 2 and op.gate == two_qubit_gate:
             pass
         else:
             assert False, f'Disallowed operation was output: {op}'
@@ -358,6 +359,21 @@ def test_all_weyl_regions(u):
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u)
     assert_valid_decomp(u, ops)
+
+
+@pytest.mark.parametrize(
+    'u',
+    [  # Don't need to check all Weyl chamber corner cases here
+        ZERO_UNITARIES[0],
+        ONE_SQRT_ISWAP_UNITARIES[0],
+        TWO_SQRT_ISWAP_UNITARIES[0],
+        THREE_SQRT_ISWAP_UNITARIES[0],
+    ],
+)
+def test_decomp_sqrt_iswap_inv(u):
+    q0, q1 = cirq.LineQubit.range(2)
+    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, use_sqrt_iswap_inv=True)
+    assert_valid_decomp(u, ops, two_qubit_gate=cirq.SQRT_ISWAP_INV)
 
 
 def test_valid_check_raises():

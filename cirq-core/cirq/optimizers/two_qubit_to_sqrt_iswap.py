@@ -23,6 +23,7 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     mat: np.ndarray,
     *,
     required_sqrt_iswap_count: Optional[int] = None,
+    use_sqrt_iswap_inv: bool = False,
     atol: float = 1e-8,
     check_preconditions: bool = True,
 ) -> Sequence['cirq.Operation']:
@@ -46,6 +47,10 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
         required_sqrt_iswap_count: When specified, exactly this many sqrt-iSWAP
             gates will be used even if fewer is possible (maximum 3).  Raises
             ``ValueError`` if impossible.
+        use_sqrt_iswap_inv: If True, returns a decomposition using
+            ``SQRT_ISWAP_INV`` gates instead of ``SQRT_ISWAP``.  This
+            decomposition is identical except for the addition of single-qubit
+            Z gates.
         atol: A limit on the amount of absolute error introduced by the
             construction.
         check_preconditions: If set, verifies that the input corresponds to a
@@ -71,7 +76,7 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
         mat, atol=atol / 10, rtol=0, check_preconditions=check_preconditions
     )
     operations = _kak_decomposition_to_sqrt_iswap_operations(
-        q0, q1, kak, required_sqrt_iswap_count, atol=atol
+        q0, q1, kak, required_sqrt_iswap_count, use_sqrt_iswap_inv, atol=atol
     )
     return operations
 
@@ -81,11 +86,23 @@ def _kak_decomposition_to_sqrt_iswap_operations(
     q1: 'cirq.Qid',
     kak: linalg.KakDecomposition,
     required_sqrt_iswap_count: Optional[int] = None,
+    use_sqrt_iswap_inv: bool = False,
     atol: float = 1e-8,
 ) -> Sequence['cirq.Operation']:
     single_qubit_operations, _ = _single_qubit_matrices_with_sqrt_iswap(
         kak, required_sqrt_iswap_count, atol=atol
     )
+    if use_sqrt_iswap_inv:
+        z_unitary = protocols.unitary(ops.Z)
+        return _decomp_to_operations(
+            q0,
+            q1,
+            ops.SQRT_ISWAP_INV,
+            single_qubit_operations,
+            u0_before=z_unitary,
+            u0_after=z_unitary,
+            atol=atol,
+        )
     return _decomp_to_operations(
         q0,
         q1,
@@ -100,6 +117,8 @@ def _decomp_to_operations(
     q1: 'cirq.Qid',
     two_qubit_gate: 'cirq.Gate',
     single_qubit_operations: Sequence[Tuple[np.ndarray, np.ndarray]],
+    u0_before: np.ndarray = np.eye(2),
+    u0_after: np.ndarray = np.eye(2),
     atol: float = 1e-8,
 ) -> Sequence['cirq.Operation']:
     """Converts a sequence of single-qubit unitary matrices on two qubits into a
@@ -153,11 +172,19 @@ def _decomp_to_operations(
         prev_commute = new_commute
 
     single_ops = list(single_qubit_operations)
-    for matrix0, matrix1 in single_ops[:-1]:
-        append(matrix0, matrix1)  # Append pair of single qubit gates
+    if len(single_ops) <= 1:  # Handle zero sqrt-iSWAP case separately
+        for matrix0, matrix1 in single_ops:  # Only entry, if any
+            append(matrix0, matrix1, final_layer=True)  # Append only pair of single qubit gates
+        return operations
+    for matrix0, matrix1 in single_ops[:1]:  # First entry
+        append(u0_before @ matrix0, matrix1)  # Append pair of single qubit gates
         operations.append(two_qubit_op)  # Append two-qubit gate between each pair
-    for matrix0, matrix1 in single_ops[-1:]:
-        append(matrix0, matrix1, final_layer=True)  # Append final pair of single qubit gates
+    for matrix0, matrix1 in single_ops[1:-1]:  # All middle entries
+        append(u0_before @ matrix0 @ u0_after, matrix1)  # Append pair of single qubit gates
+        operations.append(two_qubit_op)  # Append two-qubit gate between each pair
+    for matrix0, matrix1 in single_ops[-1:]:  # Last entry
+        # Append final pair of single qubit gates
+        append(matrix0 @ u0_after, matrix1, final_layer=True)
     return operations
 
 
