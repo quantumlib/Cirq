@@ -397,11 +397,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         operations: List['Operation'] = []
         if self._num_qubits_() > 1:
             if len(targets) != 1 or not isinstance(targets[0], Iterable):
-                raise ValueError(
-                    f'The inputs for multi-qubit gates cannot be in varargs form.'
-                )
-            targets = targets[0]
-            for target in targets:
+                raise ValueError(f'The inputs for multi-qubit gates cannot be in varargs form.')
+            for target in targets[0]:
                 if not isinstance(target, Sequence):
                     if isinstance(target, Qid):
                         raise ValueError(

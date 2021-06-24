@@ -810,15 +810,15 @@ def test_on_each_two_qubits():
     assert g.on_each([(b, a)]) == [g(b, a)]
     assert g.on_each([(a, b), (b, a)]) == [g(a, b), g(b, a)]
     assert g.on_each(zip([a, b], [b, a])) == [g(a, b), g(b, a)]
-    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+    with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each()
-    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+    with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each(a, b)
-    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+    with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each((b, a))
-    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+    with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each((a, b), (a, b))
-    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+    with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each(*zip([a, b], [b, a]))
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
         g.on_each([(a, b), [(a, b)]])
@@ -867,15 +867,15 @@ def test_on_each_three_qubits():
     assert g.on_each([(c, b, a)]) == [g(c, b, a)]
     assert g.on_each([(a, b, c), (c, b, a)]) == [g(a, b, c), g(c, b, a)]
     assert g.on_each(zip([a, c], [b, b], [c, a])) == [g(a, b, c), g(c, b, a)]
-    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+    with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each()
-    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+    with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each(a, b, c)
-    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+    with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each((c, b, a))
-    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+    with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each((a, b, c), (a, b, c))
-    with pytest.raises(ValueError, match='The inputs for multi-qubit gates cannot be in varargs form'):
+    with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each(*zip([a, c], [b, b], [c, a]))
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
         g.on_each([(a, b, c), [(a, b, c)]])
