@@ -224,7 +224,7 @@ class AbstractCircuit(abc.ABC):
     # pylint: enable=function-redefined
 
     @abc.abstractmethod
-    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']):
+    def _with_sliced_moments(self: CIRCUIT_TYPE, moments: Iterable['cirq.Moment']) -> CIRCUIT_TYPE:
         """Helper method for constructing circuits from __getitem__."""
 
     def __str__(self) -> str:
@@ -882,6 +882,25 @@ class AbstractCircuit(abc.ABC):
         moment's constructor.
         """
         return (op for moment in self for op in moment.operations)
+
+    def map_operations(
+        self: CIRCUIT_TYPE, func: Callable[['cirq.Operation'], 'cirq.OP_TREE']
+    ) -> CIRCUIT_TYPE:
+        """Applies the given function to all operations in this circuit.
+
+        Args:
+            func: a mapping function from operations to OP_TREEs.
+
+        Returns:
+            A circuit with the same basic structure as the original, but with
+            each operation `op` replaced with `func(op)`.
+        """
+
+        def map_moment(moment: 'cirq.Moment') -> 'cirq.Circuit':
+            """Apply func to expand each op into a circuit, then zip up the circuits."""
+            return Circuit.zip(*[Circuit(func(op)) for op in moment])
+
+        return self._with_sliced_moments(m for moment in self for m in map_moment(moment))
 
     def qid_shape(
         self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
@@ -1652,7 +1671,7 @@ class Circuit(AbstractCircuit):
         copied_circuit._moments = self._moments[:]
         return copied_circuit
 
-    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']) -> 'Circuit':
+    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'Circuit':
         new_circuit = Circuit(device=self.device)
         new_circuit._moments = list(moments)
         return new_circuit
