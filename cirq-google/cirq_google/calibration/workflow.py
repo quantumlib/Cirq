@@ -42,7 +42,6 @@ from cirq_google.calibration.phased_fsim import (
     merge_matching_results,
     try_convert_gate_to_fsim,
     try_convert_syc_or_sqrt_iswap_to_fsim,
-    try_convert_sqrt_iswap_to_fsim,
     PhasedFSimCalibrationOptions,
     RequestT,
     LocalXEBPhasedFSimCalibrationRequest,
