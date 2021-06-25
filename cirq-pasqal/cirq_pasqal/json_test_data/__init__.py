@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# For the cirq_aqt module, this file specifies test data for JSON
+# For the cirq_pasqal module, this file specifies test data for JSON
 # serialization of public objects. It is used by
 # cirq/protocols/json_serialization_test.py which checks for coverage of
 # public classes and tests the correctness of repr and json results
