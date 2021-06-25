@@ -65,11 +65,10 @@ class BlochSphere(widget.Widget):
         bundle_script = super().get_bundle_script()
         return f"""
         <meta charset="UTF-8">
-        <div id="container"></div>
+        <div class="bloch-sphere-container"></div>
         {bundle_script}
         <script>
-        const blochSphere = renderBlochSphere('{self.sphere_json}');
-        blochSphere.addVector('{self.vector_json}');
+        renderBlochSphere('{self.sphere_json}').addVector('{self.vector_json}');
         </script>
         """
 
@@ -100,13 +99,12 @@ class BlochSphere(widget.Widget):
 
         template_div = f"""
         <meta charset="UTF-8">
-        <div id="container"></div>
+        <div class="bloch-sphere-container"></div>
         """
 
         template_script = f"""
         <script>
-        const blochSphere = renderBlochSphere('{self.sphere_json}');
-        blochSphere.addVector('{self.vector_json}');
+        renderBlochSphere('{self.sphere_json}').addVector('{self.vector_json}');
         </script>
         """
 

@@ -36,7 +36,7 @@ export function renderBlochSphere(
   const sphereJSONObject = JSON.parse(blochSphereConfigJSON);
 
   const scene = new BlochSphereScene();
-  scene.addSceneToHTMLContainer(containerId || 'container');
+  scene.addSceneToHTMLContainer(containerId || undefined);
 
   const blochSphere = new BlochSphere(
     sphereJSONObject.radius || DEFAULT_RADIUS,

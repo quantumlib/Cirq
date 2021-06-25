@@ -82,11 +82,10 @@ def test_repr_html():
     bundle_script = _get_bundle_file_path()
     expected = f"""
         <meta charset="UTF-8">
-        <div id="container"></div>
+        <div class="bloch-sphere-container"></div>
         {bundle_script}
         <script>
-        const blochSphere = renderBlochSphere('{bloch_sphere.sphere_json}');
-        blochSphere.addVector('{bloch_sphere.vector_json}');
+        renderBlochSphere('{bloch_sphere.sphere_json}').addVector('{bloch_sphere.vector_json}');
         </script>
         """
     assert expected == bloch_sphere._repr_html_()
@@ -102,14 +101,13 @@ def test_generate_html_file_with_browser(tmpdir):
 
     template_div = f"""
         <meta charset="UTF-8">
-        <div id="container"></div>
+        <div class="bloch-sphere-container"></div>
         """
     bundle_script = _get_bundle_file_path()
 
     template_script = f"""
         <script>
-        const blochSphere = renderBlochSphere('{bloch_sphere.sphere_json}');
-        blochSphere.addVector('{bloch_sphere.vector_json}');
+        renderBlochSphere('{bloch_sphere.sphere_json}').addVector('{bloch_sphere.vector_json}');
         </script>
         """
 

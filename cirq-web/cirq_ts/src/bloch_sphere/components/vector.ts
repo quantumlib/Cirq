@@ -39,7 +39,7 @@ export class Vector extends Group {
       this.z = parsedObj.z;
       this.length = parsedObj.length;
     } else {
-      this.x = 0;
+      this.x = 1;
       this.y = 0;
       this.z = 0;
       this.length = 5;

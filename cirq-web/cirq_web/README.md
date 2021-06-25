@@ -45,7 +45,7 @@ class MyWidget(widget.Widget):
             <script>YOUR_BUNDLE_FUNCTION<script>
         """
 ``` 
-This will allow your visualiztion to be displayed in a notebook cell with:
+This will allow your visualization to be displayed in a notebook cell with:
 ```python
     widget = MyWidget()
     display(widget)

@@ -4,11 +4,11 @@
   <title>Cirq Web Development page</title>
 </head>
 <body>
-  <div id="container"></div>
+  <div class="bloch-sphere-container"></div>
   <script src="bloch_sphere.bundle.js"></script>
   <script>
-    const blochSphere = renderBlochSphere('{"radius": 5, "hMeridians": 1, "vMeridians": 1}');
-    blochSphere.addVector();
+    renderBlochSphere('{"radius": 5, "hMeridians": 1, "vMeridians": 1}')
+      .addVector('{"x": 1, "y": 0, "z": 0, "length": 5}');
   </script>
 </body>
 </html>
