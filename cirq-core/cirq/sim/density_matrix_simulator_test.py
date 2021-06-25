@@ -808,6 +808,106 @@ def test_simulate_moment_steps_intermediate_measurement(dtype):
             np.testing.assert_almost_equal(step.density_matrix(), expected)
 
 
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_expectation_values(dtype):
+    # Compare with test_expectation_from_state_vector_two_qubit_states
+    # in file: cirq/ops/linear_combinations_test.py
+    q0, q1 = cirq.LineQubit.range(2)
+    psum1 = cirq.Z(q0) + 3.2 * cirq.Z(q1)
+    psum2 = -1 * cirq.X(q0) + 2 * cirq.X(q1)
+    c1 = cirq.Circuit(cirq.I(q0), cirq.X(q1))
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    result = simulator.simulate_expectation_values(c1, [psum1, psum2])
+    assert cirq.approx_eq(result[0], -2.2, atol=1e-6)
+    assert cirq.approx_eq(result[1], 0, atol=1e-6)
+
+    c2 = cirq.Circuit(cirq.H(q0), cirq.H(q1))
+    result = simulator.simulate_expectation_values(c2, [psum1, psum2])
+    assert cirq.approx_eq(result[0], 0, atol=1e-6)
+    assert cirq.approx_eq(result[1], 1, atol=1e-6)
+
+    psum3 = cirq.Z(q0) + cirq.X(q1)
+    c3 = cirq.Circuit(cirq.I(q0), cirq.H(q1))
+    result = simulator.simulate_expectation_values(c3, psum3)
+    assert cirq.approx_eq(result[0], 2, atol=1e-6)
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_noisy_expectation_values(dtype):
+    q0 = cirq.LineQubit(0)
+    psums = [cirq.Z(q0), cirq.X(q0)]
+    c1 = cirq.Circuit(
+        cirq.X(q0),
+        cirq.amplitude_damp(gamma=0.1).on(q0),
+    )
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    result = simulator.simulate_expectation_values(c1, psums)
+    # <Z> = (gamma - 1) + gamma = -0.8
+    assert cirq.approx_eq(result[0], -0.8, atol=1e-6)
+    assert cirq.approx_eq(result[1], 0, atol=1e-6)
+
+    c2 = cirq.Circuit(
+        cirq.H(q0),
+        cirq.depolarize(p=0.3).on(q0),
+    )
+    result = simulator.simulate_expectation_values(c2, psums)
+    assert cirq.approx_eq(result[0], 0, atol=1e-6)
+    # <X> = (1 - p) + (-p / 3) = 0.6
+    assert cirq.approx_eq(result[1], 0.6, atol=1e-6)
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_expectation_values_terminal_measure(dtype):
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+    obs = cirq.Z(q0)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    with pytest.raises(ValueError):
+        _ = simulator.simulate_expectation_values(circuit, obs)
+
+    results = {-1: 0, 1: 0}
+    for _ in range(100):
+        result = simulator.simulate_expectation_values(
+            circuit, obs, permit_terminal_measurements=True
+        )
+        if cirq.approx_eq(result[0], -1, atol=1e-6):
+            results[-1] += 1
+        if cirq.approx_eq(result[0], 1, atol=1e-6):
+            results[1] += 1
+
+    # With a measurement after H, the Z-observable expects a specific state.
+    assert results[-1] > 0
+    assert results[1] > 0
+    assert results[-1] + results[1] == 100
+
+    circuit = cirq.Circuit(cirq.H(q0))
+    results = {0: 0}
+    for _ in range(100):
+        result = simulator.simulate_expectation_values(
+            circuit, obs, permit_terminal_measurements=True
+        )
+        if cirq.approx_eq(result[0], 0, atol=1e-6):
+            results[0] += 1
+
+    # Without measurement after H, the Z-observable is indeterminate.
+    assert results[0] == 100
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_expectation_values_qubit_order(dtype):
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.X(q2))
+    obs = cirq.X(q0) + cirq.X(q1) - cirq.Z(q2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+
+    result = simulator.simulate_expectation_values(circuit, obs)
+    assert cirq.approx_eq(result[0], 3, atol=1e-6)
+
+    # Adjusting the qubit order has no effect on the observables.
+    result_flipped = simulator.simulate_expectation_values(circuit, obs, qubit_order=[q1, q2, q0])
+    assert cirq.approx_eq(result_flipped[0], 3, atol=1e-6)
+
+
 def test_density_matrix_simulator_state_eq():
     q0, q1 = cirq.LineQubit.range(2)
     eq = cirq.testing.EqualsTester()
@@ -954,7 +1054,7 @@ class XAsOp(cirq.Operation):
 
     def _kraus_(self):
         # coverage: ignore
-        return cirq.channel(cirq.X)
+        return cirq.kraus(cirq.X)
 
 
 def test_works_on_operation():
@@ -973,7 +1073,7 @@ def test_works_on_operation():
 
         def _kraus_(self):
             # coverage: ignore
-            return cirq.channel(cirq.X)
+            return cirq.kraus(cirq.X)
 
     s = cirq.DensityMatrixSimulator()
     c = cirq.Circuit(XAsOp(cirq.LineQubit(0)))
@@ -993,7 +1093,7 @@ def test_works_on_operation_dephased():
             raise NotImplementedError()
 
         def _kraus_(self):
-            return cirq.channel(cirq.H)
+            return cirq.kraus(cirq.H)
 
     s = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
     c = cirq.Circuit(HAsOp(cirq.LineQubit(0)))

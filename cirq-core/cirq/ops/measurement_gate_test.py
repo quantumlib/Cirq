@@ -201,12 +201,12 @@ b: ───M───────────
 
 def test_measurement_channel():
     np.testing.assert_allclose(
-        cirq.channel(cirq.MeasurementGate(1)),
+        cirq.kraus(cirq.MeasurementGate(1)),
         (np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]])),
     )
     # yapf: disable
     np.testing.assert_allclose(
-            cirq.channel(cirq.MeasurementGate(2)),
+            cirq.kraus(cirq.MeasurementGate(2)),
             (np.array([[1, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 0, 0],
@@ -224,7 +224,7 @@ def test_measurement_channel():
                        [0, 0, 0, 0],
                        [0, 0, 0, 1]])))
     np.testing.assert_allclose(
-            cirq.channel(cirq.MeasurementGate(2, qid_shape=(2, 3))),
+            cirq.kraus(cirq.MeasurementGate(2, qid_shape=(2, 3))),
             (np.diag([1, 0, 0, 0, 0, 0]),
              np.diag([0, 1, 0, 0, 0, 0]),
              np.diag([0, 0, 1, 0, 0, 0]),
@@ -266,19 +266,25 @@ def test_op_repr():
         "key='out', "
         "invert_mask=(False, True))"
     )
+    assert repr(
+        cirq.measure(
+            a, b, key=cirq.MeasurementKey(name='out', path=('a', 'b')), invert_mask=(False, True)
+        )
+    ) == (
+        "cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), "
+        "key=cirq.MeasurementKey(path=('a', 'b'), name='out'), "
+        "invert_mask=(False, True))"
+    )
 
 
 def test_act_on_state_vector():
-    a, b = cirq.LineQubit.range(2)
+    a, b = [cirq.LineQubit(3), cirq.LineQubit(1)]
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
-
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(m, object())
 
     args = cirq.ActOnStateVectorArgs(
         target_tensor=cirq.one_hot(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
-        axes=[3, 1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -290,7 +296,7 @@ def test_act_on_state_vector():
             index=(0, 1, 0, 0, 0), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
-        axes=[3, 1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -302,7 +308,7 @@ def test_act_on_state_vector():
             index=(0, 1, 0, 1, 0), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
-        axes=[3, 1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -314,17 +320,14 @@ def test_act_on_state_vector():
 
 
 def test_act_on_clifford_tableau():
-    a, b = cirq.LineQubit.range(2)
+    a, b = [cirq.LineQubit(3), cirq.LineQubit(1)]
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
     # The below assertion does not fail since it ignores non-unitary operations
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(m, object())
-
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=0),
-        axes=[3, 1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -333,7 +336,7 @@ def test_act_on_clifford_tableau():
 
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=8),
-        axes=[3, 1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -343,7 +346,7 @@ def test_act_on_clifford_tableau():
 
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=10),
-        axes=[3, 1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -355,17 +358,14 @@ def test_act_on_clifford_tableau():
 
 
 def test_act_on_stabilizer_ch_form():
-    a, b = cirq.LineQubit.range(2)
+    a, b = [cirq.LineQubit(3), cirq.LineQubit(1)]
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
     # The below assertion does not fail since it ignores non-unitary operations
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(m, object())
-
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=0),
-        axes=[3, 1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -374,7 +374,7 @@ def test_act_on_stabilizer_ch_form():
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=8),
-        axes=[3, 1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -384,7 +384,7 @@ def test_act_on_stabilizer_ch_form():
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=10),
-        axes=[3, 1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -396,7 +396,7 @@ def test_act_on_stabilizer_ch_form():
 
 
 def test_act_on_qutrit():
-    a, b = cirq.LineQid.range(2, dimension=3)
+    a, b = [cirq.LineQid(3, dimension=3), cirq.LineQid(1, dimension=3)]
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
 
     args = cirq.ActOnStateVectorArgs(
@@ -404,7 +404,7 @@ def test_act_on_qutrit():
             index=(0, 2, 0, 2, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
-        axes=[3, 1],
+        qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -416,7 +416,7 @@ def test_act_on_qutrit():
             index=(0, 1, 0, 2, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
-        axes=[3, 1],
+        qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -428,7 +428,7 @@ def test_act_on_qutrit():
             index=(0, 2, 0, 1, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
-        axes=[3, 1],
+        qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )

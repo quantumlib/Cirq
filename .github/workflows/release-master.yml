@@ -8,14 +8,14 @@ jobs:
   push_to_pypi:
     if: github.repository == 'quantumlib/Cirq'
     name: Push to PyPi
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     env:
       NAME: dev-release
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install dependencies
         run: |
@@ -29,12 +29,5 @@ jobs:
           export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
           [[ "$CIRQ_PRE_RELEASE_VERSION" =~ .*dev.* ]] && echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'" || (echo "not dev version"; exit 1)
           out_dir=$(pwd)/dist
-          echo "cirq metapackage..."
-          python3 setup.py bdist_wheel -d "${out_dir}"
-          echo "cirq-core..."
-          cd cirq-core
-          python3 setup.py bdist_wheel -d "${out_dir}"
-          echo "cirq-google..."
-          cd ../cirq-google
-          python3 setup.py bdist_wheel -d "${out_dir}"
+          dev_tools/packaging/produce-package.sh ${out_dir} $CIRQ_PRE_RELEASE_VERSION
           twine upload "${out_dir}/*"

@@ -60,7 +60,7 @@ class GlobalPhaseOperation(raw_types.Operation):
     def _has_stabilizer_effect_(self) -> bool:
         return True
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs'):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
