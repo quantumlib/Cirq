@@ -65,21 +65,8 @@ export class BlochSphereScene extends Scene {
    * container id.
    * @param id id of the container
    */
-  public addSceneToHTMLContainer(id?: string) {
-    if (id === undefined) {
-      // Get the first instance of an empty bloch-sphere-container div.
-      const divs = document.getElementsByClassName('bloch-sphere-container');
-      // HTMLElement collections don't have iterators built in.
-      for (let i = 0; i < divs.length; i++) {
-        if (divs[i].innerHTML.trim().length === 0) {
-          divs[i].appendChild(this.renderer.domElement);
-          return;
-        }
-      }
-    }
-
-    // Otherwise, add to the designated id.
-    document.getElementById(id!)!.appendChild(this.renderer.domElement);
+  public addSceneToHTMLContainer(id: string) {
+    document.getElementById(id)!.appendChild(this.renderer.domElement);
   }
   /**
    * Initialization helper function. Also sets the starting

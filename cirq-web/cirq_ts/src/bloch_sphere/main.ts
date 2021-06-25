@@ -27,7 +27,7 @@ import {BlochSphere} from './bloch_sphere';
  */
 export function renderBlochSphere(
   blochSphereConfigJSON: string,
-  containerId?: string
+  containerId: string
 ) {
   const DEFAULT_RADIUS = 5;
   const DEFAULT_H_MERIDIANS = 7;
@@ -36,7 +36,7 @@ export function renderBlochSphere(
   const sphereJSONObject = JSON.parse(blochSphereConfigJSON);
 
   const scene = new BlochSphereScene();
-  scene.addSceneToHTMLContainer(containerId || undefined);
+  scene.addSceneToHTMLContainer(containerId);
 
   const blochSphere = new BlochSphere(
     sphereJSONObject.radius || DEFAULT_RADIUS,

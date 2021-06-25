@@ -14,6 +14,8 @@
 
 import math
 import webbrowser
+import uuid
+
 from typing import Union
 from pathlib import PosixPath, WindowsPath
 
@@ -55,6 +57,10 @@ class BlochSphere(widget.Widget):
         )
         self.vector_json = self._serialize_vector(*self.bloch_vector, sphere_radius)
 
+        # Generate a unique UUID for every instance of a Bloch sphere.
+        # This helps with adding visualizations to scenes, etc.
+        self.id = str(uuid.uuid1())
+
     def _repr_html_(self):
         """Allows the object's html to be easily displayed in a notebook
         by using the display() method.
@@ -65,12 +71,15 @@ class BlochSphere(widget.Widget):
         bundle_script = super().get_bundle_script()
         return f"""
         <meta charset="UTF-8">
-        <div class="bloch-sphere-container"></div>
+        <div id="{self.id}"></div>
         {bundle_script}
         <script>
-        renderBlochSphere('{self.sphere_json}').addVector('{self.vector_json}');
+        renderBlochSphere('{self.sphere_json}', '{self.id}').addVector('{self.vector_json}');
         </script>
         """
+
+    def get_id(self):
+        return self.id
 
     def generate_html_file(
         self,
@@ -99,12 +108,12 @@ class BlochSphere(widget.Widget):
 
         template_div = f"""
         <meta charset="UTF-8">
-        <div class="bloch-sphere-container"></div>
+        <div id="{self.id}"></div>
         """
 
         template_script = f"""
         <script>
-        renderBlochSphere('{self.sphere_json}').addVector('{self.vector_json}');
+        renderBlochSphere('{self.sphere_json}', '{self.id}').addVector('{self.vector_json}');
         </script>
         """
 
