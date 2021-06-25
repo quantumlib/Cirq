@@ -106,14 +106,30 @@ message Language {
   string arg_function_language = 2;
 }
 
+enum GateType {
+  NOT_SPECIFIED = 0;
+  XPOWGATE = 1;
+  YPOWGATE = 2;
+  ZPOWGATE = 3;
+  PHASEDXPOWGATE = 4;
+  PHASEDXZGATE = 5;
+  CZPOWGATE = 6;
+  FSIMGATE = 7;
+  ISWAPPOWGATE = 8;
+  MEASUREMENTGATE = 9;
+  WAITGATE = 10;
+}
+
 // An operation acts on a set of qubits.
 message Operation {
   // Which gate this operation corresponds to.
   Gate gate = 1;
+  GateType gate_type = 6;
 
   // Map from the argument name to the Argument needed to fully specify
   // the gate.
   map<string, Arg> args = 2;
+  repeated Arg arg_list = 7;
 
   // Which qubits the operation acts on.
   repeated Qubit qubits = 3;
