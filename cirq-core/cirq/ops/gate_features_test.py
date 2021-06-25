@@ -252,3 +252,39 @@ def test_on_each_iterable_qid():
             raise NotImplementedError()
 
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
+
+
+def test_supports_on_each_inheritance():
+    print()
+
+    class Dummy1(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+    class Dummy1a(cirq.SingleQubitGate):
+        pass
+
+    class Dummy2(cirq.Gate):
+        def num_qubits(self):
+            return 2
+
+    class Dummy2a(cirq.TwoQubitGate):
+        pass
+
+    class NottaGate:
+        def _num_qubits_(self):
+            return 2
+
+    g1 = Dummy1()
+    g1a = Dummy1a()
+    g2 = Dummy2()
+    with assert_deprecated(deadline="v0.14"):
+        g2a = Dummy2a()
+
+    assert not isinstance(g1, cirq.TwoQubitGate)
+    assert not isinstance(g1a, cirq.TwoQubitGate)
+    assert isinstance(g2, cirq.TwoQubitGate)
+    assert isinstance(g2a, cirq.TwoQubitGate)
+    assert not isinstance(cirq.X, cirq.TwoQubitGate)
+    assert isinstance(cirq.CX, cirq.TwoQubitGate)
+    assert not isinstance(NottaGate(), cirq.TwoQubitGate)
