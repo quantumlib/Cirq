@@ -198,7 +198,7 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 # during test setup deprecated submodules are inspected and trigger the
-# deprecation error in testing. It is cleaner to just turn it off then to assert
+# deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec):
@@ -214,7 +214,7 @@ def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec):
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 # during test setup deprecated submodules are inspected and trigger the
-# deprecation error in testing. It is cleaner to just turn it off then to assert
+# deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
@@ -454,7 +454,7 @@ def test_internal_serializer_types():
 
 
 # during test setup deprecated submodules are inspected and trigger the
-# deprecation error in testing. It is cleaner to just turn it off then to assert
+# deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def _list_public_classes_for_tested_modules():

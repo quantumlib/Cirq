@@ -17,6 +17,7 @@ from typing import (
     AbstractSet,
     Callable,
     FrozenSet,
+    Iterable,
     Iterator,
     Optional,
     Sequence,
@@ -163,7 +164,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         except:
             return NotImplemented
 
-    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']) -> 'FrozenCircuit':
+    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'FrozenCircuit':
         new_circuit = FrozenCircuit(device=self.device)
         new_circuit._moments = tuple(moments)
         return new_circuit
