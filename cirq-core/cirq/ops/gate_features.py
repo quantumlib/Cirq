@@ -19,6 +19,7 @@ For example: some gates are reversible, some have known matrices, etc.
 
 import abc
 
+from cirq import value
 from cirq._compat import deprecated_class
 from cirq.ops import raw_types
 
@@ -31,8 +32,15 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
         return 0
 
 
+class _SupportsOnEachGateMeta(value.ABCMetaImplementAnyOneOf):
+    def __instancecheck__(cls, instance):
+        return isinstance(instance, SingleQubitGate) or issubclass(
+            type(instance), SupportsOnEachGate
+        )
+
+
 @deprecated_class(deadline='v0.14', fix='None, this feature is in `Gate` now.')
-class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
+class SupportsOnEachGate(raw_types.Gate, metaclass=_SupportsOnEachGateMeta):
     pass
 
 

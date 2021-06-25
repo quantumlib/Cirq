@@ -174,6 +174,35 @@ def test_multi_qubit_gate_validate():
         g.validate_args([a, b, c, d])
 
 
+def test_supports_on_each_inheritance_shim():
+    class NotOnEach(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+    class OnEach(cirq.ops.gate_features.SupportsOnEachGate):
+        def num_qubits(self):
+            return 1
+
+    class SingleQ(cirq.SingleQubitGate):
+        pass
+
+    class TwoQ(cirq.TwoQubitGate):
+        pass
+
+    not_on_each = NotOnEach()
+    single_q = SingleQ()
+    two_q = TwoQ()
+    with assert_deprecated(deadline="v0.14"):
+        on_each = OnEach()
+
+    assert not isinstance(not_on_each, cirq.ops.gate_features.SupportsOnEachGate)
+    assert isinstance(on_each, cirq.ops.gate_features.SupportsOnEachGate)
+    assert isinstance(single_q, cirq.ops.gate_features.SupportsOnEachGate)
+    assert not isinstance(two_q, cirq.ops.gate_features.SupportsOnEachGate)
+    assert isinstance(cirq.X, cirq.ops.gate_features.SupportsOnEachGate)
+    assert not isinstance(cirq.CX, cirq.ops.gate_features.SupportsOnEachGate)
+
+
 def test_supports_on_each_deprecation():
     class CustomGate(cirq.ops.gate_features.SupportsOnEachGate):
         def num_qubits(self):
