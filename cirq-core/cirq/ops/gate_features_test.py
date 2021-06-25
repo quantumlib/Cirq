@@ -273,7 +273,7 @@ def test_supports_two_qubit_inheritance_shim():
 
     class NottaGate:
         def _num_qubits_(self):
-            return 2
+            return 2  # coverage: ignore
 
     g1 = Dummy1()
     g1a = Dummy1a()
@@ -309,7 +309,7 @@ def test_supports_three_qubit_inheritance_shim():
 
     class NottaGate:
         def _num_qubits_(self):
-            return 3
+            return 3  # coverage: ignore
 
     g1 = Dummy1()
     g1a = Dummy1a()
