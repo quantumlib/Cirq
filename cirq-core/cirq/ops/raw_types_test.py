@@ -820,6 +820,10 @@ def test_on_each_two_qubits():
         g.on_each((a, b), (a, b))
     with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each(*zip([a, b], [b, a]))
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+        g.on_each([12])
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+        g.on_each([(a, b), 12])
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
         g.on_each([(a, b), [(a, b)]])
     with pytest.raises(ValueError, match='Expected 2 qubits'):
@@ -877,6 +881,10 @@ def test_on_each_three_qubits():
         g.on_each((a, b, c), (a, b, c))
     with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each(*zip([a, c], [b, b], [c, a]))
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+        g.on_each([12])
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+        g.on_each([(a, b, c), 12])
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
         g.on_each([(a, b, c), [(a, b, c)]])
     with pytest.raises(ValueError, match='Expected 3 qubits'):
