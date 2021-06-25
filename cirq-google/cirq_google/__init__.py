@@ -127,6 +127,10 @@ from cirq_google.serializable_gate_set import (
     SerializableGateSet,
 )
 
+from cirq_google.experimental.ops import (
+    CouplerPulse,
+)
+
 from cirq_google import experimental
 
 
