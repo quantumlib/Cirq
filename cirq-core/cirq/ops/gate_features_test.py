@@ -15,6 +15,7 @@
 import pytest
 
 import cirq
+from cirq.testing import assert_deprecated
 
 
 def test_single_qubit_gate_validate_args():
@@ -171,3 +172,12 @@ def test_multi_qubit_gate_validate():
         g.validate_args([a, b])
     with pytest.raises(ValueError):
         g.validate_args([a, b, c, d])
+
+
+def test_supports_on_each_deprecation():
+    class CustomGate(cirq.ops.gate_features.SupportsOnEachGate):
+        def num_qubits(self):
+            return 1
+
+    with assert_deprecated(deadline="v0.14"):
+        assert isinstance(CustomGate(), cirq.ops.gate_features.SupportsOnEachGate)
