@@ -86,7 +86,7 @@ class TwoQubitGate(raw_types.Gate, metaclass=_TwoQubitGateMeta):
 
 class _ThreeQubitGateMeta(value.ABCMetaImplementAnyOneOf):
     def __instancecheck__(cls, instance):
-        return instance._num_qubits_() == 3
+        return isinstance(instance, raw_types.Gate) and instance._num_qubits_() == 3
 
 
 @deprecated_class(deadline='v0.14', fix='Define _num_qubits_ manually.')

@@ -254,7 +254,7 @@ def test_on_each_iterable_qid():
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
 
 
-def test_supports_on_each_inheritance():
+def test_supports_two_qubit_inheritance_shim():
     print()
 
     class Dummy1(cirq.Gate):
@@ -288,3 +288,39 @@ def test_supports_on_each_inheritance():
     assert not isinstance(cirq.X, cirq.TwoQubitGate)
     assert isinstance(cirq.CX, cirq.TwoQubitGate)
     assert not isinstance(NottaGate(), cirq.TwoQubitGate)
+
+
+def test_supports_three_qubit_inheritance_shim():
+    print()
+
+    class Dummy1(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+    class Dummy1a(cirq.SingleQubitGate):
+        pass
+
+    class Dummy3(cirq.Gate):
+        def num_qubits(self):
+            return 3
+
+    class Dummy3a(cirq.ThreeQubitGate):
+        pass
+
+    class NottaGate:
+        def _num_qubits_(self):
+            return 3
+
+    g1 = Dummy1()
+    g1a = Dummy1a()
+    g3 = Dummy3()
+    with assert_deprecated(deadline="v0.14"):
+        g3a = Dummy3a()
+
+    assert not isinstance(g1, cirq.ThreeQubitGate)
+    assert not isinstance(g1a, cirq.ThreeQubitGate)
+    assert isinstance(g3, cirq.ThreeQubitGate)
+    assert isinstance(g3a, cirq.ThreeQubitGate)
+    assert not isinstance(cirq.X, cirq.ThreeQubitGate)
+    assert isinstance(cirq.CCX, cirq.ThreeQubitGate)
+    assert not isinstance(NottaGate(), cirq.ThreeQubitGate)
