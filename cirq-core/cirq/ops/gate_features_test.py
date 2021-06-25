@@ -177,11 +177,11 @@ def test_multi_qubit_gate_validate():
 def test_supports_on_each_inheritance_shim():
     class NotOnEach(cirq.Gate):
         def num_qubits(self):
-            return 1
+            return 1  # coverage: ignore
 
     class OnEach(cirq.ops.gate_features.SupportsOnEachGate):
         def num_qubits(self):
-            return 1
+            return 1  # coverage: ignore
 
     class SingleQ(cirq.SingleQubitGate):
         pass
