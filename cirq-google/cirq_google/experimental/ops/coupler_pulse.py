@@ -82,7 +82,7 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
 
     def __repr__(self) -> str:
         return (
-            'cirq_google.ops.coupler_pulse.'
+            'cirq_google.experimental.ops.coupler_pulse.'
             + f'CouplerPulse(hold_time={repr(self.hold_time)}, '
             + f'coupling_mhz={self.coupling_mhz}, '
             + f'rise_time={repr(self.rise_time)}, '

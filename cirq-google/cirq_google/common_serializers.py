@@ -30,7 +30,8 @@ import sympy
 import cirq
 from cirq_google import op_deserializer, op_serializer
 from cirq_google.api import v2
-from cirq_google.ops import CouplerPulse, PhysicalZTag
+from cirq_google.experimental.ops import CouplerPulse
+from cirq_google.ops import PhysicalZTag
 
 # Type strings used in serialization for the two types of Z operations
 PHYSICAL_Z = 'physical'

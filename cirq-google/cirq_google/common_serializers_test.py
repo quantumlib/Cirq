@@ -502,7 +502,7 @@ def test_coupler_pulse():
     )
     q = cirq.GridQubit(1, 2)
     q2 = cirq.GridQubit(2, 2)
-    op = cg.ops.CouplerPulse(
+    op = cg.experimental.ops.CouplerPulse(
         hold_time=cirq.Duration(nanos=16),
         padding_time=cirq.Duration(nanos=12),
         rise_time=cirq.Duration(nanos=32),

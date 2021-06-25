@@ -14,7 +14,7 @@
 import pytest
 
 import cirq
-import cirq_google.ops.coupler_pulse as coupler_pulse
+import cirq_google.experimental.ops.coupler_pulse as coupler_pulse
 
 
 def test_consistent_protocols():
@@ -127,7 +127,7 @@ def test_coupler_pulse_str_repr():
     )
     assert (
         repr(gate)
-        == 'cirq_google.ops.coupler_pulse.CouplerPulse('
+        == 'cirq_google.experimental.ops.coupler_pulse.CouplerPulse('
         + 'hold_time=cirq.Duration(nanos=10), '
         + 'coupling_mhz=25.0, '
         + 'rise_time=cirq.Duration(nanos=18), '
