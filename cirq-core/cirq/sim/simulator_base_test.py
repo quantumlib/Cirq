@@ -23,14 +23,13 @@ class CountingActOnArgs(cirq.ActOnArgs):
     gate_count = 0
     measurement_count = 0
 
-    def _perform_measurement(self) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         self.measurement_count += 1
         return [self.gate_count]
 
     def copy(self) -> 'CountingActOnArgs':
         args = CountingActOnArgs(
             qubits=self.qubits,
-            axes=self.axes,
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
@@ -38,7 +37,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
         args.measurement_count = self.measurement_count
         return args
 
-    def _act_on_fallback_(self, action: Any, allow_decompose: bool):
+    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         self.gate_count += 1
         return True
 
@@ -61,7 +60,7 @@ class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
     ) -> np.ndarray:
         measurements: List[List[int]] = []
         for _ in range(repetitions):
-            measurements.append(self.sim_state._perform_measurement())
+            measurements.append(self.sim_state._perform_measurement(qubits))
         return np.array(measurements, dtype=int)
 
     def _simulator_state(self) -> CountingActOnArgs:

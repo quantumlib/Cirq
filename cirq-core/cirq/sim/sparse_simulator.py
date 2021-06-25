@@ -27,7 +27,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, protocols, qis, devices
+from cirq import ops, protocols, qis
 from cirq.sim import (
     simulator,
     state_vector,
@@ -154,9 +154,6 @@ class Simulator(
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
-        noise_model = devices.NoiseModel.from_noise_model_like(noise)
-        if not protocols.has_mixture(noise_model):
-            raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
         super().__init__(
             dtype=dtype,
             noise=noise,
@@ -193,7 +190,6 @@ class Simulator(
             target_tensor=np.reshape(state, qid_shape),
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
             qubits=qubits,
-            axes=[],
             prng=self._prng,
             log_of_measurement_results={},
         )
