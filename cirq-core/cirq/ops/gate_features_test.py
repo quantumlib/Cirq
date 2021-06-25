@@ -206,7 +206,7 @@ def test_supports_on_each_inheritance_shim():
 def test_supports_on_each_deprecation():
     class CustomGate(cirq.ops.gate_features.SupportsOnEachGate):
         def num_qubits(self):
-            return 1
+            return 1  # coverage: ignore
 
     with assert_deprecated(deadline="v0.14"):
         assert isinstance(CustomGate(), cirq.ops.gate_features.SupportsOnEachGate)
