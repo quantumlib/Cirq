@@ -96,7 +96,7 @@ def _warn_or_error(msg):
         for filename, line_number, function_name, text in reversed(traceback.extract_stack()):
             if (
                 not _is_internal(filename)
-                and "_compat.py" not in filename
+                and not filename.endswith(os.path.join("cirq", "_compat.py"))
                 and "_test.py" in filename
             ):
                 break

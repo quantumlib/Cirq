@@ -230,7 +230,7 @@ def test_wrap_module():
         _ = wrapped.foo
 
     with pytest.raises(
-        ValueError, match='During testing using Cirq deprecated functionality is ' 'not allowed'
+        ValueError, match='During testing using Cirq deprecated functionality is not allowed'
     ):
         _ = wrapped.foo
 
