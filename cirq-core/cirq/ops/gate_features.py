@@ -23,17 +23,17 @@ from cirq._compat import deprecated_class
 from cirq.ops import raw_types
 
 
-@deprecated_class(deadline='v0.14', fix='None, this feature is in `Gate` now.')
-class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    pass
-
-
 class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
     """Indicates operations should be equal under some qubit permutations."""
 
     def qubit_index_to_equivalence_group_key(self, index: int) -> int:
         """Returns a key that differs between non-interchangeable qubits."""
         return 0
+
+
+@deprecated_class(deadline='v0.14', fix='None, this feature is in `Gate` now.')
+class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    pass
 
 
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
