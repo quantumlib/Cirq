@@ -99,8 +99,9 @@ class ActOnArgsContainer(
             op.gate, (ops.MeasurementGate, ops.ResetChannel)
         ):
             for q in op.qubits:
-                q_args, op_args = op_args.extract((q,))
-                self.args[q] = q_args
+                if op_args.can_extract((q,)):
+                    q_args, op_args = op_args.extract((q,))
+                    self.args[q] = q_args
 
             # (Backfill the args map with the new value)
             for q in op_args.qubits:

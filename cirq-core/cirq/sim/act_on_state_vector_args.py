@@ -224,6 +224,9 @@ class ActOnStateVectorArgs(ActOnArgs):
         target.target_tensor = new_tensor
         target.available_buffer = np.empty_like(new_tensor)
 
+    def can_extract(self, qubits: Sequence['cirq.Qid']):
+        return True
+
 
 def _strat_act_on_state_vector_from_apply_unitary(
     unitary_value: Any,

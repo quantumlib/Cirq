@@ -43,6 +43,9 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'EmptyActOnArgs'):
         pass
 
+    def can_extract(self, qubits: Sequence['cirq.Qid']):
+        return True
+
 
 q0, q1 = qs2 = cirq.LineQubit.range(2)
 

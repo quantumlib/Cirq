@@ -112,7 +112,6 @@ class ActOnArgs(OperationTarget[TSelf]):
         args._log_of_measurement_results = self.log_of_measurement_results.copy()
         return args
 
-    @abc.abstractmethod
     def _on_copy(self: TSelf, args: TSelf):
         raise NotImplementedError()
 
@@ -147,6 +146,9 @@ class ActOnArgs(OperationTarget[TSelf]):
         self._on_reorder(qubits, args)
         args._set_qubits(qubits)
         return args
+
+    def can_extract(self, qubits: Sequence['cirq.Qid']):
+        return False
 
     def _on_join(self: TSelf, other: TSelf, target: TSelf):
         raise NotImplementedError()

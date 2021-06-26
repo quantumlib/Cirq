@@ -60,6 +60,9 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
     def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'SplittableCountingActOnArgs'):
         pass
 
+    def can_extract(self, qubits: Sequence['cirq.Qid']):
+        return True
+
 
 class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
     def __init__(

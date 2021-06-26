@@ -164,6 +164,9 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         target.available_buffer = buffer
         target.qid_shape = new_tensor.shape[: int(new_tensor.ndim / 2)]
 
+    def can_extract(self, qubits: Sequence['cirq.Qid']):
+        return True
+
 
 def _strat_apply_channel_to_state(
     action: Any, args: ActOnDensityMatrixArgs, qubits: Sequence['cirq.Qid']

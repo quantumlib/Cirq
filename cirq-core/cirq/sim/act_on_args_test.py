@@ -21,9 +21,6 @@ class DummyArgs(cirq.ActOnArgs):
     def __init__(self):
         super().__init__(qubits=cirq.LineQubit.range(2))
 
-    def _on_copy(self, target):
-        pass
-
     def _perform_measurement(self, qubits):
         return [5, 3]
 

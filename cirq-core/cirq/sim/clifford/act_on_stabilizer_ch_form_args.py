@@ -101,45 +101,14 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
     def _on_copy(self, target: 'ActOnStabilizerCHFormArgs'):
         target.state = self.state.copy()
 
-    def join(self, other: 'cirq.ActOnStabilizerCHFormArgs') -> 'cirq.ActOnStabilizerCHFormArgs':
-        offset = len(self.qubits)
-        return ActOnStabilizerCHFormArgs(
-            state=self.state.join(other.state),
-            qubits=self.qubits + other.qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
+    def _on_join(
+        self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
+    ):
+        target.state = self.state.join(other.state)
 
-    def extract(
-        self, qubits: Sequence['cirq.Qid']
-    ) -> Tuple['cirq.ActOnStabilizerCHFormArgs', 'cirq.ActOnStabilizerCHFormArgs']:
+    def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStabilizerCHFormArgs'):
         axes = [self.qubit_map[q] for q in qubits]
-        extracted, remainder = self.state.extract(axes)
-        extracted_args = ActOnStabilizerCHFormArgs(
-            state=extracted,
-            qubits=qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        remainder_args = ActOnStabilizerCHFormArgs(
-            state=remainder,
-            qubits=tuple(q for q in self.qubits if q not in qubits),
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return extracted_args, remainder_args
-
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStabilizerCHFormArgs':
-        assert len(qubits) == len(self.qubits)
-        axes = [self.qubit_map[q] for q in qubits]
-        state = self.state.reindex(axes)
-        new_args = ActOnStabilizerCHFormArgs(
-            state=state,
-            qubits=qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return new_args
+        target.state = self.state.reindex(axes)
 
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(

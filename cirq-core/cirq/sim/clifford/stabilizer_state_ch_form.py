@@ -119,33 +119,6 @@ class StabilizerStateChForm:
         copy.omega = self.omega * other.omega
         return copy
 
-    def extract(
-        self, axes: Sequence[int]
-    ) -> Tuple['cirq.StabilizerStateChForm', 'cirq.StabilizerStateChForm']:
-        n = len(axes)
-        remaining_axes = [i for i in range(self.n) if i not in axes]
-        extracted = StabilizerStateChForm(n)
-        indices = list(axes) + remaining_axes
-        G = self.G[indices][:, indices]
-        F = self.F[indices][:, indices]
-        M = self.M[indices][:, indices]
-        extracted.G = G[:n, :n]
-        extracted.F = F[:n, :n]
-        extracted.M = M[:n, :n]
-        extracted.gamma = self.gamma[axes]
-        extracted.v = self.v[axes]
-        extracted.s = self.s[axes]
-        extracted.omega = self.omega ** (len(axes) / self.n)
-        remainder = StabilizerStateChForm(len(remaining_axes))
-        remainder.G = G[n:, n:]
-        remainder.F = F[n:, n:]
-        remainder.M = M[n:, n:]
-        remainder.gamma = self.gamma[remaining_axes]
-        remainder.v = self.v[remaining_axes]
-        remainder.s = self.s[remaining_axes]
-        remainder.omega = self.omega ** (len(remaining_axes) / self.n)
-        return extracted, remainder
-
     def reindex(self, axes: Sequence[int]) -> 'cirq.StabilizerStateChForm':
         copy = StabilizerStateChForm(self.n)
         copy.G = self.G[axes][:, axes]
