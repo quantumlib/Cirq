@@ -58,11 +58,13 @@ class RabiResult:
     """Results from a Rabi oscillation experiment."""
 
     def __init__(self, rabi_angles: Sequence[float], excited_state_probabilities: Sequence[float]):
-        """Args:
-        rabi_angles: The rotation angles of the qubit around the x-axis
-            of the Bloch sphere.
-        excited_state_probabilities: The corresponding probabilities that
-            the qubit is in the excited state.
+        """Inits RabiResult.
+
+        Args:
+            rabi_angles: The rotation angles of the qubit around the x-axis
+                of the Bloch sphere.
+            excited_state_probabilities: The corresponding probabilities that
+                the qubit is in the excited state.
         """
         self._rabi_angles = rabi_angles
         self._excited_state_probs = excited_state_probabilities
@@ -102,11 +104,13 @@ class RandomizedBenchMarkResult:
     """Results from a randomized benchmarking experiment."""
 
     def __init__(self, num_cliffords: Sequence[int], ground_state_probabilities: Sequence[float]):
-        """Args:
-        num_cliffords: The different numbers of Cliffords in the RB
-            study.
-        ground_state_probabilities: The corresponding average ground state
-            probabilities.
+        """Inits RandomizedBenchMarkResult.
+
+        Args:
+            num_cliffords: The different numbers of Cliffords in the RB
+                study.
+            ground_state_probabilities: The corresponding average ground state
+                probabilities.
         """
         self._num_cfds_seq = num_cliffords
         self._gnd_state_probs = ground_state_probabilities
@@ -146,8 +150,10 @@ class TomographyResult:
     """Results from a state tomography experiment."""
 
     def __init__(self, density_matrix: np.ndarray):
-        """Args:
-        density_matrix: The density matrix obtained from tomography.
+        """Inits TomographyResult.
+
+        Args:
+            density_matrix: The density matrix obtained from tomography.
         """
         self._density_matrix = density_matrix
 

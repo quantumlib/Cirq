@@ -278,10 +278,6 @@ class T2DecayResult:
     """
 
     def __init__(self, x_basis_data: pd.DataFrame, y_basis_data: pd.DataFrame):
-        """Args:
-        data: A data frame with three columns:
-            delay_ns, false_count, true_count.
-        """
         x_cols = list(x_basis_data.columns)
         y_cols = list(y_basis_data.columns)
         if any(col not in x_cols for col in _T2_COLUMNS):

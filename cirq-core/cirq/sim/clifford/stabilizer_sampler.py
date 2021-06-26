@@ -27,8 +27,10 @@ class StabilizerSampler(sampler.Sampler):
     """An efficient sampler for stabilizer circuits."""
 
     def __init__(self, *, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
-        """Args:
-        seed: The random seed or generator to use when sampling.
+        """Inits StabilizerSampler.
+
+        Args:
+            seed: The random seed or generator to use when sampling.
         """
         self.init = True
         self._prng = value.parse_random_state(seed)

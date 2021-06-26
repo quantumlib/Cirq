@@ -89,9 +89,11 @@ class T1DecayResult:
     """Results from a Rabi oscillation experiment."""
 
     def __init__(self, data: pd.DataFrame):
-        """Args:
-        data: A data frame with three columns:
-            delay_ns, false_count, true_count.
+        """Inits T1DecayResult.
+
+        Args:
+            data: A data frame with three columns:
+                delay_ns, false_count, true_count.
         """
         assert list(data.columns) == ['delay_ns', 'false_count', 'true_count']
         self._data = data

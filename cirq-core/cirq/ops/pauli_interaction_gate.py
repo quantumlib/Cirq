@@ -41,7 +41,16 @@ pauli_eigen_map = cast(
 class PauliInteractionGate(
     eigen_gate.EigenGate, gate_features.InterchangeableQubitsGate, gate_features.TwoQubitGate
 ):
-    """A CZ conjugated by arbitrary single qubit Cliffords."""
+    """A CZ conjugated by arbitrary single qubit Cliffords.
+
+    Attributes:
+        pauli0: The interaction axis for the first qubit.
+        invert0: Whether to condition on the +1 or -1 eigenvector of the
+            first qubit's interaction axis.
+        pauli1: The interaction axis for the second qubit.
+        invert1: Whether to condition on the +1 or -1 eigenvector of the
+            second qubit's interaction axis.
+    """
 
     CZ = None  # type: PauliInteractionGate
     CNOT = None  # type: PauliInteractionGate
@@ -55,15 +64,11 @@ class PauliInteractionGate(
         *,
         exponent: value.TParamVal = 1.0,
     ) -> None:
-        """Args:
-        pauli0: The interaction axis for the first qubit.
-        invert0: Whether to condition on the +1 or -1 eigenvector of the
-            first qubit's interaction axis.
-        pauli1: The interaction axis for the second qubit.
-        invert1: Whether to condition on the +1 or -1 eigenvector of the
-            second qubit's interaction axis.
-        exponent: Determines the amount of phasing to apply to the vector
-            equal to the tensor product of the two conditions.
+        """Inits PauliInteractionGate.
+
+        Args:
+            exponent: Determines the amount of phasing to apply to the vector
+                equal to the tensor product of the two conditions.
         """
         super().__init__(exponent=exponent)
         self.pauli0 = pauli0

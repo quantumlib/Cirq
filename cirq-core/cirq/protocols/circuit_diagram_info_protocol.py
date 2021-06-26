@@ -39,17 +39,9 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class CircuitDiagramInfo:
-    """Describes how to draw an operation in a circuit diagram."""
+    """Describes how to draw an operation in a circuit diagram.
 
-    def __init__(
-        self,
-        wire_symbols: Iterable[str],
-        exponent: Any = 1,
-        connected: bool = True,
-        exponent_qubit_index: Optional[int] = None,
-        auto_exponent_parens: bool = True,
-    ) -> None:
-        """Args:
+    Attributes:
         wire_symbols: The symbols that should be shown on the qubits
             affected by this operation. Must match the number of qubits that
             the operation is applied to.
@@ -66,7 +58,16 @@ class CircuitDiagramInfo:
             add parentheses around exponents whose contents could look
             ambiguous (e.g. if the exponent contains a dash character that
             could be mistaken for an identity wire). Defaults to True.
-        """
+    """
+
+    def __init__(
+        self,
+        wire_symbols: Iterable[str],
+        exponent: Any = 1,
+        connected: bool = True,
+        exponent_qubit_index: Optional[int] = None,
+        auto_exponent_parens: bool = True,
+    ) -> None:
         if isinstance(wire_symbols, str):
             raise ValueError('Expected an Iterable[str] for wire_symbols but got a str.')
         self.wire_symbols = tuple(wire_symbols)

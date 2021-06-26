@@ -118,6 +118,14 @@ class UndirectedGraphDevice(devices.Device):
         * the crosstalk graph is allowed to have vertices (i.e. device edges)
             that do not exist in the graph device.
         * duration_of does not check that operation is valid.
+
+    Attributes:
+        device_graph: An undirected hypergraph whose vertices correspond to
+            qubits and whose edges determine allowable operations and their
+            durations.
+        crosstalk_graph: An undirected hypergraph whose vertices are edges
+            of device_graph and whose edges give simultaneity constraints
+            thereon.
     """
 
     def __init__(
@@ -125,15 +133,6 @@ class UndirectedGraphDevice(devices.Device):
         device_graph: Optional[UndirectedHypergraph] = None,
         crosstalk_graph: Optional[UndirectedHypergraph] = None,
     ) -> None:
-        """Args:
-        device_graph: An undirected hypergraph whose vertices correspond to
-            qubits and whose edges determine allowable operations and their
-            durations.
-        crosstalk_graph: An undirected hypergraph whose vertices are edges
-            of device_graph and whose edges give simultaneity constraints
-            thereon.
-        """
-
         if device_graph is None:
             device_graph = UndirectedHypergraph()
         if not is_undirected_device_graph(device_graph):

@@ -34,19 +34,21 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
         rewriter: Optional[Callable[[List[ops.Operation]], Optional[ops.OP_TREE]]] = None,
         synthesizer: Optional[Callable[[ops.Qid, np.ndarray], Optional[ops.OP_TREE]]] = None,
     ):
-        """Args:
-        rewriter: Specifies how to merge runs of single-qubit operations
-            into a more desirable form. Takes a list of operations and
-            produces a list of operations. The default rewriter computes the
-            matrix of the run and returns a `cirq.SingleQubitMatrixGate`. If
-            `rewriter` returns `None`, that means "do not rewrite the
-            operations".
-        synthesizer: A special kind of rewriter that operates purely on
-            the unitary matrix of the intended operation. Takes a qubit
-            and a unitary matrix and returns a list of operations. Can't
-            be specified at the same time as `rewriter`. If `synthesizer`
-            returns `None`, that means "do not rewrite the operations used
-            to make this matrix".
+        """Inits MergeSingleQubitGates.
+
+        Args:
+            rewriter: Specifies how to merge runs of single-qubit operations
+                into a more desirable form. Takes a list of operations and
+                produces a list of operations. The default rewriter computes the
+                matrix of the run and returns a `cirq.SingleQubitMatrixGate`. If
+                `rewriter` returns `None`, that means "do not rewrite the
+                operations".
+            synthesizer: A special kind of rewriter that operates purely on
+                the unitary matrix of the intended operation. Takes a qubit
+                and a unitary matrix and returns a list of operations. Can't
+                be specified at the same time as `rewriter`. If `synthesizer`
+                returns `None`, that means "do not rewrite the operations used
+                to make this matrix".
         """
         super().__init__()
         if rewriter is not None and synthesizer is not None:

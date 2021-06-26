@@ -26,16 +26,14 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class QuirkQubitPermutationGate(ops.QubitPermutationGate):
-    """A qubit permutation gate specified by a permutation list."""
+    """A qubit permutation gate specified by a permutation list.
 
-    def __init__(self, identifier: str, name: str, permutation: Sequence[int]):
-        """Args:
+    Attributes:
         identifier: Quirk identifier string.
         name: Label to include in circuit diagram info.
-        permutation: A shuffled sequence of integers from 0 to
-            len(permutation) - 1. The entry at offset `i` is the result
-            of permuting `i`.
-        """
+    """
+
+    def __init__(self, identifier: str, name: str, permutation: Sequence[int]):
         self.identifier = identifier
         self.name = name
         super().__init__(permutation)

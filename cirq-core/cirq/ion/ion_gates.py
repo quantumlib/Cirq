@@ -62,10 +62,12 @@ class MSGate(ops.XXPowGate):
 
 
 def ms(rads: float) -> MSGate:
-    """Args:
+    """Create a Mølmer–Sørensen gate rotating by the desired amount.
+
+    Args:
         rads: The rotation angle in radians.
 
     Returns:
-        Mølmer–Sørensen gate rotating by the desired amount.
+        The Mølmer–Sørensen gate.
     """
     return MSGate(rads=rads)

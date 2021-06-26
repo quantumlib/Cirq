@@ -361,7 +361,9 @@ class Moment:
         precision: Optional[int] = None,
         include_tags: bool = True,
     ):
-        """Args:
+        """Creates a text diagram rendered into text.
+
+        Args:
             xy_breakdown_func: A function to split qubits/qudits into x and y
                 components. For example, the default breakdown turns
                 `cirq.GridQubit(row, col)` into the tuple `(col, row)` and
@@ -379,7 +381,7 @@ class Moment:
                 diagram.
 
         Returns:
-            The text diagram rendered into text.
+            The text.
         """
 
         # Figure out where to place everything.

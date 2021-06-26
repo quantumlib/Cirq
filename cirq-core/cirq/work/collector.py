@@ -27,10 +27,9 @@ if TYPE_CHECKING:
 
 @value.value_equality(unhashable=True)
 class CircuitSampleJob:
-    """Describes a sampling task."""
+    """Describes a sampling task.
 
-    def __init__(self, circuit: circuits.Circuit, *, repetitions: int, tag: Any = None):
-        """Args:
+    Attributes:
         circuit: The circuit to sample from.
         repetitions: How many times to sample the circuit.
         tag: An arbitrary value associated with the job. This value is used
@@ -39,7 +38,9 @@ class CircuitSampleJob:
             string like "main_run" or "calibration_run", or it could be set
             to the component of the Hamiltonian (e.g. a PauliString) that
             the circuit is supposed to be helping to estimate.
-        """
+    """
+
+    def __init__(self, circuit: circuits.Circuit, *, repetitions: int, tag: Any = None):
         self.circuit = circuit
         self.repetitions = repetitions
         self.tag = tag

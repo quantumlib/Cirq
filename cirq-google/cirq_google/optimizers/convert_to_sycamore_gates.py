@@ -45,10 +45,8 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
 
     Fourth, if ignore_failures is set, gives up and returns the gate unchanged.
         Otherwise raises a TypeError.
-    """
 
-    def __init__(self, tabulation: Optional[GateTabulation] = None, ignore_failures=False) -> None:
-        """Args:
+    Attributes:
         tabulation: If set, a tabulation for the Sycamore gate to use for
             decomposing Matrix gates. If unset, an analytic calculation is
             used for Matrix gates. To get a GateTabulation, call the
@@ -56,7 +54,9 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
             usually cirq_google.SYC) and a maximum infidelity.
         ignore_failures: If set, gates that fail to convert are forwarded
             unchanged. If not set, conversion failures raise a TypeError.
-        """
+    """
+
+    def __init__(self, tabulation: Optional[GateTabulation] = None, ignore_failures=False) -> None:
         super().__init__()
         self.ignore_failures = ignore_failures
         if tabulation is not None and not isinstance(tabulation, GateTabulation):

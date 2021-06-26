@@ -297,13 +297,15 @@ class CliffordTableau:
         self._zs[q1, :] ^= self._zs[q2, :]
 
     def _row_to_dense_pauli(self, i: int) -> 'cirq.DensePauliString':
-        """Args:
+        """Creates a DensePauliString representing the row. The length of the string
+        is equal to the total number of qubits and each character
+        represents the effective single Pauli operator on that qubit. The
+        overall phase is captured in the coefficient.
+
+        Args:
             i: index of the row in the tableau.
         Returns:
-            A DensePauliString representing the row. The length of the string
-            is equal to the total number of qubits and each character
-            represents the effective single Pauli operator on that qubit. The
-            overall phase is captured in the coefficient.
+            The DensePauliString.
         """
         coefficient = -1 if self.rs[i] else 1
         pauli_mask = ""

@@ -76,10 +76,8 @@ class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGa
     ISWAP and CZPowGate:
 
         FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
-    """
 
-    def __init__(self, theta: float, phi: float) -> None:
-        """Args:
+    Attributes:
         theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
             Determined by the strength and duration of the XX+YY
             interaction. Note: uses opposite sign convention to the
@@ -87,7 +85,9 @@ class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGa
         phi: Controlled phase angle, in radians. Determines how much the
             ``|11⟩`` state is phased. Note: uses opposite sign convention to
             the CZPowGate. Maximum strength (full cz) is at pi/2.
-        """
+    """
+
+    def __init__(self, theta: float, phi: float) -> None:
         self.theta = _canonicalize(theta)
         self.phi = _canonicalize(phi)
 
@@ -240,17 +240,8 @@ class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQu
     symmetric if both of the following conditions are satisfied:
      * ζ = kπ or θ = π/2 + lπ for k and l integers,
      * χ = kπ or θ = lπ for k and l integers.
-    """
 
-    def __init__(
-        self,
-        theta: Union[float, sympy.Basic],
-        zeta: Union[float, sympy.Basic] = 0.0,
-        chi: Union[float, sympy.Basic] = 0.0,
-        gamma: Union[float, sympy.Basic] = 0.0,
-        phi: Union[float, sympy.Basic] = 0.0,
-    ) -> None:
-        """Args:
+    Attributes:
         theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
             See class docstring above for details.
         zeta: One of the phase angles, in radians. See class
@@ -261,7 +252,16 @@ class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQu
             docstring above for details.
         phi: Controlled phase angle, in radians. See class docstring
             above for details.
-        """
+    """
+
+    def __init__(
+        self,
+        theta: Union[float, sympy.Basic],
+        zeta: Union[float, sympy.Basic] = 0.0,
+        chi: Union[float, sympy.Basic] = 0.0,
+        gamma: Union[float, sympy.Basic] = 0.0,
+        phi: Union[float, sympy.Basic] = 0.0,
+    ) -> None:
         self.theta = _canonicalize(theta)
         self.zeta = _canonicalize(zeta)
         self.chi = _canonicalize(chi)

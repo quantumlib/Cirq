@@ -30,15 +30,15 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
 
     Third, if ignore_failures is set, gives up and returns the gate unchanged.
         Otherwise raises a TypeError.
-    """
 
-    def __init__(self, ignore_failures: bool = False, allow_partial_czs: bool = False) -> None:
-        """Args:
+    Attributes:
         ignore_failures: If set, gates that fail to convert are forwarded
             unchanged. If not set, conversion failures raise a TypeError.
         allow_partial_czs: If set, the decomposition is permitted to use
             gates of the form `cirq.CZ**t`, instead of only `cirq.CZ`.
-        """
+    """
+
+    def __init__(self, ignore_failures: bool = False, allow_partial_czs: bool = False) -> None:
         super().__init__()
         self.ignore_failures = ignore_failures
         self.allow_partial_czs = allow_partial_czs

@@ -168,11 +168,13 @@ def get_incremental_uncovered_lines(
 
 
 def line_content_counts_as_uncovered_manual(content: str) -> bool:
-    """Args:
+    """Determines whether the line could be included in the coverage report.
+
+    Args:
         content: A line with indentation and tail comments/space removed.
 
     Returns:
-        Whether the line could be included in the coverage report.
+        The determination.
     """
     # Omit empty lines.
     if not content:
@@ -231,11 +233,13 @@ def naive_find_end_of_scope(lines: List[str], i: int) -> int:
 
 
 def line_counts_as_uncovered(line: str, is_from_cover_annotation_file: bool) -> bool:
-    """Args:
+    """Determines whether the line counts as uncovered.
+
+    Args:
         line: The line of code (including coverage annotation).
         is_from_cover_annotation_file: Whether this line has been annotated.
     Returns:
-        Does the line count as uncovered?
+        The determination.
     """
 
     # Ignore this line?

@@ -25,10 +25,8 @@ class QuirkOp:
 
     Basically just a series of text identifiers for each qubit, and some rules
     for how things can be combined.
-    """
 
-    def __init__(self, *keys: Any, can_merge: bool = True) -> None:
-        """Args:
+    Attributes:
         *keys: The JSON object(s) that each qubit is turned into when
             explaining a gate to Quirk. For example, a CNOT is turned into
             the keys ["•", "X"].
@@ -40,7 +38,9 @@ class QuirkOp:
             example, this is not safe if the column contains a control
             because the control would also apply to the other column's
             gates.
-        """
+    """
+
+    def __init__(self, *keys: Any, can_merge: bool = True) -> None:
         self.keys = keys
         self.can_merge = can_merge
 

@@ -43,17 +43,17 @@ class EjectPhasedPaulis:
     X, Y, or PhasedX gates with exponent=1, get merged into measurements (as
     output bit flips), and cause phase kickback operations across CZs (which can
     then be removed by the EjectZ optimization).
-    """
 
-    def __init__(self, tolerance: float = 1e-8, eject_parameterized: bool = False) -> None:
-        """Args:
+    Attributes:
         tolerance: Maximum absolute error tolerance. The optimization is
              permitted to simply drop negligible combinations gates with a
              threshold determined by this tolerance.
         eject_parameterized: If True, the optimization will attempt to eject
             parameterized gates as well.  This may result in other gates
             parameterized by symbolic expressions.
-        """
+    """
+
+    def __init__(self, tolerance: float = 1e-8, eject_parameterized: bool = False) -> None:
         self.tolerance = tolerance
         self.eject_parameterized = eject_parameterized
 

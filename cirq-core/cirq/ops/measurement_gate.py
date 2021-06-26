@@ -29,6 +29,13 @@ class MeasurementGate(raw_types.Gate):
 
     The measurement gate contains a key that is used to identify results
     of measurements.
+
+    Attributes:
+        key: The string key of the measurement.
+        invert_mask: A list of values indicating whether the corresponding
+            qubits should be flipped. The list's length must not be longer
+            than the number of qubits, but it is permitted to be shorter.
+            Qubits with indices past the end of the mask are not flipped.
     """
 
     def __init__(
@@ -38,13 +45,10 @@ class MeasurementGate(raw_types.Gate):
         invert_mask: Tuple[bool, ...] = (),
         qid_shape: Tuple[int, ...] = None,
     ) -> None:
-        """Args:
+        """Inits MeasurementGate.
+
+        Args:
             num_qubits: The number of qubits to act upon.
-            key: The string key of the measurement.
-            invert_mask: A list of values indicating whether the corresponding
-                qubits should be flipped. The list's length must not be longer
-                than the number of qubits, but it is permitted to be shorter.
-                Qubits with indices past the end of the mask are not flipped.
             qid_shape: Specifies the dimension of each qid the measurement
                 applies to.  The default is 2 for every qubit.
 

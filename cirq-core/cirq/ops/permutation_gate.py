@@ -23,14 +23,15 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class QubitPermutationGate(raw_types.Gate):
-    """A qubit permutation gate specified by a permutation list."""
+    """A qubit permutation gate specified by a permutation list.
 
-    def __init__(self, permutation: Sequence[int]):
-        """Args:
+    Attributes:
         permutation: A shuffled sequence of integers from 0 to
             len(permutation) - 1. The entry at offset `i` is the result
             of permuting `i`.
-        """
+    """
+
+    def __init__(self, permutation: Sequence[int]):
         if not permutation:
             raise ValueError(f"Invalid permutation (empty): {permutation}")
 

@@ -38,13 +38,13 @@ class AQTSampler(cirq.Sampler):
     """cirq.Sampler for the AQT ion trap device
     This sampler connects to the AQT machine and
     runs a single circuit or an entire sweep remotely
+
+    Attributes:
+        remote_host: Address of the remote device.
+        access_token: Access token for the remote api.
     """
 
     def __init__(self, remote_host: str, access_token: str):
-        """Args:
-        remote_host: Address of the remote device.
-        access_token: Access token for the remote api.
-        """
         self.remote_host = remote_host
         self.access_token = access_token
 

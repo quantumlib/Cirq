@@ -28,11 +28,13 @@ class SynchronizeTerminalMeasurements:
     """
 
     def __init__(self, after_other_operations: bool = True):
-        """Args:
-        after_other_operations: Set by default. If the circuit's final
-            moment contains non-measurement operations and this is set then
-            a new empty moment is appended to the circuit before pushing
-            measurements to the end.
+        """Inits SynchronizeTerminalMeasurements.
+
+        Args:
+            after_other_operations: Set by default. If the circuit's final
+                moment contains non-measurement operations and this is set then
+                a new empty moment is appended to the circuit before pushing
+                measurements to the end.
         """
         self._after_other_operations = after_other_operations
 

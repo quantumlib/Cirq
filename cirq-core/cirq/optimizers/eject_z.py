@@ -45,17 +45,17 @@ class EjectZ:
 
     As the Z gates get pushed they may absorb other Z gates, get absorbed into
     measurements, cross CZ gates, cross W gates (by phasing them), etc.
-    """
 
-    def __init__(self, tolerance: float = 0.0, eject_parameterized: bool = False) -> None:
-        """Args:
+    Attributes:
         tolerance: Maximum absolute error tolerance. The optimization is
              permitted to simply drop negligible combinations of Z gates,
              with a threshold determined by this tolerance.
         eject_parameterized: If True, the optimization will attempt to eject
             parameterized Z gates as well.  This may result in other gates
             parameterized by symbolic expressions.
-        """
+    """
+
+    def __init__(self, tolerance: float = 0.0, eject_parameterized: bool = False) -> None:
         self.tolerance = tolerance
         self.eject_parameterized = eject_parameterized
 

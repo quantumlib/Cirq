@@ -48,6 +48,10 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     1. Directly edit the `tableau` property, which is storing the clifford
         tableau of the quantum system with one axis per qubit.
     2. Call `record_measurement_result(key, val)` to log a measurement result.
+
+    Attributes:
+        tableau: The CliffordTableau to act on. Operations are expected to
+            perform inplace edits of this object.
     """
 
     @deprecated_parameter(
@@ -67,19 +71,11 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'] = None,
         axes: Iterable[int] = None,
     ):
-        """Args:
-        tableau: The CliffordTableau to act on. Operations are expected to
-            perform inplace edits of this object.
-        qubits: Determines the canonical ordering of the qubits. This
-            is often used in specifying the initial state, i.e. the
-            ordering of the computational basis states.
-        prng: The pseudo random number generator to use for probabilistic
-            effects.
-        log_of_measurement_results: A mutable object that measurements are
-            being recorded into. Edit it easily by calling
-            `ActOnCliffordTableauArgs.record_measurement_result`.
-        axes: The indices of axes corresponding to the qubits that the
-            operation is supposed to act upon.
+        """Inits ActOnCliffordTableauArgs.
+
+        Args:
+            axes: The indices of axes corresponding to the qubits that the
+                operation is supposed to act upon.
         """
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.tableau = tableau

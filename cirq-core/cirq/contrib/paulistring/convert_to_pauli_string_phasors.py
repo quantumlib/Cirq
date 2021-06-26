@@ -34,12 +34,8 @@ class ConvertToPauliStringPhasors(PointOptimizer):
     Checks if the operation has a known unitary effect. If so, and the gate is a
         1-qubit gate, then decomposes it into x, y, or z rotations and creates a
         PauliStringPhasor for each.
-    """
 
-    def __init__(
-        self, ignore_failures: bool = False, keep_clifford: bool = False, atol: float = 1e-14
-    ) -> None:
-        """Args:
+    Attributes:
         ignore_failures: If set, gates that fail to convert are forwarded
             unchanged. If not set, conversion failures raise a TypeError.
         keep_clifford: If set, single qubit rotations in the Clifford group
@@ -47,7 +43,11 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         atol: Maximum absolute error tolerance. The optimization is
             permitted to round angles with a threshold determined by this
             tolerance.
-        """
+    """
+
+    def __init__(
+        self, ignore_failures: bool = False, keep_clifford: bool = False, atol: float = 1e-14
+    ) -> None:
         super().__init__()
         self.ignore_failures = ignore_failures
         self.keep_clifford = keep_clifford

@@ -46,6 +46,12 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
     on out-of-range values (they cannot simply disappear or raise exceptions),
     and the simplest is to do nothing. This call handles ensuring that happens,
     and ensuring the new target register value is normalized modulo the modulus.
+
+    Attributes:
+        identifier: The quirk identifier string for this operation.
+        target: The target qubit register.
+        inputs: Qubit registers (or classical constants) that
+            determine what happens to the target.
     """
 
     def __init__(
@@ -54,12 +60,6 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
         target: Sequence['cirq.Qid'],
         inputs: Sequence[Union[Sequence['cirq.Qid'], int]],
     ):
-        """Args:
-        identifier: The quirk identifier string for this operation.
-        target: The target qubit register.
-        inputs: Qubit registers (or classical constants) that
-            determine what happens to the target.
-        """
         self.identifier = identifier
         self.target: Tuple['cirq.Qid', ...] = tuple(target)
         self.inputs: Tuple[Union[Sequence['cirq.Qid'], int], ...] = tuple(
@@ -151,12 +151,13 @@ _IntsToIntCallable = Union[
 
 
 class _QuirkArithmeticCallable:
-    """A callable with parameter-name-dependent behavior."""
+    """A callable with parameter-name-dependent behavior.
+
+    Attributes:
+        func: Maps target int to its output value based on other input ints.
+    """
 
     def __init__(self, func: _IntsToIntCallable):
-        """Args:
-        func: Maps target int to its output value based on other input ints.
-        """
         self.func = func
 
         # The lambda parameter names indicate the input letter to match.

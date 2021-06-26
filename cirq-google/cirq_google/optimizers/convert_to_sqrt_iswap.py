@@ -43,13 +43,13 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
     Currently natively specified gates are CZPowGate, ISwapPowGate,
     and FSimGate.  This will also support gates that decompose into
     the above gates.
+
+    Attributes:
+        ignore_failures: If set, gates that fail to convert are forwarded
+            unchanged. If not set, conversion failures raise a TypeError.
     """
 
     def __init__(self, ignore_failures=False) -> None:
-        """Args:
-        ignore_failures: If set, gates that fail to convert are forwarded
-            unchanged. If not set, conversion failures raise a TypeError.
-        """
         super().__init__()
         self.ignore_failures = ignore_failures
 

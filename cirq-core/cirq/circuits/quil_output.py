@@ -28,12 +28,12 @@ def to_quil_complex_format(num) -> str:
 class QuilOneQubitGate(ops.SingleQubitGate):
     """A QUIL gate representing any single qubit unitary with a DEFGATE and
     2x2 matrix in QUIL.
+
+    Attributes:
+        matrix: The 2x2 unitary matrix for this gate.
     """
 
     def __init__(self, matrix: np.ndarray) -> None:
-        """Args:
-        matrix: The 2x2 unitary matrix for this gate.
-        """
         self.matrix = matrix
 
     def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter') -> str:
@@ -57,12 +57,12 @@ class QuilOneQubitGate(ops.SingleQubitGate):
 class QuilTwoQubitGate(ops.TwoQubitGate):
     """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4
     unitary matrix.
+
+    Attributes:
+        matrix: The 4x4 unitary matrix for this gate.
     """
 
     def __init__(self, matrix: np.ndarray) -> None:
-        """Args:
-        matrix: The 4x4 unitary matrix for this gate.
-        """
         self.matrix = matrix
 
     def _value_equality_values_(self):
@@ -98,13 +98,13 @@ class QuilOutput:
     """An object for passing operations and qubits then outputting them to
     QUIL format. The string representation returns the QUIL output for the
     circuit.
+
+    Attributes:
+        operations: A list or tuple of `cirq.OP_TREE` arguments.
+        qubits: The qubits used in the operations.
     """
 
     def __init__(self, operations: 'cirq.OP_TREE', qubits: Tuple['cirq.Qid', ...]) -> None:
-        """Args:
-        operations: A list or tuple of `cirq.OP_TREE` arguments.
-        qubits: The qubits used in the operations.
-        """
         self.qubits = qubits
         self.operations = tuple(cirq.ops.flatten_to_ops(operations))
         self.measurements = tuple(

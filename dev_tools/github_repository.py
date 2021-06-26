@@ -16,17 +16,18 @@ from typing import Optional
 
 
 class GithubRepository:
-    """Details how to access a repository on github."""
+    """Details how to access a repository on github.
 
-    def __init__(self, organization: str, name: str, access_token: Optional[str]) -> None:
-        """Args:
+    Attributes:
         organization: The github organization the repository is under.
         name: The name of the github repository.
         access_token: If present, this token is used to authorize changes
             to the repository when calling the github API (e.g. set build
             status indicators). Avoid using access tokens with more
             permissions than necessary.
-        """
+    """
+
+    def __init__(self, organization: str, name: str, access_token: Optional[str]) -> None:
         self.organization = organization
         self.name = name
         self.access_token = access_token

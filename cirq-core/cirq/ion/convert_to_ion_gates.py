@@ -19,13 +19,14 @@ from cirq.ion import ms, two_qubit_matrix_to_ion_operations
 
 
 class ConvertToIonGates:
-    """Attempts to convert non-native gates into IonGates."""
+    """Attempts to convert non-native gates into IonGates.
 
-    def __init__(self, ignore_failures: bool = False) -> None:
-        """Args:
+    Attributes:
         ignore_failures: If set, gates that fail to convert are forwarded
             unchanged. If not set, conversion failures raise a TypeError.
-        """
+    """
+
+    def __init__(self, ignore_failures: bool = False) -> None:
         super().__init__()
         self.ignore_failures = ignore_failures
 

@@ -75,18 +75,6 @@ class ApplyUnitaryArgs:
     def __init__(
         self, target_tensor: np.ndarray, available_buffer: np.ndarray, axes: Iterable[int]
     ):
-        """Args:
-        target_tensor: The input tensor that needs to be left-multiplied by
-            the unitary effect of the receiving object. The tensor will
-            have the shape (2, 2, 2, ..., 2). It usually corresponds to
-            a multi-qubit superposition, but it could also be a multi-qubit
-            unitary transformation or some other concept.
-        available_buffer: Pre-allocated workspace with the same shape and
-            dtype as the target tensor.
-        axes: Which axes the unitary effect is being applied to (e.g. the
-            qubits that the gate is operating on).
-
-        """
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.axes = tuple(axes)

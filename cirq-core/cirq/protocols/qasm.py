@@ -30,14 +30,9 @@ RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 
 class QasmArgs(string.Formatter):
-    def __init__(
-        self,
-        precision: int = 10,
-        version: str = '2.0',
-        qubit_id_map: Dict['cirq.Qid', str] = None,
-        meas_key_id_map: Dict[str, str] = None,
-    ) -> None:
-        """Args:
+    """Qasm arguments.
+
+    Attributes:
         precision: The number of digits after the decimal to show for
             numbers in the qasm code.
         version: The QASM version to target. Objects may return different
@@ -45,7 +40,15 @@ class QasmArgs(string.Formatter):
         qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
         meas_key_id_map: A dictionary mapping measurement keys to creg QASM
             identifiers.
-        """
+    """
+
+    def __init__(
+        self,
+        precision: int = 10,
+        version: str = '2.0',
+        qubit_id_map: Dict['cirq.Qid', str] = None,
+        meas_key_id_map: Dict[str, str] = None,
+    ) -> None:
         self.precision = precision
         self.version = version
         self.qubit_id_map = {} if qubit_id_map is None else qubit_id_map

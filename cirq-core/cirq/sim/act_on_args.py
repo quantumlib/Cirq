@@ -28,7 +28,18 @@ if TYPE_CHECKING:
 
 
 class ActOnArgs:
-    """State and context for an operation acting on a state tensor."""
+    """State and context for an operation acting on a state tensor.
+
+    Attributes:
+        prng: The pseudo random number generator to use for probabilistic
+            effects.
+        qubits: Determines the canonical ordering of the qubits. This
+            is often used in specifying the initial state, i.e. the
+            ordering of the computational basis states.
+        log_of_measurement_results: A mutable object that measurements are
+            being recorded into. Edit it easily by calling
+            `ActOnStateVectorArgs.record_measurement_result`.
+    """
 
     def __init__(
         self,
@@ -37,17 +48,11 @@ class ActOnArgs:
         axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
-        """Args:
-        prng: The pseudo random number generator to use for probabilistic
-            effects.
-        qubits: Determines the canonical ordering of the qubits. This
-            is often used in specifying the initial state, i.e. the
-            ordering of the computational basis states.
-        axes: The indices of axes corresponding to the qubits that the
-            operation is supposed to act upon.
-        log_of_measurement_results: A mutable object that measurements are
-            being recorded into. Edit it easily by calling
-            `ActOnStateVectorArgs.record_measurement_result`.
+        """Inits ActOnArgs.
+
+        Args:
+            axes: The indices of axes corresponding to the qubits that the
+                operation is supposed to act upon.
         """
         if qubits is None:
             qubits = ()

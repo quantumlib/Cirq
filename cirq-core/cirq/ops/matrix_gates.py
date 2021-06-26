@@ -41,10 +41,10 @@ class MatrixGate(raw_types.Gate):
         """Initializes a matrix gate.
         Args:
             matrix: The matrix that defines the gate.
+            name: The optional name of the gate to be displayed.
             qid_shape: The shape of state tensor that the matrix applies to.
                 If not specified, this value is inferred by assuming that the
                 matrix is supposed to apply to qubits.
-            name: The optional name of the gate to be displayed.
         """
         if len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1]:
             raise ValueError('`matrix` must be a square 2d numpy array.')
