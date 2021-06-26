@@ -24,14 +24,17 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 Note that if you are using PyCharm, you might have to Restart & Invalidate Caches to have the change being picked up. 
 
 ## Docker
-
-To do your development in a Docker image, you can build one with our `Dockerfile`.
+ You can build the stable and pre_release docker images with our `Dockerfile`.
 
 ```bash
-    docker build -t cirq .
+    docker build -t cirq --target cirq_stable .
     docker run -it cirq python -c "import cirq_google; print(cirq_google.Foxtail)"
 ```
 
+```bash
+    docker build -t cirq_pre --target cirq_pre_release .
+    docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Foxtail)"
+```
 
 If you want to contribute changes to Cirq, you will instead want to fork the repository and submit pull requests from your fork.
 
