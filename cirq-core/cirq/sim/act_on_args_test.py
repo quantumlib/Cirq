@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 import pytest
 
 import cirq
@@ -22,7 +21,7 @@ class DummyArgs(cirq.ActOnArgs):
     def __init__(self):
         super().__init__(qubits=cirq.LineQubit.range(2))
 
-    def copy(self):
+    def _on_copy(self, target):
         pass
 
     def _perform_measurement(self, qubits):

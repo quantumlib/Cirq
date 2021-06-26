@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import List, Dict, Any, Sequence, Tuple
+from typing import List, Dict, Any, Sequence
 
 import numpy as np
 import pytest
@@ -35,15 +35,8 @@ class CountingActOnArgs(cirq.ActOnArgs):
         self.measurement_count += 1
         return [self.gate_count]
 
-    def copy(self) -> 'CountingActOnArgs':
-        args = CountingActOnArgs(
-            qubits=self.qubits,
-            logs=self.log_of_measurement_results.copy(),
-            state=self.state,
-        )
-        args.gate_count = self.gate_count
-        args.measurement_count = self.measurement_count
-        return args
+    def _on_copy(self, target: 'CountingActOnArgs'):
+        pass
 
     def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         self.gate_count += 1
@@ -51,42 +44,21 @@ class CountingActOnArgs(cirq.ActOnArgs):
 
 
 class SplittableCountingActOnArgs(CountingActOnArgs):
-    def join(self, other: 'SplittableCountingActOnArgs') -> 'SplittableCountingActOnArgs':
-        args = SplittableCountingActOnArgs(
-            qubits=self.qubits + other.qubits,
-            logs=self.log_of_measurement_results,
-            state=None,
-        )
-        args.gate_count = self.gate_count + other.gate_count
-        args.measurement_count = self.measurement_count + other.measurement_count
-        return args
+    def _on_join(self, other: 'SplittableCountingActOnArgs', target: 'SplittableCountingActOnArgs'):
+        target.gate_count = self.gate_count + other.gate_count
+        target.measurement_count = self.measurement_count + other.measurement_count
 
-    def extract(
-        self, qubits: Sequence['cirq.Qid']
-    ) -> Tuple['SplittableCountingActOnArgs', 'SplittableCountingActOnArgs']:
-        extracted_args = SplittableCountingActOnArgs(
-            qubits=qubits,
-            logs=self.log_of_measurement_results,
-            state=None,
-        )
-        extracted_args.gate_count = self.gate_count
-        extracted_args.measurement_count = self.measurement_count
-        remainder_args = SplittableCountingActOnArgs(
-            qubits=tuple(q for q in self.qubits if q not in qubits),
-            logs=self.log_of_measurement_results,
-            state=None,
-        )
-        return extracted_args, remainder_args
+    def _on_extract(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        extracted: 'SplittableCountingActOnArgs',
+        remainder: 'SplittableCountingActOnArgs',
+    ):
+        remainder.gate_count = 0
+        remainder.measurement_count = 0
 
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'SplittableCountingActOnArgs':
-        args = SplittableCountingActOnArgs(
-            qubits=qubits,
-            logs=self.log_of_measurement_results,
-            state=self.state,
-        )
-        args.gate_count = self.gate_count
-        args.measurement_count = self.measurement_count
-        return args
+    def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'SplittableCountingActOnArgs'):
+        pass
 
 
 class CountingStepResult(cirq.StepResult[CountingActOnArgs]):

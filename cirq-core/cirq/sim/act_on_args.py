@@ -13,6 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
+import copy
 from typing import (
     Any,
     Iterable,
@@ -71,11 +72,14 @@ class ActOnArgs(OperationTarget[TSelf]):
             axes = ()
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
-        self._qubits = tuple(qubits)
-        self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
+        self._set_qubits(qubits)
         self._axes = tuple(axes)
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
+
+    def _set_qubits(self, qubits: Sequence['cirq.Qid']):
+        self._qubits = tuple(qubits)
+        self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
 
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Adds a measurement result to the log.
@@ -101,9 +105,16 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Child classes that perform measurements should implement this with
         the implementation."""
 
-    @abc.abstractmethod
     def copy(self: TSelf) -> TSelf:
         """Creates a copy of the object."""
+        args = copy.copy(self)
+        self._on_copy(args)
+        args._log_of_measurement_results = self.log_of_measurement_results.copy()
+        return args
+
+    @abc.abstractmethod
+    def _on_copy(self: TSelf, args: TSelf):
+        raise NotImplementedError()
 
     def create_merged_state(self: TSelf) -> TSelf:
         """Creates a final merged state."""
@@ -113,16 +124,37 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Applies the operation to the state."""
         protocols.act_on(op, self)
 
-    def join(self: TSelf, other: TSelf) -> TSelf:
+    def join(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
         """Joins two state spaces together."""
-        raise NotImplementedError()
+        args = self if inplace else copy.copy(self)
+        self._on_join(other, args)
+        args._set_qubits(self.qubits + other.qubits)
+        return args
 
-    def extract(self: TSelf, qubits: Sequence['cirq.Qid']) -> Tuple[TSelf, TSelf]:
+    def extract(self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False) -> Tuple[TSelf, TSelf]:
         """Splits two state spaces after a measurement or reset."""
+        extracted = copy.copy(self)
+        remainder = self if inplace else copy.copy(self)
+        self._on_extract(qubits, extracted, remainder)
+        extracted._set_qubits(qubits)
+        remainder._set_qubits([q for q in self.qubits if q not in qubits])
+        return extracted, remainder
+
+    def reorder(self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False) -> TSelf:
+        """Physically reindexes the state by the new basis."""
+        args = self if inplace else copy.copy(self)
+        assert set(qubits) == set(self.qubits)
+        self._on_reorder(qubits, args)
+        args._set_qubits(qubits)
+        return args
+
+    def _on_join(self: TSelf, other: TSelf, target: TSelf):
         raise NotImplementedError()
 
-    def reorder(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
-        """Physically reindexes the state by the new basis."""
+    def _on_extract(self: TSelf, qubits: Sequence['cirq.Qid'], extracted: TSelf, remainder: TSelf):
+        raise NotImplementedError()
+
+    def _on_reorder(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
         raise NotImplementedError()
 
     @property

@@ -194,61 +194,35 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return bits
 
-    def copy(self) -> 'cirq.ActOnStateVectorArgs':
-        return ActOnStateVectorArgs(
-            target_tensor=self.target_tensor.copy(),
-            available_buffer=self.available_buffer.copy(),
-            qubits=self.qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
-        )
+    def _on_copy(self, target: 'ActOnStateVectorArgs'):
+        target.target_tensor = self.target_tensor.copy()
+        target.available_buffer = self.available_buffer.copy()
 
-    def join(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
+    def _on_join(self, other: 'ActOnStateVectorArgs', target: 'ActOnStateVectorArgs'):
         target_tensor = transformations.merge_state_vectors(self.target_tensor, other.target_tensor)
-        buffer = np.empty_like(target_tensor)
-        return ActOnStateVectorArgs(
-            target_tensor=target_tensor,
-            available_buffer=buffer,
-            qubits=self.qubits + other.qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
+        target.target_tensor = target_tensor
+        target.available_buffer = np.empty_like(target_tensor)
 
-    def extract(
-        self, qubits: Sequence['cirq.Qid']
-    ) -> Tuple['cirq.ActOnStateVectorArgs', 'cirq.ActOnStateVectorArgs']:
-        axes = self.get_axes(qubits)
+    def _on_extract(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        extracted: 'ActOnStateVectorArgs',
+        remainder: 'ActOnStateVectorArgs',
+    ):
+        axes = [self.qubit_map[q] for q in qubits]
         extracted_tensor, remainder_tensor = transformations.split_state_vectors(
             self.target_tensor, axes
         )
-        extracted_args = ActOnStateVectorArgs(
-            target_tensor=extracted_tensor,
-            available_buffer=np.empty_like(extracted_tensor),
-            qubits=qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        remainder_args = ActOnStateVectorArgs(
-            target_tensor=remainder_tensor,
-            available_buffer=np.empty_like(remainder_tensor),
-            qubits=tuple(q for q in self.qubits if q not in qubits),
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return extracted_args, remainder_args
+        extracted.target_tensor = extracted_tensor
+        extracted.available_buffer = np.empty_like(extracted_tensor)
+        remainder.target_tensor = remainder_tensor
+        remainder.available_buffer = np.empty_like(remainder_tensor)
 
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStateVectorArgs':
-        assert len(qubits) == len(self.qubits)
-        axes = self.get_axes(qubits)
+    def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'ActOnStateVectorArgs'):
+        axes = [self.qubit_map[q] for q in qubits]
         new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits)))
-        new_args = ActOnStateVectorArgs(
-            target_tensor=new_tensor,
-            available_buffer=np.empty_like(new_tensor),
-            qubits=qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return new_args
+        target.target_tensor = new_tensor
+        target.available_buffer = np.empty_like(new_tensor)
 
 
 def _strat_act_on_state_vector_from_apply_unitary(
