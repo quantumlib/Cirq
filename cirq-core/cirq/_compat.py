@@ -91,10 +91,25 @@ def proper_eq(a: Any, b: Any) -> bool:
 def _warn_or_error(msg):
     from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
 
-    called_from_test = 'CIRQ_TESTING' in os.environ
     deprecation_allowed = ALLOW_DEPRECATION_IN_TEST in os.environ
-    if called_from_test and not deprecation_allowed:
-        raise ValueError(f"Cirq should not use deprecated functionality: {msg}")
+    if _called_from_test() and not deprecation_allowed:
+        for filename, line_number, function_name, text in reversed(traceback.extract_stack()):
+            if (
+                not _is_internal(filename)
+                and not filename.endswith(os.path.join("cirq", "_compat.py"))
+                and "_test.py" in filename
+            ):
+                break
+        raise ValueError(
+            f"During testing using Cirq deprecated functionality is not allowed: {msg}"
+            f"Update to non-deprecated functionality, or alternatively, you can quiet "
+            f"this error by removing the CIRQ_TESTING environment variable "
+            f"temporarily with `@mock.patch.dict(os.environ, clear='CIRQ_TESTING')`.\n"
+            f"In case the usage of deprecated cirq is intentional, use "
+            f"`with cirq.testing.assert_deprecated(...):` around this line:\n"
+            f"{filename}:{line_number}: in {function_name}\n"
+            f"\t{text}"
+        )
 
     # we have to dynamically count the non-internal frames
     # due to the potentially multiple nested module wrappers
@@ -396,8 +411,22 @@ def _is_internal(filename: str) -> bool:
 _warned: Set[str] = set()
 
 
-def _deduped_module_warn_or_error(old_module_name, new_module_name, deadline):
-    if old_module_name in _warned:
+def _called_from_test() -> bool:
+    return 'CIRQ_TESTING' in os.environ
+
+
+def _should_dedupe_module_deprecation() -> bool:
+    """Whether module deprecation warnings should be deduped or not.
+
+    We should always dedupe when not called from test.
+    We should only dedupe during tests if forced.
+    """
+    force_dedupe = "CIRQ_FORCE_DEDUPE_MODULE_DEPRECATION" in os.environ
+    return not _called_from_test() or force_dedupe
+
+
+def _deduped_module_warn_or_error(old_module_name: str, new_module_name: str, deadline: str):
+    if _should_dedupe_module_deprecation() and old_module_name in _warned:
         return
 
     _warned.add(old_module_name)

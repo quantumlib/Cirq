@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
-
-import pytest
+from typing import Sequence
 
 import numpy as np
+import pytest
 
 import cirq
 
@@ -25,10 +24,10 @@ class GoodGate(cirq.SingleQubitGate):
     def _unitary_(self):
         return np.array([[0, 1], [1, 0]])
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         if isinstance(args, cirq.ActOnCliffordTableauArgs):
             tableau = args.tableau
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             tableau.rs[:] ^= tableau.zs[:, q]
             return True
         return NotImplemented
@@ -38,10 +37,10 @@ class BadGate(cirq.SingleQubitGate):
     def _unitary_(self):
         return np.array([[0, 1j], [1, 0]])
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         if isinstance(args, cirq.ActOnCliffordTableauArgs):
             tableau = args.tableau
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             tableau.rs[:] ^= tableau.zs[:, q]
             return True
         return NotImplemented

@@ -484,22 +484,22 @@ def test_sycamore_devices(device):
 
 
 def test_sycamore_circuitop_device():
-    circuitop_gateset = cirq.google.serializable_gate_set.SerializableGateSet(
+    circuitop_gateset = cirq_google.serializable_gate_set.SerializableGateSet(
         gate_set_name='circuitop_gateset',
         serializers=[cgc.CIRCUIT_OP_SERIALIZER],
         deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
     )
     gateset_list = [
-        cirq.google.gate_sets.SQRT_ISWAP_GATESET,
-        cirq.google.gate_sets.SYC_GATESET,
+        cirq_google.gate_sets.SQRT_ISWAP_GATESET,
+        cirq_google.gate_sets.SYC_GATESET,
         circuitop_gateset,
     ]
-    circuitop_proto = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+    circuitop_proto = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         known_devices._SYCAMORE23_GRID,
         gateset_list,
         known_devices._SYCAMORE_DURATIONS_PICOS,
     )
-    device = cirq.google.SerializableDevice.from_proto(
+    device = cirq_google.SerializableDevice.from_proto(
         proto=circuitop_proto,
         gate_sets=gateset_list,
     )
@@ -533,12 +533,12 @@ def test_sycamore_grid_layout():
 
 
 def test_proto_with_circuitop():
-    circuitop_gateset = cirq.google.serializable_gate_set.SerializableGateSet(
+    circuitop_gateset = cirq_google.serializable_gate_set.SerializableGateSet(
         gate_set_name='circuitop_gateset',
         serializers=[cgc.CIRCUIT_OP_SERIALIZER],
         deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
     )
-    circuitop_proto = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+    circuitop_proto = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa",
         [circuitop_gateset],
     )

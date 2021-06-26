@@ -24,32 +24,32 @@ def test_cannot_act():
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=3),
-        axes=[1],
+        qubits=[],
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(NoDetails(), args)
+        cirq.act_on(NoDetails(), args, qubits=())
 
 
 def test_gate_with_act_on():
     class CustomGate(cirq.SingleQubitGate):
-        def _act_on_(self, args):
+        def _act_on_(self, args, qubits):
             if isinstance(args, cirq.ActOnStabilizerCHFormArgs):
-                qubit = args.axes[0]
+                qubit = args.qubit_map[qubits[0]]
                 args.state.gamma[qubit] += 1
                 return True
 
     state = cirq.StabilizerStateChForm(num_qubits=3)
     args = cirq.ActOnStabilizerCHFormArgs(
         state=state,
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
-    cirq.act_on(CustomGate(), args)
+    cirq.act_on(CustomGate(), args, [cirq.LineQubit(1)])
 
     np.testing.assert_allclose(state.gamma, [0, 1, 0])
 
@@ -66,18 +66,18 @@ def test_unitary_fallback_y():
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(UnitaryYGate(), args)
+    cirq.act_on(UnitaryYGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(cirq.Y, expected_args)
+    cirq.act_on(cirq.Y, expected_args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
 
 
@@ -93,25 +93,25 @@ def test_unitary_fallback_h():
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(UnitaryHGate(), args)
+    cirq.act_on(UnitaryHGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(cirq.H, expected_args)
+    cirq.act_on(cirq.H, expected_args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
 
 
 def test_copy():
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=3),
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -120,7 +120,72 @@ def test_copy():
     assert args is not args1
     assert args.state is not args1.state
     np.testing.assert_equal(args.state.state_vector(), args1.state.state_vector())
-    assert args.axes == args1.axes
+    assert args.qubits == args1.qubits
     assert args.prng is args1.prng
     assert args.log_of_measurement_results is not args1.log_of_measurement_results
     assert args.log_of_measurement_results == args.log_of_measurement_results
+
+
+def test_axes_deprecation():
+    state = cirq.StabilizerStateChForm(num_qubits=3)
+    rng = np.random.RandomState()
+    qids = tuple(cirq.LineQubit.range(3))
+    log = {}
+
+    # No kwargs
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnStabilizerCHFormArgs(state, (1,), rng, log, qids)  # type: ignore
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.state is state
+    assert args.log_of_measurement_results is log
+    assert args.qubits is qids
+
+    # kwargs no axes
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnStabilizerCHFormArgs(
+            state,
+            (1,),  # type: ignore
+            qubits=qids,
+            prng=rng,
+            log_of_measurement_results=log,
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.state is state
+    assert args.log_of_measurement_results is log
+    assert args.qubits is qids
+
+    # kwargs incl axes
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnStabilizerCHFormArgs(
+            state,
+            axes=(1,),
+            qubits=qids,
+            prng=rng,
+            log_of_measurement_results=log,
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.state is state
+    assert args.log_of_measurement_results is log
+    assert args.qubits is qids
+
+    # All kwargs
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnStabilizerCHFormArgs(
+            state=state,
+            axes=(1,),
+            qubits=qids,
+            prng=rng,
+            log_of_measurement_results=log,
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.state is state
+    assert args.log_of_measurement_results is log
+    assert args.qubits is qids
