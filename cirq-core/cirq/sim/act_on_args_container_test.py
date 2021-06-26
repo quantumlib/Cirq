@@ -26,9 +26,6 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
         return []
 
-    def _on_copy(self, target: 'EmptyActOnArgs'):
-        pass
-
     def _act_on_fallback_(self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool):
         return True
 

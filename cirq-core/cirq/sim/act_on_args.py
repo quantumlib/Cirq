@@ -113,7 +113,9 @@ class ActOnArgs(OperationTarget[TSelf]):
         return args
 
     def _on_copy(self: TSelf, args: TSelf):
-        raise NotImplementedError()
+        """Subclasses should implement this with any additional state copy
+        functionality."""
+        pass
 
     def create_merged_state(self: TSelf) -> TSelf:
         """Creates a final merged state."""
@@ -148,6 +150,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         return args
 
     def can_extract(self, qubits: Sequence['cirq.Qid']):
+        """Subclasses that allow extraction should override this."""
         return False
 
     def _on_join(self: TSelf, other: TSelf, target: TSelf):
