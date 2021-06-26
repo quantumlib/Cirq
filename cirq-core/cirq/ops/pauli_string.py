@@ -1437,7 +1437,7 @@ def _pass_single_clifford_gate_over(
     after_to_before: bool = False,
 ) -> bool:
     if qubit not in pauli_map:
-        return False
+        return False  # coverage: ignore
     if not after_to_before:
         gate **= -1
     pauli, inv = gate.transform(pauli_map[qubit])

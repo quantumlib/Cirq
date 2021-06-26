@@ -16,8 +16,8 @@ import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import cirq
+from cirq_google.engine import engine_client
 from cirq_google.engine.client import quantum
-from cirq_google.engine.engine_client import _ids_from_job_name
 from cirq_google.engine.client.quantum import types as qtypes
 from cirq_google.engine.result_type import ResultType
 from cirq_google import gate_sets
@@ -380,9 +380,9 @@ class EngineProgram:
         )
         return [
             engine_job.EngineJob(
-                project_id=_ids_from_job_name(j.name)[0],
-                program_id=_ids_from_job_name(j.name)[1],
-                job_id=_ids_from_job_name(j.name)[2],
+                project_id=engine_client._ids_from_job_name(j.name)[0],
+                program_id=engine_client._ids_from_job_name(j.name)[1],
+                job_id=engine_client._ids_from_job_name(j.name)[2],
                 context=self.context,
                 _job=j,
             )

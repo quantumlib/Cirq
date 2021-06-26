@@ -57,7 +57,7 @@ from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-from cirq.protocols.circuit_diagram_info_protocol import _op_info_with_fallback
+from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -2391,7 +2391,7 @@ def _draw_moment_in_diagram(
     first_annotation_row: int,
 ):
     if get_circuit_diagram_info is None:
-        get_circuit_diagram_info = _op_info_with_fallback
+        get_circuit_diagram_info = circuit_diagram_info_protocol._op_info_with_fallback
     x0 = out_diagram.width()
 
     non_global_ops = [op for op in moment.operations if op.qubits]

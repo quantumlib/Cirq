@@ -324,8 +324,7 @@ def _op_info_with_fallback(
     if info is not None:
         if max(1, len(op.qubits)) != len(info.wire_symbols):
             raise ValueError(
-                f'Wanted diagram info from {op!r} for {len(op.qubits)} '
-                f'qubits but got {info!r}'
+                f'Wanted diagram info from {op!r} for {len(op.qubits)} qubits but got {info!r}'
             )
         return info
 

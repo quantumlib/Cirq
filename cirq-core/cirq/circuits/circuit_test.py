@@ -22,8 +22,8 @@ import sympy
 
 import cirq
 import cirq.testing
+from cirq import circuits
 from cirq import ops
-from cirq.circuits.circuit import _pick_inserted_ops_moment_indices
 from cirq.testing.devices import ValidatingTestDevice
 
 
@@ -3365,7 +3365,7 @@ def test_pick_inserted_ops_moment_indices():
         expected_circuit._moments += [
             cirq.Moment() for _ in range(len(circuit) - len(expected_circuit))
         ]
-        insert_indices, _ = _pick_inserted_ops_moment_indices(operations, start)
+        insert_indices, _ = circuits.circuit._pick_inserted_ops_moment_indices(operations, start)
         actual_circuit = cirq.Circuit(
             first_half._moments + [cirq.Moment() for _ in range(n_moments - start)]
         )

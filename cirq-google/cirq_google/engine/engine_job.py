@@ -18,10 +18,9 @@ import time
 from typing import Dict, Iterator, List, Optional, overload, Tuple, TYPE_CHECKING
 
 import cirq
-from cirq_google.engine import calibration
+from cirq_google.engine import calibration, engine_client
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.client import quantum
-from cirq_google.engine.engine_client import _ids_from_calibration_name, _ids_from_processor_name
 from cirq_google.engine.result_type import ResultType
 from cirq_google.api import v1, v2
 
@@ -190,7 +189,7 @@ class EngineJob:
     def processor_ids(self) -> List[str]:
         """Returns the processor ids provided when the job was created."""
         return [
-            _ids_from_processor_name(p)[1]
+            engine_client._ids_from_processor_name(p)[1]
             for p in self._inner_job().scheduling_config.processor_selector.processor_names
         ]
 
@@ -229,7 +228,7 @@ class EngineJob:
             return None
         import cirq_google.engine.engine_processor as engine_processor
 
-        ids = _ids_from_processor_name(status.processor_name)
+        ids = engine_client._ids_from_processor_name(status.processor_name)
         return engine_processor.EngineProcessor(ids[0], ids[1], self.context)
 
     def get_calibration(self) -> Optional[calibration.Calibration]:
@@ -238,7 +237,7 @@ class EngineJob:
         status = self._inner_job().execution_status
         if not status.calibration_name:
             return None
-        ids = _ids_from_calibration_name(status.calibration_name)
+        ids = engine_client._ids_from_calibration_name(status.calibration_name)
         response = self.context.client.get_calibration(*ids)
         metrics = v2.metrics_pb2.MetricsSnapshot.FromString(response.data.value)
         return calibration.Calibration(metrics)
