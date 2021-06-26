@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import contextlib
-
+import dataclasses
 import datetime
-import importlib
 import io
 import json
 import os
 import pathlib
+import warnings
 from typing import Dict, List, Optional, Tuple
+from unittest import mock
 
 import numpy as np
 import pandas as pd
@@ -33,18 +34,42 @@ from cirq.testing import assert_json_roundtrip_works
 from cirq.testing.json import ModuleJsonTestSpec, spec_for
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
-TESTED_MODULES = [
-    'cirq_aqt',
-    'cirq_ionq',
-    'cirq_google',
-    'cirq.protocols',
-    'non_existent_should_be_fine',
-]
+
+
+@dataclasses.dataclass
+class _ModuleDeprecation:
+    old_name: str
+    deprecation_assertion: contextlib.AbstractContextManager
+
+
+# tested modules and their deprecation settings
+TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
+    'cirq_aqt': _ModuleDeprecation(
+        old_name="cirq.aqt",
+        deprecation_assertion=cirq.testing.assert_deprecated(
+            "cirq.aqt", deadline="v0.14", count=None
+        ),
+    ),
+    'cirq_ionq': _ModuleDeprecation(
+        old_name="cirq.ionq",
+        deprecation_assertion=cirq.testing.assert_deprecated(
+            "cirq.ionq", deadline="v0.14", count=None
+        ),
+    ),
+    'cirq_google': _ModuleDeprecation(
+        old_name="cirq.google",
+        deprecation_assertion=cirq.testing.assert_deprecated(
+            "cirq.google", deadline="v0.14", count=None
+        ),
+    ),
+    'cirq.protocols': None,
+    'non_existent_should_be_fine': None,
+}
 
 
 def _get_testspecs_for_modules():
     modules = []
-    for m in TESTED_MODULES:
+    for m in TESTED_MODULES.keys():
         try:
             modules.append(spec_for(m))
         except ModuleNotFoundError:
@@ -165,7 +190,11 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 ### MODULE CONSISTENCY tests
 
 
-@pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS)
+@pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
+# during test setup deprecated submodules are inspected and trigger the
+# deprecation error in testing. It is cleaner to just turn it off than to assert
+# deprecation for each submodule.
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec):
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
@@ -177,7 +206,11 @@ def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec):
     )
 
 
-@pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS)
+@pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
+# during test setup deprecated submodules are inspected and trigger the
+# deprecation error in testing. It is cleaner to just turn it off than to assert
+# deprecation for each submodule.
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
@@ -187,7 +220,7 @@ def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
     )
 
 
-@pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS)
+@pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 def test_mutually_exclusive_blacklist(mod_spec: ModuleJsonTestSpec):
     common = set(mod_spec.should_not_be_serialized) & set(mod_spec.not_yet_serializable)
     assert len(common) == 0, (
@@ -196,7 +229,7 @@ def test_mutually_exclusive_blacklist(mod_spec: ModuleJsonTestSpec):
     )
 
 
-@pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS)
+@pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec):
     resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
     common = set(mod_spec.should_not_be_serialized) & resolver_cache_types
@@ -208,7 +241,7 @@ def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec):
     )
 
 
-@pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS)
+@pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 def test_resolver_cache_vs_not_yet_serializable(mod_spec: ModuleJsonTestSpec):
     resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
     common = set(mod_spec.not_yet_serializable) & resolver_cache_types
@@ -414,15 +447,14 @@ def test_internal_serializer_types():
         _ = json_serialization._ContextualSerialization._from_json_dict_(**serialization_json)
 
 
+# during test setup deprecated submodules are inspected and trigger the
+# deprecation error in testing. It is cleaner to just turn it off than to assert
+# deprecation for each submodule.
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def _list_public_classes_for_tested_modules():
-    cirq_google_on_path = importlib.util.find_spec("cirq_google") is not None
-
-    ctx_manager = (
-        cirq.testing.assert_deprecated("cirq.google", deadline="v0.14")
-        if cirq_google_on_path
-        else contextlib.suppress()
-    )
-    with ctx_manager:
+    # to remove DeprecationWarning noise during test collection
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
         return [
             (mod_spec, o, n)
             for mod_spec in MODULE_TEST_SPECS
@@ -538,32 +570,42 @@ def test_to_from_json_gzip():
 
 
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]):
-    ctx_manager = (
-        cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)
-        if deprecation_deadline
-        else contextlib.suppress()
-    )
-    with ctx_manager:
-        imports = {
-            'cirq': cirq,
-            'datetime': datetime,
-            'pd': pd,
-            'sympy': sympy,
-            'np': np,
-            'datetime': datetime,
-        }
-        try:
-            import cirq_google
+    content = path.read_text()
+    ctx_managers: List[contextlib.AbstractContextManager] = [contextlib.suppress()]
+    if deprecation_deadline:
+        # we ignore coverage here, because sometimes there are no deprecations at all in any of the
+        # modules
+        # coverage: ignore
+        ctx_managers = [cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)]
 
-            imports['cirq_google'] = cirq_google
-        except ImportError:
-            pass
+    for deprecation in TESTED_MODULES.values():
+        if deprecation is not None and deprecation.old_name in content:
+            ctx_managers.append(deprecation.deprecation_assertion)
+
+    imports = {
+        'cirq': cirq,
+        'datetime': datetime,
+        'pd': pd,
+        'sympy': sympy,
+        'np': np,
+        'datetime': datetime,
+    }
+    try:
+        import cirq_google
+
+        imports['cirq_google'] = cirq_google
+    except ImportError:
+        pass
+
+    with contextlib.ExitStack() as stack:
+        for ctx_manager in ctx_managers:
+            stack.enter_context(ctx_manager)
         obj = eval(
-            path.read_text(),
+            content,
             imports,
             {},
         )
-    return obj
+        return obj
 
 
 def assert_repr_and_json_test_data_agree(
