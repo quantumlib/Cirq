@@ -1207,7 +1207,7 @@ def test_pauli_sum_matrix():
     assert np.allclose(H2, paulisum2.matrix([q[0], q[1]]))
     H2_2 = np.array(
         [[1.0, 0.0, 0.0, 1.0], [0.0, -1.0, 1.0, 0.0], [0.0, 1.0, 1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
-    )    
+    )
     assert np.allclose(H2_2, paulisum2.matrix([q[1], q[0]]))
     paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0]) * cirq.Z(q[1])
     H3 = np.array(
