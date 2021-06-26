@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable, Tuple
 
 import numpy as np
 
@@ -105,6 +105,46 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
+
+    def join(self, other: 'cirq.ActOnStabilizerCHFormArgs') -> 'cirq.ActOnStabilizerCHFormArgs':
+        offset = len(self.qubits)
+        return ActOnStabilizerCHFormArgs(
+            state=self.state.join(other.state),
+            qubits=self.qubits + other.qubits,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results,
+        )
+
+    def extract(
+        self, qubits: Sequence['cirq.Qid']
+    ) -> Tuple['cirq.ActOnStabilizerCHFormArgs', 'cirq.ActOnStabilizerCHFormArgs']:
+        axes = [self.qubit_map[q] for q in qubits]
+        extracted, remainder = self.state.extract(axes)
+        extracted_args = ActOnStabilizerCHFormArgs(
+            state=extracted,
+            qubits=qubits,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results,
+        )
+        remainder_args = ActOnStabilizerCHFormArgs(
+            state=remainder,
+            qubits=tuple(q for q in self.qubits if q not in qubits),
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results,
+        )
+        return extracted_args, remainder_args
+
+    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStabilizerCHFormArgs':
+        assert len(qubits) == len(self.qubits)
+        axes = [self.qubit_map[q] for q in qubits]
+        state = self.state.reindex(axes)
+        new_args = ActOnStabilizerCHFormArgs(
+            state=state,
+            qubits=qubits,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results,
+        )
+        return new_args
 
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
