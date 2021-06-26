@@ -13,16 +13,11 @@
 """Result types for the IonQ API."""
 
 import collections
-
-from typing import Dict, Counter, Optional, Sequence, TYPE_CHECKING
+from typing import Dict, Counter, Optional, Sequence
 
 import numpy as np
 
-from cirq import study, value
-from cirq.value import digits
-
-if TYPE_CHECKING:
-    import cirq
+import cirq
 
 
 class QPUResult:
@@ -85,8 +80,8 @@ class QPUResult:
 
     def to_cirq_result(
         self,
-        params: Optional[study.ParamResolver] = None,
-    ) -> study.Result:
+        params: Optional[cirq.ParamResolver] = None,
+    ) -> cirq.Result:
         """Returns a `cirq.Result` for these results.
 
         `cirq.Result` contains a less dense representation of results than that returned by
@@ -114,9 +109,9 @@ class QPUResult:
         for key, targets in self.measurement_dict().items():
             qpu_results = list(self.counts(key).elements())
             measurements[key] = np.array(
-                list(digits.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results)
+                list(cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results)
             )
-        return study.Result(params=params or study.ParamResolver({}), measurements=measurements)
+        return cirq.Result(params=params or cirq.ParamResolver({}), measurements=measurements)
 
     def __eq__(self, other):
         if not isinstance(other, QPUResult):
@@ -207,10 +202,10 @@ class SimulatorResult:
 
     def to_cirq_result(
         self,
-        params: study.ParamResolver = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        params: cirq.ParamResolver = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         override_repetitions=None,
-    ) -> study.Result:
+    ) -> cirq.Result:
         """Samples from the simulation probability result, producing a `cirq.Result`.
 
         The IonQ simulator returns the probabilities of different bitstrings. This converts such
@@ -240,7 +235,7 @@ class SimulatorResult:
                 'Can convert to cirq results only if the circuit had measurement gates '
                 'with measurement keys.'
             )
-        rand = value.parse_random_state(seed)
+        rand = cirq.value.parse_random_state(seed)
         measurements = {}
         values, weights = zip(*list(self.probabilities().items()))
         indices = rand.choice(
@@ -253,7 +248,7 @@ class SimulatorResult:
                 for value in rand_values
             ]
             measurements[key] = np.array(bits)
-        return study.Result(params=params or study.ParamResolver({}), measurements=measurements)
+        return cirq.Result(params=params or cirq.ParamResolver({}), measurements=measurements)
 
     def __eq__(self, other):
         if not isinstance(other, SimulatorResult):
@@ -273,6 +268,6 @@ def _pretty_str_dict(value: dict, bit_count: int) -> str:
     """Pretty prints a dict, converting int dict values to bit strings."""
     strs = []
     for k, v in value.items():
-        bits = ''.join(str(b) for b in digits.big_endian_int_to_bits(k, bit_count=bit_count))
+        bits = ''.join(str(b) for b in cirq.big_endian_int_to_bits(k, bit_count=bit_count))
         strs.append(f'{bits}: {v}')
     return '\n'.join(strs)
