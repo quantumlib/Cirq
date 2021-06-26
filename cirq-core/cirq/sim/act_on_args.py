@@ -115,7 +115,6 @@ class ActOnArgs(OperationTarget[TSelf]):
     def _on_copy(self: TSelf, args: TSelf):
         """Subclasses should implement this with any additional state copy
         functionality."""
-        pass
 
     def create_merged_state(self: TSelf) -> TSelf:
         """Creates a final merged state."""
