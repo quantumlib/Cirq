@@ -256,7 +256,7 @@ def decompose_phased_iswap_into_syc(
 
 
 def decompose_phased_iswap_into_syc_precomputed(
-    theta: float, a: cirq.Qid, b: cirq.Qid
+    theta: cirq.value.TParamVal, a: cirq.Qid, b: cirq.Qid
 ) -> cirq.OP_TREE:
     """Decompose PhasedISwap into sycamore gates using precomputed coefficients.
 
@@ -466,7 +466,7 @@ def _phased_x_z_ops(mat: np.ndarray, q: cirq.Qid) -> Iterator[cirq.Operation]:
         yield gate(q)
 
 
-def rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
+def rzz(theta: cirq.value.TParamVal, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
     """Generate exp(-1j * theta * zz) from Sycamore gates.
 
     Args:
@@ -495,7 +495,7 @@ def rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
     yield create_corrected_circuit(target_unitary, program, q0, q1)
 
 
-def cphase(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
+def cphase(theta: cirq.value.TParamVal, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
     """
     Implement a cphase using the Ising gate generated from 2 Sycamore gates
 
@@ -515,7 +515,7 @@ def cphase(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
     yield cirq.rz(theta / 2).on(q1)
 
 
-def swap_rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
+def swap_rzz(theta: cirq.value.TParamVal, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
     """
     An implementation of SWAP * EXP(1j theta ZZ) using three sycamore gates.
 

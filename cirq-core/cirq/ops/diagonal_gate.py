@@ -144,7 +144,7 @@ class DiagonalGate(raw_types.Gate):
         return tuple(self._diag_angles_radians)
 
     def _decompose_for_basis(
-        self, index: int, bit_flip: int, theta: float, qubits: Sequence['cirq.Qid']
+        self, index: int, bit_flip: int, theta: value.TParamVal, qubits: Sequence['cirq.Qid']
     ) -> Iterator[Union['cirq.ZPowGate', 'cirq.CXPowGate']]:
         if index == 0:
             return []

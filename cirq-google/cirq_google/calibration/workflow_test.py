@@ -1181,7 +1181,7 @@ def test_run_floquet_characterization_for_moments():
     itertools.product([0.1, 0.7], [-0.3, 0.1, 0.5], [-0.3, 0.2, 0.4], [-0.6, 0.1, 0.6], [0.2, 0.6]),
 )
 def test_fsim_phase_corrections(
-    theta: float, zeta: float, chi: float, gamma: float, phi: float
+    theta: cirq.value.TParamVal, zeta: float, chi: float, gamma: float, phi: cirq.value.TParamVal
 ) -> None:
     a, b = cirq.LineQubit.range(2)
 
@@ -1209,7 +1209,7 @@ def test_fsim_phase_corrections(
     ),
 )
 def test_phase_corrected_fsim_operations_with_phase_exponent(
-    theta: float, zeta: float, chi: float, gamma: float, phi: float
+    theta: cirq.value.TParamVal, zeta: float, chi: float, gamma: float, phi: cirq.value.TParamVal
 ) -> None:
     a, b = cirq.LineQubit.range(2)
 
