@@ -86,6 +86,9 @@ def to_sweep(
 
     Returns:
         A sweep equal to or containing the argument.
+
+    Raises:
+        TypeError: .
     """
     if isinstance(sweep_or_resolver_list, Sweep):
         return sweep_or_resolver_list

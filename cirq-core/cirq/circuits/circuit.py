@@ -1835,6 +1835,9 @@ class Circuit(AbstractCircuit):
         Returns:
             The receiving circuit but with qubits transformed by the given
                 function, and with an updated device (if specified).
+
+        Raises:
+            TypeError: .
         """
         if callable(qubit_map):
             transform = qubit_map
@@ -2122,6 +2125,9 @@ class Circuit(AbstractCircuit):
             start: The moment at which to start inserting the operations.
             frontier: frontier[q] is the earliest moment in which an operation
                 acting on qubit q can be placed.
+
+        Raises:
+            ValueError: .
         """
         if frontier is None:
             frontier = defaultdict(lambda: 0)
@@ -2154,11 +2160,9 @@ class Circuit(AbstractCircuit):
                 listed operations must actually be present or the edit will
                 fail (without making any changes to the circuit).
 
-        ValueError:
-            One of the operations to delete wasn't present to start with.
-
-        IndexError:
-            Deleted from a moment that doesn't exist.
+        Raises:
+            IndexError: Deleted from a moment that doesn't exist.
+            ValueError: One of the operations to delete wasn't present to start with.
         """
         copy = self.copy()
         for i, op in removals:
@@ -2181,11 +2185,9 @@ class Circuit(AbstractCircuit):
                 operations must actually be present or the edit will fail
                 (without making any changes to the circuit).
 
-        ValueError:
-            One of the operations to replace wasn't present to start with.
-
-        IndexError:
-            Replaced in a moment that doesn't exist.
+        Raises:
+            IndexError: Replaced in a moment that doesn't exist.
+            ValueError: One of the operations to replace wasn't present to start with.
         """
         copy = self.copy()
         for i, op, new_op in replacements:

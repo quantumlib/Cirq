@@ -41,6 +41,9 @@ class WaitGate(raw_types.Gate):
         Args:
             duration: A constant or parameterized wait duration. This can be
                 an instance of `datetime.timedelta` or `cirq.Duration`.
+
+        Raises:
+            ValueError: .
         """
         self.duration = value.Duration(duration)
         if not protocols.is_parameterized(self.duration) and self.duration < 0:

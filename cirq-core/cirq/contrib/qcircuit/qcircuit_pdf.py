@@ -43,6 +43,9 @@ def circuit_to_pdf_using_qcircuit_via_tex(
             default, latexmk is used with the '-pdfps' flag, which produces
             intermediary dvi and ps files.
         documentclass: The documentclass of the latex file.
+
+    Raises:
+        OSError: .
     """
     pdf_kwargs = {
         'compiler': 'latexmk',

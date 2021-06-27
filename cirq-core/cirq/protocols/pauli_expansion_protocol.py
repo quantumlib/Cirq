@@ -64,7 +64,7 @@ def pauli_expansion(
         TypeError is raised.
 
     Raises:
-        TypeError if `val` has none of the methods necessary to obtain its Pauli
+        TypeError: if `val` has none of the methods necessary to obtain its Pauli
         expansion and no default value has been provided.
     """
     method = getattr(val, '_pauli_expansion_', None)

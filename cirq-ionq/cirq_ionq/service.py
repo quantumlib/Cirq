@@ -59,6 +59,7 @@ class Service:
         Raises:
             EnvironmentError: if the `api_key` is None and has no corresponding environment
                 variable set.
+            OSError: .
         """
         self.remote_host = (
             remote_host or os.getenv('IONQ_REMOTE_HOST') or f'https://api.ionq.co/{api_version}'

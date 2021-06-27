@@ -142,8 +142,12 @@ def optimized_for_sycamore(
             with the specified resolution and use it to approximately
             compile arbitrary two-qubit gates for which an analytic compilation
             is not known.
+
     Returns:
         The optimized circuit.
+
+    Raises:
+        ValueError: .
     """
     copy = circuit.copy()
     if optimizer_type not in _OPTIMIZER_TYPES:

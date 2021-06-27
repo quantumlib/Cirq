@@ -354,6 +354,9 @@ def merge_matching_results(
     Returns:
         New PhasedFSimCalibrationResult that contains all the parameters from every result in
         results or None when the results list is empty.
+
+        Raises:
+            ValueError: .
     """
     all_parameters: Dict[Tuple[cirq.Qid, cirq.Qid], PhasedFSimCharacterization] = {}
     common_gate = None

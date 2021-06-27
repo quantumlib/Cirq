@@ -151,6 +151,9 @@ class Simulator(
                 `numpy.complex64` or `numpy.complex128`.
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
+
+        Raises:
+            ValueError: .
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')

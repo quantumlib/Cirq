@@ -42,6 +42,9 @@ def complete_acquaintance_strategy(
     Returns:
         A circuit capable of implementing any set of k-local
         operations.
+
+    Raises:
+        ValueError: .
     """
     if acquaintance_size < 0:
         raise ValueError('acquaintance_size must be non-negative.')

@@ -71,6 +71,9 @@ def is_valid_routing(
             `operator.eq`.
         can_reorder: A predicate that determines if two operations may be
             reordered.
+
+    Raises:
+        ValueError: .
     """
     circuit_dag = circuits.CircuitDag.from_circuit(circuit, can_reorder=can_reorder)
     logical_operations = swap_network.get_logical_operations()

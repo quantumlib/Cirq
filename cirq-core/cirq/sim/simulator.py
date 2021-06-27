@@ -94,6 +94,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         Returns:
             Result list for this run; one for each possible parameter
             resolver.
+
+        Raises:
+            ValueError: .
         """
         if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")

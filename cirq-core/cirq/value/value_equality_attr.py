@@ -182,6 +182,10 @@ def value_equality(
         approximate: When set, the decorated class will be enhanced with
             `_approx_eq_` implementation and thus start to support the
             `SupportsApproximateEquality` protocol.
+
+    Raises:
+        TypeError: .
+        ValueError: .
     """
 
     # If keyword arguments were specified, python invokes the decorator method

@@ -341,6 +341,9 @@ def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool
             using `np.packbits` to save space. If 'never', do not pack binary
             digits. If 'force', use `np.packbits` without checking for
             compatibility.
+
+    Raises:
+        ValueError: .
     """
     # If digits are binary, pack them better to save space
 

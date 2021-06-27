@@ -44,6 +44,9 @@ def route_circuit(
         **kwargs: Arguments to pass to the routing algorithm.
 
     Exactly one of algo_name and router must be specified.
+
+    Raises:
+        ValueError: .
     """
 
     if any(protocols.num_qubits(op) > 2 for op in circuit.all_operations()):

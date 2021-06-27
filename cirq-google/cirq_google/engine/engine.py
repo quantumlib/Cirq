@@ -95,6 +95,9 @@ class EngineContext:
                 true.
             timeout: Timeout for polling for results, in seconds.  Default is
                 to never timeout.
+
+        Raises:
+            ValueError: .
         """
         if (service_args or verbose) and client:
             raise ValueError('either specify service_args and verbose or client')
@@ -159,6 +162,9 @@ class Engine:
                 to never timeout.
             context: Engine configuration and context to use. For most users
                 this should never be specified.
+
+        Raises:
+            ValueError: .
         """
         if context and (proto_version or service_args or verbose):
             raise ValueError('Either provide context or proto_version, service_args and verbose.')
@@ -218,6 +224,9 @@ class Engine:
 
         Returns:
             A single Result for this run.
+
+        Raises:
+            ValueError: .
         """
         if not gate_set:
             raise ValueError('No gate set provided')
@@ -283,6 +292,9 @@ class Engine:
         Returns:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
+
+        Raises:
+            ValueError: .
         """
         if not gate_set:
             raise ValueError('No gate set provided')
@@ -356,6 +368,9 @@ class Engine:
             first, then the TrialResults for the second, etc. The TrialResults
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
+
+        Raises:
+            ValueError: .
         """
         if params_list is None:
             params_list = [None] * len(programs)
@@ -429,6 +444,9 @@ class Engine:
         Returns:
             An EngineJob whose results can be retrieved by calling
             calibration_results().
+
+        Raises:
+            ValueError: .
         """
         if processor_id and processor_ids:
             raise ValueError('Only one of processor_id and processor_ids can be specified.')
@@ -472,6 +490,9 @@ class Engine:
 
         Returns:
             A EngineProgram for the newly created program.
+
+        Raises:
+            ValueError: .
         """
         if not gate_set:
             raise ValueError('No gate set provided')
@@ -515,6 +536,9 @@ class Engine:
 
         Returns:
             A EngineProgram for the newly created program.
+
+        Raises:
+            ValueError: .
         """
         if not gate_set:
             raise ValueError('Gate set must be specified.')
@@ -565,6 +589,9 @@ class Engine:
 
         Returns:
             A EngineProgram for the newly created program.
+
+        Raises:
+            ValueError: .
         """
         if not gate_set:
             raise ValueError('Gate set must be specified.')
@@ -785,6 +812,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     Raises:
         EnvironmentError: If the environment variable GOOGLE_CLOUD_PROJECT is
             not set.
+        OSError: .
     """
     env_project_id = 'GOOGLE_CLOUD_PROJECT'
     if not project_id:

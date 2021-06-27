@@ -58,6 +58,10 @@ def find_measurements(program: cirq.Circuit) -> List[MeasureInfo]:
 
     Returns:
         List of Measurement objects with named measurements in this program.
+
+    Raises:
+        NotImplementedError: .
+        ValueError: .
     """
     measurements: List[MeasureInfo] = []
     keys: Set[str] = set()
@@ -129,6 +133,9 @@ def results_to_proto(
             each sweep.
         measurements: List of info about measurements in the program.
         out: Optional message to populate. If not given, create a new message.
+
+    Raises:
+        ValueError: .
     """
     if out is None:
         out = result_pb2.Result()
@@ -190,6 +197,9 @@ def _trial_sweep_from_proto(
 
     Returns:
         A list containing a list of trial results for the sweep.
+
+    Raises:
+        ValueError: .
     """
 
     trial_sweep: List[cirq.Result] = []

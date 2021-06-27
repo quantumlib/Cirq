@@ -409,6 +409,9 @@ class ListSweep(Sweep):
         Args:
             resolver_list: The list of parameter resolvers to use in the sweep.
                 All resolvers must resolve the same set of parameters.
+
+        Raises:
+            TypeError: .
         """
         self.resolver_list: List[resolver.ParamResolver] = []
         for r in resolver_list:

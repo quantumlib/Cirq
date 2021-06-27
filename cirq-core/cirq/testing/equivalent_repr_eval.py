@@ -35,6 +35,9 @@ def assert_equivalent_repr(
             evaluating the repr.
         local_vals: Pre-defined values that should be in the local scope when
             evaluating the repr.
+
+    Raises:
+        AssertionError: .
     """
     # pylint: disable=unused-variable
     __tracebackhide__ = True

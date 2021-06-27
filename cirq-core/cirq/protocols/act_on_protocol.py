@@ -124,6 +124,7 @@ def act_on(
 
     Raises:
         TypeError: Failed to act `action` on `args`.
+        ValueError: .
     """
     is_op = isinstance(action, ops.Operation)
 

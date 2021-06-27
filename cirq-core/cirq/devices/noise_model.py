@@ -52,6 +52,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
 
         Raises:
             TypeError: The input is not a ``cirq.NOISE_MODE_LIKE``.
+            ValueError: .
         """
         if noise is None:
             return NO_NOISE

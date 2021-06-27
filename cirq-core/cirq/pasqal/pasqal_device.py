@@ -42,6 +42,7 @@ class PasqalDevice(cirq.devices.Device):
                 a physical position.
         Raises:
             TypeError: if the wrong qubit type is provided.
+            ValueError: .
         """
         if len(qubits) > 0:
             q_type = type(qubits[0])
@@ -135,6 +136,7 @@ class PasqalDevice(cirq.devices.Device):
             operation: the operation to validate
 
         Raises:
+            NotImplementedError: .
             ValueError: If the operation is not valid
         """
 

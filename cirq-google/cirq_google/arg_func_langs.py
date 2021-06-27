@@ -104,6 +104,9 @@ def arg_to_proto(
     Returns:
         The proto that was written into as well as the `arg_function_language`
         that was used.
+
+    Raises:
+        ValueError: .
     """
 
     if arg_function_language not in SUPPORTED_FUNCTIONS_FOR_LANGUAGE:
@@ -171,6 +174,9 @@ def arg_from_proto(
     Returns:
         The deserialized value, or else None if there was no set value and
         `required_arg_name` was set to `None`.
+
+    Raises:
+        ValueError: .
     """
     supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE.get(arg_function_language)
     if supported is None:

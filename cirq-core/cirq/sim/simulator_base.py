@@ -140,7 +140,8 @@ class SimulatorBase(
 
         Returns:
             A boolean representing whether the value can be added to the
-            `_run` prefix."""
+            `_run` prefix.
+        """
         return protocols.has_unitary(val)
 
     def _core_iterator(
@@ -159,6 +160,9 @@ class SimulatorBase(
 
         Yields:
             StepResults from simulating a Moment of the Circuit.
+
+        Raises:
+            TypeError: .
         """
         if len(circuit) == 0:
             yield self._create_step_result(sim_state, sim_state.qubit_map)

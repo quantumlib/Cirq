@@ -32,6 +32,9 @@ def sweep_to_proto(
 
     Returns:
         Populated sweep protobuf message.
+
+    Raises:
+        ValueError: .
     """
     if out is None:
         out = run_context_pb2.Sweep()

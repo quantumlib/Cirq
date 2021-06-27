@@ -90,7 +90,11 @@ class ApplyUnitaryArgs:
         Args:
             num_qubits: The number of qubits to make space for in the state.
             qid_shape: The shape of the state, specifying the dimension of each
-                qid."""
+                qid.
+
+        Raises:
+            TypeError: .
+        """
         if (num_qubits is None) == (qid_shape is None):
             raise TypeError('Specify exactly one of num_qubits or qid_shape.')
         if num_qubits is not None:
@@ -456,6 +460,7 @@ def apply_unitaries(
     Raises:
         TypeError: An item from `unitary_values` doesn't have a unitary effect
             and `default` wasn't specified.
+        ValueError: .
     """
     if args is None:
         qid_shape = qid_shape_protocol.qid_shape(qubits)
@@ -511,6 +516,9 @@ def _incorporate_result_into_target(
 
     Returns: The full result tensor after applying the unitary.  Always
         `args.target_tensor`.
+
+    Raises:
+        ValueError: .
     """
     if not (
         np.may_share_memory(args.target_tensor, sub_args.target_tensor)

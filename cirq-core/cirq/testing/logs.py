@@ -69,6 +69,9 @@ def assert_logs(
         A ContextManager that can be entered into which captures the logs
         for code executed within the entered context. This ContextManager
         checks that the asserts for the logs are true on exit.
+
+    Raises:
+        ValueError: .
     """
     if min_level > max_level:
         raise ValueError("min_level should be less than or equal to max_level")

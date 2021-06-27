@@ -50,6 +50,9 @@ def t1_decay(
 
     Returns:
         A T1DecayResult object that stores and can plot the data.
+
+    Raises:
+        ValueError: .
     """
     min_delay_dur = value.Duration(min_delay)
     max_delay_dur = value.Duration(max_delay)

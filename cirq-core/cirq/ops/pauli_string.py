@@ -130,6 +130,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 the values in this dictionary.
             coefficient: Initial scalar coefficient. Defaults to 1.
 
+        Raises:
+            TypeError: .
+
         Examples:
             >>> a, b, c = cirq.LineQubit.range(3)
 
@@ -492,7 +495,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             The expectation value of the input state.
 
         Raises:
-            NotImplementedError if this PauliString is non-Hermitian.
+            NotImplementedError: If this PauliString is non-Hermitian.
+            TypeError: .
+            ValueError: .
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
@@ -594,7 +599,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             The expectation value of the input state.
 
         Raises:
-            NotImplementedError if this PauliString is non-Hermitian.
+            NotImplementedError: If this PauliString is non-Hermitian.
+            TypeError: .
+            ValueError: .
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
@@ -779,6 +786,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Returns:
             A `cirq.DensePauliString` instance `D` such that `D.on(*qubits)`
             equals the receiving `cirq.PauliString` instance `P`.
+
+        Raises:
+            ValueError: .
         """
         from cirq.ops.dense_pauli_string import DensePauliString
 
@@ -1032,6 +1042,10 @@ def _validate_qubit_mapping(
         qubit_map: A map from qubits to integers.
         pauli_qubits: The qubits that must be contained in `qubit_map`.
         num_state_qubits: The number of qubits over which a state is expressed.
+
+    Raises:
+        TypeError: .
+        ValueError: .
     """
     if not isinstance(qubit_map, Mapping) or not all(
         isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()
@@ -1251,6 +1265,9 @@ class MutablePauliString(Generic[TKey]):
 
         Returns:
             The mutable pauli string that was mutated.
+
+        Raises:
+            NotImplementedError: .
         """
         for clifford in op_tree.flatten_to_ops(ops):
             for op in _decompose_into_cliffords(clifford):

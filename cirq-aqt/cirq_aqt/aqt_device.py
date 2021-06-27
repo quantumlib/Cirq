@@ -40,6 +40,9 @@ def get_op_string(op_obj: cirq.Operation) -> str:
 
     Returns:
         String representing the gate operations
+
+    Raises:
+        ValueError: .
     """
     if isinstance(op_obj, cirq.XXPowGate) or isinstance(op_obj.gate, cirq.XXPowGate):
         op_str = 'MS'
@@ -198,6 +201,9 @@ class AQTSimulator:
 
         Returns:
             Result from Cirq.Simulator
+
+        Raises:
+            RuntimeError: .
         """
         if self.simulate_ideal:
             noise_model = cirq.NO_NOISE

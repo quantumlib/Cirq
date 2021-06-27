@@ -52,6 +52,9 @@ def circuit_to_tensors(
             a suitable mapping for tn.graph()'s `fix` argument. Currently,
             `fix=None` will draw the resulting tensor network using a spring
             layout.
+
+    Raises:
+        ValueError: .
     """
     if qubits is None:
         qubits = sorted(circuit.all_qubits())  # coverage: ignore

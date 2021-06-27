@@ -49,6 +49,9 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
                 be specified at the same time as `rewriter`. If `synthesizer`
                 returns `None`, that means "do not rewrite the operations used
                 to make this matrix".
+
+        Raises:
+            ValueError: .
         """
         super().__init__()
         if rewriter is not None and synthesizer is not None:

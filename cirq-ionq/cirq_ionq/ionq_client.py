@@ -266,12 +266,13 @@ class _IonQClient:
         Args:
             request: A function that returns a `requests.Response`.
 
-        Raises:
-            IonQException: If there was a not-retriable error from the API.
-            TimeoutError: If the requests retried for more than `max_retry_seconds`.
-
         Returns:
             The request.Response from the final successful request call.
+
+        Raises:
+            IonQException: If there was a not-retriable error from the API.
+            IonQNotFoundException: .
+            TimeoutError: If the requests retried for more than `max_retry_seconds`.
         """
         # Initial backoff of 100ms.
         delay_seconds = 0.1

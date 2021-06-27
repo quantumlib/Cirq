@@ -142,6 +142,9 @@ class Moment:
 
         Returns:
             The new moment.
+
+        Raises:
+            ValueError: .
         """
         if any(q in self._qubits for q in operation.qubits):
             raise ValueError(f'Overlapping operations: {operation}')
@@ -164,6 +167,9 @@ class Moment:
 
         Returns:
             The new moment.
+
+        Raises:
+            ValueError: .
         """
         from cirq.ops import op_tree
 

@@ -35,6 +35,9 @@ class ParallelGateOperation(raw_types.Operation):
         Args:
             gate: the gate to apply.
             qubits: list of qubits to apply the gate to.
+
+        Raises:
+            ValueError: .
         """
         if gate.num_qubits() != 1:
             raise ValueError("gate must be a single qubit gate")

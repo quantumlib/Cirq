@@ -75,6 +75,9 @@ class ActOnArgs:
                 that operations should only store results under keys they have
                 declared in a `_measurement_keys_` method.
             invert_mask: The invert mask for the measurement.
+
+        Raises:
+            ValueError: .
         """
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]

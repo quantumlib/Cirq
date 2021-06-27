@@ -183,8 +183,9 @@ class Job:
             the job was running on an actual quantum processor or a simulator.
 
         Raises:
-            IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
             IonQException: If unable to get the results from the API.
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
+            RuntimeError: .
         """
         time_waited_seconds = 0
         while time_waited_seconds < timeout_seconds:

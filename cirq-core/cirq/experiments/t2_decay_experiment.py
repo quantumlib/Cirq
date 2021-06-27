@@ -123,6 +123,9 @@ def t2_decay(
              If multiple pulses are specified, each will be swept on.
     Returns:
         A T2DecayResult object that stores and can plot the data.
+
+    Raises:
+        ValueError: .
     """
     min_delay_dur = value.Duration(min_delay)
     max_delay_dur = value.Duration(max_delay)

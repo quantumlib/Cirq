@@ -56,6 +56,9 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
                 in the form of the t in (-1)**t = exp(i pi t).
             exponent_pos: How much to phase vectors in the positive eigenspace,
                 in the form of the t in (-1)**t = exp(i pi t).
+
+        Raises:
+            ValueError: .
         """
         if pauli_string.coefficient == -1:
             pauli_string = -pauli_string

@@ -132,6 +132,9 @@ def targeted_left_multiply(
 
     Returns:
         The output tensor.
+
+    Raises:
+        ValueError: .
     """
     if out is right_target or out is left_matrix:
         raise ValueError('out is right_target or out is left_matrix')
@@ -229,6 +232,24 @@ def apply_matrix_to_slices(
 ) -> np.ndarray:
     """Left-multiplies an NxN matrix onto N slices of a numpy array.
 
+    Args:
+        target: The input array with slices that need to be left-multiplied.
+        matrix: The linear operation to apply to the subspace defined by the
+            slices.
+        slices: The parts of the tensor that correspond to the "vector entries"
+            that the matrix should operate on. May be integers or complicated
+            multi-dimensional slices into a tensor. The slices must refer to
+            non-overlapping sections of the input all with the same shape.
+        out: Where to write the output. If not specified, a new numpy array is
+            created, with the same shape and dtype as the target, to store the
+            output.
+
+    Returns:
+        The transformed array.
+
+    Raises:
+        ValueError: .
+
     Example:
         The 4x4 matrix of a fractional SWAP gate can be expressed as
 
@@ -249,21 +270,6 @@ def apply_matrix_to_slices(
                     matrix=cirq.unitary(cirq.X**t),
                     slices=[1, 2]
                 )
-
-    Args:
-        target: The input array with slices that need to be left-multiplied.
-        matrix: The linear operation to apply to the subspace defined by the
-            slices.
-        slices: The parts of the tensor that correspond to the "vector entries"
-            that the matrix should operate on. May be integers or complicated
-            multi-dimensional slices into a tensor. The slices must refer to
-            non-overlapping sections of the input all with the same shape.
-        out: Where to write the output. If not specified, a new numpy array is
-            created, with the same shape and dtype as the target, to store the
-            output.
-
-    Returns:
-        The transformed array.
     """
     # Validate arguments.
     if out is target:

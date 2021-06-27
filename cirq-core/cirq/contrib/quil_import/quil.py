@@ -225,6 +225,10 @@ def circuit_from_quil(quil: str) -> Circuit:
     Returns:
         A Cirq Circuit generated from the Quil program.
 
+    Raises:
+        UndefinedQuilGate: .
+        UnsupportedQuilInstruction: .
+
     References:
         https://github.com/rigetti/pyquil
     """

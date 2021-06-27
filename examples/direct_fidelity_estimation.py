@@ -353,8 +353,12 @@ def direct_fidelity_estimation(
             simulate noise in the circuit. If greater than 0, we instead use the
             'sampler' parameter directly to estimate the characteristic
             function.
+
     Returns:
         The estimated fidelity and a log of the run.
+
+    Raises:
+        TypeError: .
     """
     # n_measured_operators is upper-case N in https://arxiv.org/abs/1104.3835
 

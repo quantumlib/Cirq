@@ -325,6 +325,9 @@ def gate_product_tabulation(
     Returns:
         A GateTabulation object used to compile new two-qubit gates from
         products of the base gate with 1-local unitaries.
+
+    Raises:
+        ValueError: .
     """
     rng = value.parse_random_state(random_state)
 

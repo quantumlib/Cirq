@@ -173,10 +173,12 @@ class TomographyResult:
                 3d projections. If not given, a new figure is created with 2
                 axes and the plotted figure is shown.
             plot_kwargs: the optional kwargs passed to bar3d.
+
         Returns:
             the list of `plt.Axes` being plotted on.
+
         Raises:
-            ValueError if axes is a list with length != 2.
+            ValueError: if axes is a list with length != 2.
         """
         show_plot = axes is None
         if axes is None:

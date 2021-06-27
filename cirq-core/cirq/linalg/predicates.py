@@ -255,6 +255,9 @@ def slice_for_qubits_equal_to(
     Returns:
         An index object that will slice out a mutable view of the desired subset
         of a tensor.
+
+    Raises:
+        ValueError: .
     """
     qid_shape_specified = qid_shape is not None
     if qid_shape is not None or num_qubits is not None:

@@ -139,6 +139,9 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         Args:
             gates: The gates to insert.
             initial_mapping: The initial mapping of qubits to logical indices.
+
+        Raises:
+            NotImplementedError: .
         """
 
         if len(set(len(indices) for indices in gates)) > 1:

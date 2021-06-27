@@ -125,7 +125,7 @@ def decompose_cphase_into_two_fsim(
         of fsim_gate and a few single-qubit rotations.
 
     Raises:
-        ValueError under any of the following circumstances:
+        ValueError: under any of the following circumstances:
          * cphase_gate or fsim_gate is parametrized,
          * cphase_gate and fsim_gate do not satisfy the conditions above,
          * fsim_gate has invalid angles (see atol argument above),

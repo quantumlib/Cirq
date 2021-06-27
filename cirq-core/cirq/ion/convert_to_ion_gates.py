@@ -32,13 +32,16 @@ class ConvertToIonGates:
 
     def convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         """Convert a single (one- or two-qubit) operation
-
         into ion trap native gates
+
         Args:
             op: gate operation to be converted
 
         Returns:
             the desired operation implemented with ion trap gates
+
+        Raises:
+            TypeError: .
         """
 
         # Known gate name

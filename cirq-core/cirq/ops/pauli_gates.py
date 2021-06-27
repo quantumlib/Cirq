@@ -89,6 +89,9 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
 
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
+
+        Raises:
+            ValueError: .
         """
         if len(qubits) != 1:
             raise ValueError(f'Expected a single qubit, got <{qubits!r}>.')

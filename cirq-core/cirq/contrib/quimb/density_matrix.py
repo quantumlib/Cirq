@@ -95,6 +95,9 @@ def circuit_to_density_matrix_tensors(
         positions: A positions dictionary suitable for passing to tn.graph()'s
             `fix` argument to draw the resulting tensor network similar to a
             quantum circuit.
+
+    Raises:
+        ValueError: .
     """
     if qubits is None:
         # coverage: ignore

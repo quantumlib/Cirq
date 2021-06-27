@@ -135,6 +135,9 @@ class EngineClient:
         Args:
             arg_name: the name of the filter parameter (for error messaging)
             param: the value of the paramter
+
+        Raises:
+            ValueError: .
         """
         if isinstance(param, datetime.datetime):
             return f"{int(param.timestamp())}"
@@ -399,6 +402,9 @@ class EngineClient:
 
         Returns:
             Tuple of created job id and job
+
+        Raises:
+            ValueError: .
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
@@ -751,6 +757,9 @@ class EngineClient:
 
         Returns:
             The quantum calibration or None if there is no current calibration.
+
+        Raises:
+            EngineException: .
         """
         try:
             return self._make_request(
@@ -844,6 +853,9 @@ class EngineClient:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
+
+        Raises:
+            EngineException: .
         """
         try:
             name = self._reservation_name_from_ids(project_id, processor_id, reservation_id)

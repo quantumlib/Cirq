@@ -574,6 +574,9 @@ def read_json(
             by pre-pending custom resolvers. Each resolver should return `None`
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
+
+    Raises:
+        ValueError: .
     """
     if (file_or_fn is None) == (json_text is None):
         raise ValueError('Must specify ONE of "file_or_fn" or "json".')

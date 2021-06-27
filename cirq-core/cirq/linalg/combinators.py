@@ -119,6 +119,9 @@ def dot(*values: 'ArrayLike') -> np.ndarray:
 
     Returns:
         The resulting value or matrix.
+
+    Raises:
+        ValueError: .
     """
     if len(values) == 0:
         raise ValueError("cirq.dot must be called with arguments")

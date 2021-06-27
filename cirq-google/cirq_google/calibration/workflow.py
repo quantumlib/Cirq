@@ -174,8 +174,8 @@ def _list_moment_pairs_to_characterize(
         or None when no gate to characterize exists in a given moment.
 
     Raises:
-        IncompatibleMomentError when a moment contains operations other than the operations matched
-        by gates_translator, or it mixes a single qubit and two qubit gates.
+        IncompatibleMomentError: when a moment contains operations other than the operations matched
+            by gates_translator, or it mixes a single qubit and two qubit gates.
     """
     other_operation = False
     gate: Optional[cirq.FSimGate] = None
@@ -500,8 +500,9 @@ def prepare_characterization_for_operations(
         List of PhasedFSimCalibrationRequest for each group of operations to characterize.
 
     Raises:
-        IncompatibleMomentError when circuit contains a moment with operations other than the
-        operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
+        IncompatibleMomentError: when circuit contains a moment with operations other than the
+            operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
+        ValueError: .
     """
 
     circuits = [circuit] if isinstance(circuit, cirq.Circuit) else circuit
@@ -595,6 +596,9 @@ def _extract_all_pairs_to_characterize(
         Tuple with set of all two-qubit interacting pairs and a common gate that represents those
         interactions. The gate can be used for characterization purposes. If no interactions are
         present the gate is None.
+
+    Raises:
+        ValueError: .
     """
 
     all_pairs: Set[Tuple[cirq.Qid, cirq.Qid]] = set()
@@ -787,6 +791,9 @@ def run_calibrations(
 
     Returns:
         List of PhasedFSimCalibrationResult for each requested calibration.
+
+    Raises:
+        ValueError: .
     """
     if max_layers_per_request < 1:
         raise ValueError(

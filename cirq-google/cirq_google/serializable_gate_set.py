@@ -154,6 +154,9 @@ class SerializableGateSet:
                 `Program.Language`.
             use_constants: Whether to use constants in serialization. This is
                 required to be True for serializing CircuitOperations.
+
+        Raises:
+            NotImplementedError: .
         """
         if msg is None:
             msg = v2.program_pb2.Program()
@@ -222,6 +225,9 @@ class SerializableGateSet:
 
         Returns:
             The cirq.google.api.v2.Operation proto.
+
+        Raises:
+            ValueError: .
         """
         gate_type = type(op.gate)
         for gate_type_mro in gate_type.mro():
@@ -264,6 +270,9 @@ class SerializableGateSet:
 
         Returns:
             The cirq.google.api.v2.CircuitOperation proto.
+
+        Raises:
+            ValueError: .
         """
         circuit = getattr(op.untagged, 'circuit', None)
         if constants is None or raw_constants is None:
@@ -308,6 +317,10 @@ class SerializableGateSet:
         Returns:
             The deserialized Circuit, with a device if device was
             not None.
+
+        Raises:
+            NotImplementedError: .
+            ValueError: .
         """
         if not proto.HasField('language') or not proto.language.gate_set:
             raise ValueError('Missing gate set specification.')
@@ -387,6 +400,9 @@ class SerializableGateSet:
 
         Returns:
             The deserialized Operation.
+
+        Raises:
+            ValueError: .
         """
         if not operation_proto.gate.id:
             raise ValueError('Operation proto does not have a gate.')
@@ -428,6 +444,9 @@ class SerializableGateSet:
 
         Returns:
             The deserialized CircuitOperation.
+
+        Raises:
+            ValueError: .
         """
         deserializer = self.deserializers.get('circuit', None)
         if deserializer is None:

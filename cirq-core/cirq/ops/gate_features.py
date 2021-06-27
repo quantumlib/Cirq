@@ -44,7 +44,7 @@ class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
             Operations applying this gate to the target qubits.
 
         Raises:
-            ValueError if targets are not instances of Qid or List[Qid].
+            ValueError: if targets are not instances of Qid or List[Qid].
             ValueError if the gate operates on two or more Qids.
         """
         if self._num_qubits_() > 1:

@@ -76,6 +76,9 @@ class Sampler(metaclass=abc.ABCMeta):
             There is an also index column containing the repetition number,
             for each parameter assignment.
 
+        Raises:
+            ValueError: .
+
         Examples:
             >>> a, b, c = cirq.LineQubit.range(3)
             >>> sampler = cirq.Simulator()
@@ -234,6 +237,9 @@ class Sampler(metaclass=abc.ABCMeta):
             the circuits, while each inner list contains the TrialResults
             for the corresponding circuit, in the order imposed by the
             associated parameter sweep.
+
+        Raises:
+            ValueError: .
         """
         if params_list is None:
             params_list = [None] * len(programs)

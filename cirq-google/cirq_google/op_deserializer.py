@@ -172,6 +172,9 @@ class GateOpDeserializer(OpDeserializer):
 
         Returns:
             The deserialized GateOperation represented by `proto`.
+
+        Raises:
+            ValueError: .
         """
         qubits = [v2.qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(proto, arg_function_language=arg_function_language)
@@ -252,6 +255,9 @@ class CircuitOpDeserializer(OpDeserializer):
 
         Returns:
             The deserialized CircuitOperation represented by `proto`.
+
+        Raises:
+            ValueError: .
         """
         if constants is None or deserialized_constants is None:
             raise ValueError(

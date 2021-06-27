@@ -311,6 +311,9 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 
     Args:
         val: The operation, gate, or other unitary object to test.
         atol: Absolute error tolerance.
+
+    Raises:
+        AssertionError: .
     """
 
     # Only test custom apply unitary methods.

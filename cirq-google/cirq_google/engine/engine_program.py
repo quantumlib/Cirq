@@ -91,6 +91,9 @@ class EngineProgram:
         Returns:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
+
+        Raises:
+            ValueError: .
         """
         import cirq_google.engine.engine as engine_base
 
@@ -228,6 +231,9 @@ class EngineProgram:
 
         Returns:
             An EngineJob.  Results can be accessed with calibration_results().
+
+        Raises:
+            ValueError: .
         """
         import cirq_google.engine.engine as engine_base
 

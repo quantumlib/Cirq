@@ -72,6 +72,9 @@ class AQTSampler(cirq.Sampler):
 
         Returns:
             json formatted string of the sequence
+
+        Raises:
+            RuntimeError: .
         """
 
         seq_list: List[
@@ -123,6 +126,9 @@ class AQTSampler(cirq.Sampler):
 
         Returns:
             Measurement results as an array of boolean.
+
+        Raises:
+            RuntimeError: .
         """
         header = {"Ocp-Apim-Subscription-Key": self.access_token, "SDK": "cirq"}
         response = put(

@@ -191,7 +191,7 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
         Packed bytes, as described in the unpack_results docstring below.
 
     Raises:
-        ValueError if the measurement data do not have the compatible shapes.
+        ValueError: If the measurement data do not have the compatible shapes.
     """
     if not measurements:
         return b''
@@ -295,6 +295,9 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
 
     Returns:
         The operation.
+
+    Raises:
+        ValueError: .
     """
     param = _parameterized_value_from_proto
     qubit = _qubit_from_proto

@@ -117,6 +117,10 @@ def simple_noise_from_calibration_metrics(
     Returns:
         A PerQubitDepolarizingWithDampedReadoutNoiseModel with error
             probabilities generated from the provided calibration data.
+
+    Raises:
+        NotImplementedError: .
+        ValueError: .
     """
     if not any([depol_noise, damping_noise, readout_decay_noise, readout_error_noise]):
         raise ValueError('At least one error type must be specified.')

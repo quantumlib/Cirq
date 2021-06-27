@@ -148,6 +148,9 @@ class DensityMatrixSimulator(
                will raise a `ValueError` exception if you call `simulator.run`
                when `ignore_measurement_results` has been set to True
                (for more see https://github.com/quantumlib/Cirq/issues/2777).
+
+        Raises:
+            ValueError: .
         """
         super().__init__(
             dtype=dtype,

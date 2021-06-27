@@ -183,8 +183,12 @@ def known_two_q_operations_to_sycamore_operations(
         op: operation to decompose
         tabulation: A tabulation for the Sycamore gate to use for
             decomposing gates.
+
     Returns:
         New operations iterable object
+
+    Raises:
+        ValueError: .
     """
     gate = op.gate
     if isinstance(gate, cirq.PhasedISwapPowGate):

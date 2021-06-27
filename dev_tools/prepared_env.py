@@ -81,9 +81,10 @@ class PreparedEnv:
                 status can be found, e.g. an online test results page.
 
         Raises:
-            ValueError: Not one of the allowed states.
             IOError: The HTTP post request failed, or the response didn't have
                 a 201 code indicating success in the expected way.
+            OSError: .
+            ValueError: Not one of the allowed states.
         """
         if state not in ['error', 'failure', 'pending', 'success']:
             raise ValueError(f'Unrecognized state: {state!r}')

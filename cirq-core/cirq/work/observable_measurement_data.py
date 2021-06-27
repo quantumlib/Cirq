@@ -392,6 +392,9 @@ class BitstringAccumulator:
 
         Args:
             atol: The absolute tolerance for asserting coefficients are real.
+
+        Raises:
+            ValueError: .
         """
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")
@@ -440,6 +443,9 @@ class BitstringAccumulator:
         Args:
             setting: The setting
             atol: The absolute tolerance for asserting coefficients are real.
+
+        Raises:
+            ValueError: .
         """
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")

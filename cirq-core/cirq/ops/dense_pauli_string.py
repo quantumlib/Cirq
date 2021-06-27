@@ -290,6 +290,9 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         Returns:
             A `cirq.PauliString` with the non-identity operations from
             this dense pauli string applied to appropriate qubits.
+
+        Raises:
+            ValueError: .
         """
         if qubits is None:
             from cirq import devices

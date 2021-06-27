@@ -80,6 +80,9 @@ def mixture(
         An iterable of tuples of size 2. The first element of the tuple is a
         probability (between 0 and 1) and the second is the object that occurs
         with that probability in the mixture. The probabilities will sum to 1.0.
+
+    Raises:
+        TypeError: .
     """
 
     mixture_getter = getattr(val, '_mixture_', None)

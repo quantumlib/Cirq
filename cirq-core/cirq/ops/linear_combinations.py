@@ -165,6 +165,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
 
         Raises:
             TypeError: if any of the gates in self does not provide a unitary.
+            ValueError: .
         """
         if self._is_parameterized_():
             return NotImplemented
@@ -461,6 +462,11 @@ class PauliSum:
 
         Returns:
             The expectation value of the input state.
+
+        Raises:
+            NotImplementedError: .
+            TypeError: .
+            ValueError: .
         """
         if any(abs(p.coefficient.imag) > 0.0001 for p in self):
             raise NotImplementedError(
@@ -517,6 +523,11 @@ class PauliSum:
 
         Returns:
             The expectation value of the input state.
+
+        Raises:
+            NotImplementedError: .
+            TypeError: .
+            ValueError: .
         """
         if any(abs(p.coefficient.imag) > 0.0001 for p in self):
             raise NotImplementedError(

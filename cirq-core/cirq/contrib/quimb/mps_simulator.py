@@ -73,6 +73,9 @@ class MPSSimulator(
             seed: The random seed to use for this simulator.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
+
+        Raises:
+            ValueError: .
         """
         self.init = True
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
@@ -255,6 +258,9 @@ class MPSState(ActOnArgs):
                 operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+
+        Raises:
+            ValueError: .
         """
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         qubit_map = self.qubit_map
@@ -492,6 +498,9 @@ class MPSState(ActOnArgs):
             prng: A random number generator, used to simulate measurements.
             collapse_state_vector: A Boolean specifying whether we should mutate
                 the state after the measurement.
+
+        Raises:
+            ValueError: .
         """
         results: List[int] = []
 

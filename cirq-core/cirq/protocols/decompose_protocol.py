@@ -300,8 +300,8 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
         Otherwise `default` is returned, if it was specified. Otherwise an error
         is raised.
 
-    TypeError:
-        `val` didn't have a `_decompose_` method (or that method returned
+    Raises:
+        TypeError: `val` didn't have a `_decompose_` method (or that method returned
         `NotImplemented` or `None`) and `default` wasn't set.
     """
     method = getattr(val, '_decompose_', None)

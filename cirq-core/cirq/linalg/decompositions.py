@@ -141,6 +141,9 @@ def unitary_eig(
     Returns:
          eigvals: the eigenvalues of `matrix`
          V: the unitary matrix with the eigenvectors as columns
+
+    Raises:
+        ValueError: .
     """
     if check_preconditions and not predicates.is_normal(matrix, atol=atol):
         raise ValueError(f'Input must correspond to a normal matrix .Received input:\n{matrix}')
@@ -908,6 +911,9 @@ def kak_vector(
         replaced by the kak vector axis (i.e. the output has shape
         `unitary.shape[:-2] + (3,)`).
 
+    Raises:
+        ValueError: .
+
     References:
         The appendix section of "Lower bounds on the complexity of simulating
         quantum gates".
@@ -1025,8 +1031,12 @@ def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
 
     Args:
         u: a two-qubit unitary
+
     Returns:
         the number of CNOT or CZ gates required to implement the unitary
+
+    Raises:
+        ValueError: .
     """
     if u.shape != (4, 4):
         raise ValueError(f"Expected unitary of shape (4,4), instead got {u.shape}")

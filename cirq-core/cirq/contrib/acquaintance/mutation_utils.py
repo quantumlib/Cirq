@@ -37,6 +37,9 @@ def rectify_acquaintance_strategy(circuit: 'cirq.Circuit', acquaint_first: bool 
         circuit: The acquaintance strategy to rectify.
         acquaint_first: Whether to make acquaintance moment first in when
         splitting the first mixed moment.
+
+    Raises:
+        TypeError: .
     """
 
     if not is_acquaintance_strategy(circuit):

@@ -134,8 +134,10 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
         Returns:
             New PhasedFSimEngineSimulator instance.
-        """
 
+        Raises:
+            ValueError: .
+        """
         if mean.any_none():
             raise ValueError(f'All mean values must be provided, got mean of {mean}')
 
@@ -197,6 +199,9 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
         Returns:
             New PhasedFSimEngineSimulator instance.
+
+        Raises:
+            ValueError: .
         """
 
         def sample_gate(
@@ -264,8 +269,10 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
         Returns:
             New PhasedFSimEngineSimulator instance.
-        """
 
+        Raises:
+            ValueError: .
+        """
         for a, b in parameters.keys():
             if a > b:
                 raise ValueError(
@@ -326,8 +333,10 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
         Returns:
             New PhasedFSimEngineSimulator instance.
-        """
 
+        Raises:
+            ValueError: .
+        """
         parameters: PhasedFsimDictParameters = {}
         for characterization in characterizations:
             gate = characterization.gate
@@ -373,6 +382,9 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
         Returns:
             Calibration results that reflect the internal state of simulator.
+
+        Raises:
+            ValueError: .
         """
         results = []
         for request in requests:

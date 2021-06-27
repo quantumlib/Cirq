@@ -180,6 +180,9 @@ class CrossEntropyResult:
             representing the covariance in the estimation of S and p in that
             order. It also has the property `purity` representing the purity
             p**2.
+
+        Raises:
+            ValueError: .
         """
         if self.purity_data is None:
             raise ValueError(

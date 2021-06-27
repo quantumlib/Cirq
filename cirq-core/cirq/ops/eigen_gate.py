@@ -112,6 +112,9 @@ class EigenGate(raw_types.Gate):
                 For example, `cirq.X**t` uses a `global_shift` of 0 but
                 `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
                 `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
+
+        Raises:
+            ValueError: .
         """
         if isinstance(exponent, complex):
             if exponent.imag:

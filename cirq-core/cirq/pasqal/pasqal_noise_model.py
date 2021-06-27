@@ -66,10 +66,15 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
 
     def get_op_string(self, cirq_op: cirq.ops.Operation) -> str:
         """Find the string representation for a given operation
+
         Args:
             cirq_op: one cirq operation
+
         Returns:
             String representing the gate operations
+
+        Raises:
+            ValueError: .
         """
         if not self.device.is_pasqal_device_op(cirq_op) or isinstance(
             cirq_op.gate, cirq.ops.MeasurementGate

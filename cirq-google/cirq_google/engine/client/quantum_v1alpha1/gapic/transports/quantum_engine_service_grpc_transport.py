@@ -46,6 +46,9 @@ class QuantumEngineServiceGrpcTransport(object):
                 are specified, the client will attempt to ascertain the
                 credentials from the environment.
             address (str): The address where the service is hosted.
+
+        Raises:
+            ValueError: .
         """
         # If both `channel` and `credentials` are specified, raise an
         # exception (channels come with credentials baked in already).

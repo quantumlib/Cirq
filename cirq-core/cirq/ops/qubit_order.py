@@ -65,6 +65,9 @@ class QubitOrder:
 
         Returns:
             A Basis instance that forces the given qubits in the given order.
+
+        Raises:
+            ValueError: .
         """
         result = tuple(fixed_qubits)
         if len(set(result)) < len(result):
@@ -117,6 +120,9 @@ class QubitOrder:
 
         Returns:
             The basis implied by the value.
+
+        Raises:
+            ValueError: .
         """
         if isinstance(val, Iterable):
             return QubitOrder.explicit(val)

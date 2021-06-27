@@ -49,6 +49,9 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
         A list of operations implementing the desired two qubit unitary. The
         list will include four operations of the given fsim gate, various single
         qubit operations, and a global phase operation.
+
+    Raises:
+        ValueError: .
     """
     if isinstance(fsim_gate, ops.ISwapPowGate):
         mapped_gate = ops.FSimGate(-fsim_gate.exponent * np.pi / 2, 0)

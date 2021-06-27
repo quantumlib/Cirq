@@ -52,6 +52,8 @@ class ControlledGate(raw_types.Gate):
                 expected dimension of each control qid.  Defaults to
                 `(2,) * num_controls`.  Specify this argument when using qudits.
 
+        Raises:
+            ValueError: .
         """
         if num_controls is None:
             if control_values is not None:

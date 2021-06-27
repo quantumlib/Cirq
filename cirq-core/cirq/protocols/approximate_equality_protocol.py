@@ -70,6 +70,9 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
 
     Returns:
         True if objects are approximately equal, False otherwise.
+
+    Raises:
+        AttributeError: .
     """
 
     # Check if val defines approximate equality via _approx_eq_. This takes

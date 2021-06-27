@@ -125,6 +125,10 @@ class SerializableDevice(cirq.Device):
             proto: A proto describing the qubits on the device, as well as the
                 supported gates and timing information.
             gate_set: The SerializableGateSet.
+
+        Raises:
+            NotImplementedError: .
+            ValueError: .
         """
 
         # Store target sets, since they are referred to by name later

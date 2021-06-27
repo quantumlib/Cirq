@@ -37,6 +37,9 @@ def chosen_angle_to_half_turns(
 
     Returns:
         A number of half turns.
+
+    Raises:
+        ValueError: .
     """
 
     if len([1 for e in [half_turns, rads, degs] if e is not None]) > 1:

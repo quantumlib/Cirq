@@ -65,6 +65,9 @@ class Duration:
             micros: A number of microseconds to add to the time delta.
             millis: A number of milliseconds to add to the time delta.
 
+        Raises:
+            TypeError: .
+
         Examples:
             >>> print(cirq.Duration(nanos=100))
             100 ns
