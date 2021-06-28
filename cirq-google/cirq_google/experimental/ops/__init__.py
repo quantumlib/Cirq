@@ -12,13 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Experimental features. Their API can be broken without any warning and might be in an work-in
-progress state"""
-from cirq_google.experimental.noise_models import (
-    PerQubitDepolarizingWithDampedReadoutNoiseModel,
-    simple_noise_from_calibration_metrics,
-)
-
-from cirq_google.experimental.ops import (
+from cirq_google.experimental.ops.coupler_pulse import (
     CouplerPulse,
 )

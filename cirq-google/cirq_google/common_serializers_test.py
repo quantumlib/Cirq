@@ -484,6 +484,34 @@ def test_cz_pow_non_integer_does_not_serialize():
         gate_set.serialize_op(cirq.CZ(q1, q2) ** 0.5)
 
 
+def test_coupler_pulse():
+    gate_set = cg.SerializableGateSet(
+        'test', [cgc.COUPLER_PULSE_SERIALIZER], [cgc.COUPLER_PULSE_DESERIALIZER]
+    )
+    proto = op_proto(
+        {
+            'gate': {'id': 'coupler_pulse'},
+            'args': {
+                'hold_time_ns': {'arg_value': {'float_value': 16.0}},
+                'padding_time_ns': {'arg_value': {'float_value': 12.0}},
+                'rise_time_ns': {'arg_value': {'float_value': 32.0}},
+                'coupling_mhz': {'arg_value': {'float_value': 20.0}},
+            },
+            'qubits': [{'id': '1_2'}, {'id': '2_2'}],
+        }
+    )
+    q = cirq.GridQubit(1, 2)
+    q2 = cirq.GridQubit(2, 2)
+    op = cg.experimental.ops.CouplerPulse(
+        hold_time=cirq.Duration(nanos=16),
+        padding_time=cirq.Duration(nanos=12),
+        rise_time=cirq.Duration(nanos=32),
+        coupling_mhz=20,
+    )(q, q2)
+    assert gate_set.serialize_op(op) == proto
+    assert gate_set.deserialize_op(proto) == op
+
+
 def test_wait_gate():
     gate_set = cg.SerializableGateSet(
         'test', [cgc.WAIT_GATE_SERIALIZER], [cgc.WAIT_GATE_DESERIALIZER]
