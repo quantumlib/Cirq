@@ -26,9 +26,9 @@ interface Axis {
  */
 export class Axes extends Group {
   readonly halfLength: number;
-  readonly xAxisColor: string;
-  readonly yAxisColor: string;
-  readonly zAxisColor: string;
+  readonly xAxisColor: string = '#1f51ff';
+  readonly yAxisColor: string = '#ff3131';
+  readonly zAxisColor: string = '#39ff14';
 
   /**
    * Class constructor.
@@ -39,18 +39,9 @@ export class Axes extends Group {
    * @returns An instance of the class containing the generated axes. This can be easily
    * added to the Bloch sphere instance, or the scene itself.
    */
-  constructor(
-    halfLength: number,
-    xAxisColor = '#1f51ff',
-    yAxisColor = '#ff3131',
-    zAxisColor = '#39ff14'
-  ) {
+  constructor(halfLength: number) {
     super();
     this.halfLength = halfLength;
-    this.xAxisColor = xAxisColor;
-    this.yAxisColor = yAxisColor;
-    this.zAxisColor = zAxisColor;
-
     this.generateAxes();
     return this;
   }

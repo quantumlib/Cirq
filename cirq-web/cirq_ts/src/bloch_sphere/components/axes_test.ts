@@ -41,17 +41,4 @@ describe('Axes', () => {
       });
     });
   });
-
-  describe('supports configuration of', () => {
-    it('axis colors', () => {
-      const axes = new Axes(5, '#fff', '#fff', '#fff');
-      const children = axes.children as Line[];
-      for (const child of children) {
-        const material = child.material as LineDashedMaterial;
-        //.eql is deep equal, which can be used to compare objects
-        // Color(1, 1, 1) is equivalent to #fff/"white" in three.js
-        expect(material.color).to.eql(new Color(1, 1, 1));
-      }
-    });
-  });
 });
