@@ -1,4 +1,4 @@
-cirq_google.CouplerPulse(
+cirq_google.experimental.CouplerPulse(
         hold_time=cirq.Duration(nanos=10),
         coupling_mhz=25.0,
         rise_time=cirq.Duration(nanos=18),
