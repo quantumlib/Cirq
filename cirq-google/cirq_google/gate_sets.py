@@ -29,6 +29,8 @@ from cirq_google.common_serializers import (
     SQRT_ISWAP_DESERIALIZERS,
     LIMITED_FSIM_SERIALIZERS,
     LIMITED_FSIM_DESERIALIZER,
+    COUPLER_PULSE_SERIALIZER,
+    COUPLER_PULSE_DESERIALIZER,
     WAIT_GATE_SERIALIZER,
     WAIT_GATE_DESERIALIZER,
 )
@@ -86,6 +88,30 @@ FSIM_GATESET = serializable_gate_set.SerializableGateSet(
     ],
 )
 document(FSIM_GATESET, """Gate set that combines sqrt(iswap) and syc as one fsim id.""")
+
+
+EXPERIMENTAL_PULSE_GATESET = serializable_gate_set.SerializableGateSet(
+    gate_set_name='pulse',
+    serializers=[
+        COUPLER_PULSE_SERIALIZER,
+        *LIMITED_FSIM_SERIALIZERS,
+        *SINGLE_QUBIT_SERIALIZERS,
+        MEASUREMENT_SERIALIZER,
+        WAIT_GATE_SERIALIZER,
+    ],
+    deserializers=[
+        COUPLER_PULSE_DESERIALIZER,
+        LIMITED_FSIM_DESERIALIZER,
+        *SINGLE_QUBIT_DESERIALIZERS,
+        MEASUREMENT_DESERIALIZER,
+        WAIT_GATE_DESERIALIZER,
+    ],
+)
+document(
+    EXPERIMENTAL_PULSE_GATESET,
+    "Experimental only.  Includes CouplerPulseGate with other fsim gates.",
+)
+
 
 # The xmon gate set.
 XMON = serializable_gate_set.SerializableGateSet(
