@@ -13,7 +13,6 @@
 # limitations under the License.
 import logging
 import os
-from contextlib import contextmanager
 from typing import Optional
 
 from cirq._compat import deprecated_parameter
@@ -22,7 +21,6 @@ from cirq.testing import assert_logs
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
 
-@contextmanager
 @deprecated_parameter(
     deadline='v0.12',
     fix='Use count instead.',
@@ -51,27 +49,28 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
             messages have to equal count.
     """
 
-    orig_exist, orig_value = (
-        ALLOW_DEPRECATION_IN_TEST in os.environ,
-        os.environ.get(ALLOW_DEPRECATION_IN_TEST, None),
-    )
-    os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
-    try:
-        with assert_logs(
-            *(msgs + (deadline,)),
-            min_level=logging.WARNING,
-            max_level=logging.WARNING,
-            count=count,
-        ):
-            yield True
-    finally:
-        try:
-            if orig_exist:
+    class DeprecationAssertContext:
+        def __enter__(self):
+            self.orig_exist, self.orig_value = (
+                ALLOW_DEPRECATION_IN_TEST in os.environ,
+                os.environ.get(ALLOW_DEPRECATION_IN_TEST, None),
+            )
+            os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
+            self.assert_logs = assert_logs(
+                *(msgs + (deadline,)),
+                min_level=logging.WARNING,
+                max_level=logging.WARNING,
+                count=count,
+            )
+            self.assert_logs.__enter__()
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            if self.orig_exist:
                 # mypy can't resolve that orig_exist ensures that orig_value
                 # of type Optional[str] can't be None
-                os.environ[ALLOW_DEPRECATION_IN_TEST] = orig_value  # type: ignore
+                os.environ[ALLOW_DEPRECATION_IN_TEST] = self.orig_value  # type: ignore
             else:
                 del os.environ[ALLOW_DEPRECATION_IN_TEST]
-        except:
-            # this is only for nested deprecation checks
-            pass
+            self.assert_logs.__exit__(exc_type, exc_val, exc_tb)
+
+    return DeprecationAssertContext()

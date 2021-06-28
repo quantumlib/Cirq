@@ -105,7 +105,7 @@ def _find_base_revision():
 def _list_changed_notebooks() -> Set[str]:
     try:
         rev = _find_base_revision()
-        output = subprocess.check_output(f'git diff --name-only {rev}'.split())
+        output = subprocess.check_output(f'git diff --diff-filter=d --name-only {rev}'.split())
         lines = output.decode('utf-8').splitlines()
         # run all tests if this file or any of the dev tool dependencies change
         if any(
