@@ -1191,13 +1191,14 @@ def test_pauli_sum_formatting():
 
 
 def test_pauli_sum_matrix():
-    q = cirq.LineQubit.range(2)
+    q = cirq.LineQubit.range(3)
     paulisum1 = cirq.X(q[0]) * cirq.X(q[1]) + 4
     H1 = np.array(
         [[4.0, 0.0, 0.0, 1.0], [0.0, 4.0, 1.0, 0.0], [0.0, 1.0, 4.0, 0.0], [1.0, 0.0, 0.0, 4.0]]
     )
     assert np.allclose(H1, paulisum1.matrix())
     assert np.allclose(H1, paulisum1.matrix([q[0], q[1]]))
+    # Expects same matrix when change qubits order.
     assert np.allclose(H1, paulisum1.matrix([q[1], q[0]]))
     paulisum2 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
     H2 = np.array(
@@ -1205,17 +1206,22 @@ def test_pauli_sum_matrix():
     )
     assert np.allclose(H2, paulisum2.matrix())
     assert np.allclose(H2, paulisum2.matrix([q[0], q[1]]))
+    # Expects a different matrix when change qubits order.
     H2_2 = np.array(
         [[1.0, 0.0, 0.0, 1.0], [0.0, -1.0, 1.0, 0.0], [0.0, 1.0, 1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
     )
     assert np.allclose(H2_2, paulisum2.matrix([q[1], q[0]]))
-    paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0]) * cirq.Z(q[1])
-    H3 = np.array(
-        [[1.0, 0.0, 0.0, 1.0], [0.0, -1.0, 1.0, 0.0], [0.0, 1.0, -1.0, 0.0], [1.0, 0.0, 0.0, 1.0]]
-    )
-    assert np.allclose(H3, paulisum3.matrix())
-    assert np.allclose(H3, paulisum3.matrix([q[0], q[1]]))
-    assert np.allclose(H3, paulisum3.matrix([q[1], q[0]]))
+    # Expects matrix with a different size when add a new qubit.
+    H2_3 = np.array([[ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                     [ 0.0,-1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+                     [ 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+                     [ 0.0, 0.0, 0.0,-1.0, 0.0, 0.0, 1.0, 0.0],
+                     [ 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+                     [ 1.0, 0.0, 0.0, 0.0, 0.0,-1.0, 0.0, 0.0],
+                     [ 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0],
+                     [ 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,-1.0]])
+    print(paulisum2.matrix([q[1], q[2], q[0]]))
+    assert np.allclose(H2_3, paulisum2.matrix([q[1], q[2], q[0]]))
 
 
 def test_pauli_sum_repr():
