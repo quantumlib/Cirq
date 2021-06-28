@@ -18,13 +18,13 @@ def test_deprecated_modules():
     with cirq.testing.assert_deprecated(
         "cirq.ion", "Use cirq.devices.ion instead", deadline="v0.13", count=None
     ):
-        import cirq.ion as ion
+        import cirq.ion as ion  # type: ignore
 
         assert ion is not None
 
     with cirq.testing.assert_deprecated(
         "cirq.neutral_atoms", "Use cirq.devices.neutral_atoms instead", deadline="v0.13", count=None
     ):
-        import cirq.neutral_atoms as na
+        import cirq.neutral_atoms as na  # type: ignore
 
         assert na is not None
