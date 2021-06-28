@@ -20,7 +20,7 @@ from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import MeasurementGate, raw_types
 from cirq.value import Duration
-from cirq.neutral_atoms import convert_to_neutral_atom_gates
+from cirq.devices.neutral_atoms import convert_to_neutral_atom_gates
 
 if TYPE_CHECKING:
     import cirq

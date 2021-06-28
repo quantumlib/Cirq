@@ -16,7 +16,7 @@ from datetime import timedelta
 import pytest
 
 import cirq
-import cirq.neutral_atoms as neutral_atoms
+import cirq.devices.neutral_atoms as neutral_atoms
 
 
 def square_device(

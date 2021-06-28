@@ -18,7 +18,7 @@ import pytest
 import numpy as np
 
 import cirq
-import cirq.ion as ci
+import cirq.devices.ion as ci
 
 
 def ion_device(chain_length: int, use_timedelta=False) -> ci.IonDevice:

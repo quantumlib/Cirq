@@ -12,14 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Device classes and tools specific to a neutral atom quantum processor."""
+"""Types for representing and methods for manipulating ion trap operations.
+"""
 
-from cirq.neutral_atoms.neutral_atom_devices import (
-    NeutralAtomDevice,
+from cirq.devices.ion.ion_gates import (
+    ms,
 )
 
-from cirq.neutral_atoms.convert_to_neutral_atom_gates import (
-    ConvertToNeutralAtomGates,
-    is_native_neutral_atom_gate,
-    is_native_neutral_atom_op,
+from cirq.devices.ion.ion_decomposition import (
+    two_qubit_matrix_to_ion_operations,
+)
+
+from cirq.devices.ion.ion_device import (
+    IonDevice,
+)
+
+from cirq.devices.ion.convert_to_ion_gates import (
+    ConvertToIonGates,
+)
+
+from cirq.devices.ion.ion_decomposition import (
+    two_qubit_matrix_to_ion_operations,
+)
+
+from cirq.devices.ion.ion_device import (
+    IonDevice,
+)
+
+from cirq.devices.ion.convert_to_ion_gates import (
+    ConvertToIonGates,
 )

@@ -26,7 +26,7 @@ from typing import Iterable, List, Optional, cast, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops, linalg, protocols, optimizers, circuits
-from cirq.ion import ms
+from cirq.devices.ion import ms
 
 if TYPE_CHECKING:
     import cirq

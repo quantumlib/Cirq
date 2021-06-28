@@ -15,7 +15,7 @@
 from typing import Any, cast, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
 
 from cirq import circuits, value, devices, ops, protocols
-from cirq.ion import convert_to_ion_gates
+from cirq.devices.ion import convert_to_ion_gates
 
 if TYPE_CHECKING:
     import cirq

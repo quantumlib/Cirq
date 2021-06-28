@@ -379,7 +379,7 @@ class PasqalVirtualDevice(PasqalDevice):
         )
 
 
-class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
+class PasqalConverter(cirq.devices.neutral_atoms.ConvertToNeutralAtomGates):
     """A gate converter for compatibility with Pasqal processors.
 
     Modified version of ConvertToNeutralAtomGates, where a new 'convert' method

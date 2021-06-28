@@ -46,9 +46,6 @@ from cirq import (
     work,
     sim,
     vis,
-    # Hardware specific
-    ion,
-    neutral_atoms,
     interop,
     # Applications
     experiments,
@@ -547,13 +544,13 @@ from cirq.protocols import (
     with_measurement_key_mapping,
 )
 
-from cirq.ion import (
+from cirq.devices.ion import (
     ConvertToIonGates,
     IonDevice,
     ms,
     two_qubit_matrix_to_ion_operations,
 )
-from cirq.neutral_atoms import (
+from cirq.devices.neutral_atoms import (
     ConvertToNeutralAtomGates,
     is_native_neutral_atom_gate,
     is_native_neutral_atom_op,
@@ -582,6 +579,24 @@ from cirq.work import (
 from cirq import (
     pasqal,
     testing,
+)
+
+# deprecated modules for ion / netural_atoms
+
+_compat.deprecated_submodule(
+    new_module_name='cirq.devices.ion',
+    old_parent=__name__,
+    old_child='ion',
+    deadline="v0.13",
+    create_attribute=True,
+)
+
+_compat.deprecated_submodule(
+    new_module_name='cirq.devices.neutral_atoms',
+    old_parent=__name__,
+    old_child='neutral_atoms',
+    deadline="v0.13",
+    create_attribute=True,
 )
 
 try:

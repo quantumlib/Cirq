@@ -15,7 +15,7 @@
 import numpy as np
 
 from cirq import ops, protocols, optimizers, circuits
-from cirq.ion import ms, two_qubit_matrix_to_ion_operations
+from cirq.devices.ion import ms, two_qubit_matrix_to_ion_operations
 
 
 class ConvertToIonGates:

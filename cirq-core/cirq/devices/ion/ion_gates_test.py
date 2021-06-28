@@ -19,7 +19,9 @@ import cirq
 
 def test_ms_arguments():
     eq_tester = cirq.testing.EqualsTester()
-    eq_tester.add_equality_group(cirq.ms(np.pi / 2), cirq.ion.ion_gates.MSGate(rads=np.pi / 2))
+    eq_tester.add_equality_group(
+        cirq.ms(np.pi / 2), cirq.devices.ion.ion_gates.MSGate(rads=np.pi / 2)
+    )
     eq_tester.add_equality_group(cirq.XXPowGate(global_shift=-0.5))
 
 
