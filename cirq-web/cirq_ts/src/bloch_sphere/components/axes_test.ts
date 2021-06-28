@@ -17,7 +17,7 @@ import {Axes} from './axes';
 import {Line, LineDashedMaterial, Color} from 'three';
 
 describe('Axes', () => {
-  describe('defaults', () => {
+  describe('by default', () => {
     const axes = new Axes(5);
     const children = axes.children as Line[];
 
@@ -42,8 +42,8 @@ describe('Axes', () => {
     });
   });
 
-  describe('configurables', () => {
-    it('has configurable axis colors', () => {
+  describe('supports configuration of', () => {
+    it('axis colors', () => {
       const axes = new Axes(5, '#fff', '#fff', '#fff');
       const children = axes.children as Line[];
       for (const child of children) {

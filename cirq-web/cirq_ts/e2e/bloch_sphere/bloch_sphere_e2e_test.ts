@@ -39,8 +39,7 @@ const browserContent = `
     <div id="container"></div>
     <script>${bundle_string}</script>
     <script>
-        const blochSphere = renderBlochSphere('{"radius": 5}');
-        blochSphere.addVector();
+        renderBlochSphere('{"radius": 5}', 'container').addVector();
     </script>
     </body>
 </html>
@@ -57,8 +56,7 @@ const newVectorBrowserContent = `
     <div id="container"></div>
     <script>${bundle_string}</script>
     <script>
-        const blochSphere = renderBlochSphere('{"radius": 5}');
-        blochSphere.addVector('{"x": 1,"y": 1, "z": 2, "length": 5}');
+        renderBlochSphere('{"radius": 5}', 'container').addVector('{"x": 1,"y": 1, "z": 2, "length": 5}');
     </script>
     </body>
 </html>

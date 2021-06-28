@@ -4,10 +4,15 @@
 
 Visualizations run on [NodeJS](https://nodejs.org/en/), and we use [npm](https://www.npmjs.com/) for package management. To start developing, clone the repository and run `npm install` within this directory to install the necessary packages and begin development. You will need to install Node and npm if you haven't already.
 
+
 For developing 3D visualizations, we rely on the [three.js](https://threejs.org/) framework. Understanding their documentation is critical to understanding 3D visualizations in Cirq. 
 
 For bundling the Typescript into Javascript that can be run in the browser, and for overall ease of development, we use [Webpack](https://webpack.js.org/).
 
+As an additional note, all `npm` commands can be ran from the top-level of Cirq like so:
+```
+npm --prefix 'cirq-web/cirq_ts' [YOUR_COMMAND]
+```
 ### Visualization build structure
 
 The reference example for the build structure of a visualization is the Bloch sphere. Reference the `src/bloch_sphere/main.ts` file and the `src/bloch_sphere/bloch_sphere.ts` file to see the code. The `src/bloch_sphere/` directory should serve as a guide for how Typescript visualizations in Cirq should be structured. Visualizations should have:

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {VectorInput} from './types';
 import {ArrowHelper, Vector3, Group, LineBasicMaterial} from 'three';
 
 /**
@@ -29,21 +30,12 @@ export class Vector extends Group {
    * @returns An instance of the class containing the generated vector. This can be
    * added to the Bloch sphere instance as well as the scene.
    */
-  constructor(vectorData?: string) {
+  constructor(vector: VectorInput) {
     super();
-
-    if (vectorData) {
-      const parsedObj = JSON.parse(vectorData);
-      this.x = parsedObj.x;
-      this.y = parsedObj.y;
-      this.z = parsedObj.z;
-      this.length = parsedObj.length;
-    } else {
-      this.x = 1;
-      this.y = 0;
-      this.z = 0;
-      this.length = 5;
-    }
+    this.x = vector.x;
+    this.y = vector.y;
+    this.z = vector.z;
+    this.length = vector.length;
 
     this.generateVector(this.x, this.y, this.z, this.length);
     return this;

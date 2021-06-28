@@ -21,18 +21,18 @@ interface Axis {
 }
 
 /**
- * Generates the axes for the Bloch sphere. The radius
- * (length of the axes) and color of each axis are configurable.
+ * Generates the axes for the Bloch sphere. The halfLength
+ * (length of one half of the axes line) and color of each axis are configurable.
  */
 export class Axes extends Group {
-  readonly radius: number;
+  readonly halfLength: number;
   readonly xAxisColor: string;
   readonly yAxisColor: string;
   readonly zAxisColor: string;
 
   /**
    * Class constructor.
-   * @param radius The radius of the circle the axes will belong to. This should be the same as the sphere.
+   * @param halfLength The halfLength of the axes line. This should be the same as the radius of the sphere.
    * @param xAxisColor The color of the x axis as a string.
    * @param yAxisColor The color of the y axis as a string.
    * @param zAxisColor The color of the z axis as a string.
@@ -40,68 +40,54 @@ export class Axes extends Group {
    * added to the Bloch sphere instance, or the scene itself.
    */
   constructor(
-    radius: number,
+    halfLength: number,
     xAxisColor = '#1f51ff',
     yAxisColor = '#ff3131',
     zAxisColor = '#39ff14'
   ) {
     super();
-    this.radius = radius;
+    this.halfLength = halfLength;
     this.xAxisColor = xAxisColor;
     this.yAxisColor = yAxisColor;
     this.zAxisColor = zAxisColor;
 
-    this.generateAxes(
-      this.radius,
-      this.xAxisColor,
-      this.yAxisColor,
-      this.zAxisColor
-    );
+    this.generateAxes();
     return this;
   }
 
   /**
    * Creates the x, y, and z axis for the Bloch sphere, adding
    * them to the group.
-   * @param radius The overall radius of the bloch sphere.
-   * @param xAxisColor The color of the x axis as string.
-   * @param yAxisColor The color of the z axis as string.
-   * @param zAxisColor The color of the z axis as string.
    */
-  private generateAxes(
-    radius: number,
-    xAxisColor: string,
-    yAxisColor: string,
-    zAxisColor: string
-  ) {
+  private generateAxes() {
     const LINE_WIDTH = 1.5;
     const xPoints: [Vector3, Vector3] = [
-      new Vector3(-radius, 0, 0),
-      new Vector3(radius, 0, 0),
+      new Vector3(-this.halfLength, 0, 0),
+      new Vector3(this.halfLength, 0, 0),
     ];
     const yPoints: [Vector3, Vector3] = [
-      new Vector3(0, 0, -radius),
-      new Vector3(0, 0, radius),
+      new Vector3(0, 0, -this.halfLength),
+      new Vector3(0, 0, this.halfLength),
     ];
     const zPoints: [Vector3, Vector3] = [
-      new Vector3(0, -radius, 0),
-      new Vector3(0, radius, 0),
+      new Vector3(0, -this.halfLength, 0),
+      new Vector3(0, this.halfLength, 0),
     ];
 
     const axesMap = {
       x: this.asLine({
         points: xPoints,
-        hexColor: xAxisColor,
+        hexColor: this.xAxisColor,
         lineWidth: LINE_WIDTH,
       }),
       y: this.asLine({
         points: yPoints,
-        hexColor: yAxisColor,
+        hexColor: this.yAxisColor,
         lineWidth: LINE_WIDTH,
       }),
       z: this.asLine({
         points: zPoints,
-        hexColor: zAxisColor,
+        hexColor: this.zAxisColor,
         lineWidth: LINE_WIDTH,
       }),
     };

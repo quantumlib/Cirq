@@ -36,8 +36,7 @@ const browserContent = `
     <div id="container"></div>
     <script>${bundle_string}</script>
     <script>
-        const blochSphere = renderBlochSphere('{"radius": 5}');
-        blochSphere.addVector();
+        renderBlochSphere('{"radius": 5}', 'container').addVector();
     </script>
     </body>
 </html>

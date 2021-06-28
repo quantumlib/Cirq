@@ -30,10 +30,38 @@ import {Vector} from './components/vector';
 const {window} = new JSDOM('<!doctype html><html><body></body></html>');
 global.document = window.document;
 
-describe('BlochSphere defaults', () => {
+describe('BlochSphere (with empty constructor)', () => {
   const scene = new Scene();
   const bloch_sphere = new BlochSphere();
-  bloch_sphere.addToScene(scene);
+  scene.add(bloch_sphere);
+
+  // Extract all of the Bloch sphere default info first,
+  // and then test that it's what we want.
+  const children = bloch_sphere.children;
+
+  const sphere = children.find(
+    child => child.constructor.name === 'Sphere'
+  ) as Sphere;
+
+  const meridians = children.filter(
+    child => child.constructor.name === 'Meridians'
+  ) as Meridians[];
+
+  const horizontalMeridians = meridians.find(
+    child => child.orientation === Orientation.HORIZONTAL
+  ) as Meridians;
+
+  const verticalMeridians = meridians.find(
+    child => child.orientation === Orientation.VERTICAL
+  ) as Meridians;
+
+  const axes = children.find(
+    child => child.constructor.name === 'Axes'
+  ) as Axes;
+
+  const labels = children.find(
+    child => child.constructor.name === 'Labels'
+  ) as Labels;
 
   it('adds a single object to a scene of type Group, specifically BlochSphere', () => {
     const children = scene.children;
@@ -43,30 +71,29 @@ describe('BlochSphere defaults', () => {
     expect(children[0] as BlochSphere).to.be.instanceOf(BlochSphere);
   });
 
-  describe('Child groups (Sphere, Meridians, etc.) contain the correct num of components', () => {
-    const children = bloch_sphere.children;
-    it('has a sphere', () => {
+  describe('child group (Sphere, Meridians, etc.)', () => {
+    it('Sphere contains the correct number of components', () => {
       const sphereExists = children.find(
         child => child.constructor.name === 'Sphere'
       );
       expect(sphereExists).to.not.equal(undefined);
     });
 
-    it('has 2 sets of meridians', () => {
+    it('Meridians appear in 2 sets', () => {
       const numOfMeridians = children.filter(
         child => child.constructor.name === 'Meridians'
       ).length;
       expect(numOfMeridians).to.equal(2);
     });
 
-    it('has axes', () => {
+    it('Axes exists', () => {
       const axesExists = children.some(
         child => child.constructor.name === 'Axes'
       );
       expect(axesExists).to.equal(true);
     });
 
-    it('has labels', () => {
+    it('Labels exists', () => {
       const labelsExists = children.some(
         child => child.constructor.name === 'Labels'
       );
@@ -74,98 +101,65 @@ describe('BlochSphere defaults', () => {
     });
   });
 
-  describe('Sphere', () => {
+  describe('child group Sphere', () => {
     it('has a radius of 5 by default', () => {
-      const children = bloch_sphere.children;
-      const sphere = children.find(
-        child => child.constructor.name === 'Sphere'
-      ) as Sphere;
       expect(sphere.radius).to.equal(5);
     });
   });
 
-  describe('Meridians', () => {
-    const children = bloch_sphere.children;
-    const meridians = children.filter(
-      child => child.constructor.name === 'Meridians'
-    ) as Meridians[];
+  describe('child groups Meridians', () => {
+    describe('by default', () => {
+      it('contains 7 horizontal chord meridians', () => {
+        expect(horizontalMeridians.numCircles).to.equal(7);
+      });
 
-    const horizontalMeridians = meridians.find(
-      child => child.orientation === Orientation.HORIZONTAL
-    ) as Meridians;
+      it('contains 4 vertical meridians', () => {
+        expect(verticalMeridians.numCircles).to.equal(4);
+      });
 
-    const verticalMeridians = meridians.find(
-      child => child.orientation === Orientation.VERTICAL
-    ) as Meridians;
+      it('has horizontal chord meridians that share the same radius of the sphere', () => {
+        expect(horizontalMeridians.radius).to.equal(sphere.radius);
+      });
 
-    it('contains 7 horizontal chord meridians by default', () => {
-      expect(horizontalMeridians.numCircles).to.equal(7);
-    });
-
-    it('contains 4 vertical meridians by default', () => {
-      expect(verticalMeridians.numCircles).to.equal(4);
-    });
-
-    it('horizontal chord meridians are gray by default', () => {
-      expect(horizontalMeridians.color).to.equal('gray');
-    });
-
-    it('vertical meridians are gray by default', () => {
-      expect(verticalMeridians.color).to.equal('gray');
-    });
-
-    it('horizontal chord meridians share the same radius (5) of the sphere by default', () => {
-      expect(horizontalMeridians.radius).to.equal(5);
-    });
-
-    it('vertical meridians share the same radius (5) of the sphere by default', () => {
-      expect(verticalMeridians.radius).to.equal(5);
+      it('has vertical meridians that share the same radius of the sphere', () => {
+        expect(verticalMeridians.radius).to.equal(sphere.radius);
+      });
     });
   });
 
-  describe('Axes', () => {
-    const children = bloch_sphere.children;
-    const axes = children.find(
-      child => child.constructor.name === 'Axes'
-    ) as Axes;
-
+  describe('child group Axes', () => {
     it('contains the 3 axes by default', () => {
       const numberOfAxisLines = axes.children.length;
       expect(numberOfAxisLines).to.equal(3);
     });
 
-    it('The axes fit a circle of radius 5 by default', () => {
-      expect(axes.radius).to.equal(5);
+    it('has axes lines with half-length equal to the radius of the sphere', () => {
+      expect(axes.halfLength).to.equal(sphere.radius);
     });
 
-    it('The axes are the right colors by default', () => {
+    it('axes lines are the right colors by default', () => {
       expect(axes.xAxisColor).to.equal('#1f51ff');
       expect(axes.yAxisColor).to.equal('#ff3131');
       expect(axes.zAxisColor).to.equal('#39ff14');
     });
   });
 
-  describe('Labels', () => {
-    const children = bloch_sphere.children;
-    const labels = children.find(
-      child => child.constructor.name === 'Labels'
-    ) as Labels;
-
-    it('The default labels are fit towards the default radius of the sphere (5) with the default spacing (0.5)', () => {
+  describe('child group Labels', () => {
+    it('has labels that are fit to the radius of the sphere with the correct spacing (0.5)', () => {
       const expectedBlochSphereLabels = {
-        '|+⟩': new Vector3(5.5, 0, 0),
-        '|-⟩': new Vector3(-5.5, 0, 0),
-        '|i⟩': new Vector3(0, 0, -5.5),
-        '|-i⟩': new Vector3(0, 0, 5.5),
-        '|0⟩': new Vector3(0, 5.5, 0),
-        '|1⟩': new Vector3(0, -5.5, 0),
+        '|+⟩': new Vector3(sphere.radius + 0.5, 0, 0),
+        '|-⟩': new Vector3(-(sphere.radius + 0.5), 0, 0),
+        '|i⟩': new Vector3(0, 0, -(sphere.radius + 0.5)),
+        '|-i⟩': new Vector3(0, 0, sphere.radius + 0.5),
+        '|0⟩': new Vector3(0, sphere.radius + 0.5, 0),
+        '|1⟩': new Vector3(0, -(sphere.radius + 0.5), 0),
       };
       expect(labels.labels).to.eql(expectedBlochSphereLabels);
     });
   });
 });
 
-describe('BlochSphere configurables', () => {
+describe('BlochSphere (with valid custom constructor values)', () => {
   const bloch_sphere = new BlochSphere(3, 9, 6);
   const children = bloch_sphere.children;
 
@@ -185,38 +179,103 @@ describe('BlochSphere configurables', () => {
     child => child.orientation === Orientation.VERTICAL
   ) as Meridians;
 
-  describe('the radius is configurable', () => {
-    it('accepts a radius of 3', () => {
+  describe('has a child group Sphere', () => {
+    it('with a configured radius of 3', () => {
       expect(sphere.radius).to.equal(3);
     });
+  });
 
-    it('throws an error correctly with an invalid radius', () => {
-      expect(() => new BlochSphere(-100)).to.throw(
-        'Invalid radius provided in the BlochSphere constructor'
-      );
+  describe('has a child group Meridians', () => {
+    describe('with a horizontal set of meridians that', () => {
+      it('accepts the configured number of meridians', () => {
+        expect(horizontalMeridians.numCircles).to.equal(9);
+      });
+    });
+
+    describe('with a vertical set of meridians that', () => {
+      it('accepts the configured number of meridians', () => {
+        expect(verticalMeridians.numCircles).to.equal(6);
+      });
     });
   });
 
-  describe('the meridians are configurable', () => {
-    it('accepts horizontal chord meridians of 9', () => {
-      expect(horizontalMeridians.numCircles).to.equal(9);
+  describe('handles vectors correctly by', () => {
+    it('adding three unique vectors without failing', () => {
+      // Adding multiple vectors is supported in the prototype,
+      // but the front end isn't yet formatted to accomodate this.
+      // The next PR will contain this additional support.
+
+      bloch_sphere.addVector();
+      bloch_sphere.addVector('{"x": 1,"y": 1, "z": 2, "length": 2}');
+      bloch_sphere.addVector('{"x": 3,"y": 4, "z": 5, "length": 1}');
+
+      const vectors = children.filter(
+        child => child.constructor.name === 'Vector'
+      ) as Vector[];
+
+      const expectedVectorX = [1, 1, 3];
+      const expectedVectorY = [0, 1, 4];
+      const expectedVectorZ = [0, 2, 5];
+      const expectedLength = [sphere.radius, 2, 1];
+
+      console.log(vectors);
+      vectors.forEach((vector, index) => {
+        expect(vector.x).to.equal(expectedVectorX[index]);
+        expect(vector.y).to.equal(expectedVectorY[index]);
+        expect(vector.z).to.equal(expectedVectorZ[index]);
+        expect(vector.length).to.equal(expectedLength[index]);
+      });
     });
 
-    it('accepts vertical meridians of 6', () => {
-      expect(verticalMeridians.numCircles).to.equal(6);
+    it('throwing the appropriate error with an invalid key', () => {
+      const errorMessage = 'Invalid vector json input provided. (Invalid key)';
+      expect(() => {
+        bloch_sphere.addVector('{"wrong": 1,"y": 1, "z": 2, "length": 5}');
+      }).to.throw(errorMessage);
+    });
+
+    it('throwing the appropriate error with an invalid value', () => {
+      const errorMessage =
+        'Invalid vector json input provided. (Non-number given as value)';
+      expect(() => {
+        bloch_sphere.addVector('{"x": 1,"y": 1, "z": "wrong", "length": 5}');
+      }).to.throw(errorMessage);
+    });
+  });
+});
+
+describe('BlochSphere (with invalid custom constructor values)', () => {
+  it('fails correctly if given an invalid radius', () => {
+    const inputs = [0, -1];
+    const errorMessage =
+      'The radius of a Sphere must be greater than or equal to 1';
+
+    inputs.forEach(input => {
+      expect(() => new BlochSphere(input)).to.throw(errorMessage);
     });
   });
 
-  describe('vectors can be added', () => {
-    // Sanitize checks not needed, since only way vectors may be added
-    // is via valid state vectors in Cirq.
-    bloch_sphere.addVector('{"x": 1,"y": 1, "z": 2, "length": 5}');
-    const vector = children.find(
-      child => child.constructor.name === 'Vector'
-    ) as Vector;
-    expect(vector.x).to.equal(1);
-    expect(vector.y).to.equal(1);
-    expect(vector.z).to.equal(2);
-    expect(vector.length).to.equal(5);
+  it('fails correctly if given invalid horizontal meridian input', () => {
+    const inputs = [-2, 301];
+    const errorMessages = [
+      'A negative number of meridians are not supported',
+      'Over 300 meridians are not supported',
+    ];
+
+    inputs.forEach((input, i) => {
+      expect(() => new BlochSphere(5, input)).to.throw(errorMessages[i]);
+    });
+  });
+
+  it('fails correctly if given invalid vertical meridian input', () => {
+    const inputs = [-2, 301];
+    const errorMessages = [
+      'A negative number of meridians are not supported',
+      'Over 300 meridians are not supported',
+    ];
+
+    inputs.forEach((input, i) => {
+      expect(() => new BlochSphere(5, 0, input)).to.throw(errorMessages[i]);
+    });
   });
 });

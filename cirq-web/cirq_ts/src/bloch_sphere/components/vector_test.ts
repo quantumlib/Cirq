@@ -15,21 +15,19 @@
 import {expect} from 'chai';
 import {ArrowHelper, Vector3} from 'three';
 import {Vector} from './vector';
+import {VectorInput} from './types';
 
-describe('Vector methods', () => {
-  describe('defaults', () => {
+describe('Vector', () => {
+  describe('by default', () => {
     // Example test case
-    const vector = new Vector(undefined);
-    it('Empty vector initializes to the correct values', () => {
-      const nestedVector = vector.children[0] as ArrowHelper;
-      expect(nestedVector.position).to.eql(new Vector3(0, 0, 0));
-    });
-  });
-
-  describe('configurables', () => {
-    // Example test case
-    const vector = new Vector('{"x": 1,"y": 1, "z": 2, "length": 5}');
-    it('Mocked vector initializes to the correct values', () => {
+    const input: VectorInput = {
+      x: 1,
+      y: 1,
+      z: 2,
+      length: 5,
+    };
+    const vector = new Vector(input);
+    it('start at the correct point given arbitrary vector coordinates', () => {
       const nestedVector = vector.children[0] as ArrowHelper;
       expect(nestedVector.position).to.eql(new Vector3(0, 0, 0));
     });

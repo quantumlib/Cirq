@@ -34,7 +34,7 @@ describe('Sphere', () => {
   const DEFAULT_RADIUS = 5;
   const sphere = new Sphere(DEFAULT_RADIUS);
 
-  describe('defaults', () => {
+  describe('by default', () => {
     const sphereInfo = getSphereInfo(sphere);
 
     it('has a default radius of 5', () => {
@@ -52,8 +52,8 @@ describe('Sphere', () => {
     });
   });
 
-  describe('configurables', () => {
-    it('createSphere() accepts valid radius inputs (1, 14.2, 100)', () => {
+  describe('can be configured to', () => {
+    it('accept valid radius inputs (1, 14.2, 100)', () => {
       const radiusInputs = [1, 14.2, 100];
       const expectedRadius = [1, 15, 100];
 
@@ -65,12 +65,14 @@ describe('Sphere', () => {
       });
     });
 
-    it('createSphere() defaults correctly invalid radius inputs (-1, 0)', () => {
-      const radiusInputs = [-1, 0];
-      const expectedErrorMessage =
-        'The radius of a Sphere must be greater than or equal to 1';
-      radiusInputs.forEach(el => {
-        expect(() => new Sphere(el)).to.throw(expectedErrorMessage);
+    describe('throw the correct errors', () => {
+      it('if given invalid radius inputs (-1, 0)', () => {
+        const radiusInputs = [-1, 0];
+        const expectedErrorMessage =
+          'The radius of a Sphere must be greater than or equal to 1';
+        radiusInputs.forEach(el => {
+          expect(() => new Sphere(el)).to.throw(expectedErrorMessage);
+        });
       });
     });
   });
