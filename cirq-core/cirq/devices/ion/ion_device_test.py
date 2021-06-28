@@ -161,6 +161,7 @@ def test_can_add_operation_into_moment():
         assert d.can_add_operation_into_moment(cirq.XX(q2, q3), moment)
         assert d.can_add_operation_into_moment(cirq.Z(q3), moment)
 
+
 def test_ion_device_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: ion_device(3))
