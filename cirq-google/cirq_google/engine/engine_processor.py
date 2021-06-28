@@ -124,11 +124,6 @@ class EngineProcessor:
             raise ValueError('Processor does not have a device specification')
         return serializable_device.SerializableDevice.from_proto(spec, gate_sets)
 
-    @staticmethod
-    def _to_calibration(calibration_any: qtypes.any_pb2.Any) -> calibration.Calibration:
-        metrics = v2.metrics_pb2.MetricsSnapshot.FromString(calibration_any.value)
-        return calibration.Calibration(metrics)
-
     def list_calibrations(
         self,
         earliest_timestamp_seconds: Optional[int] = None,
@@ -159,7 +154,7 @@ class EngineProcessor:
         response = self.context.client.list_calibrations(
             self.project_id, self.processor_id, filter_str
         )
-        return [self._to_calibration(c.data) for c in list(response)]
+        return [_to_calibration(c.data) for c in list(response)]
 
     def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
         """Retrieve metadata about a specific calibration run.
@@ -174,7 +169,7 @@ class EngineProcessor:
         response = self.context.client.get_calibration(
             self.project_id, self.processor_id, calibration_timestamp_seconds
         )
-        return self._to_calibration(response.data)
+        return _to_calibration(response.data)
 
     def get_current_calibration(
         self,
@@ -186,7 +181,7 @@ class EngineProcessor:
         """
         response = self.context.client.get_current_calibration(self.project_id, self.processor_id)
         if response:
-            return self._to_calibration(response.data)
+            return _to_calibration(response.data)
         else:
             return None
 
@@ -350,6 +345,11 @@ class EngineProcessor:
             f"EngineProcessor(project_id={self.project_id!r}, "
             f"processor_id={self.processor_id!r})"
         )
+
+
+def _to_calibration(calibration_any: qtypes.any_pb2.Any) -> calibration.Calibration:
+    metrics = v2.metrics_pb2.MetricsSnapshot.FromString(calibration_any.value)
+    return calibration.Calibration(metrics)
 
 
 def _to_date_time_filters(

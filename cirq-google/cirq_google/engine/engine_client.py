@@ -72,81 +72,6 @@ class EngineClient:
             warnings.simplefilter('ignore')
             self.grpc_client = quantum.QuantumEngineServiceClient(**service_args)
 
-    @staticmethod
-    def _project_name(project_id: str) -> str:
-        return f'projects/{project_id}'
-
-    @staticmethod
-    def _program_name_from_ids(project_id: str, program_id: str) -> str:
-        return f'projects/{project_id}/programs/{program_id}'
-
-    @staticmethod
-    def _job_name_from_ids(project_id: str, program_id: str, job_id: str) -> str:
-        return f'projects/{project_id}/programs/{program_id}/jobs/{job_id}'
-
-    @staticmethod
-    def _processor_name_from_ids(project_id: str, processor_id: str) -> str:
-        return f'projects/{project_id}/processors/{processor_id}'
-
-    @staticmethod
-    def _calibration_name_from_ids(
-        project_id: str, processor_id: str, calibration_time_seconds: int
-    ) -> str:
-        return 'projects/%s/processors/%s/calibrations/%d' % (
-            project_id,
-            processor_id,
-            calibration_time_seconds,
-        )
-
-    @staticmethod
-    def _reservation_name_from_ids(project_id: str, processor_id: str, reservation_id: str) -> str:
-        return 'projects/%s/processors/%s/reservations/%s' % (
-            project_id,
-            processor_id,
-            reservation_id,
-        )
-
-    @staticmethod
-    def _ids_from_program_name(program_name: str) -> Tuple[str, str]:
-        parts = program_name.split('/')
-        return parts[1], parts[3]
-
-    @staticmethod
-    def _ids_from_job_name(job_name: str) -> Tuple[str, str, str]:
-        parts = job_name.split('/')
-        return parts[1], parts[3], parts[5]
-
-    @staticmethod
-    def _ids_from_processor_name(processor_name: str) -> Tuple[str, str]:
-        parts = processor_name.split('/')
-        return parts[1], parts[3]
-
-    @staticmethod
-    def _ids_from_calibration_name(calibration_name: str) -> Tuple[str, str, int]:
-        parts = calibration_name.split('/')
-        return parts[1], parts[3], int(parts[5])
-
-    @staticmethod
-    def _date_or_time_to_filter_expr(
-        param_name: str, param: Union[datetime.datetime, datetime.date]
-    ):
-        """Formats datetime or date to filter expressions.
-
-        Args:
-            arg_name: the name of the filter parameter (for error messaging)
-            param: the value of the paramter
-        """
-        if isinstance(param, datetime.datetime):
-            return f"{int(param.timestamp())}"
-        elif isinstance(param, datetime.date):
-            return f"{param.isoformat()}"
-
-        raise ValueError(
-            f"Unsupported date/time type for {param_name}: got {param} of "
-            f"type {type(param)}. Supported types: datetime.datetime and"
-            f"datetime.date"
-        )
-
     def _make_request(self, request: Callable[[], _R]) -> _R:
         # Start with a 100ms retry delay with exponential backoff to
         # max_retry_delay_seconds
@@ -191,8 +116,8 @@ class EngineClient:
             Tuple of created program id and program
         """
 
-        parent_name = self._project_name(project_id)
-        program_name = self._program_name_from_ids(project_id, program_id) if program_id else ''
+        parent_name = _project_name(project_id)
+        program_name = _program_name_from_ids(project_id, program_id) if program_id else ''
         request = qtypes.QuantumProgram(name=program_name, code=code)
         if description:
             request.description = description
@@ -202,7 +127,7 @@ class EngineClient:
         program = self._make_request(
             lambda: self.grpc_client.create_quantum_program(parent_name, request, False)
         )
-        return self._ids_from_program_name(program.name)[1], program
+        return _ids_from_program_name(program.name)[1], program
 
     def get_program(
         self, project_id: str, program_id: str, return_code: bool
@@ -216,7 +141,7 @@ class EngineClient:
         """
         return self._make_request(
             lambda: self.grpc_client.get_quantum_program(
-                self._program_name_from_ids(project_id, program_id), return_code
+                _program_name_from_ids(project_id, program_id), return_code
             )
         )
 
@@ -246,17 +171,17 @@ class EngineClient:
         filters = []
 
         if created_after is not None:
-            val = self._date_or_time_to_filter_expr('created_after', created_after)
+            val = _date_or_time_to_filter_expr('created_after', created_after)
             filters.append(f"create_time >= {val}")
         if created_before is not None:
-            val = self._date_or_time_to_filter_expr('created_before', created_before)
+            val = _date_or_time_to_filter_expr('created_before', created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
             for (k, v) in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         return self._make_request(
             lambda: self.grpc_client.list_quantum_programs(
-                self._project_name(project_id), filter_=" AND ".join(filters)
+                _project_name(project_id), filter_=" AND ".join(filters)
             )
         )
 
@@ -273,7 +198,7 @@ class EngineClient:
         Returns:
             The updated quantum program.
         """
-        program_resource_name = self._program_name_from_ids(project_id, program_id)
+        program_resource_name = _program_name_from_ids(project_id, program_id)
         return self._make_request(
             lambda: self.grpc_client.update_quantum_program(
                 program_resource_name,
@@ -285,7 +210,7 @@ class EngineClient:
     def _set_program_labels(
         self, project_id: str, program_id: str, labels: Dict[str, str], fingerprint: str
     ) -> qtypes.QuantumProgram:
-        program_resource_name = self._program_name_from_ids(project_id, program_id)
+        program_resource_name = _program_name_from_ids(project_id, program_id)
         return self._make_request(
             lambda: self.grpc_client.update_quantum_program(
                 program_resource_name,
@@ -370,7 +295,7 @@ class EngineClient:
         """
         self._make_request(
             lambda: self.grpc_client.delete_quantum_program(
-                self._program_name_from_ids(project_id, program_id), delete_jobs
+                _program_name_from_ids(project_id, program_id), delete_jobs
             )
         )
 
@@ -405,13 +330,13 @@ class EngineClient:
             raise ValueError('priority must be between 0 and 1000')
 
         # Create job.
-        job_name = self._job_name_from_ids(project_id, program_id, job_id) if job_id else ''
+        job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         request = qtypes.QuantumJob(
             name=job_name,
             scheduling_config=qtypes.SchedulingConfig(
                 processor_selector=qtypes.SchedulingConfig.ProcessorSelector(
                     processor_names=[
-                        self._processor_name_from_ids(project_id, processor_id)
+                        _processor_name_from_ids(project_id, processor_id)
                         for processor_id in processor_ids
                     ]
                 )
@@ -426,10 +351,10 @@ class EngineClient:
             request.labels.update(labels)
         job = self._make_request(
             lambda: self.grpc_client.create_quantum_job(
-                self._program_name_from_ids(project_id, program_id), request, False
+                _program_name_from_ids(project_id, program_id), request, False
             )
         )
-        return self._ids_from_job_name(job.name)[2], job
+        return _ids_from_job_name(job.name)[2], job
 
     def list_jobs(
         self,
@@ -466,10 +391,10 @@ class EngineClient:
         filters = []
 
         if created_after is not None:
-            val = self._date_or_time_to_filter_expr('created_after', created_after)
+            val = _date_or_time_to_filter_expr('created_after', created_after)
             filters.append(f"create_time >= {val}")
         if created_before is not None:
-            val = self._date_or_time_to_filter_expr('created_before', created_before)
+            val = _date_or_time_to_filter_expr('created_before', created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
             for (k, v) in has_labels.items():
@@ -482,7 +407,7 @@ class EngineClient:
 
         if program_id is None:
             program_id = "-"
-        parent = self._program_name_from_ids(project_id, program_id)
+        parent = _program_name_from_ids(project_id, program_id)
         return self._make_request(
             lambda: self.grpc_client.list_quantum_jobs(parent, filter_=" AND ".join(filters))
         )
@@ -502,7 +427,7 @@ class EngineClient:
         """
         return self._make_request(
             lambda: self.grpc_client.get_quantum_job(
-                self._job_name_from_ids(project_id, program_id, job_id), return_run_context
+                _job_name_from_ids(project_id, program_id, job_id), return_run_context
             )
         )
 
@@ -520,7 +445,7 @@ class EngineClient:
         Returns:
             The updated quantum job.
         """
-        job_resource_name = self._job_name_from_ids(project_id, program_id, job_id)
+        job_resource_name = _job_name_from_ids(project_id, program_id, job_id)
         return self._make_request(
             lambda: self.grpc_client.update_quantum_job(
                 job_resource_name,
@@ -537,7 +462,7 @@ class EngineClient:
         labels: Dict[str, str],
         fingerprint: str,
     ) -> qtypes.QuantumJob:
-        job_resource_name = self._job_name_from_ids(project_id, program_id, job_id)
+        job_resource_name = _job_name_from_ids(project_id, program_id, job_id)
         return self._make_request(
             lambda: self.grpc_client.update_quantum_job(
                 job_resource_name,
@@ -623,7 +548,7 @@ class EngineClient:
         """
         self._make_request(
             lambda: self.grpc_client.delete_quantum_job(
-                self._job_name_from_ids(project_id, program_id, job_id)
+                _job_name_from_ids(project_id, program_id, job_id)
             )
         )
 
@@ -637,7 +562,7 @@ class EngineClient:
         """
         self._make_request(
             lambda: self.grpc_client.cancel_quantum_job(
-                self._job_name_from_ids(project_id, program_id, job_id)
+                _job_name_from_ids(project_id, program_id, job_id)
             )
         )
 
@@ -656,7 +581,7 @@ class EngineClient:
         """
         return self._make_request(
             lambda: self.grpc_client.get_quantum_result(
-                self._job_name_from_ids(project_id, program_id, job_id)
+                _job_name_from_ids(project_id, program_id, job_id)
             )
         )
 
@@ -672,9 +597,7 @@ class EngineClient:
             A list of metadata of each processor.
         """
         response = self._make_request(
-            lambda: self.grpc_client.list_quantum_processors(
-                self._project_name(project_id), filter_=''
-            )
+            lambda: self.grpc_client.list_quantum_processors(_project_name(project_id), filter_='')
         )
         return list(response)
 
@@ -690,7 +613,7 @@ class EngineClient:
         """
         return self._make_request(
             lambda: self.grpc_client.get_quantum_processor(
-                self._processor_name_from_ids(project_id, processor_id)
+                _processor_name_from_ids(project_id, processor_id)
             )
         )
 
@@ -712,7 +635,7 @@ class EngineClient:
         """
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_calibrations(
-                self._processor_name_from_ids(project_id, processor_id), filter_=filter_str
+                _processor_name_from_ids(project_id, processor_id), filter_=filter_str
             )
         )
         return list(response)
@@ -733,9 +656,7 @@ class EngineClient:
         """
         return self._make_request(
             lambda: self.grpc_client.get_quantum_calibration(
-                self._calibration_name_from_ids(
-                    project_id, processor_id, calibration_timestamp_seconds
-                )
+                _calibration_name_from_ids(project_id, processor_id, calibration_timestamp_seconds)
             )
         )
 
@@ -755,8 +676,7 @@ class EngineClient:
         try:
             return self._make_request(
                 lambda: self.grpc_client.get_quantum_calibration(
-                    self._processor_name_from_ids(project_id, processor_id)
-                    + '/calibrations/current'
+                    _processor_name_from_ids(project_id, processor_id) + '/calibrations/current'
                 )
             )
         except EngineException as err:
@@ -783,7 +703,7 @@ class EngineClient:
             end: the ending time of the reservation as a datetime object
             whitelisted_users: a list of emails that can use the reservation.
         """
-        parent = self._processor_name_from_ids(project_id, processor_id)
+        parent = _processor_name_from_ids(project_id, processor_id)
         reservation = qtypes.QuantumReservation(
             name='',
             start_time=Timestamp(seconds=int(start.timestamp())),
@@ -816,7 +736,7 @@ class EngineClient:
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
         """
-        name = self._reservation_name_from_ids(project_id, processor_id, reservation_id)
+        name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
         return self._make_request(lambda: self.grpc_client.cancel_quantum_reservation(name=name))
 
     def delete_reservation(self, project_id: str, processor_id: str, reservation_id: str):
@@ -834,7 +754,7 @@ class EngineClient:
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
         """
-        name = self._reservation_name_from_ids(project_id, processor_id, reservation_id)
+        name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
         return self._make_request(lambda: self.grpc_client.delete_quantum_reservation(name=name))
 
     def get_reservation(self, project_id: str, processor_id: str, reservation_id: str):
@@ -846,7 +766,7 @@ class EngineClient:
             reservation_id: Unique ID of the reservation in the parent project,
         """
         try:
-            name = self._reservation_name_from_ids(project_id, processor_id, reservation_id)
+            name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
             return self._make_request(lambda: self.grpc_client.get_quantum_reservation(name=name))
         except EngineException as err:
             if isinstance(err.__cause__, NotFound):
@@ -876,7 +796,7 @@ class EngineClient:
         """
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_reservations(
-                self._processor_name_from_ids(project_id, processor_id), filter_=filter_str
+                _processor_name_from_ids(project_id, processor_id), filter_=filter_str
             )
         )
 
@@ -908,7 +828,7 @@ class EngineClient:
                 will leave the value unchanged.
         """
         name = (
-            self._reservation_name_from_ids(project_id, processor_id, reservation_id)
+            _reservation_name_from_ids(project_id, processor_id, reservation_id)
             if reservation_id
             else ''
         )
@@ -952,7 +872,80 @@ class EngineClient:
         """
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_time_slots(
-                self._processor_name_from_ids(project_id, processor_id), filter_=filter_str
+                _processor_name_from_ids(project_id, processor_id), filter_=filter_str
             )
         )
         return list(response)
+
+
+def _project_name(project_id: str) -> str:
+    return f'projects/{project_id}'
+
+
+def _program_name_from_ids(project_id: str, program_id: str) -> str:
+    return f'projects/{project_id}/programs/{program_id}'
+
+
+def _job_name_from_ids(project_id: str, program_id: str, job_id: str) -> str:
+    return f'projects/{project_id}/programs/{program_id}/jobs/{job_id}'
+
+
+def _processor_name_from_ids(project_id: str, processor_id: str) -> str:
+    return f'projects/{project_id}/processors/{processor_id}'
+
+
+def _calibration_name_from_ids(
+    project_id: str, processor_id: str, calibration_time_seconds: int
+) -> str:
+    return 'projects/%s/processors/%s/calibrations/%d' % (
+        project_id,
+        processor_id,
+        calibration_time_seconds,
+    )
+
+
+def _reservation_name_from_ids(project_id: str, processor_id: str, reservation_id: str) -> str:
+    return 'projects/%s/processors/%s/reservations/%s' % (
+        project_id,
+        processor_id,
+        reservation_id,
+    )
+
+
+def _ids_from_program_name(program_name: str) -> Tuple[str, str]:
+    parts = program_name.split('/')
+    return parts[1], parts[3]
+
+
+def _ids_from_job_name(job_name: str) -> Tuple[str, str, str]:
+    parts = job_name.split('/')
+    return parts[1], parts[3], parts[5]
+
+
+def _ids_from_processor_name(processor_name: str) -> Tuple[str, str]:
+    parts = processor_name.split('/')
+    return parts[1], parts[3]
+
+
+def _ids_from_calibration_name(calibration_name: str) -> Tuple[str, str, int]:
+    parts = calibration_name.split('/')
+    return parts[1], parts[3], int(parts[5])
+
+
+def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime, datetime.date]):
+    """Formats datetime or date to filter expressions.
+
+    Args:
+        arg_name: the name of the filter parameter (for error messaging)
+        param: the value of the paramter
+    """
+    if isinstance(param, datetime.datetime):
+        return f"{int(param.timestamp())}"
+    elif isinstance(param, datetime.date):
+        return f"{param.isoformat()}"
+
+    raise ValueError(
+        f"Unsupported date/time type for {param_name}: got {param} of "
+        f"type {type(param)}. Supported types: datetime.datetime and"
+        f"datetime.date"
+    )

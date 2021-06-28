@@ -18,7 +18,7 @@ import time
 from typing import Dict, Iterator, List, Optional, overload, Tuple, TYPE_CHECKING
 
 import cirq
-from cirq_google.engine import calibration
+from cirq_google.engine import calibration, engine_client
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
@@ -189,7 +189,7 @@ class EngineJob:
     def processor_ids(self) -> List[str]:
         """Returns the processor ids provided when the job was created."""
         return [
-            self.context.client._ids_from_processor_name(p)[1]
+            engine_client._ids_from_processor_name(p)[1]
             for p in self._inner_job().scheduling_config.processor_selector.processor_names
         ]
 
@@ -218,29 +218,7 @@ class EngineJob:
                 self.project_id, self.program_id, self.job_id, True
             )
 
-        return self._deserialize_run_context(self._job.run_context)
-
-    @staticmethod
-    def _deserialize_run_context(
-        run_context: quantum.types.any_pb2.Any,
-    ) -> Tuple[int, List[cirq.Sweep]]:
-        import cirq_google.engine.engine as engine_base
-
-        run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]
-        if (
-            run_context_type == 'cirq.google.api.v1.RunContext'
-            or run_context_type == 'cirq.api.google.v1.RunContext'
-        ):
-            raise ValueError('deserializing a v1 RunContext is not supported')
-        if (
-            run_context_type == 'cirq.google.api.v2.RunContext'
-            or run_context_type == 'cirq.api.google.v2.RunContext'
-        ):
-            v2_run_context = v2.run_context_pb2.RunContext.FromString(run_context.value)
-            return v2_run_context.parameter_sweeps[0].repetitions, [
-                v2.sweep_from_proto(s.sweep) for s in v2_run_context.parameter_sweeps
-            ]
-        raise ValueError(f'unsupported run_context type: {run_context_type}')
+        return _deserialize_run_context(self._job.run_context)
 
     def get_processor(self) -> 'Optional[engine_processor.EngineProcessor]':
         """Returns the EngineProcessor for the processor the job is/was run on,
@@ -250,7 +228,7 @@ class EngineJob:
             return None
         import cirq_google.engine.engine_processor as engine_processor
 
-        ids = self.context.client._ids_from_processor_name(status.processor_name)
+        ids = engine_client._ids_from_processor_name(status.processor_name)
         return engine_processor.EngineProcessor(ids[0], ids[1], self.context)
 
     def get_calibration(self) -> Optional[calibration.Calibration]:
@@ -259,7 +237,7 @@ class EngineJob:
         status = self._inner_job().execution_status
         if not status.calibration_name:
             return None
-        ids = self.context.client._ids_from_calibration_name(status.calibration_name)
+        ids = engine_client._ids_from_calibration_name(status.calibration_name)
         response = self.context.client.get_calibration(*ids)
         metrics = v2.metrics_pb2.MetricsSnapshot.FromString(response.data.value)
         return calibration.Calibration(metrics)
@@ -296,7 +274,7 @@ class EngineJob:
             time.sleep(0.5)
             total_seconds_waited += 0.5
             job = self._refresh_job()
-        self._raise_on_failure(job)
+        _raise_on_failure(job)
         response = self.context.client.get_job_results(
             self.project_id, self.program_id, self.job_id
         )
@@ -314,13 +292,13 @@ class EngineJob:
                 or result_type == 'cirq.api.google.v1.Result'
             ):
                 v1_parsed_result = v1.program_pb2.Result.FromString(result.value)
-                self._results = self._get_job_results_v1(v1_parsed_result)
+                self._results = _get_job_results_v1(v1_parsed_result)
             elif (
                 result_type == 'cirq.google.api.v2.Result'
                 or result_type == 'cirq.api.google.v2.Result'
             ):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
-                self._results = self._get_job_results_v2(v2_parsed_result)
+                self._results = _get_job_results_v2(v2_parsed_result)
             elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
                 v2_parsed_result = v2.batch_pb2.BatchResult.FromString(result.value)
                 self._batched_results = self._get_batch_results_v2(v2_parsed_result)
@@ -356,73 +334,17 @@ class EngineJob:
             self._calibration_results = cal_results
         return self._calibration_results
 
-    @staticmethod
-    def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
-        trial_results = []
-        for sweep_result in result.sweep_results:
-            sweep_repetitions = sweep_result.repetitions
-            key_sizes = [(m.key, len(m.qubits)) for m in sweep_result.measurement_keys]
-            for result in sweep_result.parameterized_results:
-                data = result.measurement_results
-                measurements = v1.unpack_results(data, sweep_repetitions, key_sizes)
-
-                trial_results.append(
-                    cirq.Result.from_single_parameter_set(
-                        params=cirq.ParamResolver(result.params.assignments),
-                        measurements=measurements,
-                    )
-                )
-        return trial_results
-
     @classmethod
     def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult) -> List[List[cirq.Result]]:
         trial_results = []
         for result in results.results:
             # Add a new list for the result
-            trial_results.append(cls._get_job_results_v2(result))
+            trial_results.append(_get_job_results_v2(result))
         return trial_results
 
     @classmethod
     def _flatten(cls, result) -> List[cirq.Result]:
         return [res for result_list in result for res in result_list]
-
-    @staticmethod
-    def _get_job_results_v2(result: v2.result_pb2.Result) -> List[cirq.Result]:
-        sweep_results = v2.results_from_proto(result)
-        # Flatten to single list to match to sampler api.
-        return [trial_result for sweep_result in sweep_results for trial_result in sweep_result]
-
-    @staticmethod
-    def _raise_on_failure(job: quantum.types.QuantumJob) -> None:
-        execution_status = job.execution_status
-        state = execution_status.state
-        name = job.name
-        if state != quantum.enums.ExecutionStatus.State.SUCCESS:
-            if state == quantum.enums.ExecutionStatus.State.FAILURE:
-                processor = execution_status.processor_name or 'UNKNOWN'
-                error_code = execution_status.failure.error_code
-                error_message = execution_status.failure.error_message
-                raise RuntimeError(
-                    "Job {} on processor {} failed. {}: {}".format(
-                        name,
-                        processor,
-                        quantum.types.ExecutionStatus.Failure.Code.Name(error_code),
-                        error_message,
-                    )
-                )
-            elif state in TERMINAL_STATES:
-                raise RuntimeError(
-                    'Job {} failed in state {}.'.format(
-                        name,
-                        quantum.types.ExecutionStatus.State.Name(state),
-                    )
-                )
-            else:
-                raise RuntimeError(
-                    'Timed out waiting for results. Job {} is in state {}'.format(
-                        name, quantum.types.ExecutionStatus.State.Name(state)
-                    )
-                )
 
     def __iter__(self) -> Iterator[cirq.Result]:
         return iter(self.results())
@@ -449,3 +371,81 @@ class EngineJob:
             f'EngineJob(project_id=\'{self.project_id}\', '
             f'program_id=\'{self.program_id}\', job_id=\'{self.job_id}\')'
         )
+
+
+def _deserialize_run_context(
+    run_context: quantum.types.any_pb2.Any,
+) -> Tuple[int, List[cirq.Sweep]]:
+    import cirq_google.engine.engine as engine_base
+
+    run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]
+    if (
+        run_context_type == 'cirq.google.api.v1.RunContext'
+        or run_context_type == 'cirq.api.google.v1.RunContext'
+    ):
+        raise ValueError('deserializing a v1 RunContext is not supported')
+    if (
+        run_context_type == 'cirq.google.api.v2.RunContext'
+        or run_context_type == 'cirq.api.google.v2.RunContext'
+    ):
+        v2_run_context = v2.run_context_pb2.RunContext.FromString(run_context.value)
+        return v2_run_context.parameter_sweeps[0].repetitions, [
+            v2.sweep_from_proto(s.sweep) for s in v2_run_context.parameter_sweeps
+        ]
+    raise ValueError(f'unsupported run_context type: {run_context_type}')
+
+
+def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
+    trial_results = []
+    for sweep_result in result.sweep_results:
+        sweep_repetitions = sweep_result.repetitions
+        key_sizes = [(m.key, len(m.qubits)) for m in sweep_result.measurement_keys]
+        for result in sweep_result.parameterized_results:
+            data = result.measurement_results
+            measurements = v1.unpack_results(data, sweep_repetitions, key_sizes)
+
+            trial_results.append(
+                cirq.Result.from_single_parameter_set(
+                    params=cirq.ParamResolver(result.params.assignments),
+                    measurements=measurements,
+                )
+            )
+    return trial_results
+
+
+def _get_job_results_v2(result: v2.result_pb2.Result) -> List[cirq.Result]:
+    sweep_results = v2.results_from_proto(result)
+    # Flatten to single list to match to sampler api.
+    return [trial_result for sweep_result in sweep_results for trial_result in sweep_result]
+
+
+def _raise_on_failure(job: quantum.types.QuantumJob) -> None:
+    execution_status = job.execution_status
+    state = execution_status.state
+    name = job.name
+    if state != quantum.enums.ExecutionStatus.State.SUCCESS:
+        if state == quantum.enums.ExecutionStatus.State.FAILURE:
+            processor = execution_status.processor_name or 'UNKNOWN'
+            error_code = execution_status.failure.error_code
+            error_message = execution_status.failure.error_message
+            raise RuntimeError(
+                "Job {} on processor {} failed. {}: {}".format(
+                    name,
+                    processor,
+                    quantum.types.ExecutionStatus.Failure.Code.Name(error_code),
+                    error_message,
+                )
+            )
+        elif state in TERMINAL_STATES:
+            raise RuntimeError(
+                'Job {} failed in state {}.'.format(
+                    name,
+                    quantum.types.ExecutionStatus.State.Name(state),
+                )
+            )
+        else:
+            raise RuntimeError(
+                'Timed out waiting for results. Job {} is in state {}'.format(
+                    name, quantum.types.ExecutionStatus.State.Name(state)
+                )
+            )
