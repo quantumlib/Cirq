@@ -1035,6 +1035,7 @@ def test_non_pauli_sum_has_no_unitary(psum):
         (cirq.Z(q1), (q1,)),
         (cirq.X(q0) + cirq.Y(q0), (q0,)),
         (cirq.X(q0) + cirq.Y(q2), (q0, q2)),
+        (cirq.X(q2) + cirq.Y(q0), (q0, q2)),
         (cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3), (q0, q1, q3)),
     ),
 )
@@ -1187,6 +1188,35 @@ def test_pauli_sum_formatting():
 
     empty = cirq.PauliSum.from_pauli_strings([])
     assert str(empty) == "0.000"
+
+
+def test_pauli_sum_matrix():
+    q = cirq.LineQubit.range(3)
+    paulisum = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
+    H1 = np.array(
+        [[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 1.0, 0.0], [0.0, 1.0, -1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
+    )
+    assert np.allclose(H1, paulisum.matrix())
+    assert np.allclose(H1, paulisum.matrix([q[0], q[1]]))
+    # Expects a different matrix when change qubits order.
+    H2 = np.array(
+        [[1.0, 0.0, 0.0, 1.0], [0.0, -1.0, 1.0, 0.0], [0.0, 1.0, 1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
+    )
+    assert np.allclose(H2, paulisum.matrix([q[1], q[0]]))
+    # Expects matrix with a different size when add a new qubit.
+    H3 = np.array(
+        [
+            [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+            [0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0],
+        ]
+    )
+    assert np.allclose(H3, paulisum.matrix([q[1], q[2], q[0]]))
 
 
 def test_pauli_sum_repr():
