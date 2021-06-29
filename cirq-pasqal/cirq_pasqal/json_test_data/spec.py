@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""The cirq-pasqal test specification for JSON serialization tests.
+
+The actual tests live in cirq.protocols.json_serialization_test.py.
+See cirq-core/cirq/testing/json.py for a description of the framework.
+"""
+
 import pathlib
 
 import cirq_pasqal
