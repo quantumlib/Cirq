@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
+from typing import Any, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
 
 from cirq import circuits, value, devices, ops, protocols
 from cirq.ion import convert_to_ion_gates
@@ -104,36 +104,9 @@ class IonDevice(devices.Device):
             if q not in self.qubits:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-    def _check_if_XXPow_operation_interacts_with_any(
-        self, XXPow_op: ops.GateOperation, others: Iterable[ops.GateOperation]
-    ) -> bool:
-        return any(self._check_if_XXPow_operation_interacts(XXPow_op, op) for op in others)
-
-    def _check_if_XXPow_operation_interacts(
-        self, XXPow_op: ops.GateOperation, other_op: ops.GateOperation
-    ) -> bool:
-        if isinstance(
-            other_op.gate,
-            (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate, ops.MeasurementGate, ops.ZPowGate),
-        ):
-            return False
-
-        return any(q == p for q in XXPow_op.qubits for p in other_op.qubits)
-
     def validate_circuit(self, circuit: circuits.Circuit):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
-
-    def can_add_operation_into_moment(self, operation: ops.Operation, moment: ops.Moment) -> bool:
-
-        if not super().can_add_operation_into_moment(operation, moment):
-            return False
-        if isinstance(operation.gate, ops.XXPowGate):
-            return not self._check_if_XXPow_operation_interacts_with_any(
-                cast(ops.GateOperation, operation),
-                cast(Iterable[ops.GateOperation], moment.operations),
-            )
-        return True
 
     def at(self, position: int) -> Optional[devices.LineQubit]:
         """Returns the qubit at the given position, if there is one, else None."""
