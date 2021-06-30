@@ -16,9 +16,10 @@ import sympy
 import numpy as np
 
 import cirq
+import cirq_pasqal
 
-from cirq.pasqal import PasqalDevice, PasqalVirtualDevice
-from cirq.pasqal import TwoDQubit, ThreeDQubit
+from cirq_pasqal import PasqalDevice, PasqalVirtualDevice
+from cirq_pasqal import TwoDQubit, ThreeDQubit
 
 
 def generic_device(num_qubits) -> PasqalDevice:
@@ -276,7 +277,7 @@ def test_to_json():
     assert d == {
         "cirq_type": "PasqalVirtualDevice",
         "control_radius": 2,
-        "qubits": [cirq.pasqal.TwoDQubit(0, 0)],
+        "qubits": [cirq_pasqal.TwoDQubit(0, 0)],
     }
 
 

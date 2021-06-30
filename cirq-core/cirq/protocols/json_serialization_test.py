@@ -62,6 +62,12 @@ TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
             "cirq.google", deadline="v0.14", count=None
         ),
     ),
+    'cirq_pasqal': _ModuleDeprecation(
+        old_name="cirq.pasqal",
+        deprecation_assertion=cirq.testing.assert_deprecated(
+            "cirq.pasqal", deadline="v0.14", count=None
+        ),
+    ),
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,
 }
@@ -594,6 +600,13 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         import cirq_google
 
         imports['cirq_google'] = cirq_google
+    except ImportError:
+        pass
+
+    try:
+        import cirq_pasqal
+
+        imports['cirq_pasqal'] = cirq_pasqal
     except ImportError:
         pass
 
