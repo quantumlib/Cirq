@@ -66,10 +66,9 @@ def benchmark_2q_xeb_fidelities(
          sampled_df: The sampled results to benchmark. This is likely produced by a call to
             `sample_2q_xeb_circuits`.
         circuits: The library of circuits corresponding to the sampled results in `sampled_df`.
-        cycle_depths: The sequence of cycle depths to benchmark the circuits. Only the cycle
-            depths contained in the intersection of this argument and those present in `sampled_df`
-            will appear in the result. If not provided, we use the cycle depths found in
-            `sampled_df`.
+        cycle_depths: The sequence of cycle depths to benchmark the circuits. If not provided,
+            we use the cycle depths found in `sampled_df`. All requested `cycle_depths` must be
+            present in `sampled_df`.
         param_resolver: If circuits contain parameters, resolve according to this ParamResolver
             prior to simulation
         pool: If provided, execute the simulations in parallel.
