@@ -14,6 +14,7 @@
 from typing import List, Dict, Sequence, Any
 
 import cirq
+import cirq_pasqal
 
 
 class PasqalNoiseModel(cirq.devices.NoiseModel):
@@ -21,7 +22,7 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
 
     def __init__(self, device: cirq.devices.Device):
         self.noise_op_dict = self.get_default_noise_dict()
-        if not isinstance(device, cirq.pasqal.PasqalDevice):
+        if not isinstance(device, cirq_pasqal.PasqalDevice):
             raise TypeError(
                 "The noise model varies between Pasqal's devices. "
                 "Please specify the one you intend to execute the "
