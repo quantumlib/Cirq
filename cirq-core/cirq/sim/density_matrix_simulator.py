@@ -31,6 +31,7 @@ class DensityMatrixSimulator(
         'DensityMatrixSimulatorState',
         act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ],
+    simulator.SimulatesExpectationValues,
 ):
     """A simulator for density matrices and noisy quantum circuits.
 
@@ -189,7 +190,6 @@ class DensityMatrixSimulator(
             target_tensor=tensor,
             available_buffer=[np.empty_like(tensor) for _ in range(3)],
             qubits=qubits,
-            axes=[],
             qid_shape=qid_shape,
             prng=self._prng,
             log_of_measurement_results={},
@@ -219,6 +219,40 @@ class DensityMatrixSimulator(
         return DensityMatrixTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
+
+    # TODO(#4209): Deduplicate with identical code in sparse_simulator.
+    def simulate_expectation_values_sweep(
+        self,
+        program: 'cirq.Circuit',
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
+        params: 'study.Sweepable',
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+        permit_terminal_measurements: bool = False,
+    ) -> List[List[float]]:
+        if not permit_terminal_measurements and program.are_any_measurements_terminal():
+            raise ValueError(
+                'Provided circuit has terminal measurements, which may '
+                'skew expectation values. If this is intentional, set '
+                'permit_terminal_measurements=True.'
+            )
+        swept_evs = []
+        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
+        qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
+        if not isinstance(observables, List):
+            observables = [observables]
+        pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
+        for param_resolver in study.to_resolvers(params):
+            result = self.simulate(
+                program, param_resolver, qubit_order=qubit_order, initial_state=initial_state
+            )
+            swept_evs.append(
+                [
+                    obs.expectation_from_density_matrix(result.final_density_matrix, qmap)
+                    for obs in pslist
+                ]
+            )
+        return swept_evs
 
 
 class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState']):

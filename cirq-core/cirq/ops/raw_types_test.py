@@ -712,14 +712,14 @@ def test_tagged_act_on():
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args):
+        def _act_on_(self, args, qubits):
             return True
 
     class NoActOn(cirq.Gate):
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args):
+        def _act_on_(self, args, qubits):
             return NotImplemented
 
     class MissingActOn(cirq.Operation):
@@ -728,11 +728,14 @@ def test_tagged_act_on():
 
         @property
         def qubits(self):
-            raise NotImplementedError()
+            pass
 
     q = cirq.LineQubit(1)
-    cirq.act_on(YesActOn()(q).with_tags("test"), object())
+    from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+
+    args = DummyActOnArgs()
+    cirq.act_on(YesActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(NoActOn()(q).with_tags("test"), object())
+        cirq.act_on(NoActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(MissingActOn().with_tags("test"), object())
+        cirq.act_on(MissingActOn().with_tags("test"), args)

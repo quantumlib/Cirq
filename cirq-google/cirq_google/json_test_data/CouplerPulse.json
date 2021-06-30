@@ -1,0 +1,16 @@
+{
+  "cirq_type": "CouplerPulse",
+  "hold_time": {
+    "cirq_type": "Duration",
+    "picos": 10000
+  },
+  "coupling_mhz": 25.0,
+  "rise_time": {
+    "cirq_type": "Duration",
+    "picos": 18000
+  },
+  "padding_time": {
+    "cirq_type": "Duration",
+    "picos": 2500.0
+  }
+}

@@ -89,7 +89,6 @@ class CliffordSimulator(
         state = CliffordState(qubit_map, initial_state=initial_state)
         return clifford.ActOnStabilizerCHFormArgs(
             state=state.ch_form,
-            axes=[],
             prng=self._prng,
             log_of_measurement_results={},
             qubits=qubits,
@@ -250,7 +249,7 @@ class CliffordState:
 
     def apply_unitary(self, op: 'cirq.Operation'):
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            self.ch_form, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
+            self.ch_form, np.random.RandomState(), {}, self.qubit_map.keys()
         )
         try:
             act_on(op, ch_form_args)
@@ -278,7 +277,7 @@ class CliffordState:
         else:
             state = self.copy()
 
-        qids = [self.qubit_map[i] for i in op.qubits]
-
-        ch_form_args = clifford.ActOnStabilizerCHFormArgs(state.ch_form, qids, prng, measurements)
+        ch_form_args = clifford.ActOnStabilizerCHFormArgs(
+            state.ch_form, prng, measurements, self.qubit_map.keys()
+        )
         act_on(op, ch_form_args)
