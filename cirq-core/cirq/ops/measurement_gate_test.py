@@ -24,7 +24,7 @@ def test_eval_repr():
         gate=cirq.MeasurementGate(1, cirq.MeasurementKey(path=(), name='q0_1_0'), ()),
         qubits=[cirq.GridQubit(0, 1)],
     )
-    assert op == eval(repr(op))
+    cirq.testing.assert_equivalent_repr(op)
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
