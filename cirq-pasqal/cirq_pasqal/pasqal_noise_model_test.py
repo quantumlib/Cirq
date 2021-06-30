@@ -14,11 +14,11 @@
 import pytest
 import cirq
 
-from cirq.pasqal import PasqalNoiseModel, PasqalDevice
+from cirq_pasqal import PasqalNoiseModel, PasqalDevice
 from cirq.ops import NamedQubit
 
 
-def test_NoiseModel_init():
+def test_noise_model_init():
     noise_model = PasqalNoiseModel(PasqalDevice([]))
     assert noise_model.noise_op_dict == {
         str(cirq.ops.YPowGate()): cirq.ops.depolarize(1e-2),

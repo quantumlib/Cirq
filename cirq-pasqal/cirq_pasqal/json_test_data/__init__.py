@@ -1,4 +1,4 @@
-# Copyright 2020 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,21 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Devices, qubits, and sampler for Pasqal's neutrali atom device."""
-from cirq.pasqal.pasqal_qubits import (
-    ThreeDQubit,
-    TwoDQubit,
-)
 
-from cirq.pasqal.pasqal_device import (
-    PasqalDevice,
-    PasqalVirtualDevice,
-)
+# For the cirq_pasqal module, this file specifies test data for JSON
+# serialization of public objects. It is used by
+# cirq/protocols/json_serialization_test.py which checks for coverage of
+# public classes and tests the correctness of repr and json results
 
-from cirq.pasqal.pasqal_noise_model import (
-    PasqalNoiseModel,
-)
-
-from cirq.pasqal.pasqal_sampler import (
-    PasqalSampler,
-)
+from cirq_pasqal.json_test_data.spec import TestSpec
