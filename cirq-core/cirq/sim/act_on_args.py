@@ -117,7 +117,13 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Joins two state spaces together."""
         raise NotImplementedError()
 
-    def factor(self: TSelf, qubits: Sequence['cirq.Qid']) -> Tuple[TSelf, TSelf]:
+    def factor(
+        self: TSelf,
+        qubits: Sequence['cirq.Qid'],
+        *,
+        validate=True,
+        atol=1e-07,
+    ) -> Tuple[TSelf, TSelf]:
         """Splits two state spaces after a measurement or reset."""
         raise NotImplementedError()
 

@@ -64,7 +64,11 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         return args
 
     def factor(
-        self, qubits: Sequence['cirq.Qid']
+        self,
+        qubits: Sequence['cirq.Qid'],
+        *,
+        validate=True,
+        atol=1e-07,
     ) -> Tuple['SplittableCountingActOnArgs', 'SplittableCountingActOnArgs']:
         extracted_args = SplittableCountingActOnArgs(
             qubits=qubits,

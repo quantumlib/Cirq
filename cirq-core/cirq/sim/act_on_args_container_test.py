@@ -41,7 +41,13 @@ class EmptyActOnArgs(cirq.ActOnArgs):
             logs=self.log_of_measurement_results,
         )
 
-    def factor(self, qubits: Sequence['cirq.Qid']) -> Tuple['EmptyActOnArgs', 'EmptyActOnArgs']:
+    def factor(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        *,
+        validate=True,
+        atol=1e-07,
+    ) -> Tuple['EmptyActOnArgs', 'EmptyActOnArgs']:
         extracted_args = EmptyActOnArgs(
             qubits=qubits,
             logs=self.log_of_measurement_results,

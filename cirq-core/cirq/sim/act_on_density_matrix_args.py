@@ -151,11 +151,15 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
 
     def factor(
-        self, qubits: Sequence['cirq.Qid']
+        self,
+        qubits: Sequence['cirq.Qid'],
+        *,
+        validate=True,
+        atol=1e-07,
     ) -> Tuple['cirq.ActOnDensityMatrixArgs', 'cirq.ActOnDensityMatrixArgs']:
         axes = self.get_axes(qubits)
-        extracted_tensor, remainder_tensor = transformations.factor_density_matrices(
-            self.target_tensor, axes
+        extracted_tensor, remainder_tensor = transformations.factor_density_matrix(
+            self.target_tensor, axes, validate=validate, atol=atol
         )
         buffer = [np.empty_like(extracted_tensor) for _ in self.available_buffer]
         extracted_args = ActOnDensityMatrixArgs(
@@ -180,7 +184,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     def transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid']
     ) -> 'cirq.ActOnDensityMatrixArgs':
-        assert len(qubits) == len(self.qubits)
         axes = self.get_axes(qubits)
         axes = axes + [i + len(qubits) for i in axes]
         new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits) * 2))
