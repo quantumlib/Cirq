@@ -17,7 +17,7 @@ import {Sphere} from './components/sphere';
 import {Axes} from './components/axes';
 import {Meridians} from './components/meridians';
 import {Labels} from './components/text';
-import {Vector} from './components/vector';
+import {StateVector} from './components/vector';
 
 import {Group, Vector3} from 'three';
 
@@ -64,7 +64,7 @@ export class BlochSphere extends Group {
    *
    */
   public addVector(x: number, y: number, z: number) {
-    const vector = new Vector(x, y, z, this.radius);
+    const vector = new StateVector(x, y, z, this.radius);
     this.add(vector);
   }
 

@@ -37,7 +37,6 @@ describe('Labels', () => {
   it('successfully generates an arbitrary label at the correct position', () => {
     const label = labels.children[0] as Label;
     expect(label.position).to.eql(new Vector3(0, 0, 0));
-    // Need to figure out how to extract text from .fillText() on canvas.
-    // May not be possible.
+    expect(label.text).to.equal(Object.keys(mock_label)[0]);
   });
 });

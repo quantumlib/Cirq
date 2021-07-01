@@ -310,8 +310,10 @@ jobs:
           node-version: '14.16.1'
       - name: Install npm dependencies
         run: check/npm ci
-      - name: Test
+      - name: Unit tests
         run: check/ts-test 
+      - name: End to end tests
+        run: check/ts-test-e2e
   ts-coverage:
     name: Typescript tests coverage
     runs-on: ubuntu-20.04

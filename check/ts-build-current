@@ -15,15 +15,25 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Allows the user to run npx commands from the top-level directory
+# Checks if all bundled files are up to date. 
 #
 # Usage:
-#     check/ts-build
+#     check/ts-build-changes
+#
 ################################################################################
 
-# Get the working directory to the repo root.
-cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$(git rev-parse --show-toplevel)"
+check/ts-build 
 
-cd 'cirq-web/cirq_ts'
-npx $@
+# Find the changed bundle.js files, if any
+untracked=$(git status --porcelain 2>/dev/null | grep "cirq-web/cirq_ts/dist/" | cut -d " " -f 3)
+
+if [[ ! -z "$untracked" ]]; then
+    echo -e "\033[31mERROR: Uncommitted changes to bundle file(s) found! Please commit these files:\033[0m"
+    for generated in $untracked
+    do
+        echo -e "\033[31m ${generated}\033[0m"
+    done
+    exit 1
+fi
+
+exit 0
