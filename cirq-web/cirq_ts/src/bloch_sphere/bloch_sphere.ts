@@ -18,7 +18,6 @@ import {Axes} from './components/axes';
 import {Meridians} from './components/meridians';
 import {Labels} from './components/text';
 import {Vector} from './components/vector';
-import {VectorInput} from './components/types';
 
 import {Group, Vector3} from 'three';
 
@@ -56,17 +55,16 @@ export class BlochSphere extends Group {
   }
 
   /**
-   * Adds a vector to the Bloch sphere based on information from a
-   * JSON string. This JSON string should contain key value pairs
-   * that follow the format
-   * '{"x": number, "y": number, "z": number, "length": number}'
+   * Adds a vector to the Bloch sphere based on a set
+   * of given x, y, and z coordinates of the vector's endpoint
    * in order to be parsed successfully.
-   * @param vectorData A JSON string reprensenting the coordinates of
-   * the vector.
+   * @param x the x coordinate of the vector's endpoint
+   * @param y the y coordinate of the vector's endpoint
+   * @param z the z coordinate of the vector's endpoint
+   *
    */
-  public addVector(vectorData?: string) {
-    const input = this.formVectorInput(vectorData);
-    const vector = new Vector(input);
+  public addVector(x: number, y: number, z: number) {
+    const vector = new Vector(x, y, z, this.radius);
     this.add(vector);
   }
 
@@ -111,48 +109,5 @@ export class BlochSphere extends Group {
 
     const labels = new Labels(labelData);
     this.add(labels);
-  }
-
-  /**
-   * Takes JSON string input from the user or from Python and forms
-   * it into a VectorInput type to be used by the Vector class.
-   * @param vectorJSON (Optional) The JSON string input from the user
-   * or the Python.
-   * @returns Well formed input for the vector as type VectorInput
-   */
-  private formVectorInput(vectorJSON?: string): VectorInput {
-    if (vectorJSON) {
-      const parsedObj = JSON.parse(vectorJSON);
-
-      const keys = ['x', 'y', 'z', 'length'];
-      // Make sure the keys and values are correct
-      Object.entries(parsedObj).forEach(([key, value], index) => {
-        // Check if the key matches the accepted keys
-        if (key !== keys[index]) {
-          throw new Error('Invalid vector json input provided. (Invalid key)');
-        }
-
-        // Check if the values are numbers
-        if (typeof value !== 'number') {
-          throw new Error(
-            'Invalid vector json input provided. (Non-number given as value)'
-          );
-        }
-      });
-
-      return {
-        x: parsedObj.x,
-        y: parsedObj.y,
-        z: parsedObj.z,
-        length: parsedObj.length,
-      };
-    } else {
-      return {
-        x: 1,
-        y: 0,
-        z: 0,
-        length: this.radius,
-      };
-    }
   }
 }

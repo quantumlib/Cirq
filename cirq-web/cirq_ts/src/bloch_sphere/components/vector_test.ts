@@ -15,18 +15,10 @@
 import {expect} from 'chai';
 import {ArrowHelper, Vector3} from 'three';
 import {Vector} from './vector';
-import {VectorInput} from './types';
 
 describe('Vector', () => {
   describe('by default', () => {
-    // Example test case
-    const input: VectorInput = {
-      x: 1,
-      y: 1,
-      z: 2,
-      length: 5,
-    };
-    const vector = new Vector(input);
+    const vector = new Vector(1, 1, 2, 5);
     it('start at the correct point given arbitrary vector coordinates', () => {
       const nestedVector = vector.children[0] as ArrowHelper;
       expect(nestedVector.position).to.eql(new Vector3(0, 0, 0));

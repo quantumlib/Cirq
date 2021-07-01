@@ -28,7 +28,14 @@ export class Sphere extends Group {
    */
   constructor(radius: number) {
     super();
-    this.radius = this.sanitizeRadiusInput(radius);
+
+    if (radius < 1) {
+      throw new Error(
+        'The radius of a Sphere must be greater than or equal to 1'
+      );
+    } else {
+      this.radius = radius;
+    }
 
     this.createSphere(this.radius);
     return this;
@@ -55,15 +62,5 @@ export class Sphere extends Group {
     mesh.geometry.computeVertexNormals();
 
     this.add(mesh);
-  }
-
-  private sanitizeRadiusInput(radius: number) {
-    if (radius < 1) {
-      throw new Error(
-        'The radius of a Sphere must be greater than or equal to 1'
-      );
-    } else {
-      return Math.ceil(radius);
-    }
   }
 }

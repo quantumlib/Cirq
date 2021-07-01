@@ -12,32 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {VectorInput} from './types';
 import {ArrowHelper, Vector3, Group, LineBasicMaterial} from 'three';
 
 /**
- * Generates a vector to add to the Bloch sphere. The length and direction of the vector are configurable.
+ * Generates a vector to add to the Bloch sphere.
+ * The length and direction of the vector are configurable.
  */
 export class Vector extends Group {
-  readonly length: number;
+  readonly scaling_factor: number;
   readonly x: number;
   readonly y: number;
   readonly z: number;
 
   /**
    * Class constructor.
-   * @param vectorData A JSON string containing information used to build the vector.
+   * @param x the x coordinate of the vector tip
+   * @param y the y coordinate of the vector tip
+   * @param z the z coordinate of the vector tip
    * @returns An instance of the class containing the generated vector. This can be
    * added to the Bloch sphere instance as well as the scene.
    */
-  constructor(vector: VectorInput) {
+  constructor(x: number, y: number, z: number, scaling_factor: number) {
     super();
-    this.x = vector.x;
-    this.y = vector.y;
-    this.z = vector.z;
-    this.length = vector.length;
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.scaling_factor = scaling_factor;
 
-    this.generateVector(this.x, this.y, this.z, this.length);
+    this.generateVector(this.x, this.y, this.z, this.scaling_factor);
     return this;
   }
 
@@ -48,9 +50,15 @@ export class Vector extends Group {
    * @param x The x coordinate of the vector tip.
    * @param y The y coordinate of the vector tip.
    * @param z The z coordinate of the vector tip.
-   * @param length The length of the vector.
+   * @param scaling_factor The quantity that will be multiplied by
+   * the vector length to fit to the sphere. This will be the sphere's radius.
    */
-  private generateVector(x: number, y: number, z: number, length: number) {
+  private generateVector(
+    x: number,
+    y: number,
+    z: number,
+    scaling_factor: number
+  ) {
     const directionVector = new Vector3(x, y, z);
 
     // Apply a -90 degree correction rotation across the x axis
@@ -60,19 +68,20 @@ export class Vector extends Group {
     const angle = -Math.PI / 2;
     directionVector.applyAxisAngle(axis, angle);
 
-    // Needed so that ArrowHelper can generate the length easily
-    directionVector.normalize();
-
     // Set base properties of the vector
     const origin = new Vector3(0, 0, 0);
     const hex = '#800080';
     const headWidth = 1;
 
+    // Calculate the distance, and alter it to be proportional
+    // to the length
+    const newLength = origin.distanceTo(directionVector) * scaling_factor;
+
     // Create the arrow representation of the vector and add it to the group
     const arrowHelper = new ArrowHelper(
       directionVector,
       origin,
-      length,
+      newLength,
       hex,
       undefined,
       headWidth

@@ -32,10 +32,8 @@ export class Axes extends Group {
 
   /**
    * Class constructor.
-   * @param halfLength The halfLength of the axes line. This should be the same as the radius of the sphere.
-   * @param xAxisColor The color of the x axis as a string.
-   * @param yAxisColor The color of the y axis as a string.
-   * @param zAxisColor The color of the z axis as a string.
+   * @param halfLength The halfLength of the axes line. This should be the same as the
+   * radius of the sphere.
    * @returns An instance of the class containing the generated axes. This can be easily
    * added to the Bloch sphere instance, or the scene itself.
    */

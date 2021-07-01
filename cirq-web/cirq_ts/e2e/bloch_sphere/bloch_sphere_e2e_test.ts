@@ -28,10 +28,11 @@ import * as path from 'path';
 // Due to the path, reading the file will only work by running this file in the same directory
 // as the package.json file.
 const bundle_string = readFileSync('dist/bloch_sphere.bundle.js');
-const browserContent = `
-<!doctype html>
-<meta charset="UTF-8">
-<html lang="en">
+const browserStrings = [
+  `
+  <!doctype html>
+  <meta charset="UTF-8">
+  <html lang="en">
     <head>
     <title>Cirq Web Development page</title>
     </head>
@@ -39,28 +40,14 @@ const browserContent = `
     <div id="container"></div>
     <script>${bundle_string}</script>
     <script>
-        renderBlochSphere('{"radius": 5}', 'container').addVector();
+  `,
+  " renderBlochSphere('container')",
+  `
     </script>
     </body>
-</html>
-`;
-
-const newVectorBrowserContent = `
-<!doctype html>
-<meta charset="UTF-8">
-<html lang="en">
-    <head>
-    <title>Cirq Web Development page</title>
-    </head>
-    <body>
-    <div id="container"></div>
-    <script>${bundle_string}</script>
-    <script>
-        renderBlochSphere('{"radius": 5}', 'container').addVector('{"x": 1,"y": 1, "z": 2, "length": 5}');
-    </script>
-    </body>
-</html>
-`;
+  </html>
+  `,
+];
 
 /**
  * Testing to see if they look the same.
@@ -69,24 +56,26 @@ const newVectorBrowserContent = `
 // Automatically track and cleanup files on exit
 temp.track();
 
-describe('Check Bloch Sphere looks correct', () => {
+describe('Bloch sphere', () => {
   // Create the temporary directory first, then run everything.
   temp.mkdir('tmp', (err, dirPath) => {
     const output_path = path.join(dirPath, 'bloch_sphere.png');
     const new_vector_output_path = path.join(dirPath, 'bloch_sphere_vec.png');
 
     before(async () => {
-      //Opens a headless browser with the generated HTML file and takes a screenshot.
-      const browser = await puppeteer.launch();
+      // Opens a headless browser with the generated HTML file and takes a screenshot.
+      // The '--app' flag ensures that chromium does capture any
+      // excess browser input
+      const browser = await puppeteer.launch({args: ['--app']});
       const page = await browser.newPage();
 
       // Take a screenshot of the first image
-      await page.setContent(browserContent);
+      await page.setContent(browserStrings.join(''));
       await page.screenshot({path: output_path});
       await browser.close();
     });
 
-    it('Bloch sphere in the default state (|0⟩) matches the standard PNG copy', () => {
+    it('with no vector matches the gold PNG', () => {
       const expected = PNG.PNG.sync.read(
         readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png')
       );
@@ -102,22 +91,23 @@ describe('Check Bloch Sphere looks correct', () => {
         height,
         {threshold: 0.1}
       );
-      // Accouting for the difference in unicode symbols in browsers
-      expect(pixels).to.be.below(700);
+
+      expect(pixels).to.equal(0);
     });
 
     before(async () => {
       //Opens a headless browser with the generated HTML file and takes a screenshot.
-      const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({args: ['--app']});
       const page = await browser.newPage();
 
-      // Take a screenshot of the second image
-      await page.setContent(newVectorBrowserContent);
+      // Take a screenshot of the second image, adding the vector
+      browserStrings[1] += '.addVector(1, 1, 2);';
+      await page.setContent(browserStrings.join(''));
       await page.screenshot({path: new_vector_output_path});
       await browser.close();
     });
 
-    it('Bloch sphere with custom statevector matches the standard PNG copy', () => {
+    it('with custom statevector matches the gold PNG', () => {
       const expected = PNG.PNG.sync.read(
         readFileSync('e2e/bloch_sphere/bloch_sphere_expected_custom.png')
       );
@@ -133,8 +123,8 @@ describe('Check Bloch Sphere looks correct', () => {
         height,
         {threshold: 0.1}
       );
-      // Accouting for the difference in unicode symbols in browsers
-      expect(pixels).to.be.below(700);
+
+      expect(pixels).to.equal(0);
     });
   });
 });

@@ -20,29 +20,22 @@ import {BlochSphere} from './bloch_sphere';
  * sphere shape of the Bloch sphere and the state vector displayed with it.
  * These elements are added to a Scene object, which is added to the DOM
  * tree in the BlochSphereScene class.
- * @param blochSphereConfigJSON A JSON string containing information that configures the
- * bloch sphere.
- * @param containerId A string containing the container (div, span, etc.) id that will contain the visualization
- * output.
+ * @param containerId A string containing the container (div, span, etc.) id that
+ * will contain the visualization output.
+ * @param radius The radius of the bloch sphere
+ * @param hMeridians The designated number of horizontal meridians of the Bloch sphere
+ * @param vMeridians The designated number of vertical meridians in the Bloch sphere
  */
 export function renderBlochSphere(
-  blochSphereConfigJSON: string,
-  containerId: string
+  containerId: string,
+  radius = 5,
+  hMeridians = 7,
+  vMeridians = 4
 ) {
-  const DEFAULT_RADIUS = 5;
-  const DEFAULT_H_MERIDIANS = 7;
-  const DEFAULT_V_MERIDIANS = 4;
-
-  const sphereJSONObject = JSON.parse(blochSphereConfigJSON);
-
   const scene = new BlochSphereScene();
   scene.addSceneToHTMLContainer(containerId);
 
-  const blochSphere = new BlochSphere(
-    sphereJSONObject.radius || DEFAULT_RADIUS,
-    sphereJSONObject.hMeridians || DEFAULT_H_MERIDIANS,
-    sphereJSONObject.vMeridians || DEFAULT_V_MERIDIANS
-  );
+  const blochSphere = new BlochSphere(radius, hMeridians, vMeridians);
   scene.add(blochSphere);
 
   return blochSphere;

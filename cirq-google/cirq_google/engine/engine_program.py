@@ -16,6 +16,7 @@ import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import cirq
+from cirq_google.engine import engine_client
 from cirq_google.engine.client import quantum
 from cirq_google.engine.client.quantum import types as qtypes
 from cirq_google.engine.result_type import ResultType
@@ -379,9 +380,9 @@ class EngineProgram:
         )
         return [
             engine_job.EngineJob(
-                project_id=client._ids_from_job_name(j.name)[0],
-                program_id=client._ids_from_job_name(j.name)[1],
-                job_id=client._ids_from_job_name(j.name)[2],
+                project_id=engine_client._ids_from_job_name(j.name)[0],
+                program_id=engine_client._ids_from_job_name(j.name)[1],
+                job_id=engine_client._ids_from_job_name(j.name)[2],
                 context=self.context,
                 _job=j,
             )
@@ -482,7 +483,7 @@ class EngineProgram:
         """
         if not self._program or not self._program.HasField('code'):
             self._program = self.context.client.get_program(self.project_id, self.program_id, True)
-        return self._deserialize_program(self._program.code, program_num)
+        return _deserialize_program(self._program.code, program_num)
 
     def batch_size(self) -> int:
         """Returns the number of programs in a batch program.
@@ -505,42 +506,6 @@ class EngineProgram:
             return len(batch.programs)
         raise ValueError(f'Program was not a batch program but instead was of type {code_type}.')
 
-    @staticmethod
-    def _deserialize_program(
-        code: qtypes.any_pb2.Any, program_num: Optional[int] = None
-    ) -> cirq.Circuit:
-        import cirq_google.engine.engine as engine_base
-
-        code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
-        program = None
-        if code_type == 'cirq.google.api.v1.Program' or code_type == 'cirq.api.google.v1.Program':
-            raise ValueError('deserializing a v1 Program is not supported')
-        elif code_type == 'cirq.google.api.v2.Program' or code_type == 'cirq.api.google.v2.Program':
-            program = v2.program_pb2.Program.FromString(code.value)
-        elif code_type == 'cirq.google.api.v2.BatchProgram':
-            if program_num is None:
-                raise ValueError(
-                    'A program number must be specified when deserializing a Batch Program'
-                )
-            batch = v2.batch_pb2.BatchProgram.FromString(code.value)
-            if abs(program_num) >= len(batch.programs):
-                raise ValueError(
-                    f'Only {len(batch.programs)} in the batch but '
-                    f'index {program_num} was specified'
-                )
-
-            program = batch.programs[program_num]
-        if program:
-            gate_set_map = {g.gate_set_name: g for g in gate_sets.GOOGLE_GATESETS}
-            if program.language.gate_set not in gate_set_map:
-                raise ValueError(
-                    f'Unknown gateset {program.language.gate_set}. '
-                    f'Supported gatesets: {list(gate_set_map.keys())}.'
-                )
-            return gate_set_map[program.language.gate_set].deserialize(program)
-
-        raise ValueError(f'unsupported program type: {code_type}')
-
     def delete(self, delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
 
@@ -554,3 +519,38 @@ class EngineProgram:
 
     def __str__(self) -> str:
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'
+
+
+def _deserialize_program(
+    code: qtypes.any_pb2.Any, program_num: Optional[int] = None
+) -> cirq.Circuit:
+    import cirq_google.engine.engine as engine_base
+
+    code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
+    program = None
+    if code_type == 'cirq.google.api.v1.Program' or code_type == 'cirq.api.google.v1.Program':
+        raise ValueError('deserializing a v1 Program is not supported')
+    elif code_type == 'cirq.google.api.v2.Program' or code_type == 'cirq.api.google.v2.Program':
+        program = v2.program_pb2.Program.FromString(code.value)
+    elif code_type == 'cirq.google.api.v2.BatchProgram':
+        if program_num is None:
+            raise ValueError(
+                'A program number must be specified when deserializing a Batch Program'
+            )
+        batch = v2.batch_pb2.BatchProgram.FromString(code.value)
+        if abs(program_num) >= len(batch.programs):
+            raise ValueError(
+                f'Only {len(batch.programs)} in the batch but ' f'index {program_num} was specified'
+            )
+
+        program = batch.programs[program_num]
+    if program:
+        gate_set_map = {g.gate_set_name: g for g in gate_sets.GOOGLE_GATESETS}
+        if program.language.gate_set not in gate_set_map:
+            raise ValueError(
+                f'Unknown gateset {program.language.gate_set}. '
+                f'Supported gatesets: {list(gate_set_map.keys())}.'
+            )
+        return gate_set_map[program.language.gate_set].deserialize(program)
+
+    raise ValueError(f'unsupported program type: {code_type}')

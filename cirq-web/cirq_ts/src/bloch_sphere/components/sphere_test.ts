@@ -55,7 +55,7 @@ describe('Sphere', () => {
   describe('can be configured to', () => {
     it('accept valid radius inputs (1, 14.2, 100)', () => {
       const radiusInputs = [1, 14.2, 100];
-      const expectedRadius = [1, 15, 100];
+      const expectedRadius = [1, 14.2, 100];
 
       radiusInputs.forEach((el, index) => {
         const sphere = new Sphere(el);
