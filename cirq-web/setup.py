@@ -71,6 +71,6 @@ setup(
     packages=packs,
     package_data={
         'cirq_web': ['dist/*'],
+        'cirq_ts': ['dist/*.bundle.js']
     },
-    include_package_data=True,
 )
