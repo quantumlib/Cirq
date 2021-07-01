@@ -73,7 +73,8 @@ def test_repr_html():
         <div id="{bloch_sphere.get_id()}"></div>
         {bundle_script}
         <script>
-        renderBlochSphere('{bloch_sphere.get_id()}', {bloch_sphere.sphere_radius}).addVector({bloch_sphere.bloch_vector[0]}, {bloch_sphere.bloch_vector[1]}, {bloch_sphere.bloch_vector[2]});
+        renderBlochSphere('{bloch_sphere.get_id()}', {bloch_sphere.sphere_radius})
+            .addVector({bloch_sphere.bloch_vector[0]}, {bloch_sphere.bloch_vector[1]}, {bloch_sphere.bloch_vector[2]});
         </script>
         """
     assert expected == bloch_sphere._repr_html_()
@@ -96,7 +97,8 @@ def test_generate_html_file_with_browser(tmpdir):
 
     template_script = f"""
         <script>
-        renderBlochSphere('{bloch_sphere.get_id()}', {bloch_sphere.sphere_radius}).addVector({bloch_sphere.bloch_vector[0]}, {bloch_sphere.bloch_vector[1]}, {bloch_sphere.bloch_vector[2]});
+        renderBlochSphere('{bloch_sphere.get_id()}', {bloch_sphere.sphere_radius})
+            .addVector({bloch_sphere.bloch_vector[0]}, {bloch_sphere.bloch_vector[1]}, {bloch_sphere.bloch_vector[2]});
         </script>
         """
 

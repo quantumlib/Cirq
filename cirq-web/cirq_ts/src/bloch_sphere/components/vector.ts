@@ -26,7 +26,9 @@ export class Vector extends Group {
 
   /**
    * Class constructor.
-   * @param vectorData A JSON string containing information used to build the vector.
+   * @param x the x coordinate of the vector tip
+   * @param y the y coordinate of the vector tip
+   * @param z the z coordinate of the vector tip
    * @returns An instance of the class containing the generated vector. This can be
    * added to the Bloch sphere instance as well as the scene.
    */
@@ -48,7 +50,8 @@ export class Vector extends Group {
    * @param x The x coordinate of the vector tip.
    * @param y The y coordinate of the vector tip.
    * @param z The z coordinate of the vector tip.
-   * @param scaling_factor The length of the vector.
+   * @param scaling_factor The quantity that will be multiplied by
+   * the vector length to fit to the sphere. This will be the sphere's radius.
    */
   private generateVector(
     x: number,
@@ -64,9 +67,6 @@ export class Vector extends Group {
     const axis = new Vector3(1, 0, 0);
     const angle = -Math.PI / 2;
     directionVector.applyAxisAngle(axis, angle);
-
-    // Needed so that ArrowHelper can generate the length easily
-    //directionVector.normalize();
 
     // Set base properties of the vector
     const origin = new Vector3(0, 0, 0);

@@ -68,7 +68,8 @@ class BlochSphere(widget.Widget):
         <div id="{self.id}"></div>
         {bundle_script}
         <script>
-        renderBlochSphere('{self.id}', {self.sphere_radius}).addVector({self.bloch_vector[0]}, {self.bloch_vector[1]}, {self.bloch_vector[2]});
+        renderBlochSphere('{self.id}', {self.sphere_radius})
+            .addVector({self.bloch_vector[0]}, {self.bloch_vector[1]}, {self.bloch_vector[2]});
         </script>
         """
 
@@ -103,7 +104,8 @@ class BlochSphere(widget.Widget):
 
         template_script = f"""
         <script>
-        renderBlochSphere('{self.id}', {self.sphere_radius}).addVector({self.bloch_vector[0]}, {self.bloch_vector[1]}, {self.bloch_vector[2]});
+        renderBlochSphere('{self.id}', {self.sphere_radius})
+            .addVector({self.bloch_vector[0]}, {self.bloch_vector[1]}, {self.bloch_vector[2]});
         </script>
         """
 
