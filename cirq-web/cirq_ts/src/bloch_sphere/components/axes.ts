@@ -32,7 +32,8 @@ export class Axes extends Group {
 
   /**
    * Class constructor.
-   * @param halfLength The halfLength of the axes line. This should be the same as the radius of the sphere.
+   * @param halfLength The halfLength of the axes line. This should be the same as the
+   * radius of the sphere.
    * @returns An instance of the class containing the generated axes. This can be easily
    * added to the Bloch sphere instance, or the scene itself.
    */

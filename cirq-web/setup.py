@@ -69,8 +69,5 @@ setup(
     description=description,
     long_description=long_description,
     packages=packs,
-    package_data={
-        'cirq_web': ['dist/*'],
-        'cirq_ts': ['dist/*.bundle.js']
-    },
+    package_data={'cirq_web': ['dist/*'], 'cirq_ts': ['dist/*.bundle.js']},
 )

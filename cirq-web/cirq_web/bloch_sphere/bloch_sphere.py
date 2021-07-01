@@ -15,10 +15,7 @@
 import webbrowser
 import uuid
 
-from typing import Union
-from pathlib import PosixPath, WindowsPath
-
-from numpy import ndarray
+from pathlib import Path
 
 from cirq_web import widget
 
@@ -83,7 +80,7 @@ class BlochSphere(widget.Widget):
         output_directory: str = './',
         file_name: str = 'bloch_sphere.html',
         open_in_browser: bool = False,
-    ) -> Union[PosixPath, WindowsPath]:
+    ) -> Path:
         """Generates a portable HTML file of the bloch sphere that
         can be run anywhere. Prints out the absolute path of the file to the console.
 
@@ -96,8 +93,7 @@ class BlochSphere(widget.Widget):
             open: if True, opens the newly generated file automatically in the browser.
 
         Returns:
-            The path of the HTML file in either PosixPath or WindowsPath form, depending on the
-            operating system.
+            The path of the HTML file in as a Path object.
         """
 
         template_div = f"""

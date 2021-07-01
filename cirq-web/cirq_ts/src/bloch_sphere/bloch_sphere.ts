@@ -61,7 +61,7 @@ export class BlochSphere extends Group {
    * @param x the x coordinate of the vector's endpoint
    * @param y the y coordinate of the vector's endpoint
    * @param z the z coordinate of the vector's endpoint
-   * 
+   *
    */
   public addVector(x: number, y: number, z: number) {
     const vector = new Vector(x, y, z, this.radius);

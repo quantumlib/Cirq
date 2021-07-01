@@ -41,7 +41,7 @@ const browserStrings = [
     <script>${bundle_string}</script>
     <script>
   `,
-  ` renderBlochSphere('container')`,
+  " renderBlochSphere('container')",
   `
     </script>
     </body>
@@ -64,7 +64,7 @@ describe('Bloch sphere', () => {
 
     before(async () => {
       // Opens a headless browser with the generated HTML file and takes a screenshot.
-      // The '--app' flag ensures that chromium does capture any 
+      // The '--app' flag ensures that chromium does capture any
       // excess browser input
       const browser = await puppeteer.launch({args: ['--app']});
       const page = await browser.newPage();
@@ -101,7 +101,7 @@ describe('Bloch sphere', () => {
       const page = await browser.newPage();
 
       // Take a screenshot of the second image, adding the vector
-      browserStrings[1] += `.addVector(1, 1, 2);`;
+      browserStrings[1] += '.addVector(1, 1, 2);';
       await page.setContent(browserStrings.join(''));
       await page.screenshot({path: new_vector_output_path});
       await browser.close();

@@ -217,7 +217,6 @@ describe('BlochSphere (with valid custom constructor values)', () => {
       const expectedVectorY = [0, 1, 4];
       const expectedVectorZ = [0, 2, 5];
 
-      console.log(vectors);
       vectors.forEach((vector, index) => {
         expect(vector.x).to.equal(expectedVectorX[index]);
         expect(vector.y).to.equal(expectedVectorY[index]);

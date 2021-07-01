@@ -15,7 +15,8 @@
 import {ArrowHelper, Vector3, Group, LineBasicMaterial} from 'three';
 
 /**
- * Generates a vector to add to the Bloch sphere. The length and direction of the vector are configurable.
+ * Generates a vector to add to the Bloch sphere.
+ * The length and direction of the vector are configurable.
  */
 export class Vector extends Group {
   readonly scaling_factor: number;
@@ -49,7 +50,12 @@ export class Vector extends Group {
    * @param z The z coordinate of the vector tip.
    * @param scaling_factor The length of the vector.
    */
-  private generateVector(x: number, y: number, z: number, scaling_factor: number) {
+  private generateVector(
+    x: number,
+    y: number,
+    z: number,
+    scaling_factor: number
+  ) {
     const directionVector = new Vector3(x, y, z);
 
     // Apply a -90 degree correction rotation across the x axis
@@ -67,7 +73,7 @@ export class Vector extends Group {
     const hex = '#800080';
     const headWidth = 1;
 
-    // Calculate the distance, and alter it to be proportional 
+    // Calculate the distance, and alter it to be proportional
     // to the length
     const newLength = origin.distanceTo(directionVector) * scaling_factor;
 

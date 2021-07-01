@@ -23,7 +23,8 @@ describe('Meridians', () => {
   const DEFAULT_V_MERIDIANS = 4;
 
   describe('by default', () => {
-    it('createHorizontalChordMeridians() generates the correct number of lines given the default number (7)', () => {
+    it(`createHorizontalChordMeridians() generates the correct number of lines given 
+    the default number (7)`, () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
         DEFAULT_H_MERIDIANS,
@@ -32,7 +33,8 @@ describe('Meridians', () => {
       expect(meridians.children.length).to.equal(DEFAULT_H_MERIDIANS);
     });
 
-    it('createVerticalMeridians() generates the correct number of lines given the default number (4)', () => {
+    it(`createVerticalMeridians() generates the correct number of lines given 
+    the default number (4)`, () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
         DEFAULT_V_MERIDIANS,
@@ -41,7 +43,8 @@ describe('Meridians', () => {
       expect(meridians.children.length).to.equal(DEFAULT_V_MERIDIANS);
     });
 
-    it('createHorizontalChordMeridians() generates lines at the correct positions with defaults', () => {
+    it(`createHorizontalChordMeridians() generates lines at the correct positions 
+    with defaults`, () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
         DEFAULT_H_MERIDIANS,
