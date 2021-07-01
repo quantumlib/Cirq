@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
 import webbrowser
 import uuid
 
@@ -23,18 +22,15 @@ from numpy import ndarray
 
 from cirq_web import widget
 
-from cirq.testing import random_superposition
-from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
-from cirq.protocols import to_json
+from cirq.qis.states import STATE_VECTOR_LIKE
 
 
 class BlochSphere(widget.Widget):
     def __init__(
         self,
         sphere_radius: int = 5,
-        state_vector: ndarray = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2]),
-        random: bool = False,
+        state_vector: STATE_VECTOR_LIKE = None,
     ):
         """Initializes a BlochSphere, gathering all the user information and
         converting to JSON for output.
@@ -45,17 +41,18 @@ class BlochSphere(widget.Widget):
             sphere_radius: the radius of the bloch sphere in the three.js diagram.
             The default value is 5.
 
-            state_vector: a state vector to pass in to be represented. The default
-            vector is 1/sqrt(2) (|0⟩ +|1⟩) (the plus state)
+            state_vector: a state vector to pass in to be represented.
         """
 
         super().__init__('cirq_ts/dist/bloch_sphere.bundle.js')
 
-        self.sphere_json = self._convert_sphere_input(sphere_radius)
-        self.bloch_vector = (
-            self._create_random_vector() if random else self._create_vector(state_vector)
-        )
-        self.vector_json = self._serialize_vector(*self.bloch_vector, sphere_radius)
+        if sphere_radius <= 0:
+            raise ValueError('You must input a positive radius for the sphere')
+        self.sphere_radius = sphere_radius
+
+        if state_vector is None:
+            raise ValueError('No state vector given in BlochSphere initialization')
+        self.bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
 
         # Generate a unique UUID for every instance of a Bloch sphere.
         # This helps with adding visualizations to scenes, etc.
@@ -74,7 +71,7 @@ class BlochSphere(widget.Widget):
         <div id="{self.id}"></div>
         {bundle_script}
         <script>
-        renderBlochSphere('{self.sphere_json}', '{self.id}').addVector('{self.vector_json}');
+        renderBlochSphere('{self.id}', {self.sphere_radius}).addVector({self.bloch_vector[0]}, {self.bloch_vector[1]}, {self.bloch_vector[2]});
         </script>
         """
 
@@ -101,9 +98,6 @@ class BlochSphere(widget.Widget):
         Returns:
             The path of the HTML file in either PosixPath or WindowsPath form, depending on the
             operating system.
-
-        For now, if ran in a notebook, this function just returns. Support for downloading
-        the HTML file via the browser can be added later.
         """
 
         template_div = f"""
@@ -113,7 +107,7 @@ class BlochSphere(widget.Widget):
 
         template_script = f"""
         <script>
-        renderBlochSphere('{self.sphere_json}', '{self.id}').addVector('{self.vector_json}');
+        renderBlochSphere('{self.id}', {self.sphere_radius}).addVector({self.bloch_vector[0]}, {self.bloch_vector[1]}, {self.bloch_vector[2]});
         </script>
         """
 
@@ -125,34 +119,3 @@ class BlochSphere(widget.Widget):
             webbrowser.open(str(path_of_html_file), new=2)  # 2 opens in a new tab if possible
 
         return path_of_html_file
-
-    def _convert_sphere_input(self, radius: int) -> str:
-        if radius <= 0:
-            raise (BaseException('You must input a positive radius for the sphere'))
-
-        obj = {'radius': radius}
-        return to_json(obj, indent=None)
-
-    def _create_vector(self, state_vector: ndarray) -> ndarray:
-        """Any state_vector input will need to come from cirq.to_valid_state_vector,
-        so we can assume that a valid state_vector will be passed in.
-        """
-        bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
-
-        return bloch_vector
-
-    def _create_random_vector(self) -> ndarray:
-        random_vector = random_superposition(2)
-        state_vector = to_valid_state_vector(random_vector)
-        bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
-        return bloch_vector
-
-    def _serialize_vector(self, x: float, y: float, z: float, length: float = 5) -> str:
-        # .item() because input is of type float32, need to convert to serializable type
-        obj = {
-            'x': x.item(),
-            'y': y.item(),
-            'z': z.item(),
-            'length': length,
-        }
-        return to_json(obj, indent=None)

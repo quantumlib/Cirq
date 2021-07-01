@@ -1,38 +1,50 @@
-
+.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/images/Cirq_logo_color.png
+  :target: https://github.com/quantumlib/cirq
+  :alt: Cirq
+  :width: 500px
 
 `Cirq <https://quantumai.google/cirq>`__ is a Python library for writing, manipulating, and optimizing quantum
 circuits and running them against quantum computers and simulators.
 
-This module is **cirq-web**, which allows users to take advantage of browser based 3d visualization tools
+This module is **cirq-web**, which allows users to take advantage of browser based 3D visualization tools
 and features in Cirq. cirq-web also provides a development environment for contributors to create and add 
 their own visualizations to the module.
 
 Documentation
 -------------
-All current documentation for cirq-web can be found in the README files located in this module's subdirectories.
+Documentation for cirq-web can be found in the README files located in this module's subdirectories.
 
-Below is a quick example of how to generate a portable 3d rendering of a bloch sphere using cirq-web:
+Below is a quick example of how to generate a portable 3D rendering of the Bloch sphere using cirq-web:
 
 .. code-block:: python
 
     from cirq_web import BlochSphere
-    sphere = BlochSphere()
+
+    # Prepare a state
+    zero_state = [1+0j, 0+0j]
+    state_vector = cirq.to_valid_state_vector(zero_state)
+
+    # Create and display the Bloch sphere
+    sphere = BlochSphere(state_vector=state_vector)
     sphere.generate_html_file()
 
 This will create the file in the current working directory. There are additional options to specify the
-output directory, open the visualization in a browser, etc. 
+output directory or to open the visualization in a browser for example.
 
-You can also view and interact with a bloch sphere in a Colab or Jupyter notebook setting
+You can also view and interact with a Bloch sphere in a Colab or Jupyter notebook setting
 with the following:
 
 .. code-block:: python
 
     from cirq_web import BlochSphere
-    sphere = BlochSphere()
-    display(sphere)
 
-Note that you can pass a state vector into the :code:`BlochSphere()` constructor to view a particular
-state.
+    # Prepare a state
+    zero_state = [1+0j, 0+0j]
+    state_vector = cirq.to_valid_state_vector(zero_state)
+
+    # Create and display the Bloch sphere
+    sphere = BlochSphere(state_vector=state_vector)
+    display(sphere)
 
 See the example Jupyter notebook in this directory for more examples on how to use cirq-web.
 

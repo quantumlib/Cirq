@@ -63,7 +63,7 @@ describe('BlochSphere (with empty constructor)', () => {
     child => child.constructor.name === 'Labels'
   ) as Labels;
 
-  it('adds a single object to a scene of type Group, specifically BlochSphere', () => {
+  it('adds a single BlochSphere of type Group', () => {
     const children = scene.children;
     expect(children.length).to.equal(1);
     expect(children[0].type).to.equal('Group');
@@ -205,9 +205,9 @@ describe('BlochSphere (with valid custom constructor values)', () => {
       // but the front end isn't yet formatted to accomodate this.
       // The next PR will contain this additional support.
 
-      bloch_sphere.addVector();
-      bloch_sphere.addVector('{"x": 1,"y": 1, "z": 2, "length": 2}');
-      bloch_sphere.addVector('{"x": 3,"y": 4, "z": 5, "length": 1}');
+      bloch_sphere.addVector(1, 0, 0);
+      bloch_sphere.addVector(1, 1, 2);
+      bloch_sphere.addVector(3, 4, 5);
 
       const vectors = children.filter(
         child => child.constructor.name === 'Vector'
@@ -216,30 +216,14 @@ describe('BlochSphere (with valid custom constructor values)', () => {
       const expectedVectorX = [1, 1, 3];
       const expectedVectorY = [0, 1, 4];
       const expectedVectorZ = [0, 2, 5];
-      const expectedLength = [sphere.radius, 2, 1];
 
       console.log(vectors);
       vectors.forEach((vector, index) => {
         expect(vector.x).to.equal(expectedVectorX[index]);
         expect(vector.y).to.equal(expectedVectorY[index]);
         expect(vector.z).to.equal(expectedVectorZ[index]);
-        expect(vector.length).to.equal(expectedLength[index]);
+        expect(vector.scaling_factor).to.equal(sphere.radius);
       });
-    });
-
-    it('throwing the appropriate error with an invalid key', () => {
-      const errorMessage = 'Invalid vector json input provided. (Invalid key)';
-      expect(() => {
-        bloch_sphere.addVector('{"wrong": 1,"y": 1, "z": 2, "length": 5}');
-      }).to.throw(errorMessage);
-    });
-
-    it('throwing the appropriate error with an invalid value', () => {
-      const errorMessage =
-        'Invalid vector json input provided. (Non-number given as value)';
-      expect(() => {
-        bloch_sphere.addVector('{"x": 1,"y": 1, "z": "wrong", "length": 5}');
-      }).to.throw(errorMessage);
     });
   });
 });

@@ -5,10 +5,10 @@
 </head>
 <body>
   <div id="container"></div>
-  <script src="bloch_sphere.bundle.js"></script>
+  <script src="/bloch_sphere.bundle.js"></script>
   <script>
-    renderBlochSphere('{"radius": 5}', 'container')
-      .addVector('{"x": 1, "y": 0, "z": 0, "length": 5}');
+    renderBlochSphere('container', 5)
+      .addVector(1, 0, 0);
   </script>
 </body>
 </html>
