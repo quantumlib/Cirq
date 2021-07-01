@@ -113,15 +113,15 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Applies the operation to the state."""
         protocols.act_on(op, self)
 
-    def join(self: TSelf, other: TSelf) -> TSelf:
+    def kronecker_product(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""
         raise NotImplementedError()
 
-    def extract(self: TSelf, qubits: Sequence['cirq.Qid']) -> Tuple[TSelf, TSelf]:
+    def factor(self: TSelf, qubits: Sequence['cirq.Qid']) -> Tuple[TSelf, TSelf]:
         """Splits two state spaces after a measurement or reset."""
         raise NotImplementedError()
 
-    def reorder(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
+    def transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
         """Physically reindexes the state by the new basis."""
         raise NotImplementedError()
 

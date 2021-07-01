@@ -502,7 +502,7 @@ def to_special(u: np.ndarray) -> np.ndarray:
     return u * (np.linalg.det(u) ** (-1 / len(u)))
 
 
-def merge_state_vectors(
+def state_vector_kronecker_product(
     t1: np.ndarray,
     t2: np.ndarray,
 ) -> np.ndarray:
@@ -519,7 +519,7 @@ def merge_state_vectors(
     return np.outer(t1, t2).reshape(t1.shape + t2.shape)
 
 
-def merge_density_matrices(
+def density_matrix_kronecker_product(
     t1: np.ndarray,
     t2: np.ndarray,
 ) -> np.ndarray:
@@ -535,7 +535,7 @@ def merge_density_matrices(
     Returns:
         A density matrix representing the unified state.
     """
-    t = merge_state_vectors(t1, t2)
+    t = state_vector_kronecker_product(t1, t2)
     t1_len = len(t1.shape)
     t1_dim = int(t1_len / 2)
     t2_len = len(t2.shape)
@@ -546,11 +546,11 @@ def merge_density_matrices(
     )
 
 
-def split_state_vectors(
+def factor_state_vectors(
     t: np.ndarray,
     axes: Sequence[int],
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Splits a state vector into two independent state vectors.
+    """Factors a state vector into two independent state vectors.
 
     This function should only be called on state vectors that are known to be
     separable, such as immediately after a measurement or reset operation. It
@@ -579,11 +579,11 @@ def split_state_vectors(
     return extracted, remainder
 
 
-def split_density_matrices(
+def factor_density_matrices(
     t: np.ndarray,
     axes: Sequence[int],
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Splits a density matrix into two independent density matrices.
+    """Factors a density matrix into two independent density matrices.
 
     This function should only be called on density matrices that are known to
     be separable, such as immediately after a measurement or reset operation.
@@ -605,4 +605,4 @@ def split_density_matrices(
         order as the original density matrix.
     """
     axes = list(axes) + [i + int(t.ndim / 2) for i in axes]
-    return split_state_vectors(t, axes)
+    return factor_state_vectors(t, axes)

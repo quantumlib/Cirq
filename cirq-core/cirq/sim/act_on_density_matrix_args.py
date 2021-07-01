@@ -134,8 +134,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
 
-    def join(self, other: 'cirq.ActOnDensityMatrixArgs') -> 'cirq.ActOnDensityMatrixArgs':
-        target_tensor = transformations.merge_density_matrices(
+    def kronecker_product(
+        self, other: 'cirq.ActOnDensityMatrixArgs'
+    ) -> 'cirq.ActOnDensityMatrixArgs':
+        target_tensor = transformations.density_matrix_kronecker_product(
             self.target_tensor, other.target_tensor
         )
         buffer = [np.empty_like(target_tensor) for _ in self.available_buffer]
@@ -148,11 +150,11 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results,
         )
 
-    def extract(
+    def factor(
         self, qubits: Sequence['cirq.Qid']
     ) -> Tuple['cirq.ActOnDensityMatrixArgs', 'cirq.ActOnDensityMatrixArgs']:
         axes = self.get_axes(qubits)
-        extracted_tensor, remainder_tensor = transformations.split_density_matrices(
+        extracted_tensor, remainder_tensor = transformations.factor_density_matrices(
             self.target_tensor, axes
         )
         buffer = [np.empty_like(extracted_tensor) for _ in self.available_buffer]
@@ -175,7 +177,9 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
         return extracted_args, remainder_args
 
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnDensityMatrixArgs':
+    def transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid']
+    ) -> 'cirq.ActOnDensityMatrixArgs':
         assert len(qubits) == len(self.qubits)
         axes = self.get_axes(qubits)
         axes = axes + [i + len(qubits) for i in axes]
