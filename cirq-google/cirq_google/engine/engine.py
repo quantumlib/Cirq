@@ -33,6 +33,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union
 from google.protobuf import any_pb2
 
 import cirq
+from cirq_google.engine import engine_client
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google import serializable_gate_set as sgs
@@ -658,8 +659,8 @@ class Engine:
         )
         return [
             engine_program.EngineProgram(
-                project_id=client._ids_from_program_name(p.name)[0],
-                program_id=client._ids_from_program_name(p.name)[1],
+                project_id=engine_client._ids_from_program_name(p.name)[0],
+                program_id=engine_client._ids_from_program_name(p.name)[1],
                 _program=p,
                 context=self.context,
             )
@@ -709,9 +710,9 @@ class Engine:
         )
         return [
             engine_job.EngineJob(
-                project_id=client._ids_from_job_name(j.name)[0],
-                program_id=client._ids_from_job_name(j.name)[1],
-                job_id=client._ids_from_job_name(j.name)[2],
+                project_id=engine_client._ids_from_job_name(j.name)[0],
+                program_id=engine_client._ids_from_job_name(j.name)[1],
+                job_id=engine_client._ids_from_job_name(j.name)[2],
                 context=self.context,
                 _job=j,
             )
@@ -731,7 +732,7 @@ class Engine:
         return [
             engine_processor.EngineProcessor(
                 self.project_id,
-                self.context.client._ids_from_processor_name(p.name)[1],
+                engine_client._ids_from_processor_name(p.name)[1],
                 self.context,
                 p,
             )

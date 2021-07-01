@@ -120,7 +120,7 @@ class MergeInteractions(circuits.PointOptimizer):
         if op.qubits == qubits:
             return matrix
         if op.qubits == (q2, q1):
-            return MergeInteractions._flip_kron_order(matrix)
+            return _flip_kron_order(matrix)
         if op.qubits == (q1,):
             return np.kron(matrix, np.eye(2))
         if op.qubits == (q2,):
@@ -172,12 +172,12 @@ class MergeInteractions(circuits.PointOptimizer):
 
         return all_operations, touched_indices, product
 
-    @staticmethod
-    def _flip_kron_order(mat4x4: np.ndarray) -> np.ndarray:
-        """Given M = sum(kron(a_i, b_i)), returns M' = sum(kron(b_i, a_i))."""
-        result = np.array([[0] * 4] * 4, dtype=np.complex128)
-        order = [0, 2, 1, 3]
-        for i in range(4):
-            for j in range(4):
-                result[order[i], order[j]] = mat4x4[i, j]
-        return result
+
+def _flip_kron_order(mat4x4: np.ndarray) -> np.ndarray:
+    """Given M = sum(kron(a_i, b_i)), returns M' = sum(kron(b_i, a_i))."""
+    result = np.array([[0] * 4] * 4, dtype=np.complex128)
+    order = [0, 2, 1, 3]
+    for i in range(4):
+        for j in range(4):
+            result[order[i], order[j]] = mat4x4[i, j]
+    return result
