@@ -18,6 +18,7 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
+from typing import Union, Iterable, Any, List, Sequence
 
 from cirq import value
 from cirq._compat import deprecated_class
@@ -38,7 +39,7 @@ class _SupportsOnEachGateMeta(value.ABCMetaImplementAnyOneOf):
             type(instance), SupportsOnEachGate
         )
 
-
+      
 @deprecated_class(deadline='v0.14', fix='None, this feature is in `Gate` now.')
 class SupportsOnEachGate(raw_types.Gate, metaclass=_SupportsOnEachGateMeta):
     pass
