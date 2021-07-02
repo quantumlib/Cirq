@@ -174,26 +174,6 @@ q0, q1 = cirq.LineQubit.range(2)
 entangled_state_repr = np.array([[math.sqrt(0.5), 0], [0, math.sqrt(0.5)]])
 
 
-class SplittableCountingSimulator(CountingSimulator):
-    def __init__(self, noise=None, split_untangled_states=True):
-        super().__init__(
-            noise=noise,
-            split_untangled_states=split_untangled_states,
-        )
-
-    def _create_partial_act_on_args(
-        self,
-        initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
-    ) -> CountingActOnArgs:
-        return SplittableCountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
-
-
-q0, q1 = cirq.LineQubit.range(2)
-entangled_state_repr = np.array([[math.sqrt(0.5), 0], [0, math.sqrt(0.5)]])
-
-
 class TestOp(cirq.Operation):
     def with_qubits(self, *new_qubits):
         pass
