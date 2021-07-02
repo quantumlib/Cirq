@@ -573,19 +573,19 @@ def factor_state_vector(
         same order as the original state vector.
     """
     n_axes = len(axes)
-    t = np.moveaxis(t, axes, range(n_axes))
-    pivot = np.unravel_index(np.abs(t).argmax(), t.shape)
+    t1 = np.moveaxis(t, axes, range(n_axes))
+    pivot = np.unravel_index(np.abs(t1).argmax(), t1.shape)
     slices1 = (slice(None),) * n_axes + pivot[n_axes:]
-    slices2 = pivot[:n_axes] + (slice(None),) * (t.ndim - n_axes)
-    extracted = t[slices1]
+    slices2 = pivot[:n_axes] + (slice(None),) * (t1.ndim - n_axes)
+    extracted = t1[slices1]
     extracted = extracted / np.sum(abs(extracted) ** 2) ** 0.5
-    remainder = t[slices2]
+    remainder = t1[slices2]
     remainder = remainder / np.sum(abs(remainder) ** 2) ** 0.5
     if validate:
-        t1 = state_vector_kronecker_product(extracted, remainder)
-        axes2 = list(axes) + [i for i in range(t.ndim) if i not in axes]
-        t2 = transpose_state_vector_to_axis_order(t1, axes2)
-        if not np.allclose(t2, t, atol=atol):
+        t2 = state_vector_kronecker_product(extracted, remainder)
+        axes2 = list(axes) + [i for i in range(t1.ndim) if i not in axes]
+        t3 = transpose_state_vector_to_axis_order(t2, axes2)
+        if not np.allclose(t3, t, atol=atol):
             raise ValueError('The tensor cannot be factored by the requested axes')
     return extracted, remainder
 
