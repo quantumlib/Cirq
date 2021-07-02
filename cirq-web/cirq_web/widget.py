@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from abc import ABC, abstractmethod
 from pathlib import Path
 from enum import Enum
+import os
 import uuid
+import webbrowser
 
 import cirq_web
 
@@ -28,7 +31,7 @@ class Env(Enum):
     OTHER = 3
 
 
-def _to_script_tag(path: str) -> str:
+def _to_script_tag(bundle_filename: str) -> str:
     """Dumps the contents of a particular bundle file into a script tag.
 
     Args:
@@ -37,7 +40,7 @@ def _to_script_tag(path: str) -> str:
     Returns:
         The bundle file as string (readable by browser) wrapped in HTML script tags.
     """
-    bundle_file_path = path
+    bundle_file_path = os.path.join(_DIST_PATH, bundle_filename)
     bundle_file = open(bundle_file_path, 'r', encoding='utf-8')
     bundle_file_contents = bundle_file.read()
     bundle_file.close()
@@ -46,56 +49,75 @@ def _to_script_tag(path: str) -> str:
     return bundle_html
 
 
-def write_output_file(output_directory: str, file_name: str, contents: str) -> Path:
-    """Writes the output file and returns its absolute path.
+class Widget(ABC):
+    """Abstract template class for all widgets."""
 
-    Args:
-        output_directory: the directory in which the output file will be
-        generated.
-
-        file_name: the name of the output file. Default is 'bloch_sphere'
-
-        contents: the contents of the file
-    Returns:
-        The path of the file as a Path object
-    """
-    # Ensure that the user enters a trailing slash
-    file_path = Path(output_directory).joinpath(file_name)
-
-    file_to_write_in = open(str(file_path), 'w', encoding='utf-8')
-    file_to_write_in.write(contents)
-    file_to_write_in.close()
-
-    path_string = str(file_path)
-    print(f'File can be found at: {path_string}')
-    return file_path
-
-
-class Widget:
-    """Parent class for all widgets."""
-
-    def __init__(self, bundle_file_path: str):
+    def __init__(self):
         """Initializes a Widget.
 
-        Args:
-            bundle_file_path: The relative path of the widget's bundle file starting from cirq_ts/
+        Gives a widget a unique ID.
         """
-        self.bundle_file_path = f'{_DIST_PATH}/{bundle_file_path}'
-
-        # Generate a unique UUID for every instance of a Bloch sphere.
+        # Generate a unique UUID for every instance of a Widget.
         # This helps with adding visualizations to scenes, etc.
         self.id = str(uuid.uuid1())
 
-    def get_bundle_script(self):
-        """Returns the bundle script of a widget"""
-        return _to_script_tag(self.bundle_file_path)
+    @abstractmethod
+    def get_client_code(self) -> str:
+        raise NotImplementedError()
 
-    def create_html_content(self, client_code: str) -> str:
+    @abstractmethod
+    def get_widget_bundle_name(self) -> str:
+        raise NotImplementedError()
+
+    def _repr_html_(self):
+        """Allows the object's html to be easily displayed in a notebook
+        by using the display() method.
+        """
+        client_code = self.get_client_code()
+        return self._create_html_content(client_code)
+
+    def generate_html_file(
+        self,
+        output_directory: str = './',
+        file_name: str = 'bloch_sphere.html',
+        open_in_browser: bool = False,
+    ) -> str:
+        """Generates a portable HTML file of the widget that
+        can be run anywhere. Prints out the absolute path of the file to the console.
+
+        Args:
+            output_directory: the directory in which the output file will be
+            generated. The default is the current directory ('./')
+
+            file_name: the name of the output file. Default is 'bloch_sphere'
+
+            open_in_browser: if True, opens the newly generated file automatically in the browser.
+
+        Returns:
+            The path of the HTML file in as a Path object.
+        """
+        client_code = self.get_client_code()
+        contents = self._create_html_content(client_code)
+        path_of_html_file = os.path.join(output_directory, file_name)
+        with open(path_of_html_file, 'w', encoding='utf-8') as f:
+            f.write(contents)
+
+        if open_in_browser:
+            webbrowser.open(path_of_html_file, new=2)
+
+        return path_of_html_file
+
+    def _get_bundle_script(self):
+        """Returns the bundle script of a widget"""
+        bundle_filename = self.get_widget_bundle_name()
+        return _to_script_tag(bundle_filename)
+
+    def _create_html_content(self, client_code: str) -> str:
         div = f"""
         <meta charset="UTF-8">
         <div id="{self.id}"></div>
         """
 
-        bundle_script = _to_script_tag(self.bundle_file_path)
+        bundle_script = self._get_bundle_script()
 
         return div + bundle_script + client_code

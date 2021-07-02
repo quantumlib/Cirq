@@ -52,8 +52,8 @@ describe('Sphere', () => {
     });
   });
 
-  describe('can be configured to', () => {
-    it('accept valid radius inputs (1, 14.2, 100)', () => {
+  describe('allows configuration that', () => {
+    it('accepts valid radius inputs (1, 14.2, 100)', () => {
       const radiusInputs = [1, 14.2, 100];
       const expectedRadius = [1, 14.2, 100];
 
@@ -65,8 +65,8 @@ describe('Sphere', () => {
       });
     });
 
-    describe('throw the correct errors', () => {
-      it('if given invalid radius inputs (-1, 0)', () => {
+    describe('throws the correct errors if the user', () => {
+      it('gives invalid radius inputs (-1, 0)', () => {
         const radiusInputs = [-1, 0];
         const expectedErrorMessage =
           'The radius of a Sphere must be greater than or equal to 1';

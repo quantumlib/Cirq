@@ -56,45 +56,22 @@ def test_no_state_vector_given():
         cirq_web.BlochSphere()
 
 
-def test_repr_html():
+def test_bloch_sphere_default_client_code():
     state_vector = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
     bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
-    bundle_script = bloch_sphere.get_bundle_script()
-    expected = f"""
-        <meta charset="UTF-8">
-        <div id="{bloch_sphere.id}"></div>
-        {bundle_script}
+
+    expected_client_code = f"""
         <script>
-        renderBlochSphere('{bloch_sphere.id}', {bloch_sphere.sphere_radius})
-            .addVector({bloch_sphere.bloch_vector[0]}, {bloch_sphere.bloch_vector[1]}, {bloch_sphere.bloch_vector[2]});
-        </script>
-        """
-    assert expected == bloch_sphere._repr_html_()
-
-
-def test_generate_html_file_with_browser(tmpdir):
-    path = tmpdir.mkdir('dir')
-
-    state_vector = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
-    bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
-    test_path = bloch_sphere.generate_html_file(
-        output_directory=str(path), file_name='test.html', open_in_browser=True
-    )
-
-    div = f"""
-        <meta charset="UTF-8">
-        <div id="{bloch_sphere.id}"></div>
-        """
-    bundle_script = bloch_sphere.get_bundle_script()
-
-    script = f"""
-        <script>
-        renderBlochSphere('{bloch_sphere.id}', {bloch_sphere.sphere_radius})
-            .addVector({bloch_sphere.bloch_vector[0]}, {bloch_sphere.bloch_vector[1]}, {bloch_sphere.bloch_vector[2]});
+        renderBlochSphere('{bloch_sphere.id}', 5)
+            .addVector(1.0, 0.0, 0.0);
         </script>
         """
 
-    expected = div + bundle_script + script
-    actual = open(str(test_path), 'r', encoding='utf-8').read()
+    assert expected_client_code == bloch_sphere.get_client_code()
 
-    assert expected == actual
+
+def test_bloch_sphere_default_bundle_name():
+    state_vector = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
+    bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
+
+    assert bloch_sphere.get_widget_bundle_name() == 'bloch_sphere.bundle.js'
