@@ -249,9 +249,9 @@ def test_deprecated_on_each_for_depolarizing_channel_two_qubits():
     op.on_each(zip([q0, q2, q4], [q1, q3, q5]))
     with pytest.raises(ValueError, match='cannot be in varargs form'):
         op.on_each(q0, q1)
-    with pytest.raises(ValueError, match='cannot be in varargs form'):
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         op.on_each((q0, q1))
-    with pytest.raises(ValueError, match='cannot be in varargs form'):
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         op.on_each([q0, q1])
     with pytest.raises(ValueError, match='Qid'):
         op.on_each([('bogus object 0', 'bogus object 1')])

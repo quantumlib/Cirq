@@ -81,7 +81,7 @@ def test_identity_on_each_two_qubits():
     ]
     with pytest.raises(ValueError, match='cannot be in varargs form'):
         cirq.IdentityGate(2).on_each(q0, q1)
-    with pytest.raises(ValueError, match='cannot be in varargs form'):
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         cirq.IdentityGate(2).on_each((q0, q1))
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
         cirq.IdentityGate(2).on_each([[(q0, q1)]])

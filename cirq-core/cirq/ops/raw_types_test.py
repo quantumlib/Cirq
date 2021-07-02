@@ -814,7 +814,7 @@ def test_on_each_two_qubits():
         g.on_each()
     with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each(a, b)
-    with pytest.raises(ValueError, match='cannot be in varargs form'):
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         g.on_each((b, a))
     with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each((a, b), (a, b))
@@ -875,7 +875,7 @@ def test_on_each_three_qubits():
         g.on_each()
     with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each(a, b, c)
-    with pytest.raises(ValueError, match='cannot be in varargs form'):
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         g.on_each((c, b, a))
     with pytest.raises(ValueError, match='cannot be in varargs form'):
         g.on_each((a, b, c), (a, b, c))

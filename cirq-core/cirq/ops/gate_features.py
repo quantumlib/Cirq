@@ -48,36 +48,33 @@ class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
             ValueError if targets are not instances of Qid or Iterable[Qid].
             ValueError if the gate qubit number is incompatible.
         """
-        operations: List[raw_types.Operation] = []
         if self._num_qubits_() > 1:
+            ops: List[raw_types.Operation] = []
             if len(targets) != 1 or not isinstance(targets[0], Iterable):
                 raise ValueError(f'The inputs for multi-qubit gates cannot be in varargs form.')
             for target in targets[0]:
                 if not isinstance(target, Sequence):
-                    if isinstance(target, raw_types.Qid):
-                        raise ValueError(
-                            f'The inputs for multi-qubit gates cannot be in varargs form.'
-                        )
-                    else:
-                        raise ValueError(
-                            f'Inputs to multi-qubit gates must be Sequence[Qid].'
-                            f' Type: {type(target)}'
-                        )
+                    raise ValueError(
+                        f'Inputs to multi-qubit gates must be Sequence[Qid].'
+                        f' Type: {type(target)}'
+                    )
                 if not all(isinstance(x, raw_types.Qid) for x in target):
                     raise ValueError(f'All values in sequence should be Qids, but got {target}')
                 if len(target) != self._num_qubits_():
                     raise ValueError(f'Expected {self._num_qubits_()} qubits, got {target}')
-                operations.append(self.on(*target))
-        else:
-            for target in targets:
-                if isinstance(target, raw_types.Qid):
-                    operations.append(self.on(target))
-                elif isinstance(target, Iterable) and not isinstance(target, str):
-                    operations.extend(self.on_each(*target))
-                else:
-                    raise ValueError(
-                        f'Gate was called with type different than Qid. Type: {type(target)}'
-                    )
+                ops.append(self.on(*target))
+            return ops
+
+        operations: List[raw_types.Operation] = []
+        for target in targets:
+            if isinstance(target, raw_types.Qid):
+                operations.append(self.on(target))
+            elif isinstance(target, Iterable) and not isinstance(target, str):
+                operations.extend(self.on_each(*target))
+            else:
+                raise ValueError(
+                    f'Gate was called with type different than Qid. Type: {type(target)}'
+                )
         return operations
 
 
