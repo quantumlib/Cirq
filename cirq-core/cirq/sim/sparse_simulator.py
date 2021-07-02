@@ -328,27 +328,4 @@ class SparseSimulatorStep(
                 corresponding to a computational basis state. If a numpy
                 array this is the full state vector.
         """
-        if self._split_untangled_states:
-            # TODO: Fix in #4110
-            raise ValueError(  # coverage: ignore
-                'Cannot set states when using `split_untangled_states` option.'  # coverage: ignore
-            )  # coverage: ignore
-        update_state = qis.to_valid_state_vector(
-            state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
-        )
-        np.copyto(self._state_vector, update_state)
-
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        indices = [self.qubit_map[qubit] for qubit in qubits]
-        return state_vector.sample_state_vector(
-            self._state_vector,
-            indices,
-            qid_shape=protocols.qid_shape(self, None),
-            repetitions=repetitions,
-            seed=seed,
-        )
+        self._sim_state = self._simulator._create_act_on_args(state, self._qubits)
