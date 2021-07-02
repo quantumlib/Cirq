@@ -88,7 +88,7 @@ def test_unsupported_op():
             '~x2 & x0',
             '(x2 | x1) ^ x0',
         ],
-        [False, True],
+        [False, True, None],
     ),
 )
 def test_circuit(boolean_str, ladder_target):

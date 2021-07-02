@@ -26,7 +26,8 @@ References:
 
 import functools
 import itertools
-from typing import cast, Any, Callable, Dict, Generator, List, Sequence, Tuple
+from typing import cast, Any, Callable, Dict, Generator, List, Optional, Sequence, Tuple
+import sys
 
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
@@ -323,6 +324,18 @@ def _get_gates_from_hamiltonians(
     yield _apply_cnots(previous_h, ())
 
 
+def shortest_generator(
+    generators: List[Generator['cirq.Operation', None, None]]
+) -> Generator['cirq.Operation', None, None]:
+    min_gen_length = sys.maxsize
+    for generator in generators:
+        out_gen, gen_copy = itertools.tee(generator)
+        gen_length = sum(1 for _ in gen_copy)
+        if gen_length < min_gen_length:
+            min_gen = out_gen
+    return min_gen
+
+
 @value.value_equality
 class BooleanHamiltonian(raw_types.Operation):
     """An operation that represents a Hamiltonian from a set of Boolean functions."""
@@ -332,7 +345,7 @@ class BooleanHamiltonian(raw_types.Operation):
         qubit_map: Dict[str, 'cirq.Qid'],
         boolean_strs: Sequence[str],
         theta: float,
-        ladder_target: bool,
+        ladder_target: Optional[bool] = None,
     ):
         """Builds an BooleanHamiltonian.
 
@@ -373,11 +386,13 @@ class BooleanHamiltonian(raw_types.Operation):
                 ───X───X───X───
                 The papers do not provide a formula for which option yields a smaller number of
                 gates, so the option is provided as an input.
+                If set to None, computes the set of gates for both approaches, count the number of
+                gates, and return the smallest set.
         """
         self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
         self._boolean_strs: Sequence[str] = boolean_strs
         self._theta: float = theta
-        self._ladder_target: bool = ladder_target
+        self._ladder_target: Optional[bool] = ladder_target
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'BooleanHamiltonian':
         return BooleanHamiltonian(
@@ -416,6 +431,14 @@ class BooleanHamiltonian(raw_types.Operation):
             _build_hamiltonian_from_boolean(boolean_expr, self._qubit_map)
             for boolean_expr in boolean_exprs
         ]
-        yield _get_gates_from_hamiltonians(
-            hamiltonian_polynomial_list, self._qubit_map, self._theta, self._ladder_target
+
+        ladder_target_list = [True, False] if self._ladder_target is None else [self._ladder_target]
+
+        return shortest_generator(
+            [
+                _get_gates_from_hamiltonians(
+                    hamiltonian_polynomial_list, self._qubit_map, self._theta, self._ladder_target
+                )
+                for ladder_target in ladder_target_list
+            ]
         )
