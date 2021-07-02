@@ -16,7 +16,7 @@ from typing import Callable, List, Optional, Tuple, Set, Any, TYPE_CHECKING
 
 import numpy as np
 
-from cirq.devices import GridQubit
+import cirq
 from cirq_google.line.placement import place_strategy, optimization
 from cirq_google.line.placement.chip import (
     above,
@@ -29,7 +29,7 @@ from cirq_google.line.placement.sequence import GridQubitLineTuple, LineSequence
 if TYPE_CHECKING:
     import cirq_google
 
-_STATE = Tuple[List[List[GridQubit]], Set[EDGE]]
+_STATE = Tuple[List[List[cirq.GridQubit]], Set[EDGE]]
 
 
 class AnnealSequenceSearch:
@@ -143,8 +143,8 @@ class AnnealSequenceSearch:
         return (self._force_edge_active(seqs, edge, lambda: bool(self._rand.randint(2))), edges)
 
     def _force_edge_active(
-        self, seqs: List[List[GridQubit]], edge: EDGE, sample_bool: Callable[[], bool]
-    ) -> List[List[GridQubit]]:
+        self, seqs: List[List[cirq.GridQubit]], edge: EDGE, sample_bool: Callable[[], bool]
+    ) -> List[List[cirq.GridQubit]]:
         """Move which forces given edge to appear on some sequence.
 
         Args:
@@ -242,7 +242,7 @@ class AnnealSequenceSearch:
           Valid search state.
         """
 
-        def extract_sequences() -> List[List[GridQubit]]:
+        def extract_sequences() -> List[List[cirq.GridQubit]]:
             """Creates list of sequences for initial state.
 
             Returns:
@@ -300,7 +300,7 @@ class AnnealSequenceSearch:
           position.
         """
 
-        def lower(n: GridQubit, m: GridQubit) -> bool:
+        def lower(n: cirq.GridQubit, m: cirq.GridQubit) -> bool:
             return n.row < m.row or (n.row == m.row and n.col < m.col)
 
         n1, n2 = edge

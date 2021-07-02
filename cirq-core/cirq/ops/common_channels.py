@@ -316,13 +316,13 @@ class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
             return f"depolarize(p={self._p})"
         return f"depolarize(p={self._p},n_qubits={self._n_qubits})"
 
-    def _act_on_(self, args: Any) -> bool:
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if args.prng.random() < self._p:
                 gate = args.prng.choice([pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
-                protocols.act_on(gate, args)
+                protocols.act_on(gate, args, qubits)
             return True
         return NotImplemented
 
@@ -454,7 +454,7 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         self._gamma = value.validate_probability(gamma, 'gamma')
         self._p = value.validate_probability(p, 'p')
 
-    def _channel_(self) -> Iterable[np.ndarray]:
+    def _kraus_(self) -> Iterable[np.ndarray]:
         p0 = np.sqrt(self._p)
         p1 = np.sqrt(1.0 - self._p)
         sqrt_g = np.sqrt(self._gamma)
@@ -466,7 +466,7 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
             p1 * np.array([[0.0, 0.0], [sqrt_g, 0.0]]),
         )
 
-    def _has_channel_(self) -> bool:
+    def _has_kraus_(self) -> bool:
         return True
 
     def _value_equality_values_(self):
@@ -597,12 +597,12 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
         self._gamma = value.validate_probability(gamma, 'gamma')
         self._delegate = GeneralizedAmplitudeDampingChannel(1.0, self._gamma)
 
-    def _channel_(self) -> Iterable[np.ndarray]:
+    def _kraus_(self) -> Iterable[np.ndarray]:
         # just return first two kraus ops, we don't care about
         # the last two.
-        return list(self._delegate._channel_())[:2]
+        return list(self._delegate._kraus_())[:2]
 
-    def _has_channel_(self) -> bool:
+    def _has_kraus_(self) -> bool:
         return True
 
     def _value_equality_values_(self):
@@ -720,20 +720,21 @@ class ResetChannel(gate_features.SingleQubitGate):
     def _qid_shape_(self):
         return (self._dimension,)
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq import sim, ops
 
         if isinstance(args, sim.ActOnStabilizerCHFormArgs):
-            (axe,) = args.axes
+            axe = args.qubit_map[qubits[0]]
             if args.state._measure(axe, args.prng):
-                ops.X._act_on_(args)
+                ops.X._act_on_(args, qubits)
             return True
 
         if isinstance(args, sim.ActOnStateVectorArgs):
             # Do a silent measurement.
+            axes = args.get_axes(qubits)
             measurements, _ = sim.measure_state_vector(
                 args.target_tensor,
-                args.axes,
+                axes,
                 out=args.target_tensor,
                 qid_shape=args.target_tensor.shape,
             )
@@ -741,8 +742,8 @@ class ResetChannel(gate_features.SingleQubitGate):
 
             # Use measurement result to zero the qid.
             if result:
-                zero = args.subspace_index(0)
-                other = args.subspace_index(result)
+                zero = args.subspace_index(axes, 0)
+                other = args.subspace_index(axes, result)
                 args.target_tensor[zero] = args.target_tensor[other]
                 args.target_tensor[other] = 0
 
@@ -750,13 +751,13 @@ class ResetChannel(gate_features.SingleQubitGate):
 
         return NotImplemented
 
-    def _channel_(self) -> Iterable[np.ndarray]:
+    def _kraus_(self) -> Iterable[np.ndarray]:
         # The first axis is over the list of channel matrices
         channel = np.zeros((self._dimension,) * 3, dtype=np.complex64)
         channel[:, 0, :] = np.eye(self._dimension)
         return channel
 
-    def _has_channel_(self) -> bool:
+    def _has_kraus_(self) -> bool:
         return True
 
     def _value_equality_values_(self):
@@ -831,13 +832,13 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
         """
         self._gamma = value.validate_probability(gamma, 'gamma')
 
-    def _channel_(self) -> Iterable[np.ndarray]:
+    def _kraus_(self) -> Iterable[np.ndarray]:
         return (
             np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - self._gamma)]]),
             np.array([[0.0, 0.0], [0.0, np.sqrt(self._gamma)]]),
         )
 
-    def _has_channel_(self) -> bool:
+    def _has_kraus_(self) -> bool:
         return True
 
     def _value_equality_values_(self):

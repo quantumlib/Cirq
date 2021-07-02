@@ -90,6 +90,7 @@ from cirq.devices import (
     NO_NOISE,
     NOISE_MODEL_LIKE,
     NoiseModel,
+    SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
 )
 
@@ -334,9 +335,14 @@ from cirq.qis import (
     density_matrix,
     density_matrix_from_state_vector,
     dirac_notation,
+    entanglement_fidelity,
     eye_tensor,
     fidelity,
+    kraus_to_channel_matrix,
+    kraus_to_choi,
     one_hot,
+    operation_to_channel_matrix,
+    operation_to_choi,
     QUANTUM_STATE_LIKE,
     QuantumState,
     quantum_state,
@@ -473,6 +479,7 @@ from cirq.protocols import (
     definitely_commutes,
     equal_up_to_global_phase,
     has_channel,
+    has_kraus,
     has_mixture,
     has_stabilizer_effect,
     has_unitary,
@@ -481,6 +488,7 @@ from cirq.protocols import (
     is_parameterized,
     JsonResolver,
     json_serializable_dataclass,
+    kraus,
     measurement_key,
     measurement_keys,
     mixture,
@@ -502,6 +510,7 @@ from cirq.protocols import (
     resolve_parameters_once,
     SerializableByKey,
     SupportsActOn,
+    SupportsActOnQubits,
     SupportsApplyChannel,
     SupportsApplyMixture,
     SupportsApproximateEquality,
@@ -570,8 +579,6 @@ from cirq.work import (
 # Unflattened sub-modules.
 
 from cirq import (
-    ionq,
-    pasqal,
     testing,
 )
 
@@ -585,7 +592,45 @@ try:
     )
 except ImportError as ex:
     # coverage: ignore
-    warning("Can't import cirq.google: ", ex)
+    warning("Can't import cirq_google: ", exc_info=ex)
+
+try:
+    _compat.deprecated_submodule(
+        new_module_name='cirq_aqt',
+        old_parent=__name__,
+        old_child='aqt',
+        deadline="v0.14",
+        create_attribute=True,
+    )
+except ImportError as ex:
+    # coverage: ignore
+    warning("Can't import cirq_aqt: ", exc_info=ex)
+
+
+try:
+    _compat.deprecated_submodule(
+        new_module_name='cirq_ionq',
+        old_parent=__name__,
+        old_child='ionq',
+        deadline="v0.14",
+        create_attribute=True,
+    )
+except ImportError as ex:
+    # coverage: ignore
+    warning("Can't import cirq_ionq: ", exc_info=ex)
+
+
+try:
+    _compat.deprecated_submodule(
+        new_module_name='cirq_pasqal',
+        old_parent=__name__,
+        old_child='pasqal',
+        deadline="v0.14",
+        create_attribute=True,
+    )
+except ImportError as ex:
+    # coverage: ignore
+    warning("Can't import cirq_pasqal: ", exc_info=ex)
 
 
 def _register_resolver() -> None:

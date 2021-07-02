@@ -209,6 +209,25 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
+    def _has_kraus_(self) -> bool:
+        getter = getattr(self.gate, '_has_kraus_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
+    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        getter = getattr(self.gate, '_kraus_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
+    def _is_measurement_(self) -> Optional[bool]:
+        getter = getattr(self.gate, '_is_measurement_', None)
+        if getter is not None:
+            return getter()
+        # Let the protocol handle the fallback.
+        return NotImplemented
+
     def _measurement_key_(self) -> Optional[str]:
         getter = getattr(self.gate, '_measurement_key_', None)
         if getter is not None:
@@ -221,10 +240,10 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs'):
         getter = getattr(self.gate, '_act_on_', None)
         if getter is not None:
-            return getter(args)
+            return getter(args, self.qubits)
         return NotImplemented
 
     def _is_parameterized_(self) -> bool:

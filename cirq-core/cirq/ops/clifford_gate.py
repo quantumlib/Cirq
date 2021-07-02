@@ -18,7 +18,7 @@ import numpy as np
 
 from cirq import protocols, value, linalg
 from cirq._doc import document
-from cirq.ops import common_gates, gate_features, named_qubit, pauli_gates
+from cirq.ops import common_gates, gate_features, named_qubit, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
 from cirq.type_workarounds import NotImplementedType
 
@@ -47,6 +47,35 @@ def _pretend_initialized() -> 'SingleQubitCliffordGate':
     # HACK: This is a workaround to fool mypy and pylint into correctly handling
     # class fields that can't be initialized until after the class is defined.
     pass
+
+
+def _validate_map_input(
+    required_transform_count: int,
+    pauli_map_to: Optional[Dict[Pauli, Tuple[Pauli, bool]]],
+    x_to: Optional[Tuple[Pauli, bool]],
+    y_to: Optional[Tuple[Pauli, bool]],
+    z_to: Optional[Tuple[Pauli, bool]],
+) -> Dict[Pauli, PauliTransform]:
+    if pauli_map_to is None:
+        xyz_to = {pauli_gates.X: x_to, pauli_gates.Y: y_to, pauli_gates.Z: z_to}
+        pauli_map_to = {cast(Pauli, p): trans for p, trans in xyz_to.items() if trans is not None}
+    elif x_to is not None or y_to is not None or z_to is not None:
+        raise ValueError(
+            '{} can take either pauli_map_to or a combination'
+            ' of x_to, y_to, and z_to but both were given'
+        )
+    if len(pauli_map_to) != required_transform_count:
+        raise ValueError(
+            'Method takes {} transform{} but {} {} given'.format(
+                required_transform_count,
+                '' if required_transform_count == 1 else 's',
+                len(pauli_map_to),
+                'was' if len(pauli_map_to) == 1 else 'were',
+            )
+        )
+    if len(set((to for to, _ in pauli_map_to.values()))) != len(pauli_map_to):
+        raise ValueError('A rotation cannot map two Paulis to the same')
+    return {frm: PauliTransform(to, flip) for frm, (to, flip) in pauli_map_to.items()}
 
 
 @value.value_equality
@@ -107,9 +136,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             y_to: The transform from cirq.Y
             z_to: The transform from cirq.Z
         """
-        rotation_map = SingleQubitCliffordGate._validate_map_input(
-            1, pauli_map_to, x_to=x_to, y_to=y_to, z_to=z_to
-        )
+        rotation_map = _validate_map_input(1, pauli_map_to, x_to=x_to, y_to=y_to, z_to=z_to)
         ((trans_from, (trans_to, flip)),) = tuple(rotation_map.items())
         if trans_from == trans_to:
             trans_from2 = Pauli.by_relative_index(trans_to, 1)  # 1 or 2 work
@@ -144,9 +171,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             y_to: The transform from cirq.Y
             z_to: The transform from cirq.Z
         """
-        rotation_map = SingleQubitCliffordGate._validate_map_input(
-            2, pauli_map_to, x_to=x_to, y_to=y_to, z_to=z_to
-        )
+        rotation_map = _validate_map_input(2, pauli_map_to, x_to=x_to, y_to=y_to, z_to=z_to)
         (from1, trans1), (from2, trans2) = tuple(rotation_map.items())
         from3 = from1.third(from2)
         to3 = trans1.to.third(trans2.to)
@@ -187,37 +212,6 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return SingleQubitCliffordGate.from_pauli(pauli, True) ** -1
 
     @staticmethod
-    def _validate_map_input(
-        required_transform_count: int,
-        pauli_map_to: Optional[Dict[Pauli, Tuple[Pauli, bool]]],
-        x_to: Optional[Tuple[Pauli, bool]],
-        y_to: Optional[Tuple[Pauli, bool]],
-        z_to: Optional[Tuple[Pauli, bool]],
-    ) -> Dict[Pauli, PauliTransform]:
-        if pauli_map_to is None:
-            xyz_to = {pauli_gates.X: x_to, pauli_gates.Y: y_to, pauli_gates.Z: z_to}
-            pauli_map_to = {
-                cast(Pauli, p): trans for p, trans in xyz_to.items() if trans is not None
-            }
-        elif x_to is not None or y_to is not None or z_to is not None:
-            raise ValueError(
-                '{} can take either pauli_map_to or a combination'
-                ' of x_to, y_to, and z_to but both were given'
-            )
-        if len(pauli_map_to) != required_transform_count:
-            raise ValueError(
-                'Method takes {} transform{} but {} {} given'.format(
-                    required_transform_count,
-                    '' if required_transform_count == 1 else 's',
-                    len(pauli_map_to),
-                    'was' if len(pauli_map_to) == 1 else 'were',
-                )
-            )
-        if len(set((to for to, _ in pauli_map_to.values()))) != len(pauli_map_to):
-            raise ValueError('A rotation cannot map two Paulis to the same')
-        return {frm: PauliTransform(to, flip) for frm, (to, flip) in pauli_map_to.items()}
-
-    @staticmethod
     def from_unitary(u: np.ndarray) -> Optional['SingleQubitCliffordGate']:
         """Creates Clifford gate with given unitary (up to global phase).
 
@@ -241,6 +235,62 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
     def transform(self, pauli: Pauli) -> PauliTransform:
         return self._rotation_map[pauli]
+
+    def to_phased_xz_gate(self) -> phased_x_z_gate.PhasedXZGate:
+        """Convert this gate to a PhasedXZGate instance.
+
+        The rotation can be categorized by {axis} * {degree}:
+            * Identity: I
+            * {x, y, z} * {90, 180, 270}  --- {X, Y, Z} + 6 Quarter turn gates
+            * {+/-xy, +/-yz, +/-zx} * 180  --- 6 Hadamard-like gates
+            * {middle point of xyz in 4 Quadrant} * {120, 240} --- swapping axis
+        note 1 + 9 + 6 + 8 = 24 in total.
+
+        To associate with Clifford Tableau, it can also be grouped by 4:
+            * {I,X,Y,Z} is [[1 0], [0, 1]]
+            * {+/- X_sqrt, 2 Hadamard-like gates acting on the YZ plane} is [[1, 0], [1, 1]]
+            * {+/- Z_sqrt, 2 Hadamard-like gates acting on the XY plane} is [[1, 1], [0, 1]]
+            * {+/- Y_sqrt, 2 Hadamard-like gates acting on the XZ plane} is [[0, 1], [1, 0]]
+            * {middle point of xyz in 4 Quadrant} * 120 is [[0, 1], [1, 1]]
+            * {middle point of xyz in 4 Quadrant} * 240 is [[1, 1], [1, 0]]
+        """
+        x_to = self._rotation_map[pauli_gates.X]
+        z_to = self._rotation_map[pauli_gates.Z]
+        flip_index = int(z_to.flip) * 2 + int(x_to.flip)
+        a, x, z = 0.0, 0.0, 0.0
+
+        if (x_to.to, z_to.to) == (pauli_gates.X, pauli_gates.Z):
+            # I, Z, X, Y cases
+            to_phased_xz = [(0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (0.0, 1.0, 0.0), (0.5, 1.0, 0.0)]
+            a, x, z = to_phased_xz[flip_index]
+        elif (x_to.to, z_to.to) == (pauli_gates.X, pauli_gates.Y):
+            # +/- X_sqrt, 2 Hadamard-like gates acting on the YZ plane
+            a = 0.0
+            x = 0.5 if x_to.flip ^ z_to.flip else -0.5
+            z = 1.0 if x_to.flip else 0.0
+        elif (x_to.to, z_to.to) == (pauli_gates.Z, pauli_gates.X):
+            # +/- Y_sqrt, 2 Hadamard-like gates acting on the XZ plane
+            a = 0.5
+            x = 0.5 if x_to.flip else -0.5
+            z = 0.0 if x_to.flip ^ z_to.flip else 1.0
+        elif (x_to.to, z_to.to) == (pauli_gates.Y, pauli_gates.Z):
+            # +/- Z_sqrt, 2 Hadamard-like gates acting on the XY plane
+            to_phased_xz = [(0.0, 0.0, 0.5), (0.0, 0.0, -0.5), (0.25, 1.0, 0.0), (-0.25, 1.0, 0.0)]
+            a, x, z = to_phased_xz[flip_index]
+        elif (x_to.to, z_to.to) == (pauli_gates.Z, pauli_gates.Y):
+            # axis swapping rotation -- (312) permutation
+            a = 0.5
+            x = 0.5 if x_to.flip else -0.5
+            z = 0.5 if x_to.flip ^ z_to.flip else -0.5
+        else:
+            # axis swapping rotation -- (231) permutation.
+            # This should be the only cases left.
+            assert (x_to.to, z_to.to) == (pauli_gates.Y, pauli_gates.X)
+            a = 0.0
+            x = -0.5 if x_to.flip ^ z_to.flip else 0.5
+            z = -0.5 if x_to.flip else 0.5
+
+        return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
     def _value_equality_values_(self):
         return (

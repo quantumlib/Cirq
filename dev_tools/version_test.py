@@ -13,16 +13,13 @@
 # limitations under the License.
 from typing import Dict, Any
 
+from dev_tools import modules
+
 
 def test_versions_are_the_same():
-    core_version = _get_version("cirq-core/cirq")
-
-    packages = ["cirq-google/cirq_google"]
-
-    for p in packages:
-        assert (
-            _get_version(p) == core_version
-        ), f"{p}/_version.py is different from cirq-core/cirq/_version.py!"
+    mods = modules.list_modules(include_parent=True)
+    versions = {m.name: m.version for m in mods}
+    assert len(set(versions.values())) == 1, f"Versions should be the same, instead: \n{versions}"
 
 
 def _get_version(package: str):

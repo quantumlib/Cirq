@@ -88,6 +88,8 @@ upper_tabs:
         path: /cirq/dev/plotting
       - title: "Serialization guidelines"
         path: /cirq/dev/serialization
+      - title: "Triage process"
+        path: /cirq/dev/triage
 
       ####  GOOGLE HARDWARE  ####
       - heading: "Google hardware"
@@ -180,22 +182,33 @@ upper_tabs:
       - heading: "Google hardware"
       - title: "Getting started with QCS"
         path: /cirq/tutorials/google/start
-      - title: "Floquet calibration"
-        path: /cirq/tutorials/google/floquet
+      - title: "Visualizing calibration metrics"
+        path: /cirq/tutorials/google/visualizing_calibration_metrics
       - title: "Qubit picking with Loschmidt echoes"
         path: /cirq/tutorials/google/echoes
-      - title: "Visualizing Calibration Metrics"
-        path: /cirq/tutorials/google/visualizing_calibration_metrics
+      - title: "Calibration"
+        style: accordion
+        section:
+        - title: "Calibration: Overview and API"
+          path: /cirq/tutorials/google/calibration_api
+        - title: "Floquet calibration: Example and benchmark"
+          path: /cirq/tutorials/google/floquet_calibration_example
+        - title: "XEB calibration: Example and benchmark"
+          path: /cirq/tutorials/google/xeb_calibration_example
+
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"
       - title: "Getting started with AQT hardware"
         path: /cirq/tutorials/aqt/getting_started
 
+
       ####  IONQ HARDWARE ####
       - heading: "IonQ hardware"
       - title: "Getting started with IonQ hardware"
         path: /cirq/tutorials/ionq/getting_started
+      - title: "Binary paintshop"
+        path: /cirq/tutorials/ionq/binary_paintshop
 
       ####  PASQAL HARDWARE  ####
       - heading: "Pasqal hardware"
@@ -229,6 +242,13 @@ upper_tabs:
       - title: "All symbols"
         path: /reference/python/cirq/all_symbols
       - include: /reference/python/cirq/_toc.yaml
+
+# uncomment after v0.12 is released
+#      - heading: "cirq-aqt"
+#      - title: "All symbols"
+#        path: /reference/python/cirq_aqt/all_symbols
+#      - include: /reference/python/cirq_aqt/_toc.yaml
+
       - heading: "cirq-google"
       - title: "All symbols"
         path: /reference/python/cirq_google/all_symbols

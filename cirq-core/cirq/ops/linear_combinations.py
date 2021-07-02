@@ -14,6 +14,7 @@
 from collections import defaultdict
 from typing import (
     AbstractSet,
+    Iterable,
     Mapping,
     Optional,
     Tuple,
@@ -416,18 +417,21 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
-    def matrix(self) -> np.ndarray:
-        """Reconstructs matrix of self from underlying Pauli operations.
+    def matrix(self, qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
+        """Reconstructs matrix of self from underlying Pauli operations in
+        computational basis of qubits.
 
         Raises:
             TypeError: if any of the gates in self does not provide a unitary.
         """
-        num_qubits = len(self.qubits)
+
+        qubits = self.qubits if qubits is None else tuple(qubits)
+        num_qubits = len(qubits)
         num_dim = 2 ** num_qubits
         result = np.zeros((num_dim, num_dim), dtype=np.complex128)
         for vec, coeff in self._linear_dict.items():
             op = _pauli_string_from_unit(vec)
-            result += coeff * op.matrix(self.qubits)
+            result += coeff * op.matrix(qubits)
         return result
 
     def _has_unitary_(self) -> bool:
