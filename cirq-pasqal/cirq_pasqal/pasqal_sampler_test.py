@@ -18,6 +18,7 @@ import sympy
 import pytest
 
 import cirq
+import cirq_pasqal
 
 
 class MockGet:
@@ -35,9 +36,9 @@ class MockGet:
             return self.json
 
 
-def _make_sampler() -> cirq.pasqal.PasqalSampler:
+def _make_sampler() -> cirq_pasqal.PasqalSampler:
 
-    sampler = cirq.pasqal.PasqalSampler(remote_host='http://00.00.00/', access_token='N/A')
+    sampler = cirq_pasqal.PasqalSampler(remote_host='http://00.00.00/', access_token='N/A')
     return sampler
 
 
@@ -45,7 +46,7 @@ def test_pasqal_circuit_init():
     qs = cirq.NamedQubit.range(3, prefix='q')
     ex_circuit = cirq.Circuit()
     ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
-    device = cirq.pasqal.PasqalDevice(qubits=qs)
+    device = cirq_pasqal.PasqalDevice(qubits=qs)
     test_circuit = cirq.Circuit(device=device)
     test_circuit.append(
         [[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])] for i in range(len(qs) - 1)]
@@ -55,15 +56,15 @@ def test_pasqal_circuit_init():
         assert moment1 == moment2
 
 
-@patch('cirq.pasqal.pasqal_sampler.requests.get')
-@patch('cirq.pasqal.pasqal_sampler.requests.post')
+@patch('cirq_pasqal.pasqal_sampler.requests.get')
+@patch('cirq_pasqal.pasqal_sampler.requests.post')
 def test_run_sweep(mock_post, mock_get):
     """
     Encodes a random binary number in the qubits, sweeps between odd and even
     without noise and checks if the results match.
     """
 
-    qs = [cirq.pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)]
+    qs = [cirq_pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)]
 
     par = sympy.Symbol('par')
     sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
@@ -71,7 +72,7 @@ def test_run_sweep(mock_post, mock_get):
     num = np.random.randint(0, 2 ** 9)
     binary = bin(num)[2:].zfill(9)
 
-    device = cirq.pasqal.PasqalVirtualDevice(control_radius=1, qubits=qs)
+    device = cirq_pasqal.PasqalVirtualDevice(control_radius=1, qubits=qs)
     ex_circuit = cirq.Circuit(device=device)
 
     for i, b in enumerate(binary[:-1]):
