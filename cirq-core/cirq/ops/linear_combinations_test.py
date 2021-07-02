@@ -1137,6 +1137,10 @@ def test_paulisum_validation():
     ld = cirq.LinearDict({key: 2.0})
     assert cirq.PauliSum(ld) == cirq.PauliSum.from_pauli_strings([2 * cirq.X(q[0])])
 
+    ps = cirq.PauliSum()
+    ps += cirq.I(cirq.LineQubit(0))
+    assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
+
 
 def test_add_number_paulisum():
     q = cirq.LineQubit.range(2)
