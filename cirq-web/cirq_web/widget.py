@@ -30,6 +30,7 @@ class Env(Enum):
     COLAB = 2
     OTHER = 3
 
+
 class Widget(ABC):
     """Abstract class for all widgets."""
 
@@ -103,6 +104,7 @@ class Widget(ABC):
 
         return div + bundle_script + client_code
 
+
 def _to_script_tag(bundle_filename: str) -> str:
     """Dumps the contents of a particular bundle file into a script tag.
 
@@ -119,4 +121,3 @@ def _to_script_tag(bundle_filename: str) -> str:
     bundle_html = f'<script>{bundle_file_contents}</script>'
 
     return bundle_html
-

@@ -16,7 +16,7 @@ from pathlib import Path
 import cirq_web
 
 
-class MockWidget(cirq_web.Widget):
+class FakeWidget(cirq_web.Widget):
     def __init__(self):
         super().__init__()
 
@@ -37,7 +37,7 @@ def test_repr_html(tmpdir):
     path = tmpdir.mkdir('dir').join('testfile.txt')
     path.write("This is a test bundle")
 
-    test_widget = MockWidget()
+    test_widget = FakeWidget()
     actual = test_widget._repr_html_()
 
     expected = f"""
@@ -58,7 +58,7 @@ def test_generate_html_file_with_browser(tmpdir):
     testfile_path = path.join('testfile.txt')
     testfile_path.write("This is a test bundle")
 
-    test_widget = MockWidget()
+    test_widget = FakeWidget()
     test_html_path = test_widget.generate_html_file(str(path), 'test.html', open_in_browser=True)
     actual = open(test_html_path, 'r', encoding='utf-8').read()
 
