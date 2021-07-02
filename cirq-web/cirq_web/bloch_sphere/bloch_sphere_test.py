@@ -23,14 +23,6 @@ from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
 
 
-def _get_bundle_file_path():
-    # Need to call this from the root directory
-    absolute_path = cirq_web.resolve_path()
-    bundle_file_path = f'{absolute_path}/cirq_ts/dist/bloch_sphere.bundle.js'
-    bundle_script = cirq_web.to_script_tag(bundle_file_path)
-    return bundle_script
-
-
 def test_init_bloch_sphere_type():
     state_vector = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
     bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
@@ -67,13 +59,13 @@ def test_no_state_vector_given():
 def test_repr_html():
     state_vector = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
     bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
-    bundle_script = _get_bundle_file_path()
+    bundle_script = bloch_sphere.get_bundle_script()
     expected = f"""
         <meta charset="UTF-8">
-        <div id="{bloch_sphere.get_id()}"></div>
+        <div id="{bloch_sphere.id}"></div>
         {bundle_script}
         <script>
-        renderBlochSphere('{bloch_sphere.get_id()}', {bloch_sphere.sphere_radius})
+        renderBlochSphere('{bloch_sphere.id}', {bloch_sphere.sphere_radius})
             .addVector({bloch_sphere.bloch_vector[0]}, {bloch_sphere.bloch_vector[1]}, {bloch_sphere.bloch_vector[2]});
         </script>
         """
@@ -89,20 +81,20 @@ def test_generate_html_file_with_browser(tmpdir):
         output_directory=str(path), file_name='test.html', open_in_browser=True
     )
 
-    template_div = f"""
+    div = f"""
         <meta charset="UTF-8">
-        <div id="{bloch_sphere.get_id()}"></div>
+        <div id="{bloch_sphere.id}"></div>
         """
-    bundle_script = _get_bundle_file_path()
+    bundle_script = bloch_sphere.get_bundle_script()
 
-    template_script = f"""
+    script = f"""
         <script>
-        renderBlochSphere('{bloch_sphere.get_id()}', {bloch_sphere.sphere_radius})
+        renderBlochSphere('{bloch_sphere.id}', {bloch_sphere.sphere_radius})
             .addVector({bloch_sphere.bloch_vector[0]}, {bloch_sphere.bloch_vector[1]}, {bloch_sphere.bloch_vector[2]});
         </script>
         """
 
-    expected = template_div + bundle_script + template_script
+    expected = div + bundle_script + script
     actual = open(str(test_path), 'r', encoding='utf-8').read()
 
     assert expected == actual

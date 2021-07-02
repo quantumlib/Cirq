@@ -17,7 +17,7 @@ import {Sphere} from './components/sphere';
 import {Axes} from './components/axes';
 import {Meridians} from './components/meridians';
 import {Labels} from './components/text';
-import {StateVector} from './components/vector';
+import {StateVector} from './components/state_vector';
 
 import {Group, Vector3} from 'three';
 

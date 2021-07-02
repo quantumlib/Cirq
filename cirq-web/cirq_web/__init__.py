@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_web.widget import to_script_tag, write_output_file, resolve_path, Widget
+from cirq_web.widget import write_output_file, Widget
 
 from cirq_web.bloch_sphere import (
     BlochSphere,

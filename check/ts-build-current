@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,14 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env bash
-
 ################################################################################
 # Checks if all bundled files are up to date. 
 #
 # Usage:
 #     check/ts-build-changes
-#
 ################################################################################
 
 check/ts-build 

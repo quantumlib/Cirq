@@ -21,7 +21,7 @@ import {Sphere} from './components/sphere';
 import {Meridians} from './components/meridians';
 import {Axes} from './components/axes';
 import {Labels} from './components/text';
-import {StateVector} from './components/vector';
+import {StateVector} from './components/state_vector';
 
 /**
  * Using JSDOM to create a global document which the canvas elements

@@ -14,9 +14,9 @@
 
 import {expect} from 'chai';
 import {ArrowHelper, Vector3} from 'three';
-import {StateVector} from './vector';
+import {StateVector} from './state_vector';
 
-describe('Vector', () => {
+describe('StateVector', () => {
   describe('by default', () => {
     const vector = new StateVector(1, 1, 2, 5);
     it('start at the correct point given arbitrary vector coordinates', () => {

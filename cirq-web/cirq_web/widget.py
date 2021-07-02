@@ -11,9 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from pathlib import Path
 from enum import Enum
+import uuid
+
 import cirq_web
+
+# Resolve the path so the bundle file can be accessed properly
+_DIST_PATH = Path(cirq_web.__file__).parents[1] / "cirq_ts" / "dist"
 
 
 class Env(Enum):
@@ -22,7 +28,7 @@ class Env(Enum):
     OTHER = 3
 
 
-def to_script_tag(path: str) -> str:
+def _to_script_tag(path: str) -> str:
     """Dumps the contents of a particular bundle file into a script tag.
 
     Args:
@@ -65,12 +71,6 @@ def write_output_file(output_directory: str, file_name: str, contents: str) -> P
     return file_path
 
 
-def resolve_path():
-    # Go go levels up from the __init__ file
-    cirq_path = Path(cirq_web.__file__).parents[1]
-    return cirq_path
-
-
 class Widget:
     """Parent class for all widgets."""
 
@@ -80,9 +80,22 @@ class Widget:
         Args:
             bundle_file_path: The relative path of the widget's bundle file starting from cirq_ts/
         """
-        absolute_path_prefix = resolve_path()
-        self.bundle_file_path = f'{absolute_path_prefix}/{bundle_file_path}'
+        self.bundle_file_path = f'{_DIST_PATH}/{bundle_file_path}'
+
+        # Generate a unique UUID for every instance of a Bloch sphere.
+        # This helps with adding visualizations to scenes, etc.
+        self.id = str(uuid.uuid1())
 
     def get_bundle_script(self):
         """Returns the bundle script of a widget"""
-        return to_script_tag(self.bundle_file_path)
+        return _to_script_tag(self.bundle_file_path)
+
+    def create_html_content(self, client_code: str) -> str:
+        div = f"""
+        <meta charset="UTF-8">
+        <div id="{self.id}"></div>
+        """
+
+        bundle_script = _to_script_tag(self.bundle_file_path)
+
+        return div + bundle_script + client_code

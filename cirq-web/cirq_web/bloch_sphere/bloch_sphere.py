@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import webbrowser
-import uuid
 
 from pathlib import Path
 
@@ -41,7 +40,7 @@ class BlochSphere(widget.Widget):
             state_vector: a state vector to pass in to be represented.
         """
 
-        super().__init__('cirq_ts/dist/bloch_sphere.bundle.js')
+        super().__init__('bloch_sphere.bundle.js')
 
         if sphere_radius <= 0:
             raise ValueError('You must input a positive radius for the sphere')
@@ -51,10 +50,6 @@ class BlochSphere(widget.Widget):
             raise ValueError('No state vector given in BlochSphere initialization')
         self.bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
 
-        # Generate a unique UUID for every instance of a Bloch sphere.
-        # This helps with adding visualizations to scenes, etc.
-        self.id = str(uuid.uuid1())
-
     def _repr_html_(self):
         """Allows the object's html to be easily displayed in a notebook
         by using the display() method.
@@ -62,19 +57,14 @@ class BlochSphere(widget.Widget):
         If display() is called from the command line, [INSERT HERE]
         """
 
-        bundle_script = super().get_bundle_script()
-        return f"""
-        <meta charset="UTF-8">
-        <div id="{self.id}"></div>
-        {bundle_script}
+        client_code = f"""
         <script>
         renderBlochSphere('{self.id}', {self.sphere_radius})
             .addVector({self.bloch_vector[0]}, {self.bloch_vector[1]}, {self.bloch_vector[2]});
         </script>
         """
 
-    def get_id(self):
-        return self.id
+        return super().create_html_content(client_code)
 
     def generate_html_file(
         self,
@@ -97,20 +87,14 @@ class BlochSphere(widget.Widget):
             The path of the HTML file in as a Path object.
         """
 
-        template_div = f"""
-        <meta charset="UTF-8">
-        <div id="{self.id}"></div>
-        """
-
-        template_script = f"""
+        client_code = f"""
         <script>
         renderBlochSphere('{self.id}', {self.sphere_radius})
             .addVector({self.bloch_vector[0]}, {self.bloch_vector[1]}, {self.bloch_vector[2]});
         </script>
         """
 
-        bundle_script = super().get_bundle_script()
-        contents = template_div + bundle_script + template_script
+        contents = super().create_html_content(client_code)
         path_of_html_file = widget.write_output_file(output_directory, file_name, contents)
 
         if open_in_browser:
