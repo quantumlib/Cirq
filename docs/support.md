@@ -22,8 +22,8 @@ please ask us in the [Cirq Gitter channel](https://gitter.im/cirqdev).
 # Weekly developer meetings
 
 You may also be interested to join the weekly 
-[Cirq sync](https://groups.google.com/g/cirq-dev) with Cirq developers and 
+[Cirq sync](https://groups.google.com/g/cirq-dev/about) with Cirq developers and 
 contributors. There are also weekly syncs for 
-[OpenFermion](https://groups.google.com/g/openfermion-dev),
-[qsim](https://groups.google.com/g/qsim-qsimh-dev), and
-[TensorFlow Quantum](https://groups.google.com/g/openfermion-dev).
+[OpenFermion](https://groups.google.com/g/openfermion-dev/about),
+[qsim](https://groups.google.com/g/qsim-qsimh-dev/about), and
+[TensorFlow Quantum](https://groups.google.com/g/tfq-dev/about).

@@ -257,7 +257,7 @@ def test_run_mixture(dtype: Type[np.number], split: bool):
 @pytest.mark.parametrize('split', [True, False])
 def test_run_mixture_with_gates(dtype: Type[np.number], split: bool):
     q0 = cirq.LineQubit(0)
-    simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
+    simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split, seed=23)
     circuit = cirq.Circuit(cirq.H(q0), cirq.phase_flip(0.5)(q0), cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
     assert sum(result.measurements['0'])[0] < 80  # type: ignore
@@ -1299,17 +1299,28 @@ def test_nondeterministic_mixture_noise():
     assert result1 != result2
 
 
-def test_unsupported_noise_fails():
-    with pytest.raises(ValueError, match='noise'):
-        cirq.Simulator(noise=cirq.amplitude_damp(0.5))
-
-
 def test_act_on_args_pure_state_creation():
     sim = cirq.Simulator(split_untangled_states=True)
     qids = cirq.LineQubit.range(3)
     shape = cirq.qid_shape(qids)
     args = sim._create_act_on_args(1, qids)
     values = list(args.values())
-    arg = values[0].join(values[1]).join(values[2]).reorder(qids)
+    arg = (
+        values[0]
+        .kronecker_product(values[1])
+        .kronecker_product(values[2])
+        .transpose_to_qubit_order(qids)
+    )
     expected = cirq.to_valid_state_vector(1, len(qids), qid_shape=shape)
     np.testing.assert_allclose(arg.target_tensor, expected.reshape(shape))
+
+
+def test_noise_model():
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
+
+    noise_model = cirq.NoiseModel.from_noise_model_like(cirq.depolarize(p=0.01))
+    simulator = cirq.Simulator(noise=noise_model)
+    result = simulator.run(circuit, repetitions=100)
+
+    assert 40 <= sum(result.measurements['0'])[0] < 60

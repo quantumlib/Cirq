@@ -35,13 +35,19 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _act_on_fallback_(self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool):
         return True
 
-    def join(self, other: 'EmptyActOnArgs') -> 'EmptyActOnArgs':
+    def kronecker_product(self, other: 'EmptyActOnArgs') -> 'EmptyActOnArgs':
         return EmptyActOnArgs(
             qubits=self.qubits + other.qubits,
             logs=self.log_of_measurement_results,
         )
 
-    def extract(self, qubits: Sequence['cirq.Qid']) -> Tuple['EmptyActOnArgs', 'EmptyActOnArgs']:
+    def factor(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        *,
+        validate=True,
+        atol=1e-07,
+    ) -> Tuple['EmptyActOnArgs', 'EmptyActOnArgs']:
         extracted_args = EmptyActOnArgs(
             qubits=qubits,
             logs=self.log_of_measurement_results,
@@ -52,7 +58,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
         )
         return extracted_args, remainder_args
 
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'EmptyActOnArgs':
+    def transpose_to_qubit_order(self, qubits: Sequence['cirq.Qid']) -> 'EmptyActOnArgs':
         return EmptyActOnArgs(
             qubits=qubits,
             logs=self.log_of_measurement_results,
@@ -149,7 +155,7 @@ def test_measurement_in_single_qubit_circuit_passes():
 
 def test_reorder_succeeds():
     args = create_container(qs2, False)
-    reordered = args[q0].reorder([q1, q0])
+    reordered = args[q0].transpose_to_qubit_order([q1, q0])
     assert reordered.qubits == (q1, q0)
 
 

@@ -17,6 +17,7 @@ import time
 import requests
 
 import cirq
+import cirq_pasqal
 
 
 class PasqalSampler(cirq.work.Sampler):
@@ -110,7 +111,7 @@ class PasqalSampler(cirq.work.Sampler):
             Result list for this run; one for each possible parameter
             resolver.
         """
-        assert isinstance(program.device, cirq.pasqal.PasqalDevice)
+        assert isinstance(program.device, cirq_pasqal.PasqalDevice)
         program.device.validate_circuit(program)
         trial_results = []
 

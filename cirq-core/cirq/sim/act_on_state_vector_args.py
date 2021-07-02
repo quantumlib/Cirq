@@ -203,8 +203,10 @@ class ActOnStateVectorArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
 
-    def join(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
-        target_tensor = transformations.merge_state_vectors(self.target_tensor, other.target_tensor)
+    def kronecker_product(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
+        target_tensor = transformations.state_vector_kronecker_product(
+            self.target_tensor, other.target_tensor
+        )
         buffer = np.empty_like(target_tensor)
         return ActOnStateVectorArgs(
             target_tensor=target_tensor,
@@ -214,12 +216,16 @@ class ActOnStateVectorArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results,
         )
 
-    def extract(
-        self, qubits: Sequence['cirq.Qid']
+    def factor(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        *,
+        validate=True,
+        atol=1e-07,
     ) -> Tuple['cirq.ActOnStateVectorArgs', 'cirq.ActOnStateVectorArgs']:
         axes = self.get_axes(qubits)
-        extracted_tensor, remainder_tensor = transformations.split_state_vectors(
-            self.target_tensor, axes
+        extracted_tensor, remainder_tensor = transformations.factor_state_vector(
+            self.target_tensor, axes, validate=validate, atol=atol
         )
         extracted_args = ActOnStateVectorArgs(
             target_tensor=extracted_tensor,
@@ -237,10 +243,9 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return extracted_args, remainder_args
 
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStateVectorArgs':
-        assert len(qubits) == len(self.qubits)
+    def transpose_to_qubit_order(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStateVectorArgs':
         axes = self.get_axes(qubits)
-        new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits)))
+        new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)
         new_args = ActOnStateVectorArgs(
             target_tensor=new_tensor,
             available_buffer=np.empty_like(new_tensor),

@@ -18,6 +18,15 @@ import pytest
 import cirq
 
 
+def test_eval_repr():
+    # Basic safeguard against repr-inequality.
+    op = cirq.GateOperation(
+        gate=cirq.MeasurementGate(1, cirq.MeasurementKey(path=(), name='q0_1_0'), ()),
+        qubits=[cirq.GridQubit(0, 1)],
+    )
+    cirq.testing.assert_equivalent_repr(op)
+
+
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
 def test_measure_init(num_qubits):
     assert cirq.MeasurementGate(num_qubits).num_qubits() == num_qubits
