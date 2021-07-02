@@ -129,7 +129,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         target.available_buffer = [b.copy() for b in self.available_buffer]
 
     def _on_join(self, other: 'ActOnDensityMatrixArgs', target: 'ActOnDensityMatrixArgs'):
-        target_tensor = transformations.merge_density_matrices(
+        target_tensor = transformations.density_matrix_kronecker_product(
             self.target_tensor, other.target_tensor
         )
         target.target_tensor = target_tensor
@@ -145,7 +145,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         remainder: 'ActOnDensityMatrixArgs',
     ):
         axes = [self.qubit_map[q] for q in qubits]
-        extracted_tensor, remainder_tensor = transformations.split_density_matrices(
+        extracted_tensor, remainder_tensor = transformations.factor_density_matrix(
             self.target_tensor, axes
         )
         extracted.target_tensor = extracted_tensor
@@ -156,9 +156,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         remainder.qid_shape = remainder_tensor.shape[: int(remainder_tensor.ndim / 2)]
 
     def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'ActOnDensityMatrixArgs'):
-        axes = [self.qubit_map[q] for q in qubits]
-        axes = axes + [i + len(qubits) for i in axes]
-        new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits) * 2))
+        axes = self.get_axes(qubits)
+        new_tensor = transformations.transpose_density_matrix_to_axis_order(
+            self.target_tensor, axes
+        )
         buffer = [np.empty_like(new_tensor) for _ in self.available_buffer]
         target.target_tensor = new_tensor
         target.available_buffer = buffer

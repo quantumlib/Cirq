@@ -1305,7 +1305,12 @@ def test_act_on_args_pure_state_creation():
     shape = cirq.qid_shape(qids)
     args = sim._create_act_on_args(1, qids)
     values = list(args.values())
-    arg = values[0].join(values[1]).join(values[2]).reorder(qids)
+    arg = (
+        values[0]
+        .kronecker_product(values[1])
+        .kronecker_product(values[2])
+        .transpose_to_qubit_order(qids)
+    )
     expected = cirq.to_valid_state_vector(1, len(qids), qid_shape=shape)
     np.testing.assert_allclose(arg.target_tensor, expected.reshape(shape))
 

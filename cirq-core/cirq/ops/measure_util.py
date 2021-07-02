@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, List, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -24,9 +24,13 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
+    return ','.join(str(q) for q in qubits)
+
+
 def measure(
     *target: 'cirq.Qid',
-    key: Union[str, value.MeasurementKey] = '',
+    key: Optional[Union[str, value.MeasurementKey]] = None,
     invert_mask: Tuple[bool, ...] = (),
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
@@ -35,7 +39,7 @@ def measure(
 
     Args:
         *target: The qubits that the measurement gate should measure.
-        key: The string key of the measurement. If this is empty, defaults
+        key: The string key of the measurement. If this is None, it defaults
             to a comma-separated list of the target qubits' str values.
         invert_mask: A list of Truthy or Falsey values indicating whether
             the corresponding qubits should be flipped. None indicates no
@@ -56,12 +60,14 @@ def measure(
         elif not isinstance(qubit, raw_types.Qid):
             raise ValueError('measure() was called with type different than Qid.')
 
+    if key is None:
+        key = _default_measurement_key(target)
     qid_shape = protocols.qid_shape(target)
     return MeasurementGate(len(target), key, invert_mask, qid_shape).on(*target)
 
 
 def measure_each(
-    *qubits: 'cirq.Qid', key_func: Callable[[raw_types.Qid], str] = lambda x: ''
+    *qubits: 'cirq.Qid', key_func: Callable[[raw_types.Qid], str] = str
 ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
@@ -70,9 +76,7 @@ def measure_each(
     Args:
         *qubits: The qubits to measure.
         key_func: Determines the key of the measurements of each qubit. Takes
-            the qubit and returns the key for that qubit. Defaults to empty string
-            key which would result in a comma-separated list of the target qubits'
-            str values.
+            the qubit and returns the key for that qubit. Defaults to str.
 
     Returns:
         A list of operations individually measuring the given qubits.

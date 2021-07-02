@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import List, Dict, Any, Sequence
+from typing import List, Dict, Any, Sequence, Tuple
 
 import numpy as np
 import pytest
@@ -34,6 +34,16 @@ class CountingActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         self.measurement_count += 1
         return [self.gate_count]
+
+    def copy(self) -> 'CountingActOnArgs':
+        args = CountingActOnArgs(
+            qubits=self.qubits,
+            logs=self.log_of_measurement_results.copy(),
+            state=self.state,
+        )
+        args.gate_count = self.gate_count
+        args.measurement_count = self.measurement_count
+        return args
 
     def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         self.gate_count += 1
@@ -315,5 +325,5 @@ def test_measurement_does_not_split_if_impossible():
 def test_reorder_succeeds():
     sim = SplittableCountingSimulator()
     args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
-    reordered = args[q0].reorder([q1, q0])
+    reordered = args[q0].transpose_to_qubit_order([q1, q0])
     assert reordered.qubits == (q1, q0)

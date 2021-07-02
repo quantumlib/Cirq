@@ -532,6 +532,32 @@ def test_cz_act_on_tableau():
         cirq.act_on(cirq.CZ ** 1.5, args, cirq.LineQubit.range(2))
 
 
+def test_cz_act_on_equivalent_to_h_cx_h_tableau():
+    args1 = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=2),
+        qubits=cirq.LineQubit.range(2),
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    args2 = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=2),
+        qubits=cirq.LineQubit.range(2),
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(cirq.S, args=args1, qubits=[cirq.LineQubit(1)], allow_decompose=False)
+    cirq.act_on(cirq.S, args=args2, qubits=[cirq.LineQubit(1)], allow_decompose=False)
+
+    # Args1 uses H*CNOT*H
+    cirq.act_on(cirq.H, args=args1, qubits=[cirq.LineQubit(1)], allow_decompose=False)
+    cirq.act_on(cirq.CNOT, args=args1, qubits=cirq.LineQubit.range(2), allow_decompose=False)
+    cirq.act_on(cirq.H, args=args1, qubits=[cirq.LineQubit(1)], allow_decompose=False)
+    # Args2 uses CZ
+    cirq.act_on(cirq.CZ, args=args2, qubits=cirq.LineQubit.range(2), allow_decompose=False)
+
+    assert args1.tableau == args2.tableau
+
+
 foo = sympy.Symbol('foo')
 
 

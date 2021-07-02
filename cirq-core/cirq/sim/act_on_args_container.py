@@ -70,8 +70,8 @@ class ActOnArgsContainer(
             return self.args[None]
         final_args = self.args[None]
         for args in set([self.args[k] for k in self.args.keys() if k is not None]):
-            final_args = final_args.join(args)
-        return final_args.reorder(self.qubits)
+            final_args = final_args.kronecker_product(args)
+        return final_args.transpose_to_qubit_order(self.qubits)
 
     def apply_operation(
         self,
@@ -84,7 +84,7 @@ class ActOnArgsContainer(
             if op_args_opt is None:
                 op_args_opt = self.args[q]
             elif q not in op_args_opt.qubits:
-                op_args_opt = op_args_opt.join(self.args[q])
+                op_args_opt = op_args_opt.kronecker_product(self.args[q])
         op_args = op_args_opt or self.args[None]
 
         # (Backfill the args map with the new value)
@@ -100,7 +100,7 @@ class ActOnArgsContainer(
         ):
             for q in op.qubits:
                 if op_args.can_extract((q,)):
-                    q_args, op_args = op_args.extract((q,))
+                    q_args, op_args = op_args.factor((q,), validate=False)
                     self.args[q] = q_args
 
             # (Backfill the args map with the new value)

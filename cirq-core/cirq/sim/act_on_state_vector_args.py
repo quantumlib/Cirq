@@ -199,7 +199,9 @@ class ActOnStateVectorArgs(ActOnArgs):
         target.available_buffer = self.available_buffer.copy()
 
     def _on_join(self, other: 'ActOnStateVectorArgs', target: 'ActOnStateVectorArgs'):
-        target_tensor = transformations.merge_state_vectors(self.target_tensor, other.target_tensor)
+        target_tensor = transformations.state_vector_kronecker_product(
+            self.target_tensor, other.target_tensor
+        )
         target.target_tensor = target_tensor
         target.available_buffer = np.empty_like(target_tensor)
 
@@ -210,7 +212,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         remainder: 'ActOnStateVectorArgs',
     ):
         axes = [self.qubit_map[q] for q in qubits]
-        extracted_tensor, remainder_tensor = transformations.split_state_vectors(
+        extracted_tensor, remainder_tensor = transformations.factor_state_vector(
             self.target_tensor, axes
         )
         extracted.target_tensor = extracted_tensor
@@ -219,8 +221,8 @@ class ActOnStateVectorArgs(ActOnArgs):
         remainder.available_buffer = np.empty_like(remainder_tensor)
 
     def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'ActOnStateVectorArgs'):
-        axes = [self.qubit_map[q] for q in qubits]
-        new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits)))
+        axes = self.get_axes(qubits)
+        new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)
         target.target_tensor = new_tensor
         target.available_buffer = np.empty_like(new_tensor)
 

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Dict, Any, Sequence, Optional
+from typing import List, Dict, Any, Sequence, Tuple, Optional
 
 import cirq
 
@@ -23,24 +23,25 @@ class EmptyActOnArgs(cirq.ActOnArgs):
             log_of_measurement_results=logs,
         )
 
-    def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
+    def _on_copy(self, args):
+        pass
+
+    def _on_join(self, other, target):
+        pass
+
+    def _on_reorder(self, qubits, target):
+        pass
+
+    def _on_extract(self, qubits, extracted, remainder):
+        pass
+
+    def _perform_measurement(self, qubits):
         return []
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool):
+    def _act_on_fallback_(self, action, qubits, allow_decompose):
         return True
 
-    def _on_join(self, other: 'EmptyActOnArgs', target: 'EmptyActOnArgs'):
-        pass
-
-    def _on_extract(
-        self, qubits: Sequence['cirq.Qid'], extracted: 'EmptyActOnArgs', remainder: 'EmptyActOnArgs'
-    ):
-        pass
-
-    def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'EmptyActOnArgs'):
-        pass
-
-    def can_extract(self, qubits: Sequence['cirq.Qid']):
+    def can_extract(self, qubits):
         return True
 
 
@@ -48,7 +49,7 @@ q0, q1 = qs2 = cirq.LineQubit.range(2)
 
 
 def create_container(
-    qubits: Sequence['cirq.Qid'],
+    qubits: Sequence[cirq.Qid],
     split_untangled_states=True,
 ) -> cirq.ActOnArgsContainer[EmptyActOnArgs]:
     args_map: Dict[Optional['cirq.Qid'], EmptyActOnArgs] = {}
@@ -134,7 +135,7 @@ def test_measurement_in_single_qubit_circuit_passes():
 
 def test_reorder_succeeds():
     args = create_container(qs2, False)
-    reordered = args[q0].reorder([q1, q0])
+    reordered = args[q0].transpose_to_qubit_order([q1, q0])
     assert reordered.qubits == (q1, q0)
 
 

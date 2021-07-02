@@ -124,14 +124,21 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Applies the operation to the state."""
         protocols.act_on(op, self)
 
-    def join(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
+    def kronecker_product(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
         self._on_join(other, args)
         args._set_qubits(self.qubits + other.qubits)
         return args
 
-    def extract(self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False) -> Tuple[TSelf, TSelf]:
+    def factor(
+        self: TSelf,
+        qubits: Sequence['cirq.Qid'],
+        *,
+        validate=True,
+        atol=1e-07,
+        inplace=False,
+    ) -> Tuple[TSelf, TSelf]:
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
@@ -140,7 +147,9 @@ class ActOnArgs(OperationTarget[TSelf]):
         remainder._set_qubits([q for q in self.qubits if q not in qubits])
         return extracted, remainder
 
-    def reorder(self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False) -> TSelf:
+    def transpose_to_qubit_order(
+        self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False
+    ) -> TSelf:
         """Physically reindexes the state by the new basis."""
         args = self if inplace else copy.copy(self)
         assert set(qubits) == set(self.qubits)
