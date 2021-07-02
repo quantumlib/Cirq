@@ -37,6 +37,7 @@ from cirq.sim import (
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
 
 
 class Simulator(
@@ -143,6 +144,7 @@ class Simulator(
         dtype: Type[np.number] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        split_untangled_states: bool = False,
     ):
         """A sparse matrix simulator.
 
@@ -151,6 +153,9 @@ class Simulator(
                 `numpy.complex64` or `numpy.complex128`.
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
+            split_untangled_states: If True, optimizes simulation by running
+                unentangled qubit sets independently and merging those states
+                at the end.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
@@ -158,12 +163,14 @@ class Simulator(
             dtype=dtype,
             noise=noise,
             seed=seed,
+            split_untangled_states=split_untangled_states,
         )
 
-    def _create_act_on_args(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 
@@ -180,10 +187,9 @@ class Simulator(
         if isinstance(initial_state, act_on_state_vector_args.ActOnStateVectorArgs):
             return initial_state
 
-        num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
         state = qis.to_valid_state_vector(
-            initial_state, num_qubits, qid_shape=qid_shape, dtype=self._dtype
+            initial_state, len(qubits), qid_shape=qid_shape, dtype=self._dtype
         )
 
         return act_on_state_vector_args.ActOnStateVectorArgs(
@@ -191,7 +197,7 @@ class Simulator(
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
             qubits=qubits,
             prng=self._prng,
-            log_of_measurement_results={},
+            log_of_measurement_results=logs,
         )
 
     def _create_step_result(
@@ -204,6 +210,7 @@ class Simulator(
             measurements=dict(sim_state.log_of_measurement_results),
             qubit_map=qubit_map,
             dtype=self._dtype,
+            split_untangled_states=self._split_untangled_states,
         )
 
     def simulate_expectation_values_sweep_iter(
@@ -239,7 +246,14 @@ class SparseSimulatorStep(
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    def __init__(self, state_vector, measurements, qubit_map, dtype):
+    def __init__(
+        self,
+        state_vector: np.ndarray,
+        measurements: Dict[str, np.ndarray],
+        qubit_map: Dict[ops.Qid, int],
+        dtype: 'DTypeLike' = np.complex64,
+        split_untangled_states: bool = False,
+    ):
         """Results of a step of the simulator.
 
         Args:
@@ -254,6 +268,7 @@ class SparseSimulatorStep(
         self._dtype = dtype
         size = np.prod(protocols.qid_shape(self), dtype=int)
         self._state_vector = np.reshape(state_vector, size)
+        self._split_untangled_states = split_untangled_states
 
     def _simulator_state(self) -> state_vector_simulator.StateVectorSimulatorState:
         return state_vector_simulator.StateVectorSimulatorState(
@@ -304,11 +319,19 @@ class SparseSimulatorStep(
         will be set to lie entirely in the computation basis state for the
         binary expansion of the passed integer.
 
+        Note that this feature is incompatible with the simulation setting
+        `split_untangled_states=True`, and will throw an error if attempted.
+
         Args:
             state: If an int, the state vector set is the state vector
                 corresponding to a computational basis state. If a numpy
                 array this is the full state vector.
         """
+        if self._split_untangled_states:
+            # TODO: Fix in #4110
+            raise ValueError(  # coverage: ignore
+                'Cannot set states when using `split_untangled_states` option.'  # coverage: ignore
+            )  # coverage: ignore
         update_state = qis.to_valid_state_vector(
             state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
         )
