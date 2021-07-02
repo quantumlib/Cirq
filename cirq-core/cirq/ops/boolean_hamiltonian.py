@@ -115,7 +115,19 @@ def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool =
 def _simplify_commuting_cnots(
     cnots: List[Tuple[int, int]], flip_control_and_target: bool
 ) -> Tuple[bool, List[Tuple[int, int]]]:
-    """Simplifies CNOT pairs according to equations 9 and 10 of [4].
+    """Attempts to commute CNOTs and remove cancelling pairs.
+    
+     Commutation relations are based on 9 (flip_control_and_target=False) or 10 (flip_control_target=True) of [4]:
+     When flip_control_target=True:
+
+         CNOT(j, i) @ CNOT(j, k) = CNOT(j, k) @ CNOT(j, i)
+    ───X───────       ───────X───
+       │                     │
+    ───@───@───   =   ───@───@───
+           │             │
+    ───────X───       ───X───────
+    
+    When flip_control_target=False:
 
     CNOT(i, j) @ CNOT(k, j) = CNOT(k, j) @ CNOT(i, j)
     ───@───────       ───────@───
