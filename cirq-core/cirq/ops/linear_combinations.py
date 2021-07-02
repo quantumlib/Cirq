@@ -434,18 +434,18 @@ class PauliSum:
             ]
             # We apply the equalities of theorem 1 of [1].
             if isinstance(boolean_expr, And):
-                pauli_sum = PauliString({})
+                pauli_sum: PauliSum = PauliString({})
                 for sub_pauli_sum in sub_pauli_sums:
                     pauli_sum = pauli_sum * sub_pauli_sum
             elif isinstance(boolean_expr, Not):
                 assert len(sub_pauli_sums) == 1
-                pauli_sum = PauliString({}) - sub_pauli_sums[0]
+                pauli_sum: PauliSum = PauliString({}) - sub_pauli_sums[0]
             elif isinstance(boolean_expr, Or):
-                pauli_sum = 0.0 * PauliString({})
+                pauli_sum: PauliSum = 0.0 * PauliString({})
                 for sub_pauli_sum in sub_pauli_sums:
                     pauli_sum = pauli_sum + sub_pauli_sum - pauli_sum * sub_pauli_sum
             elif isinstance(boolean_expr, Xor):
-                pauli_sum = 0.0 * PauliString({})
+                pauli_sum: PauliSum = 0.0 * PauliString({})
                 for sub_pauli_sum in sub_pauli_sums:
                     pauli_sum = pauli_sum + sub_pauli_sum - 2.0 * pauli_sum * sub_pauli_sum
             return pauli_sum
