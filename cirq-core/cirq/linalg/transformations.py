@@ -502,7 +502,7 @@ def to_special(u: np.ndarray) -> np.ndarray:
     return u * (np.linalg.det(u) ** (-1 / len(u)))
 
 
-def merge_state_vectors(
+def state_vector_kronecker_product(
     t1: np.ndarray,
     t2: np.ndarray,
 ) -> np.ndarray:
@@ -519,7 +519,7 @@ def merge_state_vectors(
     return np.outer(t1, t2).reshape(t1.shape + t2.shape)
 
 
-def merge_density_matrices(
+def density_matrix_kronecker_product(
     t1: np.ndarray,
     t2: np.ndarray,
 ) -> np.ndarray:
@@ -535,7 +535,7 @@ def merge_density_matrices(
     Returns:
         A density matrix representing the unified state.
     """
-    t = merge_state_vectors(t1, t2)
+    t = state_vector_kronecker_product(t1, t2)
     t1_len = len(t1.shape)
     t1_dim = int(t1_len / 2)
     t2_len = len(t2.shape)
@@ -546,11 +546,14 @@ def merge_density_matrices(
     )
 
 
-def split_state_vectors(
+def factor_state_vector(
     t: np.ndarray,
     axes: Sequence[int],
+    *,
+    validate=True,
+    atol=1e-07,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Splits a state vector into two independent state vectors.
+    """Factors a state vector into two independent state vectors.
 
     This function should only be called on state vectors that are known to be
     separable, such as immediately after a measurement or reset operation. It
@@ -558,8 +561,10 @@ def split_state_vectors(
     will return nonsense results for vectors representing entangled states.
 
     Args:
-        t: The state vector to split.
-        axes: The axes to split on.
+        t: The state vector to factor.
+        axes: The axes to factor out.
+        validate: Perform a validation that the density matrix factors cleanly.
+        atol: The absolute tolerance for the validation.
     Returns:
         A tuple with the `(extracted, remainder)` state vectors, where
         `extracted` means the sub-state vector which corresponds to the axes
@@ -568,22 +573,31 @@ def split_state_vectors(
         same order as the original state vector.
     """
     n_axes = len(axes)
-    t = np.moveaxis(t, axes, range(n_axes))
-    pivot = np.unravel_index(np.abs(t).argmax(), t.shape)
+    t1 = np.moveaxis(t, axes, range(n_axes))
+    pivot = np.unravel_index(np.abs(t1).argmax(), t1.shape)
     slices1 = (slice(None),) * n_axes + pivot[n_axes:]
-    slices2 = pivot[:n_axes] + (slice(None),) * (t.ndim - n_axes)
-    extracted = t[slices1]
+    slices2 = pivot[:n_axes] + (slice(None),) * (t1.ndim - n_axes)
+    extracted = t1[slices1]
     extracted = extracted / np.sum(abs(extracted) ** 2) ** 0.5
-    remainder = t[slices2]
+    remainder = t1[slices2]
     remainder = remainder / np.sum(abs(remainder) ** 2) ** 0.5
+    if validate:
+        t2 = state_vector_kronecker_product(extracted, remainder)
+        axes2 = list(axes) + [i for i in range(t1.ndim) if i not in axes]
+        t3 = transpose_state_vector_to_axis_order(t2, axes2)
+        if not np.allclose(t3, t, atol=atol):
+            raise ValueError('The tensor cannot be factored by the requested axes')
     return extracted, remainder
 
 
-def split_density_matrices(
+def factor_density_matrix(
     t: np.ndarray,
     axes: Sequence[int],
+    *,
+    validate=True,
+    atol=1e-07,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Splits a density matrix into two independent density matrices.
+    """Factors a density matrix into two independent density matrices.
 
     This function should only be called on density matrices that are known to
     be separable, such as immediately after a measurement or reset operation.
@@ -592,11 +606,13 @@ def split_density_matrices(
     states.
 
     Args:
-        t: The density matrix to split.
-        axes: The axes to split on. Only the left axes should be provided. For
-            example, to extract [C,A] from density matrix of shape
+        t: The density matrix to factor.
+        axes: The axes to factor out. Only the left axes should be provided.
+            For example, to extract [C,A] from density matrix of shape
             [A,B,C,D,A,B,C,D], `axes` should be [2,0], and the return value
             will be two density matrices ([C,A,C,A], [B,D,B,D]).
+        validate: Perform a validation that the density matrix factors cleanly.
+        atol: The absolute tolerance for the validation.
     Returns:
         A tuple with the `(extracted, remainder)` density matrices, where
         `extracted` means the sub-matrix which corresponds to the axes
@@ -604,5 +620,40 @@ def split_density_matrices(
         `remainder` means the sub-matrix on the remaining axes, in the same
         order as the original density matrix.
     """
-    axes = list(axes) + [i + int(t.ndim / 2) for i in axes]
-    return split_state_vectors(t, axes)
+    axes1 = list(axes) + [i + int(t.ndim / 2) for i in axes]
+    extracted, remainder = factor_state_vector(t, axes1, validate=False)
+    if validate:
+        t1 = density_matrix_kronecker_product(extracted, remainder)
+        axes2 = list(axes) + [i for i in range(int(t.ndim / 2)) if i not in axes]
+        t2 = transpose_density_matrix_to_axis_order(t1, axes2)
+        if not np.allclose(t2, t, atol=atol):
+            raise ValueError('The tensor cannot be factored by the requested axes')
+    return extracted, remainder
+
+
+def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]):
+    """Transposes the axes of a state vector to a specified order.
+
+    Args:
+        t: The state vector to transpose.
+        axes: The desired axis order.
+    Returns:
+        The transposed state vector.
+    """
+    assert set(axes) == set(range(int(t.ndim))), "All axes must be provided."
+    return np.moveaxis(t, axes, range(len(axes)))
+
+
+def transpose_density_matrix_to_axis_order(t: np.ndarray, axes: Sequence[int]):
+    """Transposes the axes of a density matrix to a specified order.
+
+    Args:
+        t: The density matrix to transpose.
+        axes: The desired axis order. Only the left axes should be provided.
+            For example, to transpose [A,B,C,A,B,C] to [C,B,A,C,B,A], `axes`
+            should be [2,1,0].
+    Returns:
+        The transposed density matrix.
+    """
+    axes = list(axes) + [i + len(axes) for i in axes]
+    return transpose_state_vector_to_axis_order(t, axes)

@@ -35,6 +35,7 @@ from cirq_google.calibration.phased_fsim import (
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
     try_convert_sqrt_iswap_to_fsim,
+    try_convert_syc_or_sqrt_iswap_to_fsim,
 )
 
 from cirq_google.calibration.workflow import (

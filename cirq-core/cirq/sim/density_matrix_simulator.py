@@ -300,6 +300,9 @@ class DensityMatrixStepResult(
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
         """Set the density matrix to a new density matrix.
 
+        Note that this feature is incompatible with the simulation setting
+        `split_untangled_states=True`, and will throw an error if attempted.
+
         Args:
             density_matrix_repr: If this is an int, the density matrix is set to
             the computational basis state corresponding to this state. Otherwise

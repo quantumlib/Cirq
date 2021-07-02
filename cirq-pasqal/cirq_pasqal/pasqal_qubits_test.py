@@ -15,23 +15,23 @@ import pytest
 import numpy as np
 
 import cirq
-from cirq.pasqal import ThreeDQubit, TwoDQubit
+from cirq_pasqal import ThreeDQubit, TwoDQubit
 
 
-def test_pasqal_qubit_init_3D():
+def test_pasqal_qubit_init_3d():
     q = ThreeDQubit(3, 4, 5)
     assert q.x == 3
     assert q.y == 4
     assert q.z == 5
 
 
-def test_comparison_key_3D():
+def test_comparison_key_3d():
     assert ThreeDQubit(3, 4, 5)._comparison_key() == (5, 4, 3)
     coords = (np.cos(np.pi / 2), np.sin(np.pi / 2), 0)
     assert ThreeDQubit(*coords) == ThreeDQubit(0, 1, 0)
 
 
-def test_pasqal_qubit_ordering_3D():
+def test_pasqal_qubit_ordering_3d():
     assert ThreeDQubit(0, 0, 1) >= ThreeDQubit(1, 0, 0)
     assert ThreeDQubit(0, 0, 1) >= ThreeDQubit(0, 1, 0)
     assert ThreeDQubit(0, 1, 0) >= ThreeDQubit(1, 0, 0)
@@ -47,7 +47,7 @@ def test_pasqal_qubit_ordering_3D():
             assert ThreeDQubit(1, 1, 1) > ThreeDQubit(v[0], v[1], v[2])
 
 
-def test_distance_3D():
+def test_distance_3d():
     with pytest.raises(TypeError):
         _ = ThreeDQubit(0, 0, 0).distance(cirq.GridQubit(0, 0))
 
@@ -59,7 +59,7 @@ def test_distance_3D():
                 )
 
 
-def test_grid_qubit_eq_3D():
+def test_grid_qubit_eq_3d():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: ThreeDQubit(0, 0, 0))
     eq.make_equality_group(lambda: ThreeDQubit(1, 0, 0))
@@ -67,7 +67,7 @@ def test_grid_qubit_eq_3D():
     eq.make_equality_group(lambda: ThreeDQubit(50, 25, 25))
 
 
-def test_cube_3D():
+def test_cube_3d():
     assert ThreeDQubit.cube(2, x0=1, y0=1, z0=1) == [
         ThreeDQubit(1, 1, 1),
         ThreeDQubit(2, 1, 1),
@@ -90,7 +90,7 @@ def test_cube_3D():
     ]
 
 
-def test_parrallelep_3D():
+def test_parallelep_3d():
     assert ThreeDQubit.parallelep(1, 2, 2, x0=5, y0=6, z0=7) == [
         ThreeDQubit(5, 6, 7),
         ThreeDQubit(5, 7, 7),
@@ -110,7 +110,7 @@ def test_parrallelep_3D():
     ]
 
 
-def test_square_2D():
+def test_square_2d():
     assert TwoDQubit.square(2, x0=1, y0=1) == [
         TwoDQubit(1, 1),
         TwoDQubit(2, 1),
@@ -125,7 +125,7 @@ def test_square_2D():
     ]
 
 
-def test_rec_2D():
+def test_rec_2d():
     assert TwoDQubit.rect(1, 2, x0=5, y0=6) == [TwoDQubit(5, 6), TwoDQubit(5, 7)]
     assert TwoDQubit.rect(2, 2) == [
         TwoDQubit(0, 0),
@@ -135,7 +135,7 @@ def test_rec_2D():
     ]
 
 
-def test_triangular_2D():
+def test_triangular_2d():
     assert TwoDQubit.triangular_lattice(1) == [
         TwoDQubit(0.0, 0.0),
         TwoDQubit(0.5, 0.8660254037844386),
@@ -151,17 +151,17 @@ def test_triangular_2D():
     ]
 
 
-def test_repr_():
+def test_repr():
     assert repr(ThreeDQubit(4, -25, 109)) == 'pasqal.ThreeDQubit(4, -25, 109)'
     assert repr(TwoDQubit(4, -25)) == 'pasqal.TwoDQubit(4, -25)'
 
 
-def test_str_():
+def test_str():
     assert str(ThreeDQubit(4, -25, 109)) == '(4, -25, 109)'
     assert str(TwoDQubit(4, -25)) == '(4, -25)'
 
 
-def test_to_json_():
+def test_to_json():
     q = ThreeDQubit(1.3, 1, 1)
     d = q._json_dict_()
     assert d == {
