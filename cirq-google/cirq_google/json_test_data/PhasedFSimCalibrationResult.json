@@ -1,0 +1,62 @@
+{
+  "cirq_type": "PhasedFSimCalibrationResult",
+  "gate": {
+    "cirq_type": "FSimGate",
+    "theta": 0.7853981633974483,
+    "phi": 0.0
+  },
+  "parameters": [
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 0
+      },
+      {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "cirq_type": "PhasedFSimCharacterization",
+        "theta": 0.1,
+        "zeta": 0.2,
+        "chi": null,
+        "gamma": null,
+        "phi": 0.3
+      }
+    ],
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 2
+      },
+      {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 3
+      },
+      {
+        "cirq_type": "PhasedFSimCharacterization",
+        "theta": 0.4,
+        "zeta": 0.5,
+        "chi": null,
+        "gamma": null,
+        "phi": 0.6
+      }
+    ]
+  ],
+  "options": {
+    "cirq_type": "FloquetPhasedFSimCalibrationOptions",
+    "characterize_theta": true,
+    "characterize_zeta": true,
+    "characterize_chi": false,
+    "characterize_gamma": false,
+    "characterize_phi": true,
+    "readout_error_tolerance": 0.4
+  },
+  "project_id": "project_id",
+  "program_id": "program_id",
+  "job_id": "job_id"
+}

@@ -1,0 +1,2 @@
+# don't upgrade this just yet, anything later will require protobuf>=3.14
+tensorflow-docs@git+https://github.com/tensorflow/docs@a90bcd30eb550f8d4ee335ff3daf18de5ca84b70

@@ -1,0 +1,35 @@
+[
+  {
+    "cirq_type": "MeasurementKey",
+    "name": "key",
+    "path": [],
+    "qubits": []
+  },
+  {
+    "cirq_type": "MeasurementKey",
+    "name": "key",
+    "path": ["outer"],
+    "qubits": []
+  },
+  {
+    "cirq_type": "MeasurementKey",
+    "name": "key",
+    "path": ["nested", "path"],
+    "qubits": []
+  },
+  {
+    "cirq_type": "MeasurementKey",
+    "name": "",
+    "path": ["nested", "path"],
+    "qubits": [
+                {
+                  "cirq_type": "LineQubit",
+                  "x": 0
+                },
+                {
+                  "cirq_type": "LineQubit",
+                  "x": 1
+                }
+    ]
+  }
+]

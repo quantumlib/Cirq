@@ -14,11 +14,15 @@
 
 import io
 import os
-from setuptools import find_packages, setup
+from setuptools import setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
-exec(open('cirq/_version.py').read())
+
+from dev_tools import modules
+from dev_tools.requirements import explode
+
+exec(open('cirq-core/cirq/_version.py').read())
 
 name = 'cirq'
 
@@ -43,40 +47,29 @@ if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
         "see**\n`here <https://pypi.org/project/cirq>`__.\n\n" + long_description
     )
 
-# Read in requirements
-requirements = open('requirements.txt').readlines()
-requirements = [r.strip() for r in requirements]
-contrib_requirements = open('cirq/contrib/contrib-requirements.txt').readlines()
-contrib_requirements = [r.strip() for r in contrib_requirements]
-dev_requirements = open('dev_tools/conf/pip-list-dev-tools.txt').readlines()
-dev_requirements = [r.strip() for r in dev_requirements]
-
-cirq_packages = ['cirq'] + ['cirq.' + package for package in find_packages(where='cirq')]
-
 # Sanity check
 assert __version__, 'Version string cannot be empty'
+
+# This is a pure metapackage that installs all our packages
+requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
+
+dev_requirements = explode('dev_tools/requirements/deps/dev-tools.txt')
+
+# filter out direct urls (https://github.com/pypa/pip/issues/6301)
+dev_requirements = [r.strip() for r in dev_requirements if "git+http" not in r]
 
 setup(
     name=name,
     version=__version__,
     url='http://github.com/quantumlib/cirq',
     author='The Cirq Developers',
-    author_email='cirq@googlegroups.com',
-    python_requires=('>=3.6.0'),
+    author_email='cirq-dev@googlegroups.com',
+    python_requires='>=3.6.0',
     install_requires=requirements,
     extras_require={
-        'contrib': contrib_requirements,
-        'dev_env': dev_requirements + contrib_requirements,
+        'dev_env': dev_requirements,
     },
     license='Apache 2',
     description=description,
     long_description=long_description,
-    packages=cirq_packages,
-    package_data={
-        'cirq': ['py.typed'],
-        'cirq.google.api.v1': ['*.proto', '*.pyi'],
-        'cirq.google.api.v2': ['*.proto', '*.pyi'],
-        'cirq.google.json_test_data': ['*'],
-        'cirq.protocols.json_test_data': ['*'],
-    },
 )

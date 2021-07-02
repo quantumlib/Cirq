@@ -1,0 +1,13 @@
+{
+  "cirq_type": "XEBPhasedFSimCharacterizationOptions",
+  "characterize_theta": true,
+  "characterize_zeta": true,
+  "characterize_chi": true,
+  "characterize_gamma": true,
+  "characterize_phi": true,
+  "theta_default": 0.0,
+  "zeta_default": 0.0,
+  "chi_default": 0.0,
+  "gamma_default": 0.0,
+  "phi_default": 0.0
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "cirq_type": "MeasurementGate",
+    "num_qubits": 3,
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "z",
+      "path": [],
+      "qubits": []
+    },
+    "invert_mask": []
+  },
+  {
+    "cirq_type": "MeasurementGate",
+    "num_qubits": 3,
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "z",
+      "path": [],
+      "qubits": []
+    },
+    "invert_mask": [
+      true,
+      false,
+      true
+    ]
+  },
+  {
+    "cirq_type": "MeasurementGate",
+    "num_qubits": 3,
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "z",
+      "path": ["a", "b"],
+      "qubits": []
+    },
+    "invert_mask": [
+      true,
+      false
+    ],
+    "qid_shape": [
+      1,
+      2,
+      3
+    ]
+  }
+]
