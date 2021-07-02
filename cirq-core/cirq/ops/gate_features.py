@@ -48,11 +48,19 @@ class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
             ValueError if targets are not instances of Qid or Iterable[Qid].
             ValueError if the gate qubit number is incompatible.
         """
+        operations: List[raw_types.Operation] = []
         if self._num_qubits_() > 1:
-            ops: List[raw_types.Operation] = []
-            if len(targets) != 1 or not isinstance(targets[0], Iterable):
-                raise ValueError(f'The inputs for multi-qubit gates cannot be in varargs form.')
-            for target in targets[0]:
+            if not targets:
+                is_varargs = True
+            else:
+                t0 = targets[0]
+                is_varargs = (
+                    isinstance(t0, Sequence) and len(t0) != 0 and isinstance(t0[0], raw_types.Qid)
+                )
+            iterator = targets if is_varargs else targets[0]
+            if not isinstance(iterator, Iterable):
+                raise TypeError(f'{iterator} object is not iterable.')
+            for target in iterator:
                 if not isinstance(target, Sequence):
                     raise ValueError(
                         f'Inputs to multi-qubit gates must be Sequence[Qid].'
@@ -62,10 +70,9 @@ class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
                     raise ValueError(f'All values in sequence should be Qids, but got {target}')
                 if len(target) != self._num_qubits_():
                     raise ValueError(f'Expected {self._num_qubits_()} qubits, got {target}')
-                ops.append(self.on(*target))
-            return ops
+                operations.append(self.on(*target))
+            return operations
 
-        operations: List[raw_types.Operation] = []
         for target in targets:
             if isinstance(target, raw_types.Qid):
                 operations.append(self.on(target))

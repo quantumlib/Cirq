@@ -79,10 +79,9 @@ def test_identity_on_each_two_qubits():
     assert cirq.IdentityGate(2, (3, 3)).on_each([(q0_3, q1_3)]) == [
         cirq.IdentityGate(2, (3, 3))(q0_3, q1_3),
     ]
-    with pytest.raises(ValueError, match='cannot be in varargs form'):
+    assert cirq.IdentityGate(2).on_each((q0, q1)) == [cirq.IdentityGate(2)(q0, q1)]
+    with pytest.raises(TypeError, match='object is not iterable'):
         cirq.IdentityGate(2).on_each(q0, q1)
-    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
-        cirq.IdentityGate(2).on_each((q0, q1))
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
         cirq.IdentityGate(2).on_each([[(q0, q1)]])
     with pytest.raises(ValueError, match='Expected 2 qubits'):
