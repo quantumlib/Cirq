@@ -218,6 +218,59 @@ a[          ]+  b  c
     )
 
 
+def test_named_single_qubit_diagram():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
+    c = cirq.Circuit(cirq.MatrixGate(m, name='Foo').on(a), cirq.CZ(a, b))
+
+    expected_horizontal = """
+a: ───Foo───@───
+            │
+b: ─────────@───
+    """.strip()
+    assert expected_horizontal == c.to_text_diagram().strip()
+
+    expected_vertical = """
+a   b
+│   │
+Foo │
+│   │
+@───@
+│   │
+    """.strip()
+    assert expected_vertical == c.to_text_diagram(transpose=True).strip()
+
+
+def test_named_two_qubit_diagram():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    c = cirq.Circuit(
+        cirq.MatrixGate(cirq.unitary(cirq.CZ), name='Foo').on(a, b),
+        cirq.MatrixGate(cirq.unitary(cirq.CZ), name='Bar').on(c, a),
+    )
+
+    expected_horizontal = """
+a: ───Foo[1]───Bar[2]───
+      │        │
+b: ───Foo[2]───┼────────
+               │
+c: ────────────Bar[1]───
+    """.strip()
+    assert expected_horizontal == c.to_text_diagram().strip()
+
+    expected_vertical = """
+a      b      c
+│      │      │
+Foo[1]─Foo[2] │
+│      │      │
+Bar[2]─┼──────Bar[1]
+│      │      │
+    """.strip()
+    assert expected_vertical == c.to_text_diagram(transpose=True).strip()
+
+
 def test_str_executes():
     assert '1' in str(cirq.MatrixGate(np.eye(2)))
     assert '0' in str(cirq.MatrixGate(np.eye(4)))
@@ -299,3 +352,26 @@ def test_protocols_and_repr():
     cirq.testing.assert_implements_consistent_protocols(
         cirq.MatrixGate(np.diag([1, 1j, -1]), qid_shape=(3,))
     )
+
+
+def test_matrixgate_unitary_tolerance():
+    ## non-unitary matrix
+    with pytest.raises(ValueError):
+        _ = cirq.MatrixGate(np.array([[1, 0], [0, -0.6]]), unitary_check_atol=0.5)
+
+    # very high atol -> check converges quickly
+    _ = cirq.MatrixGate(np.array([[1, 0], [0, 1]]), unitary_check_atol=1)
+
+    # very high rtol -> check converges quickly
+    _ = cirq.MatrixGate(np.array([[1, 0], [0, -0.6]]), unitary_check_rtol=1)
+
+    ## unitary matrix
+    _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_atol=0.5)
+
+    # very low atol -> the check never converges
+    with pytest.raises(ValueError):
+        _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_atol=1e-10)
+
+    # very low atol -> the check never converges
+    with pytest.raises(ValueError):
+        _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_rtol=1e-10)

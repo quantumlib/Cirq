@@ -1,4 +1,4 @@
-# Copyright 2020 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,21 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Devices, qubits, and sampler for Pasqal's neutrali atom device."""
-from cirq.pasqal.pasqal_qubits import (
-    ThreeDQubit,
-    TwoDQubit,
-)
 
-from cirq.pasqal.pasqal_device import (
-    PasqalDevice,
-    PasqalVirtualDevice,
-)
-
-from cirq.pasqal.pasqal_noise_model import (
-    PasqalNoiseModel,
-)
-
-from cirq.pasqal.pasqal_sampler import (
-    PasqalSampler,
+from cirq_google.experimental.ops.coupler_pulse import (
+    CouplerPulse,
 )

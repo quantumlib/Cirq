@@ -31,6 +31,7 @@ from typing import (
 
 from cirq import protocols, ops
 from cirq.ops import raw_types
+from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -278,6 +279,10 @@ class Moment:
     def __str__(self) -> str:
         return self.to_text_diagram()
 
+    def _decompose_(self) -> 'cirq.OP_TREE':
+        """See `cirq.SupportsDecompose`."""
+        return self._operations
+
     def transform_qubits(
         self: TSelf_Moment,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
@@ -420,7 +425,7 @@ class Moment:
                 precision=precision,
                 include_tags=include_tags,
             )
-            info = protocols.CircuitDiagramInfo._op_info_with_fallback(op, args=args)
+            info = circuit_diagram_info_protocol._op_info_with_fallback(op, args=args)
             symbols = info._wire_symbols_including_formatted_exponent(args)
             for label, q in zip(symbols, op.qubits):
                 x, y = qubit_positions[q]
