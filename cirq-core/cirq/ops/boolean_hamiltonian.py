@@ -26,7 +26,7 @@ References:
 
 import functools
 import itertools
-from typing import cast, Any, Callable, Dict, Generator, List, Optional, Sequence, Tuple
+from typing import cast, Any, Callable, Dict, Generator, Iterator, List, Optional, Sequence, Tuple
 import sys
 
 from sympy.logic.boolalg import And, Not, Or, Xor
@@ -446,7 +446,7 @@ def _get_gates_from_hamiltonians(
 
 def _shortest_generator(
     generators: List[Generator['cirq.Operation', None, None]]
-) -> Generator['cirq.Operation', None, None]:
+) -> Iterator['cirq.Operation']:
     min_gen_length = sys.maxsize
     for generator in generators:
         out_gen, gen_copy = itertools.tee(generator)
