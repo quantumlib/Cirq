@@ -347,7 +347,7 @@ class BooleanHamiltonian(raw_types.Operation):
         theta: float,
         ladder_target: Optional[bool] = None,
     ):
-        """Builds an BooleanHamiltonian.
+        """Builds a BooleanHamiltonian.
 
         For each element of a sequence of Boolean expressions, the code first transforms it into a
         polynomial of Pauli Zs that represent that particular expression. Then, we sum all the
