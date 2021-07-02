@@ -57,6 +57,7 @@ from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
+from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -2010,36 +2011,6 @@ class Circuit(AbstractCircuit):
 
         return self.insert(end, flat_ops[op_index:])
 
-    @staticmethod
-    def _pick_inserted_ops_moment_indices(
-        operations: Sequence['cirq.Operation'],
-        start: int = 0,
-        frontier: Dict['cirq.Qid', int] = None,
-    ) -> Tuple[Sequence[int], Dict['cirq.Qid', int]]:
-        """Greedily assigns operations to moments.
-
-        Args:
-            operations: The operations to assign to moments.
-            start: The first moment to consider assignment to.
-            frontier: The first moment to which an operation acting on a qubit
-                can be assigned. Updated in place as operations are assigned.
-
-        Returns:
-            The frontier giving the index of the moment after the last one to
-            which an operation that acts on each qubit is assigned. If a
-            frontier was specified as an argument, this is the same object.
-        """
-        if frontier is None:
-            frontier = defaultdict(lambda: 0)
-        moment_indices = []
-        for op in operations:
-            op_start = max(start, max(frontier[q] for q in op.qubits))
-            moment_indices.append(op_start)
-            for q in op.qubits:
-                frontier[q] = max(frontier[q], op_start + 1)
-
-        return moment_indices, frontier
-
     def _push_frontier(
         self,
         early_frontier: Dict['cirq.Qid', int],
@@ -2138,7 +2109,7 @@ class Circuit(AbstractCircuit):
 
         next_moments = self.next_moments_operating_on(qubits, start)
 
-        insertion_indices, _ = self._pick_inserted_ops_moment_indices(flat_ops, start, frontier)
+        insertion_indices, _ = _pick_inserted_ops_moment_indices(flat_ops, start, frontier)
 
         self._push_frontier(frontier, next_moments)
 
@@ -2319,6 +2290,36 @@ class Circuit(AbstractCircuit):
         return c_noisy
 
 
+def _pick_inserted_ops_moment_indices(
+    operations: Sequence['cirq.Operation'],
+    start: int = 0,
+    frontier: Dict['cirq.Qid', int] = None,
+) -> Tuple[Sequence[int], Dict['cirq.Qid', int]]:
+    """Greedily assigns operations to moments.
+
+    Args:
+        operations: The operations to assign to moments.
+        start: The first moment to consider assignment to.
+        frontier: The first moment to which an operation acting on a qubit
+            can be assigned. Updated in place as operations are assigned.
+
+    Returns:
+        The frontier giving the index of the moment after the last one to
+        which an operation that acts on each qubit is assigned. If a
+        frontier was specified as an argument, this is the same object.
+    """
+    if frontier is None:
+        frontier = defaultdict(lambda: 0)
+    moment_indices = []
+    for op in operations:
+        op_start = max(start, max(frontier[q] for q in op.qubits))
+        moment_indices.append(op_start)
+        for q in op.qubits:
+            frontier[q] = max(frontier[q], op_start + 1)
+
+    return moment_indices, frontier
+
+
 def _resolve_operations(
     operations: Iterable['cirq.Operation'], param_resolver: 'cirq.ParamResolver', recursive: bool
 ) -> List['cirq.Operation']:
@@ -2390,7 +2391,7 @@ def _draw_moment_in_diagram(
     first_annotation_row: int,
 ):
     if get_circuit_diagram_info is None:
-        get_circuit_diagram_info = protocols.CircuitDiagramInfo._op_info_with_fallback
+        get_circuit_diagram_info = circuit_diagram_info_protocol._op_info_with_fallback
     x0 = out_diagram.width()
 
     non_global_ops = [op for op in moment.operations if op.qubits]

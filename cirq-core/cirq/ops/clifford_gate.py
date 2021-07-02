@@ -49,6 +49,35 @@ def _pretend_initialized() -> 'SingleQubitCliffordGate':
     pass
 
 
+def _validate_map_input(
+    required_transform_count: int,
+    pauli_map_to: Optional[Dict[Pauli, Tuple[Pauli, bool]]],
+    x_to: Optional[Tuple[Pauli, bool]],
+    y_to: Optional[Tuple[Pauli, bool]],
+    z_to: Optional[Tuple[Pauli, bool]],
+) -> Dict[Pauli, PauliTransform]:
+    if pauli_map_to is None:
+        xyz_to = {pauli_gates.X: x_to, pauli_gates.Y: y_to, pauli_gates.Z: z_to}
+        pauli_map_to = {cast(Pauli, p): trans for p, trans in xyz_to.items() if trans is not None}
+    elif x_to is not None or y_to is not None or z_to is not None:
+        raise ValueError(
+            '{} can take either pauli_map_to or a combination'
+            ' of x_to, y_to, and z_to but both were given'
+        )
+    if len(pauli_map_to) != required_transform_count:
+        raise ValueError(
+            'Method takes {} transform{} but {} {} given'.format(
+                required_transform_count,
+                '' if required_transform_count == 1 else 's',
+                len(pauli_map_to),
+                'was' if len(pauli_map_to) == 1 else 'were',
+            )
+        )
+    if len(set((to for to, _ in pauli_map_to.values()))) != len(pauli_map_to):
+        raise ValueError('A rotation cannot map two Paulis to the same')
+    return {frm: PauliTransform(to, flip) for frm, (to, flip) in pauli_map_to.items()}
+
+
 @value.value_equality
 class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     """Any single qubit Clifford rotation."""
@@ -107,9 +136,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             y_to: The transform from cirq.Y
             z_to: The transform from cirq.Z
         """
-        rotation_map = SingleQubitCliffordGate._validate_map_input(
-            1, pauli_map_to, x_to=x_to, y_to=y_to, z_to=z_to
-        )
+        rotation_map = _validate_map_input(1, pauli_map_to, x_to=x_to, y_to=y_to, z_to=z_to)
         ((trans_from, (trans_to, flip)),) = tuple(rotation_map.items())
         if trans_from == trans_to:
             trans_from2 = Pauli.by_relative_index(trans_to, 1)  # 1 or 2 work
@@ -144,9 +171,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             y_to: The transform from cirq.Y
             z_to: The transform from cirq.Z
         """
-        rotation_map = SingleQubitCliffordGate._validate_map_input(
-            2, pauli_map_to, x_to=x_to, y_to=y_to, z_to=z_to
-        )
+        rotation_map = _validate_map_input(2, pauli_map_to, x_to=x_to, y_to=y_to, z_to=z_to)
         (from1, trans1), (from2, trans2) = tuple(rotation_map.items())
         from3 = from1.third(from2)
         to3 = trans1.to.third(trans2.to)
@@ -185,37 +210,6 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             return SingleQubitCliffordGate.from_pauli(pauli)
 
         return SingleQubitCliffordGate.from_pauli(pauli, True) ** -1
-
-    @staticmethod
-    def _validate_map_input(
-        required_transform_count: int,
-        pauli_map_to: Optional[Dict[Pauli, Tuple[Pauli, bool]]],
-        x_to: Optional[Tuple[Pauli, bool]],
-        y_to: Optional[Tuple[Pauli, bool]],
-        z_to: Optional[Tuple[Pauli, bool]],
-    ) -> Dict[Pauli, PauliTransform]:
-        if pauli_map_to is None:
-            xyz_to = {pauli_gates.X: x_to, pauli_gates.Y: y_to, pauli_gates.Z: z_to}
-            pauli_map_to = {
-                cast(Pauli, p): trans for p, trans in xyz_to.items() if trans is not None
-            }
-        elif x_to is not None or y_to is not None or z_to is not None:
-            raise ValueError(
-                '{} can take either pauli_map_to or a combination'
-                ' of x_to, y_to, and z_to but both were given'
-            )
-        if len(pauli_map_to) != required_transform_count:
-            raise ValueError(
-                'Method takes {} transform{} but {} {} given'.format(
-                    required_transform_count,
-                    '' if required_transform_count == 1 else 's',
-                    len(pauli_map_to),
-                    'was' if len(pauli_map_to) == 1 else 'were',
-                )
-            )
-        if len(set((to for to, _ in pauli_map_to.values()))) != len(pauli_map_to):
-            raise ValueError('A rotation cannot map two Paulis to the same')
-        return {frm: PauliTransform(to, flip) for frm, (to, flip) in pauli_map_to.items()}
 
     @staticmethod
     def from_unitary(u: np.ndarray) -> Optional['SingleQubitCliffordGate']:
