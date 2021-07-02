@@ -30,27 +30,8 @@ class Env(Enum):
     COLAB = 2
     OTHER = 3
 
-
-def _to_script_tag(bundle_filename: str) -> str:
-    """Dumps the contents of a particular bundle file into a script tag.
-
-    Args:
-        path: the path to the bundle file
-
-    Returns:
-        The bundle file as string (readable by browser) wrapped in HTML script tags.
-    """
-    bundle_file_path = os.path.join(_DIST_PATH, bundle_filename)
-    bundle_file = open(bundle_file_path, 'r', encoding='utf-8')
-    bundle_file_contents = bundle_file.read()
-    bundle_file.close()
-    bundle_html = f'<script>{bundle_file_contents}</script>'
-
-    return bundle_html
-
-
 class Widget(ABC):
-    """Abstract template class for all widgets."""
+    """Abstract class for all widgets."""
 
     def __init__(self):
         """Initializes a Widget.
@@ -121,3 +102,21 @@ class Widget(ABC):
         bundle_script = self._get_bundle_script()
 
         return div + bundle_script + client_code
+
+def _to_script_tag(bundle_filename: str) -> str:
+    """Dumps the contents of a particular bundle file into a script tag.
+
+    Args:
+        path: the path to the bundle file
+
+    Returns:
+        The bundle file as string (readable by browser) wrapped in HTML script tags.
+    """
+    bundle_file_path = os.path.join(_DIST_PATH, bundle_filename)
+    bundle_file = open(bundle_file_path, 'r', encoding='utf-8')
+    bundle_file_contents = bundle_file.read()
+    bundle_file.close()
+    bundle_html = f'<script>{bundle_file_contents}</script>'
+
+    return bundle_html
+
