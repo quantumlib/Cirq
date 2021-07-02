@@ -45,6 +45,114 @@ _hamiltonian_Z: Callable[['cirq.Qid'], 'cirq.PauliString'] = lambda qubit: cirq.
 )
 
 
+@value.value_equality
+class BooleanHamiltonian(raw_types.Operation):
+    """An operation that represents a Hamiltonian from a set of Boolean functions."""
+
+    def __init__(
+        self,
+        qubit_map: Dict[str, 'cirq.Qid'],
+        boolean_strs: Sequence[str],
+        theta: float,
+        ladder_target: Optional[bool] = None,
+    ):
+        """Builds a BooleanHamiltonian.
+
+        For each element of a sequence of Boolean expressions, the code first transforms it into a
+        polynomial of Pauli Zs that represent that particular expression. Then, we sum all the
+        polynomials, thus making a function that goes from a series to Boolean inputs to an integer
+        that is the number of Boolean expressions that are true.
+
+        For example, if we were using this gate for the max-cut problem that is typically used to
+        demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
+        Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
+        an XOR.
+
+        Then, we compute exp(j * theta * polynomial), which is unitary because the polynomial is
+        Hermitian.
+
+        Args:
+            boolean_strs: The list of Sympy-parsable Boolean expressions.
+            qubit_map: map of string (boolean variable name) to qubit.
+            theta: The list of thetas to scale the Hamiltonian.
+            ladder_target: Whether to use convention of figure 7a or 7b of [4]. The two
+                formulations yield the same output, but can be simplified differently.
+                For example for 3 qubits, the ladder target would be:
+                ───@───────────
+                   │
+                ───X───@───────
+                       │
+                ───────X───@───
+                           │
+                ───────────X───
+                Otherwise, it would be:
+                ───@───────────
+                   │
+                ───┼───@───────
+                   │   │
+                ───┼───┼───@───
+                   │   │   │
+                ───X───X───X───
+                The papers do not provide a formula for which option yields a smaller number of
+                gates, so the option is provided as an input.
+                If set to None, computes the set of gates for both approaches, count the number of
+                gates, and return the smallest set.
+        """
+        self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
+        self._boolean_strs: Sequence[str] = boolean_strs
+        self._theta: float = theta
+        self._ladder_target: Optional[bool] = ladder_target
+
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'BooleanHamiltonian':
+        return BooleanHamiltonian(
+            {cast(cirq.NamedQubit, q).name: q for q in new_qubits},
+            self._boolean_strs,
+            self._theta,
+            self._ladder_target,
+        )
+
+    @property
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+        return tuple(self._qubit_map.values())
+
+    def num_qubits(self) -> int:
+        return len(self._qubit_map)
+
+    def _value_equality_values_(self):
+        return self._qubit_map, self._boolean_strs, self._theta, self._ladder_target
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'cirq_type': self.__class__.__name__,
+            'qubit_map': self._qubit_map,
+            'boolean_strs': self._boolean_strs,
+            'theta': self._theta,
+            'ladder_target': self._ladder_target,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qubit_map, boolean_strs, theta, ladder_target, **kwargs):
+        return cls(qubit_map, boolean_strs, theta, ladder_target)
+
+    def _decompose_(self):
+        boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
+        hamiltonian_polynomial_list = [
+            _build_hamiltonian_from_boolean(boolean_expr, self._qubit_map)
+            for boolean_expr in boolean_exprs
+        ]
+
+        ladder_target_list = [True, False] if self._ladder_target is None else [self._ladder_target]
+
+        return _shortest_generator(
+            [
+                _get_gates_from_hamiltonians(
+                    hamiltonian_polynomial_list, self._qubit_map, self._theta, self._ladder_target
+                )
+                for ladder_target in ladder_target_list
+            ]
+        )
+
+
 def _build_hamiltonian_from_boolean(
     boolean_expr: Expr, qubit_map: Dict[str, 'cirq.Qid']
 ) -> 'cirq.PauliString':
@@ -116,9 +224,10 @@ def _simplify_commuting_cnots(
     cnots: List[Tuple[int, int]], flip_control_and_target: bool
 ) -> Tuple[bool, List[Tuple[int, int]]]:
     """Attempts to commute CNOTs and remove cancelling pairs.
-    
-     Commutation relations are based on 9 (flip_control_and_target=False) or 10 (flip_control_target=True) of [4]:
-     When flip_control_target=True:
+
+    Commutation relations are based on 9 (flip_control_and_target=False) or 10
+    (flip_control_target=True) of [4]:
+    When flip_control_target=True:
 
          CNOT(j, i) @ CNOT(j, k) = CNOT(j, k) @ CNOT(j, i)
     ───X───────       ───────X───
@@ -126,7 +235,7 @@ def _simplify_commuting_cnots(
     ───@───@───   =   ───@───@───
            │             │
     ───────X───       ───X───────
-    
+
     When flip_control_target=False:
 
     CNOT(i, j) @ CNOT(k, j) = CNOT(k, j) @ CNOT(i, j)
@@ -145,7 +254,6 @@ def _simplify_commuting_cnots(
         The CNOT list, potentially simplified.
     """
 
-    # If input is empty, there is no simplification.
     target, control = (0, 1) if flip_control_and_target else (1, 0)
 
     i = 0
@@ -336,7 +444,7 @@ def _get_gates_from_hamiltonians(
     yield _apply_cnots(previous_h, ())
 
 
-def shortest_generator(
+def _shortest_generator(
     generators: List[Generator['cirq.Operation', None, None]]
 ) -> Generator['cirq.Operation', None, None]:
     min_gen_length = sys.maxsize
@@ -346,111 +454,3 @@ def shortest_generator(
         if gen_length < min_gen_length:
             min_gen = out_gen
     return min_gen
-
-
-@value.value_equality
-class BooleanHamiltonian(raw_types.Operation):
-    """An operation that represents a Hamiltonian from a set of Boolean functions."""
-
-    def __init__(
-        self,
-        qubit_map: Dict[str, 'cirq.Qid'],
-        boolean_strs: Sequence[str],
-        theta: float,
-        ladder_target: Optional[bool] = None,
-    ):
-        """Builds a BooleanHamiltonian.
-
-        For each element of a sequence of Boolean expressions, the code first transforms it into a
-        polynomial of Pauli Zs that represent that particular expression. Then, we sum all the
-        polynomials, thus making a function that goes from a series to Boolean inputs to an integer
-        that is the number of Boolean expressions that are true.
-
-        For example, if we were using this gate for the max-cut problem that is typically used to
-        demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
-        Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
-        an XOR.
-
-        Then, we compute exp(j * theta * polynomial), which is unitary because the polynomial is
-        Hermitian.
-
-        Args:
-            boolean_strs: The list of Sympy-parsable Boolean expressions.
-            qubit_map: map of string (boolean variable name) to qubit.
-            theta: The list of thetas to scale the Hamiltonian.
-            ladder_target: Whether to use convention of figure 7a or 7b of [4]. The two
-                formulations yield the same output, but can be simplified differently.
-                For example for 3 qubits, the ladder target would be:
-                ───@───────────
-                   │
-                ───X───@───────
-                       │
-                ───────X───@───
-                           │
-                ───────────X───
-                Otherwise, it would be:
-                ───@───────────
-                   │
-                ───┼───@───────
-                   │   │
-                ───┼───┼───@───
-                   │   │   │
-                ───X───X───X───
-                The papers do not provide a formula for which option yields a smaller number of
-                gates, so the option is provided as an input.
-                If set to None, computes the set of gates for both approaches, count the number of
-                gates, and return the smallest set.
-        """
-        self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
-        self._boolean_strs: Sequence[str] = boolean_strs
-        self._theta: float = theta
-        self._ladder_target: Optional[bool] = ladder_target
-
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'BooleanHamiltonian':
-        return BooleanHamiltonian(
-            {cast(cirq.NamedQubit, q).name: q for q in new_qubits},
-            self._boolean_strs,
-            self._theta,
-            self._ladder_target,
-        )
-
-    @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
-        return tuple(self._qubit_map.values())
-
-    def num_qubits(self) -> int:
-        return len(self._qubit_map)
-
-    def _value_equality_values_(self):
-        return self._qubit_map, self._boolean_strs, self._theta, self._ladder_target
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            'qubit_map': self._qubit_map,
-            'boolean_strs': self._boolean_strs,
-            'theta': self._theta,
-            'ladder_target': self._ladder_target,
-        }
-
-    @classmethod
-    def _from_json_dict_(cls, qubit_map, boolean_strs, theta, ladder_target, **kwargs):
-        return cls(qubit_map, boolean_strs, theta, ladder_target)
-
-    def _decompose_(self):
-        boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
-        hamiltonian_polynomial_list = [
-            _build_hamiltonian_from_boolean(boolean_expr, self._qubit_map)
-            for boolean_expr in boolean_exprs
-        ]
-
-        ladder_target_list = [True, False] if self._ladder_target is None else [self._ladder_target]
-
-        return shortest_generator(
-            [
-                _get_gates_from_hamiltonians(
-                    hamiltonian_polynomial_list, self._qubit_map, self._theta, self._ladder_target
-                )
-                for ladder_target in ladder_target_list
-            ]
-        )
