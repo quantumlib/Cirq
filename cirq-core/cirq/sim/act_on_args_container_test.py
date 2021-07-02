@@ -26,13 +26,20 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _on_copy(self, args):
         pass
 
-    def _on_join(self, other, target):
+    def _on_kron(self, other, target):
         pass
 
-    def _on_reorder(self, qubits, target):
+    def _on_transpose(self, qubits, target):
         pass
 
-    def _on_extract(self, qubits, extracted, remainder):
+    def _on_factor(
+        self,
+        qubits,
+        extracted,
+        remainder,
+        validate=True,
+        atol=1e-07,
+    ):
         pass
 
     def _perform_measurement(self, qubits):

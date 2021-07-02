@@ -101,12 +101,12 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
     def _on_copy(self, target: 'ActOnStabilizerCHFormArgs'):
         target.state = self.state.copy()
 
-    def _on_join(
+    def _on_kron(
         self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
     ):
         target.state = self.state.join(other.state)
 
-    def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStabilizerCHFormArgs'):
+    def _on_transpose(self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStabilizerCHFormArgs'):
         axes = [self.qubit_map[q] for q in qubits]
         target.state = self.state.reindex(axes)
 

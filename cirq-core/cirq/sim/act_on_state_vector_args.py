@@ -198,29 +198,31 @@ class ActOnStateVectorArgs(ActOnArgs):
         target.target_tensor = self.target_tensor.copy()
         target.available_buffer = self.available_buffer.copy()
 
-    def _on_join(self, other: 'ActOnStateVectorArgs', target: 'ActOnStateVectorArgs'):
+    def _on_kron(self, other: 'ActOnStateVectorArgs', target: 'ActOnStateVectorArgs'):
         target_tensor = transformations.state_vector_kronecker_product(
             self.target_tensor, other.target_tensor
         )
         target.target_tensor = target_tensor
         target.available_buffer = np.empty_like(target_tensor)
 
-    def _on_extract(
+    def _on_factor(
         self,
         qubits: Sequence['cirq.Qid'],
         extracted: 'ActOnStateVectorArgs',
         remainder: 'ActOnStateVectorArgs',
+        validate=True,
+        atol=1e-07,
     ):
         axes = [self.qubit_map[q] for q in qubits]
         extracted_tensor, remainder_tensor = transformations.factor_state_vector(
-            self.target_tensor, axes
+            self.target_tensor, axes, validate=validate, atol=atol
         )
         extracted.target_tensor = extracted_tensor
         extracted.available_buffer = np.empty_like(extracted_tensor)
         remainder.target_tensor = remainder_tensor
         remainder.available_buffer = np.empty_like(remainder_tensor)
 
-    def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'ActOnStateVectorArgs'):
+    def _on_transpose(self, qubits: Sequence['cirq.Qid'], target: 'ActOnStateVectorArgs'):
         axes = self.get_axes(qubits)
         new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)
         target.target_tensor = new_tensor

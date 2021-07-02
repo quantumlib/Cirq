@@ -51,20 +51,22 @@ class CountingActOnArgs(cirq.ActOnArgs):
 
 
 class SplittableCountingActOnArgs(CountingActOnArgs):
-    def _on_join(self, other: 'SplittableCountingActOnArgs', target: 'SplittableCountingActOnArgs'):
+    def _on_kron(self, other: 'SplittableCountingActOnArgs', target: 'SplittableCountingActOnArgs'):
         target.gate_count = self.gate_count + other.gate_count
         target.measurement_count = self.measurement_count + other.measurement_count
 
-    def _on_extract(
+    def _on_factor(
         self,
         qubits: Sequence['cirq.Qid'],
         extracted: 'SplittableCountingActOnArgs',
         remainder: 'SplittableCountingActOnArgs',
+        validate=True,
+        atol=1e-07,
     ):
         remainder.gate_count = 0
         remainder.measurement_count = 0
 
-    def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'SplittableCountingActOnArgs'):
+    def _on_transpose(self, qubits: Sequence['cirq.Qid'], target: 'SplittableCountingActOnArgs'):
         pass
 
     def can_extract(self, qubits: Sequence['cirq.Qid']):

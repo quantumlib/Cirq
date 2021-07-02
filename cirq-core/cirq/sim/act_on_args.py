@@ -127,7 +127,7 @@ class ActOnArgs(OperationTarget[TSelf]):
     def kronecker_product(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
-        self._on_join(other, args)
+        self._on_kron(other, args)
         args._set_qubits(self.qubits + other.qubits)
         return args
 
@@ -142,7 +142,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
-        self._on_extract(qubits, extracted, remainder)
+        self._on_factor(qubits, extracted, remainder, validate, atol)
         extracted._set_qubits(qubits)
         remainder._set_qubits([q for q in self.qubits if q not in qubits])
         return extracted, remainder
@@ -153,7 +153,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Physically reindexes the state by the new basis."""
         args = self if inplace else copy.copy(self)
         assert set(qubits) == set(self.qubits)
-        self._on_reorder(qubits, args)
+        self._on_transpose(qubits, args)
         args._set_qubits(qubits)
         return args
 
@@ -161,13 +161,20 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Subclasses that allow extraction should override this."""
         return False
 
-    def _on_join(self: TSelf, other: TSelf, target: TSelf):
+    def _on_kron(self: TSelf, other: TSelf, target: TSelf):
         raise NotImplementedError()
 
-    def _on_extract(self: TSelf, qubits: Sequence['cirq.Qid'], extracted: TSelf, remainder: TSelf):
+    def _on_factor(
+        self: TSelf,
+        qubits: Sequence['cirq.Qid'],
+        extracted: TSelf,
+        remainder: TSelf,
+        validate=True,
+        atol=1e-07,
+    ):
         raise NotImplementedError()
 
-    def _on_reorder(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
+    def _on_transpose(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
         raise NotImplementedError()
 
     @property
