@@ -123,7 +123,7 @@ def test_copy():
     assert args.qubits == args1.qubits
     assert args.prng is args1.prng
     assert args.log_of_measurement_results is not args1.log_of_measurement_results
-    assert args.log_of_measurement_results == args.log_of_measurement_results
+    assert args.log_of_measurement_results == args1.log_of_measurement_results
 
 
 def test_axes_deprecation():
