@@ -18,7 +18,7 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
-from typing import Union, Iterable, Any, List
+from typing import Union, Iterable, Any, List, Sequence
 
 from cirq.ops import raw_types
 
@@ -36,29 +36,48 @@ class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
     def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]) -> List[raw_types.Operation]:
         """Returns a list of operations applying the gate to all targets.
-
         Args:
-            *targets: The qubits to apply this gate to.
-
+            *targets: The qubits to apply this gate to. For single-qubit gates
+            this can be provided as varargs or a combination of nested
+            iterables. For multi-qubit gates this must be provided as an
+            `Iterable[Sequence[Qid]]`, where each sequence has `num_qubits`
+            qubits.
         Returns:
             Operations applying this gate to the target qubits.
-
         Raises:
-            ValueError if targets are not instances of Qid or List[Qid].
-            ValueError if the gate operates on two or more Qids.
+            ValueError if targets are not instances of Qid or Iterable[Qid].
+            ValueError if the gate qubit number is incompatible.
         """
+        operations: List[raw_types.Operation] = []
         if self._num_qubits_() > 1:
-            raise ValueError('This gate only supports on_each when it is a one qubit gate.')
-        operations = []  # type: List[raw_types.Operation]
-        for target in targets:
-            if isinstance(target, raw_types.Qid):
-                operations.append(self.on(target))
-            elif isinstance(target, Iterable) and not isinstance(target, str):
-                operations.extend(self.on_each(*target))
-            else:
-                raise ValueError(
-                    f'Gate was called with type different than Qid. Type: {type(target)}'
-                )
+            if len(targets) != 1 or not isinstance(targets[0], Iterable):
+                raise ValueError(f'The inputs for multi-qubit gates cannot be in varargs form.')
+            for target in targets[0]:
+                if not isinstance(target, Sequence):
+                    if isinstance(target, raw_types.Qid):
+                        raise ValueError(
+                            f'The inputs for multi-qubit gates cannot be in varargs form.'
+                        )
+                    else:
+                        raise ValueError(
+                            f'Inputs to multi-qubit gates must be Sequence[Qid].'
+                            f' Type: {type(target)}'
+                        )
+                if not all(isinstance(x, raw_types.Qid) for x in target):
+                    raise ValueError(f'All values in sequence should be Qids, but got {target}')
+                if len(target) != self._num_qubits_():
+                    raise ValueError(f'Expected {self._num_qubits_()} qubits, got {target}')
+                operations.append(self.on(*target))
+        else:
+            for target in targets:
+                if isinstance(target, raw_types.Qid):
+                    operations.append(self.on(target))
+                elif isinstance(target, Iterable) and not isinstance(target, str):
+                    operations.extend(self.on_each(*target))
+                else:
+                    raise ValueError(
+                        f'Gate was called with type different than Qid. Type: {type(target)}'
+                    )
         return operations
 
 
