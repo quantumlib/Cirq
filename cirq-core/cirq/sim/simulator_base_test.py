@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Dict, Any, Sequence
+import math
+from typing import List, Dict, Any, Sequence, Tuple
 
 import numpy as np
 import pytest
@@ -23,6 +24,13 @@ class CountingActOnArgs(cirq.ActOnArgs):
     gate_count = 0
     measurement_count = 0
 
+    def __init__(self, state, qubits, logs):
+        super().__init__(
+            qubits=qubits,
+            log_of_measurement_results=logs,
+        )
+        self.state = state
+
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         self.measurement_count += 1
         return [self.gate_count]
@@ -30,8 +38,8 @@ class CountingActOnArgs(cirq.ActOnArgs):
     def copy(self) -> 'CountingActOnArgs':
         args = CountingActOnArgs(
             qubits=self.qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
+            logs=self.log_of_measurement_results.copy(),
+            state=self.state,
         )
         args.gate_count = self.gate_count
         args.measurement_count = self.measurement_count
@@ -40,6 +48,53 @@ class CountingActOnArgs(cirq.ActOnArgs):
     def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         self.gate_count += 1
         return True
+
+
+class SplittableCountingActOnArgs(CountingActOnArgs):
+    def kronecker_product(
+        self, other: 'SplittableCountingActOnArgs'
+    ) -> 'SplittableCountingActOnArgs':
+        args = SplittableCountingActOnArgs(
+            qubits=self.qubits + other.qubits,
+            logs=self.log_of_measurement_results,
+            state=None,
+        )
+        args.gate_count = self.gate_count + other.gate_count
+        args.measurement_count = self.measurement_count + other.measurement_count
+        return args
+
+    def factor(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        *,
+        validate=True,
+        atol=1e-07,
+    ) -> Tuple['SplittableCountingActOnArgs', 'SplittableCountingActOnArgs']:
+        extracted_args = SplittableCountingActOnArgs(
+            qubits=qubits,
+            logs=self.log_of_measurement_results,
+            state=None,
+        )
+        extracted_args.gate_count = self.gate_count
+        extracted_args.measurement_count = self.measurement_count
+        remainder_args = SplittableCountingActOnArgs(
+            qubits=tuple(q for q in self.qubits if q not in qubits),
+            logs=self.log_of_measurement_results,
+            state=None,
+        )
+        return extracted_args, remainder_args
+
+    def transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid']
+    ) -> 'SplittableCountingActOnArgs':
+        args = SplittableCountingActOnArgs(
+            qubits=qubits,
+            logs=self.log_of_measurement_results,
+            state=self.state,
+        )
+        args.gate_count = self.gate_count
+        args.measurement_count = self.measurement_count
+        return args
 
 
 class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
@@ -76,12 +131,19 @@ class CountingSimulator(
         CountingStepResult, CountingTrialResult, CountingActOnArgs, CountingActOnArgs
     ]
 ):
-    def _create_act_on_args(
+    def __init__(self, noise=None, split_untangled_states=False):
+        super().__init__(
+            noise=noise,
+            split_untangled_states=split_untangled_states,
+        )
+
+    def _create_partial_act_on_args(
         self,
         initial_state: Any,
-        qubits: Sequence[cirq.Qid],
+        qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ) -> CountingActOnArgs:
-        return CountingActOnArgs(cirq.value.parse_random_state(0), qubits)
+        return CountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
 
     def _create_simulator_trial_result(
         self,
@@ -99,6 +161,26 @@ class CountingSimulator(
         return CountingStepResult(sim_state, qubit_map)
 
 
+class SplittableCountingSimulator(CountingSimulator):
+    def __init__(self, noise=None, split_untangled_states=True):
+        super().__init__(
+            noise=noise,
+            split_untangled_states=split_untangled_states,
+        )
+
+    def _create_partial_act_on_args(
+        self,
+        initial_state: Any,
+        qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
+    ) -> CountingActOnArgs:
+        return SplittableCountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
+
+
+q0, q1 = cirq.LineQubit.range(2)
+entangled_state_repr = np.array([[math.sqrt(0.5), 0], [0, math.sqrt(0.5)]])
+
+
 class TestOp(cirq.Operation):
     def with_qubits(self, *new_qubits):
         pass
@@ -106,9 +188,6 @@ class TestOp(cirq.Operation):
     @property
     def qubits(self):
         return [q0]
-
-
-q0 = cirq.LineQubit(0)
 
 
 def test_simulate_empty_circuit():
@@ -191,3 +270,86 @@ def test_run_non_terminal_measurement():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0), cirq.X(q0)), repetitions=2)
     assert np.allclose(r.measurements['0'], [[1], [1]])
+
+
+def test_integer_initial_state_is_split():
+    sim = SplittableCountingSimulator()
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert len(set(args.values())) == 3
+    assert args[q0] is not args[q1]
+    assert args[q0].state == 1
+    assert args[q1].state == 0
+    assert args[None].state == 0
+
+
+def test_integer_initial_state_is_not_split_if_disabled():
+    sim = SplittableCountingSimulator(split_untangled_states=False)
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert isinstance(args, SplittableCountingActOnArgs)
+    assert args[q0] is args[q1]
+    assert args.state == 2
+
+
+def test_integer_initial_state_is_not_split_if_impossible():
+    sim = CountingSimulator()
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert isinstance(args, CountingActOnArgs)
+    assert not isinstance(args, SplittableCountingActOnArgs)
+    assert args[q0] is args[q1]
+    assert args.state == 2
+
+
+def test_non_integer_initial_state_is_not_split():
+    sim = SplittableCountingSimulator()
+    args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
+    assert len(set(args.values())) == 2
+    assert (args[q0].state == entangled_state_repr).all()
+    assert args[q1] is args[q0]
+    assert args[None].state == 0
+
+
+def test_entanglement_causes_join():
+    sim = SplittableCountingSimulator()
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert len(set(args.values())) == 3
+    args.apply_operation(cirq.CNOT(q0, q1))
+    assert len(set(args.values())) == 2
+    assert args[q0] is args[q1]
+    assert args[None] is not args[q0]
+
+
+def test_measurement_causes_split():
+    sim = SplittableCountingSimulator()
+    args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
+    assert len(set(args.values())) == 2
+    args.apply_operation(cirq.measure(q0))
+    assert len(set(args.values())) == 3
+    assert args[q0] is not args[q1]
+    assert args[q0] is not args[None]
+
+
+def test_measurement_does_not_split_if_disabled():
+    sim = SplittableCountingSimulator(split_untangled_states=False)
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert isinstance(args, SplittableCountingActOnArgs)
+    args.apply_operation(cirq.measure(q0))
+    assert isinstance(args, SplittableCountingActOnArgs)
+    assert args[q0] is args[q1]
+
+
+def test_measurement_does_not_split_if_impossible():
+    sim = CountingSimulator()
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert isinstance(args, CountingActOnArgs)
+    assert not isinstance(args, SplittableCountingActOnArgs)
+    args.apply_operation(cirq.measure(q0))
+    assert isinstance(args, CountingActOnArgs)
+    assert not isinstance(args, SplittableCountingActOnArgs)
+    assert args[q0] is args[q1]
+
+
+def test_reorder_succeeds():
+    sim = SplittableCountingSimulator()
+    args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
+    reordered = args[q0].transpose_to_qubit_order([q1, q0])
+    assert reordered.qubits == (q1, q0)

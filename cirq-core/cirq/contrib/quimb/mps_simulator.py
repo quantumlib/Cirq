@@ -85,10 +85,11 @@ class MPSSimulator(
             seed=seed,
         )
 
-    def _create_act_on_args(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ) -> 'MPSState':
         """Creates MPSState args for simulating the Circuit.
 
@@ -111,6 +112,7 @@ class MPSSimulator(
             simulation_options=self.simulation_options,
             grouping=self.grouping,
             initial_state=initial_state,
+            log_of_measurement_results=logs,
         )
 
     def _create_step_result(
@@ -317,6 +319,7 @@ class MPSState(ActOnArgs):
             prng=self.prng,
             simulation_options=self.simulation_options,
             grouping=self.grouping,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
