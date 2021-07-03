@@ -136,7 +136,7 @@ class ActOnArgsContainer(
         columns = []
         selected_order: List[ops.Qid] = []
         q_set = set(qubits)
-        for v in set(self.args.values()):
+        for v in dict.fromkeys(self.args.values()):
             qs = [q for q in v.qubits if q in q_set]
             if any(qs):
                 column = v.sample(qs, repetitions, seed)
