@@ -361,6 +361,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     ActOnArgs,
+    ActOnArgsContainer,
     ActOnCliffordTableauArgs,
     ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
@@ -379,6 +380,7 @@ from cirq.sim import (
     measure_state_vector,
     final_density_matrix,
     final_state_vector,
+    OperationTarget,
     sample,
     sample_density_matrix,
     sample_state_vector,
@@ -513,6 +515,7 @@ from cirq.protocols import (
     resolve_parameters_once,
     SerializableByKey,
     SupportsActOn,
+    SupportsActOnQubits,
     SupportsApplyChannel,
     SupportsApplyMixture,
     SupportsApproximateEquality,
@@ -581,7 +584,6 @@ from cirq.work import (
 # Unflattened sub-modules.
 
 from cirq import (
-    pasqal,
     testing,
 )
 
@@ -621,6 +623,19 @@ try:
 except ImportError as ex:
     # coverage: ignore
     warning("Can't import cirq_ionq: ", exc_info=ex)
+
+
+try:
+    _compat.deprecated_submodule(
+        new_module_name='cirq_pasqal',
+        old_parent=__name__,
+        old_child='pasqal',
+        deadline="v0.14",
+        create_attribute=True,
+    )
+except ImportError as ex:
+    # coverage: ignore
+    warning("Can't import cirq_pasqal: ", exc_info=ex)
 
 
 def _register_resolver() -> None:

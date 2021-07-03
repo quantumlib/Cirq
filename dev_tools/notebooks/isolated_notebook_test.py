@@ -47,6 +47,8 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     "docs/noise.ipynb",
     "docs/operators_and_observables.ipynb",
     "docs/tutorials/educators/intro.ipynb",
+    # Cirq web is a new module, notebook will be moved to docs/
+    "cirq-web/example.ipynb",
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -105,7 +107,7 @@ def _find_base_revision():
 def _list_changed_notebooks() -> Set[str]:
     try:
         rev = _find_base_revision()
-        output = subprocess.check_output(f'git diff --name-only {rev}'.split())
+        output = subprocess.check_output(f'git diff --diff-filter=d --name-only {rev}'.split())
         lines = output.decode('utf-8').splitlines()
         # run all tests if this file or any of the dev tool dependencies change
         if any(
