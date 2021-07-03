@@ -507,7 +507,9 @@ def state_vector_kronecker_product(
     t2: np.ndarray,
 ) -> np.ndarray:
     """Merges two state vectors into a single unified state vector.
+
     The resulting vector's shape will be `t1.shape + t2.shape`.
+
     Args:
         t1: The first state vector.
         t2: The second state vector.
@@ -522,9 +524,11 @@ def density_matrix_kronecker_product(
     t2: np.ndarray,
 ) -> np.ndarray:
     """Merges two density matrices into a single unified density matrix.
+
     The resulting matrix's shape will be `(t1.shape/2 + t2.shape/2) * 2`. In
     other words, if t1 has shape [A,B,C,A,B,C] and t2 has shape [X,Y,Z,X,Y,Z],
     the resulting matrix will have shape [A,B,C,X,Y,Z,A,B,C,X,Y,Z].
+
     Args:
         t1: The first density matrix.
         t2: The second density matrix.
@@ -550,10 +554,12 @@ def factor_state_vector(
     atol=1e-07,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Factors a state vector into two independent state vectors.
+
     This function should only be called on state vectors that are known to be
     separable, such as immediately after a measurement or reset operation. It
     does not verify that the provided state vector is indeed separable, and
     will return nonsense results for vectors representing entangled states.
+
     Args:
         t: The state vector to factor.
         axes: The axes to factor out.
@@ -592,11 +598,13 @@ def factor_density_matrix(
     atol=1e-07,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Factors a density matrix into two independent density matrices.
+
     This function should only be called on density matrices that are known to
     be separable, such as immediately after a measurement or reset operation.
     It does not verify that the provided density matrix is indeed separable,
     and will return nonsense results for matrices representing entangled
     states.
+
     Args:
         t: The density matrix to factor.
         axes: The axes to factor out. Only the left axes should be provided.
@@ -625,6 +633,7 @@ def factor_density_matrix(
 
 def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]):
     """Transposes the axes of a state vector to a specified order.
+
     Args:
         t: The state vector to transpose.
         axes: The desired axis order.
@@ -637,6 +646,7 @@ def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]):
 
 def transpose_density_matrix_to_axis_order(t: np.ndarray, axes: Sequence[int]):
     """Transposes the axes of a density matrix to a specified order.
+
     Args:
         t: The density matrix to transpose.
         axes: The desired axis order. Only the left axes should be provided.
