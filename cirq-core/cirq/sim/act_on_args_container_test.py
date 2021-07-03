@@ -13,8 +13,6 @@
 # limitations under the License.
 from typing import List, Dict, Any, Sequence, Tuple, Optional
 
-import pytest
-
 import cirq
 
 
