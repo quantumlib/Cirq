@@ -101,7 +101,7 @@ jobs:
       - name: Display version
         run: check/pylint --version
       - name: Lint
-        run: check/pylint -v
+        run: check/pylint-changed-files
   doc_test:
     name: Doc test
     runs-on: ubuntu-20.04
