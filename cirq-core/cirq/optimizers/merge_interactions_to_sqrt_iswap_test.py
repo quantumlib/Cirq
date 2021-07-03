@@ -3,9 +3,9 @@ from typing import Callable, List
 import cirq
 
 
-def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
+def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
     actual = cirq.Circuit(before)
-    opt = cirq.MergeInteractionsToSqrtIswap()
+    opt = cirq.MergeInteractionsToSqrtIswap(**kwargs)
     opt.optimize_circuit(actual)
 
     # Ignore differences that would be caught by follow-up optimizations.
@@ -23,15 +23,23 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
     assert actual == expected, f'ACTUAL {actual} : EXPECTED {expected}'
 
 
-def assert_optimization_not_broken(circuit):
+def assert_optimization_not_broken(circuit: cirq.Circuit):
     """Check that the unitary matrix for the input circuit is the same (up to
     global phase and rounding error) as the unitary matrix of the optimized
     circuit."""
     u_before = circuit.unitary()
-    cirq.MergeInteractions().optimize_circuit(circuit)
-    u_after = circuit.unitary()
+    c_sqrt_iswap = circuit.copy()
+    cirq.MergeInteractionsToSqrtIswap().optimize_circuit(c_sqrt_iswap)
+    u_after = c_sqrt_iswap.unitary()
 
-    cirq.testing.assert_allclose_up_to_global_phase(u_before, u_after, atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(u_before, u_after, atol=2e-8)
+
+    # Also test optimization with SQRT_ISWAP_INV
+    c_sqrt_iswap_inv = circuit.copy()
+    cirq.MergeInteractionsToSqrtIswap(use_sqrt_iswap_inv=True).optimize_circuit(c_sqrt_iswap_inv)
+    u_after2 = c_sqrt_iswap_inv.unitary()
+
+    cirq.testing.assert_allclose_up_to_global_phase(u_before, u_after2, atol=2e-8)
 
 
 def test_clears_paired_cnot():
@@ -44,6 +52,57 @@ def test_clears_paired_cnot():
             ]
         ),
         expected=cirq.Circuit(),
+    )
+
+
+def test_simplifies_sqrt_iswap():
+    a, b = cirq.LineQubit.range(2)
+    assert_optimizes(
+        before=cirq.Circuit(
+            [
+                # SQRT_ISWAP**8 == Identity
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+            ]
+        ),
+        expected=cirq.Circuit(
+            [
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+            ]
+        ),
+    )
+
+
+def test_simplifies_sqrt_iswap_inv():
+    a, b = cirq.LineQubit.range(2)
+    assert_optimizes(
+        use_sqrt_iswap_inv=True,
+        before=cirq.Circuit(
+            [
+                # SQRT_ISWAP**8 == Identity
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP_INV(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
+            ]
+        ),
+        expected=cirq.Circuit(
+            [
+                cirq.Moment([cirq.SQRT_ISWAP_INV(a, b)]),
+            ]
+        ),
     )
 
 

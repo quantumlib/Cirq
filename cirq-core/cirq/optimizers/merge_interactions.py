@@ -248,10 +248,12 @@ class MergeInteractionsToSqrtIswap(MergeInteractionsAbc):
         self,
         tolerance: float = 1e-8,
         require_three_sqrt_iswap: bool = False,
+        use_sqrt_iswap_inv: bool = False,
         post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE] = lambda op_list: op_list,
     ) -> None:
         super().__init__(tolerance=tolerance, post_clean_up=post_clean_up)
         self.require_three_sqrt_iswap = require_three_sqrt_iswap
+        self.use_sqrt_iswap_inv = use_sqrt_iswap_inv
 
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
         """Returns True if the old two-qubit operation may be left unchanged
@@ -280,7 +282,7 @@ class MergeInteractionsToSqrtIswap(MergeInteractionsAbc):
             q1,
             mat,
             required_sqrt_iswap_count=3 if self.require_three_sqrt_iswap else None,
+            use_sqrt_iswap_inv=self.use_sqrt_iswap_inv,
             atol=self.tolerance,
             check_preconditions=False,
-            clean_operations=False,
         )
