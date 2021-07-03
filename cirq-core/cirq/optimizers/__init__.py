@@ -58,6 +58,9 @@ from cirq.optimizers.expand_composite import (
 
 from cirq.optimizers.merge_interactions import (
     MergeInteractions,
+)
+
+from cirq.optimizers.merge_interactions_to_sqrt_iswap import (
     MergeInteractionsToSqrtIswap,
 )
 

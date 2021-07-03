@@ -20,7 +20,7 @@ import abc
 import numpy as np
 
 from cirq import circuits, ops, protocols
-from cirq.optimizers import two_qubit_decompositions, two_qubit_to_sqrt_iswap
+from cirq.optimizers import two_qubit_decompositions
 
 if TYPE_CHECKING:
     import cirq
@@ -236,53 +236,4 @@ class MergeInteractions(MergeInteractionsAbc):
         """
         return two_qubit_decompositions.two_qubit_matrix_to_operations(
             q0, q1, mat, self.allow_partial_czs, self.tolerance, False
-        )
-
-
-class MergeInteractionsToSqrtIswap(MergeInteractionsAbc):
-    """Combines series of adjacent one and two-qubit gates operating on a pair
-    of qubits and replaces each series with the minimum number of SQRT_ISWAP
-    gates."""
-
-    def __init__(
-        self,
-        tolerance: float = 1e-8,
-        require_three_sqrt_iswap: bool = False,
-        use_sqrt_iswap_inv: bool = False,
-        post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE] = lambda op_list: op_list,
-    ) -> None:
-        super().__init__(tolerance=tolerance, post_clean_up=post_clean_up)
-        self.require_three_sqrt_iswap = require_three_sqrt_iswap
-        self.use_sqrt_iswap_inv = use_sqrt_iswap_inv
-
-    def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
-        """Returns True if the old two-qubit operation may be left unchanged
-        without decomposition."""
-        return isinstance(old_op.gate, ops.ISwapPowGate) and old_op.gate.exponent == 0.5
-
-    def _two_qubit_matrix_to_operations(
-        self,
-        q0: 'cirq.Qid',
-        q1: 'cirq.Qid',
-        mat: np.ndarray,
-    ) -> Sequence['cirq.Operation']:
-        """Decomposes the merged two-qubit gate unitary into the minimum number
-        of SQRT_ISWAP gates.
-
-        Args:
-            q0: The first qubit being operated on.
-            q1: The other qubit being operated on.
-            mat: Defines the operation to apply to the pair of qubits.
-
-        Returns:
-            A list of operations implementing the matrix.
-        """
-        return two_qubit_to_sqrt_iswap.two_qubit_matrix_to_sqrt_iswap_operations(
-            q0,
-            q1,
-            mat,
-            required_sqrt_iswap_count=3 if self.require_three_sqrt_iswap else None,
-            use_sqrt_iswap_inv=self.use_sqrt_iswap_inv,
-            atol=self.tolerance,
-            check_preconditions=False,
         )
