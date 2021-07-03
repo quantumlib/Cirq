@@ -58,6 +58,7 @@ from cirq.optimizers.expand_composite import (
 
 from cirq.optimizers.merge_interactions import (
     MergeInteractions,
+    MergeInteractionsToSqrtIswap,
 )
 
 from cirq.optimizers.merge_single_qubit_gates import (
