@@ -1353,7 +1353,7 @@ def test_pauli_sum_pow():
         assert cirq.approx_eq(psum ** 0, identity)
 
 
-# Using the entries of table 1 of ttps://arxiv.org/abs/1804.09130 as golden values.
+# Using the entries of table 1 of https://arxiv.org/abs/1804.09130 as golden values.
 @pytest.mark.parametrize(
     'boolean_expr,expected_pauli_sum',
     [
