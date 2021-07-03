@@ -145,6 +145,9 @@ class ActOnArgs(OperationTarget[TSelf]):
 
         This only affects the index, and does not modify the underlying
         state."""
+        if q1.dimension != q2.dimension:
+            raise ValueError(f'Cannot swap different dimensions: q1={q1}, q2={q2}')
+
         args = self if inplace else copy.copy(self)
         i1 = self.qubits.index(q1)
         i2 = self.qubits.index(q2)
@@ -156,6 +159,9 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
         """Renames `q1` to `q2`."""
+        if q1.dimension != q2.dimension:
+            raise ValueError(f'Cannot rename to different dimensions: q1={q1}, q2={q2}')
+
         args = self if inplace else copy.copy(self)
         i1 = self.qubits.index(q1)
         qubits = list(args.qubits)

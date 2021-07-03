@@ -13,6 +13,8 @@
 # limitations under the License.
 from typing import List, Dict, Any, Sequence, Tuple, Optional
 
+import pytest
+
 import cirq
 
 
@@ -169,3 +171,24 @@ def test_merge_succeeds():
     args = create_container(qs2, False)
     merged = args.create_merged_state()
     assert merged.qubits == (q0, q1)
+
+
+def test_swap_does_not_merge():
+    args = create_container(qs2)
+    args.apply_operation(cirq.SWAP(q0, q1))
+    assert len(set(args.values())) == 3
+    assert args[q0] is not args[q1]
+
+
+def test_half_swap_does_merge():
+    args = create_container(qs2)
+    args.apply_operation(cirq.SWAP(q0, q1) ** 0.5)
+    assert len(set(args.values())) == 2
+    assert args[q0] is args[q1]
+
+
+def test_swap_disentangled_does_not_merge():
+    args = create_container(qs2, split_untangled_states=False)
+    args.apply_operation(cirq.SWAP(q0, q1))
+    assert len(set(args.values())) == 1
+    assert args[q0] is args[q1]
