@@ -175,9 +175,16 @@ def test_merge_succeeds():
 
 def test_swap_does_not_merge():
     args = create_container(qs2)
+    old_q0 = args[q0]
+    old_q1 = args[q1]
     args.apply_operation(cirq.SWAP(q0, q1))
     assert len(set(args.values())) == 3
-    assert args[q0] is not args[q1]
+    assert args[q0] is not old_q0
+    assert args[q1] is old_q0
+    assert args[q1] is not old_q1
+    assert args[q0] is old_q1
+    assert args[q0].qubits == (q0,)
+    assert args[q1].qubits == (q1,)
 
 
 def test_half_swap_does_merge():
@@ -187,8 +194,12 @@ def test_half_swap_does_merge():
     assert args[q0] is args[q1]
 
 
-def test_swap_disentangled_does_not_merge():
-    args = create_container(qs2, split_untangled_states=False)
+def test_swap_after_entangle_reorders():
+    args = create_container(qs2)
+    args.apply_operation(cirq.CX(q0, q1))
+    assert len(set(args.values())) == 2
+    assert args[q0].qubits == (q0, q1)
     args.apply_operation(cirq.SWAP(q0, q1))
-    assert len(set(args.values())) == 1
+    assert len(set(args.values())) == 2
     assert args[q0] is args[q1]
+    assert args[q0].qubits == (q1, q0)

@@ -67,7 +67,7 @@ def test_swap_bad_dimensions():
         args.swap(q0, q1)
 
 
-def test_swap_disentangled_bad_dimensions():
+def test_rename_bad_dimensions():
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQid(1, 3)
     args = DummyArgs()
