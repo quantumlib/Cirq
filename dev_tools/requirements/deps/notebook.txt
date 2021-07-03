@@ -1,11 +1,9 @@
+-r ipython.txt
+
 notebook~=6.2.0
 
 # https://github.com/nteract/papermill/issues/519
 ipykernel==5.3.4
-
-# https://github.com/ipython/ipython/issues/12941
-ipython==7.22; python_version >= '3.7'
-ipython; python_version < '3.7'
 
 # for executing notebooks in tests
 papermill~=2.3.2
