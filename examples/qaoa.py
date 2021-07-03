@@ -116,7 +116,7 @@ def qaoa(booleans: List[str], repetitions: int, maxiter: int, p: int):
 
         for i in range(p):
             hamiltonian_gate = cirq.BooleanHamiltonian(
-                {q.name: q for q in qubits}, booleans, 2.0 * x[p + i], ladder_target=True
+                {q.name: q for q in qubits}, booleans, 2.0 * x[p + i]
             )
             circuit.append(hamiltonian_gate)
             circuit.append(cirq.rx(2.0 * x[i]).on_each(*qubits))

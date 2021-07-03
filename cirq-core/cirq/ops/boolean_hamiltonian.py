@@ -26,8 +26,7 @@ References:
 
 import functools
 import itertools
-from typing import cast, Any, Callable, Dict, Generator, Iterator, List, Optional, Sequence, Tuple
-import sys
+from typing import cast, Any, Callable, Dict, Generator, List, Sequence, Tuple
 
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
@@ -54,7 +53,6 @@ class BooleanHamiltonian(raw_types.Operation):
         qubit_map: Dict[str, 'cirq.Qid'],
         boolean_strs: Sequence[str],
         theta: float,
-        ladder_target: Optional[bool] = None,
     ):
         """Builds a BooleanHamiltonian.
 
@@ -75,40 +73,16 @@ class BooleanHamiltonian(raw_types.Operation):
             boolean_strs: The list of Sympy-parsable Boolean expressions.
             qubit_map: map of string (boolean variable name) to qubit.
             theta: The list of thetas to scale the Hamiltonian.
-            ladder_target: Whether to use convention of figure 7a or 7b of [4]. The two
-                formulations yield the same output, but can be simplified differently.
-                For example for 3 qubits, the ladder target would be:
-                ───@───────────
-                   │
-                ───X───@───────
-                       │
-                ───────X───@───
-                           │
-                ───────────X───
-                Otherwise, it would be:
-                ───@───────────
-                   │
-                ───┼───@───────
-                   │   │
-                ───┼───┼───@───
-                   │   │   │
-                ───X───X───X───
-                The papers do not provide a formula for which option yields a smaller number of
-                gates, so the option is provided as an input.
-                If set to None, computes the set of gates for both approaches, count the number of
-                gates, and return the smallest set.
         """
         self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
         self._boolean_strs: Sequence[str] = boolean_strs
         self._theta: float = theta
-        self._ladder_target: Optional[bool] = ladder_target
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'BooleanHamiltonian':
         return BooleanHamiltonian(
             {cast(cirq.NamedQubit, q).name: q for q in new_qubits},
             self._boolean_strs,
             self._theta,
-            self._ladder_target,
         )
 
     @property
@@ -119,7 +93,7 @@ class BooleanHamiltonian(raw_types.Operation):
         return len(self._qubit_map)
 
     def _value_equality_values_(self):
-        return self._qubit_map, self._boolean_strs, self._theta, self._ladder_target
+        return self._qubit_map, self._boolean_strs, self._theta
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
@@ -127,12 +101,11 @@ class BooleanHamiltonian(raw_types.Operation):
             'qubit_map': self._qubit_map,
             'boolean_strs': self._boolean_strs,
             'theta': self._theta,
-            'ladder_target': self._ladder_target,
         }
 
     @classmethod
-    def _from_json_dict_(cls, qubit_map, boolean_strs, theta, ladder_target, **kwargs):
-        return cls(qubit_map, boolean_strs, theta, ladder_target)
+    def _from_json_dict_(cls, qubit_map, boolean_strs, theta, **kwargs):
+        return cls(qubit_map, boolean_strs, theta)
 
     def _decompose_(self):
         boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
@@ -141,15 +114,8 @@ class BooleanHamiltonian(raw_types.Operation):
             for boolean_expr in boolean_exprs
         ]
 
-        ladder_target_list = [True, False] if self._ladder_target is None else [self._ladder_target]
-
-        return _shortest_generator(
-            [
-                _get_gates_from_hamiltonians(
-                    hamiltonian_polynomial_list, self._qubit_map, self._theta, self._ladder_target
-                )
-                for ladder_target in ladder_target_list
-            ]
+        return _get_gates_from_hamiltonians(
+            hamiltonian_polynomial_list, self._qubit_map, self._theta
         )
 
 
@@ -363,7 +329,6 @@ def _get_gates_from_hamiltonians(
     hamiltonian_polynomial_list: List['cirq.PauliSum'],
     qubit_map: Dict[str, 'cirq.Qid'],
     theta: float,
-    ladder_target: bool = False,
 ) -> Generator['cirq.Operation', None, None]:
     """Builds a circuit according to [1].
 
@@ -372,25 +337,6 @@ def _get_gates_from_hamiltonians(
             _build_hamiltonian_from_boolean().
         qubit_map: map of string (boolean variable name) to qubit.
         theta: A single float scaling the rotations.
-        ladder_target: Whether to use convention of figure 7a or 7b of [4]. The two formulations
-            yield the same output, but can be simplified differently.
-            For example for 3 qubits, the `ladder_target=True` results in:
-            ───@───────────
-               │
-            ───┼───@───────
-               │   │
-            ───┼───┼───@───
-               │   │   │
-            ───X───X───X───
-            Otherwise, it would be:
-            ───@───────────
-               │
-            ───X───@───────
-                   │
-            ───────X───@───
-                       │
-            ───────────X───
-
     Yields:
         Gates that are the decomposition of the Hamiltonian.
     """
@@ -417,12 +363,8 @@ def _get_gates_from_hamiltonians(
 
         cnots: List[Tuple[int, int]] = []
 
-        if ladder_target:
-            cnots.extend((prevh[i], prevh[i + 1]) for i in reversed(range(len(prevh) - 1)))
-            cnots.extend((currh[i], currh[i + 1]) for i in range(len(currh) - 1))
-        else:
-            cnots.extend((prevh[i], prevh[-1]) for i in range(len(prevh) - 1))
-            cnots.extend((currh[i], currh[-1]) for i in range(len(currh) - 1))
+        cnots.extend((prevh[i], prevh[-1]) for i in range(len(prevh) - 1))
+        cnots.extend((currh[i], currh[-1]) for i in range(len(currh) - 1))
 
         cnots = _simplify_cnots(cnots)
 
@@ -442,15 +384,3 @@ def _get_gates_from_hamiltonians(
 
     # Flush the last CNOTs.
     yield _apply_cnots(previous_h, ())
-
-
-def _shortest_generator(
-    generators: List[Generator['cirq.Operation', None, None]]
-) -> Iterator['cirq.Operation']:
-    min_gen_length = sys.maxsize
-    for generator in generators:
-        out_gen, gen_copy = itertools.tee(generator)
-        gen_length = sum(1 for _ in gen_copy)
-        if gen_length < min_gen_length:
-            min_gen = out_gen
-    return min_gen

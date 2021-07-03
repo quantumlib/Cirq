@@ -60,38 +60,35 @@ def test_unsupported_op():
 
 
 @pytest.mark.parametrize(
-    'boolean_str,ladder_target',
-    itertools.product(
-        [
-            'x0',
-            '~x0',
-            'x0 ^ x1',
-            'x0 & x1',
-            'x0 | x1',
-            'x0 & x1 & x2',
-            'x0 & x1 & ~x2',
-            'x0 & ~x1 & x2',
-            'x0 & ~x1 & ~x2',
-            '~x0 & x1 & x2',
-            '~x0 & x1 & ~x2',
-            '~x0 & ~x1 & x2',
-            '~x0 & ~x1 & ~x2',
-            'x0 ^ x1 ^ x2',
-            'x0 | (x1 & x2)',
-            'x0 & (x1 | x2)',
-            '(x0 ^ x1 ^ x2) | (x2 ^ x3 ^ x4)',
-            '(x0 ^ x2 ^ x4) | (x1 ^ x2 ^ x3)',
-            'x0 & x1 & (x2 | x3)',
-            'x0 & ~x2',
-            '~x0 & x2',
-            'x2 & ~x0',
-            '~x2 & x0',
-            '(x2 | x1) ^ x0',
-        ],
-        [False, True, None],
-    ),
+    'boolean_str',
+    [
+        'x0',
+        '~x0',
+        'x0 ^ x1',
+        'x0 & x1',
+        'x0 | x1',
+        'x0 & x1 & x2',
+        'x0 & x1 & ~x2',
+        'x0 & ~x1 & x2',
+        'x0 & ~x1 & ~x2',
+        '~x0 & x1 & x2',
+        '~x0 & x1 & ~x2',
+        '~x0 & ~x1 & x2',
+        '~x0 & ~x1 & ~x2',
+        'x0 ^ x1 ^ x2',
+        'x0 | (x1 & x2)',
+        'x0 & (x1 | x2)',
+        '(x0 ^ x1 ^ x2) | (x2 ^ x3 ^ x4)',
+        '(x0 ^ x2 ^ x4) | (x1 ^ x2 ^ x3)',
+        'x0 & x1 & (x2 | x3)',
+        'x0 & ~x2',
+        '~x0 & x2',
+        'x2 & ~x0',
+        '~x2 & x0',
+        '(x2 | x1) ^ x0',
+    ],
 )
-def test_circuit(boolean_str, ladder_target):
+def test_circuit(boolean_str):
     boolean_expr = sympy_parser.parse_expr(boolean_str)
     var_names = cirq.parameter_names(boolean_expr)
     qubits = [cirq.NamedQubit(name) for name in var_names]
@@ -111,7 +108,7 @@ def test_circuit(boolean_str, ladder_target):
     circuit.append(cirq.H.on_each(*qubits))
 
     hamiltonian_gate = cirq.BooleanHamiltonian(
-        {q.name: q for q in qubits}, [boolean_str], 0.1 * math.pi, ladder_target
+        {q.name: q for q in qubits}, [boolean_str], 0.1 * math.pi
     )
     assert hamiltonian_gate.with_qubits(*qubits) == hamiltonian_gate
 
