@@ -411,9 +411,6 @@ class PauliSum:
         This is based on "On the representation of Boolean and real functions as Hamiltonians for
         quantum computing" by Stuart Hadfield, https://arxiv.org/abs/1804.09130
 
-        We can represent any Boolean expression as a polynomial of Pauli Zs on different qubits. For
-        example, this object could represent the polynomial 0.5*I - 0.5*Z_1*Z_2.
-
         Args:
             boolean_expr: A Sympy expression containing symbols and Boolean operations
             qubit_map: map of string (boolean variable name) to qubit.
@@ -423,8 +420,11 @@ class PauliSum:
         """
         if isinstance(boolean_expr, Symbol):
             # In table 1, the entry for 'x' is '1/2.I - 1/2.Z'
-            return 0.5 * PauliString({}) - 0.5 * PauliString(
-                {qubit_map[boolean_expr.name]: pauli_gates.Z}
+            return cls.from_pauli_strings(
+                [
+                    PauliString({}, 0.5),
+                    PauliString({qubit_map[boolean_expr.name]: pauli_gates.Z}, -0.5),
+                ]
             )
 
         if isinstance(boolean_expr, (And, Not, Or, Xor)):
@@ -432,20 +432,20 @@ class PauliSum:
                 cls.from_boolean_expression(sub_boolean_expr, qubit_map)
                 for sub_boolean_expr in boolean_expr.args
             ]
-            # We apply the equalities of theorem 1 of [1].
+            # We apply the equalities of theorem 1.
             if isinstance(boolean_expr, And):
-                pauli_sum: PauliSum = PauliString({})
+                pauli_sum = cls.from_pauli_strings(PauliString({}, 1.0))
                 for sub_pauli_sum in sub_pauli_sums:
                     pauli_sum = pauli_sum * sub_pauli_sum
             elif isinstance(boolean_expr, Not):
                 assert len(sub_pauli_sums) == 1
-                pauli_sum: PauliSum = PauliString({}) - sub_pauli_sums[0]
+                pauli_sum = cls.from_pauli_strings(PauliString({}, 1.0)) - sub_pauli_sums[0]
             elif isinstance(boolean_expr, Or):
-                pauli_sum: PauliSum = 0.0 * PauliString({})
+                pauli_sum = cls.from_pauli_strings(PauliString({}, 0.0))
                 for sub_pauli_sum in sub_pauli_sums:
                     pauli_sum = pauli_sum + sub_pauli_sum - pauli_sum * sub_pauli_sum
             elif isinstance(boolean_expr, Xor):
-                pauli_sum: PauliSum = 0.0 * PauliString({})
+                pauli_sum = cls.from_pauli_strings(PauliString({}, 0.0))
                 for sub_pauli_sum in sub_pauli_sums:
                     pauli_sum = pauli_sum + sub_pauli_sum - 2.0 * pauli_sum * sub_pauli_sum
             return pauli_sum
