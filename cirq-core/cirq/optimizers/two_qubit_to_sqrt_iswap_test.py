@@ -194,6 +194,7 @@ def assert_valid_decomp(
     *,
     single_qubit_gate_types=(cirq.ZPowGate, cirq.XPowGate, cirq.YPowGate),
     two_qubit_gate=cirq.SQRT_ISWAP,
+    # Not 1e-8 because of some unaccounted accumulated error in some of Cirq's linalg functions
     atol=1e-6,
     rtol=0,
     qubit_order=cirq.LineQubit.range(2),

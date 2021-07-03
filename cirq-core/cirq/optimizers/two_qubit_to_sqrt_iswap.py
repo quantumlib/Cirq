@@ -34,7 +34,7 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     each sqrt-iSWAP.
 
     All operations can be synthesized with exactly three sqrt-iSWAP gates and
-    about 79% of operations (randomly chosen under the Harr measure) can also be
+    about 79% of operations (randomly chosen under the Haar measure) can also be
     synthesized with two sqrt-iSWAP gates.  Only special cases locally
     equivalent to identity or sqrt-iSWAP can be synthesized with zero or one
     sqrt-iSWAP gates respectively.  Unless ``required_sqrt_iswap_count`` is
@@ -249,6 +249,7 @@ def _in_2sqrt_iswap_region(
     """
     x, y, z = interaction_coefficients
     # Lemma 1 of the paper
+    # The other constraint in Lemma 1 simply asserts x, y, z are canonical
     return x + weyl_tol >= y + abs(z)
 
 
@@ -313,9 +314,10 @@ def _decomp_2sqrt_iswap_matrices(
         two-qubit gate
         https://arxiv.org/abs/2105.06074
     """
+    # Follows the if-branch of procedure DECOMP(U) in Algorithm 1 of the paper
     x, y, z = kak.interaction_coefficients
-    a0, a1 = kak.single_qubit_operations_before
-    c0, c1 = kak.single_qubit_operations_after
+    b0, b1 = kak.single_qubit_operations_before
+    a0, a1 = kak.single_qubit_operations_after
 
     # Computed gate parameters: Eq. 4, 6, 7, 8 of the paper
     # range limits added for robustness to numerical error
@@ -330,6 +332,8 @@ def _decomp_2sqrt_iswap_matrices(
     )
     alpha = safe_arccos(np.cos(2 * x) - np.cos(2 * y) + np.cos(2 * z) + 2 * np.sqrt(_c))
     beta = safe_arccos(np.cos(2 * x) - np.cos(2 * y) + np.cos(2 * z) - 2 * np.sqrt(_c))
+    # Don't need to limit this value because it will always be positive and the clip in the
+    # following `safe_arccos` handles the cases where this could be slightly greater than 1.
     _4ccs = 4 * (np.cos(x) * np.cos(z) * np.sin(y)) ** 2  # Intermediate value
     gamma = safe_arccos(
         nonzero_sign(z)
@@ -337,25 +341,26 @@ def _decomp_2sqrt_iswap_matrices(
     )
 
     # Inner single-qubit gates: Fig. 4 of the paper
-    b0 = (
+    # Gate angles here are multiplied by -2 to adjust for non-standard gate definitions in the paper
+    c0 = (
         protocols.unitary(ops.rz(-gamma))
         @ protocols.unitary(ops.rx(-alpha))
         @ protocols.unitary(ops.rz(-gamma))
     )
-    b1 = protocols.unitary(ops.rx(-beta))
+    c1 = protocols.unitary(ops.rx(-beta))
 
     # Compute KAK on the decomposition to determine outer single-qubit gates
     # There is no known closed form solution for these gates
     u_sqrt_iswap = protocols.unitary(ops.SQRT_ISWAP)
-    u = u_sqrt_iswap @ np.kron(b0, b1) @ u_sqrt_iswap  # Unitary of decomposition
+    u = u_sqrt_iswap @ np.kron(c0, c1) @ u_sqrt_iswap  # Unitary of decomposition
     kak_fix = linalg.kak_decomposition(u, atol=atol / 10, rtol=0, check_preconditions=False)
-    d0, d1 = kak_fix.single_qubit_operations_before
-    e0, e1 = kak_fix.single_qubit_operations_after
+    e0, e1 = kak_fix.single_qubit_operations_before
+    d0, d1 = kak_fix.single_qubit_operations_after
 
     return [  # Pairs of single-qubit unitaries, SQRT_ISWAP between each is implied
-        (d0.T.conj() @ a0, d1.T.conj() @ a1),
-        (b0, b1),
-        (c0 @ e0.T.conj(), c1 @ e1.T.conj()),
+        (e0.T.conj() @ b0, e1.T.conj() @ b1),
+        (c0, c1),
+        (a0 @ d0.T.conj(), a1 @ d1.T.conj()),
     ], kak.global_phase / kak_fix.global_phase
 
 
@@ -373,9 +378,19 @@ def _decomp_3sqrt_iswap_matrices(
         two-qubit gate
         https://arxiv.org/abs/2105.06074
     """
+    # This somewhat follows the else-branch of procedure DECOMP(U) in Algorithm 1 of the paper.
+    # However the canonicalization conditions are different from the paper and allow any Weyl
+    # coordinate to be synthesized with 3 sqrt-iSWAPs.
+    #
+    # This method breaks the 3-sqrt-iSWAP synthesis problem into a sum of the 1-sqrt-iSWAP and
+    # 2-sqrt-iSWAP problems.  This works because given two 2-qubit unitaries, U and V, with (not
+    # necessarily canonical) Weyl coordinates (x1, y1, z1) and (x2, y2, z2), both products U*V and
+    # V*U will have (non-canonical) Weyl coordinates (x1+x2, y1+y2, z1+z2) if both U and V are
+    # diagonal in the magic basis (i.e. all single-qubit operations of the pre-canonicalized KAK
+    # decomposition are identity).
     x, y, z = kak.interaction_coefficients
-    f0, f1 = kak.single_qubit_operations_before
-    g0, g1 = kak.single_qubit_operations_after
+    b0, b1 = kak.single_qubit_operations_before
+    a0, a1 = kak.single_qubit_operations_after
 
     # Find x1, y1, z1, x2, y2, z2
     # such that x1+x2=x, y1+y2=y, z1+z2=z
@@ -395,19 +410,21 @@ def _decomp_3sqrt_iswap_matrices(
     # Non-canonical Weyl coordinates for the two sqrt-iSWAP decomposition
     x2, y2, z2 = x - x1, y - y1, z - z1
 
-    # Find fixup single-qubit gates for the canonical decompositions
+    # Find fixup single-qubit gates for the canonical (i.e. diagonal in the magic basis)
+    # decompositions
     kak1 = linalg.kak_canonicalize_vector(x1, y1, z1, atol)
     kak2 = linalg.kak_canonicalize_vector(x2, y2, z2, atol)
 
     # Compute sub-decompositions
-    ((a0, a1), (b0, b1)), phase1 = _decomp_1sqrt_iswap_matrices(kak1, atol)
-    ((c0, c1), (d0, d1), (e0, e1)), phase2 = _decomp_2sqrt_iswap_matrices(kak2, atol)
+    # F0 and F1 from Algorithm 1 of the paper are not needed
+    ((h0, h1), (g0, g1)), phase1 = _decomp_1sqrt_iswap_matrices(kak1, atol)
+    ((e0, e1), (c0, c1), (d0, d1)), phase2 = _decomp_2sqrt_iswap_matrices(kak2, atol)
 
-    # There are two valid solutions: kak1 before kak2 or kak2 before kak1
+    # There are two valid solutions at this point: kak1 before kak2 or kak2 before kak1
     # Arbitrarily pick kak1 before kak2
     return [  # Pairs of single-qubit unitaries, SQRT_ISWAP between each is implied
-        (a0 @ f0, a1 @ f1),
-        (c0 @ b0, c1 @ b1),
-        (d0, d1),
-        (g0 @ e0, g1 @ e1),
+        (h0 @ b0, h1 @ b1),
+        (e0 @ g0, e1 @ g1),
+        (c0, c1),
+        (a0 @ d0, a1 @ d1),
     ], kak.global_phase * phase1 * phase2
