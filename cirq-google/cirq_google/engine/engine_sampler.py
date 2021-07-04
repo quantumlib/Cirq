@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, TYPE_CHECKING, Union, Optional, cast
+from typing import List, TYPE_CHECKING, Union, Optional, cast, Tuple
 
 import cirq
 from cirq_google import engine, gate_sets
@@ -146,7 +146,7 @@ def get_device_sampler(
     bool,
     Tuple[
         Tuple[cirq.devices.device.Device, int],
-        Union[cirq_google.PhasedFSimEngineSimulator, cirq_google.QuantumEngineSampler],
+        Union['cirq_google.PhasedFSimEngineSimulator', 'cirq_google.QuantumEngineSampler'],
     ],
 ]:
     """Authenticates on Google Cloud, can return a Device and Simulator.
