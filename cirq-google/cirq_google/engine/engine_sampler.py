@@ -140,7 +140,38 @@ def get_engine_sampler(
     return engine.get_engine(project_id).sampler(processor_id=processor_id, gate_set=gate_set)
 
 
-def get_device_sampler(project_id=None, processor_id=None):
+def get_device_sampler(
+    project_id: Optional[str] = None, processor_id: Optional[str] = None, get_simulator: bool = True
+) -> Union[
+    bool,
+    Tuple[
+        Tuple[cirq.devices.device.Device, int],
+        Union[cirq_google.PhasedFSimEngineSimulator, cirq_google.QuantumEngineSampler],
+    ],
+]:
+    """Authenticates on Google Cloud, can return a Device and Simulator.
+
+    This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine
+    project_id, unless set explicitly.
+
+    Args:
+        project_id: Optional explicit Google Cloud project id. Otherwise,
+            this defaults to the environment variable GOOGLE_CLOUD_PROJECT.
+            By using an environment variable, you can avoid hard-coding
+            personal project IDs in shared code.
+        processor_id: Engine processor ID (from Cloud console or
+            ``Engine.list_processors``).
+        get_simulator: Boolean value indicating whether to return a device
+            and simulator after authentication or not.
+
+    Returns:
+        A tuple of ((`Device`, `int`), `Simulator/Sampler`) if
+        get_simulator was true, representing the device to run on
+        (eg. Bristlecone), the line length on that device, and
+        either the cloud simulator instance or a local noisy simulator.
+        If get_simulator was true, a single `bool` value is returned
+        representing whether the google-cloud signin was successful or not.
+    """
     import os
     from cirq_google import (
         PhasedFSimEngineSimulator,
@@ -151,10 +182,16 @@ def get_device_sampler(project_id=None, processor_id=None):
         get_engine_sampler,
     )
 
-    use_noisy_simulator = False
+    # Converting empty strings to None for form field inputs
+    if project_id == "":
+        project_id = None
+    if processor_id == "":
+        processor_id = None
+
+    google_cloud_signin_failed: bool = False
     if project_id is None and 'GOOGLE_CLOUD_PROJECT' not in os.environ:
         print("No project_id provided and environment variable GOOGLE_CLOUD_PROJECT not set.")
-        use_noisy_simulator = True
+        google_cloud_signin_failed = True
     else:
         os.environ['GOOGLE_CLOUD_PROJECT'] = project_id
 
@@ -192,17 +229,21 @@ def get_device_sampler(project_id=None, processor_id=None):
 
         authenticate_user()
 
-    if use_noisy_simulator or processor_id is None:
-        print("Using a noisy simulator.")
-        sampler = PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
-            mean=SQRT_ISWAP_INV_PARAMETERS,
-            sigma=PhasedFSimCharacterization(theta=0.01, zeta=0.10, chi=0.01, gamma=0.10, phi=0.02),
-        )
-        device = Bristlecone
-        line_length = 20
+    if get_simulator:
+        if google_cloud_signin_failed or processor_id is None:
+            print("Using a noisy simulator.")
+            sampler = PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
+                mean=SQRT_ISWAP_INV_PARAMETERS,
+                sigma=PhasedFSimCharacterization(
+                    theta=0.01, zeta=0.10, chi=0.01, gamma=0.10, phi=0.02
+                ),
+            )
+            device = Bristlecone
+            line_length = 20
+        else:
+            device = get_engine_device(processor_id)
+            sampler = get_engine_sampler(processor_id, gate_set_name="sqrt_iswap")
+            line_length = 35
+        return (device, line_length), sampler
     else:
-        device = get_engine_device(processor_id)
-        sampler = get_engine_sampler(processor_id, gate_set_name="sqrt_iswap")
-        line_length = 35
-
-    return (device, line_length), sampler
+        return not google_cloud_signin_failed
