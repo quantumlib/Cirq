@@ -142,6 +142,14 @@ def get_engine_sampler(
 
 def get_device_sampler(project_id=None, processor_id=None):
     import os
+    from cirq_google import (
+        PhasedFSimEngineSimulator,
+        SQRT_ISWAP_INV_PARAMETERS,
+        PhasedFSimCharacterization,
+        Bristlecone,
+        get_engine_device,
+        get_engine_sampler,
+    )
 
     use_noisy_simulator = False
     if project_id is None and 'GOOGLE_CLOUD_PROJECT' not in os.environ:
@@ -186,17 +194,15 @@ def get_device_sampler(project_id=None, processor_id=None):
 
     if use_noisy_simulator or processor_id is None:
         print("Using a noisy simulator.")
-        sampler = cg.PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
-            mean=cg.SQRT_ISWAP_INV_PARAMETERS,
-            sigma=cg.PhasedFSimCharacterization(
-                theta=0.01, zeta=0.10, chi=0.01, gamma=0.10, phi=0.02
-            ),
+        sampler = PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
+            mean=SQRT_ISWAP_INV_PARAMETERS,
+            sigma=PhasedFSimCharacterization(theta=0.01, zeta=0.10, chi=0.01, gamma=0.10, phi=0.02),
         )
-        device = cg.Bristlecone
+        device = Bristlecone
         line_length = 20
     else:
-        device = cg.get_engine_device(processor_id)
-        sampler = cg.get_engine_sampler(processor_id, gate_set_name="sqrt_iswap")
+        device = get_engine_device(processor_id)
+        sampler = get_engine_sampler(processor_id, gate_set_name="sqrt_iswap")
         line_length = 35
 
     return (device, line_length), sampler
