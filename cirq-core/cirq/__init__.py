@@ -271,6 +271,8 @@ from cirq.ops import (
     SingleQubitCliffordGate,
     SingleQubitGate,
     SingleQubitPauliStringGateOperation,
+    SQRT_ISWAP,
+    SQRT_ISWAP_INV,
     SWAP,
     SwapPowGate,
     T,
@@ -326,6 +328,7 @@ from cirq.optimizers import (
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
+    two_qubit_matrix_to_sqrt_iswap_operations,
     three_qubit_matrix_to_operations,
 )
 
