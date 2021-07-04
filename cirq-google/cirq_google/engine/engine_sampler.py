@@ -138,3 +138,65 @@ def get_engine_sampler(
         )
     gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
     return engine.get_engine(project_id).sampler(processor_id=processor_id, gate_set=gate_set)
+
+
+def get_device_sampler(project_id=None, processor_id=None):
+    import os
+
+    use_noisy_simulator = False
+    if project_id is None and 'GOOGLE_CLOUD_PROJECT' not in os.environ:
+        print("No project_id provided and environment variable GOOGLE_CLOUD_PROJECT not set.")
+        use_noisy_simulator = True
+    else:
+        os.environ['GOOGLE_CLOUD_PROJECT'] = project_id
+
+        def authenticate_user():
+            """Runs the user through the Colab OAuth process.
+
+            Checks for Google Application Default Credentials and runs interactive login
+            if the notebook is executed in Colab. In case the notebook is executed in Jupyter notebook
+            or other IPython runtimes, no interactive login is provided, it is assumed that the
+            `GOOGLE_APPLICATION_CREDENTIALS` env var is set or `gcloud auth application-default login`
+            was executed already.
+
+            For more information on using Application Default Credentials see
+            https://cloud.google.com/docs/authentication/production
+            """
+            in_colab = False
+            try:
+                from IPython import get_ipython
+
+                in_colab = 'google.colab' in str(get_ipython())
+            except:
+                return
+
+            if in_colab:
+                from google.colab import auth
+
+                print("Getting OAuth2 credentials.")
+                print("Press enter after entering the verification code.")
+                auth.authenticate_user(clear_output=False)
+                print("Authentication complete.")
+            else:
+                print(
+                    "Notebook is not executed with Colab, assuming Application Default Credentials are setup."
+                )
+
+        authenticate_user()
+
+    if use_noisy_simulator or processor_id is None:
+        print("Using a noisy simulator.")
+        sampler = cg.PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
+            mean=cg.SQRT_ISWAP_INV_PARAMETERS,
+            sigma=cg.PhasedFSimCharacterization(
+                theta=0.01, zeta=0.10, chi=0.01, gamma=0.10, phi=0.02
+            ),
+        )
+        device = cg.Bristlecone
+        line_length = 20
+    else:
+        device = cg.get_engine_device(processor_id)
+        sampler = cg.get_engine_sampler(processor_id, gate_set_name="sqrt_iswap")
+        line_length = 35
+
+    return (device, line_length), sampler
