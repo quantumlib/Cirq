@@ -145,7 +145,7 @@ def get_device_sampler(
 ) -> Union[
     bool,
     Tuple[
-        Tuple[cirq.devices.device.Device, int],
+        Tuple[Union[cirq.Device], int],
         Union['cirq_google.PhasedFSimEngineSimulator', 'cirq_google.QuantumEngineSampler'],
     ],
 ]:
@@ -189,20 +189,23 @@ def get_device_sampler(
         processor_id = None
 
     google_cloud_signin_failed: bool = False
-    if project_id is None and 'GOOGLE_CLOUD_PROJECT' not in os.environ:
-        print("No project_id provided and environment variable GOOGLE_CLOUD_PROJECT not set.")
-        google_cloud_signin_failed = True
+    if project_id is None:
+        if 'GOOGLE_CLOUD_PROJECT' not in os.environ:
+            print("No project_id provided and environment variable GOOGLE_CLOUD_PROJECT not set.")
+            google_cloud_signin_failed = True
     else:
         os.environ['GOOGLE_CLOUD_PROJECT'] = project_id
 
         def authenticate_user():
             """Runs the user through the Colab OAuth process.
 
-            Checks for Google Application Default Credentials and runs interactive login
-            if the notebook is executed in Colab. In case the notebook is executed in Jupyter notebook
-            or other IPython runtimes, no interactive login is provided, it is assumed that the
-            `GOOGLE_APPLICATION_CREDENTIALS` env var is set or `gcloud auth application-default login`
-            was executed already.
+            Checks for Google Application Default Credentials and runs
+            interactive login if the notebook is executed in Colab. In
+            case the notebook is executed in Jupyter notebook or other
+            IPython runtimes, no interactive login is provided, it is
+            assumed that the `GOOGLE_APPLICATION_CREDENTIALS` env var is
+            set or `gcloud auth application-default login` was executed
+            already.
 
             For more information on using Application Default Credentials see
             https://cloud.google.com/docs/authentication/production
@@ -224,11 +227,14 @@ def get_device_sampler(
                 print("Authentication complete.")
             else:
                 print(
-                    "Notebook is not executed with Colab, assuming Application Default Credentials are setup."
+                    "Notebook isn't executed with Colab, assuming "
+                    "Application Default Credentials are setup."
                 )
 
         authenticate_user()
 
+    device: cirq.Device
+    sampler: Union['cirq_google.PhasedFSimEngineSimulator', 'cirq_google.QuantumEngineSampler']
     if get_simulator:
         if google_cloud_signin_failed or processor_id is None:
             print("Using a noisy simulator.")
