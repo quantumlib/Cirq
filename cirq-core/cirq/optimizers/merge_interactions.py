@@ -35,6 +35,14 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
         tolerance: float = 1e-8,
         post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE] = lambda op_list: op_list,
     ) -> None:
+        """
+        Args:
+            tolerance: A limit on the amount of absolute error introduced by the
+                construction.
+            post_clean_up: This function is called on each set of optimized
+                operations before they are put into the circuit to replace the
+                old operations.
+        """
         super().__init__(post_clean_up=post_clean_up)
         self.tolerance = tolerance
 
@@ -62,7 +70,7 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
         if not switch_to_new and old_interaction_count <= 1:
             return None
 
-        # Find a max-3-cz construction.
+        # Find a (possibly ideal) decomposition of the merged operations.
         new_operations = self._two_qubit_matrix_to_operations(op.qubits[0], op.qubits[1], matrix)
         new_interaction_count = len(
             [new_op for new_op in new_operations if len(new_op.qubits) == 2]
@@ -207,6 +215,15 @@ class MergeInteractions(MergeInteractionsAbc):
         allow_partial_czs: bool = True,
         post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE] = lambda op_list: op_list,
     ) -> None:
+        """
+        Args:
+            tolerance: A limit on the amount of absolute error introduced by the
+                construction.
+            allow_partial_czs: Enables the use of Partial-CZ gates.
+            post_clean_up: This function is called on each set of optimized
+                operations before they are put into the circuit to replace the
+                old operations.
+        """
         super().__init__(tolerance=tolerance, post_clean_up=post_clean_up)
         self.allow_partial_czs = allow_partial_czs
 
