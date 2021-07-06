@@ -55,10 +55,10 @@ def assert_optimization_not_broken(circuit: cirq.Circuit, **kwargs):
     """Check that the unitary matrix for the input circuit is the same (up to
     global phase and rounding error) as the unitary matrix of the optimized
     circuit."""
-    u_before = circuit.unitary()
+    u_before = circuit.unitary(sorted(circuit.all_qubits()))
     c_sqrt_iswap = circuit.copy()
     cirq.MergeInteractionsToSqrtIswap(**kwargs).optimize_circuit(c_sqrt_iswap)
-    u_after = c_sqrt_iswap.unitary(circuit.all_qubits())
+    u_after = c_sqrt_iswap.unitary(sorted(circuit.all_qubits()))
 
     # Not 1e-8 because of some unaccounted accumulated error in some of Cirq's linalg functions
     cirq.testing.assert_allclose_up_to_global_phase(u_before, u_after, atol=1e-6)
@@ -66,7 +66,7 @@ def assert_optimization_not_broken(circuit: cirq.Circuit, **kwargs):
     # Also test optimization with SQRT_ISWAP_INV
     c_sqrt_iswap_inv = circuit.copy()
     cirq.MergeInteractionsToSqrtIswap(use_sqrt_iswap_inv=True).optimize_circuit(c_sqrt_iswap_inv)
-    u_after2 = c_sqrt_iswap_inv.unitary(circuit.all_qubits())
+    u_after2 = c_sqrt_iswap_inv.unitary(sorted(circuit.all_qubits()))
 
     cirq.testing.assert_allclose_up_to_global_phase(u_before, u_after2, atol=1e-6)
 
