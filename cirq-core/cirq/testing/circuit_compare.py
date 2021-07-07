@@ -232,6 +232,9 @@ def assert_has_diagram(
             beginning and whitespace at the end are ignored.
         **kwargs: Keyword arguments to be passed to actual.to_text_diagram().
     """
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
     actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
     assert actual_diagram == desired_diagram, (
@@ -402,6 +405,9 @@ def assert_has_consistent_qid_shape(val: Any) -> None:
         val: The value under test. Should have `_qid_shape_` and/or
             `num_qubits_` methods. Can optionally have a `qubits` property.
     """
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
     default = (-1,)
     qid_shape = protocols.qid_shape(val, default)
     num_qubits = protocols.num_qubits(val, default)

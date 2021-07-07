@@ -81,6 +81,16 @@ def test_repetitions_and_ids_length_mismatch():
         _ = cirq.CircuitOperation(circuit, repetitions=2, repetition_ids=['a', 'b', 'c'])
 
 
+def test_is_measurement_memoization():
+    a = cirq.LineQubit(0)
+    circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
+    c_op = cirq.CircuitOperation(circuit)
+    assert circuit._has_measurements is None
+    # Memoize `_has_measurements` in the circuit.
+    assert cirq.is_measurement(c_op)
+    assert circuit._has_measurements is True
+
+
 def test_invalid_measurement_keys():
     a = cirq.LineQubit(0)
     circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
@@ -692,6 +702,8 @@ def test_decompose_nested():
         cirq.measure(d, key='md'),
     )
     assert cirq.Circuit(cirq.decompose(final_op)) == expected_circuit
+    # Verify that mapped_circuit gives the same operations.
+    assert final_op.mapped_circuit(deep=True) == expected_circuit
 
 
 def test_decompose_repeated_nested_measurements():
@@ -741,6 +753,33 @@ def test_decompose_repeated_nested_measurements():
 
     assert cirq.Circuit(cirq.decompose(op3)) == expected_circuit
     assert cirq.measurement_keys(expected_circuit) == set(expected_measurement_keys_in_order)
+
+    # Verify that mapped_circuit gives the same operations.
+    assert op3.mapped_circuit(deep=True) == expected_circuit
+
+
+def test_mapped_circuit_preserves_moments():
+    q0, q1 = cirq.LineQubit.range(2)
+    fc = cirq.FrozenCircuit(cirq.Moment(cirq.X(q0)), cirq.Moment(cirq.X(q1)))
+    op = cirq.CircuitOperation(fc)
+    assert op.mapped_circuit() == fc
+    assert op.repeat(3).mapped_circuit(deep=True) == fc * 3
+
+
+def test_mapped_op():
+    q0, q1 = cirq.LineQubit.range(2)
+    a, b = (sympy.Symbol(x) for x in 'ab')
+    fc1 = cirq.FrozenCircuit(cirq.X(q0) ** a, cirq.measure(q0, q1, key='m'))
+    op1 = (
+        cirq.CircuitOperation(fc1)
+        .with_params({'a': 'b'})
+        .with_qubits(q1, q0)
+        .with_measurement_key_mapping({'m': 'k'})
+    )
+    fc2 = cirq.FrozenCircuit(cirq.X(q1) ** b, cirq.measure(q1, q0, key='k'))
+    op2 = cirq.CircuitOperation(fc2)
+
+    assert op1.mapped_op() == op2
 
 
 def test_tag_propagation():

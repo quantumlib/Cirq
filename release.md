@@ -107,6 +107,7 @@ Bump the version on the release branch:
 ```bash
 vi ./cirq-core/cirq/_version.py   # Remove .dev from version
 vi ./cirq-google/cirq_google/_version.py  # Remove .dev from version   
+vi ./cirq-aqt/cirq_aqt/_version.py  # Remove .dev from version   
 git add ./cirq-core/cirq/_version.py ./cirq-google/cirq_google/_version.py
 git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "v${VER}-dev"
@@ -166,7 +167,7 @@ any high-risk features that have changed this release.
 
 ```bash
 mkvirtualenv "verify_test_${VER}" --python=/usr/bin/python3
-pip install -r requirements.txt -r cirq/contrib/contrib-requirements.txt -r dev_tools/conf/pip-list-dev-tools.txt
+pip install -r dev_tools/requirements/dev.env.txt
 pip install --index-url=https://test.pypi.org/simple/ cirq=="${VER}"
 python -c "import cirq; print(cirq.__version__)"
 python  # just do some stuff checking that latest features are present

@@ -1,0 +1,5 @@
+{
+  "cirq_type": "ISwapPowGate",
+  "exponent": -0.5,
+  "global_shift": 0.0
+}

@@ -122,10 +122,13 @@ class MeasurementGate(raw_types.Gate):
         mask += (False,) * deficit
         return mask
 
+    def _is_measurement_(self) -> bool:
+        return True
+
     def _measurement_key_(self):
         return self.key
 
-    def _channel_(self):
+    def _kraus_(self):
         size = np.prod(self._qid_shape, dtype=int)
 
         def delta(i):
@@ -135,7 +138,7 @@ class MeasurementGate(raw_types.Gate):
 
         return tuple(delta(i) for i in range(size))
 
-    def _has_channel_(self):
+    def _has_kraus_(self):
         return True
 
     def _circuit_diagram_info_(
@@ -234,14 +237,9 @@ class MeasurementGate(raw_types.Gate):
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         return True
 
-    def _act_on_(self, args: Any) -> bool:
-        from cirq import sim
-
-        if isinstance(args, sim.ActOnArgs):
-            args.measure(self.key, self.full_invert_mask())
-            return True
-
-        return NotImplemented
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
+        args.measure(qubits, self.key, self.full_invert_mask())
+        return True
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
