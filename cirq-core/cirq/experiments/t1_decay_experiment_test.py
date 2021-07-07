@@ -18,6 +18,8 @@ import pandas as pd
 
 import cirq
 
+import numpy as np
+
 
 def test_init_result():
     data = pd.DataFrame(
@@ -163,6 +165,36 @@ def test_all_off_results():
             ],
         )
     )
+
+
+def test_constant():
+    result_100 = cirq.experiments.T1DecayResult(
+        data=pd.DataFrame(
+            columns=['delay_ns', 'false_count', 'true_count'],
+            index=range(4),
+            data=[
+                [100.0, 6, 4],
+                [400.0, 10, 0],
+                [700.0, 10, 0],
+                [1000.0, 10, 0],
+            ],
+        )
+    )
+    assert np.isclose(result_100.constant, 100, 5)
+
+    result_400 = cirq.experiments.T1DecayResult(
+        data=pd.DataFrame(
+            columns=['delay_ns', 'false_count', 'true_count'],
+            index=range(4),
+            data=[
+                [100.0, 0, 10],
+                [400.0, 6, 4],
+                [700.0, 10, 0],
+                [1000.0, 10, 0],
+            ],
+        )
+    )
+    assert np.isclose(result_400.constant, 400, 5)
 
 
 def test_bad_args():

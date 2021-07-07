@@ -17,6 +17,9 @@ from typing import Any, Optional, TYPE_CHECKING
 import pandas as pd
 import sympy
 from matplotlib import pyplot as plt
+import numpy as np
+from scipy import optimize
+
 
 from cirq import circuits, ops, study, value
 from cirq._compat import proper_repr
@@ -102,12 +105,39 @@ class T1DecayResult:
         """A data frame with delay_ns, false_count, true_count columns."""
         return self._data
 
-    def plot(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
+    @property
+    def constant(self) -> float:
+        """ The t1 decay constant."""
+
+        def exp_decay(x, t1):
+            return np.exp(-x / t1)
+
+        xs = self._data['delay_ns']
+        ts = self._data['true_count']
+        fs = self._data['false_count']
+        probs = ts / (fs + ts)
+
+        ## find point closest to a probability of 1/e
+        ## to serve as a guess for the curve fit
+        find_guess = lambda index: abs(probs[index] - 1 / np.e)
+        guess_index = min(range(len(xs)), key=find_guess)
+        t1_guess = xs[guess_index]
+
+        ## fit to exponential decay to find the t1 constant
+        popt, _ = optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess])
+
+        t1 = popt[0]
+        return t1
+
+    def plot(
+        self, ax: Optional[plt.Axes] = None, include_fit=False, **plot_kwargs: Any
+    ) -> plt.Axes:
         """Plots the excited state probability vs the amount of delay.
 
         Args:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
+            include_fit: boolean to include exponential decay fit on graph
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
 
         Returns:
@@ -124,6 +154,11 @@ class T1DecayResult:
         fs = self._data['false_count']
 
         ax.plot(xs, ts / (fs + ts), 'ro-', **plot_kwargs)
+
+        if include_fit:
+            ax.plot(xs, np.exp(-xs / self.constant), label='curve fit')
+            plt.legend()
+
         ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
         ax.set_ylabel('Excited State Probability')
         ax.set_title('T1 Decay Experiment Data')
