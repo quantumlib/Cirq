@@ -55,7 +55,7 @@ def test_plot_does_not_raise_error():
         repetitions=10,
         max_delay=cirq.Duration(nanos=500),
     )
-    results.plot()
+    results.plot(include_fit = True)
 
 
 def test_result_eq():
