@@ -55,7 +55,7 @@ def test_plot_does_not_raise_error():
         repetitions=10,
         max_delay=cirq.Duration(nanos=500),
     )
-    results.plot(include_fit = True)
+    results.plot()
 
 
 def test_result_eq():
@@ -182,6 +182,8 @@ def test_constant():
     )
     assert np.isclose(result_100.constant, 100, 5)
 
+    result_100.plot(include_fit=True)
+
     result_400 = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
@@ -195,6 +197,8 @@ def test_constant():
         )
     )
     assert np.isclose(result_400.constant, 400, 5)
+
+    result_400.plot(include_fit=True)
 
 
 def test_bad_args():
