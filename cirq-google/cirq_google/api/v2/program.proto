@@ -105,6 +105,49 @@ message Language {
   // cirq/google/arg_func_langs.py
   string arg_function_language = 2;
 }
+message FloatArg {
+  oneof arg {
+    float float_value = 1;
+    string symbol = 2;
+    ArgFunction func = 3;
+  }
+}
+message XPowGate {
+  FloatArg exponent=1;
+}
+message YPowGate {
+  FloatArg exponent=1;
+}
+message ZPowGate {
+  FloatArg exponent=1;
+  bool is_physical_z = 2;
+}
+message PhasedXPowGate {
+  FloatArg phase_exponent=1;
+  FloatArg exponent=2;
+}
+message PhasedXZGate {
+  FloatArg x_exponent=1;
+  FloatArg z_exponent=2;
+  FloatArg axis_phase_exponent=3;
+}
+message CZPowGate {
+  FloatArg exponent=1;
+}
+message FSimGate {
+  FloatArg theta=1;
+  FloatArg phi=2;
+}
+message ISwapPowGate {
+  FloatArg exponent=1;
+}
+message MeasurementGate {
+  Arg key=1;
+  Arg invert_mask=2;
+}
+message WaitGate {
+  FloatArg duration_nanos=1;
+}
 
 enum GateType {
   NOT_SPECIFIED = 0;
@@ -126,6 +169,19 @@ message Operation {
   Gate gate = 1;
   GateType gate_type = 6;
 
+  oneof gate_value {
+    XPowGate xpowgate = 8;
+    YPowGate ypowgate = 9;
+    ZPowGate zpowgate = 10;
+    PhasedXPowGate phasedxpowgate = 11;
+    PhasedXZGate phasedxzgate = 12;
+    CZPowGate czpowgate = 13;
+    FSimGate fsimgate = 14;
+    ISwapPowGate iswappowgate = 15;
+    MeasurementGate measurementgate = 16;
+    WaitGate waitgate = 17;
+  }
+
   // Map from the argument name to the Argument needed to fully specify
   // the gate.
   map<string, Arg> args = 2;
@@ -133,6 +189,7 @@ message Operation {
 
   // Which qubits the operation acts on.
   repeated Qubit qubits = 3;
+  repeated string qubit_ids = 18;
 
   // Token that can be used to specify a version of a gate.
   // For instance, a gate that has been calibrated for a circuit.

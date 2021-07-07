@@ -35,8 +35,7 @@ Q1 = cirq.GridQubit(2, 5)
 
 X_PROTO = op_proto(
     {
-        'gate_type': 'XPOWGATE',
-        'arg_list': [{'arg_value': {'float_value': 1.0}}],
+        'xpowgate': {'exponent':{'float_value': 1.0}},
         'qubits': [{'id': '2_4'}],
     }
 )
@@ -48,8 +47,7 @@ OPERATIONS = [
         cirq.Y(Q0),
         op_proto(
             {
-                'gate_type': 'YPOWGATE',
-                'arg_list': [{'arg_value': {'float_value': 1.0}}],
+                'ypowgate': {'exponent':{'float_value': 1.0}},
                 'qubits': [{'id': '2_4'}],
             }
         ),
@@ -58,9 +56,7 @@ OPERATIONS = [
         cirq.Z(Q0),
         op_proto(
             {
-                'gate_type': 'ZPOWGATE',
-                'arg_list': [{'arg_value': {'float_value': 1.0}},
-                             {'arg_value': {'string_value': 'v'}}],
+                'zpowgate': {'exponent':{'float_value': 1.0}},
                 'qubits': [{'id': '2_4'}],
             }
         ),
@@ -69,8 +65,7 @@ OPERATIONS = [
         cirq.XPowGate(exponent=0.125)(Q1),
         op_proto(
             {
-                'gate_type': 'XPOWGATE',
-                'arg_list': [{'arg_value': {'float_value': 0.125}}],
+                'xpowgate': {'exponent':{'float_value': 0.125}},
                 'qubits': [{'id': '2_5'}],
             }
         ),
@@ -79,8 +74,7 @@ OPERATIONS = [
         cirq.YPowGate(exponent=0.25)(Q0),
         op_proto(
             {
-                'gate_type': 'YPOWGATE',
-                'arg_list': [{'arg_value': {'float_value': 0.25}}],
+                'ypowgate': {'exponent':{'float_value': 0.25}},
                 'qubits': [{'id': '2_4'}],
             }
         ),
@@ -89,9 +83,7 @@ OPERATIONS = [
         cirq.ZPowGate(exponent=0.5)(Q0),
         op_proto(
             {
-                'gate_type': 'ZPOWGATE',
-                'arg_list': [{'arg_value': {'float_value': 0.5}},
-                             {'arg_value': {'string_value': 'v'}}],
+                'zpowgate': {'exponent':{'float_value': 0.5}},
                 'qubits': [{'id': '2_4'}],
             }
         ),
@@ -100,9 +92,8 @@ OPERATIONS = [
         cirq.ZPowGate(exponent=0.5)(Q0).with_tags(cg.PhysicalZTag()),
         op_proto(
             {
-                'gate_type': 'ZPOWGATE',
-                'arg_list': [{'arg_value': {'float_value': 0.5}},
-                             {'arg_value': {'string_value': 'p'}}],
+                'zpowgate': {'exponent':{'float_value': 0.5},
+                             'is_physical_z':True},
                 'qubits': [{'id': '2_4'}],
             }
         ),
@@ -111,9 +102,8 @@ OPERATIONS = [
         cirq.PhasedXPowGate(phase_exponent=0.125,exponent=0.5)(Q0),
         op_proto(
             {
-                'gate_type': 'PHASEDXPOWGATE',
-                'arg_list': [{'arg_value': {'float_value': 0.125}},
-                             {'arg_value': {'float_value': 0.5}}],
+                'phasedxpowgate': {'phase_exponent':{'float_value': 0.125},
+                             'exponent':{'float_value': 0.5}},
                 'qubits': [{'id': '2_4'}],
             }
         ),
@@ -122,11 +112,9 @@ OPERATIONS = [
         cirq.PhasedXZGate(x_exponent=0.125,z_exponent=0.5,axis_phase_exponent=0.25)(Q0),
         op_proto(
             {
-                'gate_type': 'PHASEDXZGATE',
-                'arg_list': [{'arg_value': {'float_value': 0.125}},
-                             {'arg_value': {'float_value': 0.5}},
-                             {'arg_value': {'float_value': 0.25}},
-                             ],
+                'phasedxzgate': {'x_exponent':{'float_value': 0.125},
+                             'z_exponent':{'float_value': 0.5},
+                             'axis_phase_exponent':{'float_value': 0.25}},
                 'qubits': [{'id': '2_4'}],
             }
         ),
@@ -135,8 +123,7 @@ OPERATIONS = [
         cirq.CZ(Q0, Q1),
         op_proto(
             {
-                'gate_type': 'CZPOWGATE',
-                'arg_list': [{'arg_value': {'float_value': 1.0}}],
+                'czpowgate': {'exponent':{'float_value': 1.0}},
                 'qubits': [{'id': '2_4'},{'id':'2_5'} ],
             }
         ),
@@ -145,8 +132,7 @@ OPERATIONS = [
         cirq.CZPowGate(exponent=0.5)(Q0, Q1),
         op_proto(
             {
-                'gate_type': 'CZPOWGATE',
-                'arg_list': [{'arg_value': {'float_value': 0.5}}],
+                'czpowgate': {'exponent':{'float_value': 0.5}},
                 'qubits': [{'id': '2_4'},{'id':'2_5'} ],
             }
         ),
@@ -155,8 +141,7 @@ OPERATIONS = [
         cirq.ISwapPowGate(exponent=0.5)(Q0, Q1),
         op_proto(
             {
-                'gate_type': 'ISWAPPOWGATE',
-                'arg_list': [{'arg_value': {'float_value': 0.5}}],
+                'iswappowgate': {'exponent':{'float_value': 0.5}},
                 'qubits': [{'id': '2_4'},{'id':'2_5'}],
             }
         ),
@@ -165,11 +150,8 @@ OPERATIONS = [
         cirq.FSimGate(theta=0.5, phi=0.25)(Q0, Q1),
         op_proto(
             {
-                'gate_type': 'FSIMGATE',
-                'arg_list': [
-                    {'arg_value': {'float_value': 0.5}},
-                    {'arg_value': {'float_value': 0.25}},
-                             ],
+                'fsimgate': {'theta':{'float_value': 0.5},
+                                 'phi':{'float_value': 0.25}},
                 'qubits': [{'id': '2_4'},{'id':'2_5'}],
             }
         ),
@@ -178,8 +160,7 @@ OPERATIONS = [
         cirq.WaitGate(duration=cirq.Duration(nanos=15))(Q0),
         op_proto(
             {
-                'gate_type': 'WAITGATE',
-                'arg_list': [{'arg_value': {'float_value': 15}}],
+                'waitgate': {'duration_nanos':{'float_value': 15}},
                 'qubits': [{'id': '2_4'}],
             }
         ),
@@ -189,11 +170,10 @@ OPERATIONS = [
                              invert_mask=[True, False])(Q0, Q1),
         op_proto(
             {
-                'gate_type': 'MEASUREMENTGATE',
-                'arg_list': [
-                    {'arg_value': {'string_value': 'iron'}},
-                    {'arg_value': {'bool_values': {'values': [True, False]}}},
-                             ],
+                'measurementgate': {
+                    'key':{'arg_value': {'string_value': 'iron'}},
+                    'invert_mask':{'arg_value': {'bool_values': {'values': [True, False]}}},
+                             },
                 'qubits': [{'id': '2_4'},{'id':'2_5'}],
             }
         ),
@@ -228,15 +208,15 @@ def test_random_circuit():
     If you are a reviewer and you see this, tell me to delete it.
     """
     import time
+    import cProfile
+    serializer = cg.CircuitSerializer('my_gate_set')
+    print('SQRT-ISWAP')
     circuit = cirq.experiments.random_quantum_circuit_generation.generate_library_of_2q_circuits(
       n_library_circuits=1,
       two_qubit_gate=cirq.ISWAP**0.5,
       max_cycle_depth=50,
       q0=Q0,
       q1=Q1)[0]
-    serializer = cg.CircuitSerializer('my_gate_set')
-    #circuit = cirq.read_json('/usr/local/google/home/dstrain/code/doug_stuff/sk-n16-p5.json')
-    #cg.ConvertToSqrtIswapGates().optimize_circuit(circuit)
     t0=time.time()
     f0=serializer.serialize(circuit)
     print(len(f0.SerializeToString()))
@@ -254,6 +234,53 @@ def test_random_circuit():
     t2=time.time()
     print(t2-t1)
 
+    print('SYC')
+    circuit = cirq.experiments.random_quantum_circuit_generation.generate_library_of_2q_circuits(
+      n_library_circuits=1,
+      two_qubit_gate=cg.SYC, #cirq.ISWAP**0.5,
+      max_cycle_depth=50,
+      q0=Q0,
+      q1=Q1)[0]
+    t0=time.time()
+    f0=serializer.serialize(circuit)
+    print(len(f0.SerializeToString()))
+    t1=time.time()
+    print(t1-t0)
+    f1=cg.SYC_GATESET.serialize(circuit)
+    print(len(f1.SerializeToString()))
+    t2=time.time()
+    print(t2-t1)
+    t0=time.time()
+    c=serializer.deserialize(f0)
+    t1=time.time()
+    print(t1-t0)
+    c2=cg.SYC_GATESET.deserialize(f1)
+    t2=time.time()
+    print(t2-t1)
+
+    print('big')
+    circuit = cirq.read_json('/usr/local/google/home/dstrain/code/doug_stuff/sk-n16-p5.json')
+    cg.ConvertToSqrtIswapGates().optimize_circuit(circuit)
+    t0=time.time()
+    f0=serializer.serialize(circuit)
+    print(len(f0.SerializeToString()))
+    t1=time.time()
+    print(t1-t0)
+    f1=cg.SQRT_ISWAP_GATESET.serialize(circuit)
+    print(len(f1.SerializeToString()))
+    t2=time.time()
+    print(t2-t1)
+    t0=time.time()
+    c=serializer.deserialize(f0)
+    t1=time.time()
+    print(t1-t0)
+    c2=cg.SQRT_ISWAP_GATESET.deserialize(f1)
+    t2=time.time()
+    print(t2-t1)
+    cProfile.runctx('serializer.serialize(circuit)',None,locals(),'serialize.prof')
+    cProfile.runctx('serializer.deserialize(f0)',None,locals(),'deserialize.prof')
+    assert False
+
 
 def test_serialize_deserialize_circuit():
     serializer = cg.CircuitSerializer('my_gate_set')
@@ -269,21 +296,21 @@ def test_serialize_deserialize_circuit():
                 v2.program_pb2.Moment(
                     operations=[
                         v2.program_pb2.Operation(
-                            gate_type=v2.program_pb2.XPOWGATE,
-                            arg_list=[
-                                v2.program_pb2.Arg(
-                                    arg_value=v2.program_pb2.ArgValue(float_value=1.0)
+                            xpowgate=v2.program_pb2.XPowGate(
+                            exponent=
+                                v2.program_pb2.FloatArg(
+                                    float_value=1.0
                                 )
-                            ],
+                            ),
                             qubits=[v2.program_pb2.Qubit(id='1_1')],
                         ),
                         v2.program_pb2.Operation(
-                            gate_type=v2.program_pb2.XPOWGATE,
-                            arg_list=[
-                                v2.program_pb2.Arg(
-                                    arg_value=v2.program_pb2.ArgValue(float_value=1.0)
+                            xpowgate=v2.program_pb2.XPowGate(
+                            exponent=
+                                v2.program_pb2.FloatArg(
+                                    float_value=1.0
                                 )
-                            ],
+                            ),
                             qubits=[v2.program_pb2.Qubit(id='1_2')],
                         ),
                     ],
@@ -291,12 +318,12 @@ def test_serialize_deserialize_circuit():
                 v2.program_pb2.Moment(
                     operations=[
                         v2.program_pb2.Operation(
-                            gate_type=v2.program_pb2.XPOWGATE,
-                            arg_list=[
-                                v2.program_pb2.Arg(
-                                    arg_value=v2.program_pb2.ArgValue(float_value=1.0)
+                            xpowgate=v2.program_pb2.XPowGate(
+                            exponent=
+                                v2.program_pb2.FloatArg(
+                                    float_value=1.0
                                 )
-                            ],
+                            ),
                             qubits=[v2.program_pb2.Qubit(id='1_1')],
                         ),
                     ],
@@ -315,14 +342,12 @@ def test_serialize_deserialize_circuit_with_tokens():
     circuit = cirq.Circuit(cirq.X(Q0).with_tags(tag1), cirq.X(Q1).with_tags(tag2), cirq.X(Q0))
 
     op1 = v2.program_pb2.Operation()
-    op1.gate_type = v2.program_pb2.GateType.XPOWGATE
-    op1.arg_list.add().arg_value.float_value = 1.0
+    op1.xpowgate.exponent.float_value = 1.0
     op1.qubits.add().id = '2_4'
     op1.token_constant_index = 0
 
     op2 = v2.program_pb2.Operation()
-    op2.gate_type = v2.program_pb2.GateType.XPOWGATE
-    op2.arg_list.add().arg_value.float_value = 1.0
+    op2.xpowgate.exponent.float_value = 1.0
     op2.qubits.add().id = '2_5'
     op2.token_constant_index = 1
 
@@ -360,8 +385,7 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     )
 
     op1 = v2.program_pb2.Operation()
-    op1.gate_type = v2.program_pb2.GateType.XPOWGATE
-    op1.arg_list.add().arg_value.float_value = 1.0
+    op1.xpowgate.exponent.float_value = 1.0
     op1.qubits.add().id = '2_5'
     op1.token_constant_index = 0
 
@@ -452,8 +476,7 @@ def test_serialize_deserialize_op():
     q0 = cirq.GridQubit(1, 1)
     proto = op_proto(
         {
-            'gate_type': 'XPOWGATE',
-            'arg_list': [ {'arg_value': {'float_value': 0.125}}, ],
+            'xpowgate': { 'exponent':{'float_value': 0.125}, },
             'qubits': [{'id': '1_1'}],
         }
     )
@@ -466,8 +489,7 @@ def test_serialize_deserialize_op_with_token():
     q0 = cirq.GridQubit(1, 1)
     proto = op_proto(
         {
-            'gate_type': 'XPOWGATE',
-            'arg_list': [ {'arg_value': {'float_value': 0.125}}, ],
+            'xpowgate': { 'exponent':{'float_value': 0.125}, },
             'qubits': [{'id': '1_1'}],
             'token_value': 'abc123',
         }
@@ -482,8 +504,7 @@ def test_serialize_deserialize_op_with_constants():
     q0 = cirq.GridQubit(1, 1)
     proto = op_proto(
         {
-            'gate_type': 'XPOWGATE',
-            'arg_list': [ {'arg_value': {'float_value': 0.125}}, ],
+            'xpowgate': { 'exponent':{'float_value': 0.125}, },
             'qubits': [{'id': '1_1'}],
             'token_constant_index': 0,
         }
@@ -568,7 +589,7 @@ def test_deserialize_unsupported_gate_type():
         {
             'gate': {'id': 'no_pow'},
             'args': {
-                'half_turns': {'arg_value': {'float_value': 0.125}},
+                'half_turns': {'arg_value':{'float_value': 0.125}},
             },
             'qubits': [{'id': '1_1'}],
         }

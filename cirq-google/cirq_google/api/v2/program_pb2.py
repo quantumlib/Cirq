@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\035com.google.cirq.google.api.v2B\014ProgramProtoP\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n cirq_google/api/v2/program.proto\x12\x12\x63irq.google.api.v2\"\xd7\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ScheduleH\x00\x12/\n\tconstants\x18\x04 \x03(\x0b\x32\x1c.cirq.google.api.v2.ConstantB\t\n\x07program\"g\n\x08\x43onstant\x12\x16\n\x0cstring_value\x18\x01 \x01(\tH\x00\x12\x34\n\rcircuit_value\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x42\r\n\x0b\x63onst_value\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\"}\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12@\n\x12\x63ircuit_operations\x18\x02 \x03(\x0b\x32$.cirq.google.api.v2.CircuitOperation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.google.api.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\xf7\x02\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.google.api.v2.Gate\x12/\n\tgate_type\x18\x06 \x01(\x0e\x32\x1c.cirq.google.api.v2.GateType\x12\x35\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.Operation.ArgsEntry\x12)\n\x08\x61rg_list\x18\x07 \x03(\x0b\x32\x17.cirq.google.api.v2.Arg\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12\x15\n\x0btoken_value\x18\x04 \x01(\tH\x00\x12\x1e\n\x14token_constant_index\x18\x05 \x01(\x05H\x00\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\x42\x07\n\x05token\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x9c\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x12\x18\n\x0e\x63onstant_index\x18\x04 \x01(\x05H\x00\x42\x05\n\x03\x61rg\"\x9a\x01\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12:\n\x0b\x62ool_values\x18\x02 \x01(\x0b\x32#.cirq.google.api.v2.RepeatedBooleanH\x00\x12\x16\n\x0cstring_value\x18\x03 \x01(\tH\x00\x12\x16\n\x0c\x64ouble_value\x18\x04 \x01(\x01H\x00\x42\x0b\n\targ_value\"!\n\x0fRepeatedBoolean\x12\x0e\n\x06values\x18\x01 \x03(\x08\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.google.api.v2.Arg\"\xaf\x02\n\x10\x43ircuitOperation\x12\x1e\n\x16\x63ircuit_constant_index\x18\x01 \x01(\x05\x12M\n\x18repetition_specification\x18\x02 \x01(\x0b\x32+.cirq.google.api.v2.RepetitionSpecification\x12\x33\n\tqubit_map\x18\x03 \x01(\x0b\x32 .cirq.google.api.v2.QubitMapping\x12\x46\n\x13measurement_key_map\x18\x04 \x01(\x0b\x32).cirq.google.api.v2.MeasurementKeyMapping\x12/\n\x07\x61rg_map\x18\x05 \x01(\x0b\x32\x1e.cirq.google.api.v2.ArgMapping\"\xbc\x01\n\x17RepetitionSpecification\x12S\n\x0erepetition_ids\x18\x01 \x01(\x0b\x32\x39.cirq.google.api.v2.RepetitionSpecification.RepetitionIdsH\x00\x12\x1a\n\x10repetition_count\x18\x02 \x01(\x05H\x00\x1a\x1c\n\rRepetitionIds\x12\x0b\n\x03ids\x18\x01 \x03(\tB\x12\n\x10repetition_value\"\xac\x01\n\x0cQubitMapping\x12<\n\x07\x65ntries\x18\x01 \x03(\x0b\x32+.cirq.google.api.v2.QubitMapping.QubitEntry\x1a^\n\nQubitEntry\x12&\n\x03key\x18\x01 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12(\n\x05value\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\"$\n\x0eMeasurementKey\x12\x12\n\nstring_key\x18\x01 \x01(\t\"\xe2\x01\n\x15MeasurementKeyMapping\x12N\n\x07\x65ntries\x18\x01 \x03(\x0b\x32=.cirq.google.api.v2.MeasurementKeyMapping.MeasurementKeyEntry\x1ay\n\x13MeasurementKeyEntry\x12/\n\x03key\x18\x01 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\x12\x31\n\x05value\x18\x02 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\"\xa0\x01\n\nArgMapping\x12\x38\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\'.cirq.google.api.v2.ArgMapping.ArgEntry\x1aX\n\x08\x41rgEntry\x12$\n\x03key\x18\x01 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg*\xbf\x01\n\x08GateType\x12\x11\n\rNOT_SPECIFIED\x10\x00\x12\x0c\n\x08XPOWGATE\x10\x01\x12\x0c\n\x08YPOWGATE\x10\x02\x12\x0c\n\x08ZPOWGATE\x10\x03\x12\x12\n\x0ePHASEDXPOWGATE\x10\x04\x12\x10\n\x0cPHASEDXZGATE\x10\x05\x12\r\n\tCZPOWGATE\x10\x06\x12\x0c\n\x08\x46SIMGATE\x10\x07\x12\x10\n\x0cISWAPPOWGATE\x10\x08\x12\x13\n\x0fMEASUREMENTGATE\x10\t\x12\x0c\n\x08WAITGATE\x10\nB/\n\x1d\x63om.google.cirq.google.api.v2B\x0cProgramProtoP\x01\x62\x06proto3'
+  serialized_pb=b'\n cirq_google/api/v2/program.proto\x12\x12\x63irq.google.api.v2\"\xd7\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ScheduleH\x00\x12/\n\tconstants\x18\x04 \x03(\x0b\x32\x1c.cirq.google.api.v2.ConstantB\t\n\x07program\"g\n\x08\x43onstant\x12\x16\n\x0cstring_value\x18\x01 \x01(\tH\x00\x12\x34\n\rcircuit_value\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x42\r\n\x0b\x63onst_value\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\"}\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12@\n\x12\x63ircuit_operations\x18\x02 \x03(\x0b\x32$.cirq.google.api.v2.CircuitOperation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.google.api.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"k\n\x08\x46loatArg\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x42\x05\n\x03\x61rg\":\n\x08XPowGate\x12.\n\x08\x65xponent\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\":\n\x08YPowGate\x12.\n\x08\x65xponent\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\"Q\n\x08ZPowGate\x12.\n\x08\x65xponent\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\x12\x15\n\ris_physical_z\x18\x02 \x01(\x08\"v\n\x0ePhasedXPowGate\x12\x34\n\x0ephase_exponent\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\x12.\n\x08\x65xponent\x18\x02 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\"\xad\x01\n\x0cPhasedXZGate\x12\x30\n\nx_exponent\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\x12\x30\n\nz_exponent\x18\x02 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\x12\x39\n\x13\x61xis_phase_exponent\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\";\n\tCZPowGate\x12.\n\x08\x65xponent\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\"b\n\x08\x46SimGate\x12+\n\x05theta\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\x12)\n\x03phi\x18\x02 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\">\n\x0cISwapPowGate\x12.\n\x08\x65xponent\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\"e\n\x0fMeasurementGate\x12$\n\x03key\x18\x01 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg\x12,\n\x0binvert_mask\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg\"@\n\x08WaitGate\x12\x34\n\x0e\x64uration_nanos\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.FloatArg\"\xb8\x07\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.google.api.v2.Gate\x12/\n\tgate_type\x18\x06 \x01(\x0e\x32\x1c.cirq.google.api.v2.GateType\x12\x30\n\x08xpowgate\x18\x08 \x01(\x0b\x32\x1c.cirq.google.api.v2.XPowGateH\x00\x12\x30\n\x08ypowgate\x18\t \x01(\x0b\x32\x1c.cirq.google.api.v2.YPowGateH\x00\x12\x30\n\x08zpowgate\x18\n \x01(\x0b\x32\x1c.cirq.google.api.v2.ZPowGateH\x00\x12<\n\x0ephasedxpowgate\x18\x0b \x01(\x0b\x32\".cirq.google.api.v2.PhasedXPowGateH\x00\x12\x38\n\x0cphasedxzgate\x18\x0c \x01(\x0b\x32 .cirq.google.api.v2.PhasedXZGateH\x00\x12\x32\n\tczpowgate\x18\r \x01(\x0b\x32\x1d.cirq.google.api.v2.CZPowGateH\x00\x12\x30\n\x08\x66simgate\x18\x0e \x01(\x0b\x32\x1c.cirq.google.api.v2.FSimGateH\x00\x12\x38\n\x0ciswappowgate\x18\x0f \x01(\x0b\x32 .cirq.google.api.v2.ISwapPowGateH\x00\x12>\n\x0fmeasurementgate\x18\x10 \x01(\x0b\x32#.cirq.google.api.v2.MeasurementGateH\x00\x12\x30\n\x08waitgate\x18\x11 \x01(\x0b\x32\x1c.cirq.google.api.v2.WaitGateH\x00\x12\x35\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.Operation.ArgsEntry\x12)\n\x08\x61rg_list\x18\x07 \x03(\x0b\x32\x17.cirq.google.api.v2.Arg\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12\x11\n\tqubit_ids\x18\x12 \x03(\t\x12\x15\n\x0btoken_value\x18\x04 \x01(\tH\x01\x12\x1e\n\x14token_constant_index\x18\x05 \x01(\x05H\x01\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\x42\x0c\n\ngate_valueB\x07\n\x05token\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x9c\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x12\x18\n\x0e\x63onstant_index\x18\x04 \x01(\x05H\x00\x42\x05\n\x03\x61rg\"\x9a\x01\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12:\n\x0b\x62ool_values\x18\x02 \x01(\x0b\x32#.cirq.google.api.v2.RepeatedBooleanH\x00\x12\x16\n\x0cstring_value\x18\x03 \x01(\tH\x00\x12\x16\n\x0c\x64ouble_value\x18\x04 \x01(\x01H\x00\x42\x0b\n\targ_value\"!\n\x0fRepeatedBoolean\x12\x0e\n\x06values\x18\x01 \x03(\x08\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.google.api.v2.Arg\"\xaf\x02\n\x10\x43ircuitOperation\x12\x1e\n\x16\x63ircuit_constant_index\x18\x01 \x01(\x05\x12M\n\x18repetition_specification\x18\x02 \x01(\x0b\x32+.cirq.google.api.v2.RepetitionSpecification\x12\x33\n\tqubit_map\x18\x03 \x01(\x0b\x32 .cirq.google.api.v2.QubitMapping\x12\x46\n\x13measurement_key_map\x18\x04 \x01(\x0b\x32).cirq.google.api.v2.MeasurementKeyMapping\x12/\n\x07\x61rg_map\x18\x05 \x01(\x0b\x32\x1e.cirq.google.api.v2.ArgMapping\"\xbc\x01\n\x17RepetitionSpecification\x12S\n\x0erepetition_ids\x18\x01 \x01(\x0b\x32\x39.cirq.google.api.v2.RepetitionSpecification.RepetitionIdsH\x00\x12\x1a\n\x10repetition_count\x18\x02 \x01(\x05H\x00\x1a\x1c\n\rRepetitionIds\x12\x0b\n\x03ids\x18\x01 \x03(\tB\x12\n\x10repetition_value\"\xac\x01\n\x0cQubitMapping\x12<\n\x07\x65ntries\x18\x01 \x03(\x0b\x32+.cirq.google.api.v2.QubitMapping.QubitEntry\x1a^\n\nQubitEntry\x12&\n\x03key\x18\x01 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12(\n\x05value\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\"$\n\x0eMeasurementKey\x12\x12\n\nstring_key\x18\x01 \x01(\t\"\xe2\x01\n\x15MeasurementKeyMapping\x12N\n\x07\x65ntries\x18\x01 \x03(\x0b\x32=.cirq.google.api.v2.MeasurementKeyMapping.MeasurementKeyEntry\x1ay\n\x13MeasurementKeyEntry\x12/\n\x03key\x18\x01 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\x12\x31\n\x05value\x18\x02 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\"\xa0\x01\n\nArgMapping\x12\x38\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\'.cirq.google.api.v2.ArgMapping.ArgEntry\x1aX\n\x08\x41rgEntry\x12$\n\x03key\x18\x01 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg*\xbf\x01\n\x08GateType\x12\x11\n\rNOT_SPECIFIED\x10\x00\x12\x0c\n\x08XPOWGATE\x10\x01\x12\x0c\n\x08YPOWGATE\x10\x02\x12\x0c\n\x08ZPOWGATE\x10\x03\x12\x12\n\x0ePHASEDXPOWGATE\x10\x04\x12\x10\n\x0cPHASEDXZGATE\x10\x05\x12\r\n\tCZPOWGATE\x10\x06\x12\x0c\n\x08\x46SIMGATE\x10\x07\x12\x10\n\x0cISWAPPOWGATE\x10\x08\x12\x13\n\x0fMEASUREMENTGATE\x10\t\x12\x0c\n\x08WAITGATE\x10\nB/\n\x1d\x63om.google.cirq.google.api.v2B\x0cProgramProtoP\x01\x62\x06proto3'
 )
 
 _GATETYPE = _descriptor.EnumDescriptor(
@@ -88,8 +88,8 @@ _GATETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2903,
-  serialized_end=3094,
+  serialized_start=4482,
+  serialized_end=4673,
 )
 _sym_db.RegisterEnumDescriptor(_GATETYPE)
 
@@ -424,6 +424,419 @@ _LANGUAGE = _descriptor.Descriptor(
 )
 
 
+_FLOATARG = _descriptor.Descriptor(
+  name='FloatArg',
+  full_name='cirq.google.api.v2.FloatArg',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='float_value', full_name='cirq.google.api.v2.FloatArg.float_value', index=0,
+      number=1, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='symbol', full_name='cirq.google.api.v2.FloatArg.symbol', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='func', full_name='cirq.google.api.v2.FloatArg.func', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='arg', full_name='cirq.google.api.v2.FloatArg.arg',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=962,
+  serialized_end=1069,
+)
+
+
+_XPOWGATE = _descriptor.Descriptor(
+  name='XPowGate',
+  full_name='cirq.google.api.v2.XPowGate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='exponent', full_name='cirq.google.api.v2.XPowGate.exponent', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1071,
+  serialized_end=1129,
+)
+
+
+_YPOWGATE = _descriptor.Descriptor(
+  name='YPowGate',
+  full_name='cirq.google.api.v2.YPowGate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='exponent', full_name='cirq.google.api.v2.YPowGate.exponent', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1131,
+  serialized_end=1189,
+)
+
+
+_ZPOWGATE = _descriptor.Descriptor(
+  name='ZPowGate',
+  full_name='cirq.google.api.v2.ZPowGate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='exponent', full_name='cirq.google.api.v2.ZPowGate.exponent', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_physical_z', full_name='cirq.google.api.v2.ZPowGate.is_physical_z', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1191,
+  serialized_end=1272,
+)
+
+
+_PHASEDXPOWGATE = _descriptor.Descriptor(
+  name='PhasedXPowGate',
+  full_name='cirq.google.api.v2.PhasedXPowGate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='phase_exponent', full_name='cirq.google.api.v2.PhasedXPowGate.phase_exponent', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='exponent', full_name='cirq.google.api.v2.PhasedXPowGate.exponent', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1274,
+  serialized_end=1392,
+)
+
+
+_PHASEDXZGATE = _descriptor.Descriptor(
+  name='PhasedXZGate',
+  full_name='cirq.google.api.v2.PhasedXZGate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='x_exponent', full_name='cirq.google.api.v2.PhasedXZGate.x_exponent', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='z_exponent', full_name='cirq.google.api.v2.PhasedXZGate.z_exponent', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='axis_phase_exponent', full_name='cirq.google.api.v2.PhasedXZGate.axis_phase_exponent', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1395,
+  serialized_end=1568,
+)
+
+
+_CZPOWGATE = _descriptor.Descriptor(
+  name='CZPowGate',
+  full_name='cirq.google.api.v2.CZPowGate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='exponent', full_name='cirq.google.api.v2.CZPowGate.exponent', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1570,
+  serialized_end=1629,
+)
+
+
+_FSIMGATE = _descriptor.Descriptor(
+  name='FSimGate',
+  full_name='cirq.google.api.v2.FSimGate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='theta', full_name='cirq.google.api.v2.FSimGate.theta', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='phi', full_name='cirq.google.api.v2.FSimGate.phi', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1631,
+  serialized_end=1729,
+)
+
+
+_ISWAPPOWGATE = _descriptor.Descriptor(
+  name='ISwapPowGate',
+  full_name='cirq.google.api.v2.ISwapPowGate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='exponent', full_name='cirq.google.api.v2.ISwapPowGate.exponent', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1731,
+  serialized_end=1793,
+)
+
+
+_MEASUREMENTGATE = _descriptor.Descriptor(
+  name='MeasurementGate',
+  full_name='cirq.google.api.v2.MeasurementGate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='cirq.google.api.v2.MeasurementGate.key', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='invert_mask', full_name='cirq.google.api.v2.MeasurementGate.invert_mask', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1795,
+  serialized_end=1896,
+)
+
+
+_WAITGATE = _descriptor.Descriptor(
+  name='WaitGate',
+  full_name='cirq.google.api.v2.WaitGate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='duration_nanos', full_name='cirq.google.api.v2.WaitGate.duration_nanos', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1898,
+  serialized_end=1962,
+)
+
+
 _OPERATION_ARGSENTRY = _descriptor.Descriptor(
   name='ArgsEntry',
   full_name='cirq.google.api.v2.Operation.ArgsEntry',
@@ -458,8 +871,8 @@ _OPERATION_ARGSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1261,
-  serialized_end=1329,
+  serialized_start=2826,
+  serialized_end=2894,
 )
 
 _OPERATION = _descriptor.Descriptor(
@@ -485,35 +898,112 @@ _OPERATION = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='args', full_name='cirq.google.api.v2.Operation.args', index=2,
+      name='xpowgate', full_name='cirq.google.api.v2.Operation.xpowgate', index=2,
+      number=8, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='ypowgate', full_name='cirq.google.api.v2.Operation.ypowgate', index=3,
+      number=9, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='zpowgate', full_name='cirq.google.api.v2.Operation.zpowgate', index=4,
+      number=10, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='phasedxpowgate', full_name='cirq.google.api.v2.Operation.phasedxpowgate', index=5,
+      number=11, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='phasedxzgate', full_name='cirq.google.api.v2.Operation.phasedxzgate', index=6,
+      number=12, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='czpowgate', full_name='cirq.google.api.v2.Operation.czpowgate', index=7,
+      number=13, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='fsimgate', full_name='cirq.google.api.v2.Operation.fsimgate', index=8,
+      number=14, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='iswappowgate', full_name='cirq.google.api.v2.Operation.iswappowgate', index=9,
+      number=15, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='measurementgate', full_name='cirq.google.api.v2.Operation.measurementgate', index=10,
+      number=16, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='waitgate', full_name='cirq.google.api.v2.Operation.waitgate', index=11,
+      number=17, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='args', full_name='cirq.google.api.v2.Operation.args', index=12,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='arg_list', full_name='cirq.google.api.v2.Operation.arg_list', index=3,
+      name='arg_list', full_name='cirq.google.api.v2.Operation.arg_list', index=13,
       number=7, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='qubits', full_name='cirq.google.api.v2.Operation.qubits', index=4,
+      name='qubits', full_name='cirq.google.api.v2.Operation.qubits', index=14,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='token_value', full_name='cirq.google.api.v2.Operation.token_value', index=5,
+      name='qubit_ids', full_name='cirq.google.api.v2.Operation.qubit_ids', index=15,
+      number=18, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='token_value', full_name='cirq.google.api.v2.Operation.token_value', index=16,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='token_constant_index', full_name='cirq.google.api.v2.Operation.token_constant_index', index=6,
+      name='token_constant_index', full_name='cirq.google.api.v2.Operation.token_constant_index', index=17,
       number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -531,13 +1021,18 @@ _OPERATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='token', full_name='cirq.google.api.v2.Operation.token',
+      name='gate_value', full_name='cirq.google.api.v2.Operation.gate_value',
       index=0, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
+    _descriptor.OneofDescriptor(
+      name='token', full_name='cirq.google.api.v2.Operation.token',
+      index=1, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
   ],
-  serialized_start=963,
-  serialized_end=1338,
+  serialized_start=1965,
+  serialized_end=2917,
 )
 
 
@@ -568,8 +1063,8 @@ _GATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1340,
-  serialized_end=1358,
+  serialized_start=2919,
+  serialized_end=2937,
 )
 
 
@@ -600,8 +1095,8 @@ _QUBIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1360,
-  serialized_end=1379,
+  serialized_start=2939,
+  serialized_end=2958,
 )
 
 
@@ -658,8 +1153,8 @@ _ARG = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1382,
-  serialized_end=1538,
+  serialized_start=2961,
+  serialized_end=3117,
 )
 
 
@@ -716,8 +1211,8 @@ _ARGVALUE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1541,
-  serialized_end=1695,
+  serialized_start=3120,
+  serialized_end=3274,
 )
 
 
@@ -748,8 +1243,8 @@ _REPEATEDBOOLEAN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1697,
-  serialized_end=1730,
+  serialized_start=3276,
+  serialized_end=3309,
 )
 
 
@@ -787,8 +1282,8 @@ _ARGFUNCTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1732,
-  serialized_end=1798,
+  serialized_start=3311,
+  serialized_end=3377,
 )
 
 
@@ -847,8 +1342,8 @@ _CIRCUITOPERATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1801,
-  serialized_end=2104,
+  serialized_start=3380,
+  serialized_end=3683,
 )
 
 
@@ -879,8 +1374,8 @@ _REPETITIONSPECIFICATION_REPETITIONIDS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2247,
-  serialized_end=2275,
+  serialized_start=3826,
+  serialized_end=3854,
 )
 
 _REPETITIONSPECIFICATION = _descriptor.Descriptor(
@@ -922,8 +1417,8 @@ _REPETITIONSPECIFICATION = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2107,
-  serialized_end=2295,
+  serialized_start=3686,
+  serialized_end=3874,
 )
 
 
@@ -961,8 +1456,8 @@ _QUBITMAPPING_QUBITENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2376,
-  serialized_end=2470,
+  serialized_start=3955,
+  serialized_end=4049,
 )
 
 _QUBITMAPPING = _descriptor.Descriptor(
@@ -992,8 +1487,8 @@ _QUBITMAPPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2298,
-  serialized_end=2470,
+  serialized_start=3877,
+  serialized_end=4049,
 )
 
 
@@ -1024,8 +1519,8 @@ _MEASUREMENTKEY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2472,
-  serialized_end=2508,
+  serialized_start=4051,
+  serialized_end=4087,
 )
 
 
@@ -1063,8 +1558,8 @@ _MEASUREMENTKEYMAPPING_MEASUREMENTKEYENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2616,
-  serialized_end=2737,
+  serialized_start=4195,
+  serialized_end=4316,
 )
 
 _MEASUREMENTKEYMAPPING = _descriptor.Descriptor(
@@ -1094,8 +1589,8 @@ _MEASUREMENTKEYMAPPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2511,
-  serialized_end=2737,
+  serialized_start=4090,
+  serialized_end=4316,
 )
 
 
@@ -1133,8 +1628,8 @@ _ARGMAPPING_ARGENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2812,
-  serialized_end=2900,
+  serialized_start=4391,
+  serialized_end=4479,
 )
 
 _ARGMAPPING = _descriptor.Descriptor(
@@ -1164,8 +1659,8 @@ _ARGMAPPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2740,
-  serialized_end=2900,
+  serialized_start=4319,
+  serialized_end=4479,
 )
 
 _PROGRAM.fields_by_name['language'].message_type = _LANGUAGE
@@ -1192,13 +1687,78 @@ _MOMENT.fields_by_name['operations'].message_type = _OPERATION
 _MOMENT.fields_by_name['circuit_operations'].message_type = _CIRCUITOPERATION
 _SCHEDULE.fields_by_name['scheduled_operations'].message_type = _SCHEDULEDOPERATION
 _SCHEDULEDOPERATION.fields_by_name['operation'].message_type = _OPERATION
+_FLOATARG.fields_by_name['func'].message_type = _ARGFUNCTION
+_FLOATARG.oneofs_by_name['arg'].fields.append(
+  _FLOATARG.fields_by_name['float_value'])
+_FLOATARG.fields_by_name['float_value'].containing_oneof = _FLOATARG.oneofs_by_name['arg']
+_FLOATARG.oneofs_by_name['arg'].fields.append(
+  _FLOATARG.fields_by_name['symbol'])
+_FLOATARG.fields_by_name['symbol'].containing_oneof = _FLOATARG.oneofs_by_name['arg']
+_FLOATARG.oneofs_by_name['arg'].fields.append(
+  _FLOATARG.fields_by_name['func'])
+_FLOATARG.fields_by_name['func'].containing_oneof = _FLOATARG.oneofs_by_name['arg']
+_XPOWGATE.fields_by_name['exponent'].message_type = _FLOATARG
+_YPOWGATE.fields_by_name['exponent'].message_type = _FLOATARG
+_ZPOWGATE.fields_by_name['exponent'].message_type = _FLOATARG
+_PHASEDXPOWGATE.fields_by_name['phase_exponent'].message_type = _FLOATARG
+_PHASEDXPOWGATE.fields_by_name['exponent'].message_type = _FLOATARG
+_PHASEDXZGATE.fields_by_name['x_exponent'].message_type = _FLOATARG
+_PHASEDXZGATE.fields_by_name['z_exponent'].message_type = _FLOATARG
+_PHASEDXZGATE.fields_by_name['axis_phase_exponent'].message_type = _FLOATARG
+_CZPOWGATE.fields_by_name['exponent'].message_type = _FLOATARG
+_FSIMGATE.fields_by_name['theta'].message_type = _FLOATARG
+_FSIMGATE.fields_by_name['phi'].message_type = _FLOATARG
+_ISWAPPOWGATE.fields_by_name['exponent'].message_type = _FLOATARG
+_MEASUREMENTGATE.fields_by_name['key'].message_type = _ARG
+_MEASUREMENTGATE.fields_by_name['invert_mask'].message_type = _ARG
+_WAITGATE.fields_by_name['duration_nanos'].message_type = _FLOATARG
 _OPERATION_ARGSENTRY.fields_by_name['value'].message_type = _ARG
 _OPERATION_ARGSENTRY.containing_type = _OPERATION
 _OPERATION.fields_by_name['gate'].message_type = _GATE
 _OPERATION.fields_by_name['gate_type'].enum_type = _GATETYPE
+_OPERATION.fields_by_name['xpowgate'].message_type = _XPOWGATE
+_OPERATION.fields_by_name['ypowgate'].message_type = _YPOWGATE
+_OPERATION.fields_by_name['zpowgate'].message_type = _ZPOWGATE
+_OPERATION.fields_by_name['phasedxpowgate'].message_type = _PHASEDXPOWGATE
+_OPERATION.fields_by_name['phasedxzgate'].message_type = _PHASEDXZGATE
+_OPERATION.fields_by_name['czpowgate'].message_type = _CZPOWGATE
+_OPERATION.fields_by_name['fsimgate'].message_type = _FSIMGATE
+_OPERATION.fields_by_name['iswappowgate'].message_type = _ISWAPPOWGATE
+_OPERATION.fields_by_name['measurementgate'].message_type = _MEASUREMENTGATE
+_OPERATION.fields_by_name['waitgate'].message_type = _WAITGATE
 _OPERATION.fields_by_name['args'].message_type = _OPERATION_ARGSENTRY
 _OPERATION.fields_by_name['arg_list'].message_type = _ARG
 _OPERATION.fields_by_name['qubits'].message_type = _QUBIT
+_OPERATION.oneofs_by_name['gate_value'].fields.append(
+  _OPERATION.fields_by_name['xpowgate'])
+_OPERATION.fields_by_name['xpowgate'].containing_oneof = _OPERATION.oneofs_by_name['gate_value']
+_OPERATION.oneofs_by_name['gate_value'].fields.append(
+  _OPERATION.fields_by_name['ypowgate'])
+_OPERATION.fields_by_name['ypowgate'].containing_oneof = _OPERATION.oneofs_by_name['gate_value']
+_OPERATION.oneofs_by_name['gate_value'].fields.append(
+  _OPERATION.fields_by_name['zpowgate'])
+_OPERATION.fields_by_name['zpowgate'].containing_oneof = _OPERATION.oneofs_by_name['gate_value']
+_OPERATION.oneofs_by_name['gate_value'].fields.append(
+  _OPERATION.fields_by_name['phasedxpowgate'])
+_OPERATION.fields_by_name['phasedxpowgate'].containing_oneof = _OPERATION.oneofs_by_name['gate_value']
+_OPERATION.oneofs_by_name['gate_value'].fields.append(
+  _OPERATION.fields_by_name['phasedxzgate'])
+_OPERATION.fields_by_name['phasedxzgate'].containing_oneof = _OPERATION.oneofs_by_name['gate_value']
+_OPERATION.oneofs_by_name['gate_value'].fields.append(
+  _OPERATION.fields_by_name['czpowgate'])
+_OPERATION.fields_by_name['czpowgate'].containing_oneof = _OPERATION.oneofs_by_name['gate_value']
+_OPERATION.oneofs_by_name['gate_value'].fields.append(
+  _OPERATION.fields_by_name['fsimgate'])
+_OPERATION.fields_by_name['fsimgate'].containing_oneof = _OPERATION.oneofs_by_name['gate_value']
+_OPERATION.oneofs_by_name['gate_value'].fields.append(
+  _OPERATION.fields_by_name['iswappowgate'])
+_OPERATION.fields_by_name['iswappowgate'].containing_oneof = _OPERATION.oneofs_by_name['gate_value']
+_OPERATION.oneofs_by_name['gate_value'].fields.append(
+  _OPERATION.fields_by_name['measurementgate'])
+_OPERATION.fields_by_name['measurementgate'].containing_oneof = _OPERATION.oneofs_by_name['gate_value']
+_OPERATION.oneofs_by_name['gate_value'].fields.append(
+  _OPERATION.fields_by_name['waitgate'])
+_OPERATION.fields_by_name['waitgate'].containing_oneof = _OPERATION.oneofs_by_name['gate_value']
 _OPERATION.oneofs_by_name['token'].fields.append(
   _OPERATION.fields_by_name['token_value'])
 _OPERATION.fields_by_name['token_value'].containing_oneof = _OPERATION.oneofs_by_name['token']
@@ -1264,6 +1824,17 @@ DESCRIPTOR.message_types_by_name['Moment'] = _MOMENT
 DESCRIPTOR.message_types_by_name['Schedule'] = _SCHEDULE
 DESCRIPTOR.message_types_by_name['ScheduledOperation'] = _SCHEDULEDOPERATION
 DESCRIPTOR.message_types_by_name['Language'] = _LANGUAGE
+DESCRIPTOR.message_types_by_name['FloatArg'] = _FLOATARG
+DESCRIPTOR.message_types_by_name['XPowGate'] = _XPOWGATE
+DESCRIPTOR.message_types_by_name['YPowGate'] = _YPOWGATE
+DESCRIPTOR.message_types_by_name['ZPowGate'] = _ZPOWGATE
+DESCRIPTOR.message_types_by_name['PhasedXPowGate'] = _PHASEDXPOWGATE
+DESCRIPTOR.message_types_by_name['PhasedXZGate'] = _PHASEDXZGATE
+DESCRIPTOR.message_types_by_name['CZPowGate'] = _CZPOWGATE
+DESCRIPTOR.message_types_by_name['FSimGate'] = _FSIMGATE
+DESCRIPTOR.message_types_by_name['ISwapPowGate'] = _ISWAPPOWGATE
+DESCRIPTOR.message_types_by_name['MeasurementGate'] = _MEASUREMENTGATE
+DESCRIPTOR.message_types_by_name['WaitGate'] = _WAITGATE
 DESCRIPTOR.message_types_by_name['Operation'] = _OPERATION
 DESCRIPTOR.message_types_by_name['Gate'] = _GATE
 DESCRIPTOR.message_types_by_name['Qubit'] = _QUBIT
@@ -1328,6 +1899,83 @@ Language = _reflection.GeneratedProtocolMessageType('Language', (_message.Messag
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Language)
   })
 _sym_db.RegisterMessage(Language)
+
+FloatArg = _reflection.GeneratedProtocolMessageType('FloatArg', (_message.Message,), {
+  'DESCRIPTOR' : _FLOATARG,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.FloatArg)
+  })
+_sym_db.RegisterMessage(FloatArg)
+
+XPowGate = _reflection.GeneratedProtocolMessageType('XPowGate', (_message.Message,), {
+  'DESCRIPTOR' : _XPOWGATE,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.XPowGate)
+  })
+_sym_db.RegisterMessage(XPowGate)
+
+YPowGate = _reflection.GeneratedProtocolMessageType('YPowGate', (_message.Message,), {
+  'DESCRIPTOR' : _YPOWGATE,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.YPowGate)
+  })
+_sym_db.RegisterMessage(YPowGate)
+
+ZPowGate = _reflection.GeneratedProtocolMessageType('ZPowGate', (_message.Message,), {
+  'DESCRIPTOR' : _ZPOWGATE,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ZPowGate)
+  })
+_sym_db.RegisterMessage(ZPowGate)
+
+PhasedXPowGate = _reflection.GeneratedProtocolMessageType('PhasedXPowGate', (_message.Message,), {
+  'DESCRIPTOR' : _PHASEDXPOWGATE,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.PhasedXPowGate)
+  })
+_sym_db.RegisterMessage(PhasedXPowGate)
+
+PhasedXZGate = _reflection.GeneratedProtocolMessageType('PhasedXZGate', (_message.Message,), {
+  'DESCRIPTOR' : _PHASEDXZGATE,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.PhasedXZGate)
+  })
+_sym_db.RegisterMessage(PhasedXZGate)
+
+CZPowGate = _reflection.GeneratedProtocolMessageType('CZPowGate', (_message.Message,), {
+  'DESCRIPTOR' : _CZPOWGATE,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.CZPowGate)
+  })
+_sym_db.RegisterMessage(CZPowGate)
+
+FSimGate = _reflection.GeneratedProtocolMessageType('FSimGate', (_message.Message,), {
+  'DESCRIPTOR' : _FSIMGATE,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.FSimGate)
+  })
+_sym_db.RegisterMessage(FSimGate)
+
+ISwapPowGate = _reflection.GeneratedProtocolMessageType('ISwapPowGate', (_message.Message,), {
+  'DESCRIPTOR' : _ISWAPPOWGATE,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ISwapPowGate)
+  })
+_sym_db.RegisterMessage(ISwapPowGate)
+
+MeasurementGate = _reflection.GeneratedProtocolMessageType('MeasurementGate', (_message.Message,), {
+  'DESCRIPTOR' : _MEASUREMENTGATE,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.MeasurementGate)
+  })
+_sym_db.RegisterMessage(MeasurementGate)
+
+WaitGate = _reflection.GeneratedProtocolMessageType('WaitGate', (_message.Message,), {
+  'DESCRIPTOR' : _WAITGATE,
+  '__module__' : 'cirq_google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.WaitGate)
+  })
+_sym_db.RegisterMessage(WaitGate)
 
 Operation = _reflection.GeneratedProtocolMessageType('Operation', (_message.Message,), {
 

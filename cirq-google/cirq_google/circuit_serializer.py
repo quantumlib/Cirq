@@ -161,8 +161,10 @@ class CircuitSerializer:
         gate_type = type(gate)
         if msg is None:
             msg = v2.program_pb2.Operation()
-        for qubit in op.qubits:
-            msg.qubits.add().id = v2.qubit_to_proto_id(qubit)
+        #for qubit in op.qubits:
+        #    msg.qubits.add().id = v2.qubit_to_proto_id(qubit)
+        msg.qubit_ids.extend(v2.qubit_to_proto_id(qubit) for qubit in op.qubits)
+        #msg.qubits.add().id = v2.qubit_to_proto_id(qubit)
         for tag in op.tags:
             if isinstance(tag, CalibrationTag):
                 if constants is not None:
@@ -181,53 +183,102 @@ class CircuitSerializer:
         for gate_type_mro in gate_type.mro():
             # Check all super classes in method resolution order.
             if gate_type_mro == cirq.XPowGate:
-                msg.gate_type = v2.program_pb2.GateType.XPOWGATE
-                return _add_args_to_proto(msg, [gate.exponent], arg_function_language)
+                arg_func_langs.float_arg_to_proto(
+                    gate.exponent,
+                    out=msg.xpowgate.exponent,
+                    arg_function_language=arg_function_language,
+                    )
+                return msg
             if gate_type_mro == cirq.YPowGate:
-                msg.gate_type = v2.program_pb2.GateType.YPOWGATE
-                return _add_args_to_proto(msg, [gate.exponent], arg_function_language)
+                arg_func_langs.float_arg_to_proto(
+                    gate.exponent,
+                    out=msg.ypowgate.exponent,
+                    arg_function_language=arg_function_language,
+                    )
+                return msg
             if gate_type_mro == cirq.ZPowGate:
-                msg.gate_type = v2.program_pb2.GateType.ZPOWGATE
-                is_physical_z = any(isinstance(tag, PhysicalZTag) for tag in op.tags)
-                return _add_args_to_proto(msg, [gate.exponent, 'p' if is_physical_z else 'v'], arg_function_language)
+                arg_func_langs.float_arg_to_proto(
+                    gate.exponent,
+                    out=msg.zpowgate.exponent,
+                    arg_function_language=arg_function_language,
+                    )
+                if any(isinstance(tag, PhysicalZTag) for tag in op.tags):
+                  msg.zpowgate.is_physical_z=True
+                return msg
             if gate_type_mro == cirq.PhasedXPowGate:
-                msg.gate_type = v2.program_pb2.GateType.PHASEDXPOWGATE
-                return _add_args_to_proto(
-                    msg,
-                    [gate.phase_exponent, gate.exponent],
-                    arg_function_language,
-                )
+                arg_func_langs.float_arg_to_proto(
+                    gate.phase_exponent,
+                    out=msg.phasedxpowgate.phase_exponent,
+                    arg_function_language=arg_function_language,
+                    )
+                arg_func_langs.float_arg_to_proto(
+                    gate.exponent,
+                    out=msg.phasedxpowgate.exponent,
+                    arg_function_language=arg_function_language,
+                    )
+                return msg
             if gate_type_mro == cirq.PhasedXZGate:
-                msg.gate_type = v2.program_pb2.GateType.PHASEDXZGATE
-                return _add_args_to_proto(
-                    msg,
-                    [gate.x_exponent, gate.z_exponent, gate.axis_phase_exponent],
-                    arg_function_language,
-                )
+                arg_func_langs.float_arg_to_proto(
+                    gate.x_exponent,
+                    out=msg.phasedxzgate.x_exponent,
+                    arg_function_language=arg_function_language,
+                    )
+                arg_func_langs.float_arg_to_proto(
+                    gate.z_exponent,
+                    out=msg.phasedxzgate.z_exponent,
+                    arg_function_language=arg_function_language,
+                    )
+                arg_func_langs.float_arg_to_proto(
+                    gate.axis_phase_exponent,
+                    out=msg.phasedxzgate.axis_phase_exponent,
+                    arg_function_language=arg_function_language,
+                    )
+                return msg
             if gate_type_mro == cirq.CZPowGate:
-                msg.gate_type = v2.program_pb2.GateType.CZPOWGATE
-                return _add_args_to_proto(msg, [gate.exponent], arg_function_language)
+                arg_func_langs.float_arg_to_proto(
+                    gate.exponent,
+                    out=msg.czpowgate.exponent,
+                    arg_function_language=arg_function_language,
+                    )
+                return msg
             if gate_type_mro == cirq.ISwapPowGate:
-                msg.gate_type = v2.program_pb2.GateType.ISWAPPOWGATE
-                return _add_args_to_proto(msg, [gate.exponent], arg_function_language)
+                arg_func_langs.float_arg_to_proto(
+                    gate.exponent,
+                    out=msg.iswappowgate.exponent,
+                    arg_function_language=arg_function_language,
+                    )
+                return msg
             if gate_type_mro == cirq.FSimGate:
-                msg.gate_type = v2.program_pb2.GateType.FSIMGATE
-                return _add_args_to_proto(
-                    msg,
-                    [gate.theta, gate.phi],
-                    arg_function_language,
-                )
+                arg_func_langs.float_arg_to_proto(
+                    gate.theta,
+                    out=msg.fsimgate.theta,
+                    arg_function_language=arg_function_language,
+                    )
+                arg_func_langs.float_arg_to_proto(
+                    gate.phi,
+                    out=msg.fsimgate.phi,
+                    arg_function_language=arg_function_language,
+                    )
+                return msg
             if gate_type_mro == cirq.MeasurementGate:
-                msg.gate_type = v2.program_pb2.GateType.MEASUREMENTGATE
-                return _add_args_to_proto(
-                    msg,
-                    [gate.key, gate.invert_mask],
-                    arg_function_language,
-                )
+                arg_func_langs.arg_to_proto(
+                    gate.key,
+                    out=msg.measurementgate.key,
+                    arg_function_language=arg_function_language,
+                    )
+                arg_func_langs.arg_to_proto(
+                    gate.invert_mask,
+                    out=msg.measurementgate.invert_mask,
+                    arg_function_language=arg_function_language,
+                    )
+                return msg
             if gate_type_mro == cirq.WaitGate:
-                msg.gate_type = v2.program_pb2.GateType.WAITGATE
-                return _add_args_to_proto(msg, [gate.duration.total_nanos()], arg_function_language)
-
+                arg_func_langs.float_arg_to_proto(
+                    gate.duration.total_nanos(),
+                    out=msg.waitgate.duration_nanos,
+                    arg_function_language=arg_function_language,
+                    )
+                return msg
         raise ValueError(f'Cannot serialize op {op!r} of type {gate_type}')
 
     def serialize_circuit_op(
@@ -373,42 +424,86 @@ class CircuitSerializer:
             The deserialized Operation.
         """
         gate_type = operation_proto.gate_type
-        qubits = [v2.qubit_from_proto_id(q.id) for q in operation_proto.qubits]
+        qubits = [v2.qubit_from_proto_id(q) for q in operation_proto.qubit_ids]
+        #qubits = [v2.qubit_from_proto_id(q.id) for q in operation_proto.qubits]
         args = [
-            arg_func_langs.arg_from_proto(
+            arg_func_langs.float_arg_from_proto(
                 arg, arg_function_language=arg_function_language, required_arg_name=None
             )
             for arg in operation_proto.arg_list
         ]
-        if gate_type == v2.program_pb2.GateType.XPOWGATE:
-            op= cirq.XPowGate(exponent=args[0])(*qubits)
-        elif gate_type == v2.program_pb2.GateType.YPOWGATE:
-            op= cirq.YPowGate(exponent=args[0])(*qubits)
-        elif gate_type == v2.program_pb2.GateType.ZPOWGATE:
-            op= cirq.ZPowGate(exponent=args[0])(*qubits)
-            if args[1] == 'p':
-              op=op.with_tags(PhysicalZTag())
-        elif gate_type == v2.program_pb2.GateType.PHASEDXPOWGATE:
-            op= cirq.PhasedXPowGate(phase_exponent=args[0], exponent=args[1])(*qubits)
-        elif gate_type == v2.program_pb2.GateType.PHASEDXZGATE:
-            op= cirq.PhasedXZGate(
-                x_exponent=args[0], z_exponent=args[1], axis_phase_exponent=args[2]
-            )(*qubits)
-        elif gate_type == v2.program_pb2.GateType.CZPOWGATE:
-            op= cirq.CZPowGate(exponent=args[0])(*qubits)
-        elif gate_type == v2.program_pb2.GateType.ISWAPPOWGATE:
-            op= cirq.ISwapPowGate(exponent=args[0])(*qubits)
-        elif gate_type == v2.program_pb2.GateType.FSIMGATE:
-            op= cirq.FSimGate(theta=args[0], phi=args[1])(*qubits)
-        elif gate_type == v2.program_pb2.GateType.MEASUREMENTGATE:
-            op= cirq.MeasurementGate(num_qubits=len(qubits),key=args[0], invert_mask=args[1])(*qubits)
-        elif gate_type == v2.program_pb2.GateType.WAITGATE:
-          op= cirq.WaitGate(duration=cirq.Duration(nanos=args[0]))(*qubits)
+        which_gate_type=operation_proto.WhichOneof('gate_value')
+
+        if which_gate_type == 'xpowgate':
+          op=cirq.XPowGate(exponent=arg_func_langs.float_arg_from_proto(
+                operation_proto.xpowgate.exponent, arg_function_language=arg_function_language, required_arg_name=None
+          ))(*qubits)
+        elif which_gate_type == 'ypowgate':
+          op=cirq.YPowGate(exponent=arg_func_langs.float_arg_from_proto(
+                operation_proto.ypowgate.exponent, arg_function_language=arg_function_language, required_arg_name=None
+          ))(*qubits)
+        elif which_gate_type == 'zpowgate':
+          op=cirq.ZPowGate(exponent=arg_func_langs.float_arg_from_proto(
+                operation_proto.zpowgate.exponent, arg_function_language=arg_function_language, required_arg_name=None
+          ))(*qubits)
+          if operation_proto.zpowgate.is_physical_z:
+             op=op.with_tags(PhysicalZTag())
+        elif which_gate_type == 'phasedxpowgate':
+          exponent=arg_func_langs.float_arg_from_proto(
+                operation_proto.phasedxpowgate.exponent, arg_function_language=arg_function_language, required_arg_name=None
+          )
+          phase_exponent=arg_func_langs.float_arg_from_proto(
+                operation_proto.phasedxpowgate.phase_exponent, arg_function_language=arg_function_language, required_arg_name=None
+          )
+          op=cirq.PhasedXPowGate(exponent=exponent, phase_exponent=phase_exponent)(*qubits)
+        elif which_gate_type == 'phasedxzgate':
+          x_exponent=arg_func_langs.float_arg_from_proto(
+                operation_proto.phasedxzgate.x_exponent, arg_function_language=arg_function_language, required_arg_name=None
+          )
+          z_exponent=arg_func_langs.float_arg_from_proto(
+                operation_proto.phasedxzgate.z_exponent, arg_function_language=arg_function_language, required_arg_name=None
+          )
+          axis_phase_exponent=arg_func_langs.float_arg_from_proto(
+                operation_proto.phasedxzgate.axis_phase_exponent, arg_function_language=arg_function_language, required_arg_name=None
+          )
+          op=cirq.PhasedXZGate(x_exponent=x_exponent, z_exponent=z_exponent, axis_phase_exponent=axis_phase_exponent)(*qubits)
+        elif which_gate_type == 'czpowgate':
+          op=cirq.CZPowGate(exponent=arg_func_langs.float_arg_from_proto(
+                operation_proto.czpowgate.exponent, arg_function_language=arg_function_language, required_arg_name=None
+          ))(*qubits)
+        elif which_gate_type == 'iswappowgate':
+          op=cirq.ISwapPowGate(exponent=arg_func_langs.float_arg_from_proto(
+                operation_proto.iswappowgate.exponent, arg_function_language=arg_function_language, required_arg_name=None
+          ))(*qubits)
+        elif which_gate_type == 'fsimgate':
+          theta=arg_func_langs.float_arg_from_proto(
+                operation_proto.fsimgate.theta, arg_function_language=arg_function_language, required_arg_name=None
+          )
+          phi=arg_func_langs.float_arg_from_proto(
+                operation_proto.fsimgate.phi, arg_function_language=arg_function_language, required_arg_name=None
+          )
+          op=cirq.FSimGate(theta=theta, phi=phi)(*qubits)
+        elif which_gate_type == 'measurementgate':
+          key=arg_func_langs.arg_from_proto(
+                operation_proto.measurementgate.key, arg_function_language=arg_function_language, required_arg_name=None
+          )
+          invert_mask=arg_func_langs.arg_from_proto(
+                operation_proto.measurementgate.invert_mask, arg_function_language=arg_function_language, required_arg_name=None
+          )
+          op=cirq.MeasurementGate(num_qubits=len(qubits),key=key, invert_mask=invert_mask)(*qubits)
+        elif which_gate_type == 'waitgate':
+          total_nanos=arg_func_langs.float_arg_from_proto(
+                operation_proto.waitgate.duration_nanos, arg_function_language=arg_function_language, required_arg_name=None
+          )
+          op= cirq.WaitGate(duration=cirq.Duration(nanos=total_nanos))(*qubits)
         else:
           raise ValueError(
             f'Unsupported serialized gate with type "{gate_type}".'
             f'\n\noperation_proto:\n{operation_proto}'
           )
+
+
+
         which = operation_proto.WhichOneof('token')
         if which == 'token_constant_index':
                 if not constants:
@@ -527,7 +622,7 @@ class CircuitSerializer:
 def _add_args_to_proto(msg, arg_values, arg_function_language):
     for value in arg_values:
         msg.arg_list.append(
-            arg_func_langs.arg_to_proto(
+            arg_func_langs.float_arg_to_proto(
                 value,
                 arg_function_language=arg_function_language,
             )
