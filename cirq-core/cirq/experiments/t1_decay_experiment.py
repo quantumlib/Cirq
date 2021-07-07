@@ -124,10 +124,12 @@ class T1DecayResult:
         t1_guess = xs[guess_index]
 
         ## fit to exponential decay to find the t1 constant
-        popt, _ = optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess])
-
-        t1 = popt[0]
-        return t1
+        try:
+            popt, _ = optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess])
+            t1 = popt[0]
+            return t1
+        except RuntimeError:
+            raise RuntimeWarning("Optimal parameters could not be found for curve fit")
 
     def plot(
         self, ax: Optional[plt.Axes] = None, include_fit=False, **plot_kwargs: Any

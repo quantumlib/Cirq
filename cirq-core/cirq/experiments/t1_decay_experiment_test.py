@@ -182,8 +182,6 @@ def test_constant():
     )
     assert np.isclose(result_100.constant, 100, 5)
 
-    result_100.plot(include_fit=True)
-
     result_400 = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
@@ -198,7 +196,41 @@ def test_constant():
     )
     assert np.isclose(result_400.constant, 400, 5)
 
-    result_400.plot(include_fit=True)
+
+def test_curve_fit_plot():
+    good_fit = cirq.experiments.T1DecayResult(
+        data=pd.DataFrame(
+            columns=['delay_ns', 'false_count', 'true_count'],
+            index=range(4),
+            data=[
+                [100.0, 6, 4],
+                [400.0, 10, 0],
+                [700.0, 10, 0],
+                [1000.0, 10, 0],
+            ],
+        )
+    )
+
+    good_fit.plot(include_fit=True)
+
+    bad_fit = cirq.experiments.T1DecayResult(
+        data=pd.DataFrame(
+            columns=['delay_ns', 'false_count', 'true_count'],
+            index=range(4),
+            data=[
+                [100.0, 10, 0],
+                [400.0, 10, 0],
+                [700.0, 10, 0],
+                [1000.0, 10, 0],
+            ],
+        )
+    )
+
+    try:
+        bad_fit.plot(include_fit=True)
+        assert False
+    except RuntimeWarning as warning:
+        assert warning is not None
 
 
 def test_bad_args():
