@@ -18,6 +18,7 @@ from typing import List, Tuple, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.circuits import circuit as _circuit
+from cirq.ops.tags import NoCompileTag
 
 if TYPE_CHECKING:
     from cirq import ops
@@ -38,6 +39,7 @@ class DropNegligible:
             for op in moment.operations:
                 if protocols.is_measurement(op):
                     continue
-                if protocols.trace_distance_bound(op) <= self.tolerance:
-                    deletions.append((moment_index, op))
+                if NoCompileTag not in op.tags:
+                    if protocols.trace_distance_bound(op) <= self.tolerance:
+                        deletions.append((moment_index, op))
         circuit.batch_remove(deletions)

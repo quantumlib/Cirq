@@ -34,3 +34,24 @@ class VirtualTag:
 
     def _json_dict_(self) -> Dict[str, str]:
         return {'cirq_type': self.__class__.__name__}
+
+
+class NoCompileTag:
+    """A TaggedOperation tag indicating that the operation is virtual.
+
+    Operations marked with this tag are presumed to have zero duration of their
+    own, although they may have a non-zero duration if run in the same Moment
+    as a non-virtual operation.
+    """
+
+    def __eq__(self, other):
+        return isinstance(other, VirtualTag)
+
+    def __str__(self) -> str:
+        return '<virtual>'
+
+    def __repr__(self) -> str:
+        return 'cirq.VirtualTag()'
+
+    def _json_dict_(self) -> Dict[str, str]:
+        return {'cirq_type': self.__class__.__name__}
