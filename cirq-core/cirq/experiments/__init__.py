@@ -71,6 +71,11 @@ from cirq.experiments.n_qubit_tomography import (
     StateTomographyExperiment,
 )
 
+from cirq.experiments.parallel_readout_calibration import (
+    estimate_parallel_readout_errors,
+    ParallelReadoutResult,
+)
+
 from cirq.experiments.single_qubit_readout_calibration import (
     estimate_single_qubit_readout_errors,
     SingleQubitReadoutCalibrationResult,
