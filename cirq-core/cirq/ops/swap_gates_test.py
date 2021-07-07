@@ -109,6 +109,34 @@ def test_iswap_unitary():
     # yapf: enable
 
 
+def test_sqrt_iswap_unitary():
+    # yapf: disable
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(cirq.SQRT_ISWAP),
+        # Reference for the sqrt-iSWAP gate's matrix:
+        # https://arxiv.org/abs/2105.06074
+        np.array([[1, 0,         0,         0],
+                  [0, 1/2**0.5,  1j/2**0.5, 0],
+                  [0, 1j/2**0.5, 1/2**0.5,  0],
+                  [0, 0,         0,         1]]),
+        atol=1e-8)
+    # yapf: enable
+
+
+def test_sqrt_iswap_inv_unitary():
+    # yapf: disable
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(cirq.SQRT_ISWAP_INV),
+        # Reference for the inv-sqrt-iSWAP gate's matrix:
+        # https://arxiv.org/abs/2105.06074
+        np.array([[1, 0,          0,          0],
+                  [0, 1/2**0.5,   -1j/2**0.5, 0],
+                  [0, -1j/2**0.5, 1/2**0.5,   0],
+                  [0, 0,          0,          1]]),
+        atol=1e-8)
+    # yapf: enable
+
+
 def test_repr():
     assert repr(cirq.SWAP) == 'cirq.SWAP'
     assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'

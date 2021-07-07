@@ -55,16 +55,9 @@ class MergeInteractions(circuits.PointOptimizer):
 
         switch_to_new = False
         switch_to_new |= any(
-            len(old_op.qubits) == 2 and not isinstance(old_op.gate, ops.CZPowGate)
+            len(old_op.qubits) == 2 and not self._may_keep_old_op(old_op)
             for old_op in old_operations
         )
-        if not self.allow_partial_czs:
-            switch_to_new |= any(
-                isinstance(old_op, ops.GateOperation)
-                and isinstance(old_op.gate, ops.CZPowGate)
-                and old_op.gate.exponent != 1
-                for old_op in old_operations
-            )
 
         # This point cannot be optimized using this method
         if not switch_to_new and old_interaction_count <= 1:
@@ -88,6 +81,13 @@ class MergeInteractions(circuits.PointOptimizer):
             clear_qubits=op.qubits,
             new_operations=new_operations,
         )
+
+    def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
+        """Returns True if the old two-qubit operation may be left unchanged
+        without decomposition."""
+        if self.allow_partial_czs:
+            return isinstance(old_op.gate, ops.CZPowGate)
+        return isinstance(old_op.gate, ops.CZPowGate) and old_op.gate.exponent == 1
 
     def _op_to_matrix(
         self, op: ops.Operation, qubits: Tuple['cirq.Qid', ...]
@@ -120,7 +120,7 @@ class MergeInteractions(circuits.PointOptimizer):
         if op.qubits == qubits:
             return matrix
         if op.qubits == (q2, q1):
-            return MergeInteractions._flip_kron_order(matrix)
+            return _flip_kron_order(matrix)
         if op.qubits == (q1,):
             return np.kron(matrix, np.eye(2))
         if op.qubits == (q2,):
@@ -172,12 +172,12 @@ class MergeInteractions(circuits.PointOptimizer):
 
         return all_operations, touched_indices, product
 
-    @staticmethod
-    def _flip_kron_order(mat4x4: np.ndarray) -> np.ndarray:
-        """Given M = sum(kron(a_i, b_i)), returns M' = sum(kron(b_i, a_i))."""
-        result = np.array([[0] * 4] * 4, dtype=np.complex128)
-        order = [0, 2, 1, 3]
-        for i in range(4):
-            for j in range(4):
-                result[order[i], order[j]] = mat4x4[i, j]
-        return result
+
+def _flip_kron_order(mat4x4: np.ndarray) -> np.ndarray:
+    """Given M = sum(kron(a_i, b_i)), returns M' = sum(kron(b_i, a_i))."""
+    result = np.array([[0] * 4] * 4, dtype=np.complex128)
+    order = [0, 2, 1, 3]
+    for i in range(4):
+        for j in range(4):
+            result[order[i], order[j]] = mat4x4[i, j]
+    return result

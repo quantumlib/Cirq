@@ -22,6 +22,7 @@ import sympy
 
 import cirq
 import cirq.testing
+from cirq import circuits
 from cirq import ops
 from cirq.testing.devices import ValidatingTestDevice
 
@@ -1366,16 +1367,8 @@ def test_findall_operations_with_gate(circuit_cls):
         (3, cirq.CZ(a, b), cirq.CZ),
     ]
     assert list(c.findall_operations_with_gate_type(cirq.MeasurementGate)) == [
-        (
-            4,
-            cirq.MeasurementGate(1).on(a),
-            cirq.MeasurementGate(1, key=cirq.MeasurementKey(qubits=(a,))),
-        ),
-        (
-            4,
-            cirq.MeasurementGate(1).on(b),
-            cirq.MeasurementGate(1, key=cirq.MeasurementKey(qubits=(b,))),
-        ),
+        (4, cirq.MeasurementGate(1, key='a').on(a), cirq.MeasurementGate(1, key='a')),
+        (4, cirq.MeasurementGate(1, key='b').on(b), cirq.MeasurementGate(1, key='b')),
     ]
 
 
@@ -3364,7 +3357,7 @@ def test_pick_inserted_ops_moment_indices():
         expected_circuit._moments += [
             cirq.Moment() for _ in range(len(circuit) - len(expected_circuit))
         ]
-        insert_indices, _ = circuit._pick_inserted_ops_moment_indices(operations, start)
+        insert_indices, _ = circuits.circuit._pick_inserted_ops_moment_indices(operations, start)
         actual_circuit = cirq.Circuit(
             first_half._moments + [cirq.Moment() for _ in range(n_moments - start)]
         )
