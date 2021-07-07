@@ -28,6 +28,8 @@ def test_measure_qubits():
 
     assert cirq.measure(a) == cirq.MeasurementGate(num_qubits=1, key='a').on(a)
     assert cirq.measure(a, b) == cirq.MeasurementGate(num_qubits=2, key='a,b').on(a, b)
+    assert cirq.measure([a, b]) == [cirq.MeasurementGate(num_qubits=1, key='a').on(a),
+                                    cirq.MeasurementGate(num_qubits=1, key='b').on(b)]
     assert cirq.measure(b, a) == cirq.MeasurementGate(num_qubits=2, key='b,a').on(b, a)
     assert cirq.measure(a, key='b') == cirq.MeasurementGate(num_qubits=1, key='b').on(a)
     assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(

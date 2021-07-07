@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING, Union, Any
 
 import numpy as np
 
@@ -29,11 +29,12 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 
 def measure(
-    *target: 'cirq.Qid',
+    *target: Union['cirq.Qid', Iterable['cirq.Qid']],
     key: Optional[Union[str, value.MeasurementKey]] = None,
     invert_mask: Tuple[bool, ...] = (),
-) -> raw_types.Operation:
-    """Returns a single MeasurementGate applied to all the given qubits.
+) -> Union[raw_types.Operation, List[raw_types.Operation]]:
+    """Returns a single MeasurementGate applied to all the given qubits
+     or a list given a list of qubits.
 
     The qubits are measured in the computational basis.
 
@@ -49,9 +50,11 @@ def measure(
         An operation targeting the given qubits with a measurement.
 
     Raises:
-        ValueError if the qubits are not instances of Qid.
+        ValueError if the qubits are not instances of Qid or list of Qid.
     """
     for qubit in target:
+        if isinstance(qubit, list):
+            return measure_each(*qubit)
         if isinstance(qubit, np.ndarray):
             raise ValueError(
                 'measure() was called a numpy ndarray. Perhaps you meant '
