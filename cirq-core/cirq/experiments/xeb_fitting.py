@@ -88,7 +88,7 @@ def benchmark_2q_xeb_fidelities(
                 f"The `cycle_depths` provided include some not "
                 f"available in `sampled_df`: {not_in_sampled}"
             )
-        sim_cycle_depths = np.intersect1d(cycle_depths, sampled_cycle_depths)
+        sim_cycle_depths = cycle_depths
     else:
         sim_cycle_depths = sampled_cycle_depths
     simulated_df = simulate_2q_xeb_circuits(
