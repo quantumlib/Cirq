@@ -21,7 +21,7 @@ import {Sphere} from './components/sphere';
 import {Meridians} from './components/meridians';
 import {Axes} from './components/axes';
 import {Labels} from './components/text';
-import {Vector} from './components/vector';
+import {StateVector} from './components/state_vector';
 
 /**
  * Using JSDOM to create a global document which the canvas elements
@@ -86,14 +86,14 @@ describe('BlochSphere (with empty constructor)', () => {
       expect(numOfMeridians).to.equal(2);
     });
 
-    it('Axes exists', () => {
+    it('Axes exist', () => {
       const axesExists = children.some(
         child => child.constructor.name === 'Axes'
       );
       expect(axesExists).to.equal(true);
     });
 
-    it('Labels exists', () => {
+    it('Labels exist', () => {
       const labelsExists = children.some(
         child => child.constructor.name === 'Labels'
       );
@@ -137,10 +137,9 @@ describe('BlochSphere (with empty constructor)', () => {
       expect(axes.halfLength).to.equal(sphere.radius);
     });
 
-    it('axes lines are the right colors by default', () => {
-      expect(axes.xAxisColor).to.equal('#1f51ff');
-      expect(axes.yAxisColor).to.equal('#ff3131');
-      expect(axes.zAxisColor).to.equal('#39ff14');
+    it('does not have any 2 lines with the same color', () => {
+      const colors = [axes.xAxisColor, axes.yAxisColor, axes.zAxisColor];
+      expect(new Set(colors).size).to.equal(colors.length);
     });
   });
 
@@ -211,7 +210,7 @@ describe('BlochSphere (with valid custom constructor values)', () => {
 
       const vectors = children.filter(
         child => child.constructor.name === 'Vector'
-      ) as Vector[];
+      ) as StateVector[];
 
       const expectedVectorX = [1, 1, 3];
       const expectedVectorY = [0, 1, 4];
@@ -221,7 +220,7 @@ describe('BlochSphere (with valid custom constructor values)', () => {
         expect(vector.x).to.equal(expectedVectorX[index]);
         expect(vector.y).to.equal(expectedVectorY[index]);
         expect(vector.z).to.equal(expectedVectorZ[index]);
-        expect(vector.scaling_factor).to.equal(sphere.radius);
+        expect(vector.blochSphereRadius).to.equal(sphere.radius);
       });
     });
   });

@@ -452,10 +452,11 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         converted = _convert_to_circuit_with_drift(self, program)
         return self._simulator.simulate(converted, param_resolver, qubit_order, initial_state)
 
-    def _create_act_on_args(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, cirq.ActOnStateVectorArgs],
         qubits: Sequence[cirq.Qid],
+        logs: Dict[str, Any],
     ) -> cirq.ActOnStateVectorArgs:
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()

@@ -23,7 +23,7 @@ describe('Meridians', () => {
   const DEFAULT_V_MERIDIANS = 4;
 
   describe('by default', () => {
-    it(`createHorizontalChordMeridians() generates the correct number of lines given 
+    it(`generates the correct number of lines given 
     the default number (7)`, () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
@@ -33,7 +33,7 @@ describe('Meridians', () => {
       expect(meridians.children.length).to.equal(DEFAULT_H_MERIDIANS);
     });
 
-    it(`createVerticalMeridians() generates the correct number of lines given 
+    it(`generates the correct number of lines given 
     the default number (4)`, () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
@@ -43,7 +43,7 @@ describe('Meridians', () => {
       expect(meridians.children.length).to.equal(DEFAULT_V_MERIDIANS);
     });
 
-    it(`createHorizontalChordMeridians() generates lines at the correct positions 
+    it(`generates lines at the correct positions 
     with defaults`, () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
@@ -67,8 +67,8 @@ describe('Meridians', () => {
     });
   });
 
-  describe('can be configured to', () => {
-    it('generate the correct number of horizontal meridians given valid numbers', () => {
+  describe('allows configuration that', () => {
+    it('generates the correct number of horizontal meridians given valid numbers', () => {
       // Note that due to asethetic choices, if the number of circles
       // provided is even, createHorizontalChordMeridians() will automatically
       // adjust to building an odd number of meridians.
@@ -84,7 +84,7 @@ describe('Meridians', () => {
       });
     });
 
-    it('generate the correct number of vertical meridians given valid numbers', () => {
+    it('generates the correct number of vertical meridians given valid numbers', () => {
       const lineValues = [4, 0, 17, 299, 4.123];
       const expectedLineNumbers = [4, 0, 18, 299, 4];
       lineValues.forEach((el, index) => {
@@ -97,7 +97,7 @@ describe('Meridians', () => {
       });
     });
 
-    it('change the number of horizontal chord meridians correctly with scale', () => {
+    it('changes the number of horizontal chord meridians correctly with scale', () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
         9,
@@ -121,8 +121,8 @@ describe('Meridians', () => {
       });
     });
 
-    describe('throw the correct errors', () => {
-      it('if given invalid horizontal meridian inputs (-1, 301)', () => {
+    describe('throws the correct errors if the user', () => {
+      it('gives invalid horizontal meridian inputs (-1, 301)', () => {
         const lineValues = [-1, 301];
         const expectedErrorMessage = [
           'A negative number of meridians are not supported',
@@ -135,7 +135,7 @@ describe('Meridians', () => {
         });
       });
 
-      it('if given invalid vertical meridian inputs (-1, 301)', () => {
+      it('gives invalid vertical meridian inputs (-1, 301)', () => {
         const lineValues = [-1, 301];
         const expectedErrorMessage = [
           'A negative number of meridians are not supported',
@@ -148,7 +148,7 @@ describe('Meridians', () => {
         });
       });
 
-      it('throwing an error correctly if given a bad orientation enum in the constructor', () => {
+      it('throws an error correctly if given a bad orientation enum in the constructor', () => {
         expect(() => {
           new Meridians(DEFAULT_RADIUS, DEFAULT_V_MERIDIANS, undefined!);
         }).to.throw('Invalid orientation input in Meridians constructor');

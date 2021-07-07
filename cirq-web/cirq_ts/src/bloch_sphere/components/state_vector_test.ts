@@ -14,11 +14,11 @@
 
 import {expect} from 'chai';
 import {ArrowHelper, Vector3} from 'three';
-import {Vector} from './vector';
+import {StateVector} from './state_vector';
 
-describe('Vector', () => {
+describe('StateVector', () => {
   describe('by default', () => {
-    const vector = new Vector(1, 1, 2, 5);
+    const vector = new StateVector(1, 1, 2, 5);
     it('start at the correct point given arbitrary vector coordinates', () => {
       const nestedVector = vector.children[0] as ArrowHelper;
       expect(nestedVector.position).to.eql(new Vector3(0, 0, 0));

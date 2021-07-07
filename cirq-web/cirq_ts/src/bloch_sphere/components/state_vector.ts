@@ -18,28 +18,36 @@ import {ArrowHelper, Vector3, Group, LineBasicMaterial} from 'three';
  * Generates a vector to add to the Bloch sphere.
  * The length and direction of the vector are configurable.
  */
-export class Vector extends Group {
-  readonly scaling_factor: number;
+export class StateVector extends Group {
+  readonly blochSphereRadius: number;
   readonly x: number;
   readonly y: number;
   readonly z: number;
 
   /**
    * Class constructor.
+   *
+   * The x, y, and z coordinates provide the coordinates of the state vector
+   * within the Bloch sphere of unit radius (1). Since the Bloch sphere visualization
+   * can be any ThreeJS unit, we scale the vector along with it by specifying the
+   * radius of the Bloch sphere.
+   *
    * @param x the x coordinate of the vector tip
    * @param y the y coordinate of the vector tip
    * @param z the z coordinate of the vector tip
+   * @param blochSphereRadius the radius of the Bloch sphere in which the state
+   * vector will be applied
    * @returns An instance of the class containing the generated vector. This can be
    * added to the Bloch sphere instance as well as the scene.
    */
-  constructor(x: number, y: number, z: number, scaling_factor: number) {
+  constructor(x: number, y: number, z: number, blochSphereRadius: number) {
     super();
     this.x = x;
     this.y = y;
     this.z = z;
-    this.scaling_factor = scaling_factor;
+    this.blochSphereRadius = blochSphereRadius;
 
-    this.generateVector(this.x, this.y, this.z, this.scaling_factor);
+    this.generateVector(this.x, this.y, this.z, this.blochSphereRadius);
     return this;
   }
 
@@ -50,14 +58,14 @@ export class Vector extends Group {
    * @param x The x coordinate of the vector tip.
    * @param y The y coordinate of the vector tip.
    * @param z The z coordinate of the vector tip.
-   * @param scaling_factor The quantity that will be multiplied by
-   * the vector length to fit to the sphere. This will be the sphere's radius.
+   * @param blochSphereRadius The radius of the Bloch sphere in which
+   * the state vector will be applied
    */
   private generateVector(
     x: number,
     y: number,
     z: number,
-    scaling_factor: number
+    blochSphereRadius: number
   ) {
     const directionVector = new Vector3(x, y, z);
 
@@ -75,7 +83,7 @@ export class Vector extends Group {
 
     // Calculate the distance, and alter it to be proportional
     // to the length
-    const newLength = origin.distanceTo(directionVector) * scaling_factor;
+    const newLength = origin.distanceTo(directionVector) * blochSphereRadius;
 
     // Create the arrow representation of the vector and add it to the group
     const arrowHelper = new ArrowHelper(

@@ -12,32 +12,60 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pathlib import Path
 import cirq_web
 
 
-def test_to_script_tag(tmp_path):
-    # setup test data
-    tempfile = tmp_path / "tempfile"
-    content = "console.log('test')"
-    tempfile.write_text(content)
+class FakeWidget(cirq_web.Widget):
+    def __init__(self):
+        super().__init__()
 
-    # call the tested method/class
-    result = cirq_web.to_script_tag(tempfile)
+    def get_client_code(self) -> str:
+        return "This is the test client code."
 
-    # compare actual with expected
-    expected = f"<script>{content}</script>"
-    assert result == expected
+    def get_widget_bundle_name(self) -> str:
+        return "testfile.txt"
 
 
-def test_write_output_file(tmpdir):
+def remove_whitespace(string: str) -> str:
+    return "".join(string.split())
+
+
+def test_repr_html(tmpdir):
+    # # Reset the path so the files are accessible
+    cirq_web.widget._DIST_PATH = Path(tmpdir) / "dir"
+    path = tmpdir.mkdir('dir').join('testfile.txt')
+    path.write("This is a test bundle")
+
+    test_widget = FakeWidget()
+    actual = test_widget._repr_html_()
+
+    expected = f"""
+        <meta charset="UTF-8">
+        <div id="{test_widget.id}"></div>
+        <script>This is a test bundle</script>
+        This is the test client code.
+        """
+
+    assert remove_whitespace(expected) == remove_whitespace(actual)
+
+
+def test_generate_html_file_with_browser(tmpdir):
+    # # Reset the path so the files are accessible
+    cirq_web.widget._DIST_PATH = Path(tmpdir) / "dir"
     path = tmpdir.mkdir('dir')
 
-    file_name = 'tempfile.txt'
-    content = "this is a test file"
+    testfile_path = path.join('testfile.txt')
+    testfile_path.write("This is a test bundle")
 
-    cirq_web.write_output_file(str(path), file_name, content)
+    test_widget = FakeWidget()
+    test_html_path = test_widget.generate_html_file(str(path), 'test.html', open_in_browser=True)
+    actual = open(test_html_path, 'r', encoding='utf-8').read()
 
-    new_file = path.join(file_name)
-    new_file_content = new_file.read()
-
-    assert new_file_content == content
+    expected = f"""
+        <meta charset="UTF-8">
+        <div id="{test_widget.id}"></div>
+        <script>This is a test bundle</script>
+        This is the test client code.
+        """
+    assert remove_whitespace(expected) == remove_whitespace(actual)

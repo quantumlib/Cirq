@@ -15,14 +15,16 @@
 # limitations under the License.
 
 ################################################################################
-# Runs the linter on the Typescript. Primarily used for CI.
+# Runs the end to end tests and ensures that they're all passing
 #
 # Usage:
-#     check/ts-lint
+#     check/ts-test-e2e
+#
+# "npm run test-e2e" runs end to end tests
 ################################################################################
 
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
-check/npm run lint $@
+check/npm run test-e2e $@

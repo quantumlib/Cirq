@@ -48,9 +48,18 @@ export class Labels extends Group {
  * by using the Labels constructor.
  */
 export class Label extends Sprite {
+  readonly text: string;
+
+  /**
+   * Class constructor
+   * @param text The text of the label
+   * @param positionVector The position of the vector as a Vector3 object
+   * @returns a Label object with specified text and position.
+   */
   constructor(text: string, positionVector: Vector3) {
     const material = createSpriteMaterial(text);
     super(material);
+    this.text = text;
     this.position.copy(positionVector);
     return this;
   }
@@ -67,6 +76,9 @@ function createSpriteMaterial(text: string) {
   const canvas = document.createElement('canvas');
   canvas.width = CANVAS_SIZE;
   canvas.height = CANVAS_SIZE;
+  // Allows us to keep track of what we're adding to the
+  // canvas.
+  canvas.textContent = text;
 
   const context = canvas.getContext('2d')!;
   context.fillStyle = '#000000';

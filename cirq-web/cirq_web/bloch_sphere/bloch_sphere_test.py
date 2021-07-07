@@ -23,14 +23,6 @@ from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
 
 
-def _get_bundle_file_path():
-    # Need to call this from the root directory
-    absolute_path = cirq_web.resolve_path()
-    bundle_file_path = f'{absolute_path}/cirq_ts/dist/bloch_sphere.bundle.js'
-    bundle_script = cirq_web.to_script_tag(bundle_file_path)
-    return bundle_script
-
-
 def test_init_bloch_sphere_type():
     state_vector = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
     bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
@@ -64,45 +56,22 @@ def test_no_state_vector_given():
         cirq_web.BlochSphere()
 
 
-def test_repr_html():
+def test_bloch_sphere_default_client_code():
     state_vector = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
     bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
-    bundle_script = _get_bundle_file_path()
-    expected = f"""
-        <meta charset="UTF-8">
-        <div id="{bloch_sphere.get_id()}"></div>
-        {bundle_script}
+
+    expected_client_code = f"""
         <script>
-        renderBlochSphere('{bloch_sphere.get_id()}', {bloch_sphere.sphere_radius})
-            .addVector({bloch_sphere.bloch_vector[0]}, {bloch_sphere.bloch_vector[1]}, {bloch_sphere.bloch_vector[2]});
-        </script>
-        """
-    assert expected == bloch_sphere._repr_html_()
-
-
-def test_generate_html_file_with_browser(tmpdir):
-    path = tmpdir.mkdir('dir')
-
-    state_vector = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
-    bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
-    test_path = bloch_sphere.generate_html_file(
-        output_directory=str(path), file_name='test.html', open_in_browser=True
-    )
-
-    template_div = f"""
-        <meta charset="UTF-8">
-        <div id="{bloch_sphere.get_id()}"></div>
-        """
-    bundle_script = _get_bundle_file_path()
-
-    template_script = f"""
-        <script>
-        renderBlochSphere('{bloch_sphere.get_id()}', {bloch_sphere.sphere_radius})
-            .addVector({bloch_sphere.bloch_vector[0]}, {bloch_sphere.bloch_vector[1]}, {bloch_sphere.bloch_vector[2]});
+        renderBlochSphere('{bloch_sphere.id}', 5)
+            .addVector(1.0, 0.0, 0.0);
         </script>
         """
 
-    expected = template_div + bundle_script + template_script
-    actual = open(str(test_path), 'r', encoding='utf-8').read()
+    assert expected_client_code == bloch_sphere.get_client_code()
 
-    assert expected == actual
+
+def test_bloch_sphere_default_bundle_name():
+    state_vector = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
+    bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
+
+    assert bloch_sphere.get_widget_bundle_name() == 'bloch_sphere.bundle.js'
