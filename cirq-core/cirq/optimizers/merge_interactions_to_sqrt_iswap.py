@@ -27,9 +27,9 @@ if TYPE_CHECKING:
 
 
 class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
-    """Combines series of adjacent one and two-qubit gates operating on a pair
-    of qubits and replaces each series with the minimum number of SQRT_ISWAP
-    gates.
+    """Combines series of adjacent one- and two-qubit, non-parametrized gates
+    operating on a pair of qubits and replaces each series with the minimum
+    number of SQRT_ISWAP gates.
 
     See also: ``two_qubit_matrix_to_sqrt_iswap_operations``
     """
