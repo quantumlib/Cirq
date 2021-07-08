@@ -35,7 +35,7 @@ class VirtualTag:
     def _json_dict_(self) -> Dict[str, str]:
         return {'cirq_type': self.__class__.__name__}
 
-
+'''
 class NoCompileTag:
     """A TaggedOperation tag indicating that the operation is virtual.
 
@@ -55,6 +55,7 @@ class NoCompileTag:
 
     def _json_dict_(self) -> Dict[str, str]:
         return {'cirq_type': self.__class__.__name__}
-        
+
     def __hash__(self) -> int:
         return 123
+'''
