@@ -787,11 +787,7 @@ def test_on_each():
     with pytest.raises(ValueError):
         c.on_each([a, 'abcd'])
 
-    def iterator(qubits):
-        for i in range(len(qubits)):
-            yield qubits[i]
-
-    qubit_iterator = iterator([a, b, a, b])
+    qubit_iterator = (q for q in [a, b, a, b])
     assert isinstance(qubit_iterator, Iterator)
     assert c.on_each(qubit_iterator) == [c(a), c(b), c(a), c(b)]
 
@@ -815,6 +811,8 @@ def test_on_each_two_qubits():
     assert g.on_each((a, b), (a, b)) == [g(a, b), g(a, b)]
     assert g.on_each(*zip([a, b], [b, a])) == [g(a, b), g(b, a)]
     with pytest.raises(TypeError, match='object is not iterable'):
+        g.on_each(a)
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         g.on_each(a, b)
     with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         g.on_each([12])
@@ -843,11 +841,7 @@ def test_on_each_two_qubits():
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
         g.on_each([(a, 'b')])
 
-    def iterator(qubits):
-        for i in range(len(qubits)):
-            yield qubits[i]
-
-    qubit_iterator = iterator([[a, b], [a, b]])
+    qubit_iterator = (qs for qs in [[a, b], [a, b]])
     assert isinstance(qubit_iterator, Iterator)
     assert g.on_each(qubit_iterator) == [g(a, b), g(a, b)]
 
@@ -872,6 +866,8 @@ def test_on_each_three_qubits():
     assert g.on_each((a, b, c), (c, b, a)) == [g(a, b, c), g(c, b, a)]
     assert g.on_each(*zip([a, c], [b, b], [c, a])) == [g(a, b, c), g(c, b, a)]
     with pytest.raises(TypeError, match='object is not iterable'):
+        g.on_each(a)
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         g.on_each(a, b, c)
     with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         g.on_each([12])
@@ -898,11 +894,7 @@ def test_on_each_three_qubits():
     with pytest.raises(ValueError, match='All values in sequence should be Qids'):
         g.on_each([(a, 'bc')])
 
-    def iterator(qubits):
-        for i in range(len(qubits)):
-            yield qubits[i]
-
-    qubit_iterator = iterator([[a, b, c], [a, b, c]])
+    qubit_iterator = (qs for qs in [[a, b, c], [a, b, c]])
     assert isinstance(qubit_iterator, Iterator)
     assert g.on_each(qubit_iterator) == [g(a, b, c), g(a, b, c)]
 
