@@ -19,6 +19,7 @@ from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple, Dict, List
 import sympy
 
 from cirq import circuits, ops, value, protocols
+from cirq.ops.tags import NoCompileTag
 from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
@@ -63,50 +64,51 @@ class EjectPhasedPaulis:
 
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
-                affected = [q for q in op.qubits if q in state.held_w_phases]
+                if NoCompileTag not in op.tags:
+                    affected = [q for q in op.qubits if q in state.held_w_phases]
 
-                # Collect, phase, and merge Ws.
-                w = _try_get_known_phased_pauli(op, no_symbolic=not self.eject_parameterized)
-                if w is not None:
-                    if decompositions.is_negligible_turn((w[0] - 1) / 2, self.tolerance):
-                        _potential_cross_whole_w(moment_index, op, self.tolerance, state)
-                    else:
-                        _potential_cross_partial_w(moment_index, op, state)
-                    continue
+                    # Collect, phase, and merge Ws.
+                    w = _try_get_known_phased_pauli(op, no_symbolic=not self.eject_parameterized)
+                    if w is not None:
+                        if decompositions.is_negligible_turn((w[0] - 1) / 2, self.tolerance):
+                            _potential_cross_whole_w(moment_index, op, self.tolerance, state)
+                        else:
+                            _potential_cross_partial_w(moment_index, op, state)
+                        continue
 
-                if not affected:
-                    continue
+                    if not affected:
+                        continue
 
-                # Absorb Z rotations.
-                t = _try_get_known_z_half_turns(op, no_symbolic=not self.eject_parameterized)
-                if t is not None:
-                    _absorb_z_into_w(moment_index, op, state)
-                    continue
+                    # Absorb Z rotations.
+                    t = _try_get_known_z_half_turns(op, no_symbolic=not self.eject_parameterized)
+                    if t is not None:
+                        _absorb_z_into_w(moment_index, op, state)
+                        continue
 
-                # Dump coherent flips into measurement bit flips.
-                if isinstance(op.gate, ops.MeasurementGate):
-                    _dump_into_measurement(moment_index, op, state)
+                    # Dump coherent flips into measurement bit flips.
+                    if isinstance(op.gate, ops.MeasurementGate):
+                        _dump_into_measurement(moment_index, op, state)
 
-                # Cross CZs using kickback.
-                if (
-                    _try_get_known_cz_half_turns(op, no_symbolic=not self.eject_parameterized)
-                    is not None
-                ):
-                    if len(affected) == 1:
-                        _single_cross_over_cz(moment_index, op, affected[0], state)
-                    else:
-                        _double_cross_over_cz(op, state)
-                    continue
+                    # Cross CZs using kickback.
+                    if (
+                        _try_get_known_cz_half_turns(op, no_symbolic=not self.eject_parameterized)
+                        is not None
+                        ):
+                        if len(affected) == 1:
+                            _single_cross_over_cz(moment_index, op, affected[0], state)
+                        else:
+                            _double_cross_over_cz(op, state)
+                        continue
 
-                # Don't know how to handle this situation. Dump the gates.
-                _dump_held(op.qubits, moment_index, state)
+                    # Don't know how to handle this situation. Dump the gates.
+                    _dump_held(op.qubits, moment_index, state)
 
-        # Put anything that's still held at the end of the circuit.
-        _dump_held(state.held_w_phases.keys(), len(circuit), state)
+            # Put anything that's still held at the end of the circuit.
+            _dump_held(state.held_w_phases.keys(), len(circuit), state)
 
-        circuit.batch_remove(state.deletions)
-        circuit.batch_insert_into(state.inline_intos)
-        circuit.batch_insert(state.insertions)
+            circuit.batch_remove(state.deletions)
+            circuit.batch_insert_into(state.inline_intos)
+            circuit.batch_insert(state.insertions)
 
 
 def _absorb_z_into_w(moment_index: int, op: ops.Operation, state: _OptimizerState) -> None:
