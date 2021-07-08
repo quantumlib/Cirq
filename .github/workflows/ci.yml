@@ -147,7 +147,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
+        python-version: [ '3.6', '3.7', '3.8', '3.9' ]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -177,6 +177,22 @@ jobs:
           pip install -r rtd_docs/requirements.txt
       - name: Build docs
         run: dev_tools/docs/build-rtd-docs.sh
+  build_protos:
+    name: Build protos
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+      - name: Install requirements
+        run: |
+          pip install -r dev_tools/requirements/deps/protos.txt
+      - name: Build protos
+        run: check/build-changed-protos
   coverage:
     name: Coverage check
     runs-on: ubuntu-20.04
@@ -196,7 +212,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8' ]
+        python-version: [ '3.7', '3.8', '3.9' ]
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
@@ -213,7 +229,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8' ]
+        python-version: [ '3.7', '3.8', '3.9' ]
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
