@@ -40,8 +40,6 @@ class DropNegligible:
                 if protocols.is_measurement(op):
                     continue
                 if NoCompileTag not in op.tags:
-                    print('test')
                     if protocols.trace_distance_bound(op) <= self.tolerance:
                         deletions.append((moment_index, op))
-                print('test')
         circuit.batch_remove(deletions)

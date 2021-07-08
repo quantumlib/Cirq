@@ -1,17 +1,3 @@
-# Copyright 2018 The Cirq Developers
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import cirq
 from cirq.ops.tags import NoCompileTag
 
@@ -73,15 +59,15 @@ def test_clears_known_empties_even_at_zero_tolerance():
             ]
         ),
     )
-#    assert_optimizes(
-#        optimizer=cirq.DropNegligible(tolerance=0),
-#        initial_circuit=circuit2,
-#        expected_circuit=cirq.Circuit(
-#            [
-#                cirq.Moment(),
-#                cirq.Moment([cirq.Y(a) ** 0.0000001]),
-#                cirq.Moment([cirq.X(a) ** -0.0000001]),
-#                cirq.Moment(),
-#            ]
-#        ),
-#    )
+    assert_optimizes(
+        optimizer=cirq.DropNegligible(tolerance=0),
+        initial_circuit=circuit2,
+        expected_circuit=cirq.Circuit(
+            [
+                cirq.Moment([(cirq.Z(a) ** 0).with_tags(NoCompileTag)]),
+                cirq.Moment([cirq.Y(a) ** 0.0000001]),
+                cirq.Moment([cirq.X(a) ** -0.0000001]),
+                cirq.Moment(),
+            ]
+        ),
+    )
