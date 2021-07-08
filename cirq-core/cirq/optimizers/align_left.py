@@ -16,6 +16,7 @@
 
 from cirq import circuits
 from cirq.circuits.insert_strategy import InsertStrategy
+from cirq.ops.tags import NoCompileTag
 
 
 class AlignLeft:
