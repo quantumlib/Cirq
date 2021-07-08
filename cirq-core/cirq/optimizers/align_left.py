@@ -25,4 +25,12 @@ class AlignLeft:
         self.optimize_circuit(circuit)
 
     def optimize_circuit(self, circuit: circuits.Circuit):
-        circuit[:] = circuits.Circuit(circuit.all_operations(), strategy=InsertStrategy.EARLIEST)
+        circuit_new=circuits.Circuit()
+        for moment_index, moment in enumerate(circuit):
+            for op in moment.operations:
+                if NoCompileTag not in op.tags:
+                    circuit.append(op, strategy=InsertStrategy.EARLIEST)
+                else:
+                    circuit.append(op)
+        circuit=circuit_new
+                    #circuit[:] = circuits.Circuit(circuit.all_operations(), strategy=InsertStrategy.EARLIEST)
