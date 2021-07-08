@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimization pass that combines adjacent single-qubit rotations."""
+"""An optimization pass that combines adjacent series of gates on two qubits."""
 
 from typing import Callable, List, Optional, Sequence, Tuple, cast, TYPE_CHECKING
 
+import abc
 import numpy as np
 
 from cirq import circuits, ops, protocols
@@ -25,19 +26,25 @@ if TYPE_CHECKING:
     import cirq
 
 
-class MergeInteractions(circuits.PointOptimizer):
-    """Combines series of adjacent one and two-qubit gates operating on a pair
-    of qubits."""
+class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
+    """Combines series of adjacent one- and two-qubit, non-parametrized gates
+    operating on a pair of qubits."""
 
     def __init__(
         self,
         tolerance: float = 1e-8,
-        allow_partial_czs: bool = True,
         post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE] = lambda op_list: op_list,
     ) -> None:
+        """
+        Args:
+            tolerance: A limit on the amount of absolute error introduced by the
+                construction.
+            post_clean_up: This function is called on each set of optimized
+                operations before they are put into the circuit to replace the
+                old operations.
+        """
         super().__init__(post_clean_up=post_clean_up)
         self.tolerance = tolerance
-        self.allow_partial_czs = allow_partial_czs
 
     def optimization_at(
         self, circuit: circuits.Circuit, index: int, op: ops.Operation
@@ -63,10 +70,8 @@ class MergeInteractions(circuits.PointOptimizer):
         if not switch_to_new and old_interaction_count <= 1:
             return None
 
-        # Find a max-3-cz construction.
-        new_operations = two_qubit_decompositions.two_qubit_matrix_to_operations(
-            op.qubits[0], op.qubits[1], matrix, self.allow_partial_czs, self.tolerance, False
-        )
+        # Find a (possibly ideal) decomposition of the merged operations.
+        new_operations = self._two_qubit_matrix_to_operations(op.qubits[0], op.qubits[1], matrix)
         new_interaction_count = len(
             [new_op for new_op in new_operations if len(new_op.qubits) == 2]
         )
@@ -82,12 +87,29 @@ class MergeInteractions(circuits.PointOptimizer):
             new_operations=new_operations,
         )
 
+    @abc.abstractmethod
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
         """Returns True if the old two-qubit operation may be left unchanged
         without decomposition."""
-        if self.allow_partial_czs:
-            return isinstance(old_op.gate, ops.CZPowGate)
-        return isinstance(old_op.gate, ops.CZPowGate) and old_op.gate.exponent == 1
+
+    @abc.abstractmethod
+    def _two_qubit_matrix_to_operations(
+        self,
+        q0: 'cirq.Qid',
+        q1: 'cirq.Qid',
+        mat: np.ndarray,
+    ) -> Sequence['cirq.Operation']:
+        """Decomposes the merged two-qubit gate unitary into the minimum number
+        of two-qubit gates.
+
+        Args:
+            q0: The first qubit being operated on.
+            q1: The other qubit being operated on.
+            mat: Defines the operation to apply to the pair of qubits.
+
+        Returns:
+            A list of operations implementing the matrix.
+        """
 
     def _op_to_matrix(
         self, op: ops.Operation, qubits: Tuple['cirq.Qid', ...]
@@ -130,7 +152,7 @@ class MergeInteractions(circuits.PointOptimizer):
 
     def _scan_two_qubit_ops_into_matrix(
         self, circuit: circuits.Circuit, index: Optional[int], qubits: Tuple['cirq.Qid', ...]
-    ) -> Tuple[List[ops.Operation], List[int], np.ndarray]:
+    ) -> Tuple[Sequence[ops.Operation], List[int], np.ndarray]:
         """Accumulates operations affecting the given pair of qubits.
 
         The scan terminates when it hits the end of the circuit, finds an
@@ -181,3 +203,55 @@ def _flip_kron_order(mat4x4: np.ndarray) -> np.ndarray:
         for j in range(4):
             result[order[i], order[j]] = mat4x4[i, j]
     return result
+
+
+class MergeInteractions(MergeInteractionsAbc):
+    """Combines series of adjacent one- and two-qubit, non-parametrized gates
+    operating on a pair of qubits and replaces each series with the minimum
+    number of CZ gates."""
+
+    def __init__(
+        self,
+        tolerance: float = 1e-8,
+        allow_partial_czs: bool = True,
+        post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE] = lambda op_list: op_list,
+    ) -> None:
+        """
+        Args:
+            tolerance: A limit on the amount of absolute error introduced by the
+                construction.
+            allow_partial_czs: Enables the use of Partial-CZ gates.
+            post_clean_up: This function is called on each set of optimized
+                operations before they are put into the circuit to replace the
+                old operations.
+        """
+        super().__init__(tolerance=tolerance, post_clean_up=post_clean_up)
+        self.allow_partial_czs = allow_partial_czs
+
+    def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
+        """Returns True if the old two-qubit operation may be left unchanged
+        without decomposition."""
+        if self.allow_partial_czs:
+            return isinstance(old_op.gate, ops.CZPowGate)
+        return isinstance(old_op.gate, ops.CZPowGate) and old_op.gate.exponent == 1
+
+    def _two_qubit_matrix_to_operations(
+        self,
+        q0: 'cirq.Qid',
+        q1: 'cirq.Qid',
+        mat: np.ndarray,
+    ) -> Sequence['cirq.Operation']:
+        """Decomposes the merged two-qubit gate unitary into the minimum number
+        of CZ gates.
+
+        Args:
+            q0: The first qubit being operated on.
+            q1: The other qubit being operated on.
+            mat: Defines the operation to apply to the pair of qubits.
+
+        Returns:
+            A list of operations implementing the matrix.
+        """
+        return two_qubit_decompositions.two_qubit_matrix_to_operations(
+            q0, q1, mat, self.allow_partial_czs, self.tolerance, False
+        )
