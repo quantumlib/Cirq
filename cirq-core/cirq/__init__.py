@@ -273,6 +273,8 @@ from cirq.ops import (
     SingleQubitCliffordGate,
     SingleQubitGate,
     SingleQubitPauliStringGateOperation,
+    SQRT_ISWAP,
+    SQRT_ISWAP_INV,
     SWAP,
     SwapPowGate,
     T,
@@ -318,6 +320,7 @@ from cirq.optimizers import (
     merge_single_qubit_gates_into_phased_x_z,
     merge_single_qubit_gates_into_phxz,
     MergeInteractions,
+    MergeInteractionsToSqrtIswap,
     MergeSingleQubitGates,
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
@@ -328,6 +331,7 @@ from cirq.optimizers import (
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
+    two_qubit_matrix_to_sqrt_iswap_operations,
     three_qubit_matrix_to_operations,
 )
 
@@ -360,6 +364,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     ActOnArgs,
+    ActOnArgsContainer,
     ActOnCliffordTableauArgs,
     ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
@@ -378,6 +383,7 @@ from cirq.sim import (
     measure_state_vector,
     final_density_matrix,
     final_state_vector,
+    OperationTarget,
     sample,
     sample_density_matrix,
     sample_state_vector,

@@ -96,7 +96,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
             )
         return None
 
-    qubits = LineQubit.range(protocols.num_qubits(val) * 2)
+    qubits = LineQubit.range(num_qubits_val * 2)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
 
     circuit = Circuit()

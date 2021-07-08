@@ -13,13 +13,26 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, Iterable
+from typing import (
+    Any,
+    Iterable,
+    Dict,
+    List,
+    TypeVar,
+    TYPE_CHECKING,
+    Sequence,
+    Tuple,
+    cast,
+    Optional,
+    Iterator,
+)
 
 import numpy as np
 
 from cirq import protocols
 from cirq._compat import deprecated
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+from cirq.sim.operation_target import OperationTarget
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
 
@@ -27,12 +40,12 @@ if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgs:
+class ActOnArgs(OperationTarget[TSelf]):
     """State and context for an operation acting on a state tensor."""
 
     def __init__(
         self,
-        prng: np.random.RandomState,
+        prng: np.random.RandomState = None,
         qubits: Sequence['cirq.Qid'] = None,
         axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
@@ -50,17 +63,19 @@ class ActOnArgs:
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
+        if prng is None:
+            prng = cast(np.random.RandomState, np.random)
         if qubits is None:
             qubits = ()
         if axes is None:
             axes = ()
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
-        self.qubits = tuple(qubits)
+        self._qubits = tuple(qubits)
         self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
         self._axes = tuple(axes)
         self.prng = prng
-        self.log_of_measurement_results = log_of_measurement_results
+        self._log_of_measurement_results = log_of_measurement_results
 
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Adds a measurement result to the log.
@@ -89,6 +104,51 @@ class ActOnArgs:
     @abc.abstractmethod
     def copy(self: TSelf) -> TSelf:
         """Creates a copy of the object."""
+
+    def create_merged_state(self: TSelf) -> TSelf:
+        """Creates a final merged state."""
+        return self
+
+    def apply_operation(self, op: 'cirq.Operation'):
+        """Applies the operation to the state."""
+        protocols.act_on(op, self)
+
+    def kronecker_product(self: TSelf, other: TSelf) -> TSelf:
+        """Joins two state spaces together."""
+        raise NotImplementedError()
+
+    def factor(
+        self: TSelf,
+        qubits: Sequence['cirq.Qid'],
+        *,
+        validate=True,
+        atol=1e-07,
+    ) -> Tuple[TSelf, TSelf]:
+        """Splits two state spaces after a measurement or reset."""
+        raise NotImplementedError()
+
+    def transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
+        """Physically reindexes the state by the new basis."""
+        raise NotImplementedError()
+
+    @property
+    def log_of_measurement_results(self) -> Dict[str, Any]:
+        return self._log_of_measurement_results
+
+    @property
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
+        return self._qubits
+
+    def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:
+        if item not in self.qubit_map:
+            raise IndexError(f'{item} not in {self.qubits}')
+        return self
+
+    def __len__(self) -> int:
+        return len(self.qubits)
+
+    def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
+        return iter(self.qubits)
 
     @abc.abstractmethod
     def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):

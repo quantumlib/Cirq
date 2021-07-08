@@ -20,6 +20,7 @@ import numpy as np
 from cirq import linalg, protocols, sim
 from cirq._compat import deprecated_parameter
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
+from cirq.linalg import transformations
 
 if TYPE_CHECKING:
     import cirq
@@ -201,6 +202,58 @@ class ActOnStateVectorArgs(ActOnArgs):
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
+
+    def kronecker_product(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
+        target_tensor = transformations.state_vector_kronecker_product(
+            self.target_tensor, other.target_tensor
+        )
+        buffer = np.empty_like(target_tensor)
+        return ActOnStateVectorArgs(
+            target_tensor=target_tensor,
+            available_buffer=buffer,
+            qubits=self.qubits + other.qubits,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results,
+        )
+
+    def factor(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        *,
+        validate=True,
+        atol=1e-07,
+    ) -> Tuple['cirq.ActOnStateVectorArgs', 'cirq.ActOnStateVectorArgs']:
+        axes = self.get_axes(qubits)
+        extracted_tensor, remainder_tensor = transformations.factor_state_vector(
+            self.target_tensor, axes, validate=validate, atol=atol
+        )
+        extracted_args = ActOnStateVectorArgs(
+            target_tensor=extracted_tensor,
+            available_buffer=np.empty_like(extracted_tensor),
+            qubits=qubits,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results,
+        )
+        remainder_args = ActOnStateVectorArgs(
+            target_tensor=remainder_tensor,
+            available_buffer=np.empty_like(remainder_tensor),
+            qubits=tuple(q for q in self.qubits if q not in qubits),
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results,
+        )
+        return extracted_args, remainder_args
+
+    def transpose_to_qubit_order(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStateVectorArgs':
+        axes = self.get_axes(qubits)
+        new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)
+        new_args = ActOnStateVectorArgs(
+            target_tensor=new_tensor,
+            available_buffer=np.empty_like(new_tensor),
+            qubits=qubits,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results,
+        )
+        return new_args
 
 
 def _strat_act_on_state_vector_from_apply_unitary(
