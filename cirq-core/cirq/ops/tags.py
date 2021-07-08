@@ -45,13 +45,16 @@ class NoCompileTag:
     """
 
     def __eq__(self, other):
-        return isinstance(other, VirtualTag)
+        return isinstance(other, NoCompileTag)
 
     def __str__(self) -> str:
-        return '<virtual>'
+        return '<nocompile>'
 
     def __repr__(self) -> str:
-        return 'cirq.VirtualTag()'
+        return 'cirq.NoCompileTag()'
 
     def _json_dict_(self) -> Dict[str, str]:
         return {'cirq_type': self.__class__.__name__}
+        
+    def __hash__(self) -> int:
+        return 123
