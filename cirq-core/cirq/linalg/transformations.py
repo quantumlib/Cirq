@@ -621,7 +621,7 @@ def factor_density_matrix(
         order as the original density matrix.
     """
     extracted = partial_trace(t, axes)
-    remaining_axes = [i for i in range(t.ndim//2) if i not in axes]
+    remaining_axes = [i for i in range(t.ndim // 2) if i not in axes]
     remainder = partial_trace(t, remaining_axes)
     if validate:
         t1 = density_matrix_kronecker_product(extracted, remainder)
