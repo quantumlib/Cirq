@@ -147,7 +147,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
+        python-version: [ '3.6', '3.7', '3.8', '3.9' ]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -217,7 +217,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8' ]
+        python-version: [ '3.7', '3.8', '3.9' ]
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
@@ -234,7 +234,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8' ]
+        python-version: [ '3.7', '3.8', '3.9' ]
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
@@ -290,3 +290,49 @@ jobs:
         with:
           name: notebook-outputs
           path: out
+  ts-build:
+    name: Bundle file consistency
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          node-version: '14.16.1'
+      - name: Install npm
+        run: check/npm ci
+      - name: Check build matches the current
+        run: check/ts-build-current
+  ts-lint:
+    name: Typescript lint check
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          node-version: '14.16.1'
+      - name: Install npm
+        run: check/npm ci
+      - name: Lint
+        run: check/ts-lint 
+  ts-test:
+    name: Typescript tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          node-version: '14.16.1'
+      - name: Install npm dependencies
+        run: check/npm ci
+      - name: Unit tests
+        run: check/ts-test 
+      - name: End to end tests
+        run: check/ts-test-e2e
+  ts-coverage:
+    name: Typescript tests coverage
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          node-version: '14.16.1'
+      - name: Install npm dependencies
+        run: check/npm ci
+      - name: Test
+        run: check/ts-coverage
