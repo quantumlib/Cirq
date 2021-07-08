@@ -50,12 +50,13 @@ class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """
         operations: List[raw_types.Operation] = []
         if self._num_qubits_() > 1:
+            iterator: Iterable = targets
             if len(targets) == 1:
                 if not isinstance(targets[0], Iterable):
                     raise TypeError(f'{targets[0]} object is not iterable.')
                 t0 = list(targets[0])
-                targets = [t0] if t0 and isinstance(t0[0], raw_types.Qid) else t0
-            for target in targets:
+                iterator = [t0] if t0 and isinstance(t0[0], raw_types.Qid) else t0
+            for target in iterator:
                 if not isinstance(target, Sequence):
                     raise ValueError(
                         f'Inputs to multi-qubit gates must be Sequence[Qid].'
