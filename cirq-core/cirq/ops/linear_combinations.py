@@ -575,7 +575,10 @@ class PauliSum:
 
     def __add__(self, other):
         if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
-            return NotImplemented
+            if hasattr(other, 'gate') and isinstance(other.gate, identity.IdentityGate):
+                other = PauliString(other)
+            else:
+                return NotImplemented
         result = self.copy()
         result += other
         return result
