@@ -259,6 +259,7 @@ from cirq.ops import (
     QubitOrderOrList,
     QubitPermutationGate,
     reset,
+    reset_each,
     ResetChannel,
     riswap,
     Rx,
@@ -271,6 +272,8 @@ from cirq.ops import (
     SingleQubitCliffordGate,
     SingleQubitGate,
     SingleQubitPauliStringGateOperation,
+    SQRT_ISWAP,
+    SQRT_ISWAP_INV,
     SWAP,
     SwapPowGate,
     T,
@@ -316,6 +319,7 @@ from cirq.optimizers import (
     merge_single_qubit_gates_into_phased_x_z,
     merge_single_qubit_gates_into_phxz,
     MergeInteractions,
+    MergeInteractionsToSqrtIswap,
     MergeSingleQubitGates,
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
@@ -326,6 +330,7 @@ from cirq.optimizers import (
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
+    two_qubit_matrix_to_sqrt_iswap_operations,
     three_qubit_matrix_to_operations,
 )
 
