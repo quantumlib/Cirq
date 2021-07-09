@@ -107,7 +107,7 @@ class T1DecayResult:
 
     @property
     def constant(self) -> float:
-        """ The t1 decay constant."""
+        """The t1 decay constant."""
 
         def exp_decay(x, t1):
             return np.exp(-x / t1)
@@ -117,13 +117,11 @@ class T1DecayResult:
         fs = self._data['false_count']
         probs = ts / (fs + ts)
 
-        ## find point closest to a probability of 1/e
-        ## to serve as a guess for the curve fit
-        find_guess = lambda index: abs(probs[index] - 1 / np.e)
-        guess_index = min(range(len(xs)), key=find_guess)
+        # Find the point closest to probability of 1/e
+        guess_index = np.argmin(np.abs(probs - 1. / np.e))
         t1_guess = xs[guess_index]
 
-        ## fit to exponential decay to find the t1 constant
+        # Fit to exponential decay to find the t1 constant
         try:
             popt, _ = optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess])
             t1 = popt[0]
@@ -132,7 +130,7 @@ class T1DecayResult:
             raise RuntimeWarning("Optimal parameters could not be found for curve fit")
 
     def plot(
-        self, ax: Optional[plt.Axes] = None, include_fit=False, **plot_kwargs: Any
+        self, ax: Optional[plt.Axes] = None, include_fit: bool = False, **plot_kwargs: Any
     ) -> plt.Axes:
         """Plots the excited state probability vs the amount of delay.
 
