@@ -44,7 +44,7 @@ class SupportsOnEachGate(raw_types.Gate, metaclass=_SupportsOnEachGateMeta):
     pass
 
 
-class SingleQubitGate(SupportsOnEachGate, metaclass=abc.ABCMeta):
+class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
 
     def _num_qubits_(self) -> int:
