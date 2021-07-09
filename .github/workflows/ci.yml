@@ -102,23 +102,6 @@ jobs:
         run: check/pylint --version
       - name: Lint
         run: check/pylint -v
-  incremental_lint:
-    name: Incremental Lint check
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install pylint
-        run: pip install -r dev_tools/requirements/deps/pylint.txt
-      - name: Display version
-        run: check/pylint --version
-      - name: Lint
-        run: check/pylint-changed-files
   doc_test:
     name: Doc test
     runs-on: ubuntu-20.04
