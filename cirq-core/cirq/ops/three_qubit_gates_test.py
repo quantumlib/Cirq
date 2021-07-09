@@ -320,3 +320,10 @@ def test_resolve(resolve_fn):
     diagonal_gate = resolve_fn(diagonal_gate, {'b': 19})
     assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles)
     assert not cirq.is_parameterized(diagonal_gate)
+
+
+def test_controlled_ops_consistency():
+    a, b, c, d = cirq.LineQubit.range(4)
+    assert cirq.CCX(a, b, c).controlled_by(d) == cirq.CCX(d, b, c).controlled_by(a)
+    assert cirq.CCZ(a, b, c).controlled_by(d) == cirq.CCZ(d, b, c).controlled_by(a)
+    assert cirq.CSWAP(a, b, c).controlled_by(d) == cirq.CSWAP(d, b, c).controlled_by(a)
