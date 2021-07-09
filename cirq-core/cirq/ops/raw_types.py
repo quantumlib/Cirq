@@ -425,7 +425,7 @@ class Operation(metaclass=abc.ABCMeta):
         """Returns the underlying operation without any tags."""
         return self
 
-    def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
+    def with_tags(self, *new_tags: Hashable) -> 'cirq.Operation':
         """Creates a new TaggedOperation, with this op and the specified tags.
 
         This method can be used to attach meta-data to specific operations
@@ -443,6 +443,8 @@ class Operation(metaclass=abc.ABCMeta):
         Args:
             new_tags: The tags to wrap this operation in.
         """
+        if not new_tags:
+            return self
         return TaggedOperation(self, *new_tags)
 
     def transform_qubits(
@@ -608,6 +610,8 @@ class TaggedOperation(Operation):
         that has the tags of this operation combined with the new_tags
         specified as the parameter.
         """
+        if not new_tags:
+            return self
         return TaggedOperation(self.sub_operation, *self._tags, *new_tags)
 
     def __str__(self) -> str:

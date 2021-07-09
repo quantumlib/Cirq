@@ -52,7 +52,7 @@ SQRT_ISWAP = ops.ISWAP ** 0.5
 def benchmark_2q_xeb_fidelities(
     sampled_df: pd.DataFrame,
     circuits: Sequence['cirq.Circuit'],
-    cycle_depths: Sequence[int],
+    cycle_depths: Optional[Sequence[int]] = None,
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> pd.DataFrame:
@@ -66,7 +66,9 @@ def benchmark_2q_xeb_fidelities(
          sampled_df: The sampled results to benchmark. This is likely produced by a call to
             `sample_2q_xeb_circuits`.
         circuits: The library of circuits corresponding to the sampled results in `sampled_df`.
-        cycle_depths: The sequence of cycle depths to simulate the circuits.
+        cycle_depths: The sequence of cycle depths to benchmark the circuits. If not provided,
+            we use the cycle depths found in `sampled_df`. All requested `cycle_depths` must be
+            present in `sampled_df`.
         param_resolver: If circuits contain parameters, resolve according to this ParamResolver
             prior to simulation
         pool: If provided, execute the simulations in parallel.
@@ -74,10 +76,27 @@ def benchmark_2q_xeb_fidelities(
     Returns:
         A DataFrame with columns 'cycle_depth' and 'fidelity'.
     """
-    simulated_df = simulate_2q_xeb_circuits(
-        circuits=circuits, cycle_depths=cycle_depths, param_resolver=param_resolver, pool=pool
+    sampled_cycle_depths = (
+        sampled_df.index.get_level_values('cycle_depth').drop_duplicates().sort_values()
     )
-    df = sampled_df.join(simulated_df)
+    if cycle_depths is not None:
+        if len(cycle_depths) == 0:
+            raise ValueError("`cycle_depths` should be a non-empty array_like")
+        not_in_sampled = np.setdiff1d(cycle_depths, sampled_cycle_depths)
+        if len(not_in_sampled) > 0:
+            raise ValueError(
+                f"The `cycle_depths` provided include some not "
+                f"available in `sampled_df`: {not_in_sampled}"
+            )
+        sim_cycle_depths = cycle_depths
+    else:
+        sim_cycle_depths = sampled_cycle_depths
+    simulated_df = simulate_2q_xeb_circuits(
+        circuits=circuits, cycle_depths=sim_cycle_depths, param_resolver=param_resolver, pool=pool
+    )
+    # Join the `pure_probs` onto `sampled_df`. By using 'inner', we let
+    # the `cycle_depths` argument to this function control what cycle depths are benchmarked.
+    df = sampled_df.join(simulated_df, how='inner').reset_index()
 
     D = 4  # two qubits
     pure_probs = np.array(df['pure_probs'].to_list())
@@ -117,7 +136,7 @@ def benchmark_2q_xeb_fidelities(
     else:
         groupby_names = ['cycle_depth']
 
-    return df.reset_index().groupby(groupby_names).apply(per_cycle_depth).reset_index()
+    return df.groupby(groupby_names).apply(per_cycle_depth).reset_index()
 
 
 class XEBCharacterizationOptions(ABC):
