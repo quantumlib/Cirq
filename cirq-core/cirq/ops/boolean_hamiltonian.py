@@ -21,7 +21,7 @@ References:
 [2] https://www.youtube.com/watch?v=AOKM9BkweVU is a useful intro
 [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
 """
-
+import itertools
 from typing import cast, Any, Dict, Generator, List, Sequence, Tuple
 
 import sympy.parsing.sympy_parser as sympy_parser
@@ -301,10 +301,7 @@ def _get_gates_from_hamiltonians(
         cnots.extend((prevh[i], prevh[-1]) for i in range(len(prevh) - 1))
         cnots.extend((currh[i], currh[-1]) for i in range(len(currh) - 1))
 
-        # TODO(tonybruguier): At this point, some CNOT gates can be cancelled out according to:
-        # "Efficient quantum circuits for diagonal unitaries without ancillas" by Jonathan Welch,
-        # Daniel Greenbaum, Sarah Mostame, Alán Aspuru-Guzik
-        # https://arxiv.org/abs/1306.3991
+        cnots = _simplify_cnots(cnots)
 
         for gate in (cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots):
             yield gate
