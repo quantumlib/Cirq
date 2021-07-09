@@ -347,3 +347,23 @@ def test_reorder_succeeds():
     args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
     reordered = args[q0].transpose_to_qubit_order([q1, q0])
     assert reordered.qubits == (q1, q0)
+
+
+@pytest.mark.parametrize('split', [True, False])
+def test_sim_state_instance_unchanged_during_normal_sim(split: bool):
+    sim = SplittableCountingSimulator(split_untangled_states=split)
+    args = sim._create_act_on_args(0, (q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.reset(q1))
+    for step in sim.simulate_moment_steps(circuit, initial_state=args):
+        assert step._sim_state is args
+
+
+@pytest.mark.parametrize('split', [True, False])
+def test_sim_state_instance_gets_changes_from_step_result(split: bool):
+    sim = SplittableCountingSimulator(split_untangled_states=split)
+    args = sim._create_act_on_args(0, (q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.reset(q1))
+    for step in sim.simulate_moment_steps(circuit, initial_state=args):
+        assert step._sim_state is args
+        args = sim._create_act_on_args(0, (q0, q1))
+        step._sim_state = args
