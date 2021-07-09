@@ -517,6 +517,16 @@ def test_reset_act_on():
     )
 
 
+def test_reset_each():
+    qubits = cirq.LineQubit.range(8)
+    for n in range(len(qubits) + 1):
+        ops = cirq.reset_each(*qubits[:n])
+        assert len(ops) == n
+        for i, op in enumerate(ops):
+            assert isinstance(op.gate, cirq.ResetChannel)
+            assert op.qubits == (qubits[i],)
+
+
 def test_phase_damping_channel():
     d = cirq.phase_damp(0.3)
     np.testing.assert_almost_equal(

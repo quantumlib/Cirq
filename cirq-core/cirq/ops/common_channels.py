@@ -15,7 +15,7 @@
 """Quantum channels that are commonly used in the literature."""
 
 import itertools
-from typing import Any, Dict, Iterable, Optional, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -787,6 +787,11 @@ class ResetChannel(gate_features.SingleQubitGate):
 def reset(qubit: 'cirq.Qid') -> raw_types.Operation:
     """Returns a `ResetChannel` on the given qubit."""
     return ResetChannel(qubit.dimension).on(qubit)
+
+
+def reset_each(*qubits: 'cirq.Qid') -> List[raw_types.Operation]:
+    """Returns a list of `ResetChannel` instances on the given qubits."""
+    return [ResetChannel(q.dimension).on(q) for q in qubits]
 
 
 @value.value_equality
