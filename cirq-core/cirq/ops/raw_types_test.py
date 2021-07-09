@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet
+from typing import AbstractSet, Iterator, Any
 
 import pytest
 import numpy as np
@@ -739,3 +739,176 @@ def test_tagged_act_on():
         cirq.act_on(NoActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(MissingActOn().with_tags("test"), args)
+
+
+def test_single_qubit_gate_validates_on_each():
+    class Dummy(cirq.SingleQubitGate):
+        def matrix(self):
+            pass
+
+    g = Dummy()
+    assert g.num_qubits() == 1
+
+    test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]
+
+    _ = g.on_each(*test_qubits)
+    _ = g.on_each(test_qubits)
+
+    test_non_qubits = [str(i) for i in range(3)]
+    with pytest.raises(ValueError):
+        _ = g.on_each(*test_non_qubits)
+    with pytest.raises(ValueError):
+        _ = g.on_each(*test_non_qubits)
+
+
+def test_on_each():
+    class CustomGate(cirq.SingleQubitGate):
+        pass
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = CustomGate()
+
+    assert c.on_each() == []
+    assert c.on_each(a) == [c(a)]
+    assert c.on_each(a, b) == [c(a), c(b)]
+    assert c.on_each(b, a) == [c(b), c(a)]
+
+    assert c.on_each([]) == []
+    assert c.on_each([a]) == [c(a)]
+    assert c.on_each([a, b]) == [c(a), c(b)]
+    assert c.on_each([b, a]) == [c(b), c(a)]
+    assert c.on_each([a, [b, a], b]) == [c(a), c(b), c(a), c(b)]
+
+    with pytest.raises(ValueError):
+        c.on_each('abcd')
+    with pytest.raises(ValueError):
+        c.on_each(['abcd'])
+    with pytest.raises(ValueError):
+        c.on_each([a, 'abcd'])
+
+    qubit_iterator = (q for q in [a, b, a, b])
+    assert isinstance(qubit_iterator, Iterator)
+    assert c.on_each(qubit_iterator) == [c(a), c(b), c(a), c(b)]
+
+
+def test_on_each_two_qubits():
+    class CustomGate(cirq.ops.gate_features.SupportsOnEachGate, cirq.TwoQubitGate):
+        pass
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    g = CustomGate()
+
+    assert g.on_each([]) == []
+    assert g.on_each([(a, b)]) == [g(a, b)]
+    assert g.on_each([[a, b]]) == [g(a, b)]
+    assert g.on_each([(b, a)]) == [g(b, a)]
+    assert g.on_each([(a, b), (b, a)]) == [g(a, b), g(b, a)]
+    assert g.on_each(zip([a, b], [b, a])) == [g(a, b), g(b, a)]
+    assert g.on_each() == []
+    assert g.on_each((b, a)) == [g(b, a)]
+    assert g.on_each((a, b), (a, b)) == [g(a, b), g(a, b)]
+    assert g.on_each(*zip([a, b], [b, a])) == [g(a, b), g(b, a)]
+    with pytest.raises(TypeError, match='object is not iterable'):
+        g.on_each(a)
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+        g.on_each(a, b)
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+        g.on_each([12])
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+        g.on_each([(a, b), 12])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each([(a, b), [(a, b)]])
+    with pytest.raises(ValueError, match='Expected 2 qubits'):
+        g.on_each([()])
+    with pytest.raises(ValueError, match='Expected 2 qubits'):
+        g.on_each([(a,)])
+    with pytest.raises(ValueError, match='Expected 2 qubits'):
+        g.on_each([(a, b, a)])
+    with pytest.raises(ValueError, match='Expected 2 qubits'):
+        g.on_each(zip([a, a]))
+    with pytest.raises(ValueError, match='Expected 2 qubits'):
+        g.on_each(zip([a, a], [b, b], [a, a]))
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each('ab')
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each(('ab',))
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each([('ab',)])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each([(a, 'ab')])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each([(a, 'b')])
+
+    qubit_iterator = (qs for qs in [[a, b], [a, b]])
+    assert isinstance(qubit_iterator, Iterator)
+    assert g.on_each(qubit_iterator) == [g(a, b), g(a, b)]
+
+
+def test_on_each_three_qubits():
+    class CustomGate(cirq.ops.gate_features.SupportsOnEachGate, cirq.ThreeQubitGate):
+        pass
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    g = CustomGate()
+
+    assert g.on_each([]) == []
+    assert g.on_each([(a, b, c)]) == [g(a, b, c)]
+    assert g.on_each([[a, b, c]]) == [g(a, b, c)]
+    assert g.on_each([(c, b, a)]) == [g(c, b, a)]
+    assert g.on_each([(a, b, c), (c, b, a)]) == [g(a, b, c), g(c, b, a)]
+    assert g.on_each(zip([a, c], [b, b], [c, a])) == [g(a, b, c), g(c, b, a)]
+    assert g.on_each() == []
+    assert g.on_each((c, b, a)) == [g(c, b, a)]
+    assert g.on_each((a, b, c), (c, b, a)) == [g(a, b, c), g(c, b, a)]
+    assert g.on_each(*zip([a, c], [b, b], [c, a])) == [g(a, b, c), g(c, b, a)]
+    with pytest.raises(TypeError, match='object is not iterable'):
+        g.on_each(a)
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+        g.on_each(a, b, c)
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+        g.on_each([12])
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
+        g.on_each([(a, b, c), 12])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each([(a, b, c), [(a, b, c)]])
+    with pytest.raises(ValueError, match='Expected 3 qubits'):
+        g.on_each([(a,)])
+    with pytest.raises(ValueError, match='Expected 3 qubits'):
+        g.on_each([(a, b)])
+    with pytest.raises(ValueError, match='Expected 3 qubits'):
+        g.on_each([(a, b, c, a)])
+    with pytest.raises(ValueError, match='Expected 3 qubits'):
+        g.on_each(zip([a, a], [b, b]))
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each('abc')
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each(('abc',))
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each([('abc',)])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each([(a, 'abc')])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        g.on_each([(a, 'bc')])
+
+    qubit_iterator = (qs for qs in [[a, b, c], [a, b, c]])
+    assert isinstance(qubit_iterator, Iterator)
+    assert g.on_each(qubit_iterator) == [g(a, b, c), g(a, b, c)]
+
+
+def test_on_each_iterable_qid():
+    class QidIter(cirq.Qid):
+        @property
+        def dimension(self) -> int:
+            return 2
+
+        def _comparison_key(self) -> Any:
+            return 1
+
+        def __iter__(self):
+            raise NotImplementedError()
+
+    assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
