@@ -320,9 +320,6 @@ class SparseSimulatorStep(
         will be set to lie entirely in the computation basis state for the
         binary expansion of the passed integer.
 
-        Note that this feature is incompatible with the simulation setting
-        `split_untangled_states=True`, and will throw an error if attempted.
-
         Args:
             state: If an int, the state vector set is the state vector
                 corresponding to a computational basis state. If a numpy
