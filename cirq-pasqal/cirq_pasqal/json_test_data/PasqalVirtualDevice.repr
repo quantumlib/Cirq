@@ -1,0 +1,4 @@
+cirq_pasqal.PasqalVirtualDevice(
+    control_radius=3,
+    qubits=[cirq_pasqal.ThreeDQubit(1, 1, 1)]
+)

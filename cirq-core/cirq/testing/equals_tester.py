@@ -33,14 +33,6 @@ class EqualsTester:
     def __init__(self):
         self._groups = [(_ClassUnknownToSubjects(),)]
 
-    @staticmethod
-    def _eq_check(v1: Any, v2: Any) -> bool:
-        eq = v1 == v2
-        ne = v1 != v2
-
-        assert eq != ne, f"__eq__ is inconsistent with __ne__ between {v1!r} and {v2!r}"
-        return eq
-
     def _verify_equality_group(self, *group_items: Any):
         """Verifies that a group is an equivalence group.
 
@@ -61,7 +53,7 @@ class EqualsTester:
 
         # Within-group items must be equal.
         for v1, v2 in itertools.product(group_items, group_items):
-            same = EqualsTester._eq_check(v1, v2)
+            same = _eq_check(v1, v2)
             assert same or v1 is not v2, f"{v1!r} isn't equal to itself!"
             assert (
                 same
@@ -70,7 +62,7 @@ class EqualsTester:
         # Between-group items must be unequal.
         for other_group in self._groups:
             for v1, v2 in itertools.product(group_items, other_group):
-                assert not EqualsTester._eq_check(
+                assert not _eq_check(
                     v1, v2
                 ), f"{v1!r} and {v2!r} can't be in different equality groups. They're equal."
 
@@ -163,3 +155,11 @@ class _TestsForNotImplemented:
 
     def __eq__(self, other):
         return True if other is self.other else NotImplemented
+
+
+def _eq_check(v1: Any, v2: Any) -> bool:
+    eq = v1 == v2
+    ne = v1 != v2
+
+    assert eq != ne, f"__eq__ is inconsistent with __ne__ between {v1!r} and {v2!r}"
+    return eq

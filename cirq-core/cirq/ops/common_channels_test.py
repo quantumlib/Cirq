@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.protocols.act_on_protocol_test import DummyActOnArgs
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -240,11 +241,22 @@ def test_deprecated_on_each_for_depolarizing_channel_one_qubit():
 
 
 def test_deprecated_on_each_for_depolarizing_channel_two_qubits():
-    q0, q1 = cirq.LineQubit.range(2)
+    q0, q1, q2, q3, q4, q5 = cirq.LineQubit.range(6)
     op = cirq.DepolarizingChannel(p=0.1, n_qubits=2)
 
-    with pytest.raises(ValueError, match="one qubit"):
+    op.on_each([(q0, q1)])
+    op.on_each([(q0, q1), (q2, q3)])
+    op.on_each(zip([q0, q2, q4], [q1, q3, q5]))
+    op.on_each((q0, q1))
+    op.on_each([q0, q1])
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         op.on_each(q0, q1)
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        op.on_each([('bogus object 0', 'bogus object 1')])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        op.on_each(['01'])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        op.on_each([(False, None)])
 
 
 def test_depolarizing_channel_apply_two_qubits():
@@ -478,26 +490,26 @@ def test_reset_channel_text_diagram():
 
 def test_reset_act_on():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.ResetChannel(), object())
+        cirq.act_on(cirq.ResetChannel(), DummyActOnArgs(), qubits=())
 
     args = cirq.ActOnStateVectorArgs(
         target_tensor=cirq.one_hot(
             index=(1, 1, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
-        axes=[1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
-    cirq.act_on(cirq.ResetChannel(), args)
+    cirq.act_on(cirq.ResetChannel(), args, [cirq.LineQubit(1)])
     assert args.log_of_measurement_results == {}
     np.testing.assert_allclose(
         args.target_tensor,
         cirq.one_hot(index=(1, 0, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64),
     )
 
-    cirq.act_on(cirq.ResetChannel(), args)
+    cirq.act_on(cirq.ResetChannel(), args, [cirq.LineQubit(1)])
     assert args.log_of_measurement_results == {}
     np.testing.assert_allclose(
         args.target_tensor,
@@ -693,7 +705,7 @@ def test_bit_flip_channel_text_diagram():
 def test_stabilizer_supports_depolarize():
     with pytest.raises(TypeError, match="act_on"):
         for _ in range(100):
-            cirq.act_on(cirq.depolarize(3 / 4), object())
+            cirq.act_on(cirq.depolarize(3 / 4), DummyActOnArgs(), qubits=())
 
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.depolarize(3 / 4).on(q), cirq.measure(q, key='m'))
