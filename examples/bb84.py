@@ -109,7 +109,7 @@ import numpy as np
 import cirq
 
 
-def main(num_qubits=59):
+def main(num_qubits=8):
     # Setup non-eavesdropped protocol
     print('Simulating non-eavesdropped protocol')
     alice_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
