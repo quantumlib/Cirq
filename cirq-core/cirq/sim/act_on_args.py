@@ -138,15 +138,6 @@ class ActOnArgs(OperationTarget[TSelf]):
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._qubits
 
-    @abc.abstractmethod
-    def sample(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        """Samples the qubits."""
-
     def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:
         if item not in self.qubit_map:
             raise IndexError(f'{item} not in {self.qubits}')
