@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Optional, TYPE_CHECKING
+from typing import Dict, Iterable, List, Optional, TYPE_CHECKING
 
-import dataclasses
 import time
 import random
 
@@ -22,58 +21,10 @@ import numpy as np
 import sympy
 
 from cirq import circuits, ops, study
+from cirq.experiments.readout_experiment_result import ReadoutExperimentResult
 
 if TYPE_CHECKING:
     import cirq
-
-
-@dataclasses.dataclass(frozen=True)
-class ParallelReadoutResult:
-    """Result of estimating single qubit readout error.
-
-    Attributes:
-        zero_state_errors: A dictionary from qubit to probability of measuring
-            a 1 when the qubit is initialized to |0⟩.
-        one_state_errors: A dictionary from qubit to probability of measuring
-            a 0 when the qubit is initialized to |1⟩.
-        repetitions: The number of repetitions that were used to estimate the
-            probabilities.
-        timestamp: The time the data was taken, in seconds since the epoch.
-    """
-
-    zero_state_errors: Dict['cirq.Qid', float]
-    one_state_errors: Dict['cirq.Qid', float]
-    repetitions: int
-    timestamp: float
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            'zero_state_errors': list(self.zero_state_errors.items()),
-            'one_state_errors': list(self.one_state_errors.items()),
-            'repetitions': self.repetitions,
-            'timestamp': self.timestamp,
-        }
-
-    @classmethod
-    def _from_json_dict_(
-        cls, zero_state_errors, one_state_errors, repetitions, timestamp, **kwargs
-    ):
-        return cls(
-            zero_state_errors=dict(zero_state_errors),
-            one_state_errors=dict(one_state_errors),
-            repetitions=repetitions,
-            timestamp=timestamp,
-        )
-
-    def __repr__(self) -> str:
-        return (
-            'cirq.experiments.ParallelReadoutResult('
-            f'zero_state_errors={self.zero_state_errors!r}, '
-            f'one_state_errors={self.one_state_errors!r}, '
-            f'repetitions={self.repetitions!r}, '
-            f'timestamp={self.timestamp!r})'
-        )
 
 
 def estimate_parallel_readout_errors(
@@ -83,7 +34,7 @@ def estimate_parallel_readout_errors(
     trials: int = 20,
     repetitions: int = 1000,
     trials_per_batch: Optional[int] = None,
-) -> ParallelReadoutResult:
+) -> ReadoutExperimentResult:
 
     """Estimate single-qubit readout error.
 
@@ -101,19 +52,16 @@ def estimate_parallel_readout_errors(
             with this number of trials in each batch.
 
     Returns:
-        A ParallelReadoutResult storing the readout error
+        A ReadoutExperimentResult storing the readout error
         probabilities as well as the number of repetitions used to estimate
         the probabilities. Also stores a timestamp indicating the time when
         data was finished being collected from the sampler.
     """
     qubits = list(qubits)
-    num_qubits = len(qubits)
-
-    sweeps = {}
 
     trial_bits = [random.getrandbits(trials) for _ in qubits]
     all_circuits = []
-    all_sweeps = []
+    all_sweeps: List[study.Sweepable] = []
     if trials_per_batch is not None:
         num_batchs = trials // trials_per_batch
         if trials % trials_per_batch > 1:
@@ -144,9 +92,9 @@ def estimate_parallel_readout_errors(
     results = sampler.run_batch(all_circuits, all_sweeps, repetitions=repetitions)
     timestamp = time.time()
 
-    zero_state_trials = {q: [] for q in qubits}
-    one_state_trials = {q: [] for q in qubits}
-    for batch_idx, batch_result in enumerate(results):
+    zero_state_trials: Dict[cirq.Qid, List[float]] = {q: [] for q in qubits}
+    one_state_trials: Dict[cirq.Qid, List[float]] = {q: [] for q in qubits}
+    for batch_result in results:
         for trial_idx, trial_result in enumerate(batch_result):
             for idx, q in enumerate(qubits):
                 had_x_gate = (trial_bits[idx] >> trial_idx) & 1
@@ -158,7 +106,7 @@ def estimate_parallel_readout_errors(
     zero_state_errors = {q: np.mean(zero_state_trials[q]) for q in qubits}
     one_state_errors = {q: np.mean(one_state_trials[q]) for q in qubits}
 
-    return ParallelReadoutResult(
+    return ReadoutExperimentResult(
         zero_state_errors=zero_state_errors,
         one_state_errors=one_state_errors,
         repetitions=repetitions,

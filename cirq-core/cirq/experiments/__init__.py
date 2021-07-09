@@ -73,7 +73,10 @@ from cirq.experiments.n_qubit_tomography import (
 
 from cirq.experiments.parallel_readout_calibration import (
     estimate_parallel_readout_errors,
-    ParallelReadoutResult,
+)
+
+from cirq.experiments.readout_experiment_result import (
+    ReadoutExperimentResult,
 )
 
 from cirq.experiments.single_qubit_readout_calibration import (

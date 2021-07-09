@@ -77,13 +77,3 @@ def test_estimate_single_qubit_readout_errors_with_noise():
         assert 0.18 < error < 0.22
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
-
-
-def test_single_qubit_readout_calibration_result_repr():
-    result = cirq.experiments.SingleQubitReadoutCalibrationResult(
-        zero_state_errors={cirq.LineQubit(0): 0.1},
-        one_state_errors={cirq.LineQubit(0): 0.2},
-        repetitions=1000,
-        timestamp=0.3,
-    )
-    cirq.testing.assert_equivalent_repr(result)

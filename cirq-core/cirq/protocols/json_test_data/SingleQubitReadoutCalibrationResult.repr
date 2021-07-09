@@ -1,1 +1,0 @@
-cirq.experiments.SingleQubitReadoutCalibrationResult(zero_state_errors={cirq.LineQubit(0): 0.1}, one_state_errors={cirq.LineQubit(0): 0.2}, repetitions=1000, timestamp=0.3)

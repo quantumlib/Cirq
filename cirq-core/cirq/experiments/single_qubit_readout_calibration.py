@@ -12,22 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING
 
-import dataclasses
 import time
 
 import numpy as np
 
 from cirq import circuits, ops
+from cirq._compat import deprecated
+from cirq.experiments.readout_experiment_result import ReadoutExperimentResult
 
 if TYPE_CHECKING:
     import cirq
 
 
-@dataclasses.dataclass(frozen=True)
-class SingleQubitReadoutCalibrationResult:
+@deprecated(
+    deadline="v0.13",
+    fix="use cirq.experiments.ReadoutExperimentResult instead",
+    name="cirq.experiments.SingleQubitReadoutCalibrationResult",
+)
+class SingleQubitReadoutCalibrationResult(ReadoutExperimentResult):
     """Result of estimating single qubit readout error.
+    Deprecated: Use ReadoutExperimentResult instead.
 
     Attributes:
         zero_state_errors: A dictionary from qubit to probability of measuring
@@ -39,44 +45,10 @@ class SingleQubitReadoutCalibrationResult:
         timestamp: The time the data was taken, in seconds since the epoch.
     """
 
-    zero_state_errors: Dict['cirq.Qid', float]
-    one_state_errors: Dict['cirq.Qid', float]
-    repetitions: int
-    timestamp: float
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            'zero_state_errors': list(self.zero_state_errors.items()),
-            'one_state_errors': list(self.one_state_errors.items()),
-            'repetitions': self.repetitions,
-            'timestamp': self.timestamp,
-        }
-
-    @classmethod
-    def _from_json_dict_(
-        cls, zero_state_errors, one_state_errors, repetitions, timestamp, **kwargs
-    ):
-        return cls(
-            zero_state_errors=dict(zero_state_errors),
-            one_state_errors=dict(one_state_errors),
-            repetitions=repetitions,
-            timestamp=timestamp,
-        )
-
-    def __repr__(self) -> str:
-        return (
-            'cirq.experiments.SingleQubitReadoutCalibrationResult('
-            f'zero_state_errors={self.zero_state_errors!r}, '
-            f'one_state_errors={self.one_state_errors!r}, '
-            f'repetitions={self.repetitions!r}, '
-            f'timestamp={self.timestamp!r})'
-        )
-
 
 def estimate_single_qubit_readout_errors(
     sampler: 'cirq.Sampler', *, qubits: Iterable['cirq.Qid'], repetitions: int = 1000
-) -> SingleQubitReadoutCalibrationResult:
+) -> ReadoutExperimentResult:
     """Estimate single-qubit readout error.
 
     For each qubit, prepare the |0⟩ state and measure. Calculate how often a 1
@@ -91,7 +63,7 @@ def estimate_single_qubit_readout_errors(
         repetitions: The number of measurement repetitions to perform.
 
     Returns:
-        A SingleQubitReadoutCalibrationResult storing the readout error
+        A ReadoutExperimentResult storing the readout error
         probabilities as well as the number of repetitions used to estimate
         the probabilities. Also stores a timestamp indicating the time when
         data was finished being collected from the sampler.
@@ -110,7 +82,7 @@ def estimate_single_qubit_readout_errors(
     zero_state_errors = {q: np.mean(zeros_result.measurements[repr(q)]) for q in qubits}
     one_state_errors = {q: 1 - np.mean(ones_result.measurements[repr(q)]) for q in qubits}
 
-    return SingleQubitReadoutCalibrationResult(
+    return ReadoutExperimentResult(
         zero_state_errors=zero_state_errors,
         one_state_errors=one_state_errors,
         repetitions=repetitions,
