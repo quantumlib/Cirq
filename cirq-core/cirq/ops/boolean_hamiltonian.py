@@ -20,28 +20,16 @@ References:
     by Stuart Hadfield, https://arxiv.org/pdf/1804.09130.pdf
 [2] https://www.youtube.com/watch?v=AOKM9BkweVU is a useful intro
 [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
-[4] Efficient quantum circuits for diagonal unitaries without ancillas by Jonathan Welch, Daniel
-    Greenbaum, Sarah Mostame, Alán Aspuru-Guzik, https://arxiv.org/abs/1306.3991
 """
 
-import functools
-import itertools
-from typing import cast, Any, Callable, Dict, Generator, List, Sequence, Tuple
+from typing import cast, Any, Dict, Generator, List, Sequence, Tuple
 
-from sympy.logic.boolalg import And, Not, Or, Xor
-from sympy.core.expr import Expr
-from sympy.core.symbol import Symbol
 import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 from cirq import value
 from cirq.ops import raw_types
-
-_hamiltonian_O: Callable[[], 'cirq.PauliString'] = lambda: 0.0 * cirq.PauliString({})
-_hamiltonian_I: Callable[[], 'cirq.PauliString'] = lambda: cirq.PauliString({})
-_hamiltonian_Z: Callable[['cirq.Qid'], 'cirq.PauliString'] = lambda qubit: cirq.PauliString(
-    {qubit: cirq.Z}
-)
+from cirq.ops.linear_combinations import PauliSum, PauliString
 
 
 @value.value_equality
@@ -110,58 +98,13 @@ class BooleanHamiltonian(raw_types.Operation):
     def _decompose_(self):
         boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
         hamiltonian_polynomial_list = [
-            _build_hamiltonian_from_boolean(boolean_expr, self._qubit_map)
+            PauliSum.from_boolean_expression(boolean_expr, self._qubit_map)
             for boolean_expr in boolean_exprs
         ]
 
         return _get_gates_from_hamiltonians(
             hamiltonian_polynomial_list, self._qubit_map, self._theta
         )
-
-
-def _build_hamiltonian_from_boolean(
-    boolean_expr: Expr, qubit_map: Dict[str, 'cirq.Qid']
-) -> 'cirq.PauliString':
-    """Builds the Hamiltonian representation of Boolean expression as per [1]:
-
-    We can represent any Boolean expression as a polynomial of Pauli Zs on different qubits. For
-    example, this object could represent the polynomial 0.5*I - 0.5*Z_1*Z_2.
-
-    Args:
-        boolean_expr: A Sympy expression containing symbols and Boolean operations
-        qubit_map: map of string (boolean variable name) to qubit.
-
-    Return:
-        The PauliString that represents the Boolean expression.
-    """
-    if isinstance(boolean_expr, Symbol):
-        # Table 1 of [1], entry for 'x' is '1/2.I - 1/2.Z'
-        return 0.5 * _hamiltonian_I() - 0.5 * _hamiltonian_Z(qubit_map[boolean_expr.name])
-
-    if isinstance(boolean_expr, (And, Not, Or, Xor)):
-        sub_hamiltonians = [
-            _build_hamiltonian_from_boolean(sub_boolean_expr, qubit_map)
-            for sub_boolean_expr in boolean_expr.args
-        ]
-        # We apply the equalities of theorem 1 of [1].
-        if isinstance(boolean_expr, And):
-            hamiltonian = _hamiltonian_I()
-            for sub_hamiltonian in sub_hamiltonians:
-                hamiltonian = hamiltonian * sub_hamiltonian
-        elif isinstance(boolean_expr, Not):
-            assert len(sub_hamiltonians) == 1
-            hamiltonian = _hamiltonian_I() - sub_hamiltonians[0]
-        elif isinstance(boolean_expr, Or):
-            hamiltonian = _hamiltonian_O()
-            for sub_hamiltonian in sub_hamiltonians:
-                hamiltonian = hamiltonian + sub_hamiltonian - hamiltonian * sub_hamiltonian
-        elif isinstance(boolean_expr, Xor):
-            hamiltonian = _hamiltonian_O()
-            for sub_hamiltonian in sub_hamiltonians:
-                hamiltonian = hamiltonian + sub_hamiltonian - 2.0 * hamiltonian * sub_hamiltonian
-        return hamiltonian
-
-    raise ValueError(f'Unsupported type: {type(boolean_expr)}')
 
 
 def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool = False) -> int:
@@ -334,13 +277,13 @@ def _get_gates_from_hamiltonians(
 
     Args:
         hamiltonian_polynomial_list: the list of Hamiltonians, typically built by calling
-            _build_hamiltonian_from_boolean().
+            PauliSum.from_boolean_expression().
         qubit_map: map of string (boolean variable name) to qubit.
         theta: A single float scaling the rotations.
     Yields:
         Gates that are the decomposition of the Hamiltonian.
     """
-    combined = sum(hamiltonian_polynomial_list, _hamiltonian_O())
+    combined = sum(hamiltonian_polynomial_list, PauliSum.from_pauli_strings(PauliString({})))
 
     qubit_names = sorted(qubit_map.keys())
     qubits = [qubit_map[name] for name in qubit_names]
@@ -352,29 +295,22 @@ def _get_gates_from_hamiltonians(
         qubit_idx = tuple(sorted(qubit_indices[qubit] for qubit in pauli_string.qubits))
         hamiltonians[qubit_idx] = w
 
-    # Here we follow improvements of [4] cancelling out the CNOTs. The first step is to order by
-    # Gray code so that as few as possible gates are changed.
-    sorted_hs = sorted(list(hamiltonians.keys()), key=functools.cmp_to_key(_gray_code_comparator))
-
     def _apply_cnots(prevh: Tuple[int, ...], currh: Tuple[int, ...]):
-        # This function applies in sequence the CNOTs from prevh and then currh. However, given
-        # that the h are sorted in Gray ordering and that some cancel each other, we can reduce
-        # the number of gates. See [4] for more details.
-
         cnots: List[Tuple[int, int]] = []
 
         cnots.extend((prevh[i], prevh[-1]) for i in range(len(prevh) - 1))
         cnots.extend((currh[i], currh[-1]) for i in range(len(currh) - 1))
 
-        cnots = _simplify_cnots(cnots)
+        # TODO(tonybruguier): At this point, some CNOT gates can be cancelled out according to:
+        # "Efficient quantum circuits for diagonal unitaries without ancillas" by Jonathan Welch,
+        # Daniel Greenbaum, Sarah Mostame, Alán Aspuru-Guzik
+        # https://arxiv.org/abs/1306.3991
 
         for gate in (cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots):
             yield gate
 
     previous_h: Tuple[int, ...] = ()
-    for h in sorted_hs:
-        w = hamiltonians[h]
-
+    for h, w in hamiltonians.items():
         yield _apply_cnots(previous_h, h)
 
         if len(h) >= 1:
