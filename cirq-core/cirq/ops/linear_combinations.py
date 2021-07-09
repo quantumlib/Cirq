@@ -406,7 +406,7 @@ class PauliSum:
     def from_boolean_expression(
         cls, boolean_expr: Expr, qubit_map: Dict[str, 'cirq.Qid']
     ) -> 'PauliSum':
-        """Builds the Hamiltonian representation of Boolean expression.Builds
+        """Builds the Hamiltonian representation of a Boolean expression.
 
         This is based on "On the representation of Boolean and real functions as Hamiltonians for
         quantum computing" by Stuart Hadfield, https://arxiv.org/abs/1804.09130

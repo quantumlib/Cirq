@@ -260,6 +260,7 @@ from cirq.ops import (
     QubitOrderOrList,
     QubitPermutationGate,
     reset,
+    reset_each,
     ResetChannel,
     riswap,
     Rx,

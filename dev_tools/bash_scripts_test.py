@@ -617,7 +617,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         ).split()
     )
 
-    intercepted_prefix = 'INTERCEPTED pylint --rcfile=dev_tools/conf/.pylintrc '
+    intercepted_prefix = 'INTERCEPTED pylint --rcfile=dev_tools/conf/incremental.pylintrc '
 
     result = run(
         script_file='check/pylint-changed-files',

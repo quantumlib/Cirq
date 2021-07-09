@@ -64,5 +64,5 @@ echo "Found ${num_changed} lintable files associated with changes." >&2
 if [ "${num_changed}" -eq 0 ]; then
     exit 0
 fi
-pylint --rcfile=dev_tools/conf/.pylintrc ${changed[@]}
+pylint --rcfile=dev_tools/conf/incremental.pylintrc ${changed[@]}
 

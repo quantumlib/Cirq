@@ -49,6 +49,7 @@ from cirq.ops.common_channels import (
     PhaseDampingChannel,
     PhaseFlipChannel,
     reset,
+    reset_each,
     ResetChannel,
 )
 
