@@ -22,13 +22,8 @@ References:
 [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
 """
 
-import functools
-import itertools
-from typing import cast, Any, Callable, Dict, Generator, List, Sequence, Tuple
+from typing import cast, Any, Dict, Generator, List, Sequence, Tuple
 
-from sympy.logic.boolalg import And, Not, Or, Xor
-from sympy.core.expr import Expr
-from sympy.core.symbol import Symbol
 import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq

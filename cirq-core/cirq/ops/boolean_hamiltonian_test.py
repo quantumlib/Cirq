@@ -11,17 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import functools
 import itertools
 import math
-import random
 
 import numpy as np
 import pytest
 import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
-import cirq.ops.boolean_hamiltonian as bh
 
 
 @pytest.mark.parametrize(
