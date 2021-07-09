@@ -287,7 +287,7 @@ def apply_matrix_to_slices(
     return out
 
 
-def partial_trace(tensor: np.ndarray, keep_indices: List[int]) -> np.ndarray:
+def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray:
     """Takes the partial trace of a given tensor.
 
     The input tensor must have shape `(d_0, ..., d_{k-1}, d_0, ..., d_{k-1})`.
@@ -620,12 +620,13 @@ def factor_density_matrix(
         `remainder` means the sub-matrix on the remaining axes, in the same
         order as the original density matrix.
     """
-    axes1 = list(axes) + [i + int(t.ndim / 2) for i in axes]
-    extracted, remainder = factor_state_vector(t, axes1, validate=False)
+    extracted = partial_trace(t, axes)
+    remaining_axes = [i for i in range(t.ndim // 2) if i not in axes]
+    remainder = partial_trace(t, remaining_axes)
     if validate:
         t1 = density_matrix_kronecker_product(extracted, remainder)
-        axes2 = list(axes) + [i for i in range(int(t.ndim / 2)) if i not in axes]
-        t2 = transpose_density_matrix_to_axis_order(t1, axes2)
+        product_axes = list(axes) + remaining_axes
+        t2 = transpose_density_matrix_to_axis_order(t1, product_axes)
         if not np.allclose(t2, t, atol=atol):
             raise ValueError('The tensor cannot be factored by the requested axes')
     return extracted, remainder
