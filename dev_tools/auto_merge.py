@@ -358,8 +358,10 @@ def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
     References:
         https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
     """
-    url = (f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
-           f"/commits/{pr.branch_sha}/check-runs?per_page=100&access_token={pr.repo.access_token}")
+    url = (
+        f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
+        f"/commits/{pr.branch_sha}/check-runs?per_page=100&access_token={pr.repo.access_token}"
+    )
     response = requests.get(url, headers={'Accept': 'application/vnd.github.antiope-preview+json'})
 
     if response.status_code != 200:
