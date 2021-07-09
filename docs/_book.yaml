@@ -135,6 +135,15 @@ upper_tabs:
       - title: "Pasqal sampler"
         path: /cirq/pasqal/sampler
 
+      ##### Rigetti ####
+      - heading: "Rigetti hardware"
+      - title: "Access and authentication"
+        path: /cirq/rigetti/access
+      - title: "Dependencies"
+        path: /cirq/rigetti/dependencies
+      - title: "Examples"
+        path: /cirq/rigetti/examples
+
     - name: "Tutorials"
       contents:
       ####  OVERVIEW  ####

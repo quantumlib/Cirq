@@ -161,8 +161,10 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r dev_tools/requirements/dev.env.txt
+      - name: Run Quil dependencies
+        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
+        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
   build_docs:
     name: Build docs
     runs-on: ubuntu-20.04
