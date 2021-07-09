@@ -60,8 +60,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStateVectorArgs.record_measurement_result`.
+                being recorded into.
         """
         if prng is None:
             prng = cast(np.random.RandomState, np.random)

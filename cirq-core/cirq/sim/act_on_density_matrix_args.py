@@ -82,8 +82,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStateVectorArgs.record_measurement_result`.
+                being recorded into.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
         """

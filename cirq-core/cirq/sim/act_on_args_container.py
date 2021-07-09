@@ -62,8 +62,7 @@ class ActOnArgsContainer(
                 unentangled qubit sets independently and merging those states
                 at the end.
             log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStateVectorArgs.record_measurement_result`.
+                being recorded into.
         """
         self.args = args
         self._qubits = tuple(qubits)
