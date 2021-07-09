@@ -646,8 +646,6 @@ class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubit
         overrides this behavior to return a `ControlledGate` with
         `sub_gate = SWAP`.
         """
-        if num_controls == 0:
-            return self
         return controlled_gate.ControlledGate(
             controlled_gate.ControlledGate(swap_gates.SWAP, num_controls=1),
             num_controls=num_controls,
