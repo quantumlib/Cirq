@@ -19,7 +19,7 @@ For example: some gates are reversible, some have known matrices, etc.
 
 import abc
 
-from cirq import value
+from cirq import value, ops
 from cirq._compat import deprecated_class
 from cirq.ops import raw_types
 
@@ -34,12 +34,16 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 class _SupportsOnEachGateMeta(value.ABCMetaImplementAnyOneOf):
     def __instancecheck__(cls, instance):
-        return isinstance(instance, SingleQubitGate) or issubclass(
+        return isinstance(instance, (SingleQubitGate, ops.DepolarizingChannel)) or issubclass(
             type(instance), SupportsOnEachGate
         )
 
 
-@deprecated_class(deadline='v0.14', fix='None, this feature is in `Gate` now.')
+@deprecated_class(
+    deadline='v0.14',
+    fix='Remove `SupportsOnEachGate` from the list of parent classes. '
+    '`on_each` is now directly supported in the `Gate` base class.',
+)
 class SupportsOnEachGate(raw_types.Gate, metaclass=_SupportsOnEachGateMeta):
     pass
 

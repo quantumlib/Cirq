@@ -221,6 +221,7 @@ def test_supports_on_each_inheritance_shim():
     assert not isinstance(two_q, cirq.ops.gate_features.SupportsOnEachGate)
     assert isinstance(cirq.X, cirq.ops.gate_features.SupportsOnEachGate)
     assert not isinstance(cirq.CX, cirq.ops.gate_features.SupportsOnEachGate)
+    assert isinstance(cirq.DepolarizingChannel(0.01), cirq.ops.gate_features.SupportsOnEachGate)
 
 
 def test_supports_on_each_deprecation():
