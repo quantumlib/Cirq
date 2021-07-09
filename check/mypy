@@ -19,8 +19,10 @@ for arg in $@; do
     fi
 done
 
+CIRQ_PACKAGES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
+
 echo -e -n "\033[31m"
-mypy --config-file=dev_tools/conf/mypy.ini $@ cirq-google/cirq_google cirq-core/cirq dev_tools
+mypy --config-file=dev_tools/conf/mypy.ini $@ $CIRQ_PACKAGES dev_tools examples
 result=$?
 echo -e -n "\033[0m"
 

@@ -425,7 +425,7 @@ class Operation(metaclass=abc.ABCMeta):
         """Returns the underlying operation without any tags."""
         return self
 
-    def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
+    def with_tags(self, *new_tags: Hashable) -> 'cirq.Operation':
         """Creates a new TaggedOperation, with this op and the specified tags.
 
         This method can be used to attach meta-data to specific operations
@@ -443,6 +443,8 @@ class Operation(metaclass=abc.ABCMeta):
         Args:
             new_tags: The tags to wrap this operation in.
         """
+        if not new_tags:
+            return self
         return TaggedOperation(self, *new_tags)
 
     def transform_qubits(
@@ -608,6 +610,8 @@ class TaggedOperation(Operation):
         that has the tags of this operation combined with the new_tags
         specified as the parameter.
         """
+        if not new_tags:
+            return self
         return TaggedOperation(self.sub_operation, *self._tags, *new_tags)
 
     def __str__(self) -> str:
@@ -656,20 +660,26 @@ class TaggedOperation(Operation):
         return protocols.mixture(self.sub_operation, NotImplemented)
 
     def _has_kraus_(self) -> bool:
-        return protocols.has_channel(self.sub_operation)
+        return protocols.has_kraus(self.sub_operation)
 
     def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
-        return protocols.channel(self.sub_operation, NotImplemented)
+        return protocols.kraus(self.sub_operation, NotImplemented)
 
     def _measurement_key_(self) -> str:
         return protocols.measurement_key(self.sub_operation, NotImplemented)
+
+    def _is_measurement_(self) -> bool:
+        sub = getattr(self.sub_operation, "_is_measurement_", None)
+        if sub is not None:
+            return sub()
+        return NotImplemented
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation) or any(
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _act_on_(self, args: Any) -> bool:
+    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
         sub = getattr(self.sub_operation, "_act_on_", None)
         if sub is not None:
             return sub(args)

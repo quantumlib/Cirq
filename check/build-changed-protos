@@ -71,30 +71,9 @@ if [[ ! -z "$changed" ]]; then
     done
 fi
 
-# Check if any of the build files have changed.
-build_changed=$(git diff --name-only ${rev} -- \
-    | grep "google/api/.*BUILD$" \
-    | sed -e "s/BUILD//")
-
-if [[ -z "$build_changed" ]]; then
-    echo -e "No BUILD files changed."
-else
-    # Build all the targets for the changed BUILD rule.
-    echo -e "BUILD file changed in directories: '${build_changed[@]}'"
-    for build_prefix in $build_changed
-    do
-        (set -x; bazel build "${build_prefix}...:*")
-    done
-fi
-
-# We potentially will attempt to build a second time, but this is not
-# a problem as bazel returns immediately.
+# We potentially will attempt to build a second time.
 for base in $changed
 do
-    (set -x; bazel build "${base}_proto"; \
-    bazel build "${base}_py_proto"; \
-    bazel build "${base}_cc_proto")
-
     python -m grpc_tools.protoc -I=cirq-google --python_out=cirq-google --mypy_out=cirq-google ${base}.proto
 done
 

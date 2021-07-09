@@ -88,12 +88,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         if not moment.operations:
             return False
-        return all(
-            [
-                isinstance(op, ops.TaggedOperation) and ops.VirtualTag() in op.tags
-                for op in moment.operations
-            ]
-        )
+        return all(ops.VirtualTag() in op.tags for op in moment)
 
     def _noisy_moments_impl_moment(
         self, moments: 'Iterable[cirq.Moment]', system_qubits: Sequence['cirq.Qid']

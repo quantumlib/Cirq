@@ -375,3 +375,17 @@ def test_step_result_bloch_vector():
     bloch0 = np.array([0, 0, 1])
     np.testing.assert_array_almost_equal(bloch1, step_result.bloch_vector_of(q1))
     np.testing.assert_array_almost_equal(bloch0, step_result.bloch_vector_of(q0))
+
+
+def test_factor_validation():
+    args = cirq.Simulator()._create_act_on_args(0, qubits=cirq.LineQubit.range(2))
+    args.apply_operation(cirq.H(cirq.LineQubit(0)))
+    t = args.create_merged_state().target_tensor
+    cirq.linalg.transformations.factor_state_vector(t, [0])
+    cirq.linalg.transformations.factor_state_vector(t, [1], atol=1e-2)
+    args.apply_operation(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
+    t = args.create_merged_state().target_tensor
+    with pytest.raises(ValueError, match='factor'):
+        cirq.linalg.transformations.factor_state_vector(t, [0])
+    with pytest.raises(ValueError, match='factor'):
+        cirq.linalg.transformations.factor_state_vector(t, [1])

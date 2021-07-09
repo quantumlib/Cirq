@@ -23,6 +23,7 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
     SQRT_ISWAP_INV_PARAMETERS,
+    try_convert_gate_to_fsim,
     try_convert_sqrt_iswap_to_fsim,
 )
 
@@ -245,6 +246,60 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         )
 
     @classmethod
+    def create_from_dictionary(
+        cls,
+        parameters: Dict[
+            Tuple[cirq.Qid, cirq.Qid], Dict[cirq.FSimGate, Union[PhasedFSimCharacterization, Dict]]
+        ],
+        *,
+        simulator: Optional[cirq.Simulator] = None,
+    ) -> 'PhasedFSimEngineSimulator':
+        """Creates PhasedFSimEngineSimulator with fixed drifts.
+
+        Args:
+            parameters: maps every pair of qubits and engine gate on that pair to a
+                characterization for that gate.
+            simulator: Simulator object to use. When None, a new instance of cirq.Simulator() will
+                be created.
+
+        Returns:
+            New PhasedFSimEngineSimulator instance.
+        """
+
+        for a, b in parameters.keys():
+            if a > b:
+                raise ValueError(
+                    f'All qubit pairs must be given in canonical order where the first qubit is '
+                    f'less than the second, got {a} > {b}'
+                )
+
+        def sample_gate(
+            a: cirq.Qid, b: cirq.Qid, gate: cirq.FSimGate
+        ) -> PhasedFSimCharacterization:
+            pair_parameters = None
+            swapped = False
+            if (a, b) in parameters:
+                pair_parameters = parameters[(a, b)].get(gate)
+            elif (b, a) in parameters:
+                pair_parameters = parameters[(b, a)].get(gate)
+                swapped = True
+
+            if pair_parameters is None:
+                raise ValueError(f'Missing parameters for value for pair {(a, b)} and gate {gate}.')
+            if not isinstance(pair_parameters, PhasedFSimCharacterization):
+                pair_parameters = PhasedFSimCharacterization(**pair_parameters)
+            if swapped:
+                pair_parameters = pair_parameters.parameters_for_qubits_swapped()
+
+            return pair_parameters
+
+        if simulator is None:
+            simulator = cirq.Simulator()
+        return cls(
+            simulator, drift_generator=sample_gate, gates_translator=try_convert_gate_to_fsim
+        )
+
+    @classmethod
     def create_from_characterizations_sqrt_iswap(
         cls,
         characterizations: Iterable[PhasedFSimCalibrationResult],
@@ -397,10 +452,11 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         converted = _convert_to_circuit_with_drift(self, program)
         return self._simulator.simulate(converted, param_resolver, qubit_order, initial_state)
 
-    def _create_act_on_args(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, cirq.ActOnStateVectorArgs],
         qubits: Sequence[cirq.Qid],
+        logs: Dict[str, Any],
     ) -> cirq.ActOnStateVectorArgs:
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()

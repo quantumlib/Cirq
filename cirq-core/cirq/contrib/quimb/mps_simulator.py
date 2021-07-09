@@ -25,6 +25,7 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, study, ops, protocols, value
+from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -84,10 +85,11 @@ class MPSSimulator(
             seed=seed,
         )
 
-    def _create_act_on_args(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ) -> 'MPSState':
         """Creates MPSState args for simulating the Circuit.
 
@@ -110,6 +112,7 @@ class MPSSimulator(
             simulation_options=self.simulation_options,
             grouping=self.grouping,
             initial_state=initial_state,
+            log_of_measurement_results=logs,
         )
 
     def _create_step_result(
@@ -224,6 +227,12 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
+    @deprecated_parameter(
+        deadline='v0.13',
+        fix='No longer needed. `protocols.act_on` infers axes.',
+        parameter_desc='axes',
+        match=lambda args, kwargs: 'axes' in kwargs or len(args) > 6,
+    )
     def __init__(
         self,
         qubits: Sequence['cirq.Qid'],
@@ -310,6 +319,7 @@ class MPSState(ActOnArgs):
             prng=self.prng,
             simulation_options=self.simulation_options,
             grouping=self.grouping,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
@@ -451,7 +461,7 @@ class MPSState(ActOnArgs):
             raise ValueError('Can only handle 1 and 2 qubit operations')
         return True
 
-    def _act_on_fallback_(self, op: Any, allow_decompose: bool):
+    def _act_on_fallback_(self, op: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         """Delegates the action to self.apply_op"""
         return self.apply_op(op, self.prng)
 
@@ -524,7 +534,6 @@ class MPSState(ActOnArgs):
 
         return results
 
-    def _perform_measurement(self) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
-        qubits = [self.qubits[key] for key in self.axes]
         return self.perform_measurement(qubits, self.prng)
