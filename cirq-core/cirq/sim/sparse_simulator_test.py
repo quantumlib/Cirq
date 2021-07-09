@@ -1305,7 +1305,7 @@ def test_nondeterministic_mixture_noise():
 
 
 def test_act_on_args_pure_state_creation():
-    sim = cirq.Simulator(split_untangled_states=True)
+    sim = cirq.Simulator()
     qids = cirq.LineQubit.range(3)
     shape = cirq.qid_shape(qids)
     args = sim._create_act_on_args(1, qids)
