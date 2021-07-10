@@ -14,7 +14,7 @@ cirq-ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @quantumlib/cirq-m
 
 cirq-aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomole @cduck
 
-cirq-core/cirq/pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole @cduck
 
 ################################################
 # qcvv maintainers @mrwojtek + cirq maintainers

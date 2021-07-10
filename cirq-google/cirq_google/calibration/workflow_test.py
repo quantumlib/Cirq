@@ -45,6 +45,9 @@ from cirq_google.calibration.phased_fsim import (
 SQRT_ISWAP_INV_PARAMETERS = cirq_google.PhasedFSimCharacterization(
     theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
 )
+SYCAMORE_PARAMETERS = cirq_google.PhasedFSimCharacterization(
+    theta=np.pi / 2, zeta=0.0, chi=0.0, gamma=0.0, phi=np.pi / 6
+)
 SQRT_ISWAP_GATE = cirq.FSimGate(7 * np.pi / 4, 0.0)
 SQRT_ISWAP_INV_GATE = cirq.FSimGate(np.pi / 4, 0.0)
 
@@ -1462,11 +1465,11 @@ def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
     parameters_cd = cirq_google.PhasedFSimCharacterization(zeta=0.2, chi=0.3, gamma=0.4)
 
     a, b, c, d = cirq.LineQubit.range(4)
-    engine_simulator = cirq_google.PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
+    engine_simulator = cirq_google.PhasedFSimEngineSimulator.create_from_dictionary(
         parameters={
-            (a, b): parameters_ab.merge_with(SQRT_ISWAP_INV_PARAMETERS),
-            (b, c): parameters_bc.merge_with(SQRT_ISWAP_INV_PARAMETERS),
-            (c, d): parameters_cd.merge_with(SQRT_ISWAP_INV_PARAMETERS),
+            (a, b): {SQRT_ISWAP_INV_GATE: parameters_ab.merge_with(SQRT_ISWAP_INV_PARAMETERS)},
+            (b, c): {cirq_google.ops.SYC: parameters_bc.merge_with(SYCAMORE_PARAMETERS)},
+            (c, d): {SQRT_ISWAP_INV_GATE: parameters_cd.merge_with(SQRT_ISWAP_INV_PARAMETERS)},
         }
     )
 
@@ -1474,7 +1477,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
         [
             [cirq.X(a), cirq.Y(c)],
             [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
-            [SQRT_ISWAP_INV_GATE.on(b, c)],
+            [cirq_google.ops.SYC.on(b, c)],
         ]
     )
 
@@ -1490,7 +1493,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
         circuit,
         engine_simulator,
         processor_id=None,
-        gate_set=cirq_google.SQRT_ISWAP_GATESET,
+        gate_set=cirq_google.FSIM_GATESET,
         options=options,
     )
 
@@ -1505,7 +1508,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
             options=options,
         ),
         cirq_google.PhasedFSimCalibrationResult(
-            gate=SQRT_ISWAP_INV_GATE, parameters={(b, c): parameters_bc}, options=options
+            gate=cirq_google.ops.SYC, parameters={(b, c): parameters_bc}, options=options
         ),
     ]
     assert calibrated_circuit.moment_to_calibration == [None, None, 0, None, None, 1, None]

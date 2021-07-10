@@ -62,6 +62,10 @@ from cirq.optimizers.merge_interactions import (
     MergeInteractions,
 )
 
+from cirq.optimizers.merge_interactions_to_sqrt_iswap import (
+    MergeInteractionsToSqrtIswap,
+)
+
 from cirq.optimizers.merge_single_qubit_gates import (
     merge_single_qubit_gates_into_phased_x_z,
     merge_single_qubit_gates_into_phxz,
@@ -91,6 +95,9 @@ from cirq.optimizers.three_qubit_decomposition import (
 from cirq.optimizers.two_qubit_decompositions import (
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
+)
+from cirq.optimizers.two_qubit_to_sqrt_iswap import (
+    two_qubit_matrix_to_sqrt_iswap_operations,
 )
 
 from cirq.optimizers.two_qubit_to_fsim import (
