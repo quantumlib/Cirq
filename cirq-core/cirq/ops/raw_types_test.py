@@ -801,7 +801,7 @@ def test_on_each():
 
 
 def test_on_each_two_qubits():
-    class CustomGate(cirq.ops.gate_features.SupportsOnEachGate, cirq.TwoQubitGate):
+    class CustomGate(cirq.TwoQubitGate):
         pass
 
     a = cirq.NamedQubit('a')
@@ -855,7 +855,7 @@ def test_on_each_two_qubits():
 
 
 def test_on_each_three_qubits():
-    class CustomGate(cirq.ops.gate_features.SupportsOnEachGate, cirq.ThreeQubitGate):
+    class CustomGate(cirq.ThreeQubitGate):
         pass
 
     a = cirq.NamedQubit('a')
