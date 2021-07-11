@@ -140,7 +140,9 @@ def get_engine_sampler(
     return engine.get_engine(project_id).sampler(processor_id=processor_id, gate_set=gate_set)
 
 
-def get_device_sampler(project_id: Optional[str] = None, processor_id: Optional[str] = None) -> Tuple[
+def get_device_sampler(
+    project_id: Optional[str] = None, processor_id: Optional[str] = None
+) -> Tuple[
     Tuple[Union[cirq.Device], int],
     Union['cirq_google.PhasedFSimEngineSimulator', 'cirq_google.QuantumEngineSampler'],
     bool,

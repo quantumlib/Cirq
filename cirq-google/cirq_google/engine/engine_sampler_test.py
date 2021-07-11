@@ -150,11 +150,10 @@ def test_get_engine_sampler(monkeypatch):
 
 
 def test_get_device_sampler():
-    (device, line_length), simulator = cg.engine.engine_sampler.get_device_sampler()
+    (device, line_length), simulator, signed_in = cg.engine.engine_sampler.get_device_sampler()
     assert type(line_length) is int
     assert device is cg.Bristlecone
+    assert signed_in is False
     assert type(simulator) is cg.PhasedFSimEngineSimulator
-    sign_in_successful = cg.engine.engine_sampler.get_device_sampler(get_simulator=False)
-    assert sign_in_successful == False
-    sign_in_successful = cg.engine.engine_sampler.get_device_sampler("", "", False)
+    _, _, sign_in_successful = cg.engine.engine_sampler.get_device_sampler("", "")
     assert sign_in_successful == False
