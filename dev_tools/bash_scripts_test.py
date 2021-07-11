@@ -355,7 +355,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'

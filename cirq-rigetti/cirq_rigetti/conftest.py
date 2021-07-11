@@ -1,4 +1,5 @@
 from typing import Tuple, Optional, List, Union, Generic, TypeVar, Dict
+
 from unittest.mock import create_autospec, Mock
 import pytest
 from pyquil import Program  # type: ignore

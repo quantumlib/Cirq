@@ -1,7 +1,9 @@
 from typing import Tuple, List
+from unittest.mock import create_autospec
 import cirq
 import numpy as np
 from pyquil.gates import MEASURE, RX, DECLARE, H, CNOT
+from pyquil.quilbase import Pragma, Reset
 from cirq_rigetti import circuit_transformers as transformers
 
 
@@ -53,4 +55,56 @@ def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
     ), "executable should measure the first qubit to the first read out bit"
     assert (
         MEASURE(11, ("m0", 1)) in program.instructions
+    ), "executable should measure the second qubit to the second read out bit"
+
+
+def test_transform_with_post_transformation_hooks(
+    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]],
+) -> None:
+    """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
+    functionally with explicit physical qubit address mapping.
+    """
+    bell_circuit, qubits = bell_circuit_with_qids
+
+    def reset_hook(program, measurement_id_map):
+        program._instructions.insert(0, Reset())
+        return program, measurement_id_map
+
+    reset_hook_spec = create_autospec(
+        reset_hook,
+        side_effect=reset_hook,
+    )
+
+    pragma = Pragma('INTIAL_REWIRING', freeform_string='GREEDY')
+
+    def rewire_hook(program, measurement_id_map):
+        program._instructions.insert(0, pragma)
+        return program, measurement_id_map
+
+    rewire_hook_spec = create_autospec(
+        rewire_hook,
+        side_effect=rewire_hook,
+    )
+    transformer = transformers.build(
+        qubits=tuple(qubits),
+        post_transformation_hooks=[reset_hook_spec, rewire_hook_spec],
+    )
+    program, _ = transformer(circuit=bell_circuit)
+
+    assert 1 == reset_hook_spec.call_count
+    assert Reset() in program.instructions, "hook should add reset"
+
+    assert 1 == rewire_hook_spec.call_count
+    assert pragma in program.instructions, "hook should add pragma"
+
+    assert H(0) in program.instructions, "bell circuit should include Hadamard"
+    assert CNOT(0, 1) in program.instructions, "bell circuit should include CNOT"
+    assert (
+        DECLARE("m0", memory_size=2) in program.instructions
+    ), "executable should declare a read out bit"
+    assert (
+        MEASURE(0, ("m0", 0)) in program.instructions
+    ), "executable should measure the first qubit to the first read out bit"
+    assert (
+        MEASURE(1, ("m0", 1)) in program.instructions
     ), "executable should measure the second qubit to the second read out bit"

@@ -32,6 +32,7 @@ SKIP_NOTEBOOKS = [
     "**/ionq/*.ipynb",
     "**/google/*.ipynb",
     "**/pasqal/*.ipynb",
+    "**/rigetti/*.ipynb",
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
