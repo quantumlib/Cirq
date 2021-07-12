@@ -23,3 +23,22 @@ from cirq_rigetti.service import (
 )
 from cirq_rigetti import circuit_sweep_executors
 from cirq_rigetti import circuit_transformers
+from cirq_rigetti.aspen_device import (
+    RigettiQCSAspenDevice,
+    AspenQubit,
+    OctagonalQubit,
+    UnsupportedQubit,
+    UnsupportedRigettiQCSOperation,
+    UnsupportedRigettiQCSQuantumProcessor,
+)
+
+
+def _register_resolver() -> None:
+    """Registers the cirq_rigetti's public classes for JSON serialization."""
+    from cirq.protocols.json_serialization import _internal_register_resolver
+    from cirq_rigetti.json_resolver_cache import _class_resolver_dictionary
+
+    _internal_register_resolver(_class_resolver_dictionary)
+
+
+_register_resolver()
