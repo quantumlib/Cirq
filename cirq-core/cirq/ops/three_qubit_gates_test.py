@@ -327,3 +327,17 @@ def test_controlled_ops_consistency():
     assert cirq.CCX(a, b, c).controlled_by(d) == cirq.CCX(d, b, c).controlled_by(a)
     assert cirq.CCZ(a, b, c).controlled_by(d) == cirq.CCZ(d, b, c).controlled_by(a)
     assert cirq.CSWAP(a, b, c).controlled_by(d) == cirq.CSWAP(d, b, c).controlled_by(a)
+
+
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.CCX,
+        cirq.CCZ,
+        cirq.CSWAP,
+        cirq.CCXPowGate(global_shift=-0.5, exponent=1),
+        cirq.CCZPowGate(global_shift=-0.5, exponent=1),
+    ],
+)
+def test_controlled_gate_op_consistent(gate):
+    cirq.testing.assert_controlled_and_controlled_by_identical(gate)
