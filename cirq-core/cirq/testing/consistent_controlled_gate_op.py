@@ -22,7 +22,7 @@ def assert_controlled_and_controlled_by_identical(
     gate: ops.Gate,
     *,
     exponents: Sequence[Any] = (0, 1, -1, 0.25, -0.5, 0.1, sympy.Symbol('s')),
-    num_controls: Sequence[int] = (1, 2, 3, 10),
+    num_controls: Sequence[int] = (2, 1, 3, 10),
     control_values: Optional[Sequence[Optional[Sequence[Union[int, Collection[int]]]]]] = None,
 ):
     """Checks that gate.on().controlled_by() == gate.controlled().on()"""
@@ -37,7 +37,7 @@ def assert_controlled_and_controlled_by_identical(
             control_value = control_values[i] if control_values else None
             if control_value is not None and len(control_value) != num_control:
                 raise ValueError(f"len(control_values[{i}]) != num_controls[{i}]")
-            _assert_gate_consistent(gate_exp, num_control, control_values)
+            _assert_gate_consistent(gate_exp, num_control, control_value)
 
 
 def _assert_gate_consistent(
