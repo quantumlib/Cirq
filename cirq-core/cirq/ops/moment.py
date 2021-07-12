@@ -480,6 +480,23 @@ class Moment:
 
         return True
 
+    def get_single_gate_from_moment(self) -> Optional['cirq.Operation']:
+        """Returns the gate if there is only a single gate or if all gates are
+         the same, or None if the gates do not match.
+
+        Returns:
+            Operation: When there is a single operation in the Moment and
+                it is repeated one or more times.
+            None: When there is no operation or different operations found.
+         """
+        if not self.operations:
+            return None
+
+        if not self.operations[:-1] == self.operations[1:]:
+            return None
+
+        return self.operations[0]
+
 
 class _SortByValFallbackToType:
     def __init__(self, value):
