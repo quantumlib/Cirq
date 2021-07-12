@@ -34,9 +34,10 @@ def estimate_parallel_readout_errors(
     trials: int = 20,
     repetitions: int = 1000,
     trials_per_batch: Optional[int] = None,
+    bit_strings: Optional[List[int]] = None,
 ) -> ReadoutExperimentResult:
 
-    """Estimate single-qubit readout error.
+    """Estimate readout error for qubits simultaneously.
 
     For each trial, prepare a bitstring of random |0> and |1> states for
     each state.  Measure each qubit.  Capture the errors per qubit of
@@ -50,6 +51,12 @@ def estimate_parallel_readout_errors(
         trials: The number of bitstrings to prepare.
         trials_per_batch:  If provided, split the experiment into batches
             with this number of trials in each batch.
+        bit_strings: A list of ints that specifies the bit strings for each
+            qubit.  There should be exactly one int per qubit.  Bits
+            represent whether the qubit is |0〉or |1〉when initialized.
+            Trials are done from least significant bit to most significant bit.
+            If not provided, the function will generate random bit strings
+            for you.
 
     Returns:
         A ReadoutExperimentResult storing the readout error
@@ -59,7 +66,14 @@ def estimate_parallel_readout_errors(
     """
     qubits = list(qubits)
 
-    trial_bits = [random.getrandbits(trials) for _ in qubits]
+    if bit_strings is None:
+        bit_strings = [random.getrandbits(trials) for _ in qubits]
+    if len(bit_strings) != len(qubits):
+        raise ValueError(
+            f'If providing bit_strings, # of bit strings ({len(bit_strings)}) '
+            f'must equal # of qubits ({len(qubits)})'
+        )
+
     all_circuits = []
     all_sweeps: List[study.Sweepable] = []
     if trials_per_batch is not None:
@@ -75,7 +89,7 @@ def estimate_parallel_readout_errors(
         single_sweeps = []
         for idx, q in enumerate(qubits):
             sym_val = f'bit_{idx}'
-            current_trial = trial_bits[idx]
+            current_trial = bit_strings[idx]
             trial_range = range(batch * trials_per_batch, (batch + 1) * trials_per_batch)
             circuit.append(ops.X(q) ** sympy.Symbol(sym_val))
             single_sweeps.append(
@@ -97,7 +111,7 @@ def estimate_parallel_readout_errors(
     for batch_result in results:
         for trial_idx, trial_result in enumerate(batch_result):
             for idx, q in enumerate(qubits):
-                had_x_gate = (trial_bits[idx] >> trial_idx) & 1
+                had_x_gate = (bit_strings[idx] >> trial_idx) & 1
                 if had_x_gate:
                     one_state_trials[q].append(1 - np.mean(trial_result.measurements[repr(q)]))
                 else:

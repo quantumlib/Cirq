@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import List
+import pytest
 
 import numpy as np
 
@@ -71,6 +71,19 @@ def test_estimate_single_qubit_readout_errors_all_zeros():
     assert result.one_state_errors == {q: 1 for q in qubits}
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
+
+
+def test_estimate_single_qubit_readout_errors_bad_bit_string():
+    qubits = cirq.LineQubit.range(10)
+    with pytest.raises(ValueError, match='providing bit_string'):
+        _ = cirq.estimate_parallel_readout_errors(
+            cirq.ZerosSampler(),
+            qubits=qubits,
+            repetitions=1000,
+            trials=35,
+            trials_per_batch=10,
+            bit_strings=[1, 1, 1, 1],
+        )
 
 
 def test_estimate_single_qubit_readout_errors_batching():

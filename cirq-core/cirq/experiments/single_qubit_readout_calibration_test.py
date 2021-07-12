@@ -67,7 +67,7 @@ def test_estimate_single_qubit_readout_errors_no_noise():
 def test_estimate_single_qubit_readout_errors_with_noise():
     qubits = cirq.LineQubit.range(5)
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
-    repetitions = 1000
+    repetitions = 2000
     result = cirq.estimate_single_qubit_readout_errors(
         sampler, qubits=qubits, repetitions=repetitions
     )

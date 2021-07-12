@@ -14,13 +14,10 @@
 
 from typing import Iterable, TYPE_CHECKING
 
-import time
-
-import numpy as np
-
-from cirq import circuits, ops
 from cirq._compat import deprecated
+from cirq.experiments.parallel_readout_calibration import estimate_parallel_readout_errors
 from cirq.experiments.readout_experiment_result import ReadoutExperimentResult
+
 
 if TYPE_CHECKING:
     import cirq
@@ -68,23 +65,10 @@ def estimate_single_qubit_readout_errors(
         the probabilities. Also stores a timestamp indicating the time when
         data was finished being collected from the sampler.
     """
-    qubits = list(qubits)
-
-    zeros_circuit = circuits.Circuit(ops.measure_each(*qubits, key_func=repr))
-    ones_circuit = circuits.Circuit(
-        ops.X.on_each(*qubits), ops.measure_each(*qubits, key_func=repr)
-    )
-
-    zeros_result = sampler.run(zeros_circuit, repetitions=repetitions)
-    ones_result = sampler.run(ones_circuit, repetitions=repetitions)
-    timestamp = time.time()
-
-    zero_state_errors = {q: np.mean(zeros_result.measurements[repr(q)]) for q in qubits}
-    one_state_errors = {q: 1 - np.mean(ones_result.measurements[repr(q)]) for q in qubits}
-
-    return ReadoutExperimentResult(
-        zero_state_errors=zero_state_errors,
-        one_state_errors=one_state_errors,
+    return estimate_parallel_readout_errors(
+        sampler=sampler,
+        qubits=qubits,
         repetitions=repetitions,
-        timestamp=timestamp,
+        trials=2,
+        bit_strings=[1 for q in qubits],
     )
