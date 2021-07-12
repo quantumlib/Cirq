@@ -764,12 +764,17 @@ def test_does_not_modify_initial_state():
 
 def test_simulator_step_state_mixin():
     qubits = cirq.LineQubit.range(2)
-    qubit_map = {qubits[i]: i for i in range(2)}
+    args = cirq.ActOnStateVectorArgs(
+        log_of_measurement_results={'m': np.array([1, 2])},
+        target_tensor=np.array([0, 1, 0, 0]).reshape((2, 2)),
+        available_buffer=np.array([0, 1, 0, 0]).reshape((2, 2)),
+        prng=cirq.value.parse_random_state(0),
+        qubits=qubits,
+    )
     result = cirq.SparseSimulatorStep(
-        measurements={'m': np.array([1, 2])},
-        state_vector=np.array([0, 1, 0, 0]),
-        qubit_map=qubit_map,
+        sim_state=args,
         dtype=np.complex64,
+        simulator=None,  # type: ignore
     )
     rho = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
     np.testing.assert_array_almost_equal(rho, result.density_matrix_of(qubits))
@@ -1229,7 +1234,7 @@ def test_separated_measurements():
 
 
 def test_state_vector_copy():
-    sim = cirq.Simulator()
+    sim = cirq.Simulator(split_untangled_states=False)
 
     class InplaceGate(cirq.SingleQubitGate):
         """A gate that modifies the target tensor in place, multiply by -1."""
@@ -1300,7 +1305,7 @@ def test_nondeterministic_mixture_noise():
 
 
 def test_act_on_args_pure_state_creation():
-    sim = cirq.Simulator(split_untangled_states=True)
+    sim = cirq.Simulator()
     qids = cirq.LineQubit.range(3)
     shape = cirq.qid_shape(qids)
     args = sim._create_act_on_args(1, qids)

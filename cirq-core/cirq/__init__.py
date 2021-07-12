@@ -403,6 +403,7 @@ from cirq.sim import (
     StateVectorStepResult,
     StateVectorTrialResult,
     StepResult,
+    StepResultBase,
 )
 
 from cirq.study import (

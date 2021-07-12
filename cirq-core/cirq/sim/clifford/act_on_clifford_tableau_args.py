@@ -44,10 +44,9 @@ def _rewrite_deprecated_args(args, kwargs):
 
 class ActOnCliffordTableauArgs(ActOnArgs):
     """State and context for an operation acting on a clifford tableau.
-    There are two common ways to act on this object:
-    1. Directly edit the `tableau` property, which is storing the clifford
-        tableau of the quantum system with one axis per qubit.
-    2. Call `record_measurement_result(key, val)` to log a measurement result.
+
+    To act on this object, directly edit the `tableau` property, which is
+    storing the density matrix of the quantum system with one axis per qubit.
     """
 
     @deprecated_parameter(
@@ -77,8 +76,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnCliffordTableauArgs.record_measurement_result`.
+                being recorded into.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
         """
@@ -110,6 +108,15 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
+
+    def sample(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        # Unnecessary for now but can be added later if there is a use case.
+        raise NotImplementedError()
 
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(

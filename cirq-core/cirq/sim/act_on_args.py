@@ -60,8 +60,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStateVectorArgs.record_measurement_result`.
+                being recorded into.
         """
         if prng is None:
             prng = cast(np.random.RandomState, np.random)
@@ -72,7 +71,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
         self._qubits = tuple(qubits)
-        self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
+        self.qubit_map = {q: i for i, q in enumerate(qubits)}
         self._axes = tuple(axes)
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
@@ -89,9 +88,9 @@ class ActOnArgs(OperationTarget[TSelf]):
         """
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
-        if key in self.log_of_measurement_results:
+        if key in self._log_of_measurement_results:
             raise ValueError(f"Measurement already logged to key {key!r}")
-        self.log_of_measurement_results[key] = corrected
+        self._log_of_measurement_results[key] = corrected
 
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]
