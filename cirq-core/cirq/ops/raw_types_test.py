@@ -434,6 +434,14 @@ def test_tagged_operation():
     assert not cirq.is_measurement(op)
 
 
+def test_with_tags_returns_same_instance_if_possible():
+    untagged = cirq.X(cirq.GridQubit(1, 1))
+    assert untagged.with_tags() is untagged
+
+    tagged = untagged.with_tags('foo')
+    assert tagged.with_tags() is tagged
+
+
 def test_tagged_measurement():
     assert not cirq.is_measurement(cirq.GlobalPhaseOperation(coefficient=-1.0).with_tags('tag0'))
 
@@ -793,7 +801,7 @@ def test_on_each():
 
 
 def test_on_each_two_qubits():
-    class CustomGate(cirq.ops.gate_features.SupportsOnEachGate, cirq.TwoQubitGate):
+    class CustomGate(cirq.TwoQubitGate):
         pass
 
     a = cirq.NamedQubit('a')
@@ -847,7 +855,7 @@ def test_on_each_two_qubits():
 
 
 def test_on_each_three_qubits():
-    class CustomGate(cirq.ops.gate_features.SupportsOnEachGate, cirq.ThreeQubitGate):
+    class CustomGate(cirq.ThreeQubitGate):
         pass
 
     a = cirq.NamedQubit('a')
