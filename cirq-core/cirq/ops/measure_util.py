@@ -30,7 +30,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 def _get_measurement(
     target: Union['cirq.Qid', Iterable['cirq.Qid']],
-    key: [Union[str, value.MeasurementKey]],
+    key: Optional[Union[str, value.MeasurementKey]] = None,
     invert_mask: Tuple[bool, ...] = (),
 ) -> Union[raw_types.Operation, List[raw_types.Operation]]:
     if key is None:
@@ -40,8 +40,7 @@ def _get_measurement(
 
 
 def _get_each_measurement(
-        target: Iterable['cirq.Qid'],
-        key_func: Callable[[raw_types.Qid], str]
+    target: Iterable['cirq.Qid'], key_func: Callable[[raw_types.Qid], str]
 ) -> List[raw_types.Operation]:
     return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in target]
 
@@ -85,8 +84,7 @@ def measure(
 
 
 def measure_each(
-    *qubits: Union['cirq.Qid', Iterable['cirq.Qid']],
-    key_func: Callable[[raw_types.Qid], str] = str
+    *qubits: Union['cirq.Qid', Iterable['cirq.Qid']], key_func: Callable[[raw_types.Qid], str] = str
 ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
