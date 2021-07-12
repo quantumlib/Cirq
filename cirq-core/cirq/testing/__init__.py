@@ -36,6 +36,10 @@ from cirq.testing.consistent_phase_by import (
     assert_phase_by_is_consistent_with_unitary,
 )
 
+from cirq.testing.consistent_controlled_gate_op import (
+    assert_controlled_and_controlled_by_identical,
+)
+
 from cirq.testing.consistent_decomposition import (
     assert_decompose_is_consistent_with_unitary,
 )

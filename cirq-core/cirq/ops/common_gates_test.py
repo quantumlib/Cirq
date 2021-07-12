@@ -194,23 +194,22 @@ def test_no_specialized_control_for_global_shift_non_zero(gate, specialized_type
 
 
 @pytest.mark.parametrize(
-    'input_gate, q, expected_gate',
+    'gate',
     [
-        (cirq.Z, cirq.LineQubit.range(2), cirq.CZ),
-        (cirq.Z, cirq.LineQubit.range(3), cirq.CCZ),
-        (cirq.X, cirq.LineQubit.range(2), cirq.CX),
-        (cirq.X, cirq.LineQubit.range(3), cirq.CCX),
-        (cirq.Z ** 0.5, cirq.LineQubit.range(2), cirq.CZ ** 0.5),
-        (cirq.Z ** 0.5, cirq.LineQubit.range(3), cirq.CCZ ** 0.5),
-        (cirq.X ** 0.5, cirq.LineQubit.range(2), cirq.CX ** 0.5),
-        (cirq.X ** 0.5, cirq.LineQubit.range(3), cirq.CCX ** 0.5),
+        cirq.X,
+        cirq.Y,
+        cirq.Z,
+        cirq.H,
+        cirq.CX,
+        cirq.CZ,
+        cirq.XPowGate(global_shift=-0.5, exponent=1),
+        cirq.ZPowGate(global_shift=-0.5, exponent=1),
+        cirq.CXPowGate(global_shift=-0.5, exponent=1),
+        cirq.CZPowGate(global_shift=-0.5, exponent=1),
     ],
 )
-def test_specialized_control_gate_and_op_same(input_gate, q, expected_gate):
-    num_controls = len(q) - 1
-    op1 = input_gate.controlled(num_controls).on(*q[1:], q[0])  # Way-1: gate.controlled().on()
-    op2 = input_gate.on(q[0]).controlled_by(*q[1:])  # Way-2: gate.on().controlled_by()
-    assert op1 == op2 == expected_gate(*q[1:], q[0])
+def test_controlled_gate_op_consistent(gate):
+    cirq.testing.assert_controlled_and_controlled_by_identical(gate)
 
 
 @pytest.mark.parametrize(
