@@ -4,9 +4,11 @@
   <title>Cirq Web Development page</title>
 </head>
 <body>
-  <div id="container"></div>
+  <div id="test"></div>
   <script src="/circuit.bundle.js"></script>
   <script>
+    const circuit = createGridCircuit([[0, 1], [1, 0]], 5);
+    circuit.addCNOT(0, 1, 1, 0, 3);
   </script>
 </body>
 </html>

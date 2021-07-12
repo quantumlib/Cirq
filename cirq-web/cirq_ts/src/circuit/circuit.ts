@@ -1,46 +1,107 @@
 import {BufferGeometry, Group, LineBasicMaterial, Vector3} from 'three';
+import {ControlledGate, SingleQubitGate } from './components/gates';
 import {GridQubit} from './components/grid_qubit';
 
-export class Circuit extends Group {
-    public rows: number;
-    public cols: number;
-    public moments: number;
-    public circuit: any;
+class CircuitMap {
+    private map = new Map<string, GridQubit>();
 
-    constructor(rows: number, cols: number, moments: number) {
-        super();
-
-        this.rows = rows;
-        this.cols = cols;
-        this.moments = moments;
-        this.circuit = [];
-        for (var i=0; i< rows; i++) {
-            this.circuit[i]=[];
-            for (var j=0; j<cols; j++){
-                this.circuit[i][j]=[];
-                for (var k=0; k < cols; k++) {
-                    this.circuit[i][j][k] = 0;
-                }
-            }
-        }
-    }
-
-    generateQubitGrid(){
-        for (let x = 0; x < this.rows; x++) {
-            for (let y = 0; y < this.cols; y++) {
-                const qubit = new GridQubit(x, y, this.moments);
-                this.circuit[x][y] = qubit;
-                this.add(qubit);
-            }
-        }
+    set(key: [number, number], value: GridQubit): this {
+        const keyAsString = key.join(',');
+        this.map.set(keyAsString, value);
         return this;
     }
 
-    addCube(x: number, y: number, moment: number) {
-        this.circuit[x][y].addBox(moment);
+    get(key: [number, number]) : GridQubit | undefined {
+        const keyAsString = key.join(',');
+        return this.map.get(keyAsString);
+    }
+}
+
+export class Circuit extends Group {
+    public moments: number;
+    public circuit: any;
+
+    constructor(moments: number) {
+        super();
+        this.moments = moments;
+        this.circuit = new CircuitMap();
     }
 
-    addCNOT(x1: number, y1: number, x2: number, y2: number, moment: number) {
-        this.circuit[x1][y1].addCNOT(x2, y2, moment);
+    addQubit(x: number, y: number) {
+        const qubit = new GridQubit(x, y, this.moments);
+        this.circuit.set([x, y], qubit)
+        this.add(qubit);
+    }
+
+    displayGatesFromList(list: any[]) {
+        const gateList = this.convertGatesString(list);
+        for (const gate of gateList) {
+            switch (gate.type) {
+                case 'SingleQubitGate':
+                    this.addSingleQubitGate(gate as SingleQubitGate);
+                    break;
+                case 'ControlledGate':
+                    this.addControlledGate(gate as ControlledGate);
+                    break;
+            }
+        } 
+    }
+
+    addSingleQubitGate(gate: SingleQubitGate) {
+        //.get gives a reference to an object, so we're good to
+        // just modify
+        const qubit = this.circuit.get([gate.row, gate.col]);
+        qubit.addSingleQubitGate(gate.asString, gate.color, gate.moment);
+    }
+
+    addControlledGate(gate: ControlledGate) {
+        const control = this.circuit.get([gate.ctrlRow, gate.ctrlCol]);
+        control.addControl(gate.moment);
+        control.addLineToQubit(gate.targetGate.row, gate.targetGate.col, gate.moment);
+
+        const target = this.circuit.get([gate.targetGate.row, gate.targetGate.col]);
+        target.addSingleQubitGate(gate.targetGate.asString, gate.targetGate.color, gate.targetGate.moment);
+    }
+
+    private convertGatesString(list: any[]) : any[] {
+        let convertedGates : any[] = [];
+        for (const item of list) {
+            const type = item.shift();
+            switch (type) {
+                case 'SingleQubitGate':
+                    convertedGates.push(this.castSingleQubitGate(...item));
+                    break;
+                case 'ControlledGate':
+                    convertedGates.push(this.castControlledGate(...item));
+                    break;
+            }
+        }
+        return convertedGates;
+    }
+    
+    private castSingleQubitGate(asString?: string, color?: string, row?: number, col?: number, moment?: number) : SingleQubitGate {
+        return {
+            asString,
+            color,
+            row,
+            col,
+            moment,
+            type: 'SingleQubitGate',
+        } as SingleQubitGate;
+    }
+
+    private castControlledGate(
+        ctrlRow?: number, 
+        ctrlCol?: number,
+        targetGate?: SingleQubitGate,
+        moment?: number,
+        ) : ControlledGate {
+        return {
+            ctrlRow,
+            ctrlCol,
+            targetGate,
+            moment,
+            type: 'ControlledGate',
+        } as ControlledGate;
     }
 }

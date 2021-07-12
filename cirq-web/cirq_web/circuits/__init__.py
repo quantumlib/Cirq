@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_web.bloch_sphere.circuit import Circuit
+from cirq_web.circuits.circuit import Circuit3D
