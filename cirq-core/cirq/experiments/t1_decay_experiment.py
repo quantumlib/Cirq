@@ -162,7 +162,7 @@ class T1DecayResult:
                 ax.plot(xs, np.exp(-xs / self.constant), label='curve fit')
                 plt.legend()
             except:
-                warnings.warn("Optimal parameters could not be found for curve fit", RuntimeWarning)
+                pass  # Warning from constant calculation will propagate
 
         ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
         ax.set_ylabel('Excited State Probability')
