@@ -167,37 +167,33 @@ def test_all_off_results():
     )
 
 
-def test_constant():
-    result_100 = cirq.experiments.T1DecayResult(
+@pytest.mark.parametrize(
+    't1, data',
+    [
+        (100, [[100.0, 6, 4], [400.0, 10, 0], [700.0, 10, 0], [1000.0, 10, 0]]),
+        (400, [[100.0, 0, 10], [400.0, 6, 4], [700.0, 10, 0], [1000.0, 10, 0]]),
+        (
+            200,
+            [
+                [time, int(np.exp(-time / 200)), 10 - int(np.exp(-time / 200))]
+                for time in np.linspace(0, 1000, 100)
+            ],
+        ),
+    ],
+)
+def test_constant(t1, data):
+    result = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
-            index=range(4),
-            data=[
-                [100.0, 6, 4],
-                [400.0, 10, 0],
-                [700.0, 10, 0],
-                [1000.0, 10, 0],
-            ],
+            index=range(len(data)),
+            data=data,
         )
     )
-    assert np.isclose(result_100.constant, 100, 5)
 
-    result_400 = cirq.experiments.T1DecayResult(
-        data=pd.DataFrame(
-            columns=['delay_ns', 'false_count', 'true_count'],
-            index=range(4),
-            data=[
-                [100.0, 0, 10],
-                [400.0, 6, 4],
-                [700.0, 10, 0],
-                [1000.0, 10, 0],
-            ],
-        )
-    )
-    assert np.isclose(result_400.constant, 400, 5)
+    assert np.isclose(result.constant, t1, 5)
 
 
-def test_curve_fit_plot():
+def test_curve_fit_plot_works():
     good_fit = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
@@ -213,6 +209,8 @@ def test_curve_fit_plot():
 
     good_fit.plot(include_fit=True)
 
+
+def test_curve_fit_plot_error():
     bad_fit = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
@@ -226,11 +224,8 @@ def test_curve_fit_plot():
         )
     )
 
-    try:
+    with pytest.warns(RuntimeWarning, match='Optimal parameters could not be found for curve fit'):
         bad_fit.plot(include_fit=True)
-        assert False
-    except RuntimeWarning as warning:
-        assert warning is not None
 
 
 def test_bad_args():
@@ -265,7 +260,6 @@ def test_bad_args():
 
 
 def test_str():
-
     result = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],

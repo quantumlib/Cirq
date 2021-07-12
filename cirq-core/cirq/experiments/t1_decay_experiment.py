@@ -14,6 +14,7 @@
 
 from typing import Any, Optional, TYPE_CHECKING
 
+import warnings
 import pandas as pd
 import sympy
 from matplotlib import pyplot as plt
@@ -118,7 +119,7 @@ class T1DecayResult:
         probs = ts / (fs + ts)
 
         # Find the point closest to probability of 1/e
-        guess_index = np.argmin(np.abs(probs - 1. / np.e))
+        guess_index = np.argmin(np.abs(probs - 1.0 / np.e))
         t1_guess = xs[guess_index]
 
         # Fit to exponential decay to find the t1 constant
@@ -127,7 +128,8 @@ class T1DecayResult:
             t1 = popt[0]
             return t1
         except RuntimeError:
-            raise RuntimeWarning("Optimal parameters could not be found for curve fit")
+            warnings.warn("Optimal parameters could not be found for curve fit", RuntimeWarning)
+            return 1.0
 
     def plot(
         self, ax: Optional[plt.Axes] = None, include_fit: bool = False, **plot_kwargs: Any
@@ -156,8 +158,11 @@ class T1DecayResult:
         ax.plot(xs, ts / (fs + ts), 'ro-', **plot_kwargs)
 
         if include_fit:
-            ax.plot(xs, np.exp(-xs / self.constant), label='curve fit')
-            plt.legend()
+            try:
+                ax.plot(xs, np.exp(-xs / self.constant), label='curve fit')
+                plt.legend()
+            except:
+                warnings.warn("Optimal parameters could not be found for curve fit", RuntimeWarning)
 
         ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
         ax.set_ylabel('Excited State Probability')
