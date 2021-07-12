@@ -72,14 +72,6 @@ args {
   }
 }
 args {
-  key: "chi_default"
-  value {
-    arg_value {
-      float_value: 0.0
-    }
-  }
-}
-args {
   key: "cycle_depths"
   value {
     arg_value {
@@ -92,14 +84,6 @@ args {
   value {
     arg_value {
       float_value: 0.005
-    }
-  }
-}
-args {
-  key: "gamma_default"
-  value {
-    arg_value {
-      float_value: 0.0
     }
   }
 }
@@ -120,34 +104,10 @@ args {
   }
 }
 args {
-  key: "phi_default"
-  value {
-    arg_value {
-      float_value: 0.0
-    }
-  }
-}
-args {
-  key: "theta_default"
-  value {
-    arg_value {
-      float_value: 0.0
-    }
-  }
-}
-args {
   key: "xatol"
   value {
     arg_value {
       float_value: 0.005
-    }
-  }
-}
-args {
-  key: "zeta_default"
-  value {
-    arg_value {
-      float_value: 0.0
     }
   }
 }

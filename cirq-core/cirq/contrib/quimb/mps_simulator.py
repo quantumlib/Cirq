@@ -24,9 +24,9 @@ from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iter
 import numpy as np
 import quimb.tensor as qtn
 
-from cirq import circuits, devices, study, ops, protocols, value
-from cirq.ops import flatten_to_ops
-from cirq.sim import simulator
+from cirq import devices, study, ops, protocols, value
+from cirq._compat import deprecated_parameter
+from cirq.sim import simulator, simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
 if TYPE_CHECKING:
@@ -53,8 +53,7 @@ class MPSOptions:
 
 
 class MPSSimulator(
-    simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateState[
+    simulator_base.SimulatorBase[
         'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'
     ],
 ):
@@ -79,15 +78,18 @@ class MPSSimulator(
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
         if not protocols.has_mixture(noise_model):
             raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
-        self.noise = noise_model
-        self.prng = value.parse_random_state(seed)
         self.simulation_options = simulation_options
         self.grouping = grouping
+        super().__init__(
+            noise=noise,
+            seed=seed,
+        )
 
-    def _create_act_on_args(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ) -> 'MPSState':
         """Creates MPSState args for simulating the Circuit.
 
@@ -106,46 +108,18 @@ class MPSSimulator(
 
         return MPSState(
             qubits=qubits,
-            prng=self.prng,
+            prng=self._prng,
             simulation_options=self.simulation_options,
             grouping=self.grouping,
             initial_state=initial_state,
+            log_of_measurement_results=logs,
         )
 
-    def _core_iterator(
+    def _create_step_result(
         self,
-        circuit: circuits.Circuit,
-        sim_state: 'MPSState',
+        sim_state: 'cirq.OperationTarget[MPSState]',
     ):
-        """Iterator over MPSSimulatorStepResult from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            sim_state: The initial state args for the simulation in the
-                computational basis.
-
-        Yields:
-            MPSStepResult from simulating a Moment of the Circuit.
-        """
-        if len(circuit) == 0:
-            yield MPSSimulatorStepResult(
-                measurements=sim_state.log_of_measurement_results, state=sim_state
-            )
-            return
-
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        for op_tree in noisy_moments:
-            for op in flatten_to_ops(op_tree):
-                if protocols.is_measurement(op) or protocols.has_mixture(op):
-                    sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, sim_state)
-                else:
-                    raise NotImplementedError(f"Unrecognized operation: {op!r}")
-
-            yield MPSSimulatorStepResult(
-                measurements=sim_state.log_of_measurement_results, state=sim_state
-            )
-            sim_state.log_of_measurement_results.clear()
+        return MPSSimulatorStepResult(sim_state)
 
     def _create_simulator_trial_result(
         self,
@@ -170,52 +144,6 @@ class MPSSimulator(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
-    def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
-    ) -> Dict[str, List[np.ndarray]]:
-        """Repeats measurements multiple times.
-
-        Args:
-            circuit: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
-            repetitions: How many measurements to perform
-            final_simulator_state: The final state of the simulator.
-
-        Returns:
-            A dictionay of measurement key (e.g. qubit) to a list of arrays that
-            are the measurements.
-        """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
-
-        measurements: Dict[str, List[np.ndarray]] = {}
-
-        for _ in range(repetitions):
-            all_step_results = self._base_iterator(
-                resolved_circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0
-            )
-
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    if not k in measurements:
-                        measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=int))
-
-        return {k: np.array(v) for k, v in measurements.items()}
-
-    def _check_all_resolved(self, circuit):
-        """Raises if the circuit contains unresolved symbols."""
-        if protocols.is_parameterized(circuit):
-            unresolved = [
-                op for moment in circuit for op in moment if protocols.is_parameterized(op)
-            ]
-            raise ValueError(
-                'Circuit contains ops whose symbols were not specified in '
-                'parameter sweep. Ops: {}'.format(unresolved)
-            )
-
 
 class MPSTrialResult(simulator.SimulationTrialResult):
     """A single trial reult"""
@@ -238,22 +166,22 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
+class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState']):
     """A `StepResult` that can perform measurements."""
 
-    def __init__(self, state, measurements):
+    def __init__(
+        self,
+        sim_state: 'cirq.OperationTarget[MPSState]',
+    ):
         """Results of a step of the simulator.
         Attributes:
-            state: A MPSState
-            measurements: A dictionary from measurement gate key to measurement
-                results, ordered by the qubits that the measurement operates on.
-            qubit_map: A map from the Qubits in the Circuit to the the index
-                of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state vector (see the state_vector()
-                method).
+            sim_state: The qubit:ActOnArgs lookup for this step.
         """
-        self.measurements = measurements
-        self.state = state.copy()
+        super().__init__(sim_state)
+
+    @property
+    def state(self):
+        return self._merged_sim_state
 
     def __str__(self) -> str:
         def bitstring(vals):
@@ -273,29 +201,17 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
     def _simulator_state(self):
         return self.state
 
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-
-        measurements: List[int] = []
-
-        for _ in range(repetitions):
-            measurements.append(
-                self.state.perform_measurement(
-                    qubits, value.parse_random_state(seed), collapse_state_vector=False
-                )
-            )
-
-        return np.array(measurements, dtype=int)
-
 
 @value.value_equality
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
+    @deprecated_parameter(
+        deadline='v0.13',
+        fix='No longer needed. `protocols.act_on` infers axes.',
+        parameter_desc='axes',
+        match=lambda args, kwargs: 'axes' in kwargs or len(args) > 6,
+    )
     def __init__(
         self,
         qubits: Sequence['cirq.Qid'],
@@ -382,6 +298,7 @@ class MPSState(ActOnArgs):
             prng=self.prng,
             simulation_options=self.simulation_options,
             grouping=self.grouping,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
@@ -523,7 +440,7 @@ class MPSState(ActOnArgs):
             raise ValueError('Can only handle 1 and 2 qubit operations')
         return True
 
-    def _act_on_fallback_(self, op: Any, allow_decompose: bool):
+    def _act_on_fallback_(self, op: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         """Delegates the action to self.apply_op"""
         return self.apply_op(op, self.prng)
 
@@ -596,7 +513,24 @@ class MPSState(ActOnArgs):
 
         return results
 
-    def _perform_measurement(self) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
-        qubits = [self.qubits[key] for key in self.axes]
         return self.perform_measurement(qubits, self.prng)
+
+    def sample(
+        self,
+        qubits: Sequence[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+
+        measurements: List[List[int]] = []
+
+        for _ in range(repetitions):
+            measurements.append(
+                self.perform_measurement(
+                    qubits, value.parse_random_state(seed), collapse_state_vector=False
+                )
+            )
+
+        return np.array(measurements, dtype=int)

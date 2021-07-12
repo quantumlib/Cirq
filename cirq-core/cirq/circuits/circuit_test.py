@@ -22,6 +22,7 @@ import sympy
 
 import cirq
 import cirq.testing
+from cirq import circuits
 from cirq import ops
 from cirq.testing.devices import ValidatingTestDevice
 
@@ -3356,7 +3357,7 @@ def test_pick_inserted_ops_moment_indices():
         expected_circuit._moments += [
             cirq.Moment() for _ in range(len(circuit) - len(expected_circuit))
         ]
-        insert_indices, _ = circuit._pick_inserted_ops_moment_indices(operations, start)
+        insert_indices, _ = circuits.circuit._pick_inserted_ops_moment_indices(operations, start)
         actual_circuit = cirq.Circuit(
             first_half._moments + [cirq.Moment() for _ in range(n_moments - start)]
         )
@@ -4153,10 +4154,6 @@ def test_transform_qubits():
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
 
-    with cirq.testing.assert_deprecated('Use qubit_map instead', deadline="v0.11"):
-        # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
-        assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
-
     # Device
     original = cirq.Circuit(device=FOXY)
     assert original.transform_qubits(lambda q: q).device is FOXY
@@ -4612,6 +4609,47 @@ def test_tetris_concat():
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
 
 
+def test_tetris_concat_alignment():
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='first',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Z(a), cirq.Y(b)),
+    )
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='left',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Z(a), cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+    )
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='right',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Z(a)),
+    )
+
+
 def test_factorize_one_factor():
     circuit = cirq.Circuit()
     q0, q1, q2 = cirq.LineQubit.range(3)
@@ -4689,3 +4727,126 @@ def test_factorize_large_circuit():
     assert len(factors) == 5
     for f, d in zip(factors, desired):
         cirq.testing.assert_has_diagram(f, d)
+
+
+def test_zero_target_operations_go_below_diagram():
+    class CustomOperationAnnotation(cirq.Operation):
+        def __init__(self, text: str):
+            self.text = text
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        @property
+        def qubits(self):
+            return ()
+
+        def _circuit_diagram_info_(self, args) -> str:
+            return self.text
+
+    class CustomOperationAnnotationNoInfo(cirq.Operation):
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        @property
+        def qubits(self):
+            return ()
+
+        def __str__(self):
+            return "custom!"
+
+    class CustomGateAnnotation(cirq.Gate):
+        def __init__(self, text: str):
+            self.text = text
+
+        def _num_qubits_(self):
+            return 0
+
+        def _circuit_diagram_info_(self, args) -> str:
+            return self.text
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.Moment(
+                CustomOperationAnnotation("a"),
+                CustomGateAnnotation("b").on(),
+                CustomOperationAnnotation("c"),
+            ),
+            cirq.Moment(
+                CustomOperationAnnotation("e"),
+                CustomOperationAnnotation("d"),
+            ),
+        ),
+        """
+    a   e
+    b   d
+    c
+    """,
+    )
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(0)),
+                CustomOperationAnnotation("a"),
+                cirq.GlobalPhaseOperation(1j),
+            ),
+        ),
+        """
+0: ─────────────H──────
+
+global phase:   0.5π
+                a
+    """,
+    )
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(0)),
+                cirq.CircuitOperation(cirq.FrozenCircuit(CustomOperationAnnotation("a"))),
+            ),
+        ),
+        """
+0: ───H───
+      a
+        """,
+    )
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.Moment(
+                cirq.X(cirq.LineQubit(0)),
+                CustomOperationAnnotation("a"),
+                CustomGateAnnotation("b").on(),
+                CustomOperationAnnotation("c"),
+            ),
+            cirq.Moment(
+                CustomOperationAnnotation("eee"),
+                CustomOperationAnnotation("d"),
+            ),
+            cirq.Moment(
+                cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(2)),
+                cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(3)),
+                CustomOperationAnnotationNoInfo(),
+                CustomOperationAnnotation("zzz"),
+            ),
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(2)),
+            ),
+        ),
+        """
+                ┌────────┐
+0: ───X──────────@───────────────
+                 │
+1: ──────────────┼──────@────────
+                 │      │
+2: ──────────────X──────┼────H───
+                        │
+3: ─────────────────────X────────
+      a   eee    custom!
+      b   d      zzz
+      c
+                └────────┘
+    """,
+    )

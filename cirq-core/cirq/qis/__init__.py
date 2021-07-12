@@ -14,7 +14,17 @@
 
 """Tools and methods for quantum information science."""
 
+from cirq.qis.channels import (
+    kraus_to_channel_matrix,
+    kraus_to_choi,
+    operation_to_channel_matrix,
+    operation_to_choi,
+)
+
+from cirq.qis.clifford_tableau import CliffordTableau
+
 from cirq.qis.measures import (
+    entanglement_fidelity,
     fidelity,
     von_neumann_entropy,
 )
@@ -25,6 +35,7 @@ from cirq.qis.states import (
     density_matrix_from_state_vector,
     dirac_notation,
     eye_tensor,
+    infer_qid_shape,
     one_hot,
     QUANTUM_STATE_LIKE,
     QuantumState,

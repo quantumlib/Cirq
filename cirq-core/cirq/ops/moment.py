@@ -28,9 +28,10 @@ from typing import (
     TypeVar,
     Union,
 )
+
 from cirq import protocols, ops
-from cirq._compat import deprecated_parameter
 from cirq.ops import raw_types
+from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -212,6 +213,12 @@ class Moment:
             for op in self.operations
         )
 
+    def _with_key_path_(self, path: Tuple[str, ...]):
+        return Moment(
+            protocols.with_key_path(op, path) if protocols.is_measurement(op) else op
+            for op in self.operations
+        )
+
     def __copy__(self):
         return type(self)(self.operations)
 
@@ -272,16 +279,10 @@ class Moment:
     def __str__(self) -> str:
         return self.to_text_diagram()
 
-    @deprecated_parameter(
-        deadline='v0.11',
-        fix='Use qubit_map instead.',
-        parameter_desc='positional func',
-        match=lambda args, kwargs: 'func' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
-        ),
-    )
+    def _decompose_(self) -> 'cirq.OP_TREE':
+        """See `cirq.SupportsDecompose`."""
+        return self._operations
+
     def transform_qubits(
         self: TSelf_Moment,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
@@ -424,7 +425,7 @@ class Moment:
                 precision=precision,
                 include_tags=include_tags,
             )
-            info = protocols.CircuitDiagramInfo._op_info_with_fallback(op, args=args)
+            info = circuit_diagram_info_protocol._op_info_with_fallback(op, args=args)
             symbols = info._wire_symbols_including_formatted_exponent(args)
             for label, q in zip(symbols, op.qubits):
                 x, y = qubit_positions[q]

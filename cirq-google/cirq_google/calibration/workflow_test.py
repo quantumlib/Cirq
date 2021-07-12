@@ -11,17 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
-
-from unittest import mock
 import itertools
+from typing import Optional
+from unittest import mock
+
 import numpy as np
 import pytest
 
 import cirq
 import cirq_google
 import cirq_google.calibration.workflow as workflow
-
+import cirq_google.calibration.xeb_wrapper
+from cirq.experiments import (
+    random_rotations_between_grid_interaction_layers_circuit,
+    XEBPhasedFSimCharacterizationOptions,
+)
 from cirq_google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq_google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -32,13 +36,20 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION,
+    LocalXEBPhasedFSimCalibrationRequest,
+    LocalXEBPhasedFSimCalibrationOptions,
+    XEBPhasedFSimCalibrationRequest,
+    XEBPhasedFSimCalibrationOptions,
 )
 
-
-SQRT_ISWAP_PARAMETERS = cirq_google.PhasedFSimCharacterization(
+SQRT_ISWAP_INV_PARAMETERS = cirq_google.PhasedFSimCharacterization(
     theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
 )
-SQRT_ISWAP_GATE = cirq.FSimGate(np.pi / 4, 0.0)
+SYCAMORE_PARAMETERS = cirq_google.PhasedFSimCharacterization(
+    theta=np.pi / 2, zeta=0.0, chi=0.0, gamma=0.0, phi=np.pi / 6
+)
+SQRT_ISWAP_GATE = cirq.FSimGate(7 * np.pi / 4, 0.0)
+SQRT_ISWAP_INV_GATE = cirq.FSimGate(np.pi / 4, 0.0)
 
 
 def _fsim_identity_converter(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGate]:
@@ -175,8 +186,8 @@ def test_prepare_floquet_characterization_for_moments():
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
             [cirq.WaitGate(duration=cirq.Duration(micros=5.0)).on(b)],
         ]
     )
@@ -188,15 +199,53 @@ def test_prepare_floquet_characterization_for_moments():
 
     assert requests == [
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((b, c),), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((b, c),), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
     ]
 
     assert circuit_with_calibration.circuit == circuit
     assert circuit_with_calibration.moment_to_calibration == [None, 0, 1, None]
+
+
+def test_prepare_characterization_for_circuits_moments():
+    a, b, c, d = cirq.LineQubit.range(4)
+    circuit_1 = cirq.Circuit(
+        [
+            [cirq.X(a), cirq.Y(c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [cirq.WaitGate(duration=cirq.Duration(micros=5.0)).on(b)],
+        ]
+    )
+    circuit_2 = cirq.Circuit(
+        [
+            [cirq.X(a), cirq.Y(c)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
+            [cirq.WaitGate(duration=cirq.Duration(micros=5.0)).on(b)],
+        ]
+    )
+    options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
+
+    circuits_with_calibration, requests = workflow.prepare_characterization_for_circuits_moments(
+        [circuit_1, circuit_2], options=options
+    )
+
+    assert requests == [
+        cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
+            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options
+        ),
+        cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
+            pairs=((b, c),), gate=SQRT_ISWAP_INV_GATE, options=options
+        ),
+    ]
+
+    assert len(circuits_with_calibration) == 2
+    assert circuits_with_calibration[0].circuit == circuit_1
+    assert circuits_with_calibration[0].moment_to_calibration == [None, 0, None]
+    assert circuits_with_calibration[1].circuit == circuit_2
+    assert circuits_with_calibration[1].moment_to_calibration == [None, 1, None]
 
 
 @pytest.mark.parametrize(
@@ -215,8 +264,8 @@ def test_prepare_characterization_for_moments(options_cls):
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
             [cirq.WaitGate(duration=cirq.Duration(micros=5.0)).on(b)],
         ]
     )
@@ -226,8 +275,8 @@ def test_prepare_characterization_for_moments(options_cls):
     )
 
     assert requests == [
-        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((b, c),), gate=SQRT_ISWAP_GATE, options=options),
+        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((b, c),), gate=SQRT_ISWAP_INV_GATE, options=options),
     ]
 
     assert circuit_with_calibration.circuit == circuit
@@ -239,12 +288,12 @@ def test_prepare_floquet_characterization_for_moments_merges_sub_sets():
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
-            [SQRT_ISWAP_GATE.on(a, b)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b)],
         ]
     )
-    circuit += cirq.Moment([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
+    circuit += cirq.Moment([SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)])
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
     circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_moments(
@@ -253,10 +302,10 @@ def test_prepare_floquet_characterization_for_moments_merges_sub_sets():
 
     assert requests == [
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((b, c), (d, e)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
     ]
     assert circuit_with_calibration.circuit == circuit
@@ -279,20 +328,20 @@ def test_prepare_characterization_for_moments_merges_sub_sets(options_cls):
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
-            [SQRT_ISWAP_GATE.on(a, b)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b)],
         ]
     )
-    circuit += cirq.Moment([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
+    circuit += cirq.Moment([SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)])
 
     circuit_with_calibration, requests = workflow.prepare_characterization_for_moments(
         circuit, options=options
     )
 
     assert requests == [
-        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options),
+        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((b, c), (d, e)), gate=SQRT_ISWAP_INV_GATE, options=options),
     ]
     assert circuit_with_calibration.circuit == circuit
     assert circuit_with_calibration.moment_to_calibration == [None, 0, 1, 0, 1]
@@ -305,9 +354,9 @@ def test_prepare_floquet_characterization_for_moments_merges_many_circuits():
     circuit_1 = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
-            [SQRT_ISWAP_GATE.on(a, b)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b)],
         ]
     )
 
@@ -317,16 +366,16 @@ def test_prepare_floquet_characterization_for_moments_merges_many_circuits():
 
     assert requests_1 == [
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((b, c),), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((b, c),), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
     ]
     assert circuit_with_calibration_1.circuit == circuit_1
     assert circuit_with_calibration_1.moment_to_calibration == [None, 0, 1, 0]
 
-    circuit_2 = cirq.Circuit([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
+    circuit_2 = cirq.Circuit([SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)])
 
     circuit_with_calibration_2, requests_2 = workflow.prepare_floquet_characterization_for_moments(
         circuit_2, options=options, initial=requests_1
@@ -334,10 +383,10 @@ def test_prepare_floquet_characterization_for_moments_merges_many_circuits():
 
     assert requests_2 == [
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((b, c), (d, e)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
     ]
     assert circuit_with_calibration_2.circuit == circuit_2
@@ -361,9 +410,9 @@ def test_prepare_characterization_for_moments_merges_many_circuits(options_cls):
     circuit_1 = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
-            [SQRT_ISWAP_GATE.on(a, b)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b)],
         ]
     )
 
@@ -372,21 +421,21 @@ def test_prepare_characterization_for_moments_merges_many_circuits(options_cls):
     )
 
     assert requests_1 == [
-        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((b, c),), gate=SQRT_ISWAP_GATE, options=options),
+        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((b, c),), gate=SQRT_ISWAP_INV_GATE, options=options),
     ]
     assert circuit_with_calibration_1.circuit == circuit_1
     assert circuit_with_calibration_1.moment_to_calibration == [None, 0, 1, 0]
 
-    circuit_2 = cirq.Circuit([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
+    circuit_2 = cirq.Circuit([SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)])
 
     circuit_with_calibration_2, requests_2 = workflow.prepare_characterization_for_moments(
         circuit_2, options=options, initial=requests_1
     )
 
     assert requests_2 == [
-        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options),
+        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((b, c), (d, e)), gate=SQRT_ISWAP_INV_GATE, options=options),
     ]
     assert circuit_with_calibration_2.circuit == circuit_2
     assert circuit_with_calibration_2.moment_to_calibration == [1]
@@ -397,14 +446,14 @@ def test_prepare_floquet_characterization_for_moments_does_not_merge_sub_sets_wh
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
-            [SQRT_ISWAP_GATE.on(a, b)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b)],
         ]
     )
     circuit += cirq.Circuit(
-        [SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)],
-        [SQRT_ISWAP_GATE.on(b, c)],
+        [SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)],
+        [SQRT_ISWAP_INV_GATE.on(b, c)],
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
@@ -414,16 +463,16 @@ def test_prepare_floquet_characterization_for_moments_does_not_merge_sub_sets_wh
 
     assert requests == [
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((b, c),), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((b, c),), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((a, b),), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((a, b),), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((b, c), (d, e)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
     ]
     assert circuit_with_calibration.circuit == circuit
@@ -446,14 +495,14 @@ def test_prepare_characterization_for_moments_does_not_merge_sub_sets_when_disab
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
-            [SQRT_ISWAP_GATE.on(a, b)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b)],
         ]
     )
     circuit += cirq.Circuit(
-        [SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)],
-        [SQRT_ISWAP_GATE.on(b, c)],
+        [SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)],
+        [SQRT_ISWAP_INV_GATE.on(b, c)],
     )
 
     circuit_with_calibration, requests = workflow.prepare_characterization_for_moments(
@@ -461,10 +510,10 @@ def test_prepare_characterization_for_moments_does_not_merge_sub_sets_when_disab
     )
 
     assert requests == [
-        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((b, c),), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((a, b),), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options),
+        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((b, c),), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((a, b),), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((b, c), (d, e)), gate=SQRT_ISWAP_INV_GATE, options=options),
     ]
     assert circuit_with_calibration.circuit == circuit
     assert circuit_with_calibration.moment_to_calibration == [None, 0, 1, 2, 3, 1]
@@ -473,10 +522,10 @@ def test_prepare_characterization_for_moments_does_not_merge_sub_sets_when_disab
 def test_prepare_floquet_characterization_for_moments_merges_compatible_sets():
     a, b, c, d, e, f = cirq.LineQubit.range(6)
     circuit = cirq.Circuit([cirq.X(a), cirq.Y(c)])
-    circuit += cirq.Moment([SQRT_ISWAP_GATE.on(a, b)])
-    circuit += cirq.Moment([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
-    circuit += cirq.Moment([SQRT_ISWAP_GATE.on(c, d)])
-    circuit += cirq.Moment([SQRT_ISWAP_GATE.on(a, f), SQRT_ISWAP_GATE.on(d, e)])
+    circuit += cirq.Moment([SQRT_ISWAP_INV_GATE.on(a, b)])
+    circuit += cirq.Moment([SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)])
+    circuit += cirq.Moment([SQRT_ISWAP_INV_GATE.on(c, d)])
+    circuit += cirq.Moment([SQRT_ISWAP_INV_GATE.on(a, f), SQRT_ISWAP_INV_GATE.on(d, e)])
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
     circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_moments(
@@ -485,10 +534,10 @@ def test_prepare_floquet_characterization_for_moments_merges_compatible_sets():
 
     assert requests == [
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((a, f), (b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((a, f), (b, c), (d, e)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
     ]
     assert circuit_with_calibration.circuit == circuit
@@ -509,18 +558,18 @@ def test_prepare_characterization_for_moments_merges_compatible_sets(options_cls
     options, cls = options_cls
     a, b, c, d, e, f = cirq.LineQubit.range(6)
     circuit = cirq.Circuit([cirq.X(a), cirq.Y(c)])
-    circuit += cirq.Moment([SQRT_ISWAP_GATE.on(a, b)])
-    circuit += cirq.Moment([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
-    circuit += cirq.Moment([SQRT_ISWAP_GATE.on(c, d)])
-    circuit += cirq.Moment([SQRT_ISWAP_GATE.on(a, f), SQRT_ISWAP_GATE.on(d, e)])
+    circuit += cirq.Moment([SQRT_ISWAP_INV_GATE.on(a, b)])
+    circuit += cirq.Moment([SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)])
+    circuit += cirq.Moment([SQRT_ISWAP_INV_GATE.on(c, d)])
+    circuit += cirq.Moment([SQRT_ISWAP_INV_GATE.on(a, f), SQRT_ISWAP_INV_GATE.on(d, e)])
 
     circuit_with_calibration, requests = workflow.prepare_characterization_for_moments(
         circuit, options=options
     )
 
     assert requests == [
-        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((a, f), (b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options),
+        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((a, f), (b, c), (d, e)), gate=SQRT_ISWAP_INV_GATE, options=options),
     ]
     assert circuit_with_calibration.circuit == circuit
     assert circuit_with_calibration.moment_to_calibration == [None, 0, 1, 0, 1]
@@ -540,7 +589,7 @@ def test_prepare_floquet_characterization_for_operations():
     circuit_1 = cirq.Circuit(
         [
             [cirq.X(q00), cirq.Y(q11)],
-            [SQRT_ISWAP_GATE.on(q00, q01), SQRT_ISWAP_GATE.on(q10, q11)],
+            [SQRT_ISWAP_INV_GATE.on(q00, q01), SQRT_ISWAP_INV_GATE.on(q10, q11)],
             [cirq.WaitGate(duration=cirq.Duration(micros=5.0)).on(q01)],
         ]
     )
@@ -551,19 +600,19 @@ def test_prepare_floquet_characterization_for_operations():
 
     assert requests_1 == [
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((q10, q11),), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((q10, q11),), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((q00, q01),), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((q00, q01),), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
     ]
 
     # Prepare characterizations for a list of circuits.
     circuit_2 = cirq.Circuit(
         [
-            [SQRT_ISWAP_GATE.on(q00, q01), SQRT_ISWAP_GATE.on(q10, q11)],
-            [SQRT_ISWAP_GATE.on(q00, q10), SQRT_ISWAP_GATE.on(q01, q11)],
-            [SQRT_ISWAP_GATE.on(q10, q20), SQRT_ISWAP_GATE.on(q11, q21)],
+            [SQRT_ISWAP_INV_GATE.on(q00, q01), SQRT_ISWAP_INV_GATE.on(q10, q11)],
+            [SQRT_ISWAP_INV_GATE.on(q00, q10), SQRT_ISWAP_INV_GATE.on(q01, q11)],
+            [SQRT_ISWAP_INV_GATE.on(q10, q20), SQRT_ISWAP_INV_GATE.on(q11, q21)],
         ]
     )
 
@@ -574,16 +623,16 @@ def test_prepare_floquet_characterization_for_operations():
     # The order of moments originates from HALF_GRID_STAGGERED_PATTERN.
     assert requests_2 == [
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((q00, q10), (q11, q21)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((q00, q10), (q11, q21)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((q01, q11), (q10, q20)), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((q01, q11), (q10, q20)), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((q10, q11),), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((q10, q11),), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
         cirq_google.calibration.FloquetPhasedFSimCalibrationRequest(
-            pairs=((q00, q01),), gate=SQRT_ISWAP_GATE, options=options
+            pairs=((q00, q01),), gate=SQRT_ISWAP_INV_GATE, options=options
         ),
     ]
 
@@ -611,7 +660,7 @@ def test_prepare_characterization_for_operations(options_cls):
     circuit_1 = cirq.Circuit(
         [
             [cirq.X(q00), cirq.Y(q11)],
-            [SQRT_ISWAP_GATE.on(q00, q01), SQRT_ISWAP_GATE.on(q10, q11)],
+            [SQRT_ISWAP_INV_GATE.on(q00, q01), SQRT_ISWAP_INV_GATE.on(q10, q11)],
             [cirq.WaitGate(duration=cirq.Duration(micros=5.0)).on(q01)],
         ]
     )
@@ -619,16 +668,16 @@ def test_prepare_characterization_for_operations(options_cls):
     requests_1 = workflow.prepare_characterization_for_operations(circuit_1, options=options)
 
     assert requests_1 == [
-        cls(pairs=((q10, q11),), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((q00, q01),), gate=SQRT_ISWAP_GATE, options=options),
+        cls(pairs=((q10, q11),), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((q00, q01),), gate=SQRT_ISWAP_INV_GATE, options=options),
     ]
 
     # Prepare characterizations for a list of circuits.
     circuit_2 = cirq.Circuit(
         [
-            [SQRT_ISWAP_GATE.on(q00, q01), SQRT_ISWAP_GATE.on(q10, q11)],
-            [SQRT_ISWAP_GATE.on(q00, q10), SQRT_ISWAP_GATE.on(q01, q11)],
-            [SQRT_ISWAP_GATE.on(q10, q20), SQRT_ISWAP_GATE.on(q11, q21)],
+            [SQRT_ISWAP_INV_GATE.on(q00, q01), SQRT_ISWAP_INV_GATE.on(q10, q11)],
+            [SQRT_ISWAP_INV_GATE.on(q00, q10), SQRT_ISWAP_INV_GATE.on(q01, q11)],
+            [SQRT_ISWAP_INV_GATE.on(q10, q20), SQRT_ISWAP_INV_GATE.on(q11, q21)],
         ]
     )
 
@@ -638,10 +687,10 @@ def test_prepare_characterization_for_operations(options_cls):
 
     # The order of moments originates from HALF_GRID_STAGGERED_PATTERN.
     assert requests_2 == [
-        cls(pairs=((q00, q10), (q11, q21)), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((q01, q11), (q10, q20)), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((q10, q11),), gate=SQRT_ISWAP_GATE, options=options),
-        cls(pairs=((q00, q01),), gate=SQRT_ISWAP_GATE, options=options),
+        cls(pairs=((q00, q10), (q11, q21)), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((q01, q11), (q10, q20)), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((q10, q11),), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((q00, q01),), gate=SQRT_ISWAP_INV_GATE, options=options),
     ]
 
 
@@ -668,7 +717,7 @@ def test_prepare_characterization_for_operations_when_no_interactions(options):
 def test_prepare_floquet_characterization_for_operations_when_non_grid_fails():
     q00 = cirq.GridQubit(0, 0)
     q11 = cirq.GridQubit(1, 1)
-    circuit = cirq.Circuit(SQRT_ISWAP_GATE.on(q00, q11))
+    circuit = cirq.Circuit(SQRT_ISWAP_INV_GATE.on(q00, q11))
 
     with pytest.raises(ValueError):
         workflow.prepare_floquet_characterization_for_operations(circuit)
@@ -681,7 +730,7 @@ def test_prepare_floquet_characterization_for_operations_when_non_grid_fails():
 def test_prepare_characterization_for_operations_when_non_grid_fails(options):
     q00 = cirq.GridQubit(0, 0)
     q11 = cirq.GridQubit(1, 1)
-    circuit = cirq.Circuit(SQRT_ISWAP_GATE.on(q00, q11))
+    circuit = cirq.Circuit(SQRT_ISWAP_INV_GATE.on(q00, q11))
 
     with pytest.raises(ValueError):
         workflow.prepare_characterization_for_operations(circuit, options)
@@ -691,7 +740,7 @@ def test_prepare_floquet_characterization_for_operations_when_multiple_gates_fai
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
     circuit = cirq.Circuit(
-        [SQRT_ISWAP_GATE.on(q00, q01), cirq.FSimGate(theta=0.0, phi=np.pi).on(q00, q01)]
+        [SQRT_ISWAP_INV_GATE.on(q00, q01), cirq.FSimGate(theta=0.0, phi=np.pi).on(q00, q01)]
     )
 
     with pytest.raises(ValueError):
@@ -708,7 +757,7 @@ def test_prepare_characterization_for_operations_when_multiple_gates_fails(optio
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
     circuit = cirq.Circuit(
-        [SQRT_ISWAP_GATE.on(q00, q01), cirq.FSimGate(theta=0.0, phi=np.pi).on(q00, q01)]
+        [SQRT_ISWAP_INV_GATE.on(q00, q01), cirq.FSimGate(theta=0.0, phi=np.pi).on(q00, q01)]
     )
 
     with pytest.raises(ValueError):
@@ -727,7 +776,7 @@ def test_make_zeta_chi_gamma_compensation_for_operations():
 
     engine_simulator = cirq_google.PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
         parameters={
-            pair: parameters.merge_with(SQRT_ISWAP_PARAMETERS)
+            pair: parameters.merge_with(SQRT_ISWAP_INV_PARAMETERS)
             for pair, parameters in parameters_dict.items()
         }
     )
@@ -735,8 +784,8 @@ def test_make_zeta_chi_gamma_compensation_for_operations():
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
         ]
     )
 
@@ -750,7 +799,7 @@ def test_make_zeta_chi_gamma_compensation_for_operations():
 
     characterizations = [
         PhasedFSimCalibrationResult(
-            parameters={pair: parameters}, gate=SQRT_ISWAP_GATE, options=options
+            parameters={pair: parameters}, gate=SQRT_ISWAP_INV_GATE, options=options
         )
         for pair, parameters in parameters_dict.items()
     ]
@@ -773,7 +822,7 @@ def test_make_zeta_chi_gamma_compensation_for_operations_permit_mixed_moments():
         )
 
 
-def test_run_characterization():
+def test_run_calibrations():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
 
@@ -829,7 +878,108 @@ def test_run_characterization():
         ),
     )
 
-    job = cirq_google.engine.EngineJob('', '', '', None)
+    job = cirq_google.engine.EngineJob('project_id', 'program_id', 'job_id', None)
+    job._calibration_results = [result]
+
+    engine = mock.MagicMock(spec=cirq_google.Engine)
+    engine.run_calibration.return_value = job
+
+    sampler = cirq_google.QuantumEngineSampler(
+        engine=engine, processor_id='qproc', gate_set=cirq_google.FSIM_GATESET
+    )
+
+    progress_calls = []
+
+    def progress(step: int, steps: int) -> None:
+        progress_calls.append((step, steps))
+
+    actual = workflow.run_calibrations([request], sampler, progress_func=progress)
+
+    expected = [
+        PhasedFSimCalibrationResult(
+            parameters={
+                (q_00, q_01): PhasedFSimCharacterization(
+                    theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
+                ),
+                (q_02, q_03): PhasedFSimCharacterization(
+                    theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
+                ),
+            },
+            gate=gate,
+            options=FloquetPhasedFSimCalibrationOptions(
+                characterize_theta=True,
+                characterize_zeta=True,
+                characterize_chi=False,
+                characterize_gamma=False,
+                characterize_phi=True,
+            ),
+            project_id='project_id',
+            program_id='program_id',
+            job_id='job_id',
+        )
+    ]
+
+    assert actual == expected
+    assert progress_calls == [(1, 1)]
+
+
+def test_run_characterization_with_engine():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+
+    request = FloquetPhasedFSimCalibrationRequest(
+        gate=gate,
+        pairs=((q_00, q_01), (q_02, q_03)),
+        options=FloquetPhasedFSimCalibrationOptions(
+            characterize_theta=True,
+            characterize_zeta=True,
+            characterize_chi=False,
+            characterize_gamma=False,
+            characterize_phi=True,
+        ),
+    )
+
+    result = cirq_google.CalibrationResult(
+        code=cirq_google.api.v2.calibration_pb2.SUCCESS,
+        error_message=None,
+        token=None,
+        valid_until=None,
+        metrics=cirq_google.Calibration(
+            cirq_google.api.v2.metrics_pb2.MetricsSnapshot(
+                metrics=[
+                    cirq_google.api.v2.metrics_pb2.Metric(
+                        name='angles',
+                        targets=[
+                            '0_qubit_a',
+                            '0_qubit_b',
+                            '0_theta_est',
+                            '0_zeta_est',
+                            '0_phi_est',
+                            '1_qubit_a',
+                            '1_qubit_b',
+                            '1_theta_est',
+                            '1_zeta_est',
+                            '1_phi_est',
+                        ],
+                        values=[
+                            cirq_google.api.v2.metrics_pb2.Value(str_val='0_0'),
+                            cirq_google.api.v2.metrics_pb2.Value(str_val='0_1'),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.1),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.2),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.3),
+                            cirq_google.api.v2.metrics_pb2.Value(str_val='0_2'),
+                            cirq_google.api.v2.metrics_pb2.Value(str_val='0_3'),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.4),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.5),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.6),
+                        ],
+                    )
+                ]
+            )
+        ),
+    )
+
+    job = cirq_google.engine.EngineJob('project_id', 'program_id', 'job_id', None)
     job._calibration_results = [result]
 
     engine = mock.MagicMock(spec=cirq_google.Engine)
@@ -862,6 +1012,9 @@ def test_run_characterization():
                 characterize_gamma=False,
                 characterize_phi=True,
             ),
+            project_id='project_id',
+            program_id='program_id',
+            job_id='job_id',
         )
     ]
 
@@ -869,18 +1022,18 @@ def test_run_characterization():
     assert progress_calls == [(1, 1)]
 
 
-def test_run_characterization_empty():
+def test_run_calibrations_empty():
     assert workflow.run_calibrations([], None, 'qproc', cirq_google.FSIM_GATESET) == []
 
 
-def test_run_characterization_fails_when_invalid_arguments():
+def test_run_calibrations_fails_when_invalid_arguments():
     with pytest.raises(ValueError):
         assert workflow.run_calibrations(
             [], None, 'qproc', cirq_google.FSIM_GATESET, max_layers_per_request=0
         )
 
     request = FloquetPhasedFSimCalibrationRequest(
-        gate=SQRT_ISWAP_GATE,
+        gate=SQRT_ISWAP_INV_GATE,
         pairs=(),
         options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     )
@@ -896,9 +1049,9 @@ def test_run_characterization_fails_when_invalid_arguments():
         assert workflow.run_calibrations([request], 0, 'qproc', cirq_google.FSIM_GATESET)
 
 
-def test_run_characterization_with_simulator():
+def test_run_calibrations_with_simulator():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
-    gate = SQRT_ISWAP_GATE
+    gate = SQRT_ISWAP_INV_GATE
 
     request = FloquetPhasedFSimCalibrationRequest(
         gate=gate,
@@ -926,7 +1079,7 @@ def test_run_characterization_with_simulator():
                     theta=np.pi / 4, zeta=0.0, chi=None, gamma=None, phi=0.0
                 ),
             },
-            gate=SQRT_ISWAP_GATE,
+            gate=SQRT_ISWAP_INV_GATE,
             options=FloquetPhasedFSimCalibrationOptions(
                 characterize_theta=True,
                 characterize_zeta=True,
@@ -952,7 +1105,7 @@ def test_run_floquet_characterization_for_moments():
         characterize_phi=True,
     )
 
-    job = cirq_google.engine.EngineJob('', '', '', None)
+    job = cirq_google.engine.EngineJob('project_id', 'program_id', 'job_id', None)
     job._calibration_results = [
         cirq_google.CalibrationResult(
             code=cirq_google.api.v2.calibration_pb2.SUCCESS,
@@ -1014,6 +1167,9 @@ def test_run_floquet_characterization_for_moments():
             },
             gate=gate,
             options=options,
+            project_id='project_id',
+            program_id='program_id',
+            job_id='job_id',
         )
     ]
     assert circuit_with_calibration.circuit == circuit
@@ -1077,22 +1233,39 @@ def test_phase_corrected_fsim_operations_with_phase_exponent(
     assert corrected.moment_to_calibration == [None, 5, None]
 
 
-def test_zeta_chi_gamma_calibration_for_moments():
+def test_make_zeta_chi_gamma_compensation_for_moments():
     a, b = cirq.LineQubit.range(2)
 
-    characterizations = [
-        PhasedFSimCalibrationResult(
-            parameters={(a, b): SQRT_ISWAP_PARAMETERS},
-            gate=SQRT_ISWAP_GATE,
-            options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-        )
-    ]
     moment_allocations = [0]
 
-    for circuit in [
-        cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b)),
-        cirq.Circuit(cirq.FSimGate(theta=-np.pi / 4, phi=0.0).on(a, b)),
+    for gate_to_calibrate, engine_gate in [
+        (cirq.FSimGate(theta=np.pi / 4, phi=0.0), SQRT_ISWAP_INV_GATE),
+        (cirq.FSimGate(theta=-np.pi / 4, phi=0.0), SQRT_ISWAP_INV_GATE),
+        (cirq.ISwapPowGate(exponent=0.2), cirq.FSimGate(theta=0.1 * np.pi, phi=0.0)),
+        (cirq.PhasedFSimGate(theta=0.1, phi=0.2), cirq.FSimGate(theta=0.1, phi=0.2)),
+        (cirq.PhasedFSimGate(theta=0.1, phi=0.2, chi=0.3), cirq.FSimGate(theta=0.1, phi=0.2)),
+        (cirq.PhasedISwapPowGate(exponent=0.2), cirq.FSimGate(theta=0.1 * np.pi, phi=0.0)),
+        (
+            cirq.PhasedISwapPowGate(exponent=0.2, phase_exponent=0.4),
+            cirq.FSimGate(theta=0.1 * np.pi, phi=0.0),
+        ),
+        (cirq.CZ, cirq.FSimGate(theta=0.0, phi=np.pi)),
+        (cirq.ops.CZPowGate(exponent=0.5), cirq.FSimGate(theta=0.0, phi=1.5 * np.pi)),
+        (cirq_google.ops.SycamoreGate(), cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)),
     ]:
+        circuit = cirq.Circuit(gate_to_calibrate.on(a, b))
+        characterizations = [
+            PhasedFSimCalibrationResult(
+                # Assume that the engine gate is perfect.
+                parameters={
+                    (a, b): cirq_google.PhasedFSimCharacterization(
+                        theta=engine_gate.theta, phi=engine_gate.phi, zeta=0.0, chi=0.0, gamma=0.0
+                    )
+                },
+                gate=engine_gate,
+                options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+            )
+        ]
         calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_moments(
             workflow.CircuitWithCalibration(circuit, moment_allocations), characterizations
         )
@@ -1100,7 +1273,52 @@ def test_zeta_chi_gamma_calibration_for_moments():
         assert calibrated_circuit.moment_to_calibration == [None, 0, None]
 
 
-def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None:
+def test_make_zeta_chi_gamma_compensation_for_moments_wrong_engine_gate_error():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.2).on(a, b))
+    characterizations = [
+        PhasedFSimCalibrationResult(
+            parameters={
+                (a, b): cirq_google.PhasedFSimCharacterization(
+                    theta=np.pi / 4, phi=0.2, zeta=0.0, chi=0.0, gamma=0.0
+                )
+            },
+            gate=SQRT_ISWAP_INV_GATE,
+            options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+        )
+    ]
+    with pytest.raises(ValueError, match="Engine gate .+ doesn't match characterized gate .+"):
+        workflow.make_zeta_chi_gamma_compensation_for_moments(
+            workflow.CircuitWithCalibration(circuit, [0]), characterizations
+        )
+
+
+def test_make_zeta_chi_gamma_compensation_for_moments_circuit():
+    a, b = cirq.LineQubit.range(2)
+
+    characterizations = [
+        PhasedFSimCalibrationResult(
+            parameters={(a, b): SQRT_ISWAP_INV_PARAMETERS},
+            gate=SQRT_ISWAP_INV_GATE,
+            options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+        )
+    ]
+
+    for circuit, expected_moment_to_calibration in [
+        (cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b)), [None, 0, None]),
+        (
+            cirq.Circuit([cirq.Z.on(a), cirq.FSimGate(theta=-np.pi / 4, phi=0.0).on(a, b)]),
+            [None, None, 0, None],
+        ),
+    ]:
+        calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_moments(
+            circuit, characterizations
+        )
+        assert np.allclose(cirq.unitary(circuit), cirq.unitary(calibrated_circuit.circuit))
+        assert calibrated_circuit.moment_to_calibration == expected_moment_to_calibration
+
+
+def test_zmake_zeta_chi_gamma_compensation_for_moments_invalid_argument_fails() -> None:
     a, b, c = cirq.LineQubit.range(3)
 
     with pytest.raises(ValueError):
@@ -1109,18 +1327,23 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
 
     with pytest.raises(ValueError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
-            cirq.Circuit(SQRT_ISWAP_GATE.on(a, b)), [None]
+            cirq.Circuit(SQRT_ISWAP_INV_GATE.on(a, b)), [None]
         )
         workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(ValueError):
+        workflow.make_zeta_chi_gamma_compensation_for_moments(
+            cirq.Circuit(SQRT_ISWAP_INV_GATE.on(a, b)), []
+        )
+
+    with pytest.raises(ValueError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
-            cirq.Circuit(SQRT_ISWAP_GATE.on(a, b)), [0]
+            cirq.Circuit(SQRT_ISWAP_INV_GATE.on(a, b)), [0]
         )
         characterizations = [
             PhasedFSimCalibrationResult(
                 parameters={},
-                gate=SQRT_ISWAP_GATE,
+                gate=SQRT_ISWAP_INV_GATE,
                 options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             )
         ]
@@ -1136,13 +1359,13 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
-            cirq.Circuit(cirq.CZ.on(a, b)), [None]
+            cirq.Circuit(cirq.CX.on(a, b)), [None]
         )
         workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
-            cirq.Circuit([SQRT_ISWAP_GATE.on(a, b), cirq.Z.on(c)]), [0]
+            cirq.Circuit([SQRT_ISWAP_INV_GATE.on(a, b), cirq.Z.on(c)]), [0]
         )
         characterizations = [
             PhasedFSimCalibrationResult(
@@ -1151,7 +1374,7 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
                         theta=0.1, zeta=0.2, chi=0.3, gamma=0.4, phi=0.5
                     )
                 },
-                gate=SQRT_ISWAP_GATE,
+                gate=SQRT_ISWAP_INV_GATE,
                 options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             )
         ]
@@ -1160,25 +1383,101 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
         )
 
 
+def test_make_zeta_chi_gamma_compensation_for_moments_imperfect_gates():
+    params_cz_ab = cirq_google.PhasedFSimCharacterization(
+        zeta=0.02, chi=0.05, gamma=0.04, theta=0.0, phi=np.pi
+    )
+    params_cz_cd = cirq_google.PhasedFSimCharacterization(
+        zeta=0.03, chi=0.08, gamma=0.03, theta=0.0, phi=np.pi
+    )
+    params_syc_ab = cirq_google.PhasedFSimCharacterization(
+        zeta=0.01, chi=0.09, gamma=0.02, theta=np.pi / 2, phi=np.pi / 6
+    )
+    params_sqrt_iswap_ac = cirq_google.PhasedFSimCharacterization(
+        zeta=0.05, chi=0.06, gamma=0.07, theta=np.pi / 4, phi=0.0
+    )
+    params_sqrt_iswap_bd = cirq_google.PhasedFSimCharacterization(
+        zeta=0.01, chi=0.02, gamma=0.03, theta=np.pi / 4, phi=0.0
+    )
+
+    a, b, c, d = cirq.LineQubit.range(4)
+    engine_simulator = cirq_google.PhasedFSimEngineSimulator.create_from_dictionary(
+        parameters={
+            (a, b): {
+                cirq.FSimGate(theta=0, phi=np.pi): params_cz_ab,
+                cirq_google.SYC: params_syc_ab,
+            },
+            (c, d): {cirq.FSimGate(theta=0, phi=np.pi): params_cz_cd},
+            (a, c): {SQRT_ISWAP_INV_GATE: params_sqrt_iswap_ac},
+            (b, d): {SQRT_ISWAP_INV_GATE: params_sqrt_iswap_bd},
+        }
+    )
+
+    circuit = cirq.Circuit(
+        [
+            [cirq.X(a), cirq.H(c)],
+            [cirq.CZ.on(a, b), cirq.CZ.on(d, c)],
+            [cirq_google.SYC.on(a, b)],
+            [SQRT_ISWAP_GATE.on(a, c), SQRT_ISWAP_INV_GATE.on(b, d)],
+        ]
+    )
+
+    options = cirq_google.FloquetPhasedFSimCalibrationOptions(
+        characterize_theta=False,
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_phi=False,
+    )
+
+    characterizations = [
+        cirq_google.PhasedFSimCalibrationResult(
+            gate=cirq.FSimGate(theta=0, phi=np.pi),
+            parameters={(a, b): params_cz_ab, (c, d): params_cz_cd},
+            options=options,
+        ),
+        cirq_google.PhasedFSimCalibrationResult(
+            gate=cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6),
+            parameters={(a, b): params_syc_ab},
+            options=options,
+        ),
+        cirq_google.PhasedFSimCalibrationResult(
+            gate=cirq.FSimGate(theta=np.pi / 4, phi=0),
+            parameters={(a, c): params_sqrt_iswap_ac, (b, d): params_sqrt_iswap_bd},
+            options=options,
+        ),
+    ]
+
+    circuit_with_calibration = workflow.make_zeta_chi_gamma_compensation_for_moments(
+        circuit,
+        characterizations,
+    )
+
+    assert cirq.allclose_up_to_global_phase(
+        engine_simulator.final_state_vector(circuit_with_calibration.circuit),
+        cirq.final_state_vector(circuit),
+    )
+
+
 def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
     parameters_ab = cirq_google.PhasedFSimCharacterization(zeta=0.5, chi=0.4, gamma=0.3)
     parameters_bc = cirq_google.PhasedFSimCharacterization(zeta=-0.5, chi=-0.4, gamma=-0.3)
     parameters_cd = cirq_google.PhasedFSimCharacterization(zeta=0.2, chi=0.3, gamma=0.4)
 
     a, b, c, d = cirq.LineQubit.range(4)
-    engine_simulator = cirq_google.PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
+    engine_simulator = cirq_google.PhasedFSimEngineSimulator.create_from_dictionary(
         parameters={
-            (a, b): parameters_ab.merge_with(SQRT_ISWAP_PARAMETERS),
-            (b, c): parameters_bc.merge_with(SQRT_ISWAP_PARAMETERS),
-            (c, d): parameters_cd.merge_with(SQRT_ISWAP_PARAMETERS),
+            (a, b): {SQRT_ISWAP_INV_GATE: parameters_ab.merge_with(SQRT_ISWAP_INV_PARAMETERS)},
+            (b, c): {cirq_google.ops.SYC: parameters_bc.merge_with(SYCAMORE_PARAMETERS)},
+            (c, d): {SQRT_ISWAP_INV_GATE: parameters_cd.merge_with(SQRT_ISWAP_INV_PARAMETERS)},
         }
     )
 
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [cirq_google.ops.SYC.on(b, c)],
         ]
     )
 
@@ -1194,7 +1493,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
         circuit,
         engine_simulator,
         processor_id=None,
-        gate_set=cirq_google.SQRT_ISWAP_GATESET,
+        gate_set=cirq_google.FSIM_GATESET,
         options=options,
     )
 
@@ -1204,12 +1503,12 @@ def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
     )
     assert calibrations == [
         cirq_google.PhasedFSimCalibrationResult(
-            gate=SQRT_ISWAP_GATE,
+            gate=SQRT_ISWAP_INV_GATE,
             parameters={(a, b): parameters_ab, (c, d): parameters_cd},
             options=options,
         ),
         cirq_google.PhasedFSimCalibrationResult(
-            gate=SQRT_ISWAP_GATE, parameters={(b, c): parameters_bc}, options=options
+            gate=cirq_google.ops.SYC, parameters={(b, c): parameters_bc}, options=options
         ),
     ]
     assert calibrated_circuit.moment_to_calibration == [None, None, 0, None, None, 1, None]
@@ -1229,8 +1528,8 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [SQRT_ISWAP_GATE.on(a, b), SQRT_ISWAP_GATE.on(c, d)],
-            [SQRT_ISWAP_GATE.on(b, c)],
+            [SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)],
+            [SQRT_ISWAP_INV_GATE.on(b, c)],
         ]
     )
 
@@ -1242,3 +1541,80 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
         engine_simulator.final_state_vector(calibrated_circuit.circuit),
         cirq.final_state_vector(circuit),
     )
+
+
+_MOCK_ENGINE_SAMPLER = mock.MagicMock(
+    spec=cirq_google.QuantumEngineSampler, _processor_ids=['my_fancy_processor'], _gate_set='test'
+)
+
+
+@pytest.mark.parametrize('sampler_engine', [cirq.Simulator, _MOCK_ENGINE_SAMPLER])
+def test_run_local(sampler_engine, monkeypatch):
+    called_times = 0
+
+    def myfunc(
+        calibration: LocalXEBPhasedFSimCalibrationRequest,
+        sampler: cirq.Sampler,
+    ):
+        nonlocal called_times
+        assert isinstance(calibration, LocalXEBPhasedFSimCalibrationRequest)
+        assert sampler is not None
+        called_times += 1
+        return []
+
+    # Note: you must patch specifically the function imported into `workflow`.
+    monkeypatch.setattr('cirq_google.calibration.workflow.run_local_xeb_calibration', myfunc)
+
+    qubit_indices = [
+        (0, 5),
+        (0, 6),
+        (1, 6),
+        (2, 6),
+    ]
+    qubits = [cirq.GridQubit(*idx) for idx in qubit_indices]
+
+    circuits = [
+        random_rotations_between_grid_interaction_layers_circuit(
+            qubits,
+            depth=depth,
+            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP_INV_GATE.on(a, b),
+            pattern=cirq.experiments.GRID_ALIGNED_PATTERN,
+            seed=10,
+        )
+        for depth in [5, 10]
+    ]
+
+    options = LocalXEBPhasedFSimCalibrationOptions(
+        fsim_options=XEBPhasedFSimCharacterizationOptions(
+            characterize_zeta=True,
+            characterize_gamma=True,
+            characterize_chi=True,
+            characterize_theta=False,
+            characterize_phi=False,
+            theta_default=np.pi / 4,
+        ),
+        n_processes=1,
+    )
+
+    characterization_requests = []
+    for circuit in circuits:
+        _, characterization_requests = workflow.prepare_characterization_for_moments(
+            circuit, options=options, initial=characterization_requests
+        )
+    assert len(characterization_requests) == 2
+    for cr in characterization_requests:
+        assert isinstance(cr, LocalXEBPhasedFSimCalibrationRequest)
+
+    workflow.run_calibrations(characterization_requests, sampler_engine)
+    assert called_times == 2
+
+
+def test_multiple_calibration_types_error():
+    r1 = LocalXEBPhasedFSimCalibrationRequest(
+        pairs=[], gate=None, options=LocalXEBPhasedFSimCalibrationOptions()
+    )
+    r2 = XEBPhasedFSimCalibrationRequest(
+        pairs=[], gate=None, options=XEBPhasedFSimCalibrationOptions()
+    )
+    with pytest.raises(ValueError, match=r'must be of the same type\.'):
+        workflow.run_calibrations([r1, r2], cirq.Simulator())

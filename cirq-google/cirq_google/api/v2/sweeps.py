@@ -14,13 +14,12 @@
 
 from typing import Optional, Dict, List
 
-from cirq import value
+import cirq
 from cirq_google.api.v2 import run_context_pb2
-from cirq.study import sweeps
 
 
 def sweep_to_proto(
-    sweep: sweeps.Sweep,
+    sweep: cirq.Sweep,
     *,
     out: Optional[run_context_pb2.Sweep] = None,
 ) -> run_context_pb2.Sweep:
@@ -36,26 +35,26 @@ def sweep_to_proto(
     """
     if out is None:
         out = run_context_pb2.Sweep()
-    if sweep is sweeps.UnitSweep:
+    if sweep is cirq.UnitSweep:
         pass
-    elif isinstance(sweep, sweeps.Product):
+    elif isinstance(sweep, cirq.Product):
         out.sweep_function.function_type = run_context_pb2.SweepFunction.PRODUCT
         for factor in sweep.factors:
             sweep_to_proto(factor, out=out.sweep_function.sweeps.add())
-    elif isinstance(sweep, sweeps.Zip):
+    elif isinstance(sweep, cirq.Zip):
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for s in sweep.sweeps:
             sweep_to_proto(s, out=out.sweep_function.sweeps.add())
-    elif isinstance(sweep, sweeps.Linspace):
+    elif isinstance(sweep, cirq.Linspace):
         out.single_sweep.parameter_key = sweep.key
         out.single_sweep.linspace.first_point = sweep.start
         out.single_sweep.linspace.last_point = sweep.stop
         out.single_sweep.linspace.num_points = sweep.length
-    elif isinstance(sweep, sweeps.Points):
+    elif isinstance(sweep, cirq.Points):
         out.single_sweep.parameter_key = sweep.key
         out.single_sweep.points.points.extend(sweep.points)
-    elif isinstance(sweep, sweeps.ListSweep):
-        sweep_dict: Dict[str, List[value.TParamVal]] = {}
+    elif isinstance(sweep, cirq.ListSweep):
+        sweep_dict: Dict[str, List[cirq.TParamVal]] = {}
         for param_resolver in sweep:
             for key in param_resolver:
                 if key not in sweep_dict:
@@ -63,37 +62,37 @@ def sweep_to_proto(
                 sweep_dict[key].append(param_resolver.value_of(key))
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for key in sweep_dict:
-            sweep_to_proto(sweeps.Points(key, sweep_dict[key]), out=out.sweep_function.sweeps.add())
+            sweep_to_proto(cirq.Points(key, sweep_dict[key]), out=out.sweep_function.sweeps.add())
     else:
         raise ValueError(f'cannot convert to v2 Sweep proto: {sweep}')
     return out
 
 
-def sweep_from_proto(msg: run_context_pb2.Sweep) -> sweeps.Sweep:
+def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
     """Creates a Sweep from a v2 protobuf message."""
     which = msg.WhichOneof('sweep')
     if which is None:
-        return sweeps.UnitSweep
+        return cirq.UnitSweep
     if which == 'sweep_function':
         factors = [sweep_from_proto(m) for m in msg.sweep_function.sweeps]
         func_type = msg.sweep_function.function_type
         if func_type == run_context_pb2.SweepFunction.PRODUCT:
-            return sweeps.Product(*factors)
+            return cirq.Product(*factors)
         if func_type == run_context_pb2.SweepFunction.ZIP:
-            return sweeps.Zip(*factors)
+            return cirq.Zip(*factors)
 
         raise ValueError(f'invalid sweep function type: {func_type}')
     if which == 'single_sweep':
         key = msg.single_sweep.parameter_key
         if msg.single_sweep.WhichOneof('sweep') == 'linspace':
-            return sweeps.Linspace(
+            return cirq.Linspace(
                 key=key,
                 start=msg.single_sweep.linspace.first_point,
                 stop=msg.single_sweep.linspace.last_point,
                 length=msg.single_sweep.linspace.num_points,
             )
         if msg.single_sweep.WhichOneof('sweep') == 'points':
-            return sweeps.Points(key=key, points=msg.single_sweep.points.points)
+            return cirq.Points(key=key, points=msg.single_sweep.points.points)
 
         raise ValueError(f'single sweep type not set: {msg}')
 

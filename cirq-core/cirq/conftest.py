@@ -1,11 +1,12 @@
 import inspect
-
+import os
 import matplotlib.pyplot as plt
 
 
 def pytest_configure(config):
     # Use matplotlib agg backend which does not require a display.
     plt.switch_backend('agg')
+    os.environ['CIRQ_TESTING'] = "true"
 
 
 def pytest_pyfunc_call(pyfuncitem):

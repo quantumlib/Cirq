@@ -29,6 +29,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
         'CalibrationResult': cirq_google.CalibrationResult,
+        'CouplerPulse': cirq_google.experimental.CouplerPulse,
         'SycamoreGate': cirq_google.SycamoreGate,
         'GateTabulation': cirq_google.GateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,
@@ -38,4 +39,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhasedFSimCharacterization': cirq_google.PhasedFSimCharacterization,
         'XEBPhasedFSimCalibrationOptions': cirq_google.XEBPhasedFSimCalibrationOptions,
         'XEBPhasedFSimCalibrationRequest': cirq_google.XEBPhasedFSimCalibrationRequest,
+        'LocalXEBPhasedFSimCalibrationOptions': cirq_google.LocalXEBPhasedFSimCalibrationOptions,
+        'LocalXEBPhasedFSimCalibrationRequest': cirq_google.LocalXEBPhasedFSimCalibrationRequest,
     }

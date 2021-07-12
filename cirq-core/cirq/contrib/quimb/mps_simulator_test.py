@@ -118,47 +118,26 @@ def test_same_partial_trace():
     qubit_order = cirq.LineQubit.range(2)
     q0, q1 = qubit_order
 
-    angles = [0.0, 0.20160913, math.pi / 3.0, math.pi / 2.0, math.pi]
+    mps_simulator = ccq.mps_simulator.MPSSimulator()
 
-    gate_cls = [cirq.rx, cirq.ry, cirq.rz]
+    for _ in range(50):
+        for initial_state in range(4):
+            circuit = cirq.testing.random_circuit(qubit_order, 3, 0.9)
+            expected_density_matrix = cirq.final_density_matrix(
+                circuit, qubit_order=qubit_order, initial_state=initial_state
+            )
+            expected_partial_trace = cirq.partial_trace(
+                expected_density_matrix.reshape(2, 2, 2, 2), keep_indices=[0]
+            )
 
-    for angle_0 in angles:
-        for gate_0 in gate_cls:
-            for angle_1 in angles:
-                for gate_1 in gate_cls:
-                    for use_cnot in [False, True]:
-                        op0 = gate_0(angle_0)
-                        op1 = gate_1(angle_1)
+            final_state = mps_simulator.simulate(
+                circuit, qubit_order=qubit_order, initial_state=initial_state
+            ).final_state
+            actual_density_matrix = final_state.partial_trace([q0, q1])
+            actual_partial_trace = final_state.partial_trace([q0])
 
-                        circuit = cirq.Circuit()
-                        circuit.append(op0(q0))
-                        if use_cnot:
-                            circuit.append(cirq.qft(q0, q1))
-                        circuit.append(op1(q1))
-                        if use_cnot:
-                            circuit.append(cirq.qft(q1, q0))
-
-                        for initial_state in range(4):
-                            expected_density_matrix = cirq.final_density_matrix(
-                                circuit, qubit_order=qubit_order, initial_state=initial_state
-                            )
-                            expected_partial_trace = cirq.partial_trace(
-                                expected_density_matrix.reshape(2, 2, 2, 2), keep_indices=[0]
-                            )
-
-                            mps_simulator = ccq.mps_simulator.MPSSimulator()
-                            final_state = mps_simulator.simulate(
-                                circuit, qubit_order=qubit_order, initial_state=initial_state
-                            ).final_state
-                            actual_density_matrix = final_state.partial_trace([q0, q1])
-                            actual_partial_trace = final_state.partial_trace([q0])
-
-                            np.testing.assert_allclose(
-                                actual_density_matrix, expected_density_matrix, atol=1e-4
-                            )
-                            np.testing.assert_allclose(
-                                actual_partial_trace, expected_partial_trace, atol=1e-4
-                            )
+            np.testing.assert_allclose(actual_density_matrix, expected_density_matrix, atol=1e-4)
+            np.testing.assert_allclose(actual_partial_trace, expected_partial_trace, atol=1e-4)
 
 
 def test_probs_dont_sum_up_to_one():
@@ -295,11 +274,11 @@ output state: TensorNetwork([
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = ccq.mps_simulator.MPSState(qubits=(q0,), prng=value.parse_random_state(0))
-    step_result = ccq.mps_simulator.MPSSimulatorStepResult(state, measurements={'0': [1]})
+    sim = ccq.mps_simulator.MPSSimulator()
+    step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
     assert (
         str(step_result)
-        == """0=1
+        == """0=0
 TensorNetwork([
     Tensor(shape=(2,), inds=('i_0',), tags=set()),
 ])"""
@@ -519,8 +498,7 @@ def test_state_act_on_args_initializer():
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
-        axes=[2],
         log_of_measurement_results={'test': 4},
     )
-    assert s.axes == (2,)
+    assert s.qubits == (cirq.LineQubit(0),)
     assert s.log_of_measurement_results == {'test': 4}

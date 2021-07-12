@@ -32,11 +32,13 @@ from cirq.experiments.xeb_fitting import (
     _fit_exponential_decay,
     fit_exponential_decays,
     before_and_after_characterization,
+    XEBPhasedFSimCharacterizationOptions,
 )
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 
 
-def test_benchmark_2q_xeb_fidelities():
+@pytest.fixture(scope='module')
+def circuits_cycle_depths_sampled_df():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -44,21 +46,50 @@ def test_benchmark_2q_xeb_fidelities():
         )
         for _ in range(2)
     ]
-    cycle_depths = np.arange(3, 50, 9)
+    cycle_depths = np.arange(10, 40 + 1, 10)
 
     sampled_df = sample_2q_xeb_circuits(
         sampler=cirq.Simulator(seed=53), circuits=circuits, cycle_depths=cycle_depths
     )
-    fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+    return circuits, cycle_depths, sampled_df
+
+
+@pytest.mark.parametrize('pass_cycle_depths', (True, False))
+def test_benchmark_2q_xeb_fidelities(circuits_cycle_depths_sampled_df, pass_cycle_depths):
+    circuits, cycle_depths, sampled_df = circuits_cycle_depths_sampled_df
+
+    if pass_cycle_depths:
+        fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+    else:
+        fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits)
     assert len(fid_df) == len(cycle_depths)
-    for _, row in fid_df.iterrows():
-        assert row['cycle_depth'] in cycle_depths
-        assert row['fidelity'] > 0.98
+    assert sorted(fid_df['cycle_depth'].unique()) == cycle_depths.tolist()
+    assert np.all(fid_df['fidelity'] > 0.98)
 
     fit_df = fit_exponential_decays(fid_df)
     for _, row in fit_df.iterrows():
         assert list(row['cycle_depths']) == list(cycle_depths)
         assert len(row['fidelities']) == len(cycle_depths)
+
+
+def test_benchmark_2q_xeb_subsample_depths(circuits_cycle_depths_sampled_df):
+    circuits, _, sampled_df = circuits_cycle_depths_sampled_df
+    cycle_depths = [10, 20]
+    fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+    assert len(fid_df) == len(cycle_depths)
+    assert sorted(fid_df['cycle_depth'].unique()) == cycle_depths
+
+    cycle_depths = [11, 21]
+    with pytest.raises(ValueError):
+        _ = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+
+    cycle_depths = [10, 100_000]
+    with pytest.raises(ValueError):
+        _ = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+
+    cycle_depths = []
+    with pytest.raises(ValueError):
+        _ = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
 
 
 def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
@@ -315,3 +346,66 @@ def test_fit_exponential_decays_negative_fids():
     assert layer_fid == 0
     assert a_std == np.inf
     assert layer_fid_std == np.inf
+
+
+def test_options_with_defaults_from_gate():
+    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.ISWAP ** 0.5)
+    np.testing.assert_allclose(options.theta_default, -np.pi / 4)
+    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.ISWAP ** -0.5)
+    np.testing.assert_allclose(options.theta_default, np.pi / 4)
+
+    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(
+        cirq.FSimGate(0.1, 0.2)
+    )
+    assert options.theta_default == 0.1
+    assert options.phi_default == 0.2
+
+    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(
+        cirq.PhasedFSimGate(0.1)
+    )
+    assert options.theta_default == 0.1
+    assert options.phi_default == 0.0
+    assert options.zeta_default == 0.0
+
+    with pytest.raises(ValueError):
+        _ = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.CZ)
+
+
+def test_options_defaults_set():
+    o1 = XEBPhasedFSimCharacterizationOptions(
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_theta=False,
+        characterize_phi=False,
+    )
+    assert o1.defaults_set() is False
+    with pytest.raises(ValueError):
+        o1.get_initial_simplex_and_names()
+
+    o2 = XEBPhasedFSimCharacterizationOptions(
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_theta=False,
+        characterize_phi=False,
+        zeta_default=0.1,
+        chi_default=0.2,
+        gamma_default=0.3,
+    )
+    with pytest.raises(ValueError):
+        _ = o2.defaults_set()
+
+    o3 = XEBPhasedFSimCharacterizationOptions(
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_theta=False,
+        characterize_phi=False,
+        zeta_default=0.1,
+        chi_default=0.2,
+        gamma_default=0.3,
+        theta_default=0.0,
+        phi_default=0.0,
+    )
+    assert o3.defaults_set() is True

@@ -13,8 +13,19 @@
 # limitations under the License.
 """Classes and methods for quantum states."""
 
+from typing import (
+    Any,
+    cast,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+)
 import itertools
-from typing import Any, cast, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, Union
 
 import numpy as np
 
@@ -82,10 +93,7 @@ class QuantumState:
             ValueError: Invalid quantum state.
         """
         if qid_shape is None:
-            # coverage: ignore
-            raise NotImplementedError(
-                'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
-            )
+            qid_shape = infer_qid_shape(data)
         self._data = data
         self._qid_shape = qid_shape
         self._dim = np.prod(self.qid_shape, dtype=int).item()
@@ -250,26 +258,30 @@ def quantum_state(
         qid_shape = actual_qid_shape
     elif isinstance(state, int):
         if qid_shape is None:
-            # TODO: remove coverage: ignore once qid shape inference is added
-            # coverage: ignore
             raise ValueError(
                 'The qid shape of the given state is ambiguous. '
                 'Please specify the qid shape explicitly using '
                 'the qid_shape argument.'
             )
         dim = np.prod(qid_shape, dtype=int).item()
+        if not 0 <= state < dim:
+            raise ValueError(
+                f'Computational basis state is out of range.\n'
+                f'\n'
+                f'state={state!r}\n'
+                f'MIN_STATE=0\n'
+                f'MAX_STATE=product(qid_shape)-1={dim-1}\n'
+                f'qid_shape={qid_shape!r}\n'
+            )
         if dtype is None:
             dtype = DEFAULT_COMPLEX_DTYPE
         data = one_hot(index=state, shape=(dim,), dtype=dtype)
     else:
         data = np.array(state, copy=False)
         if qid_shape is None:
-            # coverage: ignore
-            raise NotImplementedError(
-                'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
-            )
-        if data.ndim == 1:
-            if len(qid_shape) == np.prod(qid_shape, dtype=int) and data.dtype.kind != 'c':
+            qid_shape = infer_qid_shape(state)
+        if data.ndim == 1 and data.dtype.kind != 'c':
+            if len(qid_shape) == np.prod(qid_shape, dtype=int):
                 raise ValueError(
                     'Because len(qid_shape) == product(qid_shape), it is '
                     'ambiguous whether the given state contains '
@@ -335,6 +347,248 @@ def _infer_qid_shape_from_dimension(dim: int) -> Tuple[int, ...]:
         return (2,) * n_qubits
     # dim is not a power of 2, assume a single qudit
     return (dim,)
+
+
+_NON_INT_STATE_LIKE = Union[
+    # Per-qudit computational basis values.
+    Sequence[int],
+    # Explicit state vector or state tensor.
+    np.ndarray,
+    Sequence[Union[int, float, complex]],
+    # Product state object
+    'cirq.ProductState',
+    # Quantum state object
+    'cirq.QuantumState',
+]
+
+
+def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
+    """Infer the qid shape of a set of states.
+
+    This is a heuristic to determine a qid shape compatible with all of the
+    given states. It works by attempting to find the intersection of the sets
+    of potential qid shapes for each given state. It may fail (raising an
+    error) even if there is a unique compatible qid shape. If the dimension of
+    a state vector or density matrix (but not state tensor) is a power of 2,
+    then the state space is assumed to be composed of qubits; otherwise, it is
+    assumed to be composed of a single qudit. If the qid shape is ambiguous,
+    an error is raised.
+
+    Args:
+        states: The states for which to infer the qid shape.
+
+    Returns:
+        The inferred qid shape.
+
+    Raises:
+        ValueError: The qid shape of the given states is ambiguous.
+        ValueError: Failed to infer the qid shape of the given states.
+    """
+    if not states:
+        raise ValueError('No states were specified.')
+
+    integer_states: List[int] = []
+    non_integer_states: List[_NON_INT_STATE_LIKE] = []
+    for state in states:
+        if isinstance(state, int):
+            integer_states.append(state)
+        else:
+            non_integer_states.append(state)
+
+    # if all states are specified as integers, use the minimal possible dimensions
+    if not non_integer_states:
+        return (max(integer_states) + 1,)
+
+    # attempt to infer qid shape from non-integer states
+    potential_shapes = _potential_qid_shapes(non_integer_states[0])
+    for state in non_integer_states[1:]:
+        potential_shapes = potential_shapes.intersection_subset(_potential_qid_shapes(state))
+    qid_shape = potential_shapes.infer_qid_shape()
+    if qid_shape is None:
+        raise ValueError(
+            'Failed to infer the qid shape of the given states. '
+            'If you think there is an unambiguous result for this case, please raise '
+            'an issue at https://github.com/quantumlib/Cirq.'
+        )
+
+    # check if the shape is compatible with the states specified as integers
+    if integer_states and np.prod(qid_shape, dtype=int) <= max(integer_states):
+        raise ValueError(
+            'Failed to infer the qid shape of the given states. '
+            f'The given integer state {max(integer_states)} is too high for the '
+            f'qid shape {qid_shape} inferred from some other given states.'
+        )
+
+    return qid_shape
+
+
+def _potential_qid_shapes(state: _NON_INT_STATE_LIKE) -> '_QidShapeSet':
+    """Return a set of qid shapes compatible with a given state."""
+    if isinstance(state, QuantumState):
+        return _QidShapeSet(explicit_qid_shapes={state.qid_shape})
+    if isinstance(state, value.ProductState):
+        return _QidShapeSet(explicit_qid_shapes={(2,) * len(state)})
+
+    if isinstance(state, Sequence):
+        state = np.array(state)
+    if state.ndim == 1:
+        (dim,) = state.shape
+        min_qudit_dimensions = None
+        if state.dtype.kind[0] in '?bBiu':
+            # could be per-qudit computational basis values
+            min_qudit_dimensions = tuple(state.astype(int, copy=False) + 1)
+        return _QidShapeSet(
+            unfactorized_total_dimension=dim, min_qudit_dimensions=min_qudit_dimensions
+        )
+    if state.ndim == 2:
+        dim, _ = state.shape
+        return _QidShapeSet(
+            # could be a state tensor
+            explicit_qid_shapes={state.shape},
+            # could also be a density matrix
+            unfactorized_total_dimension=dim,
+        )
+    # state tensor
+    return _QidShapeSet(explicit_qid_shapes={state.shape})
+
+
+class _QidShapeSet:
+    """A potentially infinite set of possible qid shapes."""
+
+    def __init__(
+        self,
+        *,
+        explicit_qid_shapes: Optional[Set[Tuple[int, ...]]] = None,
+        unfactorized_total_dimension: Optional[int] = None,
+        min_qudit_dimensions: Optional[Tuple[int, ...]] = None,
+    ) -> None:
+        """Create a qid shape set.
+
+        The set of qid shapes is represented as the union of a set of shapes
+        specified explicitly in `explicit_qid_shapes`, a set of shapes
+        specified implicitly in `unfactorized_total_dimension`, and a set of
+        shapes specified implicitly in `min_qudit_dimensions`.
+
+        Args:
+            explicit_qid_shapes: An explicit set of qid shapes.
+            unfactorized_total_dimension: A number representing the dimension
+                of the Hilbert space. The associated qid shapes are those compatible
+                with this dimension, i.e., those for which the product of the
+                individual qudit dimensions is equal to the Hilbert space
+                dimension.
+            min_qudit_dimensions: A tuple of integers (n_1, ..., n_k).
+                The associated qid shapes are
+                {(m_1, ..., m_k) : m_i ≥ n_i for all i}.
+        """
+        self.explicit_qid_shapes = explicit_qid_shapes or set()
+        self.unfactorized_total_dimension = unfactorized_total_dimension
+        self.min_qudit_dimensions = min_qudit_dimensions
+
+    def intersection_subset(self, other: '_QidShapeSet'):
+        """Return a subset of the intersection with other qid shape set."""
+        explicit_qid_shapes = self.explicit_qid_shapes & other.explicit_qid_shapes
+        unfactorized_total_dimension = None
+        min_qudit_dimensions = None
+
+        if self.explicit_qid_shapes and other.unfactorized_total_dimension is not None:
+            explicit_qid_shapes |= _intersection_explicit_with_unfactorized_qid_shapes(
+                self.explicit_qid_shapes, other.unfactorized_total_dimension
+            )
+
+        if self.explicit_qid_shapes and other.min_qudit_dimensions:
+            explicit_qid_shapes |= _intersection_explicit_with_min_qudit_dims_qid_shapes(
+                self.explicit_qid_shapes, other.min_qudit_dimensions
+            )
+
+        if self.unfactorized_total_dimension is not None and other.explicit_qid_shapes:
+            explicit_qid_shapes |= _intersection_explicit_with_unfactorized_qid_shapes(
+                other.explicit_qid_shapes, self.unfactorized_total_dimension
+            )
+
+        if self.unfactorized_total_dimension == other.unfactorized_total_dimension:
+            unfactorized_total_dimension = self.unfactorized_total_dimension
+
+        if self.min_qudit_dimensions is not None and other.explicit_qid_shapes:
+            explicit_qid_shapes |= _intersection_explicit_with_min_qudit_dims_qid_shapes(
+                other.explicit_qid_shapes, self.min_qudit_dimensions
+            )
+
+        if self.min_qudit_dimensions is not None and other.min_qudit_dimensions is not None:
+            min_qudit_dimensions = _intersection_min_qudit_dims_qid_shapes(
+                self.min_qudit_dimensions, other.min_qudit_dimensions
+            )
+
+        # Above, we only intersected 7 pairs of sets even though there are 9 possible pairs.
+        # We omitted the 2 pairs involving unfactorized total dimension and min qudit dimensions
+        # because that calculation is inefficient.
+
+        return _QidShapeSet(
+            explicit_qid_shapes=explicit_qid_shapes,
+            unfactorized_total_dimension=unfactorized_total_dimension,
+            min_qudit_dimensions=min_qudit_dimensions,
+        )
+
+    def _raise_value_error_if_ambiguous(self) -> None:
+        """Raise an error if the qid shape is ambiguous and cannot be inferred."""
+        if self.min_qudit_dimensions is not None:
+            raise ValueError(
+                'Qid shape is ambiguous: '
+                f'Could be any shape on {len(self.min_qudit_dimensions)} qudits '
+                'with the corresponding qudit dimensions being at least '
+                f'{self.min_qudit_dimensions}.'
+            )
+        if len(self.explicit_qid_shapes) > 1:
+            # coverage: ignore
+            raise ValueError(
+                f'Qid shape is ambiguous: Could be any one of {self.explicit_qid_shapes}.'
+            )
+        if self.explicit_qid_shapes and self.unfactorized_total_dimension is not None:
+            explicit_shape = next(iter(self.explicit_qid_shapes))
+            raise ValueError(
+                'Qid shape is ambiguous: '
+                f'Could be {explicit_shape} or any shape compatible with '
+                f'a Hilbert space dimension of {self.unfactorized_total_dimension}.'
+            )
+
+    def infer_qid_shape(self) -> Optional[Tuple[int, ...]]:
+        """Return a qid shape from this set, or None."""
+        self._raise_value_error_if_ambiguous()
+        if self.unfactorized_total_dimension is not None:
+            return _infer_qid_shape_from_dimension(self.unfactorized_total_dimension)
+        if len(self.explicit_qid_shapes) == 0:
+            return None
+        return self.explicit_qid_shapes.pop()
+
+
+def _intersection_explicit_with_unfactorized_qid_shapes(
+    explicit_qid_shapes: Set[Tuple[int, ...]], unfactorized_total_dimension: int
+) -> Set[Tuple[int, ...]]:
+    return {
+        qid_shape
+        for qid_shape in explicit_qid_shapes
+        if np.prod(qid_shape, dtype=int) == unfactorized_total_dimension
+    }
+
+
+def _intersection_explicit_with_min_qudit_dims_qid_shapes(
+    explicit_qid_shapes: Set[Tuple[int, ...]], min_qudit_dimensions: Tuple[int, ...]
+) -> Set[Tuple[int, ...]]:
+    return {
+        qid_shape
+        for qid_shape in explicit_qid_shapes
+        if len(qid_shape) == len(min_qudit_dimensions)
+        and all(dim1 >= dim2 for dim1, dim2 in zip(qid_shape, min_qudit_dimensions))
+    }
+
+
+def _intersection_min_qudit_dims_qid_shapes(
+    min_qudit_dimensions1: Tuple[int, ...], min_qudit_dimensions2: Tuple[int, ...]
+) -> Optional[Tuple[int, ...]]:
+    if len(min_qudit_dimensions1) == len(min_qudit_dimensions2):
+        return tuple(
+            max(dim1, dim2) for dim1, dim2 in zip(min_qudit_dimensions1, min_qudit_dimensions2)
+        )
+    return None
 
 
 def bloch_vector_from_state_vector(
@@ -550,7 +804,14 @@ def to_valid_state_vector(
 
     # Check shape.
     if num_qubits is None and qid_shape is None:
-        raise ValueError('Must specify `num_qubits` or `qid_shape`.')
+        try:
+            qid_shape = infer_qid_shape(state_rep)
+        except:
+            raise ValueError(
+                'Failed to infer the qid shape of the given state. '
+                'Please specify the qid shape explicitly using either the '
+                '`num_qubits` or `qid_shape` argument.'
+            )
     if qid_shape is None:
         qid_shape = (2,) * cast(int, num_qubits)
     else:
@@ -563,88 +824,10 @@ def to_valid_state_vector(
             'qid_shape is <{!r}>.'.format(num_qubits, qid_shape)
         )
 
-    tensor = _state_like_to_state_tensor(
-        state_like=state_rep, qid_shape=qid_shape, dtype=dtype, atol=atol
-    )
-    return tensor.reshape(tensor.size)  # Flatten.
-
-
-def _state_like_to_state_tensor(
-    *,
-    state_like: 'cirq.STATE_VECTOR_LIKE',
-    qid_shape: Tuple[int, ...],
-    dtype: Optional['DTypeLike'],
-    atol: float,
-) -> np.ndarray:
-
-    if isinstance(state_like, int):
-        return _computational_basis_state_to_state_tensor(
-            state_rep=state_like, qid_shape=qid_shape, dtype=dtype
-        )
-
-    if isinstance(state_like, value.ProductState):
-        return state_like.state_vector()
-
-    if isinstance(state_like, Sequence):
-        converted = np.array(state_like)
-        if converted.shape:
-            state_like = converted
-    if isinstance(state_like, np.ndarray):
-        prod = np.prod(qid_shape, dtype=int)
-
-        if len(qid_shape) == prod and state_like.dtype.kind != 'c':
-            raise ValueError(
-                'Because len(qid_shape) == product(qid_shape), it is '
-                'ambiguous whether the given `state_like` contains '
-                'state vector amplitudes or per-qudit computational basis '
-                'values. In this situation you are required to pass '
-                'in a state vector that is a numpy array with a complex '
-                'dtype.'
-            )
-
-        if state_like.shape == (prod,) or state_like.shape == qid_shape:
-            return _amplitudes_to_validated_state_tensor(
-                state_vector=state_like, qid_shape=qid_shape, dtype=dtype, atol=atol
-            )
-
-        if state_like.shape == (len(qid_shape),):
-            return _qudit_values_to_state_tensor(
-                state_vector=state_like, qid_shape=qid_shape, dtype=dtype
-            )
-
-        raise ValueError(
-            '`state_like` was convertible to a numpy array, but its '
-            'shape was neither the shape of a list of computational basis '
-            'values (`len(qid_shape)`) nor the shape of a list or tensor of '
-            'state vector amplitudes (`qid_shape` or `(product(qid_shape),)`.\n'
-            '\n'
-            f'qid_shape={qid_shape!r}\n'
-            f'np.array(state_like).shape={state_like.shape}\n'
-            f'np.array(state_like)={state_like}\n'
-        )
-
-    raise TypeError(
-        f'Unrecognized type of STATE_LIKE. The given `state_like` was '
-        f'not a computational basis value, list of computational basis values, '
-        f'list of amplitudes, or tensor of amplitudes.\n'
-        f'\n'
-        f'type(state_like)={type(state_like)}\n'
-        f'qid_shape={qid_shape!r}'
-    )
-
-
-def _amplitudes_to_validated_state_tensor(
-    *,
-    state_vector: np.ndarray,
-    qid_shape: Tuple[int, ...],
-    dtype: Optional['DTypeLike'],
-    atol: float,
-) -> np.ndarray:
-    if dtype is None:
-        dtype = DEFAULT_COMPLEX_DTYPE
-    result = np.array(state_vector, dtype=dtype).reshape(qid_shape)
-    validate_normalized_state_vector(result, qid_shape=qid_shape, dtype=dtype, atol=atol)
-    return result
+    if isinstance(state_rep, np.ndarray):
+        state_rep = np.copy(state_rep)
+    state = quantum_state(state_rep, qid_shape, validate=True, dtype=dtype, atol=atol)
+    return cast(np.ndarray, state.state_vector())
 
 
 def _qudit_values_to_state_tensor(
@@ -676,24 +859,6 @@ def _qudit_values_to_state_tensor(
     if dtype is None:
         dtype = DEFAULT_COMPLEX_DTYPE
     return one_hot(index=tuple(int(e) for e in state_vector), shape=qid_shape, dtype=dtype)
-
-
-def _computational_basis_state_to_state_tensor(
-    *, state_rep: int, qid_shape: Tuple[int, ...], dtype: Optional['DTypeLike']
-) -> np.ndarray:
-    n = np.prod(qid_shape, dtype=int).item()
-    if not 0 <= state_rep < n:
-        raise ValueError(
-            f'Computational basis state is out of range.\n'
-            f'\n'
-            f'state={state_rep!r}\n'
-            f'MIN_STATE=0\n'
-            f'MAX_STATE=product(qid_shape)-1={n-1}\n'
-            f'qid_shape={qid_shape!r}\n'
-        )
-    if dtype is None:
-        dtype = DEFAULT_COMPLEX_DTYPE
-    return one_hot(index=state_rep, shape=n, dtype=dtype).reshape(qid_shape)
 
 
 def validate_normalized_state_vector(

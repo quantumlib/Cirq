@@ -16,7 +16,6 @@ import pytest
 
 import cirq
 import cirq.testing
-from cirq.testing.deprecation import assert_deprecated
 
 
 def test_validation():
@@ -291,6 +290,20 @@ def test_with_measurement_keys():
     assert new_moment.operations[1] == cirq.measure(b, key='p2')
 
 
+def test_with_key_path():
+    a, b = cirq.LineQubit.range(2)
+    m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'))
+
+    new_moment = cirq.with_key_path(m, ('a', 'b'))
+
+    assert new_moment.operations[0] == cirq.measure(
+        a, key=cirq.MeasurementKey.parse_serialized('a:b:m1')
+    )
+    assert new_moment.operations[1] == cirq.measure(
+        b, key=cirq.MeasurementKey.parse_serialized('a:b:m2')
+    )
+
+
 def test_copy():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -320,6 +333,25 @@ def test_container_methods():
     assert cirq.H(b) in m
 
     assert len(m) == 2
+
+
+def test_decompose():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    m = cirq.Moment(cirq.X(a), cirq.X(b))
+    assert list(cirq.decompose(m)) == list(m.operations)
+
+
+def test_measurement_keys():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    m = cirq.Moment(cirq.X(a), cirq.X(b))
+    assert cirq.measurement_keys(m) == set()
+    assert not cirq.is_measurement(m)
+
+    m2 = cirq.Moment(cirq.measure(a, b, key='foo'))
+    assert cirq.measurement_keys(m2) == {'foo'}
+    assert cirq.is_measurement(m2)
 
 
 def test_bool():
@@ -585,6 +617,3 @@ def test_transform_qubits():
     assert original.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
-    with assert_deprecated('Use qubit_map instead', deadline="v0.11"):
-        # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
-        assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
