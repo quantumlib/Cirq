@@ -129,7 +129,7 @@ class T1DecayResult:
             return t1
         except RuntimeError:
             warnings.warn("Optimal parameters could not be found for curve fit", RuntimeWarning)
-            return 1.0
+            return 0.0
 
     def plot(
         self, ax: Optional[plt.Axes] = None, include_fit: bool = False, **plot_kwargs: Any
