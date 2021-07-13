@@ -22,9 +22,6 @@ class DummyArgs(cirq.ActOnArgs):
     def __init__(self):
         super().__init__(qubits=cirq.LineQubit.range(2))
 
-    def copy(self):
-        pass
-
     def sample(self, qubits, repetitions=1, seed=None):
         pass
 

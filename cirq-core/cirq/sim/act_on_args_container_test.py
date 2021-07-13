@@ -35,34 +35,24 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _act_on_fallback_(self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool):
         return True
 
-    def kronecker_product(self, other: 'EmptyActOnArgs') -> 'EmptyActOnArgs':
-        return EmptyActOnArgs(
-            qubits=self.qubits + other.qubits,
-            logs=self.log_of_measurement_results,
-        )
+    def _on_copy(self, args):
+        pass
 
-    def factor(
+    def _on_kron(self, other, target):
+        pass
+
+    def _on_transpose(self, qubits, target):
+        pass
+
+    def _on_factor(
         self,
-        qubits: Sequence['cirq.Qid'],
-        *,
+        qubits,
+        extracted,
+        remainder,
         validate=True,
         atol=1e-07,
-    ) -> Tuple['EmptyActOnArgs', 'EmptyActOnArgs']:
-        extracted_args = EmptyActOnArgs(
-            qubits=qubits,
-            logs=self.log_of_measurement_results,
-        )
-        remainder_args = EmptyActOnArgs(
-            qubits=tuple(q for q in self.qubits if q not in qubits),
-            logs=self.log_of_measurement_results,
-        )
-        return extracted_args, remainder_args
-
-    def transpose_to_qubit_order(self, qubits: Sequence['cirq.Qid']) -> 'EmptyActOnArgs':
-        return EmptyActOnArgs(
-            qubits=qubits,
-            logs=self.log_of_measurement_results,
-        )
+    ):
+        pass
 
     def sample(self, qubits, repetitions=1, seed=None):
         pass
