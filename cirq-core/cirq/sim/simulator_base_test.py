@@ -13,6 +13,7 @@
 # limitations under the License.
 import math
 from typing import List, Dict, Any, Sequence, Tuple
+from typing import List, Dict, Any, Sequence, Tuple, Union
 
 import numpy as np
 import pytest
@@ -143,7 +144,7 @@ class CountingSimulator(
         self,
         params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: CountingActOnArgs,
+        final_simulator_state: Union[CountingStepResult, CountingActOnArgs],
     ) -> CountingTrialResult:
         return CountingTrialResult(params, measurements, final_simulator_state)
 

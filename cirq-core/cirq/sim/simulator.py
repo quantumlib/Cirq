@@ -542,7 +542,7 @@ class SimulatesIntermediateState(
             yield self._create_simulator_trial_result(
                 params=param_resolver,
                 measurements=measurements,
-                final_simulator_state=step_result._simulator_state(),
+                final_simulator_state=step_result,
             )
 
     def simulate_moment_steps(
@@ -656,7 +656,7 @@ class SimulatesIntermediateState(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: TSimulatorState,
+        final_simulator_state: Union[TStepResult, TSimulatorState],
     ) -> TSimulationTrialResult:
         """This method can be implemented to create a trial result.
 
@@ -818,7 +818,7 @@ class SimulationTrialResult:
     ) -> None:
         self.params = params
         self.measurements = measurements
-        self._final_simulator_state = final_simulator_state
+        self._step_result_or_state = final_simulator_state
 
     def __repr__(self) -> str:
         return (
@@ -826,6 +826,14 @@ class SimulationTrialResult:
             f'measurements={self.measurements!r}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )
+
+    @property
+    def _final_simulator_state(self):
+        if isinstance(self._step_result_or_state, StepResult) or hasattr(
+            self._step_result_or_state, "_simulator_state"
+        ):
+            self._step_result_or_state = self._step_result_or_state._simulator_state()
+        return self._step_result_or_state
 
     def __str__(self) -> str:
         def bitstring(vals):
