@@ -105,7 +105,7 @@ class CliffordSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state,
+        final_simulator_state: Union['CliffordSimulatorStepResult', 'CliffordState'],
     ):
 
         return CliffordTrialResult(
@@ -118,13 +118,15 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'CliffordState',
+        final_simulator_state: Union['CliffordSimulatorStepResult', 'CliffordState'],
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
-        self.final_state = final_simulator_state
+    @property
+    def final_state(self):
+        return self._final_simulator_state
 
     def __str__(self) -> str:
         samples = super().__str__()
