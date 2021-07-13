@@ -50,7 +50,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
-        """
+        """Inits ActOnArgs.
+
         Args:
             prng: The pseudo random number generator to use for probabilistic
                 effects.

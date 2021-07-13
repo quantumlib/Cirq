@@ -66,7 +66,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'] = None,
         axes: Iterable[int] = None,
     ):
-        """
+        """Inits ActOnDensityMatrixArgs.
+
         Args:
             target_tensor: The state vector to act on, stored as a numpy array
                 with one dimension for each qubit in the system. Operations are

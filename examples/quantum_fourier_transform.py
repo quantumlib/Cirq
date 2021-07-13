@@ -1,3 +1,5 @@
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 """
 Creates and simulates a circuit for Quantum Fourier Transform(QFT)
 on a 4 qubit system.
@@ -20,6 +22,7 @@ FinalState
 [0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j
  0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j]
 """
+# pylint: enable=docstring-first-line-empty
 
 import numpy as np
 
