@@ -37,6 +37,9 @@ class DummyActOnArgs(cirq.ActOnArgs):
     def _act_on_fallback_(self, action, qubits, allow_decompose):
         return self.fallback_result
 
+    def sample(self, qubits, repetitions=1, seed=None):
+        pass
+
 
 op = cirq.X(cirq.LineQubit(0))
 

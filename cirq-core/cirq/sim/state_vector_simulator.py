@@ -98,7 +98,8 @@ class SimulatesIntermediateStateVector(
 
 
 class StateVectorStepResult(
-    simulator.StepResult['StateVectorSimulatorState'], metaclass=abc.ABCMeta
+    simulator_base.StepResultBase['StateVectorSimulatorState', 'cirq.ActOnStateVectorArgs'],
+    metaclass=abc.ABCMeta,
 ):
     @abc.abstractmethod
     def _simulator_state(self) -> 'StateVectorSimulatorState':
