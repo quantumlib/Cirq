@@ -39,7 +39,7 @@ def estimate_parallel_readout_errors(
 
     """Estimate readout error for qubits simultaneously.
 
-    For each trial, prepare a bitstring of random |0> and |1> states for
+    For each trial, prepare a bitstring of random |0〉and |1〉states for
     each state.  Measure each qubit.  Capture the errors per qubit of
     zero and one state over each triel.
 
@@ -62,7 +62,10 @@ def estimate_parallel_readout_errors(
         A ReadoutExperimentResult storing the readout error
         probabilities as well as the number of repetitions used to estimate
         the probabilities. Also stores a timestamp indicating the time when
-        data was finished being collected from the sampler.
+        data was finished being collected from the sampler.  Note that,
+        if there did not exist a trial where a given qubit was set to |0〉,
+        the zero-state error will be set to `nan` (not a number).  Likewise
+        for qubits with no |1〉trial and one-state error.
     """
     qubits = list(qubits)
 
@@ -70,13 +73,13 @@ def estimate_parallel_readout_errors(
         raise ValueError("Must provide non-zero trials for readout calibration.")
     if repetitions <= 0:
         raise ValueError("Must provide non-zero repetition for readout calibration.")
+    if bit_strings is None:
+        bit_strings = [random.getrandbits(trials) for _ in qubits]
     if len(bit_strings) != len(qubits):
         raise ValueError(
             f'If providing bit_strings, # of bit strings ({len(bit_strings)}) '
             f'must equal # of qubits ({len(qubits)})'
         )
-    if bit_strings is None:
-        bit_strings = [random.getrandbits(trials) for _ in qubits]
 
     all_circuits = []
     all_sweeps: List[study.Sweepable] = []
@@ -84,12 +87,11 @@ def estimate_parallel_readout_errors(
         if trials_per_batch <= 0:
             raise ValueError("Must provide non-zero trials_per_batch for readout calibration.")
         num_batchs = trials // trials_per_batch
-        if trials % trials_per_batch > 1:
+        if trials % trials_per_batch > 0:
             num_batchs += 1
     else:
         num_batchs = 1
         trials_per_batch = trials
-
     for batch in range(num_batchs):
         circuit = circuits.Circuit()
         single_sweeps = []

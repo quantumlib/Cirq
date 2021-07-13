@@ -15,7 +15,6 @@ from typing import List
 import pytest
 
 import numpy as np
-
 import cirq
 
 
@@ -147,4 +146,21 @@ def test_estimate_parallel_readout_errors_with_noise():
     for error in result.zero_state_errors.values():
         assert 0.08 < error < 0.12
     assert result.repetitions == repetitions
+    assert isinstance(result.timestamp, float)
+
+
+def test_estimate_parallel_readout_errors_missing_qubits():
+    qubits = cirq.LineQubit.range(4)
+
+    result = cirq.estimate_parallel_readout_errors(
+        cirq.ZerosSampler(),
+        qubits=qubits,
+        repetitions=2000,
+        trials=1,
+        bit_strings=[0, 0, 0, 0],
+    )
+    assert result.zero_state_errors == {q: 0 for q in qubits}
+    # Trial did not include a one-state
+    assert all(np.isnan(result.one_state_errors[q]) for q in qubits)
+    assert result.repetitions == 2000
     assert isinstance(result.timestamp, float)
