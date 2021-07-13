@@ -49,6 +49,8 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     "docs/tutorials/educators/intro.ipynb",
     # Cirq web is a new module, notebook will be moved to docs/
     "cirq-web/example.ipynb",
+    # cirq-rigetti is not released yet
+    "**/rigetti/*.ipynb",
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -59,7 +61,13 @@ SKIP_NOTEBOOKS = [
     "**/google/*.ipynb",
     "**/ionq/*.ipynb",
     "**/pasqal/*.ipynb",
-    "**/rigetti/*.ipynb",
+
+    # Rigetti uses local simulation with docker, so should work
+    # if you run into issues locally, run
+    # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
+
+    # "**/rigetti/*.ipynb",
+
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
