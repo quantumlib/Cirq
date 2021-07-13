@@ -66,8 +66,6 @@ def estimate_parallel_readout_errors(
     """
     qubits = list(qubits)
 
-    if bit_strings is None:
-        bit_strings = [random.getrandbits(trials) for _ in qubits]
     if trials <= 0:
         raise ValueError("Must provide non-zero trials for readout calibration.")
     if repetitions <= 0:
@@ -77,6 +75,8 @@ def estimate_parallel_readout_errors(
             f'If providing bit_strings, # of bit strings ({len(bit_strings)}) '
             f'must equal # of qubits ({len(qubits)})'
         )
+    if bit_strings is None:
+        bit_strings = [random.getrandbits(trials) for _ in qubits]
 
     all_circuits = []
     all_sweeps: List[study.Sweepable] = []
