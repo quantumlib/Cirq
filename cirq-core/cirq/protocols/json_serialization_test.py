@@ -68,6 +68,7 @@ TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
             "cirq.pasqal", deadline="v0.14", count=None
         ),
     ),
+    'cirq_rigetti': None,
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,
 }
