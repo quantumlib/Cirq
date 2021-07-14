@@ -129,7 +129,7 @@ class T1DecayResult:
             return t1
         except RuntimeError:
             warnings.warn("Optimal parameters could not be found for curve fit", RuntimeWarning)
-            return 0.0
+            return np.nan
 
     def plot(
         self, ax: Optional[plt.Axes] = None, include_fit: bool = False, **plot_kwargs: Any
@@ -157,12 +157,9 @@ class T1DecayResult:
 
         ax.plot(xs, ts / (fs + ts), 'ro-', **plot_kwargs)
 
-        if include_fit:
-            try:
-                ax.plot(xs, np.exp(-xs / self.constant), label='curve fit')
-                plt.legend()
-            except:
-                pass  # Warning from constant calculation will propagate
+        if include_fit and not np.isnan(self.constant):
+            ax.plot(xs, np.exp(-xs / self.constant), label='curve fit')
+            plt.legend()
 
         ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
         ax.set_ylabel('Excited State Probability')
