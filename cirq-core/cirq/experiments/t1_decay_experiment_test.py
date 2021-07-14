@@ -210,7 +210,7 @@ def test_curve_fit_plot_works():
     good_fit.plot(include_fit=True)
 
 
-def test_curve_fit_plot_error():
+def test_curve_fit_plot_warning():
     bad_fit = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
