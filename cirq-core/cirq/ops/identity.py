@@ -20,14 +20,14 @@ import sympy
 
 from cirq import protocols, value
 from cirq._doc import document
-from cirq.ops import gate_features, raw_types
+from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
 
 
 @value.value_equality
-class IdentityGate(gate_features.SupportsOnEachGate, raw_types.Gate):
+class IdentityGate(raw_types.Gate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the

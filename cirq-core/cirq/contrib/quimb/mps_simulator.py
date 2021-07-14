@@ -85,10 +85,11 @@ class MPSSimulator(
             seed=seed,
         )
 
-    def _create_act_on_args(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ) -> 'MPSState':
         """Creates MPSState args for simulating the Circuit.
 
@@ -111,16 +112,14 @@ class MPSSimulator(
             simulation_options=self.simulation_options,
             grouping=self.grouping,
             initial_state=initial_state,
+            log_of_measurement_results=logs,
         )
 
     def _create_step_result(
         self,
-        sim_state: 'MPSState',
-        qubit_map: Dict['cirq.Qid', int],
+        sim_state: 'cirq.OperationTarget[MPSState]',
     ):
-        return MPSSimulatorStepResult(
-            measurements=sim_state.log_of_measurement_results, state=sim_state
-        )
+        return MPSSimulatorStepResult(sim_state)
 
     def _create_simulator_trial_result(
         self,
@@ -167,22 +166,22 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
+class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState']):
     """A `StepResult` that can perform measurements."""
 
-    def __init__(self, state, measurements):
+    def __init__(
+        self,
+        sim_state: 'cirq.OperationTarget[MPSState]',
+    ):
         """Results of a step of the simulator.
         Attributes:
-            state: A MPSState
-            measurements: A dictionary from measurement gate key to measurement
-                results, ordered by the qubits that the measurement operates on.
-            qubit_map: A map from the Qubits in the Circuit to the the index
-                of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state vector (see the state_vector()
-                method).
+            sim_state: The qubit:ActOnArgs lookup for this step.
         """
-        self.measurements = measurements
-        self.state = state.copy()
+        super().__init__(sim_state)
+
+    @property
+    def state(self):
+        return self._merged_sim_state
 
     def __str__(self) -> str:
         def bitstring(vals):
@@ -201,24 +200,6 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
 
     def _simulator_state(self):
         return self.state
-
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-
-        measurements: List[int] = []
-
-        for _ in range(repetitions):
-            measurements.append(
-                self.state.perform_measurement(
-                    qubits, value.parse_random_state(seed), collapse_state_vector=False
-                )
-            )
-
-        return np.array(measurements, dtype=int)
 
 
 @value.value_equality
@@ -317,6 +298,7 @@ class MPSState(ActOnArgs):
             prng=self.prng,
             simulation_options=self.simulation_options,
             grouping=self.grouping,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
@@ -534,3 +516,21 @@ class MPSState(ActOnArgs):
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
         return self.perform_measurement(qubits, self.prng)
+
+    def sample(
+        self,
+        qubits: Sequence[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+
+        measurements: List[List[int]] = []
+
+        for _ in range(repetitions):
+            measurements.append(
+                self.perform_measurement(
+                    qubits, value.parse_random_state(seed), collapse_state_vector=False
+                )
+            )
+
+        return np.array(measurements, dtype=int)

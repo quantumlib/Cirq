@@ -37,7 +37,8 @@ from cirq.experiments.xeb_fitting import (
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 
 
-def test_benchmark_2q_xeb_fidelities():
+@pytest.fixture(scope='module')
+def circuits_cycle_depths_sampled_df():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -45,21 +46,50 @@ def test_benchmark_2q_xeb_fidelities():
         )
         for _ in range(2)
     ]
-    cycle_depths = np.arange(3, 50, 9)
+    cycle_depths = np.arange(10, 40 + 1, 10)
 
     sampled_df = sample_2q_xeb_circuits(
         sampler=cirq.Simulator(seed=53), circuits=circuits, cycle_depths=cycle_depths
     )
-    fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+    return circuits, cycle_depths, sampled_df
+
+
+@pytest.mark.parametrize('pass_cycle_depths', (True, False))
+def test_benchmark_2q_xeb_fidelities(circuits_cycle_depths_sampled_df, pass_cycle_depths):
+    circuits, cycle_depths, sampled_df = circuits_cycle_depths_sampled_df
+
+    if pass_cycle_depths:
+        fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+    else:
+        fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits)
     assert len(fid_df) == len(cycle_depths)
-    for _, row in fid_df.iterrows():
-        assert row['cycle_depth'] in cycle_depths
-        assert row['fidelity'] > 0.98
+    assert sorted(fid_df['cycle_depth'].unique()) == cycle_depths.tolist()
+    assert np.all(fid_df['fidelity'] > 0.98)
 
     fit_df = fit_exponential_decays(fid_df)
     for _, row in fit_df.iterrows():
         assert list(row['cycle_depths']) == list(cycle_depths)
         assert len(row['fidelities']) == len(cycle_depths)
+
+
+def test_benchmark_2q_xeb_subsample_depths(circuits_cycle_depths_sampled_df):
+    circuits, _, sampled_df = circuits_cycle_depths_sampled_df
+    cycle_depths = [10, 20]
+    fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+    assert len(fid_df) == len(cycle_depths)
+    assert sorted(fid_df['cycle_depth'].unique()) == cycle_depths
+
+    cycle_depths = [11, 21]
+    with pytest.raises(ValueError):
+        _ = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+
+    cycle_depths = [10, 100_000]
+    with pytest.raises(ValueError):
+        _ = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+
+    cycle_depths = []
+    with pytest.raises(ValueError):
+        _ = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
 
 
 def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):

@@ -495,7 +495,7 @@ class SimulatesIntermediateState(
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementors of this interface should implement the _base_iterator
+    Implementors of this interface should implement the _core_iterator
     method.
 
     Note that state here refers to simulator state, which is not necessarily
@@ -522,7 +522,7 @@ class SimulatesIntermediateState(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation. This can be
-                either a raw state or a `TActOnArgs`. The form of the
+                either a raw state or an `OperationTarget`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
@@ -613,8 +613,8 @@ class SimulatesIntermediateState(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-    ) -> TActOnArgs:
-        """Creates the ActOnArgs state for a simulator.
+    ) -> 'cirq.OperationTarget[TActOnArgs]':
+        """Creates the OperationTarget state for a simulator.
 
         Custom simulators should implement this method.
 
@@ -627,15 +627,15 @@ class SimulatesIntermediateState(
                 ordering of the computational basis states.
 
         Returns:
-            The ActOnArgs for this simulator.
+            The `OperationTarget` for this simulator.
         """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        sim_state: TActOnArgs,
+        sim_state: 'cirq.OperationTarget[TActOnArgs]',
+        all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -650,7 +650,6 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def _create_simulator_trial_result(

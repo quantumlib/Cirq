@@ -23,6 +23,7 @@ from typing import (
     TYPE_CHECKING,
     Union,
     Sequence,
+    Optional,
 )
 
 import numpy as np
@@ -37,6 +38,7 @@ from cirq.sim import (
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
 
 
 class Simulator(
@@ -143,6 +145,7 @@ class Simulator(
         dtype: Type[np.number] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        split_untangled_states: bool = True,
     ):
         """A sparse matrix simulator.
 
@@ -151,6 +154,9 @@ class Simulator(
                 `numpy.complex64` or `numpy.complex128`.
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
+            split_untangled_states: If True, optimizes simulation by running
+                unentangled qubit sets independently and merging those states
+                at the end.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
@@ -158,12 +164,14 @@ class Simulator(
             dtype=dtype,
             noise=noise,
             seed=seed,
+            split_untangled_states=split_untangled_states,
         )
 
-    def _create_act_on_args(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 
@@ -180,10 +188,9 @@ class Simulator(
         if isinstance(initial_state, act_on_state_vector_args.ActOnStateVectorArgs):
             return initial_state
 
-        num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
         state = qis.to_valid_state_vector(
-            initial_state, num_qubits, qid_shape=qid_shape, dtype=self._dtype
+            initial_state, len(qubits), qid_shape=qid_shape, dtype=self._dtype
         )
 
         return act_on_state_vector_args.ActOnStateVectorArgs(
@@ -191,18 +198,16 @@ class Simulator(
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
             qubits=qubits,
             prng=self._prng,
-            log_of_measurement_results={},
+            log_of_measurement_results=logs,
         )
 
     def _create_step_result(
         self,
-        sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
-        qubit_map: Dict['cirq.Qid', int],
+        sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
     ):
         return SparseSimulatorStep(
-            state_vector=sim_state.target_tensor,
-            measurements=dict(sim_state.log_of_measurement_results),
-            qubit_map=qubit_map,
+            sim_state=sim_state,
+            simulator=self,
             dtype=self._dtype,
         )
 
@@ -235,29 +240,34 @@ class Simulator(
 
 
 class SparseSimulatorStep(
-    state_vector.StateVectorMixin, state_vector_simulator.StateVectorStepResult
+    state_vector.StateVectorMixin,
+    state_vector_simulator.StateVectorStepResult,
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    def __init__(self, state_vector, measurements, qubit_map, dtype):
+    def __init__(
+        self,
+        sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
+        simulator: Simulator,
+        dtype: 'DTypeLike' = np.complex64,
+    ):
         """Results of a step of the simulator.
 
         Args:
-            qubit_map: A map from the Qubits in the Circuit to the the index
-                of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state vector (see the state_vector()
-                method).
-            measurements: A dictionary from measurement gate key to measurement
-                results, ordered by the qubits that the measurement operates on.
+            sim_state: The qubit:ActOnArgs lookup for this step.
+            simulator: The simulator used to create this.
+            dtype: The `numpy.dtype` used by the simulation. One of
+                `numpy.complex64` or `numpy.complex128`.
         """
-        super().__init__(measurements=measurements, qubit_map=qubit_map)
+        qubit_map = {q: i for i, q in enumerate(sim_state.qubits)}
+        super().__init__(sim_state=sim_state, qubit_map=qubit_map)
         self._dtype = dtype
-        size = np.prod(protocols.qid_shape(self), dtype=int)
-        self._state_vector = np.reshape(state_vector, size)
+        self._state_vector: Optional[np.ndarray] = None
+        self._simulator = simulator
 
     def _simulator_state(self) -> state_vector_simulator.StateVectorSimulatorState:
         return state_vector_simulator.StateVectorSimulatorState(
-            qubit_map=self.qubit_map, state_vector=self._state_vector
+            qubit_map=self.qubit_map, state_vector=self.state_vector(copy=False)
         )
 
     def state_vector(self, copy: bool = True):
@@ -293,8 +303,14 @@ class SparseSimulatorStep(
                 parameters from the state vector and store then using False
                 can speed up simulation by eliminating a memory copy.
         """
-        vector = self._simulator_state().state_vector
-        return vector.copy() if copy else vector
+        if self._state_vector is None:
+            self._state_vector = np.array([1])
+            state = self._merged_sim_state
+            if state is not None:
+                vector = state.target_tensor
+                size = np.prod(vector.shape, dtype=int)
+                self._state_vector = np.reshape(vector, size)
+        return self._state_vector.copy() if copy else self._state_vector
 
     def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
         """Set the state vector.
@@ -309,22 +325,4 @@ class SparseSimulatorStep(
                 corresponding to a computational basis state. If a numpy
                 array this is the full state vector.
         """
-        update_state = qis.to_valid_state_vector(
-            state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
-        )
-        np.copyto(self._state_vector, update_state)
-
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        indices = [self.qubit_map[qubit] for qubit in qubits]
-        return state_vector.sample_state_vector(
-            self._state_vector,
-            indices,
-            qid_shape=protocols.qid_shape(self, None),
-            repetitions=repetitions,
-            seed=seed,
-        )
+        self._sim_state = self._simulator._create_act_on_args(state, self._qubits)
