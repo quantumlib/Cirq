@@ -259,6 +259,7 @@ from cirq.ops import (
     QubitOrderOrList,
     QubitPermutationGate,
     reset,
+    reset_each,
     ResetChannel,
     riswap,
     Rx,
@@ -402,6 +403,7 @@ from cirq.sim import (
     StateVectorStepResult,
     StateVectorTrialResult,
     StepResult,
+    StepResultBase,
 )
 
 from cirq.study import (
