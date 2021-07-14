@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Union, Sequence
+from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, List
 
 import numpy as np
 
 from cirq import ops, protocols, qis, study, value
-from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args, simulator_base
+from cirq.sim import (
+    simulator,
+    act_on_density_matrix_args,
+    simulator_base,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -119,7 +123,7 @@ class DensityMatrixSimulator(
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
-        split_untangled_states: bool = False,
+        split_untangled_states: bool = True,
     ):
         """Density matrix simulator.
 
@@ -206,15 +210,12 @@ class DensityMatrixSimulator(
 
     def _create_step_result(
         self,
-        sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
-        qubit_map: Dict['cirq.Qid', int],
+        sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
     ):
         return DensityMatrixStepResult(
-            density_matrix=sim_state.target_tensor,
-            measurements=dict(sim_state.log_of_measurement_results),
-            qubit_map=qubit_map,
+            sim_state=sim_state,
+            simulator=self,
             dtype=self._dtype,
-            split_untangled_states=self._split_untangled_states,
         )
 
     def _create_simulator_trial_result(
@@ -262,53 +263,42 @@ class DensityMatrixSimulator(
         return swept_evs
 
 
-class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState']):
+class DensityMatrixStepResult(
+    simulator_base.StepResultBase[
+        'DensityMatrixSimulatorState', act_on_density_matrix_args.ActOnDensityMatrixArgs
+    ]
+):
     """A single step in the simulation of the DensityMatrixSimulator.
 
     Attributes:
-        qubit_map: A map from the Qubits in the Circuit to the the index
-            of this qubit for a canonical ordering. This canonical ordering
-            is used to define the state vector (see the state_vector()
-            method).
         measurements: A dictionary from measurement gate key to measurement
             results, ordered by the qubits that the measurement operates on.
     """
 
     def __init__(
         self,
-        density_matrix: np.ndarray,
-        measurements: Dict[str, np.ndarray],
-        qubit_map: Dict[ops.Qid, int],
+        sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
+        simulator: DensityMatrixSimulator,
         dtype: 'DTypeLike' = np.complex64,
-        split_untangled_states: bool = False,
     ):
         """DensityMatrixStepResult.
 
         Args:
-            density_matrix: The density matrix at this step. Can be mutated.
-            measurements: The measurements for this step of the simulation.
-            qubit_map: A map from qid to index used to define the
-                ordering of the basis in density_matrix.
-            dtype: The numpy dtype for the density matrix.
+            sim_state: The qubit:ActOnArgs lookup for this step.
+            simulator: The simulator used to create this.
+            dtype: The `numpy.dtype` used by the simulation. One of
+                `numpy.complex64` or `numpy.complex128`.
         """
-        super().__init__(measurements)
-        self._density_matrix = density_matrix
-        self._qubit_map = qubit_map
+        super().__init__(sim_state)
         self._dtype = dtype
-        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
-        self._split_untangled_states = split_untangled_states
-
-    def _qid_shape_(self):
-        return self._qid_shape
+        self._density_matrix: Optional[np.ndarray] = None
+        self._simulator = simulator
 
     def _simulator_state(self) -> 'DensityMatrixSimulatorState':
-        return DensityMatrixSimulatorState(self._density_matrix, self._qubit_map)
+        return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_mapping)
 
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
         """Set the density matrix to a new density matrix.
-
-        Note that this feature is incompatible with the simulation setting
-        `split_untangled_states=True`, and will throw an error if attempted.
 
         Args:
             density_matrix_repr: If this is an int, the density matrix is set to
@@ -320,17 +310,7 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
             mixed state it must be correctly sized and positive semidefinite
             with trace one.
         """
-        if self._split_untangled_states:
-            # TODO: Fix in #4110
-            raise ValueError(  # coverage: ignore
-                'Cannot set states when using `split_untangled_states` option.'  # coverage: ignore
-            )  # coverage: ignore
-        density_matrix = qis.to_valid_density_matrix(
-            density_matrix_repr, len(self._qubit_map), qid_shape=self._qid_shape, dtype=self._dtype
-        )
-        sim_state_matrix = self._simulator_state().density_matrix
-        density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)
-        np.copyto(dst=sim_state_matrix, src=density_matrix)
+        self._sim_state = self._simulator._create_act_on_args(density_matrix_repr, self._qubits)
 
     def density_matrix(self, copy=True):
         """Returns the density matrix at this step in the simulation.
@@ -367,24 +347,14 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
                 parameters from the density matrix and store then using False
                 can speed up simulation by eliminating a memory copy.
         """
-        size = np.prod(self._qid_shape, dtype=int)
-        matrix = self._density_matrix.copy() if copy else self._density_matrix
-        return np.reshape(matrix, (size, size))
-
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        indices = [self._qubit_map[q] for q in qubits]
-        return density_matrix_utils.sample_density_matrix(
-            self._simulator_state().density_matrix,
-            indices,
-            qid_shape=self._qid_shape,
-            repetitions=repetitions,
-            seed=seed,
-        )
+        if self._density_matrix is None:
+            self._density_matrix = np.array(1)
+            state = self._merged_sim_state
+            if state is not None:
+                matrix = state.target_tensor
+                size = int(np.sqrt(np.prod(matrix.shape, dtype=int)))
+                self._density_matrix = np.reshape(matrix, (size, size))
+        return self._density_matrix.copy() if copy else self._density_matrix
 
 
 @value.value_equality(unhashable=True)
