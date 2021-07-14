@@ -52,7 +52,8 @@ class GateOperation(raw_types.Operation):
     """
 
     def __init__(self, gate: 'cirq.Gate', qubits: Sequence['cirq.Qid']) -> None:
-        """
+        """Inits GateOperation.
+
         Args:
             gate: The gate to apply.
             qubits: The qubits to operate on.

@@ -30,7 +30,8 @@ class ParallelGateOperation(raw_types.Operation):
     """An application of several copies of a gate to a group of qubits."""
 
     def __init__(self, gate: 'cirq.Gate', qubits: Sequence[raw_types.Qid]) -> None:
-        """
+        """Inits ParallelGateOperation.
+
         Args:
             gate: the gate to apply.
             qubits: list of qubits to apply the gate to.
