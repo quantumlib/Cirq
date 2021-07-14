@@ -13,7 +13,9 @@
 # limitations under the License.
 """An interface for quantum states as targets for operations."""
 import abc
-from typing import TypeVar, TYPE_CHECKING, Generic, Dict, Any, Tuple, Optional, Iterator
+from typing import TypeVar, TYPE_CHECKING, Generic, Dict, Any, Tuple, Optional, Iterator, List
+
+import numpy as np
 
 if TYPE_CHECKING:
     import cirq
@@ -47,6 +49,15 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def log_of_measurement_results(self) -> Dict[str, Any]:
         """Gets the log of measurement results."""
+
+    @abc.abstractmethod
+    def sample(
+        self,
+        qubits: List['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        """Samples the state value."""
 
     def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
         """Gets the item associated with the qubit."""

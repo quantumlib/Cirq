@@ -82,8 +82,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStateVectorArgs.record_measurement_result`.
+                being recorded into.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
         """
@@ -195,6 +194,21 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             qid_shape=new_tensor.shape[: int(new_tensor.ndim / 2)],
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
+        )
+
+    def sample(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        indices = [self.qubit_map[q] for q in qubits]
+        return sim.sample_density_matrix(
+            self.target_tensor,
+            indices,
+            qid_shape=tuple(q.dimension for q in self.qubits),
+            repetitions=repetitions,
+            seed=seed,
         )
 
 

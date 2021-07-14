@@ -25,6 +25,9 @@ class DummyArgs(cirq.ActOnArgs):
     def copy(self):
         pass
 
+    def sample(self, qubits, repetitions=1, seed=None):
+        pass
+
     def _perform_measurement(self, qubits):
         return [5, 3]
 
