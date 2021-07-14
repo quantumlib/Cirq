@@ -241,26 +241,16 @@ def test_clifford_trial_result_str():
 
 def test_clifford_step_result_str():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.CliffordState(qubit_map={q0: 0})
-
-    assert (
-        str(
-            cirq.CliffordSimulatorStepResult(
-                measurements={'m': np.array([[1]])}, state=final_simulator_state
-            )
-        )
-        == "m=1\n"
-        "|0⟩"
+    result = next(
+        cirq.CliffordSimulator().simulate_moment_steps(cirq.Circuit(cirq.measure(q0, key='m')))
     )
+    assert str(result) == "m=0\n" "|0⟩"
 
 
 def test_clifford_step_result_no_measurements_str():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.CliffordState(qubit_map={q0: 0})
-
-    assert (
-        str(cirq.CliffordSimulatorStepResult(measurements={}, state=final_simulator_state)) == "|0⟩"
-    )
+    result = next(cirq.CliffordSimulator().simulate_moment_steps(cirq.Circuit(cirq.I(q0))))
+    assert str(result) == "|0⟩"
 
 
 def test_clifford_state_str():
