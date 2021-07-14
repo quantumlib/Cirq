@@ -23,8 +23,8 @@ from cirq import protocols
 
 
 def has_stabilizer_effect(val: Any) -> bool:
-    """
-    Returns whether the input has a stabilizer effect.
+    """Returns whether the input has a stabilizer effect.
+
     For 1-qubit gates always returns correct result. For other operations relies
     on the operation to define whether it has stabilizer effect.
     """
@@ -42,6 +42,8 @@ def has_stabilizer_effect(val: Any) -> bool:
     return False
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optional[bool]:
     """
     Attempts to infer whether val has stabilizer effect via its
@@ -54,6 +56,7 @@ def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optiona
     return None
 
 
+# TODO(#3388) Add summary line to docstring.
 def _strat_has_stabilizer_effect_from_gate(val: Any) -> Optional[bool]:
     """
     Attempts to infer whether val has stabilizer effect via the value of
@@ -64,6 +67,7 @@ def _strat_has_stabilizer_effect_from_gate(val: Any) -> Optional[bool]:
     return None
 
 
+# pylint: enable=docstring-first-line-empty
 def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
     """Attempts to infer whether val has stabilizer effect from its unitary.
     Returns whether unitary of `val` normalizes the Pauli group. Works only for
