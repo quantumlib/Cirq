@@ -590,8 +590,7 @@ class AbstractCircuit(abc.ABC):
         start_frontier: Dict['cirq.Qid', int],
         is_blocker: Callable[['cirq.Operation'], bool] = lambda op: False,
     ) -> List[Tuple[int, ops.Operation]]:
-        """
-        Finds all operations until a blocking operation is hit.
+        """Finds all operations until a blocking operation is hit.
 
         An operation is considered blocking if
 
@@ -2312,7 +2311,7 @@ def _pick_inserted_ops_moment_indices(
         frontier = defaultdict(lambda: 0)
     moment_indices = []
     for op in operations:
-        op_start = max(start, max(frontier[q] for q in op.qubits))
+        op_start = max(start, max((frontier[q] for q in op.qubits), default=0))
         moment_indices.append(op_start)
         for q in op.qubits:
             frontier[q] = max(frontier[q], op_start + 1)

@@ -259,6 +259,7 @@ from cirq.ops import (
     QubitOrderOrList,
     QubitPermutationGate,
     reset,
+    reset_each,
     ResetChannel,
     riswap,
     Rx,
@@ -318,6 +319,7 @@ from cirq.optimizers import (
     merge_single_qubit_gates_into_phased_x_z,
     merge_single_qubit_gates_into_phxz,
     MergeInteractions,
+    MergeInteractionsToSqrtIswap,
     MergeSingleQubitGates,
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
@@ -401,6 +403,7 @@ from cirq.sim import (
     StateVectorStepResult,
     StateVectorTrialResult,
     StepResult,
+    StepResultBase,
 )
 
 from cirq.study import (
