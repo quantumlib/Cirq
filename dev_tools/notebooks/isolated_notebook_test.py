@@ -74,6 +74,10 @@ SKIP_NOTEBOOKS = [
     "docs/tutorials/educators/chemistry.ipynb",
 ] + NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
+# The Rigetti integration requires Python >= 3.7.
+if sys.version_info < (3, 7):
+    SKIP_NOTEBOOKS.append("**/rigetti/*.ipynb")
+
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
 # installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
 # needed by the notebooks) exist. These packages are installed into a base environment as a starting
