@@ -41,13 +41,12 @@ def _rewrite_deprecated_args(args, kwargs):
 class ActOnStateVectorArgs(ActOnArgs):
     """State and context for an operation acting on a state vector.
 
-    There are three common ways to act on this object:
+    There are two common ways to act on this object:
 
     1. Directly edit the `target_tensor` property, which is storing the state
         vector of the quantum system as a numpy array with one axis per qudit.
     2. Overwrite the `available_buffer` property with the new state vector, and
         then pass `available_buffer` into `swap_target_tensor_for`.
-    3. Call `record_measurement_result(key, val)` to log a measurement result.
     """
 
     @deprecated_parameter(
@@ -84,8 +83,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStateVectorArgs.record_measurement_result`.
+                being recorded into.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
         """
@@ -254,6 +252,21 @@ class ActOnStateVectorArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results,
         )
         return new_args
+
+    def sample(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        indices = [self.qubit_map[q] for q in qubits]
+        return sim.sample_state_vector(
+            self.target_tensor,
+            indices,
+            qid_shape=tuple(q.dimension for q in self.qubits),
+            repetitions=repetitions,
+            seed=seed,
+        )
 
 
 def _strat_act_on_state_vector_from_apply_unitary(
