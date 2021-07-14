@@ -55,7 +55,8 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         phase_exponent: Union[float, sympy.Symbol] = 0.25,
         exponent: Union[float, sympy.Symbol] = 1.0,
     ):
-        """
+        """Inits PhasedISwapPowGate.
+
         Args:
             phase_exponent: The exponent on the Z gates. We conjugate by
                 the T gate by default.
