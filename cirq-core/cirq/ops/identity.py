@@ -39,7 +39,8 @@ class IdentityGate(raw_types.Gate):
     def __init__(
         self, num_qubits: Optional[int] = None, qid_shape: Optional[Tuple[int, ...]] = None
     ) -> None:
-        """
+        """Inits IdentityGate.
+
         Args:
             num_qubits:
             qid_shape: Specifies the dimension of each qid the measurement

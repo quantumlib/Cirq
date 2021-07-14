@@ -49,7 +49,8 @@ class CircuitDiagramInfo:
         exponent_qubit_index: Optional[int] = None,
         auto_exponent_parens: bool = True,
     ) -> None:
-        """
+        """Inits CircuitDiagramInfo.
+
         Args:
             wire_symbols: The symbols that should be shown on the qubits
                 affected by this operation. Must match the number of qubits that
