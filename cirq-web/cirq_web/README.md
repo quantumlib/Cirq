@@ -76,4 +76,4 @@ You can generate a standalone HTML file of your visualization like so:
 
 This code above writes a file named `YOUR_VIZ.html` to the specified output directory, returning the path of the file as a string. If the `open_in_browser` flag is used, Python will automatically open your visualization in a new tab using the default browser on your computer. 
 
-The important thing about generating standalone HTML files is that they can be sent and viewed anywhere, regardless of if the recipient has Cirq installed on their computer or not.
+The important thing about generating standalone HTML files is that they can be sent and viewed anywhere, regardless of whether the recipient has Cirq installed on their computer or not.
