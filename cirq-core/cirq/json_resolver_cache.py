@@ -130,6 +130,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SwapPowGate': cirq.SwapPowGate,
         'TaggedOperation': cirq.TaggedOperation,
         'ThreeDQubit': cirq.pasqal.ThreeDQubit,
+        'TrialResult': cirq.Result,  # keep support for Cirq < 0.11.
         'Result': cirq.Result,
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,
