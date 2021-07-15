@@ -27,7 +27,8 @@ class QuantumFourierTransformGate(raw_types.Gate):
     """Switches from the computational basis to the frequency basis."""
 
     def __init__(self, num_qubits: int, *, without_reverse: bool = False):
-        """
+        """Inits QuantumFourierTransformGate.
+
         Args:
             num_qubits: The number of qubits the gate applies to.
             without_reverse: Whether or not to include the swaps at the end

@@ -36,7 +36,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         exponent: Union[float, sympy.Symbol] = 1.0,
         global_shift: float = 0.0,
     ) -> None:
-        """
+        """Inits PhasedXPowGate.
+
         Args:
             phase_exponent: The exponent on the Z gates conjugating the X gate.
             exponent: The exponent on the X gate conjugated by Zs.
