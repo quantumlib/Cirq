@@ -167,32 +167,6 @@ def test_all_off_results():
     )
 
 
-@pytest.mark.parametrize(
-    't1, data',
-    [
-        (100, [[100.0, 6, 4], [400.0, 10, 0], [700.0, 10, 0], [1000.0, 10, 0]]),
-        (400, [[100.0, 0, 10], [400.0, 6, 4], [700.0, 10, 0], [1000.0, 10, 0]]),
-        (
-            200,
-            [
-                [time, int(np.exp(-time / 200)), 10 - int(np.exp(-time / 200))]
-                for time in np.linspace(0, 1000, 100)
-            ],
-        ),
-    ],
-)
-def test_constant(t1, data):
-    result = cirq.experiments.T1DecayResult(
-        data=pd.DataFrame(
-            columns=['delay_ns', 'false_count', 'true_count'],
-            index=range(len(data)),
-            data=data,
-        )
-    )
-
-    assert np.isclose(result.constant, t1, 5)
-
-
 def test_curve_fit_plot_works():
     good_fit = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
@@ -226,6 +200,39 @@ def test_curve_fit_plot_warning():
 
     with pytest.warns(RuntimeWarning, match='Optimal parameters could not be found for curve fit'):
         bad_fit.plot(include_fit=True)
+
+
+@pytest.mark.parametrize('t1', [200, 500, 700])
+def test_noise_model_constant(t1):
+    class GradualDecay(cirq.NoiseModel):
+        def __init__(self, t1: float):
+            self.t1 = t1
+
+        def noisy_moment(self, moment, system_qubits):
+            duration = max(
+                (
+                    op.gate.duration
+                    for op in moment.operations
+                    if isinstance(op.gate, cirq.WaitGate)
+                ),
+                default=cirq.Duration(nanos=0),
+            )
+            if duration > cirq.Duration(nanos=0):
+                # Found a wait gate in this moment.
+                return cirq.amplitude_damp(duration.total_nanos() / self.t1).on_each(system_qubits)
+            return moment
+
+    results = cirq.experiments.t1_decay(
+        sampler=cirq.DensityMatrixSimulator(noise=GradualDecay(t1)),
+        qubit=cirq.GridQubit(0, 0),
+        num_points=4,
+        repetitions=10,
+        min_delay=cirq.Duration(nanos=100),
+        max_delay=cirq.Duration(micros=1),
+        simulator=True,
+    )
+
+    assert np.isclose(results.constant, t1, 50)
 
 
 def test_bad_args():
