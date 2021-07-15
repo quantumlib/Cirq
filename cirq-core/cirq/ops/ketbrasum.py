@@ -114,7 +114,8 @@ class KetBraSum:
         self,
         ket_bra_dict: Dict[KetBraKey, KetBra],
     ):
-        """
+        """Contructor for KetBraSum
+
         Args:
             ket_bra_dict: a dictionary of Qdit tuples to a list of |ket><bra|
                 which express the operation to apply
