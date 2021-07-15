@@ -648,6 +648,32 @@ def test_deprecated_module_deadline_validation():
         )
 
 
+def _test_broken_module_1_inner():
+    with pytest.raises(
+        ValueError, match="missing_module cannot be imported. " "The typical reasons"
+    ):
+        # pylint: disable=unused-import
+        import cirq.testing._compat_test_data.broken_ref as br
+
+
+def _test_broken_module_2_inner():
+    with pytest.raises(ValueError, match="missing_module cannot be imported. The typical reasons"):
+        # pylint: disable=unused-import
+        from cirq.testing._compat_test_data import broken_ref
+
+
+def _test_broken_module_3_inner():
+    with pytest.raises(ValueError, match="missing_module cannot be imported. The typical reasons"):
+        # pylint: disable=pointless-statement
+        cirq.testing._compat_test_data.broken_ref
+
+
+def test_deprecated_module_error_handling():
+    subprocess_context(_test_broken_module_1_inner())
+    subprocess_context(_test_broken_module_2_inner())
+    subprocess_context(_test_broken_module_3_inner())
+
+
 def test_new_module_is_top_level():
     subprocess_context(_test_new_module_is_top_level_inner)()
 
@@ -764,7 +790,7 @@ def test_invalidate_caches():
             nonlocal called
             called = True
 
-    DeprecatedModuleFinder(FakeFinder(), 'new', 'old', 'v0.1').invalidate_caches()
+    DeprecatedModuleFinder(FakeFinder(), 'new', 'old', 'v0.1', None).invalidate_caches()
     assert called
 
 
