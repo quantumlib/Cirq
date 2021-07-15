@@ -73,4 +73,6 @@ if [ "${num_changed}" -eq 0 ]; then
     exit 0
 fi
 
-check/pytest ${rest} ${changed[@]}
+source dev_tools/pypath
+
+pytest ${rest} ${changed[@]}
