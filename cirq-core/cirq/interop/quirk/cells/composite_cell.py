@@ -45,7 +45,7 @@ class CompositeCell(Cell):
         *,
         gate_count: int,
     ):
-        """
+        """Inits CompositeCell.
 
         Args:
             height: The number of qubits spanned by this composite cell. Note

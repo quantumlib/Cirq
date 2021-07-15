@@ -175,8 +175,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `XPowGate`, using a `CXPowGate` where possible.
+        """Returns a controlled `XPowGate`, using a `CXPowGate` where possible.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate`. This method overrides this behavior
@@ -644,8 +643,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `ZPowGate`, using a `CZPowGate` where possible.
+        """Returns a controlled `ZPowGate`, using a `CZPowGate` where possible.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate`. This method overrides this behavior
@@ -1135,8 +1133,7 @@ class CZPowGate(
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `CZPowGate`, using a `CCZPowGate` where possible.
+        """Returns a controlled `CZPowGate`, using a `CCZPowGate` where possible.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate`. This method overrides this behavior
@@ -1354,8 +1351,7 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `CXPowGate`, using a `CCXPowGate` where possible.
+        """Returns a controlled `CXPowGate`, using a `CCXPowGate` where possible.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate`. This method overrides this behavior

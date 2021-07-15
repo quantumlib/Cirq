@@ -37,7 +37,8 @@ class QasmArgs(string.Formatter):
         qubit_id_map: Dict['cirq.Qid', str] = None,
         meas_key_id_map: Dict[str, str] = None,
     ) -> None:
-        """
+        """Inits QasmArgs.
+
         Args:
             precision: The number of digits after the decimal to show for
                 numbers in the qasm code.

@@ -293,6 +293,48 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     assert MY_GATE_SET.deserialize(proto) == circuit
 
 
+def test_deserialize_infinite_recursion_fails():
+    inf_op = cirq.CircuitOperation(cirq.FrozenCircuit())
+    # Maliciously modify the CircuitOperation to be self-referencing.
+    setattr(inf_op.circuit, '_moments', tuple(cirq.Circuit(inf_op).moments))
+    circuit = cirq.Circuit(inf_op)
+    with pytest.raises(RecursionError):
+        _ = MY_GATE_SET.serialize(circuit)
+
+    c_op1 = v2.program_pb2.CircuitOperation()
+    c_op1.circuit_constant_index = 0
+    rep_spec = c_op1.repetition_specification
+    rep_spec.repetition_count = 2
+    rep_spec.repetition_ids.ids.extend(['a', 'b'])
+
+    # This proto is illegal: c_op1 references a constant containing c_op1.
+    proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[
+                v2.program_pb2.Moment(
+                    circuit_operations=[c_op1],
+                ),
+            ],
+        ),
+        constants=[
+            v2.program_pb2.Constant(
+                circuit_value=v2.program_pb2.Circuit(
+                    scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+                    moments=[
+                        v2.program_pb2.Moment(
+                            circuit_operations=[c_op1],
+                        ),
+                    ],
+                )
+            ),
+        ],
+    )
+    with pytest.raises(ValueError, match="Failed to deserialize circuit"):
+        _ = MY_GATE_SET.deserialize(proto)
+
+
 def test_deserialize_bad_operation_id():
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
