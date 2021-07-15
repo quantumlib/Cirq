@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from cirq.value.probability import validate_probability
+import numpy as np
 
 """Utilities for handling probabilities."""
 
@@ -33,3 +35,7 @@ def validate_probability(p: float, p_str: str) -> float:
     elif p > 1:
         raise ValueError(f'{p_str} was greater than 1.')
     return p
+def state_vector_to_probabilities(state_vector: np.ndarray) -> np.ndarray:
+      probabilities = np.abs(state_vector) ** 2
+      validate_probability(probabilities, "sum of the amplitudes of the state vector")
+      return probabilities
