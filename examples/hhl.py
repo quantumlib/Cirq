@@ -1,3 +1,5 @@
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 """
 Demonstrates the algorithm for solving linear systems by Harrow, Hassidim,
 Lloyd (HHL).
@@ -69,6 +71,7 @@ Example of circuit with 2 register qubits.
 Note: QFT in the above diagram omits swaps, which are included implicitly by
 reversing qubit order for phase kickbacks.
 """
+# pylint: enable=docstring-first-line-empty
 
 import math
 import numpy as np
@@ -77,8 +80,7 @@ import cirq
 
 
 class PhaseEstimation(cirq.Gate):
-    """
-    A gate for Quantum Phase Estimation.
+    """A gate for Quantum Phase Estimation.
 
     unitary is the unitary gate whose phases will be estimated.
     The last qubit stores the eigenvector; all other qubits store the
@@ -100,8 +102,7 @@ class PhaseEstimation(cirq.Gate):
 
 
 class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
-    """
-    A gate that represents e^iAt.
+    """A gate that represents e^iAt.
 
     This EigenGate + np.linalg.eigh() implementation is used here
     purely for demonstrative purposes. If a large matrix is used,
@@ -129,8 +130,7 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
 
 
 class PhaseKickback(cirq.Gate):
-    """
-    A gate for the phase kickback stage of Quantum Phase Estimation.
+    """A gate for the phase kickback stage of Quantum Phase Estimation.
 
     It consists of a series of controlled e^iAt gates with the memory qubit as
     the target and each register qubit as the control, raised
@@ -153,6 +153,8 @@ class PhaseKickback(cirq.Gate):
             yield cirq.ControlledGate(self.U ** (2 ** i))(qubit, memory)
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 class EigenRotation(cirq.Gate):
     """
     EigenRotation performs the set of rotation on the ancilla qubit equivalent
@@ -201,9 +203,9 @@ class EigenRotation(cirq.Gate):
         return cirq.ry(theta)
 
 
+# pylint: enable=docstring-first-line-empty
 def hhl_circuit(A, C, t, register_size, *input_prep_gates):
-    """
-    Constructs the HHL circuit.
+    """Constructs the HHL circuit.
 
     Args:
         A: The input Hermitian matrix.
@@ -273,6 +275,8 @@ def simulate(circuit):
         print(f'{label} = {expectation}')
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def main():
     """
     Simulates HHL with matrix input, and outputs Pauli observables of the
@@ -309,5 +313,6 @@ def main():
     simulate(hhl_circuit(A, C, t, register_size, *input_prep_gates))
 
 
+# pylint: enable=docstring-first-line-empty
 if __name__ == '__main__':
     main()
