@@ -92,9 +92,9 @@ class PauliSumCollector(collector.Collector):
             if a + b:
                 energy += coef * (a - b) / (a + b)
         energy = complex(energy)
+        energy += self._identity_offset
         if energy.imag == 0:
             energy = energy.real
-        energy += self._identity_offset
         return energy
 
 
