@@ -557,6 +557,10 @@ class _BrokenModule(ModuleType):
         raise self.exc
 
 
+class DeprecatedModuleImportError(ImportError):
+    pass
+
+
 def deprecated_submodule(
     *, new_module_name: str, old_parent: str, old_child: str, deadline: str, create_attribute: bool
 ):
@@ -589,7 +593,7 @@ def deprecated_submodule(
         try:
             new_module = importlib.import_module(new_module_name)
             _setup_deprecated_submodule_attribute(
-                new_module_name, old_parent, old_child, deadline, new_module, None
+                new_module_name, old_parent, old_child, deadline, new_module
             )
         except ImportError as ex:
             msg = (
@@ -600,10 +604,14 @@ def deprecated_submodule(
                 f"check the detailed exception above for more details or run "
                 f"`import {new_module_name} to reproduce the issue."
             )
-            broken_module_exception = ValueError(msg)
+            broken_module_exception = DeprecatedModuleImportError(msg)
             broken_module_exception.__cause__ = ex
             _setup_deprecated_submodule_attribute(
-                new_module_name, old_parent, old_child, deadline, None, broken_module_exception
+                new_module_name,
+                old_parent,
+                old_child,
+                deadline,
+                _BrokenModule(new_module_name, broken_module_exception),
             )
 
     def wrap(finder: Any) -> Any:
@@ -623,7 +631,6 @@ def _setup_deprecated_submodule_attribute(
     old_child: str,
     deadline: str,
     new_module: Optional[ModuleType],
-    broken_module_msg: Optional[BaseException],
 ):
     parent_module = sys.modules[old_parent]
     setattr(parent_module, old_child, new_module)
@@ -633,8 +640,6 @@ def _setup_deprecated_submodule_attribute(
 
         def __getattr__(self, name):
             if name == old_child:
-                if broken_module_msg is not None:
-                    raise broken_module_msg
                 _deduped_module_warn_or_error(
                     f"{old_parent}.{old_child}", new_module_name, deadline
                 )

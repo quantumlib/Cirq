@@ -41,6 +41,7 @@ from cirq._compat import (
     deprecated_submodule,
     DeprecatedModuleLoader,
     DeprecatedModuleFinder,
+    DeprecatedModuleImportError,
 )
 
 
@@ -650,27 +651,44 @@ def test_deprecated_module_deadline_validation():
 
 def _test_broken_module_1_inner():
     with pytest.raises(
-        ValueError, match="missing_module cannot be imported. " "The typical reasons"
+        DeprecatedModuleImportError,
+        match="missing_module cannot be imported. " "The typical reasons",
     ):
         # pylint: disable=unused-import
         import cirq.testing._compat_test_data.broken_ref as br  # type: ignore
 
 
 def _test_broken_module_2_inner():
-    with pytest.raises(ValueError, match="missing_module cannot be imported. The typical reasons"):
-        # pylint: disable=unused-import
-        from cirq.testing._compat_test_data import broken_ref  # type: ignore
+    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+        with pytest.raises(
+            DeprecatedModuleImportError,
+            match="missing_module cannot be imported. The typical reasons",
+        ):
+            # note that this passes
+            from cirq.testing._compat_test_data import broken_ref  # type: ignore
+
+            # but when you try to use it
+            broken_ref.something()
 
 
 def _test_broken_module_3_inner():
-    with pytest.raises(ValueError, match="missing_module cannot be imported. The typical reasons"):
-        # pylint: disable=pointless-statement
-        cirq.testing._compat_test_data.broken_ref
+    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+        with pytest.raises(
+            DeprecatedModuleImportError,
+            match="missing_module cannot be imported. The typical reasons",
+        ):
+            cirq.testing._compat_test_data.broken_ref.something()
 
 
-def test_deprecated_module_error_handling():
+def test_deprecated_module_error_handling_1():
     subprocess_context(_test_broken_module_1_inner())
+
+
+def test_deprecated_module_error_handling_2():
     subprocess_context(_test_broken_module_2_inner())
+
+
+def test_deprecated_module_error_handling_3():
     subprocess_context(_test_broken_module_3_inner())
 
 
