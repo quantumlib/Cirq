@@ -42,7 +42,7 @@ _default_executor = executors.with_quilc_compilation_and_cirq_parameter_resoluti
 def _provide_default_client(function):
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
-        if 'client' in kwargs:
+        if 'client' in kwargs:  # pragma: nocover
             return function(*args, **kwargs)
 
         with build_sync_client() as client:  # type: ignore

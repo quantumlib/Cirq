@@ -25,3 +25,8 @@ To install the pre-release version of only **cirq-rigetti**, use `pip install ci
 Note, that this will install both **cirq-rigetti** and **cirq-core**.
 
 To get all the optional modules installed, you'll have to use `pip install cirq` or `pip install cirq --pre` for the pre-release version.
+
+Development
+------------
+
+Please see Cirq `development documentation <../docs/dev/development.md>`_.
