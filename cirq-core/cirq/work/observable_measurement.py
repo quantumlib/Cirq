@@ -400,6 +400,9 @@ def measure_grouped_settings(
             with parameter settings for the single-qubit basis-change rotations.
         readout_calibrations: The result of `calibrate_readout_error`.
     """
+    if readout_calibrations is not None and not readout_symmetrization:
+        raise ValueError("Readout calibration only works if `readout_symmetrization` is enabled.")
+
     qubits = sorted({q for ms in grouped_settings.keys() for q in ms.init_state.qubits})
     qubit_to_index = {q: i for i, q in enumerate(qubits)}
 
