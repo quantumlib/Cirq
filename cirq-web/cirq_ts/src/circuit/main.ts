@@ -1,7 +1,7 @@
 import {Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Vector2, AxesHelper, Vector3} from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {Circuit} from './circuit';
-
+import {SingleQubitGate, ControlledGate} from './components/types';
 
 const mouse = new Vector2();
 const raycaster = new Raycaster();
@@ -69,37 +69,13 @@ export function createGridCircuit(qubits: number[][], numMoments: number, sceneI
     addEventListener('mousemove', onMouseMove, false);
 
     const circuit = new Circuit(numMoments);
+    console.log(qubits);
     for (const qubit of qubits) {
         circuit.addQubit(qubit[0], qubit[1]);
     }
-    console.log(scene);
+    //console.log(circuit);
     scene.add(circuit);
 
     return circuit;
 }
 
-
-
-// const circuit = new Circuit(NUM_QUBITS, NUM_QUBITS, 5);
-// const grid = circuit.generateQubitGrid();
-// console.log(grid);
-// scene.add(grid);
-
-// Params for addCube (qubitX, qubitY, momentID)
-//circuit.addCube(1, 0, 1);
-
-/*
-//Params for addCNOT (ctrlX, ctrlY, targetX, targetY, MomentID)
-circuit.addCNOT(0, 0, 0, 1, 1)
-
-circuit.addCube(1, 0, 2);
-circuit.addCNOT(0, 0, 0, 1, 2)
-
-for(let i = 0; i < 20; i++){
-    const randMoment = Math.floor(Math.random()*4);
-    const rndIntX = Math.floor(Math.random() * 4);
-    const rndIntY = Math.floor(Math.random() * 4);
-    circuit.addCube(rndIntX, rndIntY, randMoment);
-    circuit.addCNOT(rndIntX, rndIntY+1, rndIntX+1, rndIntY+1, randMoment+1);
-}
-*/
