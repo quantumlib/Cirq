@@ -19,7 +19,8 @@ class GithubRepository:
     """Details how to access a repository on github."""
 
     def __init__(self, organization: str, name: str, access_token: Optional[str]) -> None:
-        """
+        """Inits GithubRepository.
+
         Args:
             organization: The github organization the repository is under.
             name: The name of the github repository.

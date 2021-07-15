@@ -1174,6 +1174,8 @@ def test_random_seed_mixture_deterministic():
     )
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def test_entangled_reset_does_not_break_randomness():
     """
     A previous version of cirq made the mistake of assuming that it was okay to
@@ -1192,6 +1194,7 @@ def test_entangled_reset_does_not_break_randomness():
     assert 10 <= counts[1] <= 90
 
 
+# pylint: enable=docstring-first-line-empty
 def test_overlapping_measurements_at_end():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
