@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Represents Boolean functions as a series of CNOT and rotation gates. The Boolean functions are
+"""Represents Boolean functions as a series of CNOT and rotation gates. The Boolean functions are
 passed as Sympy expressions and then turned into an optimized set of gates.
 
 References:
