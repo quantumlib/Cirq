@@ -95,7 +95,7 @@ def t1_decay(
             )
 
             # Add additional wait gates for appropriate noise
-            for i in range(int(delay / 25)):
+            for _ in range(int(delay / 25)):
                 circuit.append(ops.wait(qubit, nanos=25))
 
             circuit.append(ops.measure(qubit, key='output'))
