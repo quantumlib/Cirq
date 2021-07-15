@@ -35,7 +35,8 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
         tolerance: float = 1e-8,
         post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE] = lambda op_list: op_list,
     ) -> None:
-        """
+        """Inits MergeInteractionsAbc.
+
         Args:
             tolerance: A limit on the amount of absolute error introduced by the
                 construction.
@@ -216,7 +217,8 @@ class MergeInteractions(MergeInteractionsAbc):
         allow_partial_czs: bool = True,
         post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE] = lambda op_list: op_list,
     ) -> None:
-        """
+        """Inits MergeInteractions.
+
         Args:
             tolerance: A limit on the amount of absolute error introduced by the
                 construction.

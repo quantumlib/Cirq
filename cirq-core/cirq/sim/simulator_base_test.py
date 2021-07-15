@@ -49,6 +49,9 @@ class CountingActOnArgs(cirq.ActOnArgs):
         self.gate_count += 1
         return True
 
+    def sample(self, qubits, repetitions=1, seed=None):
+        pass
+
 
 class SplittableCountingActOnArgs(CountingActOnArgs):
     def kronecker_product(
@@ -97,16 +100,7 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         return args
 
 
-class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
-    def __init__(
-        self,
-        sim_state: CountingActOnArgs,
-        qubit_map: Dict[cirq.Qid, int],
-    ):
-        super().__init__(measurements=sim_state.log_of_measurement_results.copy())
-        self.sim_state = sim_state
-        self.qubit_map = qubit_map
-
+class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArgs]):
     def sample(
         self,
         qubits: List[cirq.Qid],
@@ -115,11 +109,11 @@ class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
     ) -> np.ndarray:
         measurements: List[List[int]] = []
         for _ in range(repetitions):
-            measurements.append(self.sim_state._perform_measurement(qubits))
+            measurements.append(self._merged_sim_state._perform_measurement(qubits))
         return np.array(measurements, dtype=int)
 
     def _simulator_state(self) -> CountingActOnArgs:
-        return self.sim_state
+        return self._merged_sim_state
 
 
 class CountingTrialResult(cirq.SimulationTrialResult):
@@ -155,10 +149,9 @@ class CountingSimulator(
 
     def _create_step_result(
         self,
-        sim_state: CountingActOnArgs,
-        qubit_map: Dict[cirq.Qid, int],
+        sim_state: cirq.OperationTarget[CountingActOnArgs],
     ) -> CountingStepResult:
-        return CountingStepResult(sim_state, qubit_map)
+        return CountingStepResult(sim_state)
 
 
 class SplittableCountingSimulator(CountingSimulator):
@@ -194,6 +187,7 @@ def test_simulate_empty_circuit():
     sim = CountingSimulator()
     r = sim.simulate(cirq.Circuit())
     assert r._final_simulator_state.gate_count == 0
+    assert r._final_simulator_state.measurement_count == 0
 
 
 def test_simulate_one_gate_circuit():
@@ -353,3 +347,25 @@ def test_reorder_succeeds():
     args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
     reordered = args[q0].transpose_to_qubit_order([q1, q0])
     assert reordered.qubits == (q1, q0)
+
+
+@pytest.mark.parametrize('split', [True, False])
+def test_sim_state_instance_unchanged_during_normal_sim(split: bool):
+    sim = SplittableCountingSimulator(split_untangled_states=split)
+    args = sim._create_act_on_args(0, (q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.reset(q1))
+    for step in sim.simulate_moment_steps(circuit, initial_state=args):
+        assert step._sim_state is args
+        assert (step._merged_sim_state is not args) == split
+
+
+@pytest.mark.parametrize('split', [True, False])
+def test_sim_state_instance_gets_changes_from_step_result(split: bool):
+    sim = SplittableCountingSimulator(split_untangled_states=split)
+    args = sim._create_act_on_args(0, (q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.reset(q1))
+    for step in sim.simulate_moment_steps(circuit, initial_state=args):
+        assert step._sim_state is args
+        args = sim._create_act_on_args(0, (q0, q1))
+        step._sim_state = args
+        assert (step._merged_sim_state is not args) == split

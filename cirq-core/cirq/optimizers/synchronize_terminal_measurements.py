@@ -28,7 +28,8 @@ class SynchronizeTerminalMeasurements:
     """
 
     def __init__(self, after_other_operations: bool = True):
-        """
+        """Inits SynchronizeTerminalMeasurements.
+
         Args:
             after_other_operations: Set by default. If the circuit's final
                 moment contains non-measurement operations and this is set then
