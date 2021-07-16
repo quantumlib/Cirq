@@ -64,7 +64,9 @@ class ParamResolver:
             return  # Already initialized. Got wrapped as part of the __new__.
 
         self._param_hash: Optional[int] = None
-        self.param_dict = cast(ParamDictType, {} if param_dict is None else copy.copy(param_dict))
+        self.param_dict = cast(
+            ParamDictType, {} if param_dict is None else copy.copy(cast(Any, param_dict))
+        )
         self._deep_eval_map: ParamDictType = {}
 
     def value_of(
