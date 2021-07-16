@@ -406,7 +406,7 @@ def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
 
             trial_results.append(
                 cirq.Result.from_single_parameter_set(
-                    params=cirq.ParamResolver(result.params.assignments),
+                    params=cirq.ParamResolver(dict(result.params.assignments)),
                     measurements=measurements,
                 )
             )
