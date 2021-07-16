@@ -15,7 +15,7 @@
 """Resolves ParameterValues to assigned values."""
 import copy
 import numbers
-from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
+from typing import Any, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, Union, cast
 
 import numpy as np
 import sympy
@@ -65,7 +65,7 @@ class ParamResolver:
 
         self._param_hash: Optional[int] = None
         self.param_dict = cast(
-            ParamDictType, {} if param_dict is None else dict(param_dict)
+            ParamDictType, {} if param_dict is None else dict(cast(Mapping[Any, Any], param_dict))
         )
         self._deep_eval_map: ParamDictType = {}
 
