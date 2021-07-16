@@ -232,6 +232,15 @@ def test_resolve_unknown_type():
     assert r.value_of(cirq.X) == cirq.X
 
 
+def test_param_dict_shallow_copy():
+    pdict = {'beta': 0.11, 'gamma': 0.3}
+    p = cirq.ParamResolver(pdict)
+    assert p.param_dict == {'beta': 0.11, 'gamma': 0.3}
+    pdict['beta'] = 5
+    # ensure a shallow copy is made to immutable types.
+    assert p.param_dict == {'beta': 0.11, 'gamma': 0.3}
+
+
 def test_custom_resolved_value():
     class Foo:
         def _resolved_value_(self):
@@ -253,6 +262,7 @@ def test_custom_resolved_value():
     b = sympy.Symbol('b')
     c = sympy.Symbol('c')
     r = cirq.ParamResolver({a: foo, b: bar, c: baz})
+    # ensure a shallow copy is made to mutable types.
     assert r.value_of(a) is foo
     assert r.value_of(b) is b
     assert r.value_of(c) == 'Baz'

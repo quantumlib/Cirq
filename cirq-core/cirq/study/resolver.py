@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Resolves ParameterValues to assigned values."""
+import copy
 import numbers
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
 
@@ -63,7 +64,7 @@ class ParamResolver:
             return  # Already initialized. Got wrapped as part of the __new__.
 
         self._param_hash: Optional[int] = None
-        self.param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
+        self.param_dict = cast(ParamDictType, {} if param_dict is None else copy.copy(param_dict))
         self._deep_eval_map: ParamDictType = {}
 
     def value_of(
