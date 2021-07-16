@@ -106,6 +106,7 @@ TestSpec = ModuleJsonTestSpec(
         'ExpandComposite',
         'MEASUREMENT_KEY_SEPARATOR',
         'MergeInteractions',
+        'MergeInteractionsToSqrtIswap',
         'MergeSingleQubitGates',
         'PointOptimizer',
         'SynchronizeTerminalMeasurements',

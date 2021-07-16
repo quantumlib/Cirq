@@ -151,10 +151,6 @@ Cirq's protobufs live at [cirq/api/google](https://github.com/quantumlib/Cirq/tr
 If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/master/dev_tools).
 This script uses grpcio-tools and protobuf version 3.8.0 to generate the python proto api.
 
-Additionally, for workflows that use bazel (relevant for C/C++ code depending on Cirq), we have made available bazel rulesets for generating both python and C/C++ proto apis.
-These rules live in the BUILD files [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v1) and [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v2).
-Downstream projects should load Cirq as an [external dependency](https://docs.bazel.build/versions/master/external.html), allowing rules from those BUILD files to be used directly.
-
 ## Continuous integration and local testing
 
 There are a few options for running continuous integration checks, varying from easy and fast to slow and reliable.
