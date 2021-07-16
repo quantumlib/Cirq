@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from cirq_web import widget
-from cirq_web.circuits.gates import Gate3DSymbols, UnknownSingleQubitGate, UnknownTwoQubitGate, SingleQubitGate, ControlledGate
+from cirq_web.circuits.gates import Gate3DSymbols, UnknownSingleQubitGate, UnknownTwoQubitGate, SingleQubitGate, TwoQubitGate
+from cirq.protocols import circuit_diagram_info
 
 class Circuit3D(widget.Widget):
     def __init__(self, circuit):
@@ -56,20 +57,21 @@ class Circuit3D(widget.Widget):
         fn_argument = ','.join(str(item) for item in init_tuples)
         return f'[{fn_argument}]'
 
-    def _serialize_circuit(self):
+    def _serialize_circuit(self) -> str:
         args = []
         moments = self.circuit.moments
         for moment_id, moment in enumerate(moments):
             for item in moment:
                 gate = Gate3DSymbols.get(str(item.gate), None)
                 if isinstance(gate, SingleQubitGate):
-                    gate.set_text(item.gate.circuit_diagram_info)
+                    gate.set_text(circuit_diagram_info(item.gate).wire_symbols[0])
                     gate.set_moment(moment_id)
                     gate.set_location(item.qubits[0].row, item.qubits[0].col)
-                if isinstance(gate, ControlledGate):
+                elif isinstance(gate, TwoQubitGate):
                     gate.set_moment(moment_id)
                     gate.set_location(item.qubits[0].row, item.qubits[0].col)
 
+                    gate.target_gate.set_text(circuit_diagram_info(item.gate).wire_symbols[1])
                     gate.target_gate.set_moment(moment_id)
                     gate.target_gate.set_location(item.qubits[1].row, item.qubits[1].col)
                 else:

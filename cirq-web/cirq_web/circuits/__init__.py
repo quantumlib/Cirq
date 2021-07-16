@@ -15,7 +15,7 @@
 from cirq_web.circuits.circuit import Circuit3D
 from cirq_web.circuits.gates import (
     SingleQubitGate, 
-    ControlledGate,
+    TwoQubitGate,
     UnknownSingleQubitGate,
     UnknownTwoQubitGate,
     Gate3DSymbols,
