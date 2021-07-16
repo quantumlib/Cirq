@@ -10,13 +10,14 @@ export interface SingleQubitGate extends Gate {
     readonly type: 'SingleQubitGate';
 }
 
-export interface ControlledGate extends Gate {
+export interface TwoQubitGate extends Gate {
     readonly row: number;
     readonly col: number;
     readonly targetGate: SingleQubitGate;
-    readonly type: 'ControlledGate';
+    readonly type: 'TwoQubitGate';
 }
 
-
-
-
+export interface GridCoord {
+    readonly row: number;
+    readonly col: number;
+}
