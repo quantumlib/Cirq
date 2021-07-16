@@ -65,7 +65,7 @@ class ParamResolver:
 
         self._param_hash: Optional[int] = None
         self.param_dict = cast(
-            ParamDictType, {} if param_dict is None else copy.copy(cast(Any, param_dict))
+            ParamDictType, {} if param_dict is None else dict(param_dict)
         )
         self._deep_eval_map: ParamDictType = {}
 
