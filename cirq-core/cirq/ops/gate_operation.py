@@ -52,7 +52,8 @@ class GateOperation(raw_types.Operation):
     """
 
     def __init__(self, gate: 'cirq.Gate', qubits: Sequence['cirq.Qid']) -> None:
-        """
+        """Inits GateOperation.
+
         Args:
             gate: The gate to apply.
             qubits: The qubits to operate on.
@@ -122,10 +123,6 @@ class GateOperation(raw_types.Operation):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
-
-    @classmethod
-    def _from_json_dict_(cls, gate, qubits, **kwargs):
-        return gate.on(*qubits)
 
     def _group_interchangeable_qubits(
         self,

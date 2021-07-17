@@ -35,7 +35,8 @@ class PauliSumCollector(collector.Collector):
         samples_per_term: int,
         max_samples_per_job: int = 1000000,
     ):
-        """
+        """Inits PauliSumCollector.
+
         Args:
             circuit: Produces the state to be tested.
             observable: The pauli product observables to measure. Their sampled
@@ -91,9 +92,9 @@ class PauliSumCollector(collector.Collector):
             if a + b:
                 energy += coef * (a - b) / (a + b)
         energy = complex(energy)
+        energy += self._identity_offset
         if energy.imag == 0:
             energy = energy.real
-        energy += self._identity_offset
         return energy
 
 

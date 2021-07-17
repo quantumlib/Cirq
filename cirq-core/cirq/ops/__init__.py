@@ -45,6 +45,7 @@ from cirq.ops.common_channels import (
     PhaseDampingChannel,
     PhaseFlipChannel,
     reset,
+    reset_each,
     ResetChannel,
 )
 
@@ -241,6 +242,8 @@ from cirq.ops.swap_gates import (
     ISWAP,
     ISwapPowGate,
     riswap,
+    SQRT_ISWAP,
+    SQRT_ISWAP_INV,
     SWAP,
     SwapPowGate,
 )

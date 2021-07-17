@@ -1,3 +1,5 @@
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 """
 Bell's theorem or inequality proves that entanglement based
 observations can't be reproduced with any local realist theory [1].
@@ -53,6 +55,7 @@ y: ____1__111_______1___11_111__1_111______111___11_11_11__1_1_1111_1111__1_11
    11111_11111_11___11111_111_111_11_111111111_1111111_111_1111111111111111111
 Win rate: 84.0%
 """
+# pylint: enable=docstring-first-line-empty
 
 import numpy as np
 

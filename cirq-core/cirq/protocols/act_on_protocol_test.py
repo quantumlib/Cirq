@@ -37,6 +37,9 @@ class DummyActOnArgs(cirq.ActOnArgs):
     def _act_on_fallback_(self, action, qubits, allow_decompose):
         return self.fallback_result
 
+    def sample(self, qubits, repetitions=1, seed=None):
+        pass
+
 
 op = cirq.X(cirq.LineQubit(0))
 
@@ -82,7 +85,7 @@ def test_act_on_args_axes_deprecation():
             return True
 
     args = Args()
-    args.qubits = tuple(cirq.LineQubit.range(3))
+    args._qubits = tuple(cirq.LineQubit.range(3))
     with cirq.testing.assert_deprecated(
         "ActOnArgs.axes", "Use `protocols.act_on` instead.", deadline="v0.13"
     ):

@@ -278,7 +278,8 @@ class T2DecayResult:
     """
 
     def __init__(self, x_basis_data: pd.DataFrame, y_basis_data: pd.DataFrame):
-        """
+        """Inits T2DecayResult.
+
         Args:
             data: A data frame with three columns:
                 delay_ns, false_count, true_count.

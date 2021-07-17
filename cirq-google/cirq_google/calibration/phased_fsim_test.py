@@ -37,6 +37,7 @@ from cirq_google.calibration.phased_fsim import (
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
     try_convert_gate_to_fsim,
+    try_convert_syc_or_sqrt_iswap_to_fsim,
     try_convert_sqrt_iswap_to_fsim,
     XEBPhasedFSimCalibrationRequest,
     XEBPhasedFSimCalibrationOptions,
@@ -767,7 +768,7 @@ def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():
         expected, 0.0
     )
     assert (
-        try_convert_sqrt_iswap_to_fsim(cirq.PhasedISwapPowGate(exponent=-0.5, phase_exponent=0.1))
+        try_convert_sqrt_iswap_to_fsim(cirq.PhasedISwapPowGate(exponent=-0.6, phase_exponent=0.1))
         is None
     )
 
@@ -949,11 +950,33 @@ def test_try_convert_gate_to_fsim():
     assert try_convert_gate_to_fsim(cirq.CZPowGate(exponent=x)) is None
 
 
+def test_try_convert_syc_or_sqrt_iswap_to_fsim():
+    def check_converts(gate: cirq.Gate):
+        result = try_convert_syc_or_sqrt_iswap_to_fsim(gate)
+        assert np.allclose(cirq.unitary(gate), cirq.unitary(result))
+
+    def check_none(gate: cirq.Gate):
+        assert try_convert_syc_or_sqrt_iswap_to_fsim(gate) is None
+
+    check_converts(cirq_google.ops.SYC)
+    check_converts(cirq.FSimGate(np.pi / 2, np.pi / 6))
+    check_none(cirq.FSimGate(0, np.pi))
+    check_converts(cirq.FSimGate(np.pi / 4, 0.0))
+    check_none(cirq.FSimGate(0.2, 0.3))
+    check_converts(cirq.ISwapPowGate(exponent=0.5))
+    check_converts(cirq.ISwapPowGate(exponent=-0.5))
+    check_none(cirq.ISwapPowGate(exponent=0.3))
+    check_converts(cirq.PhasedFSimGate(theta=np.pi / 4, phi=0.0, chi=0.7))
+    check_none(cirq.PhasedFSimGate(theta=0.3, phi=0.4))
+    check_converts(cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=0.75))
+    check_none(cirq.PhasedISwapPowGate(exponent=0.4, phase_exponent=0.75))
+    check_none(cirq.ops.CZPowGate(exponent=1.0))
+    check_none(cirq.CX)
+
+
 # Test that try_convert_gate_to_fsim is extension of try_convert_sqrt_iswap_to_fsim.
 # In other words, that both function return the same result for all gates on which
 # try_convert_sqrt_iswap_to_fsim is defined.
-# TODO: instead of having multiple gate translators, we should have one, the most general, and
-# restrict it to different gate sets.
 def test_gate_translators_are_consistent():
     def check(gate):
         result1 = try_convert_gate_to_fsim(gate)

@@ -31,6 +31,7 @@ from typing import (
 
 from cirq import protocols, ops
 from cirq.ops import raw_types
+from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -352,6 +353,8 @@ class Moment:
                     ops_to_keep.append(self._qubit_to_op[q])
             return Moment(frozenset(ops_to_keep))
 
+    # TODO(#3388) Add summary line to docstring.
+    # pylint: disable=docstring-first-line-empty
     def to_text_diagram(
         self: 'cirq.Moment',
         *,
@@ -424,7 +427,7 @@ class Moment:
                 precision=precision,
                 include_tags=include_tags,
             )
-            info = protocols.CircuitDiagramInfo._op_info_with_fallback(op, args=args)
+            info = circuit_diagram_info_protocol._op_info_with_fallback(op, args=args)
             symbols = info._wire_symbols_including_formatted_exponent(args)
             for label, q in zip(symbols, op.qubits):
                 x, y = qubit_positions[q]
@@ -444,6 +447,7 @@ class Moment:
 
         return diagram.render()
 
+    # pylint: enable=docstring-first-line-empty
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
     ) -> Union[bool, NotImplementedType]:
