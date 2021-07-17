@@ -23,6 +23,8 @@ import cirq_google
 from cirq_google.arg_func_langs import (
     arg_from_proto,
     arg_to_proto,
+    float_arg_from_proto,
+    float_arg_to_proto,
     ARG_LIKE,
     LANGUAGE_ORDER,
 )
@@ -112,9 +114,21 @@ def test_serialize_sympy_constants():
 
 def test_unsupported_function_language():
     with pytest.raises(ValueError, match='Unrecognized arg_function_language'):
-        _ = arg_to_proto(1, arg_function_language='NEVER GONNAH APPEN')
+        _ = arg_to_proto(
+            sympy.Symbol('a') + sympy.Symbol('b'), arg_function_language='NEVER GONNAH APPEN'
+        )
     with pytest.raises(ValueError, match='Unrecognized arg_function_language'):
-        _ = arg_from_proto(None, arg_function_language='NEVER GONNAH APPEN')
+        _ = arg_to_proto(3 * sympy.Symbol('b'), arg_function_language='NEVER GONNAH APPEN')
+    with pytest.raises(ValueError, match='Unrecognized arg_function_language'):
+        _ = arg_from_proto(
+            v2.program_pb2.Arg(
+                func=v2.program_pb2.ArgFunction(
+                    type='add',
+                    args=[v2.program_pb2.Arg(symbol='a'), v2.program_pb2.Arg(symbol='b')],
+                )
+            ),
+            arg_function_language='NEVER GONNAH APPEN',
+        )
 
 
 @pytest.mark.parametrize(
@@ -155,3 +169,37 @@ def test_infer_language():
     c_exp = cirq.Circuit(cirq.X(q) ** (b ** a))
     packed = cirq_google.XMON.serialize(c_exp)
     assert packed.language.arg_function_language == 'exp'
+
+
+@pytest.mark.parametrize(
+    'value,proto',
+    [
+        (4, v2.program_pb2.FloatArg(float_value=4.0)),
+        (1.0, v2.program_pb2.FloatArg(float_value=1.0)),
+        (sympy.Symbol('a'), v2.program_pb2.FloatArg(symbol='a')),
+        (
+            sympy.Symbol('a') + sympy.Symbol('b'),
+            v2.program_pb2.FloatArg(
+                func=v2.program_pb2.ArgFunction(
+                    type='add',
+                    args=[v2.program_pb2.Arg(symbol='a'), v2.program_pb2.Arg(symbol='b')],
+                )
+            ),
+        ),
+    ],
+)
+def test_float_args(value, proto):
+    assert float_arg_to_proto(value) == proto
+    assert float_arg_from_proto(proto, arg_function_language='exp') == value
+
+
+def test_missing_required_arg():
+    with pytest.raises(ValueError, match='unrecognized argument type'):
+        _ = float_arg_from_proto(
+            v2.program_pb2.FloatArg(), arg_function_language='exp', required_arg_name='blah'
+        )
+    with pytest.raises(ValueError, match='unrecognized argument type'):
+        _ = arg_from_proto(
+            v2.program_pb2.Arg(), arg_function_language='exp', required_arg_name='blah'
+        )
+    assert arg_from_proto(v2.program_pb2.Arg(), arg_function_language='exp') is None

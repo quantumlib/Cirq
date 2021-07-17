@@ -114,9 +114,6 @@ from cirq_google.optimizers import (
 from cirq_google.circuit_serializer import (
     CircuitSerializer,
 )
-from cirq_google.circuit_serializer2 import (
-    CircuitSerializer2,
-)
 
 from cirq_google.op_deserializer import (
     CircuitOpDeserializer,

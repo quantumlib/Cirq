@@ -34,6 +34,7 @@ message Constant {
   oneof const_value {
     string string_value = 1;
     Circuit circuit_value = 2;
+    Qubit qubit = 3;
   }
 }
 
@@ -170,16 +171,16 @@ message Operation {
   GateType gate_type = 6;
 
   oneof gate_value {
-    XPowGate xpowgate = 8;
-    YPowGate ypowgate = 9;
-    ZPowGate zpowgate = 10;
-    PhasedXPowGate phasedxpowgate = 11;
-    PhasedXZGate phasedxzgate = 12;
-    CZPowGate czpowgate = 13;
-    FSimGate fsimgate = 14;
-    ISwapPowGate iswappowgate = 15;
-    MeasurementGate measurementgate = 16;
-    WaitGate waitgate = 17;
+    XPowGate xpowgate = 9;
+    YPowGate ypowgate = 10;
+    ZPowGate zpowgate = 11;
+    PhasedXPowGate phasedxpowgate = 12;
+    PhasedXZGate phasedxzgate = 13;
+    CZPowGate czpowgate = 14;
+    FSimGate fsimgate = 15;
+    ISwapPowGate iswappowgate = 16;
+    MeasurementGate measurementgate = 17;
+    WaitGate waitgate = 18;
   }
 
   // Map from the argument name to the Argument needed to fully specify
@@ -189,7 +190,7 @@ message Operation {
 
   // Which qubits the operation acts on.
   repeated Qubit qubits = 3;
-  repeated string qubit_ids = 18;
+  repeated int32 qubit_constant_index = 8;
 
   // Token that can be used to specify a version of a gate.
   // For instance, a gate that has been calibrated for a circuit.
