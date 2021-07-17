@@ -171,8 +171,7 @@ def json_serializable_dataclass(
     unsafe_hash: bool = False,
     frozen: bool = False,
 ):
-    """
-    Create a dataclass that supports JSON serialization
+    """Create a dataclass that supports JSON serialization.
 
     This function defers to the ordinary ``dataclass`` decorator but appends
     the ``_json_dict_`` protocol method which automatically determines

@@ -125,7 +125,7 @@ class UndirectedGraphDevice(devices.Device):
         device_graph: Optional[UndirectedHypergraph] = None,
         crosstalk_graph: Optional[UndirectedHypergraph] = None,
     ) -> None:
-        """
+        """Inits UndirectedGraphDevice.
 
         Args:
             device_graph: An undirected hypergraph whose vertices correspond to
