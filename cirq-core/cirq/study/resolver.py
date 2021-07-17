@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """Resolves ParameterValues to assigned values."""
-import copy
 import numbers
 from typing import Any, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, Union, cast
 
