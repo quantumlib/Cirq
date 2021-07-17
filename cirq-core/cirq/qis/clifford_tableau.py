@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TYPE_CHECKING
 import numpy as np
 
-# import cirq is needed for mypy
-import cirq  # pylint: disable=unused-import
 from cirq import protocols
 from cirq.value import big_endian_int_to_digits
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class CliffordTableau:

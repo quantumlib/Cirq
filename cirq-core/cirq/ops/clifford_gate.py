@@ -51,7 +51,6 @@ def _to_clifford_tableau(
 ) -> qis.CliffordTableau:
     """Transfer the rotation map to clifford tableau representation"""
     if x_to is None and z_to is None and rotation_map is None:
-        # coverage: ignore
         raise ValueError(
             "The function either takes rotation_map or a combination "
             ' of x_to and z_to but none were given.'

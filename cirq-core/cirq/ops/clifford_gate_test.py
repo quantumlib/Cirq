@@ -448,6 +448,7 @@ def test_commutes_single_qubit_gate(gate, other):
     itertools.product(_all_clifford_gates(), _paulis, (1.0, 0.25, 0.5, -0.5)),
 )
 def test_commutes_pauli(gate, pauli, half_turns):
+    # TODO(#4328) cirq.X**1 should be _PauliX instead of XPowGate
     pauli_gate = pauli if half_turns == 1 else pauli ** half_turns
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit(
@@ -461,6 +462,40 @@ def test_commutes_pauli(gate, pauli, half_turns):
     commutes = cirq.commutes(gate, pauli_gate)
     commutes_check = np.allclose(mat, mat_swap)
     assert commutes == commutes_check, f"gate: {gate}, pauli {pauli}"
+
+
+def test_to_clifford_tableau_util_function():
+
+    tableau = cirq.ops.clifford_gate._to_clifford_tableau(
+        x_to=cirq.PauliTransform(to=cirq.X, flip=False),
+        z_to=cirq.PauliTransform(to=cirq.Z, flip=False),
+    )
+    assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=0)
+
+    tableau = cirq.ops.clifford_gate._to_clifford_tableau(
+        x_to=cirq.PauliTransform(to=cirq.X, flip=False),
+        z_to=cirq.PauliTransform(to=cirq.Z, flip=True),
+    )
+    assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=1)
+
+    tableau = cirq.ops.clifford_gate._to_clifford_tableau(
+        rotation_map={
+            cirq.X: cirq.PauliTransform(to=cirq.X, flip=False),
+            cirq.Z: cirq.PauliTransform(to=cirq.Z, flip=False),
+        }
+    )
+    assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=0)
+
+    tableau = cirq.ops.clifford_gate._to_clifford_tableau(
+        rotation_map={
+            cirq.X: cirq.PauliTransform(to=cirq.X, flip=False),
+            cirq.Z: cirq.PauliTransform(to=cirq.Z, flip=True),
+        }
+    )
+    assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=1)
+
+    with pytest.raises(ValueError):
+        cirq.ops.clifford_gate._to_clifford_tableau()
 
 
 @pytest.mark.parametrize(
