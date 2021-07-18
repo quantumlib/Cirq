@@ -1,0 +1,17 @@
+{
+  "cirq_type": "ProjectorString",
+  "projector_dict": [
+    [
+      {
+        "cirq_type": "NamedQubit",
+        "name": "q0"
+      },
+      [
+        [
+          1.0,
+          0.0
+        ]
+      ]
+    ]
+  ]
+}
