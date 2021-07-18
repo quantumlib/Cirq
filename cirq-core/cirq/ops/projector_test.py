@@ -13,14 +13,9 @@ def test_projector_qid():
 
     zero_projector = cirq.ProjectorString({q0: cirq.Projector(0)})
     one_projector = cirq.ProjectorString({q0: cirq.Projector(1)})
-    two_qids = cirq.ProjectorString({(q0, q1): cirq.Projector(2)})
 
     np.testing.assert_allclose(zero_projector.matrix(), [[1.0, 0.0], [0.0, 0.0]])
     np.testing.assert_allclose(one_projector.matrix(), [[0.0, 0.0], [0.0, 1.0]])
-    np.testing.assert_allclose(
-        two_qids.matrix(),
-        [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.0]],
-    )
 
 
 def test_projector_from_np_array():
@@ -64,19 +59,6 @@ def test_projector_from_state_missing_qid():
         d.expectation_from_density_matrix(np.array([[0.0, 0.0], [0.0, 0.0]]), qid_map={q1: 0})
 
 
-def test_projector_from_state_missing_proj_key():
-    q0 = cirq.NamedQubit('q0')
-    q1 = cirq.NamedQubit('q1')
-
-    d = cirq.ProjectorString({(q0, q1): cirq.Projector(0)})
-
-    with pytest.raises(ValueError, match="Missing qid: q0"):
-        d.expectation_from_state_vector(np.array([[0.0, 0.0]]), qid_map={q1: 0})
-
-    with pytest.raises(ValueError, match="Missing qid: q0"):
-        d.expectation_from_density_matrix(np.array([[0.0, 0.0], [0.0, 0.0]]), qid_map={q1: 0})
-
-
 def test_equality():
     q0 = cirq.NamedQubit('q0')
 
@@ -107,15 +89,6 @@ def test_get_values():
 
     assert len(d._projector_dict_()) == 1
     assert np.allclose(list(d._projector_dict_()[q0]), [0])
-
-
-def test_repr():
-    q0 = cirq.NamedQubit('q0')
-    d = cirq.ProjectorString({q0: [[1.0, 0.0]]})
-
-    assert d.__repr__() == (
-        "cirq.ProjectorString(projector_dict={cirq.NamedQubit('q0'): [[1.0, 0.0]]})"
-    )
 
 
 def test_expectation_from_state_vector_basis_states_empty():
