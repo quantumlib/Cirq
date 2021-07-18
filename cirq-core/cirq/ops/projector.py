@@ -10,7 +10,6 @@ import numpy as np
 
 from cirq import linalg, value
 from cirq.ops import raw_types
-from cirq.qis import states
 
 
 def get_dims_from_qid_map(qid_map: Mapping[raw_types.Qid, int]):
@@ -43,14 +42,10 @@ class ProjectorString:
         return self._projector_dict
 
     def _op_matrix(self, projector_qid: raw_types.Qid) -> np.ndarray:
-        # TODO(tonybruguier): Speed up computation when the phis are encoded as integers. This
-        # probably means not calling this function at all, as encoding a matrix with a single
-        # non-zero entry is not efficient.
-        qid_shape = [projector_qid.dimension]
-        state_vector = states.to_valid_state_vector(
-            self._projector_dict[projector_qid], qid_shape=qid_shape
-        )
-        return np.einsum('i,j->ij', state_vector, state_vector.conj())
+        op_matrix = np.zeros((projector_qid.dimension,)*2)
+        i = self._projector_dict[projector_qid]
+        op_matrix[i][i] = 1.0
+        return op_matrix
 
     def matrix(
         self, projector_qids: Optional[Iterable[raw_types.Qid]] = None
