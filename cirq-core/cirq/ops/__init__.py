@@ -132,7 +132,6 @@ from cirq.ops.parallel_gate_operation import (
 )
 
 from cirq.ops.projector import (
-    Projector,
     ProjectorString,
 )
 

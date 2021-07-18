@@ -2,19 +2,15 @@ from typing import (
     Any,
     Dict,
     Iterable,
-    List,
     Mapping,
     Optional,
-    Tuple,
-    TypeVar,
-    Union,
 )
 
 import numpy as np
 
 from cirq import linalg, value
 from cirq.ops import raw_types
-from cirq.qis import states, STATE_VECTOR_LIKE
+from cirq.qis import states
 
 
 def get_dims_from_qid_map(qid_map: Mapping[raw_types.Qid, int]):
@@ -30,45 +26,10 @@ def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], projector_qid: raw_typ
 
 
 @value.value_equality
-class Projector:
-    def __init__(
-        self,
-        phi: Optional[STATE_VECTOR_LIKE] = None,
-        phi_list: Optional[List[STATE_VECTOR_LIKE]] = None,
-    ):
-        if phi_list is not None:
-            self.phi_list = phi_list
-        else:
-            self.phi_list = []
-        if phi is not None:
-            self.phi_list.append(phi)
-
-    def Projector(self, phi: STATE_VECTOR_LIKE):
-        self.phi_list.append(phi)
-        return self
-
-    def __iter__(self):
-        return iter(self.phi_list)
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            'phi_list': self.phi_list,
-        }
-
-    @classmethod
-    def _from_json_dict_(cls, phi_list, **kwargs):
-        return cls(phi_list=phi_list)
-
-    def _value_equality_values_(self) -> Any:
-        return self.phi_list
-
-
-@value.value_equality
 class ProjectorString:
     def __init__(
         self,
-        projector_dict: Dict[raw_types.Qid, Projector],
+        projector_dict: Dict[raw_types.Qid, int],
     ):
         """Contructor for ProjectorString
 
@@ -78,7 +39,7 @@ class ProjectorString:
         """
         self._projector_dict = projector_dict
 
-    def _projector_dict_(self) -> Dict[raw_types.Qid, Projector]:
+    def _projector_dict_(self) -> Dict[raw_types.Qid, int]:
         return self._projector_dict
 
     def _op_matrix(self, projector_qid: raw_types.Qid) -> np.ndarray:
@@ -86,12 +47,10 @@ class ProjectorString:
         # probably means not calling this function at all, as encoding a matrix with a single
         # non-zero entry is not efficient.
         qid_shape = [projector_qid.dimension]
-
-        P = 0
-        for phi in self._projector_dict[projector_qid]:
-            state_vector = states.to_valid_state_vector(phi, qid_shape=qid_shape)
-            P = P + np.einsum('i,j->ij', state_vector, state_vector.conj())
-        return P
+        state_vector = states.to_valid_state_vector(
+            self._projector_dict[projector_qid], qid_shape=qid_shape
+        )
+        return np.einsum('i,j->ij', state_vector, state_vector.conj())
 
     def matrix(
         self, projector_qids: Optional[Iterable[raw_types.Qid]] = None
@@ -173,5 +132,4 @@ class ProjectorString:
 
     def _value_equality_values_(self) -> Any:
         projector_dict = sorted(self._projector_dict.items())
-        encoded_dict = {k: tuple(v) for k, v in projector_dict}
-        return tuple(encoded_dict.items())
+        return tuple(projector_dict)
