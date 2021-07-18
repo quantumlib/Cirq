@@ -33,8 +33,8 @@ class ProjectorString:
         """Contructor for ProjectorString
 
         Args:
-            phi_dict: a dictionary of Qdit tuples to a list of projectors
-                which express the operation to apply
+            projector_dict: a dictionary of Qdit tuples to an integer specifying which vector to
+                project on.
         """
         self._projector_dict = projector_dict
 
@@ -42,6 +42,7 @@ class ProjectorString:
         return self._projector_dict
 
     def _op_matrix(self, projector_qid: raw_types.Qid) -> np.ndarray:
+        # TODO(tonybruguier): Consider using scipy.sparsematrix instead of a dense one.
         op_matrix = np.zeros((projector_qid.dimension,)*2)
         i = self._projector_dict[projector_qid]
         op_matrix[i][i] = 1.0
