@@ -16,34 +16,17 @@ from cirq import linalg, value
 from cirq.ops import raw_types
 from cirq.qis import states, STATE_VECTOR_LIKE
 
-ProjectorKey = TypeVar('ProjectorKey', bound=Union[raw_types.Qid, Tuple[raw_types.Qid]])
-
-
-def qid_shape_from_projector_key(projector_key: ProjectorKey):
-    if isinstance(projector_key, tuple):
-        return [qid.dimension for qid in projector_key]
-    else:
-        return [projector_key.dimension]
-
 
 def get_dims_from_qid_map(qid_map: Mapping[raw_types.Qid, int]):
     dims = sorted([(i, qid.dimension) for qid, i in qid_map.items()])
     return [x[1] for x in dims]
 
 
-def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], projector_key: ProjectorKey):
-    if isinstance(projector_key, raw_types.Qid):
-        qid = projector_key
-        if qid not in qid_map:
-            raise ValueError(f"Missing qid: {qid}")
-        return [qid_map[qid]]
-    else:
-        idx = []
-        for qid in projector_key:
-            if qid not in qid_map:
-                raise ValueError(f"Missing qid: {qid}")
-            idx.append(qid_map[qid])
-        return idx
+def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], projector_qid: raw_types.Qid):
+    qid = projector_qid
+    if qid not in qid_map:
+        raise ValueError(f"Missing qid: {qid}")
+    return [qid_map[qid]]
 
 
 @value.value_equality
@@ -85,7 +68,7 @@ class Projector:
 class ProjectorString:
     def __init__(
         self,
-        projector_dict: Dict[ProjectorKey, Projector],
+        projector_dict: Dict[raw_types.Qid, Projector],
     ):
         """Contructor for ProjectorString
 
@@ -95,32 +78,32 @@ class ProjectorString:
         """
         self._projector_dict = projector_dict
 
-    def _projector_dict_(self) -> Dict[ProjectorKey, Projector]:
+    def _projector_dict_(self) -> Dict[raw_types.Qid, Projector]:
         return self._projector_dict
 
-    def _op_matrix(self, projector_key: ProjectorKey) -> np.ndarray:
+    def _op_matrix(self, projector_qid: raw_types.Qid) -> np.ndarray:
         # TODO(tonybruguier): Speed up computation when the phis are encoded as integers. This
         # probably means not calling this function at all, as encoding a matrix with a single
         # non-zero entry is not efficient.
-        qid_shape = qid_shape_from_projector_key(projector_key)
+        qid_shape = [projector_qid.dimension]
 
         P = 0
-        for phi in self._projector_dict[projector_key]:
+        for phi in self._projector_dict[projector_qid]:
             state_vector = states.to_valid_state_vector(phi, qid_shape=qid_shape)
             P = P + np.einsum('i,j->ij', state_vector, state_vector.conj())
         return P
 
     def matrix(
-        self, projector_keys: Optional[Iterable[ProjectorKey]] = None
+        self, projector_qids: Optional[Iterable[raw_types.Qid]] = None
     ) -> Iterable[np.ndarray]:
-        projector_keys = self._projector_dict.keys() if projector_keys is None else projector_keys
+        projector_qids = self._projector_dict.keys() if projector_qids is None else projector_qids
         factors = []
-        for projector_key in projector_keys:
-            if projector_key not in self._projector_dict.keys():
-                qid_shape = qid_shape_from_projector_key(projector_key)
+        for projector_qid in projector_qids:
+            if projector_qid not in self._projector_dict.keys():
+                qid_shape = [projector_qid.dimension]
                 factors.append(np.eye(np.prod(qid_shape)))
             else:
-                factors.append(self._op_matrix(projector_key))
+                factors.append(self._op_matrix(projector_qid))
         return linalg.kron(*factors)
 
     def expectation_from_state_vector(
@@ -134,12 +117,12 @@ class ProjectorString:
         dims = get_dims_from_qid_map(qid_map)
         state_vector = state_vector.reshape(dims)
 
-        for projector_key in self._projector_dict.keys():
-            idx = get_qid_indices(qid_map, projector_key)
-            op_dims = qid_shape_from_projector_key(projector_key)
+        for projector_qid in self._projector_dict.keys():
+            idx = get_qid_indices(qid_map, projector_qid)
+            op_dims = [projector_qid.dimension]
             nr = len(idx)
 
-            P = self._op_matrix(projector_key)
+            P = self._op_matrix(projector_qid)
             P = np.reshape(P, op_dims * 2)
 
             state_vector = np.tensordot(P, state_vector, axes=(range(nr, 2 * nr), idx))
@@ -159,12 +142,12 @@ class ProjectorString:
         dims = get_dims_from_qid_map(qid_map)
         state = state.reshape(dims * 2)
 
-        for projector_key in self._projector_dict.keys():
-            idx = get_qid_indices(qid_map, projector_key)
-            op_dims = qid_shape_from_projector_key(projector_key)
+        for projector_qid in self._projector_dict.keys():
+            idx = get_qid_indices(qid_map, projector_qid)
+            op_dims = [projector_qid.dimension]
             nr = len(idx)
 
-            P = self._op_matrix(projector_key)
+            P = self._op_matrix(projector_qid)
             P = np.reshape(P, op_dims * 2)
 
             state = np.tensordot(P, state, axes=(range(nr, 2 * nr), idx))
