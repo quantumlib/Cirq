@@ -87,3 +87,12 @@ _compat.deprecated_submodule(
     deadline="v0.20",
     create_attribute=False,
 )
+
+# a missing module that is setup as a broken reference
+_compat.deprecated_submodule(
+    new_module_name='missing_module',
+    old_parent=__name__,
+    old_child='broken_ref',
+    deadline='v0.20',
+    create_attribute=True,
+)

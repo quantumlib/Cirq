@@ -134,7 +134,8 @@ class GreedyExecutionStrategy(ExecutionStrategy):
     def __init__(
         self, gates: LogicalGates, initial_mapping: LogicalMapping, device: 'cirq.Device' = None
     ) -> None:
-        """
+        """Inits GreedyExecutionStrategy.
+
         Args:
             gates: The gates to insert.
             initial_mapping: The initial mapping of qubits to logical indices.

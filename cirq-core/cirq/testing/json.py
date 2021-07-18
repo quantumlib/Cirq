@@ -84,7 +84,6 @@ class ModuleJsonTestSpec:
         result: Set[Tuple[str, Type]] = set()
 
         result.update({(name, obj) for name, obj in self._get_all_public_classes()})
-
         result.update(self.get_resolver_cache_types())
 
         return result
