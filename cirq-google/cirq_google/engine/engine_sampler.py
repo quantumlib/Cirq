@@ -33,7 +33,8 @@ class QuantumEngineSampler(cirq.Sampler):
         processor_id: Union[str, List[str]],
         gate_set: 'cirq_google.SerializableGateSet',
     ):
-        """
+        """Inits QuantumEngineSampler.
+
         Args:
             engine: Quantum engine instance to use.
             processor_id: String identifier, or list of string identifiers,

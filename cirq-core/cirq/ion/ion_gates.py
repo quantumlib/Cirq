@@ -61,6 +61,8 @@ class MSGate(ops.XXPowGate):
         return f'cirq.ms({self._exponent!r}*np.pi/2)'
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def ms(rads: float) -> MSGate:
     """
     Args:
@@ -70,3 +72,6 @@ def ms(rads: float) -> MSGate:
         Mølmer–Sørensen gate rotating by the desired amount.
     """
     return MSGate(rads=rads)
+
+
+# pylint: enable=docstring-first-line-empty

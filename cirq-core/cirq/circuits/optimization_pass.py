@@ -36,7 +36,8 @@ class PointOptimizationSummary:
         new_operations: 'cirq.OP_TREE',
         preserve_moments: bool = False,
     ) -> None:
-        """
+        """Inits PointOptimizationSummary.
+
         Args:
             clear_span: Defines the range of moments to affect. Specifically,
                 refers to the indices in range(start, start+clear_span) where
@@ -92,7 +93,8 @@ class PointOptimizer:
             [Sequence['cirq.Operation']], ops.OP_TREE
         ] = lambda op_list: op_list,
     ) -> None:
-        """
+        """Inits PointOptimizer.
+
         Args:
             post_clean_up: This function is called on each set of optimized
                 operations before they are put into the circuit to replace the
