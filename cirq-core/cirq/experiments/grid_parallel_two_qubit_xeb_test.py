@@ -20,7 +20,7 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_no_noise(tmpdir):
     two_qubit_gate = cirq.ISWAP ** 0.5
     cycles = [5, 10, 15]
     data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
-        sampler=cirq.Simulator(seed=34310),
+        sampler=cirq.Simulator(seed=34310, split_untangled_states=False),
         qubits=qubits,
         two_qubit_gate=two_qubit_gate,
         num_circuits=2,
@@ -53,7 +53,9 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_depolarizing(tmpdir):
     cycles = [5, 10, 15]
     e = 0.01
     data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
-        sampler=cirq.DensityMatrixSimulator(noise=cirq.depolarize(e), seed=65008),
+        sampler=cirq.DensityMatrixSimulator(
+            noise=cirq.depolarize(e), seed=65008, split_untangled_states=False
+        ),
         qubits=qubits,
         two_qubit_gate=two_qubit_gate,
         num_circuits=2,

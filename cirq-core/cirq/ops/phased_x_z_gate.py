@@ -33,7 +33,8 @@ class PhasedXZGate(gate_features.SingleQubitGate):
         z_exponent: Union[numbers.Real, sympy.Basic],
         axis_phase_exponent: Union[numbers.Real, sympy.Basic],
     ) -> None:
-        """
+        """Inits PhasedXZGate.
+
         Args:
             x_exponent: Determines how much to rotate during the
                 axis-in-XY-plane rotation. The $x$ in $Z^z Z^a X^x Z^{-a}$.
