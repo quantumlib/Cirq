@@ -7,14 +7,6 @@ import pytest
 import cirq
 
 
-def test_projector_building():
-    projector = cirq.Projector(123).Projector(456)
-    assert projector.phi_list == [
-        123,
-        456,
-    ]
-
-
 def test_projector_qid():
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
@@ -126,14 +118,6 @@ def test_repr():
     )
 
 
-def test_consistency_with_existing():
-    a, b = cirq.LineQubit.range(2)
-    mx = (cirq.KET_IMAG(a) * cirq.KET_IMAG(b)).projector()
-    proj_vec = np.asarray([0.5, 0.5j, 0.5j, -0.5])
-    ii_proj = cirq.ProjectorString({(a, b): cirq.Projector(proj_vec)})
-    np.testing.assert_allclose(mx, ii_proj.matrix())
-
-
 def test_expectation_from_state_vector_basis_states_empty():
     q0 = cirq.NamedQubit('q0')
     d = cirq.ProjectorString({})
@@ -220,48 +204,3 @@ def test_expectation_from_density_matrix_basis_states_single_qubits():
     np.testing.assert_allclose(
         d.expectation_from_density_matrix(np.array([[0.0, 0.0], [0.0, 1.0]]), {q0: 0}), 0.0
     )
-
-
-def test_internal_consistency():
-    q0 = cirq.NamedQid('q0', dimension=2)
-    q1 = cirq.NamedQid('q1', dimension=3)
-
-    phi0 = np.asarray([1.0, -3.0j])
-    phi1 = np.asarray([-0.5j, 1.0 + 2.0j, 1.2])
-
-    state_vector = np.asarray([1.0, 2.0j, -3.0, -4.0j, -5.0j, 0.0])
-
-    phi0 = phi0 / np.linalg.norm(phi0)
-    phi1 = phi1 / np.linalg.norm(phi1)
-    state_vector = state_vector / np.linalg.norm(state_vector)
-    state = np.einsum('i,j->ij', state_vector, state_vector.T.conj())
-
-    d = cirq.ProjectorString({q0: cirq.Projector(phi0), q1: cirq.Projector(phi1)})
-    P = d.matrix(projector_keys=[q1, q0])
-
-    projected_state = np.matmul(P, state_vector)
-    actual0 = np.linalg.norm(projected_state, ord=2) ** 2
-
-    actual1 = d.expectation_from_state_vector(state_vector, qid_map={q1: 0, q0: 1})
-
-    actual2 = d.expectation_from_density_matrix(state, qid_map={q1: 0, q0: 1})
-
-    np.testing.assert_allclose(actual0, actual1, atol=1e-6)
-    np.testing.assert_allclose(actual0, actual2, atol=1e-6)
-
-
-def test_projector_split_qubits():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    phi = np.asarray([1.0 / math.sqrt(2), 0.0, 0.0, 1.0 / math.sqrt(2)])
-    d = cirq.ProjectorString({(q0, q2): cirq.Projector(phi)})
-
-    qid_map = {q0: 0, q1: 1, q2: 2}
-
-    state_vector = np.asarray([0.5, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.5])
-    state = np.einsum('i,j->ij', state_vector, state_vector.T.conj())
-
-    actual1 = d.expectation_from_state_vector(state_vector, qid_map=qid_map)
-    actual2 = d.expectation_from_density_matrix(state, qid_map=qid_map)
-
-    np.testing.assert_allclose(actual1, 0.25, atol=1e-6)
-    np.testing.assert_allclose(actual2, 0.25, atol=1e-6)
