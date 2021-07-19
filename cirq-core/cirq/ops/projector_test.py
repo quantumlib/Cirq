@@ -168,20 +168,17 @@ def test_expectation_from_density_matrix_basis_states_single_qubits():
     )
 
 
-def test_projector_sum_basic():
+def test_projector_sum_expectations():
     q0 = cirq.NamedQubit('q0')
 
-    zero_projector = cirq.ProjectorString({q0: 0})
-    one_projector = cirq.ProjectorString({q0: 1})
+    zero_projector = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+    one_projector = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 1}))
 
-    proj_sum = cirq.ProjectorSum.from_projector_strings(
-        zero_projector
-    ) + cirq.ProjectorSum.from_projector_strings(one_projector)
-
-    np.testing.assert_allclose(proj_sum.matrix(), [[1.0, 0.0], [0.0, 1.0]])
+    proj_sum = 0.6 * zero_projector + 0.4 * one_projector
+    np.testing.assert_allclose(proj_sum.matrix(), [[0.6, 0.0], [0.0, 0.4]])
     np.testing.assert_allclose(
-        proj_sum.expectation_from_state_vector(np.array([1.0, 0.0]), {q0: 0}), 1.0
+        proj_sum.expectation_from_state_vector(np.array([1.0, 0.0]), {q0: 0}), 0.6
     )
     np.testing.assert_allclose(
-        proj_sum.expectation_from_density_matrix(np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}), 1.0
+        proj_sum.expectation_from_density_matrix(np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}), 0.6
     )
