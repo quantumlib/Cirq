@@ -146,13 +146,33 @@ class ProjectorSum:
     def _value_equality_values_(self):
         return self._linear_dict
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        linear_dict = []
+        for projector_dict, scalar in dict(self._linear_dict).items():
+            key = [[k, v] for k, v in dict(projector_dict).items()]
+            linear_dict.append([key, scalar])
+        return {
+            'cirq_type': self.__class__.__name__,
+            'linear_dict': linear_dict,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, linear_dict, **kwargs):
+        converted_dict = {}
+        for projector_string in linear_dict:
+            projector_dict = {x[0]: x[1] for x in projector_string[0]}
+            scalar = projector_string[1]
+            key = frozenset(projector_dict.items())
+            converted_dict[key] = scalar
+        return cls(linear_dict=value.LinearDict(converted_dict))
+
     @classmethod
     def from_projector_strings(
         cls, terms: Union[ProjectorString, List[ProjectorString]]
     ) -> 'ProjectorSum':
         if isinstance(terms, ProjectorString):
             terms = [terms]
-        termdict: DefaultDict[ProjectorString, value.Scalar] = defaultdict(lambda: 0)
+        termdict: DefaultDict[ProjectorString, value.Scalar] = defaultdict(lambda: 0.0)
         for pstring in terms:
             key = frozenset(pstring._projector_dict.items())
             termdict[key] += 1.0
@@ -164,6 +184,38 @@ class ProjectorSum:
     def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
         return sum(
             coeff * _projector_string_from_projector_dict(vec).matrix(projector_qids)
+            for vec, coeff in self._linear_dict.items()
+        )
+
+    def expectation_from_state_vector(
+        self,
+        state_vector: np.ndarray,
+        qid_map: Mapping[raw_types.Qid, int],
+        *,
+        atol: float = 1e-7,
+        check_preconditions: bool = True,
+    ) -> float:
+        return sum(
+            coeff
+            * _projector_string_from_projector_dict(vec).expectation_from_state_vector(
+                state_vector, qid_map
+            )
+            for vec, coeff in self._linear_dict.items()
+        )
+
+    def expectation_from_density_matrix(
+        self,
+        state: np.ndarray,
+        qid_map: Mapping[raw_types.Qid, int],
+        *,
+        atol: float = 1e-7,
+        check_preconditions: bool = True,
+    ) -> float:
+        return sum(
+            coeff
+            * _projector_string_from_projector_dict(vec).expectation_from_density_matrix(
+                state, qid_map
+            )
             for vec, coeff in self._linear_dict.items()
         )
 

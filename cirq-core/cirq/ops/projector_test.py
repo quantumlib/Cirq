@@ -179,3 +179,9 @@ def test_projector_sum_basic():
     ) + cirq.ProjectorSum.from_projector_strings(one_projector)
 
     np.testing.assert_allclose(proj_sum.matrix(), [[1.0, 0.0], [0.0, 1.0]])
+    np.testing.assert_allclose(
+        proj_sum.expectation_from_state_vector(np.array([1.0, 0.0]), {q0: 0}), 1.0
+    )
+    np.testing.assert_allclose(
+        proj_sum.expectation_from_density_matrix(np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}), 1.0
+    )
