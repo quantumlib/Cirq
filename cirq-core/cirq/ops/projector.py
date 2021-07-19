@@ -1,9 +1,12 @@
+from collections import defaultdict
 from typing import (
     Any,
     Dict,
     Iterable,
+    List,
     Mapping,
     Optional,
+    Union,
 )
 
 import numpy as np
@@ -129,3 +132,49 @@ class ProjectorString:
     def _value_equality_values_(self) -> Any:
         projector_dict = sorted(self._projector_dict.items())
         return tuple(projector_dict)
+
+
+def _projector_string_from_projector_dict(projector_dict: Dict[raw_types.Qid, int]):
+    return ProjectorString(dict(projector_dict))
+
+
+@value.value_equality(approximate=True)
+class ProjectorSum:
+    def __init__(self, linear_dict: Optional[value.LinearDict[ProjectorString]] = None):
+        self._linear_dict = linear_dict if linear_dict is not None else {}
+
+    def _value_equality_values_(self):
+        return self._linear_dict
+
+    @classmethod
+    def from_projector_strings(
+        cls, terms: Union[ProjectorString, List[ProjectorString]]
+    ) -> 'ProjectorSum':
+        if isinstance(terms, ProjectorString):
+            terms = [terms]
+        termdict: DefaultDict[ProjectorString, value.Scalar] = defaultdict(lambda: 0)
+        for pstring in terms:
+            key = frozenset(pstring._projector_dict.items())
+            termdict[key] += 1.0
+        return cls(linear_dict=value.LinearDict(termdict))
+
+    def copy(self) -> 'ProjectorSum':
+        return ProjectorSum(self._linear_dict.copy())
+
+    def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
+        return sum(
+            coeff * _projector_string_from_projector_dict(vec).matrix(projector_qids)
+            for vec, coeff in self._linear_dict.items()
+        )
+
+    def __iadd__(self, other):
+        self._linear_dict += other._linear_dict
+        return self
+
+    def __add__(self, other):
+        result = self.copy()
+        result += other
+        return result
+
+    def __radd__(self, other):
+        return self.__add__(other)
