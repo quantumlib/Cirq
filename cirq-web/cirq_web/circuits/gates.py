@@ -16,14 +16,6 @@ from abc import ABC, abstractmethod
 
 class Gate(ABC):
     @abstractmethod
-    def set_moment(self, moment):
-        raise NotImplementedError()
-    
-    @abstractmethod
-    def set_location(self, row, col):
-        raise NotImplementedError()
-        
-    @abstractmethod
     def to_typescript(self):
         raise NotImplementedError()
         
@@ -31,15 +23,11 @@ class SingleQubitGate(Gate):
     def __init__(self, color):
         self.color = color
     
-    def set_text(self, text):
+    def __call__(self, text, moment, loc):
         self.text = text
-
-    def set_moment(self, moment):
         self.moment = moment
-        
-    def set_location(self, row, col):
-        self.row = row
-        self.col = col
+        self.row = loc[0]
+        self.col = loc[1]
         
     def to_typescript(self):
         return {
@@ -55,13 +43,10 @@ class TwoQubitGate(Gate):
     def __init__(self, target_gate):
         self.target_gate = target_gate
     
-    def set_moment(self, moment):
+    def __call__(self, moment, loc):
         self.moment = moment
-        self.target_gate.set_moment(moment)
-        
-    def set_location(self, row, col):
-        self.row = row
-        self.col = col
+        self.row = loc[0]
+        self.col = loc[1]
         
     def to_typescript(self):
         return {
@@ -75,7 +60,6 @@ class TwoQubitGate(Gate):
 class UnknownSingleQubitGate(SingleQubitGate):
     def __init__(self):
         super()
-        self.text = '?'
         self.color = 'gray'
 
 class UnknownTwoQubitGate(TwoQubitGate):

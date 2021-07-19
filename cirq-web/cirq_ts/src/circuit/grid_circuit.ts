@@ -29,11 +29,29 @@ class CircuitMap {
         const keyAsString = key.join(',');
         return this.map.get(keyAsString);
     }
+
+    get size() {
+        return this.map.size;
+    }
+
+    // forEach(
+    //     callback: (
+    //         value: GridQubit, 
+    //         key: [number, number], 
+    //         map: Map<[number, number], GridQubit>
+    //         ) => void, 
+    //     thisArg?: any
+    //     ): void {
+    //     this.map.forEach((value, key) => {
+    //         const keyAsArr = key.split(',').map(Number) as [number, number];
+    //         callback.call(thisArg, value, keyAsArr, this);        
+    //     })
+    // }
 }
 
 export class GridCircuit extends Group {
-    public moments: number;
-    public circuit: any;
+    readonly moments: number;
+    readonly circuit: CircuitMap;
 
     constructor(moments: number, qubits: GridCoord[]) {
         super();
@@ -61,16 +79,16 @@ export class GridCircuit extends Group {
     addSingleQubitGate(gate: SingleQubitGate) {
         //.get gives a reference to an object, so we're good to
         // just modify
-        const qubit = this.circuit.get([gate.row, gate.col]);
+        const qubit = this.circuit.get([gate.row, gate.col])!;
         qubit.addSingleQubitGate(gate.text, gate.color, gate.moment);
     }
 
     addTwoQubitGate(gate: TwoQubitGate) {
-        const control = this.circuit.get([gate.row, gate.col]);
+        const control = this.circuit.get([gate.row, gate.col])!;
         control.addControl(gate.moment);
         control.addLineToQubit(gate.targetGate.row, gate.targetGate.col, gate.moment);
 
-        const target = this.circuit.get([gate.targetGate.row, gate.targetGate.col]);
+        const target = this.circuit.get([gate.targetGate.row, gate.targetGate.col])!;
         target.addSingleQubitGate(gate.targetGate.text, gate.targetGate.color, gate.targetGate.moment);
     }
 

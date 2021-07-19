@@ -64,28 +64,30 @@ class Circuit3D(widget.Widget):
             for item in moment:
                 gate = Gate3DSymbols.get(str(item.gate), None)
                 if isinstance(gate, SingleQubitGate):
-                    gate.set_text(circuit_diagram_info(item.gate).wire_symbols[0])
-                    gate.set_moment(moment_id)
-                    gate.set_location(item.qubits[0].row, item.qubits[0].col)
+                    gate(
+                        circuit_diagram_info(item.gate).wire_symbols[0], 
+                        moment_id, 
+                        (item.qubits[0].row, item.qubits[0].col)
+                    )
                 elif isinstance(gate, TwoQubitGate):
-                    gate.set_moment(moment_id)
-                    gate.set_location(item.qubits[0].row, item.qubits[0].col)
+                    # Set the control information
+                    gate(moment_id, (item.qubits[0].row, item.qubits[0].col))
 
-                    gate.target_gate.set_text(circuit_diagram_info(item.gate).wire_symbols[1])
-                    gate.target_gate.set_moment(moment_id)
-                    gate.target_gate.set_location(item.qubits[1].row, item.qubits[1].col)
+                    # Set the target information
+                    gate.target_gate(
+                        circuit_diagram_info(item.gate).wire_symbols[1],
+                        moment_id,
+                        (item.qubits[1].row, item.qubits[1].col),
+                    )
                 else:
                     if len(item.qubits) == 1:
                         gate = UnknownSingleQubitGate()
-                        gate.set_moment(moment_id)
-                        gate.set_location(item.qubits[0].row, item.qubits[0].col)
+                        gate('?', moment_id, (item.qubits[0].row, item.qubits[0].col))
                     else:
                         gate = UnknownTwoQubitGate()
-                        gate.set_moment(moment_id)
-                        gate.set_location(item.qubits[0].row, item.qubits[0].col)
+                        gate( moment_id, (item.qubits[0].row, item.qubits[0].col))
 
-                        gate.target_gate.set_moment(moment_id)
-                        gate.target_gate.set_location(item.qubits[1].row, item.qubits[1].col)
+                        gate.target_gate('?', moment_id, (item.qubits[1].row, item.qubits[1].col))
                 args.append(gate.to_typescript())
 
         argument_str = ','.join(str(item) for item in args)
