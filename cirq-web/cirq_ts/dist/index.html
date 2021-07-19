@@ -4,26 +4,15 @@
   <title>Cirq Web Development page</title>
 </head>
 <body>
-  <h1 id="infodiv">Highlight a gate to see what it is</div>
   <div id="mycircuitdiv"></div>
   <script src="/circuit.bundle.js"></script>
   <script>
-    const circuit = createGridCircuit([[0, 1], [1, 0], [0, 0]], 5, 'mycircuitdiv');
-    const x = {
-      'asString': 'X',
-      'color': 'blue',
-      'row': 0,
-      'col': 1,
-      'moment': 4,
-    }
-    circuit.addSingleQubitGate(x);
-    const cnot = {
-      'ctrlRow': 1,
-      'ctrlCol': 0,
-      'targetGate': x,
-      'moment': 4,
-    }
-    circuit.addControlledGate(cnot);
+    const circuit = createGridCircuit(
+      [
+        {row: 0, col: 0}, 
+        {row: 0, col: 1}, 
+        {row: 1, col: 0}
+      ], 5, 'mycircuitdiv');
   </script>
 </body>
 </html>

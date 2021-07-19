@@ -16,53 +16,37 @@ import {Group} from 'three';
 import {GridQubit} from './components/grid_qubit';
 import {TwoQubitGate, SingleQubitGate, GridCoord} from './components/types';
 
-class CircuitMap {
-    private map = new Map<string, GridQubit>();
-
-    set(key: [number, number], value: GridQubit): this {
-        const keyAsString = key.join(',');
-        this.map.set(keyAsString, value);
-        return this;
-    }
-
-    get(key: [number, number]) : GridQubit | undefined {
-        const keyAsString = key.join(',');
-        return this.map.get(keyAsString);
-    }
-
-    get size() {
-        return this.map.size;
-    }
-
-    // forEach(
-    //     callback: (
-    //         value: GridQubit, 
-    //         key: [number, number], 
-    //         map: Map<[number, number], GridQubit>
-    //         ) => void, 
-    //     thisArg?: any
-    //     ): void {
-    //     this.map.forEach((value, key) => {
-    //         const keyAsArr = key.split(',').map(Number) as [number, number];
-    //         callback.call(thisArg, value, keyAsArr, this);        
-    //     })
-    // }
-}
-
+/**
+ * Class that gathers serialized circuit information
+ * from a Python cirq.Circuit and reconstructs it to be 
+ * displayed using three.js
+ */
 export class GridCircuit extends Group {
     readonly moments: number;
-    readonly circuit: CircuitMap;
+    private circuit: WeakMap<[number, number], GridQubit>;
 
+    /**
+     * Class constructor
+     * @param moments The number of moments of the circuit. This 
+     * determines the length of all the qubit lines in the diagram.
+     * @param qubits A list of GridCoord objects representing the locations of the 
+     * qubits in the circuit. 
+     */
     constructor(moments: number, qubits: GridCoord[]) {
         super();
         this.moments = moments;
-        this.circuit = new CircuitMap();
+        this.circuit = new WeakMap();
 
         for (const coord of qubits) {
             this.addQubit(coord.row, coord.col);
         }
     }
 
+    /**
+     * Adds Gate objects to class circuit map and generates three.js
+     * objects, adding them to the group.
+     * @param list A list of Gate objects to be added to the circuit.
+     */
     displayGatesFromList(list: (SingleQubitGate | TwoQubitGate)[]) {
         for (const gate of list) {
             switch (gate.type) {
@@ -76,6 +60,11 @@ export class GridCircuit extends Group {
         } 
     }
 
+    /**
+     * Adds a single qubit gate to the circuit map, and the corresponding
+     * three.js object to the group.
+     * @param gate The SingleQubitGate object to be added.
+     */
     addSingleQubitGate(gate: SingleQubitGate) {
         //.get gives a reference to an object, so we're good to
         // just modify
@@ -83,6 +72,11 @@ export class GridCircuit extends Group {
         qubit.addSingleQubitGate(gate.text, gate.color, gate.moment);
     }
 
+    /**
+     * Adds a two qubit gate to the circuit map, and the corresponding
+     * three.js object to the group.
+     * @param gate The TwoQubitGate object to be added.
+     */
     addTwoQubitGate(gate: TwoQubitGate) {
         const control = this.circuit.get([gate.row, gate.col])!;
         control.addControl(gate.moment);

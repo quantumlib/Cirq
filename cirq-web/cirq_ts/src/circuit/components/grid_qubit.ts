@@ -15,11 +15,24 @@
 import {Group, Vector3} from 'three';
 import {QubitLine, QubitLabel, X3DSymbol, BoxGate3DSymbol, Control3DSymbol, ConnectionLine} from './meshes';
 
+/**
+ * Class that represents a GridQubit.
+ * A GridQubit consists of a three.js line, a sprite
+ * with location information, and three.js mesh objects
+ * representing the gates, if applicable.
+ */
 export class GridQubit extends Group {
     readonly row: number;
     readonly col: number;
     readonly moments: number;
 
+    /**
+     * Class constructor.
+     * @param row The row of the GridQubit
+     * @param col The column of the GridQubit
+     * @param moments The number of moments of the entire circuit. This
+     * determines the length of the three.js line representing the GridQubit
+     */
     constructor(row: number, col: number, moments: number) {
         super();
 
@@ -28,6 +41,50 @@ export class GridQubit extends Group {
         this.moments = moments;
         this.createLine();
         this.addLocationLabel();
+    }
+
+    /**
+     * Adds a three.js mesh single qubit gate symbol 
+     * to the group at the designated moment.
+     * @param label The label of the gate
+     * @param color The color of the gate
+     * @param moment The moment at which the gate occurs
+     */
+   addSingleQubitGate(label: string, color: string, moment: number) {
+        if (label === 'X') {
+            const mesh = new X3DSymbol(color);
+            mesh.position.set(this.row, moment, this.col);
+            this.add(mesh);
+            return;
+        }
+
+        const mesh = new BoxGate3DSymbol(label, color);
+        mesh.position.set(this.row, moment, this.col);
+        this.add(mesh);
+    }
+
+    /**
+     * Adds a three.js mesh control symbol
+     * to the group at the designated moment.
+     * @param moment The moment at which the control occurs.
+     */
+    addControl(moment: number) {
+        const mesh = new Control3DSymbol();
+        mesh.position.set(this.row, moment, this.col);
+        this.add(mesh);
+
+    }
+
+    /**
+     * Adds a three.js line mesh connecting one qubit to another 
+     * at the designated moment
+     * @param row The row of the target qubit
+     * @param col The column of the target qubit
+     * @param moment The moment where the qubits are connected
+     */
+    addLineToQubit(row: number, col: number, moment: number) {
+        const coords = [new Vector3(this.row, moment, this.col), new Vector3(row, moment, col)];
+        this.add(new ConnectionLine(coords[0], coords[1]));
     }
 
     private createLine() {
@@ -41,28 +98,4 @@ export class GridQubit extends Group {
         this.add(sprite);
     }
 
-    public addSingleQubitGate(label: string, color: string, moment: number) {
-        if (label === 'X') {
-            const mesh = new X3DSymbol(color);
-            mesh.position.set(this.row, moment, this.col);
-            this.add(mesh);
-            return;
-        }
-
-        const mesh = new BoxGate3DSymbol(label, color);
-        mesh.position.set(this.row, moment, this.col);
-        this.add(mesh);
-    }
-
-    public addControl(moment: number) {
-        const mesh = new Control3DSymbol();
-        mesh.position.set(this.row, moment, this.col);
-        this.add(mesh);
-
-    }
-
-    public addLineToQubit(row: number, col: number, moment: number) {
-        const coords = [new Vector3(this.row, moment, this.col), new Vector3(row, moment, col)];
-        this.add(new ConnectionLine(coords[0], coords[1]));
-    }
 }

@@ -17,7 +17,14 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {GridCircuit} from './grid_circuit';
 import {GridCoord} from './components/types';
 
-function createAndRenderScene(numQubits: number, sceneId: string): any {
+/**
+ * Creates a three.js scene object, adds it to the container element
+ * at the designated id, and adds the orbit control functionality.
+ * @param numQubits The number of qubits in the circuit.
+ * @param sceneId The container id that will host the three.js scene object.
+ * @returns The three.js scene object
+ */
+function createAndRenderScene(numQubits: number, sceneId: string): Scene {
     const WIDTH = 1000;
     const HEIGHT = 700;
     const NUM_QUBITS = numQubits;
@@ -33,6 +40,8 @@ function createAndRenderScene(numQubits: number, sceneId: string): any {
 
     el.appendChild( renderer.domElement );
 
+    // Need to create a better way to start the
+    // camera in the center of the scene.
     camera.position.x = NUM_QUBITS / 2 - 1;
     camera.position.z = NUM_QUBITS / 2 - 1;
     camera.position.y = 2.5;
@@ -55,6 +64,17 @@ function createAndRenderScene(numQubits: number, sceneId: string): any {
     return scene;
 }
 
+/**
+ * Creates and returns an empty GridCircuit object with qubits at the 
+ * designated coordinates. The returned GridCircuit object can then take
+ * input to add gates to the circuit.
+ * @param qubits A list of GridCoord objects representing the location of
+ * each qubit.
+ * @param numMoments The number of total moments in the circuit.
+ * @param sceneId The container id with the three.js scene that will render 
+ * the three.js components.
+ * @returns A GridCircuit object.
+ */
 export function createGridCircuit(qubits: GridCoord[], numMoments: number, sceneId: string): GridCircuit {
     const scene = createAndRenderScene(qubits.length, sceneId);
 
