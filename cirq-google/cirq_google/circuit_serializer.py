@@ -25,17 +25,27 @@ from typing import (
 import sympy
 
 import cirq
-from cirq._compat import deprecated_parameter
 from cirq_google import op_deserializer, op_serializer, arg_func_langs
 from cirq_google.api import v2
 from cirq_google.ops import PhysicalZTag
 from cirq_google.ops.calibration_tag import CalibrationTag
 
 
+CIRCUIT_SERIALIZER = CircuitSerializer('v2_5')
+
+
 class CircuitSerializer:
     """A class for serializing and deserializing programs and operations.
 
-    This class is for cirq_google.api.v2. protos.
+    This class is for serializing cirq_google.api.v2. protos using one
+    message type per gate type.  It serializes qubits by adding a field
+    into the constants table.  Usage is by passing a `cirq.Circuit`
+    to the `serialize()` method of the class, which will produce a
+    `Program` proto.  Likewise, the `deserialize` method will produce
+    a `cirq.Circuit` object from a `Program` proto.
+
+    This class is more performant than the previous `SerializableGateSet`
+    at the cost of some extendability.
     """
 
     def __init__(
@@ -57,19 +67,6 @@ class CircuitSerializer:
         """
         self.gate_set_name = gate_set_name
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='Use use_constants instead.',
-        parameter_desc='keyword use_constants_table_for_tokens',
-        match=lambda args, kwargs: 'use_constants_table_for_tokens' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {
-                ('use_constants' if k == 'use_constants_table_for_tokens' else k): v
-                for k, v in kwargs.items()
-            },
-        ),
-    )
     def serialize(
         self,
         program: cirq.Circuit,
