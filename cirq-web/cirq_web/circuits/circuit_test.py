@@ -11,11 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import pytest
-
 import cirq
 import cirq_web
+
 
 def test_circuit_init_type():
     qubits = [cirq.GridQubit(x, y) for x in range(2) for y in range(2)]
@@ -24,4 +22,3 @@ def test_circuit_init_type():
 
     circuit3d = cirq_web.Circuit3D(circuit)
     assert isinstance(circuit3d, cirq_web.Circuit3D)
-

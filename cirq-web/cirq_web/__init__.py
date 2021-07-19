@@ -20,7 +20,7 @@ from cirq_web.bloch_sphere import (
 
 from cirq_web.circuits import (
     Circuit3D,
-    SingleQubitGate, 
+    SingleQubitGate,
     TwoQubitGate,
     UnknownSingleQubitGate,
     UnknownTwoQubitGate,

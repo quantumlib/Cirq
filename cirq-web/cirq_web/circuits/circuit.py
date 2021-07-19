@@ -13,19 +13,25 @@
 # limitations under the License.
 
 from cirq_web import widget
-from cirq_web.circuits.gates import Gate3DSymbols, UnknownSingleQubitGate, UnknownTwoQubitGate, SingleQubitGate, TwoQubitGate
+from cirq_web.circuits.gates import (
+    Gate3DSymbols,
+    UnknownSingleQubitGate,
+    UnknownTwoQubitGate,
+    SingleQubitGate,
+    TwoQubitGate,
+)
 from cirq.protocols import circuit_diagram_info
+
 
 class Circuit3D(widget.Widget):
     def __init__(self, circuit):
         """Initializes a Circuit instance.
-        
+
         Args:
             circuit: The cirq.Circuit to be represented in 3D.
         """
         super().__init__()
         self.circuit = circuit
-        pass
 
     def get_client_code(self) -> str:
         # Remove hyphens from the id so that we can use
@@ -65,9 +71,9 @@ class Circuit3D(widget.Widget):
                 gate = Gate3DSymbols.get(str(item.gate), None)
                 if isinstance(gate, SingleQubitGate):
                     gate(
-                        circuit_diagram_info(item.gate).wire_symbols[0], 
-                        moment_id, 
-                        (item.qubits[0].row, item.qubits[0].col)
+                        circuit_diagram_info(item.gate).wire_symbols[0],
+                        moment_id,
+                        (item.qubits[0].row, item.qubits[0].col),
                     )
                 elif isinstance(gate, TwoQubitGate):
                     # Set the control information
@@ -85,7 +91,7 @@ class Circuit3D(widget.Widget):
                         gate('?', moment_id, (item.qubits[0].row, item.qubits[0].col))
                     else:
                         gate = UnknownTwoQubitGate()
-                        gate( moment_id, (item.qubits[0].row, item.qubits[0].col))
+                        gate(moment_id, (item.qubits[0].row, item.qubits[0].col))
 
                         gate.target_gate('?', moment_id, (item.qubits[1].row, item.qubits[1].col))
                 args.append(gate.to_typescript())

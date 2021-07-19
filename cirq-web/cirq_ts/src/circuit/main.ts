@@ -25,62 +25,65 @@ import {GridCoord} from './components/types';
  * @returns The three.js scene object
  */
 function createAndRenderScene(numQubits: number, sceneId: string): Scene {
-    const WIDTH = 1000;
-    const HEIGHT = 700;
-    const NUM_QUBITS = numQubits;
+  const WIDTH = 1000;
+  const HEIGHT = 700;
+  const NUM_QUBITS = numQubits;
 
-    const scene = new Scene();
-    const camera = new PerspectiveCamera( 75, WIDTH / HEIGHT, 0.1, 1000 );
+  const scene = new Scene();
+  const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 1000);
 
-    const renderer = new WebGLRenderer({alpha: true});
-    const controls = new OrbitControls( camera, renderer.domElement );
+  const renderer = new WebGLRenderer({alpha: true});
+  const controls = new OrbitControls(camera, renderer.domElement);
 
-    renderer.setSize( WIDTH, HEIGHT );
-    const el = document.getElementById(sceneId)!;
+  renderer.setSize(WIDTH, HEIGHT);
+  const el = document.getElementById(sceneId)!;
 
-    el.appendChild( renderer.domElement );
+  el.appendChild(renderer.domElement);
 
-    // TODO: create a better way to start the
-    // camera in the center of the scene.
-    camera.position.x = NUM_QUBITS / 2 - 1;
-    camera.position.z = NUM_QUBITS / 2 - 1;
-    camera.position.y = 2.5;
-    
-    controls.target.set(NUM_QUBITS / 2 - 1, 2.5, NUM_QUBITS / 2 - 1);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.screenSpacePanning = false;
-    controls.minDistance = 5;
-    controls.maxDistance = 200;
-    controls.maxPolarAngle = Math.PI;
-    
-    function animate() {
-        requestAnimationFrame(animate);
-        controls.update();
-        renderer.render( scene, camera );
-    }
-    animate();
+  // TODO: create a better way to start the
+  // camera in the center of the scene.
+  camera.position.x = NUM_QUBITS / 2 - 1;
+  camera.position.z = NUM_QUBITS / 2 - 1;
+  camera.position.y = 2.5;
 
-    return scene;
+  controls.target.set(NUM_QUBITS / 2 - 1, 2.5, NUM_QUBITS / 2 - 1);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.screenSpacePanning = false;
+  controls.minDistance = 5;
+  controls.maxDistance = 200;
+  controls.maxPolarAngle = Math.PI;
+
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  return scene;
 }
 
 /**
- * Creates and returns an empty GridCircuit object with qubits at the 
+ * Creates and returns an empty GridCircuit object with qubits at the
  * designated coordinates. The returned GridCircuit object can then take
  * input to add gates to the circuit.
  * @param qubits A list of GridCoord objects representing the location of
  * each qubit.
  * @param numMoments The number of total moments in the circuit
- * @param sceneId The container id with the three.js scene that will render 
+ * @param sceneId The container id with the three.js scene that will render
  * the three.js components
  * @returns A GridCircuit object
  */
-export function createGridCircuit(qubits: GridCoord[], numMoments: number, sceneId: string): GridCircuit {
-    const scene = createAndRenderScene(qubits.length, sceneId);
+export function createGridCircuit(
+  qubits: GridCoord[],
+  numMoments: number,
+  sceneId: string
+): GridCircuit {
+  const scene = createAndRenderScene(qubits.length, sceneId);
 
-    const circuit = new GridCircuit(numMoments, qubits);
-    scene.add(circuit);
+  const circuit = new GridCircuit(numMoments, qubits);
+  scene.add(circuit);
 
-    return circuit;
+  return circuit;
 }
-

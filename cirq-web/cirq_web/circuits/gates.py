@@ -14,21 +14,23 @@
 
 from abc import ABC, abstractmethod
 
+
 class Gate(ABC):
     @abstractmethod
     def to_typescript(self):
         raise NotImplementedError()
-        
+
+
 class SingleQubitGate(Gate):
     def __init__(self, color):
         self.color = color
-    
+
     def __call__(self, text, moment, loc):
         self.text = text
         self.moment = moment
         self.row = loc[0]
         self.col = loc[1]
-        
+
     def to_typescript(self):
         return {
             'type': 'SingleQubitGate',
@@ -38,16 +40,17 @@ class SingleQubitGate(Gate):
             'col': self.col,
             'moment': self.moment,
         }
-    
+
+
 class TwoQubitGate(Gate):
     def __init__(self, target_gate):
         self.target_gate = target_gate
-    
+
     def __call__(self, moment, loc):
         self.moment = moment
         self.row = loc[0]
         self.col = loc[1]
-        
+
     def to_typescript(self):
         return {
             'type': 'TwoQubitGate',
@@ -56,16 +59,19 @@ class TwoQubitGate(Gate):
             'targetGate': self.target_gate.to_typescript(),
             'moment': self.moment,
         }
-    
+
+
 class UnknownSingleQubitGate(SingleQubitGate):
     def __init__(self):
         super()
         self.color = 'gray'
 
+
 class UnknownTwoQubitGate(TwoQubitGate):
     def __init__(self):
         super()
         self.target_gate = UnknownSingleQubitGate()
+
 
 Gate3DSymbols = {
     # Single Qubit Gates
@@ -74,7 +80,6 @@ Gate3DSymbols = {
     'X': SingleQubitGate('black'),
     'Y': SingleQubitGate('pink'),
     'Z': SingleQubitGate('cyan'),
-    
     # Two Qubit Gates
     'CNOT': TwoQubitGate(SingleQubitGate('black')),
     'CZ': TwoQubitGate(SingleQubitGate('cyan')),

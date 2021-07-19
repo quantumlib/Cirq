@@ -50,7 +50,7 @@ class Widget(ABC):
     @abstractmethod
     def get_widget_bundle_name(self) -> str:
         raise NotImplementedError()
-    
+
     def _repr_html_(self):
         """Allows the object's html to be easily displayed in a notebook
         by using the display() method.

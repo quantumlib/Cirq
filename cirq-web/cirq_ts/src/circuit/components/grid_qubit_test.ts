@@ -16,26 +16,22 @@ import {expect} from 'chai';
 import {GridQubit} from './grid_qubit';
 
 describe('GridQubit', () => {
-    const DEFAULT_ROW = 0;
-    const DEFAULT_COL = 0;
-    const DEFAULT_MOMENTS = 5
-    
-    describe('by default', () => {
-        const gridQubit = new GridQubit(0, 0, 5);
-        const children = gridQubit.children;
+  const DEFAULT_ROW = 0;
+  const DEFAULT_COL = 0;
+  const DEFAULT_MOMENTS = 5;
 
-        it('is a three.js line object', () => { 
-            const line = children.find(
-                child => child.type === 'Line'
-            )
-            expect(line).to.not.equal(undefined);
-        })
+  describe('by default', () => {
+    const gridQubit = new GridQubit(DEFAULT_ROW, DEFAULT_COL, DEFAULT_MOMENTS);
+    const children = gridQubit.children;
 
-        it('has a three.js sprite label', () => { 
-            const line = children.find(
-                child => child.type === 'Sprite'
-            )
-            expect(line).to.not.equal(undefined);
-        })
-    })
-})
+    it('is a three.js line object', () => {
+      const line = children.find(child => child.type === 'Line');
+      expect(line).to.not.equal(undefined);
+    });
+
+    it('has a three.js sprite label', () => {
+      const line = children.find(child => child.type === 'Sprite');
+      expect(line).to.not.equal(undefined);
+    });
+  });
+});
