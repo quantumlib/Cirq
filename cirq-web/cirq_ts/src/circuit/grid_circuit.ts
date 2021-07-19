@@ -23,7 +23,7 @@ import {TwoQubitGate, SingleQubitGate, GridCoord} from './components/types';
  */
 export class GridCircuit extends Group {
   readonly moments: number;
-  private circuit: WeakMap<[number, number], GridQubit>;
+  private circuit: Map<string, GridQubit>;
 
   /**
    * Class constructor
@@ -35,7 +35,7 @@ export class GridCircuit extends Group {
   constructor(moments: number, qubits: GridCoord[]) {
     super();
     this.moments = moments;
-    this.circuit = new WeakMap();
+    this.circuit = new Map();
 
     for (const coord of qubits) {
       this.addQubit(coord.row, coord.col);
@@ -68,7 +68,8 @@ export class GridCircuit extends Group {
   addSingleQubitGate(gate: SingleQubitGate) {
     //.get gives a reference to an object, so we're good to
     // just modify
-    const qubit = this.circuit.get([gate.row, gate.col])!;
+    const key = [gate.row, gate.col].join(',');
+    const qubit = this.circuit.get(key)!;
     qubit.addSingleQubitGate(gate.text, gate.color, gate.moment);
   }
 
@@ -78,7 +79,8 @@ export class GridCircuit extends Group {
    * @param gate The TwoQubitGate object to be added.
    */
   addTwoQubitGate(gate: TwoQubitGate) {
-    const control = this.circuit.get([gate.row, gate.col])!;
+    const controlKey = [gate.row, gate.col].join(',');
+    const control = this.circuit.get(controlKey)!;
     control.addControl(gate.moment);
     control.addLineToQubit(
       gate.targetGate.row,
@@ -86,10 +88,8 @@ export class GridCircuit extends Group {
       gate.moment
     );
 
-    const target = this.circuit.get([
-      gate.targetGate.row,
-      gate.targetGate.col,
-    ])!;
+    const targetKey = [gate.targetGate.row, gate.targetGate.col].join(',');
+    const target = this.circuit.get(targetKey)!;
     target.addSingleQubitGate(
       gate.targetGate.text,
       gate.targetGate.color,
@@ -99,7 +99,8 @@ export class GridCircuit extends Group {
 
   private addQubit(x: number, y: number) {
     const qubit = new GridQubit(x, y, this.moments);
-    this.circuit.set([x, y], qubit);
+    const key = [x, y].join(',');
+    this.circuit.set(key, qubit);
     this.add(qubit);
   }
 }
