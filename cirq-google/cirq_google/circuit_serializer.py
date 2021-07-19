@@ -31,9 +31,6 @@ from cirq_google.ops import PhysicalZTag
 from cirq_google.ops.calibration_tag import CalibrationTag
 
 
-CIRCUIT_SERIALIZER = CircuitSerializer('v2_5')
-
-
 class CircuitSerializer:
     """A class for serializing and deserializing programs and operations.
 
@@ -655,3 +652,8 @@ class CircuitSerializer:
                 )
             moments.append(cirq.Moment(moment_ops))
         return cirq.Circuit(moments)
+
+
+CIRCUIT_SERIALIZER = CircuitSerializer('v2_5')
+
+
