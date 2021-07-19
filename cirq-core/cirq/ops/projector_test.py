@@ -182,3 +182,20 @@ def test_projector_sum_expectations():
     np.testing.assert_allclose(
         proj_sum.expectation_from_density_matrix(np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}), 0.6
     )
+
+
+def test_projector_sum_operations():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+    one_projector = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 1}))
+
+    simple_addition = zero_projector + one_projector
+    np.testing.assert_allclose(simple_addition.matrix(), [[1.0, 0.0], [0.0, 1.0]])
+
+    incrementation = zero_projector
+    incrementation += one_projector
+    np.testing.assert_allclose(incrementation.matrix(), [[1.0, 0.0], [0.0, 1.0]])
+
+    weighted_sum = 0.6 * zero_projector + 0.4 * one_projector
+    np.testing.assert_allclose(weighted_sum.matrix(), [[0.6, 0.0], [0.0, 0.4]])

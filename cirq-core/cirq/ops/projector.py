@@ -139,9 +139,6 @@ def _projector_string_from_projector_dict(projector_dict: Dict[raw_types.Qid, in
     return ProjectorString(dict(projector_dict))
 
 
-ProjectorSumLike = Union[int, float, complex, 'ProjectorSum']
-
-
 @value.value_equality(approximate=True)
 class ProjectorSum:
     def __init__(self, linear_dict: Optional[value.LinearDict[ProjectorString]] = None):
@@ -224,39 +221,21 @@ class ProjectorSum:
         )
 
     def __iadd__(self, other):
-        self._linear_dict += other._linear_dict
-        return self
+        result = self.copy()
+        result._linear_dict += other._linear_dict
+        return result
 
     def __add__(self, other):
         result = self.copy()
         result += other
         return result
 
-    def __radd__(self, other):
-        return self.__add__(other)
+    def __imul__(self, other: numbers.Complex):
+        result = self.copy()
+        result._linear_dict *= other
+        return result
 
-    def __imul__(self, other: ProjectorSumLike):
-        if isinstance(other, numbers.Complex):
-            self._linear_dict *= other
-        elif isinstance(other, ProjectorSum):
-            temp = PauliSum.from_pauli_strings(
-                [term * other_term for term in self for other_term in other]
-            )
-            self._linear_dict = temp._linear_dict
-
-        return self
-
-    def __mul__(self, other: ProjectorSumLike):
+    def __rmul__(self, other: numbers.Complex):
         result = self.copy()
         result *= other
         return result
-
-    def __rmul__(self, other: ProjectorSumLike):
-        if isinstance(other, numbers.Complex):
-            result = self.copy()
-            result *= other
-            return result
-        elif isinstance(other, ProjectorSum):
-            result = self.copy()
-            return other * result
-        return NotImplemented
