@@ -655,5 +655,3 @@ class CircuitSerializer:
 
 
 CIRCUIT_SERIALIZER = CircuitSerializer('v2_5')
-
-
