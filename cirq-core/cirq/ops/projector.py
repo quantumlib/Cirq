@@ -2,11 +2,14 @@ from collections import defaultdict
 import numbers
 from typing import (
     Any,
+    DefaultDict,
     Dict,
+    FrozenSet,
     Iterable,
     List,
     Mapping,
     Optional,
+    Tuple,
     Union,
 )
 
@@ -135,13 +138,13 @@ class ProjectorString:
         return tuple(projector_dict)
 
 
-def _projector_string_from_projector_dict(projector_dict: Dict[raw_types.Qid, int]):
+def _projector_string_from_projector_dict(projector_dict):
     return ProjectorString(dict(projector_dict))
 
 
 @value.value_equality(approximate=True)
 class ProjectorSum:
-    def __init__(self, linear_dict: Optional[value.LinearDict[ProjectorString]] = None):
+    def __init__(self, linear_dict=None):
         self._linear_dict = linear_dict if linear_dict is not None else {}
 
     def _value_equality_values_(self):
@@ -173,7 +176,9 @@ class ProjectorSum:
     ) -> 'ProjectorSum':
         if isinstance(terms, ProjectorString):
             terms = [terms]
-        termdict: DefaultDict[ProjectorString, value.Scalar] = defaultdict(lambda: 0.0)
+        termdict: DefaultDict[FrozenSet[Tuple[raw_types.Qid, int]], value.Scalar] = defaultdict(
+            lambda: 0.0
+        )
         for pstring in terms:
             key = frozenset(pstring._projector_dict.items())
             termdict[key] += 1.0
@@ -220,12 +225,12 @@ class ProjectorSum:
             for vec, coeff in self._linear_dict.items()
         )
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: 'ProjectorSum'):
         result = self.copy()
         result._linear_dict += other._linear_dict
         return result
 
-    def __add__(self, other):
+    def __add__(self, other: 'ProjectorSum'):
         result = self.copy()
         result += other
         return result
