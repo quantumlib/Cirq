@@ -118,7 +118,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
         'ProjectorString': cirq.ProjectorString,
-        'ProjectorSum': cirq.ProjectorSum,
         'RandomGateChannel': cirq.RandomGateChannel,
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,

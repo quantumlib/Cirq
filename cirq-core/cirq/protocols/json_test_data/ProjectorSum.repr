@@ -1,1 +1,0 @@
-cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString(projector_dict={cirq.NamedQubit('q0'): 0}))

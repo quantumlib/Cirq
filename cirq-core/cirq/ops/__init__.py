@@ -133,7 +133,6 @@ from cirq.ops.parallel_gate_operation import (
 
 from cirq.ops.projector import (
     ProjectorString,
-    ProjectorSum,
 )
 
 from cirq.ops.controlled_operation import (
