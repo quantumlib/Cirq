@@ -163,6 +163,16 @@ def test_optimizes_single_iswap():
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
 
+def test_optimizes_tagged_partial_cz():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit((cirq.CZ ** 0.5)(a, b).with_tags('mytag'))
+    assert_optimization_not_broken(c)
+    cirq.MergeInteractions(allow_partial_czs=False).optimize_circuit(c)
+    assert (
+        len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
+    ), 'It should take 2 CZ gates to decompose a CZ**0.5 gate'
+
+
 @pytest.mark.parametrize(
     'circuit',
     (
