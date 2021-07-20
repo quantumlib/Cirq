@@ -55,6 +55,7 @@ source dev_tools/pypath
 
 # Run tests while producing coverage files.
 check/pytest --actually-quiet \
+             --rigetti-integration \
              --cov \
              --cov-report=annotate \
              --cov-config=dev_tools/conf/.coveragerc
