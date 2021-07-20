@@ -18,6 +18,8 @@ import pandas as pd
 
 import cirq
 
+import numpy as np
+
 
 def test_init_result():
     data = pd.DataFrame(
@@ -165,6 +167,67 @@ def test_all_off_results():
     )
 
 
+@pytest.mark.parametrize(
+    't1, data',
+    [
+        (100, [[100.0, 6, 4], [400.0, 10, 0], [700.0, 10, 0], [1000.0, 10, 0]]),
+        (400, [[100.0, 0, 10], [400.0, 6, 4], [700.0, 10, 0], [1000.0, 10, 0]]),
+        (
+            200,
+            [
+                [time, int(np.exp(-time / 200)), 10 - int(np.exp(-time / 200))]
+                for time in np.linspace(0, 1000, 100)
+            ],
+        ),
+    ],
+)
+def test_constant(t1, data):
+    result = cirq.experiments.T1DecayResult(
+        data=pd.DataFrame(
+            columns=['delay_ns', 'false_count', 'true_count'],
+            index=range(len(data)),
+            data=data,
+        )
+    )
+
+    assert np.isclose(result.constant, t1, 5)
+
+
+def test_curve_fit_plot_works():
+    good_fit = cirq.experiments.T1DecayResult(
+        data=pd.DataFrame(
+            columns=['delay_ns', 'false_count', 'true_count'],
+            index=range(4),
+            data=[
+                [100.0, 6, 4],
+                [400.0, 10, 0],
+                [700.0, 10, 0],
+                [1000.0, 10, 0],
+            ],
+        )
+    )
+
+    good_fit.plot(include_fit=True)
+
+
+def test_curve_fit_plot_warning():
+    bad_fit = cirq.experiments.T1DecayResult(
+        data=pd.DataFrame(
+            columns=['delay_ns', 'false_count', 'true_count'],
+            index=range(4),
+            data=[
+                [100.0, 10, 0],
+                [400.0, 10, 0],
+                [700.0, 10, 0],
+                [1000.0, 10, 0],
+            ],
+        )
+    )
+
+    with pytest.warns(RuntimeWarning, match='Optimal parameters could not be found for curve fit'):
+        bad_fit.plot(include_fit=True)
+
+
 def test_bad_args():
     with pytest.raises(ValueError, match='repetitions <= 0'):
         _ = cirq.experiments.t1_decay(
@@ -197,7 +260,6 @@ def test_bad_args():
 
 
 def test_str():
-
     result = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],

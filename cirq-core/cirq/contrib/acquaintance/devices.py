@@ -71,7 +71,7 @@ def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
 
 
 class _UnconstrainedAcquaintanceDevice(AcquaintanceDevice):
-    "An acquaintance device with no constraints other than of the gate types."
+    """An acquaintance device with no constraints other than of the gate types."""
 
     def __repr__(self) -> str:
         return 'UnconstrainedAcquaintanceDevice'  # coverage: ignore
