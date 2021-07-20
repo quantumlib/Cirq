@@ -19,7 +19,7 @@ from cirq_rigetti.json_resolver_cache import _class_resolver_dictionary
 
 from cirq.testing.json import ModuleJsonTestSpec
 
-# pragma: no cover
+# coverage: ignore
 TestSpec = ModuleJsonTestSpec(
     name="cirq_rigetti",
     packages=[cirq_rigetti],

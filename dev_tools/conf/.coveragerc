@@ -6,7 +6,3 @@ include = ./*
 
 omit = 
     benchmarks/*
-
-[report]
-exclude_lines =
-    pragma: no cover

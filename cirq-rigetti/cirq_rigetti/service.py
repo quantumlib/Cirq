@@ -45,7 +45,7 @@ def _provide_default_client(function):
         if 'client' in kwargs:
             return function(*args, **kwargs)
 
-        with build_sync_client() as client:  # pragma: no cover
+        with build_sync_client() as client:  # coverage: ignore
             kwargs['client'] = client
             return function(*args, **kwargs)
 
@@ -123,7 +123,7 @@ class RigettiQCSService:
     @_provide_default_client
     def list_quantum_processors(
         client: Optional[httpx.Client],
-    ) -> ListQuantumProcessorsResponse:  # pragma: no cover
+    ) -> ListQuantumProcessorsResponse:  # coverage: ignore
         """Retrieve a list of available Rigetti quantum processors.
 
         Returns:
@@ -140,7 +140,7 @@ class RigettiQCSService:
     def get_quilt_calibrations(
         quantum_processor_id: str,
         client: Optional[httpx.Client],
-    ) -> GetQuiltCalibrationsResponse:  # pragma: no cover
+    ) -> GetQuiltCalibrationsResponse:  # coverage: ignore
         """Retrieve the calibration data used for client-side Quil-T generation.
 
         Returns:
@@ -157,7 +157,7 @@ class RigettiQCSService:
     def get_instruction_set_architecture(
         quantum_processor_id: str,
         client: Optional[httpx.Client],
-    ) -> InstructionSetArchitecture:  # pragma: no cover
+    ) -> InstructionSetArchitecture:  # coverage: ignore
         """Retrieve the Instruction Set Architecture of a QuantumProcessor by ID. This
         includes site specific operations and native gate capabilities.
 
