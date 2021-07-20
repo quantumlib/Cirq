@@ -135,6 +135,11 @@ upper_tabs:
       - title: "Pasqal sampler"
         path: /cirq/pasqal/sampler
 
+      ##### RIGETTI ####
+      - heading: "Rigetti hardware"
+      - title: "Access and authentication"
+        path: /cirq/rigetti/access
+
     - name: "Tutorials"
       contents:
       ####  OVERVIEW  ####
@@ -214,6 +219,11 @@ upper_tabs:
       - heading: "Pasqal hardware"
       - title: "Getting started with Pasqal hardware"
         path: /cirq/tutorials/pasqal/getting_started
+
+      ##### RIGETTI HARDWARE ####
+      - heading: "Rigetti hardware"
+      - title: "Getting started with Rigetti hardware"
+        path: /cirq/tutorials/rigetti/getting_started
 
       ####  EDUCATORS WORKSHOP  ####
       - heading: "Educators workshop"
