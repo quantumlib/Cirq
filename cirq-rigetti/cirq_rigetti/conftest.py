@@ -23,7 +23,8 @@ import sympy
 import numpy as np
 
 
-def pytest_collection_modifyitems(config, items):  # coverage: ignore
+def pytest_collection_modifyitems(config, items):
+    # coverage: ignore
     # do not skip integration tests if --rigetti-integration option passed
     if config.getoption('--rigetti-integration'):
         return

@@ -45,7 +45,8 @@ def _provide_default_client(function):
         if 'client' in kwargs:
             return function(*args, **kwargs)
 
-        with build_sync_client() as client:  # coverage: ignore
+        with build_sync_client() as client: # coverage: ignore
+            # coverage: ignore
             kwargs['client'] = client
             return function(*args, **kwargs)
 
@@ -140,13 +141,14 @@ class RigettiQCSService:
     def get_quilt_calibrations(
         quantum_processor_id: str,
         client: Optional[httpx.Client],
-    ) -> GetQuiltCalibrationsResponse:  # coverage: ignore
+    ) -> GetQuiltCalibrationsResponse:
         """Retrieve the calibration data used for client-side Quil-T generation.
 
         Returns:
             A qcs_api_client.models.GetQuiltCalibrationsResponse containing the
             device calibrations.
         """
+        # coverage: ignore
         return cast(
             GetQuiltCalibrationsResponse,
             get_quilt_calibrations(client=client, quantum_processor_id=quantum_processor_id).parsed,
@@ -164,6 +166,7 @@ class RigettiQCSService:
         Returns:
             A qcs_api_client.models.InstructionSetArchitecture containing the device specification.
         """
+        # coverage: ignore
         return cast(
             InstructionSetArchitecture,
             get_instruction_set_architecture(
