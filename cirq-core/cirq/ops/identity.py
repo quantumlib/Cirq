@@ -13,7 +13,7 @@
 # limitations under the License.
 """IdentityGate."""
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 import sympy
@@ -58,6 +58,9 @@ class IdentityGate(raw_types.Gate):
         self._qid_shape = qid_shape
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
+
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
+        return True
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
