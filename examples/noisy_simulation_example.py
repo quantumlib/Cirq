@@ -1,6 +1,4 @@
-"""
-Creates and simulate a noisy circuit using cirq.ConstantQubitNoiseModel class.
-"""
+"""Creates and simulate a noisy circuit using cirq.ConstantQubitNoiseModel class."""
 import cirq
 
 

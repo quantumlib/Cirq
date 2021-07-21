@@ -31,7 +31,7 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
         self.p0 = p0
         self.p1 = p1
         self.prng = cirq.value.parse_random_state(seed)
-        self.simulator = cirq.Simulator(seed=self.prng)
+        self.simulator = cirq.Simulator(seed=self.prng, split_untangled_states=False)
 
     def run_sweep(
         self,

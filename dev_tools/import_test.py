@@ -13,8 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Locates imports that violate cirq's submodule dependencies.
+"""Locates imports that violate cirq's submodule dependencies.
 
 Specifically, this test treats the modules as a tree structure where `cirq` is
 the root, each submodule is a node and each python file is a leaf node.  While

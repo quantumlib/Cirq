@@ -30,7 +30,8 @@ class CircuitSampleJob:
     """Describes a sampling task."""
 
     def __init__(self, circuit: circuits.Circuit, *, repetitions: int, tag: Any = None):
-        """
+        """Inits CircuitSampleJob.
+
         Args:
             circuit: The circuit to sample from.
             repetitions: How many times to sample the circuit.
