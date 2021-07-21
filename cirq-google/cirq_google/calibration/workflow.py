@@ -1050,7 +1050,10 @@ def _make_zeta_chi_gamma_compensation(
                 ), f'Inconsistent decompositions with a moment {moment}'
 
         if decompositions:
-            if other:
+            assert new_moment_moment_to_calibration is not None  # Required for mypy
+            if not other:
+                moment_to_calibration_index: Optional[int] = None
+            else:
                 if not permit_mixed_moments:
                     raise IncompatibleMomentError(
                         f'Moment {moment} contains mixed operations. See permit_mixed_moments '
@@ -1061,15 +1064,13 @@ def _make_zeta_chi_gamma_compensation(
                     for index, moment_to_calibration in enumerate(new_moment_moment_to_calibration)
                     if moment_to_calibration is not None
                 ]
-            else:
-                moment_to_calibration_index = None
+
             for index, operations in enumerate(
                 itertools.zip_longest(*decompositions, fillvalue=())
             ):
                 if index == moment_to_calibration_index:
                     operations += tuple(other)
                 compensated += cirq.Moment(operations)
-            assert new_moment_moment_to_calibration is not None  # Required for mypy
             compensated_moment_to_calibration += new_moment_moment_to_calibration
         elif other:
             compensated += cirq.Moment(other)
