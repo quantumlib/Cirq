@@ -19,6 +19,7 @@
 import enum
 
 
+# pylint: disable=docstring-first-line-empty
 class ExecutionStatus(object):
     class State(enum.IntEnum):
         """
