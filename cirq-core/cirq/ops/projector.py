@@ -172,7 +172,7 @@ class ProjectorSum:
 
     def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
         return sum(
-            coeff * _projector_string_from_projector_dict(vec).matrix(projector_qids)
+            coeff * _projector_string_from_projector_dict(vec).matrix(projector_qids).toarray()
             for vec, coeff in self._linear_dict.items()
         )
 
