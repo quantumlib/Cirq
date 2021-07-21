@@ -125,7 +125,7 @@ class MPSSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Union['MPSSimulatorStepResult', 'MPSState'],
+        final_step_result: 'MPSSimulatorStepResult',
     ) -> 'MPSTrialResult':
         """Creates a single trial results with the measurements.
 
@@ -133,13 +133,13 @@ class MPSSimulator(
             params: A ParamResolver for determining values of Symbols.
             measurements: A dictionary from measurement key (e.g. qubit) to the
                 actual measurement array.
-            final_simulator_state: The final state of the simulator.
+            final_step_result: The final step result of the simulation.
 
         Returns:
             A single result.
         """
         return MPSTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
 
@@ -150,10 +150,10 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Union['MPSSimulatorStepResult', 'MPSState'],
+        final_step_result: 'MPSSimulatorStepResult',
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
     @property

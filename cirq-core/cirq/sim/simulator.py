@@ -542,7 +542,7 @@ class SimulatesIntermediateState(
             yield self._create_simulator_trial_result(
                 params=param_resolver,
                 measurements=measurements,
-                final_simulator_state=step_result,
+                final_step_result=step_result,
             )
 
     def simulate_moment_steps(
@@ -656,15 +656,14 @@ class SimulatesIntermediateState(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Union[TStepResult, TSimulatorState],
+        final_step_result: TStepResult,
     ) -> TSimulationTrialResult:
         """This method can be implemented to create a trial result.
 
         Args:
             params: The ParamResolver for this trial.
             measurements: The measurement results for this trial.
-            final_simulator_state: The final state of the simulator for the
-                StepResult.
+            final_step_result: The final step result of the simulation.
 
         Returns:
             The SimulationTrialResult.
@@ -814,19 +813,18 @@ class SimulationTrialResult:
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any,
+        final_step_result: StepResult,
     ) -> None:
         self.params = params
         self.measurements = measurements
-        self._step_result_or_state = final_simulator_state
+        self._final_step_result = final_step_result
+        self._final_simulator_state_cache = None
 
     @property
     def _final_simulator_state(self):
-        if isinstance(self._step_result_or_state, StepResult) or hasattr(
-            self._step_result_or_state, "_simulator_state"
-        ):
-            self._step_result_or_state = self._step_result_or_state._simulator_state()
-        return self._step_result_or_state
+        if self._final_simulator_state_cache is None:
+            self._final_simulator_state_cache = self._final_step_result._simulator_state()
+        return self._final_simulator_state_cache
 
     def __repr__(self) -> str:
         return (

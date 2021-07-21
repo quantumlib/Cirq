@@ -222,10 +222,10 @@ class DensityMatrixSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Union['DensityMatrixSimulatorState', 'DensityMatrixStepResult'],
+        final_step_result: 'DensityMatrixStepResult',
     ) -> 'DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
     # TODO(#4209): Deduplicate with identical code in sparse_simulator.
@@ -429,10 +429,10 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Union[DensityMatrixSimulatorState, DensityMatrixStepResult],
+        final_step_result: DensityMatrixStepResult,
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
         self._final_density_matrix: Optional[np.ndarray] = None
 

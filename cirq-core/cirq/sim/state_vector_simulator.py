@@ -14,7 +14,6 @@
 """Abstract classes for simulations which keep track of state vector."""
 
 import abc
-
 from typing import (
     Any,
     Dict,
@@ -26,7 +25,6 @@ from typing import (
     TypeVar,
     Type,
     Optional,
-    Union,
 )
 
 import numpy as np
@@ -77,10 +75,10 @@ class SimulatesIntermediateStateVector(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Union['StateVectorStepResult', 'StateVectorSimulatorState'],
+        final_step_result: 'StateVectorStepResult',
     ) -> 'StateVectorTrialResult':
         return StateVectorTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
     def compute_amplitudes_sweep_iter(
@@ -157,18 +155,13 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Union[StateVectorStepResult, StateVectorSimulatorState],
+        final_step_result: StateVectorStepResult,
     ) -> None:
-        qubit_map = (
-            final_simulator_state._qubit_mapping
-            if isinstance(final_simulator_state, StateVectorStepResult)
-            else final_simulator_state.qubit_map
-        )
         super().__init__(
             params=params,
             measurements=measurements,
-            final_simulator_state=final_simulator_state,
-            qubit_map=qubit_map,
+            final_step_result=final_step_result,
+            qubit_map=final_step_result._qubit_mapping,
         )
         self._final_state_vector: Optional[np.ndarray] = None
 
