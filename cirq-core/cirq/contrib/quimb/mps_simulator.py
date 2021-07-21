@@ -59,6 +59,8 @@ class MPSSimulator(
 ):
     """An efficient simulator for MPS circuits."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
@@ -85,6 +87,7 @@ class MPSSimulator(
             seed=seed,
         )
 
+    # pylint: enable=missing-raises-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
@@ -206,6 +209,8 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     @deprecated_parameter(
         deadline='v0.13',
         fix='No longer needed. `protocols.act_on` infers axes.',
@@ -274,6 +279,7 @@ class MPSState(ActOnArgs):
         self.simulation_options = simulation_options
         self.estimated_gate_error_list: List[float] = []
 
+    # pylint: enable=missing-raises-doc
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
         return self.format_i.format(i)
@@ -464,6 +470,8 @@ class MPSState(ActOnArgs):
             "estimated_fidelity": estimated_fidelity,
         }
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
     ) -> List[int]:
@@ -513,6 +521,7 @@ class MPSState(ActOnArgs):
 
         return results
 
+    # pylint: enable=missing-raises-doc
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
         return self.perform_measurement(qubits, self.prng)

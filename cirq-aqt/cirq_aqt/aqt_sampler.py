@@ -50,12 +50,14 @@ class AQTSampler(cirq.Sampler):
         self.remote_host = remote_host
         self.access_token = access_token
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def _generate_json(
         self,
         circuit: cirq.Circuit,
         param_resolver: cirq.ParamResolverOrSimilarType,
     ) -> str:
-        """Generates the JSON string from a Circuit
+        """Generates the JSON string from a Circuit.
 
         The json format is defined as follows:
 
@@ -99,6 +101,7 @@ class AQTSampler(cirq.Sampler):
         json_str = json.dumps(seq_list)
         return json_str
 
+    # TODO(#3388) Add documentation for Raises.
     def _send_json(
         self,
         *,
@@ -171,6 +174,7 @@ class AQTSampler(cirq.Sampler):
                 measurements[i, j] = int(measurement_int_bin[j])
         return measurements
 
+    # pylint: enable=missing-raises-doc
     def run_sweep(
         self, program: cirq.Circuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> List[cirq.Result]:

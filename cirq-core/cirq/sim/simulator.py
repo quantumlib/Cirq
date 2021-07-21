@@ -75,6 +75,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     ) -> List[study.Result]:
         return list(self.run_sweep_iter(program, params, repetitions))
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def run_sweep_iter(
         self,
         program: 'cirq.Circuit',
@@ -113,6 +115,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 params=param_resolver, measurements=measurements
             )
 
+    # pylint: enable=missing-raises-doc
     @abc.abstractmethod
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int

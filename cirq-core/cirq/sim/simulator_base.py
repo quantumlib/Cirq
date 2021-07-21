@@ -174,6 +174,8 @@ class SimulatorBase(
             `_run` prefix."""
         return protocols.has_unitary(val)
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
@@ -224,6 +226,7 @@ class SimulatorBase(
             sim_state = step_result._sim_state
             sim_state.log_of_measurement_results.clear()
 
+    # pylint: enable=missing-raises-doc
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
     ) -> Dict[str, np.ndarray]:

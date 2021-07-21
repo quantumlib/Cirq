@@ -29,6 +29,8 @@ class Service:
     `IONQ_API_KEY`.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         remote_host: Optional[str] = None,
@@ -79,6 +81,7 @@ class Service:
             verbose=verbose,
         )
 
+    # pylint: enable=missing-raises-doc
     def run(
         self,
         circuit: cirq.Circuit,

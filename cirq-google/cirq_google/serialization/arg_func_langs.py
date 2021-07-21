@@ -245,6 +245,7 @@ def float_arg_from_proto(
         raise ValueError(f'unrecognized argument type ({which}).')
 
 
+# TODO(#3388) Add documentation for Raises.
 def arg_from_proto(
     arg_proto: v2.program_pb2.Arg,
     *,
@@ -358,3 +359,6 @@ def _arg_func_from_proto(
             ]
         )
     return None
+
+
+# pylint: enable=missing-raises-doc

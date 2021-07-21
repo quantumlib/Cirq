@@ -65,12 +65,16 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
                 noise_list.append(noise_op.on(qubit))
         return list(moment) + noise_list
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def get_op_string(self, cirq_op: cirq.ops.Operation) -> str:
-        """Find the string representation for a given operation
+        """Find the string representation for a given operation.
+
         Args:
-            cirq_op: one cirq operation
+            cirq_op: one cirq operation.
+
         Returns:
-            String representing the gate operations
+            String representing the gate operations.
         """
         if not self.device.is_pasqal_device_op(cirq_op) or isinstance(
             cirq_op.gate, cirq.ops.MeasurementGate
@@ -78,3 +82,5 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
             raise ValueError('Got unknown operation:', cirq_op)
 
         return str(cirq_op.gate)
+
+    # pylint: enable=missing-raises-doc

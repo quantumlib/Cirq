@@ -47,6 +47,8 @@ class SupportsApproximateEquality(Protocol):
         """
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     """Approximately compares two objects.
 
@@ -116,6 +118,7 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     return val == other
 
 
+# pylint: enable=missing-raises-doc
 def _approx_eq_iterables(val: Iterable, other: Iterable, *, atol: Union[int, float]) -> bool:
     """Iterates over arguments and calls approx_eq recursively.
 
