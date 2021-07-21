@@ -19,12 +19,6 @@ def get_sorted_qids(qid_map: Mapping[raw_types.Qid, int]):
     return [x[1] for x in sorted_pairs]
 
 
-def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], projector_qid: raw_types.Qid):
-    if projector_qid not in qid_map:
-        raise ValueError(f"Missing qid: {projector_qid}")
-    return qid_map[projector_qid]
-
-
 @value.value_equality
 class ProjectorString:
     def __init__(
