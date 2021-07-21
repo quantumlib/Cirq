@@ -12,8 +12,8 @@ def test_projector_qid():
     zero_projector = cirq.ProjectorString({q0: 0})
     one_projector = cirq.ProjectorString({q0: 1})
 
-    np.testing.assert_allclose(zero_projector.matrix(), [[1.0, 0.0], [0.0, 0.0]])
-    np.testing.assert_allclose(one_projector.matrix(), [[0.0, 0.0], [0.0, 1.0]])
+    np.testing.assert_allclose(zero_projector.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(one_projector.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
 
 
 def test_projector_repr():
@@ -29,19 +29,19 @@ def test_projector_from_np_array():
     q0 = cirq.NamedQubit('q0')
 
     zero_projector = cirq.ProjectorString({q0: 0})
-    np.testing.assert_allclose(zero_projector.matrix(), [[1.0, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(zero_projector.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
 
 
 def test_projector_matrix_missing_qid():
     q0, q1 = cirq.LineQubit.range(2)
     proj = cirq.ProjectorString({q0: 0})
 
-    np.testing.assert_allclose(proj.matrix(), np.diag([1.0, 0.0]))
-    np.testing.assert_allclose(proj.matrix([q0]), np.diag([1.0, 0.0]))
-    np.testing.assert_allclose(proj.matrix([q1]), np.diag([1.0, 1.0]))
+    np.testing.assert_allclose(proj.matrix().toarray(), np.diag([1.0, 0.0]))
+    np.testing.assert_allclose(proj.matrix([q0]).toarray(), np.diag([1.0, 0.0]))
+    np.testing.assert_allclose(proj.matrix([q1]).toarray(), np.diag([1.0, 1.0]))
 
-    np.testing.assert_allclose(proj.matrix([q0, q1]), np.diag([1.0, 1.0, 0.0, 0.0]))
-    np.testing.assert_allclose(proj.matrix([q1, q0]), np.diag([1.0, 0.0, 1.0, 0.0]))
+    np.testing.assert_allclose(proj.matrix([q0, q1]).toarray(), np.diag([1.0, 1.0, 0.0, 0.0]))
+    np.testing.assert_allclose(proj.matrix([q1, q0]).toarray(), np.diag([1.0, 0.0, 1.0, 0.0]))
 
 
 def test_projector_from_state_missing_qid():
@@ -76,9 +76,9 @@ def test_projector_qutrit():
     one_projector = cirq.ProjectorString({q0: 1})
     two_projector = cirq.ProjectorString({q0: 2})
 
-    np.testing.assert_allclose(zero_projector.matrix(), np.diag([1.0, 0.0, 0.0]))
-    np.testing.assert_allclose(one_projector.matrix(), np.diag([0.0, 1.0, 0.0]))
-    np.testing.assert_allclose(two_projector.matrix(), np.diag([0.0, 0.0, 1.0]))
+    np.testing.assert_allclose(zero_projector.matrix().toarray(), np.diag([1.0, 0.0, 0.0]))
+    np.testing.assert_allclose(one_projector.matrix().toarray(), np.diag([0.0, 1.0, 0.0]))
+    np.testing.assert_allclose(two_projector.matrix().toarray(), np.diag([0.0, 0.0, 1.0]))
 
 
 def test_get_values():
