@@ -49,18 +49,10 @@ class CircuitSerializer:
         self,
         gate_set_name: str,
     ):
-        """Construct the gate set.
+        """Construct the circuit serializer object.
 
         Args:
             gate_set_name: The name used to identify the gate set.
-            serializers: The OpSerializers to use for serialization.
-                Multiple serializers for a given gate type are allowed and
-                will be checked for a given type in the order specified here.
-                This allows for a given gate type to be serialized into
-                different serialized form depending on the parameters of the
-                gate.
-            deserializers: The OpDeserializers to convert serialized
-                forms of gates or circuits into Operations.
         """
         self.gate_set_name = gate_set_name
 
@@ -86,24 +78,24 @@ class CircuitSerializer:
         if msg is None:
             msg = v2.program_pb2.Program()
         msg.language.gate_set = self.gate_set_name
-        if isinstance(program, cirq.Circuit):
-            constants: Optional[List[v2.program_pb2.Constant]] = [] if use_constants else None
-            raw_constants: Optional[Dict[Any, int]] = {} if use_constants else None
-            self._serialize_circuit(
-                program,
-                msg.circuit,
-                arg_function_language=arg_function_language,
-                constants=constants,
-                raw_constants=raw_constants,
-            )
-            if constants is not None:
-                msg.constants.extend(constants)
-            if arg_function_language is None:
-                arg_function_language = arg_func_langs._infer_function_language_from_circuit(
-                    msg.circuit
-                )
-        else:
+        if not isinstance(program, cirq.Circuit):
             raise NotImplementedError(f'Unrecognized program type: {type(program)}')
+
+        constants: Optional[List[v2.program_pb2.Constant]] = [] if use_constants else None
+        raw_constants: Optional[Dict[Any, int]] = {} if use_constants else None
+        self._serialize_circuit(
+            program,
+            msg.circuit,
+            arg_function_language=arg_function_language,
+            constants=constants,
+            raw_constants=raw_constants,
+        )
+        if constants is not None:
+            msg.constants.extend(constants)
+        if arg_function_language is None:
+            arg_function_language = arg_func_langs._infer_function_language_from_circuit(
+                msg.circuit
+            )
         msg.language.arg_function_language = arg_function_language
         return msg
 
