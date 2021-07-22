@@ -357,6 +357,8 @@ class CircuitSerializer:
                 )
             )
         which = proto.WhichOneof('program')
+        arg_func_language = proto.language.arg_function_language or 'exp'
+
         if which == 'circuit':
             deserialized_constants: List[Any] = []
             for constant in proto.constants:
@@ -366,7 +368,7 @@ class CircuitSerializer:
                 elif which_const == 'circuit_value':
                     circuit = self._deserialize_circuit(
                         constant.circuit_value,
-                        arg_function_language=proto.language.arg_function_language,
+                        arg_function_language=arg_func_language,
                         constants=proto.constants,
                         deserialized_constants=deserialized_constants,
                     )
@@ -375,7 +377,7 @@ class CircuitSerializer:
                     deserialized_constants.append(v2.qubit_from_proto_id(constant.qubit.id))
             circuit = self._deserialize_circuit(
                 proto.circuit,
-                arg_function_language=proto.language.arg_function_language,
+                arg_function_language=arg_func_language,
                 constants=proto.constants,
                 deserialized_constants=deserialized_constants,
             )

@@ -70,6 +70,63 @@ OPERATIONS = [
         ),
     ),
     (
+        cirq.XPowGate(exponent=sympy.Symbol('a'))(Q1),
+        op_proto(
+            {
+                'xpowgate': {'exponent': {'symbol': 'a'}},
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cirq.XPowGate(exponent=0.25 + sympy.Symbol('t'))(Q1),
+        op_proto(
+            {
+                'xpowgate': {
+                    'exponent': {
+                        'func': {
+                            'type': 'add',
+                            'args': [{'arg_value': {'float_value': 0.25}}, {'symbol': 't'}],
+                        }
+                    }
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cirq.XPowGate(exponent=2 * sympy.Symbol('a'))(Q1),
+        op_proto(
+            {
+                'xpowgate': {
+                    'exponent': {
+                        'func': {
+                            'type': 'mul',
+                            'args': [{'arg_value': {'float_value': 2.00}}, {'symbol': 'a'}],
+                        }
+                    }
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cirq.XPowGate(exponent=2 ** sympy.Symbol('a'))(Q1),
+        op_proto(
+            {
+                'xpowgate': {
+                    'exponent': {
+                        'func': {
+                            'type': 'pow',
+                            'args': [{'arg_value': {'float_value': 2.00}}, {'symbol': 'a'}],
+                        }
+                    }
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
         cirq.YPowGate(exponent=0.25)(Q0),
         op_proto(
             {
@@ -188,12 +245,17 @@ def test_serialize_deserialize_ops(op, op_proto):
     # Serialize / Deserializer operation
     raw_constants = {}
     constants = []
-    assert op_proto == serializer.serialize_op(op, raw_constants=raw_constants, constants=constants)
+    assert op_proto == serializer.serialize_op(
+        op, raw_constants=raw_constants, constants=constants, arg_function_language='exp'
+    )
 
     deserialized_constants = [v2.qubit_from_proto_id(constant.qubit.id) for constant in constants]
     assert (
         serializer.deserialize_op(
-            op_proto, constants=constants, deserialized_constants=deserialized_constants
+            op_proto,
+            constants=constants,
+            deserialized_constants=deserialized_constants,
+            arg_function_language='exp',
         )
         == op
     )
