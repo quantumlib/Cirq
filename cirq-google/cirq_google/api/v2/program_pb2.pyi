@@ -30,30 +30,6 @@ from typing_extensions import (
 )
 
 
-class GateType(int):
-    DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-    @classmethod
-    def Name(cls, number: int) -> str: ...
-    @classmethod
-    def Value(cls, name: str) -> GateType: ...
-    @classmethod
-    def keys(cls) -> typing___List[str]: ...
-    @classmethod
-    def values(cls) -> typing___List[GateType]: ...
-    @classmethod
-    def items(cls) -> typing___List[typing___Tuple[str, GateType]]: ...
-NOT_SPECIFIED = typing___cast(GateType, 0)
-XPOWGATE = typing___cast(GateType, 1)
-YPOWGATE = typing___cast(GateType, 2)
-ZPOWGATE = typing___cast(GateType, 3)
-PHASEDXPOWGATE = typing___cast(GateType, 4)
-PHASEDXZGATE = typing___cast(GateType, 5)
-CZPOWGATE = typing___cast(GateType, 6)
-FSIMGATE = typing___cast(GateType, 7)
-ISWAPPOWGATE = typing___cast(GateType, 8)
-MEASUREMENTGATE = typing___cast(GateType, 9)
-WAITGATE = typing___cast(GateType, 10)
-
 class Program(google___protobuf___message___Message):
 
     @property
@@ -480,7 +456,6 @@ class Operation(google___protobuf___message___Message):
             def HasField(self, field_name: typing_extensions___Literal[u"value",b"value"]) -> bool: ...
             def ClearField(self, field_name: typing_extensions___Literal[b"key",b"value"]) -> None: ...
 
-    gate_type = ... # type: GateType
     qubit_constant_index = ... # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[int]
     token_value = ... # type: typing___Text
     token_constant_index = ... # type: int
@@ -522,14 +497,10 @@ class Operation(google___protobuf___message___Message):
     def args(self) -> typing___MutableMapping[typing___Text, Arg]: ...
 
     @property
-    def arg_list(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Arg]: ...
-
-    @property
     def qubits(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Qubit]: ...
 
     def __init__(self,
         gate : typing___Optional[Gate] = None,
-        gate_type : typing___Optional[GateType] = None,
         xpowgate : typing___Optional[XPowGate] = None,
         ypowgate : typing___Optional[YPowGate] = None,
         zpowgate : typing___Optional[ZPowGate] = None,
@@ -541,7 +512,6 @@ class Operation(google___protobuf___message___Message):
         measurementgate : typing___Optional[MeasurementGate] = None,
         waitgate : typing___Optional[WaitGate] = None,
         args : typing___Optional[typing___Mapping[typing___Text, Arg]] = None,
-        arg_list : typing___Optional[typing___Iterable[Arg]] = None,
         qubits : typing___Optional[typing___Iterable[Qubit]] = None,
         qubit_constant_index : typing___Optional[typing___Iterable[int]] = None,
         token_value : typing___Optional[typing___Text] = None,
@@ -553,10 +523,10 @@ class Operation(google___protobuf___message___Message):
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
         def HasField(self, field_name: typing_extensions___Literal[u"czpowgate",u"fsimgate",u"gate",u"gate_value",u"iswappowgate",u"measurementgate",u"phasedxpowgate",u"phasedxzgate",u"token",u"token_constant_index",u"token_value",u"waitgate",u"xpowgate",u"ypowgate",u"zpowgate"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"arg_list",u"args",u"czpowgate",u"fsimgate",u"gate",u"gate_type",u"gate_value",u"iswappowgate",u"measurementgate",u"phasedxpowgate",u"phasedxzgate",u"qubit_constant_index",u"qubits",u"token",u"token_constant_index",u"token_value",u"waitgate",u"xpowgate",u"ypowgate",u"zpowgate"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"args",u"czpowgate",u"fsimgate",u"gate",u"gate_value",u"iswappowgate",u"measurementgate",u"phasedxpowgate",u"phasedxzgate",u"qubit_constant_index",u"qubits",u"token",u"token_constant_index",u"token_value",u"waitgate",u"xpowgate",u"ypowgate",u"zpowgate"]) -> None: ...
     else:
         def HasField(self, field_name: typing_extensions___Literal[u"czpowgate",b"czpowgate",u"fsimgate",b"fsimgate",u"gate",b"gate",u"gate_value",b"gate_value",u"iswappowgate",b"iswappowgate",u"measurementgate",b"measurementgate",u"phasedxpowgate",b"phasedxpowgate",u"phasedxzgate",b"phasedxzgate",u"token",b"token",u"token_constant_index",b"token_constant_index",u"token_value",b"token_value",u"waitgate",b"waitgate",u"xpowgate",b"xpowgate",u"ypowgate",b"ypowgate",u"zpowgate",b"zpowgate"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"arg_list",b"args",b"czpowgate",b"fsimgate",b"gate",b"gate_type",b"gate_value",b"iswappowgate",b"measurementgate",b"phasedxpowgate",b"phasedxzgate",b"qubit_constant_index",b"qubits",b"token",b"token_constant_index",b"token_value",b"waitgate",b"xpowgate",b"ypowgate",b"zpowgate"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[b"args",b"czpowgate",b"fsimgate",b"gate",b"gate_value",b"iswappowgate",b"measurementgate",b"phasedxpowgate",b"phasedxzgate",b"qubit_constant_index",b"qubits",b"token",b"token_constant_index",b"token_value",b"waitgate",b"xpowgate",b"ypowgate",b"zpowgate"]) -> None: ...
     @typing___overload
     def WhichOneof(self, oneof_group: typing_extensions___Literal[u"gate_value",b"gate_value"]) -> typing_extensions___Literal["xpowgate","ypowgate","zpowgate","phasedxpowgate","phasedxzgate","czpowgate","fsimgate","iswappowgate","measurementgate","waitgate"]: ...
     @typing___overload

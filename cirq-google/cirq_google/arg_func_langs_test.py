@@ -194,7 +194,7 @@ def test_float_args(value, proto):
 
 
 def test_missing_required_arg():
-    with pytest.raises(ValueError, match='unrecognized argument type'):
+    with pytest.raises(ValueError, match='blah is missing'):
         _ = float_arg_from_proto(
             v2.program_pb2.FloatArg(), arg_function_language='exp', required_arg_name='blah'
         )
@@ -202,4 +202,35 @@ def test_missing_required_arg():
         _ = arg_from_proto(
             v2.program_pb2.Arg(), arg_function_language='exp', required_arg_name='blah'
         )
+    with pytest.raises(ValueError, match='Unrecognized function type '):
+        _ = arg_from_proto(
+            v2.program_pb2.Arg(func=v2.program_pb2.ArgFunction(type='magic')),
+            arg_function_language='exp',
+            required_arg_name='blah',
+        )
     assert arg_from_proto(v2.program_pb2.Arg(), arg_function_language='exp') is None
+
+
+def test_unrecognized_arg():
+    """Getting to some parts of the codes imply that the
+    set of supported of languages has changed.  Modify the
+    supported languages to simulate this future code change."""
+    cirq_google.arg_func_langs.SUPPORTED_FUNCTIONS_FOR_LANGUAGE['test'] = frozenset({'magic'})
+
+    with pytest.raises(ValueError, match='could not be processed'):
+        _ = float_arg_from_proto(
+            v2.program_pb2.Arg(func=v2.program_pb2.ArgFunction(type='magic')),
+            arg_function_language='test',
+            required_arg_name='blah',
+        )
+    # Clean up for hermetic testing
+    del cirq_google.arg_func_langs.SUPPORTED_FUNCTIONS_FOR_LANGUAGE['test']
+
+
+def test_invalid_float_arg():
+    with pytest.raises(ValueError, match='unrecognized argument type'):
+        _ = float_arg_from_proto(
+            v2.program_pb2.Arg(arg_value=v2.program_pb2.ArgValue(float_value=0.5)),
+            arg_function_language='test',
+            required_arg_name='blah',
+        )

@@ -425,8 +425,6 @@ class CircuitSerializer:
         Returns:
             The deserialized Operation.
         """
-        gate_type = operation_proto.gate_type
-
         if deserialized_constants is not None:
             qubits = [deserialized_constants[q] for q in operation_proto.qubit_constant_index]
         else:
@@ -555,7 +553,7 @@ class CircuitSerializer:
             op = cirq.WaitGate(duration=cirq.Duration(nanos=total_nanos))(*qubits)
         else:
             raise ValueError(
-                f'Unsupported serialized gate with type "{gate_type}".'
+                f'Unsupported serialized gate with type "{which_gate_type}".'
                 f'\n\noperation_proto:\n{operation_proto}'
             )
 

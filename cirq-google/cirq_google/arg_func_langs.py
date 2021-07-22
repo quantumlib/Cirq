@@ -18,8 +18,6 @@ from typing import (
     Optional,
     Iterator,
     Iterable,
-    cast,
-    Set,
     Dict,
     FrozenSet,
 )
@@ -41,6 +39,7 @@ SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 # Argument types for gates.
 ARG_LIKE = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.Mul]
 FLOAT_ARG_LIKE = Union[float, sympy.Symbol, sympy.Add, sympy.Mul]
+FLOAT_LIKE = (float, int, sympy.Integer, sympy.Float, sympy.Rational, sympy.NumberSymbol)
 
 # Supported function languages in order from least to most flexible.
 # Clients should use the least flexible language they can, to make it easier
@@ -112,9 +111,7 @@ def float_arg_to_proto(
     """
     msg = v2.program_pb2.FloatArg() if out is None else out
 
-    if isinstance(
-        value, (float, int, sympy.Integer, sympy.Float, sympy.Rational, sympy.NumberSymbol)
-    ):
+    if isinstance(value, FLOAT_LIKE):
         msg.float_value = float(value)
     else:
         _arg_func_to_proto(value, arg_function_language, msg)
@@ -143,9 +140,7 @@ def arg_to_proto(
     """
     msg = v2.program_pb2.Arg() if out is None else out
 
-    if isinstance(
-        value, (float, int, sympy.Integer, sympy.Float, sympy.Rational, sympy.NumberSymbol)
-    ):
+    if isinstance(value, FLOAT_LIKE):
         msg.arg_value.float_value = float(value)
     elif isinstance(value, str):
         msg.arg_value.string_value = value
@@ -222,29 +217,28 @@ def float_arg_from_proto(
     which = arg_proto.WhichOneof('arg')
     if which == 'float_value':
         result = float(arg_proto.float_value)
-        if math.ceil(result) == math.floor(result):
+        if round(result) == result:
             result = int(result)
         return result
-
-    if which == 'symbol':
+    elif which == 'symbol':
         return sympy.Symbol(arg_proto.symbol)
-
-    if which == 'func':
+    elif which == 'func':
         func = _arg_func_from_proto(
             arg_proto.func,
             arg_function_language=arg_function_language,
             required_arg_name=required_arg_name,
         )
-        if func is not None:
-            return func
-
-    if required_arg_name is not None:
-        raise ValueError(
-            f'{required_arg_name} is missing or has an unrecognized '
-            f'argument type (WhichOneof("arg")={which!r}).'
-        )
-
-    return None
+        if func is None and required_arg_name is not None:
+            raise ValueError(
+                f'Arg {arg_proto.func} could not be processed for {required_arg_name}.'
+            )
+        return func
+    elif which is None:
+        if required_arg_name is not None:
+            raise ValueError(f'Arg {required_arg_name} is missing.')
+        return None
+    else:
+        raise ValueError(f'unrecognized argument type ({which}).')
 
 
 def arg_from_proto(
@@ -318,7 +312,7 @@ def _arg_func_from_proto(
     if supported is None:
         raise ValueError(f'Unrecognized arg_function_language: {arg_function_language!r}')
 
-    if func.type not in cast(Set[str], supported):
+    if func.type not in supported:
         raise ValueError(
             f'Unrecognized function type {func.type!r} '
             f'for arg_function_language={arg_function_language!r}'

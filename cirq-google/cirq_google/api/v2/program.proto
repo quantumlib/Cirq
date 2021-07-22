@@ -32,8 +32,13 @@ message Program {
 // These constants can be stored here to save space.
 message Constant {
   oneof const_value {
+    // String value used throughout the circuit, such as for token values
     string string_value = 1;
+
+    // Sub Circuit used for CircuitOperations
     Circuit circuit_value = 2;
+
+    // Qubits used within the circuit (only populated in v2.5+)
     Qubit qubit = 3;
   }
 }
@@ -106,6 +111,8 @@ message Language {
   // cirq/google/arg_func_langs.py
   string arg_function_language = 2;
 }
+
+// Argument that is constrained to a float or symbolic expression
 message FloatArg {
   oneof arg {
     float float_value = 1;
@@ -113,84 +120,100 @@ message FloatArg {
     ArgFunction func = 3;
   }
 }
+
+// Representation of cirq.XPowGate
 message XPowGate {
   FloatArg exponent=1;
 }
+
+// Representation of cirq.YPowGate
 message YPowGate {
   FloatArg exponent=1;
 }
+
+// Representation of cirq.ZPowGate
 message ZPowGate {
   FloatArg exponent=1;
+
+  // If true, this is equivalent to:
+  // cirq.ZPowGate(...).with_tags(cirq.google.PhysicalZTag)
   bool is_physical_z = 2;
 }
+
+// Representation of cirq.PhasedXPowGate
 message PhasedXPowGate {
   FloatArg phase_exponent=1;
   FloatArg exponent=2;
 }
+
+// Representation of cirq.PhasedXZGate
 message PhasedXZGate {
   FloatArg x_exponent=1;
   FloatArg z_exponent=2;
   FloatArg axis_phase_exponent=3;
 }
+
+// Representation of cirq.CZPowGate
 message CZPowGate {
   FloatArg exponent=1;
 }
+
+// Representation of cirq.FSimGate
 message FSimGate {
   FloatArg theta=1;
   FloatArg phi=2;
 }
+
+// Representation of cirq.ISwapPowGate
 message ISwapPowGate {
   FloatArg exponent=1;
 }
+
+// Representation of cirq.MeasurementGate
+// i.e. cirq.measure
 message MeasurementGate {
   Arg key=1;
   Arg invert_mask=2;
 }
-message WaitGate {
-  FloatArg duration_nanos=1;
-}
 
-enum GateType {
-  NOT_SPECIFIED = 0;
-  XPOWGATE = 1;
-  YPOWGATE = 2;
-  ZPOWGATE = 3;
-  PHASEDXPOWGATE = 4;
-  PHASEDXZGATE = 5;
-  CZPOWGATE = 6;
-  FSIMGATE = 7;
-  ISWAPPOWGATE = 8;
-  MEASUREMENTGATE = 9;
-  WAITGATE = 10;
+
+// Representation of cirq.WAitGate
+message WaitGate {
+  // Duration of the waiting period,
+  // serialized to the number of nanoseconds
+  FloatArg duration_nanos=1;
 }
 
 // An operation acts on a set of qubits.
 message Operation {
   // Which gate this operation corresponds to.
   Gate gate = 1;
-  GateType gate_type = 6;
 
   oneof gate_value {
-    XPowGate xpowgate = 9;
-    YPowGate ypowgate = 10;
-    ZPowGate zpowgate = 11;
-    PhasedXPowGate phasedxpowgate = 12;
-    PhasedXZGate phasedxzgate = 13;
-    CZPowGate czpowgate = 14;
-    FSimGate fsimgate = 15;
-    ISwapPowGate iswappowgate = 16;
-    MeasurementGate measurementgate = 17;
-    WaitGate waitgate = 18;
+    XPowGate xpowgate = 7;
+    YPowGate ypowgate = 8;
+    ZPowGate zpowgate = 9;
+    PhasedXPowGate phasedxpowgate = 10;
+    PhasedXZGate phasedxzgate = 11;
+    CZPowGate czpowgate = 12;
+    FSimGate fsimgate = 13;
+    ISwapPowGate iswappowgate = 14;
+    MeasurementGate measurementgate = 15;
+    WaitGate waitgate = 16;
   }
 
   // Map from the argument name to the Argument needed to fully specify
   // the gate.
   map<string, Arg> args = 2;
-  repeated Arg arg_list = 7;
 
   // Which qubits the operation acts on.
+  // Operations should populate one of the following two
+  // fields: either to specify the qubit directly or
+  // to reference an index in the enclosing Program's
+  // constant messages.  Note that qubit_constant_index
+  // will only be populated in v2.5+
   repeated Qubit qubits = 3;
-  repeated int32 qubit_constant_index = 8;
+  repeated int32 qubit_constant_index = 6;
 
   // Token that can be used to specify a version of a gate.
   // For instance, a gate that has been calibrated for a circuit.
