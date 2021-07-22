@@ -5,6 +5,7 @@ from typing import (
     Iterable,
     Mapping,
     Optional,
+    Union,
 )
 
 import numpy as np
@@ -24,6 +25,7 @@ class ProjectorString:
     def __init__(
         self,
         projector_dict: Dict[raw_types.Qid, int],
+        coefficient: Union[int, float, complex] = 1,
     ):
         """Contructor for ProjectorString
 
@@ -32,9 +34,15 @@ class ProjectorString:
                 project on.
         """
         self._projector_dict = projector_dict
+        self._coefficient = complex(coefficient)
 
-    def _projector_dict_(self) -> Dict[raw_types.Qid, int]:
+    @property
+    def projector_dict(self) -> Dict[raw_types.Qid, int]:
         return self._projector_dict
+
+    @property
+    def coefficient(self) -> complex:
+        return self._coefficient
 
     def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> coo_matrix:
         projector_qids = self._projector_dict.keys() if projector_qids is None else projector_qids
@@ -80,7 +88,7 @@ class ProjectorString:
         sorted_qid = get_sorted_qids(qid_map)
         state_vector = state_vector.reshape([qid.dimension for qid in sorted_qid]).copy()
         idx_to_keep = self._get_idx_to_keep(sorted_qid)
-        return sum(np.abs(state_vector[idx]) ** 2 for idx in idx_to_keep)
+        return self._coefficient * sum(np.abs(state_vector[idx]) ** 2 for idx in idx_to_keep)
 
     def expectation_from_density_matrix(
         self,
@@ -94,21 +102,25 @@ class ProjectorString:
         sorted_qid = get_sorted_qids(qid_map)
         state = state.reshape([qid.dimension for qid in sorted_qid] * 2).copy()
         idx_to_keep = self._get_idx_to_keep(sorted_qid)
-        return sum(np.abs(state[idx + idx]) ** 2 for idx in idx_to_keep)
+        return self._coefficient * sum(np.abs(state[idx + idx]) ** 2 for idx in idx_to_keep)
 
     def __repr__(self) -> str:
-        return f"cirq.ProjectorString(projector_dict={self._projector_dict})"
+        return (
+            f"cirq.ProjectorString(projector_dict={self._projector_dict},"
+            + f"coefficient={self._coefficient})"
+        )
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'projector_dict': list(self._projector_dict.items()),
+            'coefficient': self._coefficient,
         }
 
     @classmethod
-    def _from_json_dict_(cls, projector_dict, **kwargs):
-        return cls(projector_dict=dict(projector_dict))
+    def _from_json_dict_(cls, projector_dict, coefficient, **kwargs):
+        return cls(projector_dict=dict(projector_dict), coefficient=coefficient)
 
     def _value_equality_values_(self) -> Any:
         projector_dict = sorted(self._projector_dict.items())
-        return tuple(projector_dict)
+        return (tuple(projector_dict), self._coefficient)

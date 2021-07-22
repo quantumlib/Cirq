@@ -21,7 +21,7 @@ def test_projector_repr():
 
     assert (
         repr(cirq.ProjectorString({q0: 0}))
-        == "cirq.ProjectorString(projector_dict={cirq.NamedQubit('q0'): 0})"
+        == "cirq.ProjectorString(projector_dict={cirq.NamedQubit('q0'): 0},coefficient=(1+0j))"
     )
 
 
@@ -83,10 +83,11 @@ def test_projector_qutrit():
 
 def test_get_values():
     q0 = cirq.NamedQubit('q0')
-    d = cirq.ProjectorString({q0: 0})
+    d = cirq.ProjectorString({q0: 0}, 1.23 + 4.56j)
 
-    assert len(d._projector_dict_()) == 1
-    assert np.allclose(d._projector_dict_()[q0], 0)
+    assert len(d.projector_dict) == 1
+    assert d.projector_dict[q0] == 0
+    assert d.coefficient == 1.23 + 4.56j
 
 
 def test_expectation_from_state_vector_basis_states_empty():
@@ -110,18 +111,34 @@ def test_expectation_from_state_vector_basis_states_three_qubits():
     q2 = cirq.NamedQubit('q2')
     d = cirq.ProjectorString({q0: 0, q1: 1})
 
+    wf = cirq.testing.random_superposition(8)
+
+    # If the mapping of wf is {q0: 0, q1: 1, q2: 2}, then the coefficients are:
+    # 0: (q0, q1, q2) = (0, 0, 0)
+    # 1: (q0, q1, q2) = (0, 0, 1)
+    # 2: (q0, q1, q2) = (0, 1, 0) -> Projected on
+    # 3: (q0, q1, q2) = (0, 1, 1) -> Projected on
+    # 4: (q0, q1, q2) = (1, 0, 0)
+    # 5: (q0, q1, q2) = (1, 0, 1)
+    # 6: (q0, q1, q2) = (1, 1, 0)
+    # 7: (q0, q1, q2) = (1, 1, 1)
     np.testing.assert_allclose(
-        d.expectation_from_state_vector(
-            np.array([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), {q0: 0, q1: 1, q2: 2}
-        ),
-        0.0,
+        d.expectation_from_state_vector(wf, {q0: 0, q1: 1, q2: 2}),
+        abs(wf[2]) ** 2 + abs(wf[3]) ** 2,
     )
 
+    # Here we have a different mapping, but the idea is the same.
+    # 0: (q0 ,q2, q1) = (0, 0, 0)
+    # 1: (q0, q2, q1) = (0, 0, 1) -> Projected on
+    # 2: (q0, q2, q1) = (0, 1, 0)
+    # 3: (q0, q2, q1) = (0, 1, 1) -> Projected on
+    # 4: (q0, q2, q1) = (1, 0, 0)
+    # 5: (q0, q2, q1) = (1, 0, 1)
+    # 6: (q0, q2, q1) = (1, 1, 0)
+    # 7: (q0, q2, q1) = (1, 1, 1)
     np.testing.assert_allclose(
-        d.expectation_from_state_vector(
-            np.array([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), {q0: 0, q1: 2, q2: 1}
-        ),
-        1.0,
+        d.expectation_from_state_vector(wf, {q0: 0, q1: 2, q2: 1}),
+        abs(wf[1]) ** 2 + abs(wf[3]) ** 2,
     )
 
 
@@ -154,6 +171,19 @@ def test_expectation_higher_dims():
             ),
             1.0,
         )
+
+
+def test_expectation_with_coefficient():
+    q0 = cirq.NamedQubit('q0')
+    d = cirq.ProjectorString({q0: 0}, coefficient=(0.6 + 0.4j))
+
+    np.testing.assert_allclose(
+        d.expectation_from_state_vector(np.array([[1.0, 0.0]]), qid_map={q0: 0}), 0.6 + 0.4j
+    )
+
+    np.testing.assert_allclose(
+        d.expectation_from_density_matrix(np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}), 0.6 + 0.4j
+    )
 
 
 def test_expectation_from_density_matrix_basis_states_empty():
