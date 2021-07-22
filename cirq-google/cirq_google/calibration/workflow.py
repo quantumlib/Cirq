@@ -1040,7 +1040,7 @@ def _make_zeta_chi_gamma_compensation(
 
 def _find_moment_zeta_chi_gamma_corrections(
     moment: cirq.Moment,
-    characterization_index: int,
+    characterization_index: Optional[int],
     parameters: Optional[PhasedFSimCalibrationResult],
     gates_translator: Callable[[cirq.Gate], Optional[PhaseCalibratedFSimGate]],
 ) -> Tuple[
