@@ -989,8 +989,6 @@ def _make_zeta_chi_gamma_compensation(
     if len(circuit_with_calibration.circuit) != len(circuit_with_calibration.moment_to_calibration):
         raise ValueError('Moment allocations does not match circuit length')
 
-    default_phases = PhasedFSimCharacterization(zeta=0.0, chi=0.0, gamma=0.0)
-
     compensated = cirq.Circuit()
     compensated_moment_to_calibration: List[Optional[int]] = []
     for moment, characterization_index in zip(
@@ -1000,57 +998,16 @@ def _make_zeta_chi_gamma_compensation(
         if characterization_index is not None:
             parameters = characterizations[characterization_index]
 
-        decompositions: List[Tuple[Tuple[cirq.Operation, ...], ...]] = []
-        other: List[cirq.Operation] = []
-        new_moment_moment_to_calibration: Optional[List[Optional[int]]] = None
-        for op in moment:
-            if not isinstance(op, cirq.GateOperation):
-                raise IncompatibleMomentError(
-                    'Moment contains operation different than GateOperation'
-                )
-
-            if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
-                other.append(op)
-                continue
-
-            a, b = op.qubits
-            translated = gates_translator(op.gate)
-            if translated is None:
-                raise IncompatibleMomentError(
-                    f'Moment {moment} contains unsupported non-single qubit operation {op}'
-                )
-
-            if parameters is None:
-                raise ValueError(f'Missing characterization data for moment {moment}')
-
-            if translated.engine_gate != parameters.gate:
-                raise ValueError(
-                    f"Engine gate {translated.engine_gate} doesn't match characterized gate "
-                    f'{parameters.gate}'
-                )
-
-            pair_parameters = parameters.get_parameters(a, b)
-            if pair_parameters is None:
-                raise ValueError(f'Missing characterization data for pair {(a, b)} in {parameters}')
-            pair_parameters = pair_parameters.merge_with(default_phases)
-
-            corrections = FSimPhaseCorrections.from_characterization(
-                (a, b),
-                translated,
-                pair_parameters,
-                characterization_index,
-            )
-            decompositions.append(corrections.operations)
-
-            if new_moment_moment_to_calibration is None:
-                new_moment_moment_to_calibration = corrections.moment_to_calibration
-            else:
-                assert (
-                    new_moment_moment_to_calibration == corrections.moment_to_calibration
-                ), f'Inconsistent decompositions with a moment {moment}'
+        (
+            decompositions,
+            decompositions_moment_to_calibration,
+            other,
+        ) = _find_moment_zeta_chi_gamma_corrections(
+            moment, characterization_index, parameters, gates_translator
+        )
 
         if decompositions:
-            assert new_moment_moment_to_calibration is not None  # Required for mypy
+            assert decompositions_moment_to_calibration is not None  # Required for mypy
             if not other:
                 moment_to_calibration_index: Optional[int] = None
             else:
@@ -1061,7 +1018,9 @@ def _make_zeta_chi_gamma_compensation(
                     )
                 (moment_to_calibration_index,) = [
                     index
-                    for index, moment_to_calibration in enumerate(new_moment_moment_to_calibration)
+                    for index, moment_to_calibration in enumerate(
+                        decompositions_moment_to_calibration
+                    )
                     if moment_to_calibration is not None
                 ]
 
@@ -1071,12 +1030,94 @@ def _make_zeta_chi_gamma_compensation(
                 if index == moment_to_calibration_index:
                     operations += tuple(other)
                 compensated += cirq.Moment(operations)
-            compensated_moment_to_calibration += new_moment_moment_to_calibration
+            compensated_moment_to_calibration += decompositions_moment_to_calibration
         elif other:
             compensated += cirq.Moment(other)
             compensated_moment_to_calibration.append(characterization_index)
 
     return CircuitWithCalibration(compensated, compensated_moment_to_calibration)
+
+
+def _find_moment_zeta_chi_gamma_corrections(
+    moment: cirq.Moment,
+    characterization_index: int,
+    parameters: Optional[PhasedFSimCalibrationResult],
+    gates_translator: Callable[[cirq.Gate], Optional[PhaseCalibratedFSimGate]],
+) -> Tuple[
+    List[Tuple[Tuple[cirq.Operation, ...], ...]],
+    Optional[List[Optional[int]]],
+    List[cirq.Operation],
+]:
+    """Finds corrections for each operation within a moment to compensate for zeta, chi and gamma.
+
+    Args:
+        moment: Moment to compensate.
+        characterization_index: The original characterization index of a moment.
+        parameters: Characterizations results for a given moment. None, when not available.
+        gates_translator: Function that translates a gate to a supported FSimGate which will undergo
+            characterization. Defaults to sqrt_iswap_gates_translator.
+
+    Returns:
+        Tuple of:
+         - decompositions: the decomposed operations for each corrected operation, each element of
+           this list is a list of moments of the decomposed gate.
+         - decompositions_moment_to_calibration: for each moment in the decomposition, assigns a
+           characterization index that matches the original decomposed gate. None when no gate
+           was decomposed.
+         - other: the remaining gates that were not decomposed.
+    """
+    default_phases = PhasedFSimCharacterization(zeta=0.0, chi=0.0, gamma=0.0)
+
+    decompositions: List[Tuple[Tuple[cirq.Operation, ...], ...]] = []
+    other: List[cirq.Operation] = []
+    decompositions_moment_to_calibration: Optional[List[Optional[int]]] = None
+
+    for op in moment:
+        if not isinstance(op, cirq.GateOperation):
+            raise IncompatibleMomentError('Moment contains operation different than GateOperation')
+
+        if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
+            other.append(op)
+            continue
+
+        a, b = op.qubits
+        translated = gates_translator(op.gate)
+        if translated is None:
+            raise IncompatibleMomentError(
+                f'Moment {moment} contains unsupported non-single qubit operation {op}'
+            )
+
+        if parameters is None:
+            raise ValueError(f'Missing characterization data for moment {moment}')
+
+        if translated.engine_gate != parameters.gate:
+            raise ValueError(
+                f"Engine gate {translated.engine_gate} doesn't match characterized gate "
+                f'{parameters.gate}'
+            )
+
+        pair_parameters = parameters.get_parameters(a, b)
+        if pair_parameters is None:
+            raise ValueError(f'Missing characterization data for pair {(a, b)} in {parameters}')
+        pair_parameters = pair_parameters.merge_with(default_phases)
+
+        corrections = FSimPhaseCorrections.from_characterization(
+            (a, b),
+            translated,
+            pair_parameters,
+            characterization_index,
+        )
+
+        if decompositions_moment_to_calibration is None:
+            decompositions_moment_to_calibration = corrections.moment_to_calibration
+        else:
+            assert (
+                decompositions_moment_to_calibration == corrections.moment_to_calibration
+            ), f'Inconsistent decompositions with a moment {moment}'
+
+        decompositions.append(corrections.operations)
+
+    return decompositions, decompositions_moment_to_calibration, other
 
 
 @dataclasses.dataclass(frozen=True)
