@@ -13,14 +13,7 @@
 # limitations under the License.
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
-from itertools import chain
-from typing import (
-    Any,
-    Dict,
-    List,
-    Optional,
-    Union,
-)
+from typing import Any, Dict, List, Optional
 import sympy
 
 import cirq
@@ -369,22 +362,37 @@ class CircuitSerializer:
 
         raise NotImplementedError('Program proto does not contain a circuit.')
 
-    def _deserialize_op(
+    def _deserialize_circuit(
         self,
-        operation_proto: Union[
-            v2.program_pb2.Operation,
-            v2.program_pb2.CircuitOperation,
-        ],
-        **kwargs,
-    ) -> cirq.Operation:
-        """Disambiguation for operation deserialization."""
-        if isinstance(operation_proto, v2.program_pb2.Operation):
-            return self._deserialize_gate_op(operation_proto, **kwargs)
-
-        if isinstance(operation_proto, v2.program_pb2.CircuitOperation):
-            return self._deserialize_circuit_op(operation_proto, **kwargs)
-
-        raise ValueError(f'Operation proto has unknown type: {type(operation_proto)}.')
+        circuit_proto: v2.program_pb2.Circuit,
+        *,
+        arg_function_language: str,
+        constants: List[v2.program_pb2.Constant],
+        deserialized_constants: List[Any],
+    ) -> cirq.Circuit:
+        moments = []
+        for moment_proto in circuit_proto.moments:
+            moment_ops = []
+            for op in moment_proto.operations:
+                moment_ops.append(
+                    self._deserialize_gate_op(
+                        op,
+                        arg_function_language=arg_function_language,
+                        constants=constants,
+                        deserialized_constants=deserialized_constants,
+                    )
+                )
+            for op in moment_proto.circuit_operations:
+                moment_ops.append(
+                    self._deserialize_circuit_op(
+                        op,
+                        arg_function_language=arg_function_language,
+                        constants=constants,
+                        deserialized_constants=deserialized_constants,
+                    )
+                )
+            moments.append(cirq.Moment(moment_ops))
+        return cirq.Circuit(moments)
 
     def _deserialize_gate_op(
         self,
@@ -586,29 +594,6 @@ class CircuitSerializer:
             constants=constants,
             deserialized_constants=deserialized_constants,
         )
-
-    def _deserialize_circuit(
-        self,
-        circuit_proto: v2.program_pb2.Circuit,
-        *,
-        arg_function_language: str,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
-    ) -> cirq.Circuit:
-        moments = []
-        for moment_proto in circuit_proto.moments:
-            moment_ops = []
-            for op in chain(moment_proto.operations, moment_proto.circuit_operations):
-                moment_ops.append(
-                    self._deserialize_op(
-                        op,
-                        arg_function_language=arg_function_language,
-                        constants=constants,
-                        deserialized_constants=deserialized_constants,
-                    )
-                )
-            moments.append(cirq.Moment(moment_ops))
-        return cirq.Circuit(moments)
 
 
 CIRCUIT_SERIALIZER = CircuitSerializer('v2_5')

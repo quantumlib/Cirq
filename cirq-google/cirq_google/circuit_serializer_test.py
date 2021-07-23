@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict
+from typing import Dict, List
 import pytest
 import sympy
 from google.protobuf import json_format
@@ -26,6 +26,18 @@ def op_proto(json: Dict) -> v2.program_pb2.Operation:
     op = v2.program_pb2.Operation()
     json_format.ParseDict(json, op)
     return op
+
+
+def circuit_proto(json: Dict, qubits: List[str]):
+    constants = [v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id=q)) for q in qubits]
+    return v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[v2.program_pb2.Moment(operations=[op_proto(json)])],
+        ),
+        constants=constants,
+    )
 
 
 Q0 = cirq.GridQubit(2, 4)
@@ -520,38 +532,9 @@ def test_serialize_circuit_op_errors():
         serializer._serialize_circuit_op(op, raw_constants=raw_constants)
 
 
-def test_serialize_deserialize_circuit_op():
-    serializer = cg.CircuitSerializer('my_gate_set')
-    constants = [default_circuit_proto()]
-    raw_constants = {default_circuit(): 0}
-    deserialized_constants = [default_circuit()]
-
-    proto = v2.program_pb2.CircuitOperation()
-    proto.circuit_constant_index = 0
-    proto.repetition_specification.repetition_count = 1
-
-    op = cirq.CircuitOperation(default_circuit())
-    assert proto == serializer._serialize_circuit_op(
-        op, constants=constants, raw_constants=raw_constants
-    )
-    assert (
-        serializer._deserialize_op(
-            proto, constants=constants, deserialized_constants=deserialized_constants
-        )
-        == op
-    )
-
-
-def test_deserialize_op_bad_operation_proto():
-    serializer = cg.CircuitSerializer('my_gate_set')
-    proto = v2.program_pb2.Circuit()
-    with pytest.raises(ValueError, match='Operation proto has unknown type'):
-        serializer._deserialize_op(proto)
-
-
 def test_deserialize_unsupported_gate_type():
     serializer = cg.CircuitSerializer('my_gate_set')
-    proto = op_proto(
+    operation_proto = op_proto(
         {
             'gate': {'id': 'no_pow'},
             'args': {
@@ -560,8 +543,17 @@ def test_deserialize_unsupported_gate_type():
             'qubits': [{'id': '1_1'}],
         }
     )
+    proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[
+                v2.program_pb2.Moment(operations=[operation_proto]),
+            ],
+        ),
+    )
     with pytest.raises(ValueError, match='no_pow'):
-        serializer._deserialize_op(proto)
+        serializer.deserialize(proto)
 
 
 def test_serialize_op_unsupported_type():
@@ -626,48 +618,33 @@ def test_deserialize_schedule_not_supported():
 
 def test_deserialize_fsim_missing_parameters():
     serializer = cg.CircuitSerializer('my_gate_set')
-    op = op_proto(
+    proto = circuit_proto(
         {
             'fsimgate': {
                 'theta': {'float_value': 3.0},
             },
-            'qubit_constant_index': [0],
-        }
+            'qubit_constant_index': [0, 1],
+        },
+        ['1_1', '1_2'],
     )
-    constants = [v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1'))]
-    deserialized_constants = [cirq.GridQubit(1, 1)]
     with pytest.raises(ValueError, match='theta and phi must be specified'):
-        serializer._deserialize_op(
-            op, constants=constants, deserialized_constants=deserialized_constants
-        )
+        serializer.deserialize(proto)
 
 
 def test_deserialize_wrong_types():
     serializer = cg.CircuitSerializer('my_gate_set')
-    op = op_proto(
+    proto = circuit_proto(
         {
             'measurementgate': {
                 'key': {'arg_value': {'float_value': 3.0}},
                 'invert_mask': {'arg_value': {'bool_values': {'values': [True, False]}}},
             },
             'qubit_constant_index': [0],
-        }
+        },
+        ['1_1'],
     )
-    constants = [v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1'))]
-    deserialized_constants = [cirq.GridQubit(1, 1)]
     with pytest.raises(ValueError, match='Incorrect types for measurement gate'):
-        serializer._deserialize_op(
-            op, constants=constants, deserialized_constants=deserialized_constants
-        )
-    op = op_proto(
-        {
-            'measurementgate': {
-                'key': {'arg_value': {'string_value': 'key'}},
-                'invert_mask': {'arg_value': {'string_value': 'not_a_mask'}},
-            },
-            'qubit_constant_index': [0],
-        }
-    )
+        serializer.deserialize(proto)
 
 
 def test_no_constants_table():
@@ -681,4 +658,4 @@ def test_no_constants_table():
     )
 
     with pytest.raises(ValueError, match='Proto has references to constants table'):
-        serializer._deserialize_op(op)
+        serializer._deserialize_gate_op(op)
