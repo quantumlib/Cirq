@@ -20,6 +20,12 @@ def get_sorted_qids(qid_map: Mapping[raw_types.Qid, int]):
     return [x[1] for x in sorted_pairs]
 
 
+def check_qids_dimension(qids):
+    for qid in qids:
+        if qid.dimension != 2:
+            raise ValueError(f"Only qubits are supported, but {qid} has dimension {qid.dimension}")
+
+
 @value.value_equality
 class ProjectorString:
     def __init__(
@@ -33,6 +39,7 @@ class ProjectorString:
             projector_dict: a dictionary of Qdit tuples to an integer specifying which vector to
                 project on.
         """
+        check_qids_dimension(projector_dict.keys())
         self._projector_dict = projector_dict
         self._coefficient = complex(coefficient)
 
@@ -46,6 +53,7 @@ class ProjectorString:
 
     def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> coo_matrix:
         projector_qids = self._projector_dict.keys() if projector_qids is None else projector_qids
+        check_qids_dimension(projector_qids)
         idx_to_keep = self._get_idx_to_keep(projector_qids)
 
         total_d = np.prod([qid.dimension for qid in projector_qids])
@@ -83,7 +91,8 @@ class ProjectorString:
         *,
         atol: float = 1e-7,
         check_preconditions: bool = True,
-    ) -> float:
+    ) -> complex:
+        check_qids_dimension(qid_map.keys())
         self._check_all_qids_present(qid_map)
         sorted_qid = get_sorted_qids(qid_map)
         state_vector = state_vector.reshape([qid.dimension for qid in sorted_qid]).copy()
@@ -97,7 +106,8 @@ class ProjectorString:
         *,
         atol: float = 1e-7,
         check_preconditions: bool = True,
-    ) -> float:
+    ) -> complex:
+        check_qids_dimension(qid_map)
         self._check_all_qids_present(qid_map)
         sorted_qid = get_sorted_qids(qid_map)
         state = state.reshape([qid.dimension for qid in sorted_qid] * 2).copy()
