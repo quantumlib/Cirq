@@ -205,8 +205,8 @@ class ProjectorSum:
             lambda: 0.0
         )
         for pstring in terms:
-            key = frozenset(pstring._projector_dict.items())
-            termdict[key] += 1.0
+            key = frozenset(pstring.projector_dict.items())
+            termdict[key] += pstring.coefficient
         return cls(linear_dict=value.LinearDict(termdict))
 
     def copy(self) -> 'ProjectorSum':
