@@ -16,7 +16,6 @@
 from itertools import chain
 from typing import (
     Any,
-    cast,
     Dict,
     List,
     Optional,
@@ -62,7 +61,6 @@ class CircuitSerializer:
         msg: Optional[v2.program_pb2.Program] = None,
         *,
         arg_function_language: Optional[str] = None,
-        use_constants: bool = True,
     ) -> v2.program_pb2.Program:
         """Serialize a Circuit to cirq_google.api.v2.Program proto.
 
@@ -72,17 +70,17 @@ class CircuitSerializer:
                 results.
             arg_function_language: The `arg_function_language` field from
                 `Program.Language`.
-            use_constants: Whether to use constants in serialization. This is
-                required to be True for serializing CircuitOperations.
         """
+        if not isinstance(program, cirq.Circuit):
+            raise NotImplementedError(f'Unrecognized program type: {type(program)}')
+        constants: List[v2.program_pb2.Constant] = []
+        raw_constants: Dict[Any, int] = {}
         if msg is None:
             msg = v2.program_pb2.Program()
         msg.language.gate_set = self.gate_set_name
-        if not isinstance(program, cirq.Circuit):
-            raise NotImplementedError(f'Unrecognized program type: {type(program)}')
-
-        constants: Optional[List[v2.program_pb2.Constant]] = [] if use_constants else None
-        raw_constants: Optional[Dict[Any, int]] = {} if use_constants else None
+        msg.language.arg_function_language = (
+            arg_function_language or arg_func_langs.MOST_PERMISSIVE_LANGUAGE
+        )
         self._serialize_circuit(
             program,
             msg.circuit,
@@ -92,41 +90,48 @@ class CircuitSerializer:
         )
         if constants is not None:
             msg.constants.extend(constants)
-        if arg_function_language is None:
-            arg_function_language = arg_func_langs._infer_function_language_from_circuit(
-                msg.circuit
-            )
-        msg.language.arg_function_language = arg_function_language
         return msg
 
-    def serialize_op(
+    def _serialize_circuit(
         self,
-        op: cirq.Operation,
-        msg: Union[None, v2.program_pb2.Operation, v2.program_pb2.CircuitOperation] = None,
-        **kwargs,
-    ) -> Union[v2.program_pb2.Operation, v2.program_pb2.CircuitOperation]:
-        """Disambiguation for operation serialization."""
-        if msg is None:
-            if op.gate is not None:
-                return self.serialize_gate_op(op, msg, **kwargs)
-            if hasattr(op.untagged, 'circuit'):
-                return self.serialize_circuit_op(op, msg, **kwargs)
-            raise ValueError(f'Operation is of an unrecognized type: {op!r}')
-
-        if isinstance(msg, v2.program_pb2.Operation):
-            return self.serialize_gate_op(op, msg, **kwargs)
-        if isinstance(msg, v2.program_pb2.CircuitOperation):
-            return self.serialize_circuit_op(op, msg, **kwargs)
-        raise ValueError(f'Operation proto is of an unrecognized type: {msg!r}')
-
-    def serialize_gate_op(
-        self,
-        op: cirq.Operation,
-        msg: Optional[v2.program_pb2.Operation] = None,
+        circuit: cirq.AbstractCircuit,
+        msg: v2.program_pb2.Circuit,
         *,
+        arg_function_language: Optional[str],
+        constants: List[v2.program_pb2.Constant],
+        raw_constants: Dict[Any, int],
+    ) -> None:
+        msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
+        for moment in circuit:
+            moment_proto = msg.moments.add()
+            for op in moment:
+                if isinstance(op.untagged, cirq.CircuitOperation):
+                    op_pb = moment_proto.circuit_operations.add()
+                    self._serialize_circuit_op(
+                        op.untagged,
+                        op_pb,
+                        arg_function_language=arg_function_language,
+                        constants=constants,
+                        raw_constants=raw_constants,
+                    )
+                else:
+                    op_pb = moment_proto.operations.add()
+                    self._serialize_gate_op(
+                        op,
+                        op_pb,
+                        arg_function_language=arg_function_language,
+                        constants=constants,
+                        raw_constants=raw_constants,
+                    )
+
+    def _serialize_gate_op(
+        self,
+        op: cirq.Operation,
+        msg: v2.program_pb2.Operation,
+        *,
+        constants: List[v2.program_pb2.Constant],
+        raw_constants: Dict[Any, int],
         arg_function_language: Optional[str] = '',
-        constants: Optional[List[v2.program_pb2.Constant]] = None,
-        raw_constants: Optional[Dict[Any, int]] = None,
     ) -> v2.program_pb2.Operation:
         """Serialize an Operation to cirq_google.api.v2.Operation proto.
 
@@ -144,38 +149,6 @@ class CircuitSerializer:
             The cirq.google.api.v2.Operation proto.
         """
         gate = op.gate
-        if msg is None:
-            msg = v2.program_pb2.Operation()
-        if raw_constants is None or constants is None:
-            # Preserve old functionality in case constants table is not used
-            for qubit in op.qubits:
-                msg.qubits.add().id = v2.qubit_to_proto_id(qubit)
-        else:
-            for qubit in op.qubits:
-                if qubit not in raw_constants:
-                    constants.append(
-                        v2.program_pb2.Constant(
-                            qubit=v2.program_pb2.Qubit(id=v2.qubit_to_proto_id(qubit))
-                        )
-                    )
-                    raw_constants[qubit] = len(constants) - 1
-                msg.qubit_constant_index.append(raw_constants[qubit])
-
-        for tag in op.tags:
-            if isinstance(tag, CalibrationTag):
-                if constants is not None:
-                    constant = v2.program_pb2.Constant()
-                    constant.string_value = tag.token
-                    try:
-                        msg.token_constant_index = constants.index(constant)
-                    except ValueError:
-                        # Token not found, add it to the list
-                        msg.token_constant_index = len(constants)
-                        constants.append(constant)
-                        if raw_constants is not None:
-                            raw_constants[tag.token] = msg.token_constant_index
-                else:
-                    msg.token_value = tag.token
 
         if isinstance(gate, cirq.XPowGate):
             arg_func_langs.float_arg_to_proto(
@@ -183,15 +156,13 @@ class CircuitSerializer:
                 out=msg.xpowgate.exponent,
                 arg_function_language=arg_function_language,
             )
-            return msg
-        if isinstance(gate, cirq.YPowGate):
+        elif isinstance(gate, cirq.YPowGate):
             arg_func_langs.float_arg_to_proto(
                 gate.exponent,
                 out=msg.ypowgate.exponent,
                 arg_function_language=arg_function_language,
             )
-            return msg
-        if isinstance(gate, cirq.ZPowGate):
+        elif isinstance(gate, cirq.ZPowGate):
             arg_func_langs.float_arg_to_proto(
                 gate.exponent,
                 out=msg.zpowgate.exponent,
@@ -199,8 +170,7 @@ class CircuitSerializer:
             )
             if any(isinstance(tag, PhysicalZTag) for tag in op.tags):
                 msg.zpowgate.is_physical_z = True
-            return msg
-        if isinstance(gate, cirq.PhasedXPowGate):
+        elif isinstance(gate, cirq.PhasedXPowGate):
             arg_func_langs.float_arg_to_proto(
                 gate.phase_exponent,
                 out=msg.phasedxpowgate.phase_exponent,
@@ -211,8 +181,7 @@ class CircuitSerializer:
                 out=msg.phasedxpowgate.exponent,
                 arg_function_language=arg_function_language,
             )
-            return msg
-        if isinstance(gate, cirq.PhasedXZGate):
+        elif isinstance(gate, cirq.PhasedXZGate):
             arg_func_langs.float_arg_to_proto(
                 gate.x_exponent,
                 out=msg.phasedxzgate.x_exponent,
@@ -228,22 +197,19 @@ class CircuitSerializer:
                 out=msg.phasedxzgate.axis_phase_exponent,
                 arg_function_language=arg_function_language,
             )
-            return msg
-        if isinstance(gate, cirq.CZPowGate):
+        elif isinstance(gate, cirq.CZPowGate):
             arg_func_langs.float_arg_to_proto(
                 gate.exponent,
                 out=msg.czpowgate.exponent,
                 arg_function_language=arg_function_language,
             )
-            return msg
-        if isinstance(gate, cirq.ISwapPowGate):
+        elif isinstance(gate, cirq.ISwapPowGate):
             arg_func_langs.float_arg_to_proto(
                 gate.exponent,
                 out=msg.iswappowgate.exponent,
                 arg_function_language=arg_function_language,
             )
-            return msg
-        if isinstance(gate, cirq.FSimGate):
+        elif isinstance(gate, cirq.FSimGate):
             arg_func_langs.float_arg_to_proto(
                 gate.theta,
                 out=msg.fsimgate.theta,
@@ -254,8 +220,7 @@ class CircuitSerializer:
                 out=msg.fsimgate.phi,
                 arg_function_language=arg_function_language,
             )
-            return msg
-        if isinstance(gate, cirq.MeasurementGate):
+        elif isinstance(gate, cirq.MeasurementGate):
             arg_func_langs.arg_to_proto(
                 gate.key,
                 out=msg.measurementgate.key,
@@ -266,19 +231,42 @@ class CircuitSerializer:
                 out=msg.measurementgate.invert_mask,
                 arg_function_language=arg_function_language,
             )
-            return msg
-        if isinstance(gate, cirq.WaitGate):
+        elif isinstance(gate, cirq.WaitGate):
             arg_func_langs.float_arg_to_proto(
                 gate.duration.total_nanos(),
                 out=msg.waitgate.duration_nanos,
                 arg_function_language=arg_function_language,
             )
-            return msg
-        raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
+        else:
+            raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
 
-    def serialize_circuit_op(
+        for qubit in op.qubits:
+            if qubit not in raw_constants:
+                constants.append(
+                    v2.program_pb2.Constant(
+                        qubit=v2.program_pb2.Qubit(id=v2.qubit_to_proto_id(qubit))
+                    )
+                )
+                raw_constants[qubit] = len(constants) - 1
+            msg.qubit_constant_index.append(raw_constants[qubit])
+
+        for tag in op.tags:
+            if isinstance(tag, CalibrationTag):
+                constant = v2.program_pb2.Constant()
+                constant.string_value = tag.token
+                try:
+                    msg.token_constant_index = constants.index(constant)
+                except ValueError:
+                    # Token not found, add it to the list
+                    msg.token_constant_index = len(constants)
+                    constants.append(constant)
+                    if raw_constants is not None:
+                        raw_constants[tag.token] = msg.token_constant_index
+        return msg
+
+    def _serialize_circuit_op(
         self,
-        op: cirq.Operation,
+        op: cirq.CircuitOperation,
         msg: Optional[v2.program_pb2.CircuitOperation] = None,
         *,
         arg_function_language: Optional[str] = '',
@@ -300,7 +288,7 @@ class CircuitSerializer:
         Returns:
             The cirq.google.api.v2.CircuitOperation proto.
         """
-        circuit = getattr(op.untagged, 'circuit', None)
+        circuit = op.circuit
         if constants is None or raw_constants is None:
             raise ValueError(
                 'CircuitOp serialization requires a constants list and a corresponding '
@@ -319,7 +307,7 @@ class CircuitSerializer:
             constants.append(v2.program_pb2.Constant(circuit_value=subcircuit_msg))
             raw_constants[circuit] = len(constants) - 1
         return serializer.to_proto(
-            cast(cirq.CircuitOperation, op.untagged),
+            op,
             msg,
             arg_function_language=arg_function_language,
             constants=constants,
@@ -349,7 +337,9 @@ class CircuitSerializer:
                 )
             )
         which = proto.WhichOneof('program')
-        arg_func_language = proto.language.arg_function_language or 'exp'
+        arg_func_language = (
+            proto.language.arg_function_language or arg_func_langs.MOST_PERMISSIVE_LANGUAGE
+        )
 
         if which == 'circuit':
             deserialized_constants: List[Any] = []
@@ -379,7 +369,7 @@ class CircuitSerializer:
 
         raise NotImplementedError('Program proto does not contain a circuit.')
 
-    def deserialize_op(
+    def _deserialize_op(
         self,
         operation_proto: Union[
             v2.program_pb2.Operation,
@@ -389,14 +379,14 @@ class CircuitSerializer:
     ) -> cirq.Operation:
         """Disambiguation for operation deserialization."""
         if isinstance(operation_proto, v2.program_pb2.Operation):
-            return self.deserialize_gate_op(operation_proto, **kwargs)
+            return self._deserialize_gate_op(operation_proto, **kwargs)
 
         if isinstance(operation_proto, v2.program_pb2.CircuitOperation):
-            return self.deserialize_circuit_op(operation_proto, **kwargs)
+            return self._deserialize_circuit_op(operation_proto, **kwargs)
 
         raise ValueError(f'Operation proto has unknown type: {type(operation_proto)}.')
 
-    def deserialize_gate_op(
+    def _deserialize_gate_op(
         self,
         operation_proto: v2.program_pb2.Operation,
         *,
@@ -567,7 +557,7 @@ class CircuitSerializer:
 
         return op
 
-    def deserialize_circuit_op(
+    def _deserialize_circuit_op(
         self,
         operation_proto: v2.program_pb2.CircuitOperation,
         *,
@@ -597,31 +587,6 @@ class CircuitSerializer:
             deserialized_constants=deserialized_constants,
         )
 
-    def _serialize_circuit(
-        self,
-        circuit: cirq.AbstractCircuit,
-        msg: v2.program_pb2.Circuit,
-        *,
-        arg_function_language: Optional[str],
-        constants: Optional[List[v2.program_pb2.Constant]] = None,
-        raw_constants: Optional[Dict[Any, int]] = None,
-    ) -> None:
-        msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
-        for moment in circuit:
-            moment_proto = msg.moments.add()
-            for op in moment:
-                if isinstance(op.untagged, cirq.CircuitOperation):
-                    op_pb = moment_proto.circuit_operations.add()
-                else:
-                    op_pb = moment_proto.operations.add()
-                self.serialize_op(
-                    op,
-                    op_pb,
-                    arg_function_language=arg_function_language,
-                    constants=constants,
-                    raw_constants=raw_constants,
-                )
-
     def _deserialize_circuit(
         self,
         circuit_proto: v2.program_pb2.Circuit,
@@ -635,7 +600,7 @@ class CircuitSerializer:
             moment_ops = []
             for op in chain(moment_proto.operations, moment_proto.circuit_operations):
                 moment_ops.append(
-                    self.deserialize_op(
+                    self._deserialize_op(
                         op,
                         arg_function_language=arg_function_language,
                         constants=constants,

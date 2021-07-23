@@ -33,6 +33,7 @@ SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
     # None means any. Is used when inferring the language during serialization.
     None: frozenset({'add', 'mul', 'pow'}),
 }
+MOST_PERMISSIVE_LANGUAGE = 'exp'
 
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 

@@ -242,28 +242,14 @@ OPERATIONS = [
 def test_serialize_deserialize_ops(op, op_proto):
     serializer = cg.CircuitSerializer('my_gate_set')
 
-    # Serialize / Deserializer operation
-    raw_constants = {}
     constants = []
-    assert op_proto == serializer.serialize_op(
-        op, raw_constants=raw_constants, constants=constants, arg_function_language='exp'
-    )
 
-    deserialized_constants = [v2.qubit_from_proto_id(constant.qubit.id) for constant in constants]
-    assert (
-        serializer.deserialize_op(
-            op_proto,
-            constants=constants,
-            deserialized_constants=deserialized_constants,
-            arg_function_language='exp',
-        )
-        == op
-    )
-
+    for q in op.qubits:
+        constants.append(v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id=f'{q.row}_{q.col}')))
     # Serialize / Deserializer circuit with single operation
     circuit = cirq.Circuit(op)
     circuit_proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[v2.program_pb2.Moment(operations=[op_proto])],
@@ -281,7 +267,7 @@ def test_serialize_deserialize_circuit():
     circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -339,7 +325,7 @@ def test_serialize_deserialize_circuit_with_tokens():
     op2.token_constant_index = 3
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -359,6 +345,36 @@ def test_serialize_deserialize_circuit_with_tokens():
         ],
     )
     assert proto == serializer.serialize(circuit)
+    assert serializer.deserialize(proto) == circuit
+
+
+def test_deserialize_circuit_with_token_strings():
+    """Supporting token strings for backwards compatibility."""
+    serializer = cg.CircuitSerializer('my_gate_set')
+    proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[
+                v2.program_pb2.Moment(
+                    operations=[
+                        v2.program_pb2.Operation(
+                            xpowgate=v2.program_pb2.XPowGate(
+                                exponent=v2.program_pb2.FloatArg(float_value=1.0)
+                            ),
+                            token_value='abc123',
+                            qubit_constant_index=[0],
+                        ),
+                    ],
+                ),
+            ],
+        ),
+        constants=[
+            v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_4')),
+        ],
+    )
+    tag = cg.CalibrationTag('abc123')
+    circuit = cirq.Circuit(cirq.X(Q0).with_tags(tag))
     assert serializer.deserialize(proto) == circuit
 
 
@@ -395,7 +411,7 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     qmap.value.id = '2_5'
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -434,7 +450,7 @@ def test_serialize_deserialize_empty_circuit():
     circuit = cirq.Circuit()
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
         ),
@@ -463,56 +479,6 @@ def test_serialize_unrecognized():
     serializer = cg.CircuitSerializer('my_gate_set')
     with pytest.raises(NotImplementedError, match='program type'):
         serializer.serialize("not quite right")
-
-
-def test_serialize_deserialize_op():
-    serializer = cg.CircuitSerializer('my_gate_set')
-    q0 = cirq.GridQubit(1, 1)
-    proto = op_proto(
-        {
-            'xpowgate': {
-                'exponent': {'float_value': 0.125},
-            },
-            'qubit_constant_index': [0],
-        }
-    )
-    constants = []
-    raw_constants = {}
-    assert proto == serializer.serialize_op(
-        cirq.XPowGate(exponent=0.125)(q0), constants=constants, raw_constants=raw_constants
-    )
-
-    assert serializer.deserialize_op(
-        proto, constants=constants, deserialized_constants=[q0]
-    ) == cirq.XPowGate(exponent=0.125)(q0)
-
-
-def test_serialize_deserialize_op_with_constants():
-    serializer = cg.CircuitSerializer('my_gate_set')
-    q0 = cirq.GridQubit(1, 1)
-    proto = op_proto(
-        {
-            'xpowgate': {
-                'exponent': {'float_value': 0.125},
-            },
-            'token_constant_index': 1,
-            'qubit_constant_index': [0],
-        }
-    )
-    op = cirq.XPowGate(exponent=0.125)(q0).with_tags(cg.CalibrationTag('abc123'))
-    constants = []
-    raw_constants = {}
-    assert proto == serializer.serialize_op(op, constants=constants, raw_constants=raw_constants)
-    constant0 = v2.program_pb2.Constant()
-    constant0.qubit.id = '1_1'
-    constant1 = v2.program_pb2.Constant()
-    constant1.string_value = 'abc123'
-    assert constants == [constant0, constant1]
-    assert q0 in raw_constants
-    assert (
-        serializer.deserialize_op(proto, constants=constants, deserialized_constants=[q0, 'abc123'])
-        == op
-    )
 
 
 def default_circuit_proto():
@@ -545,13 +511,13 @@ def test_serialize_circuit_op_errors():
 
     op = cirq.CircuitOperation(default_circuit())
     with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
-        serializer.serialize_op(op)
+        serializer._serialize_circuit_op(op)
 
     with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
-        serializer.serialize_op(op, constants=constants)
+        serializer._serialize_circuit_op(op, constants=constants)
 
     with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
-        serializer.serialize_op(op, raw_constants=raw_constants)
+        serializer._serialize_circuit_op(op, raw_constants=raw_constants)
 
 
 def test_serialize_deserialize_circuit_op():
@@ -565,9 +531,11 @@ def test_serialize_deserialize_circuit_op():
     proto.repetition_specification.repetition_count = 1
 
     op = cirq.CircuitOperation(default_circuit())
-    assert proto == serializer.serialize_op(op, constants=constants, raw_constants=raw_constants)
+    assert proto == serializer._serialize_circuit_op(
+        op, constants=constants, raw_constants=raw_constants
+    )
     assert (
-        serializer.deserialize_op(
+        serializer._deserialize_op(
             proto, constants=constants, deserialized_constants=deserialized_constants
         )
         == op
@@ -578,7 +546,7 @@ def test_deserialize_op_bad_operation_proto():
     serializer = cg.CircuitSerializer('my_gate_set')
     proto = v2.program_pb2.Circuit()
     with pytest.raises(ValueError, match='Operation proto has unknown type'):
-        serializer.deserialize_op(proto)
+        serializer._deserialize_op(proto)
 
 
 def test_deserialize_unsupported_gate_type():
@@ -593,7 +561,7 @@ def test_deserialize_unsupported_gate_type():
         }
     )
     with pytest.raises(ValueError, match='no_pow'):
-        serializer.deserialize_op(proto)
+        serializer._deserialize_op(proto)
 
 
 def test_serialize_op_unsupported_type():
@@ -601,7 +569,7 @@ def test_serialize_op_unsupported_type():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='CNOT'):
-        serializer.serialize_op(cirq.CNOT(q0, q1), constants=[], raw_constants={})
+        serializer.serialize(cirq.Circuit(cirq.CNOT(q0, q1)))
 
 
 def test_serialize_op_bad_operation():
@@ -616,16 +584,8 @@ def test_serialize_op_bad_operation():
             return self  # coverage: ignore
 
     null_op = NullOperation()
-    with pytest.raises(ValueError, match='Operation is of an unrecognized type'):
-        serializer.serialize_op(null_op)
-
-
-def test_serialize_op_bad_operation_proto():
-    serializer = cg.CircuitSerializer('my_gate_set')
-    q0 = cirq.GridQubit(1, 1)
-    msg = v2.program_pb2.Circuit()
-    with pytest.raises(ValueError, match='Operation proto is of an unrecognized type'):
-        serializer.serialize_op(cirq.X(q0), msg)
+    with pytest.raises(ValueError, match='Cannot serialize op'):
+        serializer.serialize(cirq.Circuit(null_op))
 
 
 def test_deserialize_invalid_gate_set():
@@ -650,17 +610,6 @@ def test_deserialize_invalid_gate_set():
     )
     with pytest.raises(ValueError, match='Missing gate set'):
         serializer.deserialize(proto)
-
-
-def test_serialize_qubit_backwards_compatibilty():
-    """Tests functionality without use_constants"""
-    serializer = cg.CircuitSerializer('my_gate_set')
-    op = cirq.X(Q0).with_tags(cg.CalibrationTag('blah'))
-    actual_proto = serializer.serialize_op(op)
-    assert len(actual_proto.qubits) == 1
-    assert actual_proto.qubits[0].id == '2_4'
-    actual = serializer.deserialize_op(actual_proto)
-    assert actual == op
 
 
 def test_deserialize_schedule_not_supported():
@@ -688,7 +637,7 @@ def test_deserialize_fsim_missing_parameters():
     constants = [v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1'))]
     deserialized_constants = [cirq.GridQubit(1, 1)]
     with pytest.raises(ValueError, match='theta and phi must be specified'):
-        serializer.deserialize_op(
+        serializer._deserialize_op(
             op, constants=constants, deserialized_constants=deserialized_constants
         )
 
@@ -707,7 +656,7 @@ def test_deserialize_wrong_types():
     constants = [v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1'))]
     deserialized_constants = [cirq.GridQubit(1, 1)]
     with pytest.raises(ValueError, match='Incorrect types for measurement gate'):
-        serializer.deserialize_op(
+        serializer._deserialize_op(
             op, constants=constants, deserialized_constants=deserialized_constants
         )
     op = op_proto(
@@ -732,4 +681,4 @@ def test_no_constants_table():
     )
 
     with pytest.raises(ValueError, match='Proto has references to constants table'):
-        serializer.deserialize_op(op)
+        serializer._deserialize_op(op)
