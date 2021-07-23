@@ -26,6 +26,7 @@ from cirq.work.observable_measurement import (
     _aggregate_n_repetitions,
     _check_meas_specs_still_todo,
     StoppingCriteria,
+    _parse_checkpoint_options,
 )
 
 
@@ -155,7 +156,6 @@ def test_params_and_settings():
 
 
 def test_subdivide_meas_specs():
-
     qubits = cirq.LineQubit.range(2)
     q0, q1 = qubits
     setting = cw.InitObsSetting(
@@ -364,8 +364,47 @@ def test_meas_spec_still_todo_lots_of_params(monkeypatch):
         )
 
 
-@pytest.mark.parametrize('with_circuit_sweep', (True, False))
-def test_measure_grouped_settings(with_circuit_sweep):
+def test_checkpoint_options():
+    # There are three ~binary options (the latter two can be either specified or `None`. We
+    # test those 2^3 cases.
+
+    assert _parse_checkpoint_options(False, None, None) == (None, None)
+    with pytest.raises(ValueError):
+        _parse_checkpoint_options(False, 'test', None)
+    with pytest.raises(ValueError):
+        _parse_checkpoint_options(False, None, 'test')
+    with pytest.raises(ValueError):
+        _parse_checkpoint_options(False, 'test1', 'test2')
+
+    chk, chkprev = _parse_checkpoint_options(True, None, None)
+    assert chk.startswith('/')  # absolute temp path
+    assert chk.endswith('observables.json')
+    assert chkprev.startswith('/')  # absolute temp path
+    assert chkprev.endswith('observables.prev.json')
+
+    chk, chkprev = _parse_checkpoint_options(True, None, 'prev.json')
+    assert chk.startswith('/')  # absolute temp path
+    assert chk.endswith('observables.json')
+    assert chkprev == 'prev.json'
+
+    chk, chkprev = _parse_checkpoint_options(True, 'my_fancy_observables.json', None)
+    assert chk == 'my_fancy_observables.json'
+    assert chkprev == 'my_fancy_observables.prev.json'
+
+    chk, chkprev = _parse_checkpoint_options(True, 'my_fancy/observables.json', None)
+    assert chk == 'my_fancy/observables.json'
+    assert chkprev == 'my_fancy/observables.prev.json'
+
+    with pytest.raises(ValueError, match=r'Please use a `.json` filename.*'):
+        _parse_checkpoint_options(True, 'my_fancy_observables', None)
+
+    chk, chkprev = _parse_checkpoint_options(True, 'test1', 'test2')
+    assert chk == 'test1'
+    assert chkprev == 'test2'
+
+
+@pytest.mark.parametrize(('with_circuit_sweep', 'checkpoint'), [(True, True), (False, False)])
+def test_measure_grouped_settings(with_circuit_sweep, checkpoint):
     qubits = cirq.LineQubit.range(1)
     (q,) = qubits
     tests = [
@@ -392,8 +431,9 @@ def test_measure_grouped_settings(with_circuit_sweep):
             circuit=circuit,
             grouped_settings=grouped_settings,
             sampler=cirq.Simulator(),
-            stopping_criteria=cw.RepetitionsStoppingCriteria(1_000),
+            stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
             circuit_sweep=ss,
+            checkpoint=checkpoint,
         )
         if with_circuit_sweep:
             for result in results:
