@@ -28,22 +28,40 @@ import {
   BoxGeometry,
 } from 'three';
 
+/**
+ * A wrapper for a three.js Line object representing a connection line
+ * between two qubits. Useful when building controlled gates. 
+ */
 export class ConnectionLine extends Line {
+  /**
+   * Class constructor.
+   * @param startCoord The starting coordinate of the line
+   * @param endCoord The ending coordinate of the line
+   * @returns a CollectionLine object that can be added to a three.js scene
+   */
   constructor(startCoord: Vector3, endCoord: Vector3) {
-    super();
     const COLOR = 'black';
 
     const material = new LineBasicMaterial({color: COLOR});
     const points = [startCoord, endCoord];
     const geometry = new BufferGeometry().setFromPoints(points);
-    return new Line(geometry, material);
+
+    super(geometry, material);
+    return this;
   }
 }
 
+/**
+ * A wrapper for a three.js Sprite object which is used to label the
+ * location of specific qubits. 
+ */
 export class QubitLabel extends Sprite {
+  /**
+   * Class constructor.
+   * @param text The text which the label should display
+   * @returns a QubitLabel object that can be added to a three.js scene
+   */
   constructor(text: string) {
-    super();
-
     const CANVAS_SIZE = 128;
 
     const canvas = document.createElement('canvas');
@@ -63,44 +81,69 @@ export class QubitLabel extends Sprite {
     map.needsUpdate = true;
 
     const material = new SpriteMaterial({
-      map: map,
+      map,
       transparent: true, // for a transparent canvas background
     });
 
-    const sprite = new Sprite(material);
-    return sprite;
+    super(material);
+    return this;
   }
 }
 
+/**
+ * A wrapper for a three.js Line object which represents a qubit in
+ * this circuit.
+ */
 export class QubitLine extends Line {
+  /**
+   * Class constructor.
+   * @param startCoord The starting coordinate of the line
+   * @param endCoord The ending coordinate of the line
+   * @returns a QubitLine object that can be added to a three.js scene.
+   */
   constructor(startCoord: Vector3, endCoord: Vector3) {
-    super();
     const COLOR = 'gray';
 
     const material = new LineBasicMaterial({color: COLOR});
     const points = [startCoord, endCoord];
     const geometry = new BufferGeometry().setFromPoints(points);
-    return new Line(geometry, material);
+
+    super(geometry, material);
+    return this;
   }
 }
 
+/**
+ * A wrapper for a three.js Sphere which represents a control
+ * in a circuit.
+ */
 export class Control3DSymbol extends Mesh {
+  /**
+   * Class constructor.
+   * @returns a Control3DSymbol object that can be added to a three.js scene.
+   */
   constructor() {
-    super();
     const COLOR = 'black';
 
     const material = new MeshBasicMaterial({color: COLOR});
     const geometry = new SphereGeometry(0.1, 32, 32);
-    const sphere = new Mesh(geometry, material);
 
-    return sphere;
+    super(geometry, material);
+    return this;
   }
 }
 
+/**
+ * A wrapper for a three.js Cylinder which represents an X operation 
+ * in a circuit.
+ */
 export class X3DSymbol extends Mesh {
+  /**
+   * Class constructor.
+   * @param color The color of the symbol
+   * @returns an X3DSymbol object that can be added to a three.js scene
+   */
   constructor(color: string) {
-    super();
-
     const material = new MeshBasicMaterial({color: color, side: DoubleSide});
     const geometry = new CylinderGeometry(
       0.3,
@@ -112,15 +155,24 @@ export class X3DSymbol extends Mesh {
       0,
       2 * Math.PI
     );
-    const cylinder = new Mesh(geometry, material);
-    return cylinder;
+
+    super(geometry, material);
+    return this;
   }
 }
 
+/**
+ * A wrapper for a three.js Box which represents arbitrary single qubit
+ * operations in a circuit
+ */
 export class BoxGate3DSymbol extends Mesh {
+  /**
+   * Class constructor.
+   * @param label The label that will go on the three.js box
+   * @param color The color of the box
+   * @returns a BoxGate3DSymbol object that can be added to a three.js scene
+   */
   constructor(label: string, color: string) {
-    super();
-
     const canvas = document.createElement('canvas')!;
     const context = canvas.getContext('2d')!;
     canvas.width = canvas.height = 128;
@@ -136,8 +188,8 @@ export class BoxGate3DSymbol extends Mesh {
 
     const geometry = new BoxGeometry(0.5, 0.5, 0.5);
     const material = new MeshBasicMaterial({map: map, color: color});
-    const cube = new Mesh(geometry, material);
 
-    return cube;
+    super(geometry, material);
+    return this;
   }
 }

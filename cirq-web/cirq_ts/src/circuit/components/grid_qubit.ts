@@ -46,33 +46,27 @@ export class GridQubit extends Group {
     this.row = row;
     this.col = col;
     this.moments = moments;
-    this.createLine();
-    this.addLocationLabel();
+    this.add(this.createLine(moments));
+    this.add(this.addLocationLabel());
   }
 
   /**
-   * Adds a three.js mesh single qubit gate symbol
-   * to the group at the designated moment.
+   * Adds a three.js mesh single qubit gate symbol to the group at the 
+   * designated moment.
    * @param label The label of the gate
    * @param color The color of the gate
    * @param moment The moment at which the gate occurs
    */
   addSingleQubitGate(label: string, color: string, moment: number) {
-    if (label === 'X') {
-      const mesh = new X3DSymbol(color);
-      mesh.position.set(this.row, moment, this.col);
-      this.add(mesh);
-      return;
-    }
-
-    const mesh = new BoxGate3DSymbol(label, color);
+    const mesh = label === 'X'
+      ? new X3DSymbol(color)
+      : new BoxGate3DSymbol(label, color);
     mesh.position.set(this.row, moment, this.col);
     this.add(mesh);
   }
 
   /**
-   * Adds a three.js mesh control symbol
-   * to the group at the designated moment.
+   * Adds a three.js mesh control symbol to the group at the designated moment.
    * @param moment The moment at which the control occurs.
    */
   addControl(moment: number) {
@@ -96,17 +90,17 @@ export class GridQubit extends Group {
     this.add(new ConnectionLine(coords[0], coords[1]));
   }
 
-  private createLine() {
+  private createLine(moments: number) : QubitLine {
     const coords = [
       new Vector3(this.row, 0, this.col),
       new Vector3(this.row, this.moments, this.col),
     ];
-    this.add(new QubitLine(coords[0], coords[1]));
+    return new QubitLine(coords[0], coords[1]);
   }
 
-  private addLocationLabel() {
+  private addLocationLabel() : QubitLabel {
     const sprite = new QubitLabel(`(${this.row}, ${this.col})`);
     sprite.position.copy(new Vector3(this.row, -0.6, this.col));
-    this.add(sprite);
+    return sprite;
   }
 }
