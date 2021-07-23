@@ -16,12 +16,8 @@ from cirq import value
 from cirq.ops import raw_types
 
 
-def get_sorted_qids(qid_map: Mapping[raw_types.Qid, int]):
-    sorted_pairs = sorted([(i, qid) for qid, i in qid_map.items()])
-    return [x[1] for x in sorted_pairs]
-
-
 def check_qids_dimension(qids):
+    """A utility to check that we only have Qubits."""
     for qid in qids:
         if qid.dimension != 2:
             raise ValueError(f"Only qubits are supported, but {qid} has dimension {qid.dimension}")
@@ -37,8 +33,9 @@ class ProjectorString:
         """Contructor for ProjectorString
 
         Args:
-            projector_dict: a dictionary of Qdit tuples to an integer specifying which vector to
-                project on.
+            projector_dict: a dictionary of Qbit to an integer specifying which vector to project
+                onto.
+            coefficient: Initial scalar coefficient. Defaults to 1.
         """
         check_qids_dimension(projector_dict.keys())
         self._projector_dict = projector_dict
@@ -53,6 +50,14 @@ class ProjectorString:
         return self._coefficient
 
     def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> coo_matrix:
+        """Returns the matrix of self in computational basis of qubits.
+
+        Args:
+            projector_qids: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the ProjectorString is to
+                be computed. Qbits absent from self.qubits are acted on by
+                the identity. Defaults to the qubits of the projector_dict.
+        """
         projector_qids = self._projector_dict.keys() if projector_qids is None else projector_qids
         check_qids_dimension(projector_qids)
         idx_to_keep = []
@@ -87,10 +92,19 @@ class ProjectorString:
         self,
         state_vector: np.ndarray,
         qid_map: Mapping[raw_types.Qid, int],
-        *,
-        atol: float = 1e-7,
-        check_preconditions: bool = True,
     ) -> complex:
+        """Expectation of the projection from a state vector.
+
+        Projects the state vector onto the projector_dict and computes the expectation of the
+        measurement.
+
+        Args:
+            state_vector: An array representing a valid state vector.
+            qubit_map: A map from all qubits used in this ProjectorString to the
+                indices of the qubits that `state_vector` is defined over.
+        Returns:
+            The expectation value of the input state.
+        """
         check_qids_dimension(qid_map.keys())
         num_qubits = len(qid_map)
         index = self._get_idx_to_keep(qid_map)
@@ -102,10 +116,19 @@ class ProjectorString:
         self,
         state: np.ndarray,
         qid_map: Mapping[raw_types.Qid, int],
-        *,
-        atol: float = 1e-7,
-        check_preconditions: bool = True,
     ) -> complex:
+        """Expectation of the projection from a density matrix.
+
+        Projects the density matrix onto the projector_dict and computes the expectation of the
+        measurement.
+
+        Args:
+            state: An array representing a valid  density matrix.
+            qubit_map: A map from all qubits used in this ProjectorString to the
+                indices of the qubits that `state_vector` is defined over.
+        Returns:
+            The expectation value of the input state.
+        """
         check_qids_dimension(qid_map.keys())
         num_qubits = len(qid_map)
         index = self._get_idx_to_keep(qid_map) * 2
