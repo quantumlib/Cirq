@@ -8,5 +8,10 @@
       },
       0
     ]
-  ]
+  ],
+  "coefficient": {
+    "cirq_type": "complex",
+    "real": 20.160913,
+    "imag": 0.0
+  }
 }
