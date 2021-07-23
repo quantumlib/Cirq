@@ -10,10 +10,7 @@ from typing import (
     List,
     Mapping,
     Optional,
-<<<<<<< HEAD
     Tuple,
-=======
->>>>>>> projector_strings
     Union,
 )
 
