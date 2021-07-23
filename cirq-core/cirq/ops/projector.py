@@ -3,6 +3,7 @@ from typing import (
     Any,
     Dict,
     Iterable,
+    List,
     Mapping,
     Optional,
     Union,
@@ -54,12 +55,17 @@ class ProjectorString:
     def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> coo_matrix:
         projector_qids = self._projector_dict.keys() if projector_qids is None else projector_qids
         check_qids_dimension(projector_qids)
-        idx_to_keep = self._get_idx_to_keep(projector_qids)
+        idx_to_keep = []
+        for qid in projector_qids:
+            if qid in self._projector_dict:
+                idx_to_keep.append([self._projector_dict[qid]])
+            else:
+                idx_to_keep.append(list(range(qid.dimension)))
 
         total_d = np.prod([qid.dimension for qid in projector_qids])
 
         ones_idx = []
-        for idx in idx_to_keep:
+        for idx in itertools.product(*idx_to_keep):
             assert len(idx) == len(list(projector_qids))
             d = total_d
             kron_idx = 0
@@ -70,19 +76,12 @@ class ProjectorString:
 
         return coo_matrix(([1.0] * len(ones_idx), (ones_idx, ones_idx)), shape=(total_d, total_d))
 
-    def _get_idx_to_keep(self, sorted_qid: Iterable[raw_types.Qid]):
-        idx_to_keep = []
-        for qid in sorted_qid:
-            if qid in self._projector_dict:
-                idx_to_keep.append([self._projector_dict[qid]])
-            else:
-                idx_to_keep.append(list(range(qid.dimension)))
-        return itertools.product(*idx_to_keep)
-
-    def _check_all_qids_present(self, qid_map: Mapping[raw_types.Qid, int]):
-        for qid in self._projector_dict.keys():
-            if qid not in qid_map:
-                raise ValueError(f"Missing qid: {qid}")
+    def _get_idx_to_keep(self, qid_map: Mapping[raw_types.Qid, int]):
+        num_qubits = len(qid_map)
+        idx_to_keep: List[Any] = [slice(0, 2)] * num_qubits
+        for q in self.projector_dict.keys():
+            idx_to_keep[qid_map[q]] = self.projector_dict[q]
+        return tuple(idx_to_keep)
 
     def expectation_from_state_vector(
         self,
@@ -93,11 +92,11 @@ class ProjectorString:
         check_preconditions: bool = True,
     ) -> complex:
         check_qids_dimension(qid_map.keys())
-        self._check_all_qids_present(qid_map)
-        sorted_qid = get_sorted_qids(qid_map)
-        state_vector = state_vector.reshape([qid.dimension for qid in sorted_qid]).copy()
-        idx_to_keep = self._get_idx_to_keep(sorted_qid)
-        return self._coefficient * sum(np.abs(state_vector[idx]) ** 2 for idx in idx_to_keep)
+        num_qubits = len(qid_map)
+        index = self._get_idx_to_keep(qid_map)
+        return self._coefficient * np.sum(
+            np.abs(np.reshape(state_vector, (2,) * num_qubits)[index]) ** 2
+        )
 
     def expectation_from_density_matrix(
         self,
@@ -107,12 +106,12 @@ class ProjectorString:
         atol: float = 1e-7,
         check_preconditions: bool = True,
     ) -> complex:
-        check_qids_dimension(qid_map)
-        self._check_all_qids_present(qid_map)
-        sorted_qid = get_sorted_qids(qid_map)
-        state = state.reshape([qid.dimension for qid in sorted_qid] * 2).copy()
-        idx_to_keep = self._get_idx_to_keep(sorted_qid)
-        return self._coefficient * sum(np.abs(state[idx + idx]) ** 2 for idx in idx_to_keep)
+        check_qids_dimension(qid_map.keys())
+        num_qubits = len(qid_map)
+        index = self._get_idx_to_keep(qid_map) * 2
+        return self._coefficient * np.sum(
+            np.abs(np.reshape(state, (2,) * (2 * num_qubits))[index]) ** 2
+        )
 
     def __repr__(self) -> str:
         return (
