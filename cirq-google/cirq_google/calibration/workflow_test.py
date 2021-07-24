@@ -283,6 +283,41 @@ def test_prepare_characterization_for_moments(options_cls):
     assert circuit_with_calibration.moment_to_calibration == [None, 0, 1, None]
 
 
+@pytest.mark.parametrize(
+    'options_cls',
+    [
+        (
+            WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+            cirq_google.FloquetPhasedFSimCalibrationRequest,
+        ),
+        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq_google.XEBPhasedFSimCalibrationRequest),
+    ],
+)
+def test_prepare_characterization_for_moments_with_permit_mixed_moments(options_cls):
+    options, cls = options_cls
+    a, b, c, d = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit(
+        [
+            cirq.Moment([cirq.X(a), cirq.Y(c)]),
+            cirq.Moment([SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)]),
+            cirq.Moment([cirq.X(a), SQRT_ISWAP_INV_GATE.on(b, c)], cirq.Y(d)),
+            cirq.Moment([cirq.WaitGate(duration=cirq.Duration(micros=5.0)).on(b)]),
+        ]
+    )
+
+    circuit_with_calibration, requests = workflow.prepare_characterization_for_moments(
+        circuit, options=options, permit_mixed_moments=True
+    )
+
+    assert requests == [
+        cls(pairs=((a, b), (c, d)), gate=SQRT_ISWAP_INV_GATE, options=options),
+        cls(pairs=((b, c),), gate=SQRT_ISWAP_INV_GATE, options=options),
+    ]
+
+    assert circuit_with_calibration.circuit == circuit
+    assert circuit_with_calibration.moment_to_calibration == [None, 0, 1, None]
+
+
 def test_prepare_floquet_characterization_for_moments_merges_sub_sets():
     a, b, c, d, e = cirq.LineQubit.range(5)
     circuit = cirq.Circuit(
@@ -815,11 +850,95 @@ def test_make_zeta_chi_gamma_compensation_for_operations():
     )
 
 
-def test_make_zeta_chi_gamma_compensation_for_operations_permit_mixed_moments():
-    with pytest.raises(NotImplementedError):
-        workflow.make_zeta_chi_gamma_compensation_for_operations(
-            cirq.Circuit(), [], permit_mixed_moments=True
+def test_make_zeta_chi_gamma_compensation_for_operations_with_permit_mixed_moments_disabled():
+    a, b, c, d = cirq.LineQubit.range(4)
+    parameters_ab = cirq_google.PhasedFSimCharacterization(zeta=0.5, chi=0.4, gamma=0.3)
+    parameters_bc = cirq_google.PhasedFSimCharacterization(zeta=-0.5, chi=-0.4, gamma=-0.3)
+    parameters_cd = cirq_google.PhasedFSimCharacterization(zeta=0.2, chi=0.3, gamma=0.4)
+
+    parameters_dict = {(a, b): parameters_ab, (b, c): parameters_bc, (c, d): parameters_cd}
+
+    circuit = cirq.Circuit(
+        [
+            cirq.Moment([cirq.X(a), cirq.Y(c)]),
+            cirq.Moment([SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)]),
+            cirq.Moment([cirq.X(a), SQRT_ISWAP_INV_GATE.on(b, c), cirq.Y(d)]),
+        ]
+    )
+
+    options = cirq_google.FloquetPhasedFSimCalibrationOptions(
+        characterize_theta=False,
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_phi=False,
+    )
+
+    characterizations = [
+        PhasedFSimCalibrationResult(
+            parameters={pair: parameters}, gate=SQRT_ISWAP_INV_GATE, options=options
         )
+        for pair, parameters in parameters_dict.items()
+    ]
+
+    with pytest.raises(workflow.IncompatibleMomentError):
+        workflow.make_zeta_chi_gamma_compensation_for_operations(
+            circuit,
+            characterizations,
+        )
+
+
+def test_make_zeta_chi_gamma_compensation_for_operations_with_permit_mixed_moments():
+    a, b, c, d = cirq.LineQubit.range(4)
+    parameters_ab = cirq_google.PhasedFSimCharacterization(zeta=0.5, chi=0.4, gamma=0.3)
+    parameters_bc = cirq_google.PhasedFSimCharacterization(zeta=-0.5, chi=-0.4, gamma=-0.3)
+    parameters_cd = cirq_google.PhasedFSimCharacterization(zeta=0.2, chi=0.3, gamma=0.4)
+
+    parameters_dict = {(a, b): parameters_ab, (b, c): parameters_bc, (c, d): parameters_cd}
+
+    engine_simulator = cirq_google.PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
+        parameters={
+            pair: parameters.merge_with(SQRT_ISWAP_INV_PARAMETERS)
+            for pair, parameters in parameters_dict.items()
+        }
+    )
+
+    circuit = cirq.Circuit(
+        [
+            cirq.Moment([cirq.X(a), cirq.Y(c)]),
+            cirq.Moment([SQRT_ISWAP_INV_GATE.on(a, b), SQRT_ISWAP_INV_GATE.on(c, d)]),
+            cirq.Moment([cirq.X(a), SQRT_ISWAP_INV_GATE.on(b, c), cirq.Y(d)]),
+        ]
+    )
+
+    options = cirq_google.FloquetPhasedFSimCalibrationOptions(
+        characterize_theta=False,
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_phi=False,
+    )
+
+    characterizations = [
+        PhasedFSimCalibrationResult(
+            parameters={pair: parameters}, gate=SQRT_ISWAP_INV_GATE, options=options
+        )
+        for pair, parameters in parameters_dict.items()
+    ]
+
+    calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_operations(
+        circuit,
+        characterizations,
+        permit_mixed_moments=True,
+    )
+
+    assert cirq.allclose_up_to_global_phase(
+        engine_simulator.final_state_vector(calibrated_circuit),
+        cirq.final_state_vector(circuit),
+    )
+    assert calibrated_circuit[5] == cirq.Moment(
+        [cirq.X(a), SQRT_ISWAP_INV_GATE.on(b, c), cirq.Y(d)]
+    )
 
 
 def test_run_calibrations():
