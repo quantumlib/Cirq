@@ -62,6 +62,9 @@ class ProjectorString:
                 in which the matrix representation of the ProjectorString is to
                 be computed. Qbits absent from self.qubits are acted on by
                 the identity. Defaults to the qubits of the projector_dict.
+
+        Returns:
+            A sparse matrix that is the projection in the specified basis.
         """
         projector_qids = self._projector_dict.keys() if projector_qids is None else projector_qids
         check_qids_dimension(projector_qids)
