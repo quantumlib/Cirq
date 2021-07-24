@@ -324,17 +324,26 @@ def test_serialize_deserialize_circuit_with_tokens():
     serializer = cg.CircuitSerializer('my_gate_set')
     tag1 = cg.CalibrationTag('abc123')
     tag2 = cg.CalibrationTag('def456')
-    circuit = cirq.Circuit(cirq.X(Q0).with_tags(tag1), cirq.X(Q1).with_tags(tag2), cirq.X(Q0))
+    circuit = cirq.Circuit(cirq.X(Q0).with_tags(tag1),
+                           cirq.X(Q1).with_tags(tag2),
+                           cirq.X(Q0).with_tags(tag2),
+                           cirq.X(Q0))
 
-    op1 = v2.program_pb2.Operation()
-    op1.xpowgate.exponent.float_value = 1.0
-    op1.qubit_constant_index.append(0)
-    op1.token_constant_index = 1
+    op_q0_tag1 = v2.program_pb2.Operation()
+    op_q0_tag1.xpowgate.exponent.float_value = 1.0
+    op_q0_tag1.qubit_constant_index.append(0)
+    op_q0_tag1.token_constant_index = 1
 
-    op2 = v2.program_pb2.Operation()
-    op2.xpowgate.exponent.float_value = 1.0
-    op2.qubit_constant_index.append(2)
-    op2.token_constant_index = 3
+    op_q1_tag2 = v2.program_pb2.Operation()
+    op_q1_tag2.xpowgate.exponent.float_value = 1.0
+    op_q1_tag2.qubit_constant_index.append(2)
+    op_q1_tag2.token_constant_index = 3
+
+    # Test repeated tag uses existing constant entey
+    op_q0_tag2 = v2.program_pb2.Operation()
+    op_q0_tag2.xpowgate.exponent.float_value = 1.0
+    op_q0_tag2.qubit_constant_index.append(0)
+    op_q0_tag2.token_constant_index = 3
 
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
@@ -342,7 +351,10 @@ def test_serialize_deserialize_circuit_with_tokens():
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
                 v2.program_pb2.Moment(
-                    operations=[op1, op2],
+                    operations=[op_q0_tag1, op_q1_tag2],
+                ),
+                v2.program_pb2.Moment(
+                    operations=[op_q0_tag2],
                 ),
                 v2.program_pb2.Moment(
                     operations=[X_PROTO],

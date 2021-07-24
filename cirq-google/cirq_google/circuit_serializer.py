@@ -78,11 +78,9 @@ class CircuitSerializer:
             program,
             msg.circuit,
             arg_function_language=arg_function_language,
-            constants=constants,
+            constants=msg.constants,
             raw_constants=raw_constants,
         )
-        if constants is not None:
-            msg.constants.extend(constants)
         return msg
 
     def _serialize_circuit(
@@ -247,9 +245,9 @@ class CircuitSerializer:
             if isinstance(tag, CalibrationTag):
                 constant = v2.program_pb2.Constant()
                 constant.string_value = tag.token
-                try:
-                    msg.token_constant_index = constants.index(constant)
-                except ValueError:
+                if tag.token in raw_constants:
+                    msg.token_constant_index = raw_constants[tag.token]
+                else:
                     # Token not found, add it to the list
                     msg.token_constant_index = len(constants)
                     constants.append(constant)
