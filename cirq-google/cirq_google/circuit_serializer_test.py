@@ -324,10 +324,12 @@ def test_serialize_deserialize_circuit_with_tokens():
     serializer = cg.CircuitSerializer('my_gate_set')
     tag1 = cg.CalibrationTag('abc123')
     tag2 = cg.CalibrationTag('def456')
-    circuit = cirq.Circuit(cirq.X(Q0).with_tags(tag1),
-                           cirq.X(Q1).with_tags(tag2),
-                           cirq.X(Q0).with_tags(tag2),
-                           cirq.X(Q0))
+    circuit = cirq.Circuit(
+        cirq.X(Q0).with_tags(tag1),
+        cirq.X(Q1).with_tags(tag2),
+        cirq.X(Q0).with_tags(tag2),
+        cirq.X(Q0),
+    )
 
     op_q0_tag1 = v2.program_pb2.Operation()
     op_q0_tag1.xpowgate.exponent.float_value = 1.0

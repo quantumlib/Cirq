@@ -66,7 +66,6 @@ class CircuitSerializer:
         """
         if not isinstance(program, cirq.Circuit):
             raise NotImplementedError(f'Unrecognized program type: {type(program)}')
-        constants: List[v2.program_pb2.Constant] = []
         raw_constants: Dict[Any, int] = {}
         if msg is None:
             msg = v2.program_pb2.Program()
