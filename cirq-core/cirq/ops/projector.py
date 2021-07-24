@@ -169,8 +169,19 @@ def _projector_string_from_projector_dict(projector_dict):
 
 @value.value_equality(approximate=True)
 class ProjectorSum:
-    def __init__(self, linear_dict=None):
-        self._linear_dict = linear_dict if linear_dict is not None else {}
+    def __init__(
+        self, linear_dict: Optional[value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]]] = None
+    ):
+        """Contructor for ProjectorString
+
+        Args:
+            linear_dict: A linear dictionary from a set of tuples of (Qubit, integer) to a complex
+                number. The tuple is a projector onto the qubit and the complex number is the
+                weight of these projections.
+        """
+        self._linear_dict: value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]] = (
+            linear_dict if linear_dict is not None else value.LinearDict({})
+        )
 
     def _value_equality_values_(self):
         return self._linear_dict
@@ -199,6 +210,14 @@ class ProjectorSum:
     def from_projector_strings(
         cls, terms: Union[ProjectorString, List[ProjectorString]]
     ) -> 'ProjectorSum':
+        """Builds a ProjectorSum from one or more ProjectorString(s).
+
+        Args:
+            terms: Either a single ProjectorString or a list of ProjectorStrings.
+
+        Returns:
+            A ProjectorSum.
+        """
         if isinstance(terms, ProjectorString):
             terms = [terms]
         termdict: DefaultDict[FrozenSet[Tuple[raw_types.Qid, int]], value.Scalar] = defaultdict(
@@ -213,6 +232,14 @@ class ProjectorSum:
         return ProjectorSum(self._linear_dict.copy())
 
     def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> coo_matrix:
+        """Returns the matrix of self in computational basis of qubits.
+
+        Args:
+            projector_qids: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the ProjectorString is to
+                be computed. Qbits absent from self.qubits are acted on by
+                the identity. Defaults to the qubits of the projector_dict.
+        """
         return sum(
             coeff * _projector_string_from_projector_dict(vec).matrix(projector_qids)
             for vec, coeff in self._linear_dict.items()
@@ -222,10 +249,18 @@ class ProjectorSum:
         self,
         state_vector: np.ndarray,
         qid_map: Mapping[raw_types.Qid, int],
-        *,
-        atol: float = 1e-7,
-        check_preconditions: bool = True,
     ) -> float:
+        """Expectation of the sum projection from a state vector.
+
+        Projects the state vector onto the sum of projectors and computes the expectation of the measurements.
+
+        Args:
+            state_vector: An array representing a valid state vector.
+            qubit_map: A map from all qubits used in this ProjectorString to the
+                indices of the qubits that `state_vector` is defined over.
+        Returns:
+            The expectation value of the input state.
+        """
         return sum(
             coeff
             * _projector_string_from_projector_dict(vec).expectation_from_state_vector(
@@ -238,10 +273,18 @@ class ProjectorSum:
         self,
         state: np.ndarray,
         qid_map: Mapping[raw_types.Qid, int],
-        *,
-        atol: float = 1e-7,
-        check_preconditions: bool = True,
     ) -> float:
+        """Expectation of the sum of projections from a density matrix.
+
+        Projects the density matrix onto the sum of projectors and computes the expectation of the measurements.
+
+        Args:
+            state: An array representing a valid  density matrix.
+            qubit_map: A map from all qubits used in this ProjectorString to the
+                indices of the qubits that `state_vector` is defined over.
+        Returns:
+            The expectation value of the input state.
+        """
         return sum(
             coeff
             * _projector_string_from_projector_dict(vec).expectation_from_density_matrix(
