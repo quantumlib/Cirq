@@ -242,6 +242,9 @@ class ProjectorSum:
                 in which the matrix representation of the ProjectorString is to
                 be computed. Qbits absent from self.qubits are acted on by
                 the identity. Defaults to the qubits of the projector_dict.
+
+        Returns:
+            A sparse matrix that is the projection in the specified basis.
         """
         return sum(
             coeff * _projector_string_from_projector_dict(vec).matrix(projector_qids)
