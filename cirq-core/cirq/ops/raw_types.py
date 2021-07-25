@@ -599,9 +599,8 @@ class Operation(metaclass=abc.ABCMeta):
 
         return np.allclose(m12, m21, atol=atol)
 
-    def __eq__(self, other):
-        return self.gate and self.gate == other.gate
-
+    def equal_gates(self, other):
+        return False
 
 @value.value_equality
 class TaggedOperation(Operation):

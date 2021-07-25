@@ -489,14 +489,17 @@ class Moment:
 
         Returns:
             Operation: When there is a single operation in the Moment and
-                it is repeated one or more times.
-            None: When there is no operation or different operations found.
+                it is repeated one or more times, the first operation is
+                returned.
+            None: When there is no operation or different operations found, or
+                the operation is not of 'cirq.GateOperation'.
          """
         if not self.operations:
             return None
 
-        if not self.operations[:-1] == self.operations[1:]:
-            return None
+        for op_index in range(len(self.operations) - 1):
+            if not self.operations[op_index].equal_gates(self.operations[op_index+1]):
+                return None
 
         return self.operations[0]
 
