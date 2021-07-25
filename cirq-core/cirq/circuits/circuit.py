@@ -590,8 +590,7 @@ class AbstractCircuit(abc.ABC):
         start_frontier: Dict['cirq.Qid', int],
         is_blocker: Callable[['cirq.Operation'], bool] = lambda op: False,
     ) -> List[Tuple[int, ops.Operation]]:
-        """
-        Finds all operations until a blocking operation is hit.
+        """Finds all operations until a blocking operation is hit.
 
         An operation is considered blocking if
 

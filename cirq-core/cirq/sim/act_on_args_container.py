@@ -20,9 +20,13 @@ from typing import (
     Sequence,
     Optional,
     Iterator,
-    Tuple,
     Any,
+    Tuple,
+    Set,
+    List,
 )
+
+import numpy as np
 
 from cirq import ops
 from cirq.sim.operation_target import OperationTarget
@@ -121,6 +125,26 @@ class ActOnArgsContainer(
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
         return self._log_of_measurement_results
+
+    def sample(
+        self,
+        qubits: List[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        columns = []
+        selected_order: List[ops.Qid] = []
+        q_set = set(qubits)
+        for v in dict.fromkeys(self.args.values()):
+            qs = [q for q in v.qubits if q in q_set]
+            if any(qs):
+                column = v.sample(qs, repetitions, seed)
+                columns.append(column)
+                selected_order += qs
+        stacked = np.column_stack(columns)
+        qubit_map = {q: i for i, q in enumerate(selected_order)}
+        index_order = [qubit_map[q] for q in qubits]
+        return stacked[:, index_order]
 
     def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
         return self.args[item]

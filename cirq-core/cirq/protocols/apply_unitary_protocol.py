@@ -75,7 +75,7 @@ class ApplyUnitaryArgs:
     def __init__(
         self, target_tensor: np.ndarray, available_buffer: np.ndarray, axes: Iterable[int]
     ):
-        """
+        """Inits ApplyUnitaryArgs.
 
         Args:
             target_tensor: The input tensor that needs to be left-multiplied by

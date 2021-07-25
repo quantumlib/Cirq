@@ -353,6 +353,8 @@ class Moment:
                     ops_to_keep.append(self._qubit_to_op[q])
             return Moment(frozenset(ops_to_keep))
 
+    # TODO(#3388) Add summary line to docstring.
+    # pylint: disable=docstring-first-line-empty
     def to_text_diagram(
         self: 'cirq.Moment',
         *,
@@ -445,6 +447,7 @@ class Moment:
 
         return diagram.render()
 
+    # pylint: enable=docstring-first-line-empty
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
     ) -> Union[bool, NotImplementedType]:
