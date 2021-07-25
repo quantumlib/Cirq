@@ -223,6 +223,15 @@ For decay experiments and other applications, a WaitGate is provided
 that causes the device to idle for a specified amount of time.
 This can be accomplished by specifying a `cirq.WaitGate`.
 
+
+### Subcircuits
+
+Circuits with a repetitive structure can benefit from using
+`cirq.CircuitOperation` to specify "subcircuits" within the overall circuit.
+Using this type condenses the serialized representation of the circuit, which
+may help for circuits that would otherwise run into size limitations.
+
+
 ## Specific Device Layouts
 
 The following devices are provided as part of cirq and can help you get your
