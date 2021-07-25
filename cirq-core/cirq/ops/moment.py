@@ -365,6 +365,8 @@ class Moment:
                     ops_to_keep.append(self._qubit_to_op[q])
             return Moment(frozenset(ops_to_keep))
 
+    # TODO(#3388) Add summary line to docstring.
+    # pylint: disable=docstring-first-line-empty
     def to_text_diagram(
         self: 'cirq.Moment',
         *,
@@ -457,6 +459,7 @@ class Moment:
 
         return diagram.render()
 
+    # pylint: enable=docstring-first-line-empty
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
     ) -> Union[bool, NotImplementedType]:
@@ -492,9 +495,10 @@ class Moment:
 
         return True
 
-    def get_single_gate_from_moment(self) -> Optional['cirq.Gate']:
+    def get_single_gate_from_moment(self) -> Optional['cirq.Operation']:
         """Returns the gate if there is only a single gate or if all gates are
-        the same, or None if the gates do not match.
+         the same, or None if the gates do not match.
+
         Returns:
             Gate: When all gates from all operations in the moment match each
                 other, the gate from the first operation is returned.

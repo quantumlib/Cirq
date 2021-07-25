@@ -46,7 +46,7 @@ TSelf = TypeVar('TSelf', bound='GateOperation')
 
 @value.value_equality(approximate=True)
 class GateOperation(raw_types.Operation):
-    """An application of a gate to a sequence of qubits.
+    """An application of a gate to a sequence of qubits.raw_types.Operation
 
     Objects of this type are immutable.
     """
@@ -334,5 +334,7 @@ class GateOperation(raw_types.Operation):
             return False
         return protocols.equal_up_to_global_phase(self.gate, other.gate, atol=atol)
 
+    def equal_gates(self, other):
+        return self.gate and self.gate == other.gate
 
 TV = TypeVar('TV', bound=raw_types.Gate)
