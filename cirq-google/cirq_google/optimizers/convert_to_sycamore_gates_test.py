@@ -78,13 +78,52 @@ def test_single_qubit_gate_phased_xz():
     assert ops[0].gate == gate
 
 
+def test_circuit_operation_inspection():
+    q0, q1 = cirq.LineQubit.range(2)
+    gate = cirq.PhasedXZGate(axis_phase_exponent=0.2, x_exponent=0.3, z_exponent=0.4)
+    cop = cirq.CircuitOperation(cirq.FrozenCircuit(gate(q0)))
+    assert cgoc.ConvertToSycamoreGates()._is_native_sycamore_op(cop)
+
+    cop2 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.SWAP(q0, q1)))
+    assert not cgoc.ConvertToSycamoreGates()._is_native_sycamore_op(cop2)
+
+
+def test_circuit_operation_conversion():
+    q0, q1 = cirq.LineQubit.range(2)
+    subcircuit = cirq.FrozenCircuit(cirq.X(q0), cirq.SWAP(q0, q1))
+    circuit = cirq.Circuit(cirq.CircuitOperation(subcircuit))
+    converted_circuit = circuit.copy()
+    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    # Verify that the CircuitOperation was preserved.
+    ops = list(converted_circuit.all_operations())
+    assert isinstance(ops[0], cirq.CircuitOperation)
+    # Verify that the contents of the CircuitOperation were optimized.
+    reconverted_subcircuit = ops[0].circuit.unfreeze().copy()
+    cgoc.ConvertToSycamoreGates().optimize_circuit(reconverted_subcircuit)
+    assert ops[0].circuit == reconverted_subcircuit
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        circuit, converted_circuit, atol=1e-8
+    )
+
+
 def test_unsupported_gate():
+    class UnknownGate(cirq.TwoQubitGate):
+        pass
+
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(UnknownGate()(q0, q1))
+    with pytest.raises(ValueError, match='Unrecognized gate: '):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
+
+
+def test_nested_unsupported_gate():
     class UnknownGate(cirq.TwoQubitGate):
         pass
 
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
-    circuit = cirq.Circuit(UnknownGate()(q0, q1))
+    subcircuit = cirq.FrozenCircuit(UnknownGate()(q0, q1))
+    circuit = cirq.Circuit(cirq.CircuitOperation(subcircuit))
     with pytest.raises(ValueError, match='Unrecognized gate: '):
         cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
 
