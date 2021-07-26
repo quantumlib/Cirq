@@ -161,8 +161,12 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r dev_tools/requirements/dev.env.txt
+      - name: Run Quil dependencies
+        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
+        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
+      - name: Stop Quil dependencies
+        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   build_docs:
     name: Build docs
     runs-on: ubuntu-20.04
@@ -206,8 +210,12 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
+      - name: Run Quil dependencies
+        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
         run: check/pytest-and-incremental-coverage --actually-quiet
+      - name: Stop Quil dependencies
+        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
     name: Pytest Windows
     strategy:
@@ -278,8 +286,12 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/notebooks.env.txt
+      - name: Run Quil dependencies
+        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
+      - name: Stop Quil dependencies
+        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
       - uses: actions/upload-artifact@v2
         if: failure()
         with:

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from logging import warning
 
 from cirq import _import
 
@@ -590,55 +589,38 @@ from cirq import (
     testing,
 )
 
-try:
-    _compat.deprecated_submodule(
-        new_module_name='cirq_google',
-        old_parent=__name__,
-        old_child='google',
-        deadline="v0.14",
-        create_attribute=True,
-    )
-except ImportError as ex:
-    # coverage: ignore
-    warning("Can't import cirq_google: ", exc_info=ex)
+_compat.deprecated_submodule(
+    new_module_name='cirq_google',
+    old_parent=__name__,
+    old_child='google',
+    deadline="v0.14",
+    create_attribute=True,
+)
 
-try:
-    _compat.deprecated_submodule(
-        new_module_name='cirq_aqt',
-        old_parent=__name__,
-        old_child='aqt',
-        deadline="v0.14",
-        create_attribute=True,
-    )
-except ImportError as ex:
-    # coverage: ignore
-    warning("Can't import cirq_aqt: ", exc_info=ex)
+_compat.deprecated_submodule(
+    new_module_name='cirq_aqt',
+    old_parent=__name__,
+    old_child='aqt',
+    deadline="v0.14",
+    create_attribute=True,
+)
 
 
-try:
-    _compat.deprecated_submodule(
-        new_module_name='cirq_ionq',
-        old_parent=__name__,
-        old_child='ionq',
-        deadline="v0.14",
-        create_attribute=True,
-    )
-except ImportError as ex:
-    # coverage: ignore
-    warning("Can't import cirq_ionq: ", exc_info=ex)
+_compat.deprecated_submodule(
+    new_module_name='cirq_ionq',
+    old_parent=__name__,
+    old_child='ionq',
+    deadline="v0.14",
+    create_attribute=True,
+)
 
-
-try:
-    _compat.deprecated_submodule(
-        new_module_name='cirq_pasqal',
-        old_parent=__name__,
-        old_child='pasqal',
-        deadline="v0.14",
-        create_attribute=True,
-    )
-except ImportError as ex:
-    # coverage: ignore
-    warning("Can't import cirq_pasqal: ", exc_info=ex)
+_compat.deprecated_submodule(
+    new_module_name='cirq_pasqal',
+    old_parent=__name__,
+    old_child='pasqal',
+    deadline="v0.14",
+    create_attribute=True,
+)
 
 
 def _register_resolver() -> None:

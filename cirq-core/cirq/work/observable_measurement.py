@@ -420,6 +420,7 @@ def measure_grouped_settings(
     *,
     readout_symmetrization: bool = False,
     circuit_sweep: 'cirq.study.sweepable.SweepLike' = None,
+    readout_calibrations: Optional[BitstringAccumulator] = None,
     checkpoint: bool = False,
     checkpoint_fn: Optional[str] = None,
     checkpoint_other_fn: Optional[str] = None,
@@ -450,6 +451,7 @@ def measure_grouped_settings(
         circuit_sweep: Additional parameter sweeps for parameters contained
             in `circuit`. The total sweep is the product of the circuit sweep
             with parameter settings for the single-qubit basis-change rotations.
+        readout_calibrations: The result of `calibrate_readout_error`.
         checkpoint: If set to True, save cumulative raw results at the end
             of each iteration of the sampling loop. Load in these results
             with `cirq.read_json`.
@@ -464,6 +466,8 @@ def measure_grouped_settings(
             `checkpoint_fn` is specified but this argument is *not* specified,
             "{checkpoint_fn}.prev.json" will be used.
     """
+    if readout_calibrations is not None and not readout_symmetrization:
+        raise ValueError("Readout calibration only works if `readout_symmetrization` is enabled.")
 
     checkpoint_fn, checkpoint_other_fn = _parse_checkpoint_options(
         checkpoint=checkpoint, checkpoint_fn=checkpoint_fn, checkpoint_other_fn=checkpoint_other_fn
@@ -496,6 +500,7 @@ def measure_grouped_settings(
             meas_spec=meas_spec,
             simul_settings=grouped_settings[max_setting],
             qubit_to_index=qubit_to_index,
+            readout_calibration=readout_calibrations,
         )
         accumulators[meas_spec] = accumulator
         meas_specs_todo += [meas_spec]
