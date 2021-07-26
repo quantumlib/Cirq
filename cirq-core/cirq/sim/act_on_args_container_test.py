@@ -64,6 +64,9 @@ class EmptyActOnArgs(cirq.ActOnArgs):
             logs=self.log_of_measurement_results,
         )
 
+    def sample(self, qubits, repetitions=1, seed=None):
+        pass
+
 
 q0, q1 = qs2 = cirq.LineQubit.range(2)
 

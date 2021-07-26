@@ -457,6 +457,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         new_module_name: str,
         old_module_name: str,
         deadline: str,
+        broken_module_exception: Optional[BaseException],
     ):
         """An aliasing module finder that uses an existing module finder to find a python
         module spec and intercept the execution of matching modules.
@@ -465,6 +466,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         self.new_module_name = new_module_name
         self.old_module_name = old_module_name
         self.deadline = deadline
+        self.broken_module_exception = broken_module_exception
         # to cater for metadata path finders
         # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
         if hasattr(finder, "find_distributions"):
@@ -498,6 +500,8 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
             # if we are not interested in it, then just pass through to the wrapped finder
             return self.finder.find_spec(fullname, path, target)
 
+        if self.broken_module_exception is not None:
+            raise self.broken_module_exception
         # warn for deprecation
         _deduped_module_warn_or_error(self.old_module_name, self.new_module_name, self.deadline)
 
@@ -544,6 +548,19 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         return spec
 
 
+class _BrokenModule(ModuleType):
+    def __init__(self, name, exc):
+        self.exc = exc
+        super().__init__(name)
+
+    def __getattr__(self, name):
+        raise self.exc
+
+
+class DeprecatedModuleImportError(ImportError):
+    pass
+
+
 def deprecated_submodule(
     *, new_module_name: str, old_parent: str, old_child: str, deadline: str, create_attribute: bool
 ):
@@ -570,24 +587,49 @@ def deprecated_submodule(
     _validate_deadline(deadline)
 
     old_module_name = f"{old_parent}.{old_child}"
+    broken_module_exception = None
 
     if create_attribute:
-        new_module = importlib.import_module(new_module_name)
-        _setup_deprecated_submodule_attribute(
-            new_module_name, old_parent, old_child, deadline, new_module
-        )
+        try:
+            new_module = importlib.import_module(new_module_name)
+            _setup_deprecated_submodule_attribute(
+                new_module_name, old_parent, old_child, deadline, new_module
+            )
+        except ImportError as ex:
+            msg = (
+                f"{new_module_name} cannot be imported. The typical reasons are"
+                f" that\n 1.) {new_module_name} is not installed, or"
+                f"\n 2.) when developing Cirq, you don't have your PYTHONPATH "
+                f"setup. In this case run `source dev_tools/pypath`.\n\n You can "
+                f"check the detailed exception above for more details or run "
+                f"`import {new_module_name} to reproduce the issue."
+            )
+            broken_module_exception = DeprecatedModuleImportError(msg)
+            broken_module_exception.__cause__ = ex
+            _setup_deprecated_submodule_attribute(
+                new_module_name,
+                old_parent,
+                old_child,
+                deadline,
+                _BrokenModule(new_module_name, broken_module_exception),
+            )
 
     def wrap(finder: Any) -> Any:
         if not hasattr(finder, 'find_spec'):
             return finder
-        # this is just to make mypy not complain about the type of new_module_spec being Optional
-        return DeprecatedModuleFinder(finder, new_module_name, old_module_name, deadline)
+        return DeprecatedModuleFinder(
+            finder, new_module_name, old_module_name, deadline, broken_module_exception
+        )
 
     sys.meta_path = [wrap(finder) for finder in sys.meta_path]
 
 
 def _setup_deprecated_submodule_attribute(
-    new_module_name: str, old_parent: str, old_child: str, deadline: str, new_module: ModuleType
+    new_module_name: str,
+    old_parent: str,
+    old_child: str,
+    deadline: str,
+    new_module: Optional[ModuleType],
 ):
     parent_module = sys.modules[old_parent]
     setattr(parent_module, old_child, new_module)

@@ -108,7 +108,7 @@ class _PauliX(Pauli, common_gates.XPowGate):
         common_gates.XPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliX', exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
-        return common_gates.XPowGate(exponent=exponent)
+        return common_gates.XPowGate(exponent=exponent) if exponent != 1 else _PauliX()
 
     def _with_exponent(self: '_PauliX', exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
         return self.__pow__(exponent)
@@ -135,7 +135,7 @@ class _PauliY(Pauli, common_gates.YPowGate):
         common_gates.YPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliY', exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
-        return common_gates.YPowGate(exponent=exponent)
+        return common_gates.YPowGate(exponent=exponent) if exponent != 1 else _PauliY()
 
     def _with_exponent(self: '_PauliY', exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
         return self.__pow__(exponent)
@@ -162,7 +162,7 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         common_gates.ZPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliZ', exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
-        return common_gates.ZPowGate(exponent=exponent)
+        return common_gates.ZPowGate(exponent=exponent) if exponent != 1 else _PauliZ()
 
     def _with_exponent(self: '_PauliZ', exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
         return self.__pow__(exponent)

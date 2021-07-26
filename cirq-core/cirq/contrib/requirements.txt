@@ -11,4 +11,5 @@ autoray
 numba>=0.53.0
 
 # quil import
-pyquil~=2.21.0
+pyquil~=2.28.2; python_version < "3.7"
+pyquil~=3.0.0; python_version >= "3.7"
