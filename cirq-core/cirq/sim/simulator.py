@@ -816,7 +816,8 @@ class SimulationTrialResult:
         final_simulator_state: Any = None,
         final_step_result: StepResult = None,
     ) -> None:
-        """
+        """Initializes the `SimulationTrialResult` class.
+
         Args:
             params: A ParamResolver of settings used for this result.
             measurements: A dictionary from measurement gate key to measurement
