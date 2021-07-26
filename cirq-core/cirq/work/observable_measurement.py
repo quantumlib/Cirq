@@ -382,7 +382,14 @@ def _parse_checkpoint_options(
     if checkpoint_other_fn is None:
         checkpoint_dir = os.path.dirname(checkpoint_fn)
         chk_basename = os.path.basename(checkpoint_fn)
-        chk_basename, _, ext = chk_basename.rpartition('.')
+        chk_basename, dot, ext = chk_basename.rpartition('.')
+        if chk_basename == '' or dot != '.' or ext == '':
+            raise ValueError(
+                f"You specified `checkpoint_fn={checkpoint_fn!r}` which does not follow the "
+                f"pattern of 'filename.extension'. Please follow this pattern or fully specify "
+                f"`checkpoint_other_fn`."
+            )
+
         if ext != 'json':
             raise ValueError(
                 "Please use a `.json` filename or fully "
@@ -444,7 +451,8 @@ def measure_grouped_settings(
             in `circuit`. The total sweep is the product of the circuit sweep
             with parameter settings for the single-qubit basis-change rotations.
         checkpoint: If set to True, save cumulative raw results at the end
-            of each iteration of the sampling loop.
+            of each iteration of the sampling loop. Load in these results
+            with `cirq.read_json`.
         checkpoint_fn: The filename for the checkpoint file. If `checkpoint`
             is set to True and this is not specified, a file in a temporary
             directory will be used.

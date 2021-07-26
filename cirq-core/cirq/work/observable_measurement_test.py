@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import tempfile
 
 import numpy as np
 import pytest
@@ -377,13 +378,13 @@ def test_checkpoint_options():
         _parse_checkpoint_options(False, 'test1', 'test2')
 
     chk, chkprev = _parse_checkpoint_options(True, None, None)
-    assert chk.startswith('/')  # absolute temp path
+    assert chk.startswith(tempfile.gettempdir())
     assert chk.endswith('observables.json')
-    assert chkprev.startswith('/')  # absolute temp path
+    assert chkprev.startswith(tempfile.gettempdir())
     assert chkprev.endswith('observables.prev.json')
 
     chk, chkprev = _parse_checkpoint_options(True, None, 'prev.json')
-    assert chk.startswith('/')  # absolute temp path
+    assert chk.startswith(tempfile.gettempdir())
     assert chk.endswith('observables.json')
     assert chkprev == 'prev.json'
 
@@ -396,7 +397,16 @@ def test_checkpoint_options():
     assert chkprev == 'my_fancy/observables.prev.json'
 
     with pytest.raises(ValueError, match=r'Please use a `.json` filename.*'):
+        _parse_checkpoint_options(True, 'my_fancy_observables.obs', None)
+
+    with pytest.raises(ValueError, match=r"pattern of 'filename.extension'.*"):
         _parse_checkpoint_options(True, 'my_fancy_observables', None)
+    with pytest.raises(ValueError, match=r"pattern of 'filename.extension'.*"):
+        _parse_checkpoint_options(True, '.obs', None)
+    with pytest.raises(ValueError, match=r"pattern of 'filename.extension'.*"):
+        _parse_checkpoint_options(True, 'obs.', None)
+    with pytest.raises(ValueError, match=r"pattern of 'filename.extension'.*"):
+        _parse_checkpoint_options(True, '', None)
 
     chk, chkprev = _parse_checkpoint_options(True, 'test1', 'test2')
     assert chk == 'test1'
@@ -404,7 +414,7 @@ def test_checkpoint_options():
 
 
 @pytest.mark.parametrize(('with_circuit_sweep', 'checkpoint'), [(True, True), (False, False)])
-def test_measure_grouped_settings(with_circuit_sweep, checkpoint):
+def test_measure_grouped_settings(with_circuit_sweep, checkpoint, tmpdir):
     qubits = cirq.LineQubit.range(1)
     (q,) = qubits
     tests = [
@@ -420,6 +430,11 @@ def test_measure_grouped_settings(with_circuit_sweep, checkpoint):
     else:
         ss = None
 
+    if checkpoint:
+        checkpoint_fn = f'{tmpdir}/obs.json'
+    else:
+        checkpoint_fn = None
+
     for init, obs, coef in tests:
         setting = cw.InitObsSetting(
             init_state=init(q),
@@ -434,6 +449,7 @@ def test_measure_grouped_settings(with_circuit_sweep, checkpoint):
             stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
             circuit_sweep=ss,
             checkpoint=checkpoint,
+            checkpoint_fn=checkpoint_fn,
         )
         if with_circuit_sweep:
             for result in results:
@@ -441,3 +457,28 @@ def test_measure_grouped_settings(with_circuit_sweep, checkpoint):
         else:
             (result,) = results  # one group
             assert result.means() == [coef]
+
+
+def test_measure_grouped_settings_read_checkpoint(tmpdir):
+    qubits = cirq.LineQubit.range(1)
+    (q,) = qubits
+
+    setting = cw.InitObsSetting(
+        init_state=cirq.KET_ZERO(q),
+        observable=cirq.Z(q),
+    )
+    grouped_settings = {setting: [setting]}
+    circuit = cirq.Circuit(cirq.I.on_each(*qubits))
+    _ = cw.measure_grouped_settings(
+        circuit=circuit,
+        grouped_settings=grouped_settings,
+        sampler=cirq.Simulator(),
+        stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
+        checkpoint=True,
+        checkpoint_fn=f'{tmpdir}/obs.json',
+        checkpoint_other_fn=f'{tmpdir}/obs.json',  # Test same filename for both.
+    )
+    results = cirq.read_json(f'{tmpdir}/obs.json')
+    (result,) = results  # one group
+    assert result.n_repetitions == 1_000
+    assert result.means() == [1.0]
