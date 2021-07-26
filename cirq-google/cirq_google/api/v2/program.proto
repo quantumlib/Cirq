@@ -187,8 +187,11 @@ message WaitGate {
 // An operation acts on a set of qubits.
 message Operation {
   // Which gate this operation corresponds to.
-  Gate gate = 1;
+  // Populated pre-v2.5+.
+  Gate gate = 1 [deprecated=true];
 
+  // Each gate should populate one possible gate message
+  // depending on the type desired.  Only populated in v2.5+.
   oneof gate_value {
     XPowGate xpowgate = 7;
     YPowGate ypowgate = 8;
@@ -203,8 +206,8 @@ message Operation {
   }
 
   // Map from the argument name to the Argument needed to fully specify
-  // the gate.
-  map<string, Arg> args = 2;
+  // the gate. Only populated pre-v2.5+.
+  map<string, Arg> args = 2 [deprecated=true];;
 
   // Which qubits the operation acts on.
   // Operations should populate one of the following two
