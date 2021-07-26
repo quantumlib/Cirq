@@ -401,3 +401,32 @@ def test_measure_grouped_settings(with_circuit_sweep):
         else:
             (result,) = results  # one group
             assert result.means() == [coef]
+
+
+def _get_some_grouped_settings():
+    qubits = cirq.LineQubit.range(2)
+    q0, q1 = qubits
+    terms = [
+        cirq.X(q0),
+        cirq.Y(q1),
+    ]
+    settings = list(cirq.work.observables_to_settings(terms, qubits))
+    grouped_settings = cirq.work.group_settings_greedy(settings)
+    return grouped_settings, qubits
+
+
+def test_measure_grouped_settings_calibration_validation():
+    dummy_ro_calib = _MockBitstringAccumulator()
+    grouped_settings, qubits = _get_some_grouped_settings()
+
+    with pytest.raises(
+        ValueError, match=r'Readout calibration only works if `readout_symmetrization` is enabled'
+    ):
+        cw.measure_grouped_settings(
+            circuit=cirq.Circuit(cirq.I.on_each(*qubits)),
+            grouped_settings=grouped_settings,
+            sampler=cirq.Simulator(),
+            stopping_criteria=cw.RepetitionsStoppingCriteria(10_000),
+            readout_calibrations=dummy_ro_calib,
+            readout_symmetrization=False,  # no-no!
+        )
