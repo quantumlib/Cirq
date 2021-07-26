@@ -49,39 +49,6 @@ my_circuit = cirq.Circuit()
 sycamore_circuit = cg.optimized_for_sycamore(my_circuit, new_device=cg.Sycamore, optimizer_type='sqrt_iswap')
 ```
 
-### Using CircuitOperation to reduce circuit size
-
-Particularly large batches (or sweeps) of circuits may encounter errors when
-sent to Quantum Engine due to an upper limit on request size. If the circuits
-in question have a repetitive structure, `cirq.CircuitOperation`s can be used
-to reduce the request size and avoid this limit.
-
-`optimized_for_sycamore` will preserve `CircuitOperation`s while optimizing
-their contents.
-
-```python
-import cirq
-import cirq_google as cg
-
-# Repeatedly apply Hadamard and measurement to 10 qubits.
-my_circuit = cirq.Circuit()
-qubits = cirq.GridQubit.rect(2, 5)
-for i in range(100):
-    my_circuit.append(cirq.H.on_each(*qubits))
-    for q in qubits:
-        my_circuit.append(cirq.measure(q, key=f'm{q}'))
-
-# The same circuit, but defined using CircuitOperations.
-# This is ~1000x smaller when serialized!
-sub_circuit = cirq.Circuit(cirq.H(qubits[0]), cirq.measure(qubits[0], key='m'))
-circuit_op = cirq.CircuitOperation(sub_circuit.freeze())
-circuit_op = circuit_op.with_qubits([q])
-circuit_op = circuit_op.with_measurement_key_mapping({'m': f'm{q}'})
-circuit_op = circuit_op.repeat(100)
-short_circuit = cirq.Circuit(circuit_op for q in qubits)
-```
-
-
 ## Running circuits faster
 
 The following sections give tips and tricks that allow you to improve your
