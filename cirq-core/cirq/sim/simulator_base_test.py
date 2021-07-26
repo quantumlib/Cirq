@@ -145,7 +145,7 @@ class CountingSimulator(
         measurements: Dict[str, np.ndarray],
         final_step_result: CountingStepResult,
     ) -> CountingTrialResult:
-        return CountingTrialResult(params, measurements, final_step_result)
+        return CountingTrialResult(params, measurements, final_step_result=final_step_result)
 
     def _create_step_result(
         self,

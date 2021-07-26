@@ -555,3 +555,10 @@ def test_missing_iter_definitions():
     with pytest.raises(RecursionError):
         state_iter = missing_iter_sim.simulate_sweep_iter(circuit, params)
         next(state_iter)
+
+
+def test_trial_result_initializer():
+    with pytest.raises(ValueError, match='Exactly one of'):
+        _ = SimulationTrialResult(cirq.ParamResolver(), {}, None, None)
+    with pytest.raises(ValueError, match='Exactly one of'):
+        _ = SimulationTrialResult(cirq.ParamResolver(), {}, object(), mock.Mock(TStepResult))
