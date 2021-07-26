@@ -59,3 +59,19 @@ def test_mapping():
     assert args is r1
     with pytest.raises(IndexError):
         _ = args[cirq.LineQubit(2)]
+
+
+def test_swap_bad_dimensions():
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQid(1, 3)
+    args = DummyArgs()
+    with pytest.raises(ValueError, match='Cannot swap different dimensions'):
+        args.swap(q0, q1)
+
+
+def test_rename_bad_dimensions():
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQid(1, 3)
+    args = DummyArgs()
+    with pytest.raises(ValueError, match='Cannot rename to different dimensions'):
+        args.rename(q0, q1)
