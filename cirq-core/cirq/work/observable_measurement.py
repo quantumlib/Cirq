@@ -16,11 +16,10 @@ import abc
 import dataclasses
 import itertools
 import warnings
-from typing import Iterable, Dict, List, Tuple, TYPE_CHECKING, Set, Sequence
+from typing import Optional, Iterable, Dict, List, Tuple, TYPE_CHECKING, Set, Sequence
 
 import numpy as np
 import sympy
-
 from cirq import circuits, study, ops, value
 from cirq._doc import document
 from cirq.protocols import json_serializable_dataclass
@@ -371,6 +370,7 @@ def measure_grouped_settings(
     *,
     readout_symmetrization: bool = False,
     circuit_sweep: 'cirq.study.sweepable.SweepLike' = None,
+    readout_calibrations: Optional[BitstringAccumulator] = None,
 ) -> List[BitstringAccumulator]:
     """Measure a suite of grouped InitObsSetting settings.
 
@@ -398,7 +398,11 @@ def measure_grouped_settings(
         circuit_sweep: Additional parameter sweeps for parameters contained
             in `circuit`. The total sweep is the product of the circuit sweep
             with parameter settings for the single-qubit basis-change rotations.
+        readout_calibrations: The result of `calibrate_readout_error`.
     """
+    if readout_calibrations is not None and not readout_symmetrization:
+        raise ValueError("Readout calibration only works if `readout_symmetrization` is enabled.")
+
     qubits = sorted({q for ms in grouped_settings.keys() for q in ms.init_state.qubits})
     qubit_to_index = {q: i for i, q in enumerate(qubits)}
 
@@ -427,6 +431,7 @@ def measure_grouped_settings(
             meas_spec=meas_spec,
             simul_settings=grouped_settings[max_setting],
             qubit_to_index=qubit_to_index,
+            readout_calibration=readout_calibrations,
         )
         accumulators[meas_spec] = accumulator
         meas_specs_todo += [meas_spec]
