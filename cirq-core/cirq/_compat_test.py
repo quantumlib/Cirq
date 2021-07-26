@@ -41,6 +41,7 @@ from cirq._compat import (
     deprecated_submodule,
     DeprecatedModuleLoader,
     DeprecatedModuleFinder,
+    DeprecatedModuleImportError,
 )
 
 
@@ -648,6 +649,49 @@ def test_deprecated_module_deadline_validation():
         )
 
 
+def _test_broken_module_1_inner():
+    with pytest.raises(
+        DeprecatedModuleImportError,
+        match="missing_module cannot be imported. " "The typical reasons",
+    ):
+        # pylint: disable=unused-import
+        import cirq.testing._compat_test_data.broken_ref as br  # type: ignore
+
+
+def _test_broken_module_2_inner():
+    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+        with pytest.raises(
+            DeprecatedModuleImportError,
+            match="missing_module cannot be imported. The typical reasons",
+        ):
+            # note that this passes
+            from cirq.testing._compat_test_data import broken_ref  # type: ignore
+
+            # but when you try to use it
+            broken_ref.something()
+
+
+def _test_broken_module_3_inner():
+    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+        with pytest.raises(
+            DeprecatedModuleImportError,
+            match="missing_module cannot be imported. The typical reasons",
+        ):
+            cirq.testing._compat_test_data.broken_ref.something()
+
+
+def test_deprecated_module_error_handling_1():
+    subprocess_context(_test_broken_module_1_inner())
+
+
+def test_deprecated_module_error_handling_2():
+    subprocess_context(_test_broken_module_2_inner())
+
+
+def test_deprecated_module_error_handling_3():
+    subprocess_context(_test_broken_module_3_inner())
+
+
 def test_new_module_is_top_level():
     subprocess_context(_test_new_module_is_top_level_inner)()
 
@@ -764,7 +808,7 @@ def test_invalidate_caches():
             nonlocal called
             called = True
 
-    DeprecatedModuleFinder(FakeFinder(), 'new', 'old', 'v0.1').invalidate_caches()
+    DeprecatedModuleFinder(FakeFinder(), 'new', 'old', 'v0.1', None).invalidate_caches()
     assert called
 
 
