@@ -13,6 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
+import copy
 from typing import (
     Any,
     Iterable,
@@ -138,6 +139,64 @@ class ActOnArgs(OperationTarget[TSelf]):
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._qubits
+
+    def swap(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
+        """Swaps two qubits.
+
+        This only affects the index, and does not modify the underlying
+        state.
+
+        Args:
+            q1: The first qubit to swap.
+            q2: The second qubit to swap.
+            inplace: True to swap the qubits in the current object, False to
+                create a copy with the qubits swapped.
+
+        Returns:
+            The original object with the qubits swapped if inplace is
+            requested, or a copy of the original object with the qubits swapped
+            otherwise.
+
+        Raises:
+            ValueError if the qubits are of different dimensionality."""
+        if q1.dimension != q2.dimension:
+            raise ValueError(f'Cannot swap different dimensions: q1={q1}, q2={q2}')
+
+        args = self if inplace else copy.copy(self)
+        i1 = self.qubits.index(q1)
+        i2 = self.qubits.index(q2)
+        qubits = list(args.qubits)
+        qubits[i1], qubits[i2] = qubits[i2], qubits[i1]
+        args._qubits = tuple(qubits)
+        args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        return args
+
+    def rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
+        """Renames `q1` to `q2`.
+
+        Args:
+            q1: The qubit to rename.
+            q2: The new name.
+            inplace: True to rename the qubit in the current object, False to
+                create a copy with the qubit renamed.
+
+        Returns:
+            The original object with the qubits renamed if inplace is
+            requested, or a copy of the original object with the qubits renamed
+            otherwise.
+
+        Raises:
+            ValueError if the qubits are of different dimensionality."""
+        if q1.dimension != q2.dimension:
+            raise ValueError(f'Cannot rename to different dimensions: q1={q1}, q2={q2}')
+
+        args = self if inplace else copy.copy(self)
+        i1 = self.qubits.index(q1)
+        qubits = list(args.qubits)
+        qubits[i1] = q2
+        args._qubits = tuple(qubits)
+        args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        return args
 
     def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:
         if item not in self.qubit_map:

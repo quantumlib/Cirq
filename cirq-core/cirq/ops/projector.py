@@ -15,13 +15,13 @@ from typing import (
 )
 
 import numpy as np
-from scipy.sparse import coo_matrix
+from scipy.sparse import csr_matrix
 
 from cirq import value
 from cirq.ops import raw_types
 
 
-def check_qids_dimension(qids):
+def _check_qids_dimension(qids):
     """A utility to check that we only have Qubits."""
     for qid in qids:
         if qid.dimension != 2:
@@ -38,11 +38,11 @@ class ProjectorString:
         """Contructor for ProjectorString
 
         Args:
-            projector_dict: a dictionary of Qbit to an integer specifying which vector to project
-                onto.
+            projector_dict: A python dictionary mapping from cirq.Qid to integers. A key value pair
+                represents the desired computational basis state for that qubit.
             coefficient: Initial scalar coefficient. Defaults to 1.
         """
-        check_qids_dimension(projector_dict.keys())
+        _check_qids_dimension(projector_dict.keys())
         self._projector_dict = projector_dict
         self._coefficient = complex(coefficient)
 
@@ -54,7 +54,7 @@ class ProjectorString:
     def coefficient(self) -> complex:
         return self._coefficient
 
-    def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> coo_matrix:
+    def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> csr_matrix:
         """Returns the matrix of self in computational basis of qubits.
 
         Args:
@@ -67,19 +67,18 @@ class ProjectorString:
             A sparse matrix that is the projection in the specified basis.
         """
         projector_qids = self._projector_dict.keys() if projector_qids is None else projector_qids
-        check_qids_dimension(projector_qids)
+        _check_qids_dimension(projector_qids)
         idx_to_keep = []
         for qid in projector_qids:
             if qid in self._projector_dict:
                 idx_to_keep.append([self._projector_dict[qid]])
             else:
-                idx_to_keep.append(list(range(qid.dimension)))
+                idx_to_keep.append([0, 1])
 
         total_d = np.prod([qid.dimension for qid in projector_qids])
 
         ones_idx = []
         for idx in itertools.product(*idx_to_keep):
-            assert len(idx) == len(list(projector_qids))
             d = total_d
             kron_idx = 0
             for i, qid in zip(idx, projector_qids):
@@ -87,7 +86,9 @@ class ProjectorString:
                 kron_idx += i * d
             ones_idx.append(kron_idx)
 
-        return coo_matrix(([1.0] * len(ones_idx), (ones_idx, ones_idx)), shape=(total_d, total_d))
+        return csr_matrix(
+            ([self._coefficient] * len(ones_idx), (ones_idx, ones_idx)), shape=(total_d, total_d)
+        )
 
     def _get_idx_to_keep(self, qid_map: Mapping[raw_types.Qid, int]):
         num_qubits = len(qid_map)
@@ -103,8 +104,7 @@ class ProjectorString:
     ) -> complex:
         """Expectation of the projection from a state vector.
 
-        Projects the state vector onto the projector_dict and computes the expectation of the
-        measurement.
+        Computes the expectation value of this ProjectorString on the provided state vector.
 
         Args:
             state_vector: An array representing a valid state vector.
@@ -113,7 +113,7 @@ class ProjectorString:
         Returns:
             The expectation value of the input state.
         """
-        check_qids_dimension(qid_map.keys())
+        _check_qids_dimension(qid_map.keys())
         num_qubits = len(qid_map)
         index = self._get_idx_to_keep(qid_map)
         return self._coefficient * np.sum(
@@ -127,8 +127,7 @@ class ProjectorString:
     ) -> complex:
         """Expectation of the projection from a density matrix.
 
-        Projects the density matrix onto the projector_dict and computes the expectation of the
-        measurement.
+        Computes the expectation value of this ProjectorString on the provided state.
 
         Args:
             state: An array representing a valid  density matrix.
@@ -137,12 +136,13 @@ class ProjectorString:
         Returns:
             The expectation value of the input state.
         """
-        check_qids_dimension(qid_map.keys())
+        _check_qids_dimension(qid_map.keys())
         num_qubits = len(qid_map)
         index = self._get_idx_to_keep(qid_map) * 2
-        return self._coefficient * np.sum(
-            np.abs(np.reshape(state, (2,) * (2 * num_qubits))[index]) ** 2
-        )
+        result = np.reshape(state, (2,) * (2 * num_qubits))[index]
+        while any(result.shape):
+            result = np.trace(result, axis1=0, axis2=len(result.shape) // 2)
+        return self._coefficient * result
 
     def __repr__(self) -> str:
         return (
