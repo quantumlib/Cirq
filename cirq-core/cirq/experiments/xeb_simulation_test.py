@@ -25,6 +25,7 @@ from cirq import ops
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
+
 def test_simulate_2q_xeb_circuits():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [

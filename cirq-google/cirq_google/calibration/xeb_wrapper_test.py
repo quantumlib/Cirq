@@ -33,6 +33,7 @@ from cirq_google.calibration.xeb_wrapper import (
     _maybe_multiprocessing_pool,
 )
 
+
 def _minimize_patch(
     fun,
     x0,
