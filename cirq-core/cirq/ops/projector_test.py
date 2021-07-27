@@ -55,13 +55,15 @@ def test_projector_matrix_missing_qid():
 def test_equality():
     q0 = cirq.NamedQubit('q0')
 
-    obj1 = cirq.ProjectorString({q0: 0})
+    obj1a = cirq.ProjectorString({q0: 0})
+    obj1b = cirq.ProjectorString({q0: 0})
     obj2 = cirq.ProjectorString({q0: 1})
+    obj3 = cirq.ProjectorString({q0: 1}, coefficient=0.20160913)
 
-    assert obj1 == obj1
-    assert obj1 != obj2
-    assert hash(obj1) == hash(obj1)
-    assert hash(obj1) != hash(obj2)
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(obj1a, obj1b)
+    eq.add_equality_group(obj2)
+    eq.add_equality_group(obj3)
 
 
 def test_get_values():
