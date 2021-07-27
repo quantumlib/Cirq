@@ -234,7 +234,7 @@ class ProjectorSum:
     def copy(self) -> 'ProjectorSum':
         return ProjectorSum(self._linear_dict.copy())
 
-    def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> coo_matrix:
+    def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> csr_matrix:
         """Returns the matrix of self in computational basis of qubits.
 
         Args:
