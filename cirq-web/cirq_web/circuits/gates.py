@@ -12,26 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This is more of a placeholder for now, we can add
+# official color schemes in follow-ups.
+SymbolColors = {
+    '@': 'black',
+    'H': 'yellow',
+    'I': 'orange',
+    'X': 'black',
+    'Y': 'pink',
+    'Z': 'cyan',
+    'S': '#90EE90',
+    'T': '#CBC3E3',
+}
 
-class Operation3DSymbol():
+
+class Operation3DSymbol:
     def __init__(self, wire_symbols, location_info, color_info, moment):
         """Gathers symbol information from an operation and builds an
         object to represent it in 3D.
-        
+
         Args:
             wire_symbols: a list of symbols taken from circuit_diagram_info()
-            that will be used to represent the operation in the 3D circuit
+            that will be used to represent the operation in the 3D circuit.
 
             location_info: A list of coordinates for each wire_symbol. The
             index of the coordinate tuple in the location_info list must
-            correspond with the index of the symbol in the wire_symbols list
+            correspond with the index of the symbol in the wire_symbols list.
 
-            color: a list representing the desired color of the symbol(s).
+            color_info: a list representing the desired color of the symbol(s).
             These will also correspond to index of the symbol in the
-            wire_symbols list
+            wire_symbols list.
 
-            moment: the moment where the symbol should be
-        """      
+            moment: the moment where the symbol should be.
+        """
         self.wire_symbols = wire_symbols
         self.location_info = location_info
         self.color_info = color_info
@@ -44,13 +57,3 @@ class Operation3DSymbol():
             'color_info': self.color_info,
             'moment': self.moment,
         }
-    
-
-SymbolColors = {
-    '@': 'black',
-    'H': 'yellow',
-    'I': 'orange',
-    'X': 'black',
-    'Y': 'pink',
-    'Z': 'cyan',
-}

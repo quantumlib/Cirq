@@ -21,7 +21,7 @@ describe('GridQubit', () => {
   const DEFAULT_MOMENTS = 5;
   const gridQubit = new GridQubit(DEFAULT_ROW, DEFAULT_COL, DEFAULT_MOMENTS);
   const children = gridQubit.children;
-  
+
   it('is a three.js line object', () => {
     const line = children.find(child => child.type === 'Line');
     expect(line).to.not.equal(undefined);

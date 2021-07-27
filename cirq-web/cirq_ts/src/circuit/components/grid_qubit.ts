@@ -13,13 +13,8 @@
 // limitations under the License.
 
 import {Group, Vector3} from 'three';
-import {
-  QubitLine,
-  QubitLabel,
-} from './meshes';
-import {
-  Symbol3D
-} from './types';
+import {QubitLine, QubitLabel} from './meshes';
+import {Symbol3D} from './types';
 
 /**
  * Class that represents a GridQubit.
@@ -45,16 +40,21 @@ export class GridQubit extends Group {
     this.row = row;
     this.col = col;
     this.moments = moments;
-    this.add(this.createLine(moments));
+    this.add(this.createLine());
     this.add(this.addLocationLabel());
   }
 
+  /**
+   * Adds a designated symol to the qubit. Location information,
+   * including the moment at which it occurs, is included in the
+   * symbol itself.
+   * @param symbol A Symbol3D object to add to the qubit.
+   */
   addSymbol(symbol: Symbol3D) {
     this.add(symbol);
   }
 
-
-  private createLine(moments: number) : QubitLine {
+  private createLine(): QubitLine {
     const coords = [
       new Vector3(this.row, 0, this.col),
       new Vector3(this.row, this.moments, this.col),
@@ -62,7 +62,7 @@ export class GridQubit extends Group {
     return new QubitLine(coords[0], coords[1]);
   }
 
-  private addLocationLabel() : QubitLabel {
+  private addLocationLabel(): QubitLabel {
     const sprite = new QubitLabel(`(${this.row}, ${this.col})`);
     sprite.position.copy(new Vector3(this.row, -0.6, this.col));
     return sprite;

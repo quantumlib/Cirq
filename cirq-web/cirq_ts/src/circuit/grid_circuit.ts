@@ -41,20 +41,27 @@ export class GridCircuit extends Group {
     }
   }
 
-  displayGatesFromList(list: SymbolInformation[]) {
-    for(const symbol of list){
+  /**
+   * Adds symbols to the circuit map and renders them in the
+   * 3D scene.
+   * @param list A list of SymbolInformation objects that give instructions
+   * on how to render the operations in 3D.
+   */
+  addSymbolsFromList(list: SymbolInformation[]) {
+    for (const symbol of list) {
       this.addSymbol(symbol);
     }
   }
 
-  addSymbol(symbol_info: SymbolInformation) {
+  private addSymbol(symbol_info: SymbolInformation) {
     //.get gives a reference to an object, so we're good to
     // just modify
-    const key = [symbol_info.location_info[0].row, symbol_info.location_info[0].col].join(',');
-  
+    const key = [
+      symbol_info.location_info[0].row,
+      symbol_info.location_info[0].col,
+    ].join(',');
     const qubit = this.circuit.get(key)!;
-    const symbol = new Symbol3D(symbol_info)
- 
+    const symbol = new Symbol3D(symbol_info);
     qubit.addSymbol(symbol);
   }
 

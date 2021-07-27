@@ -30,7 +30,7 @@ import {
 
 /**
  * A wrapper for a three.js Line object representing a connection line
- * between two qubits. Useful when building controlled gates. 
+ * between two qubits. Useful when building controlled gates.
  */
 export class ConnectionLine extends Line {
   /**
@@ -53,7 +53,7 @@ export class ConnectionLine extends Line {
 
 /**
  * A wrapper for a three.js Sprite object which is used to label the
- * location of specific qubits. 
+ * location of specific qubits.
  */
 export class QubitLabel extends Sprite {
   /**
@@ -134,7 +134,7 @@ export class Control3DSymbol extends Mesh {
 }
 
 /**
- * A wrapper for a three.js Cylinder which represents an X operation 
+ * A wrapper for a three.js Cylinder which represents an X operation
  * in a circuit.
  */
 export class X3DSymbol extends Mesh {

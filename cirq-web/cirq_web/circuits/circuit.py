@@ -83,8 +83,8 @@ class Circuit3D(widget.Widget):
                 for _ in range(num_qubits(operation)):
                     color_info.append('gray')
                 return Operation3DSymbol(
-                    '?', 
-                    location_info, 
+                    '?',
+                    location_info,
                     color_info,
                     moment,
                 )
@@ -93,8 +93,8 @@ class Circuit3D(widget.Widget):
                 color_info.append('gray')
 
             return Operation3DSymbol(
-                '?', 
-                location_info, 
+                '?',
+                location_info,
                 color_info,
                 moment,
             )
