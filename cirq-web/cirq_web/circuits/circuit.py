@@ -13,13 +13,9 @@
 # limitations under the License.
 
 from cirq_web import widget
-from cirq_web.circuits.gates import (
-    Gate3DSymbols,
-    UnknownSingleQubitGate,
-    UnknownTwoQubitGate,
-    SingleQubitGate,
-    TwoQubitGate,
-)
+from cirq_web.circuits.gates import Operation3DSymbol, SymbolColors
+
+from cirq import num_qubits
 from cirq.protocols import circuit_diagram_info
 
 
@@ -42,13 +38,13 @@ class Circuit3D(widget.Widget):
         stripped_id = self.id.replace('-', '')
         qubits = self._init_qubits()
         moments = len(self.circuit.moments)
-        serialized_circuit = self._serialize_circuit()
+        self.serialized_circuit = self._serialize_circuit()
 
         return f"""
             <div id="test">
             <script>
             let viz_{stripped_id} = createGridCircuit({qubits}, {moments}, "{self.id}");
-            viz_{stripped_id}.displayGatesFromList({serialized_circuit})
+            viz_{stripped_id}.displayGatesFromList({self.serialized_circuit})
             </script>
         """
 
@@ -68,33 +64,49 @@ class Circuit3D(widget.Widget):
         moments = self.circuit.moments
         for moment_id, moment in enumerate(moments):
             for item in moment:
-                gate = Gate3DSymbols.get(str(item.gate), None)
-                if isinstance(gate, SingleQubitGate):
-                    gate(
-                        circuit_diagram_info(item.gate).wire_symbols[0],
-                        moment_id,
-                        (item.qubits[0].row, item.qubits[0].col),
-                    )
-                elif isinstance(gate, TwoQubitGate):
-                    # Set the control information
-                    gate(moment_id, (item.qubits[0].row, item.qubits[0].col))
-
-                    # Set the target information
-                    gate.target_gate(
-                        circuit_diagram_info(item.gate).wire_symbols[1],
-                        moment_id,
-                        (item.qubits[1].row, item.qubits[1].col),
-                    )
-                else:
-                    if len(item.qubits) == 1:
-                        gate = UnknownSingleQubitGate()
-                        gate('?', moment_id, (item.qubits[0].row, item.qubits[0].col))
-                    else:
-                        gate = UnknownTwoQubitGate()
-                        gate(moment_id, (item.qubits[0].row, item.qubits[0].col))
-
-                        gate.target_gate('?', moment_id, (item.qubits[1].row, item.qubits[1].col))
-                args.append(gate.to_typescript())
+                symbol = self._build_3D_symbol(item, moment_id)
+                args.append(symbol.to_typescript())
 
         argument_str = ','.join(str(item) for item in args)
         return f'[{argument_str}]'
+
+    def _build_3D_symbol(self, operation, moment) -> Operation3DSymbol:
+        location_info = []
+        color_info = []
+
+        for qubit in operation.qubits:
+            location_info.append({'row': qubit.row, 'col': qubit.col})
+
+        try:
+            wire_symbols = circuit_diagram_info(operation).wire_symbols
+            if wire_symbols is NotImplemented:
+                for _ in range(num_qubits(operation)):
+                    color_info.append('gray')
+                return Operation3DSymbol(
+                    '?', 
+                    location_info, 
+                    color_info,
+                    moment,
+                )
+        except TypeError:
+            for _ in range(num_qubits(operation)):
+                color_info.append('gray')
+
+            return Operation3DSymbol(
+                '?', 
+                location_info, 
+                color_info,
+                moment,
+            )
+
+        for symbol in wire_symbols:
+            color_info.append(SymbolColors.get(symbol, 'gray'))
+
+        symbol = Operation3DSymbol(
+            wire_symbols,
+            location_info,
+            color_info,
+            moment,
+        )
+
+        return symbol

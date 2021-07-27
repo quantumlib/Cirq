@@ -12,76 +12,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
 
+class Operation3DSymbol():
+    def __init__(self, wire_symbols, location_info, color_info, moment):
+        """Gathers symbol information from an operation and builds an
+        object to represent it in 3D.
+        
+        Args:
+            wire_symbols: a list of symbols taken from circuit_diagram_info()
+            that will be used to represent the operation in the 3D circuit
 
-class Gate(ABC):
-    @abstractmethod
-    def to_typescript(self):
-        raise NotImplementedError()
+            location_info: A list of coordinates for each wire_symbol. The
+            index of the coordinate tuple in the location_info list must
+            correspond with the index of the symbol in the wire_symbols list
 
+            color: a list representing the desired color of the symbol(s).
+            These will also correspond to index of the symbol in the
+            wire_symbols list
 
-class SingleQubitGate(Gate):
-    def __init__(self, color):
-        self.color = color
-
-    def __call__(self, text, moment, loc):
-        self.text = text
+            moment: the moment where the symbol should be
+        """      
+        self.wire_symbols = wire_symbols
+        self.location_info = location_info
+        self.color_info = color_info
         self.moment = moment
-        self.row = loc[0]
-        self.col = loc[1]
 
     def to_typescript(self):
         return {
-            'type': 'SingleQubitGate',
-            'text': self.text,
-            'color': self.color,
-            'row': self.row,
-            'col': self.col,
+            'wire_symbols': list(self.wire_symbols),
+            'location_info': self.location_info,
+            'color_info': self.color_info,
             'moment': self.moment,
         }
+    
 
-
-class TwoQubitGate(Gate):
-    def __init__(self, target_gate):
-        self.target_gate = target_gate
-
-    def __call__(self, moment, loc):
-        self.moment = moment
-        self.row = loc[0]
-        self.col = loc[1]
-
-    def to_typescript(self):
-        return {
-            'type': 'TwoQubitGate',
-            'row': self.row,
-            'col': self.col,
-            'targetGate': self.target_gate.to_typescript(),
-            'moment': self.moment,
-        }
-
-
-class UnknownSingleQubitGate(SingleQubitGate):
-    def __init__(self):
-        super()
-        self.color = 'gray'
-
-
-class UnknownTwoQubitGate(TwoQubitGate):
-    def __init__(self):
-        super()
-        self.target_gate = UnknownSingleQubitGate()
-
-
-Gate3DSymbols = {
-    # Single Qubit Gates
-    'H': SingleQubitGate('yellow'),
-    'I': SingleQubitGate('orange'),
-    'X': SingleQubitGate('black'),
-    'Y': SingleQubitGate('pink'),
-    'Z': SingleQubitGate('cyan'),
-    # Two Qubit Gates
-    'CNOT': TwoQubitGate(SingleQubitGate('black')),
-    'CZ': TwoQubitGate(SingleQubitGate('cyan')),
-    'CY': TwoQubitGate(SingleQubitGate('pink')),
+SymbolColors = {
+    '@': 'black',
+    'H': 'yellow',
+    'I': 'orange',
+    'X': 'black',
+    'Y': 'pink',
+    'Z': 'cyan',
 }

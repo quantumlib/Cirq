@@ -11,9 +11,18 @@
       [
         {row: 0, col: 0}, 
         {row: 0, col: 1}, 
-        {row: 1, col: 0}
+        {row: 1, col: 0},
+        {row: 2, col: 3},
+        {row: 3, col: 2},
+        {row: 3, col: 0},
       ], 5, 'mycircuitdiv');
-    circuit.displayGatesFromList([{'text': 'H', 'color': 'yellow', 'row': 0, 'col': 0, 'moment': 1, 'type': 'SingleQubitGate'}]);
+    circuit.displayGatesFromList(
+      [
+      {'wire_symbols': ['Z'], 'location_info': [{'row': 2, 'col': 3}], 'color_info': ['cyan'], 'moment': 0},
+      {'wire_symbols': ['X'], 'location_info': [{'row': 2, 'col': 3}], 'color_info': ['black'], 'moment': 1},
+      {'wire_symbols': ['@', 'X'], 'location_info': [{'row': 3, 'col': 0}, {'row': 0, 'col': 0}], 'color_info': ['black', 'black'], 'moment': 0},
+      ]
+      );
   </script>
 </body>
 </html>

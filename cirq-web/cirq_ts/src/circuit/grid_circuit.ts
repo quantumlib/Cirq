@@ -11,10 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 import {Group} from 'three';
 import {GridQubit} from './components/grid_qubit';
-import {TwoQubitGate, SingleQubitGate, GridCoord} from './components/types';
+import {Symbol3D, SymbolInformation, Coord} from './components/types';
 
 /**
  * Class that gathers serialized circuit information
@@ -32,7 +31,7 @@ export class GridCircuit extends Group {
    * @param qubits A list of GridCoord objects representing the locations of the
    * qubits in the circuit.
    */
-  constructor(moments: number, qubits: GridCoord[]) {
+  constructor(moments: number, qubits: Coord[]) {
     super();
     this.moments = moments;
     this.circuit = new Map();
@@ -42,59 +41,21 @@ export class GridCircuit extends Group {
     }
   }
 
-  /**
-   * Adds Gate objects to class circuit map and generates three.js
-   * objects, adding them to the group.
-   * @param list A list of Gate objects to be added to the circuit.
-   */
-  displayGatesFromList(list: (SingleQubitGate | TwoQubitGate)[]) {
-    for (const gate of list) {
-      switch (gate.type) {
-        case 'SingleQubitGate':
-          this.addSingleQubitGate(gate);
-          break;
-        case 'TwoQubitGate':
-          this.addTwoQubitGate(gate);
-          break;
-      }
+  displayGatesFromList(list: SymbolInformation[]) {
+    for(const symbol of list){
+      this.addSymbol(symbol);
     }
   }
 
-  /**
-   * Adds a single qubit gate to the circuit map, and the corresponding
-   * three.js object to the group.
-   * @param gate The SingleQubitGate object to be added.
-   */
-  addSingleQubitGate(gate: SingleQubitGate) {
+  addSymbol(symbol_info: SymbolInformation) {
     //.get gives a reference to an object, so we're good to
     // just modify
-    const key = [gate.row, gate.col].join(',');
+    const key = [symbol_info.location_info[0].row, symbol_info.location_info[0].col].join(',');
+  
     const qubit = this.circuit.get(key)!;
-    qubit.addSingleQubitGate(gate.text, gate.color, gate.moment);
-  }
-
-  /**
-   * Adds a two qubit gate to the circuit map, and the corresponding
-   * three.js object to the group.
-   * @param gate The TwoQubitGate object to be added.
-   */
-  addTwoQubitGate(gate: TwoQubitGate) {
-    const controlKey = [gate.row, gate.col].join(',');
-    const control = this.circuit.get(controlKey)!;
-    control.addControl(gate.moment);
-    control.addLineToQubit(
-      gate.targetGate.row,
-      gate.targetGate.col,
-      gate.moment
-    );
-
-    const targetKey = [gate.targetGate.row, gate.targetGate.col].join(',');
-    const target = this.circuit.get(targetKey)!;
-    target.addSingleQubitGate(
-      gate.targetGate.text,
-      gate.targetGate.color,
-      gate.targetGate.moment
-    );
+    const symbol = new Symbol3D(symbol_info)
+ 
+    qubit.addSymbol(symbol);
   }
 
   private addQubit(x: number, y: number) {

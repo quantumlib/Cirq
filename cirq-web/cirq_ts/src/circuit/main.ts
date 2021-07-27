@@ -15,7 +15,7 @@
 import {Scene, PerspectiveCamera, WebGLRenderer} from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {GridCircuit} from './grid_circuit';
-import {GridCoord} from './components/types';
+import {Coord} from './components/types';
 
 /**
  * Creates a three.js scene object, adds it to the container element
@@ -76,7 +76,7 @@ function createAndRenderScene(numQubits: number, sceneId: string): Scene {
  * @returns A GridCircuit object
  */
 export function createGridCircuit(
-  qubits: GridCoord[],
+  qubits: Coord[],
   numMoments: number,
   sceneId: string
 ): GridCircuit {

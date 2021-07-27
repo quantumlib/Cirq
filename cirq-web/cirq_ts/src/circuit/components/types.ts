@@ -12,26 +12,68 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export interface Gate {
+import {Group, Vector3} from 'three';
+import { BoxGate3DSymbol, ConnectionLine, Control3DSymbol, X3DSymbol } from "./meshes";
+
+export interface SymbolInformation {
+  readonly wire_symbols: string[];
+  readonly location_info: Coord[];
+  readonly color_info: string[];
   readonly moment: number;
 }
 
-export interface SingleQubitGate extends Gate {
-  readonly text: string;
-  readonly color: string;
+export interface Coord {
   readonly row: number;
   readonly col: number;
-  readonly type: 'SingleQubitGate';
 }
 
-export interface TwoQubitGate extends Gate {
-  readonly row: number;
-  readonly col: number;
-  readonly targetGate: SingleQubitGate;
-  readonly type: 'TwoQubitGate';
-}
+/**
+ * Builds a 3D symbol from the given information.
+ */
+export class Symbol3D extends Group {
+  constructor(symbol_info: SymbolInformation) {
+    super();
 
-export interface GridCoord {
-  readonly row: number;
-  readonly col: number;
+    let mesh;
+    symbol_info.wire_symbols.forEach((symbol, index) => {
+      if (symbol == 'X') {
+        mesh = new X3DSymbol(symbol_info.color_info[index]);
+      } else if (symbol == '@') {
+        mesh = new Control3DSymbol()
+      } else {
+        mesh = new BoxGate3DSymbol(symbol, symbol_info.color_info[index]); 
+      }
+
+      mesh.position.set(
+        symbol_info.location_info[index].row,
+        symbol_info.moment,
+        symbol_info.location_info[index].col,
+        )
+      this.add(mesh);
+    });
+
+    // Add lines by default if you have multiple symbols
+    if (symbol_info.location_info.length > 1){
+      let i = 0;
+      while (i < symbol_info.location_info.length - 1) {
+        const coords = [
+          new Vector3(
+            symbol_info.location_info[i].row,
+            symbol_info.moment,
+            symbol_info.location_info[i].col,
+            ),
+          new Vector3(
+            symbol_info.location_info[i+1].row,
+            symbol_info.moment,
+            symbol_info.location_info[i+1].col,
+          )
+        ];
+        this.add(new ConnectionLine(coords[0], coords[1]));
+        i++;
+      }
+
+
+    }
+  }
+
 }
