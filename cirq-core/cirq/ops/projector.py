@@ -63,12 +63,10 @@ class ProjectorString:
         """
         projector_qids = self._projector_dict.keys() if projector_qids is None else projector_qids
         _check_qids_dimension(projector_qids)
-        idx_to_keep = []
-        for qid in projector_qids:
-            if qid in self._projector_dict:
-                idx_to_keep.append([self._projector_dict[qid]])
-            else:
-                idx_to_keep.append([0, 1])
+        idx_to_keep = [
+            [self._projector_dict[qid]] if qid in self._projector_dict else [0, 1]
+            for qid in projector_qids
+        ]
 
         total_d = np.prod([qid.dimension for qid in projector_qids])
 
