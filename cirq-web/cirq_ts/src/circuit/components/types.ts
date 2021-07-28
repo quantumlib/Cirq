@@ -49,6 +49,8 @@ export class Symbol3D extends Group {
   }
 
   private buildAndAddMeshesToGroup(symbol_info: SymbolInformation) {
+    const locationInfo = symbol_info.location_info;
+
     symbol_info.wire_symbols.forEach((symbol, index) => {
       let mesh;
       switch (symbol) {
@@ -63,28 +65,30 @@ export class Symbol3D extends Group {
       }
 
       mesh.position.set(
-        symbol_info.location_info[index].row,
+        locationInfo[index].row,
         symbol_info.moment,
-        symbol_info.location_info[index].col
+        locationInfo[index].col
       );
       this.add(mesh);
     });
   }
 
   private addConnectionLines(symbol_info: SymbolInformation) {
-    if (symbol_info.location_info.length > 1) {
+    const locationInfo = symbol_info.location_info;
+
+    if (locationInfo.length > 1) {
       let i = 0;
-      while (i < symbol_info.location_info.length - 1) {
+      while (i < locationInfo.length - 1) {
         const coords = [
           new Vector3(
-            symbol_info.location_info[i].row,
+            locationInfo[i].row,
             symbol_info.moment,
-            symbol_info.location_info[i].col
+            locationInfo[i].col
           ),
           new Vector3(
-            symbol_info.location_info[i + 1].row,
+            locationInfo[i + 1].row,
             symbol_info.moment,
-            symbol_info.location_info[i + 1].col
+            locationInfo[i + 1].col
           ),
         ];
         this.add(new ConnectionLine(coords[0], coords[1]));

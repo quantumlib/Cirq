@@ -15,6 +15,7 @@
 # This is more of a placeholder for now, we can add
 # official color schemes in follow-ups.
 SymbolColors = {
+    '?': '#d3d3d3',
     '@': 'black',
     'H': 'yellow',
     'I': 'orange',

@@ -44,7 +44,7 @@ class Circuit3D(widget.Widget):
             <div id="test">
             <script>
             let viz_{stripped_id} = createGridCircuit({qubits}, {moments}, "{self.id}");
-            viz_{stripped_id}.displayGatesFromList({self.serialized_circuit})
+            viz_{stripped_id}.addSymbolsFromList({self.serialized_circuit})
             </script>
         """
 
@@ -81,7 +81,7 @@ class Circuit3D(widget.Widget):
             wire_symbols = circuit_diagram_info(operation).wire_symbols
             if wire_symbols is NotImplemented:
                 for _ in range(num_qubits(operation)):
-                    color_info.append('gray')
+                    color_info.append('#d3d3d3')
                 return Operation3DSymbol(
                     '?',
                     location_info,
@@ -90,7 +90,7 @@ class Circuit3D(widget.Widget):
                 )
         except TypeError:
             for _ in range(num_qubits(operation)):
-                color_info.append('gray')
+                color_info.append('#d3d3d3')
 
             return Operation3DSymbol(
                 '?',
@@ -100,7 +100,7 @@ class Circuit3D(widget.Widget):
             )
 
         for symbol in wire_symbols:
-            color_info.append(SymbolColors.get(symbol, 'gray'))
+            color_info.append(SymbolColors.get(symbol, '#D3D3D3'))
 
         symbol = Operation3DSymbol(
             wire_symbols,
