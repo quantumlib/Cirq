@@ -6,6 +6,11 @@ from typing import (
     DefaultDict,
     Dict,
     FrozenSet,
+)
+import itertools
+from typing import (
+    Any,
+    Dict,
     Iterable,
     List,
     Mapping,
@@ -256,7 +261,8 @@ class ProjectorSum:
     ) -> float:
         """Expectation of the sum projection from a state vector.
 
-        Projects the state vector onto the sum of projectors and computes the expectation of the measurements.
+        Projects the state vector onto the sum of projectors and computes the expectation of the
+        measurements.
 
         Args:
             state_vector: An array representing a valid state vector.
@@ -280,7 +286,8 @@ class ProjectorSum:
     ) -> float:
         """Expectation of the sum of projections from a density matrix.
 
-        Projects the density matrix onto the sum of projectors and computes the expectation of the measurements.
+        Projects the density matrix onto the sum of projectors and computes the expectation of the
+        measurements.
 
         Args:
             state: An array representing a valid  density matrix.
