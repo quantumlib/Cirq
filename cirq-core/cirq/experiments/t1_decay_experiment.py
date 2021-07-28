@@ -37,7 +37,6 @@ def t1_decay(
     max_delay: 'cirq.DURATION_LIKE',
     min_delay: 'cirq.DURATION_LIKE' = None,
     repetitions: int = 1000,
-    simulator: bool = False,
 ) -> 'cirq.experiments.T1DecayResult':
     """Runs a t1 decay experiment.
 
@@ -52,7 +51,6 @@ def t1_decay(
         max_delay: The largest delay to test.
         min_delay: The smallest delay to test. Defaults to no delay.
         repetitions: The number of repetitions of the circuit for each delay.
-        simulator: Flag for if experiment run on simulator instead of hardware.
 
     Returns:
         A T1DecayResult object that stores and can plot the data.
@@ -68,40 +66,20 @@ def t1_decay(
         raise ValueError('min_delay < 0')
     var = sympy.Symbol('delay_ns')
 
-    if not simulator:
-        sweep = study.Linspace(
-            var,
-            start=min_delay_dur.total_nanos(),
-            stop=max_delay_dur.total_nanos(),
-            length=num_points,
-        )
+    sweep = study.Linspace(
+        var,
+        start=min_delay_dur.total_nanos(),
+        stop=max_delay_dur.total_nanos(),
+        length=num_points,
+    )
 
-        circuit = circuits.Circuit(
-            ops.X(qubit),
-            ops.wait(qubit, nanos=var),
-            ops.measure(qubit, key='output'),
-        )
+    circuit = circuits.Circuit(
+        ops.X(qubit),
+        ops.wait(qubit, nanos=var),
+        ops.measure(qubit, key='output'),
+    )
 
-        results = sampler.sample(circuit, params=sweep, repetitions=repetitions)
-
-    else:
-        delays = np.linspace(min_delay_dur.total_nanos(), max_delay_dur.total_nanos(), num_points)
-        results = pd.DataFrame()
-
-        # Collect results for each delay point
-        for delay in delays:
-            circuit = circuits.Circuit(
-                ops.X(qubit),
-            )
-
-            # Add additional wait gates for appropriate noise
-            for _ in range(int(delay / 25)):
-                circuit.append(ops.wait(qubit, nanos=25))
-
-            circuit.append(ops.measure(qubit, key='output'))
-            run_results = sampler.sample(circuit, repetitions=repetitions)
-            run_results['delay_ns'] = delay * np.ones(repetitions)
-            results = results.append(run_results, ignore_index=True)
+    results = sampler.sample(circuit, params=sweep, repetitions=repetitions)
 
     # Cross tabulate into a delay_ns, false_count, true_count table.
     tab = pd.crosstab(results.delay_ns, results.output)
