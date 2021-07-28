@@ -42,11 +42,11 @@ function createAndRenderScene(numQubits: number, sceneId: string): Scene {
 
   // TODO: create a better way to start the
   // camera in the center of the scene.
-  camera.position.x = NUM_QUBITS / 2 - 1;
-  camera.position.z = NUM_QUBITS / 2 - 1;
+  camera.position.x = 0;
+  camera.position.z = 0;
   camera.position.y = 2.5;
 
-  controls.target.set(NUM_QUBITS / 2 - 1, 2.5, NUM_QUBITS / 2 - 1);
+  controls.target.set(0, 2.5, 0);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
   controls.screenSpacePanning = false;
