@@ -439,7 +439,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
     @property
     def final_density_matrix(self):
         if self._final_density_matrix is None:
-            size = np.prod(protocols.qid_shape(self), dtype=int)
+            size = np.prod(protocols.qid_shape(self), dtype=np.int64)
             self._final_density_matrix = np.reshape(
                 self._final_simulator_state.density_matrix.copy(), (size, size)
             )

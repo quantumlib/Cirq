@@ -1545,9 +1545,8 @@ def test_large_untangled_okay():
         circuit.append(cirq.measure(cirq.LineQubit(i)))
 
     # Validate this can't be allocated with entangled state
-    if platform.system() != "Windows":
-        with pytest.raises(MemoryError, match='Unable to allocate'):
-            _ = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
+    with pytest.raises(MemoryError, match='Unable to allocate'):
+        _ = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
 
     # Validate a simulation run
     result = cirq.DensityMatrixSimulator(split_untangled_states=True).simulate(circuit)
