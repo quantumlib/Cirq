@@ -39,6 +39,11 @@ else
   PYTEST_ARGS+=("./cirq-core")
 fi
 
+PYTHON_VERSION=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
+if [ "$PYTHON_VERSION" -lt "37" ]; then
+  PYTEST_ARGS+=("--ignore=cirq-rigetti")
+fi
+
 if [ -z "${ACTUALLY_QUIET}" ]; then
     pytest "${PYTEST_ARGS[@]}"
     RESULT=$?
