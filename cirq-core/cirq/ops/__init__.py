@@ -135,6 +135,10 @@ from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,
 )
 
+from cirq.ops.projector import (
+    ProjectorString,
+)
+
 from cirq.ops.controlled_operation import (
     ControlledOperation,
 )

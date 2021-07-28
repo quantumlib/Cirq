@@ -251,6 +251,7 @@ from cirq.ops import (
     PhasedXPowGate,
     PhasedXZGate,
     PhaseFlipChannel,
+    ProjectorString,
     RandomGateChannel,
     qft,
     Qid,
