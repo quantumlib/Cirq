@@ -197,6 +197,8 @@ def _decompose_b_gate_into_two_fsims(
     )
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
     qubits: Sequence['cirq.Qid'], kak_interaction_coefficients: Iterable[float]
 ) -> List['cirq.Operation']:
@@ -232,6 +234,7 @@ def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
     ]
 
 
+# pylint: enable=docstring-first-line-empty
 def _fix_single_qubit_gates_around_kak_interaction(
     *,
     desired: 'cirq.KakDecomposition',

@@ -445,7 +445,7 @@ class MPSState(ActOnArgs):
         return self.apply_op(op, self.prng)
 
     def estimation_stats(self):
-        "Returns some statistics about the memory usage and quality of the approximation."
+        """Returns some statistics about the memory usage and quality of the approximation."""
 
         num_coefs_used = sum([Mi.data.size for Mi in self.M])
         memory_bytes = sum([Mi.data.nbytes for Mi in self.M])

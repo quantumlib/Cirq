@@ -20,6 +20,8 @@ import cirq
 from cirq import quirk_url_to_circuit
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def assert_url_to_circuit_returns(
     json_text: str,
     circuit: 'cirq.Circuit' = None,
@@ -78,3 +80,6 @@ def assert_url_to_circuit_returns(
 
     if maps:
         cirq.testing.assert_equivalent_computational_basis_map(maps, parsed)
+
+
+# pylint: enable=docstring-first-line-empty
