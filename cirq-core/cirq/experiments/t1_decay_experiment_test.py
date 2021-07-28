@@ -253,7 +253,7 @@ def test_noise_model_discrete(gamma):
     probs = data['true_count'] / (data['true_count'] + data['false_count'])
 
     # Check that there is no decay in probability over time
-    assert np.all(np.isclose(np.mean(probs),probs, 0.1))
+    assert np.all(np.isclose(np.mean(probs), probs, 0.2))
 
 
 def test_bad_args():
