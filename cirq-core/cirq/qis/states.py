@@ -96,7 +96,7 @@ class QuantumState:
             qid_shape = infer_qid_shape(data)
         self._data = data
         self._qid_shape = qid_shape
-        self._dim = np.prod(self.qid_shape, dtype=int).item()
+        self._dim = np.prod(self.qid_shape, dtype=np.int64).item()
         if validate:
             self.validate(dtype=dtype, atol=atol)
 
@@ -263,7 +263,7 @@ def quantum_state(
                 'Please specify the qid shape explicitly using '
                 'the qid_shape argument.'
             )
-        dim = np.prod(qid_shape, dtype=int).item()
+        dim = np.prod(qid_shape, dtype=np.int64).item()
         if not 0 <= state < dim:
             raise ValueError(
                 f'Computational basis state is out of range.\n'
@@ -281,7 +281,7 @@ def quantum_state(
         if qid_shape is None:
             qid_shape = infer_qid_shape(state)
         if data.ndim == 1 and data.dtype.kind != 'c':
-            if len(qid_shape) == np.prod(qid_shape, dtype=int):
+            if len(qid_shape) == np.prod(qid_shape, dtype=np.int64):
                 raise ValueError(
                     'Because len(qid_shape) == product(qid_shape), it is '
                     'ambiguous whether the given state contains '
@@ -412,7 +412,7 @@ def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
         )
 
     # check if the shape is compatible with the states specified as integers
-    if integer_states and np.prod(qid_shape, dtype=int) <= max(integer_states):
+    if integer_states and np.prod(qid_shape, dtype=np.int64) <= max(integer_states):
         raise ValueError(
             'Failed to infer the qid shape of the given states. '
             f'The given integer state {max(integer_states)} is too high for the '
@@ -566,7 +566,7 @@ def _intersection_explicit_with_unfactorized_qid_shapes(
     return {
         qid_shape
         for qid_shape in explicit_qid_shapes
-        if np.prod(qid_shape, dtype=int) == unfactorized_total_dimension
+        if np.prod(qid_shape, dtype=np.int64) == unfactorized_total_dimension
     }
 
 
@@ -698,7 +698,7 @@ def density_matrix_from_state_vector(
         sum_inds.tolist(),
         indices + sum_inds[indices].tolist(),
     )
-    new_shape = np.prod([shape[i] for i in indices], dtype=int)
+    new_shape = np.prod([shape[i] for i in indices], dtype=np.int64)
 
     return rho.reshape((new_shape, new_shape))
 
@@ -887,10 +887,10 @@ def validate_normalized_state_vector(
                 dtype, state_vector.dtype
             )
         )
-    if state_vector.size != np.prod(qid_shape, dtype=int):
+    if state_vector.size != np.prod(qid_shape, dtype=np.int64):
         raise ValueError(
             'state_vector has incorrect size. Expected {} but was {}.'.format(
-                np.prod(qid_shape, dtype=int), state_vector.size
+                np.prod(qid_shape, dtype=np.int64), state_vector.size
             )
         )
     norm = np.sum(np.abs(state_vector) ** 2)
@@ -914,7 +914,7 @@ def validate_qid_shape(
     size = state_vector.size
     if qid_shape is None:
         qid_shape = (2,) * (size.bit_length() - 1)
-    if size != np.prod(qid_shape, dtype=int):
+    if size != np.prod(qid_shape, dtype=np.int64):
         raise ValueError(
             'state_vector.size ({}) is not a power of two or is not a product '
             'of the qid shape {!r}.'.format(size, qid_shape)
@@ -1006,7 +1006,7 @@ def validate_density_matrix(
             f'Incorrect dtype for density matrix: Expected {dtype} '
             f'but has dtype {density_matrix.dtype}.'
         )
-    expected_shape = (np.prod(qid_shape, dtype=int),) * 2
+    expected_shape = (np.prod(qid_shape, dtype=np.int64),) * 2
     if density_matrix.shape != expected_shape:
         raise ValueError(
             f'Incorrect shape for density matrix: Expected {expected_shape} '
@@ -1083,6 +1083,6 @@ def eye_tensor(half_shape: Tuple[int, ...], *, dtype: 'DTypeLike') -> np.ndarray
     Returns:
         The created numpy array with shape `half_shape + half_shape`.
     """
-    identity = np.eye(np.prod(half_shape, dtype=int).item(), dtype=dtype)
+    identity = np.eye(np.prod(half_shape, dtype=np.int64).item(), dtype=dtype)
     identity.shape = half_shape * 2
     return identity
