@@ -200,7 +200,7 @@ def _probs(
         # We're measuring every qudit, so no need for fancy indexing
         probs = np.abs(tensor)
         probs = np.transpose(probs, indices)
-        probs = np.reshape(probs, np.prod(probs.shape))
+        probs = np.reshape(probs, np.prod(probs.shape, dtype=int))
     else:
         # Fancy indexing required
         meas_shape = tuple(qid_shape[i] for i in indices)
@@ -252,8 +252,8 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     """
     shape = density_matrix.shape
     half_index = len(shape) // 2
-    row_size = np.prod(shape[:half_index]) if len(shape) != 0 else 0
-    col_size = np.prod(shape[half_index:]) if len(shape) != 0 else 0
+    row_size = np.prod(shape[:half_index], dtype=int) if len(shape) != 0 else 0
+    col_size = np.prod(shape[half_index:], dtype=int) if len(shape) != 0 else 0
     if row_size != col_size:
         raise ValueError(f'Matrix was not square. Shape was {shape}')
     if row_size & (row_size - 1):
