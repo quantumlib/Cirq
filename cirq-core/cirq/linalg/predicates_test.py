@@ -295,10 +295,10 @@ def test_is_normal_tolerance():
 def test_is_cptp():
     rt2 = np.sqrt(0.5)
     # Amplitude damping with gamma=0.5.
-    assert cirq.is_cptp([np.array([[1, 0], [0, rt2]]), np.array([[0, rt2], [0, 0]])])
+    assert cirq.is_cptp(kraus_ops=[np.array([[1, 0], [0, rt2]]), np.array([[0, rt2], [0, 0]])])
     # Depolarizing channel with p=0.75.
     assert cirq.is_cptp(
-        [
+        kraus_ops=[
             np.array([[1, 0], [0, 1]]) * 0.5,
             np.array([[0, 1], [1, 0]]) * 0.5,
             np.array([[0, -1j], [1j, 0]]) * 0.5,
@@ -306,9 +306,9 @@ def test_is_cptp():
         ]
     )
 
-    assert not cirq.is_cptp([np.array([[1, 0], [0, 1]]), np.array([[0, 1], [0, 0]])])
+    assert not cirq.is_cptp(kraus_ops=[np.array([[1, 0], [0, 1]]), np.array([[0, 1], [0, 0]])])
     assert not cirq.is_cptp(
-        [
+        kraus_ops=[
             np.array([[1, 0], [0, 1]]),
             np.array([[0, 1], [1, 0]]),
             np.array([[0, -1j], [1j, 0]]),
@@ -319,12 +319,12 @@ def test_is_cptp():
     # Makes 4 2x2 kraus ops.
     one_qubit_u = cirq.testing.random_unitary(8)
     one_qubit_kraus = np.reshape(one_qubit_u[:, :2], (-1, 2, 2))
-    assert cirq.is_cptp(one_qubit_kraus)
+    assert cirq.is_cptp(kraus_ops=one_qubit_kraus)
 
     # Makes 16 4x4 kraus ops.
     two_qubit_u = cirq.testing.random_unitary(64)
     two_qubit_kraus = np.reshape(two_qubit_u[:, :4], (-1, 4, 4))
-    assert cirq.is_cptp(two_qubit_kraus)
+    assert cirq.is_cptp(kraus_ops=two_qubit_kraus)
 
 
 def test_is_cptp_tolerance():
@@ -332,10 +332,10 @@ def test_is_cptp_tolerance():
     atol = 0.25
     # Moderately-incorrect amplitude damping with gamma=0.5.
     assert cirq.is_cptp(
-        [np.array([[1, 0], [0, rt2_ish]]), np.array([[0, rt2_ish], [0, 0]])], atol=atol
+        kraus_ops=[np.array([[1, 0], [0, rt2_ish]]), np.array([[0, rt2_ish], [0, 0]])], atol=atol
     )
     assert not cirq.is_cptp(
-        [np.array([[1, 0], [0, rt2_ish]]), np.array([[0, rt2_ish], [0, 0]])], atol=1e-8
+        kraus_ops=[np.array([[1, 0], [0, rt2_ish]]), np.array([[0, rt2_ish], [0, 0]])], atol=1e-8
     )
 
 
