@@ -160,7 +160,7 @@ def is_cptp(kraus_ops: Sequence[np.ndarray], *, rtol: float = 1e-5, atol: float 
         rtol: The relative tolerance on equality.
         atol: The absolute tolerance on equality.
     """
-    sum_ndarray = np.sum(matrix.T.conj() @ matrix for matrix in kraus_ops)
+    sum_ndarray = cast(np.ndarray, sum(matrix.T.conj() @ matrix for matrix in kraus_ops))
     return np.allclose(sum_ndarray, np.eye(*sum_ndarray.shape), rtol=rtol, atol=atol)
 
 
