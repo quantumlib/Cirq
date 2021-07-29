@@ -292,6 +292,45 @@ def test_is_normal_tolerance():
     assert not cirq.is_normal(np.array([[0, 0.5, 0], [0, 0, 0.6], [0, 0, 0]]), atol=atol)
 
 
+def test_is_cptp():
+    rt2 = np.sqrt(0.5)
+    # amplitude damping with gamma=0.5
+    assert cirq.is_cptp([np.array([[1, 0], [0, rt2]]), np.array([[0, rt2], [0, 0]])])
+    assert cirq.is_cptp(cirq.kraus(cirq.amplitude_damp(0.5)))
+    # depolarizing channel with p=0.75
+    assert cirq.is_cptp(
+        [
+            np.array([[1, 0], [0, 1]]) * 0.5,
+            np.array([[0, 1], [1, 0]]) * 0.5,
+            np.array([[0, -1j], [1j, 0]]) * 0.5,
+            np.array([[1, 0], [0, -1]]) * 0.5,
+        ]
+    )
+    assert cirq.is_cptp(cirq.kraus(cirq.depolarize(0.75)))
+
+    assert not cirq.is_cptp([np.array([[1, 0], [0, 1]]), np.array([[0, 1], [1, 0]])])
+    assert not cirq.is_cptp(
+        [
+            np.array([[1, 0], [0, 1]]),
+            np.array([[0, 1], [1, 0]]),
+            np.array([[0, -1j], [1j, 0]]),
+            np.array([[1, 0], [0, -1]]),
+        ]
+    )
+
+
+def test_is_cptp_tolerance():
+    rt2_ish = np.sqrt(0.5) - 0.01
+    atol = 0.25
+    # moderately-incorrect amplitude damping with gamma=0.5
+    assert cirq.is_cptp(
+        [np.array([[1, 0], [0, rt2_ish]]), np.array([[0, rt2_ish], [0, 0]])], atol=atol
+    )
+    assert not cirq.is_cptp(
+        [np.array([[1, 0], [0, rt2_ish]]), np.array([[0, rt2_ish], [0, 0]])], atol=1e-8
+    )
+
+
 def test_commutes():
     assert matrix_commutes(np.empty((0, 0)), np.empty((0, 0)))
     assert not matrix_commutes(np.empty((1, 0)), np.empty((0, 1)))
