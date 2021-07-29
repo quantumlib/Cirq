@@ -314,6 +314,21 @@ class ProjectorSum:
         result += other
         return result
 
+    def __isub__(self, other: 'ProjectorSum'):
+        result = self.copy()
+        result._linear_dict -= other._linear_dict
+        return result
+
+    def __sub__(self, other: 'ProjectorSum'):
+        result = self.copy()
+        result -= other
+        return result
+
+    def __neg__(self):
+        result = self.copy()
+        result *= -1.0
+        return result
+
     def __imul__(self, other: numbers.Complex):
         result = self.copy()
         result._linear_dict *= other

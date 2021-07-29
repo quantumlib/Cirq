@@ -289,9 +289,19 @@ def test_projector_sum_operations():
     simple_addition = zero_projector + one_projector
     np.testing.assert_allclose(simple_addition.matrix().toarray(), [[1.0, 0.0], [0.0, 1.0]])
 
+    simple_subtraction = zero_projector - one_projector
+    np.testing.assert_allclose(simple_subtraction.matrix().toarray(), [[1.0, 0.0], [0.0, -1.0]])
+
+    negation = -zero_projector
+    np.testing.assert_allclose(negation.matrix().toarray(), [[-1.0, 0.0], [0.0, 0.0]])
+
     incrementation = zero_projector
     incrementation += one_projector
     np.testing.assert_allclose(incrementation.matrix().toarray(), [[1.0, 0.0], [0.0, 1.0]])
+
+    decrementation = zero_projector
+    decrementation -= one_projector
+    np.testing.assert_allclose(decrementation.matrix().toarray(), [[1.0, 0.0], [0.0, -1.0]])
 
     weighted_sum = 0.6 * zero_projector + 0.4 * one_projector
     np.testing.assert_allclose(weighted_sum.matrix().toarray(), [[0.6, 0.0], [0.0, 0.4]])
