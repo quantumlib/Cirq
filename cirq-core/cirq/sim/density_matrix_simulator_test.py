@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-import platform
 import random
 from typing import Type
 from unittest import mock
