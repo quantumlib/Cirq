@@ -14,19 +14,84 @@
 
 # This is more of a placeholder for now, we can add
 # official color schemes in follow-ups.
-SymbolColors = {
-    '?': '#d3d3d3',
-    '@': 'black',
-    'H': 'yellow',
-    'I': 'orange',
-    'X': 'black',
-    'Y': 'pink',
-    'Z': 'cyan',
-    'S': '#90EE90',
-    'T': '#CBC3E3',
-}
+import abc
+import dataclasses
+from typing import List, Optional
+import cirq
+
+@dataclasses.dataclass
+class SymbolInfo():
+    """Organizes information about a symbol.
+    """
+    labels: List[str]
+    colors: List[str]
+
+    @staticmethod
+    def unknown_operation(num_qubits: int) -> 'SymbolInfo':
+        symbol_info = SymbolInfo([], [])
+        for _ in range(num_qubits):
+            symbol_info.colors.append('gray')
+            symbol_info.labels.append('?')
+        return symbol_info
+
+class SymbolResolver(metaclass=abc.ABCMeta):
+    """Abstract class providing the interface for users to specify information
+    about how a particular symbol should be displayed in the 3D circuit
+    """
+    def __call__(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
+        return self.resolve(operation)
+
+    @abc.abstractmethod
+    def resolve(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
+        pass
+
+class DefaultResolver(SymbolResolver):
+    """Default symbol resolver implementation. Takes information
+    from circuit_diagram_info, if unavailable, returns information representing
+    an unknown symbol.
+    """
+    _SYMBOL_COLORS = {
+        '@': 'black',
+        'H': 'yellow',
+        'I': 'orange',
+        'X': 'black',
+        'Y': 'pink',
+        'Z': 'cyan',
+        'S': '#90EE90',
+        'T': '#CBC3E3', 
+    }
+    
+    def resolve(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
+        try: 
+            wire_symbols = cirq.circuit_diagram_info(operation).wire_symbols
+            if wire_symbols is NotImplemented:
+                return SymbolInfo.unknown_operation(cirq.num_qubits(operation))
+        except TypeError:
+            return SymbolInfo.unknown_operation(cirq.num_qubits(operation))
+
+        symbol_info = SymbolInfo(list(wire_symbols), [])
+        for symbol in wire_symbols:
+            symbol_info.colors.append(DefaultResolver._SYMBOL_COLORS.get(symbol, 'gray'))
+
+        return symbol_info
+
+DEFAULT_SYMBOL_RESOLVERS: List[SymbolResolver] = [
+    DefaultResolver()
+]
+
+def resolve_operation(operation: cirq.Operation, resolvers: List[SymbolResolver]) -> Optional[SymbolInfo]:
+    symbol_info = None
+    for resolver in resolvers:
+        info = resolver(operation)
+        if info is not None:
+            symbol_info = info
+    return symbol_info
 
 
+## 3D symbol resolver
+## takes an operation, if it matches the operation, returns back how to build it
+# I, xpow, ypow, zpow
+# lambda expresssion
 class Operation3DSymbol:
     def __init__(self, wire_symbols, location_info, color_info, moment):
         """Gathers symbol information from an operation and builds an

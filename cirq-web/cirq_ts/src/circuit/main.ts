@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Scene, PerspectiveCamera, WebGLRenderer} from 'three';
+import {Scene, PerspectiveCamera, WebGLRenderer, OrthographicCamera} from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {GridCircuit} from './grid_circuit';
 import {Coord} from './components/types';
@@ -31,6 +31,7 @@ function createAndRenderScene(numQubits: number, sceneId: string): Scene {
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 1000);
+  //const camera = new OrthographicCamera(WIDTH / -2 , WIDTH / 2, HEIGHT / 2, HEIGHT / -2, 1, 1000);
 
   const renderer = new WebGLRenderer({alpha: true});
   const controls = new OrbitControls(camera, renderer.domElement);

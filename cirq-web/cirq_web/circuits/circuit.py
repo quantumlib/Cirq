@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq.ops.raw_types import Operation
 from cirq_web import widget
-from cirq_web.circuits.gates import Operation3DSymbol, SymbolColors
+from cirq_web.circuits.gates import Operation3DSymbol, resolve_operation, DEFAULT_SYMBOL_RESOLVERS
 
 from cirq import num_qubits
 from cirq.protocols import circuit_diagram_info
 
-
 class Circuit3D(widget.Widget):
-    def __init__(self, circuit):
+    def __init__(self, circuit, resolvers=DEFAULT_SYMBOL_RESOLVERS):
         """Initializes a Circuit instance.
 
         Args:
@@ -28,6 +28,7 @@ class Circuit3D(widget.Widget):
         """
         super().__init__()
         self.circuit = circuit
+        self._resolvers = resolvers
 
     def get_client_code(self) -> str:
         # Remove hyphens from the id so that we can use
@@ -71,42 +72,13 @@ class Circuit3D(widget.Widget):
         return f'[{argument_str}]'
 
     def _build_3D_symbol(self, operation, moment) -> Operation3DSymbol:
+        symbol_info = resolve_operation(operation, self._resolvers)
         location_info = []
-        color_info = []
-
         for qubit in operation.qubits:
             location_info.append({'row': qubit.row, 'col': qubit.col})
-
-        try:
-            wire_symbols = circuit_diagram_info(operation).wire_symbols
-            if wire_symbols is NotImplemented:
-                for _ in range(num_qubits(operation)):
-                    color_info.append('#d3d3d3')
-                return Operation3DSymbol(
-                    '?',
-                    location_info,
-                    color_info,
-                    moment,
-                )
-        except TypeError:
-            for _ in range(num_qubits(operation)):
-                color_info.append('#d3d3d3')
-
-            return Operation3DSymbol(
-                '?',
-                location_info,
-                color_info,
-                moment,
-            )
-
-        for symbol in wire_symbols:
-            color_info.append(SymbolColors.get(symbol, '#D3D3D3'))
-
-        symbol = Operation3DSymbol(
-            wire_symbols,
+        return Operation3DSymbol(
+            symbol_info.labels,
             location_info,
-            color_info,
-            moment,
+            symbol_info.colors,
+            moment
         )
-
-        return symbol
