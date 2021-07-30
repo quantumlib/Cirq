@@ -352,7 +352,7 @@ class DensityMatrixStepResult(
             state = self._merged_sim_state
             if state is not None:
                 matrix = state.target_tensor
-                size = int(np.sqrt(np.prod(matrix.shape, dtype=int)))
+                size = int(np.sqrt(np.prod(matrix.shape, dtype=np.int64)))
                 self._density_matrix = np.reshape(matrix, (size, size))
         return self._density_matrix.copy() if copy else self._density_matrix
 
@@ -435,7 +435,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
-        size = np.prod(protocols.qid_shape(self), dtype=int)
+        size = np.prod(protocols.qid_shape(self), dtype=np.int64)
         self.final_density_matrix = np.reshape(
             final_simulator_state.density_matrix.copy(), (size, size)
         )

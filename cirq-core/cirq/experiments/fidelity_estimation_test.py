@@ -25,7 +25,7 @@ def sample_noisy_bitstrings(
     circuit: cirq.Circuit, qubit_order: Sequence[cirq.Qid], depolarization: float, repetitions: int
 ) -> np.ndarray:
     assert 0 <= depolarization <= 1
-    dim = np.product(circuit.qid_shape())
+    dim = np.prod(circuit.qid_shape(), dtype=np.int64)
     n_incoherent = int(depolarization * repetitions)
     n_coherent = repetitions - n_incoherent
     incoherent_samples = np.random.randint(dim, size=n_incoherent)
