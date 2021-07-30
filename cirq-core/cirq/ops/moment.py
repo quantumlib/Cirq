@@ -495,7 +495,7 @@ class Moment:
 
         return True
 
-    def get_single_gate_from_moment(self) -> Optional['cirq.Operation']:
+    def get_single_gate_from_moment(self) -> Optional['cirq.Gate']:
         """Returns the gate if there is only a single gate or if all gates are
          the same, or None if the gates do not match.
 
