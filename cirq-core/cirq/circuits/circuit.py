@@ -590,8 +590,7 @@ class AbstractCircuit(abc.ABC):
         start_frontier: Dict['cirq.Qid', int],
         is_blocker: Callable[['cirq.Operation'], bool] = lambda op: False,
     ) -> List[Tuple[int, ops.Operation]]:
-        """
-        Finds all operations until a blocking operation is hit.
+        """Finds all operations until a blocking operation is hit.
 
         An operation is considered blocking if
 
@@ -1001,7 +1000,7 @@ class AbstractCircuit(abc.ABC):
 
         # Force qubits to have dimension at least 2 for backwards compatibility.
         qid_shape = self.qid_shape(qubit_order=qs)
-        side_len = np.product(qid_shape, dtype=int)
+        side_len = np.prod(qid_shape, dtype=np.int64)
 
         state = qis.eye_tensor(qid_shape, dtype=dtype)
 
@@ -1084,7 +1083,7 @@ class AbstractCircuit(abc.ABC):
 
         # Force qubits to have dimension at least 2 for backwards compatibility.
         qid_shape = self.qid_shape(qubit_order=qs)
-        state_len = np.product(qid_shape, dtype=int)
+        state_len = np.prod(qid_shape, dtype=np.int64)
 
         state = qis.to_valid_state_vector(initial_state, qid_shape=qid_shape, dtype=dtype).reshape(
             qid_shape

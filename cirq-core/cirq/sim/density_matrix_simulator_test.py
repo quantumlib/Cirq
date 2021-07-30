@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Type
-from unittest import mock
 import itertools
 import random
+from typing import Type
+from unittest import mock
+
 import numpy as np
 import pytest
 import sympy
@@ -998,7 +999,8 @@ def test_density_matrix_simulator_state_repr():
 
 def test_density_matrix_trial_result_eq():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.DensityMatrixSimulatorState(
+    final_step_result = mock.Mock(cirq.StepResult)
+    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
         density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
     )
     eq = cirq.testing.EqualsTester()
@@ -1006,53 +1008,56 @@ def test_density_matrix_trial_result_eq():
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({}),
             measurements={},
-            final_simulator_state=final_simulator_state,
+            final_step_result=final_step_result,
         ),
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({}),
             measurements={},
-            final_simulator_state=final_simulator_state,
+            final_step_result=final_step_result,
         ),
     )
     eq.add_equality_group(
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={},
-            final_simulator_state=final_simulator_state,
+            final_step_result=final_step_result,
         )
     )
     eq.add_equality_group(
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([[1]])},
-            final_simulator_state=final_simulator_state,
+            final_step_result=final_step_result,
         )
     )
 
 
 def test_density_matrix_trial_result_qid_shape():
     q0, q1 = cirq.LineQubit.range(2)
+    final_step_result = mock.Mock(cirq.StepResult)
+    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
+        density_matrix=np.ones((4, 4)) / 4, qubit_map={q0: 0, q1: 1}
+    )
     assert (
         cirq.qid_shape(
             cirq.DensityMatrixTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={},
-                final_simulator_state=cirq.DensityMatrixSimulatorState(
-                    density_matrix=np.ones((4, 4)) / 4, qubit_map={q0: 0, q1: 1}
-                ),
+                final_step_result=final_step_result,
             ),
         )
         == (2, 2)
     )
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
+    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
+        density_matrix=np.ones((12, 12)) / 12, qubit_map={q0: 0, q1: 1}
+    )
     assert (
         cirq.qid_shape(
             cirq.DensityMatrixTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={},
-                final_simulator_state=cirq.DensityMatrixSimulatorState(
-                    density_matrix=np.ones((12, 12)) / 12, qubit_map={q0: 0, q1: 1}
-                ),
+                final_step_result=final_step_result,
             ),
         )
         == (3, 4)
@@ -1061,7 +1066,8 @@ def test_density_matrix_trial_result_qid_shape():
 
 def test_density_matrix_trial_result_repr():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.DensityMatrixSimulatorState(
+    final_step_result = mock.Mock(cirq.StepResult)
+    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
         density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
     )
     assert (
@@ -1069,7 +1075,7 @@ def test_density_matrix_trial_result_repr():
             cirq.DensityMatrixTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([[1]])},
-                final_simulator_state=final_simulator_state,
+                final_step_result=final_step_result,
             )
         )
         == "cirq.DensityMatrixTrialResult("
@@ -1166,11 +1172,12 @@ def test_works_on_pauli_string():
 
 def test_density_matrix_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.DensityMatrixSimulatorState(
+    final_step_result = mock.Mock(cirq.StepResult)
+    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
         density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
     )
     result = cirq.DensityMatrixTrialResult(
-        params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
+        params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
     )
 
     # numpy varies whitespace in its representation for different versions
@@ -1527,3 +1534,26 @@ def test_density_matrices_same_with_or_without_split_untangled_states():
     sim = cirq.DensityMatrixSimulator(split_untangled_states=True)
     result2 = sim.simulate(circuit).final_density_matrix
     assert np.allclose(result1, result2)
+
+
+def test_large_untangled_okay():
+    circuit = cirq.Circuit()
+    for i in range(59):
+        for _ in range(9):
+            circuit.append(cirq.X(cirq.LineQubit(i)))
+        circuit.append(cirq.measure(cirq.LineQubit(i)))
+
+    # Validate this can't be allocated with entangled state
+    with pytest.raises(MemoryError, match='Unable to allocate'):
+        _ = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
+
+    # Validate a simulation run
+    result = cirq.DensityMatrixSimulator(split_untangled_states=True).simulate(circuit)
+    assert set(result._final_step_result._qubits) == set(cirq.LineQubit.range(59))
+    # _ = result.final_density_matrix hangs (as expected)
+
+    # Validate a trial run and sampling
+    result = cirq.DensityMatrixSimulator(split_untangled_states=True).run(circuit, repetitions=1000)
+    assert len(result.measurements) == 59
+    assert len(result.measurements['0']) == 1000
+    assert (result.measurements['0'] == np.full(1000, 1)).all()

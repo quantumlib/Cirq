@@ -13,7 +13,7 @@
 # limitations under the License.
 """IdentityGate."""
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 import sympy
@@ -39,7 +39,8 @@ class IdentityGate(raw_types.Gate):
     def __init__(
         self, num_qubits: Optional[int] = None, qid_shape: Optional[Tuple[int, ...]] = None
     ) -> None:
-        """
+        """Inits IdentityGate.
+
         Args:
             num_qubits:
             qid_shape: Specifies the dimension of each qid the measurement
@@ -58,6 +59,9 @@ class IdentityGate(raw_types.Gate):
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
 
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
+        return True
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
@@ -73,7 +77,7 @@ class IdentityGate(raw_types.Gate):
         return True
 
     def _unitary_(self) -> np.ndarray:
-        return np.identity(np.prod(self._qid_shape, dtype=int).item())
+        return np.identity(np.prod(self._qid_shape, dtype=np.int64).item())
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         return args.target_tensor
