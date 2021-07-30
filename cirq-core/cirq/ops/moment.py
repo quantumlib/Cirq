@@ -49,6 +49,18 @@ def _default_breakdown(qid: 'cirq.Qid') -> Tuple[Any, Any]:
         return None, qid
 
 
+def _have_equal_gates(op1, op2):
+    """Compares two operations and returns a boolean of it their gates
+     match.
+     Returns:
+         bool: True if both gates are not null, the same, and take in
+            the same number of qubits from their operations.
+    """
+    if op1.gate is None or op2.gate is None:
+        return False
+    return len(op1.qubits) == len(op2.qubits) and op1.gate == op2.gate
+
+
 class Moment:
     """A time-slice of operations within a circuit.
 
@@ -482,6 +494,25 @@ class Moment:
                 return commutes
 
         return True
+
+    def get_single_gate_from_moment(self) -> Optional['cirq.Gate']:
+        """Returns the gate if there is only a single gate or if all gates are
+        the same, or None if the gates do not match.
+        Returns:
+            Gate: When all gates from all operations in the moment match each
+                other, the gate from the first operation is returned.
+            None: When there is no operation or different gates in the
+                operations are found, or the operations do not have a gate.
+        """
+        if not self.operations:
+            return None
+
+        for op_index in range(len(self.operations) - 1):
+            if not _have_equal_gates(self.operations[op_index],
+                                     self.operations[op_index+1]):
+                return None
+
+        return self.operations[0].gate
 
 
 class _SortByValFallbackToType:

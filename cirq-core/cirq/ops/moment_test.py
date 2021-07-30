@@ -617,3 +617,20 @@ def test_transform_qubits():
     assert original.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
+
+
+def test_single_gate_no_gates():
+    assert cirq.Moment().get_single_gate_from_moment() is None
+
+
+def test_single_gate_same_gates():
+    a = cirq.H(cirq.NamedQubit('a'))
+    b = cirq.H(cirq.NamedQubit('b'))
+    c = cirq.H(cirq.NamedQubit('c'))
+    assert cirq.Moment([a, b, c]).get_single_gate_from_moment() == cirq.H
+
+
+def test_single_gate_different_gates():
+    a = cirq.H(cirq.NamedQubit('a'))
+    b = cirq.X(cirq.NamedQubit('b'))
+    assert cirq.Moment([a, b]).get_single_gate_from_moment() is None
