@@ -1,7 +1,7 @@
-from typing import Any, Dict, Iterable, Optional, Tuple
+from typing import Any, Dict, Iterable, Tuple, Union
 import numpy as np
 
-from cirq import protocols, value
+from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import raw_types
 
@@ -14,10 +14,16 @@ class KrausChannel(raw_types.Gate):
         key: an optional measurement key string for this channel. Simulations
             which select a single Kraus operator to apply will store the index
             of that operator in the measurement result list with this key.
+        validate: if True, validate that `kraus_ops` describe a valid channel.
+            This validation can be slow; prefer pre-validating if possible.
     """
 
-    def __init__(self, kraus_ops: Iterable[np.ndarray], key: Optional[str] = None):
-        # TODO: validate channel representations (issue #2271)
+    def __init__(
+        self,
+        kraus_ops: Iterable[np.ndarray],
+        key: Union[str, value.MeasurementKey, None] = None,
+        validate: bool = False,
+    ):
         kraus_ops = list(kraus_ops)
         if not kraus_ops:
             raise ValueError('KrausChannel must have at least one operation.')
@@ -34,16 +40,17 @@ class KrausChannel(raw_types.Gate):
                     'Inconsistent Kraus operator sizes: '
                     f'op[0]: {kraus_ops[0].size}, op[{i}]: {op.size}'
                 )
+        if validate and not linalg.is_cptp(kraus_ops=kraus_ops):
+            raise ValueError('Kraus operators do not describe a CPTP map.')
         self._kraus_ops = kraus_ops
-        if key is None:
-            self._key = None
-        elif isinstance(key, value.MeasurementKey):
-            self._key = key
-        else:
-            self._key = value.MeasurementKey(key)
+        if not isinstance(key, value.MeasurementKey) and key is not None:
+            key = value.MeasurementKey(key)
+        self._key = key
 
     @staticmethod
-    def from_channel(channel: 'protocols.SupportsChannel', key: Optional[str] = None):
+    def from_channel(
+        channel: 'protocols.SupportsChannel', key: Union[str, value.MeasurementKey, None] = None
+    ):
         """Creates a copy of a channel with the given measurement key."""
         return KrausChannel(kraus_ops=list(protocols.kraus(channel)), key=key)
 

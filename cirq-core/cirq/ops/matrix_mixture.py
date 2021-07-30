@@ -1,7 +1,7 @@
-from typing import Any, Dict, Iterable, Optional, Tuple
+from typing import Any, Dict, Iterable, Tuple, Union
 import numpy as np
 
-from cirq import protocols, value
+from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import raw_types
 
@@ -14,9 +14,16 @@ class MatrixMixture(raw_types.Gate):
         key: an optional measurement key string for this mixture. Simulations
             which select a single unitary to apply will store the index
             of that unitary in the measurement result list with this key.
+        validate: if True, validate that `mixture` describes a valid mixture.
+            This validation can be slow; prefer pre-validating if possible.
     """
 
-    def __init__(self, mixture: Iterable[Tuple[float, np.ndarray]], key: Optional[str] = None):
+    def __init__(
+        self,
+        mixture: Iterable[Tuple[float, np.ndarray]],
+        key: Union[str, value.MeasurementKey, None] = None,
+        validate: bool = False,
+    ):
         mixture = list(mixture)
         if not mixture:
             raise ValueError('MatrixMixture must have at least one unitary.')
@@ -34,16 +41,17 @@ class MatrixMixture(raw_types.Gate):
                 raise ValueError(
                     f'Inconsistent unitary sizes: op[0]: {m0.size}, op[{i}]: {op.size}'
                 )
+            if validate and not linalg.is_unitary(op):
+                raise ValueError(f'Element {i} of mixture is non-unitary.')
         self._mixture = mixture
-        if key is None:
-            self._key = None
-        elif isinstance(key, value.MeasurementKey):
-            self._key = key
-        else:
-            self._key = value.MeasurementKey(key)
+        if not isinstance(key, value.MeasurementKey) and key is not None:
+            key = value.MeasurementKey(key)
+        self._key = key
 
     @staticmethod
-    def from_mixture(mixture: 'protocols.SupportsMixture', key: Optional[str] = None):
+    def from_mixture(
+        mixture: 'protocols.SupportsMixture', key: Union[str, value.MeasurementKey, None] = None
+    ):
         """Creates a copy of a mixture with the given measurement key."""
         return MatrixMixture(mixture=list(protocols.mixture(mixture)), key=key)
 

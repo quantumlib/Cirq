@@ -78,7 +78,7 @@ def test_matrix_mixture_from_unitaries():
     assert results.measurements['flip'] == results.measurements['m']
 
 
-def test_kraus_channel_str():
+def test_matrix_mixture_str():
     mix = [
         (0.5, np.array([[1, 0], [0, 1]])),
         (0.5, np.array([[0, 1], [1, 0]])),
@@ -99,7 +99,7 @@ def test_kraus_channel_str():
     )
 
 
-def test_kraus_channel_repr():
+def test_matrix_mixture_repr():
     mix = [
         (0.5, np.array([[1, 0], [0, 1]], dtype=np.complex64)),
         (0.5, np.array([[0, 1], [1, 0]], dtype=np.complex64)),
@@ -147,3 +147,12 @@ def test_nonqubit_mixture_fails():
 
     with pytest.raises(ValueError, match='Input mixture'):
         _ = cirq.MatrixMixture(mixture=mix, key='m')
+
+
+def test_validate():
+    mix = [
+        (0.5, np.array([[1, 0], [0, 0]])),
+        (0.5, np.array([[0, 0], [0, 1]])),
+    ]
+    with pytest.raises(ValueError, match='non-unitary'):
+        _ = cirq.MatrixMixture(mixture=mix, key='m', validate=True)

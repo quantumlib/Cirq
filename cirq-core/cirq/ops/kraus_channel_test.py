@@ -142,3 +142,13 @@ def test_nonqubit_kraus_ops_fails():
 
     with pytest.raises(ValueError, match='Input Kraus ops'):
         _ = cirq.KrausChannel(kraus_ops=ops, key='m')
+
+
+def test_validate():
+    # Not quite CPTP.
+    ops = [
+        np.array([[1, 0], [0, 0]]),
+        np.array([[0, 0], [0, 0.9]]),
+    ]
+    with pytest.raises(ValueError, match='CPTP map'):
+        _ = cirq.KrausChannel(kraus_ops=ops, key='m', validate=True)
