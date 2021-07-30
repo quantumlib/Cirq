@@ -53,6 +53,4 @@ for folder in $CIRQ_FOLDERS; do
   "${tmp_dir}/env/bin/python" -m pip install ./cirq-core ./$folder  && echo -e "\033[32mPASS\033[0m"  || fail "'pip install ./cirq-core ./$folder'"
   echo "-- running pytest $folder"
   "${tmp_dir}/env/bin/pytest" ./$folder --ignore ./cirq-core/cirq/contrib
-
-  "${tmp_dir}/env/bin/python" -m pip uninstall cirq-core $folder -y
 done
