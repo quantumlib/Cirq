@@ -44,14 +44,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _on_transpose(self, qubits, target):
         pass
 
-    def _on_factor(
-        self,
-        qubits,
-        extracted,
-        remainder,
-        validate=True,
-        atol=1e-07,
-    ):
+    def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
         pass
 
     def sample(self, qubits, repetitions=1, seed=None):

@@ -58,14 +58,7 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         target.gate_count = self.gate_count + other.gate_count
         target.measurement_count = self.measurement_count + other.measurement_count
 
-    def _on_factor(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        extracted: 'SplittableCountingActOnArgs',
-        remainder: 'SplittableCountingActOnArgs',
-        validate=True,
-        atol=1e-07,
-    ):
+    def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
         remainder.gate_count = 0
         remainder.measurement_count = 0
 
