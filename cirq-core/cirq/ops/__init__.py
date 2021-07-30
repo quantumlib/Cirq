@@ -127,8 +127,8 @@ from cirq.ops.linear_combinations import (
     PauliSumLike,
 )
 
-from cirq.ops.matrix_mixture import (
-    MatrixMixture,
+from cirq.ops.mixed_unitary_channel import (
+    MixedUnitaryChannel,
 )
 
 from cirq.ops.pauli_sum_exponential import (

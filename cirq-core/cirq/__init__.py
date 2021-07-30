@@ -221,7 +221,7 @@ from cirq.ops import (
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
     MatrixGate,
-    MatrixMixture,
+    MixedUnitaryChannel,
     measure,
     measure_each,
     MeasurementGate,

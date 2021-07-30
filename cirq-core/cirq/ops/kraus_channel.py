@@ -6,11 +6,14 @@ from cirq._compat import proper_repr
 from cirq.ops import raw_types
 
 
+# TODO: support qudits and non-square operators.
 class KrausChannel(raw_types.Gate):
     """A generic channel that can record the index of its selected operator.
 
     Args:
         kraus_ops: a list of Kraus operators, formatted as numpy array.
+            Currently, only square-matrix operators on qubits (not qudits) are
+            supported by this type.
         key: an optional measurement key string for this channel. Simulations
             which select a single Kraus operator to apply will store the index
             of that operator in the measurement result list with this key.

@@ -240,7 +240,7 @@ def test_measured_channel():
 
 def test_measured_mixture():
     # This behaves like an X-basis measurement.
-    mm = cirq.MatrixMixture(
+    mm = cirq.MixedUnitaryChannel(
         mixture=(
             (0.5, np.array([[1, 0], [0, 1]])),
             (0.5, np.array([[0, 1], [1, 0]])),

@@ -6,8 +6,10 @@ from cirq._compat import proper_repr
 from cirq.ops import raw_types
 
 
-class MatrixMixture(raw_types.Gate):
+class MixedUnitaryChannel(raw_types.Gate):
     """A generic mixture that can record the index of its selected operator.
+
+    This type of object is also referred to as a mixed-unitary channel.
 
     Args:
         mixture: a list of (probability, unitary) pairs
@@ -26,7 +28,7 @@ class MatrixMixture(raw_types.Gate):
     ):
         mixture = list(mixture)
         if not mixture:
-            raise ValueError('MatrixMixture must have at least one unitary.')
+            raise ValueError('MixedUnitaryChannel must have at least one unitary.')
         if not protocols.approx_eq(sum(p[0] for p in mixture), 1):
             raise ValueError('Unitary probabilities must sum to 1.')
         m0 = mixture[0][1]
@@ -53,10 +55,10 @@ class MatrixMixture(raw_types.Gate):
         mixture: 'protocols.SupportsMixture', key: Union[str, value.MeasurementKey, None] = None
     ):
         """Creates a copy of a mixture with the given measurement key."""
-        return MatrixMixture(mixture=list(protocols.mixture(mixture)), key=key)
+        return MixedUnitaryChannel(mixture=list(protocols.mixture(mixture)), key=key)
 
     def __eq__(self, other) -> bool:
-        if not isinstance(other, MatrixMixture):
+        if not isinstance(other, MixedUnitaryChannel):
             return NotImplemented
         if self._key != other._key:
             return False
@@ -86,15 +88,15 @@ class MatrixMixture(raw_types.Gate):
             return NotImplemented
         if self._key not in key_map:
             return self
-        return MatrixMixture(mixture=self._mixture, key=key_map[str(self._key)])
+        return MixedUnitaryChannel(mixture=self._mixture, key=key_map[str(self._key)])
 
     def _with_key_path_(self, path: Tuple[str, ...]):
-        return MatrixMixture(mixture=self._mixture, key=protocols.with_key_path(self._key, path))
+        return MixedUnitaryChannel(mixture=self._mixture, key=protocols.with_key_path(self._key, path))
 
     def __str__(self):
         if self._key is not None:
-            return f'MatrixMixture({self._mixture}, key={self._key})'
-        return f'MatrixMixture({self._mixture})'
+            return f'MixedUnitaryChannel({self._mixture}, key={self._key})'
+        return f'MixedUnitaryChannel({self._mixture})'
 
     def __repr__(self):
         unitary_tuples = [
@@ -103,7 +105,7 @@ class MatrixMixture(raw_types.Gate):
         args = [f'mixture=[{", ".join(unitary_tuples)}]']
         if self._key is not None:
             args.append(f'key=\'{self._key}\'')
-        return f'cirq.MatrixMixture({", ".join(args)})'
+        return f'cirq.MixedUnitaryChannel({", ".join(args)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['_mixture', '_key'])
