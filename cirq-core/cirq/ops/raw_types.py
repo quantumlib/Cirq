@@ -317,9 +317,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
-    def __eq__(self, other):
-        return type(self) == type(other)
-
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
         from cirq.ops.random_gate_channel import RandomGateChannel
 
@@ -599,8 +596,6 @@ class Operation(metaclass=abc.ABCMeta):
 
         return np.allclose(m12, m21, atol=atol)
 
-    def equal_gates(self, other):
-        return False
 
 @value.value_equality
 class TaggedOperation(Operation):
