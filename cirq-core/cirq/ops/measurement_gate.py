@@ -238,8 +238,10 @@ class MeasurementGate(raw_types.Gate):
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         return True
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
-        args.measure(qubits, self.key, self.full_invert_mask())
+    def _act_on_(self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']) -> bool:
+        from cirq.sim import ActOnArgs
+        if isinstance(args, ActOnArgs):
+            args.measure(qubits, self.key, self.full_invert_mask())
         return True
 
 

@@ -13,9 +13,23 @@
 # limitations under the License.
 """An interface for quantum states as targets for operations."""
 import abc
-from typing import TypeVar, TYPE_CHECKING, Generic, Dict, Any, Tuple, Optional, Iterator, List
+from typing import (
+    TypeVar,
+    TYPE_CHECKING,
+    Generic,
+    Dict,
+    Any,
+    Tuple,
+    Optional,
+    Iterator,
+    List,
+    Sequence,
+    Union,
+)
 
 import numpy as np
+
+from cirq import protocols
 
 if TYPE_CHECKING:
     import cirq
@@ -33,8 +47,16 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
         """Creates a final merged state."""
 
     @abc.abstractmethod
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ):
+        """Handles the act_on protocol fallback implementation."""
+
     def apply_operation(self, op: 'cirq.Operation'):
-        """Applies the operation to the state."""
+        protocols.act_on(op, self)
 
     @abc.abstractmethod
     def copy(self: TSelfTarget) -> TSelfTarget:

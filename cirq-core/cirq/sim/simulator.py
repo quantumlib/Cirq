@@ -633,7 +633,7 @@ class SimulatesIntermediateState(
     @abc.abstractmethod
     def _core_iterator(
         self,
-        circuit: circuits.Circuit,
+        circuit: circuits.AbstractCircuit,
         sim_state: 'cirq.OperationTarget[TActOnArgs]',
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Dict, Any, Sequence, Tuple, Optional
+from typing import List, Dict, Any, Sequence, Tuple, Optional, Union
 
 import cirq
 
@@ -32,7 +32,12 @@ class EmptyActOnArgs(cirq.ActOnArgs):
             logs=self.log_of_measurement_results.copy(),
         )
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ):
         return True
 
     def kronecker_product(self, other: 'EmptyActOnArgs') -> 'EmptyActOnArgs':
