@@ -6,7 +6,7 @@ from cirq._compat import proper_repr
 from cirq.ops import raw_types
 
 
-# TODO: support qudits and non-square operators.
+# TODO(#3241): support qudits and non-square operators.
 class KrausChannel(raw_types.Gate):
     """A generic channel that can record the index of its selected operator.
 
