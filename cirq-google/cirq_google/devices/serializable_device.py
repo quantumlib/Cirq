@@ -112,6 +112,8 @@ class SerializableDevice(cirq.Device):
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
+    # TODO(#3388) Add summary line to docstring.
+    # pylint: disable=docstring-first-line-empty
     @classmethod
     def from_proto(
         cls,
@@ -184,6 +186,7 @@ class SerializableDevice(cirq.Device):
             gate_definitions=gates_by_type,
         )
 
+    # pylint: enable=docstring-first-line-empty
     @classmethod
     def _create_target_set(cls, ts: v2.device_pb2.TargetSet) -> Set[Tuple[cirq.Qid, ...]]:
         """Transform a TargetSet proto into a set of qubit tuples"""

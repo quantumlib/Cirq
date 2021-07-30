@@ -45,6 +45,7 @@ from cirq.ops.common_channels import (
     PhaseDampingChannel,
     PhaseFlipChannel,
     reset,
+    reset_each,
     ResetChannel,
 )
 
@@ -136,6 +137,10 @@ from cirq.ops.pauli_sum_exponential import (
 
 from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,
+)
+
+from cirq.ops.projector import (
+    ProjectorString,
 )
 
 from cirq.ops.controlled_operation import (

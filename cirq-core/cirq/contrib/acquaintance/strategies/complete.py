@@ -27,6 +27,8 @@ if TYPE_CHECKING:
     import cirq
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def complete_acquaintance_strategy(
     qubit_order: Sequence['cirq.Qid'], acquaintance_size: int = 0, swap_gate: 'cirq.Gate' = ops.SWAP
 ) -> 'cirq.Circuit':
@@ -61,3 +63,6 @@ def complete_acquaintance_strategy(
         expose_acquaintance_gates(strategy)
         replace_acquaintance_with_swap_network(strategy, qubit_order, size_to_acquaint, swap_gate)
     return strategy
+
+
+# pylint: enable=docstring-first-line-empty

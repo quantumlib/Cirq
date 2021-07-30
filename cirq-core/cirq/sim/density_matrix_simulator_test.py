@@ -532,7 +532,7 @@ def test_simulate_qudits(dtype: Type[np.number], split: bool):
         [cirq.testing.random_circuit(cirq.LineQubit.range(4), 5, 0.9) for _ in range(20)],
     ),
 )
-def test_simulate_compare_to_state_vector_simulator(dtype, circuit):
+def test_simulate_compare_to_state_vector_simulator(dtype: Type[np.number], circuit):
     qubits = cirq.LineQubit.range(4)
     pure_result = (
         cirq.Simulator(dtype=dtype).simulate(circuit, qubit_order=qubits).density_matrix_of()
@@ -543,7 +543,7 @@ def test_simulate_compare_to_state_vector_simulator(dtype, circuit):
         .final_density_matrix
     )
     assert mixed_result.shape == (16, 16)
-    np.testing.assert_almost_equal(mixed_result, pure_result)
+    np.testing.assert_almost_equal(mixed_result, pure_result, decimal=6)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -768,10 +768,7 @@ def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool
     for step in simulator.simulate_moment_steps(circuit):
         pass
     assert step._simulator_state() == cirq.DensityMatrixSimulatorState(
-        density_matrix=np.array(
-            1,
-        ),
-        qubit_map={},
+        density_matrix=np.array([[1]]), qubit_map={}
     )
 
 
@@ -1486,7 +1483,7 @@ def test_measuring_subcircuits_cause_sweep_repeat():
 
 
 def test_density_matrix_copy():
-    sim = cirq.DensityMatrixSimulator()
+    sim = cirq.DensityMatrixSimulator(split_untangled_states=False)
 
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.H(q))
@@ -1520,3 +1517,13 @@ def test_final_density_matrix_is_not_last_object():
     assert result.final_density_matrix is not initial_state
     assert not np.shares_memory(result.final_density_matrix, initial_state)
     np.testing.assert_equal(result.final_density_matrix, initial_state)
+
+
+def test_density_matrices_same_with_or_without_split_untangled_states():
+    sim = cirq.DensityMatrixSimulator(split_untangled_states=False)
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CX.on(q0, q1), cirq.reset(q1))
+    result1 = sim.simulate(circuit).final_density_matrix
+    sim = cirq.DensityMatrixSimulator(split_untangled_states=True)
+    result2 = sim.simulate(circuit).final_density_matrix
+    assert np.allclose(result1, result2)

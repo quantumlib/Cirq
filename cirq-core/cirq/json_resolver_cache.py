@@ -119,6 +119,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
+        'ProjectorString': cirq.ProjectorString,
         'RandomGateChannel': cirq.RandomGateChannel,
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
@@ -130,6 +131,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SwapPowGate': cirq.SwapPowGate,
         'SymmetricalQidPair': cirq.SymmetricalQidPair,
         'TaggedOperation': cirq.TaggedOperation,
+        'TrialResult': cirq.Result,  # keep support for Cirq < 0.11.
         'Result': cirq.Result,
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,
