@@ -149,6 +149,21 @@ def is_normal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> 
     return matrix_commutes(matrix, matrix.T.conj(), rtol=rtol, atol=atol)
 
 
+def is_cptp(*, kraus_ops: Sequence[np.ndarray], rtol: float = 1e-5, atol: float = 1e-8):
+    """Determines if a channel is completely positive trace preserving (CPTP).
+
+    A channel composed of Kraus operators K[0:n] is a CPTP map if the sum of
+    the products `adjoint(K[i]) * K[i])` is equal to 1.
+
+    Args:
+        kraus_ops: The Kraus operators of the channel to check.
+        rtol: The relative tolerance on equality.
+        atol: The absolute tolerance on equality.
+    """
+    sum_ndarray = cast(np.ndarray, sum(matrix.T.conj() @ matrix for matrix in kraus_ops))
+    return np.allclose(sum_ndarray, np.eye(*sum_ndarray.shape), rtol=rtol, atol=atol)
+
+
 def matrix_commutes(
     m1: np.ndarray, m2: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8
 ) -> bool:
