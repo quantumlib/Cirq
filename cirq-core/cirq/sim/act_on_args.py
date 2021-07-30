@@ -132,7 +132,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         return args
 
     def _on_kron(self: TSelf, other: TSelf, target: TSelf):
-        raise NotImplementedError()
+        """Subclasses should implement this with any additional state product
+        functionality, if supported."""
 
     def factor(
         self: TSelf,
@@ -158,7 +159,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         validate=True,
         atol=1e-07,
     ):
-        raise NotImplementedError()
+        """Subclasses should implement this with any additional state factor
+        functionality, if supported."""
 
     def transpose_to_qubit_order(
         self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False
@@ -171,7 +173,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         return args
 
     def _on_transpose(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
-        raise NotImplementedError()
+        """Subclasses should implement this with any additional state transpose
+        functionality, if supported."""
 
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
