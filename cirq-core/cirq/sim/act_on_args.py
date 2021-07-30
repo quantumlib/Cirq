@@ -131,6 +131,9 @@ class ActOnArgs(OperationTarget[TSelf]):
         args._set_qubits(self.qubits + other.qubits)
         return args
 
+    def _on_kron(self: TSelf, other: TSelf, target: TSelf):
+        raise NotImplementedError()
+
     def factor(
         self: TSelf,
         qubits: Sequence['cirq.Qid'],
@@ -147,19 +150,6 @@ class ActOnArgs(OperationTarget[TSelf]):
         remainder._set_qubits([q for q in self.qubits if q not in qubits])
         return extracted, remainder
 
-    def transpose_to_qubit_order(
-        self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False
-    ) -> TSelf:
-        """Physically reindexes the state by the new basis."""
-        args = self if inplace else copy.copy(self)
-        assert set(qubits) == set(self.qubits)
-        self._on_transpose(qubits, args)
-        args._set_qubits(qubits)
-        return args
-
-    def _on_kron(self: TSelf, other: TSelf, target: TSelf):
-        raise NotImplementedError()
-
     def _on_factor(
         self: TSelf,
         qubits: Sequence['cirq.Qid'],
@@ -169,6 +159,16 @@ class ActOnArgs(OperationTarget[TSelf]):
         atol=1e-07,
     ):
         raise NotImplementedError()
+
+    def transpose_to_qubit_order(
+        self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False
+    ) -> TSelf:
+        """Physically reindexes the state by the new basis."""
+        args = self if inplace else copy.copy(self)
+        assert set(qubits) == set(self.qubits)
+        self._on_transpose(qubits, args)
+        args._set_qubits(qubits)
+        return args
 
     def _on_transpose(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
         raise NotImplementedError()
