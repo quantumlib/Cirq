@@ -44,7 +44,7 @@ def _validate_int_state(state: int, qid_shape: Optional[Tuple[int, ...]]) -> Non
             f'but {state} was given.'
         )
     if qid_shape is not None:
-        dim = np.prod(qid_shape)
+        dim = np.prod(qid_shape, dtype=np.int64)
         if state >= dim:
             raise ValueError(
                 'Invalid state for given qid shape: '
@@ -155,10 +155,10 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
 ) -> Tuple[np.ndarray, np.ndarray]:
     if state1.ndim > 2 or (state1.ndim == 2 and state1.shape[0] != state1.shape[1]):
         # State tensor, convert to state vector
-        state1 = np.reshape(state1, (np.prod(state1.shape).item(),))
+        state1 = np.reshape(state1, (np.prod(state1.shape, dtype=np.int64).item(),))
     if state2.ndim > 2 or (state2.ndim == 2 and state2.shape[0] != state2.shape[1]):
         # State tensor, convert to state vector
-        state2 = np.reshape(state2, (np.prod(state2.shape).item(),))
+        state2 = np.reshape(state2, (np.prod(state2.shape, dtype=np.int64).item(),))
     if state1.ndim == 2 and state2.ndim == 2:
         # Must be square matrices
         if state1.shape == state2.shape:
@@ -171,32 +171,44 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
                 )
             if state1.shape == qid_shape:
                 # State tensors, convert to state vectors
-                state1 = np.reshape(state1, (np.prod(qid_shape).item(),))
-                state2 = np.reshape(state2, (np.prod(qid_shape).item(),))
+                state1 = np.reshape(state1, (np.prod(qid_shape, dtype=np.int64).item(),))
+                state2 = np.reshape(state2, (np.prod(qid_shape, dtype=np.int64).item(),))
         elif state1.shape[0] < state2.shape[0]:
             # state1 is state tensor and state2 is density matrix.
             # Convert state1 to state vector
-            state1 = np.reshape(state1, (np.prod(state1.shape).item(),))
+            state1 = np.reshape(state1, (np.prod(state1.shape, dtype=np.int64).item(),))
         else:  # state1.shape[0] > state2.shape[0]
             # state2 is state tensor and state1 is density matrix.
             # Convert state2 to state vector
-            state2 = np.reshape(state2, (np.prod(state2.shape).item(),))
-    elif state1.ndim == 2 and state2.ndim < 2 and np.prod(state1.shape) == np.prod(state2.shape):
+            state2 = np.reshape(state2, (np.prod(state2.shape, dtype=np.int64).item(),))
+    elif (
+        state1.ndim == 2
+        and state2.ndim < 2
+        and np.prod(state1.shape, dtype=np.int64) == np.prod(state2.shape, dtype=np.int64)
+    ):
         # state1 is state tensor, convert to state vector
-        state1 = np.reshape(state1, (np.prod(state1.shape).item(),))
-    elif state1.ndim < 2 and state2.ndim == 2 and np.prod(state1.shape) == np.prod(state2.shape):
+        state1 = np.reshape(state1, (np.prod(state1.shape, dtype=np.int64).item(),))
+    elif (
+        state1.ndim < 2
+        and state2.ndim == 2
+        and np.prod(state1.shape, dtype=np.int64) == np.prod(state2.shape, dtype=np.int64)
+    ):
         # state2 is state tensor, convert to state vector
-        state2 = np.reshape(state2, (np.prod(state2.shape).item(),))
+        state2 = np.reshape(state2, (np.prod(state2.shape, dtype=np.int64).item(),))
 
     if validate:
-        dim1: int = state1.shape[0] if state1.ndim == 2 else np.prod(state1.shape).item()
-        dim2: int = state2.shape[0] if state2.ndim == 2 else np.prod(state2.shape).item()
+        dim1: int = (
+            state1.shape[0] if state1.ndim == 2 else np.prod(state1.shape, dtype=np.int64).item()
+        )
+        dim2: int = (
+            state2.shape[0] if state2.ndim == 2 else np.prod(state2.shape, dtype=np.int64).item()
+        )
         if dim1 != dim2:
             raise ValueError('Mismatched dimensions in given states: ' f'{dim1} and {dim2}.')
         if qid_shape is None:
             qid_shape = (dim1,)
         else:
-            expected_dim = np.prod(qid_shape)
+            expected_dim = np.prod(qid_shape, dtype=np.int64)
             if dim1 != expected_dim:
                 raise ValueError(
                     'Invalid state dimension for given qid shape: '

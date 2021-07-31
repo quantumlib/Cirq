@@ -137,7 +137,7 @@ class ControlledOperation(raw_types.Operation):
         for control_vals in itertools.product(*self.control_values):
             active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
             tensor[active] = sub_tensor
-        return tensor.reshape((np.prod(qid_shape, dtype=int).item(),) * 2)
+        return tensor.reshape((np.prod(qid_shape, dtype=np.int64).item(),) * 2)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         sub_matrix = protocols.unitary(self.sub_operation, None)

@@ -77,7 +77,7 @@ class IdentityGate(raw_types.Gate):
         return True
 
     def _unitary_(self) -> np.ndarray:
-        return np.identity(np.prod(self._qid_shape, dtype=int).item())
+        return np.identity(np.prod(self._qid_shape, dtype=np.int64).item())
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         return args.target_tensor
