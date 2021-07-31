@@ -14,8 +14,18 @@
 """Abstract classes for simulations which keep track of state vector."""
 
 import abc
-
-from typing import Any, Dict, Iterator, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar, Type
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    Sequence,
+    TYPE_CHECKING,
+    Tuple,
+    Generic,
+    TypeVar,
+    Type,
+    Optional,
+)
 
 import numpy as np
 
@@ -65,10 +75,10 @@ class SimulatesIntermediateStateVector(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'StateVectorSimulatorState',
+        final_step_result: 'StateVectorStepResult',
     ) -> 'StateVectorTrialResult':
         return StateVectorTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
     def compute_amplitudes_sweep_iter(
@@ -145,15 +155,21 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: StateVectorSimulatorState,
+        final_step_result: StateVectorStepResult,
     ) -> None:
         super().__init__(
             params=params,
             measurements=measurements,
-            final_simulator_state=final_simulator_state,
-            qubit_map=final_simulator_state.qubit_map,
+            final_step_result=final_step_result,
+            qubit_map=final_step_result._qubit_mapping,
         )
-        self.final_state_vector = final_simulator_state.state_vector
+        self._final_state_vector: Optional[np.ndarray] = None
+
+    @property
+    def final_state_vector(self):
+        if self._final_state_vector is None:
+            self._final_state_vector = self._final_simulator_state.state_vector
+        return self._final_state_vector
 
     def state_vector(self):
         """Return the state vector at the end of the computation.
