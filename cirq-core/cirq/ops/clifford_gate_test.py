@@ -445,7 +445,7 @@ def test_commutes_single_qubit_gate(gate, other):
 
 @pytest.mark.parametrize(
     'gate,pauli,half_turns',
-    itertools.product(_all_clifford_gates(), _paulis, (0.1, 0.25, 0.5, -0.5)),
+    itertools.product(_all_clifford_gates(), _paulis, (1.0, 0.25, 0.5, -0.5)),
 )
 def test_commutes_pauli(gate, pauli, half_turns):
     pauli_gate = pauli ** half_turns
@@ -458,8 +458,8 @@ def test_commutes_pauli(gate, pauli, half_turns):
         pauli_gate(q0),
         gate(q0),
     ).unitary()
-    commutes = cirq.commutes(gate, pauli)
-    commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
+    commutes = cirq.commutes(gate, pauli_gate)
+    commutes_check = np.allclose(mat, mat_swap)
     assert commutes == commutes_check
 
 
@@ -517,3 +517,16 @@ def test_from_unitary_not_clifford():
     # Not a Clifford gate.
     u = cirq.unitary(cirq.T)
     assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+
+
+@pytest.mark.parametrize('trans_x,trans_z', _all_rotation_pairs())
+def test_to_phased_xz_gate(trans_x, trans_z):
+    gate = cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
+    actual_phased_xz_gate = gate.to_phased_xz_gate()._canonical()
+    expect_phased_xz_gates = cirq.PhasedXZGate.from_matrix(cirq.unitary(gate))
+
+    assert np.isclose(actual_phased_xz_gate.x_exponent, expect_phased_xz_gates.x_exponent)
+    assert np.isclose(actual_phased_xz_gate.z_exponent, expect_phased_xz_gates.z_exponent)
+    assert np.isclose(
+        actual_phased_xz_gate.axis_phase_exponent, expect_phased_xz_gates.axis_phase_exponent
+    )

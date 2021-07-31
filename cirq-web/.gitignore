@@ -1,0 +1,12 @@
+# Ignore node modules
+node_modules/
+
+# Pytest files
+.pytest_cache/
+
+# Coverage testing information
+.nyc_output/
+
+# Extras
+build/
+

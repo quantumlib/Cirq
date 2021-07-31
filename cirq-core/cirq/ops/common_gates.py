@@ -62,10 +62,10 @@ imports.
 """
 
 
-def _act_with_gates(args, *gates: 'cirq.SupportsActOn') -> None:
+def _act_with_gates(args, qubits, *gates: 'cirq.SupportsActOnQubits') -> None:
     """Act on the given args with the given gates in order."""
     for gate in gates:
-        assert gate._act_on_(args)
+        assert gate._act_on_(args, qubits)
 
 
 def _pi(rads):
@@ -108,14 +108,14 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             effective_exponent = self._exponent % 2
             if effective_exponent == 0.5:
                 tableau.xs[:, q] ^= tableau.zs[:, q]
@@ -130,7 +130,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
-            _act_with_gates(args, H, ZPowGate(exponent=self._exponent), H)
+            _act_with_gates(args, qubits, H, ZPowGate(exponent=self._exponent), H)
             # Adjust the global phase based on the global_shift parameter.
             args.state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
             return True
@@ -175,8 +175,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `XPowGate`, using a `CXPowGate` where possible.
+        """Returns a controlled `XPowGate`, using a `CXPowGate` where possible.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate`. This method overrides this behavior
@@ -240,6 +239,8 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.validate_version('2.0')
         if self._exponent == 1 and self._global_shift != -0.5:
             return args.format('x {0};\n', qubits[0])
+        elif self._exponent == 0.5:
+            return args.format('sx {0};\n', qubits[0])
         return args.format('rx({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     def _quil_(
@@ -360,14 +361,14 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             effective_exponent = self._exponent % 2
             if effective_exponent == 0.5:
                 tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
@@ -392,13 +393,13 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             state = args.state
             Z = ZPowGate()
             if effective_exponent == 0.5:
-                _act_with_gates(args, Z, H)
+                _act_with_gates(args, qubits, Z, H)
                 state.omega *= (1 + 1j) / (2 ** 0.5)
             elif effective_exponent == 1:
-                _act_with_gates(args, Z, H, Z, H)
+                _act_with_gates(args, qubits, Z, H, Z, H)
                 state.omega *= 1j
             elif effective_exponent == 1.5:
-                _act_with_gates(args, H, Z)
+                _act_with_gates(args, qubits, H, Z)
                 state.omega *= (1 - 1j) / (2 ** 0.5)
             # Adjust the global phase based on the global_shift parameter.
             args.state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
@@ -579,14 +580,14 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             effective_exponent = self._exponent % 2
             if effective_exponent == 0.5:
                 tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
@@ -601,7 +602,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             effective_exponent = self._exponent % 2
             state = args.state
             for _ in range(int(effective_exponent * 2)):
@@ -642,8 +643,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `ZPowGate`, using a `CZPowGate` where possible.
+        """Returns a controlled `ZPowGate`, using a `CZPowGate` where possible.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate`. This method overrides this behavior
@@ -731,6 +731,10 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.validate_version('2.0')
         if self._exponent == 1 and self.global_shift != -0.5:
             return args.format('z {0};\n', qubits[0])
+        elif self._exponent == 0.5:
+            return args.format('s {0};\n', qubits[0])
+        elif self._exponent == -0.5:
+            return args.format('sdg {0};\n', qubits[0])
 
         return args.format('rz({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
@@ -896,14 +900,14 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             if self._exponent % 2 == 1:
                 (tableau.xs[:, q], tableau.zs[:, q]) = (
                     tableau.zs[:, q].copy(),
@@ -915,7 +919,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             state = args.state
             if self._exponent % 2 == 1:
                 # Prescription for H left multiplication
@@ -1059,22 +1063,25 @@ class CZPowGate(
             args.target_tensor *= p
         return args.target_tensor
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q1 = args.axes[0]
-            q2 = args.axes[1]
+            q1 = args.qubit_map[qubits[0]]
+            q2 = args.qubit_map[qubits[1]]
             if self._exponent % 2 == 1:
                 (tableau.xs[:, q2], tableau.zs[:, q2]) = (
                     tableau.zs[:, q2].copy(),
                     tableau.xs[:, q2].copy(),
                 )
+                tableau.rs[:] ^= tableau.xs[:, q2] & tableau.zs[:, q2]
                 tableau.rs[:] ^= (
-                    tableau.xs[:, q1] & tableau.zs[:, q2] & (tableau.xs[:, q2] ^ tableau.zs[:, q1])
+                    tableau.xs[:, q1]
+                    & tableau.zs[:, q2]
+                    & (~(tableau.xs[:, q2] ^ tableau.zs[:, q1]))
                 )
                 tableau.xs[:, q2] ^= tableau.xs[:, q1]
                 tableau.zs[:, q1] ^= tableau.zs[:, q2]
@@ -1088,8 +1095,8 @@ class CZPowGate(
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
-            q1 = args.axes[0]
-            q2 = args.axes[1]
+            q1 = args.qubit_map[qubits[0]]
+            q2 = args.qubit_map[qubits[1]]
             state = args.state
             if self._exponent % 2 == 1:
                 # Prescription for CZ left multiplication.
@@ -1126,8 +1133,7 @@ class CZPowGate(
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `CZPowGate`, using a `CCZPowGate` where possible.
+        """Returns a controlled `CZPowGate`, using a `CCZPowGate` where possible.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate`. This method overrides this behavior
@@ -1282,15 +1288,15 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q1 = args.axes[0]
-            q2 = args.axes[1]
+            q1 = args.qubit_map[qubits[0]]
+            q2 = args.qubit_map[qubits[1]]
             if self._exponent % 2 == 1:
                 tableau.rs[:] ^= (
                     tableau.xs[:, q1]
@@ -1304,8 +1310,8 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
-            q1 = args.axes[0]
-            q2 = args.axes[1]
+            q1 = args.qubit_map[qubits[0]]
+            q2 = args.qubit_map[qubits[1]]
             state = args.state
             if self._exponent % 2 == 1:
                 # Prescription for CX left multiplication.
@@ -1345,8 +1351,7 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `CXPowGate`, using a `CCXPowGate` where possible.
+        """Returns a controlled `CXPowGate`, using a `CCXPowGate` where possible.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate`. This method overrides this behavior

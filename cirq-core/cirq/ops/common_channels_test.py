@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.protocols.act_on_protocol_test import DummyActOnArgs
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -58,10 +59,10 @@ def assert_mixtures_equal(actual, expected):
 def test_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d),
+        cirq.kraus(d),
         (np.sqrt(0.4) * np.eye(2), np.sqrt(0.1) * X, np.sqrt(0.2) * Y, np.sqrt(0.3) * Z),
     )
-    assert cirq.has_channel(d)
+    assert cirq.has_kraus(d)
 
 
 def test_asymmetric_depolarizing_mixture():
@@ -134,7 +135,7 @@ def test_asymmetric_depolarizing_channel_text_diagram():
 def test_depolarizing_channel():
     d = cirq.depolarize(0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d),
+        cirq.kraus(d),
         (
             np.sqrt(0.7) * np.eye(2),
             np.sqrt(0.1) * X,
@@ -142,13 +143,13 @@ def test_depolarizing_channel():
             np.sqrt(0.1) * Z,
         ),
     )
-    assert cirq.has_channel(d)
+    assert cirq.has_kraus(d)
 
 
 def test_depolarizing_channel_two_qubits():
     d = cirq.depolarize(0.15, n_qubits=2)
     np.testing.assert_almost_equal(
-        cirq.channel(d),
+        cirq.kraus(d),
         (
             np.sqrt(0.85) * np.eye(4),
             np.sqrt(0.01) * np.kron(np.eye(2), X),
@@ -168,7 +169,7 @@ def test_depolarizing_channel_two_qubits():
             np.sqrt(0.01) * np.kron(Z, Z),
         ),
     )
-    assert cirq.has_channel(d)
+    assert cirq.has_kraus(d)
 
     assert d.num_qubits() == 2
     cirq.testing.assert_has_diagram(
@@ -240,11 +241,22 @@ def test_deprecated_on_each_for_depolarizing_channel_one_qubit():
 
 
 def test_deprecated_on_each_for_depolarizing_channel_two_qubits():
-    q0, q1 = cirq.LineQubit.range(2)
+    q0, q1, q2, q3, q4, q5 = cirq.LineQubit.range(6)
     op = cirq.DepolarizingChannel(p=0.1, n_qubits=2)
 
-    with pytest.raises(ValueError, match="one qubit"):
+    op.on_each([(q0, q1)])
+    op.on_each([(q0, q1), (q2, q3)])
+    op.on_each(zip([q0, q2, q4], [q1, q3, q5]))
+    op.on_each((q0, q1))
+    op.on_each([q0, q1])
+    with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
         op.on_each(q0, q1)
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        op.on_each([('bogus object 0', 'bogus object 1')])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        op.on_each(['01'])
+    with pytest.raises(ValueError, match='All values in sequence should be Qids'):
+        op.on_each([(False, None)])
 
 
 def test_depolarizing_channel_apply_two_qubits():
@@ -310,7 +322,7 @@ def test_depolarizing_channel_text_diagram_two_qubits():
 def test_generalized_amplitude_damping_channel():
     d = cirq.generalized_amplitude_damp(0.1, 0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d),
+        cirq.kraus(d),
         (
             np.sqrt(0.1) * np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - 0.3)]]),
             np.sqrt(0.1) * np.array([[0.0, np.sqrt(0.3)], [0.0, 0.0]]),
@@ -318,7 +330,7 @@ def test_generalized_amplitude_damping_channel():
             np.sqrt(0.9) * np.array([[0.0, 0.0], [np.sqrt(0.3), 0.0]]),
         ),
     )
-    assert cirq.has_channel(d)
+    assert cirq.has_kraus(d)
     assert not cirq.has_mixture(d)
 
 
@@ -376,13 +388,13 @@ def test_generalized_amplitude_damping_channel_text_diagram():
 def test_amplitude_damping_channel():
     d = cirq.amplitude_damp(0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d),
+        cirq.kraus(d),
         (
             np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - 0.3)]]),
             np.array([[0.0, np.sqrt(0.3)], [0.0, 0.0]]),
         ),
     )
-    assert cirq.has_channel(d)
+    assert cirq.has_kraus(d)
     assert not cirq.has_mixture(d)
 
 
@@ -432,22 +444,22 @@ def test_amplitude_damping_channel_text_diagram():
 def test_reset_channel():
     r = cirq.reset(cirq.LineQubit(0))
     np.testing.assert_almost_equal(
-        cirq.channel(r), (np.array([[1.0, 0.0], [0.0, 0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
+        cirq.kraus(r), (np.array([[1.0, 0.0], [0.0, 0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
     )
-    assert cirq.has_channel(r)
+    assert cirq.has_kraus(r)
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (2,)
 
     r = cirq.reset(cirq.LineQid(0, dimension=3))
     np.testing.assert_almost_equal(
-        cirq.channel(r),
+        cirq.kraus(r),
         (
             np.array([[1, 0, 0], [0, 0, 0], [0, 0, 0]]),
             np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]),
             np.array([[0, 0, 1], [0, 0, 0], [0, 0, 0]]),
         ),
     )  # yapf: disable
-    assert cirq.has_channel(r)
+    assert cirq.has_kraus(r)
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (3,)
 
@@ -478,43 +490,53 @@ def test_reset_channel_text_diagram():
 
 def test_reset_act_on():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.ResetChannel(), object())
+        cirq.act_on(cirq.ResetChannel(), DummyActOnArgs(), qubits=())
 
     args = cirq.ActOnStateVectorArgs(
         target_tensor=cirq.one_hot(
             index=(1, 1, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
-        axes=[1],
+        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
-    cirq.act_on(cirq.ResetChannel(), args)
+    cirq.act_on(cirq.ResetChannel(), args, [cirq.LineQubit(1)])
     assert args.log_of_measurement_results == {}
     np.testing.assert_allclose(
         args.target_tensor,
         cirq.one_hot(index=(1, 0, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64),
     )
 
-    cirq.act_on(cirq.ResetChannel(), args)
+    cirq.act_on(cirq.ResetChannel(), args, [cirq.LineQubit(1)])
     assert args.log_of_measurement_results == {}
     np.testing.assert_allclose(
         args.target_tensor,
         cirq.one_hot(index=(1, 0, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64),
     )
+
+
+def test_reset_each():
+    qubits = cirq.LineQubit.range(8)
+    for n in range(len(qubits) + 1):
+        ops = cirq.reset_each(*qubits[:n])
+        assert len(ops) == n
+        for i, op in enumerate(ops):
+            assert isinstance(op.gate, cirq.ResetChannel)
+            assert op.qubits == (qubits[i],)
 
 
 def test_phase_damping_channel():
     d = cirq.phase_damp(0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d),
+        cirq.kraus(d),
         (
             np.array([[1.0, 0.0], [0.0, np.sqrt(1 - 0.3)]]),
             np.array([[0.0, 0.0], [0.0, np.sqrt(0.3)]]),
         ),
     )
-    assert cirq.has_channel(d)
+    assert cirq.has_kraus(d)
     assert not cirq.has_mixture(d)
 
 
@@ -564,9 +586,9 @@ def test_phase_damping_channel_text_diagram():
 def test_phase_flip_channel():
     d = cirq.phase_flip(0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(0.3) * Z)
+        cirq.kraus(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(0.3) * Z)
     )
-    assert cirq.has_channel(d)
+    assert cirq.has_kraus(d)
 
 
 def test_phase_flip_mixture():
@@ -628,9 +650,9 @@ def test_phase_flip_channel_text_diagram():
 def test_bit_flip_channel():
     d = cirq.bit_flip(0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(0.3) * X)
+        cirq.kraus(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(0.3) * X)
     )
-    assert cirq.has_channel(d)
+    assert cirq.has_kraus(d)
 
 
 def test_bit_flip_mixture():
@@ -693,7 +715,7 @@ def test_bit_flip_channel_text_diagram():
 def test_stabilizer_supports_depolarize():
     with pytest.raises(TypeError, match="act_on"):
         for _ in range(100):
-            cirq.act_on(cirq.depolarize(3 / 4), object())
+            cirq.act_on(cirq.depolarize(3 / 4), DummyActOnArgs(), qubits=())
 
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.depolarize(3 / 4).on(q), cirq.measure(q, key='m'))
@@ -734,9 +756,9 @@ def test_missing_prob_mass():
 def test_multi_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
     np.testing.assert_almost_equal(
-        cirq.channel(d), (np.sqrt(0.8) * np.eye(4), np.sqrt(0.2) * np.kron(X, X))
+        cirq.kraus(d), (np.sqrt(0.8) * np.eye(4), np.sqrt(0.2) * np.kron(X, X))
     )
-    assert cirq.has_channel(d)
+    assert cirq.has_kraus(d)
     np.testing.assert_equal(d._num_qubits_(), 2)
 
     with pytest.raises(ValueError, match="num_qubits should be 1"):

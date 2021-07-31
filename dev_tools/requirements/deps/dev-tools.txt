@@ -1,0 +1,17 @@
+-r mypy.txt
+-r pytest.txt
+-r format.txt
+-r pylint.txt
+-r protos.txt
+-r notebook.txt
+-r tensorflow-docs.txt
+-r packaging.txt
+
+# For testing and analyzing code.
+asv
+
+# For verifying behavior of qasm output.
+qiskit-aer~=0.7.6
+
+# For verifying rst
+rstcheck~=3.3.1

@@ -28,13 +28,12 @@ import cirq
         3.2,
         np.float32(3.2),
         int(1),
-        np.int(3),
         np.int32(45),
         np.float64(6.3),
         np.int32(2),
         np.complex64(1j),
         np.complex128(2j),
-        np.complex(1j),
+        complex(1j),
         fractions.Fraction(3, 2),
     ],
 )
@@ -143,6 +142,8 @@ def test_param_dict_iter():
     assert list(r) == ['a', 'b']
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def test_formulas_in_param_dict():
     """
     Param dicts are allowed to have str or sympy.Symbol as keys and
@@ -166,6 +167,7 @@ def test_formulas_in_param_dict():
     assert sympy.Eq(r.value_of('d'), 2 * e)
 
 
+# pylint: enable=docstring-first-line-empty
 def test_recursive_evaluation():
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
@@ -256,6 +258,8 @@ def test_custom_resolved_value():
     assert r.value_of(c) == 'Baz'
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def test_compose():
     """
     Calling cirq.resolve_paramters on a ParamResolver composes that resolver
@@ -282,6 +286,7 @@ def test_compose():
     assert r13.value_of('a') == b
 
 
+# pylint: enable=docstring-first-line-empty
 @pytest.mark.parametrize(
     'p1, p2, p3',
     [

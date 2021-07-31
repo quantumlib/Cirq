@@ -14,6 +14,8 @@
 
 """Basic types defining qubits, gates, and operations."""
 
+import abc
+import functools
 from typing import (
     AbstractSet,
     Any,
@@ -21,6 +23,8 @@ from typing import (
     Collection,
     Dict,
     Hashable,
+    Iterable,
+    List,
     Optional,
     Sequence,
     Tuple,
@@ -29,13 +33,10 @@ from typing import (
     Union,
 )
 
-import abc
-import functools
 import numpy as np
 
 from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
@@ -211,6 +212,52 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         from cirq.ops import gate_operation
 
         return gate_operation.GateOperation(self, list(qubits))
+
+    def on_each(self, *targets: Union[Qid, Iterable[Any]]) -> List['cirq.Operation']:
+        """Returns a list of operations applying the gate to all targets.
+        Args:
+            *targets: The qubits to apply this gate to. For single-qubit gates
+            this can be provided as varargs or a combination of nested
+            iterables. For multi-qubit gates this must be provided as an
+            `Iterable[Sequence[Qid]]`, where each sequence has `num_qubits`
+            qubits.
+        Returns:
+            Operations applying this gate to the target qubits.
+        Raises:
+            ValueError if targets are not instances of Qid or Iterable[Qid].
+            ValueError if the gate qubit number is incompatible.
+        """
+        operations: List['cirq.Operation'] = []
+        if self._num_qubits_() > 1:
+            iterator: Iterable = targets
+            if len(targets) == 1:
+                if not isinstance(targets[0], Iterable):
+                    raise TypeError(f'{targets[0]} object is not iterable.')
+                t0 = list(targets[0])
+                iterator = [t0] if t0 and isinstance(t0[0], Qid) else t0
+            for target in iterator:
+                if not isinstance(target, Sequence):
+                    raise ValueError(
+                        f'Inputs to multi-qubit gates must be Sequence[Qid].'
+                        f' Type: {type(target)}'
+                    )
+                if not all(isinstance(x, Qid) for x in target):
+                    raise ValueError(f'All values in sequence should be Qids, but got {target}')
+                if len(target) != self._num_qubits_():
+                    raise ValueError(f'Expected {self._num_qubits_()} qubits, got {target}')
+                operations.append(self.on(*target))
+            return operations
+
+        for target in targets:
+            if isinstance(target, Qid):
+                operations.append(self.on(target))
+            elif isinstance(target, Iterable) and not isinstance(target, str):
+                operations.extend(self.on_each(*target))
+            else:
+                raise ValueError(
+                    f'Gate was called with type different than Qid. Type: {type(target)}'
+                )
+        return operations
 
     def wrap_in_linear_combination(
         self, coefficient: Union[complex, float, int] = 1
@@ -426,7 +473,7 @@ class Operation(metaclass=abc.ABCMeta):
         """Returns the underlying operation without any tags."""
         return self
 
-    def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
+    def with_tags(self, *new_tags: Hashable) -> 'cirq.Operation':
         """Creates a new TaggedOperation, with this op and the specified tags.
 
         This method can be used to attach meta-data to specific operations
@@ -444,18 +491,10 @@ class Operation(metaclass=abc.ABCMeta):
         Args:
             new_tags: The tags to wrap this operation in.
         """
+        if not new_tags:
+            return self
         return TaggedOperation(self, *new_tags)
 
-    @deprecated_parameter(
-        deadline='v0.11',
-        fix='Use qubit_map instead.',
-        parameter_desc='positional func',
-        match=lambda args, kwargs: 'func' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
-        ),
-    )
     def transform_qubits(
         self: TSelf,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
@@ -547,7 +586,7 @@ class Operation(metaclass=abc.ABCMeta):
 
         # Don't create gigantic matrices.
         shape = protocols.qid_shape_protocol.qid_shape(circuit12)
-        if np.product(shape) > 2 ** 10:
+        if np.prod(shape, dtype=np.int64) > 2 ** 10:
             return NotImplemented  # coverage: ignore
 
         m12 = protocols.unitary_protocol.unitary(circuit12, default=None)
@@ -619,6 +658,8 @@ class TaggedOperation(Operation):
         that has the tags of this operation combined with the new_tags
         specified as the parameter.
         """
+        if not new_tags:
+            return self
         return TaggedOperation(self.sub_operation, *self._tags, *new_tags)
 
     def __str__(self) -> str:
@@ -666,21 +707,27 @@ class TaggedOperation(Operation):
     def _mixture_(self) -> Sequence[Tuple[float, Any]]:
         return protocols.mixture(self.sub_operation, NotImplemented)
 
-    def _has_channel_(self) -> bool:
-        return protocols.has_channel(self.sub_operation)
+    def _has_kraus_(self) -> bool:
+        return protocols.has_kraus(self.sub_operation)
 
-    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
-        return protocols.channel(self.sub_operation, NotImplemented)
+    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        return protocols.kraus(self.sub_operation, NotImplemented)
 
     def _measurement_key_(self) -> str:
         return protocols.measurement_key(self.sub_operation, NotImplemented)
+
+    def _is_measurement_(self) -> bool:
+        sub = getattr(self.sub_operation, "_is_measurement_", None)
+        if sub is not None:
+            return sub()
+        return NotImplemented
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation) or any(
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _act_on_(self, args: Any) -> bool:
+    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
         sub = getattr(self.sub_operation, "_act_on_", None)
         if sub is not None:
             return sub(args)

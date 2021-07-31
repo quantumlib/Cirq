@@ -26,12 +26,16 @@ from cirq_google.calibration import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
     FSimPhaseCorrections,
+    PhasedFSimCalibrationError,
+    PhasedFSimCalibrationOptions,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
     PhasedFSimEngineSimulator,
     XEBPhasedFSimCalibrationOptions,
     XEBPhasedFSimCalibrationRequest,
+    LocalXEBPhasedFSimCalibrationOptions,
+    LocalXEBPhasedFSimCalibrationRequest,
     SQRT_ISWAP_INV_PARAMETERS,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     make_zeta_chi_gamma_compensation_for_moments,
@@ -108,11 +112,13 @@ from cirq_google.optimizers import (
 )
 
 from cirq_google.op_deserializer import (
+    CircuitOpDeserializer,
     DeserializingArg,
     GateOpDeserializer,
 )
 
 from cirq_google.op_serializer import (
+    CircuitOpSerializer,
     GateOpSerializer,
     SerializingArg,
 )

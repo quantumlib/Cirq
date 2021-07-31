@@ -17,10 +17,11 @@ from typing import Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
 import scipy
-from cirq import value
-from cirq._compat import deprecated_parameter
+
+from cirq import protocols, value
 from cirq.qis.states import (
     QuantumState,
+    infer_qid_shape,
     quantum_state,
     validate_density_matrix,
     validate_normalized_state_vector,
@@ -43,7 +44,7 @@ def _validate_int_state(state: int, qid_shape: Optional[Tuple[int, ...]]) -> Non
             f'but {state} was given.'
         )
     if qid_shape is not None:
-        dim = np.prod(qid_shape)
+        dim = np.prod(qid_shape, dtype=np.int64)
         if state >= dim:
             raise ValueError(
                 'Invalid state for given qid shape: '
@@ -131,10 +132,13 @@ def fidelity(
 
     # Use QuantumState machinery for the general case
     if qid_shape is None:
-        # coverage: ignore
-        raise NotImplementedError(
-            'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
-        )
+        try:
+            qid_shape = infer_qid_shape(state1, state2)
+        except:
+            raise ValueError(
+                'Failed to infer the qid shape of the given states. '
+                'Please specify the qid shape explicitly using the `qid_shape` argument.'
+            )
     state1 = quantum_state(state1, qid_shape=qid_shape, validate=validate, atol=atol)
     state2 = quantum_state(state2, qid_shape=qid_shape, validate=validate, atol=atol)
     state1_arr = state1.state_vector_or_density_matrix()
@@ -151,48 +155,60 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
 ) -> Tuple[np.ndarray, np.ndarray]:
     if state1.ndim > 2 or (state1.ndim == 2 and state1.shape[0] != state1.shape[1]):
         # State tensor, convert to state vector
-        state1 = np.reshape(state1, (np.prod(state1.shape).item(),))
+        state1 = np.reshape(state1, (np.prod(state1.shape, dtype=np.int64).item(),))
     if state2.ndim > 2 or (state2.ndim == 2 and state2.shape[0] != state2.shape[1]):
         # State tensor, convert to state vector
-        state2 = np.reshape(state2, (np.prod(state2.shape).item(),))
+        state2 = np.reshape(state2, (np.prod(state2.shape, dtype=np.int64).item(),))
     if state1.ndim == 2 and state2.ndim == 2:
         # Must be square matrices
         if state1.shape == state2.shape:
             if qid_shape is None:
                 # Ambiguous whether state tensor or density matrix
                 raise ValueError(
-                    'The qid shape of the given states is ambiguous.'
+                    'The qid shape of the given states is ambiguous. '
                     'Try specifying the qid shape explicitly or '
                     'using a wrapper function like cirq.density_matrix.'
                 )
             if state1.shape == qid_shape:
                 # State tensors, convert to state vectors
-                state1 = np.reshape(state1, (np.prod(qid_shape).item(),))
-                state2 = np.reshape(state2, (np.prod(qid_shape).item(),))
+                state1 = np.reshape(state1, (np.prod(qid_shape, dtype=np.int64).item(),))
+                state2 = np.reshape(state2, (np.prod(qid_shape, dtype=np.int64).item(),))
         elif state1.shape[0] < state2.shape[0]:
             # state1 is state tensor and state2 is density matrix.
             # Convert state1 to state vector
-            state1 = np.reshape(state1, (np.prod(state1.shape).item(),))
+            state1 = np.reshape(state1, (np.prod(state1.shape, dtype=np.int64).item(),))
         else:  # state1.shape[0] > state2.shape[0]
             # state2 is state tensor and state1 is density matrix.
             # Convert state2 to state vector
-            state2 = np.reshape(state2, (np.prod(state2.shape).item(),))
-    elif state1.ndim == 2 and state2.ndim < 2 and np.prod(state1.shape) == np.prod(state2.shape):
+            state2 = np.reshape(state2, (np.prod(state2.shape, dtype=np.int64).item(),))
+    elif (
+        state1.ndim == 2
+        and state2.ndim < 2
+        and np.prod(state1.shape, dtype=np.int64) == np.prod(state2.shape, dtype=np.int64)
+    ):
         # state1 is state tensor, convert to state vector
-        state1 = np.reshape(state1, (np.prod(state1.shape).item(),))
-    elif state1.ndim < 2 and state2.ndim == 2 and np.prod(state1.shape) == np.prod(state2.shape):
+        state1 = np.reshape(state1, (np.prod(state1.shape, dtype=np.int64).item(),))
+    elif (
+        state1.ndim < 2
+        and state2.ndim == 2
+        and np.prod(state1.shape, dtype=np.int64) == np.prod(state2.shape, dtype=np.int64)
+    ):
         # state2 is state tensor, convert to state vector
-        state2 = np.reshape(state2, (np.prod(state2.shape).item(),))
+        state2 = np.reshape(state2, (np.prod(state2.shape, dtype=np.int64).item(),))
 
     if validate:
-        dim1: int = state1.shape[0] if state1.ndim == 2 else np.prod(state1.shape).item()
-        dim2: int = state2.shape[0] if state2.ndim == 2 else np.prod(state2.shape).item()
+        dim1: int = (
+            state1.shape[0] if state1.ndim == 2 else np.prod(state1.shape, dtype=np.int64).item()
+        )
+        dim2: int = (
+            state2.shape[0] if state2.ndim == 2 else np.prod(state2.shape, dtype=np.int64).item()
+        )
         if dim1 != dim2:
             raise ValueError('Mismatched dimensions in given states: ' f'{dim1} and {dim2}.')
         if qid_shape is None:
             qid_shape = (dim1,)
         else:
-            expected_dim = np.prod(qid_shape)
+            expected_dim = np.prod(qid_shape, dtype=np.int64)
             if dim1 != expected_dim:
                 raise ValueError(
                     'Invalid state dimension for given qid shape: '
@@ -230,16 +246,6 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
     )
 
 
-@deprecated_parameter(
-    deadline='v0.11',
-    fix='Use state instead.',
-    parameter_desc='density_matrix',
-    match=lambda args, kwargs: 'density_matrix' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state' if k == 'density_matrix' else k): v for k, v in kwargs.items()},
-    ),
-)
 def von_neumann_entropy(
     state: 'cirq.QUANTUM_STATE_LIKE',
     qid_shape: Optional[Tuple[int, ...]] = None,
@@ -279,3 +285,28 @@ def von_neumann_entropy(
     if validate:
         _ = quantum_state(state, qid_shape=qid_shape, copy=False, validate=True, atol=atol)
     return 0.0
+
+
+def entanglement_fidelity(operation: 'cirq.SupportsChannel') -> float:
+    r"""Returns entanglement fidelity of a given quantum channel.
+
+    Entanglement fidelity $F_e$ of a quantum channel $E: L(H) \to L(H)$ is the overlap between
+    the maximally entangled state $|\phi\rangle = \frac{1}{\sqrt{dim H}} \sum_i|i\rangle|i\rangle$
+    and the state obtained by sending one half of $|\phi\rangle$ through the channel $E$, i.e.
+
+        $$
+        F_e = \langle\phi|(E \otimes I)(|\phi\rangle\langle\phi|)|\phi\rangle
+        $$
+
+    where $I: L(H) \to L(H)$ is the identity map.
+
+    Args:
+        operation: Quantum channel whose entanglement fidelity is to be computed.
+    Returns:
+        Entanglement fidelity of the channel represented by operation.
+    """
+    f = 0.0
+    for k in protocols.kraus(operation):
+        f += np.abs(np.trace(k)) ** 2
+    n_qubits = protocols.num_qubits(operation)
+    return float(f / 4 ** n_qubits)

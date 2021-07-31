@@ -3,9 +3,9 @@ import cirq
 
 
 def main(minimum_cliffords=5, maximum_cliffords=20, cliffords_step=5):
-    """
-    Examples of how to run various qubit characterizations.  This example
-    shows various methods on how to characterize a qubit, including a Rabi
+    """Examples of how to run various qubit characterizations.
+
+    This example shows various methods on how to characterize a qubit, including a Rabi
     oscillation experiments, Clifford-based randomized benchmarking, and
     state tomography.
 

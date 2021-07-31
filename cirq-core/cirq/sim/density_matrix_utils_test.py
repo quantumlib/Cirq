@@ -348,8 +348,24 @@ def test_measure_state_empty_density_matrix():
 
 
 @pytest.mark.parametrize('seed', [17, 35, 48])
-def test_to_valid_density_matrix_on_simulator_output(seed):
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+@pytest.mark.parametrize('split', [False, True])
+def test_to_valid_density_matrix_on_simulator_output(seed, dtype, split):
     circuit = cirq.testing.random_circuit(qubits=5, n_moments=20, op_density=0.9, random_state=seed)
-    simulator = cirq.DensityMatrixSimulator()
+    simulator = cirq.DensityMatrixSimulator(split_untangled_states=split, dtype=dtype)
     result = simulator.simulate(circuit)
-    _ = cirq.to_valid_density_matrix(result.final_density_matrix, num_qubits=5)
+    _ = cirq.to_valid_density_matrix(result.final_density_matrix, num_qubits=5, atol=1e-6)
+
+
+def test_factor_validation():
+    args = cirq.DensityMatrixSimulator()._create_act_on_args(0, qubits=cirq.LineQubit.range(2))
+    args.apply_operation(cirq.H(cirq.LineQubit(0)))
+    t = args.create_merged_state().target_tensor
+    cirq.linalg.transformations.factor_density_matrix(t, [0])
+    cirq.linalg.transformations.factor_density_matrix(t, [1])
+    args.apply_operation(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
+    t = args.create_merged_state().target_tensor
+    with pytest.raises(ValueError, match='factor'):
+        cirq.linalg.transformations.factor_density_matrix(t, [0])
+    with pytest.raises(ValueError, match='factor'):
+        cirq.linalg.transformations.factor_density_matrix(t, [1])

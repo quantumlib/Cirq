@@ -13,15 +13,14 @@
 # limitations under the License.
 from typing import List, TYPE_CHECKING, Union, Optional, cast
 
-from cirq import work, circuits
+import cirq
 from cirq_google import engine, gate_sets
 
 if TYPE_CHECKING:
     import cirq_google
-    import cirq
 
 
-class QuantumEngineSampler(work.Sampler):
+class QuantumEngineSampler(cirq.Sampler):
     """A sampler that samples from processors managed by the Quantum Engine.
 
     Exposes a `cirq_google.Engine` instance as a `cirq.Sampler`.
@@ -34,7 +33,8 @@ class QuantumEngineSampler(work.Sampler):
         processor_id: Union[str, List[str]],
         gate_set: 'cirq_google.SerializableGateSet',
     ):
-        """
+        """Inits QuantumEngineSampler.
+
         Args:
             engine: Quantum engine instance to use.
             processor_id: String identifier, or list of string identifiers,
@@ -48,17 +48,17 @@ class QuantumEngineSampler(work.Sampler):
 
     def run_sweep(
         self,
-        program: Union['cirq.Circuit', 'cirq_google.EngineProgram'],
-        params: 'cirq.Sweepable',
+        program: Union[cirq.Circuit, 'cirq_google.EngineProgram'],
+        params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> List[cirq.Result]:
         if isinstance(program, engine.EngineProgram):
             job = program.run_sweep(
                 params=params, repetitions=repetitions, processor_ids=self._processor_ids
             )
         else:
             job = self._engine.run_sweep(
-                program=cast(circuits.Circuit, program),
+                program=cast(cirq.Circuit, program),
                 params=params,
                 repetitions=repetitions,
                 processor_ids=self._processor_ids,
@@ -68,10 +68,10 @@ class QuantumEngineSampler(work.Sampler):
 
     def run_batch(
         self,
-        programs: List['cirq.Circuit'],
-        params_list: Optional[List['cirq.Sweepable']] = None,
+        programs: List[cirq.Circuit],
+        params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: Union[int, List[int]] = 1,
-    ) -> List[List['cirq.Result']]:
+    ) -> List[List[cirq.Result]]:
         """Runs the supplied circuits.
 
         In order to gain a speedup from using this method instead of other run

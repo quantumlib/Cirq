@@ -192,12 +192,12 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
                 shape.append(1)
                 overflow_sizes.append(register + 1)
             else:
-                size = int(np.product([q.dimension for q in register]).item())
+                size = int(np.prod([q.dimension for q in register], dtype=np.int64).item())
                 shape.append(size)
                 input_ranges.append(range(size))
                 overflow_sizes.append(size)
 
-        leftover = args.target_tensor.size // np.product(shape).item()
+        leftover = args.target_tensor.size // np.prod(shape, dtype=np.int64).item()
         new_shape = (*shape, leftover)
 
         transposed_args = args.with_axes_transposed_to_start()

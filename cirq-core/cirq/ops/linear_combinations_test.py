@@ -18,6 +18,7 @@ from typing import Union
 import numpy as np
 import pytest
 import sympy
+import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 import cirq.testing
@@ -1035,6 +1036,7 @@ def test_non_pauli_sum_has_no_unitary(psum):
         (cirq.Z(q1), (q1,)),
         (cirq.X(q0) + cirq.Y(q0), (q0,)),
         (cirq.X(q0) + cirq.Y(q2), (q0, q2)),
+        (cirq.X(q2) + cirq.Y(q0), (q0, q2)),
         (cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3), (q0, q1, q3)),
     ),
 )
@@ -1136,6 +1138,10 @@ def test_paulisum_validation():
     ld = cirq.LinearDict({key: 2.0})
     assert cirq.PauliSum(ld) == cirq.PauliSum.from_pauli_strings([2 * cirq.X(q[0])])
 
+    ps = cirq.PauliSum()
+    ps += cirq.I(cirq.LineQubit(0))
+    assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
+
 
 def test_add_number_paulisum():
     q = cirq.LineQubit.range(2)
@@ -1187,6 +1193,35 @@ def test_pauli_sum_formatting():
 
     empty = cirq.PauliSum.from_pauli_strings([])
     assert str(empty) == "0.000"
+
+
+def test_pauli_sum_matrix():
+    q = cirq.LineQubit.range(3)
+    paulisum = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
+    H1 = np.array(
+        [[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 1.0, 0.0], [0.0, 1.0, -1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
+    )
+    assert np.allclose(H1, paulisum.matrix())
+    assert np.allclose(H1, paulisum.matrix([q[0], q[1]]))
+    # Expects a different matrix when change qubits order.
+    H2 = np.array(
+        [[1.0, 0.0, 0.0, 1.0], [0.0, -1.0, 1.0, 0.0], [0.0, 1.0, 1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
+    )
+    assert np.allclose(H2, paulisum.matrix([q[1], q[0]]))
+    # Expects matrix with a different size when add a new qubit.
+    H3 = np.array(
+        [
+            [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+            [0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0],
+        ]
+    )
+    assert np.allclose(H3, paulisum.matrix([q[1], q[2], q[0]]))
 
 
 def test_pauli_sum_repr():
@@ -1318,6 +1353,42 @@ def test_pauli_sum_pow():
         assert cirq.approx_eq(psum ** 0, identity)
 
 
+# Using the entries of table 1 of https://arxiv.org/abs/1804.09130 as golden values.
+@pytest.mark.parametrize(
+    'boolean_expr,expected_pauli_sum',
+    [
+        ('x', ['(-0.5+0j)*Z(x)', '(0.5+0j)*I']),
+        ('~x', ['(0.5+0j)*I', '(0.5+0j)*Z(x)']),
+        ('x0 ^ x1', ['(-0.5+0j)*Z(x0)*Z(x1)', '(0.5+0j)*I']),
+        (
+            'x0 & x1',
+            ['(-0.25+0j)*Z(x0)', '(-0.25+0j)*Z(x1)', '(0.25+0j)*I', '(0.25+0j)*Z(x0)*Z(x1)'],
+        ),
+        (
+            'x0 | x1',
+            ['(-0.25+0j)*Z(x0)', '(-0.25+0j)*Z(x0)*Z(x1)', '(-0.25+0j)*Z(x1)', '(0.75+0j)*I'],
+        ),
+        ('x0 ^ x1 ^ x2', ['(-0.5+0j)*Z(x0)*Z(x1)*Z(x2)', '(0.5+0j)*I']),
+    ],
+)
+def test_from_boolean_expression(boolean_expr, expected_pauli_sum):
+    boolean = sympy_parser.parse_expr(boolean_expr)
+    qubit_map = {name: cirq.NamedQubit(name) for name in sorted(cirq.parameter_names(boolean))}
+    actual = cirq.PauliSum.from_boolean_expression(boolean, qubit_map)
+    # Instead of calling str() directly, first make sure that the items are sorted. This is to make
+    # the unit test more robut in case Sympy would result in a different parsing order. By sorting
+    # the individual items, we would have a canonical representation.
+    actual_items = list(sorted(str(pauli_string) for pauli_string in actual))
+    assert expected_pauli_sum == actual_items
+
+
+def test_unsupported_op():
+    not_a_boolean = sympy_parser.parse_expr('x * x')
+    qubit_map = {name: cirq.NamedQubit(name) for name in cirq.parameter_names(not_a_boolean)}
+    with pytest.raises(ValueError, match='Unsupported type'):
+        cirq.PauliSum.from_boolean_expression(not_a_boolean, qubit_map)
+
+
 def test_imul_aliasing():
     q0, q1, q2 = cirq.LineQubit.range(3)
     psum1 = cirq.X(q0) + cirq.Y(q1)
@@ -1338,7 +1409,7 @@ def test_expectation_from_state_vector_invalid_input():
         im_psum.expectation_from_state_vector(wf, q_map)
 
     with pytest.raises(TypeError, match='dtype'):
-        psum.expectation_from_state_vector(np.array([1, 0], dtype=np.int), q_map)
+        psum.expectation_from_state_vector(np.array([1, 0], dtype=int), q_map)
 
     with pytest.raises(TypeError, match='mapping'):
         psum.expectation_from_state_vector(wf, "bad type")
@@ -1390,33 +1461,33 @@ def test_expectation_from_state_vector_basis_states():
 
     np.testing.assert_allclose(
         psum.expectation_from_state_vector(
-            np.array([1, 1], dtype=np.complex) / np.sqrt(2), qubit_map=q_map
+            np.array([1, 1], dtype=complex) / np.sqrt(2), qubit_map=q_map
         ),
         1,
     )
     np.testing.assert_allclose(
         psum.expectation_from_state_vector(
-            np.array([1, -1], dtype=np.complex) / np.sqrt(2), qubit_map=q_map
+            np.array([1, -1], dtype=complex) / np.sqrt(2), qubit_map=q_map
         ),
         -1,
     )
     np.testing.assert_allclose(
         psum.expectation_from_state_vector(
-            np.array([1, 1j], dtype=np.complex) / np.sqrt(2), qubit_map=q_map
+            np.array([1, 1j], dtype=complex) / np.sqrt(2), qubit_map=q_map
         ),
         2,
     )
     np.testing.assert_allclose(
         psum.expectation_from_state_vector(
-            np.array([1, -1j], dtype=np.complex) / np.sqrt(2), qubit_map=q_map
+            np.array([1, -1j], dtype=complex) / np.sqrt(2), qubit_map=q_map
         ),
         -2,
     )
     np.testing.assert_allclose(
-        psum.expectation_from_state_vector(np.array([1, 0], dtype=np.complex), qubit_map=q_map), 3
+        psum.expectation_from_state_vector(np.array([1, 0], dtype=complex), qubit_map=q_map), 3
     )
     np.testing.assert_allclose(
-        psum.expectation_from_state_vector(np.array([0, 1], dtype=np.complex), qubit_map=q_map), -3
+        psum.expectation_from_state_vector(np.array([0, 1], dtype=complex), qubit_map=q_map), -3
     )
 
 
@@ -1426,7 +1497,7 @@ def test_expectation_from_state_vector_two_qubit_states():
 
     psum1 = cirq.Z(q[0]) + 3.2 * cirq.Z(q[1])
     psum2 = -1 * cirq.X(q[0]) + 2 * cirq.X(q[1])
-    wf1 = np.array([0, 1, 0, 0], dtype=np.complex)
+    wf1 = np.array([0, 1, 0, 0], dtype=complex)
     for state in [wf1, wf1.reshape(2, 2)]:
         np.testing.assert_allclose(
             psum1.expectation_from_state_vector(state, qubit_map=q_map), -2.2, atol=1e-7
@@ -1435,7 +1506,7 @@ def test_expectation_from_state_vector_two_qubit_states():
             psum2.expectation_from_state_vector(state, qubit_map=q_map), 0, atol=1e-7
         )
 
-    wf2 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
+    wf2 = np.array([1, 1, 1, 1], dtype=complex) / 2
     for state in [wf2, wf2.reshape(2, 2)]:
         np.testing.assert_allclose(
             psum1.expectation_from_state_vector(state, qubit_map=q_map), 0, atol=1e-7
@@ -1445,7 +1516,7 @@ def test_expectation_from_state_vector_two_qubit_states():
         )
 
     psum3 = cirq.Z(q[0]) + cirq.X(q[1])
-    wf3 = np.array([1, 1, 0, 0], dtype=np.complex) / np.sqrt(2)
+    wf3 = np.array([1, 1, 0, 0], dtype=complex) / np.sqrt(2)
     q_map_2 = {q0: 1, q1: 0}
     for state in [wf3, wf3.reshape(2, 2)]:
         np.testing.assert_allclose(
@@ -1468,7 +1539,7 @@ def test_expectation_from_density_matrix_invalid_input():
         im_psum.expectation_from_density_matrix(rho, q_map)
 
     with pytest.raises(TypeError, match='dtype'):
-        psum.expectation_from_density_matrix(0.5 * np.eye(2, dtype=np.int), q_map)
+        psum.expectation_from_density_matrix(0.5 * np.eye(2, dtype=int), q_map)
 
     with pytest.raises(TypeError, match='mapping'):
         psum.expectation_from_density_matrix(rho, "bad type")
@@ -1532,34 +1603,32 @@ def test_expectation_from_density_matrix_basis_states():
     q_map = {x: i for i, x in enumerate(q)}
 
     np.testing.assert_allclose(
-        psum.expectation_from_density_matrix(
-            np.array([[1, 1], [1, 1]], dtype=np.complex) / 2, q_map
-        ),
+        psum.expectation_from_density_matrix(np.array([[1, 1], [1, 1]], dtype=complex) / 2, q_map),
         1,
     )
     np.testing.assert_allclose(
         psum.expectation_from_density_matrix(
-            np.array([[1, -1], [-1, 1]], dtype=np.complex) / 2, q_map
+            np.array([[1, -1], [-1, 1]], dtype=complex) / 2, q_map
         ),
         -1,
     )
     np.testing.assert_allclose(
         psum.expectation_from_density_matrix(
-            np.array([[1, -1j], [1j, 1]], dtype=np.complex) / 2, qubit_map=q_map
+            np.array([[1, -1j], [1j, 1]], dtype=complex) / 2, qubit_map=q_map
         ),
         2,
     )
     np.testing.assert_allclose(
         psum.expectation_from_density_matrix(
-            np.array([[1, 1j], [-1j, 1]], dtype=np.complex) / 2, qubit_map=q_map
+            np.array([[1, 1j], [-1j, 1]], dtype=complex) / 2, qubit_map=q_map
         ),
         -2,
     )
     np.testing.assert_allclose(
-        psum.expectation_from_density_matrix(np.array([[1, 0], [0, 0]], dtype=np.complex), q_map), 3
+        psum.expectation_from_density_matrix(np.array([[1, 0], [0, 0]], dtype=complex), q_map), 3
     )
     np.testing.assert_allclose(
-        psum.expectation_from_density_matrix(np.array([[0, 0], [0, 1]], dtype=np.complex), q_map),
+        psum.expectation_from_density_matrix(np.array([[0, 0], [0, 1]], dtype=complex), q_map),
         -3,
     )
 
@@ -1570,7 +1639,7 @@ def test_expectation_from_density_matrix_two_qubit_states():
 
     psum1 = cirq.Z(q[0]) + 3.2 * cirq.Z(q[1])
     psum2 = -1 * cirq.X(q[0]) + 2 * cirq.X(q[1])
-    wf1 = np.array([0, 1, 0, 0], dtype=np.complex)
+    wf1 = np.array([0, 1, 0, 0], dtype=complex)
     rho1 = np.kron(wf1, wf1).reshape(4, 4)
     for state in [rho1, rho1.reshape(2, 2, 2, 2)]:
         np.testing.assert_allclose(
@@ -1578,14 +1647,14 @@ def test_expectation_from_density_matrix_two_qubit_states():
         )
         np.testing.assert_allclose(psum2.expectation_from_density_matrix(state, qubit_map=q_map), 0)
 
-    wf2 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
+    wf2 = np.array([1, 1, 1, 1], dtype=complex) / 2
     rho2 = np.kron(wf2, wf2).reshape(4, 4)
     for state in [rho2, rho2.reshape(2, 2, 2, 2)]:
         np.testing.assert_allclose(psum1.expectation_from_density_matrix(state, qubit_map=q_map), 0)
         np.testing.assert_allclose(psum2.expectation_from_density_matrix(state, qubit_map=q_map), 1)
 
     psum3 = cirq.Z(q[0]) + cirq.X(q[1])
-    wf3 = np.array([1, 1, 0, 0], dtype=np.complex) / np.sqrt(2)
+    wf3 = np.array([1, 1, 0, 0], dtype=complex) / np.sqrt(2)
     rho3 = np.kron(wf3, wf3).reshape(4, 4)
     q_map_2 = {q0: 1, q1: 0}
     for state in [rho3, rho3.reshape(2, 2, 2, 2)]:

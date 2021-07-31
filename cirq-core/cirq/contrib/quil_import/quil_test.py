@@ -187,3 +187,9 @@ def test_undefined_quil_gate():
 
     with pytest.raises(UndefinedQuilGate):
         circuit_from_quil("TOFFOLI 0 1 2")
+
+
+def test_measurement_without_classical_reg():
+    """Measure operations must declare a classical register."""
+    with pytest.raises(UnsupportedQuilInstruction):
+        circuit_from_quil("MEASURE 0")

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from logging import warning
 
 from cirq import _import
 
@@ -90,6 +89,7 @@ from cirq.devices import (
     NO_NOISE,
     NOISE_MODEL_LIKE,
     NoiseModel,
+    SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
 )
 
@@ -130,6 +130,7 @@ from cirq.linalg import (
     dot,
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,
+    is_cptp,
     is_diagonal,
     is_hermitian,
     is_normal,
@@ -250,6 +251,7 @@ from cirq.ops import (
     PhasedXPowGate,
     PhasedXZGate,
     PhaseFlipChannel,
+    ProjectorString,
     RandomGateChannel,
     qft,
     Qid,
@@ -258,6 +260,7 @@ from cirq.ops import (
     QubitOrderOrList,
     QubitPermutationGate,
     reset,
+    reset_each,
     ResetChannel,
     riswap,
     Rx,
@@ -270,6 +273,8 @@ from cirq.ops import (
     SingleQubitCliffordGate,
     SingleQubitGate,
     SingleQubitPauliStringGateOperation,
+    SQRT_ISWAP,
+    SQRT_ISWAP_INV,
     SWAP,
     SwapPowGate,
     T,
@@ -315,6 +320,7 @@ from cirq.optimizers import (
     merge_single_qubit_gates_into_phased_x_z,
     merge_single_qubit_gates_into_phxz,
     MergeInteractions,
+    MergeInteractionsToSqrtIswap,
     MergeSingleQubitGates,
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
@@ -325,17 +331,24 @@ from cirq.optimizers import (
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
+    two_qubit_matrix_to_sqrt_iswap_operations,
     three_qubit_matrix_to_operations,
 )
 
 from cirq.qis import (
     bloch_vector_from_state_vector,
+    CliffordTableau,
     density_matrix,
     density_matrix_from_state_vector,
     dirac_notation,
+    entanglement_fidelity,
     eye_tensor,
     fidelity,
+    kraus_to_channel_matrix,
+    kraus_to_choi,
     one_hot,
+    operation_to_channel_matrix,
+    operation_to_choi,
     QUANTUM_STATE_LIKE,
     QuantumState,
     quantum_state,
@@ -351,6 +364,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     ActOnArgs,
+    ActOnArgsContainer,
     ActOnCliffordTableauArgs,
     ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
@@ -360,7 +374,6 @@ from cirq.sim import (
     CliffordSimulator,
     CliffordState,
     CliffordSimulatorStepResult,
-    CliffordTableau,
     CliffordTrialResult,
     DensityMatrixSimulator,
     DensityMatrixSimulatorState,
@@ -370,6 +383,7 @@ from cirq.sim import (
     measure_state_vector,
     final_density_matrix,
     final_state_vector,
+    OperationTarget,
     sample,
     sample_density_matrix,
     sample_state_vector,
@@ -382,6 +396,7 @@ from cirq.sim import (
     SimulatesSamples,
     SimulationTrialResult,
     Simulator,
+    SimulatorBase,
     SparseSimulatorStep,
     StabilizerSampler,
     StateVectorMixin,
@@ -389,6 +404,7 @@ from cirq.sim import (
     StateVectorStepResult,
     StateVectorTrialResult,
     StepResult,
+    StepResultBase,
 )
 
 from cirq.study import (
@@ -412,7 +428,6 @@ from cirq.study import (
     to_sweep,
     to_sweeps,
     Result,
-    TrialResult,
     UnitSweep,
     Zip,
 )
@@ -429,7 +444,9 @@ from cirq.value import (
     chosen_angle_to_half_turns,
     Duration,
     DURATION_LIKE,
+    GenericMetaImplementAnyOneOf,
     LinearDict,
+    MEASUREMENT_KEY_SEPARATOR,
     MeasurementKey,
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
@@ -471,6 +488,7 @@ from cirq.protocols import (
     definitely_commutes,
     equal_up_to_global_phase,
     has_channel,
+    has_kraus,
     has_mixture,
     has_stabilizer_effect,
     has_unitary,
@@ -479,6 +497,7 @@ from cirq.protocols import (
     is_parameterized,
     JsonResolver,
     json_serializable_dataclass,
+    kraus,
     measurement_key,
     measurement_keys,
     mixture,
@@ -500,6 +519,7 @@ from cirq.protocols import (
     resolve_parameters_once,
     SerializableByKey,
     SupportsActOn,
+    SupportsActOnQubits,
     SupportsApplyChannel,
     SupportsApplyMixture,
     SupportsApproximateEquality,
@@ -531,6 +551,7 @@ from cirq.protocols import (
     trace_distance_from_angle_list,
     unitary,
     validate_mixture,
+    with_key_path,
     with_measurement_key_mapping,
 )
 
@@ -567,22 +588,41 @@ from cirq.work import (
 # Unflattened sub-modules.
 
 from cirq import (
-    ionq,
-    pasqal,
     testing,
 )
 
-try:
-    _compat.deprecated_submodule(
-        new_module_name='cirq_google',
-        old_parent=__name__,
-        old_child='google',
-        deadline="v0.14",
-        create_attribute=True,
-    )
-except ImportError as ex:
-    # coverage: ignore
-    warning("Can't import cirq.google: ", ex)
+_compat.deprecated_submodule(
+    new_module_name='cirq_google',
+    old_parent=__name__,
+    old_child='google',
+    deadline="v0.14",
+    create_attribute=True,
+)
+
+_compat.deprecated_submodule(
+    new_module_name='cirq_aqt',
+    old_parent=__name__,
+    old_child='aqt',
+    deadline="v0.14",
+    create_attribute=True,
+)
+
+
+_compat.deprecated_submodule(
+    new_module_name='cirq_ionq',
+    old_parent=__name__,
+    old_child='ionq',
+    deadline="v0.14",
+    create_attribute=True,
+)
+
+_compat.deprecated_submodule(
+    new_module_name='cirq_pasqal',
+    old_parent=__name__,
+    old_child='pasqal',
+    deadline="v0.14",
+    create_attribute=True,
+)
 
 
 def _register_resolver() -> None:

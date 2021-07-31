@@ -24,13 +24,17 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 Note that if you are using PyCharm, you might have to Restart & Invalidate Caches to have the change being picked up. 
 
 ## Docker
+ You can build the stable and pre_release docker images with our `Dockerfile`.
 
-To do your development in a Docker image, you can build one with our `Dockerfile`.
 ```bash
-    docker build -t cirq .
-    docker run -it cirq python -c "import cirq; print(cirq.google.Foxtail)"
+    docker build -t cirq --target cirq_stable .
+    docker run -it cirq python -c "import cirq_google; print(cirq_google.Foxtail)"
 ```
 
+```bash
+    docker build -t cirq_pre --target cirq_pre_release .
+    docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Foxtail)"
+```
 
 If you want to contribute changes to Cirq, you will instead want to fork the repository and submit pull requests from your fork.
 
@@ -104,9 +108,8 @@ See the previous section for instructions.
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
     workon cirq-py3
-    python -m pip install --upgrade pip
-    python -m pip install -e .[dev_env]
-    python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    python -m pip install --upgrade pip    
+    python -m pip install -r dev_tools/requirements/dev.env.txt
     ```
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
@@ -134,7 +137,7 @@ See the previous section for instructions.
 If you want to pip install cirq in an editable fashion, you'll have to install it per module, e.g.: 
 
 ```
-pip install -e ./cirq-core -e ./cirq-google
+pip install -e ./cirq-core -e ./cirq-google -e ./cirq-ionq -e ./cirq-aqt
 ```
 
 Note that `pip install -e .` will install the `cirq` metapackage only, and your code changes won't 
@@ -147,10 +150,6 @@ Cirq's protobufs live at [cirq/api/google](https://github.com/quantumlib/Cirq/tr
 
 If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/master/dev_tools).
 This script uses grpcio-tools and protobuf version 3.8.0 to generate the python proto api.
-
-Additionally, for workflows that use bazel (relevant for C/C++ code depending on Cirq), we have made available bazel rulesets for generating both python and C/C++ proto apis.
-These rules live in the BUILD files [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v1) and [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v2).
-Downstream projects should load Cirq as an [external dependency](https://docs.bazel.build/versions/master/external.html), allowing rules from those BUILD files to be used directly.
 
 ## Continuous integration and local testing
 
@@ -303,6 +302,30 @@ dev_tools/docs/build-rtd-docs.sh
 
 The HTML output will go into the `dev_tools/rtd_docs/sphinx/_build` directory.
 
+## Dependencies 
+
+### Production dependencies 
+
+Cirq follows a modular design. Each module should specify their dependencies within their folder. See for example cirq-core/requirements.txt and cirq-google/requirements.txt.
+In general we should try to keep dependencies as minimal as possible and if we have to add them, keep them as relaxed as possible instead of pinning to exact versions. If exact versions or constraints are known, those should be documented in form of a comment. 
+
+### Development dependencies 
+
+For local development: 
+
+For a development environment there is a single file that installs all the module dependencies and all of the dev tools as well: dev_tools/requirements/dev.env.txt.
+If this is too heavy weight for you, you can instead use dev_tools/requirements/deps/dev-tools.txt and the given module dependencies. 
+
+For continuous integration: 
+
+Each job might need different set of requirements and it would be inefficient to install a full blown dev env for every tiny job (e.g. mypy check). 
+Instead in dev_tools/requirements create a separate <job>.env.txt and include the necessary tools in there. Requirements files can include each other, which is heavily leveraged in our requirements files in order to remove duplication.   
+
+You can call the following utility to unroll the content of a file: 
+
+```
+python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt 
+```
 
 ## Producing a pypi package
 

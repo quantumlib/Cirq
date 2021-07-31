@@ -1,4 +1,5 @@
 [MASTER]
+load-plugins=pylint.extensions.docstyle
 max-line-length=100
 disable=all
 ignore-patterns=.*_pb2\.py,quantum_engine_service_client.py,engine_pb2_grpc.py
@@ -15,6 +16,7 @@ enable=
     consider-merging-isinstance,
     continue-in-finally,
     dangerous-default-value,
+    docstyle,
     duplicate-argument-name,
     expression-not-assigned,
     function-redefined,
@@ -64,3 +66,9 @@ ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?<?https?://\S+>?)$
 # system, and so shouldn't trigger E1101 when accessed. Python regular
 # expressions are accepted.
 generated-members=numpy.*
+
+
+[IMPORTS]
+
+# Force import order to recognize a module as part of a third party library.
+known-third-party=cirq,cirq_google,cirq_aqt,cirq_ionq

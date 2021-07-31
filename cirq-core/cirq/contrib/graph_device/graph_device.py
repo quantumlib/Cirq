@@ -125,7 +125,7 @@ class UndirectedGraphDevice(devices.Device):
         device_graph: Optional[UndirectedHypergraph] = None,
         crosstalk_graph: Optional[UndirectedHypergraph] = None,
     ) -> None:
-        """
+        """Inits UndirectedGraphDevice.
 
         Args:
             device_graph: An undirected hypergraph whose vertices correspond to
@@ -158,6 +158,15 @@ class UndirectedGraphDevice(devices.Device):
     @property
     def edges(self):
         return tuple(sorted(self.device_graph.edges))
+
+    def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
+        return frozenset(
+            [
+                devices.SymmetricalQidPair(*edge)  # type: ignore
+                for edge in self.device_graph.edges
+                if len(edge) == 2 and all(isinstance(q, ops.Qid) for q in edge)
+            ]
+        )
 
     @property
     def labelled_edges(self):
