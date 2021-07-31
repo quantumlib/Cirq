@@ -61,7 +61,7 @@ class MatrixGate(raw_types.Gate):
         self._matrix = matrix
         self._qid_shape = tuple(qid_shape)
         self._name = name
-        m = int(np.prod(self._qid_shape))
+        m = int(np.prod(self._qid_shape, dtype=np.int64))
         if self._matrix.shape != (m, m):
             raise ValueError(
                 'Wrong matrix shape for qid_shape.\n'
