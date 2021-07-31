@@ -54,10 +54,6 @@ class MeasurementKey:
         """Returns a copy of this MeasurementKey with the specified changes."""
         return dataclasses.replace(self, **changes)
 
-    def __post_init__(self):
-        if not self.name:
-            raise ValueError("Measurement key name cannot be empty")
-
     def __eq__(self, other) -> bool:
         if isinstance(other, (MeasurementKey, str)):
             return str(self) == str(other)
