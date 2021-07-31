@@ -121,6 +121,15 @@ def test_identity_does_not_join():
     assert args[q0] is not args[None]
 
 
+def test_identity_fallback_does_not_join():
+    args = create_container(qs2)
+    assert len(set(args.values())) == 3
+    args._act_on_fallback_(cirq.I, (q0, q1))
+    assert len(set(args.values())) == 3
+    assert args[q0] is not args[q1]
+    assert args[q0] is not args[None]
+
+
 def test_subcircuit_identity_does_not_join():
     args = create_container(qs2)
     assert len(set(args.values())) == 3
@@ -246,3 +255,12 @@ def test_swap_after_entangle_reorders():
     assert len(set(args.values())) == 2
     assert args[q0] is args[q1]
     assert args[q0].qubits == (q1, q0)
+
+
+def test_act_on_gate_does_not_join():
+    args = create_container(qs2)
+    assert len(set(args.values())) == 3
+    cirq.act_on(cirq.X, args, [q0])
+    assert len(set(args.values())) == 3
+    assert args[q0] is not args[q1]
+    assert args[q0] is not args[None]
