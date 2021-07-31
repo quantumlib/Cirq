@@ -22,8 +22,8 @@ from typing import (
     Iterator,
     Any,
     Tuple,
-    Set,
-    List, Union,
+    List,
+    Union,
 )
 
 import numpy as np

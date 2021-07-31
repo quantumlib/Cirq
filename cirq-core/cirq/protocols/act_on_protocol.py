@@ -133,6 +133,7 @@ def act_on(
     # todo: change to an exception after `args.axes` is deprecated.
     if not is_op and qubits is None:
         from cirq.sim import ActOnArgs
+
         if isinstance(args, ActOnArgs):
             qubits = [args.qubits[i] for i in args.axes]
 

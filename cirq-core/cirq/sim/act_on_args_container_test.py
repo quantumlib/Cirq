@@ -103,10 +103,28 @@ def test_entanglement_causes_join():
     assert args[None] is not args[q0]
 
 
+def test_subcircuit_entanglement_causes_join():
+    args = create_container(qs2)
+    assert len(set(args.values())) == 3
+    args.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CNOT(q0, q1))))
+    assert len(set(args.values())) == 2
+    assert args[q0] is args[q1]
+    assert args[None] is not args[q0]
+
+
 def test_identity_does_not_join():
     args = create_container(qs2)
     assert len(set(args.values())) == 3
     args.apply_operation(cirq.IdentityGate(2)(q0, q1))
+    assert len(set(args.values())) == 3
+    assert args[q0] is not args[q1]
+    assert args[q0] is not args[None]
+
+
+def test_subcircuit_identity_does_not_join():
+    args = create_container(qs2)
+    assert len(set(args.values())) == 3
+    args.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.IdentityGate(2)(q0, q1))))
     assert len(set(args.values())) == 3
     assert args[q0] is not args[q1]
     assert args[q0] is not args[None]
@@ -117,6 +135,16 @@ def test_measurement_causes_split():
     args.apply_operation(cirq.CNOT(q0, q1))
     assert len(set(args.values())) == 2
     args.apply_operation(cirq.measure(q0))
+    assert len(set(args.values())) == 3
+    assert args[q0] is not args[q1]
+    assert args[q0] is not args[None]
+
+
+def test_subcircuit_measurement_causes_split():
+    args = create_container(qs2)
+    args.apply_operation(cirq.CNOT(q0, q1))
+    assert len(set(args.values())) == 2
+    args.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(q0))))
     assert len(set(args.values())) == 3
     assert args[q0] is not args[q1]
     assert args[q0] is not args[None]

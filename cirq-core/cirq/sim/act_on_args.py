@@ -108,6 +108,7 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def create_merged_state(self: TSelf) -> TSelf:
         """Creates a final merged state."""
+        return self
 
     def kronecker_product(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""

@@ -17,7 +17,17 @@ A CircuitOperation is an Operation object that wraps a FrozenCircuit. When
 applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
-from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, Tuple, Union, Iterator
+from typing import (
+    TYPE_CHECKING,
+    AbstractSet,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    Iterator,
+)
 
 import dataclasses
 import numpy as np

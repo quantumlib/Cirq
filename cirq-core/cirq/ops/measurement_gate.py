@@ -240,6 +240,7 @@ class MeasurementGate(raw_types.Gate):
 
     def _act_on_(self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']) -> bool:
         from cirq.sim import ActOnArgs
+
         if not isinstance(args, ActOnArgs):
             return NotImplemented
         args.measure(qubits, self.key, self.full_invert_mask())
