@@ -143,9 +143,9 @@ class CountingSimulator(
         self,
         params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: CountingActOnArgs,
+        final_step_result: CountingStepResult,
     ) -> CountingTrialResult:
-        return CountingTrialResult(params, measurements, final_simulator_state)
+        return CountingTrialResult(params, measurements, final_step_result=final_step_result)
 
     def _create_step_result(
         self,

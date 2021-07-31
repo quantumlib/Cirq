@@ -130,6 +130,7 @@ from cirq.linalg import (
     dot,
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,
+    is_cptp,
     is_diagonal,
     is_hermitian,
     is_normal,
