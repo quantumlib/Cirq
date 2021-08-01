@@ -28,10 +28,10 @@ async def test_sampler_async_fail():
             raise ValueError('test')
 
     with pytest.raises(ValueError, match='test'):
-        await FailingSampler().run_async(cirq.AbstractCircuit(), repetitions=1)
+        await FailingSampler().run_async(cirq.Circuit(), repetitions=1)
 
     with pytest.raises(ValueError, match='test'):
-        await FailingSampler().run_sweep_async(cirq.AbstractCircuit(), repetitions=1, params=None)
+        await FailingSampler().run_sweep_async(cirq.Circuit(), repetitions=1, params=None)
 
 
 def test_sampler_sample_multiple_params():
@@ -39,7 +39,7 @@ def test_sampler_sample_multiple_params():
     s = sympy.Symbol('s')
     t = sympy.Symbol('t')
     sampler = cirq.Simulator()
-    circuit = cirq.AbstractCircuit(cirq.X(a) ** s, cirq.X(b) ** t, cirq.measure(a, b, key='out'))
+    circuit = cirq.Circuit(cirq.X(a) ** s, cirq.X(b) ** t, cirq.measure(a, b, key='out'))
     results = sampler.sample(
         circuit,
         repetitions=3,
@@ -77,7 +77,7 @@ def test_sampler_sample_sweep():
     a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
     sampler = cirq.Simulator()
-    circuit = cirq.AbstractCircuit(cirq.X(a) ** t, cirq.measure(a, key='out'))
+    circuit = cirq.Circuit(cirq.X(a) ** t, cirq.measure(a, key='out'))
     results = sampler.sample(circuit, repetitions=3, params=cirq.Linspace('t', 0, 2, 3))
     pd.testing.assert_frame_equal(
         results,
@@ -102,7 +102,7 @@ def test_sampler_sample_sweep():
 def test_sampler_sample_no_params():
     a, b = cirq.LineQubit.range(2)
     sampler = cirq.Simulator()
-    circuit = cirq.AbstractCircuit(cirq.X(a), cirq.measure(a, b, key='out'))
+    circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, b, key='out'))
     results = sampler.sample(circuit, repetitions=3)
     pd.testing.assert_frame_equal(
         results,
@@ -121,7 +121,7 @@ def test_sampler_sample_no_params():
 def test_sampler_sample_inconsistent_keys():
     q = cirq.LineQubit(0)
     sampler = cirq.Simulator()
-    circuit = cirq.AbstractCircuit(cirq.measure(q, key='out'))
+    circuit = cirq.Circuit(cirq.measure(q, key='out'))
     with pytest.raises(ValueError, match='Inconsistent sweep parameters'):
         _ = sampler.sample(
             circuit,
@@ -142,7 +142,7 @@ async def test_sampler_async_not_run_inline():
             ran = True
             return []
 
-    a = S().run_sweep_async(cirq.AbstractCircuit(), params=None)
+    a = S().run_sweep_async(cirq.Circuit(), params=None)
     assert not ran
     assert await a == []
     assert ran
@@ -151,8 +151,8 @@ async def test_sampler_async_not_run_inline():
 def test_sampler_run_batch():
     sampler = cirq.ZerosSampler()
     a = cirq.LineQubit(0)
-    circuit1 = cirq.AbstractCircuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
-    circuit2 = cirq.AbstractCircuit(cirq.Y(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
+    circuit1 = cirq.Circuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
+    circuit2 = cirq.Circuit(cirq.Y(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
     params1 = cirq.Points('t', [0.3, 0.7])
     params2 = cirq.Points('t', [0.4, 0.6])
     results = sampler.run_batch(
@@ -173,8 +173,8 @@ def test_sampler_run_batch():
 def test_sampler_run_batch_default_params_and_repetitions():
     sampler = cirq.ZerosSampler()
     a = cirq.LineQubit(0)
-    circuit1 = cirq.AbstractCircuit(cirq.X(a), cirq.measure(a, key='m'))
-    circuit2 = cirq.AbstractCircuit(cirq.Y(a), cirq.measure(a, key='m'))
+    circuit1 = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+    circuit2 = cirq.Circuit(cirq.Y(a), cirq.measure(a, key='m'))
     results = sampler.run_batch([circuit1, circuit2])
     assert len(results) == 2
     for result_list in results:
@@ -188,8 +188,8 @@ def test_sampler_run_batch_default_params_and_repetitions():
 def test_sampler_run_batch_bad_input_lengths():
     sampler = cirq.ZerosSampler()
     a = cirq.LineQubit(0)
-    circuit1 = cirq.AbstractCircuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
-    circuit2 = cirq.AbstractCircuit(cirq.Y(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
+    circuit1 = cirq.Circuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
+    circuit2 = cirq.Circuit(cirq.Y(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
     params1 = cirq.Points('t', [0.3, 0.7])
     params2 = cirq.Points('t', [0.4, 0.6])
     with pytest.raises(ValueError, match='2 and 1'):
