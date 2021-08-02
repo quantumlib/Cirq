@@ -550,7 +550,7 @@ def measure_grouped_settings(
             assert checkpoint_fn is not None, 'mypy'
             assert checkpoint_other_fn is not None, 'mypy'
             if os.path.exists(checkpoint_fn):
-                os.rename(checkpoint_fn, checkpoint_other_fn)
+                os.replace(checkpoint_fn, checkpoint_other_fn)
             to_json(list(accumulators.values()), checkpoint_fn)
 
     return list(accumulators.values())
