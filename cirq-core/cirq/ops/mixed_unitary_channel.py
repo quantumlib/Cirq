@@ -12,7 +12,7 @@ class MixedUnitaryChannel(raw_types.Gate):
     This type of object is also referred to as a mixed-unitary channel.
 
     Args:
-        mixture: a list of (probability, unitary) pairs
+        mixture: a list of (probability, qubit unitary) pairs
         key: an optional measurement key string for this mixture. Simulations
             which select a single unitary to apply will store the index
             of that unitary in the measurement result list with this key.
@@ -32,16 +32,17 @@ class MixedUnitaryChannel(raw_types.Gate):
         if not protocols.approx_eq(sum(p[0] for p in mixture), 1):
             raise ValueError('Unitary probabilities must sum to 1.')
         m0 = mixture[0][1]
-        num_qubits = np.log2(m0.size) / 2
-        if not num_qubits.is_integer():
+        num_qubits = np.log2(m0.shape[0])
+        if not num_qubits.is_integer() or m0.shape[1] != m0.shape[0]:
             raise ValueError(
-                f'Input mixture of shape {m0.shape} does not represent an operator over qubits.'
+                f'Input mixture of shape {m0.shape} does not '
+                'represent a square operator over qubits.'
             )
         self._num_qubits = int(num_qubits)
         for i, op in enumerate(p[1] for p in mixture):
-            if not op.size == m0.size:
+            if not op.shape == m0.shape:
                 raise ValueError(
-                    f'Inconsistent unitary sizes: op[0]: {m0.size}, op[{i}]: {op.size}'
+                    f'Inconsistent unitary shapes: op[0]: {m0.shape}, op[{i}]: {op.shape}'
                 )
             if validate and not linalg.is_unitary(op):
                 raise ValueError(f'Element {i} of mixture is non-unitary.')

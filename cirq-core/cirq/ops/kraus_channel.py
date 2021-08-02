@@ -30,18 +30,18 @@ class KrausChannel(raw_types.Gate):
         kraus_ops = list(kraus_ops)
         if not kraus_ops:
             raise ValueError('KrausChannel must have at least one operation.')
-        num_qubits = np.log2(kraus_ops[0].size) / 2
-        if not num_qubits.is_integer():
+        num_qubits = np.log2(kraus_ops[0].shape[0])
+        if not num_qubits.is_integer() or kraus_ops[0].shape[1] != kraus_ops[0].shape[0]:
             raise ValueError(
                 f'Input Kraus ops of shape {kraus_ops[0].shape} does not '
-                'represent an operator over qubits.'
+                'represent a square operator over qubits.'
             )
         self._num_qubits = int(num_qubits)
         for i, op in enumerate(kraus_ops):
-            if not op.size == kraus_ops[0].size:
+            if not op.shape == kraus_ops[0].shape:
                 raise ValueError(
-                    'Inconsistent Kraus operator sizes: '
-                    f'op[0]: {kraus_ops[0].size}, op[{i}]: {op.size}'
+                    'Inconsistent Kraus operator shapes: '
+                    f'op[0]: {kraus_ops[0].shape}, op[{i}]: {op.shape}'
                 )
         if validate and not linalg.is_cptp(kraus_ops=kraus_ops):
             raise ValueError('Kraus operators do not describe a CPTP map.')
