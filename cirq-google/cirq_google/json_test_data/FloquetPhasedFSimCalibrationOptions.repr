@@ -1,4 +1,4 @@
-cirq_google.FloquetPhasedFSimCalibrationOptions(
+FloquetPhasedFSimCalibrationOptions(
     characterize_theta=True,
     characterize_zeta=True,
     characterize_chi=False,

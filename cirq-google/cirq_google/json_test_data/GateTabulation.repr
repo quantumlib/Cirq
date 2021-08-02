@@ -2,8 +2,8 @@ cirq_google.optimizers.two_qubit_gates.gate_compilation.GateTabulation(
     np.array(
         [
             [(1 + 0j), 0j, 0j, 0j],
-            [0j, (6.123233995736766e-17 + 0j), -1j, 0j],
-            [0j, -1j, (6.123233995736766e-17 + 0j), 0j],
+            [0j, (6.123233995736766e-17 + 0j), (-0 - 1j), 0j],
+            [0j, (-0 - 1j), (6.123233995736766e-17 + 0j), 0j],
             [0j, 0j, 0j, (0.8660254037844387 - 0.49999999999999994j)],
         ],
         dtype=np.complex128,

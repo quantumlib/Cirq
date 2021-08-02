@@ -1,4 +1,4 @@
-cirq_google.CalibrationResult(
+CalibrationResult(
     code=1,
     error_message='a',
     token='b',

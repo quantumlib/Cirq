@@ -603,10 +603,14 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         'sympy': sympy,
         'np': np,
     }
+    imports.update(**cirq.__dict__)
+    imports.update(**cirq.experiments.__dict__)
     try:
         import cirq_google
 
         imports['cirq_google'] = cirq_google
+
+        imports.update(**cirq_google.__dict__)
     except ImportError:
         pass
 

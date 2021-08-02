@@ -1,10 +1,10 @@
-cirq_google.LocalXEBPhasedFSimCalibrationOptions(
+LocalXEBPhasedFSimCalibrationOptions(
     n_library_circuits=20,
     n_combinations=10,
     cycle_depths=(5, 25, 50, 100, 200, 300),
     fatol=0.005,
     xatol=0.005,
-    fsim_options=cirq.experiments.XEBPhasedFSimCharacterizationOptions(
+    fsim_options=XEBPhasedFSimCharacterizationOptions(
         characterize_theta=True,
         characterize_zeta=True,
         characterize_chi=True,
