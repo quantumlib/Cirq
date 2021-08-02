@@ -77,7 +77,7 @@ def draw_gridlike(
         to NetworkX plotting functionality.
     """
     if ax is None:
-        ax = plt.gca()
+        ax = plt.gca()  # coverage: ignore
 
     if cartesian:
         pos = {node: (y, -x) for node, (x, y) in _node_and_coordinates(graph.nodes)}
@@ -102,13 +102,14 @@ class LineTopology(NamedTopology):
 
     n_nodes: int
 
-    @property
+    # https://github.com/python/mypy/issues/1362
+    @property  # type: ignore
     @cache
     def name(self) -> str:
         """The name of this topology: {n_nodes}-line"""
         return f'{self.n_nodes}-line'
 
-    @property
+    @property  # type: ignore
     @cache
     def graph(self) -> nx.Graph:
         """The graph of this topology.
@@ -146,12 +147,12 @@ class DiagonalRectangleTopology(NamedTopology):
         if self.height <= 0:
             raise ValueError("Height must be a positive integer")
 
-    @property
+    @property  # type: ignore
     @cache
     def name(self) -> str:
         return f'{self.width}-{self.height}-diagonal-rectangle'
 
-    @property
+    @property  # type: ignore
     @cache
     def graph(self) -> nx.Graph:
         g = nx.Graph()
@@ -168,7 +169,7 @@ class DiagonalRectangleTopology(NamedTopology):
                 g.add_edge((x, y), (x, y + 1))
         return g
 
-    @property
+    @property  # type: ignore
     @cache
     def n_nodes(self) -> int:
         return 2 * self.width * self.height + self.width + self.height + 1
@@ -207,6 +208,7 @@ def get_placements(
     for big_to_small_map in matcher.subgraph_monomorphisms_iter():
         dedupe[frozenset(big_to_small_map.keys())] = big_to_small_map
         if len(dedupe) > max_placements:
+            # coverage: ignore
             raise ValueError(
                 f"We found more than {max_placements} placements. Please use a "
                 f"more constraining `big_graph` or a more constrained `small_graph`."
@@ -228,17 +230,20 @@ def plot_placements(
     axes: Sequence[plt.Axes] = None,
 ):
     if len(small_to_big_mappings) > max_plots:
+        # coverage: ignore
         warnings.warn(f"You've provided a lot of mappings. Only plotting the first {max_plots}")
         small_to_big_mappings = small_to_big_mappings[:max_plots]
 
     call_show = False
     if axes is None:
+        # coverage: ignore
         call_show = True
 
     for i, small_to_big_map in enumerate(small_to_big_mappings):
         if axes is not None:
             ax = axes[i]
         else:
+            # coverage: ignore
             ax = plt.gca()
 
         small_mapped = nx.relabel_nodes(small_graph, small_to_big_map)
@@ -248,6 +253,7 @@ def plot_placements(
         )
         ax.axis('equal')
         if call_show:
+            # coverage: ignore
             # poor man's multi-axis figure: call plt.show() after each plot
             # and jupyter will put the plots one after another.
             plt.show()

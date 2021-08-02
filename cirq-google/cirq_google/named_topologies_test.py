@@ -19,7 +19,6 @@ import cirq
 import networkx as nx
 import pytest
 from cirq_google.named_topologies import (
-    NamedTopology,
     draw_gridlike,
     LineTopology,
     DiagonalRectangleTopology,
@@ -42,6 +41,13 @@ def test_diagonal_rectangle_topology():
     with pytest.raises(ValueError):
         _ = DiagonalRectangleTopology(3, 0)
 
+    ax = MagicMock()
+    topo.draw(ax=ax)
+    ax.scatter.assert_called()
+
+    qubits = topo.nodes_as_gridqubits()
+    assert all(isinstance(q, cirq.GridQubit) for q in qubits)
+
 
 def test_line_topology():
     n = 10
@@ -51,6 +57,10 @@ def test_line_topology():
     assert all(1 <= topo.graph.degree[node] <= 2 for node in topo.graph.nodes)
     assert topo.name == '10-line'
 
+    ax = MagicMock()
+    topo.draw(ax=ax)
+    ax.scatter.assert_called()
+
 
 @pytest.mark.parametrize('cartesian', [True, False])
 def test_draw_gridlike(cartesian):
@@ -58,7 +68,7 @@ def test_draw_gridlike(cartesian):
     ax = MagicMock()
     pos = draw_gridlike(graph, cartesian=cartesian, ax=ax)
     ax.scatter.assert_called()
-    for (row, column), (x, y) in pos.items():
+    for (row, column), _ in pos.items():
         assert 0 <= row < 3
         assert 0 <= column < 3
 

@@ -127,6 +127,15 @@ from cirq_google.serializable_gate_set import (
     SerializableGateSet,
 )
 
+from cirq_google.named_topologies import (
+    NamedTopology,
+    draw_gridlike,
+    LineTopology,
+    DiagonalRectangleTopology,
+    get_placements,
+    plot_placements,
+)
+
 from cirq_google import experimental
 
 
