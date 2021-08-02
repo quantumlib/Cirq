@@ -602,7 +602,6 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         'pd': pd,
         'sympy': sympy,
         'np': np,
-        'datetime': datetime,
     }
     try:
         import cirq_google
