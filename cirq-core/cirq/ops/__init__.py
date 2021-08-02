@@ -121,6 +121,7 @@ from cirq.ops.linear_combinations import (
     LinearCombinationOfOperations,
     PauliSum,
     PauliSumLike,
+    ProjectorSum,
 )
 
 from cirq.ops.pauli_sum_exponential import (
@@ -133,7 +134,6 @@ from cirq.ops.parallel_gate_operation import (
 
 from cirq.ops.projector import (
     ProjectorString,
-    ProjectorSum,
 )
 
 from cirq.ops.controlled_operation import (

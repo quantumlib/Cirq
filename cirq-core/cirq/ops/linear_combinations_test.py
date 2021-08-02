@@ -1662,3 +1662,82 @@ def test_expectation_from_density_matrix_two_qubit_states():
         np.testing.assert_allclose(
             psum3.expectation_from_density_matrix(state, qubit_map=q_map_2), 0
         )
+
+
+def test_projector_sum_expectations():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+    one_projector = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 1}))
+    projector_with_coeff = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 0}, coefficient=0.123)
+    )
+
+    proj_sum = 0.6 * zero_projector + 0.4 * one_projector
+    np.testing.assert_allclose(proj_sum.matrix().toarray(), [[0.6, 0.0], [0.0, 0.4]])
+    np.testing.assert_allclose(
+        proj_sum.expectation_from_state_vector(np.array([1.0, 0.0]), {q0: 0}), 0.6
+    )
+    np.testing.assert_allclose(
+        proj_sum.expectation_from_density_matrix(np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}), 0.6
+    )
+    np.testing.assert_allclose(
+        projector_with_coeff.expectation_from_density_matrix(
+            np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}
+        ),
+        0.123,
+    )
+
+
+def test_projector_sum_accessor():
+    q0 = cirq.NamedQubit('q0')
+
+    projector_string_1 = cirq.ProjectorString({q0: 0}, 0.2016)
+    projector_string_2 = cirq.ProjectorString({q0: 1}, 0.0913)
+
+    projector_sum = cirq.ProjectorSum.from_projector_strings([
+        projector_string_1,
+        projector_string_2])
+
+    assert len(projector_sum) == 2
+    expanded_projector_strings = list(projector_sum)
+    assert expanded_projector_strings == [projector_string_1, projector_string_2]
+
+def test_projector_bool_operation():
+    q0 = cirq.NamedQubit('q0')
+
+    empty_projector_sum = cirq.ProjectorSum.from_projector_strings([])
+    non_empty_projector_sum = cirq.ProjectorSum.from_projector_strings([cirq.ProjectorString({q0: 0})])
+
+    assert not empty_projector_sum
+    assert non_empty_projector_sum
+
+
+def test_projector_sum_operations():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+    one_projector = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 1}))
+
+    simple_addition = zero_projector + one_projector
+    np.testing.assert_allclose(simple_addition.matrix().toarray(), [[1.0, 0.0], [0.0, 1.0]])
+
+    simple_subtraction = zero_projector - one_projector
+    np.testing.assert_allclose(simple_subtraction.matrix().toarray(), [[1.0, 0.0], [0.0, -1.0]])
+
+    negation = -zero_projector
+    np.testing.assert_allclose(negation.matrix().toarray(), [[-1.0, 0.0], [0.0, 0.0]])
+
+    incrementation = zero_projector
+    incrementation += one_projector
+    np.testing.assert_allclose(incrementation.matrix().toarray(), [[1.0, 0.0], [0.0, 1.0]])
+
+    decrementation = zero_projector
+    decrementation -= one_projector
+    np.testing.assert_allclose(decrementation.matrix().toarray(), [[1.0, 0.0], [0.0, -1.0]])
+
+    weighted_sum = 0.6 * zero_projector + 0.4 * one_projector
+    np.testing.assert_allclose(weighted_sum.matrix().toarray(), [[0.6, 0.0], [0.0, 0.4]])
+
+    true_division = zero_projector / 2.0
+    np.testing.assert_allclose(true_division.matrix().toarray(), [[0.5, 0.0], [0.0, 0.0]])
