@@ -162,7 +162,7 @@ class QuirkInputRotationOperation(ops.Operation):
 
         target_axes = transposed_args.axes[: len(self.base_operation.qubits)]
         control_axes = transposed_args.axes[len(self.base_operation.qubits) :]
-        control_max = np.product([q.dimension for q in self.register]).item()
+        control_max = np.prod([q.dimension for q in self.register], dtype=np.int64).item()
 
         for i in range(control_max):
             operation = self.base_operation ** (self.exponent_sign * i / control_max)
