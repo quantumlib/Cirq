@@ -1695,19 +1695,22 @@ def test_projector_sum_accessor():
     projector_string_1 = cirq.ProjectorString({q0: 0}, 0.2016)
     projector_string_2 = cirq.ProjectorString({q0: 1}, 0.0913)
 
-    projector_sum = cirq.ProjectorSum.from_projector_strings([
-        projector_string_1,
-        projector_string_2])
+    projector_sum = cirq.ProjectorSum.from_projector_strings(
+        [projector_string_1, projector_string_2]
+    )
 
     assert len(projector_sum) == 2
     expanded_projector_strings = list(projector_sum)
     assert expanded_projector_strings == [projector_string_1, projector_string_2]
 
+
 def test_projector_bool_operation():
     q0 = cirq.NamedQubit('q0')
 
     empty_projector_sum = cirq.ProjectorSum.from_projector_strings([])
-    non_empty_projector_sum = cirq.ProjectorSum.from_projector_strings([cirq.ProjectorString({q0: 0})])
+    non_empty_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        [cirq.ProjectorString({q0: 0})]
+    )
 
     assert not empty_projector_sum
     assert non_empty_projector_sum

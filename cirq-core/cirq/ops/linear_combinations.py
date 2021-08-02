@@ -876,7 +876,7 @@ class ProjectorSum:
     def __len__(self) -> int:
         return len(self._linear_dict)
 
-    def __truediv__(self, a: value.Scalar):
+    def __truediv__(self, a: numbers.Complex):
         return self.__imul__(1 / a)
 
     def __bool__(self) -> bool:
