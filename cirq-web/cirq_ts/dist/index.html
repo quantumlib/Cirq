@@ -4,6 +4,8 @@
   <title>Cirq Web Development page</title>
 </head>
 <body>
+  <button id="camera-reset">Reset Camera</button>
+  <button id="camera-toggle">Toggle Camera Type</button>
   <div id="mycircuitdiv"></div>
   <script src="/circuit.bundle.js"></script>
   <script>
@@ -16,13 +18,23 @@
         {row: 3, col: 2},
         {row: 3, col: 0},
       ], 5, 'mycircuitdiv');
-    circuit.addSymbolsFromList(
+    circuit.circuit.addSymbolsFromList(
       [
       {'wire_symbols': ['Z'], 'location_info': [{'row': 2, 'col': 3}], 'color_info': ['cyan'], 'moment': 0},
       {'wire_symbols': ['X'], 'location_info': [{'row': 2, 'col': 3}], 'color_info': ['black'], 'moment': 1},
       {'wire_symbols': ['@', 'X'], 'location_info': [{'row': 3, 'col': 0}, {'row': 0, 'col': 0}], 'color_info': ['black', 'black'], 'moment': 0},
       ]
       );
+
+    // Event listener for reset press
+    document.getElementById("camera-reset").addEventListener('click', ()  => {
+      circuit.scene.setCameraAndControls(circuit.circuit);
+    });
+
+    // Event listener for camera change
+    document.getElementById("camera-toggle").addEventListener('click', ()  => {
+      circuit.scene.toggleCamera(circuit.circuit);
+    });
   </script>
 </body>
 </html>

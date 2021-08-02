@@ -41,11 +41,22 @@ class Circuit3D(widget.Widget):
         moments = len(self.circuit.moments)
         self.serialized_circuit = self._serialize_circuit()
 
+        ## TODO: Read this in from a larger file and pass through.
         return f"""
+            <button id="camera-reset">Reset Camera</button>
+            <button id="camera-toggle">Toggle Camera Type</button>
             <div id="test">
             <script>
             let viz_{stripped_id} = createGridCircuit({qubits}, {moments}, "{self.id}");
-            viz_{stripped_id}.addSymbolsFromList({self.serialized_circuit})
+            viz_{stripped_id}.circuit.addSymbolsFromList({self.serialized_circuit})
+
+            document.getElementById("camera-reset").addEventListener('click', ()  => {{
+            viz_{stripped_id}.scene.setCameraAndControls(viz_{stripped_id}.circuit);
+            }});
+
+            document.getElementById("camera-toggle").addEventListener('click', ()  => {{
+            viz_{stripped_id}.scene.toggleCamera(viz_{stripped_id}.circuit);
+            }});
             </script>
         """
 

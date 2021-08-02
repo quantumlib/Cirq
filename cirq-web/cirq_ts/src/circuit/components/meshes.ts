@@ -179,17 +179,21 @@ export class BoxGate3DSymbol extends Mesh {
 
     context.fillStyle = color;
     context.fillRect(0, 0, canvas.width, canvas.height);
- 
+
     // TODO: Make this more robust
     let fontSize = 60;
-    const chars = [...label]
-    chars.forEach((char) => {
+    const chars = [...label];
+    chars.forEach(char => {
       fontSize /= 1.2;
     });
     context.font = `${fontSize}pt arial bold`;
     context.fillStyle = 'black';
     const textWidth = context.measureText(label).width;
-    context.fillText(label, (canvas.width/2) - (textWidth/2), canvas.height/2 + fontSize/2);
+    context.fillText(
+      label,
+      canvas.width / 2 - textWidth / 2,
+      canvas.height / 2 + fontSize / 2
+    );
 
     const map = new Texture(canvas);
     map.needsUpdate = true;

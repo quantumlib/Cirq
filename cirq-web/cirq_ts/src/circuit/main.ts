@@ -12,57 +12,161 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Scene, PerspectiveCamera, WebGLRenderer, OrthographicCamera} from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  OrthographicCamera,
+  Vector3,
+  Box3,
+} from 'three';
+import {
+  OrbitControls,
+} from 'three/examples/jsm/controls/OrbitControls';
 import {GridCircuit} from './grid_circuit';
 import {Coord} from './components/types';
 
-/**
- * Creates a three.js scene object, adds it to the container element
- * at the designated id, and adds the orbit control functionality.
- * @param numQubits The number of qubits in the circuit
- * @param sceneId The container id that will host the three.js scene object
- * @returns The three.js scene object
- */
-function createAndRenderScene(numQubits: number, sceneId: string): Scene {
-  const WIDTH = 1000;
-  const HEIGHT = 700;
-  const NUM_QUBITS = numQubits;
+class CircuitScene extends Scene {
+  private WIDTH = 1000;
+  private HEIGHT = 700;
 
-  const scene = new Scene();
-  const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 1000);
-  //const camera = new OrthographicCamera(WIDTH / -2 , WIDTH / 2, HEIGHT / 2, HEIGHT / -2, 1, 1000);
+  public camera: PerspectiveCamera | OrthographicCamera;
+  public renderer: WebGLRenderer;
+  public controls: OrbitControls;
 
-  const renderer = new WebGLRenderer({alpha: true});
-  const controls = new OrbitControls(camera, renderer.domElement);
+  /**
+   * Support for both the Perspective and Orthographic
+   * cameras offered by three.js
+   */
+  private perspectiveCamera: PerspectiveCamera;
+  private orthographicCamera: OrthographicCamera;
+  private perspectiveControls: OrbitControls;
+  private orthographicControls: OrbitControls;
 
-  renderer.setSize(WIDTH, HEIGHT);
-  const el = document.getElementById(sceneId)!;
+  /**
+   * Class constructor.
+   * Creates a three.js scene object, adds it to the container element
+   * at the designated id, and adds the orbit control functionality.
+   * @param sceneId The container id that will host the three.js scene object
+   * @returns The three.js scene object
+   */
+  constructor(sceneId: string) {
+    super();
 
-  el.appendChild(renderer.domElement);
+    this.renderer = new WebGLRenderer({alpha: true, antialias: true});
+    this.renderer.setSize(this.WIDTH, this.HEIGHT);
 
-  // TODO: create a better way to start the
-  // camera in the center of the scene.
-  camera.position.x = 0;
-  camera.position.z = 0;
-  camera.position.y = 2.5;
+    this.perspectiveCamera = new PerspectiveCamera(
+      75,
+      this.WIDTH / this.HEIGHT,
+      0.1,
+      1000
+    );
+  
+    this.orthographicCamera = new OrthographicCamera(
+      (this.WIDTH / this.HEIGHT)  / -2,
+      (this.WIDTH / this.HEIGHT) /  2,
+      (this.HEIGHT / this.WIDTH) / 2,
+      (this.HEIGHT / this.WIDTH) / -2,
+      0,
+      2000
+    );
+    this.orthographicCamera.zoom = 0.1;
+    // The default camera is the Perspective camera
+    this.camera = this.perspectiveCamera;
 
-  controls.target.set(0, 2.5, 0);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-  controls.screenSpacePanning = false;
-  controls.minDistance = 5;
-  controls.maxDistance = 200;
-  controls.maxPolarAngle = Math.PI;
+    this.perspectiveControls = new OrbitControls(
+      this.perspectiveCamera,
+      this.renderer.domElement
+    );
+    this.orthographicControls = new OrbitControls(
+      this.orthographicCamera,
+      this.renderer.domElement
+    );
+    // The default controls are the Orbit controls for the Perspective camera
+    this.controls = this.perspectiveControls;
 
-  function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
+    const el = document.getElementById(sceneId)!;
+    el.appendChild(this.renderer.domElement);
+
+
+    this.animate();
   }
-  animate();
 
-  return scene;
+  /**
+   * Orients the camera and controls based off of the generated circuit,
+   * setting its position, zoom, and orientation.
+   * @param circuit The circuit that the camera is oriented off of.
+   */
+  setCameraAndControls(circuit: GridCircuit) {
+    // Set the camera positions
+    this.fitPerspectiveCamera(circuit);
+    this.fitOrthographicCamera(circuit);
+
+    // Tells the camera which way is up.
+    this.camera.up.set(0, 1, 0);
+
+    // The camera will always look at circuit to start
+    this.camera.lookAt(circuit.position);
+
+    // Tells the control anchor to be set to the center
+    // of the circuit.
+    const vec = new Vector3();
+    const center = new Box3().setFromObject(circuit).getCenter(vec);
+    this.controls.target.set(vec.x, vec.y, vec.z);
+  }
+
+  /**
+   * Toggles between a Perspective and Orthographic camera, resetting
+   * the camera to the default orientation each time.
+   * @param circuit The circuit that the camera is oriented off of. 
+   */
+  toggleCamera(circuit: GridCircuit) {
+    if (this.camera instanceof PerspectiveCamera) {
+      this.camera = this.orthographicCamera;
+      this.controls = this.orthographicControls;
+    } else {
+      this.camera = this.perspectiveCamera;
+      this.controls = this.perspectiveControls;
+    }
+
+    this.setCameraAndControls(circuit);
+  }
+
+  private animate() {
+    requestAnimationFrame(this.animate.bind(this));
+    this.controls.update();
+    this.renderer.render(this, this.camera);
+  }
+
+  private fitPerspectiveCamera(circuit: GridCircuit) {
+    const boundingBox = new Box3();
+    boundingBox.setFromObject(circuit);
+
+    const center = boundingBox.getCenter(new Vector3());
+    const size = boundingBox.getSize(new Vector3())
+
+    const max = Math.max(size.x, size.y, size.z);
+    const fov = this.perspectiveCamera.fov * (Math.PI / 180);
+
+    let z = Math.abs(max / Math.sin(fov / 2));
+
+    this.perspectiveCamera.position.x = 0;
+    this.perspectiveCamera.position.y = 2.5;
+    this.perspectiveCamera.position.z = z;
+  }
+
+  private fitOrthographicCamera(circuit: GridCircuit) {
+    // TODO: for more precision, calculate the bounding box of the
+    // circuit and set the orthographic camera to the four corners
+    // plus an offset.
+    this.orthographicCamera.position.x = 1;
+    this.orthographicCamera.position.y = 2;
+    this.orthographicCamera.zoom = 0.07;
+    this.orthographicCamera.updateProjectionMatrix();
+
+    this.orthographicCamera.lookAt(circuit.position);
+  }
 }
 
 /**
@@ -80,11 +184,12 @@ export function createGridCircuit(
   qubits: Coord[],
   numMoments: number,
   sceneId: string
-): GridCircuit {
-  const scene = createAndRenderScene(qubits.length, sceneId);
+): any {
+  const scene = new CircuitScene(sceneId);
 
   const circuit = new GridCircuit(numMoments, qubits);
   scene.add(circuit);
+  scene.setCameraAndControls(circuit);
 
-  return circuit;
+  return {circuit, scene};
 }
