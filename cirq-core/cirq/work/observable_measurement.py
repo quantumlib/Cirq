@@ -400,6 +400,12 @@ def _parse_checkpoint_options(
         else:
             checkpoint_other_fn = f'{checkpoint_dir}/{chk_basename}.prev.json'
 
+    if checkpoint_fn == checkpoint_other_fn:
+        raise ValueError(
+            f"`checkpoint_fn` and `checkpoint_other_fn` were set to the same "
+            f"filename: {checkpoint_fn}. Please use two different filenames."
+        )
+
     return checkpoint_fn, checkpoint_other_fn
 
 

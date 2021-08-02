@@ -498,6 +498,16 @@ def test_measure_grouped_settings_read_checkpoint(tmpdir):
     )
     grouped_settings = {setting: [setting]}
     circuit = cirq.Circuit(cirq.I.on_each(*qubits))
+    with pytest.raises(ValueError, match=r'same filename.*'):
+        _ = cw.measure_grouped_settings(
+            circuit=circuit,
+            grouped_settings=grouped_settings,
+            sampler=cirq.Simulator(),
+            stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
+            checkpoint=True,
+            checkpoint_fn=f'{tmpdir}/obs.json',
+            checkpoint_other_fn=f'{tmpdir}/obs.json',  # Same filename
+        )
     _ = cw.measure_grouped_settings(
         circuit=circuit,
         grouped_settings=grouped_settings,
@@ -505,7 +515,7 @@ def test_measure_grouped_settings_read_checkpoint(tmpdir):
         stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
         checkpoint=True,
         checkpoint_fn=f'{tmpdir}/obs.json',
-        checkpoint_other_fn=f'{tmpdir}/obs.json',  # Test same filename for both.
+        checkpoint_other_fn=f'{tmpdir}/obs.prev.json',
     )
     results = cirq.read_json(f'{tmpdir}/obs.json')
     (result,) = results  # one group
