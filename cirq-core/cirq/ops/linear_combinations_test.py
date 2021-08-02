@@ -1725,14 +1725,14 @@ def test_projector_sum_operations():
     simple_subtraction = zero_projector - one_projector
     np.testing.assert_allclose(simple_subtraction.matrix().toarray(), [[1.0, 0.0], [0.0, -1.0]])
 
-    negation = -zero_projector
+    negation = -zero_projector.copy()
     np.testing.assert_allclose(negation.matrix().toarray(), [[-1.0, 0.0], [0.0, 0.0]])
 
-    incrementation = zero_projector
+    incrementation = zero_projector.copy()
     incrementation += one_projector
     np.testing.assert_allclose(incrementation.matrix().toarray(), [[1.0, 0.0], [0.0, 1.0]])
 
-    decrementation = zero_projector
+    decrementation = zero_projector.copy()
     decrementation -= one_projector
     np.testing.assert_allclose(decrementation.matrix().toarray(), [[1.0, 0.0], [0.0, -1.0]])
 

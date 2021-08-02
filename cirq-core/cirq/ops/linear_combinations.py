@@ -883,9 +883,8 @@ class ProjectorSum:
         return bool(self._linear_dict)
 
     def __iadd__(self, other: 'ProjectorSum'):
-        result = self.copy()
-        result._linear_dict += other._linear_dict
-        return result
+        self._linear_dict += other._linear_dict
+        return self
 
     def __add__(self, other: 'ProjectorSum'):
         result = self.copy()
@@ -893,9 +892,8 @@ class ProjectorSum:
         return result
 
     def __isub__(self, other: 'ProjectorSum'):
-        result = self.copy()
-        result._linear_dict -= other._linear_dict
-        return result
+        self._linear_dict -= other._linear_dict
+        return self
 
     def __sub__(self, other: 'ProjectorSum'):
         result = self.copy()
@@ -903,14 +901,12 @@ class ProjectorSum:
         return result
 
     def __neg__(self):
-        result = self.copy()
-        result *= -1.0
-        return result
+        factory = type(self)
+        return factory(-self._linear_dict)
 
     def __imul__(self, other: numbers.Complex):
-        result = self.copy()
-        result._linear_dict *= other
-        return result
+        self._linear_dict *= other
+        return self
 
     def __rmul__(self, other: numbers.Complex):
         result = self.copy()
