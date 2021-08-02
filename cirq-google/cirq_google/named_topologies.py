@@ -1,39 +1,68 @@
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import abc
 import dataclasses
 import warnings
 from dataclasses import dataclass
-from typing import Dict, List
+from functools import lru_cache
+from typing import Dict, List, Tuple, Any, Sequence
 
 import cirq
 import networkx as nx
 from matplotlib import pyplot as plt
 
 
+def cache(user_function):
+    """Unbounded cache.
+
+    Available as functools.cache in Python 3.9+
+    """
+    return lru_cache(maxsize=None)(user_function)
+
+
 def dataclass_json_dict(obj, namespace: str = None):
     return cirq.obj_to_dict_helper(
-        obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace)
+        obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace
+    )
 
 
 class NamedTopology(metaclass=abc.ABCMeta):
     """A named topology."""
 
-    @property
-    @abc.abstractmethod
-    def name(self) -> str:
-        pass
+    name = NotImplemented
+    """A name that uniquely identifies this topology."""
 
-    @property
-    @abc.abstractmethod
-    def n_nodes(self) -> int:
-        pass
+    n_nodes = NotImplemented
+    """The number of nodes in the topology."""
 
-    @property
-    @abc.abstractmethod
-    def graph(self) -> nx.Graph:
-        pass
+    graph = NotImplemented
+    """A networkx graph representation of the topology."""
 
 
-def draw_gridlike(graph: nx.Graph, ax=None, cartesian=True, **kwargs):
+def _node_and_coordinates(nodes):
+    for node in nodes:
+        if isinstance(node, cirq.GridQubit):
+            yield node, (node.row, node.col)
+        else:
+            x, y = node
+            yield node, (x, y)
+
+
+def draw_gridlike(
+    graph: nx.Graph, ax=None, cartesian: bool = True, **kwargs
+) -> Dict[Any, Tuple[int, int]]:
     """Draw a Grid-like graph.
 
     Args:
@@ -42,14 +71,18 @@ def draw_gridlike(graph: nx.Graph, ax=None, cartesian=True, **kwargs):
         cartesian: If True, directly position as (row, column); otherwise,
             rotate 45 degrees to accommodate google-style diagonal grids.
         kwargs: Additional arguments to pass to `nx.draw_networkx`.
+
+    Returns:
+        A positions dictionary mapping nodes to (x, y) coordinates suitable for future calls
+        to NetworkX plotting functionality.
     """
     if ax is None:
         ax = plt.gca()
 
     if cartesian:
-        pos = {n: (n[1], -n[0]) for n in graph.nodes}
+        pos = {node: (y, -x) for node, (x, y) in _node_and_coordinates(graph.nodes)}
     else:
-        pos = {(x, y): (x + y, y - x) for x, y in graph.nodes}
+        pos = {node: (x + y, y - x) for node, (x, y) in _node_and_coordinates(graph.nodes)}
 
     nx.draw_networkx(graph, pos=pos, ax=ax, **kwargs)
     ax.axis('equal')
@@ -66,35 +99,28 @@ class LineTopology(NamedTopology):
     Args:
         n_nodes: The number of nodes in a line.
     """
+
     n_nodes: int
 
-    def __init__(self, n_nodes: int):
-        g = nx.from_edgelist([(i1, i2) for i1, i2
-                              in zip(range(n_nodes), range(1, n_nodes))])
-        object.__setattr__(self, '_n_nodes', n_nodes)
-        object.__setattr__(self, '_name', f'{self.n_nodes}-line')
-        object.__setattr__(self, '_graph', g)
-
     @property
-    def n_nodes(self) -> int:
-        # TODO: figure out how to work.
-        return self._n_nodes
-
-    @property
+    @cache
     def name(self) -> str:
         """The name of this topology: {n_nodes}-line"""
-        return self._name
+        return f'{self.n_nodes}-line'
 
     @property
+    @cache
     def graph(self) -> nx.Graph:
         """The graph of this topology.
 
         Node indices are contiguous integers starting from 0 with edges between
         adjacent integers.
         """
-        return self._graph
+        return nx.from_edgelist(
+            [(i1, i2) for i1, i2 in zip(range(self.n_nodes), range(1, self.n_nodes))]
+        )
 
-    def draw(self, ax=None, cartesian=True, **kwargs):
+    def draw(self, ax=None, cartesian: bool = True, **kwargs) -> Dict[Any, Tuple[int, int]]:
         """Draw this graph.
 
         Args:
@@ -114,38 +140,38 @@ class DiagonalRectangleTopology(NamedTopology):
     width: int
     height: int
 
-    def __init__(self, width: int, height: int):
-        assert width > 0
-        assert height > 0
+    def __post_init__(self):
+        if self.width <= 0:
+            raise ValueError("Width must be a positive integer")
+        if self.height <= 0:
+            raise ValueError("Height must be a positive integer")
+
+    @property
+    @cache
+    def name(self) -> str:
+        return f'{self.width}-{self.height}-diagonal-rectangle'
+
+    @property
+    @cache
+    def graph(self) -> nx.Graph:
         g = nx.Graph()
-        for megarow in range(height):
-            for megacol in range(width):
+        # construct a "diagonal rectangle graph" whose width and height
+        # set the number of rows of 'central' qubits, each of which has
+        # four neighbors in each cardinal direction
+        for megarow in range(self.height):
+            for megacol in range(self.width):
                 y = megacol + megarow
                 x = megacol - megarow
                 g.add_edge((x, y), (x - 1, y))
                 g.add_edge((x, y), (x, y - 1))
                 g.add_edge((x, y), (x + 1, y))
                 g.add_edge((x, y), (x, y + 1))
-
-        object.__setattr__(self, 'width', width)
-        object.__setattr__(self, 'height', height)
-        object.__setattr__(self, '_name', f'{width}-{height}-diagonal-rectangle')
-        object.__setattr__(self, '_graph', g)
-        n_nodes = 2 * width * height + width + height + 1
-        assert n_nodes == len(g)
-        object.__setattr__(self, '_n_nodes', n_nodes)
+        return g
 
     @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def graph(self) -> nx.Graph:
-        return self._graph
-
-    @property
+    @cache
     def n_nodes(self) -> int:
-        return self._n_nodes
+        return 2 * self.width * self.height + self.width + self.height + 1
 
     def draw(self, ax=None, cartesian=True, **kwargs):
         """Draw this graph
@@ -158,17 +184,19 @@ class DiagonalRectangleTopology(NamedTopology):
         """
         return draw_gridlike(self.graph, ax=ax, cartesian=cartesian, **kwargs)
 
-    def nodes_as_gridqubits(self):
+    def nodes_as_gridqubits(self) -> List['cirq.GridQubit']:
         """Get the graph nodes as cirq.GridQubit"""
         import cirq
+
         return [cirq.GridQubit(r, c) for r, c in sorted(self.graph.nodes)]
 
     def _json_dict_(self):
         return dataclass_json_dict(self, namespace='cirq.google')
 
 
-def get_placements(big_graph: nx.Graph, small_graph: nx.Graph,
-                   max_placements=100_000) -> List[Dict]:
+def get_placements(
+    big_graph: nx.Graph, small_graph: nx.Graph, max_placements=100_000
+) -> List[Dict]:
     matcher = nx.algorithms.isomorphism.GraphMatcher(big_graph, small_graph)
 
     # We restrict only to unique set of `big_graph` qubits. Some monomorphisms may be basically
@@ -179,8 +207,10 @@ def get_placements(big_graph: nx.Graph, small_graph: nx.Graph,
     for big_to_small_map in matcher.subgraph_monomorphisms_iter():
         dedupe[frozenset(big_to_small_map.keys())] = big_to_small_map
         if len(dedupe) > max_placements:
-            raise ValueError(f"We found more than {max_placements} placements. Please use a "
-                             f"more constraining `big_graph` or a more constrained `small_graph`.")
+            raise ValueError(
+                f"We found more than {max_placements} placements. Please use a "
+                f"more constraining `big_graph` or a more constrained `small_graph`."
+            )
 
     small_to_bigs = []
     for big in sorted(dedupe.keys()):
@@ -190,19 +220,34 @@ def get_placements(big_graph: nx.Graph, small_graph: nx.Graph,
     return small_to_bigs
 
 
-def plot_placements(big_graph: nx.Graph, small_graph: nx.Graph, small_to_big_mappings,
-                    max_plots=20):
+def plot_placements(
+    big_graph: nx.Graph,
+    small_graph: nx.Graph,
+    small_to_big_mappings,
+    max_plots=20,
+    axes: Sequence[plt.Axes] = None,
+):
     if len(small_to_big_mappings) > max_plots:
         warnings.warn(f"You've provided a lot of mappings. Only plotting the first {max_plots}")
         small_to_big_mappings = small_to_big_mappings[:max_plots]
 
-    for small_to_big_map in small_to_big_mappings:
-        small_mapped = nx.relabel_nodes(small_graph, small_to_big_map)
-        pos = {n: (n[1], -n[0]) for n in big_graph.nodes}
-        nx.draw_networkx(big_graph, pos=pos, ax=plt.gca())
+    call_show = False
+    if axes is None:
+        call_show = True
 
-        pos = {n: (n[1], -n[0]) for n in small_mapped.nodes}
-        nx.draw_networkx(small_mapped, pos=pos, node_color='red', edge_color='red',
-                         width=2, with_labels=False)
-        plt.axis('equal')
-        plt.show()
+    for i, small_to_big_map in enumerate(small_to_big_mappings):
+        if axes is not None:
+            ax = axes[i]
+        else:
+            ax = plt.gca()
+
+        small_mapped = nx.relabel_nodes(small_graph, small_to_big_map)
+        draw_gridlike(big_graph, ax=ax)
+        draw_gridlike(
+            small_mapped, node_color='red', edge_color='red', width=2, with_labels=False, ax=ax
+        )
+        ax.axis('equal')
+        if call_show:
+            # poor man's multi-axis figure: call plt.show() after each plot
+            # and jupyter will put the plots one after another.
+            plt.show()
