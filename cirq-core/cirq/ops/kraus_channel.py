@@ -58,6 +58,8 @@ class KrausChannel(raw_types.Gate):
         return KrausChannel(kraus_ops=list(protocols.kraus(channel)), key=key)
 
     def __eq__(self, other) -> bool:
+        # TODO(#3241): provide a protocol to test equivalence between channels,
+        # ignoring measurement keys and channel/mixture distinction
         if not isinstance(other, KrausChannel):
             return NotImplemented
         if self._key != other._key:
