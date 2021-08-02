@@ -231,7 +231,7 @@ class DensityMatrixSimulator(
     # TODO(#4209): Deduplicate with identical code in sparse_simulator.
     def simulate_expectation_values_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'study.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,

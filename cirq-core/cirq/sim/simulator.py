@@ -69,7 +69,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.Result]:
@@ -77,7 +77,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
     def run_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> Iterator[study.Result]:
@@ -115,7 +115,10 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
+        self,
+        circuit: circuits.AbstractCircuit,
+        param_resolver: study.ParamResolver,
+        repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """Run a simulation, mimicking quantum hardware.
 
@@ -146,7 +149,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def compute_amplitudes(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -175,7 +178,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def compute_amplitudes_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -188,7 +191,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _compute_amplitudes_sweep_to_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -204,7 +207,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
     )
     def compute_amplitudes_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -243,7 +246,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def simulate_expectation_values(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -291,7 +294,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def simulate_expectation_values_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'study.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -315,7 +318,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _simulate_expectation_values_sweep_to_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'study.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -345,7 +348,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
     )
     def simulate_expectation_values_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'study.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -402,7 +405,7 @@ class SimulatesFinalState(
 
     def simulate(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -431,7 +434,7 @@ class SimulatesFinalState(
 
     def simulate_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -444,7 +447,7 @@ class SimulatesFinalState(
 
     def _simulate_sweep_to_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -456,7 +459,7 @@ class SimulatesFinalState(
     @value.alternative(requires='simulate_sweep', implementation=_simulate_sweep_to_iter)
     def simulate_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -504,7 +507,7 @@ class SimulatesIntermediateState(
 
     def simulate_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -547,7 +550,7 @@ class SimulatesIntermediateState(
 
     def simulate_moment_steps(
         self,
-        circuit: circuits.Circuit,
+        circuit: circuits.AbstractCircuit,
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -580,7 +583,7 @@ class SimulatesIntermediateState(
 
     def _base_iterator(
         self,
-        circuit: circuits.Circuit,
+        circuit: circuits.AbstractCircuit,
         qubit_order: ops.QubitOrderOrList,
         initial_state: Any,
     ) -> Iterator[TStepResult]:
@@ -633,7 +636,7 @@ class SimulatesIntermediateState(
     @abc.abstractmethod
     def _core_iterator(
         self,
-        circuit: circuits.Circuit,
+        circuit: circuits.AbstractCircuit,
         sim_state: 'cirq.OperationTarget[TActOnArgs]',
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
@@ -898,7 +901,7 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
     return tuple(qid_shape)
 
 
-def _verify_unique_measurement_keys(circuit: circuits.Circuit):
+def _verify_unique_measurement_keys(circuit: circuits.AbstractCircuit):
     result = collections.Counter(
         key for op in ops.flatten_op_tree(iter(circuit)) for key in protocols.measurement_keys(op)
     )
@@ -919,9 +922,9 @@ def check_all_resolved(circuit):
 
 
 def split_into_matching_protocol_then_general(
-    circuit: 'cirq.Circuit',
+    circuit: 'cirq.AbstractCircuit',
     predicate: Callable[['cirq.Operation'], bool],
-) -> Tuple['cirq.Circuit', 'cirq.Circuit']:
+) -> Tuple['cirq.AbstractCircuit', 'cirq.AbstractCircuit']:
     """Splits the circuit into a matching prefix and non-matching suffix.
 
     The splitting happens in a per-qubit fashion. A non-matching operation on
