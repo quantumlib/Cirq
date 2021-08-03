@@ -235,6 +235,48 @@ def test_get_missing_device():
         _ = processor.get_device(gate_sets=[_GATE_SET])
 
 
+# TODO(#3634): remove once server-side support is available.
+def test_get_device_backwards_compatible():
+    # The SQRT_ISWAP gateset without CircuitOperations.
+    OLD_SQRT_ISWAP_GATESET = cg.serializable_gate_set.SerializableGateSet(
+        gate_set_name='sqrt_iswap',
+        serializers=[
+            *cg.gate_sets.SQRT_ISWAP_SERIALIZERS,
+            *cg.gate_sets.SINGLE_QUBIT_SERIALIZERS,
+            cg.gate_sets.MEASUREMENT_SERIALIZER,
+            cg.gate_sets.WAIT_GATE_SERIALIZER,
+        ],
+        deserializers=[
+            *cg.gate_sets.SQRT_ISWAP_DESERIALIZERS,
+            *cg.gate_sets.SINGLE_QUBIT_DESERIALIZERS,
+            cg.gate_sets.MEASUREMENT_DESERIALIZER,
+            cg.gate_sets.WAIT_GATE_DESERIALIZER,
+        ],
+    )
+
+    # Sycamore proto without CircuitOperations.
+    OLD_SYCAMORE_PROTO = cg.devices.known_devices.create_device_proto_from_diagram(
+        "\nA\n",  # Dummy qubit grid.
+        [OLD_SQRT_ISWAP_GATESET],
+    )
+
+    # First, verify that a new processor works with the old gateset.
+    spec = _to_any(cg.devices.known_devices.SYCAMORE_PROTO)
+    processor = cg.EngineProcessor(
+        'a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor(device_spec=spec)
+    )
+    device = processor.get_device(gate_sets=[OLD_SQRT_ISWAP_GATESET])
+    assert device is not None
+
+    # Second, verify that an old processor works with the new gateset.
+    old_spec = _to_any(OLD_SYCAMORE_PROTO)
+    old_processor = cg.EngineProcessor(
+        'a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor(device_spec=old_spec)
+    )
+    old_device = old_processor.get_device(gate_sets=[cg.SQRT_ISWAP_GATESET])
+    assert old_device is not None
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations')
 def test_list_calibrations(list_calibrations):
     list_calibrations.return_value = [_CALIBRATION]
