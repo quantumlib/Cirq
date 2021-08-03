@@ -36,9 +36,13 @@ export interface Coord {
  * Builds a 3D symbol from the given information.
  */
 export class Symbol3D extends Group {
-  private SCALING_FACTOR = 1;
   readonly moment: number;
 
+  /**
+   * Class constructor.
+   * @param symbol_info A typed object with information instructing
+   * the class on how to build the mesh.
+   */
   constructor(symbol_info: SymbolInformation) {
     super();
     this.moment = symbol_info.moment;
@@ -66,9 +70,9 @@ export class Symbol3D extends Group {
       }
 
       mesh.position.set(
-        locationInfo[index].row * this.SCALING_FACTOR,
+        locationInfo[index].row,
         symbol_info.moment,
-        locationInfo[index].col * this.SCALING_FACTOR
+        locationInfo[index].col
       );
       this.add(mesh);
     });
@@ -82,14 +86,14 @@ export class Symbol3D extends Group {
       while (i < locationInfo.length - 1) {
         const coords = [
           new Vector3(
-            locationInfo[i].row * this.SCALING_FACTOR,
+            locationInfo[i].row,
             symbol_info.moment,
-            locationInfo[i].col * this.SCALING_FACTOR
+            locationInfo[i].col
           ),
           new Vector3(
-            locationInfo[i + 1].row * this.SCALING_FACTOR,
+            locationInfo[i + 1].row,
             symbol_info.moment,
-            locationInfo[i + 1].col * this.SCALING_FACTOR
+            locationInfo[i + 1].col
           ),
         ];
         this.add(new ConnectionLine(coords[0], coords[1]));

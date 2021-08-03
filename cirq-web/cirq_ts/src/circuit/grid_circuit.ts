@@ -60,9 +60,24 @@ export class GridCircuit extends Group {
       symbol_info.location_info[0].row,
       symbol_info.location_info[0].col,
     ].join(',');
-    const qubit = this.circuit.get(key)!;
     const symbol = new Symbol3D(symbol_info);
-    qubit.addSymbol(symbol);
+
+    // In production these issues will never come up, since we will always be given
+    // a valid grid circuit as input. For development purposes, however,
+    // these checks will be useful.
+    if (symbol_info.moment < 0 || symbol_info.moment > this.moments) {
+      throw new Error(
+        `The SymbolInformation object ${symbol_info} has an invalid moment ${symbol_info.moment}`
+      );
+    }
+    const qubit = this.circuit.get(key);
+    if (qubit) {
+      qubit.addSymbol(symbol);
+    } else {
+      throw new Error(
+        `Cannot add symbol to qubit ${key}. Qubit does not exist in circuit.`
+      );
+    }
   }
 
   private addQubit(x: number, y: number) {

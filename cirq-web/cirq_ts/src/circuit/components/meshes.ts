@@ -183,7 +183,7 @@ export class BoxGate3DSymbol extends Mesh {
     // TODO: Make this more robust
     let fontSize = 60;
     const chars = [...label];
-    chars.forEach(char => {
+    chars.forEach(() => {
       fontSize /= 1.2;
     });
     context.font = `${fontSize}pt arial bold`;

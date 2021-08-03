@@ -45,7 +45,7 @@ export class GridQubit extends Group {
   }
 
   /**
-   * Adds a designated symol to the qubit. Location information,
+   * Adds a designated symbol to the qubit. Location information,
    * including the moment at which it occurs, is included in the
    * symbol itself.
    * @param symbol A Symbol3D object to add to the qubit.

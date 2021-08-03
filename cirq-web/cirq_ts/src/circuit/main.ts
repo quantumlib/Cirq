@@ -20,9 +20,7 @@ import {
   Vector3,
   Box3,
 } from 'three';
-import {
-  OrbitControls,
-} from 'three/examples/jsm/controls/OrbitControls';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {GridCircuit} from './grid_circuit';
 import {Coord} from './components/types';
 
@@ -62,12 +60,12 @@ class CircuitScene extends Scene {
       0.1,
       1000
     );
-  
+
     this.orthographicCamera = new OrthographicCamera(
-      (this.WIDTH / this.HEIGHT)  / -2,
-      (this.WIDTH / this.HEIGHT) /  2,
-      (this.HEIGHT / this.WIDTH) / 2,
-      (this.HEIGHT / this.WIDTH) / -2,
+      this.WIDTH / this.HEIGHT / -2,
+      this.WIDTH / this.HEIGHT / 2,
+      this.HEIGHT / this.WIDTH / 2,
+      this.HEIGHT / this.WIDTH / -2,
       0,
       2000
     );
@@ -88,7 +86,6 @@ class CircuitScene extends Scene {
 
     const el = document.getElementById(sceneId)!;
     el.appendChild(this.renderer.domElement);
-
 
     this.animate();
   }
@@ -111,15 +108,14 @@ class CircuitScene extends Scene {
 
     // Tells the control anchor to be set to the center
     // of the circuit.
-    const vec = new Vector3();
-    const center = new Box3().setFromObject(circuit).getCenter(vec);
-    this.controls.target.set(vec.x, vec.y, vec.z);
+    const center = new Box3().setFromObject(circuit).getCenter(new Vector3());
+    this.controls.target.set(center.x, center.y, center.z);
   }
 
   /**
    * Toggles between a Perspective and Orthographic camera, resetting
    * the camera to the default orientation each time.
-   * @param circuit The circuit that the camera is oriented off of. 
+   * @param circuit The circuit that the camera is oriented off of.
    */
   toggleCamera(circuit: GridCircuit) {
     if (this.camera instanceof PerspectiveCamera) {
@@ -143,13 +139,12 @@ class CircuitScene extends Scene {
     const boundingBox = new Box3();
     boundingBox.setFromObject(circuit);
 
-    const center = boundingBox.getCenter(new Vector3());
-    const size = boundingBox.getSize(new Vector3())
+    const size = boundingBox.getSize(new Vector3());
 
     const max = Math.max(size.x, size.y, size.z);
     const fov = this.perspectiveCamera.fov * (Math.PI / 180);
 
-    let z = Math.abs(max / Math.sin(fov / 2));
+    const z = Math.abs(max / Math.sin(fov / 2));
 
     this.perspectiveCamera.position.x = 0;
     this.perspectiveCamera.position.y = 2.5;
@@ -184,7 +179,7 @@ export function createGridCircuit(
   qubits: Coord[],
   numMoments: number,
   sceneId: string
-): any {
+): {circuit: GridCircuit; scene: CircuitScene} {
   const scene = new CircuitScene(sceneId);
 
   const circuit = new GridCircuit(numMoments, qubits);

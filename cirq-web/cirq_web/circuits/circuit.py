@@ -11,13 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from cirq.ops.raw_types import Operation
 from cirq_web import widget
 from cirq_web.circuits.gates import Operation3DSymbol, resolve_operation, DEFAULT_SYMBOL_RESOLVERS
-
-from cirq import num_qubits
-from cirq.protocols import circuit_diagram_info
 
 class Circuit3D(widget.Widget):
     def __init__(self, circuit, resolvers=DEFAULT_SYMBOL_RESOLVERS):
@@ -87,9 +82,4 @@ class Circuit3D(widget.Widget):
         location_info = []
         for qubit in operation.qubits:
             location_info.append({'row': qubit.row, 'col': qubit.col})
-        return Operation3DSymbol(
-            symbol_info.labels,
-            location_info,
-            symbol_info.colors,
-            moment
-        )
+        return Operation3DSymbol(symbol_info.labels, location_info, symbol_info.colors, moment)
