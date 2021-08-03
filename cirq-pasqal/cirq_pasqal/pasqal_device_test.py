@@ -88,11 +88,11 @@ def test_decompose_error():
 
     # MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
-        d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=2))
+        d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=2, key='a'))
     # It has to be made into one
     assert d.is_pasqal_device_op(
         cirq.ops.GateOperation(
-            cirq.ops.MeasurementGate(2), [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]
+            cirq.ops.MeasurementGate(2, 'b'), [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]
         )
     )
 
