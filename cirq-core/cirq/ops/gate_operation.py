@@ -52,7 +52,8 @@ class GateOperation(raw_types.Operation):
     """
 
     def __init__(self, gate: 'cirq.Gate', qubits: Sequence['cirq.Qid']) -> None:
-        """
+        """Inits GateOperation.
+
         Args:
             gate: The gate to apply.
             qubits: The qubits to operate on.
@@ -193,6 +194,18 @@ class GateOperation(raw_types.Operation):
 
     def _mixture_(self) -> Sequence[Tuple[float, Any]]:
         getter = getattr(self.gate, '_mixture_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
+    def _has_channel_(self) -> bool:
+        getter = getattr(self.gate, '_has_channel_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
+    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        getter = getattr(self.gate, '_channel_', None)
         if getter is not None:
             return getter()
         return NotImplemented

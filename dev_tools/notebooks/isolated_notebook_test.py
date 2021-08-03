@@ -47,6 +47,10 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     "docs/noise.ipynb",
     "docs/operators_and_observables.ipynb",
     "docs/tutorials/educators/intro.ipynb",
+    # Cirq web is a new module, notebook will be moved to docs/
+    "cirq-web/example.ipynb",
+    # cirq-rigetti is not released yet
+    "docs/tutorials/rigetti/getting_started.ipynb",
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -57,6 +61,10 @@ SKIP_NOTEBOOKS = [
     "**/google/*.ipynb",
     "**/ionq/*.ipynb",
     "**/pasqal/*.ipynb",
+    # Rigetti uses local simulation with docker, so should work
+    # if you run into issues locally, run
+    # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
+    # "**/rigetti/*.ipynb",
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
@@ -65,6 +73,10 @@ SKIP_NOTEBOOKS = [
     # Until openfermion is upgraded, this version of Cirq throws an error
     "docs/tutorials/educators/chemistry.ipynb",
 ] + NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
+
+# The Rigetti integration requires Python >= 3.7.
+if sys.version_info < (3, 7):
+    SKIP_NOTEBOOKS.append("**/rigetti/*.ipynb")
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
 # installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
@@ -105,7 +117,7 @@ def _find_base_revision():
 def _list_changed_notebooks() -> Set[str]:
     try:
         rev = _find_base_revision()
-        output = subprocess.check_output(f'git diff --name-only {rev}'.split())
+        output = subprocess.check_output(f'git diff --diff-filter=d --name-only {rev}'.split())
         lines = output.decode('utf-8').splitlines()
         # run all tests if this file or any of the dev tool dependencies change
         if any(

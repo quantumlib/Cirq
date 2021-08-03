@@ -495,7 +495,7 @@ class SimulatesIntermediateState(
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementors of this interface should implement the _base_iterator
+    Implementors of this interface should implement the _core_iterator
     method.
 
     Note that state here refers to simulator state, which is not necessarily
@@ -522,7 +522,7 @@ class SimulatesIntermediateState(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation. This can be
-                either a raw state or a `TActOnArgs`. The form of the
+                either a raw state or an `OperationTarget`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
@@ -542,7 +542,7 @@ class SimulatesIntermediateState(
             yield self._create_simulator_trial_result(
                 params=param_resolver,
                 measurements=measurements,
-                final_simulator_state=step_result._simulator_state(),
+                final_step_result=step_result,
             )
 
     def simulate_moment_steps(
@@ -613,8 +613,8 @@ class SimulatesIntermediateState(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-    ) -> TActOnArgs:
-        """Creates the ActOnArgs state for a simulator.
+    ) -> 'cirq.OperationTarget[TActOnArgs]':
+        """Creates the OperationTarget state for a simulator.
 
         Custom simulators should implement this method.
 
@@ -627,15 +627,15 @@ class SimulatesIntermediateState(
                 ordering of the computational basis states.
 
         Returns:
-            The ActOnArgs for this simulator.
+            The `OperationTarget` for this simulator.
         """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        sim_state: TActOnArgs,
+        sim_state: 'cirq.OperationTarget[TActOnArgs]',
+        all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -650,22 +650,20 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def _create_simulator_trial_result(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: TSimulatorState,
+        final_step_result: TStepResult,
     ) -> TSimulationTrialResult:
         """This method can be implemented to create a trial result.
 
         Args:
             params: The ParamResolver for this trial.
             measurements: The measurement results for this trial.
-            final_simulator_state: The final state of the simulator for the
-                StepResult.
+            final_step_result: The final step result of the simulation.
 
         Returns:
             The SimulationTrialResult.
@@ -815,11 +813,38 @@ class SimulationTrialResult:
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any,
+        final_simulator_state: Any = None,
+        final_step_result: StepResult = None,
     ) -> None:
+        """Initializes the `SimulationTrialResult` class.
+
+        Args:
+            params: A ParamResolver of settings used for this result.
+            measurements: A dictionary from measurement gate key to measurement
+                results. Measurement results are a numpy ndarray of actual
+                boolean measurement results (ordered by the qubits acted on by
+                the measurement gate.)
+            final_simulator_state: The final simulator state.
+            final_step_result: The step result coming from the simulation, that
+                can be used to get the final simulator state. This is primarily
+                for cases when calculating simulator state may be expensive and
+                unneeded. If this is provided, then final_simulator_state
+                should not be, and vice versa.
+        """
+        if [final_step_result, final_simulator_state].count(None) != 1:
+            raise ValueError(
+                'Exactly one of final_simulator_state and final_step_result should be provided'
+            )
         self.params = params
         self.measurements = measurements
-        self._final_simulator_state = final_simulator_state
+        self._final_step_result = final_step_result
+        self._final_simulator_state_cache = final_simulator_state
+
+    @property
+    def _final_simulator_state(self):
+        if self._final_simulator_state_cache is None:
+            self._final_simulator_state_cache = self._final_step_result._simulator_state()
+        return self._final_simulator_state_cache
 
     def __repr__(self) -> str:
         return (
