@@ -107,11 +107,11 @@ describe('GridCircuit', () => {
 
     it('throws an error if given a valid symbol at the wrong moments', () => {
       expect(() => circuit.addSymbolsFromList([symbols[2]])).to.throw(
-        `The SymbolInformation object ${symbols[2]} occurs at an invalid moment 3`
+        `The SymbolInformation object ${symbols[2]} has an invalid moment 3`
       );
 
       expect(() => circuit.addSymbolsFromList([symbols[3]])).to.throw(
-        `The SymbolInformation object ${symbols[3]} occurs at an invalid moment -1`
+        `The SymbolInformation object ${symbols[3]} has an invalid moment -1`
       );
     });
   });
