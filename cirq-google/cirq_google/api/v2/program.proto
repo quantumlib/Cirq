@@ -123,17 +123,17 @@ message FloatArg {
 
 // Representation of cirq.XPowGate
 message XPowGate {
-  FloatArg exponent=1;
+  FloatArg exponent = 1;
 }
 
 // Representation of cirq.YPowGate
 message YPowGate {
-  FloatArg exponent=1;
+  FloatArg exponent = 1;
 }
 
 // Representation of cirq.ZPowGate
 message ZPowGate {
-  FloatArg exponent=1;
+  FloatArg exponent = 1;
 
   // If true, this is equivalent to:
   // cirq.ZPowGate(...).with_tags(cirq.google.PhysicalZTag)
@@ -142,38 +142,38 @@ message ZPowGate {
 
 // Representation of cirq.PhasedXPowGate
 message PhasedXPowGate {
-  FloatArg phase_exponent=1;
-  FloatArg exponent=2;
+  FloatArg phase_exponent = 1;
+  FloatArg exponent = 2;
 }
 
 // Representation of cirq.PhasedXZGate
 message PhasedXZGate {
-  FloatArg x_exponent=1;
-  FloatArg z_exponent=2;
-  FloatArg axis_phase_exponent=3;
+  FloatArg x_exponent = 1;
+  FloatArg z_exponent = 2;
+  FloatArg axis_phase_exponent = 3;
 }
 
 // Representation of cirq.CZPowGate
 message CZPowGate {
-  FloatArg exponent=1;
+  FloatArg exponent = 1;
 }
 
 // Representation of cirq.FSimGate
 message FSimGate {
-  FloatArg theta=1;
-  FloatArg phi=2;
+  FloatArg theta = 1;
+  FloatArg phi = 2;
 }
 
 // Representation of cirq.ISwapPowGate
 message ISwapPowGate {
-  FloatArg exponent=1;
+  FloatArg exponent = 1;
 }
 
 // Representation of cirq.MeasurementGate
 // i.e. cirq.measure
 message MeasurementGate {
-  Arg key=1;
-  Arg invert_mask=2;
+  Arg key = 1;
+  Arg invert_mask = 2;
 }
 
 
@@ -181,7 +181,7 @@ message MeasurementGate {
 message WaitGate {
   // Duration of the waiting period,
   // serialized to the number of nanoseconds
-  FloatArg duration_nanos=1;
+  FloatArg duration_nanos = 1;
 }
 
 // An operation acts on a set of qubits.

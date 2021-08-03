@@ -40,7 +40,10 @@ SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 # Argument types for gates.
 ARG_LIKE = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.Mul]
 FLOAT_ARG_LIKE = Union[float, sympy.Symbol, sympy.Add, sympy.Mul]
-FLOAT_LIKE = (float, int, sympy.Integer, sympy.Float, sympy.Rational, sympy.NumberSymbol)
+
+# Types for comparing floats
+# Includes sympy types.  Needed for arg parsing.
+FLOAT_TYPES = (float, int, sympy.Integer, sympy.Float, sympy.Rational, sympy.NumberSymbol)
 
 # Supported function languages in order from least to most flexible.
 # Clients should use the least flexible language they can, to make it easier
@@ -112,7 +115,7 @@ def float_arg_to_proto(
     """
     msg = v2.program_pb2.FloatArg() if out is None else out
 
-    if isinstance(value, FLOAT_LIKE):
+    if isinstance(value, FLOAT_TYPES):
         msg.float_value = float(value)
     else:
         _arg_func_to_proto(value, arg_function_language, msg)
@@ -141,7 +144,7 @@ def arg_to_proto(
     """
     msg = v2.program_pb2.Arg() if out is None else out
 
-    if isinstance(value, FLOAT_LIKE):
+    if isinstance(value, FLOAT_TYPES):
         msg.arg_value.float_value = float(value)
     elif isinstance(value, str):
         msg.arg_value.string_value = value
