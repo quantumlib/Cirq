@@ -11,8 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import cirq
+import cirq_web
 
-from cirq_web.circuits.circuit import Circuit3D
-from cirq_web.circuits.symbols import (
-    Operation3DSymbol,
-)
+def test_basic_Operation3DSymbol():
+    wire_symbols = ['X']
+    location_info = [{'row': 0, 'col': 0}]
+    color_info = ['black']
+    moment = 1
+
+    symbol = cirq_web.circuits.symbols.Operation3DSymbol(
+        wire_symbols,
+        location_info,
+        color_info,
+        moment
+    )
+
+    actual = symbol.to_typescript()
+    expected = {
+        'wire_symbols': ['X'],
+        'location_info': [{'row': 0, 'col': 0}],
+        'color_info': ['black'],
+        'moment': 1,
+    }
+    assert actual == expected

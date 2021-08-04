@@ -94,11 +94,6 @@ def resolve_operation(
             symbol_info = info
     return symbol_info
 
-
-## 3D symbol resolver
-## takes an operation, if it matches the operation, returns back how to build it
-# I, xpow, ypow, zpow
-# lambda expresssion
 class Operation3DSymbol:
     def __init__(self, wire_symbols, location_info, color_info, moment):
         """Gathers symbol information from an operation and builds an

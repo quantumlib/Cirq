@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from cirq_web import widget
-from cirq_web.circuits.gates import Operation3DSymbol, resolve_operation, DEFAULT_SYMBOL_RESOLVERS
+from cirq_web.circuits.symbols import Operation3DSymbol, resolve_operation, DEFAULT_SYMBOL_RESOLVERS
 
 class Circuit3D(widget.Widget):
     def __init__(self, circuit, resolvers=DEFAULT_SYMBOL_RESOLVERS):
