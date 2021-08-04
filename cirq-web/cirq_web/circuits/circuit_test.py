@@ -14,8 +14,10 @@
 import cirq
 import cirq_web
 
+
 def strip_ws(string):
     return "".join(string.split())
+
 
 def test_circuit_init_type():
     qubits = [cirq.GridQubit(x, y) for x in range(2) for y in range(2)]
@@ -66,6 +68,7 @@ def test_circuit_client_code():
         """
 
     assert strip_ws(circuit.get_client_code()) == strip_ws(expected_client_code)
+
 
 def test_circuit_default_bundle_name():
     qubits = [cirq.GridQubit(x, y) for x in range(2) for y in range(2)]

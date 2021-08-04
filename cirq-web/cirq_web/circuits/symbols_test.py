@@ -13,7 +13,6 @@
 # limitations under the License.
 import cirq
 import cirq_web
-import numpy as np
 import pytest
 
 
