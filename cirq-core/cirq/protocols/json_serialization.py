@@ -444,7 +444,8 @@ def has_serializable_by_keys(obj: Any) -> bool:
         return any(has_serializable_by_keys(elem) for pair in obj.items() for elem in pair)
 
     if hasattr(obj, '__iter__') and not isinstance(obj, str):
-        # Return False on TypeError because some numpy values (like np.array(1)) have iterable methods
+        # Return False on TypeError because some numpy values
+        # (like np.array(1)) have iterable methods
         # yet return a TypeError when there is an attempt to iterate over them
         try:
             return any(has_serializable_by_keys(elem) for elem in obj)
