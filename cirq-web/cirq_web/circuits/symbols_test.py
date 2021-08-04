@@ -13,18 +13,31 @@
 # limitations under the License.
 import cirq
 import cirq_web
+import numpy as np
+import pytest
 
-def test_basic_Operation3DSymbol():
+
+class MockGateNoDiagramInfo(cirq.SingleQubitGate):
+    def __init__(self):
+        super(MockGateNoDiagramInfo, self)
+
+
+class MockGateUnimplementedDiagramInfo(cirq.SingleQubitGate):
+    def __init__(self):
+        super(MockGateUnimplementedDiagramInfo, self)
+
+    def _circuit_diagram_info_(self, args):
+        return NotImplemented
+
+
+def test_Operation3DSymbol_basic():
     wire_symbols = ['X']
     location_info = [{'row': 0, 'col': 0}]
     color_info = ['black']
     moment = 1
 
     symbol = cirq_web.circuits.symbols.Operation3DSymbol(
-        wire_symbols,
-        location_info,
-        color_info,
-        moment
+        wire_symbols, location_info, color_info, moment
     )
 
     actual = symbol.to_typescript()
@@ -35,3 +48,39 @@ def test_basic_Operation3DSymbol():
         'moment': 1,
     }
     assert actual == expected
+
+
+def test_resolve_operation_hadamard():
+    mock_qubit = cirq.NamedQubit('mock')
+    operation = cirq.H(mock_qubit)
+    symbol_info = cirq_web.circuits.symbols.resolve_operation(
+        operation, cirq_web.circuits.symbols.DEFAULT_SYMBOL_RESOLVERS
+    )
+
+    expected_labels = ['H']
+    expected_colors = ['yellow']
+
+    assert symbol_info.labels == expected_labels
+    assert symbol_info.colors == expected_colors
+
+
+@pytest.mark.parametrize(
+    'custom_gate',
+    [
+        MockGateNoDiagramInfo,
+        MockGateUnimplementedDiagramInfo,
+    ],
+)
+def test_resolve_operation_invalid_diagram_info(custom_gate):
+    mock_qubit = cirq.NamedQubit('mock')
+    gate = custom_gate()
+    operation = gate.on(mock_qubit)
+    symbol_info = cirq_web.circuits.symbols.resolve_operation(
+        operation, cirq_web.circuits.symbols.DEFAULT_SYMBOL_RESOLVERS
+    )
+
+    expected_labels = ['?']
+    expected_colors = ['gray']
+
+    assert symbol_info.labels == expected_labels
+    assert symbol_info.colors == expected_colors

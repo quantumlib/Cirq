@@ -69,8 +69,6 @@ class DefaultResolver(SymbolResolver):
     def resolve(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
         try:
             wire_symbols = cirq.circuit_diagram_info(operation).wire_symbols
-            if wire_symbols is NotImplemented:
-                return SymbolInfo.unknown_operation(cirq.num_qubits(operation))
         except TypeError:
             return SymbolInfo.unknown_operation(cirq.num_qubits(operation))
 
@@ -93,6 +91,7 @@ def resolve_operation(
         if info is not None:
             symbol_info = info
     return symbol_info
+
 
 class Operation3DSymbol:
     def __init__(self, wire_symbols, location_info, color_info, moment):

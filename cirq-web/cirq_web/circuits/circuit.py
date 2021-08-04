@@ -14,6 +14,7 @@
 from cirq_web import widget
 from cirq_web.circuits.symbols import Operation3DSymbol, resolve_operation, DEFAULT_SYMBOL_RESOLVERS
 
+
 class Circuit3D(widget.Widget):
     def __init__(self, circuit, resolvers=DEFAULT_SYMBOL_RESOLVERS):
         """Initializes a Circuit instance.
@@ -36,7 +37,6 @@ class Circuit3D(widget.Widget):
         moments = len(self.circuit.moments)
         self.serialized_circuit = self._serialize_circuit()
 
-        ## TODO: Read this in from a larger file and pass through.
         return f"""
             <button id="camera-reset">Reset Camera</button>
             <button id="camera-toggle">Toggle Camera Type</button>
