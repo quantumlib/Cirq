@@ -25,7 +25,6 @@ import {Symbol3D} from './types';
 export class GridQubit extends Group {
   readonly row: number;
   readonly col: number;
-  readonly moments: number;
 
   /**
    * Class constructor.
@@ -34,14 +33,13 @@ export class GridQubit extends Group {
    * @param moments The number of moments of the entire circuit. This
    * determines the length of the three.js line representing the GridQubit
    */
-  constructor(row: number, col: number, moments: number) {
+  constructor(row: number, col: number, moments: number, padding_factor: number = 1) {
     super();
 
     this.row = row;
     this.col = col;
-    this.moments = moments;
-    this.add(this.createLine());
-    this.add(this.addLocationLabel());
+    this.add(this.createLine(moments, padding_factor));
+    this.add(this.addLocationLabel(padding_factor));
   }
 
   /**
@@ -54,17 +52,17 @@ export class GridQubit extends Group {
     this.add(symbol);
   }
 
-  private createLine(): QubitLine {
+  private createLine(moments: number, padding_factor: number): QubitLine {
     const coords = [
-      new Vector3(this.row, 0, this.col),
-      new Vector3(this.row, this.moments, this.col),
+      new Vector3(this.row * padding_factor, 0, this.col * padding_factor),
+      new Vector3(this.row * padding_factor, moments, this.col * padding_factor),
     ];
     return new QubitLine(coords[0], coords[1]);
   }
 
-  private addLocationLabel(): QubitLabel {
+  private addLocationLabel(padding_factor: number = 1): QubitLabel {
     const sprite = new QubitLabel(`(${this.row}, ${this.col})`);
-    sprite.position.copy(new Vector3(this.row, -0.6, this.col));
+    sprite.position.copy(new Vector3(this.row * padding_factor, -0.6, this.col * padding_factor));
     return sprite;
   }
 }

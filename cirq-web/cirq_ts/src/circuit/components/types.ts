@@ -37,14 +37,16 @@ export interface Coord {
  */
 export class Symbol3D extends Group {
   readonly moment: number;
+  private padding_factor: number;
 
   /**
    * Class constructor.
    * @param symbol_info A typed object with information instructing
    * the class on how to build the mesh.
    */
-  constructor(symbol_info: SymbolInformation) {
+  constructor(symbol_info: SymbolInformation, padding_factor : number = 1) {
     super();
+    this.padding_factor = padding_factor;
     this.moment = symbol_info.moment;
     this.buildAndAddMeshesToGroup(symbol_info);
 
@@ -70,9 +72,9 @@ export class Symbol3D extends Group {
       }
 
       mesh.position.set(
-        locationInfo[index].row,
+        locationInfo[index].row * this.padding_factor,
         symbol_info.moment,
-        locationInfo[index].col
+        locationInfo[index].col * this.padding_factor,
       );
       this.add(mesh);
     });
@@ -86,14 +88,14 @@ export class Symbol3D extends Group {
       while (i < locationInfo.length - 1) {
         const coords = [
           new Vector3(
-            locationInfo[i].row,
+            locationInfo[i].row * this.padding_factor,
             symbol_info.moment,
-            locationInfo[i].col
+            locationInfo[i].col * this.padding_factor,
           ),
           new Vector3(
-            locationInfo[i + 1].row,
+            locationInfo[i + 1].row * this.padding_factor,
             symbol_info.moment,
-            locationInfo[i + 1].col
+            locationInfo[i + 1].col * this.padding_factor,
           ),
         ];
         this.add(new ConnectionLine(coords[0], coords[1]));

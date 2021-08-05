@@ -23,7 +23,7 @@ import {Symbol3D, SymbolInformation, Coord} from './components/types';
 export class GridCircuit extends Group {
   readonly moments: number;
   private circuit: Map<string, GridQubit>;
-
+  private padding_factor : number;
   /**
    * Class constructor
    * @param moments The number of moments of the circuit. This
@@ -31,9 +31,11 @@ export class GridCircuit extends Group {
    * @param qubits A list of GridCoord objects representing the locations of the
    * qubits in the circuit.
    */
-  constructor(moments: number, qubits: Coord[]) {
+  constructor(moments: number, qubits: Coord[], padding_factor: number = 1) {
     super();
     this.moments = moments;
+    this.padding_factor = padding_factor;
+
     this.circuit = new Map();
 
     for (const coord of qubits) {
@@ -60,7 +62,7 @@ export class GridCircuit extends Group {
       symbol_info.location_info[0].row,
       symbol_info.location_info[0].col,
     ].join(',');
-    const symbol = new Symbol3D(symbol_info);
+    const symbol = new Symbol3D(symbol_info, this.padding_factor);
 
     // In production these issues will never come up, since we will always be given
     // a valid grid circuit as input. For development purposes, however,
@@ -81,7 +83,7 @@ export class GridCircuit extends Group {
   }
 
   private addQubit(x: number, y: number) {
-    const qubit = new GridQubit(x, y, this.moments);
+    const qubit = new GridQubit(x, y, this.moments, this.padding_factor);
     const key = [x, y].join(',');
     this.circuit.set(key, qubit);
     this.add(qubit);

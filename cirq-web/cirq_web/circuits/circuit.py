@@ -16,7 +16,7 @@ from cirq_web.circuits.symbols import Operation3DSymbol, resolve_operation, DEFA
 
 
 class Circuit3D(widget.Widget):
-    def __init__(self, circuit, resolvers=DEFAULT_SYMBOL_RESOLVERS):
+    def __init__(self, circuit, resolvers=DEFAULT_SYMBOL_RESOLVERS, padding_factor=1):
         """Initializes a Circuit instance.
 
         Args:
@@ -25,7 +25,8 @@ class Circuit3D(widget.Widget):
         super().__init__()
         self.circuit = circuit
         self._resolvers = resolvers
-
+        self.padding_factor = padding_factor
+        
     def get_client_code(self) -> str:
         # Remove hyphens from the id so that we can use
         # it as the variable name in TS.
@@ -42,7 +43,7 @@ class Circuit3D(widget.Widget):
             <button id="camera-toggle">Toggle Camera Type</button>
             <div id="test">
             <script>
-            let viz_{stripped_id} = createGridCircuit({qubits}, {moments}, "{self.id}");
+            let viz_{stripped_id} = createGridCircuit({qubits}, {moments}, "{self.id}", {self.padding_factor});
             viz_{stripped_id}.circuit.addSymbolsFromList({self.serialized_circuit})
 
             document.getElementById("camera-reset").addEventListener('click', ()  => {{

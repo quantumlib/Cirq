@@ -66,8 +66,8 @@ class CircuitScene extends Scene {
       this.WIDTH / this.HEIGHT / 2,
       this.HEIGHT / this.WIDTH / 2,
       this.HEIGHT / this.WIDTH / -2,
-      0,
-      2000
+      0.1,
+      100
     );
     this.orthographicCamera.zoom = 0.1;
     // The default camera is the Perspective camera
@@ -178,11 +178,12 @@ class CircuitScene extends Scene {
 export function createGridCircuit(
   qubits: Coord[],
   numMoments: number,
-  sceneId: string
+  sceneId: string,
+  padding_factor: number = 1,
 ): {circuit: GridCircuit; scene: CircuitScene} {
   const scene = new CircuitScene(sceneId);
 
-  const circuit = new GridCircuit(numMoments, qubits);
+  const circuit = new GridCircuit(numMoments, qubits, padding_factor);
   scene.add(circuit);
   scene.setCameraAndControls(circuit);
 
