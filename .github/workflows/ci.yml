@@ -142,7 +142,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/deps/packaging.txt
       - name: Test each module in isolation
-        run: ./dev_tools/packaging/isolated_packages_test.sh
+        run: pytest -n auto -m slow dev_tools/packaging/isolated_packages_test.py
   pytest:
     name: Pytest Ubuntu
     strategy:

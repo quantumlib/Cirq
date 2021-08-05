@@ -24,6 +24,7 @@ PACKAGES = [
 ]
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('module', list_modules(), ids=[m.name for m in list_modules()])
 def test_isolated_packages(cloned_env, module):
     env = cloned_env("isolated_packages", *PACKAGES)
@@ -43,9 +44,11 @@ def test_isolated_packages(cloned_env, module):
         result.returncode == 0
     ), f"Failed to install {module.name}:\n{str(result.stderr, encoding='UTF-8')}"
 
-
-#  echo "-- $folder should install successfully with cirq-core"
-#  "${tmp_dir}/env/bin/python" -m pip install ./cirq-core ./$folder
-#  && echo -e "\033[32mPASS\033[0m"  || fail "'pip install ./cirq-core ./$folder'"
-#  echo "-- running pytest $folder"
-#  "${tmp_dir}/env/bin/pytest" ./$folder --ignore ./cirq-core/cirq/contrib
+    result = subprocess.run(
+        f"{env}/bin/pytest ./{module.root} --ignore ./cirq-core/cirq/contrib",
+        capture_output=True,
+        shell=True,
+    )
+    assert (
+        result.returncode == 0
+    ), f"Failed isolated tests for {module.name}:\n{str(result.stdout, encoding='UTF-8')}"
