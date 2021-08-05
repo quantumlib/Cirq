@@ -56,6 +56,7 @@ export class ConnectionLine extends Line {
  * location of specific qubits.
  */
 export class QubitLabel extends Sprite {
+  readonly text: string;
   /**
    * Class constructor.
    * @param text The text which the label should display
@@ -86,6 +87,7 @@ export class QubitLabel extends Sprite {
     });
 
     super(material);
+    this.text = text;
     return this;
   }
 }

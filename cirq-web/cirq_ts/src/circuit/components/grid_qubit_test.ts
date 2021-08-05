@@ -13,7 +13,9 @@
 // limitations under the License.
 
 import {expect} from 'chai';
+import { Line } from 'three';
 import {GridQubit} from './grid_qubit';
+import { QubitLabel } from './meshes';
 
 describe('GridQubit', () => {
   const DEFAULT_ROW = 0;
@@ -22,13 +24,17 @@ describe('GridQubit', () => {
   const gridQubit = new GridQubit(DEFAULT_ROW, DEFAULT_COL, DEFAULT_MOMENTS);
   const children = gridQubit.children;
 
-  it('is a three.js line object', () => {
-    const line = children.find(child => child.type === 'Line');
-    expect(line).to.not.equal(undefined);
+  it('is a three.js line object with length 5', () => {
+    const line = children.find(child => child.type === 'Line') as Line;
+    line.computeLineDistances();
+    const distancePoints = line.geometry.attributes.lineDistance.array;
+    
+    expect(distancePoints[0]).to.equal(0);
+    expect(distancePoints[1]).to.equal(DEFAULT_MOMENTS);
   });
 
   it('has a three.js sprite label', () => {
-    const line = children.find(child => child.type === 'Sprite');
-    expect(line).to.not.equal(undefined);
+    const sprite = children.find(child => child.type === 'Sprite') as QubitLabel;
+    expect(sprite.text).to.equal(`(${DEFAULT_ROW}, ${DEFAULT_COL})`);
   });
 });
