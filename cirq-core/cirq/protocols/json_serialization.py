@@ -442,8 +442,15 @@ def has_serializable_by_keys(obj: Any) -> bool:
     # Handle primitive container types.
     if isinstance(obj, Dict):
         return any(has_serializable_by_keys(elem) for pair in obj.items() for elem in pair)
+
     if hasattr(obj, '__iter__') and not isinstance(obj, str):
-        return any(has_serializable_by_keys(elem) for elem in obj)
+        # Return False on TypeError because some numpy values
+        # (like np.array(1)) have iterable methods
+        # yet return a TypeError when there is an attempt to iterate over them
+        try:
+            return any(has_serializable_by_keys(elem) for elem in obj)
+        except TypeError:
+            return False
     return False
 
 

@@ -29,43 +29,43 @@ def test_eval_repr():
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
 def test_measure_init(num_qubits):
-    assert cirq.MeasurementGate(num_qubits).num_qubits() == num_qubits
+    assert cirq.MeasurementGate(num_qubits, 'a').num_qubits() == num_qubits
     assert cirq.MeasurementGate(num_qubits, key='a').key == 'a'
     assert cirq.MeasurementGate(num_qubits, key='a').mkey == cirq.MeasurementKey('a')
     assert cirq.MeasurementGate(num_qubits, key=cirq.MeasurementKey('a')).key == 'a'
     assert cirq.MeasurementGate(num_qubits, key=cirq.MeasurementKey('a')) == cirq.MeasurementGate(
         num_qubits, key='a'
     )
-    assert cirq.MeasurementGate(num_qubits, invert_mask=(True,)).invert_mask == (True,)
-    assert cirq.qid_shape(cirq.MeasurementGate(num_qubits)) == (2,) * num_qubits
-    assert cirq.qid_shape(cirq.MeasurementGate(3, qid_shape=(1, 2, 3))) == (1, 2, 3)
-    assert cirq.qid_shape(cirq.MeasurementGate(qid_shape=(1, 2, 3))) == (1, 2, 3)
+    assert cirq.MeasurementGate(num_qubits, 'a', invert_mask=(True,)).invert_mask == (True,)
+    assert cirq.qid_shape(cirq.MeasurementGate(num_qubits, 'a')) == (2,) * num_qubits
+    assert cirq.qid_shape(cirq.MeasurementGate(3, 'a', qid_shape=(1, 2, 3))) == (1, 2, 3)
+    assert cirq.qid_shape(cirq.MeasurementGate(key='a', qid_shape=(1, 2, 3))) == (1, 2, 3)
     with pytest.raises(ValueError, match='len.* >'):
-        cirq.MeasurementGate(5, invert_mask=(True,) * 6)
+        cirq.MeasurementGate(5, 'a', invert_mask=(True,) * 6)
     with pytest.raises(ValueError, match='len.* !='):
-        cirq.MeasurementGate(5, qid_shape=(1, 2))
+        cirq.MeasurementGate(5, 'a', qid_shape=(1, 2))
+    with pytest.raises(ValueError, match='cannot be empty'):
+        cirq.MeasurementGate(2, qid_shape=(1, 2))
     with pytest.raises(ValueError, match='Specify either'):
         cirq.MeasurementGate()
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
 def test_has_stabilizer_effect(num_qubits):
-    assert cirq.has_stabilizer_effect(cirq.MeasurementGate(num_qubits))
+    assert cirq.has_stabilizer_effect(cirq.MeasurementGate(num_qubits, 'a'))
 
 
 def test_measurement_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(
-        lambda: cirq.MeasurementGate(1, ''),
-        lambda: cirq.MeasurementGate(1, '', invert_mask=()),
-        lambda: cirq.MeasurementGate(1, '', qid_shape=(2,)),
+        lambda: cirq.MeasurementGate(1, 'a'),
+        lambda: cirq.MeasurementGate(1, 'a', invert_mask=()),
+        lambda: cirq.MeasurementGate(1, 'a', qid_shape=(2,)),
     )
-    eq.add_equality_group(cirq.MeasurementGate(1, 'a'))
     eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(True,)))
     eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(False,)))
     eq.add_equality_group(cirq.MeasurementGate(1, 'b'))
     eq.add_equality_group(cirq.MeasurementGate(2, 'a'))
-    eq.add_equality_group(cirq.MeasurementGate(2, ''))
     eq.add_equality_group(
         cirq.MeasurementGate(3, 'a'), cirq.MeasurementGate(3, 'a', qid_shape=(2, 2, 2))
     )
@@ -154,7 +154,6 @@ def test_qudit_measure_quil():
 
 def test_measurement_gate_diagram():
     # Shows key.
-    assert cirq.circuit_diagram_info(cirq.MeasurementGate(1)) == cirq.CircuitDiagramInfo(("M('')",))
     assert cirq.circuit_diagram_info(
         cirq.MeasurementGate(1, key='test')
     ) == cirq.CircuitDiagramInfo(("M('test')",))
@@ -162,7 +161,7 @@ def test_measurement_gate_diagram():
     # Uses known qubit count.
     assert (
         cirq.circuit_diagram_info(
-            cirq.MeasurementGate(3),
+            cirq.MeasurementGate(3, 'a'),
             cirq.CircuitDiagramInfoArgs(
                 known_qubits=None,
                 known_qubit_count=3,
@@ -171,13 +170,13 @@ def test_measurement_gate_diagram():
                 qubit_map=None,
             ),
         )
-        == cirq.CircuitDiagramInfo(("M('')", 'M', 'M'))
+        == cirq.CircuitDiagramInfo(("M('a')", 'M', 'M'))
     )
 
     # Shows invert mask.
     assert cirq.circuit_diagram_info(
-        cirq.MeasurementGate(2, invert_mask=(False, True))
-    ) == cirq.CircuitDiagramInfo(("M('')", "!M"))
+        cirq.MeasurementGate(2, 'a', invert_mask=(False, True))
+    ) == cirq.CircuitDiagramInfo(("M('a')", "!M"))
 
     # Omits key when it is the default.
     a = cirq.NamedQubit('a')
@@ -210,12 +209,12 @@ b: ───M───────────
 
 def test_measurement_channel():
     np.testing.assert_allclose(
-        cirq.kraus(cirq.MeasurementGate(1)),
+        cirq.kraus(cirq.MeasurementGate(1, 'a')),
         (np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]])),
     )
     # yapf: disable
     np.testing.assert_allclose(
-            cirq.kraus(cirq.MeasurementGate(2)),
+            cirq.kraus(cirq.MeasurementGate(2, 'a')),
             (np.array([[1, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 0, 0],
@@ -233,7 +232,7 @@ def test_measurement_channel():
                        [0, 0, 0, 0],
                        [0, 0, 0, 1]])))
     np.testing.assert_allclose(
-            cirq.kraus(cirq.MeasurementGate(2, qid_shape=(2, 3))),
+            cirq.kraus(cirq.MeasurementGate(2, 'a', qid_shape=(2, 3))),
             (np.diag([1, 0, 0, 0, 0, 0]),
              np.diag([0, 1, 0, 0, 0, 0]),
              np.diag([0, 0, 1, 0, 0, 0]),
@@ -248,21 +247,21 @@ def test_measurement_qubit_count_vs_mask_length():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
 
-    _ = cirq.MeasurementGate(num_qubits=1, invert_mask=(True,)).on(a)
-    _ = cirq.MeasurementGate(num_qubits=2, invert_mask=(True, False)).on(a, b)
-    _ = cirq.MeasurementGate(num_qubits=3, invert_mask=(True, False, True)).on(a, b, c)
+    _ = cirq.MeasurementGate(num_qubits=1, key='a', invert_mask=(True,)).on(a)
+    _ = cirq.MeasurementGate(num_qubits=2, key='a', invert_mask=(True, False)).on(a, b)
+    _ = cirq.MeasurementGate(num_qubits=3, key='a', invert_mask=(True, False, True)).on(a, b, c)
     with pytest.raises(ValueError):
-        _ = cirq.MeasurementGate(num_qubits=1, invert_mask=(True, False)).on(a)
+        _ = cirq.MeasurementGate(num_qubits=1, key='a', invert_mask=(True, False)).on(a)
     with pytest.raises(ValueError):
-        _ = cirq.MeasurementGate(num_qubits=3, invert_mask=(True, False, True)).on(a, b)
+        _ = cirq.MeasurementGate(num_qubits=3, key='a', invert_mask=(True, False, True)).on(a, b)
 
 
 def test_consistent_protocols():
     for n in range(1, 5):
-        gate = cirq.MeasurementGate(num_qubits=n)
+        gate = cirq.MeasurementGate(num_qubits=n, key='a')
         cirq.testing.assert_implements_consistent_protocols(gate)
 
-        gate = cirq.MeasurementGate(num_qubits=n, qid_shape=(3,) * n)
+        gate = cirq.MeasurementGate(num_qubits=n, key='a', qid_shape=(3,) * n)
         cirq.testing.assert_implements_consistent_protocols(gate)
 
 
