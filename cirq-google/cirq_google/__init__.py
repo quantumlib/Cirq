@@ -111,6 +111,10 @@ from cirq_google.optimizers import (
     optimized_for_xmon,
 )
 
+from cirq_google.circuit_serializer import (
+    CircuitSerializer,
+)
+
 from cirq_google.op_deserializer import (
     CircuitOpDeserializer,
     DeserializingArg,

@@ -796,3 +796,12 @@ def test_json_serializable_dataclass_namespace():
             return QuantumVolumeParams
 
     assert_json_roundtrip_works(qvp, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
+
+
+def test_numpy_values():
+    assert (
+        cirq.to_json({'value': np.array(1)})
+        == """{
+  "value": 1
+}"""
+    )
