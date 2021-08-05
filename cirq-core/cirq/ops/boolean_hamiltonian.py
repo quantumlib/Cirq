@@ -48,18 +48,18 @@ class BooleanHamiltonian(raw_types.Operation):
         polynomials, thus making a function that goes from a series to Boolean inputs to an integer
         that is the number of Boolean expressions that are true.
 
-        For example, if we were using this gate for the max-cut problem that is typically used to
+        For example, if we were using this gate for the unweighted max-cut problem that is typically used to
         demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
         Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
         an XOR.
 
-        Then, we compute exp(j * theta * polynomial), which is unitary because the polynomial is
+        Then, we compute exp(-j * theta * polynomial), which is unitary because the polynomial is
         Hermitian.
 
         Args:
             boolean_strs: The list of Sympy-parsable Boolean expressions.
             qubit_map: map of string (boolean variable name) to qubit.
-            theta: The list of thetas to scale the Hamiltonian.
+            theta: The evolution time (angle) for the Hamiltonian
         """
         self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
         self._boolean_strs: Sequence[str] = boolean_strs
