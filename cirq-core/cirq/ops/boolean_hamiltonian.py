@@ -59,7 +59,7 @@ class BooleanHamiltonian(raw_types.Operation):
         Args:
             boolean_strs: The list of Sympy-parsable Boolean expressions.
             qubit_map: map of string (boolean variable name) to qubit.
-            theta: The list of thetas to scale the Hamiltonian.
+            theta: The evolution time (angle) for the Hamiltonian
         """
         self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
         self._boolean_strs: Sequence[str] = boolean_strs
