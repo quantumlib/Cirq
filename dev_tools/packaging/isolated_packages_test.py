@@ -35,7 +35,8 @@ def test_isolated_packages(cloned_env, module):
 
     # ensure that no cirq packages are on the PYTHONPATH, this is important, otherwise
     # the "isolation" fails and for example cirq-core would be on the PATH
-    del os.environ["PYTHONPATH"]
+    if "PYTHONPATH" in os.environ:
+        del os.environ["PYTHONPATH"]  # coverage: ignore
 
     if str(module.root) != "cirq-core":
         result = subprocess.run(

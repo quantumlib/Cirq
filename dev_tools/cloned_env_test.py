@@ -14,6 +14,7 @@
 
 """Tests the cloned_env fixture in conftest.py"""
 import json
+import os
 import subprocess
 
 import pytest
@@ -23,6 +24,12 @@ import pytest
 def test_isolated_env_cloning(cloned_env, param):
     env = cloned_env("test_isolated", "flynt==0.64")
     assert (env / "bin" / "pip").is_file()
+
+    # ensure that no cirq packages are on the PYTHONPATH, this is important, otherwise
+    # the "isolation" fails and all the cirq modules would be in the list
+    if "PYTHONPATH" in os.environ:
+        del os.environ["PYTHONPATH"]  # coverage: ignore
+
     result = subprocess.run(f"{env}/bin/pip list --format=json", shell=True, capture_output=True)
     out = str(result.stdout, encoding="UTF-8")
     packages = json.loads(out)
