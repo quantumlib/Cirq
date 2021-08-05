@@ -173,6 +173,8 @@ class CircuitScene extends Scene {
  * @param numMoments The number of total moments in the circuit
  * @param sceneId The container id with the three.js scene that will render
  * the three.js components
+ * @param padding_factor A number that represents how much the visualization
+ * should be scaled on the x,z coordinate plane. Default is 1.
  * @returns A GridCircuit object
  */
 export function createGridCircuit(

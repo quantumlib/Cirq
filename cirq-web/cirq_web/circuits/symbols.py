@@ -29,6 +29,11 @@ class SymbolInfo:
 
     @staticmethod
     def unknown_operation(num_qubits: int) -> 'SymbolInfo':
+        """Generates a SymbolInfo object for an unknown operation.
+
+        Args:
+            num_qubits: the number of qubits in the operation
+        """
         symbol_info = SymbolInfo([], [])
         for _ in range(num_qubits):
             symbol_info.colors.append('gray')
@@ -67,6 +72,13 @@ class DefaultResolver(SymbolResolver):
     }
 
     def resolve(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
+        """Checks for the _circuit_diagram_info attribute of the operation,
+        and if it exists, build the symbol information from it. Otherwise,
+        builds symbol info for an unknown operation.
+
+        Args:
+            operation: the cirq.Operation object to resolve
+        """
         try:
             wire_symbols = cirq.circuit_diagram_info(operation).wire_symbols
         except TypeError:
@@ -85,6 +97,14 @@ DEFAULT_SYMBOL_RESOLVERS: List[SymbolResolver] = [DefaultResolver()]
 def resolve_operation(
     operation: cirq.Operation, resolvers: List[SymbolResolver]
 ) -> Optional[SymbolInfo]:
+    """Builds a SymbolInfo object based off of a designated operation
+    and list of resolvers. The latest resolver takes precendent.
+
+    Args:
+        operation: the cirq.Operation object to resolve
+        resolvers: a list of SymbolResolvers which provides instructions
+        on how to build SymbolInfo objects.
+    """
     symbol_info = None
     for resolver in resolvers:
         info = resolver(operation)
