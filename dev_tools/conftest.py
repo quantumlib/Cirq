@@ -22,7 +22,6 @@ from pathlib import Path
 import pytest
 from filelock import FileLock
 
-from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
 
 
@@ -52,7 +51,8 @@ def cloned_env(testrun_uid, worker_id):
     via a file lock, the first worker will (re)create the prototype environment, the others will
     reuse it via cloning.
 
-    A group of tests that share the same base environment is identified by a simple name.
+    A group of tests that share the same base environment is identified by a name, `env_dir`,
+    which will become the directory within the temporary directory to hold the virtualenv.
 
     Usage:
 
@@ -101,8 +101,11 @@ def cloned_env(testrun_uid, worker_id):
                 with open(base_dir / "testrun.uid", mode="w") as f:
                     f.write(testrun_uid)
                 if pip_install_args:
-                    pip_path = str(base_dir / "bin" / "pip")
-                    shell_tools.run_cmd(pip_path, "install", *pip_install_args)
+                    cmd = f"{base_dir}/bin/pip install {' '.join(pip_install_args)}"
+                    print(f"Running: {cmd}")
+                    result = subprocess.run(cmd, shell=True, capture_output=True)
+                    if result.returncode != 0:
+                        raise ValueError(str(result.stderr, encoding="UTF-8"))
 
         clone_dir = base_temp_path / str(uuid.uuid4())
         cmd = f"virtualenv-clone {base_dir} {clone_dir}"
@@ -112,3 +115,9 @@ def cloned_env(testrun_uid, worker_id):
         return clone_dir
 
     return base_env_creator
+
+
+def only_on_posix(func):
+    if os.name != 'posix':
+        return None
+    return func

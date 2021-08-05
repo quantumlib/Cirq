@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import subprocess
 
 import pytest
@@ -20,7 +21,10 @@ from dev_tools.modules import list_modules
 # point, that is then cloned to a separate folder for each test.
 PACKAGES = [
     "-r",
-    "dev_tools/requirements/pytest-minimal-isolated.env.txt",
+    "dev_tools/requirements/deps/pytest.txt",
+    "-r",
+    # one of the _compat_test.py tests uses flynt for testing metadata
+    "dev_tools/requirements/deps/flynt.txt",
 ]
 
 
@@ -28,6 +32,10 @@ PACKAGES = [
 @pytest.mark.parametrize('module', list_modules(), ids=[m.name for m in list_modules()])
 def test_isolated_packages(cloned_env, module):
     env = cloned_env("isolated_packages", *PACKAGES)
+
+    # ensure that no cirq packages are on the PYTHONPATH, this is important, otherwise
+    # the "isolation" fails and for example cirq-core would be on the PATH
+    del os.environ["PYTHONPATH"]
 
     if str(module.root) != "cirq-core":
         result = subprocess.run(

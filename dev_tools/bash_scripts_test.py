@@ -15,16 +15,12 @@
 import os
 from typing import TYPE_CHECKING, Iterable
 
+import pytest
+
 from dev_tools import shell_tools
 
 if TYPE_CHECKING:
     import _pytest.tmpdir
-
-
-def only_on_posix(func):
-    if os.name != 'posix':
-        return None
-    return func
 
 
 def run(
@@ -84,7 +80,7 @@ chmod +x ./test-script.sh
     )
 
 
-@only_on_posix
+@pytest.mark.skipif(os.name != 'posix', reason="Only runs on Linux/Mac")
 def test_pytest_changed_files_file_selection(tmpdir_factory):
 
     result = run(
@@ -191,7 +187,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
     )
 
 
-@only_on_posix
+@pytest.mark.skipif(os.name != 'posix', reason="Only runs on Linux/Mac")
 def test_pytest_changed_files_branch_selection(tmpdir_factory):
 
     result = run(
@@ -344,7 +340,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     )
 
 
-@only_on_posix
+@pytest.mark.skipif(os.name != 'posix', reason="Only runs on Linux/Mac")
 def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     result = run(
         script_file='check/pytest-and-incremental-coverage',
@@ -502,7 +498,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.err.startswith("Comparing against revision 'master' (merge base ")
 
 
-@only_on_posix
+@pytest.mark.skipif(os.name != 'posix', reason="Only runs on Linux/Mac")
 def test_incremental_format_branch_selection(tmpdir_factory):
     result = run(script_file='check/format-incremental', tmpdir_factory=tmpdir_factory, arg='HEAD')
     assert result.exit_code == 0
@@ -598,7 +594,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     assert result.err.startswith("Comparing against revision 'master' (merge base ")
 
 
-@only_on_posix
+@pytest.mark.skipif(os.name != 'posix', reason="Only runs on Linux/Mac")
 def test_pylint_changed_files_file_selection(tmpdir_factory):
 
     result = run(
