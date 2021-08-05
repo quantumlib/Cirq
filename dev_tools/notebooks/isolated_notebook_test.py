@@ -173,8 +173,9 @@ def test_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
 mkdir -p out/{notebook_rel_dir}
 cd {notebook_env}
 . ./bin/activate
+pip list 
 papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
-    _, stderr, status = shell_tools.run_shell(
+    stdout, stderr, status = shell_tools.run_shell(
         cmd=cmd,
         log_run_to_stderr=False,
         raise_on_fail=False,
@@ -186,6 +187,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
     )
 
     if status != 0:
+        print(stdout)
         print(stderr)
         pytest.fail(
             f"Notebook failure: {notebook_file}, please see {out_path} for the output "

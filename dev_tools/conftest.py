@@ -97,15 +97,21 @@ def cloned_env(testrun_uid, worker_id):
                 print(f"Pytest worker [{worker_id}] is reusing {base_dir} for '{env_dir_name}'.")
             else:
                 print(f"Pytest worker [{worker_id}] is creating {base_dir} for '{env_dir_name}'.")
-                create_virtual_env(str(base_dir), [], sys.executable, True)
-                with open(base_dir / "testrun.uid", mode="w") as f:
-                    f.write(testrun_uid)
-                if pip_install_args:
-                    cmd = f"{base_dir}/bin/pip install {' '.join(pip_install_args)}"
-                    print(f"Running: {cmd}")
-                    result = subprocess.run(cmd, shell=True, capture_output=True)
-                    if result.returncode != 0:
-                        raise ValueError(str(result.stderr, encoding="UTF-8"))
+                try:
+                    create_virtual_env(str(base_dir), [], sys.executable, True)
+                    with open(base_dir / "testrun.uid", mode="w") as f:
+                        f.write(testrun_uid)
+                    if pip_install_args:
+                        result = subprocess.run(args=[f"{base_dir}/bin/pip", "install",
+                                                      *pip_install_args],
+                                                capture_output=True)
+                        if result.returncode != 0:
+                            raise ValueError(str(result.stderr, encoding="UTF-8"))
+                except BaseException as ex:
+                    # cleanup on failure
+                    print(f"Removing {base_dir}, due to error: {ex}")
+                    shutil.rmtree(base_dir)
+                    raise
 
         clone_dir = base_temp_path / str(uuid.uuid4())
         cmd = f"virtualenv-clone {base_dir} {clone_dir}"
