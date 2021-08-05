@@ -57,12 +57,12 @@ def cloned_env(testrun_uid, worker_id):
 
     >>> def test_something_in_clean_env(cloned_env):
             # base_env will point to a pathlib.Path containing the virtual env which will
-            # have quimb, jinja and whatever reqs.txt contained installed.
-            base_env = cloned_env(env_dir = "some_tests", "quimb", "jinja", "-r", "reqs.txt")
+            # have quimb, jinja and whatever reqs.txt contained.
+            base_env = cloned_env("some_tests", "quimb", "jinja", "-r", "reqs.txt")
 
             # To install new packages (that are potentially different for each test instance)
             # just run pip install from the virtual env
-            subprocess.run(f'{base_env}/bin/pip install something', shell=True)
+            subprocess.run(f"{base_env}/bin/pip install something".split(" "))
             ...
 
     Returns:
@@ -90,13 +90,13 @@ def cloned_env(testrun_uid, worker_id):
                 _create_base_env(base_dir, pip_install_args)
 
         clone_dir = base_temp_path / str(uuid.uuid4())
-        cmd = f"virtualenv-clone {base_dir} {clone_dir}"
-        result = subprocess.run(cmd, shell=True, capture_output=True)
+        cmd = f"virtualenv-clone {base_dir} {clone_dir}".split(" ")
+        result = subprocess.run(cmd, capture_output=True)
         if result.returncode != 0:
             raise ValueError(str(result.stderr, encoding="UTF-8"))
         return clone_dir
 
-    def _check_for_reuse_or_recreate(env_dir):
+    def _check_for_reuse_or_recreate(env_dir: Path):
         reuse = False
         if env_dir.is_dir() and (env_dir / "testrun.uid").is_file():
             uid = open(env_dir / "testrun.uid").readlines()[0]
@@ -108,7 +108,7 @@ def cloned_env(testrun_uid, worker_id):
                 shutil.rmtree(env_dir)
         return reuse
 
-    def _create_base_env(base_dir: Path, pip_install_args: Tuple[str]):
+    def _create_base_env(base_dir: Path, pip_install_args: Tuple[str, ...]):
         try:
             print("PATH: " + os.environ["PATH"])
             result = subprocess.run(
