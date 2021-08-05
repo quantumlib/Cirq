@@ -53,7 +53,7 @@ class BooleanHamiltonian(raw_types.Operation):
         Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
         an XOR.
 
-        Then, we compute exp(j * theta * polynomial), which is unitary because the polynomial is
+        Then, we compute exp(-j * theta * polynomial), which is unitary because the polynomial is
         Hermitian.
 
         Args:
