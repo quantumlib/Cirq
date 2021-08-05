@@ -27,6 +27,7 @@ TestSpec = ModuleJsonTestSpec(
         'AnnealSequenceSearchStrategy',
         'CircuitOpDeserializer',
         'CircuitOpSerializer',
+        'CircuitSerializer',
         'CircuitWithCalibration',
         'ConvertToSqrtIswapGates',
         'ConvertToSycamoreGates',
