@@ -48,8 +48,8 @@ class BooleanHamiltonian(raw_types.Operation):
         polynomials, thus making a function that goes from a series to Boolean inputs to an integer
         that is the number of Boolean expressions that are true.
 
-        For example, if we were using this gate for the unweighted max-cut problem that is typically used to
-        demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
+        For example, if we were using this gate for the unweighted max-cut problem that is typically
+        used to demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
         Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
         an XOR.
 
