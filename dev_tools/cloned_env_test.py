@@ -23,9 +23,10 @@ import pytest
 
 # ensure that no cirq packages are on the PYTHONPATH, this is important, otherwise
 # the "isolation" fails and all the cirq modules would be in the list
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.dict(os.environ, {"PYTHONPATH": ""})
 @pytest.mark.parametrize('param', ['a', 'b', 'c'])
 def test_isolated_env_cloning(cloned_env, param):
+    print("PATH: " + os.environ["PATH"])
     env = cloned_env("test_isolated", "flynt==0.64")
     assert (env / "bin" / "pip").is_file()
 

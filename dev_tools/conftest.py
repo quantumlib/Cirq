@@ -18,11 +18,10 @@ import sys
 import tempfile
 import uuid
 from pathlib import Path
+from typing import Tuple
 
 import pytest
 from filelock import FileLock
-
-from dev_tools.env_tools import create_virtual_env
 
 
 def pytest_configure(config):
@@ -84,35 +83,11 @@ def cloned_env(testrun_uid, worker_id):
         nonlocal base_dir
         base_dir = base_temp_path / env_dir_name
         with FileLock(str(base_dir) + ".lock"):
-            reuse = False
-            if base_dir.is_dir() and (base_dir / "testrun.uid").is_file():
-                uid = open(base_dir / "testrun.uid").readlines()[0]
-                # if the dir is from this test session, let's reuse it
-                if uid == testrun_uid:
-                    reuse = True
-                else:
-                    # if we have a dir from a previous test session, recreate it
-                    shutil.rmtree(base_dir)
-            if reuse:
+            if _check_for_reuse_or_recreate(base_dir):
                 print(f"Pytest worker [{worker_id}] is reusing {base_dir} for '{env_dir_name}'.")
             else:
                 print(f"Pytest worker [{worker_id}] is creating {base_dir} for '{env_dir_name}'.")
-                try:
-                    create_virtual_env(str(base_dir), [], sys.executable, True)
-                    with open(base_dir / "testrun.uid", mode="w") as f:
-                        f.write(testrun_uid)
-                    if pip_install_args:
-                        result = subprocess.run(
-                            args=[f"{base_dir}/bin/pip", "install", *pip_install_args],
-                            capture_output=True,
-                        )
-                        if result.returncode != 0:
-                            raise ValueError(str(result.stderr, encoding="UTF-8"))
-                except BaseException as ex:
-                    # cleanup on failure
-                    print(f"Removing {base_dir}, due to error: {ex}")
-                    shutil.rmtree(base_dir)
-                    raise
+                _create_base_env(base_dir, pip_install_args)
 
         clone_dir = base_temp_path / str(uuid.uuid4())
         cmd = f"virtualenv-clone {base_dir} {clone_dir}"
@@ -121,10 +96,42 @@ def cloned_env(testrun_uid, worker_id):
             raise ValueError(str(result.stderr, encoding="UTF-8"))
         return clone_dir
 
+    def _check_for_reuse_or_recreate(env_dir):
+        reuse = False
+        if env_dir.is_dir() and (env_dir / "testrun.uid").is_file():
+            uid = open(env_dir / "testrun.uid").readlines()[0]
+            # if the dir is from this test session, let's reuse it
+            if uid == testrun_uid:
+                reuse = True
+            else:
+                # if we have a dir from a previous test session, recreate it
+                shutil.rmtree(env_dir)
+        return reuse
+
+    def _create_base_env(base_dir: Path, pip_install_args: Tuple[str]):
+        try:
+            print("PATH: " + os.environ["PATH"])
+            result = subprocess.run(
+                args=["virtualenv", "-p", sys.executable, str(base_dir)],
+                capture_output=True,
+                env=os.environ,
+            )
+            if result.returncode != 0:
+                raise ValueError(str(result.stderr, encoding="UTF-8"))
+            with open(base_dir / "testrun.uid", mode="w") as f:
+                f.write(testrun_uid)
+            if pip_install_args:
+                result = subprocess.run(
+                    args=[f"{base_dir}/bin/pip", "install", *pip_install_args],
+                    capture_output=True,
+                )
+                if result.returncode != 0:
+                    raise ValueError(str(result.stderr, encoding="UTF-8"))
+        except BaseException as ex:
+            # cleanup on failure
+            if base_dir.is_dir():
+                print(f"Removing {base_dir}, due to error: {ex}")
+                shutil.rmtree(base_dir)
+            raise
+
     return base_env_creator
-
-
-def only_on_posix(func):
-    if os.name != 'posix':
-        return None
-    return func
