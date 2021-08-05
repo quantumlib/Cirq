@@ -16,6 +16,7 @@ import {expect} from 'chai';
 import { Line } from 'three';
 import {GridQubit} from './grid_qubit';
 import { QubitLabel } from './meshes';
+import { Symbol3D, SymbolInformation } from './types';
 
 describe('GridQubit', () => {
   const DEFAULT_ROW = 0;
@@ -36,5 +37,20 @@ describe('GridQubit', () => {
   it('has a three.js sprite label', () => {
     const sprite = children.find(child => child.type === 'Sprite') as QubitLabel;
     expect(sprite.text).to.equal(`(${DEFAULT_ROW}, ${DEFAULT_COL})`);
+  });
+
+  it('handles adding a basic Symbol3D object', () => {
+    const symbolInfo: SymbolInformation = {
+        wire_symbols: ['X'],
+        location_info: [{row: 0, col: 0}],
+        color_info: ['black'],
+        moment: 1,
+      }
+
+    const symbol = new Symbol3D(symbolInfo);
+    gridQubit.addSymbol(symbol)
+
+    const symbol3D = children.find(child => child.constructor.name == 'Symbol3D')!
+    expect(symbol3D.children[0].constructor.name).to.equal('X3DSymbol')
   });
 });
