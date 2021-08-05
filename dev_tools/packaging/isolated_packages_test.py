@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 import subprocess
+from unittest import mock
 
 import pytest
 
@@ -29,14 +30,12 @@ PACKAGES = [
 
 
 @pytest.mark.slow
+# ensure that no cirq packages are on the PYTHONPATH, this is important, otherwise
+# the "isolation" fails and for example cirq-core would be on the PATH
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @pytest.mark.parametrize('module', list_modules(), ids=[m.name for m in list_modules()])
 def test_isolated_packages(cloned_env, module):
     env = cloned_env("isolated_packages", *PACKAGES)
-
-    # ensure that no cirq packages are on the PYTHONPATH, this is important, otherwise
-    # the "isolation" fails and for example cirq-core would be on the PATH
-    if "PYTHONPATH" in os.environ:
-        del os.environ["PYTHONPATH"]  # coverage: ignore
 
     if str(module.root) != "cirq-core":
         result = subprocess.run(
