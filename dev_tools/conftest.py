@@ -102,9 +102,10 @@ def cloned_env(testrun_uid, worker_id):
                     with open(base_dir / "testrun.uid", mode="w") as f:
                         f.write(testrun_uid)
                     if pip_install_args:
-                        result = subprocess.run(args=[f"{base_dir}/bin/pip", "install",
-                                                      *pip_install_args],
-                                                capture_output=True)
+                        result = subprocess.run(
+                            args=[f"{base_dir}/bin/pip", "install", *pip_install_args],
+                            capture_output=True,
+                        )
                         if result.returncode != 0:
                             raise ValueError(str(result.stderr, encoding="UTF-8"))
                 except BaseException as ex:
