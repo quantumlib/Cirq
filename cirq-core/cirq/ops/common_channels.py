@@ -445,14 +445,14 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
             $$
 
         Args:
-            gamma: the probability of the interaction being dissipative.
-            p: the probability of the qubit and environment exchanging energy.
+            p: the probability of the environment being not excited
+            gamma: the probability of energy transfer
 
         Raises:
             ValueError: if gamma or p is not a valid probability.
         """
-        self._gamma = value.validate_probability(gamma, 'gamma')
         self._p = value.validate_probability(p, 'p')
+        self._gamma = value.validate_probability(gamma, 'gamma')
 
     def _kraus_(self) -> Iterable[np.ndarray]:
         p0 = np.sqrt(self._p)
@@ -486,12 +486,12 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
 
     @property
     def p(self) -> float:
-        """The probability of the qubit and environment exchanging energy."""
+        """The probability of the environment being not excited."""
         return self._p
 
     @property
     def gamma(self) -> float:
-        """The probability of the interaction being dissipative."""
+        """The probability of energy transfer."""
         return self._gamma
 
     def _json_dict_(self) -> Dict[str, Any]:

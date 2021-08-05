@@ -116,12 +116,20 @@ from cirq.ops.global_phase_op import (
     GlobalPhaseOperation,
 )
 
+from cirq.ops.kraus_channel import (
+    KrausChannel,
+)
+
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
     PauliSum,
     PauliSumLike,
     ProjectorSum,
+)
+
+from cirq.ops.mixed_unitary_channel import (
+    MixedUnitaryChannel,
 )
 
 from cirq.ops.pauli_sum_exponential import (
