@@ -140,7 +140,7 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
       - name: Install dependencies
-        run: pip install -r dev_tools/requirements/isolated-packages.env.txt
+        run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Test each module in isolation
         run: pytest -n auto -m slow dev_tools/packaging/isolated_packages_test.py
   pytest:
@@ -267,7 +267,7 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/isolated-notebooks.env.txt
+        run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - uses: actions/upload-artifact@v2
