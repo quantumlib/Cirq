@@ -82,6 +82,9 @@ class ActOnArgsContainer(
         op: 'cirq.Operation',
     ):
         gate = op.gate
+        if isinstance(gate, ops.IdentityGate):
+            return
+
         if isinstance(gate, ops.SwapPowGate) and gate.exponent % 2 == 1 and gate.global_shift == 0:
             q0, q1 = op.qubits
             args0 = self.args[q0]

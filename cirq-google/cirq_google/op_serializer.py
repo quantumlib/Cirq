@@ -323,7 +323,7 @@ class CircuitOpSerializer(OpSerializer):
         arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant] = None,
         raw_constants: Dict[Any, int] = None,
-    ) -> Optional[v2.program_pb2.CircuitOperation]:
+    ) -> v2.program_pb2.CircuitOperation:
         """Returns the cirq.google.api.v2.CircuitOperation message as a proto dict.
 
         Note that this function requires constants and raw_constants to be

@@ -1,0 +1,17 @@
+{
+  "cirq_type": "ProjectorString",
+  "projector_dict": [
+    [
+      {
+        "cirq_type": "NamedQubit",
+        "name": "q0"
+      },
+      0
+    ]
+  ],
+  "coefficient": {
+    "cirq_type": "complex",
+    "real": 20.160913,
+    "imag": 0.0
+  }
+}

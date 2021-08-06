@@ -130,7 +130,7 @@ class MeasurementGate(raw_types.Gate):
         return self.key
 
     def _kraus_(self):
-        size = np.prod(self._qid_shape, dtype=int)
+        size = np.prod(self._qid_shape, dtype=np.int64)
 
         def delta(i):
             result = np.zeros((size, size))
