@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import List
+import pytest
 
 import numpy as np
 
@@ -20,13 +20,13 @@ import cirq
 
 
 def test_single_qubit_readout_result_repr():
-   result = cirq.experiments.SingleQubitReadoutCalibrationResult(
-              zero_state_errors={cirq.LineQubit(0): 0.1},
-              one_state_errors={cirq.LineQubit(0): 0.2},
-              repetitions=1000,
-              timestamp=0.3,
-               )
-   cirq.testing.assert_equivalent_repr(result)
+    result = cirq.experiments.SingleQubitReadoutCalibrationResult(
+        zero_state_errors={cirq.LineQubit(0): 0.1},
+        one_state_errors={cirq.LineQubit(0): 0.2},
+        repetitions=1000,
+        timestamp=0.3,
+    )
+    cirq.testing.assert_equivalent_repr(result)
 
 
 class NoisySingleQubitReadoutSampler(cirq.Sampler):
@@ -86,4 +86,124 @@ def test_estimate_single_qubit_readout_errors_with_noise():
     for error in result.one_state_errors.values():
         assert 0.18 < error < 0.22
     assert result.repetitions == repetitions
+    assert isinstance(result.timestamp, float)
+
+
+def test_estimate_correlated_readout_errors_no_noise():
+    qubits = cirq.LineQubit.range(10)
+    sampler = cirq.Simulator()
+    repetitions = 1000
+    result = cirq.estimate_correlated_single_qubit_readout_errors(
+        sampler, qubits=qubits, repetitions=repetitions
+    )
+    assert result.zero_state_errors == {q: 0 for q in qubits}
+    assert result.one_state_errors == {q: 0 for q in qubits}
+    assert result.repetitions == repetitions
+    assert isinstance(result.timestamp, float)
+
+
+def test_estimate_correlated_readout_errors_all_zeros():
+    qubits = cirq.LineQubit.range(10)
+    sampler = cirq.ZerosSampler()
+    repetitions = 1000
+    result = cirq.estimate_correlated_single_qubit_readout_errors(
+        sampler, qubits=qubits, repetitions=repetitions
+    )
+    assert result.zero_state_errors == {q: 0 for q in qubits}
+    assert result.one_state_errors == {q: 1 for q in qubits}
+    assert result.repetitions == repetitions
+    assert isinstance(result.timestamp, float)
+
+
+def test_estimate_correlated_readout_errors_bad_bit_string():
+    qubits = cirq.LineQubit.range(10)
+    with pytest.raises(ValueError, match='providing bit_string'):
+        _ = cirq.estimate_correlated_single_qubit_readout_errors(
+            cirq.ZerosSampler(),
+            qubits=qubits,
+            repetitions=1000,
+            trials=35,
+            trials_per_batch=10,
+            bit_strings=[1, 1, 1, 1],
+        )
+
+
+def test_estimate_correlated_readout_errors_zero_reps():
+    qubits = cirq.LineQubit.range(10)
+    with pytest.raises(ValueError, match='non-zero repetition'):
+        _ = cirq.estimate_correlated_single_qubit_readout_errors(
+            cirq.ZerosSampler(),
+            qubits=qubits,
+            repetitions=0,
+            trials=35,
+            trials_per_batch=10,
+        )
+
+
+def test_estimate_correlated_readout_errors_zero_trials():
+    qubits = cirq.LineQubit.range(10)
+    with pytest.raises(ValueError, match='non-zero trials'):
+        _ = cirq.estimate_correlated_single_qubit_readout_errors(
+            cirq.ZerosSampler(),
+            qubits=qubits,
+            repetitions=1000,
+            trials=0,
+            trials_per_batch=10,
+        )
+
+
+def test_estimate_correlated_readout_errors_zero_batch():
+    qubits = cirq.LineQubit.range(10)
+    with pytest.raises(ValueError, match='non-zero trials_per_batch'):
+        _ = cirq.estimate_correlated_single_qubit_readout_errors(
+            cirq.ZerosSampler(),
+            qubits=qubits,
+            repetitions=1000,
+            trials=10,
+            trials_per_batch=0,
+        )
+
+
+def test_estimate_correlated_readout_errors_batching():
+    qubits = cirq.LineQubit.range(10)
+    sampler = cirq.ZerosSampler()
+    repetitions = 1000
+    result = cirq.estimate_correlated_single_qubit_readout_errors(
+        sampler, qubits=qubits, repetitions=repetitions, trials=35, trials_per_batch=10
+    )
+    assert result.zero_state_errors == {q: 0 for q in qubits}
+    assert result.one_state_errors == {q: 1 for q in qubits}
+    assert result.repetitions == repetitions
+    assert isinstance(result.timestamp, float)
+
+
+def test_estimate_correlated_readout_errors_with_noise():
+    qubits = cirq.LineQubit.range(5)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
+    repetitions = 1000
+    result = cirq.estimate_correlated_single_qubit_readout_errors(
+        sampler, qubits=qubits, repetitions=repetitions, trials=40
+    )
+    for error in result.one_state_errors.values():
+        assert 0.17 < error < 0.23
+    for error in result.zero_state_errors.values():
+        assert 0.07 < error < 0.13
+    assert result.repetitions == repetitions
+    assert isinstance(result.timestamp, float)
+
+
+def test_estimate_correlated_readout_errors_missing_qubits():
+    qubits = cirq.LineQubit.range(4)
+
+    result = cirq.estimate_correlated_single_qubit_readout_errors(
+        cirq.ZerosSampler(),
+        qubits=qubits,
+        repetitions=2000,
+        trials=1,
+        bit_strings=[0, 0, 0, 0],
+    )
+    assert result.zero_state_errors == {q: 0 for q in qubits}
+    # Trial did not include a one-state
+    assert all(np.isnan(result.one_state_errors[q]) for q in qubits)
+    assert result.repetitions == 2000
     assert isinstance(result.timestamp, float)

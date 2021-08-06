@@ -11,16 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Module for supporting single qubit readout experiments using
+either correlated or uncorrelated readout statistics.
+"""
 import dataclasses
-import sympy
+import random
 import time
-from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING
+
+import sympy
 import numpy as np
-from cirq._compat import deprecated
 from cirq import circuits, ops, study
 
 if TYPE_CHECKING:
     import cirq
+
 
 @dataclasses.dataclass
 class SingleQubitReadoutCalibrationResult:
@@ -35,6 +40,7 @@ class SingleQubitReadoutCalibrationResult:
             probabilities.
         timestamp: The time the data was taken, in seconds since the epoch.
     """
+
     """Result of estimating single qubit readout error.
 
     Attributes:
@@ -81,6 +87,7 @@ class SingleQubitReadoutCalibrationResult:
             f'timestamp={self.timestamp!r})'
         )
 
+
 def estimate_single_qubit_readout_errors(
     sampler: 'cirq.Sampler', *, qubits: Iterable['cirq.Qid'], repetitions: int = 1000
 ) -> SingleQubitReadoutCalibrationResult:
@@ -103,7 +110,7 @@ def estimate_single_qubit_readout_errors(
         the probabilities. Also stores a timestamp indicating the time when
         data was finished being collected from the sampler.
     """
-    return estimate_parallel_readout_errors(
+    return estimate_correlated_single_qubit_readout_errors(
         sampler=sampler,
         qubits=qubits,
         repetitions=repetitions,
@@ -112,9 +119,7 @@ def estimate_single_qubit_readout_errors(
     )
 
 
-
-
-def estimate_parallel_readout_errors(
+def estimate_correlated_single_qubit_readout_errors(
     sampler: 'cirq.Sampler',
     *,
     qubits: Iterable['cirq.Qid'],
@@ -123,14 +128,15 @@ def estimate_parallel_readout_errors(
     trials_per_batch: Optional[int] = None,
     bit_strings: Optional[List[int]] = None,
 ) -> SingleQubitReadoutCalibrationResult:
-    """Estimate readout error for qubits simultaneously.
+    """Estimate single qubit readout error using parallel operations.
 
-    For each trial, prepare a bitstring of random |0〉and |1〉states for
-    each state.  Measure each qubit.  Capture the errors per qubit of
-    zero and one state over each triel.
+    For each trial, prepare and then measure a random computational basis
+    bitstring on qubits using gates in parallel.
+    Returns a SingleQubitReadoutCalibrationResult which can be used to
+    compute readout errors for each qubit.
 
     Args:
-        sampler: The quantum engine or simulator to run the circuits.
+        sampler: The `cirq.Sampler` used to run the circuits.
         qubits: The qubits being tested.
         repetitions: The number of measurement repetitions to perform for
             each trial.
@@ -166,19 +172,16 @@ def estimate_parallel_readout_errors(
             f'If providing bit_strings, # of bit strings ({len(bit_strings)}) '
             f'must equal # of qubits ({len(qubits)})'
         )
+    if trials_per_batch is None:
+        trials_per_batch = trials
+    if trials_per_batch <= 0:
+        raise ValueError("Must provide non-zero trials_per_batch for readout calibration.")
 
+    num_batches = (trials + trials_per_batch - 1) // trials_per_batch
     all_circuits = []
     all_sweeps: List[study.Sweepable] = []
-    if trials_per_batch is not None:
-        if trials_per_batch <= 0:
-            raise ValueError("Must provide non-zero trials_per_batch for readout calibration.")
-        num_batchs = trials // trials_per_batch
-        if trials % trials_per_batch > 0:
-            num_batchs += 1
-    else:
-        num_batchs = 1
-        trials_per_batch = trials
-    for batch in range(num_batchs):
+
+    for batch in range(num_batches):
         circuit = circuits.Circuit()
         single_sweeps = []
         for idx, q in enumerate(qubits):
@@ -200,19 +203,29 @@ def estimate_parallel_readout_errors(
     results = sampler.run_batch(all_circuits, all_sweeps, repetitions=repetitions)
     timestamp = time.time()
 
-    zero_state_trials: Dict[cirq.Qid, List[float]] = {q: [] for q in qubits}
-    one_state_trials: Dict[cirq.Qid, List[float]] = {q: [] for q in qubits}
+    zero_state_trials: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
+    one_state_trials: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
+    zero_state_totals: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
+    one_state_totals: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
     for batch_result in results:
         for trial_idx, trial_result in enumerate(batch_result):
             for idx, q in enumerate(qubits):
                 had_x_gate = (bit_strings[idx] >> trial_idx) & 1
                 if had_x_gate:
-                    one_state_trials[q].append(1 - np.mean(trial_result.measurements[repr(q)]))
+                    one_state_trials[q] += repetitions - np.sum(trial_result.measurements[repr(q)])
+                    one_state_totals[q] += repetitions
                 else:
-                    zero_state_trials[q].append(np.mean(trial_result.measurements[repr(q)]))
+                    zero_state_trials[q] += np.sum(trial_result.measurements[repr(q)])
+                    zero_state_totals[q] += repetitions
 
-    zero_state_errors = {q: np.mean(zero_state_trials[q]) for q in qubits}
-    one_state_errors = {q: np.mean(one_state_trials[q]) for q in qubits}
+    zero_state_errors = {
+        q: zero_state_trials[q] / zero_state_totals[q] if zero_state_totals[q] > 0 else np.nan
+        for q in qubits
+    }
+    one_state_errors = {
+        q: one_state_trials[q] / one_state_totals[q] if one_state_totals[q] > 0 else np.nan
+        for q in qubits
+    }
 
     return SingleQubitReadoutCalibrationResult(
         zero_state_errors=zero_state_errors,
@@ -220,4 +233,3 @@ def estimate_parallel_readout_errors(
         repetitions=repetitions,
         timestamp=timestamp,
     )
-

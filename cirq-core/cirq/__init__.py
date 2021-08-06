@@ -95,8 +95,8 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    estimate_correlated_single_qubit_readout_errors,
     estimate_single_qubit_readout_errors,
-    estimate_parallel_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
     least_squares_xeb_fidelity_from_expectations,
     least_squares_xeb_fidelity_from_probabilities,
