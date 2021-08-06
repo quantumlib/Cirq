@@ -20,7 +20,6 @@ References:
 [2] https://www.youtube.com/watch?v=AOKM9BkweVU is a useful intro
 [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
 """
-import itertools
 
 from typing import cast, Any, Dict, Generator, List, Sequence, Tuple
 
@@ -49,12 +48,6 @@ class BooleanHamiltonian(raw_types.Operation):
         polynomials, thus making a function that goes from a series to Boolean inputs to an integer
         that is the number of Boolean expressions that are true.
 
-        For example, if we were using this gate for the max-cut problem that is typically used to
-        demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
-        Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
-        an XOR.
-
-        Then, we compute exp(j * theta * polynomial), which is unitary because the polynomial is
         For example, if we were using this gate for the unweighted max-cut problem that is typically
         used to demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
         Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
@@ -66,7 +59,6 @@ class BooleanHamiltonian(raw_types.Operation):
         Args:
             boolean_strs: The list of Sympy-parsable Boolean expressions.
             qubit_map: map of string (boolean variable name) to qubit.
-            theta: The list of thetas to scale the Hamiltonian.
             theta: The evolution time (angle) for the Hamiltonian
         """
         self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
@@ -114,168 +106,6 @@ class BooleanHamiltonian(raw_types.Operation):
         )
 
 
-def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool = False) -> int:
-    """Compares two Gray-encoded binary numbers.
-
-    Args:
-        k1: A tuple of ints, representing the bits that are one. For example, 6 would be (1, 2).
-        k2: The second number, represented similarly as k1.
-        flip: Whether to flip the comparison.
-
-    Returns:
-        -1 if k1 < k2 (or +1 if flip is true)
-        0 if k1 == k2
-        +1 if k1 > k2 (or -1 if flip is true)
-    """
-    max_1 = k1[-1] if k1 else -1
-    max_2 = k2[-1] if k2 else -1
-    if max_1 != max_2:
-        return -1 if (max_1 < max_2) ^ flip else 1
-    if max_1 == -1:
-        return 0
-    return _gray_code_comparator(k1[0:-1], k2[0:-1], not flip)
-
-
-def _simplify_commuting_cnots(
-    cnots: List[Tuple[int, int]], flip_control_and_target: bool
-) -> Tuple[bool, List[Tuple[int, int]]]:
-    """Attempts to commute CNOTs and remove cancelling pairs.
-
-    Commutation relations are based on 9 (flip_control_and_target=False) or 10
-    (flip_control_target=True) of [4]:
-    When flip_control_target=True:
-
-         CNOT(j, i) @ CNOT(j, k) = CNOT(j, k) @ CNOT(j, i)
-    ───X───────       ───────X───
-       │                     │
-    ───@───@───   =   ───@───@───
-           │             │
-    ───────X───       ───X───────
-
-    When flip_control_target=False:
-
-    CNOT(i, j) @ CNOT(k, j) = CNOT(k, j) @ CNOT(i, j)
-    ───@───────       ───────@───
-       │                     │
-    ───X───X───   =   ───X───X───
-           │             │
-    ───────@───       ───@───────
-
-    Args:
-        cnots: A list of CNOTS, encoded as integer tuples (control, target).
-        flip_control_and_target: Whether to flip control and target.
-
-    Returns:
-        A Boolean that tells whether a simplification has been performed.
-        The CNOT list, potentially simplified.
-    """
-
-    target, control = (0, 1) if flip_control_and_target else (1, 0)
-
-    i = 0
-    qubit_to_index: Dict[int, int] = {cnots[i][control]: i} if cnots else {}
-    for j in range(1, len(cnots)):
-        if cnots[i][target] != cnots[j][target]:
-            # The targets (resp. control) don't match, so we reset the search.
-            i = j
-            qubit_to_index = {cnots[j][control]: j}
-            continue
-
-        if cnots[j][control] in qubit_to_index:
-            k = qubit_to_index[cnots[j][control]]
-            # The controls (resp. targets) are the same, so we can simplify away.
-            cnots = [cnots[n] for n in range(len(cnots)) if n != j and n != k]
-            return True, cnots
-
-        qubit_to_index[cnots[j][control]] = j
-
-    return False, cnots
-
-
-def _simplify_cnots_triplets(
-    cnots: List[Tuple[int, int]], flip_control_and_target: bool
-) -> Tuple[bool, List[Tuple[int, int]]]:
-    """Simplifies CNOT pairs according to equation 11 of [4].
-
-    CNOT(i, j) @ CNOT(j, k) == CNOT(j, k) @ CNOT(i, k) @ CNOT(i, j)
-    ───@───────       ───────@───@───
-       │                     │   │
-    ───X───@───   =   ───@───┼───X───
-           │             │   │
-    ───────X───       ───X───X───────
-
-    Args:
-        cnots: A list of CNOTS, encoded as integer tuples (control, target).
-        flip_control_and_target: Whether to flip control and target.
-
-    Returns:
-        A Boolean that tells whether a simplification has been performed.
-        The CNOT list, potentially simplified.
-    """
-    target, control = (0, 1) if flip_control_and_target else (1, 0)
-
-    # We investigate potential pivots sequentially.
-    for j in range(1, len(cnots) - 1):
-        # First, we look back for as long as the targets (resp. controls) are the same.
-        # They all commute, so all are potential candidates for being simplified.
-        common_a: Dict[int, int] = {}
-        for i in range(j - 1, -1, -1):
-            if cnots[i][control] != cnots[j][control]:
-                break
-            # We take a note of the control (resp. target).
-            common_a[cnots[i][target]] = i
-
-        # Next, we look forward for as long as the controls (resp. targets) are the
-        # same. They all commute, so all are potential candidates for being simplified.
-        common_b: Dict[int, int] = {}
-        for k in range(j + 1, len(cnots)):
-            if cnots[j][target] != cnots[k][target]:
-                break
-            # We take a note of the target (resp. control).
-            common_b[cnots[k][control]] = k
-
-        # Among all the candidates, find if they have a match.
-        keys = common_a.keys() & common_b.keys()
-        for key in keys:
-            assert common_a[key] != common_b[key]
-            # We perform the swap which removes the pivot.
-            new_idx: List[int] = (
-                [idx for idx in range(0, j) if idx != common_a[key]]
-                + [common_b[key], common_a[key]]
-                + [idx for idx in range(j + 1, len(cnots)) if idx != common_b[key]]
-            )
-            # Since we removed the pivot, the length should be one fewer.
-            assert len(new_idx) == len(cnots) - 1
-            cnots = [cnots[idx] for idx in new_idx]
-            return True, cnots
-
-    return False, cnots
-
-
-def _simplify_cnots(cnots: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
-    """Takes a series of CNOTs and tries to applies rule to cancel out gates.
-
-    Args:
-        cnots: A list of CNOTs represented as tuples of integer (control, target).
-
-    Returns:
-        A Boolean saying whether a simplification has been found.
-        The simplified list of CNOTs.
-    """
-
-    found_simplification = True
-    while found_simplification:
-        for simplify_fn, flip_control_and_target in itertools.product(
-            [_simplify_commuting_cnots, _simplify_cnots_triplets], [False, True]
-        ):
-            found_simplification, cnots = simplify_fn(cnots, flip_control_and_target)
-            if found_simplification:
-                break
-
-    return cnots
-
-
-
 def _get_gates_from_hamiltonians(
     hamiltonian_polynomial_list: List['cirq.PauliSum'],
     qubit_map: Dict[str, 'cirq.Qid'],
@@ -309,7 +139,6 @@ def _get_gates_from_hamiltonians(
         cnots.extend((prevh[i], prevh[-1]) for i in range(len(prevh) - 1))
         cnots.extend((currh[i], currh[-1]) for i in range(len(currh) - 1))
 
-        cnots = _simplify_cnots(cnots)
         # TODO(tonybruguier): At this point, some CNOT gates can be cancelled out according to:
         # "Efficient quantum circuits for diagonal unitaries without ancillas" by Jonathan Welch,
         # Daniel Greenbaum, Sarah Mostame, Alán Aspuru-Guzik
