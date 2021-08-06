@@ -18,16 +18,31 @@ import itertools
 import os
 import tempfile
 import warnings
-from typing import Optional, Iterable, Dict, List, Tuple, TYPE_CHECKING, Set, Sequence
+from typing import (
+    Optional,
+    Union,
+    Iterable,
+    Dict,
+    List,
+    Tuple,
+    TYPE_CHECKING,
+    Set,
+    Sequence,
+    Type,
+    Any,
+)
 
 import numpy as np
+import pandas as pd
 import sympy
 from cirq import circuits, study, ops, value
 from cirq._doc import document
 from cirq.protocols import json_serializable_dataclass, to_json
+from cirq.work.observable_grouping import group_settings_greedy, GROUPER_T
 from cirq.work.observable_measurement_data import BitstringAccumulator
 from cirq.work.observable_settings import (
     InitObsSetting,
+    observables_to_settings,
     _MeasurementSpec,
 )
 
@@ -79,6 +94,17 @@ def _with_parameterized_layers(
 class StoppingCriteria(abc.ABC):
     """An abstract object that queries a BitstringAccumulator to figure out
     whether that `meas_spec` is complete."""
+
+    def __init__(self, val: Any):
+        """Initialize the stopping criteria with one required argument.
+
+        We provide RepetitionsStoppingCriteria and VarianceStoppingCriteria which
+        each have one required argument. For convenience, the high-level `measure_observables`
+        function takes either an instantiation of a `StoppingCriteria` or a shorthand name+val.
+        If future criteria need more or fewer required arguments, this abstract method may
+        need to be factored out and the `_parse_stopping_criteria` logic updated.
+        """
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
@@ -554,3 +580,162 @@ def measure_grouped_settings(
             to_json(list(accumulators.values()), checkpoint_fn)
 
     return list(accumulators.values())
+
+
+_GROUPING_FUNCS: Dict[str, GROUPER_T] = {
+    'greedy': group_settings_greedy,
+}
+
+_STOPPING_CRITS: Dict[str, Type[StoppingCriteria]] = {
+    'repetitions': RepetitionsStoppingCriteria,
+    'variance': VarianceStoppingCriteria,
+}
+
+
+def _parse_stopping_criteria(
+    stopping_criteria: Union[str, StoppingCriteria], stopping_criteria_val: Optional[float] = None
+) -> StoppingCriteria:
+    """Logic for turning a named stopping_criteria and value to one of the built-in stopping
+    criteria in support of the high-level `measure_observables` API.
+    """
+    if isinstance(stopping_criteria, str):
+        stopping_criteria_cls = _STOPPING_CRITS[stopping_criteria]
+        stopping_criteria = stopping_criteria_cls(stopping_criteria_val)
+    return stopping_criteria
+
+
+def _parse_grouper(grouper: Union[str, GROUPER_T] = group_settings_greedy) -> GROUPER_T:
+    """Logic for turning a named grouper into one of the build-in groupers in support of the
+    high-level `measure_observables` API."""
+    if isinstance(grouper, str):
+        try:
+            grouper = _GROUPING_FUNCS[grouper.lower()]
+        except KeyError:
+            raise ValueError(f"Unknown grouping function {grouper}")
+    return grouper
+
+
+def _get_all_qubits(
+    circuit: circuits.Circuit,
+    observables: Iterable[ops.PauliString],
+) -> List['cirq.Qid']:
+    """Helper function for `measure_observables` to get all qubits from a circuit and a
+    collection of observables."""
+    qubit_set = set()
+    for obs in observables:
+        qubit_set |= set(obs.qubits)
+    qubit_set |= circuit.all_qubits()
+    return sorted(qubit_set)
+
+
+def measure_observables(
+    circuit: circuits.Circuit,
+    observables: Iterable[ops.PauliString],
+    sampler: Union['cirq.Simulator', 'cirq.Sampler'],
+    stopping_criteria: Union[str, StoppingCriteria],
+    stopping_criteria_val: Optional[float] = None,
+    *,
+    readout_symmetrization: bool = True,
+    circuit_sweep: Optional['cirq.Sweepable'] = None,
+    grouper: Union[str, GROUPER_T] = group_settings_greedy,
+    readout_calibrations: Optional[BitstringAccumulator] = None,
+    checkpoint: bool = False,
+    checkpoint_fn: Optional[str] = None,
+    checkpoint_other_fn: Optional[str] = None,
+):
+    """Measure a collection of PauliString observables for a state prepared by a Circuit.
+
+    If you need more control over the process, please see `measure_grouped_settings` for a
+    lower-level API. If you would like your results returned as a pandas DataFrame,
+    please see `measure_observables_df`.
+
+    Args:
+        circuit: The circuit. This can contain parameters, in which case
+            you should also specify `circuit_sweep`.
+        observables: A collection of PauliString observables to measure.
+            These will be grouped into simultaneously-measurable groups,
+            see `grouper` argument.
+        sampler: A sampler.
+        stopping_criteria: Either a StoppingCriteria object or one of
+            'variance', 'repetitions'. In the latter case, you must
+            also specify `stopping_criteria_val`.
+        stopping_criteria_val: The value used for named stopping criteria.
+            If you specified 'repetitions', this is the number of repetitions.
+            If you specified 'variance', this is the variance.
+        readout_symmetrization: If set to True, each run will be
+            split into two: one normal and one where a bit flip is
+            incorporated prior to measurement. In the latter case, the
+            measured bit will be flipped back classically and accumulated
+            together. This causes readout error to appear symmetric,
+            p(0|0) = p(1|1).
+        circuit_sweep: Additional parameter sweeps for parameters contained
+            in `circuit`. The total sweep is the product of the circuit sweep
+            with parameter settings for the single-qubit basis-change rotations.
+        grouper: Either "greedy" or a function that groups lists of
+            `InitObsSetting`. See the documentation for the `grouped_settings`
+            argument of `measure_grouped_settings` for full details.
+        readout_calibrations: The result of `calibrate_readout_error`.
+        checkpoint: If set to True, save cumulative raw results at the end
+            of each iteration of the sampling loop.
+        checkpoint_fn: The filename for the checkpoint file. If `checkpoint`
+            is set to True and this is not specified, a file in a temporary
+            directory will be used.
+        checkpoint_other_fn: The filename for another checkpoint file, which
+            contains the previous checkpoint. If `checkpoint`
+            is set to True and this is not specified, a file in a temporary
+            directory will be used. If `checkpoint` is set to True and
+            `checkpoint_fn` is specified but this argument is *not* specified,
+            "{checkpoint_fn}.prev.json" will be used.
+    """
+    qubits = _get_all_qubits(circuit, observables)
+    settings = list(observables_to_settings(observables, qubits))
+    actual_grouper = _parse_grouper(grouper)
+    grouped_settings = actual_grouper(settings)
+    stopping_criteria = _parse_stopping_criteria(stopping_criteria, stopping_criteria_val)
+
+    return measure_grouped_settings(
+        circuit=circuit,
+        grouped_settings=grouped_settings,
+        sampler=sampler,
+        stopping_criteria=stopping_criteria,
+        circuit_sweep=circuit_sweep,
+        readout_symmetrization=readout_symmetrization,
+        readout_calibrations=readout_calibrations,
+        checkpoint=checkpoint,
+        checkpoint_fn=checkpoint_fn,
+        checkpoint_other_fn=checkpoint_other_fn,
+    )
+
+
+def measure_observables_df(
+    circuit: circuits.Circuit,
+    observables: Iterable[ops.PauliString],
+    sampler: Union['cirq.Simulator', 'cirq.Sampler'],
+    stopping_criteria: Union[str, StoppingCriteria],
+    stopping_criteria_val: Optional[float] = None,
+    *,
+    readout_symmetrization: bool = True,
+    circuit_sweep: Optional['cirq.Sweepable'] = None,
+    grouper: Union[str, GROUPER_T] = group_settings_greedy,
+    readout_calibrations: Optional[BitstringAccumulator] = None,
+    checkpoint: bool = False,
+    checkpoint_fn: Optional[str] = None,
+    checkpoint_other_fn: Optional[str] = None,
+):
+    """Measure observables and return resulting data as a dataframe."""
+    accumulators = measure_observables(
+        circuit=circuit,
+        observables=observables,
+        sampler=sampler,
+        stopping_criteria=stopping_criteria,
+        stopping_criteria_val=stopping_criteria_val,
+        readout_symmetrization=readout_symmetrization,
+        circuit_sweep=circuit_sweep,
+        grouper=grouper,
+        readout_calibrations=readout_calibrations,
+        checkpoint=checkpoint,
+        checkpoint_fn=checkpoint_fn,
+        checkpoint_other_fn=checkpoint_other_fn,
+    )
+    df = pd.DataFrame(list(itertools.chain.from_iterable(acc.records for acc in accumulators)))
+    return df

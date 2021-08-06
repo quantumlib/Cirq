@@ -28,6 +28,8 @@ from cirq.work.observable_measurement import (
     _check_meas_specs_still_todo,
     StoppingCriteria,
     _parse_checkpoint_options,
+    _parse_stopping_criteria,
+    measure_observables_df,
 )
 
 
@@ -327,6 +329,9 @@ def test_meas_spec_still_todo_bad_spec():
     bsa, meas_spec = _set_up_meas_specs_for_testing()
 
     class BadStopping(StoppingCriteria):
+        def __init__(self):
+            pass
+
         def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
             return -23
 
@@ -521,3 +526,40 @@ def test_measure_grouped_settings_read_checkpoint(tmpdir):
     (result,) = results  # one group
     assert result.n_repetitions == 1_000
     assert result.means() == [1.0]
+
+
+def _test_parse_stopping_criteria():
+    with pytest.raises(ValueError, match='xxx'):
+        _ = _parse_stopping_criteria('repetitions')
+
+    rep = cw.RepetitionsStoppingCriteria(total_repetitions=1_000)
+    var = cw.VarianceStoppingCriteria(variance_bound=1e-3)
+    assert _parse_stopping_criteria('repetitions', 1_000) == rep
+    assert _parse_stopping_criteria('variance', 1e-3) == var
+    assert _parse_stopping_criteria(rep) == rep
+    assert _parse_stopping_criteria(var) == var
+
+
+Q = cirq.NamedQubit('q')
+
+
+@pytest.mark.parametrize(
+    ['circuit', 'observable'],
+    [
+        (cirq.Circuit(cirq.X(Q) ** 0.2), cirq.Z(Q)),
+        (cirq.Circuit(cirq.X(Q) ** -0.5, cirq.Z(Q) ** 0.2), cirq.Y(Q)),
+        (cirq.Circuit(cirq.Y(Q) ** 0.5, cirq.Z(Q) ** 0.2), cirq.X(Q)),
+    ],
+)
+def test_XYZ_point8(circuit, observable):
+    # each circuit, observable combination should result in the observable value of 0.8
+    df = measure_observables_df(
+        circuit,
+        [observable],
+        cirq.Simulator(seed=52),
+        stopping_criteria='variance',
+        stopping_criteria_val=1e-3 ** 2,
+    )
+    assert len(df) == 1, 'one obserbale'
+    mean = df.loc[0]['mean']
+    np.testing.assert_allclose(0.8, mean, atol=1e-2)
