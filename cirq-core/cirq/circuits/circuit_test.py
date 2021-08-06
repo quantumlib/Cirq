@@ -4290,7 +4290,7 @@ def test_indexing_by_numpy_integer(circuit_cls):
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_all_measurement_keys(circuit_cls):
     class Unknown(cirq.SingleQubitGate):
-        def _measurement_key_(self):
+        def _measurement_key_str_(self):
             return 'test'
 
     a, b = cirq.LineQubit.range(2)
