@@ -21,6 +21,7 @@ References:
 [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
 """
 import itertools
+
 from typing import cast, Any, Dict, Generator, List, Sequence, Tuple
 
 import sympy.parsing.sympy_parser as sympy_parser
@@ -54,12 +55,19 @@ class BooleanHamiltonian(raw_types.Operation):
         an XOR.
 
         Then, we compute exp(j * theta * polynomial), which is unitary because the polynomial is
+        For example, if we were using this gate for the unweighted max-cut problem that is typically
+        used to demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
+        Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
+        an XOR.
+
+        Then, we compute exp(-j * theta * polynomial), which is unitary because the polynomial is
         Hermitian.
 
         Args:
             boolean_strs: The list of Sympy-parsable Boolean expressions.
             qubit_map: map of string (boolean variable name) to qubit.
             theta: The list of thetas to scale the Hamiltonian.
+            theta: The evolution time (angle) for the Hamiltonian
         """
         self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
         self._boolean_strs: Sequence[str] = boolean_strs
@@ -267,6 +275,7 @@ def _simplify_cnots(cnots: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
     return cnots
 
 
+
 def _get_gates_from_hamiltonians(
     hamiltonian_polynomial_list: List['cirq.PauliSum'],
     qubit_map: Dict[str, 'cirq.Qid'],
@@ -301,6 +310,10 @@ def _get_gates_from_hamiltonians(
         cnots.extend((currh[i], currh[-1]) for i in range(len(currh) - 1))
 
         cnots = _simplify_cnots(cnots)
+        # TODO(tonybruguier): At this point, some CNOT gates can be cancelled out according to:
+        # "Efficient quantum circuits for diagonal unitaries without ancillas" by Jonathan Welch,
+        # Daniel Greenbaum, Sarah Mostame, Alán Aspuru-Guzik
+        # https://arxiv.org/abs/1306.3991
 
         for gate in (cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots):
             yield gate

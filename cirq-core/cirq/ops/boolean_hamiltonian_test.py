@@ -15,6 +15,8 @@ import functools
 import itertools
 import math
 import random
+import itertools
+import math
 
 import numpy as np
 import pytest
@@ -22,6 +24,7 @@ import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 import cirq.ops.boolean_hamiltonian as bh
+
 
 
 @pytest.mark.parametrize(
@@ -178,3 +181,4 @@ def test_simplify_cnots_triplets(
     )
     assert actual_simplified == expected_simplified
     assert actual_output_cnots == expected_output_cnots
+
