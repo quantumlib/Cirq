@@ -115,7 +115,7 @@ def estimate_single_qubit_readout_errors(
         qubits=qubits,
         repetitions=repetitions,
         trials=2,
-        bit_strings=[1 for q in qubits],
+        bit_strings=np.array([[0, 1] for q in qubits]),
     )
 
 
@@ -126,7 +126,7 @@ def estimate_correlated_single_qubit_readout_errors(
     trials: int = 20,
     repetitions: int = 1000,
     trials_per_batch: Optional[int] = None,
-    bit_strings: Optional[List[int]] = None,
+    bit_strings: np.ndarray = None,
 ) -> SingleQubitReadoutCalibrationResult:
     """Estimate single qubit readout error using parallel operations.
 
@@ -143,10 +143,11 @@ def estimate_correlated_single_qubit_readout_errors(
         trials: The number of bitstrings to prepare.
         trials_per_batch:  If provided, split the experiment into batches
             with this number of trials in each batch.
-        bit_strings: A list of ints that specifies the bit strings for each
-            qubit.  There should be exactly one int per qubit.  Bits
-            represent whether the qubit is |0〉or |1〉when initialized.
-            Trials are done from least significant bit to most significant bit.
+        bit_strings: Optional numpy array of shape (qubits, trials) where the
+            first dimension is the qubit (ordered by the qubit order from
+            the qubits parameter) and the second dimension is the number of
+            trials.  Each value should be a 0 or 1 which specifies which
+            state the qubit should be prepared into during that trial.
             If not provided, the function will generate random bit strings
             for you.
 
@@ -166,51 +167,59 @@ def estimate_correlated_single_qubit_readout_errors(
     if repetitions <= 0:
         raise ValueError("Must provide non-zero repetition for readout calibration.")
     if bit_strings is None:
-        bit_strings = [random.getrandbits(trials) for _ in qubits]
-    if len(bit_strings) != len(qubits):
+        bit_strings = np.array([[random.randint(0, 1) for _ in range(trials)] for _ in qubits])
+    if not hasattr(bit_strings, 'shape') or bit_strings.shape != (len(qubits), trials):
         raise ValueError(
-            f'If providing bit_strings, # of bit strings ({len(bit_strings)}) '
-            f'must equal # of qubits ({len(qubits)})'
+            'bit_strings must be numpy array '
+            f'of shape (qubits, trials) ({len(qubits)}, {trials}) '
+            f"but was {bit_strings.shape if hasattr(bit_strings, 'shape') else None}"
         )
     if trials_per_batch is None:
         trials_per_batch = trials
     if trials_per_batch <= 0:
         raise ValueError("Must provide non-zero trials_per_batch for readout calibration.")
 
-    num_batches = (trials + trials_per_batch - 1) // trials_per_batch
     all_circuits = []
     all_sweeps: List[study.Sweepable] = []
+    num_batches = (trials + trials_per_batch - 1) // trials_per_batch
 
+    # Initialize circuits
+    flip_symbols = sympy.symbols(f'flip_0:{len(qubits)}')
+    flip_circuit = circuits.Circuit(
+        [ops.X(q) ** s for q, s in zip(qubits, flip_symbols)],
+        [ops.measure_each(*qubits, key_func=repr)],
+    )
+    all_circuits = [flip_circuit] * num_batches
+
+    # Initialize sweeps
     for batch in range(num_batches):
-        circuit = circuits.Circuit()
         single_sweeps = []
-        for idx, q in enumerate(qubits):
-            sym_val = f'bit_{idx}'
-            current_trial = bit_strings[idx]
-            trial_range = range(batch * trials_per_batch, (batch + 1) * trials_per_batch)
-            circuit.append(ops.X(q) ** sympy.Symbol(sym_val))
+        for qubit_idx, q in enumerate(qubits):
+            trial_range = range(
+                batch * trials_per_batch, min((batch + 1) * trials_per_batch, trials)
+            )
             single_sweeps.append(
                 study.Points(
-                    key=sym_val, points=[(current_trial >> bit) & 1 for bit in trial_range]
+                    key=f'flip_{qubit_idx}',
+                    points=[bit_strings[qubit_idx][bit] for bit in trial_range],
                 )
             )
-
-        circuit.append(ops.measure_each(*qubits, key_func=repr))
         total_sweeps = study.Zip(*single_sweeps)
-        all_circuits.append(circuit)
         all_sweeps.append(total_sweeps)
 
+    # Execute circuits
     results = sampler.run_batch(all_circuits, all_sweeps, repetitions=repetitions)
     timestamp = time.time()
 
+    # Analyze results
     zero_state_trials: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
     one_state_trials: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
     zero_state_totals: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
     one_state_totals: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
     for batch_result in results:
         for trial_idx, trial_result in enumerate(batch_result):
-            for idx, q in enumerate(qubits):
-                had_x_gate = (bit_strings[idx] >> trial_idx) & 1
+            for qubit_idx, q in enumerate(qubits):
+                had_x_gate = bit_strings[qubit_idx][trial_idx]
                 if had_x_gate:
                     one_state_trials[q] += repetitions - np.sum(trial_result.measurements[repr(q)])
                     one_state_totals[q] += repetitions

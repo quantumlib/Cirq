@@ -117,7 +117,7 @@ def test_estimate_correlated_readout_errors_all_zeros():
 
 def test_estimate_correlated_readout_errors_bad_bit_string():
     qubits = cirq.LineQubit.range(10)
-    with pytest.raises(ValueError, match='providing bit_string'):
+    with pytest.raises(ValueError, match='but was None'):
         _ = cirq.estimate_correlated_single_qubit_readout_errors(
             cirq.ZerosSampler(),
             qubits=qubits,
@@ -200,7 +200,7 @@ def test_estimate_correlated_readout_errors_missing_qubits():
         qubits=qubits,
         repetitions=2000,
         trials=1,
-        bit_strings=[0, 0, 0, 0],
+        bit_strings=np.array([[0], [0], [0], [0]]),
     )
     assert result.zero_state_errors == {q: 0 for q in qubits}
     # Trial did not include a one-state
