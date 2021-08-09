@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import subprocess
 from unittest import mock
 
 import pytest
 
+from dev_tools import shell_tools
 from dev_tools.modules import list_modules
 
 # point, that is then cloned to a separate folder for each test.
@@ -38,25 +38,19 @@ def test_isolated_packages(cloned_env, module):
     env = cloned_env("isolated_packages", *PACKAGES)
 
     if str(module.root) != "cirq-core":
-        result = subprocess.run(
-            f"{env}/bin/pip install ./{module.root}", capture_output=True, shell=True
-        )
-        assert result.returncode != 0, (
-            f"{module.name} should have failed to " f"install without cirq-core!"
-        )
+        assert f'cirq-core=={module.version}' in module.install_requires
 
-    result = subprocess.run(
-        f"{env}/bin/pip install ./{module.root} ./cirq-core", capture_output=True, shell=True
+    result = shell_tools.run_cmd(
+        *f"{env}/bin/pip install ./{module.root} ./cirq-core".split(), raise_on_fail=False
     )
     assert (
-        result.returncode == 0
-    ), f"Failed to install {module.name}:\n{str(result.stderr, encoding='UTF-8')}"
+        result.exit_code == 0
+    ), f"Failed to install {module.name}:\n{str(result.err, encoding='UTF-8')}"
 
-    result = subprocess.run(
-        f"{env}/bin/pytest ./{module.root} --ignore ./cirq-core/cirq/contrib",
-        capture_output=True,
-        shell=True,
+    result = shell_tools.run_cmd(
+        *f"{env}/bin/pytest ./{module.root} --ignore ./cirq-core/cirq/contrib".split(),
+        raise_on_fail=False,
     )
     assert (
-        result.returncode == 0
+        result.exit_code == 0
     ), f"Failed isolated tests for {module.name}:\n{str(result.stdout, encoding='UTF-8')}"

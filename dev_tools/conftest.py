@@ -23,6 +23,9 @@ from typing import Tuple
 import pytest
 from filelock import FileLock
 
+from dev_tools import shell_tools
+from dev_tools.env_tools import create_virtual_env
+
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "slow: mark tests as slow")
@@ -110,23 +113,11 @@ def cloned_env(testrun_uid, worker_id):
 
     def _create_base_env(base_dir: Path, pip_install_args: Tuple[str, ...]):
         try:
-            print("PATH: " + os.environ["PATH"])
-            result = subprocess.run(
-                args=["virtualenv", "-p", sys.executable, str(base_dir)],
-                capture_output=True,
-                env=os.environ,
-            )
-            if result.returncode != 0:
-                raise ValueError(str(result.stderr, encoding="UTF-8"))
+            create_virtual_env(str(base_dir), [], sys.executable, True)
             with open(base_dir / "testrun.uid", mode="w") as f:
                 f.write(testrun_uid)
             if pip_install_args:
-                result = subprocess.run(
-                    args=[f"{base_dir}/bin/pip", "install", *pip_install_args],
-                    capture_output=True,
-                )
-                if result.returncode != 0:
-                    raise ValueError(str(result.stderr, encoding="UTF-8"))
+                shell_tools.run_cmd(f"{base_dir}/bin/pip", "install", *pip_install_args)
         except BaseException as ex:
             # cleanup on failure
             if base_dir.is_dir():
