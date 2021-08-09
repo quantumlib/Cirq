@@ -18,6 +18,7 @@ import io
 import json
 import os
 import pathlib
+import sys
 import warnings
 from typing import Dict, List, Optional, Tuple
 from unittest import mock
@@ -68,9 +69,16 @@ TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
             "cirq.pasqal", deadline="v0.14", count=None
         ),
     ),
+    'cirq_rigetti': None,
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,
 }
+
+
+# pyQuil 3.0, necessary for cirq_rigetti module requires
+# python >= 3.7
+if sys.version_info < (3, 7):  # pragma: no cover
+    del TESTED_MODULES['cirq_rigetti']
 
 
 def _get_testspecs_for_modules():
@@ -788,3 +796,12 @@ def test_json_serializable_dataclass_namespace():
             return QuantumVolumeParams
 
     assert_json_roundtrip_works(qvp, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
+
+
+def test_numpy_values():
+    assert (
+        cirq.to_json({'value': np.array(1)})
+        == """{
+  "value": 1
+}"""
+    )

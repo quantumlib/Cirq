@@ -32,6 +32,10 @@ SKIP_NOTEBOOKS = [
     "**/ionq/*.ipynb",
     "**/google/*.ipynb",
     "**/pasqal/*.ipynb",
+    # Rigetti uses local simulation with docker, so should work
+    # if you run into issues locally, run
+    # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
+    # "**/rigetti/*.ipynb",
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",

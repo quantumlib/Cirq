@@ -185,7 +185,7 @@ def xeb_fidelity(
         ValueError: Circuit is inconsistent with qubit order or one of the
             bitstrings is inconsistent with the number of qubits.
     """
-    dim = np.product(circuit.qid_shape())
+    dim = np.prod(circuit.qid_shape(), dtype=np.int64)
 
     if isinstance(bitstrings, tuple):
         bitstrings = list(bitstrings)

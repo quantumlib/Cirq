@@ -179,7 +179,7 @@ def test_validate_moment_errors():
     m = cirq.Moment(cirq.X.on_each(*(d.qubit_list()[1:])))
     with pytest.raises(ValueError, match="Bad number of simultaneous XY gates"):
         d.validate_moment(m)
-    m = cirq.Moment([cirq.MeasurementGate(1).on(q00), cirq.Z.on(q01)])
+    m = cirq.Moment([cirq.MeasurementGate(1, 'a').on(q00), cirq.Z.on(q01)])
     with pytest.raises(
         ValueError, match="Measurements can't be simultaneous with other operations"
     ):
