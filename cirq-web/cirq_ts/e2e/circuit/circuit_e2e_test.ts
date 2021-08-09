@@ -57,7 +57,8 @@ describe('Circuit', () => {
       const page = await browser.newPage();
 
       // Take a screenshot of the first image
-      await page.setContent(htmlContent(`
+      await page.setContent(
+        htmlContent(`
       const circuit = createGridCircuit(
         [
           {row: 0, col: 0}, 
@@ -89,7 +90,8 @@ describe('Circuit', () => {
             },
         ]
         );
-      `));
+      `)
+      );
       await page.screenshot({path: outputPath});
       await browser.close();
     });
