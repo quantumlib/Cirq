@@ -41,18 +41,6 @@ class SingleQubitReadoutCalibrationResult:
         timestamp: The time the data was taken, in seconds since the epoch.
     """
 
-    """Result of estimating single qubit readout error.
-
-    Attributes:
-        zero_state_errors: A dictionary from qubit to probability of measuring
-            a 1 when the qubit is initialized to |0⟩.
-        one_state_errors: A dictionary from qubit to probability of measuring
-            a 0 when the qubit is initialized to |1⟩.
-        repetitions: The number of repetitions that were used to estimate the
-            probabilities.
-        timestamp: The time the data was taken, in seconds since the epoch.
-    """
-
     zero_state_errors: Dict['cirq.Qid', float]
     one_state_errors: Dict['cirq.Qid', float]
     repetitions: int
