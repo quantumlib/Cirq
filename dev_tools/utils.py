@@ -15,7 +15,7 @@ import os
 
 
 def only_on_posix(func):
-    """Only run test on posix"""
+    """Only run test on posix."""
     if os.name != 'posix':
         return None
     return func
