@@ -11,12 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import cirq
+from typing import Iterable
 from cirq_web import widget
-from cirq_web.circuits.symbols import Operation3DSymbol, resolve_operation, DEFAULT_SYMBOL_RESOLVERS
+from cirq_web.circuits.symbols import (
+    Operation3DSymbol,
+    SymbolResolver,
+    resolve_operation,
+    DEFAULT_SYMBOL_RESOLVERS,
+)
 
 
 class Circuit3D(widget.Widget):
-    def __init__(self, circuit, resolvers=DEFAULT_SYMBOL_RESOLVERS, padding_factor=1):
+    def __init__(
+        self,
+        circuit: cirq.Circuit,
+        resolvers: Iterable[SymbolResolver] = DEFAULT_SYMBOL_RESOLVERS,
+        padding_factor: float = 1,
+    ):
         """Initializes a Circuit instance.
 
         Args:
@@ -41,7 +53,6 @@ class Circuit3D(widget.Widget):
         return f"""
             <button id="camera-reset">Reset Camera</button>
             <button id="camera-toggle">Toggle Camera Type</button>
-            <div id="test">
             <script>
             let viz_{stripped_id} = createGridCircuit({qubits}, {moments}, "{self.id}", {self.padding_factor});
             viz_{stripped_id}.circuit.addSymbolsFromList({self.serialized_circuit})

@@ -83,3 +83,11 @@ def test_resolve_operation_invalid_diagram_info(custom_gate):
 
     assert symbol_info.labels == expected_labels
     assert symbol_info.colors == expected_colors
+
+
+def test_unresolvable_operation_():
+    mock_qubit = cirq.NamedQubit('mock')
+    operation = cirq.X(mock_qubit)
+
+    with pytest.raises(ValueError, match='Cannot resolve operation'):
+        cirq_web.circuits.symbols.resolve_operation(operation, [])

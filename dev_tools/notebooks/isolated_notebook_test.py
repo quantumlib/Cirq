@@ -48,7 +48,8 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     "docs/operators_and_observables.ipynb",
     "docs/tutorials/educators/intro.ipynb",
     # Cirq web is a new module, notebook will be moved to docs/
-    "cirq-web/example.ipynb",
+    "cirq-web/bloch_sphere_example.ipynb",
+    "cirq-web/circuit_example.ipynb",
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
