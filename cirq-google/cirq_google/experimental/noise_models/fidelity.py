@@ -73,6 +73,7 @@ class Fidelity():
     if self._t1 is not None:
       return self._pauli_error - self.pauli_error_from_t1(t, self._t1)
     else:
+      print(self.pauli_error_from_t1(t, self._t1))
       return self._pauli_error
 
 
@@ -110,28 +111,28 @@ class NoiseModelFromFidelity(cirq.NoiseModel):
       if p00 is not None and p11 is not None:
         p = p11 / (p00 + p11)
         gamma = p11 / p
-#        print(p, gamma)
         moments.append(cirq.Moment(cirq.GeneralizedAmplitudeDampingChannel(p = p, gamma = gamma)(q) for q in system_qubits))
       elif p00 is not None:
         moments.append(cirq.Moment(cirq.GeneralizedAmplitudeDampingChannel(p = 0.0, gamma = p00)(q) for q in system_qubits))
       elif p11 is not None:
         moments.append(cirq.Moment(cirq.GeneralizedAmplitudeDampingChannel(p = 1.0, gamma = p11)(q) for q in system_qubits))
 
-    moments.append(moment)
-    if self._fidelity._pauli_error is not None: ## pauli error
-      duration = max([self.get_duration(op.gate) for op in moment.operations])
-      pauli_error = self._fidelity.pauli_error_from_depolarization(duration)
+      moments.append(moment)
+    else:
+      moments.append(moment)
+      if self._fidelity._pauli_error is not None: ## pauli error
+        duration = max([self.get_duration(op.gate) for op in moment.operations])
+        pauli_error = self._fidelity.pauli_error_from_depolarization(duration)
+        _sq_inds = np.arange(4)
+        pauli_inds = np.array(list(product(_sq_inds, repeat = 1)))
+        num_inds = len(pauli_inds)
+        pI = 1 - pauli_error # probability of identity matrix
+        p_other = pauli_error / (num_inds - 1) # probability of other pauli gates
+        pauli_probs = (np.array([p_other] * (num_inds - 1)))
+        moments.append(cirq.Moment(cirq.depolarize(p_other)(q) for q in system_qubits))
 
-      _sq_inds = np.arange(4)
-      pauli_inds = np.array(list(product(_sq_inds, repeat = 1)))
-      num_inds = len(pauli_inds)
-      pI = 1 - pauli_error # probability of identity matrix
-      p_other = pauli_error / (num_inds - 1) # probability of other pauli gates
-      pauli_probs = (np.array([p_other] * (num_inds - 1)))
-      moments.append(cirq.Moment(cirq.depolarize(p_other)(q) for q in system_qubits))
-
-    if self._fidelity._t1 is not None: # t1 decay noise
-      duration = max([self.get_duration(op.gate) for op in moment.operations])
-      moments.append(cirq.Moment(cirq.amplitude_damp(1 - np.exp(-duration / self._fidelity._t1)).on_each(system_qubits)))
+      if self._fidelity._t1 is not None: # t1 decay noise
+        duration = max([self.get_duration(op.gate) for op in moment.operations])
+        moments.append(cirq.Moment(cirq.amplitude_damp(1 - np.exp(-duration / self._fidelity._t1)).on_each(system_qubits)))
     return moments
 
