@@ -11,11 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Module for supporting single qubit readout experiments using
-either correlated or uncorrelated readout statistics.
-"""
+"""Single qubit readout experiments using parallel or isolated statistics."""
 import dataclasses
-import random
 import time
 from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING
 
@@ -98,7 +95,7 @@ def estimate_single_qubit_readout_errors(
         the probabilities. Also stores a timestamp indicating the time when
         data was finished being collected from the sampler.
     """
-    return estimate_correlated_single_qubit_readout_errors(
+    return estimate_parallel_single_qubit_readout_errors(
         sampler=sampler,
         qubits=qubits,
         repetitions=repetitions,
@@ -107,7 +104,7 @@ def estimate_single_qubit_readout_errors(
     )
 
 
-def estimate_correlated_single_qubit_readout_errors(
+def estimate_parallel_single_qubit_readout_errors(
     sampler: 'cirq.Sampler',
     *,
     qubits: Iterable['cirq.Qid'],
@@ -155,7 +152,7 @@ def estimate_correlated_single_qubit_readout_errors(
     if repetitions <= 0:
         raise ValueError("Must provide non-zero repetition for readout calibration.")
     if bit_strings is None:
-        bit_strings = np.array([[random.randint(0, 1) for _ in range(trials)] for _ in qubits])
+        bit_strings = np.random.randint(0, 2, size=(len(qubits), trials))
     if not hasattr(bit_strings, 'shape') or bit_strings.shape != (len(qubits), trials):
         raise ValueError(
             'bit_strings must be numpy array '
@@ -167,7 +164,6 @@ def estimate_correlated_single_qubit_readout_errors(
     if trials_per_batch <= 0:
         raise ValueError("Must provide non-zero trials_per_batch for readout calibration.")
 
-    all_circuits = []
     all_sweeps: List[study.Sweepable] = []
     num_batches = (trials + trials_per_batch - 1) // trials_per_batch
 
