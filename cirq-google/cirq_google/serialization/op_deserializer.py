@@ -27,9 +27,9 @@ import sympy
 
 import cirq
 from cirq._compat import deprecated
-from cirq_google import arg_func_langs
 from cirq_google.api import v2
 from cirq_google.ops.calibration_tag import CalibrationTag
+from cirq_google.serialization import arg_func_langs
 
 
 class OpDeserializer(abc.ABC):
