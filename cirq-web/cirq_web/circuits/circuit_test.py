@@ -54,7 +54,7 @@ def test_circuit_client_code():
         <button id="camera-toggle">Toggle Camera Type</button>
         <div id="test">
         <script>
-        let viz_{stripped_id} = createGridCircuit({str(qubits_obj)}, {str(moments)}, "{circuit.id}");
+        let viz_{stripped_id} = createGridCircuit({str(qubits_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor});
         viz_{stripped_id}.circuit.addSymbolsFromList({str(circuit_obj)})
 
         document.getElementById("camera-reset").addEventListener('click', ()  => {{

@@ -23,7 +23,7 @@ import {Symbol3D, SymbolInformation, Coord} from './components/types';
 export class GridCircuit extends Group {
   readonly moments: number;
   private circuit: Map<string, GridQubit>;
-  private padding_factor : number;
+  private padding_factor: number;
   /**
    * Class constructor
    * @param moments The number of moments of the circuit. This
@@ -31,7 +31,7 @@ export class GridCircuit extends Group {
    * @param qubits A list of GridCoord objects representing the locations of the
    * qubits in the circuit.
    */
-  constructor(moments: number, qubits: Coord[], padding_factor: number = 1) {
+  constructor(moments: number, qubits: Coord[], padding_factor = 1) {
     super();
     this.moments = moments;
     this.padding_factor = padding_factor;

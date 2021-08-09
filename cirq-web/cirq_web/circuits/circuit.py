@@ -26,7 +26,7 @@ class Circuit3D(widget.Widget):
         self.circuit = circuit
         self._resolvers = resolvers
         self.padding_factor = padding_factor
-        
+
     def get_client_code(self) -> str:
         # Remove hyphens from the id so that we can use
         # it as the variable name in TS.

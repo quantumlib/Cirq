@@ -181,7 +181,7 @@ export function createGridCircuit(
   qubits: Coord[],
   numMoments: number,
   sceneId: string,
-  padding_factor: number = 1,
+  padding_factor = 1
 ): {circuit: GridCircuit; scene: CircuitScene} {
   const scene = new CircuitScene(sceneId);
 
