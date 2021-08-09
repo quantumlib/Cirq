@@ -20,11 +20,15 @@ from unittest import mock
 import pytest
 
 from dev_tools import shell_tools
+from dev_tools.utils import only_on_posix
 
 
 # ensure that no cirq packages are on the PYTHONPATH, this is important, otherwise
 # the "isolation" fails and all the cirq modules would be in the list
 @mock.patch.dict(os.environ, {"PYTHONPATH": ""})
+# due to shell_tools dependencies windows builds break on this
+# see https://github.com/quantumlib/Cirq/issues/4394
+@only_on_posix
 @pytest.mark.parametrize('param', ['a', 'b', 'c'])
 def test_isolated_env_cloning(cloned_env, param):
     env = cloned_env("test_isolated", "flynt==0.64")
