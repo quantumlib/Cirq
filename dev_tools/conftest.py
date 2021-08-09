@@ -13,7 +13,6 @@
 # limitations under the License.
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
 import uuid
@@ -93,10 +92,7 @@ def cloned_env(testrun_uid, worker_id):
                 _create_base_env(base_dir, pip_install_args)
 
         clone_dir = base_temp_path / str(uuid.uuid4())
-        cmd = f"virtualenv-clone {base_dir} {clone_dir}".split(" ")
-        result = subprocess.run(cmd, capture_output=True)
-        if result.returncode != 0:
-            raise ValueError(str(result.stderr, encoding="UTF-8"))
+        shell_tools.run_cmd(*(f"virtualenv-clone {base_dir} {clone_dir}".split()))
         return clone_dir
 
     def _check_for_reuse_or_recreate(env_dir: Path):

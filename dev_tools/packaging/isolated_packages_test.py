@@ -41,16 +41,20 @@ def test_isolated_packages(cloned_env, module):
         assert f'cirq-core=={module.version}' in module.install_requires
 
     result = shell_tools.run_cmd(
-        *f"{env}/bin/pip install ./{module.root} ./cirq-core".split(), raise_on_fail=False
+        *f"{env}/bin/pip install ./{module.root} ./cirq-core".split(),
+        err=shell_tools.TeeCapture(),
+        raise_on_fail=False
     )
     assert (
         result.exit_code == 0
-    ), f"Failed to install {module.name}:\n{str(result.err, encoding='UTF-8')}"
+    ), f"Failed to install {module.name}:\n{result.err}"
 
     result = shell_tools.run_cmd(
         *f"{env}/bin/pytest ./{module.root} --ignore ./cirq-core/cirq/contrib".split(),
+        out=shell_tools.TeeCapture(),
+        err=shell_tools.TeeCapture(),
         raise_on_fail=False,
     )
     assert (
         result.exit_code == 0
-    ), f"Failed isolated tests for {module.name}:\n{str(result.stdout, encoding='UTF-8')}"
+    ), f"Failed isolated tests for {module.name}:\n{result.stdout}"
