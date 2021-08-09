@@ -34,7 +34,8 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
         rewriter: Optional[Callable[[List[ops.Operation]], Optional[ops.OP_TREE]]] = None,
         synthesizer: Optional[Callable[[ops.Qid, np.ndarray], Optional[ops.OP_TREE]]] = None,
     ):
-        """
+        """Inits MergeSingleQubitGates.
+
         Args:
             rewriter: Specifies how to merge runs of single-qubit operations
                 into a more desirable form. Takes a list of operations and

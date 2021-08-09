@@ -95,7 +95,9 @@ class RandomGateChannel(raw_types.Gate):
         if mixture is None:
             return None
 
-        do_nothing = np.eye(np.product(protocols.qid_shape(self.sub_gate)), dtype=np.float64)
+        do_nothing = np.eye(
+            np.prod(protocols.qid_shape(self.sub_gate), dtype=np.int64), dtype=np.float64
+        )
         result = [(p * float(self.probability), m) for p, m in mixture]
         result.append((1 - float(self.probability), do_nothing))
         return result
@@ -108,7 +110,9 @@ class RandomGateChannel(raw_types.Gate):
         if channel is None:
             return NotImplemented
 
-        do_nothing = np.eye(np.product(protocols.qid_shape(self.sub_gate)), dtype=np.float64)
+        do_nothing = np.eye(
+            np.prod(protocols.qid_shape(self.sub_gate), dtype=np.int64), dtype=np.float64
+        )
         result = [e * np.sqrt(self.probability) for e in channel]
         result.append(np.sqrt(1 - float(self.probability)) * do_nothing)
         return result

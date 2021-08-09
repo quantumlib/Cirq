@@ -41,13 +41,12 @@ def _rewrite_deprecated_args(args, kwargs):
 class ActOnStateVectorArgs(ActOnArgs):
     """State and context for an operation acting on a state vector.
 
-    There are three common ways to act on this object:
+    There are two common ways to act on this object:
 
     1. Directly edit the `target_tensor` property, which is storing the state
         vector of the quantum system as a numpy array with one axis per qudit.
     2. Overwrite the `available_buffer` property with the new state vector, and
         then pass `available_buffer` into `swap_target_tensor_for`.
-    3. Call `record_measurement_result(key, val)` to log a measurement result.
     """
 
     @deprecated_parameter(
@@ -68,7 +67,8 @@ class ActOnStateVectorArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'] = None,
         axes: Iterable[int] = None,
     ):
-        """
+        """Inits ActOnStateVectorArgs.
+
         Args:
             target_tensor: The state vector to act on, stored as a numpy array
                 with one dimension for each qubit in the system. Operations are
@@ -84,8 +84,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStateVectorArgs.record_measurement_result`.
+                being recorded into.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
         """
@@ -255,6 +254,21 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return new_args
 
+    def sample(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        indices = [self.qubit_map[q] for q in qubits]
+        return sim.sample_state_vector(
+            self.target_tensor,
+            indices,
+            qid_shape=tuple(q.dimension for q in self.qubits),
+            repetitions=repetitions,
+            seed=seed,
+        )
+
 
 def _strat_act_on_state_vector_from_apply_unitary(
     unitary_value: Any,
@@ -292,6 +306,9 @@ def _strat_act_on_state_vector_from_mixture(
         unitary, args.target_tensor, args.get_axes(qubits), out=args.available_buffer
     )
     args.swap_target_tensor_for(args.available_buffer)
+    if protocols.is_measurement(action):
+        key = protocols.measurement_key(action)
+        args.log_of_measurement_results[key] = [index]
     return True
 
 
@@ -315,13 +332,13 @@ def _strat_act_on_state_vector_from_channel(
     p = args.prng.random()
     weight = None
     fallback_weight = 0
-    fallback_weight_i = 0
-    for i in range(len(kraus_tensors)):
-        prepare_into_buffer(i)
+    fallback_weight_index = 0
+    for index in range(len(kraus_tensors)):
+        prepare_into_buffer(index)
         weight = np.linalg.norm(args.available_buffer) ** 2
 
         if weight > fallback_weight:
-            fallback_weight_i = i
+            fallback_weight_index = index
             fallback_weight = weight
 
         p -= weight
@@ -332,9 +349,13 @@ def _strat_act_on_state_vector_from_channel(
     if p >= 0 or weight == 0:
         # Floating point error resulted in a malformed sample.
         # Fall back to the most likely case.
-        prepare_into_buffer(fallback_weight_i)
+        prepare_into_buffer(fallback_weight_index)
         weight = fallback_weight
+        index = fallback_weight_index
 
     args.available_buffer /= np.sqrt(weight)
     args.swap_target_tensor_for(args.available_buffer)
+    if protocols.is_measurement(action):
+        key = protocols.measurement_key(action)
+        args.log_of_measurement_results[key] = [index]
     return True

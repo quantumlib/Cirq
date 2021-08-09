@@ -250,7 +250,9 @@ def test_decompose_preserving_structure():
     assert actual == expected
 
 
-def test_decompose_preserving_structure_forwards_args():
+# Test both intercepting and fallback decomposers.
+@pytest.mark.parametrize('decompose_mode', ['intercept', 'fallback'])
+def test_decompose_preserving_structure_forwards_args(decompose_mode):
     a, b = cirq.LineQubit.range(2)
     fc1 = cirq.FrozenCircuit(cirq.SWAP(a, b), cirq.FSimGate(0.1, 0.2).on(a, b))
     cop1_1 = cirq.CircuitOperation(fc1).with_tags('test_tag')
@@ -276,7 +278,8 @@ def test_decompose_preserving_structure_forwards_args():
         cirq.decompose(
             circuit,
             keep=keep_func,
-            fallback_decomposer=x_to_hzh,
+            intercepting_decomposer=x_to_hzh if decompose_mode == 'intercept' else None,
+            fallback_decomposer=x_to_hzh if decompose_mode == 'fallback' else None,
             preserve_structure=True,
         ),
     )
@@ -302,20 +305,3 @@ def test_decompose_preserving_structure_forwards_args():
         cirq.measure(a, b, key='m'),
     )
     assert actual == expected
-
-
-def test_decompose_preserving_structure_no_interceptor():
-    a, b = cirq.LineQubit.range(2)
-    fc1 = cirq.FrozenCircuit(cirq.SWAP(a, b), cirq.FSimGate(0.1, 0.2).on(a, b))
-    cop1_1 = cirq.CircuitOperation(fc1).with_tags('test_tag')
-    cop1_2 = cirq.CircuitOperation(fc1).with_qubit_mapping({a: b, b: a})
-    fc2 = cirq.FrozenCircuit(cirq.X(a), cop1_1, cop1_2)
-    cop2 = cirq.CircuitOperation(fc2)
-
-    circuit = cirq.Circuit(cop2, cirq.measure(a, b, key='m'))
-    with pytest.raises(ValueError, match='Cannot specify intercepting_decomposer'):
-        cirq.decompose(
-            circuit,
-            intercepting_decomposer=lambda x: [],
-            preserve_structure=True,
-        )
