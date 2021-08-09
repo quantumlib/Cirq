@@ -37,6 +37,7 @@ optional arguments:
 import argparse
 import dataclasses
 import os
+import re
 import sys
 from pathlib import Path
 from typing import List, Dict, Any
@@ -44,6 +45,8 @@ from typing import List, Dict, Any
 _FOLDER = 'folder'
 _PACKAGE_PATH = 'package-path'
 _PACKAGE = 'package'
+
+_DEFAULT_SEARCH_DIR: Path = Path(__file__).parents[1]
 
 
 @dataclasses.dataclass
@@ -67,7 +70,7 @@ class Module:
 
 
 def list_modules(
-    search_dir: Path = Path(__file__).parents[1], include_parent: bool = False
+    search_dir: Path = _DEFAULT_SEARCH_DIR, include_parent: bool = False
 ) -> List[Module]:
     """Returns a list of python modules based defined by setup.py files.
 
@@ -188,6 +191,39 @@ def _add_list_modules_cmd(subparsers):
         action="store_true",
     )
     list_modules_cmd.set_defaults(func=_print_list_modules)
+
+
+def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> str:
+    mods = list_modules(search_dir=search_dir, include_parent=True)
+    versions = {m.name: m.version for m in mods}
+    assert len(set(versions.values())) == 1, f"Versions should be the same, instead: \n{versions} "
+    return list(set(versions.values()))[0]
+
+
+def _validate_version(new_version: str):
+    if not re.match(r"\d+\.\d+\.\d+(\.dev)?", new_version):
+        raise ValueError(f"{new_version} is not a valid version number.")
+
+
+def _find_version_file(top: Path) -> Path:
+    for root, _, files in os.walk(str(top)):
+        if "_version.py" in files:
+            return Path(root) / "_version.py"
+    raise FileNotFoundError(f"Can't find _version.py in {top}.")
+
+
+def replace_version(search_dir: Path = _DEFAULT_SEARCH_DIR, *, old_version: str, new_version: str):
+    version = get_version(search_dir=search_dir)
+    if version != old_version:
+        raise ValueError(f"{old_version} does not match current version: {version}")
+
+    _validate_version(new_version)
+
+    for m in list_modules(search_dir=search_dir, include_parent=False):
+        version_file = _find_version_file(search_dir / m.root)
+        content = version_file.read_text("UTF-8")
+        new_content = content.replace(old_version, new_version)
+        version_file.write_text(new_content)
 
 
 if __name__ == '__main__':

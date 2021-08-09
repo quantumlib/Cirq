@@ -48,17 +48,19 @@ def test_modules():
     assert mod1.top_level_package_paths == [Path('mod1') / 'pack1']
 
     mod2 = Module(
-        root=Path('mod2'), raw_setup={'name': 'module2', 'version': '1.2.3', 'packages': ['pack2']}
+        root=Path('mod2'),
+        raw_setup={'name': 'module2', 'version': '0.12.0.dev', 'packages': ['pack2']},
     )
 
     assert mod2.name == 'module2'
-    assert mod2.version == '1.2.3'
+    assert mod2.version == '0.12.0.dev'
     assert mod2.top_level_packages == ['pack2']
     assert mod2.top_level_package_paths == [Path('mod2') / 'pack2']
     assert modules.list_modules(search_dir=Path("dev_tools/modules_test_data")) == [mod1, mod2]
 
     parent = Module(
-        root=Path('.'), raw_setup={'name': 'parent-module', 'version': '1.2.3', 'requirements': []}
+        root=Path('.'),
+        raw_setup={'name': 'parent-module', 'version': '0.12.0.dev', 'requirements': []},
     )
     assert parent.top_level_packages == []
     assert modules.list_modules(
@@ -116,6 +118,25 @@ def test_main():
     with mock.patch('sys.stdout', new=StringIO()) as output:
         modules.main(["list", "--mode", "package"])
         assert output.getvalue() == ' '.join(["pack1", "pack2", ""])
+
+
+def test_replace_version(tmpdir_factory):
+    tmp_dir = tmpdir_factory.mktemp("cirq-modules-test")
+    shutil.copytree("dev_tools/modules_test_data", tmp_dir, dirs_exist_ok=True)
+    search_dir = Path(tmp_dir)
+    assert modules.get_version(search_dir=search_dir) == "0.12.0.dev"
+    modules.replace_version(
+        search_dir=search_dir, old_version="0.12.0.dev", new_version="0.12.1.dev"
+    )
+    assert modules.get_version(search_dir=search_dir) == "0.12.1.dev"
+
+
+def test_replace_version_errors():
+    with pytest.raises(ValueError, match="does not match current version"):
+        modules.replace_version(old_version="v0.11.0", new_version="v0.11.1")
+
+    with pytest.raises(ValueError, match="va.b.c is not a valid version number"):
+        modules.replace_version(old_version="0.12.0.dev", new_version="va.b.c")
 
 
 @chdir(target_dir=None)
