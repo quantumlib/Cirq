@@ -17,13 +17,13 @@ from typing import Any, Dict, List, Optional
 import sympy
 
 import cirq
-from cirq_google import op_deserializer, op_serializer, arg_func_langs
 from cirq_google.api import v2
 from cirq_google.ops import PhysicalZTag
 from cirq_google.ops.calibration_tag import CalibrationTag
+from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
 
-class CircuitSerializer:
+class CircuitSerializer(serializer.Serializer):
     """A class for serializing and deserializing programs and operations.
 
     This class is for serializing cirq_google.api.v2. protos using one
