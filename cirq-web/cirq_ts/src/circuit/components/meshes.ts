@@ -159,17 +159,17 @@ export class X3DSymbol extends Group {
       0,
       2 * Math.PI
     );
-    const hollowCylinder = new Mesh(geometry, material)
+    const hollowCylinder = new Mesh(geometry, material);
     this.add(hollowCylinder);
 
     // Creates the "X" in the middle of the holow cylinder
-    const rotationAngle = Math.PI/2;
+    const rotationAngle = Math.PI / 2;
 
     const xLineMaterial = new MeshBasicMaterial({color: color});
     const xLineGeometry = new CylinderGeometry(0.01, 0.01, 0.6);
     const xLine = new Mesh(xLineGeometry, xLineMaterial);
     xLine.rotation.x = rotationAngle;
-    
+
     const zLineMaterial = new MeshBasicMaterial({color: color});
     const zLineGeometry = new CylinderGeometry(0.01, 0.01, 0.6);
     const zLine = new Mesh(zLineGeometry, zLineMaterial);

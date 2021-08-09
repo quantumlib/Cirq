@@ -15,7 +15,6 @@
 import {expect} from 'chai';
 import {Symbol3D, SymbolInformation} from './types';
 import {BoxGate3DSymbol, Control3DSymbol, X3DSymbol} from './meshes';
-import {Mesh, MeshBasicMaterial, Color} from 'three';
 
 describe('Symbol3D', () => {
   describe('with valid one qubit SymbolInformation objects', () => {
@@ -67,17 +66,6 @@ describe('Symbol3D', () => {
         expect(symbol.position.x).to.equal(expectedRows[index]);
         expect(symbol.position.y).to.equal(expectedMoments[index]);
         expect(symbol.position.z).to.equal(expectedCols[index]);
-      });
-    });
-
-    it('builds every symbol with the correct colors', () => {
-      const expectedColors = ['black', 'black', 'purple'];
-      symbols.forEach((value, index) => {
-        const symbol = new Symbol3D(value).children[0];
-        const mesh = symbol as Mesh;
-        const material = mesh.material as MeshBasicMaterial;
-
-        expect(material.color).to.eql(new Color(expectedColors[index]));
       });
     });
   });

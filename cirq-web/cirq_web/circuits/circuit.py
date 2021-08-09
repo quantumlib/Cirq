@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import cirq
 from typing import Iterable
+import cirq
 from cirq_web import widget
 from cirq_web.circuits.symbols import (
     Operation3DSymbol,

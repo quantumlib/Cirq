@@ -51,7 +51,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     "cirq-web/bloch_sphere_example.ipynb",
     "cirq-web/circuit_example.ipynb",
     # cirq-rigetti is not released yet
-    "docs/tutorials/rigetti/getting_started.ipyng",
+    "docs/tutorials/rigetti/getting_started.ipynb",
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
