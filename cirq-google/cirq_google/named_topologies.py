@@ -17,14 +17,14 @@ import dataclasses
 import warnings
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Dict, List, Tuple, Any, Sequence
+from typing import Dict, List, Tuple, Any, Sequence, Callable
 
 import cirq
 import networkx as nx
 from matplotlib import pyplot as plt
 
 
-def cache(user_function):
+def cache(user_function: Callable[[Any], Any]) -> Any:
     """Unbounded cache.
 
     Available as functools.cache in Python 3.9+
@@ -32,7 +32,7 @@ def cache(user_function):
     return lru_cache(maxsize=None)(user_function)
 
 
-def dataclass_json_dict(obj, namespace: str = None):
+def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
     return cirq.obj_to_dict_helper(
         obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace
     )
@@ -41,13 +41,13 @@ def dataclass_json_dict(obj, namespace: str = None):
 class NamedTopology(metaclass=abc.ABCMeta):
     """A named topology."""
 
-    name = NotImplemented
+    name: str = NotImplemented
     """A name that uniquely identifies this topology."""
 
-    n_nodes = NotImplemented
+    n_nodes: int = NotImplemented
     """The number of nodes in the topology."""
 
-    graph = NotImplemented
+    graph: nx.Graph = NotImplemented
     """A networkx graph representation of the topology."""
 
 
@@ -61,7 +61,7 @@ def _node_and_coordinates(nodes):
 
 
 def draw_gridlike(
-    graph: nx.Graph, ax=None, cartesian: bool = True, **kwargs
+    graph: nx.Graph, ax: plt.Axes = None, cartesian: bool = True, **kwargs
 ) -> Dict[Any, Tuple[int, int]]:
     """Draw a Grid-like graph.
 
@@ -132,7 +132,7 @@ class LineTopology(NamedTopology):
         g2 = nx.relabel_nodes(self.graph, {n: (n, 1) for n in self.graph.nodes})
         return draw_gridlike(g2, ax=ax, cartesian=cartesian, **kwargs)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')
 
 
@@ -191,7 +191,7 @@ class DiagonalRectangleTopology(NamedTopology):
 
         return [cirq.GridQubit(r, c) for r, c in sorted(self.graph.nodes)]
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')
 
 
