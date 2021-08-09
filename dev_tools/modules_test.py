@@ -56,7 +56,7 @@ def test_modules():
     assert mod2.version == '1.2.3'
     assert mod2.top_level_packages == ['pack2']
     assert mod2.top_level_package_paths == [Path('mod2') / 'pack2']
-    assert mod2.install_requires is None
+    assert mod2.install_requires == []
     assert modules.list_modules(search_dir=Path("dev_tools/modules_test_data")) == [mod1, mod2]
 
     parent = Module(
