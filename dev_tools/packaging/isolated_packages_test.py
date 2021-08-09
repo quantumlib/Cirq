@@ -43,11 +43,9 @@ def test_isolated_packages(cloned_env, module):
     result = shell_tools.run_cmd(
         *f"{env}/bin/pip install ./{module.root} ./cirq-core".split(),
         err=shell_tools.TeeCapture(),
-        raise_on_fail=False
+        raise_on_fail=False,
     )
-    assert (
-        result.exit_code == 0
-    ), f"Failed to install {module.name}:\n{result.err}"
+    assert result.exit_code == 0, f"Failed to install {module.name}:\n{result.err}"
 
     result = shell_tools.run_cmd(
         *f"{env}/bin/pytest ./{module.root} --ignore ./cirq-core/cirq/contrib".split(),
@@ -55,6 +53,4 @@ def test_isolated_packages(cloned_env, module):
         err=shell_tools.TeeCapture(),
         raise_on_fail=False,
     )
-    assert (
-        result.exit_code == 0
-    ), f"Failed isolated tests for {module.name}:\n{result.stdout}"
+    assert result.exit_code == 0, f"Failed isolated tests for {module.name}:\n{result.stdout}"
