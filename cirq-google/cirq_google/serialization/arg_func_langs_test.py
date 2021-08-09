@@ -20,7 +20,7 @@ from google.protobuf import json_format
 
 import cirq
 import cirq_google
-from cirq_google.arg_func_langs import (
+from cirq_google.serialization.arg_func_langs import (
     arg_from_proto,
     arg_to_proto,
     float_arg_from_proto,
@@ -215,7 +215,9 @@ def test_unrecognized_arg():
     """Getting to some parts of the codes imply that the
     set of supported of languages has changed.  Modify the
     supported languages to simulate this future code change."""
-    cirq_google.arg_func_langs.SUPPORTED_FUNCTIONS_FOR_LANGUAGE['test'] = frozenset({'magic'})
+    cirq_google.serialization.arg_func_langs.SUPPORTED_FUNCTIONS_FOR_LANGUAGE['test'] = frozenset(
+        {'magic'}
+    )
 
     with pytest.raises(ValueError, match='could not be processed'):
         _ = float_arg_from_proto(
@@ -224,7 +226,7 @@ def test_unrecognized_arg():
             required_arg_name='blah',
         )
     # Clean up for hermetic testing
-    del cirq_google.arg_func_langs.SUPPORTED_FUNCTIONS_FOR_LANGUAGE['test']
+    del cirq_google.serialization.arg_func_langs.SUPPORTED_FUNCTIONS_FOR_LANGUAGE['test']
 
 
 def test_invalid_float_arg():
