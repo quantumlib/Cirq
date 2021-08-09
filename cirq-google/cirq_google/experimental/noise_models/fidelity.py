@@ -23,7 +23,7 @@ class Fidelity():
 
     for metric in [xeb_fidelity, pauli_error, p00, p11]:
       if metric is not None and not 0.0 <= metric <= 1.0:
-        raise ValueError('Invalid metric value')
+        raise ValueError('xeb, pauli error, p00, and p11 must be between 0 and 1')
 
     self._t1 = t1
     self._p = decay_constant
@@ -31,6 +31,11 @@ class Fidelity():
     self._p11 = p11
     self._pauli_error = pauli_error
     self._xeb = xeb_fidelity
+
+    if self._p is None and self._pauli_error is not None:
+      self._p = self.pauli_error_to_decay_constant(self._pauli_error)
+    if self._xeb is None and self._pauli_error is not None:
+      self._xeb = self.pauli_error_to_xeb_error(self._pauli_error)
 
   @property
   def decay_constant(self):
@@ -52,15 +57,15 @@ class Fidelity():
   def t1(self):
     return self._t1
 
-  def decay_constant_to_xeb_error(self, decay_constant: float, N: int = 4):
-    return (1 - decay_constant) * (1 - 1 / N)
+  def decay_constant_to_xeb_error(self, N: int = 4):
+    return (1 - self._p) * (1 - 1 / N)
 
-  def decay_constant_to_pauli_error(self, decay_constant: float, N: int = 2):
-    return (1 - decay_constant) * (1 - 1 / N / N)
+  def decay_constant_to_pauli_error(self, N: int = 2):
+    return (1 - self._p) * (1 - 1 / N / N)
 
   def pauli_error_to_xeb_error(self, pauli_error: float, N: int = 4):
     decay_constant = 1 - (pauli_error / (1 - 1 / N))
-    return decay_constant_to_xeb_error(decay_constant)
+    return self.decay_constant_to_xeb_error(decay_constant)
 
   def pauli_error_to_decay_constant(self, pauli_error: float, N: int = 2):
     return 1 - (pauli_error / (1 - 1 / N / N))
@@ -73,8 +78,13 @@ class Fidelity():
     if self._t1 is not None:
       return self._pauli_error - self.pauli_error_from_t1(t, self._t1)
     else:
-      print(self.pauli_error_from_t1(t, self._t1))
       return self._pauli_error
+
+  def rb_pauli_error(self, N: int = 2):
+    return (1 - self._p) * (1 - 1 / N**2)
+
+  def rb_average_error(self, N: int = 2):
+    return (1 - self._p) * (1 - 1 / N)
 
 
 
