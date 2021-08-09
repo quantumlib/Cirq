@@ -13,9 +13,9 @@
 # limitations under the License.
 import os
 
+import pytest
+
 
 def only_on_posix(func):
     """Only run test on posix."""
-    if os.name != 'posix':
-        return None
-    return func
+    return pytest.mark.skipif(os.name != 'posix', reason=f"os {os.name} is not posix")(func)
