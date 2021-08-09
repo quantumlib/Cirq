@@ -26,6 +26,7 @@ import {
   CylinderGeometry,
   DoubleSide,
   BoxGeometry,
+  Group,
 } from 'three';
 
 /**
@@ -139,13 +140,14 @@ export class Control3DSymbol extends Mesh {
  * A wrapper for a three.js Cylinder which represents an X operation
  * in a circuit.
  */
-export class X3DSymbol extends Mesh {
+export class X3DSymbol extends Group {
   /**
    * Class constructor.
    * @param color The color of the symbol
    * @returns an X3DSymbol object that can be added to a three.js scene
    */
   constructor(color: string) {
+    super();
     const material = new MeshBasicMaterial({color: color, side: DoubleSide});
     const geometry = new CylinderGeometry(
       0.3,
@@ -157,8 +159,24 @@ export class X3DSymbol extends Mesh {
       0,
       2 * Math.PI
     );
+    const hollowCylinder = new Mesh(geometry, material)
+    this.add(hollowCylinder);
 
-    super(geometry, material);
+    // Creates the "X" in the middle of the holow cylinder
+    const rotationAngle = Math.PI/2;
+
+    const xLineMaterial = new MeshBasicMaterial({color: color});
+    const xLineGeometry = new CylinderGeometry(0.01, 0.01, 0.6);
+    const xLine = new Mesh(xLineGeometry, xLineMaterial);
+    xLine.rotation.x = rotationAngle;
+    
+    const zLineMaterial = new MeshBasicMaterial({color: color});
+    const zLineGeometry = new CylinderGeometry(0.01, 0.01, 0.6);
+    const zLine = new Mesh(zLineGeometry, zLineMaterial);
+    zLine.rotation.z = rotationAngle;
+
+    this.add(xLine);
+    this.add(zLine);
     return this;
   }
 }
