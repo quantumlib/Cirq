@@ -137,7 +137,7 @@ export class Control3DSymbol extends Mesh {
 }
 
 /**
- * A wrapper for a three.js Cylinder which represents an X operation
+ * A wrapper for a three.js Group which represents an X operation
  * in a circuit.
  */
 export class X3DSymbol extends Group {
@@ -182,6 +182,36 @@ export class X3DSymbol extends Group {
 }
 
 /**
+ * A wrapper for a three.js Group which represents an Swap operation
+ * in a circuit.
+ */
+export class Swap3DSymbol extends Group {
+  /**
+   * Class constructor.
+   * @returns a Swap3DSymbol object that can be added to a three.js scene
+   */
+  constructor() {
+    super();
+
+    const xLineMaterial = new MeshBasicMaterial({color: 'black'});
+    const xLineGeometry = new CylinderGeometry(0.01, 0.01, 0.3);
+    const xLine = new Mesh(xLineGeometry, xLineMaterial);
+    xLine.rotation.x = Math.PI / 2;
+    xLine.rotation.z = (3 * Math.PI) / 4;
+
+    const zLineMaterial = new MeshBasicMaterial({color: 'black'});
+    const zLineGeometry = new CylinderGeometry(0.01, 0.01, 0.3);
+    const zLine = new Mesh(zLineGeometry, zLineMaterial);
+    zLine.rotation.x = Math.PI / 2;
+    zLine.rotation.z = Math.PI / 4;
+
+    this.add(xLine);
+    this.add(zLine);
+    return this;
+  }
+}
+
+/**
  * A wrapper for a three.js Box which represents arbitrary single qubit
  * operations in a circuit
  */
@@ -200,15 +230,15 @@ export class BoxGate3DSymbol extends Mesh {
     context.fillStyle = color;
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    // TODO: Make this more robust
     let fontSize = 60;
-    const chars = [...label];
-    chars.forEach(() => {
+    let textWidth;
+    do {
       fontSize /= 1.2;
-    });
-    context.font = `${fontSize}pt arial bold`;
+      context.font = `${fontSize}pt arial bold`;
+      textWidth = context.measureText(label).width;
+    } while (textWidth > canvas.width);
+
     context.fillStyle = 'black';
-    const textWidth = context.measureText(label).width;
     context.fillText(
       label,
       canvas.width / 2 - textWidth / 2,

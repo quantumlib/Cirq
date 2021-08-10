@@ -152,7 +152,7 @@ class CircuitScene extends Scene {
   }
 
   private fitOrthographicCamera(circuit: GridCircuit) {
-    // TODO: for more precision, calculate the bounding box of the
+    // TODO: Issue #4395. For more precision, calculate the bounding box of the
     // circuit and set the orthographic camera to the four corners
     // plus an offset.
     this.orthographicCamera.position.x = 1;

@@ -18,7 +18,7 @@ import {GridQubit} from './grid_qubit';
 import {QubitLabel} from './meshes';
 import {Symbol3D, SymbolInformation} from './types';
 
-describe('GridQubit', () => {
+describe('GridQubit with 5 default moments', () => {
   const DEFAULT_ROW = 0;
   const DEFAULT_COL = 0;
   const DEFAULT_MOMENTS = 5;

@@ -17,6 +17,7 @@ import {
   BoxGate3DSymbol,
   ConnectionLine,
   Control3DSymbol,
+  Swap3DSymbol,
   X3DSymbol,
 } from './meshes';
 
@@ -33,7 +34,7 @@ export interface Coord {
 }
 
 /**
- * Builds a 3D symbol from the given information.
+ * Builds a 3D symbol representing a Cirq `Operation`.
  */
 export class Symbol3D extends Group {
   readonly moment: number;
@@ -43,6 +44,7 @@ export class Symbol3D extends Group {
    * Class constructor.
    * @param symbol_info A typed object with information instructing
    * the class on how to build the mesh.
+   * @param padding_factor A number scaling the distance between meshes.
    */
   constructor(symbol_info: SymbolInformation, padding_factor = 1) {
     super();
@@ -66,6 +68,9 @@ export class Symbol3D extends Group {
           break;
         case '@':
           mesh = new Control3DSymbol();
+          break;
+        case '×':
+          mesh = new Swap3DSymbol();
           break;
         default:
           mesh = new BoxGate3DSymbol(symbol, symbol_info.color_info[index]);

@@ -82,6 +82,15 @@ describe('Symbol3D', () => {
         moment: 1,
       },
       {
+        wire_symbols: ['×', '×'],
+        location_info: [
+          {row: 0, col: 0},
+          {row: 0, col: 1},
+        ],
+        color_info: ['black', 'black'],
+        moment: 3,
+      },
+      {
         wire_symbols: ['iSWAP', 'iSWAP'],
         location_info: [
           {row: 3, col: 2},
@@ -129,8 +138,30 @@ describe('Symbol3D', () => {
       expect(connectionLine).to.not.equal(undefined);
     });
 
-    it('handles a two BoxGate3DSymbol objects correctly (iSWAP)', () => {
+    it('handles a two Swap3DSymbol objects correctly (SWAP)', () => {
       const symbolObj = new Symbol3D(symbols[1]);
+
+      const boxSymbols = symbolObj.children.filter(
+        child => child.constructor.name === 'Swap3DSymbol'
+      );
+      expect(boxSymbols.length).to.equal(2);
+
+      const expectedRows = [0, 0];
+      const expectedCols = [0, 1];
+      boxSymbols.forEach((value, index) => {
+        expect(value.position.x).to.equal(expectedRows[index]);
+        expect(value.position.z).to.equal(expectedCols[index]);
+        expect(value.position.y).to.equal(3);
+      });
+
+      const connectionLine = symbolObj.children.find(
+        child => child.constructor.name === 'ConnectionLine'
+      );
+      expect(connectionLine).to.not.equal(undefined);
+    });
+
+    it('handles a two BoxGate3DSymbol objects correctly (iSWAP)', () => {
+      const symbolObj = new Symbol3D(symbols[2]);
 
       const boxSymbols = symbolObj.children.filter(
         child => child.constructor.name === 'BoxGate3DSymbol'
@@ -152,7 +183,7 @@ describe('Symbol3D', () => {
     });
 
     it('handles two control symbols and an X gate correctly (Toffoli)', () => {
-      const symbolObj = new Symbol3D(symbols[2]);
+      const symbolObj = new Symbol3D(symbols[3]);
 
       const boxSymbols = symbolObj.children.filter(
         child => child.constructor.name === 'Control3DSymbol'

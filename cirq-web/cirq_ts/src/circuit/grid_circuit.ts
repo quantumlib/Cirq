@@ -21,25 +21,32 @@ import {Symbol3D, SymbolInformation, Coord} from './components/types';
  * displayed using three.js
  */
 export class GridCircuit extends Group {
-  readonly moments: number;
+  readonly initial_num_moments: number;
+  // The keys of this map are serialized Coord arrays [row, col],
+  // representing the row and column where each GridQubit object
+  // is located.
   private circuit: Map<string, GridQubit>;
   private padding_factor: number;
   /**
    * Class constructor
-   * @param moments The number of moments of the circuit. This
+   * @param initial_num_moments The number of moments of the circuit. This
    * determines the length of all the qubit lines in the diagram.
    * @param qubits A list of GridCoord objects representing the locations of the
    * qubits in the circuit.
+   * @param padding_factor A number scaling the distance between meshes.
    */
-  constructor(moments: number, qubits: Coord[], padding_factor = 1) {
+  constructor(
+    initial_num_moments: number,
+    qubits: Coord[],
+    padding_factor = 1
+  ) {
     super();
-    this.moments = moments;
     this.padding_factor = padding_factor;
-
+    this.initial_num_moments = initial_num_moments;
     this.circuit = new Map();
 
     for (const coord of qubits) {
-      this.addQubit(coord.row, coord.col);
+      this.addQubit(coord.row, coord.col, initial_num_moments);
     }
   }
 
@@ -67,7 +74,10 @@ export class GridCircuit extends Group {
     // In production these issues will never come up, since we will always be given
     // a valid grid circuit as input. For development purposes, however,
     // these checks will be useful.
-    if (symbol_info.moment < 0 || symbol_info.moment > this.moments) {
+    if (
+      symbol_info.moment < 0 ||
+      symbol_info.moment > this.initial_num_moments
+    ) {
       throw new Error(
         `The SymbolInformation object ${symbol_info} has an invalid moment ${symbol_info.moment}`
       );
@@ -82,8 +92,8 @@ export class GridCircuit extends Group {
     }
   }
 
-  private addQubit(x: number, y: number) {
-    const qubit = new GridQubit(x, y, this.moments, this.padding_factor);
+  private addQubit(x: number, y: number, initial_num_moments: number) {
+    const qubit = new GridQubit(x, y, initial_num_moments, this.padding_factor);
     const key = [x, y].join(',');
     this.circuit.set(key, qubit);
     this.add(qubit);

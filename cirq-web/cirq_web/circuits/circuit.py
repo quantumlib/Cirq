@@ -23,6 +23,8 @@ from cirq_web.circuits.symbols import (
 
 
 class Circuit3D(widget.Widget):
+    """Takes cirq.Circuit objects and displays them in 3D."""
+
     def __init__(
         self,
         circuit: cirq.Circuit,

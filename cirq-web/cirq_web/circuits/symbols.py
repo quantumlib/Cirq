@@ -51,7 +51,7 @@ class SymbolResolver(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def resolve(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
-        pass
+        """Converts cirq.Operation objects into SymbolInfo objects for serialization."""
 
 
 class DefaultResolver(SymbolResolver):

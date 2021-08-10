@@ -31,6 +31,7 @@ export class GridQubit extends Group {
    * @param row The row of the GridQubit
    * @param col The column of the GridQubit
    * @param moments The number of moments of the entire circuit. This
+   * @param padding_factor A number scaling the distance between meshes.
    * determines the length of the three.js line representing the GridQubit
    */
   constructor(row: number, col: number, moments: number, padding_factor = 1) {

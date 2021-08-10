@@ -27,10 +27,6 @@ describe('GridCircuit', () => {
     it('does not create any GridQubit objects', () => {
       expect(circuit.children.length).to.equal(0);
     });
-
-    it('correctly sets the number of moments in the circuit', () => {
-      expect(circuit.moments).to.equal(0);
-    });
   });
 
   describe('with a 2x2 grid and 5 moments as input', () => {
@@ -52,7 +48,7 @@ describe('GridCircuit', () => {
     });
 
     it('correctly sets the number of moments in the circuit', () => {
-      expect(circuit.moments).to.equal(5);
+      expect(circuit.initial_num_moments).to.equal(5);
     });
   });
 
