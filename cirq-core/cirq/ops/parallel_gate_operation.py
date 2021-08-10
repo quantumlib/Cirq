@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 @deprecated_class(
-    deadline='v0.13',
+    deadline='v0.14',
     fix='Use cirq.ParallelGate(gate, num_copies).on(qubits) instead',
 )
 @value.value_equality

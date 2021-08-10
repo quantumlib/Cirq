@@ -147,41 +147,45 @@ class NeutralAtomDevice(devices.Device):
         if not isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
+        op_gate = (
+            operation.gate._sub_gate
+            if isinstance(operation.gate, ops.ParallelGate)
+            else operation.gate
+        )
+
         # The gate must be valid
-        self.validate_gate(operation.gate)
+        self.validate_gate(op_gate)
 
         # All qubits the operation acts on must be on the device
         for q in operation.qubits:
             if q not in self.qubits:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-        if isinstance(operation.gate, (ops.MeasurementGate, ops.IdentityGate)):
-            return
-
-        # Verify that a controlled gate operation is valid
-        if isinstance(operation, ops.GateOperation):
-            if len(operation.qubits) > self._max_parallel_c:
-                raise ValueError(
-                    "Too many qubits acted on in parallel by a controlled gate operation"
-                )
-            if len(operation.qubits) > 1:
-                for p in operation.qubits:
-                    for q in operation.qubits:
-                        if self.distance(p, q) > self._control_radius:
-                            raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
+        if isinstance(op_gate, (ops.MeasurementGate, ops.IdentityGate)):
             return
 
         # Verify that a valid number of Z gates are applied in parallel
-        if isinstance(operation.gate, ops.ZPowGate):
+        if isinstance(op_gate, ops.ZPowGate):
             if len(operation.qubits) > self._max_parallel_z:
                 raise ValueError("Too many Z gates in parallel")
+            return
 
         # Verify that a valid number of XY gates are applied in parallel
-        if isinstance(operation.gate, (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate)):
+        if isinstance(op_gate, (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate)):
             if len(operation.qubits) > self._max_parallel_xy and len(operation.qubits) != len(
                 self.qubits
             ):
                 raise ValueError("Bad number of XY gates in parallel")
+            return
+
+        # Verify that a controlled gate operation is valid
+        if len(operation.qubits) > self._max_parallel_c:
+            raise ValueError("Too many qubits acted on in parallel by a controlled gate operation")
+        if len(operation.qubits) > 1:
+            for p in operation.qubits:
+                for q in operation.qubits:
+                    if self.distance(p, q) > self._control_radius:
+                        raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
 
     def validate_moment(self, moment: ops.Moment):
         """Raises an error if the given moment is invalid on this device.

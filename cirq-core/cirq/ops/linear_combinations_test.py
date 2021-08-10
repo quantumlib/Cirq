@@ -418,7 +418,7 @@ def test_in_place_manipulations_of_linear_combination_of_gates(gates):
         cirq.CZ(q0, q1),
         cirq.FREDKIN(q0, q1, q2),
         cirq.ControlledOperation((q0, q1), cirq.H(q2)),
-        cirq.ParallelGateOperation(cirq.X, (q0, q1, q2)),
+        cirq.ParallelGate(cirq.X, 3).on(q0, q1, q2),
         cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.Z}),
     ),
 )
@@ -920,7 +920,7 @@ def test_parameterized_linear_combination_of_ops(
     (
         (
             cirq.LinearCombinationOfOperations({cirq.XX(q0, q1): 2}),
-            cirq.LinearCombinationOfOperations({cirq.ParallelGateOperation(cirq.X, (q0, q1)): 2}),
+            cirq.LinearCombinationOfOperations({cirq.ParallelGate(cirq.X, 2).on(q0, q1): 2}),
         ),
         (
             cirq.LinearCombinationOfOperations({cirq.CNOT(q0, q1): 2}),

@@ -178,5 +178,7 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={},
+    deprecated={
+        'ParallelGateOperation': 'v0.14',
+    },
 )

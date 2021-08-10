@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import AbstractSet, Tuple, Union, Any, Optional, TYPE_CHECKING, Dict
+from typing import AbstractSet, Union, Any, Optional, TYPE_CHECKING, Dict
 
 import numpy as np
 
@@ -47,6 +47,14 @@ class ParallelGate(raw_types.Gate):
 
     def num_qubits(self) -> int:
         return self._sub_gate.num_qubits() * self._num_copies
+
+    @property
+    def sub_gate(self):
+        return self._sub_gate
+
+    @property
+    def num_copies(self):
+        return self._num_copies
 
     def _decompose_(self, qubits):
         if len(qubits) != self.num_qubits():
@@ -118,7 +126,7 @@ class ParallelGate(raw_types.Gate):
         if diagram_info == NotImplemented:
             return diagram_info
 
-        # Include symbols for qubits corresponding to all copies of the parallel operation instead of only one.
+        # Include symbols for every qubit instead of just one.
         wire_symbols = tuple(diagram_info.wire_symbols) * self._num_copies
 
         return protocols.CircuitDiagramInfo(
@@ -144,4 +152,4 @@ class ParallelGate(raw_types.Gate):
         return self.with_gate(new_gate)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, attribute_names=["_sub_gate", "_num_copies"])
+        return protocols.obj_to_dict_helper(self, attribute_names=["sub_gate", "num_copies"])
