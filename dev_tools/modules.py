@@ -48,7 +48,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 _FOLDER = 'folder'
 _PACKAGE_PATH = 'package-path'
@@ -90,6 +90,8 @@ def list_modules(
           a list of `Module`s that were found, where each module `m` is initialized with `m.root`
            relative to `search_dir`, `m.raw_setup` contains the dictionary equivalent to the
            keyword args passed to the `setuptools.setup` method in setup.py
+    Raises:
+        ValueError: if include_parent=True but there is no setup.py in `search_dir`.
     """
 
     relative_folders = sorted(
@@ -99,9 +101,10 @@ def list_modules(
     )
     if include_parent:
         parent_setup_py = search_dir / "setup.py"
-        assert parent_setup_py.exists(), (
-            f"include_parent=True, but {parent_setup_py} " f"does not exist."
-        )
+        if not parent_setup_py.exists():
+            raise ValueError(
+                f"include_parent=True, but {parent_setup_py} does not exist."
+            )
         relative_folders.append(Path("."))
 
     result = [
@@ -112,24 +115,51 @@ def list_modules(
     return result
 
 
-def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> str:
-    mods = list_modules(search_dir=search_dir, include_parent=True)
+def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> Optional[str]:
+    """Check for all versions are the same and return that version.
+
+    Lists all the modules within `search_dir` (default the current working directory), checks that
+    all of them are the same version and returns that version. If no modules found, None is
+    returned, if more than one, ValueError is raised.
+
+    Args:
+        search_dir: the search directory for modules.
+    Returns:
+        None if no modules are found, the version number if exactly one version number is found.
+    Raises:
+        ValueError: if more than one version numbers are found.
+    """
+    try:
+        mods = list_modules(search_dir=search_dir, include_parent=True)
+    except ValueError:
+        return None
     versions = {m.name: m.version for m in mods}
-    assert len(set(versions.values())) == 1, f"Versions should be the same, instead: \n{versions} "
+    if len(set(versions.values())) > 1:
+        raise ValueError(f"Versions should be the same, instead: \n{versions}")
     return list(set(versions.values()))[0]
 
 
-def replace_version(search_dir: Path = _DEFAULT_SEARCH_DIR, *, old_version: str, new_version: str):
+def replace_version(search_dir: Path = _DEFAULT_SEARCH_DIR, *, old: str, new: str):
+    """Replaces the current version number with a new version number.
+
+    Args:
+        search_dir: the search directory for modules.
+        old: the current version number.
+        new: the new version number.
+    Raises:
+        ValueError: if `old` does not match the current version, or if there is not exactly one
+            version number in the found modules.
+    """
     version = get_version(search_dir=search_dir)
-    if version != old_version:
-        raise ValueError(f"{old_version} does not match current version: {version}")
+    if version != old:
+        raise ValueError(f"{old} does not match current version: {version}")
 
-    _validate_version(new_version)
+    _validate_version(new)
 
-    for m in list_modules(search_dir=search_dir, include_parent=False):
+    for m in list_modules(search_dir=search_dir, include_parent=True):
         version_file = _find_version_file(search_dir / m.root)
         content = version_file.read_text("UTF-8")
-        new_content = content.replace(old_version, new_version)
+        new_content = content.replace(old, new)
         version_file.write_text(new_content)
 
 
@@ -197,7 +227,7 @@ def _add_print_version_cmd(subparsers):
 
 
 def _replace_version(old: str, new: str):
-    replace_version(old_version=old, new_version=new)
+    replace_version(old=old, new=new)
     print(f"Successfully replaced version {old} with {new}.")
 
 
@@ -247,8 +277,6 @@ def _print_list_modules(mode: str, include_parent: bool = False):
         mode: 'folder' lists the root folder for each module, 'package-path' lists the path to
          the top level package(s).
         include_parent: when true the cirq metapackage is included in the list
-    Returns:
-          a list of strings
     """
     for m in list_modules(Path("."), include_parent):
         if mode == _FOLDER:

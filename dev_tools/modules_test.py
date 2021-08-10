@@ -84,13 +84,15 @@ def test_cli():
 
 
 @contextlib.contextmanager
-def chdir(*, target_dir: str = None, clone_dir: str = None):
+def chdir(*, target_dir: str = None, clone_dir: str = None) -> None:
     """Changes for the duration of the test the working directory.
 
     Args:
         target_dir: the target directory. If None is specified, it will create a temporary
             directory.
         clone_dir: a directory to clone into target_dir.
+    Yields:
+        None
     """
 
     cwd = os.getcwd()
@@ -140,20 +142,34 @@ def test_main_replace_version():
         assert output.getvalue() == '1.2.4.dev\n'
 
 
+@chdir()
+def test_get_version_on_no_modules():
+    # no modules is no version
+    assert modules.get_version() is None
+
+
+@chdir(clone_dir="dev_tools/modules_test_data")
+def test_get_version_on_inconsistent_version_modules():
+    modules.replace_version(search_dir=Path("./mod2"), old="1.2.3.dev", new="1.2.4.dev")
+    assert modules.get_version(search_dir=Path("./mod2")) == "1.2.4.dev"
+    with pytest.raises(ValueError, match=f"Versions should be the same, instead:"):
+        modules.get_version(search_dir=Path("."))
+
+
 @chdir(clone_dir="dev_tools/modules_test_data")
 def test_replace_version(tmpdir_factory):
     assert modules.get_version() == "1.2.3.dev"
-    modules.replace_version(old_version="1.2.3.dev", new_version="1.2.4.dev")
+    modules.replace_version(old="1.2.3.dev", new="1.2.4.dev")
     assert modules.get_version() == "1.2.4.dev"
 
 
 @chdir(target_dir="dev_tools/modules_test_data")
 def test_replace_version_errors():
     with pytest.raises(ValueError, match="does not match current version"):
-        modules.replace_version(search_dir=Path("."), old_version="v0.11.0", new_version="v0.11.1")
+        modules.replace_version(old="v0.11.0", new="v0.11.1")
 
     with pytest.raises(ValueError, match="va.b.c is not a valid version number"):
-        modules.replace_version(search_dir=Path("."), old_version="1.2.3.dev", new_version="va.b.c")
+        modules.replace_version(old="1.2.3.dev", new="va.b.c")
 
 
 @chdir(target_dir=None)
