@@ -61,6 +61,9 @@ def test_line_topology():
     topo.draw(ax=ax)
     ax.scatter.assert_called()
 
+    with pytest.raises(ValueError, match='greater than 1.*'):
+        _ = LineTopology(1)
+
 
 @pytest.mark.parametrize('cartesian', [True, False])
 def test_draw_gridlike(cartesian):

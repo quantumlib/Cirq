@@ -116,6 +116,10 @@ class LineTopology(NamedTopology):
 
     n_nodes: int
 
+    def __post_init__(self):
+        if self.n_nodes <= 1:
+            raise ValueError("`n_nodes` must be greater than 1.")
+
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
     @cache
