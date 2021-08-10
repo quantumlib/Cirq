@@ -17,7 +17,7 @@ import dataclasses
 import warnings
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Dict, List, Tuple, Any, Sequence, Callable
+from typing import Dict, List, Tuple, Any, Sequence, Callable, Union, Iterable
 
 import cirq
 import networkx as nx
@@ -39,7 +39,12 @@ def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
 
 
 class NamedTopology(metaclass=abc.ABCMeta):
-    """A named topology."""
+    """A topology (graph) with a name.
+
+    "Named topologies" provide a mapping from a simple dataclass to a unique graph for categories
+    of relevant topologies. Relevant topologies may be hardware dependant, but common topologies
+    are linear (1D) and rectangular grid topologies.
+    """
 
     name: str = NotImplemented
     """A name that uniquely identifies this topology."""
@@ -51,7 +56,14 @@ class NamedTopology(metaclass=abc.ABCMeta):
     """A networkx graph representation of the topology."""
 
 
-def _node_and_coordinates(nodes):
+_GRIDLIKE_NODE = Union[cirq.GridQubit, Tuple[int, int]]
+
+
+def _node_and_coordinates(
+    nodes: Iterable[_GRIDLIKE_NODE],
+) -> Iterable[Tuple[_GRIDLIKE_NODE, Tuple[int, int]]]:
+    """Yield tuples whose first element is the input node and the second is guaranteed to be a tuple
+    of two integers. The input node can be a tuple of ints or a GridQubit."""
     for node in nodes:
         if isinstance(node, cirq.GridQubit):
             yield node, (node.row, node.col)
@@ -64,6 +76,8 @@ def draw_gridlike(
     graph: nx.Graph, ax: plt.Axes = None, cartesian: bool = True, **kwargs
 ) -> Dict[Any, Tuple[int, int]]:
     """Draw a Grid-like graph.
+
+    This wraps nx.draw_networkx to produce a matplotlib drawing of the graph.
 
     Args:
         graph: A NetworkX graph whose nodes are (row, column) coordinates.
