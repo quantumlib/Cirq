@@ -86,7 +86,7 @@ prepended to this list:
 """
 
 
-def _internal_register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> None:
+def _register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> None:
     """Register a resolver based on a dict factory for lazy initialization.
 
     Cirq modules are the ones referred in cirq/__init__.py. If a Cirq module

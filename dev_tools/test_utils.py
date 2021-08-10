@@ -4,20 +4,18 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     https://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 
-import functools
-from typing import Dict
-
-from cirq.protocols.json_serialization import ObjectFactory
+import pytest
 
 
-@functools.lru_cache()  # coverage: ignore
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # coverage: ignore
-    return {}
+def only_on_posix(func):
+    """Only run test on posix."""
+    return pytest.mark.skipif(os.name != 'posix', reason=f"os {os.name} is not posix")(func)

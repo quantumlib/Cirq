@@ -21,7 +21,7 @@ References:
 [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
 """
 
-from typing import cast, Any, Dict, Generator, List, Sequence, Tuple
+from typing import Any, Dict, Generator, List, Sequence, Tuple
 
 import sympy.parsing.sympy_parser as sympy_parser
 
@@ -66,8 +66,14 @@ class BooleanHamiltonian(raw_types.Operation):
         self._theta: float = theta
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'BooleanHamiltonian':
+        if len(self._qubit_map) != len(new_qubits):
+            raise ValueError('Length of replacement qubits must be the same')
+        new_qubit_map = {
+            variable_name: new_qubit
+            for variable_name, new_qubit in zip(self._qubit_map, new_qubits)
+        }
         return BooleanHamiltonian(
-            {cast(cirq.NamedQubit, q).name: q for q in new_qubits},
+            new_qubit_map,
             self._boolean_strs,
             self._theta,
         )
