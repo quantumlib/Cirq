@@ -45,6 +45,7 @@ if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
+requirements += [f'cirq-core=={__version__}']
 
 cirq_packages = ['cirq_aqt'] + [
     'cirq_aqt.' + package for package in find_packages(where='cirq_aqt')

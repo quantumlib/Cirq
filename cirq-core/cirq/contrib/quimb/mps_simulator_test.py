@@ -1,14 +1,15 @@
 import itertools
 import math
+from unittest import mock
 
 import numpy as np
 import pytest
 import sympy
 
 import cirq
-from cirq import value
 import cirq.contrib.quimb as ccq
 import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
+from cirq import value
 
 
 def assert_same_output_as_dense(circuit, qubit_order, initial_state=0, grouping=None):
@@ -252,7 +253,8 @@ def test_measurement_str():
 
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = ccq.mps_simulator.MPSState(
+    final_step_result = mock.Mock(cirq.StepResult)
+    final_step_result._simulator_state.return_value = ccq.mps_simulator.MPSState(
         qubits=(q0,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
@@ -262,7 +264,7 @@ def test_trial_result_str():
             ccq.mps_simulator.MPSTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
-                final_simulator_state=final_simulator_state,
+                final_step_result=final_step_result,
             )
         )
         == """measurements: m=1
