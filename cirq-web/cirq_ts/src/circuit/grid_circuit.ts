@@ -24,7 +24,7 @@ export class GridCircuit extends Group {
   // The keys of this map are serialized Coord arrays [row, col],
   // representing the row and column where each GridQubit object
   // is located.
-  private circuit: Map<string, GridQubit>;
+  private qubit_map: Map<string, GridQubit>;
   private padding_factor: number;
   /**
    * Class constructor
@@ -41,7 +41,7 @@ export class GridCircuit extends Group {
   ) {
     super();
     this.padding_factor = padding_factor;
-    this.circuit = new Map();
+    this.qubit_map = new Map();
 
     for (const symbol of symbol_list) {
       // Being accurate is more important than speed here, so
@@ -49,7 +49,7 @@ export class GridCircuit extends Group {
       // However, this logic can be changed if needed to avoid redundancy.
       for (const coordinate of symbol.location_info) {
         // If the key already exists in the map, don't repeat.
-        if (this.circuit.has([coordinate.row, coordinate.col].join(','))) {
+        if (this.qubit_map.has([coordinate.row, coordinate.col].join(','))) {
           continue;
         }
         this.addQubit(coordinate.row, coordinate.col, initial_num_moments);
@@ -79,14 +79,14 @@ export class GridCircuit extends Group {
       );
     }
 
-    const qubit = this.circuit.get(key)!;
+    const qubit = this.qubit_map.get(key)!;
     qubit.addSymbol(symbol);
   }
 
   private addQubit(x: number, y: number, initial_num_moments: number) {
     const qubit = new GridQubit(x, y, initial_num_moments, this.padding_factor);
     const key = [x, y].join(',');
-    this.circuit.set(key, qubit);
+    this.qubit_map.set(key, qubit);
     this.add(qubit);
   }
 }
