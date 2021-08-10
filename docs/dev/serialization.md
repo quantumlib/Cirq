@@ -95,9 +95,9 @@ arguments, a `_from_json_dict_` class method must also be defined.
 Typically the `"cirq_type"` will be the name of your class.
 
 2. In `class_resolver_dictionary` within the packages's `json_resolver_cache.py` file,
-for each serializable class, map keys matching the `cirq_type` to the 
-imported class within the package. You can also map the key to a helper method that 
-returns the class  (important for backwards compatibility if e.g. a class is later replaced 
+for each serializable class, the `cirq_type` of the class should be mapped to the imported class 
+within the package. The key may also be mapped to a helper method that 
+returns the class (important for backwards compatibility if e.g. a class is later replaced 
 by another one). After doing this, `cirq.to_json` and `cirq.read_json` should start 
 working for your object.
 
@@ -134,8 +134,8 @@ ensuring they encode lists and then appending into those lists).
 This parsing method must return an object with the same basic behavior as the
 object being removed, but does not have to return an exactly identical object.
 For example, an X could be replaced by a PhasedX with no phasing.
-Edit the entry in the big dictionary in `cirq/protocols/json.py` or in the
- relevant package's `class_resolver_dictionary` (`json_resolver_cache.py`) to 
+Edit the entry in the in `cirq-<module>/json_test_data/spec.py` or in the
+ relevant package's `class_resolver_dictionary` (`cirq-<module>/cirq_module/json_resolver_cache.py`) to 
  point at this method instead of the object being removed.
 (There will likely be debate about exactly how to do this, on a case by case
 basis.)
@@ -148,4 +148,4 @@ given top level package's spec.py (`<module>/<top level package>/json_test_data/
 name to `should_not_serialize`. 
 
 We allow for incremental introduction of new objects to serializability - if an object should be 
-serialized but not yet serializable, it should be added in the `spec.py` file to the `not_yet_serializable` list.     
+serialized but is not yet serializable, it should be added to the `not_yet_serializable` list in the `spec.py` file.      

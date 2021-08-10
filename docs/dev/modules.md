@@ -58,9 +58,9 @@ To setup a new module follow these steps:
 2. Register the resolver cache - at _the end_ of the `<top_level_package>/__init__.py`:
     ```python
     def _register_resolver() -> None:
-        """Registers the cirq_mynewtoplevelpackage's public classes for JSON serialization."""
+        """Registers the cirq_example's public classes for JSON serialization."""
         from cirq.protocols.json_serialization import _internal_register_resolver
-        from cirq_mynewtoplevelpackage.json_resolver_cache import _class_resolver_dictionary
+        from cirq_example.json_resolver_cache import _class_resolver_dictionary
     
         _internal_register_resolver(_class_resolver_dictionary)
     
@@ -68,18 +68,17 @@ To setup a new module follow these steps:
     _register_resolver()
     ``` 
 3. Add the `<top_level_package>/json_test_data` folder with the following content: 
-   1. `__init__.py` should export `TestSpec` from `spec.py`
-   2. `spec.py` contains the core test specification for JSON testing, that plugs into the central framework. It should have the minimal setup:    
+   1. `spec.py` contains the core test specification for JSON testing, that plugs into the central framework. It should have the minimal setup:    
        ```python
        import pathlib
-       import cirq_mynewtoplevelpackage
-       from cirq_mynewtoplevelpackage.json_resolver_cache import _class_resolver_dictionary
+       import cirq_example
+       from cirq_example.json_resolver_cache import _class_resolver_dictionary
        
        from cirq.testing.json import ModuleJsonTestSpec
        
        TestSpec = ModuleJsonTestSpec(
-           name="cirq_mynewtoplevelpackage",
-           packages=[cirq_mynewtoplevelpackage],
+           name="cirq_example",
+           packages=[cirq_example],
            test_data_path=pathlib.Path(__file__).parent,
            not_yet_serializable=[],
            should_not_be_serialized=[],
@@ -87,7 +86,9 @@ To setup a new module follow these steps:
            deprecated={},
         )
        ```
-   3. in `cirq/protocols/json_serialization_test.py` add `'cirq_mynewtoplevelpackage':None` to the `TESTED_MODULES` variable
+   2. `__init__.py` should import `TestSpec` from `spec.py`
+   3. in `cirq/protocols/json_serialization_test.py` add `'cirq_example':None` to the `TESTED_MODULES` variable. `TESTED_MODULES` is also used to prepare the test framework for deprecation warnings. 
+      With new modules, we use`None` as there is no deprecation setup. 
  
 You can run `check/pytest-changed-files` and that should execute the json_serialization_test.py as well. 
 
