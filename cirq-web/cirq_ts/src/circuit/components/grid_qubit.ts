@@ -58,7 +58,7 @@ export class GridQubit extends Group {
       new Vector3(this.row * padding_factor, 0, this.col * padding_factor),
       new Vector3(
         this.row * padding_factor,
-        moments,
+        moments * padding_factor,
         this.col * padding_factor
       ),
     ];
@@ -68,7 +68,11 @@ export class GridQubit extends Group {
   private addLocationLabel(padding_factor: number): QubitLabel {
     const sprite = new QubitLabel(`(${this.row}, ${this.col})`);
     sprite.position.copy(
-      new Vector3(this.row * padding_factor, -0.6, this.col * padding_factor)
+      new Vector3(
+        this.row * padding_factor,
+        -0.6 * padding_factor,
+        this.col * padding_factor
+      )
     );
     return sprite;
   }
