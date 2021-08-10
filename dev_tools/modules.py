@@ -171,14 +171,15 @@ def _parse_module(folder: Path) -> Dict[str, Any]:
 # print_version
 # --------------
 
+
 def _print_version():
     print(get_version())
 
 
 def _add_print_version_cmd(subparsers):
-    print_version_cmd = subparsers.add_parser("print_version",
-                                              help="Check that all module versions are the same, "
-                                                   "and print it.")
+    print_version_cmd = subparsers.add_parser(
+        "print_version", help="Check that all module versions are the same, " "and print it."
+    )
     print_version_cmd.set_defaults(func=_print_version)
 
 
@@ -186,18 +187,20 @@ def _add_print_version_cmd(subparsers):
 # replace_version
 # --------------
 
+
 def _replace_version(old: str, new: str):
     replace_version(old_version=old, new_version=new)
     print(f"Successfully replaced version {old} with {new}.")
 
 
 def _add_replace_version_cmd(subparsers):
-    replace_version_cmd = subparsers.add_parser("replace_version",
-                                                help="replace Cirq version in all modules")
-    replace_version_cmd.add_argument("--old", required=True,
-                                     help="the current version to be replaced")
-    replace_version_cmd.add_argument("--new", required=True,
-                                     help="the new version to be replaced")
+    replace_version_cmd = subparsers.add_parser(
+        "replace_version", help="replace Cirq version in all modules"
+    )
+    replace_version_cmd.add_argument(
+        "--old", required=True, help="the current version to be replaced"
+    )
+    replace_version_cmd.add_argument("--new", required=True, help="the new version to be replaced")
     replace_version_cmd.set_defaults(func=_replace_version)
 
 

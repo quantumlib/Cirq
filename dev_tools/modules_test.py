@@ -143,9 +143,7 @@ def test_replace_version(tmpdir_factory):
     shutil.copytree("dev_tools/modules_test_data", tmp_dir, dirs_exist_ok=True)
     search_dir = Path(tmp_dir)
     assert modules.get_version(search_dir=search_dir) == "1.2.3.dev"
-    modules.replace_version(
-        search_dir=search_dir, old_version="1.2.3.dev", new_version="1.2.4.dev"
-    )
+    modules.replace_version(search_dir=search_dir, old_version="1.2.3.dev", new_version="1.2.4.dev")
     assert modules.get_version(search_dir=search_dir) == "1.2.4.dev"
 
 
