@@ -73,8 +73,8 @@ class EmptyActOnArgs(cirq.ActOnArgs):
         pass
 
 
-q0, q1 = qs2 = cirq.LineQubit.range(2)
-
+q0, q1, q2 = qs3 = cirq.LineQubit.range(3)
+qs2 = cirq.LineQubit.range(2)
 
 def create_container(
     qubits: Sequence['cirq.Qid'],
@@ -109,7 +109,17 @@ def test_subcircuit_entanglement_causes_join():
     args.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CNOT(q0, q1))))
     assert len(set(args.values())) == 2
     assert args[q0] is args[q1]
-    assert args[None] is not args[q0]
+
+
+def test_subcircuit_entanglement_causes_join_in_subset():
+    args = create_container(qs3)
+    assert len(set(args.values())) == 4
+    args.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CNOT(q0, q1))))
+    assert len(set(args.values())) == 3
+    assert args[q0] is args[q1]
+    args.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CNOT(q0, q2))))
+    assert len(set(args.values())) == 2
+    assert args[q0] is args[q1] is args[q2]
 
 
 def test_identity_does_not_join():
@@ -136,7 +146,6 @@ def test_subcircuit_identity_does_not_join():
     args.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.IdentityGate(2)(q0, q1))))
     assert len(set(args.values())) == 3
     assert args[q0] is not args[q1]
-    assert args[q0] is not args[None]
 
 
 def test_measurement_causes_split():
@@ -156,7 +165,21 @@ def test_subcircuit_measurement_causes_split():
     args.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(q0))))
     assert len(set(args.values())) == 3
     assert args[q0] is not args[q1]
-    assert args[q0] is not args[None]
+
+
+def test_subcircuit_measurement_causes_split_in_subset():
+    args = create_container(qs3)
+    args.apply_operation(cirq.CNOT(q0, q1))
+    args.apply_operation(cirq.CNOT(q0, q2))
+    assert len(set(args.values())) == 2
+    args.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(q0))))
+    assert len(set(args.values())) == 3
+    assert args[q0] is not args[q1]
+    args.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(q1))))
+    assert len(set(args.values())) == 4
+    assert args[q0] is not args[q1]
+    assert args[q0] is not args[q2]
+    assert args[q1] is not args[q2]
 
 
 def test_reset_causes_split():
