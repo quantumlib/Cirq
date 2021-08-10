@@ -120,12 +120,8 @@ from cirq_google.serialization import (
 from cirq_google import experimental
 
 
-def _register_resolver() -> None:
-    """Registers the cirq_google's public classes for JSON serialization."""
-    from cirq.protocols.json_serialization import _internal_register_resolver
-    from cirq_google.json_resolver_cache import _class_resolver_dictionary
+# Register cirq_google's public classes for JSON serialization.
+from cirq.protocols.json_serialization import _register_resolver
+from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
-    _internal_register_resolver(_class_resolver_dictionary)
-
-
-_register_resolver()
+_register_resolver(_class_resolver_dictionary)

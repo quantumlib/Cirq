@@ -628,19 +628,16 @@ _compat.deprecated_submodule(
 )
 
 
-def _register_resolver() -> None:
-    """Registers the cirq module's public classes for JSON serialization."""
-    from cirq.protocols.json_serialization import _internal_register_resolver
-    from cirq.json_resolver_cache import _class_resolver_dictionary
-
-    _internal_register_resolver(_class_resolver_dictionary)
+# Registers cirq-core's public classes for JSON serialization.
+# pylint: disable=wrong-import-position
+from cirq.protocols.json_serialization import _register_resolver
+from cirq.json_resolver_cache import _class_resolver_dictionary
 
 
-_register_resolver()
+_register_resolver(_class_resolver_dictionary)
 
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
-# pylint: disable=wrong-import-position
 from cirq import (
     contrib,
 )
