@@ -76,6 +76,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
 q0, q1, q2 = qs3 = cirq.LineQubit.range(3)
 qs2 = cirq.LineQubit.range(2)
 
+
 def create_container(
     qubits: Sequence['cirq.Qid'],
     split_untangled_states=True,
