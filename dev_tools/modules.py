@@ -22,16 +22,24 @@ Features:
 
 listing modules:
  - Python: see list_modules
- - CLI: python3 dev_tools/modules.py list
+
+Version management:
+ - Python: get_version and replace_version
+ - CLI:
+    - python3 dev_tools/modules.py print_version
+    - python3 dev_tools/modules.py replace_version --old v0.12.0.dev --new v0.12.1.dev
 
 optional arguments:
   -h, --help            show this help message and exit
-  --mode {folder,package-path}
-                        'folder' to list root folder for module (e.g. cirq-google),
-                        'package-path' for top level python package path
-                            (e.g. cirq-google/cirq_google),
-                        'package' for top level python package (e.g cirq_google),
-  --include-parent      whether to include the parent package or not
+
+subcommands:
+  valid subcommands
+
+  {list,print_version,replace_version}
+                        additional help
+    list                lists all the modules
+    print_version       Check that all module versions are the same, and print it.
+    replace_version     replace Cirq version in all modules
 """
 
 import argparse
