@@ -57,18 +57,15 @@ To setup a new module follow these steps:
     ```
 2. Register the resolver cache - at _the end_ of the `<top_level_package>/__init__.py`:
     ```python
-    def _register_resolver() -> None:
-        """Registers the cirq_example's public classes for JSON serialization."""
-        from cirq.protocols.json_serialization import _internal_register_resolver
-        from cirq_example.json_resolver_cache import _class_resolver_dictionary
     
-        _internal_register_resolver(_class_resolver_dictionary)
-    
-    
-    _register_resolver()
+    # Registers cirq_example's public classes for JSON serialization.
+    from cirq.protocols.json_serialization import _register_resolver
+    from cirq_example.json_resolver_cache import _class_resolver_dictionary
+    _register_resolver(_class_resolver_dictionary)
+       
     ``` 
 3. Add the `<top_level_package>/json_test_data` folder with the following content: 
-   1. `spec.py` contains the core test specification for JSON testing, that plugs into the central framework. It should have the minimal setup:    
+   1. `spec.py` contains the core test specification for JSON testing, that plugs into the central framework:    
        ```python
        import pathlib
        import cirq_example
