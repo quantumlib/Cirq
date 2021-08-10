@@ -21,10 +21,9 @@ import {Symbol3D, SymbolInformation} from './components/types';
  * displayed using three.js
  */
 export class GridCircuit extends Group {
-  // The keys of this map are serialized Coord arrays [row, col],
-  // representing the row and column where each GridQubit object
-  // is located.
-  private qubit_map: Map<string, GridQubit>;
+  // A nested map where the the outer map correlates
+  // rows to <column, GridQubit> pairs.
+  private qubit_map: Map<number, Map<number, GridQubit>>;
   private padding_factor: number;
   /**
    * Class constructor
@@ -49,7 +48,7 @@ export class GridCircuit extends Group {
       // However, this logic can be changed if needed to avoid redundancy.
       for (const coordinate of symbol.location_info) {
         // If the key already exists in the map, don't repeat.
-        if (this.qubit_map.has([coordinate.row, coordinate.col].join(','))) {
+        if (this.hasQubit(coordinate.row, coordinate.col)) {
           continue;
         }
         this.addQubit(coordinate.row, coordinate.col, initial_num_moments);
@@ -62,12 +61,6 @@ export class GridCircuit extends Group {
     symbol_info: SymbolInformation,
     initial_num_moments: number
   ) {
-    //.get gives a reference to an object, so we're good to
-    // just modify
-    const key = [
-      symbol_info.location_info[0].row,
-      symbol_info.location_info[0].col,
-    ].join(',');
     const symbol = new Symbol3D(symbol_info, this.padding_factor);
 
     // In production these issues will never come up, since we will always be given
@@ -79,14 +72,37 @@ export class GridCircuit extends Group {
       );
     }
 
-    const qubit = this.qubit_map.get(key)!;
+    const qubit = this.getQubit(
+      symbol_info.location_info[0].row,
+      symbol_info.location_info[0].col
+    )!;
     qubit.addSymbol(symbol);
   }
 
   private addQubit(x: number, y: number, initial_num_moments: number) {
     const qubit = new GridQubit(x, y, initial_num_moments, this.padding_factor);
-    const key = [x, y].join(',');
-    this.qubit_map.set(key, qubit);
+    this.setQubit(x, y, qubit);
     this.add(qubit);
+  }
+
+  private getQubit(row: number, col: number) {
+    // We will never hit an undefined value, since we're
+    // adding qubits based off the provided information to the user.
+    const innerMap = this.qubit_map.get(row);
+    return innerMap!.get(col);
+  }
+
+  private setQubit(row: number, col: number, qubit: GridQubit) {
+    const innerMap = new Map();
+    innerMap.set(col, qubit);
+    this.qubit_map.set(row, innerMap);
+  }
+
+  private hasQubit(row: number, col: number) {
+    const innerMap = this.qubit_map.get(row);
+    if (innerMap) {
+      return innerMap.has(col);
+    }
+    return false;
   }
 }
