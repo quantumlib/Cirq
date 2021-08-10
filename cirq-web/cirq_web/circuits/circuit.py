@@ -48,7 +48,6 @@ class Circuit3D(widget.Widget):
         # for animation purposes. Alternatively, there may be ways
         # to select/manipulate elements on the screen from three.js
         stripped_id = self.id.replace('-', '')
-        qubits = self._init_qubits()
         moments = len(self.circuit.moments)
         self.serialized_circuit = self._serialize_circuit()
 
@@ -56,8 +55,7 @@ class Circuit3D(widget.Widget):
             <button id="camera-reset">Reset Camera</button>
             <button id="camera-toggle">Toggle Camera Type</button>
             <script>
-            let viz_{stripped_id} = createGridCircuit({qubits}, {moments}, "{self.id}", {self.padding_factor});
-            viz_{stripped_id}.circuit.addSymbolsFromList({self.serialized_circuit})
+            let viz_{stripped_id} = createGridCircuit({self.serialized_circuit}, {moments}, "{self.id}", {self.padding_factor});
 
             document.getElementById("camera-reset").addEventListener('click', ()  => {{
             viz_{stripped_id}.scene.setCameraAndControls(viz_{stripped_id}.circuit);
@@ -71,14 +69,6 @@ class Circuit3D(widget.Widget):
 
     def get_widget_bundle_name(self) -> str:
         return 'circuit.bundle.js'
-
-    def _init_qubits(self):
-        init_tuples = []
-        for qubit in self.circuit.all_qubits():
-            init_tuples.append({'row': qubit.row, 'col': qubit.col})
-
-        fn_argument = ','.join(str(item) for item in init_tuples)
-        return f'[{fn_argument}]'
 
     def _serialize_circuit(self) -> str:
         args = []

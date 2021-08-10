@@ -33,10 +33,6 @@ def test_circuit_client_code():
     moment = cirq.Moment(cirq.H(qubits[0]))
     circuit = cirq_web.Circuit3D(cirq.Circuit(moment))
 
-    qubits_obj = [
-        {'row': 0, 'col': 0},
-    ]
-
     circuit_obj = [
         {
             'wire_symbols': ['H'],
@@ -53,8 +49,7 @@ def test_circuit_client_code():
         <button id="camera-reset">Reset Camera</button>
         <button id="camera-toggle">Toggle Camera Type</button>
         <script>
-        let viz_{stripped_id} = createGridCircuit({str(qubits_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor});
-        viz_{stripped_id}.circuit.addSymbolsFromList({str(circuit_obj)})
+        let viz_{stripped_id} = createGridCircuit({str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor});
 
         document.getElementById("camera-reset").addEventListener('click', ()  => {{
         viz_{stripped_id}.scene.setCameraAndControls(viz_{stripped_id}.circuit);

@@ -61,15 +61,6 @@ describe('Circuit', () => {
         htmlContent(`
       const circuit = createGridCircuit(
         [
-          {row: 0, col: 0}, 
-          {row: 0, col: 1}, 
-          {row: 1, col: 0},
-          {row: 2, col: 3},
-          {row: 3, col: 2},
-          {row: 3, col: 0},
-        ], 5, 'mycircuitdiv');
-      circuit.circuit.addSymbolsFromList(
-        [
             {
                 'wire_symbols': ['Z'], 
                 'location_info': [{'row': 2, 'col': 3}], 
@@ -88,7 +79,7 @@ describe('Circuit', () => {
                 'color_info': ['black', 'black'], 
                 'moment': 0
             },
-        ]
+        ], 5, 'mycircuitdiv'
         );
       `)
       );

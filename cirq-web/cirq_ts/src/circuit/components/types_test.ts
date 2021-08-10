@@ -134,7 +134,6 @@ describe('Symbol3D', () => {
         child => child.constructor.name === 'ConnectionLine'
       );
 
-      // TODO: find best way to get position of each line.
       expect(connectionLine).to.not.equal(undefined);
     });
 

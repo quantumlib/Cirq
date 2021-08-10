@@ -13,7 +13,7 @@
 // limitations under the License.
 import {Group} from 'three';
 import {GridQubit} from './components/grid_qubit';
-import {Symbol3D, SymbolInformation, Coord} from './components/types';
+import {Symbol3D, SymbolInformation} from './components/types';
 
 /**
  * Class that gathers serialized circuit information
@@ -21,7 +21,6 @@ import {Symbol3D, SymbolInformation, Coord} from './components/types';
  * displayed using three.js
  */
 export class GridCircuit extends Group {
-  readonly initial_num_moments: number;
   // The keys of this map are serialized Coord arrays [row, col],
   // representing the row and column where each GridQubit object
   // is located.
@@ -37,32 +36,32 @@ export class GridCircuit extends Group {
    */
   constructor(
     initial_num_moments: number,
-    qubits: Coord[],
+    symbol_list: SymbolInformation[],
     padding_factor = 1
   ) {
     super();
     this.padding_factor = padding_factor;
-    this.initial_num_moments = initial_num_moments;
     this.circuit = new Map();
 
-    for (const coord of qubits) {
-      this.addQubit(coord.row, coord.col, initial_num_moments);
+    for (const symbol of symbol_list) {
+      // Being accurate is more important than speed here, so
+      // traversing through each object isn't a big deal.
+      // However, this logic can be changed if needed to avoid redundancy.
+      for (const coordinate of symbol.location_info) {
+        // If the key already exists in the map, don't repeat.
+        if (this.circuit.has([coordinate.row, coordinate.col].join(','))) {
+          continue;
+        }
+        this.addQubit(coordinate.row, coordinate.col, initial_num_moments);
+      }
+      this.addSymbol(symbol, initial_num_moments);
     }
   }
 
-  /**
-   * Adds symbols to the circuit map and renders them in the
-   * 3D scene.
-   * @param list A list of SymbolInformation objects that give instructions
-   * on how to render the operations in 3D.
-   */
-  addSymbolsFromList(list: SymbolInformation[]) {
-    for (const symbol of list) {
-      this.addSymbol(symbol);
-    }
-  }
-
-  private addSymbol(symbol_info: SymbolInformation) {
+  private addSymbol(
+    symbol_info: SymbolInformation,
+    initial_num_moments: number
+  ) {
     //.get gives a reference to an object, so we're good to
     // just modify
     const key = [
@@ -74,22 +73,14 @@ export class GridCircuit extends Group {
     // In production these issues will never come up, since we will always be given
     // a valid grid circuit as input. For development purposes, however,
     // these checks will be useful.
-    if (
-      symbol_info.moment < 0 ||
-      symbol_info.moment > this.initial_num_moments
-    ) {
+    if (symbol_info.moment < 0 || symbol_info.moment > initial_num_moments) {
       throw new Error(
         `The SymbolInformation object ${symbol_info} has an invalid moment ${symbol_info.moment}`
       );
     }
-    const qubit = this.circuit.get(key);
-    if (qubit) {
-      qubit.addSymbol(symbol);
-    } else {
-      throw new Error(
-        `Cannot add symbol to qubit ${key}. Qubit does not exist in circuit.`
-      );
-    }
+
+    const qubit = this.circuit.get(key)!;
+    qubit.addSymbol(symbol);
   }
 
   private addQubit(x: number, y: number, initial_num_moments: number) {

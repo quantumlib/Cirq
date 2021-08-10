@@ -22,7 +22,7 @@ import {
 } from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {GridCircuit} from './grid_circuit';
-import {Coord} from './components/types';
+import {SymbolInformation} from './components/types';
 
 class CircuitScene extends Scene {
   private WIDTH = 1000;
@@ -178,14 +178,14 @@ class CircuitScene extends Scene {
  * @returns A GridCircuit object
  */
 export function createGridCircuit(
-  qubits: Coord[],
+  symbol_info: SymbolInformation[],
   numMoments: number,
   sceneId: string,
   padding_factor = 1
 ): {circuit: GridCircuit; scene: CircuitScene} {
   const scene = new CircuitScene(sceneId);
 
-  const circuit = new GridCircuit(numMoments, qubits, padding_factor);
+  const circuit = new GridCircuit(numMoments, symbol_info, padding_factor);
   scene.add(circuit);
   scene.setCameraAndControls(circuit);
 
