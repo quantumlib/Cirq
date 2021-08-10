@@ -27,11 +27,11 @@ from typing import (
 
 import cirq
 from cirq._compat import deprecated, deprecated_parameter
-from cirq_google import op_deserializer, op_serializer, arg_func_langs
 from cirq_google.api import v2
+from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
 
-class SerializableGateSet:
+class SerializableGateSet(serializer.Serializer):
     """A class for serializing and deserializing programs and operations.
 
     This class is for cirq_google.api.v2. protos.
