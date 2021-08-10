@@ -19,7 +19,6 @@ import pytest
 from dev_tools import shell_tools
 from dev_tools.modules import list_modules
 
-# point, that is then cloned to a separate folder for each test.
 PACKAGES = [
     "-r",
     "dev_tools/requirements/deps/pytest.txt",
