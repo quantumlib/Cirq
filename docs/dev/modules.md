@@ -1,28 +1,30 @@
 # Cirq modules 
 
-Cirq has a modular architecture and is organized in a monorepo, all of the modules are in the same folder structure.
-Each module is structured as follows: 
+Cirq has a modular architecture and is organized in a monorepo, all of the modules follow the same folder structure.
+Each module is structured as follows. Let's take as example a module named `cirq-example`: 
 
 ```
-cirq-<module-name>
-   <top level package 1> 
-   <top level package 2>
-   ...
-   setup.py
-   setup.cfg
-   requirements.txt
-   LICENSE
-   README.rst 
-...
-setup.py # metapackage 
+cirq-example
+├── cirq_example
+│   ├── __init__.py
+│   ├── _version.py
+│   ├── json_resolver_cache.py
+│   └── json_test_data
+│       ├── __init__.py
+│       └── spec.py
+├── LICENSE
+├── README.rst
+├── requirements.txt
+├── setup.cfg
+└── setup.py
 ```
 
-Note that typically there is only a single top level package, but there might be exceptions. 
+Note that typically there is only a single top level package, `cirq_example` - but there might be exceptions. 
 
-The highest level module, `cirq` is an exception, as it is a metapackage, kind of a "parent" module, that only contains the set of default submodules as requirements. 
-This enables `pip install cirq` to have all the included submodules to be installed for our users.
+Additionally, there is a metapackage "cirq" that's a completely different beast and just depends on the modules. 
+This enables `pip install cirq` to have all the included modules to be installed for our users.
 
-All submodules should depend on `cirq-core`, which is the central, core library for Cirq.    
+All modules should depend on `cirq-core`, which is the central, core library for Cirq.    
 
 ## Packaging 
 
@@ -32,7 +34,7 @@ Each package gets published to PyPi as a separate package. To build all the whee
 dev_tools/packaging/produce-package.sh ./dist `./dev_tools/packaging/generate-dev-version-id.sh`
 ```
  
-Packages are versioned together, share the exact same version, and released together. 
+Packages are versioned together, share the same version number, and are released together. 
 
 ## Setting up a new module
 
