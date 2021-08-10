@@ -95,12 +95,13 @@ def estimate_single_qubit_readout_errors(
         the probabilities. Also stores a timestamp indicating the time when
         data was finished being collected from the sampler.
     """
+    num_qubits = len(list(qubits))
     return estimate_parallel_single_qubit_readout_errors(
         sampler=sampler,
         qubits=qubits,
         repetitions=repetitions,
         trials=2,
-        bit_strings=np.array([[0, 1] for q in qubits]),
+        bit_strings=np.array([[0] * num_qubits, [1] * num_qubits]),
     )
 
 
@@ -128,13 +129,13 @@ def estimate_parallel_single_qubit_readout_errors(
         trials: The number of bitstrings to prepare.
         trials_per_batch:  If provided, split the experiment into batches
             with this number of trials in each batch.
-        bit_strings: Optional numpy array of shape (qubits, trials) where the
-            first dimension is the qubit (ordered by the qubit order from
-            the qubits parameter) and the second dimension is the number of
-            trials.  Each value should be a 0 or 1 which specifies which
-            state the qubit should be prepared into during that trial.
-            If not provided, the function will generate random bit strings
-            for you.
+        bit_strings: Optional numpy array of shape (trials, qubits) where the
+            first dimension is the number of the trial and the second
+            dimension is the qubit (ordered by the qubit order from
+            the qubits parameter).  Each value should be a 0 or 1 which
+            specifies which state the qubit should be prepared into during
+            that trial.  If not provided, the function will generate random
+            bit strings for you.
 
     Returns:
         A SingleQubitReadoutCalibrationResult storing the readout error
@@ -152,13 +153,16 @@ def estimate_parallel_single_qubit_readout_errors(
     if repetitions <= 0:
         raise ValueError("Must provide non-zero repetition for readout calibration.")
     if bit_strings is None:
-        bit_strings = np.random.randint(0, 2, size=(len(qubits), trials))
-    if not hasattr(bit_strings, 'shape') or bit_strings.shape != (len(qubits), trials):
-        raise ValueError(
-            'bit_strings must be numpy array '
-            f'of shape (qubits, trials) ({len(qubits)}, {trials}) '
-            f"but was {bit_strings.shape if hasattr(bit_strings, 'shape') else None}"
-        )
+        bit_strings = np.random.randint(0, 2, size=(trials, len(qubits)))
+    else:
+        if not hasattr(bit_strings, 'shape') or bit_strings.shape != (trials, len(qubits)):
+            raise ValueError(
+                'bit_strings must be numpy array '
+                f'of shape (trials, qubits) ({trials}, {len(qubits)}) '
+                f"but was {bit_strings.shape if hasattr(bit_strings, 'shape') else None}"
+            )
+        if not np.all((bit_strings == 0) | (bit_strings == 1)):
+            raise ValueError('bit_strings values must be all 0 or 1')
     if trials_per_batch is None:
         trials_per_batch = trials
     if trials_per_batch <= 0:
@@ -178,14 +182,14 @@ def estimate_parallel_single_qubit_readout_errors(
     # Initialize sweeps
     for batch in range(num_batches):
         single_sweeps = []
-        for qubit_idx, q in enumerate(qubits):
+        for qubit_idx in range(len(qubits)):
             trial_range = range(
                 batch * trials_per_batch, min((batch + 1) * trials_per_batch, trials)
             )
             single_sweeps.append(
                 study.Points(
                     key=f'flip_{qubit_idx}',
-                    points=[bit_strings[qubit_idx][bit] for bit in trial_range],
+                    points=[bit_strings[bit][qubit_idx] for bit in trial_range],
                 )
             )
         total_sweeps = study.Zip(*single_sweeps)
@@ -196,28 +200,30 @@ def estimate_parallel_single_qubit_readout_errors(
     timestamp = time.time()
 
     # Analyze results
-    zero_state_trials: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
-    one_state_trials: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
-    zero_state_totals: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
-    one_state_totals: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
+    zero_state_trials = np.zeros((1, len(qubits)))
+    one_state_trials = np.zeros((1, len(qubits)))
+    zero_state_totals = np.zeros((1, len(qubits)))
+    one_state_totals = np.zeros((1, len(qubits)))
     for batch_result in results:
         for trial_idx, trial_result in enumerate(batch_result):
-            for qubit_idx, q in enumerate(qubits):
-                had_x_gate = bit_strings[qubit_idx][trial_idx]
-                if had_x_gate:
-                    one_state_trials[q] += repetitions - np.sum(trial_result.measurements[repr(q)])
-                    one_state_totals[q] += repetitions
-                else:
-                    zero_state_trials[q] += np.sum(trial_result.measurements[repr(q)])
-                    zero_state_totals[q] += repetitions
+            all_measurements = trial_result.data[[repr(x) for x in qubits]].to_numpy()
+            sample_counts = np.einsum('ij->j', all_measurements)
+            zero_state_trials += sample_counts * (1 - bit_strings[trial_idx])
+            zero_state_totals += repetitions * (1 - bit_strings[trial_idx])
+            one_state_trials += (repetitions - sample_counts) * bit_strings[trial_idx]
+            one_state_totals += repetitions * bit_strings[trial_idx]
 
     zero_state_errors = {
-        q: zero_state_trials[q] / zero_state_totals[q] if zero_state_totals[q] > 0 else np.nan
-        for q in qubits
+        q: zero_state_trials[0][qubit_idx] / zero_state_totals[0][qubit_idx]
+        if zero_state_totals[0][qubit_idx] > 0
+        else np.nan
+        for qubit_idx, q in enumerate(qubits)
     }
     one_state_errors = {
-        q: one_state_trials[q] / one_state_totals[q] if one_state_totals[q] > 0 else np.nan
-        for q in qubits
+        q: one_state_trials[0][qubit_idx] / one_state_totals[0][qubit_idx]
+        if one_state_totals[0][qubit_idx] > 0
+        else np.nan
+        for qubit_idx, q in enumerate(qubits)
     }
 
     return SingleQubitReadoutCalibrationResult(
