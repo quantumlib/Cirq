@@ -156,6 +156,37 @@ class LineTopology(NamedTopology):
 
 @dataclass(frozen=True)
 class DiagonalRectangleTopology(NamedTopology):
+    """A grid topology forming a rectangle rotated 45-degrees.
+
+    This topology is based on Google devices where plaquettes consist of four qubits in a square
+    connected to a central qubit:
+
+        x   x
+          x
+        x   x
+
+    The corner nodes are not connected to each other. `width` and `height` refer to the number
+    of unit cells, or equivalently the number of central nodes. Each unit cell contributes
+    two nodes when in bulk: the central node and 1/4 of each of the four shared corner nodes.
+    Accounting for the boundary, the total number of nodes is 2*w*h + w + h + 1. An example
+    diagram showing the diagonal nature of the rectangle is reproduced below. It is a
+    "diagonal-rectangle-3-2" with width 3 and height 2. This can be most clearly seen by focusing
+    on the central nodes diagrammed with an `x`, of which there are 2x3=6. The `*` nodes are
+    added to ensure each `x` node has degree four.
+
+          *
+         *x*
+        *x*x*
+         *x*x*
+          *x*
+           *
+
+    In the surface code, the `*` nodes are data qubits and the `x` nodes are measure qubits.
+
+    Nodes are 2-tuples of integers which may be negative. Please see `get_placements` for
+    mapping this topology to a GridQubit Device.
+    """
+
     width: int
     height: int
 
@@ -175,8 +206,10 @@ class DiagonalRectangleTopology(NamedTopology):
     def graph(self) -> nx.Graph:
         g = nx.Graph()
         # construct a "diagonal rectangle graph" whose width and height
-        # set the number of rows of 'central' qubits, each of which has
-        # four neighbors in each cardinal direction
+        # set the number of rows of 'central' nodes, each of which has
+        # four neighbors in each cardinal direction.
+        # `mega[row/col]` counts the number of index of the central nodes, which is not the
+        # same as the (row, col) coordinates of the nodes.
         for megarow in range(self.height):
             for megacol in range(self.width):
                 y = megacol + megarow
@@ -190,6 +223,11 @@ class DiagonalRectangleTopology(NamedTopology):
     @property  # type: ignore
     @cache
     def n_nodes(self) -> int:
+        """The number of nodes in this topology.
+
+        Each unit cell contains one central node and shares 4 nodes with 4 adjacent unit cells,
+        so the number of nodes is ((1/4)*4 + 1) * width * height + boundary_effects
+        """
         return 2 * self.width * self.height + self.width + self.height + 1
 
     def draw(self, ax=None, cartesian=True, **kwargs):
@@ -205,8 +243,6 @@ class DiagonalRectangleTopology(NamedTopology):
 
     def nodes_as_gridqubits(self) -> List['cirq.GridQubit']:
         """Get the graph nodes as cirq.GridQubit"""
-        import cirq
-
         return [cirq.GridQubit(r, c) for r, c in sorted(self.graph.nodes)]
 
     def _json_dict_(self) -> Dict[str, Any]:

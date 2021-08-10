@@ -63,6 +63,8 @@ def test_line_topology():
 
     with pytest.raises(ValueError, match='greater than 1.*'):
         _ = LineTopology(1)
+    assert LineTopology(2).n_nodes == 2
+    assert LineTopology(2).graph.number_of_nodes() == 2
 
 
 @pytest.mark.parametrize('cartesian', [True, False])
