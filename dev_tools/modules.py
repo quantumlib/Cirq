@@ -46,7 +46,7 @@ _FOLDER = 'folder'
 _PACKAGE_PATH = 'package-path'
 _PACKAGE = 'package'
 
-_DEFAULT_SEARCH_DIR: Path = Path(__file__).parents[1]
+_DEFAULT_SEARCH_DIR: Path = Path(".")
 
 
 @dataclasses.dataclass
@@ -104,6 +104,39 @@ def list_modules(
     return result
 
 
+def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> str:
+    mods = list_modules(search_dir=search_dir, include_parent=True)
+    versions = {m.name: m.version for m in mods}
+    assert len(set(versions.values())) == 1, f"Versions should be the same, instead: \n{versions} "
+    return list(set(versions.values()))[0]
+
+
+def replace_version(search_dir: Path = _DEFAULT_SEARCH_DIR, *, old_version: str, new_version: str):
+    version = get_version(search_dir=search_dir)
+    if version != old_version:
+        raise ValueError(f"{old_version} does not match current version: {version}")
+
+    _validate_version(new_version)
+
+    for m in list_modules(search_dir=search_dir, include_parent=False):
+        version_file = _find_version_file(search_dir / m.root)
+        content = version_file.read_text("UTF-8")
+        new_content = content.replace(old_version, new_version)
+        version_file.write_text(new_content)
+
+
+def _validate_version(new_version: str):
+    if not re.match(r"\d+\.\d+\.\d+(\.dev)?", new_version):
+        raise ValueError(f"{new_version} is not a valid version number.")
+
+
+def _find_version_file(top: Path) -> Path:
+    for root, _, files in os.walk(str(top)):
+        if "_version.py" in files:
+            return Path(root) / "_version.py"
+    raise FileNotFoundError(f"Can't find _version.py in {top}.")
+
+
 def _parse_module(folder: Path) -> Dict[str, Any]:
     setup_args = {}
     import setuptools
@@ -129,48 +162,48 @@ def _parse_module(folder: Path) -> Dict[str, Any]:
         os.chdir(cwd)
 
 
-def _print_list_modules(mode: str, include_parent: bool = False):
-    """Prints certain properties of cirq modules on separate lines.
-
-    Module root folder and top level package paths are supported. The search dir is the current
-    directory.
-
-    Args:
-        mode: 'folder' lists the root folder for each module, 'package-path' lists the path to
-         the top level package(s).
-        include_cirq: when true the cirq metapackage is included in the list
-    Returns:
-          a list of strings
-    """
-    for m in list_modules(Path("."), include_parent):
-        if mode == _FOLDER:
-            print(m.root, end=" ")
-        elif mode == _PACKAGE_PATH:
-            for p in m.top_level_package_paths:
-                print(p, end=" ")
-        elif mode == _PACKAGE:
-            for package in m.top_level_packages:
-                print(package, end=" ")
+############################################
+# CLI MANAGEMENT
+############################################
 
 
-def main(argv: List[str]):
-    args = parse(argv)
-    # args.func is where we store the function to be called for a given subparser
-    # e.g. it is list_modules for the `list` subcommand
-    f = args.func
-    # however the func is not going to be needed for the function itself, so
-    # we remove it here
-    del args.func
-    f(**vars(args))
+# --------------
+# print_version
+# --------------
+
+def _print_version():
+    print(get_version())
 
 
-def parse(args):
-    parser = argparse.ArgumentParser('A utility for modules.')
-    subparsers = parser.add_subparsers(
-        title='subcommands', description='valid subcommands', help='additional help'
-    )
-    _add_list_modules_cmd(subparsers)
-    return parser.parse_args(args)
+def _add_print_version_cmd(subparsers):
+    print_version_cmd = subparsers.add_parser("print_version",
+                                              help="Check that all module versions are the same, "
+                                                   "and print it.")
+    print_version_cmd.set_defaults(func=_print_version)
+
+
+# --------------
+# replace_version
+# --------------
+
+def _replace_version(old: str, new: str):
+    replace_version(old_version=old, new_version=new)
+    print(f"Successfully replaced version {old} with {new}.")
+
+
+def _add_replace_version_cmd(subparsers):
+    replace_version_cmd = subparsers.add_parser("replace_version",
+                                                help="replace Cirq version in all modules")
+    replace_version_cmd.add_argument("--old", required=True,
+                                     help="the current version to be replaced")
+    replace_version_cmd.add_argument("--new", required=True,
+                                     help="the new version to be replaced")
+    replace_version_cmd.set_defaults(func=_replace_version)
+
+
+# --------------
+# list_modules
+# --------------
 
 
 def _add_list_modules_cmd(subparsers):
@@ -193,37 +226,50 @@ def _add_list_modules_cmd(subparsers):
     list_modules_cmd.set_defaults(func=_print_list_modules)
 
 
-def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> str:
-    mods = list_modules(search_dir=search_dir, include_parent=True)
-    versions = {m.name: m.version for m in mods}
-    assert len(set(versions.values())) == 1, f"Versions should be the same, instead: \n{versions} "
-    return list(set(versions.values()))[0]
+def _print_list_modules(mode: str, include_parent: bool = False):
+    """Prints certain properties of cirq modules on separate lines.
+
+    Module root folder and top level package paths are supported. The search dir is the current
+    directory.
+
+    Args:
+        mode: 'folder' lists the root folder for each module, 'package-path' lists the path to
+         the top level package(s).
+        include_parent: when true the cirq metapackage is included in the list
+    Returns:
+          a list of strings
+    """
+    for m in list_modules(Path("."), include_parent):
+        if mode == _FOLDER:
+            print(m.root, end=" ")
+        elif mode == _PACKAGE_PATH:
+            for p in m.top_level_package_paths:
+                print(p, end=" ")
+        elif mode == _PACKAGE:
+            for package in m.top_level_packages:
+                print(package, end=" ")
 
 
-def _validate_version(new_version: str):
-    if not re.match(r"\d+\.\d+\.\d+(\.dev)?", new_version):
-        raise ValueError(f"{new_version} is not a valid version number.")
+def parse(args):
+    parser = argparse.ArgumentParser('A utility for modules.')
+    subparsers = parser.add_subparsers(
+        title='subcommands', description='valid subcommands', help='additional help'
+    )
+    _add_list_modules_cmd(subparsers)
+    _add_print_version_cmd(subparsers)
+    _add_replace_version_cmd(subparsers)
+    return parser.parse_args(args)
 
 
-def _find_version_file(top: Path) -> Path:
-    for root, _, files in os.walk(str(top)):
-        if "_version.py" in files:
-            return Path(root) / "_version.py"
-    raise FileNotFoundError(f"Can't find _version.py in {top}.")
-
-
-def replace_version(search_dir: Path = _DEFAULT_SEARCH_DIR, *, old_version: str, new_version: str):
-    version = get_version(search_dir=search_dir)
-    if version != old_version:
-        raise ValueError(f"{old_version} does not match current version: {version}")
-
-    _validate_version(new_version)
-
-    for m in list_modules(search_dir=search_dir, include_parent=False):
-        version_file = _find_version_file(search_dir / m.root)
-        content = version_file.read_text("UTF-8")
-        new_content = content.replace(old_version, new_version)
-        version_file.write_text(new_content)
+def main(argv: List[str]):
+    args = parse(argv)
+    # args.func is where we store the function to be called for a given subparser
+    # e.g. it is list_modules for the `list` subcommand
+    f = args.func
+    # however the func is not going to be needed for the function itself, so
+    # we remove it here
+    del args.func
+    f(**vars(args))
 
 
 if __name__ == '__main__':

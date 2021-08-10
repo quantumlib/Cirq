@@ -32,7 +32,7 @@ def test_modules():
         root=Path('mod1'),
         raw_setup={
             'name': 'module1',
-            'version': '0.12.0.dev',
+            'version': '1.2.3.dev',
             'url': 'http://github.com/quantumlib/cirq',
             'author': 'The Cirq Developers',
             'author_email': 'cirq-dev@googlegroups.com',
@@ -43,24 +43,24 @@ def test_modules():
         },
     )
     assert mod1.name == 'module1'
-    assert mod1.version == '0.12.0.dev'
+    assert mod1.version == '1.2.3.dev'
     assert mod1.top_level_packages == ['pack1']
     assert mod1.top_level_package_paths == [Path('mod1') / 'pack1']
 
     mod2 = Module(
         root=Path('mod2'),
-        raw_setup={'name': 'module2', 'version': '0.12.0.dev', 'packages': ['pack2']},
+        raw_setup={'name': 'module2', 'version': '1.2.3.dev', 'packages': ['pack2']},
     )
 
     assert mod2.name == 'module2'
-    assert mod2.version == '0.12.0.dev'
+    assert mod2.version == '1.2.3.dev'
     assert mod2.top_level_packages == ['pack2']
     assert mod2.top_level_package_paths == [Path('mod2') / 'pack2']
     assert modules.list_modules(search_dir=Path("dev_tools/modules_test_data")) == [mod1, mod2]
 
     parent = Module(
         root=Path('.'),
-        raw_setup={'name': 'parent-module', 'version': '0.12.0.dev', 'requirements': []},
+        raw_setup={'name': 'parent-module', 'version': '1.2.3.dev', 'requirements': []},
     )
     assert parent.top_level_packages == []
     assert modules.list_modules(
@@ -84,16 +84,19 @@ def test_cli():
 
 
 @contextlib.contextmanager
-def chdir(*, target_dir: str = None):
+def chdir(*, target_dir: str = None, clone_dir: str = None):
     """Changes for the duration of the test the working directory.
 
     Args:
         target_dir: the target directory. If None is specified, it will create a temporary
             directory.
+        clone_dir: a directory to clone into target_dir.
     """
 
     cwd = os.getcwd()
     tdir = tempfile.mkdtemp() if target_dir is None else target_dir
+    if clone_dir is not None:
+        shutil.copytree(clone_dir, tdir, dirs_exist_ok=True)
     os.chdir(tdir)
     try:
         yield
@@ -120,23 +123,39 @@ def test_main():
         assert output.getvalue() == ' '.join(["pack1", "pack2", ""])
 
 
+@chdir(clone_dir="dev_tools/modules_test_data")
+def test_main_replace_version():
+    with mock.patch('sys.stdout', new=StringIO()) as output:
+        modules.main(["print_version"])
+        assert output.getvalue() == '1.2.3.dev\n'
+
+    with mock.patch('sys.stdout', new=StringIO()) as output:
+        modules.main(["replace_version", "--old", "1.2.3.dev", "--new", "1.2.4.dev"])
+        assert output.getvalue() == 'Successfully replaced version 1.2.3.dev with 1.2.4.dev.\n'
+
+    with mock.patch('sys.stdout', new=StringIO()) as output:
+        modules.main(["print_version"])
+        assert output.getvalue() == '1.2.4.dev\n'
+
+
 def test_replace_version(tmpdir_factory):
     tmp_dir = tmpdir_factory.mktemp("cirq-modules-test")
     shutil.copytree("dev_tools/modules_test_data", tmp_dir, dirs_exist_ok=True)
     search_dir = Path(tmp_dir)
-    assert modules.get_version(search_dir=search_dir) == "0.12.0.dev"
+    assert modules.get_version(search_dir=search_dir) == "1.2.3.dev"
     modules.replace_version(
-        search_dir=search_dir, old_version="0.12.0.dev", new_version="0.12.1.dev"
+        search_dir=search_dir, old_version="1.2.3.dev", new_version="1.2.4.dev"
     )
-    assert modules.get_version(search_dir=search_dir) == "0.12.1.dev"
+    assert modules.get_version(search_dir=search_dir) == "1.2.4.dev"
 
 
+@chdir(target_dir="dev_tools/modules_test_data")
 def test_replace_version_errors():
     with pytest.raises(ValueError, match="does not match current version"):
-        modules.replace_version(old_version="v0.11.0", new_version="v0.11.1")
+        modules.replace_version(search_dir=Path("."), old_version="v0.11.0", new_version="v0.11.1")
 
     with pytest.raises(ValueError, match="va.b.c is not a valid version number"):
-        modules.replace_version(old_version="0.12.0.dev", new_version="va.b.c")
+        modules.replace_version(search_dir=Path("."), old_version="1.2.3.dev", new_version="va.b.c")
 
 
 @chdir(target_dir=None)
