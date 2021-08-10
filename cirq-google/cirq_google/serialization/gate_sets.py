@@ -13,8 +13,8 @@
 # limitations under the License.
 """Gate sets supported by Google's apis."""
 from cirq._doc import document
-from cirq_google import serializable_gate_set
-from cirq_google.common_serializers import (
+from cirq_google.serialization import serializable_gate_set
+from cirq_google.serialization.common_serializers import (
     SINGLE_QUBIT_SERIALIZERS,
     SINGLE_QUBIT_DESERIALIZERS,
     SINGLE_QUBIT_HALF_PI_SERIALIZERS,

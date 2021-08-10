@@ -16,10 +16,6 @@
 
 from cirq_google import api
 
-from cirq_google.arg_func_langs import (
-    arg_from_proto,
-)
-
 from cirq_google.calibration import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     CircuitWithCalibration,
@@ -80,14 +76,6 @@ from cirq_google.engine import (
     get_engine_sampler,
 )
 
-from cirq_google.gate_sets import (
-    XMON,
-    FSIM_GATESET,
-    SQRT_ISWAP_GATESET,
-    SYC_GATESET,
-    NAMED_GATESETS,
-)
-
 from cirq_google.line import (
     AnnealSequenceSearchStrategy,
     GreedySequenceSearchStrategy,
@@ -111,24 +99,22 @@ from cirq_google.optimizers import (
     optimized_for_xmon,
 )
 
-from cirq_google.circuit_serializer import (
-    CircuitSerializer,
-)
 
-from cirq_google.op_deserializer import (
+from cirq_google.serialization import (
+    arg_from_proto,
+    CircuitSerializer,
     CircuitOpDeserializer,
     DeserializingArg,
     GateOpDeserializer,
-)
-
-from cirq_google.op_serializer import (
     CircuitOpSerializer,
     GateOpSerializer,
     SerializingArg,
-)
-
-from cirq_google.serializable_gate_set import (
     SerializableGateSet,
+    XMON,
+    FSIM_GATESET,
+    SQRT_ISWAP_GATESET,
+    SYC_GATESET,
+    NAMED_GATESETS,
 )
 
 from cirq_google import experimental
