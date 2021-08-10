@@ -51,7 +51,7 @@ To setup a new module follow these steps:
 
 1. Add the `<top_level_package>/json_resolver_cache.py` file 
     ```python
-    @functools.lru_cache(maxsize=1)  # coverage: ignore
+    @functools.lru_cache()  # coverage: ignore
     def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # coverage: ignore
         return {}
     ```
