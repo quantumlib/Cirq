@@ -20,7 +20,7 @@ from unittest import mock
 import pytest
 
 from dev_tools import shell_tools
-from dev_tools.utils import only_on_posix
+from dev_tools.test_utils import only_on_posix
 
 
 # due to shell_tools dependencies windows builds break on this
