@@ -125,7 +125,7 @@ class LineTopology(NamedTopology):
     @cache
     def name(self) -> str:
         """The name of this topology: {n_nodes}-line"""
-        return f'{self.n_nodes}-line'
+        return f'line-{self.n_nodes}'
 
     @property  # type: ignore
     @cache
@@ -168,7 +168,7 @@ class DiagonalRectangleTopology(NamedTopology):
     @property  # type: ignore
     @cache
     def name(self) -> str:
-        return f'{self.width}-{self.height}-diagonal-rectangle'
+        return f'diagonal-rectangle-{self.width}-{self.height}'
 
     @property  # type: ignore
     @cache

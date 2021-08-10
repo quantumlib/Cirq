@@ -33,7 +33,7 @@ def test_diagonal_rectangle_topology():
     height = 3
     topo = DiagonalRectangleTopology(width, height)
     assert all(1 <= topo.graph.degree[node] <= 4 for node in topo.graph.nodes)
-    assert topo.name == '2-3-diagonal-rectangle'
+    assert topo.name == 'diagonal-rectangle-2-3'
     assert topo.n_nodes == topo.graph.number_of_nodes()
 
     with pytest.raises(ValueError):
@@ -55,7 +55,7 @@ def test_line_topology():
     assert topo.n_nodes == n
     assert topo.n_nodes == topo.graph.number_of_nodes()
     assert all(1 <= topo.graph.degree[node] <= 2 for node in topo.graph.nodes)
-    assert topo.name == '10-line'
+    assert topo.name == 'line-10'
 
     ax = MagicMock()
     topo.draw(ax=ax)
