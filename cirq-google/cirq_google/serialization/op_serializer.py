@@ -22,9 +22,8 @@ import cirq
 from cirq._compat import deprecated
 from cirq.circuits import circuit_operation
 from cirq_google.api import v2
-from cirq_google import arg_func_langs
-from cirq_google.arg_func_langs import arg_to_proto
 from cirq_google.ops.calibration_tag import CalibrationTag
+from cirq_google.serialization.arg_func_langs import arg_to_proto, ARG_LIKE, SUPPORTED_SYMPY_OPS
 
 # Type for variables that are subclasses of ops.Gate.
 Gate = TypeVar('Gate', bound=cirq.Gate)
@@ -118,8 +117,8 @@ class SerializingArg:
     """
 
     serialized_name: str
-    serialized_type: Type[arg_func_langs.ARG_LIKE]
-    op_getter: Union[str, Callable[[cirq.Operation], arg_func_langs.ARG_LIKE]]
+    serialized_type: Type[ARG_LIKE]
+    op_getter: Union[str, Callable[[cirq.Operation], ARG_LIKE]]
     required: bool = True
     default: Any = None
 
@@ -255,9 +254,7 @@ class GateOpSerializer(OpSerializer):
                         msg.token_value = tag.token
         return msg
 
-    def _value_from_gate(
-        self, op: cirq.Operation, arg: SerializingArg
-    ) -> Optional[arg_func_langs.ARG_LIKE]:
+    def _value_from_gate(self, op: cirq.Operation, arg: SerializingArg) -> Optional[ARG_LIKE]:
         value = None
         op_getter = arg.op_getter
         if isinstance(op_getter, str):
@@ -275,7 +272,7 @@ class GateOpSerializer(OpSerializer):
                 )
             )
 
-        if isinstance(value, arg_func_langs.SUPPORTED_SYMPY_OPS):
+        if isinstance(value, SUPPORTED_SYMPY_OPS):
             return value
 
         if value is not None:
@@ -283,7 +280,7 @@ class GateOpSerializer(OpSerializer):
 
         return value
 
-    def _check_type(self, value: arg_func_langs.ARG_LIKE, arg: SerializingArg) -> None:
+    def _check_type(self, value: ARG_LIKE, arg: SerializingArg) -> None:
         if arg.serialized_type == float:
             if not isinstance(value, (float, int)):
                 raise ValueError(f'Expected type convertible to float but was {type(value)}')
