@@ -133,7 +133,7 @@ from cirq_google.named_topologies import (
     LineTopology,
     DiagonalRectangleTopology,
     get_placements,
-    plot_placements,
+    draw_placements,
 )
 
 from cirq_google import experimental

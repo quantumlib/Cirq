@@ -23,7 +23,7 @@ from cirq_google.named_topologies import (
     LineTopology,
     DiagonalRectangleTopology,
     get_placements,
-    plot_placements,
+    draw_placements,
 )
 import cirq_google as cg
 
@@ -95,6 +95,6 @@ def test_get_placements():
     assert len(placements) == 12
 
     axes = [MagicMock() for _ in range(4)]
-    plot_placements(syc23, topo.graph, placements[::3], axes=axes)
+    draw_placements(syc23, topo.graph, placements[::3], axes=axes)
     for ax in axes:
         ax.scatter.assert_called()

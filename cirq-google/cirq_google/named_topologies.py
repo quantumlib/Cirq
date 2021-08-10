@@ -252,12 +252,23 @@ class DiagonalRectangleTopology(NamedTopology):
 def get_placements(
     big_graph: nx.Graph, small_graph: nx.Graph, max_placements=100_000
 ) -> List[Dict]:
+    """Get 'placements' mapping small_graph nodes onto those of `big_graph`.
+
+    We often consider the case where `big_graph` is a nx.Graph representation of a Device
+    whose nodes are `cirq.Qid`s like `GridQubit`s and `small_graph` is a NamedTopology graph.
+    In this case, this function returns a list of placement dictionaries. Each dictionary
+    maps the nodes in `small_graph` to nodes in `big_graph` with a monomorphic relationship.
+    That's to say: if an edge exists in `small_graph` between two nodes, it will exist in
+    `big_graph` between the mapped nodes.
+
+    We restrict only to unique set of `big_graph` qubits. Some monomorphisms may be basically
+    the same mapping just rotated/flipped which we purposefully exclude. This could
+    exclude meaningful differences like using the same qubits but having the edges assigned
+    differently, but it prevents the number of placements from blowing up.
+    """
     matcher = nx.algorithms.isomorphism.GraphMatcher(big_graph, small_graph)
 
-    # We restrict only to unique set of `big_graph` qubits. Some monomorphisms may be basically
-    # the same mapping just rotated/flipped which we exclude by this check. But this could
-    # exclude meaningful differences like using the same qubits but having the edges assigned
-    # differently.
+    # de-duplicate rotations, see docstring.
     dedupe = {}
     for big_to_small_map in matcher.subgraph_monomorphisms_iter():
         dedupe[frozenset(big_to_small_map.keys())] = big_to_small_map
@@ -276,13 +287,18 @@ def get_placements(
     return small_to_bigs
 
 
-def plot_placements(
+def draw_placements(
     big_graph: nx.Graph,
     small_graph: nx.Graph,
     small_to_big_mappings,
     max_plots=20,
     axes: Sequence[plt.Axes] = None,
 ):
+    """Draw a visualization of placements from small_graph onto big_graph.
+
+    The entire `big_graph` will be drawn with default blue colored nodes. `small_graph` nodes
+    and edges will be highlighted with a red color.
+    """
     if len(small_to_big_mappings) > max_plots:
         # coverage: ignore
         warnings.warn(f"You've provided a lot of mappings. Only plotting the first {max_plots}")
