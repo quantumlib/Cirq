@@ -96,7 +96,9 @@ def chdir(*, target_dir: str = None, clone_dir: str = None):
     cwd = os.getcwd()
     tdir = tempfile.mkdtemp() if target_dir is None else target_dir
     if clone_dir is not None:
-        shutil.copytree(clone_dir, tdir, dirs_exist_ok=True)
+        if Path(tdir).is_dir():
+            shutil.rmtree(tdir)
+        shutil.copytree(clone_dir, tdir)
     os.chdir(tdir)
     try:
         yield
@@ -138,13 +140,11 @@ def test_main_replace_version():
         assert output.getvalue() == '1.2.4.dev\n'
 
 
+@chdir(clone_dir="dev_tools/modules_test_data")
 def test_replace_version(tmpdir_factory):
-    tmp_dir = tmpdir_factory.mktemp("cirq-modules-test")
-    shutil.copytree("dev_tools/modules_test_data", tmp_dir, dirs_exist_ok=True)
-    search_dir = Path(tmp_dir)
-    assert modules.get_version(search_dir=search_dir) == "1.2.3.dev"
-    modules.replace_version(search_dir=search_dir, old_version="1.2.3.dev", new_version="1.2.4.dev")
-    assert modules.get_version(search_dir=search_dir) == "1.2.4.dev"
+    assert modules.get_version() == "1.2.3.dev"
+    modules.replace_version(old_version="1.2.3.dev", new_version="1.2.4.dev")
+    assert modules.get_version() == "1.2.4.dev"
 
 
 @chdir(target_dir="dev_tools/modules_test_data")
