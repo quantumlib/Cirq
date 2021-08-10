@@ -139,6 +139,10 @@ from cirq.ops.pauli_sum_exponential import (
     PauliSumExponential,
 )
 
+from cirq.ops.parallel_gate import (
+    ParallelGate,
+)
+
 from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,
 )

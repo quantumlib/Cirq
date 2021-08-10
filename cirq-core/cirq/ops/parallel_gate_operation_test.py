@@ -178,3 +178,8 @@ def test_trace_distance():
     foo = sympy.Symbol('foo')
     spo = cirq.ParallelGateOperation(cirq.X ** foo, cirq.LineQubit.range(4))
     assert cirq.approx_eq(cirq.trace_distance_bound(spo), 1.0)
+
+
+def test_deprecated():
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        _ = cirq.ParallelGateOperation(cirq.X, cirq.LineQubit.range(4))
