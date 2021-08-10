@@ -46,7 +46,6 @@ requirements = [r.strip() for r in requirements]
 # Sanity check
 assert __version__, 'Version string cannot be empty'
 
-# This is a pure metapackage that installs all our packages
 requirements += [f'cirq-core=={__version__}']
 
 # Gather all packages from cirq_web, and the dist/ folder from cirq_ts
