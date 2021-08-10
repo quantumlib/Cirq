@@ -23,6 +23,7 @@ from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.act_on_args import ActOnArgs
 from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -87,7 +88,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         action: Union['cirq.Operation', 'cirq.Gate'],
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
-    ):
+    ) -> Union[bool, NotImplementedType]:
         strats = []
         if allow_decompose:
             strats.append(_strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)

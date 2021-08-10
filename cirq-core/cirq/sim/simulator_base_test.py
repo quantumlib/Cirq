@@ -50,7 +50,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
         action: Union['cirq.Operation', 'cirq.Gate'],
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
-    ):
+    ) -> bool:
         self.gate_count += 1
         return True
 

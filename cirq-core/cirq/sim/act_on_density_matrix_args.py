@@ -97,7 +97,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         action: Union['cirq.Operation', 'cirq.Gate'],
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
-    ):
+    ) -> bool:
         strats = [
             _strat_apply_channel_to_state,
         ]

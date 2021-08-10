@@ -30,6 +30,7 @@ from typing import (
 import numpy as np
 
 from cirq import protocols
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -52,8 +53,16 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
         action: Union['cirq.Operation', 'cirq.Gate'],
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
-    ):
-        """Handles the act_on protocol fallback implementation."""
+    ) -> Union[bool, NotImplementedType]:
+        """Handles the act_on protocol fallback implementation.
+
+        Args:
+            action: Either a gate or an operation to act on.
+            qubits: The applicable qubits if a gate is passed as the action.
+            allow_decompose: Flag to allow decomposition.
+
+        Returns:
+            True if the fallback applies, else NotImplemented."""
 
     def apply_operation(self, op: 'cirq.Operation'):
         protocols.act_on(op, self)

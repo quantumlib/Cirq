@@ -164,7 +164,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         action: Union['cirq.Operation', 'cirq.Gate'],
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
-    ):
+    ) -> bool:
         strats = [
             _strat_act_on_state_vector_from_apply_unitary,
             _strat_act_on_state_vector_from_mixture,

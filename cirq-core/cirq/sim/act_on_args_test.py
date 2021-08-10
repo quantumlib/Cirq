@@ -37,7 +37,7 @@ class DummyArgs(cirq.ActOnArgs):
         action: Union['cirq.Operation', 'cirq.Gate'],
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
-    ):
+    ) -> bool:
         return True
 
 

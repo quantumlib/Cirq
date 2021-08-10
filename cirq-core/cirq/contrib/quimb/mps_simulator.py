@@ -445,7 +445,7 @@ class MPSState(ActOnArgs):
         action: Union['cirq.Operation', 'cirq.Gate'],
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
-    ):
+    ) -> bool:
         """Delegates the action to self.apply_op"""
         if isinstance(action, ops.Gate):
             action = ops.GateOperation(action, qubits)

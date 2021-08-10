@@ -25,6 +25,7 @@ from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.qis.clifford_tableau import CliffordTableau
 from cirq.sim.act_on_args import ActOnArgs
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -89,7 +90,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         action: Union['cirq.Operation', 'cirq.Gate'],
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
-    ):
+    ) -> Union[bool, NotImplementedType]:
         strats = []
         if allow_decompose:
             strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)

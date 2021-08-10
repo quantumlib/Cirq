@@ -90,7 +90,7 @@ def test_act_on_args_axes_deprecation():
             action: Union['cirq.Operation', 'cirq.Gate'],
             qubits: Sequence['cirq.Qid'] = None,
             allow_decompose: bool = True,
-        ):
+        ) -> bool:
             self.measurements.append(qubits)
             return True
 

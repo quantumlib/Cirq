@@ -82,11 +82,8 @@ class ActOnArgsContainer(
         action: Union['cirq.Operation', 'cirq.Gate'],
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
-    ):
-        if isinstance(action, ops.Operation):
-            gate = action.gate
-        else:
-            gate = action
+    ) -> bool:
+        gate = action.gate if isinstance(action, ops.Operation) else action
 
         if isinstance(gate, ops.IdentityGate):
             return True
