@@ -633,12 +633,11 @@ _compat.deprecated_submodule(
 from cirq.protocols.json_serialization import _register_resolver
 from cirq.json_resolver_cache import _class_resolver_dictionary
 
-# pylint: enable=wrong-import-position
+
 _register_resolver(_class_resolver_dictionary)
 
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
-# pylint: disable=wrong-import-position
 from cirq import (
     contrib,
 )
