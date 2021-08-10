@@ -102,9 +102,7 @@ def list_modules(
     if include_parent:
         parent_setup_py = search_dir / "setup.py"
         if not parent_setup_py.exists():
-            raise ValueError(
-                f"include_parent=True, but {parent_setup_py} does not exist."
-            )
+            raise ValueError(f"include_parent=True, but {parent_setup_py} does not exist.")
         relative_folders.append(Path("."))
 
     result = [
