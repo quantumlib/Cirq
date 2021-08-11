@@ -61,6 +61,12 @@ describe('GridCircuit', () => {
         color_info: ['green'],
         moment: -1,
       },
+      {
+        wire_symbols: ['X'],
+        location_info: [{row: 0, col: 1}],
+        color_info: ['black'],
+        moment: 1,
+      },
     ];
 
     it('correctly adds one symbol at a specific moment', () => {
@@ -94,6 +100,17 @@ describe('GridCircuit', () => {
       expect(() => new GridCircuit(moments, [symbols[4]])).to.throw(
         `The SymbolInformation object ${symbols[4]} has an invalid moment -1`
       );
+    });
+
+    it('adds the correct number of GridQubit objects with overlapping rows', () => {
+      const circuit = new GridCircuit(moments, [
+        symbols[0],
+        symbols[1],
+        symbols[5],
+      ]);
+
+      const qubits = circuit.children;
+      expect(qubits.length).to.equal(3);
     });
   });
 });

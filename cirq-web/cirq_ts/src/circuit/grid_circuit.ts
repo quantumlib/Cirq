@@ -29,20 +29,20 @@ export class GridCircuit extends Group {
    * Class constructor
    * @param initial_num_moments The number of moments of the circuit. This
    * determines the length of all the qubit lines in the diagram.
-   * @param qubits A list of GridCoord objects representing the locations of the
-   * qubits in the circuit.
+   * @param symbols A list of SymbolInformation objects with info about operations
+   * in the circuit.
    * @param padding_factor A number scaling the distance between meshes.
    */
   constructor(
     initial_num_moments: number,
-    symbol_list: SymbolInformation[],
+    symbols: SymbolInformation[],
     padding_factor = 1
   ) {
     super();
     this.padding_factor = padding_factor;
     this.qubit_map = new Map();
 
-    for (const symbol of symbol_list) {
+    for (const symbol of symbols) {
       // Being accurate is more important than speed here, so
       // traversing through each object isn't a big deal.
       // However, this logic can be changed if needed to avoid redundancy.
@@ -58,30 +58,35 @@ export class GridCircuit extends Group {
   }
 
   private addSymbol(
-    symbol_info: SymbolInformation,
+    symbolInfo: SymbolInformation,
     initial_num_moments: number
   ) {
-    const symbol = new Symbol3D(symbol_info, this.padding_factor);
+    const symbol = new Symbol3D(symbolInfo, this.padding_factor);
 
     // In production these issues will never come up, since we will always be given
     // a valid grid circuit as input. For development purposes, however,
     // these checks will be useful.
-    if (symbol_info.moment < 0 || symbol_info.moment > initial_num_moments) {
+    if (symbolInfo.moment < 0 || symbolInfo.moment > initial_num_moments) {
       throw new Error(
-        `The SymbolInformation object ${symbol_info} has an invalid moment ${symbol_info.moment}`
+        `The SymbolInformation object ${symbolInfo} has an invalid moment ${symbolInfo.moment}`
       );
     }
 
     const qubit = this.getQubit(
-      symbol_info.location_info[0].row,
-      symbol_info.location_info[0].col
+      symbolInfo.location_info[0].row,
+      symbolInfo.location_info[0].col
     )!;
     qubit.addSymbol(symbol);
   }
 
-  private addQubit(x: number, y: number, initial_num_moments: number) {
-    const qubit = new GridQubit(x, y, initial_num_moments, this.padding_factor);
-    this.setQubit(x, y, qubit);
+  private addQubit(row: number, col: number, initial_num_moments: number) {
+    const qubit = new GridQubit(
+      row,
+      col,
+      initial_num_moments,
+      this.padding_factor
+    );
+    this.setQubit(row, col, qubit);
     this.add(qubit);
   }
 
@@ -93,9 +98,12 @@ export class GridCircuit extends Group {
   }
 
   private setQubit(row: number, col: number, qubit: GridQubit) {
-    const innerMap = new Map();
-    innerMap.set(col, qubit);
-    this.qubit_map.set(row, innerMap);
+    const innerMap = this.qubit_map.get(row);
+    if (innerMap) {
+      innerMap.set(col, qubit);
+    } else {
+      this.qubit_map.set(row, new Map().set(col, qubit));
+    }
   }
 
   private hasQubit(row: number, col: number) {
