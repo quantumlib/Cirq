@@ -263,7 +263,7 @@ def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
     """
 
     url = "https://api.github.com/repos/{}/{}/commits/{}/statuses".format(
-        pr.repo.organization, pr.repo.name, pr.branch_sha, pr.repo.access_token
+        pr.repo.organization, pr.repo.name, pr.branch_sha
     )
     response = pr.repo.get(url)
 
@@ -285,7 +285,7 @@ def get_pr_check_status(pr: PullRequestDetails) -> Any:
     """
 
     url = "https://api.github.com/repos/{}/{}/commits/{}/status".format(
-        pr.repo.organization, pr.repo.name, pr.branch_sha, pr.repo.access_token
+        pr.repo.organization, pr.repo.name, pr.branch_sha
     )
     response = pr.repo.get(url)
 
@@ -352,7 +352,7 @@ def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
     url = (
         f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
         f"/pulls/{pr.pull_id}/reviews"
-        f"?per_page={per_page}&access_token={pr.repo.access_token}"
+        f"?per_page={per_page}"
     )
     response = pr.repo.get(url)
 
@@ -506,7 +506,6 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     url = (
         f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
         f"/pulls/{pr.pull_id}/update-branch"
-        f"?access_token={pr.repo.access_token}"
     )
     data = {
         'expected_head_sha': pr.branch_sha,
@@ -631,7 +630,7 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
         return False
 
     url = "https://api.github.com/repos/{}/{}/git/refs/heads/{}".format(
-        remote.organization, remote.name, pr.branch_name, remote.access_token
+        remote.organization, remote.name, pr.branch_name
     )
     response = pr.repo.delete(url)
 
@@ -705,7 +704,7 @@ def list_open_pull_requests(
 ) -> List[PullRequestDetails]:
     url = (
         f"https://api.github.com/repos/{repo.organization}/{repo.name}/pulls"
-        f"?per_page={per_page};access_token={repo.access_token}"
+        f"?per_page={per_page}"
     )
     data = {
         'state': 'open',
