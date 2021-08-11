@@ -17,6 +17,7 @@ from typing import AbstractSet, Any, Dict, List, Iterable, Optional, Tuple
 
 from typing_extensions import Protocol
 
+from cirq._compat import deprecated
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
@@ -76,6 +77,11 @@ class SupportsMeasurementKey(Protocol):
         """
 
 
+@deprecated(deadline='v0.13', fix='use cirq.measurement_key_str instead')
+def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
+    return measurement_key_str(val, default)
+
+
 def measurement_key_str(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     """Get the single measurement key for the given value.
 
@@ -124,6 +130,11 @@ def _measurement_keys_from_magic_methods(val: Any) -> Optional[AbstractSet[str]]
         return {result}
 
     return result
+
+
+@deprecated(deadline='v0.13', fix='use cirq.measurement_keys_str instead')
+def measurement_keys(val: Any, *, allow_decompose: bool = True):
+    return measurement_keys_str(val, allow_decompose=allow_decompose)
 
 
 def measurement_keys_str(val: Any, *, allow_decompose: bool = True) -> AbstractSet[str]:

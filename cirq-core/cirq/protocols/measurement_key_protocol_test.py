@@ -23,6 +23,9 @@ def test_measurement_key():
             return 'door locker'
 
     assert cirq.is_measurement(ReturnsStr())
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert cirq.measurement_key(ReturnsStr()) == 'door locker'
+
     assert cirq.measurement_key_str(ReturnsStr()) == 'door locker'
 
     assert cirq.measurement_key_str(ReturnsStr(), None) == 'door locker'
@@ -134,6 +137,8 @@ def test_measurement_keys():
 
     a, b = cirq.LineQubit.range(2)
     assert cirq.is_measurement(Composite())
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert cirq.measurement_keys(Composite()) == {'inner1', 'inner2'}
     assert cirq.measurement_keys_str(Composite()) == {'inner1', 'inner2'}
     assert cirq.measurement_keys_str(Composite().on(a, b)) == {'inner1', 'inner2'}
     assert not cirq.is_measurement(Composite(), allow_decompose=False)

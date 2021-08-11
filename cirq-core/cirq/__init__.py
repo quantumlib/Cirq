@@ -94,6 +94,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    estimate_parallel_single_qubit_readout_errors,
     estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
     least_squares_xeb_fidelity_from_expectations,
@@ -501,7 +502,9 @@ from cirq.protocols import (
     JsonResolver,
     json_serializable_dataclass,
     kraus,
+    measurement_key,
     measurement_key_str,
+    measurement_keys,
     measurement_keys_str,
     mixture,
     mul,
@@ -628,19 +631,16 @@ _compat.deprecated_submodule(
 )
 
 
-def _register_resolver() -> None:
-    """Registers the cirq module's public classes for JSON serialization."""
-    from cirq.protocols.json_serialization import _internal_register_resolver
-    from cirq.json_resolver_cache import _class_resolver_dictionary
-
-    _internal_register_resolver(_class_resolver_dictionary)
+# Registers cirq-core's public classes for JSON serialization.
+# pylint: disable=wrong-import-position
+from cirq.protocols.json_serialization import _register_resolver
+from cirq.json_resolver_cache import _class_resolver_dictionary
 
 
-_register_resolver()
+_register_resolver(_class_resolver_dictionary)
 
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
-# pylint: disable=wrong-import-position
 from cirq import (
     contrib,
 )

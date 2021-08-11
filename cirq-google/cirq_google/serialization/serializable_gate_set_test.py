@@ -68,8 +68,8 @@ Y_DESERIALIZER = cg.GateOpDeserializer(
     ],
 )
 
-CIRCUIT_OP_SERIALIZER = cg.op_serializer.CircuitOpSerializer()
-CIRCUIT_OP_DESERIALIZER = cg.op_deserializer.CircuitOpDeserializer()
+CIRCUIT_OP_SERIALIZER = cg.CircuitOpSerializer()
+CIRCUIT_OP_DESERIALIZER = cg.CircuitOpDeserializer()
 
 MY_GATE_SET = cg.SerializableGateSet(
     gate_set_name='my_gate_set',
