@@ -30,10 +30,8 @@ import warnings
 from typing import Set, List
 
 import pytest
-from filelock import FileLock
 
 from dev_tools import shell_tools
-from dev_tools.env_tools import create_virtual_env
 from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_notebook
 
 # these notebooks rely on features that are not released yet
@@ -86,7 +84,6 @@ PACKAGES = [
     # for running the notebooks
     "papermill",
     "jupyter",
-    "virtualenv-clone",
     # assumed to be part of colab
     "seaborn~=0.11.1",
     # https://github.com/nteract/papermill/issues/519
@@ -141,32 +138,6 @@ def _list_changed_notebooks() -> Set[str]:
         return set()
 
 
-@pytest.mark.slow
-@pytest.fixture(scope="session")
-def base_env(tmp_path_factory, worker_id):
-    # get the temp directory shared by all workers
-    root_tmp_dir = tmp_path_factory.getbasetemp().parent.parent
-    proto_dir = root_tmp_dir / "proto_dir"
-    with FileLock(str(proto_dir) + ".lock"):
-        if proto_dir.is_dir():
-            print(f"{worker_id} returning as {proto_dir} is a dir!")
-            print(
-                f"If all the notebooks are failing, the test framework might "
-                f"have left this directory around. Try 'rm -rf {proto_dir}'"
-            )
-        else:
-            print(f"{worker_id} creating stuff...")
-            _create_base_env(proto_dir)
-
-    return root_tmp_dir, proto_dir
-
-
-def _create_base_env(proto_dir):
-    create_virtual_env(str(proto_dir), [], sys.executable, True)
-    pip_path = str(proto_dir / "bin" / "pip")
-    shell_tools.run_cmd(pip_path, "install", *PACKAGES)
-
-
 def _partitioned_test_cases(notebooks):
     n_partitions = int(os.environ.get("NOTEBOOK_PARTITIONS", "1"))
     return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
@@ -177,7 +148,7 @@ def _partitioned_test_cases(notebooks):
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_notebooks_against_released_cirq(partition, notebook_path, base_env):
+def test_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
     """Tests the notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
@@ -192,22 +163,19 @@ def test_notebooks_against_released_cirq(partition, notebook_path, base_env):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
-    tmpdir, proto_dir = base_env
+    notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
     notebook_file = os.path.basename(notebook_path)
-    dir_name = notebook_file.rstrip(".ipynb")
-
-    notebook_env = os.path.join(tmpdir, f"{dir_name}")
 
     rewritten_notebook_descriptor, rewritten_notebook_path = rewrite_notebook(notebook_path)
 
     cmd = f"""
 mkdir -p out/{notebook_rel_dir}
-{proto_dir}/bin/virtualenv-clone {proto_dir} {notebook_env}
 cd {notebook_env}
 . ./bin/activate
+pip list 
 papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
-    _, stderr, status = shell_tools.run_shell(
+    stdout, stderr, status = shell_tools.run_shell(
         cmd=cmd,
         log_run_to_stderr=False,
         raise_on_fail=False,
@@ -219,6 +187,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
     )
 
     if status != 0:
+        print(stdout)
         print(stderr)
         pytest.fail(
             f"Notebook failure: {notebook_file}, please see {out_path} for the output "

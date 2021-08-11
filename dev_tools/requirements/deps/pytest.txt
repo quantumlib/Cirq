@@ -16,3 +16,7 @@ importlib-metadata; python_version < '3.8'
 
 # codeowners test dependency
 codeowners; python_version >= '3.7'
+
+# for creating isolated environments
+virtualenv
+virtualenv-clone
