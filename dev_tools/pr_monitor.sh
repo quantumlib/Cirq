@@ -43,7 +43,7 @@
 # Usage:
 #     export CIRQ_BOT_GITHUB_ACCESS_TOKEN=[access token for CirqBot's github account]
 #     export CIRQ_BOT_UPDATE_BRANCH_COOKIE=[CirqBot user_session cookie from github]
-#     bash dev_tools/pr_moniter.sh
+#     bash dev_tools/pr_monitor.sh
 ########################################################################################
 
 
@@ -54,4 +54,4 @@ cd "${repo_dir}"
 
 # Do the thing.
 export PYTHONPATH=${repo_dir}
-python3 ${repo_dir}/dev_tools/pr_moniter.py $@
+python3 ${repo_dir}/dev_tools/pr_monitor.py $@
