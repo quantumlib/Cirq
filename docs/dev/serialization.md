@@ -121,7 +121,7 @@ In order to fix this, one should add an entry corresponding to deprecated value 
 `cirq-<module>/cirq/protocols/json_test_data/spec.py`, of the form: 
 ```python
 deprecated={
- 'deprecated_value': 'deprecation_version',
+ 'DeprecatedClass': 'deprecation_deadline',
 }
 ```
 
