@@ -28,9 +28,7 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class NeutralAtomDevice(devices.Device):
-    """
-    A device with qubits placed on a grid.
-    """
+    """A device with qubits placed on a grid."""
 
     def __init__(
         self,
@@ -42,8 +40,7 @@ class NeutralAtomDevice(devices.Device):
         max_parallel_c: int,
         qubits: Iterable[GridQubit],
     ) -> None:
-        """
-        Initializes the description of the AQuA device.
+        """Initializes the description of the AQuA device.
 
         Args:
             measurement_duration: the maximum duration of a measurement.
@@ -91,8 +88,7 @@ class NeutralAtomDevice(devices.Device):
         return convert_to_neutral_atom_gates.ConvertToNeutralAtomGates().convert(operation)
 
     def duration_of(self, operation: ops.Operation):
-        """
-        Provides the duration of the given operation on this device.
+        """Provides the duration of the given operation on this device.
 
         Args:
             operation: the operation to get the duration of
@@ -111,8 +107,7 @@ class NeutralAtomDevice(devices.Device):
         return self._gate_duration
 
     def validate_gate(self, gate: ops.Gate):
-        """
-        Raises an error if the provided gate isn't part of the native gate set.
+        """Raises an error if the provided gate isn't part of the native gate set.
 
         Args:
             gate: the gate to validate
@@ -141,8 +136,7 @@ class NeutralAtomDevice(devices.Device):
                 raise ValueError('controlled gates must have integer exponents')
 
     def validate_operation(self, operation: ops.Operation):
-        """
-        Raises an error if the given operation is invalid on this device.
+        """Raises an error if the given operation is invalid on this device.
 
         Args:
             operation: the operation to validate
@@ -190,8 +184,7 @@ class NeutralAtomDevice(devices.Device):
                 raise ValueError("Bad number of XY gates in parallel")
 
     def validate_moment(self, moment: ops.Moment):
-        """
-        Raises an error if the given moment is invalid on this device
+        """Raises an error if the given moment is invalid on this device.
 
         Args:
             moment: The moment to validate
@@ -264,9 +257,9 @@ class NeutralAtomDevice(devices.Device):
         )
 
     def can_add_operation_into_moment(self, operation: ops.Operation, moment: ops.Moment) -> bool:
-        """
-        Determines if it's possible to add an operation into a moment. An
-        operation can be added if the moment with the operation added is valid
+        """Determines if it's possible to add an operation into a moment.
+
+        An operation can be added if the moment with the operation added is valid.
 
         Args:
             operation: The operation being added.
@@ -287,9 +280,9 @@ class NeutralAtomDevice(devices.Device):
         return True
 
     def validate_circuit(self, circuit: circuits.Circuit):
-        """
-        Raises an error if the given circuit is invalid on this device. A
-        circuit is invalid if any of its moments are invalid or if there is a
+        """Raises an error if the given circuit is invalid on this device.
+
+        A circuit is invalid if any of its moments are invalid or if there is a
         non-empty moment after a moment with a measurement.
 
         Args:

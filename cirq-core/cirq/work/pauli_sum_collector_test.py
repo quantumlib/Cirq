@@ -22,12 +22,16 @@ async def test_pauli_string_sample_collector():
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliSumCollector(
         circuit=cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.X(a), cirq.Z(b)),
-        observable=cirq.X(a) * cirq.X(b) - 16 * cirq.Y(a) * cirq.Y(b) + 4 * cirq.Z(a) * cirq.Z(b),
+        observable=(1 + 0j) * cirq.X(a) * cirq.X(b)
+        - 16 * cirq.Y(a) * cirq.Y(b)
+        + 4 * cirq.Z(a) * cirq.Z(b)
+        + (1 - 0j),
         samples_per_term=100,
     )
     completion = p.collect_async(sampler=cirq.Simulator())
     assert await completion is None
-    assert p.estimated_energy() == 11
+    energy = p.estimated_energy()
+    assert isinstance(energy, float) and energy == 12
 
 
 @pytest.mark.asyncio

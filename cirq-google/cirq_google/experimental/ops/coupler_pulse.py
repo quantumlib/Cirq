@@ -49,7 +49,8 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
         rise_time: Optional[cirq.Duration] = cirq.Duration(nanos=8),
         padding_time: Optional[cirq.Duration] = cirq.Duration(nanos=2.5),
     ):
-        """
+        """Inits CouplerPulse.
+
         Args:
             hold_time: Length of the 'plateau' part of the coupler trajectory.
             coupling_MHz: Target qubit-qubit coupling reached at the plateau.

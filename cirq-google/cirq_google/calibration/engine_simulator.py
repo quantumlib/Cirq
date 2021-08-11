@@ -463,8 +463,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
     def _create_step_result(
         self,
-        sim_state: cirq.ActOnStateVectorArgs,
-        qubit_map: Dict[cirq.Qid, int],
+        sim_state: cirq.OperationTarget,
     ) -> cirq.SparseSimulatorStep:
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()

@@ -105,11 +105,9 @@ git cherry-pick <commit>
 Bump the version on the release branch: 
 
 ```bash
-vi ./cirq-core/cirq/_version.py   # Remove .dev from version
-vi ./cirq-google/cirq_google/_version.py  # Remove .dev from version   
-vi ./cirq-aqt/cirq_aqt/_version.py  # Remove .dev from version   
-git add ./cirq-core/cirq/_version.py ./cirq-google/cirq_google/_version.py
-git commit -m "Bump cirq version to ${NEXT_VER}"
+python dev_tools/modules.py replace_version --old ${VER}.dev --new ${VER} 
+git add .
+git commit -m "Removing ${VER}.dev -> ${VER}"
 git push origin "v${VER}-dev"
 ```
 
@@ -120,8 +118,7 @@ updates, leave it as it is.
 
 ```bash
 git checkout master -b "version_bump_${NEXT_VER}"
-vi ./cirq/_version.py # Bump version to next version.  KEEP .dev!
-git add ./cirq/_version.py
+python dev_tools/modules.py replace_version --old ${VER}.dev --new ${NEXT_VER}.dev
 git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "version_bump_${NEXT_VER}"
 ```
@@ -136,7 +133,7 @@ that will go to pypi.
 ```bash
 git checkout "v${VER}-dev"
 ./dev_tools/packaging/produce-package.sh dist
-ls dist  # should only contain 3 files, one versioned whl file for cirq, cirq_google and cirq_core 
+ls dist  # should only contain one file, for each modules 
 ```
 
 ### Push to test pypi

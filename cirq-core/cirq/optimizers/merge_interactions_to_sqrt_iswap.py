@@ -42,7 +42,8 @@ class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
         use_sqrt_iswap_inv: bool = False,
         post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE] = lambda op_list: op_list,
     ) -> None:
-        """
+        """Inits MergeInteractionsToSqrtIswap.
+
         Args:
             tolerance: A limit on the amount of absolute error introduced by the
                 construction.

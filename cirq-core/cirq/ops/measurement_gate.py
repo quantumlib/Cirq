@@ -38,7 +38,8 @@ class MeasurementGate(raw_types.Gate):
         invert_mask: Tuple[bool, ...] = (),
         qid_shape: Tuple[int, ...] = None,
     ) -> None:
-        """
+        """Inits MeasurementGate.
+
         Args:
             num_qubits: The number of qubits to act upon.
             key: The string key of the measurement.
@@ -129,7 +130,7 @@ class MeasurementGate(raw_types.Gate):
         return self.key
 
     def _kraus_(self):
-        size = np.prod(self._qid_shape, dtype=int)
+        size = np.prod(self._qid_shape, dtype=np.int64)
 
         def delta(i):
             result = np.zeros((size, size))

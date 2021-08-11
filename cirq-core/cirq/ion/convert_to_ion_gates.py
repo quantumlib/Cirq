@@ -22,7 +22,8 @@ class ConvertToIonGates:
     """Attempts to convert non-native gates into IonGates."""
 
     def __init__(self, ignore_failures: bool = False) -> None:
-        """
+        """Inits ConvertToIonGates.
+
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
