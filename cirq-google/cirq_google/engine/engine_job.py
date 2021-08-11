@@ -399,7 +399,7 @@ def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
     trial_results = []
     for sweep_result in result.sweep_results:
         sweep_repetitions = sweep_result.repetitions
-        key_sizes = [(m.key, len(m.qubits)) for m in sweep_result.measurement_keys_str]
+        key_sizes = [(m.key, len(m.qubits)) for m in sweep_result.measurement_keys]
         for result in sweep_result.parameterized_results:
             data = result.measurement_results
             measurements = v1.unpack_results(data, sweep_repetitions, key_sizes)
