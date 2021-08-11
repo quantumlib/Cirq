@@ -16,19 +16,7 @@
 import logging
 from typing import ContextManager, List, Optional
 
-from cirq._compat import deprecated_parameter
 
-
-@deprecated_parameter(
-    deadline="v0.12",
-    fix="use min_level instead",
-    parameter_desc="level",
-    match=lambda args, kwargs: 'level' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('min_level' if k == 'level' else k): v for k, v in kwargs.items()},
-    ),
-)
 def assert_logs(
     *matches: str,
     count: Optional[int] = 1,
