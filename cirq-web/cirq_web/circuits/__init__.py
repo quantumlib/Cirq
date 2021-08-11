@@ -12,17 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
-from typing import Dict
-
-import cirq_rigetti
-from cirq.protocols.json_serialization import ObjectFactory
-
-
-@functools.lru_cache()  # coverage: ignore
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # coverage: ignore
-    return {
-        'RigettiQCSAspenDevice': cirq_rigetti.RigettiQCSAspenDevice,
-        'AspenQubit': cirq_rigetti.AspenQubit,
-        'OctagonalQubit': cirq_rigetti.OctagonalQubit,
-    }
+from cirq_web.circuits.circuit import Circuit3D
+from cirq_web.circuits.symbols import (
+    Operation3DSymbol,
+)
