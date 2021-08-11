@@ -186,8 +186,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `ZPowGate` with two additional controls.
+        """Returns a controlled `ZPowGate` with two additional controls.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate` with `sub_gate = self`. This method
@@ -475,8 +474,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `XPowGate` with two additional controls.
+        """Returns a controlled `XPowGate` with two additional controls.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate` with `sub_gate = self`. This method
@@ -649,8 +647,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
-        """
-        Returns a controlled `SWAP` with one additional control.
+        """Returns a controlled `SWAP` with one additional control.
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate` with `sub_gate = self`. This method
