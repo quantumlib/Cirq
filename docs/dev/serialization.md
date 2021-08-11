@@ -79,29 +79,29 @@ If the returned object has a `_from_json_dict_` attribute, it is called instead.
 
 ## Adding a new serializable value
 
-All of Cirq's public classes should be serializable.
+All of Cirq's public classes should be serializable. Public classes are the ones that can be found in the Cirq module top level 
+namespaces, i.e. `cirq.*`, `cirq_google.*`, `cirq_aqt.*`, etc, (see [Cirq modules](./modules.md) for setting up JSON serialization for a module).  
 This is enforced by the `test_json_test_data_coverage` test in
-`cirq/protocols/json_serialization_test.py`, which iterates over cirq's API looking for types
-with no associated json test data.
+`cirq-core/cirq/protocols/json_serialization_test.py`, which iterates over cirq's API 
+looking for types with no associated json test data.
 
-There are several steps needed to get a object serializing, deserializing, and
-passing tests:
+There are several steps needed to support an object's serialization and deserialization, 
+and pass `cirq-core/cirq/protocols/json_serialization_test.py`:
 
 1. The object should have a `_json_dict_` method that returns a dictionary
 containing a `"cirq_type"` key as well as keys for each of the value's
-attributes.
-If these keys do not match the names of the class' initializer arguments, a
-`_from_json_dict_` class method must also be defined.
+attributes. If these keys do not match the names of the class' initializer 
+arguments, a `_from_json_dict_` class method must also be defined.
 Typically the `"cirq_type"` will be the name of your class.
 
-2. Add an entry to the big hardcoded dictionary in `cirq/protocols/json.py`,
-mapping the cirq_type string you chose to the class.
-You can also map the key to a helper method that returns the class (important
-for backwards compatibility if e.g. a class is later replaced by another one).
-After doing this, `cirq.to_json` and `cirq.read_json` should start working for
-your object.
+2. In `class_resolver_dictionary` within the packages's `json_resolver_cache.py` file,
+for each serializable class, the `cirq_type` of the class should be mapped to the imported class 
+within the package. The key may also be mapped to a helper method that 
+returns the class (important for backwards compatibility if e.g. a class is later replaced 
+by another one). After doing this, `cirq.to_json` and `cirq.read_json` should start 
+working for your object.
 
-3. Add test data files to the `cirq/protocols/json_test_data` directory.
+3. Add test data files to the package's `json_test_data` directory.
 These are to ensure that the class remains deserializable in future versions.
 There should be two files: `your_class_name.repr` and `your_class_name.json`.
 `your_class_name.repr` should contain a python expression that evaluates to an
@@ -124,19 +124,28 @@ As such, "removing" a serializable value is more akin to removing it
 
 There are several steps:
 
-1. Find the object's test files in `cirq/protocols/json_test_data`.
-Change the file name extensions from `.json` to `.json_inward` and `.repr` to
-`.repr_inward`.
-This indicates that only deserialization needs to be tested, not deserialization
-and serialization.
-If `_inward` files already exist, merge into them (e.g. by ensuring they encode
-lists and then appending into those lists).
+1. Find the object's test files in relevant package's `json_test_data`
+directory. Change the file name extensions from `.json` to `.json_inward` and `.repr` to
+`.repr_inward`. This indicates that only deserialization needs to be tested, not deserialization
+and serialization. If `_inward` files already exist, merge into them (e.g. by 
+ensuring they encode lists and then appending into those lists).
 
 2. Define a parsing method to stand in for the object.
 This parsing method must return an object with the same basic behavior as the
 object being removed, but does not have to return an exactly identical object.
 For example, an X could be replaced by a PhasedX with no phasing.
-Edit the entry in the big dictionary in `cirq/protocols/json.py` to point at
-this method instead of the object being removed.
+Edit the entry in the in `cirq-<module>/json_test_data/spec.py` or in the
+ relevant package's `class_resolver_dictionary` (`cirq-<module>/cirq_module/json_resolver_cache.py`) to 
+ point at this method instead of the object being removed.
 (There will likely be debate about exactly how to do this, on a case by case
 basis.)
+
+
+## Marking a public object as non-serializable
+
+Some public objects will be exceptional and should not be serialized ever. These could be marked in the 
+given top level package's spec.py (`<module>/<top level package>/json_test_data/spec.py`) by adding its 
+name to `should_not_serialize`. 
+
+We allow for incremental introduction of new objects to serializability - if an object should be 
+serialized but is not yet serializable, it should be added to the `not_yet_serializable` list in the `spec.py` file.      
