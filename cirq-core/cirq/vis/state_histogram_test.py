@@ -95,18 +95,3 @@ def test_plot_state_histogram_collection():
     for r1, r2 in zip(ax1.get_children(), ax2.get_children()):
         if isinstance(r1, mpl.patches.Rectangle) and isinstance(r2, mpl.patches.Rectangle):
             assert str(r1) == str(r2)
-
-
-def test_plot_state_histogram_deprecation():
-    with cirq.testing.assert_deprecated(
-        'cirq.study.visualize.plot_state_histogram was used but is deprecated.\n'
-        'It will be removed in cirq v0.12.\n'
-        'use cirq.vis.plot_state_histogram or cirq.vis.get_state_histogram instead',
-        deadline="v0.12",
-        count=None,  # Another warning is due to matplotlib.
-    ):
-        simulator = cirq.Simulator()
-        q = cirq.NamedQubit("a")
-        circuit = cirq.Circuit([cirq.X(q), cirq.measure(q)])
-        result = simulator.run(program=circuit, repetitions=5)
-        cirq.study.visualize.plot_state_histogram(result)
