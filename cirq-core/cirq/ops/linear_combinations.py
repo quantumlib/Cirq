@@ -743,7 +743,7 @@ class ProjectorSum:
     def __init__(
         self, linear_dict: Optional[value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]]] = None
     ):
-        """Contructor for ProjectorString
+        """Constructor for ProjectorSum
 
         Args:
             linear_dict: A linear dictionary from a set of tuples of (Qubit, integer) to a complex
@@ -806,10 +806,10 @@ class ProjectorSum:
         """Returns the matrix of self in computational basis of qubits.
 
         Args:
-            projector_qids: Ordered collection of qubits that determine the subspace
-                in which the matrix representation of the ProjectorString is to
-                be computed. Qbits absent from self.qubits are acted on by
-                the identity. Defaults to the qubits of the projector_dict.
+            projector_qids: Ordered collection of qubits that determine the subspace in which the
+                matrix representation of the ProjectorSum is to be computed. Qbits absent from
+                self.qubits are acted on by the identity. Defaults to the qubits of the
+                projector_dict.
 
         Returns:
             A sparse matrix that is the projection in the specified basis.
@@ -824,7 +824,7 @@ class ProjectorSum:
         state_vector: np.ndarray,
         qid_map: Mapping[raw_types.Qid, int],
     ) -> float:
-        """Expectation of the sum projection from a state vector.
+        """Compute the expectation value of this ProjectorSum given a state vector.
 
         Projects the state vector onto the sum of projectors and computes the expectation of the
         measurements.
@@ -876,26 +876,34 @@ class ProjectorSum:
     def __len__(self) -> int:
         return len(self._linear_dict)
 
-    def __truediv__(self, a: numbers.Complex):
-        return self.__imul__(1 / a)
+    def __truediv__(self, a: value.Scalar):
+        return self.__mul__(1 / a)
 
     def __bool__(self) -> bool:
         return bool(self._linear_dict)
 
     def __iadd__(self, other: 'ProjectorSum'):
+        if not isinstance(other, ProjectorSum):
+            return NotImplemented
         self._linear_dict += other._linear_dict
         return self
 
     def __add__(self, other: 'ProjectorSum'):
+        if not isinstance(other, ProjectorSum):
+            return NotImplemented
         result = self.copy()
         result += other
         return result
 
     def __isub__(self, other: 'ProjectorSum'):
+        if not isinstance(other, ProjectorSum):
+            return NotImplemented
         self._linear_dict -= other._linear_dict
         return self
 
     def __sub__(self, other: 'ProjectorSum'):
+        if not isinstance(other, ProjectorSum):
+            return NotImplemented
         result = self.copy()
         result -= other
         return result
@@ -904,11 +912,22 @@ class ProjectorSum:
         factory = type(self)
         return factory(-self._linear_dict)
 
-    def __imul__(self, other: numbers.Complex):
+    def __imul__(self, other: value.Scalar):
+        if not isinstance(other, numbers.Complex):
+            return NotImplemented
         self._linear_dict *= other
         return self
 
-    def __rmul__(self, other: numbers.Complex):
+    def __mul__(self, other: value.Scalar):
+        if not isinstance(other, numbers.Complex):
+            return NotImplemented
+        result = self.copy()
+        result *= other
+        return result
+
+    def __rmul__(self, other: value.Scalar):
+        if not isinstance(other, numbers.Complex):
+            return NotImplemented
         result = self.copy()
         result *= other
         return result
