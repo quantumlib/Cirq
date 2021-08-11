@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import cirq.devices.unconstrained_device
 
 
-@functools.lru_cache(maxsize=1)
+@functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import cirq
     from cirq.ops import raw_types
