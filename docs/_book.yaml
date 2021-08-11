@@ -86,6 +86,8 @@ upper_tabs:
         path: /cirq/dev/gates
       - title: "Plotting guidelines"
         path: /cirq/dev/plotting
+      - title: "Modules"
+        path: /cirq/dev/modules
       - title: "Serialization guidelines"
         path: /cirq/dev/serialization
       - title: "Triage process"
@@ -134,6 +136,11 @@ upper_tabs:
         path: /cirq/pasqal/devices
       - title: "Pasqal sampler"
         path: /cirq/pasqal/sampler
+
+      ##### RIGETTI ####
+      - heading: "Rigetti hardware"
+      - title: "Access and authentication"
+        path: /cirq/rigetti/access
 
     - name: "Tutorials"
       contents:
@@ -214,6 +221,11 @@ upper_tabs:
       - heading: "Pasqal hardware"
       - title: "Getting started with Pasqal hardware"
         path: /cirq/tutorials/pasqal/getting_started
+
+      ##### RIGETTI HARDWARE ####
+      - heading: "Rigetti hardware"
+      - title: "Getting started with Rigetti hardware"
+        path: /cirq/tutorials/rigetti/getting_started
 
       ####  EDUCATORS WORKSHOP  ####
       - heading: "Educators workshop"

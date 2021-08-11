@@ -1226,7 +1226,7 @@ def test_separated_measurements():
             cirq.H(a),
             cirq.H(b),
             cirq.CZ(a, b),
-            cirq.measure(a, key=''),
+            cirq.measure(a, key='a'),
             cirq.CZ(a, b),
             cirq.H(b),
             cirq.measure(b, key='zero'),

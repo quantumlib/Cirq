@@ -306,6 +306,9 @@ def _strat_act_on_state_vector_from_mixture(
         unitary, args.target_tensor, args.get_axes(qubits), out=args.available_buffer
     )
     args.swap_target_tensor_for(args.available_buffer)
+    if protocols.is_measurement(action):
+        key = protocols.measurement_key(action)
+        args.log_of_measurement_results[key] = [index]
     return True
 
 
@@ -329,13 +332,13 @@ def _strat_act_on_state_vector_from_channel(
     p = args.prng.random()
     weight = None
     fallback_weight = 0
-    fallback_weight_i = 0
-    for i in range(len(kraus_tensors)):
-        prepare_into_buffer(i)
+    fallback_weight_index = 0
+    for index in range(len(kraus_tensors)):
+        prepare_into_buffer(index)
         weight = np.linalg.norm(args.available_buffer) ** 2
 
         if weight > fallback_weight:
-            fallback_weight_i = i
+            fallback_weight_index = index
             fallback_weight = weight
 
         p -= weight
@@ -346,9 +349,13 @@ def _strat_act_on_state_vector_from_channel(
     if p >= 0 or weight == 0:
         # Floating point error resulted in a malformed sample.
         # Fall back to the most likely case.
-        prepare_into_buffer(fallback_weight_i)
+        prepare_into_buffer(fallback_weight_index)
         weight = fallback_weight
+        index = fallback_weight_index
 
     args.available_buffer /= np.sqrt(weight)
     args.swap_target_tensor_for(args.available_buffer)
+    if protocols.is_measurement(action):
+        key = protocols.measurement_key(action)
+        args.log_of_measurement_results[key] = [index]
     return True
