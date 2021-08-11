@@ -63,7 +63,7 @@ def test_decompose(gate, num_copies, qubits):
 def test_decompose_raises():
     g = cirq.ParallelGate(cirq.X, 2)
     qubits = cirq.LineQubit.range(4)
-    with pytest.raises(ValueError, match="len\(qubits\)=4 should be 2"):
+    with pytest.raises(ValueError, match=r'len\(qubits\)=4 should be 2'):
         cirq.decompose_once_with_qubits(g, qubits)
 
 
