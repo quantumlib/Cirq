@@ -59,5 +59,4 @@ class GithubRepository:
         headers = kwargs.get('headers', {})
         headers.update({"Authorization": f"token {self.access_token}"})
         new_kwargs.update(headers=headers)
-        print("KWARGS: ", new_kwargs)
         return new_kwargs
