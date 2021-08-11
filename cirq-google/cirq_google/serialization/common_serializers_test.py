@@ -23,16 +23,16 @@ from google.protobuf import json_format
 import cirq
 import cirq_google
 import cirq_google as cg
-import cirq_google.common_serializers as cgc
+import cirq_google.serialization.common_serializers as cgc
 from cirq_google.api import v2
 
-SINGLE_QUBIT_GATE_SET = cg.serializable_gate_set.SerializableGateSet(
+SINGLE_QUBIT_GATE_SET = cg.SerializableGateSet(
     gate_set_name='test_half_pi',
     serializers=([cgc.MEASUREMENT_SERIALIZER] + cgc.SINGLE_QUBIT_SERIALIZERS),
     deserializers=([cgc.MEASUREMENT_DESERIALIZER] + cgc.SINGLE_QUBIT_DESERIALIZERS),
 )
 
-HALF_PI_GATE_SET = cg.serializable_gate_set.SerializableGateSet(
+HALF_PI_GATE_SET = cg.SerializableGateSet(
     gate_set_name='test_half_pi',
     serializers=([cgc.MEASUREMENT_SERIALIZER] + cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS),
     deserializers=([cgc.MEASUREMENT_DESERIALIZER] + cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS),
@@ -346,7 +346,7 @@ def test_serialize_z(gate, half_turns):
             'gate': {'id': 'z'},
             'args': {
                 'half_turns': {'arg_value': {'float_value': half_turns}},
-                'type': {'arg_value': {'string_value': cirq_google.common_serializers.PHYSICAL_Z}},
+                'type': {'arg_value': {'string_value': cgc.PHYSICAL_Z}},
             },
             'qubits': [{'id': '1_2'}],
         }
@@ -398,7 +398,7 @@ def test_deserialize_z(half_turns):
             'gate': {'id': 'z'},
             'args': {
                 'half_turns': {'arg_value': {'float_value': half_turns}},
-                'type': {'arg_value': {'string_value': cirq_google.common_serializers.VIRTUAL_Z}},
+                'type': {'arg_value': {'string_value': cgc.VIRTUAL_Z}},
             },
             'qubits': [{'id': '1_2'}],
         }
@@ -407,7 +407,7 @@ def test_deserialize_z(half_turns):
     expected = cirq.ZPowGate(exponent=half_turns)(q)
     assert SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op) == expected
 
-    serialized_op.args['type'].arg_value.string_value = cirq_google.common_serializers.PHYSICAL_Z
+    serialized_op.args['type'].arg_value.string_value = cgc.PHYSICAL_Z
     expected = cirq.ZPowGate(exponent=half_turns)(q).with_tags(cg.PhysicalZTag())
     assert SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op) == expected
 
@@ -418,7 +418,7 @@ def test_deserialize_z_parameterized():
             'gate': {'id': 'z'},
             'args': {
                 'half_turns': {'symbol': 'a'},
-                'type': {'arg_value': {'string_value': cirq_google.common_serializers.VIRTUAL_Z}},
+                'type': {'arg_value': {'string_value': cgc.VIRTUAL_Z}},
             },
             'qubits': [{'id': '1_2'}],
         }

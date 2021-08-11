@@ -44,12 +44,15 @@ if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
+# Sanity check
+assert __version__, 'Version string cannot be empty'
+
+requirements += [f'cirq-core=={__version__}']
+
 cirq_packages = ['cirq_rigetti'] + [
     'cirq_rigetti.' + package for package in find_packages(where='cirq_rigetti')
 ]
 
-# Sanity check
-assert __version__, 'Version string cannot be empty'
 
 setup(
     name=name,
