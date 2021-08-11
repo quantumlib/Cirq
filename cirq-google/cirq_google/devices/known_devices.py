@@ -16,11 +16,11 @@ from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple
 
 import cirq
 from cirq._doc import document
-from cirq_google import gate_sets, op_serializer, serializable_gate_set
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
 from cirq_google.devices.serializable_device import SerializableDevice
 from cirq_google.devices.xmon_device import XmonDevice
+from cirq_google.serialization import gate_sets, op_serializer, serializable_gate_set
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
 _MEAS_TARGET_SET = "meas_targets"

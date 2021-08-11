@@ -15,6 +15,8 @@
 import abc
 import dataclasses
 import itertools
+import os
+import tempfile
 import warnings
 from typing import Optional, Iterable, Dict, List, Tuple, TYPE_CHECKING, Set, Sequence
 
@@ -22,7 +24,7 @@ import numpy as np
 import sympy
 from cirq import circuits, study, ops, value
 from cirq._doc import document
-from cirq.protocols import json_serializable_dataclass
+from cirq.protocols import json_serializable_dataclass, to_json
 from cirq.work.observable_measurement_data import BitstringAccumulator
 from cirq.work.observable_settings import (
     InitObsSetting,
@@ -353,6 +355,60 @@ def _to_sweep(param_tuples):
     return to_sweep
 
 
+def _parse_checkpoint_options(
+    checkpoint: bool, checkpoint_fn: Optional[str], checkpoint_other_fn: Optional[str]
+) -> Tuple[Optional[str], Optional[str]]:
+    """Parse the checkpoint-oriented options in `measure_grouped_settings`.
+
+    This function contains the validation and defaults logic. Please see
+    `measure_grouped_settings` for documentation on these args.
+
+    Returns:
+        checkpoint_fn, checkpoint_other_fn: Parsed or default filenames for primary and previous
+            checkpoint files.
+    """
+    if not checkpoint:
+        if checkpoint_fn is not None or checkpoint_other_fn is not None:
+            raise ValueError(
+                "Checkpoint filenames were provided but `checkpoint` was set to False."
+            )
+        return None, None
+
+    if checkpoint_fn is None:
+        checkpoint_dir = tempfile.mkdtemp()
+        chk_basename = 'observables'
+        checkpoint_fn = f'{checkpoint_dir}/{chk_basename}.json'
+
+    if checkpoint_other_fn is None:
+        checkpoint_dir = os.path.dirname(checkpoint_fn)
+        chk_basename = os.path.basename(checkpoint_fn)
+        chk_basename, dot, ext = chk_basename.rpartition('.')
+        if chk_basename == '' or dot != '.' or ext == '':
+            raise ValueError(
+                f"You specified `checkpoint_fn={checkpoint_fn!r}` which does not follow the "
+                f"pattern of 'filename.extension'. Please follow this pattern or fully specify "
+                f"`checkpoint_other_fn`."
+            )
+
+        if ext != 'json':
+            raise ValueError(
+                "Please use a `.json` filename or fully "
+                "specify checkpoint_fn and checkpoint_other_fn"
+            )
+        if checkpoint_dir == '':
+            checkpoint_other_fn = f'{chk_basename}.prev.json'
+        else:
+            checkpoint_other_fn = f'{checkpoint_dir}/{chk_basename}.prev.json'
+
+    if checkpoint_fn == checkpoint_other_fn:
+        raise ValueError(
+            f"`checkpoint_fn` and `checkpoint_other_fn` were set to the same "
+            f"filename: {checkpoint_fn}. Please use two different filenames."
+        )
+
+    return checkpoint_fn, checkpoint_other_fn
+
+
 def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting]]) -> bool:
     """Helper function to go through init_states and determine if any of them need an
     initialization layer of single-qubit gates."""
@@ -371,6 +427,9 @@ def measure_grouped_settings(
     readout_symmetrization: bool = False,
     circuit_sweep: 'cirq.study.sweepable.SweepLike' = None,
     readout_calibrations: Optional[BitstringAccumulator] = None,
+    checkpoint: bool = False,
+    checkpoint_fn: Optional[str] = None,
+    checkpoint_other_fn: Optional[str] = None,
 ) -> List[BitstringAccumulator]:
     """Measure a suite of grouped InitObsSetting settings.
 
@@ -399,10 +458,26 @@ def measure_grouped_settings(
             in `circuit`. The total sweep is the product of the circuit sweep
             with parameter settings for the single-qubit basis-change rotations.
         readout_calibrations: The result of `calibrate_readout_error`.
+        checkpoint: If set to True, save cumulative raw results at the end
+            of each iteration of the sampling loop. Load in these results
+            with `cirq.read_json`.
+        checkpoint_fn: The filename for the checkpoint file. If `checkpoint`
+            is set to True and this is not specified, a file in a temporary
+            directory will be used.
+        checkpoint_other_fn: The filename for another checkpoint file, which
+            contains the previous checkpoint. This lets us avoid losing data if
+            a failure occurs during checkpoint writing. If `checkpoint`
+            is set to True and this is not specified, a file in a temporary
+            directory will be used. If `checkpoint` is set to True and
+            `checkpoint_fn` is specified but this argument is *not* specified,
+            "{checkpoint_fn}.prev.json" will be used.
     """
     if readout_calibrations is not None and not readout_symmetrization:
         raise ValueError("Readout calibration only works if `readout_symmetrization` is enabled.")
 
+    checkpoint_fn, checkpoint_other_fn = _parse_checkpoint_options(
+        checkpoint=checkpoint, checkpoint_fn=checkpoint_fn, checkpoint_other_fn=checkpoint_other_fn
+    )
     qubits = sorted({q for ms in grouped_settings.keys() for q in ms.init_state.qubits})
     qubit_to_index = {q: i for i, q in enumerate(qubits)}
 
@@ -470,5 +545,12 @@ def measure_grouped_settings(
             accumulator = accumulators[flippy_ms.meas_spec]
             bitstrings = np.logical_xor(flippy_ms.flips, result.measurements['z'])
             accumulator.consume_results(bitstrings.astype(np.uint8, casting='safe'))
+
+        if checkpoint:
+            assert checkpoint_fn is not None, 'mypy'
+            assert checkpoint_other_fn is not None, 'mypy'
+            if os.path.exists(checkpoint_fn):
+                os.replace(checkpoint_fn, checkpoint_other_fn)
+            to_json(list(accumulators.values()), checkpoint_fn)
 
     return list(accumulators.values())

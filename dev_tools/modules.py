@@ -55,6 +55,7 @@ class Module:
     version: str = dataclasses.field(init=False)
     top_level_packages: List[str] = dataclasses.field(init=False)
     top_level_package_paths: List[Path] = dataclasses.field(init=False)
+    install_requires: List[str] = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
         self.name = self.raw_setup['name']
@@ -64,6 +65,9 @@ class Module:
             self.top_level_packages = []
         self.top_level_package_paths = [self.root / p for p in self.top_level_packages]
         self.version = self.raw_setup['version']
+        self.install_requires = (
+            [] if 'install_requires' not in self.raw_setup else self.raw_setup['install_requires']
+        )
 
 
 def list_modules(
