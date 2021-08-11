@@ -139,7 +139,6 @@ class PullRequestDetails:
 
     @property
     def deletions(self) -> int:
-        # print(self.payload)
         return int(self.payload['deletions'])
 
     @property
