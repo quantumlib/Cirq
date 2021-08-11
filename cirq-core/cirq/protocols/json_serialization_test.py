@@ -611,13 +611,6 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         except ImportError:
             pass
 
-    try:
-        import cirq_rigetti
-
-        imports['cirq_rigetti'] = cirq_rigetti
-    except ImportError:
-        pass
-
     with contextlib.ExitStack() as stack:
         for ctx_manager in ctx_managers:
             stack.enter_context(ctx_manager)

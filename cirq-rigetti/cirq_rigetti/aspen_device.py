@@ -1,4 +1,4 @@
-# Copyright 2020 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -128,7 +128,8 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         if isinstance(valid_qubit, (OctagonalQubit, AspenQubit)):
             return valid_qubit.index
 
-        else:  # pragma: no cover
+        else:
+            # coverage: ignore
             raise UnsupportedQubit(f'unsupported Qid type {type(valid_qubit)}')
 
     def validate_qubit(self, qubit: 'cirq.Qid') -> None:
@@ -185,7 +186,8 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
                 )
             return
 
-        else:  # pragma: no cover
+        else:
+            # coverage: ignore
             raise UnsupportedQubit(f'unsupported Qid type {type(qubit)}')
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
@@ -224,7 +226,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
     def _value_equality_values_(self):
         return self._maximum_qubit_number
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self):
         return f'cirq_rigetti.RigettiQCSAspenDevice(isa={self.isa!r})'
 
     def _json_dict_(self):
@@ -245,7 +247,7 @@ def get_rigetti_qcs_aspen_device(
     quantum_processor_id: str,
     client: Optional[httpx.Client],
 ) -> RigettiQCSAspenDevice:
-    """retrieves a `qcs_api_client.models.InstructionSetArchitecture` from the Rigetti
+    """Retrieves a `qcs_api_client.models.InstructionSetArchitecture` from the Rigetti
     QCS API and uses it to initialize a RigettiQCSAspenDevice.
 
     Args:
@@ -274,13 +276,13 @@ class OctagonalQubit(cirq.ops.Qid):
     """A cirq.Qid supporting Octagonal indexing."""
 
     def __init__(self, octagon_position: int):
-        """Initializes an `OctagonalQubit` using indices 0-7.
+        r"""Initializes an `OctagonalQubit` using indices 0-7.
               4  - 3
             /        \
           5           2
           |           |
           6           1
-            \\       /
+            \       /
               7 - 0
 
         Args:
@@ -306,14 +308,20 @@ class OctagonalQubit(cirq.ops.Qid):
     def dimension(self) -> int:
         return 2
 
-    def distance(self, other: cirq.ops.Qid) -> float:
+    def distance(self, other: cirq.Qid) -> float:
         """Returns the distance between two qubits.
+
+        Args:
+            other: An OctagonalQubit to which we are measuring distance.
 
         Returns:
             The distance between two qubits.
+
+        Raises:
+            TypeError: other qubit must be OctagonalQubit.
         """
         if type(other) != OctagonalQubit:
-            raise TypeError(f"distance not supported for qubit type {type(other)}")
+            raise TypeError("can only measure distance from other Octagonal qubits")
         other = cast(OctagonalQubit, other)
         return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
@@ -416,14 +424,19 @@ class AspenQubit(OctagonalQubit):
 
         raise ValueError(f'invalid octagon position {self.octagon_position}')
 
-    def distance(self, other: cirq.ops.Qid) -> float:
+    def distance(self, other: cirq.Qid) -> float:
         """Returns the distance between two qubits.
+
+        Args:
+            other: An AspenQubit to which we are measuring distance.
 
         Returns:
             The distance between two qubits.
+        Raises:
+            TypeError: other qubit must be AspenQubit.
         """
         if type(other) != AspenQubit:
-            raise TypeError(f"distance not supported for qubit type {type(other)}")
+            raise TypeError("can only measure distance from other Aspen qubits")
         other = cast(AspenQubit, other)
         return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
@@ -497,7 +510,7 @@ class AspenQubit(OctagonalQubit):
         octagon = np.floor(index / 10.0)
         return AspenQubit(octagon, octagon_position)
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self):
         return (
             f'cirq_rigetti.AspenQubit('
             f'octagon={self.octagon}, octagon_position={self.octagon_position})'

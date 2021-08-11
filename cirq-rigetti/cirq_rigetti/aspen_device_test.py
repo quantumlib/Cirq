@@ -33,6 +33,12 @@ def test_octagonal_qubit_index():
     assert OctagonalQubit(1) > qubit0
 
 
+def test_octagonal_qubit_repr():
+    """test OctagonalQubit.__repr__"""
+    qubit5 = OctagonalQubit(5)
+    assert "cirq_rigetti.OctagonalQubit(octagon_position=5)" == repr(qubit5)
+
+
 def test_octagonal_qubit_positions():
     """test OctagonalQubit 2D position and distance calculations"""
     qubit0 = OctagonalQubit(0)
@@ -83,6 +89,12 @@ def test_aspen_qubit_index():
     qubit10 = AspenQubit(1, 0)
     assert qubit10.index == 10
     assert qubit10 > AspenQubit(0, 5)
+
+
+def test_aspen_qubit_repr():
+    """test AspenQubit.__repr__"""
+    qubit10 = AspenQubit(1, 0)
+    assert "cirq_rigetti.AspenQubit(octagon=1, octagon_position=0)" == repr(qubit10)
 
 
 def test_aspen_qubit_positions_and_distance():
@@ -247,6 +259,12 @@ def test_rigetti_qcs_aspen_device_qubits(qcs_aspen8_isa: InstructionSetArchitect
         for j in range(8):
             expected_qubits.add(AspenQubit(octagon=i, octagon_position=j))
     assert expected_qubits == set(device.qubits())
+
+
+def test_rigetti_qcs_aspen_device_repr(qcs_aspen8_isa: InstructionSetArchitecture):
+    """test RigettiQCSAspenDevice.__repr__"""
+    device = RigettiQCSAspenDevice(isa=qcs_aspen8_isa)
+    assert f'cirq_rigetti.RigettiQCSAspenDevice(isa={qcs_aspen8_isa!r})' == repr(device)
 
 
 def test_rigetti_qcs_aspen_device_family_validation(qcs_aspen8_isa: InstructionSetArchitecture):

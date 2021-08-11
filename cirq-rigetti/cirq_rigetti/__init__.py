@@ -33,12 +33,8 @@ from cirq_rigetti.aspen_device import (
 )
 
 
-def _register_resolver() -> None:
-    """Registers the cirq_rigetti's public classes for JSON serialization."""
-    from cirq.protocols.json_serialization import _internal_register_resolver
-    from cirq_rigetti.json_resolver_cache import _class_resolver_dictionary
+# Registers the cirq_rigetti's public classes for JSON serialization.
+from cirq.protocols.json_serialization import _register_resolver
+from cirq_rigetti.json_resolver_cache import _class_resolver_dictionary
 
-    _internal_register_resolver(_class_resolver_dictionary)
-
-
-_register_resolver()
+_register_resolver(_class_resolver_dictionary)
