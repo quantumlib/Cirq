@@ -24,16 +24,18 @@ HEAD_AUTO_MERGE_LABEL = 'front_of_queue_automerge'
 AUTO_MERGE_LABELS = [USER_AUTO_MERGE_LABEL, HEAD_AUTO_MERGE_LABEL]
 RECENTLY_MODIFIED_THRESHOLD = datetime.timedelta(seconds=30)
 
-PR_SIZE_LABELS = ['size: XS', 'size: S', 'size: M', 'size: L', 'size: XL']
-PR_SIZES = [10, 50, 250, 1000, 1 << 30]
+PR_SIZE_LABELS = ['size: U', 'size: XS', 'size: S', 'size: M', 'size: L', 'size: XL']
+PR_SIZES = [0, 10, 50, 250, 1000, 1 << 30]
 
 
 def get_pr_size_label(tot_changes: int) -> str:
     i = 0
+    ret = ''
     while i < len(PR_SIZES):
         if tot_changes < PR_SIZES[i]:
-            return PR_SIZE_LABELS[i]
+            ret = PR_SIZE_LABELS[i]
         i += 1
+    return ret
 
 
 def is_recent_date(date: datetime.datetime) -> bool:
