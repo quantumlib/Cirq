@@ -57,14 +57,18 @@ class Fidelity():
   def t1(self):
     return self._t1
 
+  @property
+  def xeb(self):
+    return self._xeb
+
   def decay_constant_to_xeb_error(self, N: int = 4):
     return (1 - self._p) * (1 - 1 / N)
 
   def decay_constant_to_pauli_error(self, N: int = 2):
     return (1 - self._p) * (1 - 1 / N / N)
 
-  def pauli_error_to_xeb_error(self, pauli_error: float, N: int = 4):
-    decay_constant = 1 - (pauli_error / (1 - 1 / N))
+  def pauli_error_to_xeb_error(self, N: int = 4):
+    decay_constant = 1 - (self._pauli_error / (1 - 1 / N))
     return self.decay_constant_to_xeb_error(decay_constant)
 
   def pauli_error_to_decay_constant(self, pauli_error: float, N: int = 2):
@@ -86,7 +90,29 @@ class Fidelity():
   def rb_average_error(self, N: int = 2):
     return (1 - self._p) * (1 - 1 / N)
 
+def fidelity_from_calibration(calibration):
 
+  def unpack_from_calibration(metric_name):
+    if metric_name in calibration.keys():
+      return np.mean([value for qubit, value in calibration[metric_name].items()])
+    else:
+      return None
+
+  def rb_error_to_decay_constant(rb_pauli_error, N: int = 2):
+    if rb_pauli_error is not None:
+      return 1 - rb_pauli_error / (1 - 1 / N**2)
+    else:
+      return None
+
+  t1_micros = unpack_from_calibration('single_qubit_idle_t1_micros')
+  t1_nanos = t1_micros * 1000 if t1_micros is not None else None
+  xeb_fidelity = unpack_from_calibration('xeb')
+  rb_pauli_error = unpack_from_calibration('single_qubit_rb_pauli_error_per_gate')
+  p00 = unpack_from_calibration('single_qubit_p00_error')
+  p11 = unpack_from_calibration('single_qubit_p11_error')
+  decay_constant = rb_error_to_decay_constant(rb_pauli_error)
+
+  return Fidelity(t1 = t1_nanos, xeb_fidelity= xeb_fidelity, decay_constant = decay_constant, p00 = p00, p11 = p11)
 
 class NoiseModelFromFidelity(cirq.NoiseModel):
   def __init__(
@@ -101,7 +127,7 @@ class NoiseModelFromFidelity(cirq.NoiseModel):
   def get_duration(self, gate):
     if isinstance(gate, cirq.FSimGate):
       theta,_ = gate._value_equality_values_()
-      if np.abs(theta) == np.pi / 2: ## should be any mutiple of pi/2
+      if np.abs(theta) % (np.pi / 2) == 0:
         return 12.0 ## syc
       return 32.0 ## fsim_pi_4
     elif isinstance(gate, cirq.ISwapPowGate):

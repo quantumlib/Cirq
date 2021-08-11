@@ -1,7 +1,11 @@
 import pytest
 import cirq
 from cirq.testing import assert_equivalent_op_tree
+import cirq_google
 from cirq_google.experimental.noise_models.fidelity import *
+from cirq_google.api import v2
+from google.protobuf.text_format import Merge
+
 
 def test_invalid_arguments():
   with pytest.raises(ValueError, match = 'At least one metric must be specified'):
@@ -12,6 +16,104 @@ def test_invalid_arguments():
 
   with pytest.raises(ValueError, match = 'xeb, pauli error, p00, and p11 must be between 0 and 1'):
     Fidelity(pauli_error = -0.2)
+
+def test_fidelity_from_calibration():
+  xeb_1 = 0.9999
+  xeb_2 = 0.9995
+
+  pauli_rb_1 = 0.001
+  pauli_rb_2 = 0.002
+  pauli_rb_3 = 0.003
+
+  t1_1 = 0.005
+  t1_2 = 0.007
+  t1_3 = 0.003
+
+  _CALIBRATION_DATA = Merge(
+      """
+    timestamp_ms: 1579214873,
+    metrics: [{
+        name: 'xeb',
+        targets: ['0_0', '0_1'],
+        values: [{
+            double_val: """ + str(xeb_1) + """
+        }]
+    }, {
+        name: 'xeb',
+        targets: ['0_0', '1_0'],
+        values: [{
+            double_val: """ + str(xeb_2) + """
+        }]
+    }, {
+        name: 'single_qubit_rb_pauli_error_per_gate',
+        targets: ['0_0'],
+        values: [{
+            double_val: """ + str(pauli_rb_1) + """
+        }]
+    }, {
+        name: 'single_qubit_rb_pauli_error_per_gate',
+        targets: ['0_1'],
+        values: [{
+            double_val: """ + str(pauli_rb_2) + """
+        }]
+    }, {
+        name: 'single_qubit_rb_pauli_error_per_gate',
+        targets: ['1_0'],
+        values: [{
+            double_val: """ + str(pauli_rb_3) + """
+        }]
+    }, {
+        name: 'single_qubit_readout_separation_error',
+        targets: ['0_0'],
+        values: [{
+            double_val: .004
+        }]
+    }, {
+        name: 'single_qubit_readout_separation_error',
+        targets: ['0_1'],
+        values: [{
+            double_val: .005
+        }]
+    },{
+        name: 'single_qubit_readout_separation_error',
+        targets: ['1_0'],
+        values: [{
+            double_val: .006
+        }]
+    }, {
+        name: 'single_qubit_idle_t1_micros',
+        targets: ['0_0'],
+        values: [{
+            double_val: """ + str(t1_1) + """
+        }]
+    }, {
+        name: 'single_qubit_idle_t1_micros',
+        targets: ['0_1'],
+        values: [{
+            double_val: """ + str(t1_2) + """
+        }]
+    }, {
+        name: 'single_qubit_idle_t1_micros',
+        targets: ['1_0'],
+        values: [{
+            double_val: """ + str(t1_3) + """
+        }]
+    }]
+""",
+    v2.metrics_pb2.MetricsSnapshot(),
+)
+
+  # Create Fidelity objcet from Calibration
+  calibration = cirq_google.Calibration(_CALIBRATION_DATA)
+  f = fidelity_from_calibration(calibration)
+
+  expected_t1_nanos = np.mean([t1_1, t1_2, t1_3]) * 1000
+  expected_xeb_fidelity = np.mean([xeb_1, xeb_2])
+  expected_pauli_rb = np.mean([pauli_rb_1, pauli_rb_2, pauli_rb_3])
+
+  assert np.isclose(f.t1,expected_t1_nanos)
+  assert np.isclose(f.xeb,expected_xeb_fidelity)
+  assert np.isclose(f.rb_pauli_error(), expected_pauli_rb)
 
 def test_metrics_conversions():
   pauli_error = 0.01
@@ -31,6 +133,7 @@ def test_readout_error():
   p = p11 / (p00 + p11)
   gamma = p11 / p
 
+  # Create qubits and circuit
   qubits = [cirq.LineQubit(0), cirq.LineQubit(1)]
   circuit = cirq.Circuit(
       cirq.Moment([cirq.X(qubits[0])]),
@@ -40,11 +143,14 @@ def test_readout_error():
                    cirq.measure(qubits[1], key = 'q1')]),
   )
 
+  # Create noise model from Fidelity object with specified noise
   f = Fidelity(p00 = p00, p11 = p11)
   noise_model = NoiseModelFromFidelity(f)
 
   noisy_circuit = cirq.Circuit(noise_model.noisy_moments(circuit, qubits))
 
+
+  # Insert expected channels to circuit
   expected_circuit = cirq.Circuit(
       cirq.Moment([cirq.X(qubits[0])]),
       cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
@@ -59,6 +165,7 @@ def test_readout_error():
 def test_depolarization_error():
   pauli_error = 0.1
 
+  # Create qubits and circuit
   qubits = [cirq.LineQubit(0), cirq.LineQubit(1)]
   circuit = cirq.Circuit(
       cirq.Moment([cirq.X(qubits[0])]),
@@ -68,11 +175,15 @@ def test_depolarization_error():
                    cirq.measure(qubits[1], key = 'q1')]),
   )
 
+
+  # Create noise model from Fidelity object with specified noise
   f = Fidelity(pauli_error = pauli_error)
   noise_model = NoiseModelFromFidelity(f)
 
   noisy_circuit = cirq.Circuit(noise_model.noisy_moments(circuit, qubits))
 
+
+  # Insert expected channels to circuit
   expected_circuit = cirq.Circuit(
       cirq.Moment([cirq.X(qubits[0])]),
       cirq.Moment([cirq.depolarize(pauli_error / 3).on_each(qubits)]),
@@ -89,20 +200,23 @@ def test_depolarization_error():
 def test_ampl_damping_error():
   t1 = 200.0
 
+  # Create qubits and circuit
   qubits = [cirq.LineQubit(0), cirq.LineQubit(1)]
   circuit = cirq.Circuit(
       cirq.Moment([cirq.X(qubits[0])]),
       cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-      cirq.Moment([cirq.FSimGate(np.pi / 2, np.pi).on_each(qubits)]),
+      cirq.Moment([cirq.FSimGate(5 * np.pi / 2, np.pi).on_each(qubits)]),
       cirq.Moment([cirq.measure(qubits[0], key = 'q0'),
                    cirq.measure(qubits[1], key = 'q1')]),
   )
 
+  # Create noise model from Fidelity object with specified noise
   f = Fidelity(t1 = t1)
   noise_model = NoiseModelFromFidelity(f)
 
   noisy_circuit = cirq.Circuit(noise_model.noisy_moments(circuit, qubits))
 
+  # Insert expected channels to circuit
   expected_circuit = cirq.Circuit(
       cirq.Moment([cirq.X(qubits[0])]),
       cirq.Moment([cirq.amplitude_damp(1 - np.exp(-25.0 / t1)).on_each(qubits)]),
