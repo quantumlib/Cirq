@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import AbstractSet, Union, Any, Optional, TYPE_CHECKING, Dict
+from typing import AbstractSet, Union, Any, Optional, Tuple, TYPE_CHECKING, Dict
 
 import numpy as np
 
@@ -23,6 +23,7 @@ from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
+    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 @value.value_equality
@@ -33,7 +34,7 @@ class ParallelGate(raw_types.Gate):
         """Inits ParallelGate.
 
         Args:
-            gate: the gate to apply.
+            gate: The gate to apply.
             num_copies: Number of copies of the gate to apply in parallel.
         """
         if sub_gate.num_qubits() != 1:
@@ -46,21 +47,21 @@ class ParallelGate(raw_types.Gate):
         self._num_copies = num_copies
 
     def num_qubits(self) -> int:
-        return self._sub_gate.num_qubits() * self._num_copies
+        return self.sub_gate.num_qubits() * self._num_copies
 
     @property
-    def sub_gate(self):
+    def sub_gate(self) -> 'cirq.Gate':
         return self._sub_gate
 
     @property
-    def num_copies(self):
+    def num_copies(self) -> int:
         return self._num_copies
 
-    def _decompose_(self, qubits):
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'DecomposeResult':
         if len(qubits) != self.num_qubits():
-            raise ValueError(f"len(qubits) should be {self.num_qubits()}")
-        step = self._sub_gate.num_qubits()
-        return [self._sub_gate(*qubits[i : i + step]) for i in range(0, len(qubits), step)]
+            raise ValueError(f"len(qubits)={len(qubits)} should be {self.num_qubits()}")
+        step = self.sub_gate.num_qubits()
+        return [self.sub_gate(*qubits[i : i + step]) for i in range(0, len(qubits), step)]
 
     def with_gate(self, sub_gate: 'cirq.Gate') -> 'ParallelGate':
         """ParallelGate with same number of copies but a new gate"""
@@ -68,36 +69,36 @@ class ParallelGate(raw_types.Gate):
 
     def with_num_copies(self, num_copies: int) -> 'ParallelGate':
         """ParallelGate with same sub_gate but different num_copies"""
-        return ParallelGate(self._sub_gate, num_copies)
+        return ParallelGate(self.sub_gate, num_copies)
 
     def __repr__(self) -> str:
-        return f'cirq.ParallelGate(sub_gate={self._sub_gate!r}, num_copies={self._num_copies})'
+        return f'cirq.ParallelGate(sub_gate={self.sub_gate!r}, num_copies={self._num_copies})'
 
     def __str__(self) -> str:
-        return f'{self._sub_gate} x {self._num_copies}'
+        return f'{self.sub_gate} x {self._num_copies}'
 
     def _value_equality_values_(self) -> Any:
-        return self._sub_gate, self._num_copies
+        return self.sub_gate, self._num_copies
 
     def _has_unitary_(self) -> bool:
-        return protocols.has_unitary(self._sub_gate)
+        return protocols.has_unitary(self.sub_gate)
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self._sub_gate)
+        return protocols.is_parameterized(self.sub_gate)
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return protocols.parameter_names(self._sub_gate)
+        return protocols.parameter_names(self.sub_gate)
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'ParallelGate':
         return self.with_gate(
-            sub_gate=protocols.resolve_parameters(self._sub_gate, resolver, recursive)
+            sub_gate=protocols.resolve_parameters(self.sub_gate, resolver, recursive)
         )
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         # Obtain the unitary for the single qubit gate
-        single_unitary = protocols.unitary(self._sub_gate, NotImplemented)
+        single_unitary = protocols.unitary(self.sub_gate, NotImplemented)
 
         # Make sure we actually have a matrix
         if single_unitary is NotImplemented:
@@ -112,9 +113,9 @@ class ParallelGate(raw_types.Gate):
         return unitary
 
     def _trace_distance_bound_(self) -> Optional[float]:
-        if protocols.is_parameterized(self._sub_gate):
+        if protocols.is_parameterized(self.sub_gate):
             return None
-        angle = self._num_copies * np.arcsin(protocols.trace_distance_bound(self._sub_gate))
+        angle = self._num_copies * np.arcsin(protocols.trace_distance_bound(self.sub_gate))
         if angle >= np.pi * 0.5:
             return 1.0
         return np.sin(angle)
@@ -122,7 +123,7 @@ class ParallelGate(raw_types.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        diagram_info = protocols.circuit_diagram_info(self._sub_gate, args, NotImplemented)
+        diagram_info = protocols.circuit_diagram_info(self.sub_gate, args, NotImplemented)
         if diagram_info == NotImplemented:
             return diagram_info
 
@@ -146,10 +147,24 @@ class ParallelGate(raw_types.Gate):
         Returns:
             ParallelGate with same num_copies with the scaled underlying gate.
         """
-        new_gate = protocols.pow(self._sub_gate, exponent, NotImplemented)
+        new_gate = protocols.pow(self.sub_gate, exponent, NotImplemented)
         if new_gate is NotImplemented:
             return NotImplemented
         return self.with_gate(new_gate)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["sub_gate", "num_copies"])
+
+
+def parallel_gate_op(gate: 'cirq.Gate', *targets: 'cirq.Qid') -> 'cirq.Operation':
+    """Constructs a ParallelGate using gate and applies to all given qubits
+
+    Args:
+        gate: The gate to apply
+        *targets: The qubits on which the ParallelGate should be applied.
+
+    Returns:
+        ParallelGate(gate, len(targets)).on(*targets)
+
+    """
+    return ParallelGate(gate, len(targets)).on(*targets)

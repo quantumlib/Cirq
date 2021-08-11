@@ -141,6 +141,7 @@ from cirq.ops.pauli_sum_exponential import (
 
 from cirq.ops.parallel_gate import (
     ParallelGate,
+    parallel_gate_op
 )
 
 from cirq.ops.parallel_gate_operation import (

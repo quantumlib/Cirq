@@ -148,7 +148,7 @@ class NeutralAtomDevice(devices.Device):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
         op_gate = (
-            operation.gate._sub_gate
+            operation.gate.sub_gate
             if isinstance(operation.gate, ops.ParallelGate)
             else operation.gate
         )
