@@ -63,7 +63,7 @@ class PullRequestDetails:
         url = "https://api.github.com/repos/{}/{}/pulls/{}?access_token={}".format(
             repo.organization, repo.name, pull_id, repo.access_token
         )
-        print('WTF', url)
+
         response = requests.get(url)
 
         if response.status_code != 200:
