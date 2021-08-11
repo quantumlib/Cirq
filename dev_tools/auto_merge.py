@@ -18,7 +18,7 @@ POLLING_PERIOD = datetime.timedelta(seconds=10)
 USER_AUTO_MERGE_LABEL = 'automerge'
 HEAD_AUTO_MERGE_LABEL = 'front_of_queue_automerge'
 AUTO_MERGE_LABELS = [USER_AUTO_MERGE_LABEL, HEAD_AUTO_MERGE_LABEL]
-RECENTLY_MODIFIED_THRESHOLD = datetime.timedelta(minutes=30)
+RECENTLY_MODIFIED_THRESHOLD = datetime.timedelta(seconds=30)
 
 
 def is_recent_date(date: datetime.datetime) -> bool:
