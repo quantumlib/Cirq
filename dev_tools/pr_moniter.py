@@ -1,4 +1,4 @@
-"""Code to interact with GitHub API to label and merg Cirq pull requests."""
+"""Code to interact with GitHub API to label and auto-merge pull requests."""
 
 import datetime
 import traceback
@@ -24,10 +24,9 @@ HEAD_AUTO_MERGE_LABEL = 'front_of_queue_automerge'
 AUTO_MERGE_LABELS = [USER_AUTO_MERGE_LABEL, HEAD_AUTO_MERGE_LABEL]
 RECENTLY_MODIFIED_THRESHOLD = datetime.timedelta(seconds=30)
 
-PR_SIZE_LABELS = [
-    'size: XS','size: S','size: M', 'size: L','size: XL'
-]
+PR_SIZE_LABELS = ['size: XS', 'size: S', 'size: M', 'size: L', 'size: XL']
 PR_SIZES = [10, 50, 250, 1000, 1 << 30]
+
 
 def get_pr_size_label(tot_changes: int) -> str:
     i = 0
@@ -35,6 +34,7 @@ def get_pr_size_label(tot_changes: int) -> str:
         if tot_changes < PR_SIZES[i]:
             return PR_SIZE_LABELS[i]
         i += 1
+
 
 def is_recent_date(date: datetime.datetime) -> bool:
     d = datetime.datetime.utcnow() - date
@@ -946,7 +946,9 @@ def pick_head_pr(active_prs: List[PullRequestDetails]) -> Optional[PullRequestDe
     return promoted
 
 
-def merge_duty_cycle(repo: GithubRepository, persistent_temporary_problems: Dict[int, datetime.datetime]):
+def merge_duty_cycle(
+    repo: GithubRepository, persistent_temporary_problems: Dict[int, datetime.datetime]
+):
     """Checks and applies auto merge labeling operations."""
     active_prs = gather_auto_mergeable_prs(repo, persistent_temporary_problems)
     head_pr = pick_head_pr(active_prs)
