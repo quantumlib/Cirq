@@ -186,8 +186,10 @@ Retrieve all commits since the last release with:
 ```git log "--pretty=%h %s"```.
 
 You can get the changes to the top-level objects and protocols by
-checking the history of the
-[init file](https://github.com/quantumlib/Cirq/blob/master/cirq/__init__.py)
+checking the history of the init files. `git diff <previous version>..HEAD cirq-core/cirq/__init__.py`
+
+You can get the contributing authors for the release by running:
+`git log <previous version>..HEAD --pretty="%an" | sort | uniq | sed ':a;N;$!ba;s/\n/, /g'`
 
 
 ### Release to prod pypi
