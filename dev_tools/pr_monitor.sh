@@ -31,10 +31,19 @@
 # the body of the PR's initial message/comment. Users/admins should edit the title and
 # initial comment to appropriately describe the PR.
 #
+# This script will also automatically label PRs based on their code size. The following
+# labels are given based on the total change numbers (addition + deletions on github)
+# at the time the PR is opened (not updated as changes are made):
+# Extra Small (XS): < 10 total changes.
+# Small (S):        < 50 total changes.
+# Medium (M):       < 250 total changes.
+# Large (L):        < 1000 total changes.
+# Extra Large (XL): >= 1000 total changes.
+#
 # Usage:
 #     export CIRQ_BOT_GITHUB_ACCESS_TOKEN=[access token for CirqBot's github account]
 #     export CIRQ_BOT_UPDATE_BRANCH_COOKIE=[CirqBot user_session cookie from github]
-#     bash dev_tools/auto_merge.sh
+#     bash dev_tools/pr_monitor.sh
 ########################################################################################
 
 
@@ -45,4 +54,4 @@ cd "${repo_dir}"
 
 # Do the thing.
 export PYTHONPATH=${repo_dir}
-python3 ${repo_dir}/dev_tools/auto_merge.py $@
+python3 ${repo_dir}/dev_tools/pr_monitor.py $@

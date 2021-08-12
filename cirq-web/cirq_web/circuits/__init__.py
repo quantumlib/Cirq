@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,10 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from cirq.qis import clifford_tableau
-from cirq._compat import deprecated_class
 
-
-@deprecated_class(deadline='v0.12', fix='use cirq.CliffordTableau instead')
-class CliffordTableau(clifford_tableau.CliffordTableau):
-    pass
+from cirq_web.circuits.circuit import Circuit3D
+from cirq_web.circuits.symbols import (
+    Operation3DSymbol,
+)

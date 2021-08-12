@@ -13,10 +13,10 @@
 # limitations under the License.
 
 ########################################################################################
-# This is a minimal Dockerfile to run the automerge script.
+# This is a minimal Dockerfile to run the  script.
 #
 # Usage:
-#     docker build -t cirqbot -f dev_tools/automerge/Dockerfile dev_tools
+#     docker build -t cirqbot -f dev_tools/pr_monitor/Dockerfile dev_tools
 #     docker run -it -e CIRQ_BOT_GITHUB_ACCESS_TOKEN=[access token] cirqbot
 #
 # Alternatively, if your container has access to the GCP Secret Manager, it can take the
@@ -25,13 +25,13 @@
 
 FROM python:3.7-slim@sha256:1689dea3fe5e2f230c3b2d0cc18b64e96f8214082c78792c67dbc1bda9b6c67c
 
-RUN mkdir -p /app/dev_tools/auto_merge
+RUN mkdir -p /app/dev_tools/pr_monitor
 WORKDIR /app
 
-COPY ./auto_merge/requirements.txt ./dev_tools/auto_merge/requirements.txt
-RUN pip install -r ./dev_tools/auto_merge/requirements.txt
+COPY ./pr_monitor/requirements.txt ./dev_tools/pr_monitor/requirements.txt
+RUN pip install -r ./dev_tools/pr_monitor/requirements.txt
 
 COPY ./*.py ./dev_tools/
 
 ENV PYTHONPATH=/app
-CMD ["python", "dev_tools/auto_merge.py"]
+CMD ["python", "dev_tools/pr_monitor.py"]
