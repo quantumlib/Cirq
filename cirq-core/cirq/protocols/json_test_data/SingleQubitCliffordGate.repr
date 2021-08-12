@@ -1,0 +1,1 @@
+cirq.SingleQubitCliffordGate(_rotation_map={cirq.X:{},cirq.Y:{},cirq.Z:{}}, _inverse_map={})
