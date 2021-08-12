@@ -113,6 +113,18 @@ Ideally, the contents of the `.repr` file are exactly the output of
 `your_class_name.json` should contain the expected JSON output when serializing
 the test value from `your_class_name.repr`.
 
+## Deprecating a serializable value
+When a serializable value is marked deprecated, but is not yet removed, the 
+`.json` and `.repr` files continue to exist but `json_serialization_test.py` 
+will start complaining that deprecated values cannot be used in tests.     
+In order to fix this, one should add an entry corresponding to deprecated value to the `deprecated` dict in
+`cirq-<module>/cirq/protocols/json_test_data/spec.py`, of the form: 
+```python
+deprecated={
+ 'DeprecatedClass': 'deprecation_deadline',
+}
+```
+
 ## Removing a serializable value
 
 When a serializable value is removed from cirq, old serialized instances

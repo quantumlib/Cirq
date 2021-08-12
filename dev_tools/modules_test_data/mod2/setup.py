@@ -2,4 +2,9 @@ from setuptools import setup
 
 name = 'module2'
 
-setup(name=name, version='1.2.3', packages=['pack2'])
+__version__ = ''
+
+
+exec(open('pack2/_version.py').read())
+
+setup(name=name, version=__version__, packages=['pack2'])
