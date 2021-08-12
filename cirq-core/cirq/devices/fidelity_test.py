@@ -25,16 +25,29 @@ def test_invalid_arguments():
         NoiseModelFromFidelity(None)
 
 
-def test_metrics_conversions():
-    pauli_error = 0.01
-    N = 2  # one qubit
+def test_constructor():
+    xeb_fidelity = 0.95
+    p00 = 0.1
+    t1 = 200.0
 
-    decay_constant = 1 - pauli_error * N * N / (N * N - 1)
-    xeb_fidelity = 1 - ((1 - decay_constant) * (1 - 1 / N))
+    # Create fidelity object with a defined XEB fidelity
+    f_from_xeb = Fidelity(xeb_fidelity=xeb_fidelity, p00=p00, t1=t1)
 
-    f = Fidelity(pauli_error=pauli_error)
-    assert np.isclose(decay_constant, f.decay_constant)
-    assert np.isclose(xeb_fidelity, f.decay_constant_to_xeb_fidelity(N=N))
+    assert f_from_xeb.p00 == p00
+    assert f_from_xeb.p11 is None
+    assert f_from_xeb.t1 == t1
+    assert f_from_xeb.xeb == xeb_fidelity
+
+    # Create another fidelity object with the decay constant from the first one
+    decay_constant_from_xeb = f_from_xeb.decay_constant
+
+    f_from_decay = Fidelity(decay_constant=decay_constant_from_xeb)
+
+    # Check that their depolarization metrics match
+    assert np.isclose(xeb_fidelity, f_from_decay.xeb)
+    assert np.isclose(f_from_xeb.pauli_error, f_from_decay.pauli_error)
+    assert np.isclose(f_from_xeb.rb_average_error(), f_from_decay.rb_average_error())
+    assert np.isclose(f_from_xeb.rb_pauli_error(), f_from_decay.rb_pauli_error())
 
 
 def test_readout_error():
@@ -136,8 +149,13 @@ def test_ampl_damping_error():
 
 
 def test_combined_error():
+    # Helper function to calculate pauli error from depolarization
+    def pauli_error_from_depolarization(pauli_error, t1, duration):
+        t2 = 2 * t1
+        pauli_error_from_t1 = (1 - np.exp(-duration / t2)) / 2 + (1 - np.exp(-duration / t1)) / 4
+        return pauli_error - pauli_error_from_t1
+
     t1 = 2000.0
-    p00 = 0.01
     p11 = 0.01
     pauli_error = 0.02
 
@@ -151,30 +169,42 @@ def test_combined_error():
     )
 
     # Create noise model from Fidelity object with specified noise
-    f = Fidelity(t1=t1, p00=p00, p11=p11, pauli_error=pauli_error)
+    f = Fidelity(t1=t1, p11=p11, pauli_error=pauli_error)
     noise_model = NoiseModelFromFidelity(f)
 
     noisy_circuit = cirq.Circuit(noise_model.noisy_moments(circuit, qubits))
 
-    print(noisy_circuit)
-
-    p = p11 / (p00 + p11)
-    gamma = p11 / p
-
     # Insert expected channels to circuit
     expected_circuit = cirq.Circuit(
         cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment([cirq.depolarize(f.pauli_error_from_depolarization(25.0) / 3).on_each(qubits)]),
+        cirq.Moment(
+            [
+                cirq.depolarize(pauli_error_from_depolarization(pauli_error, t1, 25.0) / 3).on_each(
+                    qubits
+                )
+            ]
+        ),
         cirq.Moment([cirq.amplitude_damp(1 - np.exp(-25.0 / t1)).on_each(qubits)]),
         cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment([cirq.depolarize(f.pauli_error_from_depolarization(25.0) / 3).on_each(qubits)]),
+        cirq.Moment(
+            [
+                cirq.depolarize(pauli_error_from_depolarization(pauli_error, t1, 25.0) / 3).on_each(
+                    qubits
+                )
+            ]
+        ),
         cirq.Moment([cirq.amplitude_damp(1 - np.exp(-25.0 / t1)).on_each(qubits)]),
         cirq.Moment([cirq.ISwapPowGate().on_each(qubits)]),
-        cirq.Moment([cirq.depolarize(f.pauli_error_from_depolarization(32.0) / 3).on_each(qubits)]),
+        cirq.Moment(
+            [
+                cirq.depolarize(pauli_error_from_depolarization(pauli_error, t1, 32.0) / 3).on_each(
+                    qubits
+                )
+            ]
+        ),
         cirq.Moment([cirq.amplitude_damp(1 - np.exp(-32.0 / t1)).on_each(qubits)]),
-        cirq.Moment([cirq.GeneralizedAmplitudeDampingChannel(p=p, gamma=gamma).on_each(qubits)]),
+        cirq.Moment([cirq.GeneralizedAmplitudeDampingChannel(p=1.0, gamma=p11).on_each(qubits)]),
         cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
     )
-    print(expected_circuit)
 
     assert_equivalent_op_tree(expected_circuit, noisy_circuit)
