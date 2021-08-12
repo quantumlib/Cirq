@@ -882,27 +882,35 @@ class ProjectorSum:
     def __bool__(self) -> bool:
         return bool(self._linear_dict)
 
-    def __iadd__(self, other: 'ProjectorSum'):
-        if not isinstance(other, ProjectorSum):
+    def __iadd__(self, other: Union['ProjectorString', 'ProjectorSum']):
+        if isinstance(other, ProjectorString):
+            other = ProjectorSum.from_projector_strings(other)
+        elif not isinstance(other, ProjectorSum):
             return NotImplemented
         self._linear_dict += other._linear_dict
         return self
 
-    def __add__(self, other: 'ProjectorSum'):
-        if not isinstance(other, ProjectorSum):
+    def __add__(self, other: Union['ProjectorString', 'ProjectorSum']):
+        if isinstance(other, ProjectorString):
+            other = ProjectorSum.from_projector_strings(other)
+        elif not isinstance(other, ProjectorSum):
             return NotImplemented
         result = self.copy()
         result += other
         return result
 
-    def __isub__(self, other: 'ProjectorSum'):
-        if not isinstance(other, ProjectorSum):
+    def __isub__(self, other: Union['ProjectorString', 'ProjectorSum']):
+        if isinstance(other, ProjectorString):
+            other = ProjectorSum.from_projector_strings(other)
+        elif not isinstance(other, ProjectorSum):
             return NotImplemented
         self._linear_dict -= other._linear_dict
         return self
 
-    def __sub__(self, other: 'ProjectorSum'):
-        if not isinstance(other, ProjectorSum):
+    def __sub__(self, other: Union['ProjectorString', 'ProjectorSum']):
+        if isinstance(other, ProjectorString):
+            other = ProjectorSum.from_projector_strings(other)
+        elif not isinstance(other, ProjectorSum):
             return NotImplemented
         result = self.copy()
         result -= other
