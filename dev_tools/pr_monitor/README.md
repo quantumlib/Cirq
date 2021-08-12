@@ -1,6 +1,6 @@
-# Automerge bot
+# PR monitor bot
 
-The automerge bot continuously watches a github repository for PRs labelled with the
+The pr monitor bot continuously watches a github repository for PRs labelled with the
 'automerge' label. When it sees such a PR it will mark it by labelling it with
 the 'front_of_queue_automerge' label. While there is an 'front_of_queue_automerge'
 labelled PR, the script will not label any other PRs with 'front_of_queue_automerge'.
@@ -21,6 +21,15 @@ The commit message used when merging a PR is the title of the PR and then, for d
 the body of the PR's initial message/comment. Users/admins should edit the title and
 initial comment to appropriately describe the PR.
 
+This script will also automatically label PRs based on their code size. The following
+labels are given based on the total change numbers (addition + deletions on github)
+at the time the PR is opened (not updated as changes are made):
+Extra Small (XS): < 10 total changes.
+Small (S):        < 50 total changes.
+Medium (M):       < 250 total changes.
+Large (L):        < 1000 total changes.
+Extra Large (XL): >= 1000 total changes.
+
 ## Automated Deployment Flow
 
 The bot lives in the cirq-infra project and is deployed as a GKE Deployment \
@@ -32,7 +41,7 @@ On every push to master, Cloud Build triggers the execution of cloudbuild-deploy
 
 ### Dockerfile
 
-The [Dockerfile](Dockerfile) in this directory simply exposes the auto_merge.py script.
+The [Dockerfile](Dockerfile) in this directory simply exposes the pr_monitor.py script.
 In order to be able to pull and push to our repo, you'll need to configure your Docker daemon:
 
 ```
@@ -56,7 +65,7 @@ gcloud container clusters get-credentials cirq-infra --zone us-central1-a
 
 The [cloudbuild-deploy.yaml](cloudbuild-deploy.yaml) describes the workflow that is executed \
 when we push something to master. It is responsible for building the docker image and deploying \
-the new version of the automerge script to GKE. 
+the new version of the pr monitor script to GKE. 
 
 
 ### Skaffold file
@@ -72,7 +81,7 @@ easier to trace back issues.
 ```
 ...
 Step #1: Tags used in deployment:
-Step #1:  - us-docker.pkg.dev/cirq-infra/cirq/automerge -> us-docker.pkg.dev/cirq-infra/cirq/automerge:latest@sha256:c3b5751b7af77f2ec13189ee185eafd4a4fd7fbe762bf3a081f11b43c7c63354
+Step #1:  - us-docker.pkg.dev/cirq-infra/cirq/pr_monitor -> us-docker.pkg.dev/cirq-infra/cirq/pr_monitor:latest@sha256:c3b5751b7af77f2ec13189ee185eafd4a4fd7fbe762bf3a081f11b43c7c63354
 Step #1: Starting deploy...
 ...
 ```
@@ -84,13 +93,13 @@ As Cirqbot is currently pretty low traffic, it is not too disruptive to just tes
 From the root of the Cirq repo run the following command to test the deployment flow: 
 
 ```
-gcloud builds submit --config dev_tools/auto_merge/cloudbuild-deploy.yaml --project cirq-infra
+gcloud builds submit --config dev_tools/pr_monitor/cloudbuild-deploy.yaml --project cirq-infra
 ```
 
 If you want to iterate faster, you can also try using skaffold itself in dev mode: 
 
 ```
-skaffold dev -f dev_tools/auto_merge/skaffold.yaml 
+skaffold dev -f dev_tools/pr_monitor/skaffold.yaml 
 ```
 
  
