@@ -1,10 +1,8 @@
 import pytest
 import cirq
 from cirq.testing import assert_equivalent_op_tree
-import cirq_google
-from cirq_google.experimental.noise_models.fidelity import *
-from cirq_google.api import v2
-from google.protobuf.text_format import Merge
+from cirq.devices.fidelity import Fidelity, NoiseModelFromFidelity
+import numpy as np
 
 
 def test_invalid_arguments():

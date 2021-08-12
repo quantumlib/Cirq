@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Sequence
 from itertools import product
 import cirq
 import numpy as np
@@ -9,12 +9,12 @@ class Fidelity:
     def __init__(
         self,
         *,
-        t1: Optional = None,
-        decay_constant: Optional = None,
-        xeb_fidelity: Optional = None,
-        pauli_error: Optional = None,
-        p00: Optional = None,
-        p11: Optional = None,
+        t1: float = None,
+        decay_constant: float = None,
+        xeb_fidelity: float = None,
+        pauli_error: float = None,
+        p00: float = None,
+        p11: float = None,
     ) -> None:
         """Creates a Fidelity object using the provided metrics
 
@@ -90,20 +90,30 @@ class Fidelity:
         return self._xeb
 
     def decay_constant_to_xeb_fidelity(self, N: int = 4):
-        return 1 - ((1 - self._p) * (1 - 1 / N))
+        if self._p is not None:
+            return 1 - ((1 - self._p) * (1 - 1 / N))
+        return None
 
     def decay_constant_to_pauli_error(self, N: int = 2):
-        return (1 - self._p) * (1 - 1 / N / N)
+        if self._p is not None:
+            return (1 - self._p) * (1 - 1 / N / N)
+        return None
 
     def pauli_error_to_xeb_fidelity(self, N: int = 4):
-        decay_constant = 1 - (self._pauli_error / (1 - 1 / N))
-        return self.decay_constant_to_xeb_fidelity(decay_constant)
+        if self._pauli_error is not None:
+            self._p = 1 - (self._pauli_error / (1 - 1 / N))
+            return self.decay_constant_to_xeb_fidelity()
+        return None
 
     def pauli_error_to_decay_constant(self, N: int = 2):
-        return 1 - (self._pauli_error / (1 - 1 / N / N))
+        if self._pauli_error is not None:
+            return 1 - (self._pauli_error / (1 - 1 / N / N))
+        return None
 
     def xeb_fidelity_to_decay_constant(self, N: int = 4):
-        return 1 - (1 - self._xeb) / (1 - 1 / N)
+        if self._xeb is not None:
+            return 1 - (1 - self._xeb) / (1 - 1 / N)
+        return None
 
     def pauli_error_from_t1(self, t: float, t1: float):
         t2 = 2 * t1
@@ -116,10 +126,14 @@ class Fidelity:
             return self._pauli_error
 
     def rb_pauli_error(self, N: int = 2):
-        return (1 - self._p) * (1 - 1 / N ** 2)
+        if self._p is not None:
+            return (1 - self._p) * (1 - 1 / N ** 2)
+        return None
 
     def rb_average_error(self, N: int = 2):
-        return (1 - self._p) * (1 - 1 / N)
+        if self._p is not None:
+            return (1 - self._p) * (1 - 1 / N)
+        return None
 
 
 class NoiseModelFromFidelity(cirq.NoiseModel):
