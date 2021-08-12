@@ -97,6 +97,11 @@ def op_proto(json: Dict) -> v2.program_pb2.Operation:
     return op
 
 
+def test_naming():
+    assert MY_GATE_SET.name == 'my_gate_set'
+    assert MY_GATE_SET.gate_set_name == 'my_gate_set'
+
+
 def test_supported_internal_types():
     assert MY_GATE_SET.supported_internal_types() == (cirq.XPowGate, cirq.FrozenCircuit)
 

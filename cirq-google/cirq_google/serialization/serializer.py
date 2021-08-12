@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import Dict, List, Optional
+from typing import Optional
 
 import cirq
 from cirq_google.api import v2
@@ -21,6 +21,14 @@ from cirq_google.api import v2
 
 class Serializer(metaclass=abc.ABCMeta):
     """Interface for serialization."""
+
+    def __init__(self, gate_set_name: str):
+        self._gate_set_name = gate_set_name
+
+    @property
+    def name(self):
+        """The name of the serializer."""
+        return self._gate_set_name
 
     @abc.abstractmethod
     def serialize(
@@ -30,7 +38,15 @@ class Serializer(metaclass=abc.ABCMeta):
         *,
         arg_function_language: Optional[str] = None,
     ) -> v2.program_pb2.Program:
-        """Serialize."""
+        """Serialize a Circuit to cirq_google.api.v2.Program proto.
+
+        Args:
+            program: The Circuit to serialize.
+            msg: An optional proto object to populate with the serialization
+                results.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+        """
 
     def deserialize(
         self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
