@@ -13,16 +13,14 @@
 # limitations under the License.
 
 from typing import Dict, List
+
 import pytest
 import sympy
-
 from google.protobuf import json_format
 
 import cirq
-from cirq.testing import assert_deprecated
 import cirq_google as cg
 from cirq_google.api import v2
-
 
 DEFAULT_TOKEN = 'test_tag'
 
@@ -54,16 +52,6 @@ def base_deserializer():
             )
         ],
     )
-
-
-def test_deprecated_fields():
-    deserializer = cg.GateOpDeserializer(
-        serialized_gate_id='my_gate',
-        gate_constructor=GateWithAttribute,
-        args=[],
-    )
-    with assert_deprecated('Use serialized_id', deadline='v0.13'):
-        assert deserializer.serialized_gate_id == deserializer.serialized_id
 
 
 TEST_CASES = [

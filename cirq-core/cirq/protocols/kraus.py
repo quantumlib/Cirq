@@ -14,25 +14,18 @@
 
 """Protocol and methods for quantum channels."""
 
-from typing import Any, Sequence, Tuple, TypeVar, Union
 import warnings
+from typing import Any, Sequence, Tuple, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq._compat import (
-    deprecated,
-    deprecated_class,
-)
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,
 )
 from cirq.protocols.mixture_protocol import has_mixture
-
-
 from cirq.type_workarounds import NotImplementedType
-
 
 # This is a special indicator value used by the channel method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
@@ -43,11 +36,6 @@ RaiseTypeErrorIfNotProvided = (np.array([]),)
 
 
 TDefault = TypeVar('TDefault')
-
-
-@deprecated_class(deadline='v0.13', fix='use cirq.SupportsKraus instead')
-class SupportsChannel(Protocol):
-    pass
 
 
 class SupportsKraus(Protocol):
@@ -103,13 +91,6 @@ class SupportsKraus(Protocol):
         Returns:
             True if the value has a channel representation, False otherwise.
         """
-
-
-@deprecated(deadline='v0.13', fix='use cirq.kraus instead')
-def channel(
-    val: Any, default: Any = RaiseTypeErrorIfNotProvided
-) -> Union[Tuple[np.ndarray, ...], TDefault]:
-    return kraus(val, default=default)
 
 
 def kraus(
@@ -190,11 +171,6 @@ def kraus(
         "object of type '{}' does have a _kraus_, _mixture_ or "
         "_unitary_ method, but it returned NotImplemented.".format(type(val))
     )
-
-
-@deprecated(deadline='v0.13', fix='use cirq.has_kraus instead')
-def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
-    return has_kraus(val, allow_decompose=allow_decompose)
 
 
 def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:

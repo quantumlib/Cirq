@@ -132,7 +132,6 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsApplyChannel',
         'SupportsApplyMixture',
         'SupportsApproximateEquality',
-        'SupportsChannel',
         'SupportsCircuitDiagramInfo',
         'SupportsCommutes',
         'SupportsConsistentApplyUnitary',

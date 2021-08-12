@@ -17,7 +17,6 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
 import numpy as np
 
 from cirq import value, ops, protocols
-from cirq._compat import deprecated_parameter
 from cirq.ops import common_gates, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
@@ -29,18 +28,6 @@ if TYPE_CHECKING:
     from typing import Optional
 
 
-def _rewrite_deprecated_args(args, kwargs):
-    if len(args) > 2:
-        kwargs['axes'] = args[2]
-    if len(args) > 3:
-        kwargs['prng'] = args[3]
-    if len(args) > 4:
-        kwargs['log_of_measurement_results'] = args[4]
-    if len(args) > 5:
-        kwargs['qubits'] = args[5]
-    return args[:2], kwargs
-
-
 class ActOnStabilizerCHFormArgs(ActOnArgs):
     """Wrapper around a stabilizer state in CH form for the act_on protocol.
 
@@ -48,15 +35,6 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
     storing the stabilizer state of the quantum system with one axis per qubit.
     """
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs
-        or ('prng' in kwargs and len(args) == 3)
-        or (len(args) > 3 and isinstance(args[3], np.random.RandomState)),
-        rewrite=_rewrite_deprecated_args,
-    )
     def __init__(
         self,
         state: StabilizerStateChForm,

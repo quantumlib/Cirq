@@ -25,7 +25,6 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, study, ops, protocols, value
-from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -206,12 +205,6 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs or len(args) > 6,
-    )
     def __init__(
         self,
         qubits: Sequence['cirq.Qid'],

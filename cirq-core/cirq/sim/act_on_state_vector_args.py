@@ -18,9 +18,8 @@ from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence, Itera
 import numpy as np
 
 from cirq import linalg, protocols, sim
-from cirq._compat import deprecated_parameter
-from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
+from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 
 if TYPE_CHECKING:
     import cirq
@@ -49,15 +48,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         then pass `available_buffer` into `swap_target_tensor_for`.
     """
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs
-        or ('prng' in kwargs and len(args) == 4)
-        or (len(args) > 4 and isinstance(args[4], np.random.RandomState)),
-        rewrite=_rewrite_deprecated_args,
-    )
     def __init__(
         self,
         target_tensor: np.ndarray,

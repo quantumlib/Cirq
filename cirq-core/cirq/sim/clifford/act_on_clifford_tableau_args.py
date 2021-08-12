@@ -18,7 +18,6 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
 
 import numpy as np
 
-from cirq._compat import deprecated_parameter
 from cirq.ops import common_gates
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -49,15 +48,6 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     storing the density matrix of the quantum system with one axis per qubit.
     """
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs
-        or ('prng' in kwargs and len(args) == 3)
-        or (len(args) > 3 and isinstance(args[3], np.random.RandomState)),
-        rewrite=_rewrite_deprecated_args,
-    )
     def __init__(
         self,
         tableau: CliffordTableau,

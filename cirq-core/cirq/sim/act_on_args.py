@@ -31,7 +31,6 @@ from typing import (
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import deprecated
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -212,22 +211,6 @@ class ActOnArgs(OperationTarget[TSelf]):
     @abc.abstractmethod
     def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         """Handles the act_on protocol fallback implementation."""
-
-    @property  # type: ignore
-    @deprecated(
-        deadline="v0.13",
-        fix="Use `protocols.act_on` instead.",
-    )
-    def axes(self) -> Tuple[int, ...]:
-        return self._axes
-
-    @axes.setter  # type: ignore
-    @deprecated(
-        deadline="v0.13",
-        fix="Use `protocols.act_on` instead.",
-    )
-    def axes(self, value: Iterable[int]):
-        self._axes = tuple(value)
 
 
 def strat_act_on_from_apply_decompose(

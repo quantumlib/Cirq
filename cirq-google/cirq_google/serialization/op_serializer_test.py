@@ -12,20 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 from typing import Dict, List
 
-import copy
 import numpy as np
 import pytest
 import sympy
-
 from google.protobuf import json_format
 
 import cirq
-from cirq.testing import assert_deprecated
 import cirq_google as cg
 from cirq_google.api import v2
-
 
 DEFAULT_TOKEN = 'test_tag'
 
@@ -66,19 +63,6 @@ class SubclassGate(GateWithAttribute):
 
 def get_val(op):
     return op.gate.get_val()
-
-
-def test_deprecated_fields():
-    serializer = cg.GateOpSerializer(
-        gate_type=GateWithAttribute,
-        serialized_gate_id='my_gate',
-        args=[],
-    )
-    with assert_deprecated('Use serialized_id', deadline='v0.13'):
-        assert serializer.serialized_gate_id == serializer.serialized_id
-
-    with assert_deprecated('Use internal_type', deadline='v0.13'):
-        assert serializer.gate_type == serializer.internal_type
 
 
 TEST_CASES = (
