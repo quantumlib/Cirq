@@ -45,10 +45,12 @@ class Widget(ABC):
 
     @abstractmethod
     def get_client_code(self) -> str:
+        """Returns HTML code to render the widget."""
         raise NotImplementedError()
 
     @abstractmethod
     def get_widget_bundle_name(self) -> str:
+        """Returns the name of the Javascript library file for this widget."""
         raise NotImplementedError()
 
     def _repr_html_(self):

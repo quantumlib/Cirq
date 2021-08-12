@@ -130,6 +130,7 @@ from cirq.linalg import (
     dot,
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,
+    is_cptp,
     is_diagonal,
     is_hermitian,
     is_normal,
@@ -174,6 +175,7 @@ from cirq.ops import (
     BaseDensePauliString,
     bit_flip,
     BitFlipChannel,
+    BooleanHamiltonian,
     CCX,
     CCXPowGate,
     CCZ,
@@ -216,9 +218,11 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    KrausChannel,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
     MatrixGate,
+    MixedUnitaryChannel,
     measure,
     measure_each,
     MeasurementGate,
@@ -250,6 +254,7 @@ from cirq.ops import (
     PhasedXPowGate,
     PhasedXZGate,
     PhaseFlipChannel,
+    ProjectorString,
     RandomGateChannel,
     qft,
     Qid,
@@ -417,7 +422,6 @@ from cirq.study import (
     ParamDictType,
     ParamResolver,
     ParamResolverOrSimilarType,
-    plot_state_histogram,
     Points,
     Product,
     Sweep,
@@ -623,19 +627,16 @@ _compat.deprecated_submodule(
 )
 
 
-def _register_resolver() -> None:
-    """Registers the cirq module's public classes for JSON serialization."""
-    from cirq.protocols.json_serialization import _internal_register_resolver
-    from cirq.json_resolver_cache import _class_resolver_dictionary
-
-    _internal_register_resolver(_class_resolver_dictionary)
+# Registers cirq-core's public classes for JSON serialization.
+# pylint: disable=wrong-import-position
+from cirq.protocols.json_serialization import _register_resolver
+from cirq.json_resolver_cache import _class_resolver_dictionary
 
 
-_register_resolver()
+_register_resolver(_class_resolver_dictionary)
 
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
-# pylint: disable=wrong-import-position
 from cirq import (
     contrib,
 )
