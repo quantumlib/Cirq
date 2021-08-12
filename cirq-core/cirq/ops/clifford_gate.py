@@ -445,7 +445,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
             '_rotation_map': list(self._rotation_map.items()),
-            '_inverse_map': list(self._inverse_map.items())
+            '_inverse_map': list(self._inverse_map.items()),
         }
 
     def _circuit_diagram_info_(
