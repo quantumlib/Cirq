@@ -255,14 +255,34 @@ upper_tabs:
         path: /reference/python/cirq/all_symbols
       - include: /reference/python/cirq/_toc.yaml
 
-# uncomment after v0.12 is released
-#      - heading: "cirq-aqt"
-#      - title: "All symbols"
-#        path: /reference/python/cirq_aqt/all_symbols
-#      - include: /reference/python/cirq_aqt/_toc.yaml
+      - heading: "cirq-aqt"
+      - title: "All symbols"
+        path: /reference/python/cirq_aqt/all_symbols
+      - include: /reference/python/cirq_aqt/_toc.yaml
 
       - heading: "cirq-google"
       - title: "All symbols"
         path: /reference/python/cirq_google/all_symbols
       - include: /reference/python/cirq_google/_toc.yaml
+
+      - heading: "cirq-ionq"
+      - title: "All symbols"
+        path: /reference/python/cirq_ionq/all_symbols
+      - include: /reference/python/cirq_ionq/_toc.yaml
+
+      - heading: "cirq-pasqal"
+      - title: "All symbols"
+        path: /reference/python/cirq_pasqal/all_symbols
+      - include: /reference/python/cirq_pasqal/_toc.yaml
+
+      - heading: "cirq-rigetti"
+      - title: "All symbols"
+        path: /reference/python/cirq_rigetti/all_symbols
+      - include: /reference/python/cirq_rigetti/_toc.yaml
+
+      - heading: "cirq-web"
+      - title: "All symbols"
+        path: /reference/python/cirq_web/all_symbols
+      - include: /reference/python/cirq_web/_toc.yaml
+
 - include: /_book/upper_tabs_right.yaml
