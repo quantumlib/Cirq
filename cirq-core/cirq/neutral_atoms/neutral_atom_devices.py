@@ -155,27 +155,27 @@ class NeutralAtomDevice(devices.Device):
         if not isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
-        op_gate = _subgate_if_parallel_gate(operation.gate)
+        gate = _subgate_if_parallel_gate(operation.gate)
 
         # The gate must be valid
-        self.validate_gate(op_gate)
+        self.validate_gate(gate)
 
         # All qubits the operation acts on must be on the device
         for q in operation.qubits:
             if q not in self.qubits:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-        if isinstance(op_gate, (ops.MeasurementGate, ops.IdentityGate)):
+        if isinstance(gate, (ops.MeasurementGate, ops.IdentityGate)):
             return
 
         # Verify that a valid number of Z gates are applied in parallel
-        if isinstance(op_gate, ops.ZPowGate):
+        if isinstance(gate, ops.ZPowGate):
             if len(operation.qubits) > self._max_parallel_z:
                 raise ValueError("Too many Z gates in parallel")
             return
 
         # Verify that a valid number of XY gates are applied in parallel
-        if isinstance(op_gate, (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate)):
+        if isinstance(gate, (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate)):
             if len(operation.qubits) > self._max_parallel_xy and len(operation.qubits) != len(
                 self.qubits
             ):
@@ -223,8 +223,8 @@ class NeutralAtomDevice(devices.Device):
             assert isinstance(op, (ops.GateOperation, ops.ParallelGateOperation))
             for k, v in CATEGORIES.items():
                 assert isinstance(v, tuple)
-                op_gate = _subgate_if_parallel_gate(op.gate)
-                if isinstance(op_gate, v):
+                gate = _subgate_if_parallel_gate(op.gate)
+                if isinstance(gate, v):
                     categorized_ops[k].append(op)
 
         for k in ['Z', 'XY', 'controlled']:
