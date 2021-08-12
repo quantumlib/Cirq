@@ -1,3 +1,5 @@
+"""Code to interact with GitHub API to label and auto-merge pull requests."""
+
 import datetime
 import json
 import os
@@ -19,6 +21,19 @@ USER_AUTO_MERGE_LABEL = 'automerge'
 HEAD_AUTO_MERGE_LABEL = 'front_of_queue_automerge'
 AUTO_MERGE_LABELS = [USER_AUTO_MERGE_LABEL, HEAD_AUTO_MERGE_LABEL]
 RECENTLY_MODIFIED_THRESHOLD = datetime.timedelta(seconds=30)
+
+PR_SIZE_LABELS = ['size: U', 'size: XS', 'size: S', 'size: M', 'size: L', 'size: XL']
+PR_SIZES = [0, 10, 50, 250, 1000, 1 << 30]
+
+
+def get_pr_size_label(tot_changes: int) -> str:
+    i = 0
+    ret = ''
+    while i < len(PR_SIZES):
+        if tot_changes < PR_SIZES[i]:
+            ret = PR_SIZE_LABELS[i]
+        i += 1
+    return ret
 
 
 def is_recent_date(date: datetime.datetime) -> bool:
@@ -91,6 +106,10 @@ class PullRequestDetails:
         return any(self.has_label(label) for label in AUTO_MERGE_LABELS)
 
     @property
+    def marked_size(self) -> bool:
+        return any(self.has_label(label) for label in PR_SIZE_LABELS)
+
+    @property
     def pull_id(self) -> int:
         return self.payload['number']
 
@@ -113,6 +132,18 @@ class PullRequestDetails:
     @property
     def body(self) -> str:
         return self.payload['body']
+
+    @property
+    def additions(self) -> int:
+        return int(self.payload['additions'])
+
+    @property
+    def deletions(self) -> int:
+        return int(self.payload['deletions'])
+
+    @property
+    def tot_changes(self) -> int:
+        return self.deletions + self.additions
 
 
 # TODO(#3388) Add summary line to docstring.
@@ -905,7 +936,10 @@ def pick_head_pr(active_prs: List[PullRequestDetails]) -> Optional[PullRequestDe
     return promoted
 
 
-def duty_cycle(repo: GithubRepository, persistent_temporary_problems: Dict[int, datetime.datetime]):
+def merge_duty_cycle(
+    repo: GithubRepository, persistent_temporary_problems: Dict[int, datetime.datetime]
+):
+    """Checks and applies auto merge labeling operations."""
     active_prs = gather_auto_mergeable_prs(repo, persistent_temporary_problems)
     head_pr = pick_head_pr(active_prs)
     if head_pr is None:
@@ -926,6 +960,18 @@ def duty_cycle(repo: GithubRepository, persistent_temporary_problems: Dict[int, 
 
     if isinstance(result, CannotAutomergeError):
         cannot_merge_pr(head_pr, result)
+
+
+def label_duty_cycle(repo: GithubRepository):
+    """Checks and applies size labeling operations."""
+    open_prs = list_open_pull_requests(repo)
+    size_unlabeled_prs = [pr for pr in open_prs if not pr.marked_size]
+
+    for pr in size_unlabeled_prs:
+        full_pr_data = PullRequestDetails.from_github(repo, pr.pull_id)
+        new_label = get_pr_size_label(full_pr_data.tot_changes)
+        log(f'Adding size label {new_label} to #{full_pr_data.pull_id} ({full_pr_data.title!r}).')
+        add_labels_to_pr(repo, pr.pull_id, new_label)
 
 
 def indent(text: str) -> str:
@@ -950,7 +996,8 @@ def main():
     problem_seen_times = {}  # type: Dict[int, datetime.datetime]
     while True:
         try:
-            duty_cycle(repo, problem_seen_times)
+            merge_duty_cycle(repo, problem_seen_times)
+            label_duty_cycle(repo)
         except Exception:  # Anything but a keyboard interrupt / system exit.
             traceback.print_exc()
         wait_for_polling_period()
