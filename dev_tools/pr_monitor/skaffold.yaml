@@ -1,16 +1,16 @@
 apiVersion: skaffold/v2beta5
 kind: Config
 metadata:
-  name: cirq-automerge
+  name: cirq-pr-monitor
 build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: us-docker.pkg.dev/cirq-infra/cirq/automerge
+  - image: us-docker.pkg.dev/cirq-infra/cirq/pr_monitor
     docker:
-      dockerfile: auto_merge/Dockerfile
+      dockerfile: pr_monitor/Dockerfile
     context: dev_tools
 deploy:
   kubectl:
     manifests:
-    - dev_tools/auto_merge/statefulset.yaml
+    - dev_tools/pr_monitor/statefulset.yaml
