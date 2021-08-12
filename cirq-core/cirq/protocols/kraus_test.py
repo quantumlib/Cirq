@@ -60,23 +60,6 @@ def test_kraus_returns_not_implemented():
     assert_not_implemented(ReturnsNotImplemented())
 
 
-def test_channel_generates_deprecation_warning():
-    class UsesDeprecatedChannelMethod:
-        def _has_channel_(self):
-            return True
-
-        def _channel_(self):
-            return (np.eye(2),)
-
-    val = UsesDeprecatedChannelMethod()
-    with pytest.warns(DeprecationWarning, match='_has_kraus_'):
-        assert cirq.has_kraus(val)
-    with pytest.warns(DeprecationWarning, match='_kraus_'):
-        ks = cirq.kraus(val)
-        assert len(ks) == 1
-        assert np.all(ks[0] == np.eye(2))
-
-
 def test_mixture_returns_not_implemented():
     class ReturnsNotImplemented:
         def _mixture_(self):
@@ -183,7 +166,7 @@ def test_has_kraus(cls):
 
 
 @pytest.mark.parametrize('decomposed_cls', [HasKraus, HasMixture, HasUnitary])
-def test_has_channel_when_decomposed(decomposed_cls):
+def test_has_kraus_when_decomposed(decomposed_cls):
     op = HasKrausWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
     assert cirq.has_kraus(op)
     assert not cirq.has_kraus(op, allow_decompose=False)

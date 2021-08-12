@@ -142,6 +142,7 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsExplicitNumQubits',
         'SupportsExplicitQidShape',
         'SupportsJSON',
+        'SupportsKraus',
         'SupportsMeasurementKey',
         'SupportsMixture',
         'SupportsParameterization',

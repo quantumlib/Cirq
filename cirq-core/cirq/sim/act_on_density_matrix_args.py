@@ -86,7 +86,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         raise TypeError(
             "Can't simulate operations that don't implement "
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
-            "SupportsMixture, SupportsChannel or is a measurement: {!r}".format(action)
+            "SupportsMixture, SupportsKraus or is a measurement: {!r}".format(action)
         )
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:

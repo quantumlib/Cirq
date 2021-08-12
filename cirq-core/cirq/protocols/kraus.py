@@ -196,13 +196,6 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
         has a non-default value. Returns False if none of these functions
         exists.
     """
-    channel_getter = getattr(val, '_has_channel_', None)
-    if channel_getter is not None:
-        warnings.warn(
-            '_has_channel_ is deprecated and will be removed in cirq 0.13, rename to _has_kraus_',
-            DeprecationWarning,
-        )
-
     kraus_getter = getattr(val, '_has_kraus_', None)
     result = NotImplemented if kraus_getter is None else kraus_getter()
     if result is not NotImplemented:
@@ -210,10 +203,6 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
 
     result = has_mixture(val, allow_decompose=False)
     if result is not NotImplemented and result:
-        return result
-
-    result = NotImplemented if channel_getter is None else channel_getter()
-    if result is not NotImplemented:
         return result
 
     if allow_decompose:

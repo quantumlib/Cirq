@@ -92,3 +92,11 @@ def test_qubits_not_allowed_for_operations():
         ValueError, match='Calls to act_on should not supply qubits if the action is an Operation'
     ):
         cirq.act_on(Op(), args, qubits=[])
+
+
+def test_qubits_should_be_defined_for_operations():
+    args = DummyActOnArgs()
+    with pytest.raises(
+        ValueError, match='Calls to act_on should'
+    ):
+        cirq.act_on(cirq.KrausChannel([np.array([[1, 0], [0, 0]])]), args, qubits=None)

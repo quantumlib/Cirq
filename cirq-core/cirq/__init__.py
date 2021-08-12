@@ -534,6 +534,7 @@ from cirq.protocols import (
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
     SupportsJSON,
+    SupportsKraus,
     SupportsMeasurementKey,
     SupportsMixture,
     SupportsParameterization,

@@ -130,9 +130,8 @@ def act_on(
     if is_op and qubits is not None:
         raise ValueError('Calls to act_on should not supply qubits if the action is an Operation.')
 
-    # todo: change to an exception after `args.axes` is deprecated.
     if not is_op and qubits is None:
-        qubits = [args.qubits[i] for i in args.axes]
+        raise ValueError('Calls to act_on should supply qubits if the action is not an Operation.')
 
     action_act_on = getattr(action, '_act_on_', None)
     if action_act_on is not None:
