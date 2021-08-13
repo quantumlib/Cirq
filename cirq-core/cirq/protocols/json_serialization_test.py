@@ -14,6 +14,7 @@
 import contextlib
 import dataclasses
 import datetime
+import importlib
 import io
 import json
 import os
@@ -598,24 +599,16 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
 
     imports = {
         'cirq': cirq,
-        'datetime': datetime,
         'pd': pd,
         'sympy': sympy,
         'np': np,
     }
-    try:
-        import cirq_google
 
-        imports['cirq_google'] = cirq_google
-    except ImportError:
-        pass
-
-    try:
-        import cirq_pasqal
-
-        imports['cirq_pasqal'] = cirq_pasqal
-    except ImportError:
-        pass
+    for m in TESTED_MODULES.keys():
+        try:
+            imports[m] = importlib.import_module(m)
+        except ImportError:
+            pass
 
     with contextlib.ExitStack() as stack:
         for ctx_manager in ctx_managers:

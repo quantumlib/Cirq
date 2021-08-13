@@ -16,15 +16,10 @@ import os
 from typing import TYPE_CHECKING, Iterable
 
 from dev_tools import shell_tools
+from dev_tools.test_utils import only_on_posix
 
 if TYPE_CHECKING:
     import _pytest.tmpdir
-
-
-def only_on_posix(func):
-    if os.name != 'posix':
-        return None
-    return func
 
 
 def run(

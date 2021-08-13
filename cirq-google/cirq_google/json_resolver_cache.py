@@ -18,7 +18,7 @@ from typing import Dict
 from cirq.protocols.json_serialization import ObjectFactory
 
 
-@functools.lru_cache(maxsize=1)
+@functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import cirq_google
     from cirq_google.devices.known_devices import _NamedConstantXmonDevice
