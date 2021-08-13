@@ -25,10 +25,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
     measurement_count = 0
 
     def __init__(self, state, qubits, logs):
-        super().__init__(
-            qubits=qubits,
-            log_of_measurement_results=logs,
-        )
+        super().__init__(qubits=qubits, log_of_measurement_results=logs)
         self.state = state
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:

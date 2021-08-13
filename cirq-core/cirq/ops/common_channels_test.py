@@ -497,9 +497,9 @@ def test_reset_act_on():
             index=(1, 1, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
-        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(5),
     )
 
     cirq.act_on(cirq.ResetChannel(), args, [cirq.LineQubit(1)])

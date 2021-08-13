@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence, Iterable
+from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
 
 import numpy as np
 
@@ -55,7 +55,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
     ):
         """Inits ActOnStateVectorArgs.
 
@@ -75,10 +74,8 @@ class ActOnStateVectorArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
 
@@ -187,9 +184,9 @@ class ActOnStateVectorArgs(ActOnArgs):
         return ActOnStateVectorArgs(
             target_tensor=self.target_tensor.copy(),
             available_buffer=self.available_buffer.copy(),
-            qubits=self.qubits,
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
+            qubits=self.qubits,
         )
 
     def kronecker_product(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
@@ -200,9 +197,9 @@ class ActOnStateVectorArgs(ActOnArgs):
         return ActOnStateVectorArgs(
             target_tensor=target_tensor,
             available_buffer=buffer,
-            qubits=self.qubits + other.qubits,
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
+            qubits=self.qubits + other.qubits,
         )
 
     def factor(
@@ -219,16 +216,16 @@ class ActOnStateVectorArgs(ActOnArgs):
         extracted_args = ActOnStateVectorArgs(
             target_tensor=extracted_tensor,
             available_buffer=np.empty_like(extracted_tensor),
-            qubits=qubits,
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
+            qubits=qubits,
         )
         remainder_args = ActOnStateVectorArgs(
             target_tensor=remainder_tensor,
             available_buffer=np.empty_like(remainder_tensor),
-            qubits=tuple(q for q in self.qubits if q not in qubits),
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
+            qubits=tuple(q for q in self.qubits if q not in qubits),
         )
         return extracted_args, remainder_args
 
@@ -238,9 +235,9 @@ class ActOnStateVectorArgs(ActOnArgs):
         new_args = ActOnStateVectorArgs(
             target_tensor=new_tensor,
             available_buffer=np.empty_like(new_tensor),
-            qubits=qubits,
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
+            qubits=qubits,
         )
         return new_args
 

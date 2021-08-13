@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 
@@ -54,7 +54,6 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
     ):
         """Inits ActOnCliffordTableauArgs.
 
@@ -68,10 +67,8 @@ class ActOnCliffordTableauArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.tableau = tableau
 
     def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
@@ -95,9 +92,9 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     def copy(self) -> 'cirq.ActOnCliffordTableauArgs':
         return ActOnCliffordTableauArgs(
             tableau=self.tableau.copy(),
-            qubits=self.qubits,
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
+            qubits=self.qubits,
         )
 
     def sample(

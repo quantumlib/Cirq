@@ -31,9 +31,9 @@ def test_decomposed_fallback():
     args = cirq.ActOnStateVectorArgs(
         target_tensor=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),
         available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
-        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(3),
     )
 
     cirq.act_on(Composite(), args, [cirq.LineQubit(1)])
@@ -49,9 +49,9 @@ def test_cannot_act():
     args = cirq.ActOnStateVectorArgs(
         target_tensor=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),
         available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
-        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(3),
     )
 
     with pytest.raises(TypeError, match="Can't simulate operations"):
@@ -76,9 +76,9 @@ def test_act_using_probabilistic_single_qubit_channel():
     args = cirq.ActOnStateVectorArgs(
         target_tensor=np.copy(initial_state),
         available_buffer=np.empty_like(initial_state),
-        qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(4),
     )
     cirq.act_on(ProbabilisticSorX(), args, [cirq.LineQubit(2)])
     np.testing.assert_allclose(
@@ -95,9 +95,9 @@ def test_act_using_probabilistic_single_qubit_channel():
     args = cirq.ActOnStateVectorArgs(
         target_tensor=np.copy(initial_state),
         available_buffer=np.empty_like(initial_state),
-        qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(4),
     )
     cirq.act_on(ProbabilisticSorX(), args, [cirq.LineQubit(2)])
     np.testing.assert_allclose(
@@ -132,9 +132,9 @@ def test_act_using_adaptive_two_qubit_channel():
         args = cirq.ActOnStateVectorArgs(
             target_tensor=np.copy(state),
             available_buffer=np.empty_like(state),
-            qubits=cirq.LineQubit.range(4),
             prng=mock_prng,
             log_of_measurement_results={},
+            qubits=cirq.LineQubit.range(4),
         )
         cirq.act_on(Decay11(), args, [cirq.LineQubit(1), cirq.LineQubit(3)])
         return args.target_tensor
@@ -194,9 +194,9 @@ def test_probability_comes_up_short_results_in_fallback():
     args = cirq.ActOnStateVectorArgs(
         target_tensor=np.array([1, 0], dtype=np.complex64),
         available_buffer=np.empty(2, dtype=np.complex64),
-        qubits=cirq.LineQubit.range(1),
         prng=mock_prng,
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(1),
     )
 
     cirq.act_on(Short(), args, cirq.LineQubit.range(1))

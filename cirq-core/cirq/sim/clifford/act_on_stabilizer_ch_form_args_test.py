@@ -24,9 +24,9 @@ def test_cannot_act():
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=3),
-        qubits=[],
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=[],
     )
 
     with pytest.raises(TypeError, match="Failed to act"):
@@ -44,9 +44,9 @@ def test_gate_with_act_on():
     state = cirq.StabilizerStateChForm(num_qubits=3)
     args = cirq.ActOnStabilizerCHFormArgs(
         state=state,
-        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(3),
     )
 
     cirq.act_on(CustomGate(), args, [cirq.LineQubit(1)])
@@ -66,16 +66,16 @@ def test_unitary_fallback_y():
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
-        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(3),
     )
     cirq.act_on(UnitaryYGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
-        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(3),
     )
     cirq.act_on(cirq.Y, expected_args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
@@ -93,16 +93,16 @@ def test_unitary_fallback_h():
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
-        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(3),
     )
     cirq.act_on(UnitaryHGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
-        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(3),
     )
     cirq.act_on(cirq.H, expected_args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
@@ -111,9 +111,9 @@ def test_unitary_fallback_h():
 def test_copy():
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=3),
-        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(3),
     )
     args1 = args.copy()
     assert isinstance(args1, cirq.ActOnStabilizerCHFormArgs)

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence, Iterable
+from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 
@@ -40,7 +40,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
     ):
         """Inits ActOnDensityMatrixArgs.
 
@@ -60,10 +59,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape
@@ -104,10 +101,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         return ActOnDensityMatrixArgs(
             target_tensor=self.target_tensor.copy(),
             available_buffer=[b.copy() for b in self.available_buffer],
-            qubits=self.qubits,
             qid_shape=self.qid_shape,
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
+            qubits=self.qubits,
         )
 
     def kronecker_product(
@@ -120,10 +117,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         return ActOnDensityMatrixArgs(
             target_tensor=target_tensor,
             available_buffer=buffer,
-            qubits=self.qubits + other.qubits,
             qid_shape=target_tensor.shape[: int(target_tensor.ndim / 2)],
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
+            qubits=self.qubits + other.qubits,
         )
 
     def factor(
@@ -141,19 +138,19 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         extracted_args = ActOnDensityMatrixArgs(
             target_tensor=extracted_tensor,
             available_buffer=buffer,
-            qubits=qubits,
             qid_shape=extracted_tensor.shape[: int(extracted_tensor.ndim / 2)],
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
+            qubits=qubits,
         )
         buffer = [np.empty_like(remainder_tensor) for _ in self.available_buffer]
         remainder_args = ActOnDensityMatrixArgs(
             target_tensor=remainder_tensor,
             available_buffer=buffer,
-            qubits=tuple(q for q in self.qubits if q not in qubits),
             qid_shape=remainder_tensor.shape[: int(remainder_tensor.ndim / 2)],
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
+            qubits=tuple(q for q in self.qubits if q not in qubits),
         )
         return extracted_args, remainder_args
 
@@ -167,10 +164,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         return ActOnDensityMatrixArgs(
             target_tensor=new_tensor,
             available_buffer=buffer,
-            qubits=qubits,
             qid_shape=new_tensor.shape[: int(new_tensor.ndim / 2)],
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
+            qubits=qubits,
         )
 
     def sample(

@@ -89,10 +89,7 @@ class CliffordSimulator(
 
         state = CliffordState(qubit_map, initial_state=initial_state)
         return clifford.ActOnStabilizerCHFormArgs(
-            state=state.ch_form,
-            prng=self._prng,
-            log_of_measurement_results=logs,
-            qubits=qubits,
+            state=state.ch_form, prng=self._prng, log_of_measurement_results=logs, qubits=qubits
         )
 
     def _create_step_result(

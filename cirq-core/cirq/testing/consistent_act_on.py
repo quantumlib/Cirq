@@ -49,9 +49,9 @@ def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauli
     args = act_on_state_vector_args.ActOnStateVectorArgs(
         target_tensor=state_vector.copy(),
         available_buffer=np.empty_like(state_vector),
-        qubits=qubits,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=qubits,
     )
     protocols.act_on(stabilizer, args, qubits)
     return np.allclose(args.target_tensor, state_vector)
@@ -161,9 +161,9 @@ def _final_clifford_tableau(
     tableau = clifford_tableau.CliffordTableau(len(qubit_map))
     args = act_on_clifford_tableau_args.ActOnCliffordTableauArgs(
         tableau=tableau,
-        qubits=list(qubit_map.keys()),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=list(qubit_map.keys()),
     )
     for op in circuit.all_operations():
         try:
@@ -192,9 +192,9 @@ def _final_stabilizer_state_ch_form(
     stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(len(qubit_map))
     args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
         state=stabilizer_ch_form,
-        qubits=list(qubit_map.keys()),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=list(qubit_map.keys()),
     )
     for op in circuit.all_operations():
         try:

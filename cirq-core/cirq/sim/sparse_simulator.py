@@ -196,9 +196,9 @@ class Simulator(
         return act_on_state_vector_args.ActOnStateVectorArgs(
             target_tensor=np.reshape(state, qid_shape),
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
-            qubits=qubits,
             prng=self._prng,
             log_of_measurement_results=logs,
+            qubits=qubits,
         )
 
     def _create_step_result(

@@ -33,10 +33,10 @@ def test_decomposed_fallback():
     args = cirq.ActOnDensityMatrixArgs(
         target_tensor=tensor,
         available_buffer=[np.empty_like(tensor) for _ in range(3)],
-        qubits=cirq.LineQubit.range(1),
+        qid_shape=qid_shape,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
-        qid_shape=qid_shape,
+        qubits=cirq.LineQubit.range(1),
     )
 
     cirq.act_on(Composite(), args, cirq.LineQubit.range(1))
@@ -56,10 +56,10 @@ def test_cannot_act():
     args = cirq.ActOnDensityMatrixArgs(
         target_tensor=tensor,
         available_buffer=[np.empty_like(tensor) for _ in range(3)],
-        qubits=cirq.LineQubit.range(1),
+        qid_shape=qid_shape,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
-        qid_shape=qid_shape,
+        qubits=cirq.LineQubit.range(1),
     )
     with pytest.raises(TypeError, match="Can't simulate operations"):
         cirq.act_on(NoDetails(), args, qubits=())

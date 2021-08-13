@@ -16,7 +16,6 @@ import abc
 import copy
 from typing import (
     Any,
-    Iterable,
     Dict,
     List,
     TypeVar,
@@ -47,7 +46,6 @@ class ActOnArgs(OperationTarget[TSelf]):
         self,
         prng: np.random.RandomState = None,
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
         """Inits ActOnArgs.
@@ -58,8 +56,6 @@ class ActOnArgs(OperationTarget[TSelf]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
@@ -67,13 +63,10 @@ class ActOnArgs(OperationTarget[TSelf]):
             prng = cast(np.random.RandomState, np.random)
         if qubits is None:
             qubits = ()
-        if axes is None:
-            axes = ()
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
         self._qubits = tuple(qubits)
         self.qubit_map = {q: i for i, q in enumerate(qubits)}
-        self._axes = tuple(axes)
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
 

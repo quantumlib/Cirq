@@ -328,10 +328,7 @@ def test_supremacy_equal_more_cols():
 def test_tensor_index_names():
     qubits = cirq.LineQubit.range(12)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
-    state = ccq.mps_simulator.MPSState(
-        qubit_map,
-        prng=value.parse_random_state(0),
-    )
+    state = ccq.mps_simulator.MPSState(qubit_map, prng=value.parse_random_state(0))
 
     assert state.i_str(0) == "i_00"
     assert state.i_str(11) == "i_11"

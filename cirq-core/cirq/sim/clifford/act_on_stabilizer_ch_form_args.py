@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 
@@ -41,7 +41,6 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
     ):
         """Initializes with the given state and the axes for the operation.
         Args:
@@ -54,10 +53,8 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.state = state
 
     def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
@@ -79,9 +76,9 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
     def copy(self) -> 'cirq.ActOnStabilizerCHFormArgs':
         return ActOnStabilizerCHFormArgs(
             state=self.state.copy(),
-            qubits=self.qubits,
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
+            qubits=self.qubits,
         )
 
     def sample(

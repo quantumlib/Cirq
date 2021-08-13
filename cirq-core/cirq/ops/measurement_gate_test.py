@@ -283,9 +283,9 @@ def test_act_on_state_vector():
     args = cirq.ActOnStateVectorArgs(
         target_tensor=cirq.one_hot(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
-        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(5),
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
@@ -295,9 +295,9 @@ def test_act_on_state_vector():
             index=(0, 1, 0, 0, 0), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
-        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(5),
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
@@ -307,9 +307,9 @@ def test_act_on_state_vector():
             index=(0, 1, 0, 1, 0), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
-        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(5),
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}
@@ -326,18 +326,18 @@ def test_act_on_clifford_tableau():
 
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=0),
-        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(5),
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=8),
-        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(5),
     )
 
     cirq.act_on(m, args)
@@ -345,9 +345,9 @@ def test_act_on_clifford_tableau():
 
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=10),
-        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(5),
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}
@@ -364,18 +364,18 @@ def test_act_on_stabilizer_ch_form():
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=0),
-        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(5),
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=8),
-        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(5),
     )
 
     cirq.act_on(m, args)
@@ -383,9 +383,9 @@ def test_act_on_stabilizer_ch_form():
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=10),
-        qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQubit.range(5),
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}
@@ -403,9 +403,9 @@ def test_act_on_qutrit():
             index=(0, 2, 0, 2, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
-        qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQid.range(5, dimension=3),
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [2, 2]}
@@ -415,9 +415,9 @@ def test_act_on_qutrit():
             index=(0, 1, 0, 2, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
-        qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQid.range(5, dimension=3),
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [2, 1]}
@@ -427,9 +427,9 @@ def test_act_on_qutrit():
             index=(0, 2, 0, 1, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
         ),
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
-        qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        qubits=cirq.LineQid.range(5, dimension=3),
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 2]}

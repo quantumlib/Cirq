@@ -18,10 +18,7 @@ import cirq
 
 class EmptyActOnArgs(cirq.ActOnArgs):
     def __init__(self, qubits, logs):
-        super().__init__(
-            qubits=qubits,
-            log_of_measurement_results=logs,
-        )
+        super().__init__(qubits=qubits, log_of_measurement_results=logs)
 
     def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
         return []
