@@ -28,7 +28,7 @@ from typing import (
 )
 
 import cirq
-from cirq_google import serializable_gate_set
+from cirq_google.serialization import serializable_gate_set
 from cirq_google.api import v2
 
 

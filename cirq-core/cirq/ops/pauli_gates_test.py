@@ -216,3 +216,7 @@ def test_powers():
     assert isinstance(cirq.X ** -0.5, cirq.XPowGate)
     assert isinstance(cirq.Y ** 0.2, cirq.YPowGate)
     assert isinstance(cirq.Z ** 0.5, cirq.ZPowGate)
+
+    assert isinstance(cirq.X ** 1, cirq.Pauli)
+    assert isinstance(cirq.Y ** 1, cirq.Pauli)
+    assert isinstance(cirq.Z ** 1, cirq.Pauli)

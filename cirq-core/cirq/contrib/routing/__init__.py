@@ -14,7 +14,6 @@
 """Utilities for routing circuits on devices"""
 
 from cirq.contrib.routing.device import (
-    xmon_device_to_graph,
     get_linear_device_graph,
     get_grid_device_graph,
     gridqubits_to_graph_device,
