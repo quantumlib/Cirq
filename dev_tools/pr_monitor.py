@@ -32,6 +32,7 @@ def get_pr_size_label(tot_changes: int) -> str:
     while i < len(PR_SIZES):
         if tot_changes < PR_SIZES[i]:
             ret = PR_SIZE_LABELS[i]
+            break
         i += 1
     return ret
 
