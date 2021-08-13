@@ -16,20 +16,11 @@ import abc
 import dataclasses
 import warnings
 from dataclasses import dataclass
-from functools import lru_cache
-from typing import Dict, List, Tuple, Any, Sequence, Callable, Union, Iterable
+from typing import Dict, List, Tuple, Any, Sequence, Union, Iterable
 
 import cirq
 import networkx as nx
 from matplotlib import pyplot as plt
-
-
-def cache(user_function: Callable[[Any], Any]) -> Any:
-    """Unbounded cache.
-
-    Available as functools.cache in Python 3.9+
-    """
-    return lru_cache(maxsize=None)(user_function)
 
 
 def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
@@ -119,25 +110,11 @@ class LineTopology(NamedTopology):
     def __post_init__(self):
         if self.n_nodes <= 1:
             raise ValueError("`n_nodes` must be greater than 1.")
-
-    # https://github.com/python/mypy/issues/1362
-    @property  # type: ignore
-    @cache
-    def name(self) -> str:
-        """The name of this topology: {n_nodes}-line"""
-        return f'line-{self.n_nodes}'
-
-    @property  # type: ignore
-    @cache
-    def graph(self) -> nx.Graph:
-        """The graph of this topology.
-
-        Node indices are contiguous integers starting from 0 with edges between
-        adjacent integers.
-        """
-        return nx.from_edgelist(
+        object.__setattr__(self, 'name', f'line-{self.n_nodes}')
+        graph = nx.from_edgelist(
             [(i1, i2) for i1, i2 in zip(range(self.n_nodes), range(1, self.n_nodes))]
         )
+        object.__setattr__(self, 'graph', graph)
 
     def draw(self, ax=None, cartesian: bool = True, **kwargs) -> Dict[Any, Tuple[int, int]]:
         """Draw this graph.
@@ -196,14 +173,8 @@ class DiagonalRectangleTopology(NamedTopology):
         if self.height <= 0:
             raise ValueError("Height must be a positive integer")
 
-    @property  # type: ignore
-    @cache
-    def name(self) -> str:
-        return f'diagonal-rectangle-{self.width}-{self.height}'
+        object.__setattr__(self, 'name', f'diagonal-rectangle-{self.width}-{self.height}')
 
-    @property  # type: ignore
-    @cache
-    def graph(self) -> nx.Graph:
         g = nx.Graph()
         # construct a "diagonal rectangle graph" whose width and height
         # set the number of rows of 'central' nodes, each of which has
@@ -218,17 +189,12 @@ class DiagonalRectangleTopology(NamedTopology):
                 g.add_edge((x, y), (x, y - 1))
                 g.add_edge((x, y), (x + 1, y))
                 g.add_edge((x, y), (x, y + 1))
-        return g
+        object.__setattr__(self, 'graph', g)
 
-    @property  # type: ignore
-    @cache
-    def n_nodes(self) -> int:
-        """The number of nodes in this topology.
-
-        Each unit cell contains one central node and shares 4 nodes with 4 adjacent unit cells,
-        so the number of nodes is ((1/4)*4 + 1) * width * height + boundary_effects
-        """
-        return 2 * self.width * self.height + self.width + self.height + 1
+        # Each unit cell contains one central node and shares 4 nodes with 4 adjacent unit cells,
+        # so the number of nodes is ((1/4)*4 + 1) * width * height + boundary_effects
+        n_nodes = 2 * self.width * self.height + self.width + self.height + 1
+        object.__setattr__(self, 'n_nodes', n_nodes)
 
     def draw(self, ax=None, cartesian=True, **kwargs):
         """Draw this graph
