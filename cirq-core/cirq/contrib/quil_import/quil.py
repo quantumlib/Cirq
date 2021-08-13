@@ -225,6 +225,10 @@ def circuit_from_quil(quil: str) -> Circuit:
     Returns:
         A Cirq Circuit generated from the Quil program.
 
+    Raises:
+        UnsupportedQuilInstruction: Cirq does not support the specified Quil instruction.
+        UndefinedQuilGate: Cirq does not support the specified Quil gate.
+
     References:
         https://github.com/rigetti/pyquil
     """
@@ -261,6 +265,11 @@ def circuit_from_quil(quil: str) -> Circuit:
         # Convert pyQuil MEASURE operations to Cirq MeasurementGate objects.
         elif isinstance(inst, PyQuilMeasurement):
             line_qubit = LineQubit(inst.qubit.index)
+            if inst.classical_reg is None:
+                raise UnsupportedQuilInstruction(
+                    f"Quil measurement {inst} without classical register "
+                    f"not currently supported in Cirq."
+                )
             quil_memory_reference = inst.classical_reg.out()
             circuit += MeasurementGate(1, key=quil_memory_reference)(line_qubit)
 

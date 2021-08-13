@@ -24,8 +24,7 @@ class BlochSphere(widget.Widget):
         sphere_radius: int = 5,
         state_vector: STATE_VECTOR_LIKE = None,
     ):
-        """Initializes a BlochSphere, gathering all the user information and
-        converting to JSON for output.
+        """Initializes a BlochSphere.
 
         Also initializes it's parent class Widget with the bundle file provided.
 
