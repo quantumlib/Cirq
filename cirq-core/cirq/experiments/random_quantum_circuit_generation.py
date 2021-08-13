@@ -669,9 +669,7 @@ class _FixedSingleQubitLayerFactory:
     def __init__(self, fixed_single_qubit_layer: Dict['cirq.Qid', 'cirq.Gate']) -> None:
         self.fixed_single_qubit_layer = fixed_single_qubit_layer
 
-    def new_layer(
-        self, previous_single_qubit_layer: Any
-    ):
+    def new_layer(self, previous_single_qubit_layer: Any):
         pass
 
     def to_moment(self, layer: Any):
