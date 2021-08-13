@@ -80,10 +80,6 @@ def test_equality():
 
 
 def test_coupler_pulse_validation():
-    with pytest.raises(ValueError, match='Full rise time'):
-        _ = coupler_pulse.CouplerPulse(
-            hold_time=cirq.Duration(nanos=20), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=10)
-        )
     with pytest.raises(ValueError, match='hold_time must be between'):
         _ = coupler_pulse.CouplerPulse(
             hold_time=cirq.Duration(nanos=110),
@@ -107,6 +103,12 @@ def test_coupler_pulse_validation():
             coupling_mhz=25.0,
             rise_time=cirq.Duration(nanos=20),
             padding_time=cirq.Duration(nanos=-20),
+        )
+    with pytest.raises(ValueError, match='rise_time must be between'):
+        _ = coupler_pulse.CouplerPulse(
+            hold_time=cirq.Duration(nanos=10),
+            coupling_mhz=25.0,
+            rise_time=cirq.Duration(nanos=-1),
         )
     with pytest.raises(ValueError, match='rise_time must be between'):
         _ = coupler_pulse.CouplerPulse(

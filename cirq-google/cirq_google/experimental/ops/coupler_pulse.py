@@ -38,7 +38,7 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
     Args:
             hold_time: Length of the 'plateau' part of the coupler trajectory.
             coupling_MHz: Target qubit-qubit coupling reached at the plateau.
-            rise_time: Full width of the smoothstep rise/fall.
+            rise_time: Width of the rising (or falling) action of the trapezoidal pulse.
             padding_time: Symmetric padding around the coupler pulse.
     """
 
@@ -54,15 +54,10 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
         Args:
             hold_time: Length of the 'plateau' part of the coupler trajectory.
             coupling_MHz: Target qubit-qubit coupling reached at the plateau.
-            rise_time: Full width of the smoothstep rise/fall.
+            rise_time: Width of the rising (or falling) action of the trapezoidal pulse.
             padding_time: Symmetric padding around the coupler pulse.
         """
         # Verification
-        if hold_time > rise_time:
-            raise ValueError(
-                f'Full rise time {rise_time} must be longer '
-                'than hold_time {hold_time} for CouplerPulse'
-            )
         if hold_time < _MIN_DURATION or hold_time > _MAX_DURATION:
             raise ValueError(f'hold_time must be between {_MIN_DURATION} and {_MAX_DURATION}')
         if padding_time < _MIN_DURATION or padding_time > _MAX_DURATION:
