@@ -602,6 +602,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         'pd': pd,
         'sympy': sympy,
         'np': np,
+        'datetime': datetime,
     }
 
     for m in TESTED_MODULES.keys():
