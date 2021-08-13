@@ -655,11 +655,13 @@ class _RandomSingleQubitLayerFactory:
     ) -> Dict['cirq.Qid', int]:
         def random_gate(qubit: 'cirq.Qid') -> int:
             if qubit not in previous_single_qubit_layer:
-                i = self.prng.randint(0, len(self.single_qubit_gates))
-            else:
-                i = self.prng.randint(0, len(self.single_qubit_gates) - 1)
-                if i >= previous_single_qubit_layer[qubit]:
-                    i += 1
+                return self.prng.randint(0, len(self.single_qubit_gates))
+            # say we have 6 gates and previous was 3 (of 6). Then we choose
+            # a randint(0, 6-1): [0,1,2,3,4] and inc that by one if it's gte 3,
+            # so we get [0,1,2,4,5] with equal probability.
+            i = self.prng.randint(0, len(self.single_qubit_gates) - 1)
+            if i >= previous_single_qubit_layer[qubit]:
+                i += 1
             return i
 
         return {q: random_gate(q) for q in self.qubits}
