@@ -10,9 +10,6 @@
 # For testing and analyzing code.
 asv
 
-# For verifying behavior of Quil output.
-pyquil~=2.21.0
-
 # For verifying behavior of qasm output.
 qiskit-aer~=0.7.6
 

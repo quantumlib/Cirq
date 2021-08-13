@@ -117,34 +117,29 @@ class MPSSimulator(
 
     def _create_step_result(
         self,
-        sim_state: 'MPSState',
-        qubit_map: Dict['cirq.Qid', int],
+        sim_state: 'cirq.OperationTarget[MPSState]',
     ):
-        return MPSSimulatorStepResult(
-            measurements=sim_state.log_of_measurement_results, state=sim_state
-        )
+        return MPSSimulatorStepResult(sim_state)
 
     def _create_simulator_trial_result(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'MPSState',
+        final_step_result: 'MPSSimulatorStepResult',
     ) -> 'MPSTrialResult':
         """Creates a single trial results with the measurements.
 
         Args:
-            circuit: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
+            params: A ParamResolver for determining values of Symbols.
             measurements: A dictionary from measurement key (e.g. qubit) to the
                 actual measurement array.
-            final_simulator_state: The final state of the simulator.
+            final_step_result: The final step result of the simulation.
 
         Returns:
             A single result.
         """
         return MPSTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
 
@@ -155,13 +150,15 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'MPSState',
+        final_step_result: 'MPSSimulatorStepResult',
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
-        self.final_state = final_simulator_state
+    @property
+    def final_state(self):
+        return self._final_simulator_state
 
     def __str__(self) -> str:
         samples = super().__str__()
@@ -169,22 +166,22 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
+class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState']):
     """A `StepResult` that can perform measurements."""
 
-    def __init__(self, state, measurements):
+    def __init__(
+        self,
+        sim_state: 'cirq.OperationTarget[MPSState]',
+    ):
         """Results of a step of the simulator.
         Attributes:
-            state: A MPSState
-            measurements: A dictionary from measurement gate key to measurement
-                results, ordered by the qubits that the measurement operates on.
-            qubit_map: A map from the Qubits in the Circuit to the the index
-                of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state vector (see the state_vector()
-                method).
+            sim_state: The qubit:ActOnArgs lookup for this step.
         """
-        self.measurements = measurements
-        self.state = state.copy()
+        super().__init__(sim_state)
+
+    @property
+    def state(self):
+        return self._merged_sim_state
 
     def __str__(self) -> str:
         def bitstring(vals):
@@ -203,24 +200,6 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
 
     def _simulator_state(self):
         return self.state
-
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-
-        measurements: List[int] = []
-
-        for _ in range(repetitions):
-            measurements.append(
-                self.state.perform_measurement(
-                    qubits, value.parse_random_state(seed), collapse_state_vector=False
-                )
-            )
-
-        return np.array(measurements, dtype=int)
 
 
 @value.value_equality
@@ -466,7 +445,7 @@ class MPSState(ActOnArgs):
         return self.apply_op(op, self.prng)
 
     def estimation_stats(self):
-        "Returns some statistics about the memory usage and quality of the approximation."
+        """Returns some statistics about the memory usage and quality of the approximation."""
 
         num_coefs_used = sum([Mi.data.size for Mi in self.M])
         memory_bytes = sum([Mi.data.nbytes for Mi in self.M])
@@ -537,3 +516,21 @@ class MPSState(ActOnArgs):
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
         return self.perform_measurement(qubits, self.prng)
+
+    def sample(
+        self,
+        qubits: Sequence[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+
+        measurements: List[List[int]] = []
+
+        for _ in range(repetitions):
+            measurements.append(
+                self.perform_measurement(
+                    qubits, value.parse_random_state(seed), collapse_state_vector=False
+                )
+            )
+
+        return np.array(measurements, dtype=int)

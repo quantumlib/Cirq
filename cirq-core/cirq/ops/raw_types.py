@@ -586,7 +586,7 @@ class Operation(metaclass=abc.ABCMeta):
 
         # Don't create gigantic matrices.
         shape = protocols.qid_shape_protocol.qid_shape(circuit12)
-        if np.product(shape) > 2 ** 10:
+        if np.prod(shape, dtype=np.int64) > 2 ** 10:
             return NotImplemented  # coverage: ignore
 
         m12 = protocols.unitary_protocol.unitary(circuit12, default=None)

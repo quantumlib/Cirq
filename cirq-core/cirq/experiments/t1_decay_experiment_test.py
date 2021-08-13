@@ -18,6 +18,8 @@ import pandas as pd
 
 import cirq
 
+import numpy as np
+
 
 def test_init_result():
     data = pd.DataFrame(
@@ -165,6 +167,95 @@ def test_all_off_results():
     )
 
 
+def test_curve_fit_plot_works():
+    good_fit = cirq.experiments.T1DecayResult(
+        data=pd.DataFrame(
+            columns=['delay_ns', 'false_count', 'true_count'],
+            index=range(4),
+            data=[
+                [100.0, 6, 4],
+                [400.0, 10, 0],
+                [700.0, 10, 0],
+                [1000.0, 10, 0],
+            ],
+        )
+    )
+
+    good_fit.plot(include_fit=True)
+
+
+def test_curve_fit_plot_warning():
+    bad_fit = cirq.experiments.T1DecayResult(
+        data=pd.DataFrame(
+            columns=['delay_ns', 'false_count', 'true_count'],
+            index=range(4),
+            data=[
+                [100.0, 10, 0],
+                [400.0, 10, 0],
+                [700.0, 10, 0],
+                [1000.0, 10, 0],
+            ],
+        )
+    )
+
+    with pytest.warns(RuntimeWarning, match='Optimal parameters could not be found for curve fit'):
+        bad_fit.plot(include_fit=True)
+
+
+@pytest.mark.parametrize('t1', [200, 500, 700])
+def test_noise_model_continous(t1):
+    class GradualDecay(cirq.NoiseModel):
+        def __init__(self, t1: float):
+            self.t1 = t1
+
+        def noisy_moment(self, moment, system_qubits):
+            duration = max(
+                (
+                    op.gate.duration
+                    for op in moment.operations
+                    if isinstance(op.gate, cirq.WaitGate)
+                ),
+                default=cirq.Duration(nanos=0),
+            )
+            if duration > cirq.Duration(nanos=0):
+                # Found a wait gate in this moment.
+                return cirq.amplitude_damp(1 - np.exp(-duration.total_nanos() / self.t1)).on_each(
+                    system_qubits
+                )
+            return moment
+
+    results = cirq.experiments.t1_decay(
+        sampler=cirq.DensityMatrixSimulator(noise=GradualDecay(t1)),
+        qubit=cirq.GridQubit(0, 0),
+        num_points=4,
+        repetitions=10,
+        min_delay=cirq.Duration(nanos=100),
+        max_delay=cirq.Duration(micros=1),
+    )
+
+    assert np.isclose(results.constant, t1, 50)
+
+
+@pytest.mark.parametrize('gamma', [0.01, 0.05, 0.1])
+def test_noise_model_discrete(gamma):
+    results = cirq.experiments.t1_decay(
+        sampler=cirq.DensityMatrixSimulator(
+            noise=cirq.NoiseModel.from_noise_model_like(cirq.amplitude_damp(gamma))
+        ),
+        qubit=cirq.GridQubit(0, 0),
+        num_points=4,
+        repetitions=100,
+        min_delay=cirq.Duration(nanos=100),
+        max_delay=cirq.Duration(micros=1),
+    )
+
+    data = results.data
+    probs = data['true_count'] / (data['true_count'] + data['false_count'])
+
+    # Check that there is no decay in probability over time
+    np.testing.assert_allclose(probs, np.mean(probs), atol=0.2)
+
+
 def test_bad_args():
     with pytest.raises(ValueError, match='repetitions <= 0'):
         _ = cirq.experiments.t1_decay(
@@ -197,7 +288,6 @@ def test_bad_args():
 
 
 def test_str():
-
     result = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],

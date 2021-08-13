@@ -39,7 +39,8 @@ class ConvertToPauliStringPhasors(PointOptimizer):
     def __init__(
         self, ignore_failures: bool = False, keep_clifford: bool = False, atol: float = 1e-14
     ) -> None:
-        """
+        """Inits ConvertToPauliStringPhasors.
+
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.

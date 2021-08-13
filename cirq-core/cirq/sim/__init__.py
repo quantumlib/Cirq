@@ -64,6 +64,7 @@ from cirq.sim.simulator import (
 )
 
 from cirq.sim.simulator_base import (
+    StepResultBase,
     SimulatorBase,
 )
 
@@ -92,7 +93,6 @@ from cirq.sim.clifford import (
     StabilizerStateChForm,
     CliffordSimulator,
     CliffordState,
-    CliffordTableau,
     CliffordTrialResult,
     CliffordSimulatorStepResult,
 )

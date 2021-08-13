@@ -20,9 +20,13 @@ from typing import (
     Sequence,
     Optional,
     Iterator,
-    Tuple,
     Any,
+    Tuple,
+    Set,
+    List,
 )
+
+import numpy as np
 
 from cirq import ops
 from cirq.sim.operation_target import OperationTarget
@@ -77,6 +81,21 @@ class ActOnArgsContainer(
         self,
         op: 'cirq.Operation',
     ):
+        gate = op.gate
+        if isinstance(gate, ops.IdentityGate):
+            return
+
+        if isinstance(gate, ops.SwapPowGate) and gate.exponent % 2 == 1 and gate.global_shift == 0:
+            q0, q1 = op.qubits
+            args0 = self.args[q0]
+            args1 = self.args[q1]
+            if args0 is args1:
+                args0.swap(q0, q1, inplace=True)
+            else:
+                self.args[q0] = args1.rename(q1, q0, inplace=True)
+                self.args[q1] = args0.rename(q0, q1, inplace=True)
+            return
+
         # Go through the op's qubits and join any disparate ActOnArgs states
         # into a new combined state.
         op_args_opt: Optional[TActOnArgs] = None
@@ -121,6 +140,26 @@ class ActOnArgsContainer(
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
         return self._log_of_measurement_results
+
+    def sample(
+        self,
+        qubits: List[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        columns = []
+        selected_order: List[ops.Qid] = []
+        q_set = set(qubits)
+        for v in dict.fromkeys(self.args.values()):
+            qs = [q for q in v.qubits if q in q_set]
+            if any(qs):
+                column = v.sample(qs, repetitions, seed)
+                columns.append(column)
+                selected_order += qs
+        stacked = np.column_stack(columns)
+        qubit_map = {q: i for i, q in enumerate(selected_order)}
+        index_order = [qubit_map[q] for q in qubits]
+        return stacked[:, index_order]
 
     def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
         return self.args[item]

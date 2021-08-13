@@ -28,6 +28,7 @@ from typing import (
     Type,
     Sequence,
     Optional,
+    TypeVar,
 )
 
 import numpy as np
@@ -36,12 +37,12 @@ from cirq import circuits, ops, protocols, study, value, devices
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
-    TStepResult,
     TSimulationTrialResult,
     TSimulatorState,
     TActOnArgs,
     SimulatesIntermediateState,
     SimulatesSamples,
+    StepResult,
     check_all_resolved,
     split_into_matching_protocol_then_general,
 )
@@ -50,9 +51,14 @@ if TYPE_CHECKING:
     import cirq
 
 
+TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
+
+
 class SimulatorBase(
-    Generic[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
-    SimulatesIntermediateState[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
+    Generic[TStepResultBase, TSimulationTrialResult, TSimulatorState, TActOnArgs],
+    SimulatesIntermediateState[
+        TStepResultBase, TSimulationTrialResult, TSimulatorState, TActOnArgs
+    ],
     SimulatesSamples,
     metaclass=abc.ABCMeta,
 ):
@@ -135,16 +141,12 @@ class SimulatorBase(
     @abc.abstractmethod
     def _create_step_result(
         self,
-        sim_state: TActOnArgs,
-        qubit_map: Dict['cirq.Qid', int],
-    ) -> TStepResult:
+        sim_state: OperationTarget[TActOnArgs],
+    ) -> TStepResultBase:
         """This method should be implemented to create a step result.
 
         Args:
-            sim_state: The TActOnArgs for this trial.
-            qubit_map: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
+            sim_state: The OperationTarget for this trial.
 
         Returns:
             The StepResult.
@@ -177,7 +179,7 @@ class SimulatorBase(
         circuit: circuits.Circuit,
         sim_state: OperationTarget[TActOnArgs],
         all_measurements_are_terminal: bool = False,
-    ) -> Iterator[TStepResult]:
+    ) -> Iterator[TStepResultBase]:
         """Standard iterator over StepResult from Moments of a Circuit.
 
         Args:
@@ -191,8 +193,7 @@ class SimulatorBase(
         """
 
         if len(circuit) == 0:
-            step_state = sim_state.create_merged_state()
-            yield self._create_step_result(step_state, step_state.qubit_map)
+            yield self._create_step_result(sim_state)
             return
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
@@ -218,9 +219,10 @@ class SimulatorBase(
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
-            step_state = sim_state.create_merged_state()
-            yield self._create_step_result(step_state, step_state.qubit_map)
-            step_state.log_of_measurement_results.clear()
+            step_result = self._create_step_result(sim_state)
+            yield step_result
+            sim_state = step_result._sim_state
+            sim_state.log_of_measurement_results.clear()
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -307,3 +309,41 @@ class SimulatorBase(
                 qubits=qubits,
                 logs=log,
             )
+
+
+class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulatorState], abc.ABC):
+    """A base class for step results."""
+
+    def __init__(
+        self,
+        sim_state: OperationTarget[TActOnArgs],
+    ):
+        """Initializes the step result.
+
+        Args:
+            sim_state: The `OperationTarget` for this step.
+        """
+        self._sim_state = sim_state
+        self._merged_sim_state_cache: Optional[TActOnArgs] = None
+        super().__init__(sim_state.log_of_measurement_results)
+        qubits = sim_state.qubits
+        self._qubits = qubits
+        self._qubit_mapping = {q: i for i, q in enumerate(qubits)}
+        self._qubit_shape = tuple(q.dimension for q in qubits)
+
+    def _qid_shape_(self):
+        return self._qubit_shape
+
+    @property
+    def _merged_sim_state(self):
+        if self._merged_sim_state_cache is None:
+            self._merged_sim_state_cache = self._sim_state.create_merged_state()
+        return self._merged_sim_state_cache
+
+    def sample(
+        self,
+        qubits: List[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        return self._sim_state.sample(qubits, repetitions, seed)
