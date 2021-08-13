@@ -20,9 +20,9 @@ from cirq_google.engine import engine_client
 from cirq_google.engine.client import quantum
 from cirq_google.engine.client.quantum import types as qtypes
 from cirq_google.engine.result_type import ResultType
-from cirq_google import gate_sets
 from cirq_google.api import v2
 from cirq_google.engine import engine_job
+from cirq_google.serialization import gate_sets
 
 if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base

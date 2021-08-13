@@ -130,8 +130,8 @@ jobs:
         run: pip install -r dev_tools/requirements/deps/tensorflow-docs.txt
       - name: Doc check
         run: check/nbformat
-  cirq-only:
-    name: Pytest (cirq-only) Ubuntu
+  isolated-modules:
+    name: Isolated pytest Ubuntu
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -139,10 +139,10 @@ jobs:
         with:
           python-version: '3.8'
           architecture: 'x64'
-      - name: Install requirements
-        run: pip install -r dev_tools/requirements/cirq-only.env.txt
-      - name: Pytest check
-        run: check/pytest --cirq-only --ignore=cirq-core/cirq/contrib --actually-quiet
+      - name: Install dependencies
+        run: pip install -r dev_tools/requirements/isolated-base.env.txt
+      - name: Test each module in isolation
+        run: pytest -n auto -m slow dev_tools/packaging/isolated_packages_test.py
   pytest:
     name: Pytest Ubuntu
     strategy:
@@ -267,7 +267,7 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/isolated-notebooks.env.txt
+        run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - uses: actions/upload-artifact@v2
