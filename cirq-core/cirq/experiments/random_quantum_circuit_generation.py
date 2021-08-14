@@ -651,7 +651,7 @@ class _RandomSingleQubitLayerFactory:
             excluded_op = previous_single_qubit_layer.operation_at(qubit)
             excluded_gate = excluded_op.gate if excluded_op is not None else None
             g = self.single_qubit_gates[self.prng.randint(0, len(self.single_qubit_gates))]
-            while g == excluded_gate:
+            while g is excluded_gate:
                 g = self.single_qubit_gates[self.prng.randint(0, len(self.single_qubit_gates))]
             return g
 
