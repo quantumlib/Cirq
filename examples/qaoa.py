@@ -53,7 +53,6 @@ import itertools
 import numpy as np
 import networkx
 import scipy.optimize
-from sympy.parsing.sympy_parser import parse_expr
 
 import cirq
 
