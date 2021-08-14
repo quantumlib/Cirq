@@ -58,7 +58,7 @@ from sympy.parsing.sympy_parser import parse_expr
 import cirq
 
 
-def main(repetitions=10, maxiter=250, use_boolean_hamiltonian_gate=True, method=None):
+def main(repetitions=10, maxiter=50, use_boolean_hamiltonian_gate=False):
     # Set problem parameters
     n = 6
     p = 2
