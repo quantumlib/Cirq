@@ -49,6 +49,12 @@ def test_diagonal_rectangle_topology():
     assert all(isinstance(q, cirq.GridQubit) for q in qubits)
 
 
+def test_diagonal_rectangle_n_nodes():
+    for width, height in itertools.product(list(range(1, 4 + 1)), repeat=2):
+        topo = DiagonalRectangleTopology(width, height)
+        assert topo.n_nodes == topo.graph.number_of_nodes()
+
+
 def test_line_topology():
     n = 10
     topo = LineTopology(n)
@@ -89,7 +95,7 @@ def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
 
 
 def test_get_placements():
-    topo = DiagonalRectangleTopology(2, 1)
+    topo = DiagonalRectangleTopology(4, 2)
     syc23 = _gridqubits_to_graph_device(cg.Sycamore23.qubits)
     placements = get_placements(syc23, topo.graph)
     assert len(placements) == 12

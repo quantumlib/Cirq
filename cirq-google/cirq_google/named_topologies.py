@@ -176,24 +176,60 @@ class DiagonalRectangleTopology(NamedTopology):
         object.__setattr__(self, 'name', f'diagonal-rectangle-{self.width}-{self.height}')
 
         g = nx.Graph()
-        # construct a "diagonal rectangle graph" whose width and height
-        # set the number of rows of 'central' nodes, each of which has
-        # four neighbors in each cardinal direction.
-        # `mega[row/col]` counts the number of index of the central nodes, which is not the
-        # same as the (row, col) coordinates of the nodes.
-        for megarow in range(self.height):
-            for megacol in range(self.width):
-                y = megacol + megarow
-                x = megacol - megarow
-                g.add_edge((x, y), (x - 1, y))
+
+        def _add_edge(unit_row: int, unit_col: int, *, which: int):
+            """Helper function to add edges in 'unit cell coordinates'."""
+            y = unit_col + unit_row
+            x = unit_col - unit_row
+
+            if which == 0:
+                # Either in the bulk or on a ragged boundary, we need this edge
                 g.add_edge((x, y), (x, y - 1))
+            elif which == 1:
+                # This is added in the bulk and for a "top" (extra height) ragged boundary
                 g.add_edge((x, y), (x + 1, y))
+            elif which == 2:
+                # This is added in the bulk and for a "side" (extra width) ragged boundary
+                g.add_edge((x, y), (x - 1, y))
+            elif which == 3:
+                # This is only added in the bulk.
                 g.add_edge((x, y), (x, y + 1))
+            else:
+                raise ValueError()
+
+        # Iterate over unit cells, which are in units of 2*width, 2*height.
+        # Add all all four edges when we're in the bulk.
+        unit_cell_height = self.height // 2
+        unit_cell_width = self.width // 2
+        for unit_row in range(unit_cell_height):
+            for unit_col in range(unit_cell_width):
+                for i in range(4):
+                    _add_edge(unit_row, unit_col, which=i)
+
+        extra_h = self.height % 2
+        if extra_h:
+            # Add extra height to the final half-row.
+            for unit_col in range(unit_cell_width):
+                _add_edge(unit_cell_height, unit_col, which=0)
+                _add_edge(unit_cell_height, unit_col, which=1)
+
+        extra_w = self.width % 2
+        if extra_w:
+            # Add extra width to the final half-column
+            for unit_row in range(unit_cell_height):
+                _add_edge(unit_row, unit_cell_width, which=0)
+                _add_edge(unit_row, unit_cell_width, which=2)
+
+        if extra_w and extra_h:
+            # Add the final corner node when we have both ragged boundaries
+            _add_edge(unit_cell_height, unit_cell_width, which=0)
+
         object.__setattr__(self, 'graph', g)
 
         # Each unit cell contains one central node and shares 4 nodes with 4 adjacent unit cells,
         # so the number of nodes is ((1/4)*4 + 1) * width * height + boundary_effects
-        n_nodes = 2 * self.width * self.height + self.width + self.height + 1
+        n_nodes = 2 * unit_cell_width * unit_cell_height + unit_cell_width + unit_cell_height + 1
+        n_nodes += unit_cell_width * extra_h + unit_cell_height * extra_w + extra_h * extra_w
         object.__setattr__(self, 'n_nodes', n_nodes)
 
     def draw(self, ax=None, cartesian=True, **kwargs):
