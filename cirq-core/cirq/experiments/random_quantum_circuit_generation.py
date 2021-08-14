@@ -224,21 +224,19 @@ def random_rotations_between_two_qubit_circuit(
     prng = value.parse_random_state(seed)
 
     circuit = circuits.Circuit()
-    previous_single_qubit_layer: Dict['cirq.Qid', int] = {}
+    previous_single_qubit_layer = ops.Moment()
     single_qubit_layer_factory = _single_qubit_gates_arg_to_factory(
         single_qubit_gates=single_qubit_gates, qubits=(q0, q1), prng=prng
     )
 
     for _ in range(depth):
         single_qubit_layer = single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
-        circuit += single_qubit_layer_factory.to_moment(single_qubit_layer)
+        circuit += single_qubit_layer
         circuit += two_qubit_op_factory(q0, q1, prng)
         previous_single_qubit_layer = single_qubit_layer
 
     if add_final_single_qubit_layer:
-        circuit += single_qubit_layer_factory.to_moment(
-            single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
-        )
+        circuit += single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
 
     return circuit
 
@@ -599,14 +597,14 @@ def random_rotations_between_grid_interaction_layers_circuit(
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
 
     circuit = circuits.Circuit()
-    previous_single_qubit_layer: Dict['cirq.Qid', int] = {}
+    previous_single_qubit_layer = ops.Moment()
     single_qubit_layer_factory = _single_qubit_gates_arg_to_factory(
         single_qubit_gates=single_qubit_gates, qubits=qubits, prng=prng
     )
 
     for i in range(depth):
         single_qubit_layer = single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
-        circuit += single_qubit_layer_factory.to_moment(single_qubit_layer)
+        circuit += single_qubit_layer
 
         two_qubit_layer = _two_qubit_layer(
             coupled_qubit_pairs, two_qubit_op_factory, pattern[i % len(pattern)], prng
@@ -615,9 +613,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
         previous_single_qubit_layer = single_qubit_layer
 
     if add_final_single_qubit_layer:
-        circuit += single_qubit_layer_factory.to_moment(
-            single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
-        )
+        circuit += single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
 
     return circuit
 
@@ -650,29 +646,23 @@ class _RandomSingleQubitLayerFactory:
         self.single_qubit_gates = single_qubit_gates
         self.prng = prng
 
-    def new_layer(
-        self, previous_single_qubit_layer: Dict['cirq.Qid', int]
-    ) -> Dict['cirq.Qid', int]:
-        def random_gate(qubit: 'cirq.Qid') -> int:
-            i = self.prng.randint(0, len(self.single_qubit_gates))
-            while i == previous_single_qubit_layer.get(qubit):
-                i = self.prng.randint(0, len(self.single_qubit_gates))
-            return i
+    def new_layer(self, previous_single_qubit_layer: 'cirq.Moment') -> 'cirq.Moment':
+        def random_gate(qubit: 'cirq.Qid') -> 'cirq.Gate':
+            excluded_op = previous_single_qubit_layer.operation_at(qubit)
+            excluded_gate = excluded_op.gate if excluded_op is not None else None
+            g = self.single_qubit_gates[self.prng.randint(0, len(self.single_qubit_gates))]
+            while g == excluded_gate:
+                g = self.single_qubit_gates[self.prng.randint(0, len(self.single_qubit_gates))]
+            return g
 
-        return {q: random_gate(q) for q in self.qubits}
-
-    def to_moment(self, layer: Dict['cirq.Qid', int]):
-        return ops.Moment(self.single_qubit_gates[layer[q]].on(q) for q in layer.keys())
+        return ops.Moment(random_gate(q).on(q) for q in self.qubits)
 
 
 class _FixedSingleQubitLayerFactory:
     def __init__(self, fixed_single_qubit_layer: Dict['cirq.Qid', 'cirq.Gate']) -> None:
         self.fixed_single_qubit_layer = fixed_single_qubit_layer
 
-    def new_layer(self, previous_single_qubit_layer: Any):
-        pass
-
-    def to_moment(self, layer: Any):
+    def new_layer(self, previous_single_qubit_layer: 'cirq.Moment') -> 'cirq.Moment':
         return ops.Moment(v.on(q) for q, v in self.fixed_single_qubit_layer.items())
 
 
