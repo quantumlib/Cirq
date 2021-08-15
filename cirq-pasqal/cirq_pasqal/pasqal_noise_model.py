@@ -18,7 +18,7 @@ import cirq_pasqal
 
 
 class PasqalNoiseModel(cirq.devices.NoiseModel):
-    """A noise model for Pasqal neutral atom device """
+    """A noise model for Pasqal neutral atom device"""
 
     def __init__(self, device: cirq.devices.Device):
         self.noise_op_dict = self.get_default_noise_dict()

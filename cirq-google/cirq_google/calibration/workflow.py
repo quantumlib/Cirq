@@ -1047,6 +1047,8 @@ def _make_zeta_chi_gamma_compensation(
     return CircuitWithCalibration(compensated, compensated_moment_to_calibration)
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def _find_moment_zeta_chi_gamma_corrections(
     moment: cirq.Moment,
     characterization_index: Optional[int],
@@ -1129,6 +1131,7 @@ def _find_moment_zeta_chi_gamma_corrections(
     return decompositions, decompositions_moment_to_calibration, other
 
 
+# pylint: enable=missing-raises-doc
 @dataclasses.dataclass(frozen=True)
 class FSimPhaseCorrections:
     """Operations that compensate for zeta, chi and gamma angles of an approximate FSimGate gate.

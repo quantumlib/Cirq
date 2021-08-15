@@ -161,7 +161,8 @@ class ActOnArgs(OperationTarget[TSelf]):
             otherwise.
 
         Raises:
-            ValueError if the qubits are of different dimensionality."""
+            ValueError: If the qubits are of different dimensionality.
+        """
         if q1.dimension != q2.dimension:
             raise ValueError(f'Cannot swap different dimensions: q1={q1}, q2={q2}')
 
@@ -189,7 +190,8 @@ class ActOnArgs(OperationTarget[TSelf]):
             otherwise.
 
         Raises:
-            ValueError if the qubits are of different dimensionality."""
+            ValueError: If the qubits are of different dimensionality.
+        """
         if q1.dimension != q2.dimension:
             raise ValueError(f'Cannot rename to different dimensions: q1={q1}, q2={q2}')
 
