@@ -27,7 +27,8 @@ class StabilizerSampler(sampler.Sampler):
     """An efficient sampler for stabilizer circuits."""
 
     def __init__(self, *, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
-        """
+        """Inits StabilizerSampler.
+
         Args:
             seed: The random seed or generator to use when sampling.
         """
@@ -55,17 +56,16 @@ class StabilizerSampler(sampler.Sampler):
         measurements: Dict[str, List[int]] = {
             key: [] for key in protocols.measurement_keys(circuit)
         }
-        axes_map = {q: i for i, q in enumerate(circuit.all_qubits())}
+        qubits = circuit.all_qubits()
 
         for _ in range(repetitions):
             state = ActOnCliffordTableauArgs(
-                CliffordTableau(num_qubits=len(axes_map)),
-                axes=(),
+                CliffordTableau(num_qubits=len(qubits)),
+                qubits=list(qubits),
                 prng=self._prng,
                 log_of_measurement_results={},
             )
             for op in circuit.all_operations():
-                state.axes = tuple(axes_map[q] for q in op.qubits)
                 protocols.act_on(op, state)
 
             for k, v in state.log_of_measurement_results.items():

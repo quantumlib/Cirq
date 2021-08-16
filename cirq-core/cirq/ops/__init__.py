@@ -18,6 +18,10 @@ from cirq.ops.arithmetic_operation import (
     ArithmeticOperation,
 )
 
+from cirq.ops.boolean_hamiltonian import (
+    BooleanHamiltonian,
+)
+
 from cirq.ops.clifford_gate import (
     PauliTransform,
     SingleQubitCliffordGate,
@@ -45,6 +49,7 @@ from cirq.ops.common_channels import (
     PhaseDampingChannel,
     PhaseFlipChannel,
     reset,
+    reset_each,
     ResetChannel,
 )
 
@@ -115,11 +120,19 @@ from cirq.ops.global_phase_op import (
     GlobalPhaseOperation,
 )
 
+from cirq.ops.kraus_channel import (
+    KrausChannel,
+)
+
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
     PauliSum,
     PauliSumLike,
+)
+
+from cirq.ops.mixed_unitary_channel import (
+    MixedUnitaryChannel,
 )
 
 from cirq.ops.pauli_sum_exponential import (
@@ -128,6 +141,10 @@ from cirq.ops.pauli_sum_exponential import (
 
 from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,
+)
+
+from cirq.ops.projector import (
+    ProjectorString,
 )
 
 from cirq.ops.controlled_operation import (
@@ -241,6 +258,8 @@ from cirq.ops.swap_gates import (
     ISWAP,
     ISwapPowGate,
     riswap,
+    SQRT_ISWAP,
+    SQRT_ISWAP_INV,
     SWAP,
     SwapPowGate,
 )

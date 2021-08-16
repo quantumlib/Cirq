@@ -46,7 +46,8 @@ class EjectPhasedPaulis:
     """
 
     def __init__(self, tolerance: float = 1e-8, eject_parameterized: bool = False) -> None:
-        """
+        """Inits EjectPhasedPaulis.
+
         Args:
             tolerance: Maximum absolute error tolerance. The optimization is
                  permitted to simply drop negligible combinations gates with a
@@ -68,7 +69,7 @@ class EjectPhasedPaulis:
                 # Collect, phase, and merge Ws.
                 w = _try_get_known_phased_pauli(op, no_symbolic=not self.eject_parameterized)
                 if w is not None:
-                    if decompositions.is_negligible_turn(w[0] - 1, self.tolerance):
+                    if decompositions.is_negligible_turn((w[0] - 1) / 2, self.tolerance):
                         _potential_cross_whole_w(moment_index, op, self.tolerance, state)
                     else:
                         _potential_cross_partial_w(moment_index, op, state)

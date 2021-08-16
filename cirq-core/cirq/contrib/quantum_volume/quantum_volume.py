@@ -2,16 +2,15 @@
 https://arxiv.org/abs/1811.12926.
 """
 
-from typing import Optional, List, cast, Callable, Dict, Tuple, Set, Any
 from dataclasses import dataclass
+from typing import Optional, List, cast, Callable, Dict, Tuple, Set, Any
 
+import networkx as nx
 import numpy as np
 import pandas as pd
-import networkx as nx
 
 import cirq
 import cirq.contrib.routing as ccr
-from cirq._compat import deprecated_parameter
 
 
 def generate_model_circuit(
@@ -428,21 +427,6 @@ def _get_device_graph(device_or_qubits: Any):
     return ccr.gridqubits_to_graph_device(qubits)
 
 
-@deprecated_parameter(
-    deadline="v0.12",
-    fix="use device_graph instead",
-    parameter_desc='device_or_qubits',
-    match=lambda args, kwargs: 'device_or_qubits' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        dict(
-            ('device_graph', _get_device_graph(arg_val))
-            if arg_name == 'device_or_qubits'
-            else (arg_name, arg_val)
-            for arg_name, arg_val in kwargs.items()
-        ),
-    ),
-)
 def calculate_quantum_volume(
     *,
     num_qubits: int,

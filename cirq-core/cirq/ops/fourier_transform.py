@@ -27,7 +27,8 @@ class QuantumFourierTransformGate(raw_types.Gate):
     """Switches from the computational basis to the frequency basis."""
 
     def __init__(self, num_qubits: int, *, without_reverse: bool = False):
-        """
+        """Inits QuantumFourierTransformGate.
+
         Args:
             num_qubits: The number of qubits the gate applies to.
             without_reverse: Whether or not to include the swaps at the end
@@ -116,7 +117,7 @@ class PhaseGradientGate(raw_types.Gate):
         if isinstance(self.exponent, sympy.Basic):
             return NotImplemented
 
-        n = int(np.product([args.target_tensor.shape[k] for k in args.axes]))
+        n = int(np.prod([args.target_tensor.shape[k] for k in args.axes], dtype=np.int64))
         for i in range(n):
             p = 1j ** (4 * i / n * self.exponent)
             args.target_tensor[args.subspace_index(big_endian_bits_int=i)] *= p

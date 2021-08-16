@@ -13,7 +13,17 @@
 # limitations under the License.
 
 import numbers
-from typing import AbstractSet, Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat, Optional
+from typing import (
+    AbstractSet,
+    Tuple,
+    TYPE_CHECKING,
+    Dict,
+    Any,
+    cast,
+    SupportsFloat,
+    Optional,
+    Sequence,
+)
 
 import numpy as np
 
@@ -57,7 +67,7 @@ class RandomGateChannel(raw_types.Gate):
         return not self._is_parameterized_() and protocols.has_mixture(self.sub_gate)
 
     def _has_kraus_(self):
-        return not self._is_parameterized_() and protocols.has_channel(self.sub_gate)
+        return not self._is_parameterized_() and protocols.has_kraus(self.sub_gate)
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.probability) or protocols.is_parameterized(
@@ -85,7 +95,9 @@ class RandomGateChannel(raw_types.Gate):
         if mixture is None:
             return None
 
-        do_nothing = np.eye(np.product(protocols.qid_shape(self.sub_gate)), dtype=np.float64)
+        do_nothing = np.eye(
+            np.prod(protocols.qid_shape(self.sub_gate), dtype=np.int64), dtype=np.float64
+        )
         result = [(p * float(self.probability), m) for p, m in mixture]
         result.append((1 - float(self.probability), do_nothing))
         return result
@@ -94,11 +106,13 @@ class RandomGateChannel(raw_types.Gate):
         if self._is_parameterized_():
             return NotImplemented
 
-        channel = protocols.channel(self.sub_gate, None)
+        channel = protocols.kraus(self.sub_gate, None)
         if channel is None:
             return NotImplemented
 
-        do_nothing = np.eye(np.product(protocols.qid_shape(self.sub_gate)), dtype=np.float64)
+        do_nothing = np.eye(
+            np.prod(protocols.qid_shape(self.sub_gate), dtype=np.int64), dtype=np.float64
+        )
         result = [e * np.sqrt(self.probability) for e in channel]
         result.append(np.sqrt(1 - float(self.probability)) * do_nothing)
         return result
@@ -109,7 +123,7 @@ class RandomGateChannel(raw_types.Gate):
             result *= float(self.probability)
         return result
 
-    def _act_on_(self, args):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if self._is_parameterized_():
@@ -119,7 +133,7 @@ class RandomGateChannel(raw_types.Gate):
                 # Note: because we're doing this probabilistically, it's not
                 # safe to fallback to other strategies if act_on fails. Those
                 # strategies could double-count the probability.
-                protocols.act_on(self.sub_gate, args)
+                protocols.act_on(self.sub_gate, args, qubits)
             return True
         return NotImplemented
 

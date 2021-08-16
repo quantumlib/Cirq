@@ -18,7 +18,7 @@ from typing import Dict
 from cirq.protocols.json_serialization import ObjectFactory
 
 
-@functools.lru_cache(maxsize=1)
+@functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import cirq_google
     from cirq_google.devices.known_devices import _NamedConstantXmonDevice
@@ -29,6 +29,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
         'CalibrationResult': cirq_google.CalibrationResult,
+        'CouplerPulse': cirq_google.experimental.CouplerPulse,
         'SycamoreGate': cirq_google.SycamoreGate,
         'GateTabulation': cirq_google.GateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,

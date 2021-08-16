@@ -33,11 +33,12 @@ from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union
 from google.protobuf import any_pb2
 
 import cirq
+from cirq_google.api import v2
+from cirq_google.engine import engine_client
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
-from cirq_google import serializable_gate_set as sgs
-from cirq_google.api import v2
-from cirq_google.arg_func_langs import arg_to_proto
+from cirq_google.serialization import SerializableGateSet, Serializer
+from cirq_google.serialization.arg_func_langs import arg_to_proto
 from cirq_google.engine import (
     engine_client,
     engine_program,
@@ -184,7 +185,7 @@ class Engine:
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
         processor_ids: Sequence[str] = ('xmonsim',),
-        gate_set: Optional[sgs.SerializableGateSet] = None,
+        gate_set: Optional[Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -245,7 +246,7 @@ class Engine:
         params: cirq.Sweepable = None,
         repetitions: int = 1,
         processor_ids: Sequence[str] = ('xmonsim',),
-        gate_set: Optional[sgs.SerializableGateSet] = None,
+        gate_set: Optional[Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -306,7 +307,7 @@ class Engine:
         params_list: List[cirq.Sweepable] = None,
         repetitions: int = 1,
         processor_ids: Sequence[str] = (),
-        gate_set: Optional[sgs.SerializableGateSet] = None,
+        gate_set: Optional[Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -382,7 +383,7 @@ class Engine:
         job_id: Optional[str] = None,
         processor_id: str = None,
         processor_ids: Sequence[str] = (),
-        gate_set: Optional[sgs.SerializableGateSet] = None,
+        gate_set: Optional[Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -452,7 +453,7 @@ class Engine:
         self,
         program: cirq.Circuit,
         program_id: Optional[str] = None,
-        gate_set: Optional[sgs.SerializableGateSet] = None,
+        gate_set: Optional[Serializer] = None,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
@@ -495,7 +496,7 @@ class Engine:
         self,
         programs: List[cirq.Circuit],
         program_id: Optional[str] = None,
-        gate_set: Optional[sgs.SerializableGateSet] = None,
+        gate_set: Optional[Serializer] = None,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
@@ -541,7 +542,7 @@ class Engine:
         self,
         layers: List['cirq_google.CalibrationLayer'],
         program_id: Optional[str] = None,
-        gate_set: Optional[sgs.SerializableGateSet] = None,
+        gate_set: Optional[Serializer] = None,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
@@ -595,9 +596,7 @@ class Engine:
             result_type=ResultType.Calibration,
         )
 
-    def _serialize_program(
-        self, program: cirq.Circuit, gate_set: sgs.SerializableGateSet
-    ) -> any_pb2.Any:
+    def _serialize_program(self, program: cirq.Circuit, gate_set: Serializer) -> any_pb2.Any:
         if not isinstance(program, cirq.Circuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
         program.device.validate_circuit(program)
@@ -658,8 +657,8 @@ class Engine:
         )
         return [
             engine_program.EngineProgram(
-                project_id=client._ids_from_program_name(p.name)[0],
-                program_id=client._ids_from_program_name(p.name)[1],
+                project_id=engine_client._ids_from_program_name(p.name)[0],
+                program_id=engine_client._ids_from_program_name(p.name)[1],
                 _program=p,
                 context=self.context,
             )
@@ -709,9 +708,9 @@ class Engine:
         )
         return [
             engine_job.EngineJob(
-                project_id=client._ids_from_job_name(j.name)[0],
-                program_id=client._ids_from_job_name(j.name)[1],
-                job_id=client._ids_from_job_name(j.name)[2],
+                project_id=engine_client._ids_from_job_name(j.name)[0],
+                program_id=engine_client._ids_from_job_name(j.name)[1],
+                job_id=engine_client._ids_from_job_name(j.name)[2],
                 context=self.context,
                 _job=j,
             )
@@ -731,7 +730,7 @@ class Engine:
         return [
             engine_processor.EngineProcessor(
                 self.project_id,
-                self.context.client._ids_from_processor_name(p.name)[1],
+                engine_client._ids_from_processor_name(p.name)[1],
                 self.context,
                 p,
             )
@@ -750,7 +749,7 @@ class Engine:
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
 
     def sampler(
-        self, processor_id: Union[str, List[str]], gate_set: sgs.SerializableGateSet
+        self, processor_id: Union[str, List[str]], gate_set: Serializer
     ) -> engine_sampler.QuantumEngineSampler:
         """Returns a sampler backed by the engine.
 
@@ -798,7 +797,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
 def get_engine_device(
     processor_id: str,
     project_id: Optional[str] = None,
-    gatesets: Iterable[sgs.SerializableGateSet] = (),
+    gatesets: Iterable[SerializableGateSet] = (),
 ) -> cirq.Device:
     """Returns a `Device` object for a given processor.
 

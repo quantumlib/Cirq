@@ -21,7 +21,7 @@ from cirq import protocols
 
 def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     """Returns the unique Choi matrix corresponding to a Kraus representation of a channel."""
-    d = np.prod(kraus_operators[0].shape)
+    d = np.prod(kraus_operators[0].shape, dtype=np.int64)
     c = np.zeros((d, d), dtype=np.complex128)
     for k in kraus_operators:
         v = np.reshape(k, d)
@@ -57,7 +57,7 @@ def operation_to_choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
     Returns:
         Choi matrix corresponding to operation.
     """
-    return kraus_to_choi(protocols.channel(operation))
+    return kraus_to_choi(protocols.kraus(operation))
 
 
 def operation_to_channel_matrix(operation: 'protocols.SupportsChannel') -> np.ndarray:
@@ -74,4 +74,4 @@ def operation_to_channel_matrix(operation: 'protocols.SupportsChannel') -> np.nd
     Returns:
         Matrix representation of operation.
     """
-    return kraus_to_channel_matrix(protocols.channel(operation))
+    return kraus_to_channel_matrix(protocols.kraus(operation))

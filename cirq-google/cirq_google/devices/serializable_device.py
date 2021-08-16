@@ -28,7 +28,7 @@ from typing import (
 )
 
 import cirq
-from cirq_google import serializable_gate_set
+from cirq_google.serialization import serializable_gate_set
 from cirq_google.api import v2
 
 
@@ -112,6 +112,8 @@ class SerializableDevice(cirq.Device):
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
+    # TODO(#3388) Add summary line to docstring.
+    # pylint: disable=docstring-first-line-empty
     @classmethod
     def from_proto(
         cls,
@@ -180,28 +182,17 @@ class SerializableDevice(cirq.Device):
                     gates_by_type[internal_type].append(gate_def)
 
         return SerializableDevice(
-            qubits=[cls._qid_from_str(q) for q in proto.valid_qubits],
+            qubits=[_qid_from_str(q) for q in proto.valid_qubits],
             gate_definitions=gates_by_type,
         )
 
-    @staticmethod
-    def _qid_from_str(id_str: str) -> cirq.Qid:
-        """Translates a qubit id string info cirq.Qid objects.
-
-        Tries to translate to GridQubit if possible (e.g. '4_3'), otherwise
-        falls back to using NamedQubit.
-        """
-        try:
-            return v2.grid_qubit_from_proto_id(id_str)
-        except ValueError:
-            return v2.named_qubit_from_proto_id(id_str)
-
+    # pylint: enable=docstring-first-line-empty
     @classmethod
     def _create_target_set(cls, ts: v2.device_pb2.TargetSet) -> Set[Tuple[cirq.Qid, ...]]:
         """Transform a TargetSet proto into a set of qubit tuples"""
         target_set = set()
         for target in ts.targets:
-            qid_tuple = tuple(cls._qid_from_str(q) for q in target.ids)
+            qid_tuple = tuple(_qid_from_str(q) for q in target.ids)
             target_set.add(qid_tuple)
             if ts.target_ordering == v2.device_pb2.TargetSet.SYMMETRIC:
                 target_set.add(qid_tuple[::-1])
@@ -335,3 +326,15 @@ class SerializableDevice(cirq.Device):
             if qubit_tuple not in gate_def.target_set:
                 # Target is not within the target sets specified by the gate.
                 raise ValueError(f'Operation does not use valid qubit target: {operation}.')
+
+
+def _qid_from_str(id_str: str) -> cirq.Qid:
+    """Translates a qubit id string info cirq.Qid objects.
+
+    Tries to translate to GridQubit if possible (e.g. '4_3'), otherwise
+    falls back to using NamedQubit.
+    """
+    try:
+        return v2.grid_qubit_from_proto_id(id_str)
+    except ValueError:
+        return v2.named_qubit_from_proto_id(id_str)
