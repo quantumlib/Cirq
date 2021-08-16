@@ -279,7 +279,7 @@ class NeutralAtomDevice(devices.Device):
             return False
         return True
 
-    def validate_circuit(self, circuit: circuits.Circuit):
+    def validate_circuit(self, circuit: circuits.AbstractCircuit):
         """Raises an error if the given circuit is invalid on this device.
 
         A circuit is invalid if any of its moments are invalid or if there is a

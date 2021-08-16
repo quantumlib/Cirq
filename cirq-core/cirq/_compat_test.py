@@ -111,6 +111,27 @@ def test_deprecated_with_name():
         assert f(1, 2) == 3
 
 
+def test_deprecated_with_property():
+    class AClass(object):
+        def __init__(self, a):
+            self.a = a
+
+        @property
+        @deprecated(deadline='v1.2', fix='Stop using.', name='AClass.test_func')
+        def f(self):
+            return self.a
+
+    instance = AClass(4)
+    with cirq.testing.assert_deprecated(
+        '_compat_test.py:',
+        'AClass.test_func was used',
+        'will be removed in cirq v1.2',
+        'Stop using.',
+        deadline='v1.2',
+    ):
+        assert instance.f == 4
+
+
 def test_deprecated():
     def new_func(a, b):
         return a + b

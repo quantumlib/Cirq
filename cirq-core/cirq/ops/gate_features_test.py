@@ -158,8 +158,8 @@ def test_qasm_output_args_format():
     assert args.format('_{0}_', a) == '_aaa[0]_'
     assert args.format('_{0}_', b) == '_bbb[0]_'
 
-    assert args.format('_{0:meas}_', cirq.measurement_key(m_a)) == '_m_a_'
-    assert args.format('_{0:meas}_', cirq.measurement_key(m_b)) == '_m_b_'
+    assert args.format('_{0:meas}_', cirq.measurement_key_name(m_a)) == '_m_a_'
+    assert args.format('_{0:meas}_', cirq.measurement_key_name(m_b)) == '_m_b_'
 
     assert args.format('_{0}_', 89.1234567) == '_89.1235_'
     assert args.format('_{0}_', 1.23) == '_1.23_'

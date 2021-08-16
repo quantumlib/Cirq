@@ -163,10 +163,10 @@ class CircuitOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return self.circuit._is_measurement_()
 
-    def _measurement_keys_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> AbstractSet[str]:
         circuit_keys = [
             value.MeasurementKey.parse_serialized(key_str)
-            for key_str in self.circuit.all_measurement_keys()
+            for key_str in self.circuit.all_measurement_key_names()
         ]
         if self.repetition_ids is not None:
             circuit_keys = [
@@ -509,14 +509,14 @@ class CircuitOperation(ops.Operation):
                 keys than this operation.
         """
         new_map = {}
-        for k in self.circuit.all_measurement_keys():
+        for k in self.circuit.all_measurement_key_names():
             k = value.MeasurementKey.parse_serialized(k).name
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
             if k_new != k:
                 new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
-        if len(new_op._measurement_keys_()) != len(self._measurement_keys_()):
+        if len(new_op._measurement_key_names_()) != len(self._measurement_key_names_()):
             raise ValueError(
                 f'Collision in measurement key map composition. Original map:\n'
                 f'{self.measurement_key_map}\nApplied changes: {key_map}'

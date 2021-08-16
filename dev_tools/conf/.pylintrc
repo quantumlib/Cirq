@@ -1,5 +1,5 @@
 [MASTER]
-load-plugins=pylint.extensions.docstyle
+load-plugins=pylint.extensions.docstyle,pylint.extensions.docparams
 max-line-length=100
 disable=all
 ignore-patterns=.*_pb2\.py,quantum_engine_service_client.py,engine_pb2_grpc.py
@@ -25,6 +25,7 @@ enable=
     line-too-long,
     lost-exception,
     missing-kwoa,
+    missing-raises-doc,
     mixed-indentation,
     mixed-line-endings,
     not-callable,

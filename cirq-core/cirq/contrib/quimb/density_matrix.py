@@ -70,6 +70,8 @@ def _add_to_positions(
     positions[(f'i{mi}b', _qpos_tag(qubits))] = (mi * x_scale, y_scale * qy + yb_offset)
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def circuit_to_density_matrix_tensors(
     circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.LineQubit]] = None
 ) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], Dict[Tuple[str, str], Tuple[float, float]]]:
@@ -186,6 +188,7 @@ def circuit_to_density_matrix_tensors(
     return tensors, qubit_frontier, positions
 
 
+# pylint: enable=missing-raises-doc
 def tensor_density_matrix(
     circuit: cirq.Circuit, qubits: Optional[List[cirq.LineQubit]] = None
 ) -> np.ndarray:

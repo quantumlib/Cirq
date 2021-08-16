@@ -123,6 +123,8 @@ class SerializableGateSet(serializer.Serializer):
             for serializer in self.serializers.get(gate_type, [])
         )
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     @deprecated_parameter(
         deadline='v0.13',
         fix='Use use_constants instead.',
@@ -179,6 +181,7 @@ class SerializableGateSet(serializer.Serializer):
         msg.language.arg_function_language = arg_function_language
         return msg
 
+    # pylint: enable=missing-raises-doc
     def serialize_op(
         self,
         op: cirq.Operation,
@@ -199,6 +202,8 @@ class SerializableGateSet(serializer.Serializer):
             return self.serialize_circuit_op(op, msg, **kwargs)
         raise ValueError(f'Operation proto is of an unrecognized type: {msg!r}')
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def serialize_gate_op(
         self,
         op: cirq.Operation,
@@ -241,6 +246,7 @@ class SerializableGateSet(serializer.Serializer):
                         return proto_msg
         raise ValueError(f'Cannot serialize op {op!r} of type {gate_type}')
 
+    # TODO(#3388) Add documentation for Raises.
     def serialize_circuit_op(
         self,
         op: cirq.Operation,
@@ -295,6 +301,7 @@ class SerializableGateSet(serializer.Serializer):
                 return proto_msg
         raise ValueError(f'Cannot serialize CircuitOperation {op!r}')
 
+    # TODO(#3388) Add documentation for Raises.
     def deserialize(
         self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
     ) -> cirq.Circuit:
@@ -348,6 +355,7 @@ class SerializableGateSet(serializer.Serializer):
 
         raise NotImplementedError('Program proto does not contain a circuit.')
 
+    # pylint: enable=missing-raises-doc
     def deserialize_op(
         self,
         operation_proto: Union[
@@ -365,6 +373,8 @@ class SerializableGateSet(serializer.Serializer):
 
         raise ValueError(f'Operation proto has unknown type: {type(operation_proto)}.')
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def deserialize_gate_op(
         self,
         operation_proto: v2.program_pb2.Operation,
@@ -406,6 +416,7 @@ class SerializableGateSet(serializer.Serializer):
             deserialized_constants=deserialized_constants,
         )
 
+    # TODO(#3388) Add documentation for Raises.
     def deserialize_circuit_op(
         self,
         operation_proto: v2.program_pb2.CircuitOperation,
@@ -448,6 +459,7 @@ class SerializableGateSet(serializer.Serializer):
             deserialized_constants=deserialized_constants,
         )
 
+    # pylint: enable=missing-raises-doc
     def _serialize_circuit(
         self,
         circuit: cirq.AbstractCircuit,
