@@ -1,4 +1,4 @@
-from typing import Sequence, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING, List
 from itertools import product
 from cirq import ops, protocols, devices
 import numpy as np
@@ -30,6 +30,11 @@ class NoiseProperties:
           pauli_error: total Pauli error
           p00: probability of qubit initialized as zero being measured as zero
           p11: probability of qubit initialized as one being measured as one
+
+        Raises:
+          ValueError if no metrics are specified
+          ValueError if xeb fidelity, pauli error, p00, or p00 are less than 0 or greater than 1
+          ValueError if more than one of pauli error, xeb fidelity, or decay constant is specified
         """
         if not any([t1_ns, decay_constant, xeb_fidelity, pauli_error, p00, p11]):
             raise ValueError('At least one metric must be specified')
@@ -124,7 +129,8 @@ class NoiseProperties:
         return 1 - (1 - xeb_fidelity) / (1 - 1 / N)
 
     def pauli_error_from_t1(self, t: float, t1_ns: float):
-        """Calculates the pauli error from amplitude damping. Unlike the other methods, this computes a specific case (over time t).
+        """Calculates the pauli error from amplitude damping.
+        Unlike the other methods, this computes a specific case (over time t).
 
         Args:
             t: the duration of the gate
@@ -134,15 +140,16 @@ class NoiseProperties:
         return (1 - np.exp(-t / t2)) / 2 + (1 - np.exp(-t / t1_ns)) / 4
 
     def pauli_error_from_depolarization(self, t: float):
-        """Calculates the amount of pauli error from depolarization. Unlike the other methods, this computes a specific case (over time t).
+        """Calculates the amount of pauli error from depolarization.
+        Unlike the other methods, this computes a specific case (over time t).
 
-        If the pauli error from amplitude damping is more than the total pauli error, just return the pauli error.
+        If pauli error from t1 decay is more than total pauli error, just return the pauli error.
 
         Args:
             t: the duration of the gate
         """
         if self.t1_ns is not None:
-            pauli_error_from_t1 = self.pauli_error_from_t1(t, self._t1_ns)
+            pauli_error_from_t1 = self.pauli_error_from_t1(t, self.t1_ns)
             if self.pauli_error >= pauli_error_from_t1:
                 return self.pauli_error - pauli_error_from_t1
         return self.pauli_error
@@ -232,7 +239,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
     def noisy_moment(
         self, moment: ops.Moment, system_qubits: Sequence['cirq.Qid']
     ) -> 'cirq.OP_TREE':
-        moments = []
+        moments: List[ops.Moment] = []
 
         if any(
             [protocols.is_measurement(op.gate) for op in moment.operations]
