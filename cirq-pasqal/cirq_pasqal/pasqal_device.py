@@ -160,7 +160,7 @@ class PasqalDevice(cirq.devices.Device):
                     "Measurements on Pasqal devices don't support invert_mask."
                 )
 
-    def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
+    def validate_circuit(self, circuit: 'cirq.AbstractCircuit') -> None:
         """Raises an error if the given circuit is invalid on this device.
 
         A circuit is invalid if any of its moments are invalid or if there

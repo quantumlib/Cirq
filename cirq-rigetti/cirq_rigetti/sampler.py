@@ -13,7 +13,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 ##############################################################################
-from typing import List, Optional
+from typing import List, Optional, cast
 
 from pyquil import get_qc
 from pyquil.api import QuantumComputer
@@ -55,7 +55,7 @@ class RigettiQCSSampler(cirq.Sampler):
 
     def run_sweep(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> List[cirq.Result]:
@@ -75,7 +75,7 @@ class RigettiQCSSampler(cirq.Sampler):
         resolvers = [r for r in cirq.to_resolvers(params)]
         return self.executor(
             quantum_computer=self._quantum_computer,
-            circuit=program,
+            circuit=cast(cirq.Circuit, program.unfreeze(copy=False)),
             resolvers=resolvers,
             repetitions=repetitions,
             transformer=self.transformer,

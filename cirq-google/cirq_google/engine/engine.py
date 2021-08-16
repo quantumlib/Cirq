@@ -301,7 +301,7 @@ class Engine:
 
     def run_batch(
         self,
-        programs: List[cirq.Circuit],
+        programs: List[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params_list: List[cirq.Sweepable] = None,
@@ -494,7 +494,7 @@ class Engine:
 
     def create_batch_program(
         self,
-        programs: List[cirq.Circuit],
+        programs: List[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         gate_set: Optional[sgs.SerializableGateSet] = None,
         description: Optional[str] = None,

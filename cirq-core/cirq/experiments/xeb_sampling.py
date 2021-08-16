@@ -54,7 +54,7 @@ class _Sample2qXEBTask:
     cycle_depth: int
     layer_i: int
     combination_i: int
-    prepared_circuit: 'cirq.Circuit'
+    prepared_circuit: 'cirq.AbstractCircuit'
     combination: List[int]
 
 
