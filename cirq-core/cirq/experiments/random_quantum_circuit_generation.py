@@ -678,7 +678,7 @@ def _single_qubit_gates_arg_to_factory(
 
     If only one single qubit gate is provided, it will be used everywhere.
     Otherwise, we use the factory that excludes operations that were used
-    in the previous layer.
+    in the previous layer. This check is done by gate identity, not equality.
     """
     if len(set(single_qubit_gates)) == 1:
         return _FixedSingleQubitLayerFactory({q: single_qubit_gates[0] for q in qubits})
