@@ -166,7 +166,7 @@ class PasqalDevice(cirq.devices.Device):
                 )
 
     # pylint: enable=missing-raises-doc
-    def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
+    def validate_circuit(self, circuit: 'cirq.AbstractCircuit') -> None:
         """Raises an error if the given circuit is invalid on this device.
 
         A circuit is invalid if any of its moments are invalid or if there
