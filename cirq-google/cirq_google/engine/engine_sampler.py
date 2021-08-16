@@ -14,7 +14,8 @@
 from typing import List, TYPE_CHECKING, Union, Optional, cast
 
 import cirq
-from cirq_google import engine, gate_sets
+from cirq_google import engine
+from cirq_google.serialization import gate_sets
 
 if TYPE_CHECKING:
     import cirq_google
@@ -31,7 +32,7 @@ class QuantumEngineSampler(cirq.Sampler):
         *,
         engine: 'cirq_google.Engine',
         processor_id: Union[str, List[str]],
-        gate_set: 'cirq_google.SerializableGateSet',
+        gate_set: 'cirq_google.serialization.Serializer',
     ):
         """Inits QuantumEngineSampler.
 

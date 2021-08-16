@@ -48,7 +48,7 @@ from cirq_google.calibration.phased_fsim import (
 )
 from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
 from cirq_google.engine import Engine, QuantumEngineSampler
-from cirq_google.serializable_gate_set import SerializableGateSet
+from cirq_google.serialization.serializer import Serializer
 
 _CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.SingleQubitGate, cirq.WaitGate
 
@@ -736,7 +736,7 @@ def _run_calibrations_via_engine(
     calibration_requests: Sequence[PhasedFSimCalibrationRequest],
     engine: Engine,
     processor_id: str,
-    gate_set: SerializableGateSet,
+    gate_set: Serializer,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ):
@@ -783,7 +783,7 @@ def run_calibrations(
     calibrations: Sequence[PhasedFSimCalibrationRequest],
     sampler: Union[Engine, cirq.Sampler],
     processor_id: Optional[str] = None,
-    gate_set: Optional[SerializableGateSet] = None,
+    gate_set: Optional[Serializer] = None,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ) -> List[PhasedFSimCalibrationResult]:
@@ -1166,7 +1166,7 @@ def run_floquet_characterization_for_moments(
     circuit: cirq.Circuit,
     sampler: Union[Engine, cirq.Sampler],
     processor_id: Optional[str] = None,
-    gate_set: Optional[SerializableGateSet] = None,
+    gate_set: Optional[Serializer] = None,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
@@ -1237,7 +1237,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
     circuit: cirq.Circuit,
     sampler: Union[Engine, cirq.Sampler],
     processor_id: Optional[str] = None,
-    gate_set: Optional[SerializableGateSet] = None,
+    gate_set: Optional[Serializer] = None,
     options: FloquetPhasedFSimCalibrationOptions = (
         THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION
     ),
