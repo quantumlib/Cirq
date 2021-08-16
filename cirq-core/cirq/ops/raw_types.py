@@ -713,8 +713,8 @@ class TaggedOperation(Operation):
     def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
         return protocols.kraus(self.sub_operation, NotImplemented)
 
-    def _measurement_key_(self) -> str:
-        return protocols.measurement_key(self.sub_operation, NotImplemented)
+    def _measurement_key_name_(self) -> str:
+        return protocols.measurement_key_name(self.sub_operation, NotImplemented)
 
     def _is_measurement_(self) -> bool:
         sub = getattr(self.sub_operation, "_is_measurement_", None)
