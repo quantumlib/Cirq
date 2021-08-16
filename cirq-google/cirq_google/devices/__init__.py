@@ -26,3 +26,12 @@ from cirq_google.devices.serializable_device import (
 from cirq_google.devices.xmon_device import (
     XmonDevice,
 )
+
+from cirq_google.devices.named_topologies import (
+    NamedTopology,
+    draw_gridlike,
+    LineTopology,
+    DiagonalRectangleTopology,
+    get_placements,
+    draw_placements,
+)

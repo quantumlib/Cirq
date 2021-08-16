@@ -57,6 +57,12 @@ from cirq_google.devices import (
     Sycamore,
     Sycamore23,
     XmonDevice,
+    NamedTopology,
+    draw_gridlike,
+    LineTopology,
+    DiagonalRectangleTopology,
+    get_placements,
+    draw_placements,
 )
 
 from cirq_google.engine import (
@@ -115,15 +121,6 @@ from cirq_google.serialization import (
     SQRT_ISWAP_GATESET,
     SYC_GATESET,
     NAMED_GATESETS,
-)
-
-from cirq_google.named_topologies import (
-    NamedTopology,
-    draw_gridlike,
-    LineTopology,
-    DiagonalRectangleTopology,
-    get_placements,
-    draw_placements,
 )
 
 from cirq_google import experimental
