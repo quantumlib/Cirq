@@ -104,7 +104,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             measurements = {}
             if repetitions == 0:
                 for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    measurements[protocols.measurement_key(op)] = np.empty([0, 1])
+                    measurements[protocols.measurement_key_name(op)] = np.empty([0, 1])
             else:
                 measurements = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
@@ -759,7 +759,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError(f'{op.gate} was not a MeasurementGate')
-            key = protocols.measurement_key(gate)
+            key = protocols.measurement_key_name(gate)
             if key in seen_measurement_keys:
                 raise ValueError(f'Duplicate MeasurementGate with key {key}')
             seen_measurement_keys.add(key)
@@ -900,7 +900,9 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
 
 def _verify_unique_measurement_keys(circuit: circuits.Circuit):
     result = collections.Counter(
-        key for op in ops.flatten_op_tree(iter(circuit)) for key in protocols.measurement_keys(op)
+        key
+        for op in ops.flatten_op_tree(iter(circuit))
+        for key in protocols.measurement_key_names(op)
     )
     if result:
         duplicates = [k for k, v in result.most_common() if v > 1]

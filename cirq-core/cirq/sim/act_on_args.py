@@ -85,7 +85,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             qubits: The qubits to measure.
             key: The key the measurement result should be logged under. Note
                 that operations should only store results under keys they have
-                declared in a `_measurement_keys_` method.
+                declared in a `_measurement_key_names_` method.
             invert_mask: The invert mask for the measurement.
         """
         bits = self._perform_measurement(qubits)

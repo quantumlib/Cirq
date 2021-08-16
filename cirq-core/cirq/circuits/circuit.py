@@ -108,7 +108,7 @@ class AbstractCircuit(abc.ABC):
     *   to_text_diagram
     *   to_text_diagram_drawer
     *   qid_shape
-    *   all_measurement_keys
+    *   all_measurement_key_names
     *   to_quil
     *   to_qasm
     *   save_qasm
@@ -908,8 +908,8 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_keys(self) -> AbstractSet[str]:
-        return protocols.measurement_keys(self)
+    def all_measurement_key_names(self) -> AbstractSet[str]:
+        return protocols.measurement_key_names(self)
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self._with_sliced_moments(
@@ -1576,7 +1576,7 @@ class Circuit(AbstractCircuit):
     *   to_text_diagram
     *   to_text_diagram_drawer
     *   qid_shape
-    *   all_measurement_keys
+    *   all_measurement_key_names
     *   to_quil
     *   to_qasm
     *   save_qasm

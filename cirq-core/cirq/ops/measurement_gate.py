@@ -126,7 +126,7 @@ class MeasurementGate(raw_types.Gate):
     def _is_measurement_(self) -> bool:
         return True
 
-    def _measurement_key_(self):
+    def _measurement_key_name_(self):
         return self.key
 
     def _kraus_(self):

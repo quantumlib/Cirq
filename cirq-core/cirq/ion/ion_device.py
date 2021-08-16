@@ -153,7 +153,7 @@ def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
     for op in operations:
         if isinstance(op.gate, ops.MeasurementGate):
             meas = op.gate
-            key = protocols.measurement_key(meas)
+            key = protocols.measurement_key_name(meas)
             if key in seen:
                 raise ValueError(f'Measurement key {key} repeated')
             seen.add(key)

@@ -138,7 +138,7 @@ def _measure_to_proto(gate: cirq.MeasurementGate, qubits: Sequence[cirq.Qid]):
         )
     return operations_pb2.Measurement(
         targets=[_qubit_to_proto(q) for q in qubits],
-        key=cirq.measurement_key(gate),
+        key=cirq.measurement_key_name(gate),
         invert_mask=invert_mask,
     )
 
