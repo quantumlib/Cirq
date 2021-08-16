@@ -133,7 +133,7 @@ class LineTopology(NamedTopology):
 
 @dataclass(frozen=True)
 class TiltedSquareLattice(NamedTopology):
-    """A grid topology forming a rectangle rotated 45-degrees.
+    """A grid lattice rotated 45-degrees.
 
     This topology is based on Google devices where plaquettes consist of four qubits in a square
     connected to a central qubit:
@@ -142,23 +142,23 @@ class TiltedSquareLattice(NamedTopology):
           x
         x   x
 
-    The corner nodes are not connected to each other. `width` and `height` refer to the number
-    of unit cells, or equivalently the number of central nodes. Each unit cell contributes
-    two nodes when in bulk: the central node and 1/4 of each of the four shared corner nodes.
-    Accounting for the boundary, the total number of nodes is 2*w*h + w + h + 1. An example
-    diagram showing the diagonal nature of the rectangle is reproduced below. It is a
-    "diagonal-rectangle-3-2" with width 3 and height 2. This can be most clearly seen by focusing
-    on the central nodes diagrammed with an `x`, of which there are 2x3=6. The `*` nodes are
-    added to ensure each `x` node has degree four.
+    The corner nodes are not connected to each other. `width` and `height` refer to the rectangle
+    formed by rotating the lattice 45 degrees. `width` and `height` are measured in half-unit
+    cells, or equivalently half the number of central nodes.
+    An example diagram of this topology is shown below. It is a
+    "tilted-square-lattice-6-4" with width 6 and height 4.
 
-          *
-         *x*
-        *x*x*
-         *x*x*
-          *x*
-           *
-
-    In the surface code, the `*` nodes are data qubits and the `x` nodes are measure qubits.
+              x
+              │
+         x────X────x
+         │    │    │
+    x────X────x────X────x
+         │    │    │    │
+         x────X────x────X───x
+              │    │    │
+              x────X────x
+                   │
+                   x
 
     Nodes are 2-tuples of integers which may be negative. Please see `get_placements` for
     mapping this topology to a GridQubit Device.
@@ -173,7 +173,7 @@ class TiltedSquareLattice(NamedTopology):
         if self.height <= 0:
             raise ValueError("Height must be a positive integer")
 
-        object.__setattr__(self, 'name', f'diagonal-rectangle-{self.width}-{self.height}')
+        object.__setattr__(self, 'name', f'tilted-square-lattice-{self.width}-{self.height}')
 
         g = nx.Graph()
 
@@ -195,7 +195,7 @@ class TiltedSquareLattice(NamedTopology):
                 # This is only added in the bulk.
                 g.add_edge((x, y), (x, y + 1))
             else:
-                raise ValueError()
+                raise ValueError()  # coverage: ignore
 
         # Iterate over unit cells, which are in units of 2*width, 2*height.
         # Add all all four edges when we're in the bulk.

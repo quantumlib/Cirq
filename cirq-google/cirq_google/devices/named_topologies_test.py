@@ -18,28 +18,28 @@ from unittest.mock import MagicMock
 import cirq
 import networkx as nx
 import pytest
-from cirq_google.named_topologies import (
+from cirq_google import (
     draw_gridlike,
     LineTopology,
-    DiagonalRectangleTopology,
+    TiltedSquareLattice,
     get_placements,
     draw_placements,
 )
 import cirq_google as cg
 
 
-def test_diagonal_rectangle_topology():
+def test_tilted_square_lattice():
     width = 2
     height = 3
-    topo = DiagonalRectangleTopology(width, height)
+    topo = TiltedSquareLattice(width, height)
     assert all(1 <= topo.graph.degree[node] <= 4 for node in topo.graph.nodes)
-    assert topo.name == 'diagonal-rectangle-2-3'
+    assert topo.name == 'tilted-square-lattice-2-3'
     assert topo.n_nodes == topo.graph.number_of_nodes()
 
     with pytest.raises(ValueError):
-        _ = DiagonalRectangleTopology(0, 3)
+        _ = TiltedSquareLattice(0, 3)
     with pytest.raises(ValueError):
-        _ = DiagonalRectangleTopology(3, 0)
+        _ = TiltedSquareLattice(3, 0)
 
     ax = MagicMock()
     topo.draw(ax=ax)
@@ -49,9 +49,9 @@ def test_diagonal_rectangle_topology():
     assert all(isinstance(q, cirq.GridQubit) for q in qubits)
 
 
-def test_diagonal_rectangle_n_nodes():
+def test_tilted_square_lattice_n_nodes():
     for width, height in itertools.product(list(range(1, 4 + 1)), repeat=2):
-        topo = DiagonalRectangleTopology(width, height)
+        topo = TiltedSquareLattice(width, height)
         assert topo.n_nodes == topo.graph.number_of_nodes()
 
 
@@ -95,7 +95,7 @@ def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
 
 
 def test_get_placements():
-    topo = DiagonalRectangleTopology(4, 2)
+    topo = TiltedSquareLattice(4, 2)
     syc23 = _gridqubits_to_graph_device(cg.Sycamore23.qubits)
     placements = get_placements(syc23, topo.graph)
     assert len(placements) == 12
