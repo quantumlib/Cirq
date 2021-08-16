@@ -51,6 +51,8 @@ cirq_packages = ['cirq_ionq'] + [
 # Sanity check
 assert __version__, 'Version string cannot be empty'
 
+requirements += [f'cirq-core=={__version__}']
+
 setup(
     name=name,
     version=__version__,
