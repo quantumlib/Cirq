@@ -1,29 +1,29 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: cirq-automerge-headless-svc
+  name: cirq-pr-monitor-headless-svc
   labels:
-    app: cirq-automerge
+    app: cirq-pr-monitor
 spec:
   clusterIP: None
   selector:
-    app: cirq-automerge
+    app: cirq-pr-monitor
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: cirq-automerge
+  name: cirq-pr-monitor
 spec:
   selector:
     matchLabels:
-      app: cirq-automerge
+      app: cirq-pr-monitor
   serviceName: automerge-headless-svc
   replicas: 1
   template:
     metadata:
       labels:
-        app: cirq-automerge
+        app: cirq-pr-monitor
     spec:
       containers:
-      - name: cirq-automerge
-        image: us-docker.pkg.dev/cirq-infra/cirq/automerge
+      - name: cirq-pr-monitor
+        image: us-docker.pkg.dev/cirq-infra/cirq/pr_monitor
