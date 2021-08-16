@@ -140,7 +140,7 @@ class XmonDevice(cirq.Device):
             for p in other_op.qubits
         )
 
-    def validate_circuit(self, circuit: cirq.Circuit):
+    def validate_circuit(self, circuit: cirq.AbstractCircuit):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 

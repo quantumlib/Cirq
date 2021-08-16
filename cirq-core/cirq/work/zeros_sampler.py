@@ -37,7 +37,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.Result]:

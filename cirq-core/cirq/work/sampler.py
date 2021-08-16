@@ -13,7 +13,7 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import List, Optional, TYPE_CHECKING, Union
+from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 import abc
 
 import pandas as pd
@@ -29,7 +29,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
     def run(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         repetitions: int = 1,
     ) -> 'cirq.Result':
@@ -52,7 +52,7 @@ class Sampler(metaclass=abc.ABCMeta):
     # pylint: disable=missing-raises-doc
     def sample(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         *,
         repetitions: int = 1,
         params: 'cirq.Sweepable' = None,
@@ -139,7 +139,7 @@ class Sampler(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
     ) -> List['cirq.Result']:
@@ -158,7 +158,9 @@ class Sampler(metaclass=abc.ABCMeta):
             resolver.
         """
 
-    async def run_async(self, program: 'cirq.Circuit', *, repetitions: int) -> 'cirq.Result':
+    async def run_async(
+        self, program: 'cirq.AbstractCircuit', *, repetitions: int
+    ) -> 'cirq.Result':
         """Asynchronously samples from the given Circuit.
 
         By default, this method invokes `run` synchronously and simply exposes
@@ -176,7 +178,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
     async def run_sweep_async(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
     ) -> List['cirq.Result']:
@@ -202,7 +204,7 @@ class Sampler(metaclass=abc.ABCMeta):
     # pylint: disable=missing-raises-doc
     def run_batch(
         self,
-        programs: List['cirq.Circuit'],
+        programs: Sequence['cirq.AbstractCircuit'],
         params_list: Optional[List['cirq.Sweepable']] = None,
         repetitions: Union[int, List[int]] = 1,
     ) -> List[List['cirq.Result']]:

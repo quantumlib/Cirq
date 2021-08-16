@@ -444,7 +444,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
     def run_sweep_iter(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> Iterator[cirq.Result]:
@@ -453,7 +453,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
     def simulate(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         param_resolver: cirq.ParamResolverOrSimilarType = None,
         qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -507,7 +507,7 @@ class _PhasedFSimConverter(cirq.PointOptimizer):
 
 
 def _convert_to_circuit_with_drift(
-    simulator: PhasedFSimEngineSimulator, circuit: cirq.Circuit
+    simulator: PhasedFSimEngineSimulator, circuit: cirq.AbstractCircuit
 ) -> cirq.Circuit:
     circuit_with_drift = cirq.Circuit(circuit)
     converter = _PhasedFSimConverter(simulator)

@@ -104,7 +104,7 @@ class IonDevice(devices.Device):
             if q not in self.qubits:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-    def validate_circuit(self, circuit: circuits.Circuit):
+    def validate_circuit(self, circuit: circuits.AbstractCircuit):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 

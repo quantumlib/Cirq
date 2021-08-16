@@ -54,7 +54,7 @@ class AQTSampler(cirq.Sampler):
     # pylint: disable=missing-raises-doc
     def _generate_json(
         self,
-        circuit: cirq.Circuit,
+        circuit: cirq.AbstractCircuit,
         param_resolver: cirq.ParamResolverOrSimilarType,
     ) -> str:
         """Generates the JSON string from a Circuit.
@@ -176,7 +176,7 @@ class AQTSampler(cirq.Sampler):
 
     # pylint: enable=missing-raises-doc
     def run_sweep(
-        self, program: cirq.Circuit, params: cirq.Sweepable, repetitions: int = 1
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> List[cirq.Result]:
         """Samples from the given Circuit.
 

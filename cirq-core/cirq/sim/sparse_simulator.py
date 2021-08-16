@@ -216,7 +216,7 @@ class Simulator(
 
     def simulate_expectation_values_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'cirq.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,

@@ -178,7 +178,7 @@ class SimulatorBase(
     # pylint: disable=missing-raises-doc
     def _core_iterator(
         self,
-        circuit: circuits.Circuit,
+        circuit: circuits.AbstractCircuit,
         sim_state: OperationTarget[TActOnArgs],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResultBase]:
@@ -228,7 +228,10 @@ class SimulatorBase(
 
     # pylint: enable=missing-raises-doc
     def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
+        self,
+        circuit: circuits.AbstractCircuit,
+        param_resolver: study.ParamResolver,
+        repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         if self._ignore_measurement_results:

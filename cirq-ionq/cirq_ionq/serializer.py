@@ -73,7 +73,7 @@ class Serializer:
             common_gates.MeasurementGate: self._serialize_measurement_gate,
         }
 
-    def serialize(self, circuit: cirq.Circuit) -> SerializedProgram:
+    def serialize(self, circuit: cirq.AbstractCircuit) -> SerializedProgram:
         """Serialize the given circuit.
 
         Raises:
@@ -93,7 +93,7 @@ class Serializer:
         metadata = self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
         return SerializedProgram(body=body, metadata=metadata)
 
-    def _validate_circuit(self, circuit: cirq.Circuit):
+    def _validate_circuit(self, circuit: cirq.AbstractCircuit):
         if len(circuit) == 0:
             raise ValueError('Cannot serialize empty circuit.')
         if not circuit.are_all_measurements_terminal():
@@ -113,7 +113,7 @@ class Serializer:
         num_qubits = cast(line_qubit.LineQubit, max(all_qubits)).x + 1
         return num_qubits
 
-    def _serialize_circuit(self, circuit: cirq.Circuit) -> list:
+    def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list:
         return [self._serialize_op(op) for moment in circuit for op in moment]
 
     def _serialize_op(self, op: cirq.Operation) -> dict:
