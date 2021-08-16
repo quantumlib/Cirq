@@ -75,7 +75,7 @@ class RigettiQCSSampler(cirq.Sampler):
         resolvers = [r for r in cirq.to_resolvers(params)]
         return self.executor(
             quantum_computer=self._quantum_computer,
-            circuit=cast(cirq.Circuit, program.unfreeze(copy=False)),
+            circuit=program.unfreeze(copy=False),
             resolvers=resolvers,
             repetitions=repetitions,
             transformer=self.transformer,
