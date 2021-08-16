@@ -75,6 +75,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     ) -> List[study.Result]:
         return list(self.run_sweep_iter(program, params, repetitions))
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def run_sweep_iter(
         self,
         program: 'cirq.Circuit',
@@ -113,6 +115,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 params=param_resolver, measurements=measurements
             )
 
+    # pylint: enable=missing-raises-doc
     @abc.abstractmethod
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -809,6 +812,8 @@ class SimulationTrialResult:
             measurement gate.)
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         params: study.ParamResolver,
@@ -840,6 +845,7 @@ class SimulationTrialResult:
         self._final_step_result = final_step_result
         self._final_simulator_state_cache = final_simulator_state
 
+    # pylint: enable=missing-raises-doc
     @property
     def _final_simulator_state(self):
         if self._final_simulator_state_cache is None:

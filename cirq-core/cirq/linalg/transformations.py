@@ -95,6 +95,8 @@ def match_global_phase(a: np.ndarray, b: np.ndarray) -> Tuple[np.ndarray, np.nda
     return a * dephase(a[k]), b * dephase(b[k])
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def targeted_left_multiply(
     left_matrix: np.ndarray,
     right_target: np.ndarray,
@@ -164,6 +166,7 @@ def targeted_left_multiply(
     )
 
 
+# pylint: enable=missing-raises-doc
 def targeted_conjugate_about(
     tensor: np.ndarray,
     target: np.ndarray,
@@ -220,6 +223,8 @@ _TSliceAtom = Union[int, slice, 'ellipsis']
 _TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def apply_matrix_to_slices(
     target: np.ndarray,
     matrix: np.ndarray,
@@ -287,6 +292,7 @@ def apply_matrix_to_slices(
     return out
 
 
+# pylint: enable=missing-raises-doc
 def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray:
     """Takes the partial trace of a given tensor.
 
@@ -546,6 +552,8 @@ def density_matrix_kronecker_product(
     )
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def factor_state_vector(
     t: np.ndarray,
     axes: Sequence[int],
@@ -565,6 +573,7 @@ def factor_state_vector(
         axes: The axes to factor out.
         validate: Perform a validation that the density matrix factors cleanly.
         atol: The absolute tolerance for the validation.
+
     Returns:
         A tuple with the `(extracted, remainder)` state vectors, where
         `extracted` means the sub-state vector which corresponds to the axes
@@ -590,6 +599,7 @@ def factor_state_vector(
     return extracted, remainder
 
 
+# TODO(#3388) Add documentation for Raises.
 def factor_density_matrix(
     t: np.ndarray,
     axes: Sequence[int],
@@ -613,6 +623,7 @@ def factor_density_matrix(
             will be two density matrices ([C,A,C,A], [B,D,B,D]).
         validate: Perform a validation that the density matrix factors cleanly.
         atol: The absolute tolerance for the validation.
+
     Returns:
         A tuple with the `(extracted, remainder)` density matrices, where
         `extracted` means the sub-matrix which corresponds to the axes
@@ -632,6 +643,7 @@ def factor_density_matrix(
     return extracted, remainder
 
 
+# pylint: enable=missing-raises-doc
 def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]):
     """Transposes the axes of a state vector to a specified order.
 

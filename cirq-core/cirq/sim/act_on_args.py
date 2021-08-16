@@ -78,6 +78,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Adds a measurement result to the log.
 
@@ -94,6 +96,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             raise ValueError(f"Measurement already logged to key {key!r}")
         self._log_of_measurement_results[key] = corrected
 
+    # pylint: enable=missing-raises-doc
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]
 
@@ -158,7 +161,8 @@ class ActOnArgs(OperationTarget[TSelf]):
             otherwise.
 
         Raises:
-            ValueError if the qubits are of different dimensionality."""
+            ValueError: If the qubits are of different dimensionality.
+        """
         if q1.dimension != q2.dimension:
             raise ValueError(f'Cannot swap different dimensions: q1={q1}, q2={q2}')
 
@@ -186,7 +190,8 @@ class ActOnArgs(OperationTarget[TSelf]):
             otherwise.
 
         Raises:
-            ValueError if the qubits are of different dimensionality."""
+            ValueError: If the qubits are of different dimensionality.
+        """
         if q1.dimension != q2.dimension:
             raise ValueError(f'Cannot rename to different dimensions: q1={q1}, q2={q2}')
 

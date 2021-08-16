@@ -34,6 +34,8 @@ class PasqalDevice(cirq.devices.Device):
     execution on the specified device are handled internally by Pasqal.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, qubits: Sequence[cirq.ops.Qid]) -> None:
         """Initializes a device with some qubits.
 
@@ -63,6 +65,7 @@ class PasqalDevice(cirq.devices.Device):
 
         self.qubits = qubits
 
+    # pylint: enable=missing-raises-doc
     @property
     def supported_qubit_type(self):
         return (NamedQubit,)
@@ -128,6 +131,8 @@ class PasqalDevice(cirq.devices.Device):
 
         return valid_op
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def validate_operation(self, operation: cirq.ops.Operation):
         """Raises an error if the given operation is invalid on this device.
 
@@ -160,6 +165,7 @@ class PasqalDevice(cirq.devices.Device):
                     "Measurements on Pasqal devices don't support invert_mask."
                 )
 
+    # pylint: enable=missing-raises-doc
     def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
         """Raises an error if the given circuit is invalid on this device.
 

@@ -77,6 +77,8 @@ class EngineContext:
     simply create an Engine object instead of working with one of these
     directly."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         proto_version: Optional[ProtoVersion] = None,
@@ -109,6 +111,7 @@ class EngineContext:
         self.client = client
         self.timeout = timeout
 
+    # pylint: enable=missing-raises-doc
     def copy(self) -> 'EngineContext':
         return EngineContext(proto_version=self.proto_version, client=self.client)
 
@@ -134,6 +137,8 @@ class Engine:
         get_processor
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         project_id: str,
@@ -174,9 +179,12 @@ class Engine:
             )
         self.context = context
 
+    # pylint: enable=missing-raises-doc
     def __str__(self) -> str:
         return f'Engine(project_id={self.project_id!r})'
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def run(
         self,
         program: cirq.Circuit,
@@ -238,6 +246,7 @@ class Engine:
             )
         )[0]
 
+    # TODO(#3388) Add documentation for Raises.
     def run_sweep(
         self,
         program: cirq.Circuit,
@@ -299,6 +308,7 @@ class Engine:
             labels=job_labels,
         )
 
+    # TODO(#3388) Add documentation for Raises.
     def run_batch(
         self,
         programs: List[cirq.Circuit],
@@ -376,6 +386,7 @@ class Engine:
             labels=job_labels,
         )
 
+    # TODO(#3388) Add documentation for Raises.
     def run_calibration(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -449,6 +460,7 @@ class Engine:
             labels=job_labels,
         )
 
+    # TODO(#3388) Add documentation for Raises.
     def create_program(
         self,
         program: cirq.Circuit,
@@ -492,6 +504,7 @@ class Engine:
             self.project_id, new_program_id, self.context, new_program
         )
 
+    # TODO(#3388) Add documentation for Raises.
     def create_batch_program(
         self,
         programs: List[cirq.Circuit],
@@ -538,6 +551,7 @@ class Engine:
             self.project_id, new_program_id, self.context, new_program, result_type=ResultType.Batch
         )
 
+    # TODO(#3388) Add documentation for Raises.
     def create_calibration_program(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -596,6 +610,7 @@ class Engine:
             result_type=ResultType.Calibration,
         )
 
+    # pylint: enable=missing-raises-doc
     def _serialize_program(self, program: cirq.Circuit, gate_set: Serializer) -> any_pb2.Any:
         if not isinstance(program, cirq.Circuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
@@ -764,6 +779,8 @@ class Engine:
         )
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def get_engine(project_id: Optional[str] = None) -> Engine:
     """Get an Engine instance assuming some sensible defaults.
 
@@ -794,6 +811,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     return Engine(project_id=project_id)
 
 
+# pylint: enable=missing-raises-doc
 def get_engine_device(
     processor_id: str,
     project_id: Optional[str] = None,

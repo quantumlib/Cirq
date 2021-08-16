@@ -29,6 +29,8 @@ if TYPE_CHECKING:
 class ParallelGateOperation(raw_types.Operation):
     """An application of several copies of a gate to a group of qubits."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, gate: 'cirq.Gate', qubits: Sequence[raw_types.Qid]) -> None:
         """Inits ParallelGateOperation.
 
@@ -45,6 +47,7 @@ class ParallelGateOperation(raw_types.Operation):
         self._gate = gate
         self._qubits = tuple(qubits)
 
+    # pylint: enable=missing-raises-doc
     @property
     def gate(self) -> raw_types.Gate:
         """The single qubit gate applied by the operation."""
