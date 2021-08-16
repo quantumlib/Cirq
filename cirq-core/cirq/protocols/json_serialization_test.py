@@ -790,7 +790,7 @@ def test_json_serializable_dataclass_no_decorator():
 
     my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
 
-    assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
+    assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver, *cirq.DEFAULT_RESOLVERS])
 
 
 def test_json_serializable_dataclass_namespace():
