@@ -16,8 +16,8 @@ import pytest
 
 import cirq
 import cirq_google
-import cirq_google.common_serializers as cgc
 import cirq_google.devices.known_devices as known_devices
+import cirq_google.serialization.common_serializers as cgc
 
 
 def test_foxtail_qubits():
@@ -301,7 +301,7 @@ valid_targets {
 
 
 def test_multiple_gate_sets():
-    halfPiGateSet = cirq_google.serializable_gate_set.SerializableGateSet(
+    halfPiGateSet = cirq_google.SerializableGateSet(
         gate_set_name='half_pi_gateset',
         serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS, cgc.MEASUREMENT_SERIALIZER],
         deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS, cgc.MEASUREMENT_DESERIALIZER],
@@ -314,7 +314,7 @@ def test_multiple_gate_sets():
         'meas': 14_141,
     }
     test_proto = known_devices.create_device_proto_from_diagram(
-        "aa\naa", [cirq_google.gate_sets.XMON, halfPiGateSet], durations_dict
+        "aa\naa", [cirq_google.XMON, halfPiGateSet], durations_dict
     )
     assert (
         str(test_proto)
@@ -484,14 +484,14 @@ def test_sycamore_devices(device):
 
 
 def test_sycamore_circuitop_device():
-    circuitop_gateset = cirq_google.serializable_gate_set.SerializableGateSet(
+    circuitop_gateset = cirq_google.SerializableGateSet(
         gate_set_name='circuitop_gateset',
         serializers=[cgc.CIRCUIT_OP_SERIALIZER],
         deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
     )
     gateset_list = [
-        cirq_google.gate_sets.SQRT_ISWAP_GATESET,
-        cirq_google.gate_sets.SYC_GATESET,
+        cirq_google.SQRT_ISWAP_GATESET,
+        cirq_google.SYC_GATESET,
         circuitop_gateset,
     ]
     circuitop_proto = cirq_google.devices.known_devices.create_device_proto_from_diagram(
@@ -533,7 +533,7 @@ def test_sycamore_grid_layout():
 
 
 def test_proto_with_circuitop():
-    circuitop_gateset = cirq_google.serializable_gate_set.SerializableGateSet(
+    circuitop_gateset = cirq_google.SerializableGateSet(
         gate_set_name='circuitop_gateset',
         serializers=[cgc.CIRCUIT_OP_SERIALIZER],
         deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
@@ -585,7 +585,7 @@ valid_targets {
 
 
 def test_proto_with_waitgate():
-    wait_gateset = cirq_google.serializable_gate_set.SerializableGateSet(
+    wait_gateset = cirq_google.SerializableGateSet(
         gate_set_name='wait_gateset',
         serializers=[cgc.WAIT_GATE_SERIALIZER],
         deserializers=[cgc.WAIT_GATE_DESERIALIZER],
@@ -648,7 +648,7 @@ valid_targets {
 
 
 def test_adding_gates_multiple_times():
-    waiting_for_godot = cirq_google.serializable_gate_set.SerializableGateSet(
+    waiting_for_godot = cirq_google.SerializableGateSet(
         gate_set_name='wait_gateset',
         serializers=[cgc.WAIT_GATE_SERIALIZER, cgc.WAIT_GATE_SERIALIZER, cgc.WAIT_GATE_SERIALIZER],
         deserializers=[
