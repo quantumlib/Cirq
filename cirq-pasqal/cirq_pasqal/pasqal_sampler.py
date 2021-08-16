@@ -32,7 +32,9 @@ class PasqalSampler(cirq.work.Sampler):
         self._authorization_header = {"Authorization": access_token}
 
     def _serialize_circuit(
-        self, circuit: cirq.circuits.AbstractCircuit, param_resolver: cirq.study.ParamResolverOrSimilarType
+        self,
+        circuit: cirq.circuits.AbstractCircuit,
+        param_resolver: cirq.study.ParamResolverOrSimilarType,
     ) -> str:
         """Serialize a given Circuit.
         Args:

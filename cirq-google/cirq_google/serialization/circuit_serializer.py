@@ -50,7 +50,7 @@ class CircuitSerializer(serializer.Serializer):
 
     def serialize(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         msg: Optional[v2.program_pb2.Program] = None,
         *,
         arg_function_language: Optional[str] = None,
