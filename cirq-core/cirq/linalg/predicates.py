@@ -216,6 +216,8 @@ def allclose_up_to_global_phase(
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def slice_for_qubits_equal_to(
     target_qubit_axes: Sequence[int],
     little_endian_qureg_value: int = 0,
@@ -229,7 +231,6 @@ def slice_for_qubits_equal_to(
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
 
     Example:
-
         ```python
         # A '4 qubit' tensor with values from 0 to 15.
         r = np.array(range(16)).reshape((2,) * 4)
@@ -306,3 +307,6 @@ def slice_for_qubits_equal_to(
     for axis, digit in zip(target_qubit_axes, digits):
         result[axis] = digit
     return tuple(result)
+
+
+# pylint: enable=missing-raises-doc

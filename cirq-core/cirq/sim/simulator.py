@@ -75,6 +75,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     ) -> List[study.Result]:
         return list(self.run_sweep_iter(program, params, repetitions))
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def run_sweep_iter(
         self,
         program: 'cirq.AbstractCircuit',
@@ -104,7 +106,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             measurements = {}
             if repetitions == 0:
                 for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    measurements[protocols.measurement_key(op)] = np.empty([0, 1])
+                    measurements[protocols.measurement_key_name(op)] = np.empty([0, 1])
             else:
                 measurements = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
@@ -113,6 +115,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 params=param_resolver, measurements=measurements
             )
 
+    # pylint: enable=missing-raises-doc
     @abc.abstractmethod
     def _run(
         self,
@@ -762,7 +765,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError(f'{op.gate} was not a MeasurementGate')
-            key = protocols.measurement_key(gate)
+            key = protocols.measurement_key_name(gate)
             if key in seen_measurement_keys:
                 raise ValueError(f'Duplicate MeasurementGate with key {key}')
             seen_measurement_keys.add(key)
@@ -812,6 +815,8 @@ class SimulationTrialResult:
             measurement gate.)
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         params: study.ParamResolver,
@@ -843,6 +848,7 @@ class SimulationTrialResult:
         self._final_step_result = final_step_result
         self._final_simulator_state_cache = final_simulator_state
 
+    # pylint: enable=missing-raises-doc
     @property
     def _final_simulator_state(self):
         if self._final_simulator_state_cache is None:
@@ -903,7 +909,9 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
 
 def _verify_unique_measurement_keys(circuit: circuits.AbstractCircuit):
     result = collections.Counter(
-        key for op in ops.flatten_op_tree(iter(circuit)) for key in protocols.measurement_keys(op)
+        key
+        for op in ops.flatten_op_tree(iter(circuit))
+        for key in protocols.measurement_key_names(op)
     )
     if result:
         duplicates = [k for k, v in result.most_common() if v > 1]

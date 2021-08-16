@@ -41,6 +41,8 @@ if TYPE_CHECKING:
 class CircuitDiagramInfo:
     """Describes how to draw an operation in a circuit diagram."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         wire_symbols: Iterable[str],
@@ -77,6 +79,7 @@ class CircuitDiagramInfo:
         self.exponent_qubit_index = exponent_qubit_index
         self.auto_exponent_parens = auto_exponent_parens
 
+    # pylint: enable=missing-raises-doc
     def with_wire_symbols(self, new_wire_symbols: Iterable[str]):
         return CircuitDiagramInfo(
             wire_symbols=new_wire_symbols,

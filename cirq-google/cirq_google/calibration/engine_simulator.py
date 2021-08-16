@@ -106,6 +106,8 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     @classmethod
     def create_with_random_gaussian_sqrt_iswap(
         cls,
@@ -170,6 +172,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
+    # TODO(#3388) Add documentation for Raises.
     @classmethod
     def create_from_dictionary_sqrt_iswap(
         cls,
@@ -245,6 +248,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
+    # TODO(#3388) Add documentation for Raises.
     @classmethod
     def create_from_dictionary(
         cls,
@@ -299,6 +303,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             simulator, drift_generator=sample_gate, gates_translator=try_convert_gate_to_fsim
         )
 
+    # TODO(#3388) Add documentation for Raises.
     @classmethod
     def create_from_characterizations_sqrt_iswap(
         cls,
@@ -359,10 +364,13 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             ideal_when_missing_parameter=ideal_when_missing_parameter,
         )
 
+    # pylint: enable=missing-raises-doc
     def final_state_vector(self, program: cirq.Circuit) -> np.array:
         result = self.simulate(program)
         return result.state_vector()
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def get_calibrations(
         self, requests: Sequence[PhasedFSimCalibrationRequest]
     ) -> List[PhasedFSimCalibrationResult]:
@@ -409,6 +417,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
         return results
 
+    # pylint: enable=missing-raises-doc
     def create_gate_with_drift(
         self, a: cirq.Qid, b: cirq.Qid, gate_calibration: PhaseCalibratedFSimGate
     ) -> cirq.PhasedFSimGate:

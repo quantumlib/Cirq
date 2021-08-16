@@ -206,7 +206,7 @@ def _verify_unique_measurement_keys(operations: Iterable[cirq.Operation]):
     seen: Set[str] = set()
     for op in operations:
         if cirq.is_measurement(op):
-            key = cirq.measurement_key(op)
+            key = cirq.measurement_key_name(op)
             if key in seen:
                 raise ValueError(f'Measurement key {key} repeated')
             seen.add(key)

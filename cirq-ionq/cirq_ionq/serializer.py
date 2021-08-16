@@ -219,7 +219,7 @@ class Serializer:
     def _serialize_measurement_gate(
         self, gate: cirq.MeasurementGate, targets: Sequence[int]
     ) -> dict:
-        key = cirq.measurement_key(gate)
+        key = cirq.measurement_key_name(gate)
         if chr(31) in key or chr(30) in key:
             raise ValueError(
                 'Measurement gates for IonQ API cannot have a key with a ascii unit'

@@ -88,6 +88,8 @@ class SupportsActOnQubits(Protocol):
         """
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def act_on(
     action: Union['cirq.Operation', Any],
     args: 'cirq.ActOnArgs',
@@ -165,3 +167,6 @@ def act_on(
         f"Action type: {type(action)}\n"
         f"Action repr: {action!r}\n"
     )
+
+
+# pylint: enable=missing-raises-doc

@@ -48,6 +48,8 @@ class Sampler(metaclass=abc.ABCMeta):
         """
         return self.run_sweep(program, study.ParamResolver(param_resolver), repetitions)[0]
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def sample(
         self,
         program: 'cirq.AbstractCircuit',
@@ -133,6 +135,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
         return pd.concat(results)
 
+    # pylint: enable=missing-raises-doc
     @abc.abstractmethod
     def run_sweep(
         self,
@@ -197,6 +200,8 @@ class Sampler(metaclass=abc.ABCMeta):
         """
         return self.run_sweep(program, params=params, repetitions=repetitions)
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def run_batch(
         self,
         programs: Sequence['cirq.AbstractCircuit'],
@@ -255,3 +260,5 @@ class Sampler(metaclass=abc.ABCMeta):
             self.run_sweep(circuit, params=params, repetitions=repetitions)
             for circuit, params, repetitions in zip(programs, params_list, repetitions)
         ]
+
+    # pylint: enable=missing-raises-doc
