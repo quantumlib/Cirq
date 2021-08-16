@@ -1,7 +1,7 @@
 import pytest
 import cirq
 from cirq.testing import assert_equivalent_op_tree
-from cirq.devices.fidelity import NoiseProperties, NoiseModelFromNoiseProperties 
+from cirq.devices.noise_properties import NoiseProperties, NoiseModelFromNoiseProperties
 import numpy as np
 
 
@@ -116,7 +116,7 @@ def test_depolarization_error():
         cirq.Moment([cirq.depolarize(pauli_error / 3).on_each(qubits)]),
         cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
         cirq.Moment([cirq.depolarize(pauli_error / 3).on_each(qubits)]),
-   )
+    )
     assert_equivalent_op_tree(expected_circuit, noisy_circuit)
 
 
@@ -147,7 +147,7 @@ def test_ampl_damping_error():
         cirq.Moment([cirq.FSimGate(np.pi / 2, np.pi).on_each(qubits)]),
         cirq.Moment([cirq.amplitude_damp(1 - np.exp(-12.0 / t1_ns)).on_each(qubits)]),
         cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
-       cirq.Moment([cirq.amplitude_damp(1 - np.exp(-4000.0 / t1_ns)).on_each(qubits)])
+        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-4000.0 / t1_ns)).on_each(qubits)]),
     )
     assert_equivalent_op_tree(expected_circuit, noisy_circuit)
 
@@ -158,7 +158,7 @@ def test_combined_error():
         t2 = 2 * t1_ns
         pauli_error_from_t1 = (1 - np.exp(-duration / t2)) / 2 + (1 - np.exp(-duration / t1_ns)) / 4
         if pauli_error >= pauli_error_from_t1:
-          return pauli_error - pauli_error_from_t1
+            return pauli_error - pauli_error_from_t1
         return pauli_error
 
     t1_ns = 2000.0
@@ -174,7 +174,6 @@ def test_combined_error():
         cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
     )
 
-
     print("pauli error", pauli_error_from_depolarization(pauli_error, t1_ns, 4000.0))
     # Create noise model from NoiseProperties object with specified noise
     f = NoiseProperties(t1_ns=t1_ns, p11=p11, pauli_error=pauli_error)
@@ -189,18 +188,18 @@ def test_combined_error():
         cirq.Moment([cirq.X(qubits[0])]),
         cirq.Moment(
             [
-                cirq.depolarize(pauli_error_from_depolarization(pauli_error, t1_ns, 25.0) / 3).on_each(
-                    qubits
-                )
+                cirq.depolarize(
+                    pauli_error_from_depolarization(pauli_error, t1_ns, 25.0) / 3
+                ).on_each(qubits)
             ]
         ),
         cirq.Moment([cirq.amplitude_damp(1 - np.exp(-25.0 / t1_ns)).on_each(qubits)]),
         cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
         cirq.Moment(
             [
-                cirq.depolarize(pauli_error_from_depolarization(pauli_error, t1_ns, 25.0) / 3).on_each(
-                    qubits
-                )
+                cirq.depolarize(
+                    pauli_error_from_depolarization(pauli_error, t1_ns, 25.0) / 3
+                ).on_each(qubits)
             ]
         ),
         cirq.Moment([cirq.amplitude_damp(1 - np.exp(-25.0 / t1_ns)).on_each(qubits)]),
@@ -208,32 +207,32 @@ def test_combined_error():
         cirq.Moment([cirq.measure(qubits[0], key='q0')]),
         cirq.Moment(
             [
-                cirq.depolarize(pauli_error_from_depolarization(pauli_error, t1_ns, 4000.0) / 3).on_each(
-                    qubits
-                )
+                cirq.depolarize(
+                    pauli_error_from_depolarization(pauli_error, t1_ns, 4000.0) / 3
+                ).on_each(qubits)
             ]
         ),
         cirq.Moment([cirq.amplitude_damp(1 - np.exp(-4000.0 / t1_ns)).on_each(qubits)]),
         cirq.Moment([cirq.ISwapPowGate().on_each(qubits)]),
         cirq.Moment(
             [
-                cirq.depolarize(pauli_error_from_depolarization(pauli_error, t1_ns, 32.0) / 3).on_each(
-                    qubits
-                )
+                cirq.depolarize(
+                    pauli_error_from_depolarization(pauli_error, t1_ns, 32.0) / 3
+                ).on_each(qubits)
             ]
         ),
         cirq.Moment([cirq.amplitude_damp(1 - np.exp(-32.0 / t1_ns)).on_each(qubits)]),
         cirq.Moment([cirq.GeneralizedAmplitudeDampingChannel(p=1.0, gamma=p11).on_each(qubits)]),
         cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
-    cirq.Moment(
+        cirq.Moment(
             [
-                cirq.depolarize(pauli_error_from_depolarization(pauli_error, t1_ns, 4000.0) / 3).on_each(
-                    qubits
-                )
+                cirq.depolarize(
+                    pauli_error_from_depolarization(pauli_error, t1_ns, 4000.0) / 3
+                ).on_each(qubits)
             ]
         ),
-        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-4000.0 / t1_ns)).on_each(qubits)])
-      )
+        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-4000.0 / t1_ns)).on_each(qubits)]),
+    )
     print("Expected:")
     print(expected_circuit)
     assert_equivalent_op_tree(expected_circuit, noisy_circuit)

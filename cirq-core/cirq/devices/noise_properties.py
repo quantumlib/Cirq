@@ -4,8 +4,8 @@ from cirq import ops, protocols, devices
 import numpy as np
 
 if TYPE_CHECKING:
-  from typing import Iterable
-  import cirq
+    from typing import Iterable
+    import cirq
 
 
 class NoiseProperties:
@@ -89,7 +89,7 @@ class NoiseProperties:
             num_qubits: number of qubits
         """
         if self._p is not None:
-            N = 2**num_qubits
+            N = 2 ** num_qubits
             return 1 - ((1 - self._p) * (1 - 1 / N))
         return None
 
@@ -99,7 +99,7 @@ class NoiseProperties:
             num_qubits: number of qubits
         """
         if self._p is not None:
-            N = 2**num_qubits
+            N = 2 ** num_qubits
             return (1 - self._p) * (1 - 1 / N / N)
         return None
 
@@ -110,7 +110,7 @@ class NoiseProperties:
             pauli_error: The pauli error
             num_qubits: Number of qubits
         """
-        N = 2**num_qubits
+        N = 2 ** num_qubits
         return 1 - (pauli_error / (1 - 1 / N / N))
 
     def xeb_fidelity_to_decay_constant(self, xeb_fidelity: float, num_qubits: int = 2):
@@ -120,7 +120,7 @@ class NoiseProperties:
             xeb_fidelity: The XEB noise_properties
             num_qubits: Number of qubits
         """
-        N = 2**num_qubits
+        N = 2 ** num_qubits
         return 1 - (1 - xeb_fidelity) / (1 - 1 / N)
 
     def pauli_error_from_t1(self, t: float, t1_ns: float):
@@ -154,7 +154,7 @@ class NoiseProperties:
             num_qubits: Number of qubits
         """
         if self._p is not None:
-            N = 2**num_qubits
+            N = 2 ** num_qubits
             return (1 - self._p) * (1 - 1 / N ** 2)
         return None
 
@@ -165,7 +165,7 @@ class NoiseProperties:
             num_qubits: Number of qubits
         """
         if self._p is not None:
-            N = 2**num_qubits
+            N = 2 ** num_qubits
             return (1 - self._p) * (1 - 1 / N)
         return None
 
@@ -192,20 +192,20 @@ def get_duration_ns(gate):
 
 def _apply_readout_noise(p00, p11, moments, measurement_qubits):
     if p00 is None:
-      p = 1.0
-      gamma = p11
+        p = 1.0
+        gamma = p11
     elif p11 is None:
-      p = 0.0
-      gamma = p00
+        p = 0.0
+        gamma = p00
     else:
-      p = p11 / (p00 + p11)
-      gamma = p11 / p
+        p = p11 / (p00 + p11)
+        gamma = p11 / p
     moments.append(
         ops.Moment(
-            ops.GeneralizedAmplitudeDampingChannel(p=p, gamma=gamma)(q)
-            for q in measurement_qubits
+            ops.GeneralizedAmplitudeDampingChannel(p=p, gamma=gamma)(q) for q in measurement_qubits
         )
     )
+
 
 def _apply_depol_noise(pauli_error, moments, system_qubits):
 
@@ -215,11 +215,11 @@ def _apply_depol_noise(pauli_error, moments, system_qubits):
     p_other = pauli_error / (num_inds - 1)  # probability of X, Y, Z gates
     moments.append(ops.Moment(ops.depolarize(p_other)(q) for q in system_qubits))
 
+
 def _apply_amplitude_damp_noise(duration, t1, moments, system_qubits):
     moments.append(
         ops.Moment(ops.amplitude_damp(1 - np.exp(-duration / t1)).on_each(system_qubits))
     )
-
 
 
 class NoiseModelFromNoiseProperties(devices.NoiseModel):
@@ -229,13 +229,19 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         else:
             raise ValueError('A NoiseProperties object must be specified')
 
-    def noisy_moment(self, moment: ops.Moment, system_qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def noisy_moment(
+        self, moment: ops.Moment, system_qubits: Sequence['cirq.Qid']
+    ) -> 'cirq.OP_TREE':
         moments = []
 
-        if any([protocols.is_measurement(op.gate) for op in moment.operations]):  # Add readout error before measurement gate
+        if any(
+            [protocols.is_measurement(op.gate) for op in moment.operations]
+        ):  # Add readout error before measurement gate
             p00 = self._noise_properties.p00
             p11 = self._noise_properties.p11
-            measurement_qubits = [list(op.qubits)[0] for op in moment.operations if protocols.is_measurement(op.gate)]
+            measurement_qubits = [
+                list(op.qubits)[0] for op in moment.operations if protocols.is_measurement(op.gate)
+            ]
             if p00 is not None or p11 is not None:
                 _apply_readout_noise(p00, p11, moments, measurement_qubits)
             moments.append(moment)
@@ -248,5 +254,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
 
         if self._noise_properties.t1_ns is not None:  # Add amplitude damping noise
             duration = max([get_duration_ns(op.gate) for op in moment.operations])
-            _apply_amplitude_damp_noise(duration, self._noise_properties.t1_ns, moments, system_qubits)
+            _apply_amplitude_damp_noise(
+                duration, self._noise_properties.t1_ns, moments, system_qubits
+            )
         return moments
