@@ -14,7 +14,7 @@
 """Single qubit readout experiments using parallel or isolated statistics."""
 import dataclasses
 import time
-from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING, cast
+from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING
 
 import sympy
 import numpy as np
