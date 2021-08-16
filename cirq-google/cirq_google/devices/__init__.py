@@ -31,7 +31,7 @@ from cirq_google.devices.named_topologies import (
     NamedTopology,
     draw_gridlike,
     LineTopology,
-    DiagonalRectangleTopology,
+    TiltedSquareLattice,
     get_placements,
     draw_placements,
 )

@@ -53,7 +53,7 @@ TestSpec = ModuleJsonTestSpec(
         # Abstract
         'NamedTopology',
         # https://github.com/quantumlib/Cirq/issues/4377,
-        'DiagonalRectangleTopology',
+        'TiltedSquareLattice',
         'LineTopology',
     ],
     resolver_cache=_class_resolver_dictionary(),

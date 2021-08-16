@@ -60,7 +60,7 @@ from cirq_google.devices import (
     NamedTopology,
     draw_gridlike,
     LineTopology,
-    DiagonalRectangleTopology,
+    TiltedSquareLattice,
     get_placements,
     draw_placements,
 )

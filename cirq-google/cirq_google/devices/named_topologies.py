@@ -132,7 +132,7 @@ class LineTopology(NamedTopology):
 
 
 @dataclass(frozen=True)
-class DiagonalRectangleTopology(NamedTopology):
+class TiltedSquareLattice(NamedTopology):
     """A grid topology forming a rectangle rotated 45-degrees.
 
     This topology is based on Google devices where plaquettes consist of four qubits in a square
