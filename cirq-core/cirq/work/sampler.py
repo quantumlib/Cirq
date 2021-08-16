@@ -13,7 +13,7 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import List, Optional, TYPE_CHECKING, Union
+from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 import abc
 
 import pandas as pd
@@ -199,7 +199,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
     def run_batch(
         self,
-        programs: List['cirq.AbstractCircuit'],
+        programs: Sequence['cirq.AbstractCircuit'],
         params_list: Optional[List['cirq.Sweepable']] = None,
         repetitions: Union[int, List[int]] = 1,
     ) -> List[List['cirq.Result']]:

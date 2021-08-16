@@ -195,9 +195,7 @@ def estimate_parallel_single_qubit_readout_errors(
         all_sweeps.append(total_sweeps)
 
     # Execute circuits
-    results = sampler.run_batch(
-        cast(List[cirq.AbstractCircuit], all_circuits), all_sweeps, repetitions=repetitions
-    )
+    results = sampler.run_batch(all_circuits, all_sweeps, repetitions=repetitions)
     timestamp = time.time()
 
     # Analyze results

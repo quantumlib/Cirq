@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, TYPE_CHECKING, Union, Optional, cast
+from typing import List, Sequence, TYPE_CHECKING, Union, Optional, cast
 
 import cirq
 from cirq_google import engine
@@ -69,7 +69,7 @@ class QuantumEngineSampler(cirq.Sampler):
 
     def run_batch(
         self,
-        programs: List[cirq.AbstractCircuit],
+        programs: Sequence['cirq.AbstractCircuit'],
         params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: Union[int, List[int]] = 1,
     ) -> List[List[cirq.Result]]:
