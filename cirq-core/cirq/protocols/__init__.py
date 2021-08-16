@@ -94,9 +94,9 @@ from cirq.protocols.json_serialization import (
 from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
-    measurement_key_str,
+    measurement_key_name,
     measurement_keys,
-    measurement_keys_str,
+    measurement_key_names,
     with_key_path,
     with_measurement_key_mapping,
     SupportsMeasurementKey,
