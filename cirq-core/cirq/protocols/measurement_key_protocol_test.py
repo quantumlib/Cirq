@@ -22,7 +22,7 @@ def test_measurement_key():
         def _measurement_key_name_(self):
             return 'door locker'
 
-    class DeprecatedMagicMethod:
+    class DeprecatedMagicMethod(cirq.SingleQubitGate):
         def _measurement_key_(self):
             return 'door locker'
 
@@ -31,6 +31,11 @@ def test_measurement_key():
         assert cirq.measurement_key(ReturnsStr()) == 'door locker'
     with cirq.testing.assert_deprecated(deadline="v0.13"):
         assert cirq.measurement_key_name(DeprecatedMagicMethod()) == 'door locker'
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert (
+            cirq.measurement_key_name(DeprecatedMagicMethod().on(cirq.LineQubit(0)))
+            == 'door locker'
+        )
 
     assert cirq.measurement_key_name(ReturnsStr()) == 'door locker'
 
@@ -154,6 +159,8 @@ def test_measurement_keys():
         assert cirq.measurement_keys(Composite()) == {'inner1', 'inner2'}
     with cirq.testing.assert_deprecated(deadline="v0.13"):
         assert cirq.measurement_key_names(DeprecatedMagicMethod()) == {'a', 'b'}
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert cirq.measurement_key_names(DeprecatedMagicMethod().on(a)) == {'a', 'b'}
     assert cirq.measurement_key_names(Composite()) == {'inner1', 'inner2'}
     assert cirq.measurement_key_names(Composite().on(a, b)) == {'inner1', 'inner2'}
     assert not cirq.is_measurement(Composite(), allow_decompose=False)
