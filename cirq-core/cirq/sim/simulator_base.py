@@ -217,7 +217,7 @@ class SimulatorBase(
                             op = ops.phase_damp(1).on(*op.qubits)
 
                     # Simulate the operation
-                    sim_state.apply_operation(op)
+                    protocols.act_on(op, sim_state)
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 

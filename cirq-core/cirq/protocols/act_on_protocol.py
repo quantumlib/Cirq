@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Union, Sequence, Any
+from typing import TYPE_CHECKING, Union, Sequence
 
 from typing_extensions import Protocol
 
@@ -91,8 +91,8 @@ class SupportsActOnQubits(Protocol):
 # TODO(#3388) Add documentation for Raises.
 # pylint: disable=missing-raises-doc
 def act_on(
-    action: Union['cirq.Operation', Any],
-    args: 'cirq.ActOnArgs',
+    action: Union['cirq.Operation', 'cirq.Gate'],
+    args: 'cirq.OperationTarget',
     qubits: Sequence['cirq.Qid'] = None,
     *,
     allow_decompose: bool = True,
@@ -134,7 +134,10 @@ def act_on(
 
     # todo: change to an exception after `args.axes` is deprecated.
     if not is_op and qubits is None:
-        qubits = [args.qubits[i] for i in args.axes]
+        from cirq.sim import ActOnArgs
+
+        if isinstance(args, ActOnArgs):
+            qubits = [args.qubits[i] for i in args.axes]
 
     action_act_on = getattr(action, '_act_on_', None)
     if action_act_on is not None:
@@ -149,7 +152,7 @@ def act_on(
 
     arg_fallback = getattr(args, '_act_on_fallback_', None)
     if arg_fallback is not None:
-        qubits = action.qubits if is_op else qubits
+        qubits = action.qubits if isinstance(action, ops.Operation) else qubits
         result = arg_fallback(action, qubits=qubits, allow_decompose=allow_decompose)
         if result is True:
             return

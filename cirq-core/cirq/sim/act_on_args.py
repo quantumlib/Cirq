@@ -113,10 +113,6 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Creates a final merged state."""
         return self
 
-    def apply_operation(self, op: 'cirq.Operation'):
-        """Applies the operation to the state."""
-        protocols.act_on(op, self)
-
     def kronecker_product(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""
         raise NotImplementedError()
@@ -213,10 +209,6 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
         return iter(self.qubits)
-
-    @abc.abstractmethod
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
-        """Handles the act_on protocol fallback implementation."""
 
     @property  # type: ignore
     @deprecated(

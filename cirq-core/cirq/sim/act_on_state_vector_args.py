@@ -159,7 +159,12 @@ class ActOnStateVectorArgs(ActOnArgs):
             qid_shape=self.target_tensor.shape,
         )
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> bool:
         strats = [
             _strat_act_on_state_vector_from_apply_unitary,
             _strat_act_on_state_vector_from_mixture,

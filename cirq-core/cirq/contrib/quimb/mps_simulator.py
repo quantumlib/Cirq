@@ -446,9 +446,16 @@ class MPSState(ActOnArgs):
             raise ValueError('Can only handle 1 and 2 qubit operations')
         return True
 
-    def _act_on_fallback_(self, op: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> bool:
         """Delegates the action to self.apply_op"""
-        return self.apply_op(op, self.prng)
+        if isinstance(action, ops.Gate):
+            action = ops.GateOperation(action, qubits)
+        return self.apply_op(action, self.prng)
 
     def estimation_stats(self):
         """Returns some statistics about the memory usage and quality of the approximation."""
