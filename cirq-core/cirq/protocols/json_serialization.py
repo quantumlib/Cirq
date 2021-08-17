@@ -556,8 +556,8 @@ def to_json(
 
 
 # pylint: enable=function-redefined
-
-
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def read_json(
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
@@ -603,6 +603,7 @@ def read_json(
     return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
 
 
+# pylint: enable=missing-raises-doc
 def to_json_gzip(
     obj: Any,
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,

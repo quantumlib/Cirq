@@ -170,7 +170,7 @@ def identity_each(*qubits: 'cirq.Qid') -> 'cirq.Operation':
         An identity operation on the given qubits.
 
     Raises:
-        ValueError if the qubits are not instances of Qid.
+        ValueError: If the qubits are not instances of Qid.
     """
     for qubit in qubits:
         if not isinstance(qubit, raw_types.Qid):

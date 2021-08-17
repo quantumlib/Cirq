@@ -72,7 +72,7 @@ class KrausChannel(raw_types.Gate):
     def _kraus_(self):
         return self._kraus_ops
 
-    def _measurement_key_(self):
+    def _measurement_key_name_(self):
         if self._key is None:
             return NotImplemented
         return self._key

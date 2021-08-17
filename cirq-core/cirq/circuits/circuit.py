@@ -108,7 +108,7 @@ class AbstractCircuit(abc.ABC):
     *   to_text_diagram
     *   to_text_diagram_drawer
     *   qid_shape
-    *   all_measurement_keys
+    *   all_measurement_key_names
     *   to_quil
     *   to_qasm
     *   save_qasm
@@ -908,8 +908,8 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_keys(self) -> AbstractSet[str]:
-        return protocols.measurement_keys(self)
+    def all_measurement_key_names(self) -> AbstractSet[str]:
+        return protocols.measurement_key_names(self)
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self._with_sliced_moments(
@@ -1576,7 +1576,7 @@ class Circuit(AbstractCircuit):
     *   to_text_diagram
     *   to_text_diagram_drawer
     *   qid_shape
-    *   all_measurement_keys
+    *   all_measurement_key_names
     *   to_quil
     *   to_qasm
     *   save_qasm
@@ -1814,6 +1814,8 @@ class Circuit(AbstractCircuit):
 
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def transform_qubits(
         self,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
@@ -1847,6 +1849,7 @@ class Circuit(AbstractCircuit):
             new_device=self.device if new_device is None else new_device, qubit_mapping=transform
         )
 
+    # pylint: enable=missing-raises-doc
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
@@ -2083,6 +2086,8 @@ class Circuit(AbstractCircuit):
                 self._moments[moment_index].operations + tuple(new_ops)
             )
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def insert_at_frontier(
         self, operations: 'cirq.OP_TREE', start: int, frontier: Dict['cirq.Qid', int] = None
     ) -> Dict['cirq.Qid', int]:
@@ -2116,6 +2121,7 @@ class Circuit(AbstractCircuit):
 
         return frontier
 
+    # pylint: enable=missing-raises-doc
     def batch_remove(self, removals: Iterable[Tuple[int, 'cirq.Operation']]) -> None:
         """Removes several operations from a circuit.
 
@@ -2125,11 +2131,9 @@ class Circuit(AbstractCircuit):
                 listed operations must actually be present or the edit will
                 fail (without making any changes to the circuit).
 
-        ValueError:
-            One of the operations to delete wasn't present to start with.
-
-        IndexError:
-            Deleted from a moment that doesn't exist.
+        Raises:
+            ValueError: One of the operations to delete wasn't present to start with.
+            IndexError: Deleted from a moment that doesn't exist.
         """
         copy = self.copy()
         for i, op in removals:
@@ -2152,11 +2156,9 @@ class Circuit(AbstractCircuit):
                 operations must actually be present or the edit will fail
                 (without making any changes to the circuit).
 
-        ValueError:
-            One of the operations to replace wasn't present to start with.
-
-        IndexError:
-            Replaced in a moment that doesn't exist.
+        Raises:
+            ValueError: One of the operations to replace wasn't present to start with.
+            IndexError: Replaced in a moment that doesn't exist.
         """
         copy = self.copy()
         for i, op, new_op in replacements:
