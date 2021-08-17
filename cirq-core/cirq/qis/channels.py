@@ -29,7 +29,7 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     return c
 
 
-def kraus_to_channel_matrix(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
+def kraus_to_superoperator(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     """Returns the matrix representation of the linear map with given Kraus operators."""
     d_out, d_in = kraus_operators[0].shape
     m = np.zeros((d_out * d_out, d_in * d_in), dtype=np.complex128)
@@ -39,7 +39,7 @@ def kraus_to_channel_matrix(kraus_operators: Sequence[np.ndarray]) -> np.ndarray
 
 
 def operation_to_choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
-    r"""Returns the unique Choi matrix associated with a superoperator.
+    r"""Returns the unique Choi matrix associated with an operation .
 
     Choi matrix J(E) of a linear map E: L(H1) -> L(H2) which takes linear operators
     on Hilbert space H1 to linear operators on Hilbert space H2 is defined as
@@ -60,8 +60,8 @@ def operation_to_choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
     return kraus_to_choi(protocols.kraus(operation))
 
 
-def operation_to_channel_matrix(operation: 'protocols.SupportsChannel') -> np.ndarray:
-    """Returns the matrix representation of a superoperator in standard basis.
+def operation_to_superoperator(operation: 'protocols.SupportsChannel') -> np.ndarray:
+    """Returns the matrix representation of an operation in standard basis.
 
     Let E: L(H1) -> L(H2) denote a linear map which takes linear operators on Hilbert space H1
     to linear operators on Hilbert space H2 and let d1 = dim H1 and d2 = dim H2. Also, let Fij
@@ -74,4 +74,4 @@ def operation_to_channel_matrix(operation: 'protocols.SupportsChannel') -> np.nd
     Returns:
         Matrix representation of operation.
     """
-    return kraus_to_channel_matrix(protocols.kraus(operation))
+    return kraus_to_superoperator(protocols.kraus(operation))
