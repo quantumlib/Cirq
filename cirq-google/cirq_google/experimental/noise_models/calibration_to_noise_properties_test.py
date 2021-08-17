@@ -147,6 +147,7 @@ def test_from_calibration_rb():
     assert np.isclose(average_pauli_rb, rb_noise_prop.pauli_error)
 
 def test_validate_calibration():
+    # RB Pauli error and RB Average Error disagree
     rb_pauli_error = 0.05
     rb_average_error = 0.1
     _CALIBRATION_DATA_PAULI_AVERAGE = Merge(
@@ -183,6 +184,7 @@ def test_validate_calibration():
         rb_pauli_error,
     )
 
+    # RB Pauli Error and XEB Fidelity disagree
     xeb_fidelity = 0.99
 
     _CALIBRATION_DATA_PAULI_XEB = Merge(
@@ -213,8 +215,9 @@ def test_validate_calibration():
     ):
         noise_properties_from_calibration(bad_calibration_pauli_xeb)
 
+    # RB Average Error and XEB Fidelity disagree
     _CALIBRATION_DATA_AVERAGE_XEB = Merge(
-        f"""
+    f"""
     timestamp_ms: 1579214873,
     metrics: [{{
 
@@ -245,3 +248,24 @@ def test_validate_calibration():
         noise_properties_from_calibration(bad_calibration_average_xeb, validate=False).xeb,
         xeb_fidelity,
     )
+
+    # Calibration data with no RB error or XEB fidelity
+    t1 = 2.0 # microseconds
+
+    _CALIBRATION_DATA_T1= Merge(
+    f"""
+    timestamp_ms: 1579214873,
+    metrics: [{{
+        name: 'single_qubit_idle_t1_micros',
+        targets: ['0_0'],
+        values: [{{
+            double_val: {t1}
+        }}]
+    }}]
+    """,
+        v2.metrics_pb2.MetricsSnapshot(),
+    )
+
+    calibration_t1 = cirq_google.Calibration(_CALIBRATION_DATA_T1)
+
+    assert np.isclose(noise_properties_from_calibration(calibration_t1).t1_ns, t1 * 1000)
