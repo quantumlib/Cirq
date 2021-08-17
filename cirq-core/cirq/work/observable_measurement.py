@@ -62,7 +62,7 @@ document(
 
 
 def _with_parameterized_layers(
-    circuit: 'cirq.Circuit',
+    circuit: 'cirq.AbstractCircuit',
     qubits: Sequence['cirq.Qid'],
     needs_init_layer: bool,
 ) -> 'cirq.Circuit':
@@ -84,9 +84,9 @@ def _with_parameterized_layers(
     meas_mom = ops.Moment([ops.measure(*qubits, key='z')])
     if needs_init_layer:
         total_circuit = circuits.Circuit([x_beg_mom, y_beg_mom])
-        total_circuit += circuit.copy()
+        total_circuit += circuit.unfreeze()
     else:
-        total_circuit = circuit.copy()
+        total_circuit = circuit.unfreeze()
     total_circuit.append([x_end_mom, y_end_mom, meas_mom])
     return total_circuit
 
@@ -445,7 +445,7 @@ def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting
 
 
 def measure_grouped_settings(
-    circuit: 'cirq.Circuit',
+    circuit: 'cirq.AbstractCircuit',
     grouped_settings: Dict[InitObsSetting, List[InitObsSetting]],
     sampler: 'cirq.Sampler',
     stopping_criteria: StoppingCriteria,
@@ -523,10 +523,7 @@ def measure_grouped_settings(
     for max_setting, circuit_params in itertools.product(
         grouped_settings.keys(), circuit_sweep.param_tuples()
     ):
-        # The type annotation for Param is just `Iterable`.
-        # We make sure that it's truly a tuple.
         circuit_params = dict(circuit_params)
-
         meas_spec = _MeasurementSpec(max_setting=max_setting, circuit_params=circuit_params)
         accumulator = BitstringAccumulator(
             meas_spec=meas_spec,
@@ -616,8 +613,8 @@ def _parse_grouper(grouper: Union[str, GROUPER_T] = group_settings_greedy) -> GR
 
 
 def _get_all_qubits(
-    circuit: circuits.Circuit,
-    observables: Iterable[ops.PauliString],
+    circuit: 'cirq.AbstractCircuit',
+    observables: Iterable['cirq.PauliString'],
 ) -> List['cirq.Qid']:
     """Helper function for `measure_observables` to get all qubits from a circuit and a
     collection of observables."""
@@ -629,8 +626,8 @@ def _get_all_qubits(
 
 
 def measure_observables(
-    circuit: circuits.Circuit,
-    observables: Iterable[ops.PauliString],
+    circuit: 'cirq.AbstractCircuit',
+    observables: Iterable['cirq.PauliString'],
     sampler: Union['cirq.Simulator', 'cirq.Sampler'],
     stopping_criteria: Union[str, StoppingCriteria],
     stopping_criteria_val: Optional[float] = None,
@@ -642,7 +639,7 @@ def measure_observables(
     checkpoint: bool = False,
     checkpoint_fn: Optional[str] = None,
     checkpoint_other_fn: Optional[str] = None,
-):
+) -> List[BitstringAccumulator]:
     """Measure a collection of PauliString observables for a state prepared by a Circuit.
 
     If you need more control over the process, please see `measure_grouped_settings` for a
@@ -708,8 +705,8 @@ def measure_observables(
 
 
 def measure_observables_df(
-    circuit: circuits.Circuit,
-    observables: Iterable[ops.PauliString],
+    circuit: 'cirq.AbstractCircuit',
+    observables: Iterable['cirq.PauliString'],
     sampler: Union['cirq.Simulator', 'cirq.Sampler'],
     stopping_criteria: Union[str, StoppingCriteria],
     stopping_criteria_val: Optional[float] = None,

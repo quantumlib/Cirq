@@ -13,12 +13,13 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import List, Optional, TYPE_CHECKING, Union
 import abc
+from typing import List, Optional, TYPE_CHECKING, Union, Dict, FrozenSet
 
 import pandas as pd
-
-from cirq import study
+from cirq import study, ops
+from cirq.work.observable_measurement import measure_observables, RepetitionsStoppingCriteria
+from cirq.work.observable_settings import _hashable_param
 
 if TYPE_CHECKING:
     import cirq
@@ -253,3 +254,107 @@ class Sampler(metaclass=abc.ABCMeta):
             self.run_sweep(circuit, params=params, repetitions=repetitions)
             for circuit, params, repetitions in zip(programs, params_list, repetitions)
         ]
+
+    def sample_expectation_values(
+        self,
+        program: 'cirq.AbstractCircuit',
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
+        *,
+        num_samples: int,
+        params: 'cirq.Sweepable' = None,
+        permit_terminal_measurements: bool = False,
+    ) -> List[List[float]]:
+        """Calculates estimated expectation values from samples of a circuit.
+
+        This is a minimal implementation for measuring observables, and is best reserved for
+        simple use cases. For more complex use cases, consider upgrading to
+        `cirq.work.observable_measurement`. Additional features provided by that toolkit include:
+            - Chunking of submissions to support more than (max_shots) from
+              Quantum Engine
+            - Checkpointing so you don't lose your work halfway through a job
+            - Measuring to a variance tolerance rather than a pre-specified
+              number of repetitions
+            - Readout error symmetrization and mitigation
+
+        This method can be run on any device or simulator that supports circuit sampling. Compare
+        with `simulate_expectation_values` in simulator.py, which is limited to simulators
+        but provides exact results.
+
+        Args:
+            program: The circuit which prepares a state from which we sample expectation values.
+            observables: A list of observables for which to calculate expectation values.
+            num_samples: The number of samples to take. Increasing this value increases the
+                statistical accuracy of the estimate.
+            params: Parameters to run with the program.
+            permit_terminal_measurements: If the provided circuit ends in a measurement, this
+                method will generate an error unless this is set to True. This is meant to
+                prevent measurements from ruining expectation value calculations.
+
+        Returns:
+            A list of expectation-value lists. The outer index determines the sweep, and the inner
+            index determines the observable. For instance, results[1][3] would select the fourth
+            observable measured in the second sweep.
+        """
+        if num_samples <= 0:
+            raise ValueError(
+                f'Expectation values require at least one sample. Received: {num_samples}.'
+            )
+        if not observables:
+            raise ValueError('At least one observable must be provided.')
+        if not permit_terminal_measurements and program.are_any_measurements_terminal():
+            raise ValueError(
+                'Provided circuit has terminal measurements, which may '
+                'skew expectation values. If this is intentional, set '
+                'permit_terminal_measurements=True.'
+            )
+
+        # Wrap input into a list of pauli sum
+        pauli_sums: List['cirq.PauliSum'] = (
+            [ops.PauliSum.wrap(o) for o in observables]
+            if isinstance(observables, List)
+            else [ops.PauliSum.wrap(observables)]
+        )
+        del observables
+
+        # Flatten Pauli Sum into one big list of Pauli String
+        # Keep track of which Pauli Sum each one was from.
+        flat_pstrings: List['cirq.PauliString'] = []
+        pstring_to_psum_i: Dict['cirq.PauliString', int] = {}
+        for psum_i, pauli_sum in enumerate(pauli_sums):
+            for pstring in pauli_sum:
+                flat_pstrings.append(pstring)
+                pstring_to_psum_i[pstring] = psum_i
+
+        # Flatten Circuit Sweep into one big list of Params.
+        # Keep track of their indices so we can map back.
+        circuit_sweep = study.UnitSweep if params is None else study.to_sweep(params)
+        all_circuit_params: List[Dict[str, float]] = [
+            dict(circuit_params) for circuit_params in circuit_sweep.param_tuples()
+        ]
+        circuit_param_to_sweep_i: Dict[FrozenSet[str, float], int] = {
+            _hashable_param(param.items()): i for i, param in enumerate(all_circuit_params)
+        }
+        del params
+
+        accumulators = measure_observables(
+            circuit=program,
+            observables=flat_pstrings,
+            sampler=self,
+            stopping_criteria=RepetitionsStoppingCriteria(total_repetitions=num_samples),
+            readout_symmetrization=False,
+            circuit_sweep=circuit_sweep,
+            checkpoint=False,
+        )
+
+        # Results are ordered by how they're grouped. Since we want the (circuit_sweep, pauli_sum)
+        # nesting structure, we place the measured values according to the back-mappings we set up
+        # above. We also do the sum operation to aggregate multiple PauliString measured values
+        # for a given PauliSum.
+        results: List[List[float]] = [[0] * len(pauli_sums) for _ in range(len(all_circuit_params))]
+        for acc in accumulators:
+            for res in acc.results:
+                param_i = circuit_param_to_sweep_i[_hashable_param(res.circuit_params.items())]
+                psum_i = pstring_to_psum_i[res.setting.observable]
+                results[param_i][psum_i] += res.mean
+
+        return results
