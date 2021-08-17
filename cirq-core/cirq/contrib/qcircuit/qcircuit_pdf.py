@@ -23,6 +23,8 @@ from cirq import circuits
 from cirq.contrib.qcircuit.qcircuit_diagram import circuit_to_latex_using_qcircuit
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def circuit_to_pdf_using_qcircuit_via_tex(
     circuit: circuits.Circuit,
     filepath: str,
@@ -63,3 +65,6 @@ def circuit_to_pdf_using_qcircuit_via_tex(
         except (OSError, IOError) as e:
             if e.errno != errno.ENOENT:
                 raise
+
+
+# pylint: enable=missing-raises-doc

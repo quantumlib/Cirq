@@ -21,6 +21,8 @@ from cirq import ops
 from cirq import optimizers as opt
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def three_qubit_matrix_to_operations(
     q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, u: np.ndarray, atol: float = 1e-8
 ) -> Sequence[ops.Operation]:
@@ -41,8 +43,9 @@ def three_qubit_matrix_to_operations(
     Returns:
         The resulting operations will have only known two-qubit and one-qubit
         gates based operations, namely CZ, CNOT and rx, ry, PhasedXPow gates.
+
     Raises:
-        ValueError if the u matrix is non-unitary or not of shape (8,8)
+        ValueError: If the u matrix is non-unitary or not of shape (8,8).
     """
     if np.shape(u) != (8, 8):
         raise ValueError(f"Expected unitary matrix with shape (8,8) got {np.shape(u)}")
@@ -82,6 +85,7 @@ def three_qubit_matrix_to_operations(
     return list(cirq.Circuit(vdh_ops + cs_ops + ud_ops).all_operations())
 
 
+# pylint: enable=missing-raises-doc
 def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List[ops.Operation]:
     """Converts theta angles based Cosine Sine matrix to operations.
 
