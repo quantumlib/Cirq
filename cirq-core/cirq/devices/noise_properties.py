@@ -20,7 +20,7 @@ class NoiseProperties:
         p00: float = None,
         p11: float = None,
     ) -> None:
-        """Creates a Fidelity object using the provided metrics.
+        """Creates a NoiseProperties object using the provided metrics.
 
           Only one of decay_constant, xeb_fidelity, and pauli_error should be specified.
 
@@ -89,7 +89,7 @@ class NoiseProperties:
         return self.decay_constant_to_xeb_fidelity()
 
     def decay_constant_to_xeb_fidelity(self, num_qubits: int = 2):
-        """Calculates the XEB noise_properties from the depolarization decay constant.
+        """Calculates the XEB fidelity from the depolarization decay constant.
 
         Args:
             num_qubits: number of qubits
@@ -225,6 +225,16 @@ def _apply_amplitude_damp_noise(duration, t1, moments, system_qubits):
 
 class NoiseModelFromNoiseProperties(devices.NoiseModel):
     def __init__(self, noise_properties: NoiseProperties) -> None:
+        """Creates a Noise Model from a NoiseProperties object.
+
+        The noisy_moment method applies readout, depolarization, and amplitude damping noise based on the metrics in the NoiseProperties object.
+
+        Args:
+            noise_properties: the NoiseProperties object to be converted to a Noise Model.
+
+        Raises:
+            ValueError: if no NoiseProperties object is specified.
+        """
         if noise_properties is not None:
             self._noise_properties = noise_properties
         else:
