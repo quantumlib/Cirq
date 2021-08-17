@@ -34,8 +34,7 @@ def test_constructor_and_metrics():
     assert prop.xeb is None
     assert prop.pauli_error is None
     assert prop.decay_constant is None
-    assert prop.rb_pauli_error() is None
-    assert prop.rb_average_error() is None
+    assert prop.average_error() is None
 
     # These and other metrics in the file are purely for testing and
     # do not necessarily represent actual hardware behavior
@@ -59,8 +58,7 @@ def test_constructor_and_metrics():
     # Check that their depolarization metrics match
     assert np.isclose(xeb_fidelity, from_decay.xeb)
     assert np.isclose(from_xeb.pauli_error, from_decay.pauli_error)
-    assert np.isclose(from_xeb.rb_average_error(), from_decay.rb_average_error())
-    assert np.isclose(from_xeb.rb_pauli_error(), from_decay.rb_pauli_error())
+    assert np.isclose(from_xeb.average_error(), from_decay.average_error())
 
 
 def test_gate_durations():
@@ -241,7 +239,10 @@ def test_combined_error():
     prop = NoiseProperties(t1_ns=t1_ns, p11=p11, pauli_error=pauli_error)
     noise_model = NoiseModelFromNoiseProperties(prop)
 
-    noisy_circuit = cirq.Circuit(noise_model.noisy_moments(circuit, qubits))
+    with pytest.warns(
+        RuntimeWarning, match='Pauli error from T1 decay is greater than total Pauli error'
+    ):
+        noisy_circuit = cirq.Circuit(noise_model.noisy_moments(circuit, qubits))
 
     # Insert expected channels to circuit
     expected_circuit = cirq.Circuit(

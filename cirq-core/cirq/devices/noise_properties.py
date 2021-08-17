@@ -1,3 +1,4 @@
+import warnings
 from typing import Sequence, TYPE_CHECKING, List
 from itertools import product
 from cirq import ops, protocols, devices
@@ -152,29 +153,23 @@ class NoiseProperties:
             pauli_error_from_t1 = self.pauli_error_from_t1(t, self.t1_ns)
             if self.pauli_error >= pauli_error_from_t1:
                 return self.pauli_error - pauli_error_from_t1
+            else:
+                warnings.warn(
+                    "Pauli error from T1 decay is greater than total Pauli error", RuntimeWarning
+                )
         return self.pauli_error
 
-    def rb_pauli_error(self, num_qubits: int = 1):
-        """Calculates the randomized benchmarking pauli error.
+    def average_error(self, num_qubits: int = 1):
+        """Calculates the average error from the depolarization decay constant.
 
         Args:
-            num_qubits: Number of qubits
-        """
-        if self._p is not None:
-            N = 2 ** num_qubits
-            return (1 - self._p) * (1 - 1 / N ** 2)
-        return None
-
-    def rb_average_error(self, num_qubits: int = 1):
-        """Calculates the randomized benchmarking average error.
-
-        Args:
-            num_qubits: Number of qubits
+            num_qubits: the number of qubits
         """
         if self._p is not None:
             N = 2 ** num_qubits
             return (1 - self._p) * (1 - 1 / N)
         return None
+
 
 
 def get_duration_ns(gate):
