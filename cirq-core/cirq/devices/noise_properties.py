@@ -225,9 +225,7 @@ def _apply_amplitude_damp_noise(duration, t1, moments, system_qubits):
 
 class NoiseModelFromNoiseProperties(devices.NoiseModel):
     def __init__(self, noise_properties: NoiseProperties) -> None:
-        """Creates a Noise Model from a NoiseProperties object.
-
-        The noisy_moment method applies readout, depolarization, and amplitude damping noise based on the metrics in the NoiseProperties object.
+        """Creates a Noise Model from a NoiseProperties object that can be used with a Simulator.
 
         Args:
             noise_properties: the NoiseProperties object to be converted to a Noise Model.
