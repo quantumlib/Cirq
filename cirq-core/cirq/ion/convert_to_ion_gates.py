@@ -31,10 +31,11 @@ class ConvertToIonGates:
         super().__init__()
         self.ignore_failures = ignore_failures
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def convert_one(self, op: ops.Operation) -> ops.OP_TREE:
-        """Convert a single (one- or two-qubit) operation
+        """Convert a single (one- or two-qubit) operation into ion trap native gates.
 
-        into ion trap native gates
         Args:
             op: gate operation to be converted
 
@@ -78,6 +79,7 @@ class ConvertToIonGates:
             "or composite.".format(op.gate)
         )
 
+    # pylint: enable=missing-raises-doc
     def convert_circuit(self, circuit: circuits.Circuit) -> circuits.Circuit:
         new_circuit = circuits.Circuit()
         for moment in circuit:

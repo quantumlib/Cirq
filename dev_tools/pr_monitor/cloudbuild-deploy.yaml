@@ -16,4 +16,4 @@ steps:
   - skaffold
   - run
   - --force
-  - -f=dev_tools/auto_merge/skaffold.yaml
+  - -f=dev_tools/pr_monitor/skaffold.yaml

@@ -49,7 +49,7 @@ def measure(
         An operation targeting the given qubits with a measurement.
 
     Raises:
-        ValueError if the qubits are not instances of Qid.
+        ValueError: If the qubits are not instances of Qid.
     """
     for qubit in target:
         if isinstance(qubit, np.ndarray):

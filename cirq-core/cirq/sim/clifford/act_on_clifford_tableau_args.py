@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable, Union
 
 import numpy as np
 
@@ -25,6 +25,7 @@ from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.qis.clifford_tableau import CliffordTableau
 from cirq.sim.act_on_args import ActOnArgs
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -84,7 +85,12 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.tableau = tableau
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> Union[bool, NotImplementedType]:
         strats = []
         if allow_decompose:
             strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)

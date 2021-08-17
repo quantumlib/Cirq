@@ -3861,16 +3861,19 @@ def test_measurement_key_mapping(circuit_cls):
         cirq.measure(a, key='m1'),
         cirq.measure(b, key='m2'),
     )
-    assert c.all_measurement_keys() == {'m1', 'm2'}
+    assert c.all_measurement_key_names() == {'m1', 'm2'}
 
-    assert cirq.with_measurement_key_mapping(c, {'m1': 'p1'}).all_measurement_keys() == {'p1', 'm2'}
+    assert cirq.with_measurement_key_mapping(c, {'m1': 'p1'}).all_measurement_key_names() == {
+        'p1',
+        'm2',
+    }
 
     assert cirq.with_measurement_key_mapping(
         c, {'m1': 'p1', 'm2': 'p2'}
-    ).all_measurement_keys() == {'p1', 'p2'}
+    ).all_measurement_key_names() == {'p1', 'p2'}
 
     c_swapped = cirq.with_measurement_key_mapping(c, {'m1': 'm2', 'm2': 'm1'})
-    assert c_swapped.all_measurement_keys() == {'m1', 'm2'}
+    assert c_swapped.all_measurement_key_names() == {'m1', 'm2'}
 
     # Verify that the keys were actually swapped.
     simulator = cirq.Simulator()
@@ -3883,7 +3886,7 @@ def test_measurement_key_mapping(circuit_cls):
             {
                 'x': 'z',
             },
-        ).all_measurement_keys()
+        ).all_measurement_key_names()
         == {'m1', 'm2'}
     )
 
@@ -4288,9 +4291,9 @@ def test_indexing_by_numpy_integer(circuit_cls):
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_all_measurement_keys(circuit_cls):
+def test_all_measurement_key_names(circuit_cls):
     class Unknown(cirq.SingleQubitGate):
-        def _measurement_key_(self):
+        def _measurement_key_name_(self):
             return 'test'
 
     a, b = cirq.LineQubit.range(2)
@@ -4305,10 +4308,10 @@ def test_all_measurement_keys(circuit_cls):
     )
 
     # Big case.
-    assert c.all_measurement_keys() == {'x', 'y', 'xy', 'test'}
+    assert c.all_measurement_key_names() == {'x', 'y', 'xy', 'test'}
 
     # Empty case.
-    assert circuit_cls().all_measurement_keys() == set()
+    assert circuit_cls().all_measurement_key_names() == set()
 
     # Order does not matter.
     assert (
@@ -4319,7 +4322,7 @@ def test_all_measurement_keys(circuit_cls):
                     cirq.measure(b, key='y'),
                 ]
             )
-        ).all_measurement_keys()
+        ).all_measurement_key_names()
         == {'x', 'y'}
     )
     assert (
@@ -4330,7 +4333,7 @@ def test_all_measurement_keys(circuit_cls):
                     cirq.measure(a, key='x'),
                 ]
             )
-        ).all_measurement_keys()
+        ).all_measurement_key_names()
         == {'x', 'y'}
     )
 

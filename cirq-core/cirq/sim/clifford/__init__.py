@@ -1,7 +1,3 @@
-from cirq.sim.clifford.clifford_tableau import (
-    CliffordTableau,
-)
-
 from cirq.sim.clifford.act_on_clifford_tableau_args import (
     ActOnCliffordTableauArgs,
 )

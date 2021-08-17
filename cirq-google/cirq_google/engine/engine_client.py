@@ -299,6 +299,8 @@ class EngineClient:
             )
         )
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def create_job(
         self,
         project_id: str,
@@ -356,6 +358,7 @@ class EngineClient:
         )
         return _ids_from_job_name(job.name)[2], job
 
+    # pylint: enable=missing-raises-doc
     def list_jobs(
         self,
         project_id: str,
@@ -660,11 +663,12 @@ class EngineClient:
             )
         )
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def get_current_calibration(
         self, project_id: str, processor_id: str
     ) -> Optional[qtypes.QuantumCalibration]:
-        """Returns the current quantum calibration for a processor if it has
-        one.
+        """Returns the current quantum calibration for a processor if it has one.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
@@ -684,6 +688,7 @@ class EngineClient:
                 return None
             raise
 
+    # pylint: enable=missing-raises-doc
     def create_reservation(
         self,
         project_id: str,
@@ -757,6 +762,8 @@ class EngineClient:
         name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
         return self._make_request(lambda: self.grpc_client.delete_quantum_reservation(name=name))
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def get_reservation(self, project_id: str, processor_id: str, reservation_id: str):
         """Gets a quantum reservation from the engine.
 
@@ -773,6 +780,7 @@ class EngineClient:
                 return None
             raise
 
+    # pylint: enable=missing-raises-doc
     def list_reservations(
         self, project_id: str, processor_id: str, filter_str: str = ''
     ) -> List[qtypes.QuantumReservation]:
@@ -932,6 +940,8 @@ def _ids_from_calibration_name(calibration_name: str) -> Tuple[str, str, int]:
     return parts[1], parts[3], int(parts[5])
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime, datetime.date]):
     """Formats datetime or date to filter expressions.
 
@@ -949,3 +959,6 @@ def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime
         f"type {type(param)}. Supported types: datetime.datetime and"
         f"datetime.date"
     )
+
+
+# pylint: enable=missing-raises-doc

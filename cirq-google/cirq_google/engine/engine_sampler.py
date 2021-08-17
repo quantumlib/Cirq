@@ -14,7 +14,7 @@
 
 import os
 import dataclasses
-from typing import List, TYPE_CHECKING, Union, Optional, cast, Tuple
+from typing import List, TYPE_CHECKING, Union, Optional, cast, Sequence, Tuple
 
 import cirq
 from cirq_google import engine
@@ -52,7 +52,7 @@ class QuantumEngineSampler(cirq.Sampler):
 
     def run_sweep(
         self,
-        program: Union[cirq.Circuit, 'cirq_google.EngineProgram'],
+        program: Union[cirq.AbstractCircuit, 'cirq_google.EngineProgram'],
         params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> List[cirq.Result]:
@@ -72,7 +72,7 @@ class QuantumEngineSampler(cirq.Sampler):
 
     def run_batch(
         self,
-        programs: List[cirq.Circuit],
+        programs: Sequence['cirq.AbstractCircuit'],
         params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: Union[int, List[int]] = 1,
     ) -> List[List[cirq.Result]]:

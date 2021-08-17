@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Sequence, Union
+
 import pytest
 
 import cirq
@@ -30,7 +32,12 @@ class DummyArgs(cirq.ActOnArgs):
     def _perform_measurement(self, qubits):
         return [5, 3]
 
-    def _act_on_fallback_(self, action, qubits, allow_decompose):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> bool:
         return True
 
 
