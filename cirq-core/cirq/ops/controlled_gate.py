@@ -29,6 +29,8 @@ class ControlledGate(raw_types.Gate):
     This object is typically created via `gate.controlled()`.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         sub_gate: 'cirq.Gate',
@@ -92,6 +94,7 @@ class ControlledGate(raw_types.Gate):
         else:
             self.sub_gate = sub_gate
 
+    # pylint: enable=missing-raises-doc
     def num_controls(self) -> int:
         return len(self.control_qid_shape)
 

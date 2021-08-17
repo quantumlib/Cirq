@@ -72,6 +72,8 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\nsweepable: {sweepable}')
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def to_sweep(
     sweep_or_resolver_list: Union[
         'Sweep', ParamResolverOrSimilarType, Iterable[ParamResolverOrSimilarType]
@@ -98,6 +100,7 @@ def to_sweep(
     raise TypeError(f'Unexpected sweep-like value: {sweep_or_resolver_list}')
 
 
+# pylint: enable=missing-raises-doc
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
     params = resolver.param_dict
     if not params:
