@@ -171,7 +171,6 @@ class NoiseProperties:
         return None
 
 
-
 def get_duration_ns(gate):
     # Gate durations based on sycamore durations.
     # TODO: pull the gate durations from cirq_google
