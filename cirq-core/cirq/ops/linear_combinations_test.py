@@ -1664,28 +1664,63 @@ def test_expectation_from_density_matrix_two_qubit_states():
         )
 
 
-def test_projector_sum_expectations():
+def test_projector_sum_expectations_matrix():
     q0 = cirq.NamedQubit('q0')
 
-    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
-    one_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 1}))
-    projector_sum_with_coeff = cirq.ProjectorSum.from_projector_strings(
-        cirq.ProjectorString({q0: 0}, coefficient=0.123)
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 0}, coefficient=0.2016)
+    )
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 1}, coefficient=0.0913)
+    )
+    proj_sum = 0.6 * zero_projector_sum + 0.4 * one_projector_sum
+
+    np.testing.assert_allclose(
+        proj_sum.matrix().toarray(),
+        0.6 * zero_projector_sum.matrix().toarray() + 0.4 * one_projector_sum.matrix().toarray(),
     )
 
+
+def test_projector_sum_expectations_from_state_vector():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 0}, coefficient=0.2016)
+    )
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 1}, coefficient=0.0913)
+    )
     proj_sum = 0.6 * zero_projector_sum + 0.4 * one_projector_sum
-    np.testing.assert_allclose(proj_sum.matrix().toarray(), [[0.6, 0.0], [0.0, 0.4]])
+
+    random_state_vector = cirq.testing.random_superposition(2)
+
     np.testing.assert_allclose(
-        proj_sum.expectation_from_state_vector(np.array([1.0, 0.0]), {q0: 0}), 0.6
+        proj_sum.expectation_from_state_vector(random_state_vector, qid_map={q0: 0}),
+        0.6 * zero_projector_sum.expectation_from_state_vector(random_state_vector, qid_map={q0: 0})
+        + 0.4
+        * one_projector_sum.expectation_from_state_vector(random_state_vector, qid_map={q0: 0}),
     )
-    np.testing.assert_allclose(
-        proj_sum.expectation_from_density_matrix(np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}), 0.6
+
+
+def test_projector_sum_expectations_from_density_matrix():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 0}, coefficient=0.2016)
     )
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 1}, coefficient=0.0913)
+    )
+    proj_sum = 0.6 * zero_projector_sum + 0.4 * one_projector_sum
+
+    ranom_density_matrix = cirq.testing.random_density_matrix(2)
+
     np.testing.assert_allclose(
-        projector_sum_with_coeff.expectation_from_density_matrix(
-            np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}
-        ),
-        0.123,
+        proj_sum.expectation_from_density_matrix(ranom_density_matrix, qid_map={q0: 0}),
+        0.6
+        * zero_projector_sum.expectation_from_density_matrix(ranom_density_matrix, qid_map={q0: 0})
+        + 0.4
+        * one_projector_sum.expectation_from_density_matrix(ranom_density_matrix, qid_map={q0: 0}),
     )
 
 
