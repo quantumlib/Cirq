@@ -95,17 +95,6 @@ class StoppingCriteria(abc.ABC):
     """An abstract object that queries a BitstringAccumulator to figure out
     whether that `meas_spec` is complete."""
 
-    def __init__(self, val: Any):
-        """Initialize the stopping criteria with one required argument.
-
-        We provide RepetitionsStoppingCriteria and VarianceStoppingCriteria which
-        each have one required argument. For convenience, the high-level `measure_observables`
-        function takes either an instantiation of a `StoppingCriteria` or a shorthand name+val.
-        If future criteria need more or fewer required arguments, this abstract method may
-        need to be factored out and the `_parse_stopping_criteria` logic updated.
-        """
-        raise NotImplementedError()
-
     @abc.abstractmethod
     def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
         """Return the number of additional repetitions to take.
@@ -583,23 +572,6 @@ _GROUPING_FUNCS: Dict[str, GROUPER_T] = {
     'greedy': group_settings_greedy,
 }
 
-_STOPPING_CRITS: Dict[str, Type[StoppingCriteria]] = {
-    'repetitions': RepetitionsStoppingCriteria,
-    'variance': VarianceStoppingCriteria,
-}
-
-
-def _parse_stopping_criteria(
-    stopping_criteria: Union[str, StoppingCriteria], stopping_criteria_val: Optional[float] = None
-) -> StoppingCriteria:
-    """Logic for turning a named stopping_criteria and value to one of the built-in stopping
-    criteria in support of the high-level `measure_observables` API.
-    """
-    if isinstance(stopping_criteria, str):
-        stopping_criteria_cls = _STOPPING_CRITS[stopping_criteria]
-        stopping_criteria = stopping_criteria_cls(stopping_criteria_val)
-    return stopping_criteria
-
 
 def _parse_grouper(grouper: Union[str, GROUPER_T] = group_settings_greedy) -> GROUPER_T:
     """Logic for turning a named grouper into one of the build-in groupers in support of the
@@ -629,8 +601,7 @@ def measure_observables(
     circuit: 'cirq.AbstractCircuit',
     observables: Iterable['cirq.PauliString'],
     sampler: Union['cirq.Simulator', 'cirq.Sampler'],
-    stopping_criteria: Union[str, StoppingCriteria],
-    stopping_criteria_val: Optional[float] = None,
+    stopping_criteria: StoppingCriteria,
     *,
     readout_symmetrization: bool = True,
     circuit_sweep: Optional['cirq.Sweepable'] = None,
@@ -688,7 +659,6 @@ def measure_observables(
     settings = list(observables_to_settings(observables, qubits))
     actual_grouper = _parse_grouper(grouper)
     grouped_settings = actual_grouper(settings)
-    stopping_criteria = _parse_stopping_criteria(stopping_criteria, stopping_criteria_val)
 
     return measure_grouped_settings(
         circuit=circuit,
@@ -708,8 +678,7 @@ def measure_observables_df(
     circuit: 'cirq.AbstractCircuit',
     observables: Iterable['cirq.PauliString'],
     sampler: Union['cirq.Simulator', 'cirq.Sampler'],
-    stopping_criteria: Union[str, StoppingCriteria],
-    stopping_criteria_val: Optional[float] = None,
+    stopping_criteria: StoppingCriteria,
     *,
     readout_symmetrization: bool = True,
     circuit_sweep: Optional['cirq.Sweepable'] = None,
@@ -725,7 +694,6 @@ def measure_observables_df(
         observables=observables,
         sampler=sampler,
         stopping_criteria=stopping_criteria,
-        stopping_criteria_val=stopping_criteria_val,
         readout_symmetrization=readout_symmetrization,
         circuit_sweep=circuit_sweep,
         grouper=grouper,
