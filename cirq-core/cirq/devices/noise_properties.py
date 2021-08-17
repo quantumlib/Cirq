@@ -32,9 +32,9 @@ class NoiseProperties:
           p11: probability of qubit initialized as one being measured as one
 
         Raises:
-          ValueError if no metrics are specified
-          ValueError if xeb fidelity, pauli error, p00, or p00 are less than 0 or greater than 1
-          ValueError if more than one of pauli error, xeb fidelity, or decay constant is specified
+          ValueError: if no metrics are specified
+          ValueError: if xeb fidelity, pauli error, p00, or p00 are less than 0 or greater than 1
+          ValueError: if more than one of pauli error, xeb fidelity, or decay constant is specified
         """
         if not any([t1_ns, decay_constant, xeb_fidelity, pauli_error, p00, p11]):
             raise ValueError('At least one metric must be specified')
