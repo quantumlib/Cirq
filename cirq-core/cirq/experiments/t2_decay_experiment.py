@@ -35,6 +35,8 @@ class ExperimentType(enum.Enum):
 _T2_COLUMNS = ['delay_ns', 0, 1]
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def t2_decay(
     sampler: 'cirq.Sampler',
     *,
@@ -218,6 +220,7 @@ def t2_decay(
     return T2DecayResult(x_basis_tabulation, y_basis_tabulation)
 
 
+# pylint: enable=missing-raises-doc
 def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
     """Returns a sum of 0 and 1 results per index from a list of measurements."""
     if 'num_pulses' in measurements.columns:
@@ -277,6 +280,8 @@ class T2DecayResult:
     the data to calculate estimated T2 phase decay times.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, x_basis_data: pd.DataFrame, y_basis_data: pd.DataFrame):
         """Inits T2DecayResult.
 
@@ -301,6 +306,7 @@ class T2DecayResult:
         self._expectation_pauli_x = self._expectation(x_basis_data)
         self._expectation_pauli_y = self._expectation(y_basis_data)
 
+    # pylint: enable=missing-raises-doc
     def _expectation(self, data: pd.DataFrame) -> pd.DataFrame:
         """Calculates the expected value of the Pauli operator.
 

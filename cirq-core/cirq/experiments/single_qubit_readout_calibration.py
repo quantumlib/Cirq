@@ -105,6 +105,8 @@ def estimate_single_qubit_readout_errors(
     )
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def estimate_parallel_single_qubit_readout_errors(
     sampler: 'cirq.Sampler',
     *,
@@ -178,7 +180,6 @@ def estimate_parallel_single_qubit_readout_errors(
         [ops.measure_each(*qubits, key_func=repr)],
     )
     all_circuits = [flip_circuit] * num_batches
-
     # Initialize sweeps
     for batch in range(num_batches):
         single_sweeps = []
@@ -204,14 +205,18 @@ def estimate_parallel_single_qubit_readout_errors(
     one_state_trials = np.zeros((1, len(qubits)))
     zero_state_totals = np.zeros((1, len(qubits)))
     one_state_totals = np.zeros((1, len(qubits)))
+    trial_idx = 0
     for batch_result in results:
-        for trial_idx, trial_result in enumerate(batch_result):
+        for trial_result in batch_result:
             all_measurements = trial_result.data[[repr(x) for x in qubits]].to_numpy()
             sample_counts = np.einsum('ij->j', all_measurements)
+
             zero_state_trials += sample_counts * (1 - bit_strings[trial_idx])
             zero_state_totals += repetitions * (1 - bit_strings[trial_idx])
             one_state_trials += (repetitions - sample_counts) * bit_strings[trial_idx]
             one_state_totals += repetitions * bit_strings[trial_idx]
+
+            trial_idx += 1
 
     zero_state_errors = {
         q: zero_state_trials[0][qubit_idx] / zero_state_totals[0][qubit_idx]
@@ -232,3 +237,6 @@ def estimate_parallel_single_qubit_readout_errors(
         repetitions=repetitions,
         timestamp=timestamp,
     )
+
+
+# pylint: enable=missing-raises-doc

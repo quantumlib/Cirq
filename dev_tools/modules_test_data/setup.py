@@ -2,4 +2,8 @@ from setuptools import setup
 
 name = 'parent-module'
 
-setup(name=name, version='1.2.3', requirements=[])
+__version__ = ''
+
+exec(open('mod1/pack1/_version.py').read())
+
+setup(name=name, version=__version__, requirements=[])

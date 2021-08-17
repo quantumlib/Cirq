@@ -7,7 +7,7 @@ def test_matrix_mixture_from_mixture():
     q0 = cirq.LineQubit(0)
     dp = cirq.depolarize(0.1)
     mm = cirq.MixedUnitaryChannel.from_mixture(dp, key='dp')
-    assert cirq.measurement_key(mm) == 'dp'
+    assert cirq.measurement_key_name(mm) == 'dp'
 
     circuit = cirq.Circuit(mm.on(q0))
     sim = cirq.Simulator(seed=0)
@@ -48,12 +48,12 @@ def test_matrix_mixture_remap_keys():
     dp = cirq.depolarize(0.1)
     mm = cirq.MixedUnitaryChannel.from_mixture(dp)
     with pytest.raises(TypeError):
-        _ = cirq.measurement_key(mm)
+        _ = cirq.measurement_key_name(mm)
     assert cirq.with_measurement_key_mapping(mm, {'a': 'b'}) is NotImplemented
 
     mm_x = cirq.MixedUnitaryChannel.from_mixture(dp, key='x')
     assert cirq.with_measurement_key_mapping(mm_x, {'a': 'b'}) is mm_x
-    assert cirq.measurement_key(cirq.with_key_path(mm_x, ('path',))) == 'path:x'
+    assert cirq.measurement_key_name(cirq.with_key_path(mm_x, ('path',))) == 'path:x'
 
     mm_a = cirq.MixedUnitaryChannel.from_mixture(dp, key='a')
     mm_b = cirq.MixedUnitaryChannel.from_mixture(dp, key='b')
@@ -68,7 +68,7 @@ def test_matrix_mixture_from_unitaries():
         (0.5, np.array([[0, 1], [1, 0]])),
     ]
     half_flip = cirq.MixedUnitaryChannel(mix, key='flip')
-    assert cirq.measurement_key(half_flip) == 'flip'
+    assert cirq.measurement_key_name(half_flip) == 'flip'
 
     circuit = cirq.Circuit(half_flip.on(q0), cirq.measure(q0, key='m'))
     sim = cirq.Simulator(seed=0)

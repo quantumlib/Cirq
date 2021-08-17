@@ -73,6 +73,8 @@ class EigenGate(raw_types.Gate):
     method.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0  # Forces keyword args.
     ) -> None:
@@ -121,6 +123,7 @@ class EigenGate(raw_types.Gate):
         self._global_shift = global_shift
         self._canonical_exponent_cached = None
 
+    # pylint: enable=missing-raises-doc
     @property
     def exponent(self) -> value.TParamVal:
         return self._exponent
