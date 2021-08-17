@@ -424,6 +424,52 @@ def _parse_checkpoint_options(
     return checkpoint_fn, checkpoint_other_fn
 
 
+@dataclasses.dataclass(frozen=True)
+class CheckpointFileOptions:
+    """Options to configure "checkpointing" to save intermediate results.
+
+    Args:
+        checkpoint: If set to True, save cumulative raw results at the end
+            of each iteration of the sampling loop. Load in these results
+            with `cirq.read_json`.
+        checkpoint_fn: The filename for the checkpoint file. If `checkpoint`
+            is set to True and this is not specified, a file in a temporary
+            directory will be used.
+        checkpoint_other_fn: The filename for another checkpoint file, which
+            contains the previous checkpoint. This lets us avoid losing data if
+            a failure occurs during checkpoint writing. If `checkpoint`
+            is set to True and this is not specified, a file in a temporary
+            directory will be used. If `checkpoint` is set to True and
+            `checkpoint_fn` is specified but this argument is *not* specified,
+            "{checkpoint_fn}.prev.json" will be used.
+    """
+
+    checkpoint: bool = False
+    checkpoint_fn: str = None
+    checkpoint_other_fn: str = None
+
+    def __post_init__(self):
+        fn, other_fn = _parse_checkpoint_options(
+            self.checkpoint, self.checkpoint_fn, self.checkpoint_other_fn
+        )
+        object.__setattr__(self, 'checkpoint_fn', fn)
+        object.__setattr__(self, 'checkpoint_other_fn', other_fn)
+
+    def maybe_to_json(self, value: Any):
+        """Call `cirq.to_json with `value` according to the configuration options in this class.
+
+        If `checkpoint=False`, nothing will happen. Otherwise, we will use `checkpoint_fn` and
+        `checkpoint_other_fn` as the destination JSON file as described in the class docstring.
+        """
+        if not self.checkpoint:
+            return
+        assert self.checkpoint_fn is not None, 'mypy'
+        assert self.checkpoint_other_fn is not None, 'mypy'
+        if os.path.exists(self.checkpoint_fn):
+            os.replace(self.checkpoint_fn, self.checkpoint_other_fn)
+        to_json(value, self.checkpoint_fn)
+
+
 def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting]]) -> bool:
     """Helper function to go through init_states and determine if any of them need an
     initialization layer of single-qubit gates."""
@@ -442,9 +488,7 @@ def measure_grouped_settings(
     readout_symmetrization: bool = False,
     circuit_sweep: 'cirq.study.sweepable.SweepLike' = None,
     readout_calibrations: Optional[BitstringAccumulator] = None,
-    checkpoint: bool = False,
-    checkpoint_fn: Optional[str] = None,
-    checkpoint_other_fn: Optional[str] = None,
+    checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
 ) -> List[BitstringAccumulator]:
     """Measure a suite of grouped InitObsSetting settings.
 
@@ -473,26 +517,14 @@ def measure_grouped_settings(
             in `circuit`. The total sweep is the product of the circuit sweep
             with parameter settings for the single-qubit basis-change rotations.
         readout_calibrations: The result of `calibrate_readout_error`.
-        checkpoint: If set to True, save cumulative raw results at the end
-            of each iteration of the sampling loop. Load in these results
-            with `cirq.read_json`.
-        checkpoint_fn: The filename for the checkpoint file. If `checkpoint`
-            is set to True and this is not specified, a file in a temporary
-            directory will be used.
-        checkpoint_other_fn: The filename for another checkpoint file, which
-            contains the previous checkpoint. This lets us avoid losing data if
-            a failure occurs during checkpoint writing. If `checkpoint`
-            is set to True and this is not specified, a file in a temporary
-            directory will be used. If `checkpoint` is set to True and
-            `checkpoint_fn` is specified but this argument is *not* specified,
-            "{checkpoint_fn}.prev.json" will be used.
+        checkpoint: Options to set up optional checkpointing of intermediate
+            data for each iteration of the sampling loop. See the documentation
+            for `CheckpointFileOptions` for more. Load in these results with
+            `cirq.read_json`.
     """
     if readout_calibrations is not None and not readout_symmetrization:
         raise ValueError("Readout calibration only works if `readout_symmetrization` is enabled.")
 
-    checkpoint_fn, checkpoint_other_fn = _parse_checkpoint_options(
-        checkpoint=checkpoint, checkpoint_fn=checkpoint_fn, checkpoint_other_fn=checkpoint_other_fn
-    )
     qubits = sorted({q for ms in grouped_settings.keys() for q in ms.init_state.qubits})
     qubit_to_index = {q: i for i, q in enumerate(qubits)}
 
@@ -558,12 +590,7 @@ def measure_grouped_settings(
             bitstrings = np.logical_xor(flippy_ms.flips, result.measurements['z'])
             accumulator.consume_results(bitstrings.astype(np.uint8, casting='safe'))
 
-        if checkpoint:
-            assert checkpoint_fn is not None, 'mypy'
-            assert checkpoint_other_fn is not None, 'mypy'
-            if os.path.exists(checkpoint_fn):
-                os.replace(checkpoint_fn, checkpoint_other_fn)
-            to_json(list(accumulators.values()), checkpoint_fn)
+        checkpoint.maybe_to_json(list(accumulators.values()))
 
     return list(accumulators.values())
 
@@ -607,9 +634,7 @@ def measure_observables(
     circuit_sweep: Optional['cirq.Sweepable'] = None,
     grouper: Union[str, GROUPER_T] = group_settings_greedy,
     readout_calibrations: Optional[BitstringAccumulator] = None,
-    checkpoint: bool = False,
-    checkpoint_fn: Optional[str] = None,
-    checkpoint_other_fn: Optional[str] = None,
+    checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
 ) -> List[BitstringAccumulator]:
     """Measure a collection of PauliString observables for a state prepared by a Circuit.
 
@@ -643,17 +668,10 @@ def measure_observables(
             `InitObsSetting`. See the documentation for the `grouped_settings`
             argument of `measure_grouped_settings` for full details.
         readout_calibrations: The result of `calibrate_readout_error`.
-        checkpoint: If set to True, save cumulative raw results at the end
-            of each iteration of the sampling loop.
-        checkpoint_fn: The filename for the checkpoint file. If `checkpoint`
-            is set to True and this is not specified, a file in a temporary
-            directory will be used.
-        checkpoint_other_fn: The filename for another checkpoint file, which
-            contains the previous checkpoint. If `checkpoint`
-            is set to True and this is not specified, a file in a temporary
-            directory will be used. If `checkpoint` is set to True and
-            `checkpoint_fn` is specified but this argument is *not* specified,
-            "{checkpoint_fn}.prev.json" will be used.
+        checkpoint: Options to set up optional checkpointing of intermediate
+            data for each iteration of the sampling loop. See the documentation
+            for `CheckpointFileOptions` for more. Load in these results with
+            `cirq.read_json`.
     """
     qubits = _get_all_qubits(circuit, observables)
     settings = list(observables_to_settings(observables, qubits))
@@ -669,8 +687,6 @@ def measure_observables(
         readout_symmetrization=readout_symmetrization,
         readout_calibrations=readout_calibrations,
         checkpoint=checkpoint,
-        checkpoint_fn=checkpoint_fn,
-        checkpoint_other_fn=checkpoint_other_fn,
     )
 
 
@@ -684,9 +700,7 @@ def measure_observables_df(
     circuit_sweep: Optional['cirq.Sweepable'] = None,
     grouper: Union[str, GROUPER_T] = group_settings_greedy,
     readout_calibrations: Optional[BitstringAccumulator] = None,
-    checkpoint: bool = False,
-    checkpoint_fn: Optional[str] = None,
-    checkpoint_other_fn: Optional[str] = None,
+    checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
 ):
     """Measure observables and return resulting data as a dataframe."""
     accumulators = measure_observables(
@@ -699,8 +713,6 @@ def measure_observables_df(
         grouper=grouper,
         readout_calibrations=readout_calibrations,
         checkpoint=checkpoint,
-        checkpoint_fn=checkpoint_fn,
-        checkpoint_other_fn=checkpoint_other_fn,
     )
     df = pd.DataFrame(list(itertools.chain.from_iterable(acc.records for acc in accumulators)))
     return df
