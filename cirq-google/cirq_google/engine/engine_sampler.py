@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import os
+import dataclasses
 from typing import List, TYPE_CHECKING, Union, Optional, cast, Tuple
 
 import cirq
@@ -142,17 +145,18 @@ def get_engine_sampler(
     return engine.get_engine(project_id).sampler(processor_id=processor_id, gate_set=gate_set)
 
 
+@dataclasses.dataclass
+class DeviceSamplerInfo:
+    device: cirq.Device
+    device_line_length: int
+    sampler: Union[cirq_google.PhasedFSimEngineSimulator, cirq_google.QuantumEngineSampler]
+    signed_in: bool
+
+
 def get_device_sampler(
     project_id: Optional[str] = None, processor_id: Optional[str] = None
-) -> Tuple[
-    Tuple[Union[cirq.Device], int],
-    Union['cirq_google.PhasedFSimEngineSimulator', 'cirq_google.QuantumEngineSampler'],
-    bool,
-]:
+) -> DeviceSamplerInfo:
     """Authenticates on Google Cloud, can return a Device and Simulator.
-
-    This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine
-    project_id, unless set explicitly.
 
     Args:
         project_id: Optional explicit Google Cloud project id. Otherwise,
@@ -167,7 +171,6 @@ def get_device_sampler(
         device and it's corresponding line length, the second is a simulator instance, and the
         third is a boolean value, true if the signin was successful, false otherwise.
     """
-    import os
     from cirq_google import (
         PhasedFSimEngineSimulator,
         SQRT_ISWAP_INV_PARAMETERS,
@@ -237,9 +240,11 @@ def get_device_sampler(
             sigma=PhasedFSimCharacterization(theta=0.01, zeta=0.10, chi=0.01, gamma=0.10, phi=0.02),
         )
         device = Bristlecone
-        line_length = 20
     else:  # pragma: no cover
         device = get_engine_device(processor_id)
         sampler = get_engine_sampler(processor_id, gate_set_name="sqrt_iswap")
-        line_length = 35
-    return (device, line_length), sampler, not google_cloud_signin_failed
+    return DeviceSamplerInfo(
+        device=device,
+        sampler=sampler,
+        signed_in=not google_cloud_signin_failed,
+    )
