@@ -54,7 +54,8 @@ class PullRequestDetails:
         self.repo = repo
 
     # TODO(#3388) Add summary line to docstring.
-    # pylint: disable=docstring-first-line-empty
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=docstring-first-line-empty,missing-raises-doc
     @staticmethod
     def from_github(repo: GithubRepository, pull_id: int) -> 'PullRequestDetails':
         """
@@ -77,7 +78,7 @@ class PullRequestDetails:
         payload = json.JSONDecoder().decode(response.content.decode())
         return PullRequestDetails(payload, repo)
 
-    # pylint: enable=docstring-first-line-empty
+    # pylint: enable=docstring-first-line-empty,missing-raises-doc
     @property
     def remote_repo(self) -> GithubRepository:
         return GithubRepository(
@@ -148,7 +149,8 @@ class PullRequestDetails:
 
 
 # TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def check_collaborator_has_write(
     repo: GithubRepository, username: str
 ) -> Optional[CannotAutomergeError]:
@@ -176,7 +178,7 @@ def check_collaborator_has_write(
     return None
 
 
-# pylint: enable=docstring-first-line-empty
+# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def get_all(repo: GithubRepository, url_func: Callable[[int], str]) -> List[Any]:
     results: List[Any] = []
     page = 0
@@ -227,6 +229,8 @@ def check_auto_merge_labeler(
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
     """
     References:
@@ -247,6 +251,7 @@ def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
 def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
     """
     References:
@@ -267,6 +272,7 @@ def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
 def get_branch_details(repo: GithubRepository, branch: str) -> Any:
     """
     References:
@@ -288,6 +294,7 @@ def get_branch_details(repo: GithubRepository, branch: str) -> Any:
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
 def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
     """
     References:
@@ -310,6 +317,7 @@ def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
 def get_pr_check_status(pr: PullRequestDetails) -> Any:
     """
     References:
@@ -331,7 +339,7 @@ def get_pr_check_status(pr: PullRequestDetails) -> Any:
     return json.JSONDecoder().decode(response.content.decode())
 
 
-# pylint: enable=docstring-first-line-empty
+# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def classify_pr_status_check_state(pr: PullRequestDetails) -> Optional[bool]:
     has_failed = False
     has_pending = False
@@ -376,6 +384,8 @@ def classify_pr_synced_state(pr: PullRequestDetails) -> Optional[bool]:
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
     """
     References:
@@ -399,6 +409,7 @@ def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
 def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
     """
     References:
@@ -420,7 +431,7 @@ def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
     return json.JSONDecoder().decode(response.content.decode())
 
 
-# pylint: enable=docstring-first-line-empty
+# pylint: enable=docstring-first-line-empty,missing-raises-doc
 _last_print_was_tick = False
 _tick_count = 0
 
@@ -460,7 +471,8 @@ def absent_status_checks(pr: PullRequestDetails, master_data: Optional[Any] = No
 
 
 # TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
     """
     References:
@@ -479,14 +491,15 @@ def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
     return payload
 
 
-# pylint: enable=docstring-first-line-empty
+# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def get_master_sha(repo: GithubRepository) -> str:
     ref = get_repo_ref(repo, 'heads/master')
     return ref['object']['sha']
 
 
 # TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def list_pr_comments(repo: GithubRepository, pull_id: int) -> List[Dict[str, Any]]:
     """
     References:
@@ -507,6 +520,7 @@ def list_pr_comments(repo: GithubRepository, pull_id: int) -> List[Dict[str, Any
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
 def delete_comment(repo: GithubRepository, comment_id: int) -> None:
     """
     References:
@@ -524,7 +538,7 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
         )
 
 
-# pylint: enable=docstring-first-line-empty
+# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     """Equivalent to hitting the 'update branch' button on a PR.
 
@@ -563,7 +577,8 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
 
 
 # TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     """
     References:
@@ -607,6 +622,7 @@ def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutome
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
 def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     """
     References:
@@ -641,6 +657,7 @@ def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeE
 
 
 # TODO(#3388) Add summary line to docstring.
+# pylint: enable=missing-raises-doc
 def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
     """
     References:
@@ -684,7 +701,7 @@ def branch_data_modified_recently(payload: Any) -> bool:
 
 
 # TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
+# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def add_labels_to_pr(repo: GithubRepository, pull_id: int, *labels: str) -> None:
     """
     References:
@@ -704,6 +721,7 @@ def add_labels_to_pr(repo: GithubRepository, pull_id: int, *labels: str) -> None
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
 def remove_label_from_pr(repo: GithubRepository, pull_id: int, label: str) -> bool:
     """
     References:
@@ -730,7 +748,7 @@ def remove_label_from_pr(repo: GithubRepository, pull_id: int, label: str) -> bo
     )
 
 
-# pylint: enable=docstring-first-line-empty
+# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def list_open_pull_requests(
     repo: GithubRepository, base_branch: Optional[str] = None, per_page: int = 100
 ) -> List[PullRequestDetails]:

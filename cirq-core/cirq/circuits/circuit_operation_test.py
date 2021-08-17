@@ -201,7 +201,7 @@ def test_with_measurement_keys():
     op_with_keys = op_base.with_measurement_key_mapping({'ma': 'pa', 'x': 'z'})
     assert op_with_keys.base_operation() == op_base
     assert op_with_keys.measurement_key_map == {'ma': 'pa'}
-    assert cirq.measurement_keys(op_with_keys) == {'pa', 'mb'}
+    assert cirq.measurement_key_names(op_with_keys) == {'pa', 'mb'}
 
     assert cirq.with_measurement_key_mapping(op_base, {'ma': 'pa'}) == op_with_keys
 
@@ -745,14 +745,14 @@ def test_decompose_repeated_nested_measurements():
         'one:one:zero:D',
         'one:one:one:D',
     ]
-    assert cirq.measurement_keys(op3) == set(expected_measurement_keys_in_order)
+    assert cirq.measurement_key_names(op3) == set(expected_measurement_keys_in_order)
 
     expected_circuit = cirq.Circuit()
     for key in expected_measurement_keys_in_order:
         expected_circuit.append(cirq.measure(a, key=cirq.MeasurementKey.parse_serialized(key)))
 
     assert cirq.Circuit(cirq.decompose(op3)) == expected_circuit
-    assert cirq.measurement_keys(expected_circuit) == set(expected_measurement_keys_in_order)
+    assert cirq.measurement_key_names(expected_circuit) == set(expected_measurement_keys_in_order)
 
     # Verify that mapped_circuit gives the same operations.
     assert op3.mapped_circuit(deep=True) == expected_circuit

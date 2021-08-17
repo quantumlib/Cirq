@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence, Iterable
+from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence, Iterable, Union
 
 import numpy as np
 
@@ -92,7 +92,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> bool:
         strats = [
             _strat_apply_channel_to_state,
         ]

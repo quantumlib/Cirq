@@ -341,6 +341,8 @@ class PhasedFSimCalibrationResult:
         }
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def merge_matching_results(
     results: Iterable[PhasedFSimCalibrationResult],
 ) -> Optional[PhasedFSimCalibrationResult]:
@@ -385,6 +387,7 @@ def merge_matching_results(
     return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
 
 
+# pylint: enable=missing-raises-doc
 class PhasedFSimCalibrationError(Exception):
     """Error that indicates the calibration failure."""
 

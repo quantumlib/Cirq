@@ -42,6 +42,8 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
             padding_time: Symmetric padding around the coupler pulse.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         hold_time: cirq.Duration,
@@ -75,6 +77,7 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
         self.rise_time = rise_time or cirq.Duration(nanos=8)
         self.padding_time = padding_time or cirq.Duration(nanos=2.5)
 
+    # pylint: enable=missing-raises-doc
     def num_qubits(self) -> int:
         return 2
 

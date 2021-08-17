@@ -31,12 +31,14 @@ import cirq
 gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.PhasedXPowGate}
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def get_op_string(op_obj: cirq.Operation) -> str:
     """Find the string representation for a given gate
 
     Args:
         op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate,
-        PhasedXPowGate
+            PhasedXPowGate
 
     Returns:
         String representing the gate operations
@@ -58,8 +60,9 @@ def get_op_string(op_obj: cirq.Operation) -> str:
     return op_str
 
 
+# pylint: enable=missing-raises-doc
 class AQTNoiseModel(cirq.NoiseModel):
-    """A noise model for the AQT ion trap """
+    """A noise model for the AQT ion trap"""
 
     def __init__(self):
         self.noise_op_dict = get_default_noise_dict()
@@ -190,6 +193,8 @@ class AQTSimulator:
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         self.circuit.append(cirq.measure(*[qubit for qubit in self.qubit_list], key='m'))
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def simulate_samples(self, repetitions: int) -> cirq.Result:
         """Samples the circuit
 
@@ -210,6 +215,7 @@ class AQTSimulator:
         return result
 
 
+# pylint: enable=missing-raises-doc
 def get_aqt_device(num_qubits: int) -> Tuple[cirq.IonDevice, List[cirq.LineQubit]]:
     """Returns an AQT ion device
 
