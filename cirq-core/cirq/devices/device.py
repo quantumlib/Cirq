@@ -106,7 +106,7 @@ class Device(metaclass=abc.ABCMeta):
             ValueError: The operation isn't valid for this device.
         """
 
-    def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
+    def validate_circuit(self, circuit: 'cirq.AbstractCircuit') -> None:
         """Raises an exception if a circuit is not valid.
 
         Args:

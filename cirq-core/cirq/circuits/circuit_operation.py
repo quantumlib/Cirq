@@ -17,8 +17,17 @@ A CircuitOperation is an Operation object that wraps a FrozenCircuit. When
 applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
-
-from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    AbstractSet,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    Iterator,
+)
 
 import dataclasses
 import numpy as np
@@ -163,10 +172,10 @@ class CircuitOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return self.circuit._is_measurement_()
 
-    def _measurement_keys_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> AbstractSet[str]:
         circuit_keys = [
             value.MeasurementKey.parse_serialized(key_str)
-            for key_str in self.circuit.all_measurement_keys()
+            for key_str in self.circuit.all_measurement_key_names()
         ]
         if self.repetition_ids is not None:
             circuit_keys = [
@@ -245,8 +254,13 @@ class CircuitOperation(ops.Operation):
         """As `mapped_circuit`, but wraps the result in a CircuitOperation."""
         return CircuitOperation(circuit=self.mapped_circuit(deep=deep).freeze())
 
-    def _decompose_(self) -> 'cirq.OP_TREE':
+    def _decompose_(self) -> Iterator['cirq.Operation']:
         return self.mapped_circuit(deep=False).all_operations()
+
+    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
+        for op in self._decompose_():
+            protocols.act_on(op, args)
+        return True
 
     # Methods for string representation of the operation.
 
@@ -509,14 +523,14 @@ class CircuitOperation(ops.Operation):
                 keys than this operation.
         """
         new_map = {}
-        for k in self.circuit.all_measurement_keys():
+        for k in self.circuit.all_measurement_key_names():
             k = value.MeasurementKey.parse_serialized(k).name
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
             if k_new != k:
                 new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
-        if len(new_op._measurement_keys_()) != len(self._measurement_keys_()):
+        if len(new_op._measurement_key_names_()) != len(self._measurement_key_names_()):
             raise ValueError(
                 f'Collision in measurement key map composition. Original map:\n'
                 f'{self.measurement_key_map}\nApplied changes: {key_map}'
