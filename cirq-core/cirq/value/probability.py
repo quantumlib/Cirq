@@ -13,7 +13,8 @@
 # limitations under the License.
 
 """Utilities for handling probabilities."""
-
+import numpy as np
+from cirq.qis import to_valid_state_vector as format
 
 def validate_probability(p: float, p_str: str) -> float:
     """Validates that a probability is between 0 and 1 inclusively.
@@ -33,3 +34,8 @@ def validate_probability(p: float, p_str: str) -> float:
     elif p > 1:
         raise ValueError(f'{p_str} was greater than 1.')
     return p
+
+
+def state_vector_to_probabilities(state_vector: 'cirq.STATE_VECTOR_LIKE') -> np.ndarray:
+    normalized_vector = format(state_vector)
+    return np.abs(normalized_vector) ** 2
