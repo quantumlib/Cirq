@@ -49,6 +49,8 @@ THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
 SQRT_ISWAP = ops.ISWAP ** 0.5
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def benchmark_2q_xeb_fidelities(
     sampled_df: pd.DataFrame,
     circuits: Sequence['cirq.Circuit'],
@@ -139,6 +141,7 @@ def benchmark_2q_xeb_fidelities(
     return df.groupby(groupby_names).apply(per_cycle_depth).reset_index()
 
 
+# pylint: enable=missing-raises-doc
 class XEBCharacterizationOptions(ABC):
     @staticmethod
     @abstractmethod
