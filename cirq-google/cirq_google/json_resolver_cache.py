@@ -41,6 +41,4 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'XEBPhasedFSimCalibrationRequest': cirq_google.XEBPhasedFSimCalibrationRequest,
         'LocalXEBPhasedFSimCalibrationOptions': cirq_google.LocalXEBPhasedFSimCalibrationOptions,
         'LocalXEBPhasedFSimCalibrationRequest': cirq_google.LocalXEBPhasedFSimCalibrationRequest,
-        'cirq.google.TiltedSquareLattice': cirq_google.TiltedSquareLattice,
-        'cirq.google.LineTopology': cirq_google.LineTopology,
     }

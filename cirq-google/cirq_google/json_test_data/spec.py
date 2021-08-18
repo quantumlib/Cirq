@@ -50,11 +50,6 @@ TestSpec = ModuleJsonTestSpec(
         'SerializingArg',
         'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'QuantumEngineSampler',
-        # Abstract
-        'NamedTopology',
-        # https://github.com/quantumlib/Cirq/issues/4377,
-        'TiltedSquareLattice',
-        'LineTopology',
     ],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={},

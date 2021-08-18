@@ -57,12 +57,6 @@ from cirq_google.devices import (
     Sycamore,
     Sycamore23,
     XmonDevice,
-    NamedTopology,
-    draw_gridlike,
-    LineTopology,
-    TiltedSquareLattice,
-    get_placements,
-    draw_placements,
 )
 
 from cirq_google.engine import (

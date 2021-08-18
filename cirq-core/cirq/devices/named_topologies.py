@@ -16,17 +16,19 @@ import abc
 import dataclasses
 import warnings
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Any, Sequence, Union, Iterable
+from typing import Dict, List, Tuple, Any, Sequence, Union, Iterable, TYPE_CHECKING
 
-import cirq
 import networkx as nx
+from cirq.devices import GridQubit
+from cirq.protocols.json_serialization import obj_to_dict_helper
 from matplotlib import pyplot as plt
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
-    return cirq.obj_to_dict_helper(
-        obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace
-    )
+    return obj_to_dict_helper(obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace)
 
 
 class NamedTopology(metaclass=abc.ABCMeta):
@@ -47,7 +49,7 @@ class NamedTopology(metaclass=abc.ABCMeta):
     """A networkx graph representation of the topology."""
 
 
-_GRIDLIKE_NODE = Union[cirq.GridQubit, Tuple[int, int]]
+_GRIDLIKE_NODE = Union['cirq.GridQubit', Tuple[int, int]]
 
 
 def _node_and_coordinates(
@@ -56,7 +58,7 @@ def _node_and_coordinates(
     """Yield tuples whose first element is the input node and the second is guaranteed to be a tuple
     of two integers. The input node can be a tuple of ints or a GridQubit."""
     for node in nodes:
-        if isinstance(node, cirq.GridQubit):
+        if isinstance(node, GridQubit):
             yield node, (node.row, node.col)
         else:
             x, y = node
@@ -128,7 +130,7 @@ class LineTopology(NamedTopology):
         return draw_gridlike(g2, ax=ax, tilted=tilted, **kwargs)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
 
 @dataclass(frozen=True)
@@ -249,10 +251,10 @@ class TiltedSquareLattice(NamedTopology):
 
     def nodes_as_gridqubits(self) -> List['cirq.GridQubit']:
         """Get the graph nodes as cirq.GridQubit"""
-        return [cirq.GridQubit(r, c) for r, c in sorted(self.graph.nodes)]
+        return [GridQubit(r, c) for r, c in sorted(self.graph.nodes)]
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
 
 def get_placements(

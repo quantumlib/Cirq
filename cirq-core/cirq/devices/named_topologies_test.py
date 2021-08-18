@@ -12,14 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-from typing import Iterable
 from unittest.mock import MagicMock
 
 import cirq
-import cirq_google as cg
 import networkx as nx
 import pytest
-from cirq_google import (
+from cirq import (
     draw_gridlike,
     LineTopology,
     TiltedSquareLattice,
@@ -91,19 +89,9 @@ def test_draw_gridlike(tilted):
         assert 0 <= column < 3
 
 
-def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
-    # cirq contrib routing --> gridqubits_to_graph_device
-    def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
-        return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
-
-    return nx.Graph(
-        pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
-    )
-
-
 def test_get_placements():
     topo = TiltedSquareLattice(4, 2)
-    syc23 = _gridqubits_to_graph_device(cg.Sycamore23.qubits)
+    syc23 = TiltedSquareLattice(8, 4).graph
     placements = get_placements(syc23, topo.graph)
     assert len(placements) == 12
 
