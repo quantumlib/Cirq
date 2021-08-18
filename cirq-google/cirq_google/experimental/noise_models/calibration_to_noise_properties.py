@@ -4,9 +4,9 @@ from cirq.devices.noise_properties import NoiseProperties
 
 
 def _xeb_fidelity_to_decay_constant(xeb_fidelity, num_qubits=2):
-    # Converts from XEB Fidleity to depolarization decay constant
+    # Converts from XEB Fidelity to depolarization decay constant
     if xeb_fidelity is not None:
-        N = 2 ** num_qubits
+        N = 2 ** num_qubits  # Dimension of Hilbert space
         return 1 - (1 - xeb_fidelity) / (1 - 1 / N)
     return None
 
@@ -48,11 +48,20 @@ def _unpack_from_calibration(metric_name, calibration):
 def noise_properties_from_calibration(
     calibration: cirq_google.Calibration, validate: bool = True, tolerance: float = 0.01
 ):
-    """Translates between a Calibration object and a NoiseProperties object1
-    The NoiseProperties object can then be used to create a NoiseModel for a simulator.
+    """Translates between a Calibration object and a NoiseProperties object.
+    The NoiseProperties object can then be used as input to the NoiseModelFromNoiseProperties
+    class (cirq.devices.noise_properties) to create a NoiseModel that can be used with a simulator.
+
+    If the validate argument is set to false, the depolarization decay constant will be calculated
+    from the RB Pauli error if defined, the XEB Fidelity if RB Pauli error is not defined, or the
+    RB Average error if the others are not defined.
 
     Args:
         calibration: a Calibration object with hardware metrics
+        validate: whether or not to check that the depolarization decay constants calculated from
+                 RB Pauli error, RB average error, & XEB Fidelity agree to within a given tolerance
+        tolerance: threshold for validating decay constants frmo RB Pauli error, RB Average error,
+                  and XEB fidelity.
 
     Raises:
         ValueError: decay constants from RB Average Error and RB Pauli Error aren't within tolerance
