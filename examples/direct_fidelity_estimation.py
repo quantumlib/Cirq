@@ -346,6 +346,8 @@ class DFEIntermediateResult:
 
 
 # TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def direct_fidelity_estimation(
     circuit: cirq.Circuit,
     qubits: List[cirq.Qid],
@@ -370,6 +372,7 @@ def direct_fidelity_estimation(
             simulate noise in the circuit. If greater than 0, we instead use the
             'sampler' parameter directly to estimate the characteristic
             function.
+
     Returns:
         The estimated fidelity and a log of the run.
     """
@@ -476,7 +479,7 @@ def direct_fidelity_estimation(
     return estimated_fidelity, dfe_intermediate_result
 
 
-# pylint: enable=docstring-first-line-empty
+# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def parse_arguments(args):
     """Helper function that parses the given arguments."""
     parser = argparse.ArgumentParser('Direct fidelity estimation.')

@@ -159,7 +159,12 @@ class ActOnStateVectorArgs(ActOnArgs):
             qid_shape=self.target_tensor.shape,
         )
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> bool:
         strats = [
             _strat_act_on_state_vector_from_apply_unitary,
             _strat_act_on_state_vector_from_mixture,
@@ -307,7 +312,7 @@ def _strat_act_on_state_vector_from_mixture(
     )
     args.swap_target_tensor_for(args.available_buffer)
     if protocols.is_measurement(action):
-        key = protocols.measurement_key(action)
+        key = protocols.measurement_key_name(action)
         args.log_of_measurement_results[key] = [index]
     return True
 
@@ -356,6 +361,6 @@ def _strat_act_on_state_vector_from_channel(
     args.available_buffer /= np.sqrt(weight)
     args.swap_target_tensor_for(args.available_buffer)
     if protocols.is_measurement(action):
-        key = protocols.measurement_key(action)
+        key = protocols.measurement_key_name(action)
         args.log_of_measurement_results[key] = [index]
     return True

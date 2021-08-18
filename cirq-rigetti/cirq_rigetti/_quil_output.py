@@ -77,7 +77,7 @@ class RigettiQCSQuilOutput(cirq.QuilOutput):
         if len(self.measurements) > 0:
             measurements_declared: Set[str] = set()
             for m in self.measurements:
-                key = cirq.measurement_key(m)
+                key = cirq.measurement_key_name(m)
                 if key in measurements_declared:
                     continue
                 measurements_declared.add(key)

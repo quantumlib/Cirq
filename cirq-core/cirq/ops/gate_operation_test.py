@@ -259,7 +259,7 @@ def test_channel():
 
 def test_measurement_key():
     a = cirq.NamedQubit('a')
-    assert cirq.measurement_key(cirq.measure(a, key='lock')) == 'lock'
+    assert cirq.measurement_key_name(cirq.measure(a, key='lock')) == 'lock'
 
 
 def assert_mixtures_equal(actual, expected):
@@ -387,7 +387,7 @@ def test_with_measurement_key_mapping():
     op = cirq.measure(a, key='m')
 
     remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
-    assert cirq.measurement_keys(remap_op) == {'k'}
+    assert cirq.measurement_key_names(remap_op) == {'k'}
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) is op
 
 
@@ -396,7 +396,7 @@ def test_with_key_path():
     op = cirq.measure(a, key='m')
 
     remap_op = cirq.with_key_path(op, ('a', 'b'))
-    assert cirq.measurement_keys(remap_op) == {'a:b:m'}
+    assert cirq.measurement_key_names(remap_op) == {'a:b:m'}
     assert cirq.with_key_path(remap_op, ('a', 'b')) is remap_op
 
     assert cirq.with_key_path(op, tuple()) is op

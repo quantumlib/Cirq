@@ -28,6 +28,8 @@ if TYPE_CHECKING:
 class MergeSingleQubitGates(circuits.PointOptimizer):
     """Optimizes runs of adjacent unitary 1-qubit operations."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         *,
@@ -56,6 +58,7 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
         self._rewriter = rewriter
         self._synthesizer = synthesizer
 
+    # pylint: enable=missing-raises-doc
     def _rewrite(self, operations: List[ops.Operation]) -> Optional[ops.OP_TREE]:
         if not operations:
             return None
