@@ -81,7 +81,6 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
         self.rise_time = rise_time or cirq.Duration(nanos=8)
         self.padding_time = padding_time or cirq.Duration(nanos=2.5)
 
-<<<<<<< HEAD
         total_time = hold_time + 2 * self.rise_time + 2 * self.padding_time
         if total_time > _MAX_DURATION:
             raise ValueError(
@@ -89,10 +88,6 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
                 f'cannot be greater than {_MAX_DURATION}'
             )
 
-
-=======
-    # pylint: enable=missing-raises-doc
->>>>>>> master
     def num_qubits(self) -> int:
         return 2
 
