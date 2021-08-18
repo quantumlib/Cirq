@@ -99,6 +99,8 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
     return cast('cirq.Circuit', result)
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def final_state_vector(
     program: 'cirq.CIRCUIT_LIKE',
     *,
@@ -157,6 +159,7 @@ def final_state_vector(
     return result.state_vector()
 
 
+# pylint: enable=missing-raises-doc
 def sample_sweep(
     program: 'cirq.Circuit',
     params: study.Sweepable,

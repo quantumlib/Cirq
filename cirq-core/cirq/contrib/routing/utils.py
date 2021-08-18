@@ -55,6 +55,8 @@ def ops_are_consistent_with_device_graph(
     return True
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def is_valid_routing(
     circuit: circuits.Circuit,
     swap_network: SwapNetwork,
@@ -82,6 +84,7 @@ def is_valid_routing(
         raise
 
 
+# pylint: enable=missing-raises-doc
 def get_circuit_connectivity(circuit: 'cirq.Circuit') -> nx.Graph:
     """Return a graph of all 2q interactions in a circuit.
 

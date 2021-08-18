@@ -88,8 +88,8 @@ def naive_order_finder(x: int, n: int) -> Optional[int]:
         Always succeeds (and hence never returns None).
 
     Raises:
-        ValueError when x is 1 or not an element of the multiplicative
-        group of integers modulo n.
+        ValueError: When x is 1 or not an element of the multiplicative
+            group of integers modulo n.
     """
     if x < 2 or n <= x or math.gcd(x, n) > 1:
         raise ValueError(f'Invalid x={x} for modulus n={n}.')
@@ -273,8 +273,8 @@ def quantum_order_finder(x: int, n: int) -> Optional[int]:
         Phase Estimation is inaccurate, zero or a reducible fraction.
 
     Raises:
-        ValueError when x is 1 or not an element of the multiplicative
-        group of integers modulo n.
+        ValueError: When x is 1 or not an element of the multiplicative
+            group of integers modulo n.
     """
     if x < 2 or n <= x or math.gcd(x, n) > 1:
         raise ValueError(f'Invalid x={x} for modulus n={n}.')
