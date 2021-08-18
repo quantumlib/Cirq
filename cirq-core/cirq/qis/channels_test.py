@@ -128,6 +128,8 @@ def test_choi_for_completely_dephasing_channel():
 def test_kraus_to_superoperator(kraus_operators, expected_superoperator):
     """Verifies that cirq.kraus_to_superoperator computes the correct channel matrix."""
     assert np.allclose(cirq.kraus_to_superoperator(kraus_operators), expected_superoperator)
+    with cirq.testing.assert_deprecated(deadline='v0.14'):
+        assert np.allclose(cirq.kraus_to_channel_matrix(kraus_operators), expected_superoperator)
 
 
 @pytest.mark.parametrize(
@@ -143,9 +145,10 @@ def test_kraus_to_superoperator(kraus_operators, expected_superoperator):
 )
 def test_operation_to_superoperator(channel):
     """Verifies that cirq.operation_to_superoperator correctly computes the channel matrix."""
-    actual = cirq.operation_to_superoperator(channel)
     expected = compute_superoperator(channel)
-    assert np.all(actual == expected)
+    assert np.all(expected == cirq.operation_to_superoperator(channel))
+    with cirq.testing.assert_deprecated(deadline='v0.14'):
+        assert np.all(expected == cirq.operation_to_channel_matrix(channel))
 
 
 def test_superoperator_for_completely_dephasing_channel():

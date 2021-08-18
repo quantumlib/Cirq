@@ -17,6 +17,7 @@ from typing import Sequence
 import numpy as np
 
 from cirq import protocols
+from cirq._compat import deprecated
 
 
 def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
@@ -27,6 +28,12 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
         v = np.reshape(k, d)
         c += np.outer(v, v.conj())
     return c
+
+
+@deprecated(deadline='v0.14', fix='use cirq.kraus_to_superoperator instead')
+def kraus_to_channel_matrix(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
+    """Returns the matrix representation of the linear map with given Kraus operators."""
+    return kraus_to_superoperator(kraus_operators)
 
 
 def kraus_to_superoperator(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
@@ -58,6 +65,24 @@ def operation_to_choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
         Choi matrix corresponding to operation.
     """
     return kraus_to_choi(protocols.kraus(operation))
+
+
+@deprecated(deadline='v0.14', fix='use cirq.operation_to_superoperator instead')
+def operation_to_channel_matrix(operation: 'protocols.SupportsChannel') -> np.ndarray:
+    """Returns the matrix representation of an operation in standard basis.
+
+    Let E: L(H1) -> L(H2) denote a linear map which takes linear operators on Hilbert space H1
+    to linear operators on Hilbert space H2 and let d1 = dim H1 and d2 = dim H2. Also, let Fij
+    denote an operator whose matrix has one in ith row and jth column and zeros everywhere else.
+    Note that d1-by-d1 operators Fij form a basis of L(H1). Similarly, d2-by-d2 operators Fij
+    form a basis of L(H2). This function returns the matrix of E in these bases.
+
+    Args:
+        operation: Quantum channel.
+    Returns:
+        Matrix representation of operation.
+    """
+    return operation_to_superoperator(operation)
 
 
 def operation_to_superoperator(operation: 'protocols.SupportsChannel') -> np.ndarray:
