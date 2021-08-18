@@ -1,1 +1,0 @@
-Started community based tracking for major and minor (not micro) releases.
