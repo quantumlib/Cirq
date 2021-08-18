@@ -48,7 +48,7 @@ def compute_choi(channel: cirq.SupportsChannel) -> np.ndarray:
     return c
 
 
-def compute_channel_matrix(channel: cirq.SupportsChannel) -> np.ndarray:
+def compute_superoperator(channel: cirq.SupportsChannel) -> np.ndarray:
     ks = cirq.kraus(channel)
     d_out, d_in = ks[0].shape
     m = np.zeros((d_out * d_out, d_in * d_in), dtype=np.complex128)
@@ -102,7 +102,7 @@ def test_choi_for_completely_dephasing_channel():
 
 
 @pytest.mark.parametrize(
-    'kraus_operators, expected_channel_matrix',
+    'kraus_operators, expected_superoperator',
     (
         ([np.eye(2)], np.eye(4)),
         (
@@ -125,9 +125,11 @@ def test_choi_for_completely_dephasing_channel():
         ),
     ),
 )
-def test_kraus_to_channel_matrix(kraus_operators, expected_channel_matrix):
-    """Verifies that cirq.kraus_to_channel_matrix computes the correct channel matrix."""
-    assert np.allclose(cirq.kraus_to_channel_matrix(kraus_operators), expected_channel_matrix)
+def test_kraus_to_superoperator(kraus_operators, expected_superoperator):
+    """Verifies that cirq.kraus_to_superoperator computes the correct channel matrix."""
+    assert np.allclose(cirq.kraus_to_superoperator(kraus_operators), expected_superoperator)
+    with cirq.testing.assert_deprecated(deadline='v0.14'):
+        assert np.allclose(cirq.kraus_to_channel_matrix(kraus_operators), expected_superoperator)
 
 
 @pytest.mark.parametrize(
@@ -141,13 +143,14 @@ def test_kraus_to_channel_matrix(kraus_operators, expected_channel_matrix):
         cirq.amplitude_damp(0.2),
     ),
 )
-def test_operation_to_channel_matrix(channel):
-    """Verifies that cirq.channel_matrix correctly computes the channel matrix."""
-    actual = cirq.operation_to_channel_matrix(channel)
-    expected = compute_channel_matrix(channel)
-    assert np.all(actual == expected)
+def test_operation_to_superoperator(channel):
+    """Verifies that cirq.operation_to_superoperator correctly computes the channel matrix."""
+    expected = compute_superoperator(channel)
+    assert np.all(expected == cirq.operation_to_superoperator(channel))
+    with cirq.testing.assert_deprecated(deadline='v0.14'):
+        assert np.all(expected == cirq.operation_to_channel_matrix(channel))
 
 
-def test_channel_matrix_for_completely_dephasing_channel():
-    """Checks cirq.operation_to_channel_matrix on the completely dephasing channel."""
-    assert np.all(cirq.operation_to_channel_matrix(cirq.phase_damp(1)) == np.diag([1, 0, 0, 1]))
+def test_superoperator_for_completely_dephasing_channel():
+    """Checks cirq.operation_to_superoperator on the completely dephasing channel."""
+    assert np.all(cirq.operation_to_superoperator(cirq.phase_damp(1)) == np.diag([1, 0, 0, 1]))
