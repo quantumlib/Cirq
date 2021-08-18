@@ -226,10 +226,14 @@ class TiltedSquareLattice(NamedTopology):
 
         object.__setattr__(self, 'graph', g)
 
-        # Each unit cell contains one central node and shares 4 nodes with 4 adjacent unit cells,
-        # so the number of nodes is ((1/4)*4 + 1) * width * height + boundary_effects
-        n_nodes = 2 * unit_cell_width * unit_cell_height + unit_cell_width + unit_cell_height + 1
-        n_nodes += unit_cell_width * extra_h + unit_cell_height * extra_w + extra_h * extra_w
+        # The number of edges = width * height (see unit tests). This can be seen if you remove
+        # all vertices and replace edges with dots.
+        # The formula for the number of vertices is not that nice, but you can derive it by
+        # summing big and small Xes in the asciiart in the docstring.
+        # There are (width//2 + 1) * (height//2 + 1) small xes and
+        # ((width + 1)//2) * ((height + 1)//2) big ones.
+        n_nodes = (self.width // 2 + 1) * (self.height // 2 + 1)
+        n_nodes += ((self.width + 1) // 2) * ((self.height + 1) // 2)
         object.__setattr__(self, 'n_nodes', n_nodes)
 
     def draw(self, ax=None, tilted=True, **kwargs):
