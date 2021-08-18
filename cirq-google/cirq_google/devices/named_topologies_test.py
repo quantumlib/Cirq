@@ -16,6 +16,7 @@ from typing import Iterable
 from unittest.mock import MagicMock
 
 import cirq
+import cirq_google as cg
 import networkx as nx
 import pytest
 from cirq_google import (
@@ -25,22 +26,28 @@ from cirq_google import (
     get_placements,
     draw_placements,
 )
-import cirq_google as cg
 
 
-def test_tilted_square_lattice():
-    width = 2
-    height = 3
+@pytest.mark.parametrize('width, height', list(itertools.product([1, 2, 3, 24], repeat=2)))
+def test_tilted_square_lattice(width, height):
     topo = TiltedSquareLattice(width, height)
+    assert topo.graph.number_of_edges() == width * height
     assert all(1 <= topo.graph.degree[node] <= 4 for node in topo.graph.nodes)
-    assert topo.name == 'tilted-square-lattice-2-3'
+    assert topo.name == f'tilted-square-lattice-{width}-{height}'
     assert topo.n_nodes == topo.graph.number_of_nodes()
+    assert nx.is_connected(topo.graph)
+    assert nx.algorithms.planarity.check_planarity(topo.graph)
 
+
+def test_bad_tilted_square_lattice():
     with pytest.raises(ValueError):
         _ = TiltedSquareLattice(0, 3)
     with pytest.raises(ValueError):
         _ = TiltedSquareLattice(3, 0)
 
+
+def test_tilted_square_methods():
+    topo = TiltedSquareLattice(5, 5)
     ax = MagicMock()
     topo.draw(ax=ax)
     ax.scatter.assert_called()
