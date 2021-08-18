@@ -62,7 +62,7 @@ class SerializableGateSet(serializer.Serializer):
             self.serializers.setdefault(s.internal_type, []).append(s)
         self.deserializers = {d.serialized_id: d for d in deserializers}
 
-    @property # type: ignore
+    @property  # type: ignore
     @deprecated(deadline='v0.14', fix='Use name instead.', name='SerializableGateSet.gate_set_name')
     def gate_set_name(self):
         """The name of the serializer."""
