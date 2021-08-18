@@ -20,12 +20,12 @@ import cirq
 
 
 _MIN_DURATION = cirq.Duration(nanos=0)
-_MAX_DURATION = cirq.Duration(nanos=100)
+_MAX_DURATION = cirq.Duration(nanos=200)
 
 
 @cirq.value_equality(approximate=True)
 class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
-    """Tunable pulse for entangling adjacent qubits.
+    r"""Tunable pulse for entangling adjacent qubits.
 
     For experimental usage only.
 
@@ -35,15 +35,23 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
     Note that this gate does not have a unitary matrix and must be
     characterized by the user in order to determine its effects.
 
+    ```
+                     __________
+                    /          \
+    _______________/            \________________
+     |<---------->|  |<------>|  |<----------->|
+      padding_time   hold_time     padding_time
+                 ->  <-      ->   <-
+                rise_time   rise_time
+    ```
+
     Args:
             hold_time: Length of the 'plateau' part of the coupler trajectory.
             coupling_MHz: Target qubit-qubit coupling reached at the plateau.
-            rise_time: Full width of the smoothstep rise/fall.
+            rise_time: Width of the rising (or falling) section of the trapezoidal pulse.
             padding_time: Symmetric padding around the coupler pulse.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         hold_time: cirq.Duration,
@@ -56,28 +64,30 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
         Args:
             hold_time: Length of the 'plateau' part of the coupler trajectory.
             coupling_MHz: Target qubit-qubit coupling reached at the plateau.
-            rise_time: Full width of the smoothstep rise/fall.
+            rise_time: Width of the rising (or falling) action of the trapezoidal pulse.
             padding_time: Symmetric padding around the coupler pulse.
+        Raises:
+            ValueError: If any time is negative or if the total pulse is too long.
         """
-        # Verification
-        if hold_time > rise_time:
-            raise ValueError(
-                f'Full rise time {rise_time} must be longer '
-                'than hold_time {hold_time} for CouplerPulse'
-            )
-        if hold_time < _MIN_DURATION or hold_time > _MAX_DURATION:
-            raise ValueError(f'hold_time must be between {_MIN_DURATION} and {_MAX_DURATION}')
-        if padding_time < _MIN_DURATION or padding_time > _MAX_DURATION:
-            raise ValueError(f'padding_time must be between {_MIN_DURATION} and {_MAX_DURATION}')
-        if rise_time < _MIN_DURATION or rise_time > _MAX_DURATION:
-            raise ValueError(f'rise_time must be between {_MIN_DURATION} and {_MAX_DURATION}')
+        if hold_time < _MIN_DURATION:
+            raise ValueError(f'hold_time must be greater than {_MIN_DURATION}')
+        if padding_time < _MIN_DURATION:
+            raise ValueError(f'padding_time must be greater than {_MIN_DURATION}')
+        if rise_time < _MIN_DURATION:
+            raise ValueError(f'rise_time must be greater than {_MIN_DURATION}')
 
         self.hold_time = hold_time
         self.coupling_mhz = coupling_mhz
         self.rise_time = rise_time or cirq.Duration(nanos=8)
         self.padding_time = padding_time or cirq.Duration(nanos=2.5)
 
-    # pylint: enable=missing-raises-doc
+        total_time = hold_time + 2 * self.rise_time + 2 * self.padding_time
+        if total_time > _MAX_DURATION:
+            raise ValueError(
+                f'Total time of coupler pulse ({total_time}) '
+                f'cannot be greater than {_MAX_DURATION}'
+            )
+
     def num_qubits(self) -> int:
         return 2
 
