@@ -55,7 +55,7 @@ def assert_not_implemented(val):
 def test_supports_channel_class_is_deprecated():
     with cirq.testing.assert_deprecated(deadline='v0.13'):
 
-        class SomeChannel(cirq.SupportsKraus):
+        class SomeChannel(cirq.SupportsChannel):
             pass
 
         _ = SomeChannel()
