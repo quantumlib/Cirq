@@ -64,7 +64,7 @@ def _node_and_coordinates(
 
 
 def draw_gridlike(
-    graph: nx.Graph, ax: plt.Axes = None, cartesian: bool = True, **kwargs
+    graph: nx.Graph, ax: plt.Axes = None, tilted: bool = True, **kwargs
 ) -> Dict[Any, Tuple[int, int]]:
     """Draw a Grid-like graph.
 
@@ -73,7 +73,7 @@ def draw_gridlike(
     Args:
         graph: A NetworkX graph whose nodes are (row, column) coordinates.
         ax: Optional matplotlib axis to use for drawing.
-        cartesian: If True, directly position as (row, column); otherwise,
+        tilted: If True, directly position as (row, column); otherwise,
             rotate 45 degrees to accommodate google-style diagonal grids.
         kwargs: Additional arguments to pass to `nx.draw_networkx`.
 
@@ -84,7 +84,7 @@ def draw_gridlike(
     if ax is None:
         ax = plt.gca()  # coverage: ignore
 
-    if cartesian:
+    if tilted:
         pos = {node: (y, -x) for node, (x, y) in _node_and_coordinates(graph.nodes)}
     else:
         pos = {node: (x + y, y - x) for node, (x, y) in _node_and_coordinates(graph.nodes)}
@@ -116,16 +116,16 @@ class LineTopology(NamedTopology):
         )
         object.__setattr__(self, 'graph', graph)
 
-    def draw(self, ax=None, cartesian: bool = True, **kwargs) -> Dict[Any, Tuple[int, int]]:
+    def draw(self, ax=None, tilted: bool = True, **kwargs) -> Dict[Any, Tuple[int, int]]:
         """Draw this graph.
 
         Args:
             ax: Optional matplotlib axis to use for drawing.
-            cartesian: If True, draw as a horizontal line. Otherwise, draw on a diagonal.
+            tilted: If True, draw as a horizontal line. Otherwise, draw on a diagonal.
             kwargs: Additional arguments to pass to `nx.draw_networkx`.
         """
         g2 = nx.relabel_nodes(self.graph, {n: (n, 1) for n in self.graph.nodes})
-        return draw_gridlike(g2, ax=ax, cartesian=cartesian, **kwargs)
+        return draw_gridlike(g2, ax=ax, tilted=tilted, **kwargs)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')
@@ -232,16 +232,16 @@ class TiltedSquareLattice(NamedTopology):
         n_nodes += unit_cell_width * extra_h + unit_cell_height * extra_w + extra_h * extra_w
         object.__setattr__(self, 'n_nodes', n_nodes)
 
-    def draw(self, ax=None, cartesian=True, **kwargs):
+    def draw(self, ax=None, tilted=True, **kwargs):
         """Draw this graph
 
         Args:
             ax: Optional matplotlib axis to use for drawing.
-            cartesian: If True, directly position as (row, column); otherwise,
+            tilted: If True, directly position as (row, column); otherwise,
                 rotate 45 degrees to accommodate the diagonal nature of this topology.
             kwargs: Additional arguments to pass to `nx.draw_networkx`.
         """
-        return draw_gridlike(self.graph, ax=ax, cartesian=cartesian, **kwargs)
+        return draw_gridlike(self.graph, ax=ax, tilted=tilted, **kwargs)
 
     def nodes_as_gridqubits(self) -> List['cirq.GridQubit']:
         """Get the graph nodes as cirq.GridQubit"""

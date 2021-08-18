@@ -73,11 +73,11 @@ def test_line_topology():
     assert LineTopology(2).graph.number_of_nodes() == 2
 
 
-@pytest.mark.parametrize('cartesian', [True, False])
-def test_draw_gridlike(cartesian):
+@pytest.mark.parametrize('tilted', [True, False])
+def test_draw_gridlike(tilted):
     graph = nx.grid_2d_graph(3, 3)
     ax = MagicMock()
-    pos = draw_gridlike(graph, cartesian=cartesian, ax=ax)
+    pos = draw_gridlike(graph, tilted=tilted, ax=ax)
     ax.scatter.assert_called()
     for (row, column), _ in pos.items():
         assert 0 <= row < 3
