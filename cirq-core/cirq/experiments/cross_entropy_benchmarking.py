@@ -166,6 +166,8 @@ class CrossEntropyResult:
             spam_depolarization=params[0], cycle_depolarization=params[1], covariance=covariance
         )
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def purity_depolarizing_model(self) -> CrossEntropyDepolarizingModel:
         """Fit a depolarizing error model for a cycle to purity data.
 
@@ -193,6 +195,7 @@ class CrossEntropyResult:
             spam_depolarization=params[0], cycle_depolarization=params[1], covariance=covariance
         )
 
+    # pylint: enable=missing-raises-doc
     @classmethod
     def _from_json_dict_(cls, data, repetitions, **kwargs):
         purity_data = kwargs.get('purity_data', None)

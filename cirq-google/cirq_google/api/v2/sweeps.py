@@ -18,6 +18,8 @@ import cirq
 from cirq_google.api.v2 import run_context_pb2
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def sweep_to_proto(
     sweep: cirq.Sweep,
     *,
@@ -68,6 +70,7 @@ def sweep_to_proto(
     return out
 
 
+# pylint: enable=missing-raises-doc
 def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
     """Creates a Sweep from a v2 protobuf message."""
     which = msg.WhichOneof('sweep')

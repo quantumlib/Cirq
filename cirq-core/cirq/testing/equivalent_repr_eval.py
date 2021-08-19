@@ -15,6 +15,8 @@
 from typing import Any, Dict, Optional
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def assert_equivalent_repr(
     value: Any,
     *,
@@ -97,3 +99,6 @@ def assert_equivalent_repr(
         "{!r}.XXX must be equivalent to ({!r}).XXX, "
         "but it wasn't.".format(type(value), value, value)
     )
+
+
+# pylint: enable=missing-raises-doc

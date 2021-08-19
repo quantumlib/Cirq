@@ -478,7 +478,7 @@ def test_iter_definitions():
 
         def compute_amplitudes_sweep(
             self,
-            program: 'cirq.Circuit',
+            program: 'cirq.AbstractCircuit',
             bitstrings: Sequence[int],
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
@@ -487,7 +487,7 @@ def test_iter_definitions():
 
         def simulate_expectation_values_sweep(
             self,
-            program: 'cirq.Circuit',
+            program: 'cirq.AbstractCircuit',
             observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
             params: 'study.Sweepable',
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
@@ -498,7 +498,7 @@ def test_iter_definitions():
 
         def simulate_sweep(
             self,
-            program: 'cirq.Circuit',
+            program: 'cirq.AbstractCircuit',
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,
