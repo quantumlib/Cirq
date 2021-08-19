@@ -204,6 +204,8 @@ upper_tabs:
           path: /cirq/tutorials/google/floquet_calibration_example
         - title: "XEB calibration: Example and benchmark"
           path: /cirq/tutorials/google/xeb_calibration_example
+        - title: "Calibration FAQ"
+          path: /cirq/tutorials/google/calibration_faq
 
 
       ####  AQT HARDWARE  ####
