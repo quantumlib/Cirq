@@ -129,6 +129,7 @@ from cirq.ops.linear_combinations import (
     LinearCombinationOfOperations,
     PauliSum,
     PauliSumLike,
+    ProjectorSum,
 )
 
 from cirq.ops.mixed_unitary_channel import (
