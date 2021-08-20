@@ -325,7 +325,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     @property
     def qubits(self) -> Tuple[TKey, ...]:
-        return tuple(sorted(self.keys()))
+        return tuple(self.keys())
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> List[str]:
         if not len(self._qubit_pauli_map):
