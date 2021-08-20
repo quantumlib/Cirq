@@ -167,7 +167,7 @@ def test_least_squares_xeb_fidelity_from_expectations():
             circuit, qubits, depolarization=depolarization, repetitions=5000
         )
         amplitudes = cirq.final_state_vector(circuit)
-        probabilities = np.abs(amplitudes) ** 2
+        probabilities = cirq.state_vector_to_probabilities(amplitudes)
 
         measured_expectations_lin.append(dim * np.mean(probabilities[bitstrings]))
         exact_expectations_lin.append(dim * np.sum(probabilities ** 2))
@@ -216,7 +216,7 @@ def test_least_squares_xeb_fidelity_from_probabilities():
             circuit, qubits, depolarization=depolarization, repetitions=5000
         )
         amplitudes = cirq.final_state_vector(circuit)
-        probabilities = np.abs(amplitudes) ** 2
+        probabilities = cirq.state_vector_to_probabilities(amplitudes)
 
         all_probabilities.append(probabilities)
         observed_probabilities.append(probabilities[bitstrings])
