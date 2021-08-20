@@ -30,9 +30,9 @@ with _import.delay_import('cirq.protocols'):
     from cirq import (
         # Core
         protocols,
+        value,
         linalg,
         qis,
-        value,
         ops,
         devices,
         study,
