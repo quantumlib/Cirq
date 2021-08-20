@@ -486,7 +486,7 @@ measure q[3] -> m_X[0];
 measure q[4] -> m__x[0];
 measure q[2] -> m_x_a[0];
 
-// Gate: cirq.MeasurementGate(3, 'multi', (False, True))
+// Gate: cirq.MeasurementGate(3, cirq.MeasurementKey(name='multi'), (False, True))
 measure q[1] -> m_multi[0];
 x q[2];  // Invert the following measurement
 measure q[2] -> m_multi[1];
