@@ -193,7 +193,7 @@ class MeasurementGate(raw_types.Gate):
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
         args = list(repr(q) for q in qubits)
         if self.key != _default_measurement_key(qubits):
-            args.append(f'key={self.key!r}')
+            args.append(f'key={self.mkey!r}')
         if self.invert_mask:
             args.append(f'invert_mask={self.invert_mask!r}')
         arg_list = ', '.join(args)
@@ -206,7 +206,7 @@ class MeasurementGate(raw_types.Gate):
         return (
             f'cirq.MeasurementGate('
             f'{self.num_qubits()!r}, '
-            f'{self.key!r}, '
+            f'{self.mkey!r}, '
             f'{self.invert_mask}'
             f'{qid_shape_arg})'
         )

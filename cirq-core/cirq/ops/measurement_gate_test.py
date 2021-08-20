@@ -18,10 +18,18 @@ import pytest
 import cirq
 
 
-def test_eval_repr():
+@pytest.mark.parametrize(
+    'key',
+    [
+        'q0_1_0',
+        cirq.MeasurementKey(name='q0_1_0'),
+        cirq.MeasurementKey(path=('a', 'b'), name='c'),
+    ],
+)
+def test_eval_repr(key):
     # Basic safeguard against repr-inequality.
     op = cirq.GateOperation(
-        gate=cirq.MeasurementGate(1, cirq.MeasurementKey(path=(), name='q0_1_0'), ()),
+        gate=cirq.MeasurementGate(1, key),
         qubits=[cirq.GridQubit(0, 1)],
     )
     cirq.testing.assert_equivalent_repr(op)
@@ -271,7 +279,7 @@ def test_op_repr():
     assert repr(cirq.measure(a, b)) == ('cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1))')
     assert repr(cirq.measure(a, b, key='out', invert_mask=(False, True))) == (
         "cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), "
-        "key='out', "
+        "key=cirq.MeasurementKey(name='out'), "
         "invert_mask=(False, True))"
     )
 
