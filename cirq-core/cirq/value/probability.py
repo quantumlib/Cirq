@@ -13,8 +13,14 @@
 # limitations under the License.
 
 """Utilities for handling probabilities."""
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 from cirq.qis import to_valid_state_vector
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def validate_probability(p: float, p_str: str) -> float:

@@ -47,10 +47,7 @@ from cirq.value.measurement_key import (
     MeasurementKey,
 )
 
-from cirq.value.probability import (
-    validate_probability,
-    state_vector_to_probabilities
-)
+from cirq.value.probability import validate_probability, state_vector_to_probabilities
 
 from cirq.value.product_state import (
     ProductState,
