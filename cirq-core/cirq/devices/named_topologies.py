@@ -229,17 +229,25 @@ def get_placements(
 ) -> List[Dict]:
     """Get 'placements' mapping small_graph nodes onto those of `big_graph`.
 
-    We often consider the case where `big_graph` is a nx.Graph representation of a Device
-    whose nodes are `cirq.Qid`s like `GridQubit`s and `small_graph` is a NamedTopology graph.
-    In this case, this function returns a list of placement dictionaries. Each dictionary
-    maps the nodes in `small_graph` to nodes in `big_graph` with a monomorphic relationship.
-    That's to say: if an edge exists in `small_graph` between two nodes, it will exist in
-    `big_graph` between the mapped nodes.
-
-    We restrict only to unique set of `big_graph` qubits. Some monomorphisms may be basically
+    This function considers monomorphisms with a restriction: we restrict only to unique set
+    of `big_graph` qubits. Some monomorphisms may be basically
     the same mapping just rotated/flipped which we purposefully exclude. This could
     exclude meaningful differences like using the same qubits but having the edges assigned
     differently, but it prevents the number of placements from blowing up.
+
+    Args:
+        big_graph: The parent, super-graph. We often consider the case where this is a
+            nx.Graph representation of a Device whose nodes are `cirq.Qid`s like `GridQubit`s.
+        small_graph: The subgraph. We often consider the case where this is a NamedTopology
+            graph.
+        max_placements: Raise a value error if there are more than this many placement
+            possibilities. It is possible to use `big_graph`, `small_graph` combinations
+            that result in an intractable number of placements.
+
+    Returns:
+        A list of placement dictionaries. Each dictionary maps the nodes in `small_graph` to
+        nodes in `big_graph` with a monomorphic relationship. That's to say: if an edge exists
+        in `small_graph` between two nodes, it will exist in `big_graph` between the mapped nodes.
     """
     matcher = nx.algorithms.isomorphism.GraphMatcher(big_graph, small_graph)
 
