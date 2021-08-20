@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING, Union, overload
+from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -44,7 +44,7 @@ def measure_pauli_observable(
         An operation measuring the pauli observable.
 
     Raises:
-        ValueError if the observable is not an instance of PauliString.
+        ValueError: if the observable is not an instance of PauliString.
     """
     if not isinstance(pauli_observable, pauli_string.PauliString):
         raise ValueError(
@@ -68,6 +68,9 @@ def measure_in_pauli_basis(
     Returns:
         A list of operations individually measuring the given qubits in the
         specified pauli basis.
+
+    Raises:
+        ValueError: if the observable is not an instance of cirq.PauliString.
     """
     if not isinstance(pauli_basis, pauli_string.PauliString):
         raise ValueError(

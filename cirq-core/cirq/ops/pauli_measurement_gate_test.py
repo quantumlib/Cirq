@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-import sympy
 import pytest
 
 import cirq
@@ -143,11 +141,14 @@ def test_op_repr():
     ps = cirq.X(a) * cirq.Y(b) * cirq.Z(c)
     assert (
         repr(cirq.measure_pauli_observable(ps))
-        == 'cirq.measure_pauli_observable((cirq.X(cirq.LineQubit(0))*cirq.Y(cirq.LineQubit(1))*cirq.Z(cirq.LineQubit(2))))'
+        == 'cirq.measure_pauli_observable((cirq.X(cirq.LineQubit(0))'
+        '*cirq.Y(cirq.LineQubit(1))*cirq.Z(cirq.LineQubit(2))))'
     )
     assert (
         repr(cirq.measure_pauli_observable(ps, key='out'))
-        == "cirq.measure_pauli_observable((cirq.X(cirq.LineQubit(0))*cirq.Y(cirq.LineQubit(1))*cirq.Z(cirq.LineQubit(2))), key=cirq.MeasurementKey(name='out'))"
+        == "cirq.measure_pauli_observable((cirq.X(cirq.LineQubit(0))"
+        "*cirq.Y(cirq.LineQubit(1))*cirq.Z(cirq.LineQubit(2))), "
+        "key=cirq.MeasurementKey(name='out'))"
     )
 
 
