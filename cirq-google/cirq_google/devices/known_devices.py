@@ -125,7 +125,7 @@ def create_device_proto_for_qubits(
     arg_def = device_pb2.ArgDefinition
     for gate_set in gate_sets or []:
         gs_proto = out.valid_gate_sets.add()
-        gs_proto.name = gate_set.gate_set_name
+        gs_proto.name = gate_set.name
         gate_ids: Set[str] = set()
         for internal_type in gate_set.serializers:
             for serializer in gate_set.serializers[internal_type]:

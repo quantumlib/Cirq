@@ -202,6 +202,8 @@ after gates in previous moments.  Many of these tips focus on having a
 good moment structure that avoids problematic missteps that can cause
 unwanted noise and error.
 
+Note: See the [Circuit optimization, gate alignment, and spin echoes tutorial](../tutorials/google/spin_echoes.ipynb) for an example of the best practices discussed in this section.
+
 ### Short gate depth
 
 In the current NISQ (noisy intermediate scale quantum) era, gates and devices still

@@ -193,6 +193,8 @@ upper_tabs:
         path: /cirq/tutorials/google/visualizing_calibration_metrics
       - title: "Qubit picking with Loschmidt echoes"
         path: /cirq/tutorials/google/echoes
+      - title: "Circuit optimization, gate alignment, & spin echoes"
+        path: /cirq/tutorials/google/spin_echoes
       - title: "Calibration"
         style: accordion
         section:

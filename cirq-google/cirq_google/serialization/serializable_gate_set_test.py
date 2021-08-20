@@ -85,6 +85,9 @@ def test_deprecated_methods():
     with assert_deprecated('Use with_added_types', deadline='v0.13'):
         _ = MY_GATE_SET.with_added_gates()
 
+    with assert_deprecated('Use name instead', deadline='v0.14'):
+        _ = MY_GATE_SET.gate_set_name
+
     with assert_deprecated('Use use_constants', deadline='v0.13'):
         # pylint: disable=unexpected-keyword-arg
         _ = MY_GATE_SET.serialize(cirq.Circuit(), use_constants_table_for_tokens=True)
@@ -95,6 +98,10 @@ def op_proto(json: Dict) -> v2.program_pb2.Operation:
     op = v2.program_pb2.Operation()
     json_format.ParseDict(json, op)
     return op
+
+
+def test_naming():
+    assert MY_GATE_SET.name == 'my_gate_set'
 
 
 def test_supported_internal_types():
@@ -627,10 +634,10 @@ def test_gateset_with_added_types():
         serializers=[Y_SERIALIZER],
         deserializers=[Y_DESERIALIZER],
     )
-    assert x_gateset.gate_set_name == 'x'
+    assert x_gateset.name == 'x'
     assert x_gateset.is_supported_operation(cirq.X(q))
     assert not x_gateset.is_supported_operation(cirq.Y(q))
-    assert xy_gateset.gate_set_name == 'xy'
+    assert xy_gateset.name == 'xy'
     assert xy_gateset.is_supported_operation(cirq.X(q))
     assert xy_gateset.is_supported_operation(cirq.Y(q))
 
@@ -664,7 +671,7 @@ def test_gateset_with_added_types_again():
         deserializers=[X_DESERIALIZER],
     )
 
-    assert xx_gateset.gate_set_name == 'xx'
+    assert xx_gateset.name == 'xx'
     assert xx_gateset.is_supported_operation(cirq.X(q))
     assert not xx_gateset.is_supported_operation(cirq.Y(q))
 

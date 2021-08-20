@@ -119,6 +119,8 @@ def _group_similar(items: List[T], comparer: Callable[[T, T], bool]) -> List[Lis
     return groups
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def unitary_eig(
     matrix: np.ndarray, check_preconditions: bool = True, atol: float = 1e-8
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -148,6 +150,7 @@ def unitary_eig(
     return R.diagonal(), V
 
 
+# pylint: enable=missing-raises-doc
 def map_eigenvalues(
     matrix: np.ndarray, func: Callable[[complex], complex], *, atol: float = 1e-8
 ) -> np.ndarray:
@@ -868,6 +871,8 @@ def kak_decomposition(
     )
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def kak_vector(
     unitary: Union[Iterable[np.ndarray], np.ndarray],
     *,
@@ -889,6 +894,19 @@ def kak_vector(
         $$ 0 ≤ |k_z| ≤ k_y ≤ k_x ≤ π/4 $$
     if $k_x$ = π/4, $k_z \geq 0$.
 
+    References:
+        The appendix section of "Lower bounds on the complexity of simulating
+        quantum gates".
+        http://arxiv.org/abs/quant-ph/0307190v1
+
+    Examples:
+        >>> cirq.kak_vector(np.eye(4))
+        array([0., 0., 0.])
+        >>> unitaries = [cirq.unitary(cirq.CZ),cirq.unitary(cirq.ISWAP)]
+        >>> cirq.kak_vector(unitaries) * 4 / np.pi
+        array([[ 1.,  0., -0.],
+               [ 1.,  1.,  0.]])
+
     Args:
         unitary: A unitary matrix, or a multi-dimensional array of unitary
             matrices. Must have shape (..., 4, 4), where the last two axes are
@@ -907,19 +925,6 @@ def kak_vector(
         the same as the input shape, except the two unitary matrix axes are
         replaced by the kak vector axis (i.e. the output has shape
         `unitary.shape[:-2] + (3,)`).
-
-    References:
-        The appendix section of "Lower bounds on the complexity of simulating
-        quantum gates".
-        http://arxiv.org/abs/quant-ph/0307190v1
-
-    Examples:
-        >>> cirq.kak_vector(np.eye(4))
-        array([0., 0., 0.])
-        >>> unitaries = [cirq.unitary(cirq.CZ),cirq.unitary(cirq.ISWAP)]
-        >>> cirq.kak_vector(unitaries) * 4 / np.pi
-        array([[ 1.,  0., -0.],
-               [ 1.,  1.,  0.]])
     """
     unitary = np.asarray(unitary)
     if len(unitary) == 0:
@@ -969,6 +974,7 @@ def kak_vector(
     return _canonicalize_kak_vector(k_vec, atol)
 
 
+# pylint: enable=missing-raises-doc
 def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     r"""Map a KAK vector into its Weyl chamber equivalent vector.
 
@@ -1016,6 +1022,8 @@ def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     return k_vec
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
     """Returns the min number of CNOT/CZ gates required by a two-qubit unitary.
 
@@ -1025,6 +1033,7 @@ def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
 
     Args:
         u: a two-qubit unitary
+
     Returns:
         the number of CNOT or CZ gates required to implement the unitary
     """
@@ -1046,6 +1055,7 @@ def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
     return 3
 
 
+# pylint: enable=missing-raises-doc
 def _gamma(u: np.ndarray) -> np.ndarray:
     """Gamma function to convert u to the magic basis.
 

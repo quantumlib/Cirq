@@ -61,9 +61,9 @@ class MeasurementKey:
 
     def __repr__(self):
         if self.path:
-            return f'cirq.MeasurementKey(path={self.path}, name={self.name})'
+            return f"cirq.MeasurementKey(path={self.path!r}, name='{self.name}')"
         else:
-            return f'cirq.MeasurementKey(name={self.name})'
+            return f"cirq.MeasurementKey(name='{self.name}')"
 
     def __str__(self):
         if self._str is None:
