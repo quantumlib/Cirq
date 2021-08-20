@@ -20,7 +20,7 @@ import pytest
 import cirq
 
 
-def apply_channel(channel: cirq.SupportsChannel, rho: np.ndarray) -> np.ndarray:
+def apply_channel(channel: cirq.SupportsKraus, rho: np.ndarray) -> np.ndarray:
     ks = cirq.kraus(channel)
     d_out, d_in = ks[0].shape
     assert rho.shape == (d_in, d_in)
@@ -38,7 +38,7 @@ def generate_standard_operator_basis(d_out: int, d_in: int) -> Iterable[np.ndarr
             yield e_ij
 
 
-def compute_choi(channel: cirq.SupportsChannel) -> np.ndarray:
+def compute_choi(channel: cirq.SupportsKraus) -> np.ndarray:
     ks = cirq.kraus(channel)
     d_out, d_in = ks[0].shape
     d = d_in * d_out
@@ -48,7 +48,7 @@ def compute_choi(channel: cirq.SupportsChannel) -> np.ndarray:
     return c
 
 
-def compute_superoperator(channel: cirq.SupportsChannel) -> np.ndarray:
+def compute_superoperator(channel: cirq.SupportsKraus) -> np.ndarray:
     ks = cirq.kraus(channel)
     d_out, d_in = ks[0].shape
     m = np.zeros((d_out * d_out, d_in * d_in), dtype=np.complex128)

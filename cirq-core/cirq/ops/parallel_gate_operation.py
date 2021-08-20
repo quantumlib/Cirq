@@ -20,11 +20,16 @@ import numpy as np
 from cirq import protocols, value
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
+from cirq._compat import deprecated_class
 
 if TYPE_CHECKING:
     import cirq
 
 
+@deprecated_class(
+    deadline='v0.14',
+    fix='Use cirq.ParallelGate(gate, num_copies).on(qubits) instead',
+)
 @value.value_equality
 class ParallelGateOperation(raw_types.Operation):
     """An application of several copies of a gate to a group of qubits."""
