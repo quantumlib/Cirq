@@ -458,6 +458,7 @@ from cirq.value import (
     MeasurementKey,
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
+    state_vector_to_probabilities,
     Timestamp,
     TParamKey,
     TParamVal,
