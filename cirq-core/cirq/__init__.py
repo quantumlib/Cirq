@@ -236,6 +236,8 @@ from cirq.ops import (
     NamedQid,
     OP_TREE,
     Operation,
+    ParallelGate,
+    parallel_gate_op,
     ParallelGateOperation,
     Pauli,
     PAULI_GATE_LIKE,
