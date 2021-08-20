@@ -140,6 +140,10 @@ from cirq.ops.pauli_sum_exponential import (
     PauliSumExponential,
 )
 
+from cirq.ops.pauli_measurement_gate import (
+    PauliMeasurementGate,
+)
+
 from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,
 )
@@ -167,6 +171,8 @@ from cirq.ops.matrix_gates import (
 from cirq.ops.measure_util import (
     measure,
     measure_each,
+    measure_in_pauli_basis,
+    measure_pauli_observable,
 )
 
 from cirq.ops.measurement_gate import (
