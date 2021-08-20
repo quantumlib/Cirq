@@ -21,7 +21,9 @@ def test_empty_init():
     with pytest.raises(TypeError, match='required positional argument'):
         _ = cirq.MeasurementKey()
     with pytest.raises(ValueError, match='cannot be empty'):
-        _ = cirq.MeasurementKey('')
+        _ = cirq.MeasurementKey(None)
+    # Initialization of empty string should be allowed
+    _ = cirq.MeasurementKey('')
 
 
 def test_nested_key():
