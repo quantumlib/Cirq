@@ -177,54 +177,21 @@ class TiltedSquareLattice(NamedTopology):
 
         object.__setattr__(self, 'name', f'tilted-square-lattice-{self.width}-{self.height}')
 
+        rect1 = set(
+            (i + j, i - j) for i in range(self.width // 2 + 1) for j in range(self.height // 2 + 1)
+        )
+        rect2 = set(
+            ((i + j) // 2, (i - j) // 2)
+            for i in range(1, self.width + 1, 2)
+            for j in range(1, self.height + 1, 2)
+        )
+        nodes = rect1 | rect2
         g = nx.Graph()
-
-        def _add_edge(unit_row: int, unit_col: int, *, which: int):
-            """Helper function to add edges in 'unit cell coordinates'."""
-            y = unit_col + unit_row
-            x = unit_col - unit_row
-
-            if which == 0:
-                # Either in the bulk or on a ragged boundary, we need this edge
-                g.add_edge((x, y), (x, y - 1))
-            elif which == 1:
-                # This is added in the bulk and for a "top" (extra height) ragged boundary
-                g.add_edge((x, y), (x + 1, y))
-            elif which == 2:
-                # This is added in the bulk and for a "side" (extra width) ragged boundary
-                g.add_edge((x, y), (x - 1, y))
-            elif which == 3:
-                # This is only added in the bulk.
-                g.add_edge((x, y), (x, y + 1))
-            else:
-                raise ValueError()  # coverage: ignore
-
-        # Iterate over unit cells, which are in units of 2*width, 2*height.
-        # Add all all four edges when we're in the bulk.
-        unit_cell_height = self.height // 2
-        unit_cell_width = self.width // 2
-        for unit_row in range(unit_cell_height):
-            for unit_col in range(unit_cell_width):
-                for i in range(4):
-                    _add_edge(unit_row, unit_col, which=i)
-
-        extra_h = self.height % 2
-        if extra_h:
-            # Add extra height to the final half-row.
-            for unit_col in range(unit_cell_width):
-                _add_edge(unit_cell_height, unit_col, which=0)
-                _add_edge(unit_cell_height, unit_col, which=1)
-
-        extra_w = self.width % 2
-        if extra_w:
-            # Add extra width to the final half-column
-            for unit_row in range(unit_cell_height):
-                _add_edge(unit_row, unit_cell_width, which=0)
-                _add_edge(unit_row, unit_cell_width, which=2)
-
-        if extra_w and extra_h:
-            # Add the final corner node when we have both ragged boundaries
-            _add_edge(unit_cell_height, unit_cell_width, which=0)
+        for node in nodes:
+            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                neighbor = (node[0] + dx, node[1] + dy)
+                if neighbor in nodes:
+                    g.add_edge(node, neighbor)
 
         object.__setattr__(self, 'graph', g)
 
