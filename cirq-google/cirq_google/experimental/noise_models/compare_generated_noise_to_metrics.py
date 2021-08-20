@@ -8,10 +8,10 @@ import cirq
 import pandas as pd
 
 
-def validate_noise_model(
+def compare_generated_noise_to_metrics(
     calibration: cirq_google.Calibration, validate: bool = True, tolerance: float = 0.01, seed=None
 ):
-    """Compares the metrics from a Calibration object to those measured from a Noise Model 
+    """Compares the metrics from a Calibration object to those measured from a Noise Model
        created with cirq.devices.noise_properties_from_calibration.
 
     Args:
