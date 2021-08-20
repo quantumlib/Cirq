@@ -1,16 +1,21 @@
 import cirq_google
 import numpy as np
-from cirq.devices.noise_properties import NoiseProperties, NoiseModelFromNoiseProperties
-from cirq_google.experimental.noise_models.calibration_to_noise_properties import noise_properties_from_calibration
+from cirq.devices.noise_properties import NoiseModelFromNoiseProperties
+from cirq_google.experimental.noise_models.calibration_to_noise_properties import (
+    noise_properties_from_calibration,
+)
 import cirq
-from cirq_google.experimental.noise_models.validate_noise_model_from_calibration import validate_noise_model
+from cirq_google.experimental.noise_models.validate_noise_model_from_calibration import (
+    validate_noise_model,
+)
 from cirq_google.api import v2
 from google.protobuf.text_format import Merge
 import pandas as pd
 
+
 def test():
-    xeb_1 = 0.01
-    xeb_2 = 0.04
+    xeb_1 = 0.001
+    xeb_2 = 0.004
 
     p00_1 = 0.001
     p00_2 = 0.002
@@ -20,13 +25,12 @@ def test():
     p11_2 = 0.005
     p11_3 = 0.006
 
-    t1_1 = 0.5 # microseconds
+    t1_1 = 0.5  # microseconds
     t1_2 = 0.7
     t1_3 = 0.3
 
-
     _CALIBRATION_DATA = Merge(
-    f"""
+        f"""
     timestamp_ms: 1579214873,
     metrics: [{{
         name: 'xeb',
@@ -117,8 +121,10 @@ def test():
         v2.metrics_pb2.MetricsSnapshot(),
     )
 
+    random_seed = 1  # to make sure values match between simulators
+
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
-    output_df = validate_noise_model(calibration)
+    output_df = validate_noise_model(calibration, seed=random_seed)
 
     # Construct expected results
     expected_p00 = np.mean([p00_1, p00_2, p00_3])
@@ -128,9 +134,9 @@ def test():
 
     num_qubits_xeb = 2
     N_xeb = 2 ** num_qubits_xeb
-    expected_decay_constant = 1 - (1 - expected_xeb_fidelity) * N_xeb/ (N_xeb - 1)
-    N = 2 # single qubit Hilbert space
-    expected_pauli_error = (1 - expected_decay_constant) * (1 - 1 / N**2)
+    expected_decay_constant = 1 - (1 - expected_xeb_fidelity) * N_xeb / (N_xeb - 1)
+    N = 2  # single qubit Hilbert space
+    expected_pauli_error = (1 - expected_decay_constant) * (1 - 1 / N ** 2)
 
     expected_average_error = (1 - expected_decay_constant) * (1 - 1 / N)
 
@@ -140,17 +146,28 @@ def test():
 
     qubits = [cirq.LineQubit(0), cirq.LineQubit(1)]
 
-    simulator = cirq.sim.DensityMatrixSimulator(noise = noise_model, seed = 1)
+    simulator = cirq.sim.DensityMatrixSimulator(noise=noise_model, seed=random_seed)
 
     # Run experiments
-    estimate_readout = cirq.experiments.estimate_single_qubit_readout_errors(simulator, qubits = [qubits[0]], repetitions = 1000)
+    estimate_readout = cirq.experiments.estimate_single_qubit_readout_errors(
+        simulator, qubits=[qubits[0]], repetitions=1000
+    )
 
-    xeb_result = cirq.experiments.cross_entropy_benchmarking(simulator, qubits, num_circuits = 50, repetitions = 1000)
+    xeb_result = cirq.experiments.cross_entropy_benchmarking(
+        simulator, qubits, num_circuits=50, repetitions=1000
+    )
     measured_xeb = np.mean([datum.xeb_fidelity for datum in xeb_result.data])
     decay_constant = xeb_result.depolarizing_model().cycle_depolarization
-    t1_results = cirq.experiments.t1_decay(simulator, qubit = qubits[0], num_points = 100, repetitions = 100, min_delay = cirq.Duration(nanos = 10), max_delay = cirq.Duration(micros = 1))
+    t1_results = cirq.experiments.t1_decay(
+        simulator,
+        qubit=qubits[0],
+        num_points=100,
+        repetitions=100,
+        min_delay=cirq.Duration(nanos=10),
+        max_delay=cirq.Duration(micros=1),
+    )
 
-    N = 2 # Dimension of Hilbert Space
+    N = 2  # Dimension of Hilbert Space
     measured_pauli_error = (1 - decay_constant) * (1 - 1 / N / N)
     measured_average_error = (1 - decay_constant) * (1 - 1 / N)
 
@@ -164,10 +181,10 @@ def test():
     output.append(['Average Error', expected_average_error, measured_average_error])
 
     columns = ["Metric", "Initial value", "Measured value"]
-    expected_df = pd.DataFrame(output, columns = columns)
+    expected_df = pd.DataFrame(output, columns=columns)
 
     print(output_df)
     print(expected_df)
-    assert np.allclose(expected_df['Initial value'], output_df['Initial value'], atol = 0.5)
-    assert np.allclose(expected_df['Measured value'], output_df['Measured value'], atol = 0.5)
-
+    print(expected_df['Measured value'], output_df['Measured value'])
+    assert np.allclose(expected_df['Initial value'], output_df['Initial value'], atol=0.5)
+    assert np.allclose(expected_df['Measured value'], output_df['Measured value'], atol=0.5)
