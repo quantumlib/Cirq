@@ -28,10 +28,7 @@ if TYPE_CHECKING:
 
 def _subgate_if_parallel_gate(gate: 'cirq.Gate') -> 'cirq.Gate':
     """Returns gate.sub_gate if gate is a ParallelGate, else returns gate"""
-    if isinstance(gate, ops.ParallelGate) and not isinstance(gate.sub_gate, MeasurementGate):
-        return gate.sub_gate
-    else:
-        return gate
+    return gate.sub_gate if isinstance(gate, ops.ParallelGate) else gate
 
 
 @value.value_equality
@@ -155,7 +152,13 @@ class NeutralAtomDevice(devices.Device):
         if not isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
-        gate = _subgate_if_parallel_gate(operation.gate)
+        gate = operation.gate
+        if isinstance(gate, ops.ParallelGate):
+            if isinstance(gate.sub_gate, ops.MeasurementGate):
+                raise ValueError(
+                    f'ParallelGate over MeasurementGate is not supported: {operation!r}'
+                )
+            gate = gate.sub_gate
 
         # The gate must be valid
         self.validate_gate(gate)

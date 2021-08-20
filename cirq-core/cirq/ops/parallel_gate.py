@@ -36,6 +36,9 @@ class ParallelGate(raw_types.Gate):
         Args:
             gate: The gate to apply.
             num_copies: Number of copies of the gate to apply in parallel.
+
+        Raises:
+            ValueError: If gate is not a single qubit gate or num_copies <= 0.
         """
         if sub_gate.num_qubits() != 1:
             # TODO: If needed, support for multi-qubit sub_gates can be
