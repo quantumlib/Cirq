@@ -68,12 +68,13 @@ def _node_and_coordinates(
 def draw_gridlike(
     graph: nx.Graph, ax: plt.Axes = None, tilted: bool = True, **kwargs
 ) -> Dict[Any, Tuple[int, int]]:
-    """Draw a Grid-like graph.
+    """Draw a grid-like graph using Matplotlib.
 
-    This wraps nx.draw_networkx to produce a matplotlib drawing of the graph.
+    This wraps nx.draw_networkx to produce a matplotlib drawing of the graph. Nodes
+    should be two-dimensional gridlike objects.
 
     Args:
-        graph: A NetworkX graph whose nodes are (row, column) coordinates.
+        graph: A NetworkX graph whose nodes are (row, column) coordinates or cirq.GridQubits.
         ax: Optional matplotlib axis to use for drawing.
         tilted: If True, directly position as (row, column); otherwise,
             rotate 45 degrees to accommodate google-style diagonal grids.
@@ -119,7 +120,7 @@ class LineTopology(NamedTopology):
         object.__setattr__(self, 'graph', graph)
 
     def draw(self, ax=None, tilted: bool = True, **kwargs) -> Dict[Any, Tuple[int, int]]:
-        """Draw this graph.
+        """Draw this graph using Matplotlib.
 
         Args:
             ax: Optional matplotlib axis to use for drawing.
@@ -206,7 +207,7 @@ class TiltedSquareLattice(NamedTopology):
         object.__setattr__(self, 'n_nodes', n_nodes)
 
     def draw(self, ax=None, tilted=True, **kwargs):
-        """Draw this graph
+        """Draw this graph using Matplotlib.
 
         Args:
             ax: Optional matplotlib axis to use for drawing.
@@ -277,7 +278,7 @@ def draw_placements(
     max_plots=20,
     axes: Sequence[plt.Axes] = None,
 ):
-    """Draw a visualization of placements from small_graph onto big_graph.
+    """Draw a visualization of placements from small_graph onto big_graph using Matplotlib.
 
     The entire `big_graph` will be drawn with default blue colored nodes. `small_graph` nodes
     and edges will be highlighted with a red color.
