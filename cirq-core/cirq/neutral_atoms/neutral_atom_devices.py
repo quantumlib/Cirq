@@ -26,6 +26,11 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _subgate_if_parallel_gate(gate: 'cirq.Gate') -> 'cirq.Gate':
+    """Returns gate.sub_gate if gate is a ParallelGate, else returns gate"""
+    return gate.sub_gate if isinstance(gate, ops.ParallelGate) else gate
+
+
 @value.value_equality
 class NeutralAtomDevice(devices.Device):
     """A device with qubits placed on a grid."""
@@ -147,41 +152,47 @@ class NeutralAtomDevice(devices.Device):
         if not isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
+        gate = operation.gate
+        if isinstance(gate, ops.ParallelGate):
+            if isinstance(gate.sub_gate, ops.MeasurementGate):
+                raise ValueError(
+                    f'ParallelGate over MeasurementGate is not supported: {operation!r}'
+                )
+            gate = gate.sub_gate
+
         # The gate must be valid
-        self.validate_gate(operation.gate)
+        self.validate_gate(gate)
 
         # All qubits the operation acts on must be on the device
         for q in operation.qubits:
             if q not in self.qubits:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-        if isinstance(operation.gate, (ops.MeasurementGate, ops.IdentityGate)):
-            return
-
-        # Verify that a controlled gate operation is valid
-        if isinstance(operation, ops.GateOperation):
-            if len(operation.qubits) > self._max_parallel_c:
-                raise ValueError(
-                    "Too many qubits acted on in parallel by a controlled gate operation"
-                )
-            if len(operation.qubits) > 1:
-                for p in operation.qubits:
-                    for q in operation.qubits:
-                        if self.distance(p, q) > self._control_radius:
-                            raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
+        if isinstance(gate, (ops.MeasurementGate, ops.IdentityGate)):
             return
 
         # Verify that a valid number of Z gates are applied in parallel
-        if isinstance(operation.gate, ops.ZPowGate):
+        if isinstance(gate, ops.ZPowGate):
             if len(operation.qubits) > self._max_parallel_z:
                 raise ValueError("Too many Z gates in parallel")
+            return
 
         # Verify that a valid number of XY gates are applied in parallel
-        if isinstance(operation.gate, (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate)):
+        if isinstance(gate, (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate)):
             if len(operation.qubits) > self._max_parallel_xy and len(operation.qubits) != len(
                 self.qubits
             ):
                 raise ValueError("Bad number of XY gates in parallel")
+            return
+
+        # Verify that a controlled gate operation is valid
+        if len(operation.qubits) > self._max_parallel_c:
+            raise ValueError("Too many qubits acted on in parallel by a controlled gate operation")
+        if len(operation.qubits) > 1:
+            for p in operation.qubits:
+                for q in operation.qubits:
+                    if self.distance(p, q) > self._control_radius:
+                        raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
 
     def validate_moment(self, moment: ops.Moment):
         """Raises an error if the given moment is invalid on this device.
@@ -215,11 +226,12 @@ class NeutralAtomDevice(devices.Device):
             assert isinstance(op, (ops.GateOperation, ops.ParallelGateOperation))
             for k, v in CATEGORIES.items():
                 assert isinstance(v, tuple)
-                if isinstance(op.gate, v):
+                gate = _subgate_if_parallel_gate(op.gate)
+                if isinstance(gate, v):
                     categorized_ops[k].append(op)
 
         for k in ['Z', 'XY', 'controlled']:
-            if len(set(op.gate for op in categorized_ops[k])) > 1:
+            if len(set(_subgate_if_parallel_gate(op.gate) for op in categorized_ops[k])) > 1:
                 raise ValueError(f"Non-identical simultaneous {k} gates")
 
         num_parallel_xy = sum([len(op.qubits) for op in categorized_ops['XY']])
