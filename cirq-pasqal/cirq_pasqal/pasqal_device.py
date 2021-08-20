@@ -100,36 +100,39 @@ class PasqalDevice(cirq.devices.Device):
         if not isinstance(op, cirq.ops.Operation):
             raise ValueError('Got unknown operation:', op)
 
-        valid_op = isinstance(
-            op.gate,
+        if isinstance(op.gate, cirq.ops.MeasurementGate):
+            return True
+
+        op_gate = op.gate.sub_gate if isinstance(op.gate, cirq.ops.ParallelGate) else op.gate
+
+        if isinstance(
+            op_gate,
             (
                 cirq.ops.IdentityGate,
-                cirq.ops.MeasurementGate,
                 cirq.ops.PhasedXPowGate,
                 cirq.ops.XPowGate,
                 cirq.ops.YPowGate,
                 cirq.ops.ZPowGate,
             ),
-        )
+        ):
+            return True
 
-        if not valid_op:  # To prevent further checking if already passed
-            if (
-                isinstance(
-                    op.gate,
-                    (
-                        cirq.ops.HPowGate,
-                        cirq.ops.CNotPowGate,
-                        cirq.ops.CZPowGate,
-                        cirq.ops.CCZPowGate,
-                        cirq.ops.CCXPowGate,
-                    ),
-                )
-                and not cirq.is_parameterized(op)
-            ):
-                expo = op.gate.exponent
-                valid_op = np.isclose(expo, np.around(expo, decimals=0))
-
-        return valid_op
+        if (
+            isinstance(
+                op_gate,
+                (
+                    cirq.ops.HPowGate,
+                    cirq.ops.CNotPowGate,
+                    cirq.ops.CZPowGate,
+                    cirq.ops.CCZPowGate,
+                    cirq.ops.CCXPowGate,
+                ),
+            )
+            and not cirq.is_parameterized(op)
+        ):
+            expo = op_gate.exponent
+            return np.isclose(expo, np.around(expo, decimals=0))
+        return False
 
     # TODO(#3388) Add documentation for Raises.
     # pylint: disable=missing-raises-doc
@@ -292,7 +295,7 @@ class PasqalVirtualDevice(PasqalDevice):
         # Verify that a controlled gate operation is valid
         if isinstance(operation, cirq.ops.GateOperation):
             if len(operation.qubits) > 1 and not isinstance(
-                operation.gate, cirq.ops.MeasurementGate
+                operation.gate, (cirq.ops.MeasurementGate, cirq.ops.ParallelGate)
             ):
                 for p in operation.qubits:
                     for q in operation.qubits:
