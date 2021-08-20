@@ -30,7 +30,7 @@ import dataclasses
 import numpy as np
 import scipy
 from matplotlib import pyplot as plt
-from cirq import circuits, devices, ops, protocols, sim, work, value
+from cirq import circuits, devices, ops, protocols, sim, value, work
 
 if TYPE_CHECKING:
     import cirq
