@@ -39,7 +39,7 @@ from cirq.protocols.approximate_equality_protocol import (
     approx_eq,
     SupportsApproximateEquality,
 )
-from cirq.protocols.kraus import (
+from cirq.protocols.kraus_protocol import (
     channel,
     kraus,
     has_channel,
