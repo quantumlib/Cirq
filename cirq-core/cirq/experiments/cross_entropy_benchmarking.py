@@ -30,7 +30,7 @@ import dataclasses
 import numpy as np
 import scipy
 from matplotlib import pyplot as plt
-from cirq import circuits, devices, ops, protocols, sim, work
+from cirq import circuits, devices, ops, protocols, sim, work, value
 
 if TYPE_CHECKING:
     import cirq
@@ -405,7 +405,7 @@ def cross_entropy_benchmarking(
         probs_exp_k = []  # type: List[np.ndarray]
         for circ_k in circuits_k:
             res = simulator.simulate(circ_k, qubit_order=qubits)
-            state_probs = cirq.state_vector_to_probabilities(np.asarray(res.final_state_vector))  # type: ignore
+            state_probs = value.state_vector_to_probabilities(np.asarray(res.final_state_vector))
             probs_exp_k.append(state_probs)
 
         for i, num_cycle in enumerate(cycle_range):
