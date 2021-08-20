@@ -187,7 +187,7 @@ class Calibration(abc.Mapping):
         """Returns a single qubit from a metric key.
 
         Raises:
-           ValueError if the metric key is a tuple of strings.
+           ValueError: If the metric key is a tuple of strings.
         """
         if target and isinstance(target, tuple) and isinstance(target[0], cirq.GridQubit):
             return target[0]
@@ -198,7 +198,7 @@ class Calibration(abc.Mapping):
         """Returns a tuple of qubits from a metric key.
 
         Raises:
-           ValueError if the metric key is a tuple of strings.
+           ValueError: If the metric key is a tuple of strings.
         """
         if (
             target
@@ -234,8 +234,8 @@ class Calibration(abc.Mapping):
             A `cirq.Heatmap` for the metric.
 
         Raises:
-            ValueError if the heatmap is not for one/two qubits or the metric
-            values are not single floats.
+            ValueError: If the heatmap is not for one/two qubits or the metric
+                values are not single floats.
         """
         metrics = self[key]
         if not all(len(k) == 1 for k in metrics.values()):
@@ -270,7 +270,7 @@ class Calibration(abc.Mapping):
             The axis that was plotted on.
 
         Raises:
-            ValueError if the metric values are not single floats.
+            ValueError: If the metric values are not single floats.
         """
         show_plot = not ax
         if not ax:

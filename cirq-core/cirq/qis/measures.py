@@ -287,7 +287,7 @@ def von_neumann_entropy(
     return 0.0
 
 
-def entanglement_fidelity(operation: 'cirq.SupportsChannel') -> float:
+def entanglement_fidelity(operation: 'cirq.SupportsKraus') -> float:
     r"""Returns entanglement fidelity of a given quantum channel.
 
     Entanglement fidelity $F_e$ of a quantum channel $E: L(H) \to L(H)$ is the overlap between

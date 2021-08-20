@@ -78,6 +78,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Adds a measurement result to the log.
 
@@ -85,7 +87,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             qubits: The qubits to measure.
             key: The key the measurement result should be logged under. Note
                 that operations should only store results under keys they have
-                declared in a `_measurement_keys_` method.
+                declared in a `_measurement_key_names_` method.
             invert_mask: The invert mask for the measurement.
         """
         bits = self._perform_measurement(qubits)
@@ -94,6 +96,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             raise ValueError(f"Measurement already logged to key {key!r}")
         self._log_of_measurement_results[key] = corrected
 
+    # pylint: enable=missing-raises-doc
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]
 
@@ -109,10 +112,6 @@ class ActOnArgs(OperationTarget[TSelf]):
     def create_merged_state(self: TSelf) -> TSelf:
         """Creates a final merged state."""
         return self
-
-    def apply_operation(self, op: 'cirq.Operation'):
-        """Applies the operation to the state."""
-        protocols.act_on(op, self)
 
     def kronecker_product(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""
@@ -158,7 +157,8 @@ class ActOnArgs(OperationTarget[TSelf]):
             otherwise.
 
         Raises:
-            ValueError if the qubits are of different dimensionality."""
+            ValueError: If the qubits are of different dimensionality.
+        """
         if q1.dimension != q2.dimension:
             raise ValueError(f'Cannot swap different dimensions: q1={q1}, q2={q2}')
 
@@ -186,7 +186,8 @@ class ActOnArgs(OperationTarget[TSelf]):
             otherwise.
 
         Raises:
-            ValueError if the qubits are of different dimensionality."""
+            ValueError: If the qubits are of different dimensionality.
+        """
         if q1.dimension != q2.dimension:
             raise ValueError(f'Cannot rename to different dimensions: q1={q1}, q2={q2}')
 
@@ -208,10 +209,6 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
         return iter(self.qubits)
-
-    @abc.abstractmethod
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
-        """Handles the act_on protocol fallback implementation."""
 
     @property  # type: ignore
     @deprecated(

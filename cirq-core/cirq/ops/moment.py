@@ -135,6 +135,8 @@ class Moment:
         else:
             return None
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
         """Returns an equal moment, but with the given op added.
 
@@ -157,6 +159,7 @@ class Moment:
 
         return m
 
+    # TODO(#3388) Add documentation for Raises.
     def with_operations(self, *contents: 'cirq.OP_TREE') -> 'cirq.Moment':
         """Returns a new moment with the given contents added.
 
@@ -187,6 +190,7 @@ class Moment:
 
         return m
 
+    # pylint: enable=missing-raises-doc
     def without_operations_touching(self, qubits: Iterable['cirq.Qid']) -> 'cirq.Moment':
         """Returns an equal moment, but without ops on the given qubits.
 
