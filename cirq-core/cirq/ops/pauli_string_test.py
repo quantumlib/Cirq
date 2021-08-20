@@ -1353,7 +1353,6 @@ def test_dense():
 @pytest.mark.parametrize('qubits', [*itertools.permutations(cirq.LineQubit.range(3))])
 def test_gate_consistent(qubits):
     g = cirq.DensePauliString('XYZ')
-    print(qubits)
     assert g == g(*qubits).gate
     a, b, c = cirq.GridQubit.rect(1, 3)
     ps = cirq.X(a) * cirq.Y(b) * cirq.Z(c)
