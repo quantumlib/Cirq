@@ -55,7 +55,7 @@ class MeasureInfo:
 
 # TODO(#3388) Add documentation for Raises.
 # pylint: disable=missing-raises-doc
-def find_measurements(program: cirq.Circuit) -> List[MeasureInfo]:
+def find_measurements(program: cirq.AbstractCircuit) -> List[MeasureInfo]:
     """Find measurements in the given program (circuit).
 
     Returns:
@@ -64,7 +64,7 @@ def find_measurements(program: cirq.Circuit) -> List[MeasureInfo]:
     measurements: List[MeasureInfo] = []
     keys: Set[str] = set()
 
-    if isinstance(program, cirq.Circuit):
+    if isinstance(program, cirq.AbstractCircuit):
         measure_iter = _circuit_measurements(program)
     else:
         raise NotImplementedError(f'Unrecognized program type: {type(program)}')
@@ -79,7 +79,7 @@ def find_measurements(program: cirq.Circuit) -> List[MeasureInfo]:
 
 
 # pylint: enable=missing-raises-doc
-def _circuit_measurements(circuit: cirq.Circuit) -> Iterator[MeasureInfo]:
+def _circuit_measurements(circuit: cirq.AbstractCircuit) -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
             if isinstance(op.gate, cirq.MeasurementGate):

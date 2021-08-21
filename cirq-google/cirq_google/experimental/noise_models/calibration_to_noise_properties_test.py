@@ -9,8 +9,8 @@ import numpy as np
 
 
 def test_noise_properties_from_calibration():
-    xeb_1 = 0.999
-    xeb_2 = 0.996
+    xeb_error_1 = 0.999
+    xeb_error_2 = 0.996
 
     p00_1 = 0.001
     p00_2 = 0.002
@@ -27,13 +27,13 @@ def test_noise_properties_from_calibration():
         name: 'xeb',
         targets: ['0_0', '0_1'],
         values: [{{
-            double_val: {xeb_1}
+            double_val: {xeb_error_1}
         }}]
     }}, {{
         name: 'xeb',
         targets: ['0_0', '1_0'],
         values: [{{
-            double_val:{xeb_2}
+            double_val:{xeb_error_2}
         }}]
     }}, {{
         name: 'single_qubit_p00_error',
@@ -99,7 +99,7 @@ def test_noise_properties_from_calibration():
     prop = noise_properties_from_calibration(calibration)
 
     expected_t1_nanos = np.mean([t1_1, t1_2, t1_3]) * 1000
-    expected_xeb_fidelity = np.mean([xeb_1, xeb_2])
+    expected_xeb_fidelity = 1 - np.mean([xeb_error_1, xeb_error_2])
     expected_p00 = np.mean([p00_1, p00_2, p00_3])
 
     assert np.isclose(prop.t1_ns, expected_t1_nanos)
@@ -209,7 +209,7 @@ def test_validate_calibration():
         name: 'xeb',
         targets: ['0_0', '1_0'],
         values: [{{
-            double_val:{xeb_fidelity}
+            double_val:{1 - xeb_fidelity}
         }}]
      }}]
     """,
@@ -240,7 +240,7 @@ def test_validate_calibration():
         name: 'xeb',
         targets: ['0_0', '1_0'],
         values: [{{
-            double_val:{xeb_fidelity}
+            double_val:{1 - xeb_fidelity}
         }}]
      }}]
     """,
