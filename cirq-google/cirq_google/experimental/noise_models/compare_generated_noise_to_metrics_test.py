@@ -13,7 +13,7 @@ from google.protobuf.text_format import Merge
 import pandas as pd
 
 
-def test():
+def test_compare_generated_noise_to_metrics():
     xeb_1 = 0.001
     xeb_2 = 0.004
 
@@ -123,3 +123,5 @@ def test():
 
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     output_df = compare_generated_noise_to_metrics(calibration, seed=1)
+
+    # TODO check against reasonable values one clear boundaries are established
