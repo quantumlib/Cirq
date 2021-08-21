@@ -42,6 +42,7 @@ SKIP_NOTEBOOKS = [
     # chemistry.ipynb requires openfermion, that installs cirq 0.9.1, which interferes
     # with testing cirq itself...
     'docs/tutorials/educators/chemistry.ipynb',
+    'docs/noise.ipynb',
 ]
 
 
