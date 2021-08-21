@@ -438,8 +438,10 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
     @classmethod
     def _from_json_dict_(cls, _rotation_map, _inverse_map, **kwargs):
-        return cls(_rotation_map=dict([[k, PauliTransform(*v)] for k, v in _rotation_map]),
-                   _inverse_map=dict([[k, PauliTransform(*v)] for k, v in _inverse_map]))
+        return cls(
+            _rotation_map=dict([[k, PauliTransform(*v)] for k, v in _rotation_map]),
+            _inverse_map=dict([[k, PauliTransform(*v)] for k, v in _inverse_map]),
+        )
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
