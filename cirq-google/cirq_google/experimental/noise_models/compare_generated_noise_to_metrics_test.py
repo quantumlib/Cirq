@@ -1,16 +1,9 @@
 import cirq_google
-import numpy as np
-from cirq.devices.noise_properties import NoiseModelFromNoiseProperties
-from cirq_google.experimental.noise_models.calibration_to_noise_properties import (
-    noise_properties_from_calibration,
-)
-import cirq
 from cirq_google.experimental.noise_models.compare_generated_noise_to_metrics import (
     compare_generated_noise_to_metrics,
 )
 from cirq_google.api import v2
 from google.protobuf.text_format import Merge
-import pandas as pd
 
 
 def test_compare_generated_noise_to_metrics():
@@ -122,6 +115,6 @@ def test_compare_generated_noise_to_metrics():
     )
 
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
-    output_df = compare_generated_noise_to_metrics(calibration, seed=1)
+    compare_generated_noise_to_metrics(calibration, seed=1)
 
     # TODO check against reasonable values one clear boundaries are established
