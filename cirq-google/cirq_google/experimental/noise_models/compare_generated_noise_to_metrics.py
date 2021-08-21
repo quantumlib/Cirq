@@ -1,3 +1,4 @@
+# coverage: ignore
 import cirq_google
 import numpy as np
 from cirq.devices.noise_properties import NoiseModelFromNoiseProperties
