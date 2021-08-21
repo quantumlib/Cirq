@@ -121,6 +121,5 @@ def test():
         v2.metrics_pb2.MetricsSnapshot(),
     )
 
-
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
-    output_df = compare_generated_noise_to_metrics(calibration, seed = 1)
+    output_df = compare_generated_noise_to_metrics(calibration, seed=1)
