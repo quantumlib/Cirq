@@ -297,6 +297,8 @@ def _tabulate_kak_vectors(
     return _TabulationStepResult(kept_kaks, kept_cycles)
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def gate_product_tabulation(
     base_gate: np.ndarray,
     max_infidelity: float,
@@ -475,3 +477,6 @@ def gate_product_tabulation(
     return GateTabulation(
         base_gate, kak_vecs, sq_cycles, max_infidelity, summary, tuple(missed_points)
     )
+
+
+# pylint: enable=missing-raises-doc

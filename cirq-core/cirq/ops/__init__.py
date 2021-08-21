@@ -129,6 +129,7 @@ from cirq.ops.linear_combinations import (
     LinearCombinationOfOperations,
     PauliSum,
     PauliSumLike,
+    ProjectorSum,
 )
 
 from cirq.ops.mixed_unitary_channel import (
@@ -138,6 +139,8 @@ from cirq.ops.mixed_unitary_channel import (
 from cirq.ops.pauli_sum_exponential import (
     PauliSumExponential,
 )
+
+from cirq.ops.parallel_gate import ParallelGate, parallel_gate_op
 
 from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,

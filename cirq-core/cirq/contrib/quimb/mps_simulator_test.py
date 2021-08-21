@@ -504,3 +504,17 @@ def test_state_act_on_args_initializer():
     )
     assert s.qubits == (cirq.LineQubit(0),)
     assert s.log_of_measurement_results == {'test': 4}
+
+
+def test_act_on_gate():
+    args = ccq.mps_simulator.MPSState(
+        qubits=cirq.LineQubit.range(3),
+        prng=np.random.RandomState(0),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(cirq.X, args, [cirq.LineQubit(1)])
+    np.testing.assert_allclose(
+        args.state_vector().reshape((2, 2, 2)),
+        cirq.one_hot(index=(0, 1, 0), shape=(2, 2, 2), dtype=np.complex64),
+    )
