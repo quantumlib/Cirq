@@ -115,6 +115,6 @@ def test_compare_generated_noise_to_metrics():
     )
 
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
-    compare_generated_noise_to_metrics(calibration, seed=1)
+    compare_generated_noise_to_metrics(calibration)
 
     # TODO check against reasonable values one clear boundaries are established

@@ -9,8 +9,7 @@ import pandas as pd
 
 
 def compare_generated_noise_to_metrics(
-    calibration: cirq_google.Calibration, validate: bool = True, tolerance: float = 0.01, seed=None
-):
+    calibration: cirq_google.Calibration, validate: bool = True, tolerance: float = 0.01):
     """Compares the metrics from a Calibration object to those measured from a Noise Model
        created with cirq.devices.noise_properties_from_calibration.
 
@@ -18,7 +17,6 @@ def compare_generated_noise_to_metrics(
     calibration: Calibration object to be turned into a Noise Model
     validate: check calibration metrics are in agreement (arg for noise_properties_from_calibration)
     tolerance: tolerance for calibration metrics (argument for noise_properties_from_calibration)
-    seed: random seed for Simulator
 
     Returns:
     df: Pandas dataframe comparing input and measured values for each calibration metric
@@ -37,10 +35,7 @@ def compare_generated_noise_to_metrics(
     qubits = [cirq.LineQubit(0), cirq.LineQubit(1)]
 
     # Create simulator for experiments with noise model
-    if seed is not None:
-        simulator = cirq.sim.DensityMatrixSimulator(noise=noise_model, seed=seed)
-    else:
-        simulator = cirq.sim.DensityMatrixSimulator(noise=noise_model)
+    simulator = cirq.sim.DensityMatrixSimulator(noise=noise_model)
 
     # Experiments to measure metrics
     estimate_readout = cirq.experiments.estimate_single_qubit_readout_errors(
