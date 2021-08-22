@@ -22,6 +22,8 @@ if TYPE_CHECKING:
     import cirq
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 @value.value_equality
 class CircularShiftGate(PermutationGate):
     """Performs a cyclical permutation of the qubits to the left by a specified
@@ -73,3 +75,6 @@ class CircularShiftGate(PermutationGate):
         shift = self.shift % self.num_qubits()
         permuted_indices = itertools.chain(range(shift, self.num_qubits()), range(shift))
         return {s: i for i, s in enumerate(permuted_indices)}
+
+
+# pylint: enable=missing-param-doc
