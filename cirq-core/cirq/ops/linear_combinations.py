@@ -767,6 +767,11 @@ class ProjectorSum:
     def _value_equality_values_(self):
         return self._linear_dict
 
+    @property
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+        qs = {q for k in self._linear_dict.keys() for q, _ in k}
+        return tuple(sorted(qs))
+
     def _json_dict_(self) -> Dict[str, Any]:
         linear_dict = []
         for projector_dict, scalar in dict(self._linear_dict).items():
