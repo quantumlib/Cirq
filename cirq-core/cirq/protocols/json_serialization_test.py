@@ -775,7 +775,7 @@ def test_json_serializable_dataclass_parenthesis():
     assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
 
 
-def test_json_serializable_dataclass_no_decorator():
+def test_dataclass_json_dict():
     @dataclasses.dataclass(frozen=True)
     class MyDC:
         q: cirq.LineQubit
