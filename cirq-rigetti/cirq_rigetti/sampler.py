@@ -55,7 +55,7 @@ class RigettiQCSSampler(cirq.Sampler):
 
     def run_sweep(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> List[cirq.Result]:
@@ -75,7 +75,7 @@ class RigettiQCSSampler(cirq.Sampler):
         resolvers = [r for r in cirq.to_resolvers(params)]
         return self.executor(
             quantum_computer=self._quantum_computer,
-            circuit=program,
+            circuit=program.unfreeze(copy=False),
             resolvers=resolvers,
             repetitions=repetitions,
             transformer=self.transformer,

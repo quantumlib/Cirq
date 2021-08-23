@@ -370,6 +370,8 @@ def _to_sweep(param_tuples):
     return to_sweep
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def _parse_checkpoint_options(
     checkpoint: bool, checkpoint_fn: Optional[str], checkpoint_other_fn: Optional[str]
 ) -> Tuple[Optional[str], Optional[str]]:
@@ -470,6 +472,7 @@ class CheckpointFileOptions:
         to_json(value, self.checkpoint_fn)
 
 
+# pylint: enable=missing-raises-doc
 def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting]]) -> bool:
     """Helper function to go through init_states and determine if any of them need an
     initialization layer of single-qubit gates."""
@@ -479,6 +482,8 @@ def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting
     return False
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def measure_grouped_settings(
     circuit: 'cirq.AbstractCircuit',
     grouped_settings: Dict[InitObsSetting, List[InitObsSetting]],
@@ -593,6 +598,7 @@ def measure_grouped_settings(
         checkpoint.maybe_to_json(list(accumulators.values()))
 
     return list(accumulators.values())
+# pylint: enable=missing-raises-doc
 
 
 _GROUPING_FUNCS: Dict[str, GROUPER_T] = {

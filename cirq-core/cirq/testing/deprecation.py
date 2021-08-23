@@ -15,25 +15,11 @@ import logging
 import os
 from typing import Optional
 
-from cirq._compat import deprecated_parameter
 from cirq.testing import assert_logs
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
 
-@deprecated_parameter(
-    deadline='v0.12',
-    fix='Use count instead.',
-    parameter_desc='allow_multiple_warnings',
-    match=lambda args, kwargs: 'allow_multiple_warnings' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        dict(
-            ('count', None if v == True else 1) if k == 'allow_multiple_warnings' else (k, v)
-            for k, v in kwargs.items()
-        ),
-    ),
-)
 def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
     """Allows deprecated functions, classes, decorators in tests.
 

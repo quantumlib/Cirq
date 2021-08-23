@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import cirq.devices.unconstrained_device
 
 
-@functools.lru_cache(maxsize=1)
+@functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import cirq
     from cirq.ops import raw_types
@@ -112,6 +112,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,
         'ParamResolver': cirq.ParamResolver,
         'ParallelGateOperation': cirq.ParallelGateOperation,
+        'ParallelGate': cirq.ParallelGate,
         'PauliString': cirq.PauliString,
         'PhaseDampingChannel': cirq.PhaseDampingChannel,
         'PhaseFlipChannel': cirq.PhaseFlipChannel,
@@ -121,6 +122,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
         'ProjectorString': cirq.ProjectorString,
+        'ProjectorSum': cirq.ProjectorSum,
         'RandomGateChannel': cirq.RandomGateChannel,
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,

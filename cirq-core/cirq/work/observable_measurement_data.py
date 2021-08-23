@@ -383,6 +383,8 @@ class BitstringAccumulator:
         s += '\n'.join('  ' + self.summary_string(setting) for setting in self._simul_settings)
         return s
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def covariance(self, *, atol=1e-8) -> np.ndarray:
         """Compute the covariance matrix for the estimators of all settings.
 
@@ -416,6 +418,7 @@ class BitstringAccumulator:
         cov = np.cov(all_obs_vals, ddof=1) / all_obs_vals.shape[1]
         return cov
 
+    # pylint: enable=missing-raises-doc
     def _validate_setting(self, setting: InitObsSetting, what: str):
         mws = _max_weight_state([self.max_setting.init_state, setting.init_state])
         mwo = _max_weight_observable([self.max_setting.observable, setting.observable])
@@ -425,6 +428,8 @@ class BitstringAccumulator:
                 f"with this BitstringAccumulator's meas_spec."
             )
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def variance(self, setting: InitObsSetting, *, atol: float = 1e-8):
         """Compute the variance of the estimators of the given setting.
 
@@ -470,6 +475,7 @@ class BitstringAccumulator:
 
         return var
 
+    # pylint: enable=missing-raises-doc
     def stderr(self, setting: InitObsSetting, *, atol: float = 1e-8):
         """The standard error of the estimators for `setting`."""
         return np.sqrt(self.variance(setting, atol=atol))

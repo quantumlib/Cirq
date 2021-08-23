@@ -17,3 +17,7 @@ from cirq_web.widget import Widget
 from cirq_web.bloch_sphere import (
     BlochSphere,
 )
+
+from cirq_web.circuits import (
+    Circuit3D,
+)

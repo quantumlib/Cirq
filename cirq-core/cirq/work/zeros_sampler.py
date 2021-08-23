@@ -37,7 +37,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.Result]:
@@ -60,7 +60,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             self.device.validate_circuit(program)
         measurements = {}  # type: Dict[str, np.ndarray]
         for op in program.all_operations():
-            key = protocols.measurement_key(op, default=None)
+            key = protocols.measurement_key_name(op, default=None)
             if key is not None:
                 measurements[key] = np.zeros((repetitions, len(op.qubits)), dtype=int)
         return [

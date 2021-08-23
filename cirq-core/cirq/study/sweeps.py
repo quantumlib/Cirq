@@ -403,6 +403,8 @@ class Linspace(SingleSweep):
 class ListSweep(Sweep):
     """A wrapper around a list of `ParamResolver`s."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, resolver_list: Iterable[resolver.ParamResolverOrSimilarType]):
         """Creates a `Sweep` over a list of `ParamResolver`s.
 
@@ -416,6 +418,7 @@ class ListSweep(Sweep):
                 raise TypeError(f'Not a ParamResolver or dict: <{r!r}>')
             self.resolver_list.append(resolver.ParamResolver(r))
 
+    # pylint: enable=missing-raises-doc
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
