@@ -52,8 +52,8 @@ def test_measure_init(num_qubits):
         cirq.MeasurementGate(5, 'a', invert_mask=(True,) * 6)
     with pytest.raises(ValueError, match='len.* !='):
         cirq.MeasurementGate(5, 'a', qid_shape=(1, 2))
-    with pytest.raises(ValueError, match='cannot be empty'):
-        cirq.MeasurementGate(2, qid_shape=(1, 2))
+    with pytest.raises(ValueError, match='valid string'):
+        cirq.MeasurementGate(2, qid_shape=(1, 2), key=None)
     with pytest.raises(ValueError, match='Specify either'):
         cirq.MeasurementGate()
 

@@ -23,7 +23,7 @@ def _check_qids_dimension(qids):
             raise ValueError(f"Only qubits are supported, but {qid} has dimension {qid.dimension}")
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class ProjectorString:
     def __init__(
         self,

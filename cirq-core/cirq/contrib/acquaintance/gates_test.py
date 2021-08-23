@@ -232,8 +232,9 @@ def test_swap_network_init_error():
         cca.SwapNetworkGate((3,))
 
 
+rng = np.random.default_rng()
 part_lens_and_acquaintance_sizes = [
-    [[l + 1 for l in np.random.poisson(size=n_parts, lam=lam)], np.random.poisson(4)]
+    [[l + 1 for l in rng.poisson(size=n_parts, lam=lam)], rng.poisson(4)]
     for n_parts, lam in product(range(2, 20, 3), range(1, 4))
 ]
 
