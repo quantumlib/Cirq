@@ -14,7 +14,6 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from dataclasses import dataclass
 from typing import (
     List,
     Optional,
@@ -343,7 +342,7 @@ def parameterize_circuit(
 QPair_T = Tuple['cirq.Qid', 'cirq.Qid']
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class XEBCharacterizationResult:
     """The result of `characterize_phased_fsim_parameters_with_xeb`.
 
@@ -434,7 +433,7 @@ def characterize_phased_fsim_parameters_with_xeb(
     )
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class _CharacterizePhasedFsimParametersWithXebClosure:
     """A closure object to wrap `characterize_phased_fsim_parameters_with_xeb` for use in
     multiprocessing."""
