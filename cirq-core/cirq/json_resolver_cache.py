@@ -94,6 +94,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'LinearDict': cirq.LinearDict,
         'LineQubit': cirq.LineQubit,
         'LineQid': cirq.LineQid,
+        'LineTopology': cirq.LineTopology,
         'MatrixGate': cirq.MatrixGate,
         'MixedUnitaryChannel': cirq.MixedUnitaryChannel,
         'MeasurementKey': cirq.MeasurementKey,
@@ -134,6 +135,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SwapPowGate': cirq.SwapPowGate,
         'SymmetricalQidPair': cirq.SymmetricalQidPair,
         'TaggedOperation': cirq.TaggedOperation,
+        'TiltedSquareLattice': cirq.TiltedSquareLattice,
         'TrialResult': cirq.Result,  # keep support for Cirq < 0.11.
         'Result': cirq.Result,
         'Rx': cirq.Rx,
