@@ -126,6 +126,7 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesAmplitudes',
         'SimulatesExpectationValues',
         'SimulatesFinalState',
+        'NamedTopology',
         # protocols:
         'SupportsActOn',
         'SupportsActOnQubits',

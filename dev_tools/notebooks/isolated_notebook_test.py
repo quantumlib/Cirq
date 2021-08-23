@@ -39,7 +39,11 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = ['docs/noise.ipynb']
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
+    'docs/noise.ipynb',
+    # Named topologies
+    'docs/named_topologies.ipynb',
+]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
