@@ -22,6 +22,7 @@ import sympy
 
 import cirq
 import cirq.testing
+from cirq import circuits
 from cirq import ops
 from cirq.testing.devices import ValidatingTestDevice
 
@@ -3356,7 +3357,7 @@ def test_pick_inserted_ops_moment_indices():
         expected_circuit._moments += [
             cirq.Moment() for _ in range(len(circuit) - len(expected_circuit))
         ]
-        insert_indices, _ = circuit._pick_inserted_ops_moment_indices(operations, start)
+        insert_indices, _ = circuits.circuit._pick_inserted_ops_moment_indices(operations, start)
         actual_circuit = cirq.Circuit(
             first_half._moments + [cirq.Moment() for _ in range(n_moments - start)]
         )
@@ -3860,16 +3861,19 @@ def test_measurement_key_mapping(circuit_cls):
         cirq.measure(a, key='m1'),
         cirq.measure(b, key='m2'),
     )
-    assert c.all_measurement_keys() == {'m1', 'm2'}
+    assert c.all_measurement_key_names() == {'m1', 'm2'}
 
-    assert cirq.with_measurement_key_mapping(c, {'m1': 'p1'}).all_measurement_keys() == {'p1', 'm2'}
+    assert cirq.with_measurement_key_mapping(c, {'m1': 'p1'}).all_measurement_key_names() == {
+        'p1',
+        'm2',
+    }
 
     assert cirq.with_measurement_key_mapping(
         c, {'m1': 'p1', 'm2': 'p2'}
-    ).all_measurement_keys() == {'p1', 'p2'}
+    ).all_measurement_key_names() == {'p1', 'p2'}
 
     c_swapped = cirq.with_measurement_key_mapping(c, {'m1': 'm2', 'm2': 'm1'})
-    assert c_swapped.all_measurement_keys() == {'m1', 'm2'}
+    assert c_swapped.all_measurement_key_names() == {'m1', 'm2'}
 
     # Verify that the keys were actually swapped.
     simulator = cirq.Simulator()
@@ -3882,7 +3886,7 @@ def test_measurement_key_mapping(circuit_cls):
             {
                 'x': 'z',
             },
-        ).all_measurement_keys()
+        ).all_measurement_key_names()
         == {'m1', 'm2'}
     )
 
@@ -4287,9 +4291,9 @@ def test_indexing_by_numpy_integer(circuit_cls):
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_all_measurement_keys(circuit_cls):
+def test_all_measurement_key_names(circuit_cls):
     class Unknown(cirq.SingleQubitGate):
-        def _measurement_key_(self):
+        def _measurement_key_name_(self):
             return 'test'
 
     a, b = cirq.LineQubit.range(2)
@@ -4304,10 +4308,10 @@ def test_all_measurement_keys(circuit_cls):
     )
 
     # Big case.
-    assert c.all_measurement_keys() == {'x', 'y', 'xy', 'test'}
+    assert c.all_measurement_key_names() == {'x', 'y', 'xy', 'test'}
 
     # Empty case.
-    assert circuit_cls().all_measurement_keys() == set()
+    assert circuit_cls().all_measurement_key_names() == set()
 
     # Order does not matter.
     assert (
@@ -4318,7 +4322,7 @@ def test_all_measurement_keys(circuit_cls):
                     cirq.measure(b, key='y'),
                 ]
             )
-        ).all_measurement_keys()
+        ).all_measurement_key_names()
         == {'x', 'y'}
     )
     assert (
@@ -4329,7 +4333,7 @@ def test_all_measurement_keys(circuit_cls):
                     cirq.measure(a, key='x'),
                 ]
             )
-        ).all_measurement_keys()
+        ).all_measurement_key_names()
         == {'x', 'y'}
     )
 
@@ -4726,3 +4730,126 @@ def test_factorize_large_circuit():
     assert len(factors) == 5
     for f, d in zip(factors, desired):
         cirq.testing.assert_has_diagram(f, d)
+
+
+def test_zero_target_operations_go_below_diagram():
+    class CustomOperationAnnotation(cirq.Operation):
+        def __init__(self, text: str):
+            self.text = text
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        @property
+        def qubits(self):
+            return ()
+
+        def _circuit_diagram_info_(self, args) -> str:
+            return self.text
+
+    class CustomOperationAnnotationNoInfo(cirq.Operation):
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        @property
+        def qubits(self):
+            return ()
+
+        def __str__(self):
+            return "custom!"
+
+    class CustomGateAnnotation(cirq.Gate):
+        def __init__(self, text: str):
+            self.text = text
+
+        def _num_qubits_(self):
+            return 0
+
+        def _circuit_diagram_info_(self, args) -> str:
+            return self.text
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.Moment(
+                CustomOperationAnnotation("a"),
+                CustomGateAnnotation("b").on(),
+                CustomOperationAnnotation("c"),
+            ),
+            cirq.Moment(
+                CustomOperationAnnotation("e"),
+                CustomOperationAnnotation("d"),
+            ),
+        ),
+        """
+    a   e
+    b   d
+    c
+    """,
+    )
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(0)),
+                CustomOperationAnnotation("a"),
+                cirq.GlobalPhaseOperation(1j),
+            ),
+        ),
+        """
+0: ─────────────H──────
+
+global phase:   0.5π
+                a
+    """,
+    )
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(0)),
+                cirq.CircuitOperation(cirq.FrozenCircuit(CustomOperationAnnotation("a"))),
+            ),
+        ),
+        """
+0: ───H───
+      a
+        """,
+    )
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.Moment(
+                cirq.X(cirq.LineQubit(0)),
+                CustomOperationAnnotation("a"),
+                CustomGateAnnotation("b").on(),
+                CustomOperationAnnotation("c"),
+            ),
+            cirq.Moment(
+                CustomOperationAnnotation("eee"),
+                CustomOperationAnnotation("d"),
+            ),
+            cirq.Moment(
+                cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(2)),
+                cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(3)),
+                CustomOperationAnnotationNoInfo(),
+                CustomOperationAnnotation("zzz"),
+            ),
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(2)),
+            ),
+        ),
+        """
+                ┌────────┐
+0: ───X──────────@───────────────
+                 │
+1: ──────────────┼──────@────────
+                 │      │
+2: ──────────────X──────┼────H───
+                        │
+3: ─────────────────────X────────
+      a   eee    custom!
+      b   d      zzz
+      c
+                └────────┘
+    """,
+    )

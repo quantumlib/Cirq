@@ -19,11 +19,11 @@ from pytz import utc
 import cirq
 from cirq_google.engine.client.quantum import types as qtypes
 from cirq_google.engine.client.quantum import enums as qenums
-from cirq_google import serializable_gate_set
 from cirq_google.api import v2
 from cirq_google.devices import serializable_device
 from cirq_google.engine import calibration
 from cirq_google.engine.engine_timeslot import EngineTimeSlot
+from cirq_google.serialization.serializable_gate_set import SerializableGateSet
 
 if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
@@ -110,9 +110,7 @@ class EngineProcessor:
         else:
             return None
 
-    def get_device(
-        self, gate_sets: Iterable[serializable_gate_set.SerializableGateSet]
-    ) -> cirq.Device:
+    def get_device(self, gate_sets: Iterable[SerializableGateSet]) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
@@ -123,11 +121,6 @@ class EngineProcessor:
         if not spec:
             raise ValueError('Processor does not have a device specification')
         return serializable_device.SerializableDevice.from_proto(spec, gate_sets)
-
-    @staticmethod
-    def _to_calibration(calibration_any: qtypes.any_pb2.Any) -> calibration.Calibration:
-        metrics = v2.metrics_pb2.MetricsSnapshot.FromString(calibration_any.value)
-        return calibration.Calibration(metrics)
 
     def list_calibrations(
         self,
@@ -159,7 +152,7 @@ class EngineProcessor:
         response = self.context.client.list_calibrations(
             self.project_id, self.processor_id, filter_str
         )
-        return [self._to_calibration(c.data) for c in list(response)]
+        return [_to_calibration(c.data) for c in list(response)]
 
     def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
         """Retrieve metadata about a specific calibration run.
@@ -174,7 +167,7 @@ class EngineProcessor:
         response = self.context.client.get_calibration(
             self.project_id, self.processor_id, calibration_timestamp_seconds
         )
-        return self._to_calibration(response.data)
+        return _to_calibration(response.data)
 
     def get_current_calibration(
         self,
@@ -186,7 +179,7 @@ class EngineProcessor:
         """
         response = self.context.client.get_current_calibration(self.project_id, self.processor_id)
         if response:
-            return self._to_calibration(response.data)
+            return _to_calibration(response.data)
         else:
             return None
 
@@ -350,6 +343,11 @@ class EngineProcessor:
             f"EngineProcessor(project_id={self.project_id!r}, "
             f"processor_id={self.processor_id!r})"
         )
+
+
+def _to_calibration(calibration_any: qtypes.any_pb2.Any) -> calibration.Calibration:
+    metrics = v2.metrics_pb2.MetricsSnapshot.FromString(calibration_any.value)
+    return calibration.Calibration(metrics)
 
 
 def _to_date_time_filters(

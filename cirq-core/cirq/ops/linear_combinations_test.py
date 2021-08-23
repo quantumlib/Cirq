@@ -18,6 +18,7 @@ from typing import Union
 import numpy as np
 import pytest
 import sympy
+import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 import cirq.testing
@@ -417,7 +418,7 @@ def test_in_place_manipulations_of_linear_combination_of_gates(gates):
         cirq.CZ(q0, q1),
         cirq.FREDKIN(q0, q1, q2),
         cirq.ControlledOperation((q0, q1), cirq.H(q2)),
-        cirq.ParallelGateOperation(cirq.X, (q0, q1, q2)),
+        cirq.ParallelGate(cirq.X, 3).on(q0, q1, q2),
         cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.Z}),
     ),
 )
@@ -919,7 +920,7 @@ def test_parameterized_linear_combination_of_ops(
     (
         (
             cirq.LinearCombinationOfOperations({cirq.XX(q0, q1): 2}),
-            cirq.LinearCombinationOfOperations({cirq.ParallelGateOperation(cirq.X, (q0, q1)): 2}),
+            cirq.LinearCombinationOfOperations({cirq.ParallelGate(cirq.X, 2).on(q0, q1): 2}),
         ),
         (
             cirq.LinearCombinationOfOperations({cirq.CNOT(q0, q1): 2}),
@@ -1035,6 +1036,7 @@ def test_non_pauli_sum_has_no_unitary(psum):
         (cirq.Z(q1), (q1,)),
         (cirq.X(q0) + cirq.Y(q0), (q0,)),
         (cirq.X(q0) + cirq.Y(q2), (q0, q2)),
+        (cirq.X(q2) + cirq.Y(q0), (q0, q2)),
         (cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3), (q0, q1, q3)),
     ),
 )
@@ -1136,6 +1138,10 @@ def test_paulisum_validation():
     ld = cirq.LinearDict({key: 2.0})
     assert cirq.PauliSum(ld) == cirq.PauliSum.from_pauli_strings([2 * cirq.X(q[0])])
 
+    ps = cirq.PauliSum()
+    ps += cirq.I(cirq.LineQubit(0))
+    assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
+
 
 def test_add_number_paulisum():
     q = cirq.LineQubit.range(2)
@@ -1187,6 +1193,35 @@ def test_pauli_sum_formatting():
 
     empty = cirq.PauliSum.from_pauli_strings([])
     assert str(empty) == "0.000"
+
+
+def test_pauli_sum_matrix():
+    q = cirq.LineQubit.range(3)
+    paulisum = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
+    H1 = np.array(
+        [[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 1.0, 0.0], [0.0, 1.0, -1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
+    )
+    assert np.allclose(H1, paulisum.matrix())
+    assert np.allclose(H1, paulisum.matrix([q[0], q[1]]))
+    # Expects a different matrix when change qubits order.
+    H2 = np.array(
+        [[1.0, 0.0, 0.0, 1.0], [0.0, -1.0, 1.0, 0.0], [0.0, 1.0, 1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
+    )
+    assert np.allclose(H2, paulisum.matrix([q[1], q[0]]))
+    # Expects matrix with a different size when add a new qubit.
+    H3 = np.array(
+        [
+            [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+            [0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0],
+        ]
+    )
+    assert np.allclose(H3, paulisum.matrix([q[1], q[2], q[0]]))
 
 
 def test_pauli_sum_repr():
@@ -1316,6 +1351,42 @@ def test_pauli_sum_pow():
 
     for psum in [psum1, psum2, psum3, psum4]:
         assert cirq.approx_eq(psum ** 0, identity)
+
+
+# Using the entries of table 1 of https://arxiv.org/abs/1804.09130 as golden values.
+@pytest.mark.parametrize(
+    'boolean_expr,expected_pauli_sum',
+    [
+        ('x', ['(-0.5+0j)*Z(x)', '(0.5+0j)*I']),
+        ('~x', ['(0.5+0j)*I', '(0.5+0j)*Z(x)']),
+        ('x0 ^ x1', ['(-0.5+0j)*Z(x0)*Z(x1)', '(0.5+0j)*I']),
+        (
+            'x0 & x1',
+            ['(-0.25+0j)*Z(x0)', '(-0.25+0j)*Z(x1)', '(0.25+0j)*I', '(0.25+0j)*Z(x0)*Z(x1)'],
+        ),
+        (
+            'x0 | x1',
+            ['(-0.25+0j)*Z(x0)', '(-0.25+0j)*Z(x0)*Z(x1)', '(-0.25+0j)*Z(x1)', '(0.75+0j)*I'],
+        ),
+        ('x0 ^ x1 ^ x2', ['(-0.5+0j)*Z(x0)*Z(x1)*Z(x2)', '(0.5+0j)*I']),
+    ],
+)
+def test_from_boolean_expression(boolean_expr, expected_pauli_sum):
+    boolean = sympy_parser.parse_expr(boolean_expr)
+    qubit_map = {name: cirq.NamedQubit(name) for name in sorted(cirq.parameter_names(boolean))}
+    actual = cirq.PauliSum.from_boolean_expression(boolean, qubit_map)
+    # Instead of calling str() directly, first make sure that the items are sorted. This is to make
+    # the unit test more robut in case Sympy would result in a different parsing order. By sorting
+    # the individual items, we would have a canonical representation.
+    actual_items = list(sorted(str(pauli_string) for pauli_string in actual))
+    assert expected_pauli_sum == actual_items
+
+
+def test_unsupported_op():
+    not_a_boolean = sympy_parser.parse_expr('x * x')
+    qubit_map = {name: cirq.NamedQubit(name) for name in cirq.parameter_names(not_a_boolean)}
+    with pytest.raises(ValueError, match='Unsupported type'):
+        cirq.PauliSum.from_boolean_expression(not_a_boolean, qubit_map)
 
 
 def test_imul_aliasing():
@@ -1591,3 +1662,302 @@ def test_expectation_from_density_matrix_two_qubit_states():
         np.testing.assert_allclose(
             psum3.expectation_from_density_matrix(state, qubit_map=q_map_2), 0
         )
+
+
+def test_projector_sum_expectations_matrix():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 0}, coefficient=0.2016)
+    )
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 1}, coefficient=0.0913)
+    )
+    proj_sum = 0.6 * zero_projector_sum + 0.4 * one_projector_sum
+
+    np.testing.assert_allclose(
+        proj_sum.matrix().toarray(),
+        0.6 * zero_projector_sum.matrix().toarray() + 0.4 * one_projector_sum.matrix().toarray(),
+    )
+
+
+def test_projector_sum_expectations_from_state_vector():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 0}, coefficient=0.2016)
+    )
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 1}, coefficient=0.0913)
+    )
+    proj_sum = 0.6 * zero_projector_sum + 0.4 * one_projector_sum
+
+    random_state_vector = cirq.testing.random_superposition(2)
+
+    np.testing.assert_allclose(
+        proj_sum.expectation_from_state_vector(random_state_vector, qid_map={q0: 0}),
+        0.6 * zero_projector_sum.expectation_from_state_vector(random_state_vector, qid_map={q0: 0})
+        + 0.4
+        * one_projector_sum.expectation_from_state_vector(random_state_vector, qid_map={q0: 0}),
+    )
+
+
+def test_projector_sum_expectations_from_density_matrix():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 0}, coefficient=0.2016)
+    )
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        cirq.ProjectorString({q0: 1}, coefficient=0.0913)
+    )
+    proj_sum = 0.6 * zero_projector_sum + 0.4 * one_projector_sum
+
+    ranom_density_matrix = cirq.testing.random_density_matrix(2)
+
+    np.testing.assert_allclose(
+        proj_sum.expectation_from_density_matrix(ranom_density_matrix, qid_map={q0: 0}),
+        0.6
+        * zero_projector_sum.expectation_from_density_matrix(ranom_density_matrix, qid_map={q0: 0})
+        + 0.4
+        * one_projector_sum.expectation_from_density_matrix(ranom_density_matrix, qid_map={q0: 0}),
+    )
+
+
+def test_projector_sum_accessor():
+    q0 = cirq.NamedQubit('q0')
+
+    projector_string_1 = cirq.ProjectorString({q0: 0}, 0.2016)
+    projector_string_2 = cirq.ProjectorString({q0: 1}, 0.0913)
+
+    projector_sum = cirq.ProjectorSum.from_projector_strings(
+        [projector_string_1, projector_string_2]
+    )
+
+    assert len(projector_sum) == 2
+    expanded_projector_strings = list(projector_sum)
+    assert expanded_projector_strings == [projector_string_1, projector_string_2]
+
+
+def test_projector_bool_operation():
+    q0 = cirq.NamedQubit('q0')
+
+    empty_projector_sum = cirq.ProjectorSum.from_projector_strings([])
+    non_empty_projector_sum = cirq.ProjectorSum.from_projector_strings(
+        [cirq.ProjectorString({q0: 0})]
+    )
+
+    assert not empty_projector_sum
+    assert non_empty_projector_sum
+
+
+def test_projector_sum_addition():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+    one_projector_string = cirq.ProjectorString({q0: 1})
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(one_projector_string)
+
+    simple_addition = zero_projector_sum + one_projector_sum
+    np.testing.assert_allclose(simple_addition.matrix().toarray(), [[1.0, 0.0], [0.0, 1.0]])
+
+    simple_addition = zero_projector_sum + one_projector_string
+    np.testing.assert_allclose(simple_addition.matrix().toarray(), [[1.0, 0.0], [0.0, 1.0]])
+
+    # Check that the inputs are not changed:
+    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(one_projector_sum.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
+
+    with pytest.raises(TypeError):
+        _ = zero_projector_sum + 0.20160913
+
+
+def test_projector_sum_subtraction():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+    one_projector_string = cirq.ProjectorString({q0: 1})
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(one_projector_string)
+
+    simple_subtraction = zero_projector_sum - one_projector_sum
+    np.testing.assert_allclose(simple_subtraction.matrix().toarray(), [[1.0, 0.0], [0.0, -1.0]])
+
+    simple_subtraction = zero_projector_sum - one_projector_string
+    np.testing.assert_allclose(simple_subtraction.matrix().toarray(), [[1.0, 0.0], [0.0, -1.0]])
+
+    # Check that the inputs are not changed:
+    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(one_projector_sum.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
+
+    with pytest.raises(TypeError):
+        _ = zero_projector_sum - 0.87539319
+
+
+def test_projector_sum_negation():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+
+    negation = -zero_projector_sum.copy()
+    np.testing.assert_allclose(negation.matrix().toarray(), [[-1.0, 0.0], [0.0, 0.0]])
+
+    # Check that the input is not changed:
+    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+
+
+def test_projector_sum_incrementation():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+    one_projector_string = cirq.ProjectorString({q0: 1})
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(one_projector_string)
+
+    incrementation = zero_projector_sum.copy()
+    incrementation += one_projector_sum
+    np.testing.assert_allclose(incrementation.matrix().toarray(), [[1.0, 0.0], [0.0, 1.0]])
+
+    incrementation = zero_projector_sum.copy()
+    incrementation += one_projector_string
+    np.testing.assert_allclose(incrementation.matrix().toarray(), [[1.0, 0.0], [0.0, 1.0]])
+
+    # Check that the inputs are not changed:
+    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(one_projector_sum.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
+
+    with pytest.raises(TypeError):
+        zero_projector_sum += 0.6963472309248
+
+
+def test_projector_sum_decrementation():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+    one_projector_string = cirq.ProjectorString({q0: 1})
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(one_projector_string)
+
+    decrementation = zero_projector_sum.copy()
+    decrementation -= one_projector_sum
+    np.testing.assert_allclose(decrementation.matrix().toarray(), [[1.0, 0.0], [0.0, -1.0]])
+
+    decrementation = zero_projector_sum.copy()
+    decrementation -= one_projector_string
+    np.testing.assert_allclose(decrementation.matrix().toarray(), [[1.0, 0.0], [0.0, -1.0]])
+
+    # Check that the inputs are not changed:
+    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(one_projector_sum.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
+
+    with pytest.raises(TypeError):
+        zero_projector_sum -= 0.12345
+
+
+def test_projector_sum_multiplication_left():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+
+    multiplication_float = 2.0 * zero_projector_sum
+    np.testing.assert_allclose(multiplication_float.matrix().toarray(), [[2.0, 0.0], [0.0, 0.0]])
+
+    multiplication_int = 2 * zero_projector_sum
+    np.testing.assert_allclose(multiplication_int.matrix().toarray(), [[2.0, 0.0], [0.0, 0.0]])
+
+    multiplication_complex = 2j * zero_projector_sum
+    np.testing.assert_allclose(multiplication_complex.matrix().toarray(), [[2.0j, 0.0], [0.0, 0.0]])
+
+    # Check that the input is not changed:
+    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+
+    with pytest.raises(TypeError):
+        _ = 'not_the_correct_type' * zero_projector_sum
+
+
+def test_projector_sum_multiplication_right():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+
+    multiplication_float = zero_projector_sum * 2.0
+    np.testing.assert_allclose(multiplication_float.matrix().toarray(), [[2.0, 0.0], [0.0, 0.0]])
+
+    multiplication_int = zero_projector_sum * 2
+    np.testing.assert_allclose(multiplication_int.matrix().toarray(), [[2.0, 0.0], [0.0, 0.0]])
+
+    multiplication_complex = zero_projector_sum * 2j
+    np.testing.assert_allclose(multiplication_complex.matrix().toarray(), [[2.0j, 0.0], [0.0, 0.0]])
+
+    # Check that the input is not changed:
+    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+
+    with pytest.raises(TypeError):
+        _ = zero_projector_sum * 'not_the_correct_type'
+
+
+def test_projector_sum_self_multiplication():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+
+    multiplication_float = zero_projector_sum.copy()
+    multiplication_float *= 2.0
+    np.testing.assert_allclose(multiplication_float.matrix().toarray(), [[2.0, 0.0], [0.0, 0.0]])
+
+    multiplication_int = zero_projector_sum.copy()
+    multiplication_int *= 2
+    np.testing.assert_allclose(multiplication_int.matrix().toarray(), [[2.0, 0.0], [0.0, 0.0]])
+
+    multiplication_complex = zero_projector_sum.copy()
+    multiplication_complex *= 2j
+    np.testing.assert_allclose(multiplication_complex.matrix().toarray(), [[2.0j, 0.0], [0.0, 0.0]])
+
+    with pytest.raises(TypeError):
+        zero_projector_sum *= 'not_the_correct_type'
+
+
+def test_projector_sum_weighted_sum():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+    one_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 1}))
+
+    weighted_sum = 0.6 * zero_projector_sum + 0.4 * one_projector_sum
+    np.testing.assert_allclose(weighted_sum.matrix().toarray(), [[0.6, 0.0], [0.0, 0.4]])
+
+    # Check that the inputs are not changed:
+    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(one_projector_sum.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
+
+
+def test_projector_sum_division():
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
+
+    true_division_float = zero_projector_sum / 2.0
+    np.testing.assert_allclose(true_division_float.matrix().toarray(), [[0.5, 0.0], [0.0, 0.0]])
+
+    true_division_int = zero_projector_sum / 2
+    np.testing.assert_allclose(true_division_int.matrix().toarray(), [[0.5, 0.0], [0.0, 0.0]])
+
+    true_division_complex = zero_projector_sum / 2j
+    np.testing.assert_allclose(true_division_complex.matrix().toarray(), [[-0.5j, 0.0], [0.0, 0.0]])
+
+    # Check that the input is not changed:
+    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+
+    with pytest.raises(TypeError):
+        _ = zero_projector_sum / 'not_the_correct_type'
+
+
+@pytest.mark.parametrize(
+    'terms, expected_qubits',
+    (
+        ([], ()),
+        ([cirq.ProjectorString({q0: 0})], (q0,)),
+        ([cirq.ProjectorString({q0: 0}), cirq.ProjectorString({q1: 0})], (q0, q1)),
+        ([cirq.ProjectorString({q0: 0, q1: 1})], (q0, q1)),
+    ),
+)
+def test_projector_sum_has_correct_qubits(terms, expected_qubits):
+    combination = cirq.ProjectorSum.from_projector_strings(terms)
+    assert combination.qubits == expected_qubits

@@ -17,6 +17,7 @@ from typing import (
     AbstractSet,
     Callable,
     FrozenSet,
+    Iterable,
     Iterator,
     Optional,
     Sequence,
@@ -73,7 +74,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._all_qubits: Optional[FrozenSet['cirq.Qid']] = None
         self._all_operations: Optional[Tuple[ops.Operation, ...]] = None
         self._has_measurements: Optional[bool] = None
-        self._all_measurement_keys: Optional[AbstractSet[str]] = None
+        self._all_measurement_key_names: Optional[AbstractSet[str]] = None
         self._are_all_measurements_terminal: Optional[bool] = None
 
     @property
@@ -129,10 +130,10 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             self._has_measurements = super().has_measurements()
         return self._has_measurements
 
-    def all_measurement_keys(self) -> AbstractSet[str]:
-        if self._all_measurement_keys is None:
-            self._all_measurement_keys = super().all_measurement_keys()
-        return self._all_measurement_keys
+    def all_measurement_key_names(self) -> AbstractSet[str]:
+        if self._all_measurement_key_names is None:
+            self._all_measurement_key_names = super().all_measurement_key_names()
+        return self._all_measurement_key_names
 
     def are_all_measurements_terminal(self) -> bool:
         if self._are_all_measurements_terminal is None:
@@ -163,7 +164,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         except:
             return NotImplemented
 
-    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']) -> 'FrozenCircuit':
+    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'FrozenCircuit':
         new_circuit = FrozenCircuit(device=self.device)
         new_circuit._moments = tuple(moments)
         return new_circuit

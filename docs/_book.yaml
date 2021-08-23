@@ -86,6 +86,8 @@ upper_tabs:
         path: /cirq/dev/gates
       - title: "Plotting guidelines"
         path: /cirq/dev/plotting
+      - title: "Modules"
+        path: /cirq/dev/modules
       - title: "Serialization guidelines"
         path: /cirq/dev/serialization
       - title: "Triage process"
@@ -135,6 +137,11 @@ upper_tabs:
       - title: "Pasqal sampler"
         path: /cirq/pasqal/sampler
 
+      ##### RIGETTI ####
+      - heading: "Rigetti hardware"
+      - title: "Access and authentication"
+        path: /cirq/rigetti/access
+
     - name: "Tutorials"
       contents:
       ####  OVERVIEW  ####
@@ -182,14 +189,23 @@ upper_tabs:
       - heading: "Google hardware"
       - title: "Getting started with QCS"
         path: /cirq/tutorials/google/start
-      - title: "Floquet calibration"
-        path: /cirq/tutorials/google/floquet
+      - title: "Visualizing calibration metrics"
+        path: /cirq/tutorials/google/visualizing_calibration_metrics
+      - title: "Compare to latest calibration"
+        path: /cirq/tutorials/google/compare_to_calibration
       - title: "Qubit picking with Loschmidt echoes"
         path: /cirq/tutorials/google/echoes
-      - title: "Visualizing Calibration Metrics"
-        path: /cirq/tutorials/google/visualizing_calibration_metrics
-      - title: "Selecting qubits and calibrating circuits"
-        path: /cirq/tutorials/google/advanced_calibration
+      - title: "Circuit optimization, gate alignment, & spin echoes"
+        path: /cirq/tutorials/google/spin_echoes
+      - title: "Calibration"
+        style: accordion
+        section:
+        - title: "Calibration: Overview and API"
+          path: /cirq/tutorials/google/calibration_api
+        - title: "Floquet calibration: Example and benchmark"
+          path: /cirq/tutorials/google/floquet_calibration_example
+        - title: "XEB calibration: Example and benchmark"
+          path: /cirq/tutorials/google/xeb_calibration_example
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"
@@ -208,6 +224,11 @@ upper_tabs:
       - heading: "Pasqal hardware"
       - title: "Getting started with Pasqal hardware"
         path: /cirq/tutorials/pasqal/getting_started
+
+      ##### RIGETTI HARDWARE ####
+      - heading: "Rigetti hardware"
+      - title: "Getting started with Rigetti hardware"
+        path: /cirq/tutorials/rigetti/getting_started
 
       ####  EDUCATORS WORKSHOP  ####
       - heading: "Educators workshop"
@@ -237,14 +258,34 @@ upper_tabs:
         path: /reference/python/cirq/all_symbols
       - include: /reference/python/cirq/_toc.yaml
 
-# uncomment after v0.12 is released
-#      - heading: "cirq-aqt"
-#      - title: "All symbols"
-#        path: /reference/python/cirq_aqt/all_symbols
-#      - include: /reference/python/cirq_aqt/_toc.yaml
+      - heading: "cirq-aqt"
+      - title: "All symbols"
+        path: /reference/python/cirq_aqt/all_symbols
+      - include: /reference/python/cirq_aqt/_toc.yaml
 
       - heading: "cirq-google"
       - title: "All symbols"
         path: /reference/python/cirq_google/all_symbols
       - include: /reference/python/cirq_google/_toc.yaml
+
+      - heading: "cirq-ionq"
+      - title: "All symbols"
+        path: /reference/python/cirq_ionq/all_symbols
+      - include: /reference/python/cirq_ionq/_toc.yaml
+
+      - heading: "cirq-pasqal"
+      - title: "All symbols"
+        path: /reference/python/cirq_pasqal/all_symbols
+      - include: /reference/python/cirq_pasqal/_toc.yaml
+
+      - heading: "cirq-rigetti"
+      - title: "All symbols"
+        path: /reference/python/cirq_rigetti/all_symbols
+      - include: /reference/python/cirq_rigetti/_toc.yaml
+
+      - heading: "cirq-web"
+      - title: "All symbols"
+        path: /reference/python/cirq_web/all_symbols
+      - include: /reference/python/cirq_web/_toc.yaml
+
 - include: /_book/upper_tabs_right.yaml

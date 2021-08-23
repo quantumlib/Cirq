@@ -53,7 +53,8 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         *,
         exponent: value.TParamVal = 1.0,
     ) -> None:
-        """
+        """Inits PauliInteractionGate.
+
         Args:
             pauli0: The interaction axis for the first qubit.
             invert0: Whether to condition on the +1 or -1 eigenvector of the

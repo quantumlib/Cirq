@@ -232,6 +232,9 @@ def assert_has_diagram(
             beginning and whitespace at the end are ignored.
         **kwargs: Keyword arguments to be passed to actual.to_text_diagram().
     """
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
     actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
     assert actual_diagram == desired_diagram, (
@@ -292,10 +295,12 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
     # If you applied a unitary, it should match the one you say you have.
     if actual is not None:
         np.testing.assert_allclose(
-            actual.reshape((np.prod((2,) + qid_shape, dtype=int),) * 2), expected, atol=atol
+            actual.reshape((np.prod((2,) + qid_shape, dtype=np.int64),) * 2), expected, atol=atol
         )
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 1e-8) -> None:
     """Tests whether a value's _apply_unitary_ handles out-of-order axes.
 
@@ -319,7 +324,7 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 
     n = len(shape)
     padded_shape = shape + (1, 2, 2, 3)
     padded_n = len(padded_shape)
-    size = np.product(padded_shape).item()
+    size = np.prod(padded_shape, dtype=np.int64).item()
 
     # Shuffle the axes.
     permutation = list(range(padded_n))
@@ -364,6 +369,7 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 
         )
 
 
+# pylint: enable=missing-raises-doc
 def assert_has_consistent_apply_unitary_for_various_exponents(
     val: Any, *, exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s'))
 ) -> None:
@@ -402,6 +408,9 @@ def assert_has_consistent_qid_shape(val: Any) -> None:
         val: The value under test. Should have `_qid_shape_` and/or
             `num_qubits_` methods. Can optionally have a `qubits` property.
     """
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
     default = (-1,)
     qid_shape = protocols.qid_shape(val, default)
     num_qubits = protocols.num_qubits(val, default)

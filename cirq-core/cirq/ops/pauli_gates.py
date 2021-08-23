@@ -84,6 +84,8 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
             return NotImplemented
         return (other._index - self._index) % 3 == 1
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def on(self, *qubits: 'cirq.Qid') -> 'SingleQubitPauliStringGateOperation':
         """Returns an application of this gate to the given qubits.
 
@@ -96,6 +98,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return SingleQubitPauliStringGateOperation(self, qubits[0])
 
+    # pylint: enable=missing-raises-doc
     @property
     def _canonical_exponent(self):
         """Overrides EigenGate._canonical_exponent in subclasses."""
@@ -108,7 +111,7 @@ class _PauliX(Pauli, common_gates.XPowGate):
         common_gates.XPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliX', exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
-        return common_gates.XPowGate(exponent=exponent)
+        return common_gates.XPowGate(exponent=exponent) if exponent != 1 else _PauliX()
 
     def _with_exponent(self: '_PauliX', exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
         return self.__pow__(exponent)
@@ -135,7 +138,7 @@ class _PauliY(Pauli, common_gates.YPowGate):
         common_gates.YPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliY', exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
-        return common_gates.YPowGate(exponent=exponent)
+        return common_gates.YPowGate(exponent=exponent) if exponent != 1 else _PauliY()
 
     def _with_exponent(self: '_PauliY', exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
         return self.__pow__(exponent)
@@ -162,7 +165,7 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         common_gates.ZPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliZ', exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
-        return common_gates.ZPowGate(exponent=exponent)
+        return common_gates.ZPowGate(exponent=exponent) if exponent != 1 else _PauliZ()
 
     def _with_exponent(self: '_PauliZ', exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
         return self.__pow__(exponent)

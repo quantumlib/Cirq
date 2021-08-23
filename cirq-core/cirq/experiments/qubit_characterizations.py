@@ -58,7 +58,8 @@ class RabiResult:
     """Results from a Rabi oscillation experiment."""
 
     def __init__(self, rabi_angles: Sequence[float], excited_state_probabilities: Sequence[float]):
-        """
+        """Inits RabiResult.
+
         Args:
             rabi_angles: The rotation angles of the qubit around the x-axis
                 of the Bloch sphere.
@@ -103,7 +104,8 @@ class RandomizedBenchMarkResult:
     """Results from a randomized benchmarking experiment."""
 
     def __init__(self, num_cliffords: Sequence[int], ground_state_probabilities: Sequence[float]):
-        """
+        """Inits RandomizedBenchMarkResult.
+
         Args:
             num_cliffords: The different numbers of Cliffords in the RB
                 study.
@@ -148,7 +150,8 @@ class TomographyResult:
     """Results from a state tomography experiment."""
 
     def __init__(self, density_matrix: np.ndarray):
-        """
+        """Inits TomographyResult.
+
         Args:
             density_matrix: The density matrix obtained from tomography.
         """
@@ -162,18 +165,19 @@ class TomographyResult:
         return self._density_matrix
 
     def plot(self, axes: Optional[List[plt.Axes]] = None, **plot_kwargs: Any) -> List[plt.Axes]:
-        """Plots the real and imaginary parts of the density matrix as two
-        3D bar plots.
+        """Plots the real and imaginary parts of the density matrix as two 3D bar plots.
 
         Args:
-            axes: a list of 2 `plt.Axes` instances. Note that they must be in
+            axes: A list of 2 `plt.Axes` instances. Note that they must be in
                 3d projections. If not given, a new figure is created with 2
                 axes and the plotted figure is shown.
-            plot_kwargs: the optional kwargs passed to bar3d.
+            plot_kwargs: The optional kwargs passed to bar3d.
+
         Returns:
             the list of `plt.Axes` being plotted on.
+
         Raises:
-            ValueError if axes is a list with length != 2.
+            ValueError: If axes is a list with length != 2.
         """
         show_plot = axes is None
         if axes is None:

@@ -202,6 +202,8 @@ after gates in previous moments.  Many of these tips focus on having a
 good moment structure that avoids problematic missteps that can cause
 unwanted noise and error.
 
+Note: See the [Circuit optimization, gate alignment, and spin echoes tutorial](../tutorials/google/spin_echoes.ipynb) for an example of the best practices discussed in this section.
+
 ### Short gate depth
 
 In the current NISQ (noisy intermediate scale quantum) era, gates and devices still
@@ -325,6 +327,8 @@ information on Virtual Z gates.  Note that it is important to keep the single-qu
 two-qubit gates aligned (see above) while performing this procedure so that
 the circuit stays the same duration.
 
-See tutorials on [floquet characterization](../tutorials/google/floquet.ipynb)
-and [XEB](..//qcvv/xeb_coherent_noise.ipynb) for detailed instructions on how
-to perform these procedures.
+For more on calibration and detailed instructions on how to perform these procedures, see the following tutorials:
+
+* [Calibration API](../tutorials/google/calibration_api.ipynb)
+* [Floquet calibration example](../tutorials/google/floquet_calibration_example.ipynb)
+* [XEB calibration example](../tutorials/google/xeb_calibration_example.ipynb)

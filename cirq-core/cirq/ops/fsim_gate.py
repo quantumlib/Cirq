@@ -79,7 +79,8 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     """
 
     def __init__(self, theta: float, phi: float) -> None:
-        """
+        """Inits FSimGate.
+
         Args:
             theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
                 Determined by the strength and duration of the XX+YY
@@ -254,7 +255,8 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         gamma: Union[float, sympy.Basic] = 0.0,
         phi: Union[float, sympy.Basic] = 0.0,
     ) -> None:
-        """
+        """Inits PhasedFSimGate.
+
         Args:
             theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
                 See class docstring above for details.

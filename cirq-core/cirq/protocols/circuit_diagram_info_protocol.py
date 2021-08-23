@@ -41,6 +41,8 @@ if TYPE_CHECKING:
 class CircuitDiagramInfo:
     """Describes how to draw an operation in a circuit diagram."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         wire_symbols: Iterable[str],
@@ -49,7 +51,8 @@ class CircuitDiagramInfo:
         exponent_qubit_index: Optional[int] = None,
         auto_exponent_parens: bool = True,
     ) -> None:
-        """
+        """Inits CircuitDiagramInfo.
+
         Args:
             wire_symbols: The symbols that should be shown on the qubits
                 affected by this operation. Must match the number of qubits that
@@ -76,6 +79,7 @@ class CircuitDiagramInfo:
         self.exponent_qubit_index = exponent_qubit_index
         self.auto_exponent_parens = auto_exponent_parens
 
+    # pylint: enable=missing-raises-doc
     def with_wire_symbols(self, new_wire_symbols: Iterable[str]):
         return CircuitDiagramInfo(
             wire_symbols=new_wire_symbols,
@@ -150,37 +154,6 @@ class CircuitDiagramInfo:
             # The string has confusing characters. Put parens around it.
             return f'({self.exponent})'
         return s
-
-    @staticmethod
-    def _op_info_with_fallback(
-        op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
-        info = protocols.circuit_diagram_info(op, args, None)
-        if info is not None:
-            if len(op.qubits) != len(info.wire_symbols):
-                raise ValueError(
-                    'Wanted diagram info from {!r} for {} '
-                    'qubits but got {!r}'.format(op, len(op.qubits), info)
-                )
-            return info
-
-        # Use the untagged operation's __str__.
-        name = str(op.untagged)
-
-        # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
-        # Try to cut off the qubit part, since that would be redundant.
-        redundant_tail = f"({', '.join(str(e) for e in op.qubits)})"
-        if name.endswith(redundant_tail):
-            name = name[: -len(redundant_tail)]
-
-        # Add tags onto the representation, if they exist
-        if op.tags:
-            name += f'{list(op.tags)}'
-
-        # Include ordering in the qubit labels.
-        symbols = (name,) + tuple(f'#{i + 1}' for i in range(1, len(op.qubits)))
-
-        return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
     def __repr__(self) -> str:
         return (
@@ -346,6 +319,36 @@ class SupportsCircuitDiagramInfo(Protocol):
 
 TDefault = TypeVar('TDefault')
 RaiseTypeErrorIfNotProvided = CircuitDiagramInfo(())
+
+
+def _op_info_with_fallback(
+    op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
+) -> 'cirq.CircuitDiagramInfo':
+    info = protocols.circuit_diagram_info(op, args, None)
+    if info is not None:
+        if max(1, len(op.qubits)) != len(info.wire_symbols):
+            raise ValueError(
+                f'Wanted diagram info from {op!r} for {len(op.qubits)} qubits but got {info!r}'
+            )
+        return info
+
+    # Use the untagged operation's __str__.
+    name = str(op.untagged)
+
+    # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
+    # Try to cut off the qubit part, since that would be redundant.
+    redundant_tail = f"({', '.join(str(e) for e in op.qubits)})"
+    if name.endswith(redundant_tail):
+        name = name[: -len(redundant_tail)]
+
+    # Add tags onto the representation, if they exist
+    if op.tags:
+        name += f'{list(op.tags)}'
+
+    # Include ordering in the qubit labels.
+    symbols = (name,) + tuple(f'#{i + 1}' for i in range(1, len(op.qubits)))
+
+    return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
 
 # pylint: disable=function-redefined

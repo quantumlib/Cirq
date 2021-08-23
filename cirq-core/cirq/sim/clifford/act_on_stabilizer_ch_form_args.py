@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable, Union
 
 import numpy as np
 
+from cirq import value, ops, protocols
 from cirq._compat import deprecated_parameter
 from cirq.ops import common_gates, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.act_on_args import ActOnArgs
 from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -74,15 +76,19 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStabilizerCHFormArgs.record_measurement_result`.
+                being recorded into.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
         """
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.state = state
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> Union[bool, NotImplementedType]:
         strats = []
         if allow_decompose:
             strats.append(_strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
@@ -105,6 +111,21 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
+
+    def sample(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        measurements: Dict[str, List[np.ndarray]] = {}
+        prng = value.parse_random_state(seed)
+        for i in range(repetitions):
+            op = ops.measure(*qubits, key=str(i))
+            state = self.state.copy()
+            ch_form_args = ActOnStabilizerCHFormArgs(state, prng, measurements, self.qubits)
+            protocols.act_on(op, ch_form_args)
+        return np.array(list(measurements.values()), dtype=bool)
 
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(

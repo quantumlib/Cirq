@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable, Union
 
 import numpy as np
 
@@ -25,6 +25,7 @@ from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.qis.clifford_tableau import CliffordTableau
 from cirq.sim.act_on_args import ActOnArgs
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -44,10 +45,9 @@ def _rewrite_deprecated_args(args, kwargs):
 
 class ActOnCliffordTableauArgs(ActOnArgs):
     """State and context for an operation acting on a clifford tableau.
-    There are two common ways to act on this object:
-    1. Directly edit the `tableau` property, which is storing the clifford
-        tableau of the quantum system with one axis per qubit.
-    2. Call `record_measurement_result(key, val)` to log a measurement result.
+
+    To act on this object, directly edit the `tableau` property, which is
+    storing the density matrix of the quantum system with one axis per qubit.
     """
 
     @deprecated_parameter(
@@ -67,7 +67,8 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'] = None,
         axes: Iterable[int] = None,
     ):
-        """
+        """Inits ActOnCliffordTableauArgs.
+
         Args:
             tableau: The CliffordTableau to act on. Operations are expected to
                 perform inplace edits of this object.
@@ -77,15 +78,19 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnCliffordTableauArgs.record_measurement_result`.
+                being recorded into.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
         """
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.tableau = tableau
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> Union[bool, NotImplementedType]:
         strats = []
         if allow_decompose:
             strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)
@@ -110,6 +115,15 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
+
+    def sample(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        # Unnecessary for now but can be added later if there is a use case.
+        raise NotImplementedError()
 
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(

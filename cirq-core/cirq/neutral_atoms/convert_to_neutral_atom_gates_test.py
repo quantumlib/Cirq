@@ -36,9 +36,10 @@ def test_coverage():
             return FakeOperation(self._gate, new_qubits)
 
     op = FakeOperation(g, q).with_qubits(*q)
-    c = cirq.Circuit(cirq.X.on(q[0]))
+    circuit_ops = [cirq.Y(q[0]), cirq.ParallelGate(cirq.X, 3).on(*q)]
+    c = cirq.Circuit(circuit_ops)
     cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
-    assert c == cirq.Circuit(cirq.X.on(q[0]))
+    assert c == cirq.Circuit(circuit_ops)
     assert cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(cirq.X.on(q[0])) == [
         cirq.X.on(q[0])
     ]

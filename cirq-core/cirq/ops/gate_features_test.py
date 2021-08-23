@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Iterator
-from typing import Any
-
 import pytest
 
 import cirq
@@ -145,41 +142,6 @@ def test_three_qubit_gate_validate():
         g.validate_args([a, b, c, d])
 
 
-def test_on_each():
-    class CustomGate(cirq.SingleQubitGate):
-        pass
-
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    c = CustomGate()
-
-    assert c.on_each() == []
-    assert c.on_each(a) == [c(a)]
-    assert c.on_each(a, b) == [c(a), c(b)]
-    assert c.on_each(b, a) == [c(b), c(a)]
-
-    assert c.on_each([]) == []
-    assert c.on_each([a]) == [c(a)]
-    assert c.on_each([a, b]) == [c(a), c(b)]
-    assert c.on_each([b, a]) == [c(b), c(a)]
-    assert c.on_each([a, [b, a], b]) == [c(a), c(b), c(a), c(b)]
-
-    with pytest.raises(ValueError):
-        c.on_each('abcd')
-    with pytest.raises(ValueError):
-        c.on_each(['abcd'])
-    with pytest.raises(ValueError):
-        c.on_each([a, 'abcd'])
-
-    def iterator(qubits):
-        for i in range(len(qubits)):
-            yield qubits[i]
-
-    qubit_iterator = iterator([a, b, a, b])
-    assert isinstance(qubit_iterator, Iterator)
-    assert c.on_each(qubit_iterator) == [c(a), c(b), c(a), c(b)]
-
-
 def test_qasm_output_args_validate():
     args = cirq.QasmArgs(version='2.0')
     args.validate_version('2.0')
@@ -203,8 +165,8 @@ def test_qasm_output_args_format():
     assert args.format('_{0}_', a) == '_aaa[0]_'
     assert args.format('_{0}_', b) == '_bbb[0]_'
 
-    assert args.format('_{0:meas}_', cirq.measurement_key(m_a)) == '_m_a_'
-    assert args.format('_{0:meas}_', cirq.measurement_key(m_b)) == '_m_b_'
+    assert args.format('_{0:meas}_', cirq.measurement_key_name(m_a)) == '_m_a_'
+    assert args.format('_{0:meas}_', cirq.measurement_key_name(m_b)) == '_m_b_'
 
     assert args.format('_{0}_', 89.1234567) == '_89.1235_'
     assert args.format('_{0}_', 1.23) == '_1.23_'
@@ -239,19 +201,40 @@ def test_multi_qubit_gate_validate():
         g.validate_args([a, b, c, d])
 
 
-def test_on_each_iterable_qid():
-    class QidIter(cirq.Qid):
-        @property
-        def dimension(self) -> int:
-            return 2
+def test_supports_on_each_inheritance_shim():
+    class NotOnEach(cirq.Gate):
+        def num_qubits(self):
+            return 1  # coverage: ignore
 
-        def _comparison_key(self) -> Any:
-            return 1
+    class OnEach(cirq.ops.gate_features.SupportsOnEachGate):
+        def num_qubits(self):
+            return 1  # coverage: ignore
 
-        def __iter__(self):
-            raise NotImplementedError()
+    class SingleQ(cirq.SingleQubitGate):
+        pass
 
-    assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
+    not_on_each = NotOnEach()
+    single_q = SingleQ()
+    two_q = cirq.testing.TwoQubitGate()
+    with assert_deprecated(deadline="v0.14"):
+        on_each = OnEach()
+
+    assert not isinstance(not_on_each, cirq.ops.gate_features.SupportsOnEachGate)
+    assert isinstance(on_each, cirq.ops.gate_features.SupportsOnEachGate)
+    assert isinstance(single_q, cirq.ops.gate_features.SupportsOnEachGate)
+    assert not isinstance(two_q, cirq.ops.gate_features.SupportsOnEachGate)
+    assert isinstance(cirq.X, cirq.ops.gate_features.SupportsOnEachGate)
+    assert not isinstance(cirq.CX, cirq.ops.gate_features.SupportsOnEachGate)
+    assert isinstance(cirq.DepolarizingChannel(0.01), cirq.ops.gate_features.SupportsOnEachGate)
+
+
+def test_supports_on_each_deprecation():
+    class CustomGate(cirq.ops.gate_features.SupportsOnEachGate):
+        def num_qubits(self):
+            return 1  # coverage: ignore
+
+    with assert_deprecated(deadline="v0.14"):
+        assert isinstance(CustomGate(), cirq.ops.gate_features.SupportsOnEachGate)
 
 
 def test_supports_two_qubit_inheritance_shim():

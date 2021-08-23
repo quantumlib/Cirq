@@ -19,6 +19,10 @@ from cirq.sim.act_on_args import (
     ActOnArgs,
 )
 
+from cirq.sim.act_on_args_container import (
+    ActOnArgsContainer,
+)
+
 from cirq.sim.act_on_density_matrix_args import (
     ActOnDensityMatrixArgs,
 )
@@ -39,6 +43,8 @@ from cirq.sim.density_matrix_simulator import (
     DensityMatrixTrialResult,
 )
 
+from cirq.sim.operation_target import OperationTarget
+
 from cirq.sim.mux import (
     CIRCUIT_LIKE,
     final_density_matrix,
@@ -58,6 +64,7 @@ from cirq.sim.simulator import (
 )
 
 from cirq.sim.simulator_base import (
+    StepResultBase,
     SimulatorBase,
 )
 
@@ -86,7 +93,6 @@ from cirq.sim.clifford import (
     StabilizerStateChForm,
     CliffordSimulator,
     CliffordState,
-    CliffordTableau,
     CliffordTrialResult,
     CliffordSimulatorStepResult,
 )

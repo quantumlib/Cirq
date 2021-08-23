@@ -149,6 +149,21 @@ def is_normal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> 
     return matrix_commutes(matrix, matrix.T.conj(), rtol=rtol, atol=atol)
 
 
+def is_cptp(*, kraus_ops: Sequence[np.ndarray], rtol: float = 1e-5, atol: float = 1e-8):
+    """Determines if a channel is completely positive trace preserving (CPTP).
+
+    A channel composed of Kraus operators K[0:n] is a CPTP map if the sum of
+    the products `adjoint(K[i]) * K[i])` is equal to 1.
+
+    Args:
+        kraus_ops: The Kraus operators of the channel to check.
+        rtol: The relative tolerance on equality.
+        atol: The absolute tolerance on equality.
+    """
+    sum_ndarray = cast(np.ndarray, sum(matrix.T.conj() @ matrix for matrix in kraus_ops))
+    return np.allclose(sum_ndarray, np.eye(*sum_ndarray.shape), rtol=rtol, atol=atol)
+
+
 def matrix_commutes(
     m1: np.ndarray, m2: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8
 ) -> bool:
@@ -201,6 +216,8 @@ def allclose_up_to_global_phase(
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def slice_for_qubits_equal_to(
     target_qubit_axes: Sequence[int],
     little_endian_qureg_value: int = 0,
@@ -214,7 +231,6 @@ def slice_for_qubits_equal_to(
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
 
     Example:
-
         ```python
         # A '4 qubit' tensor with values from 0 to 15.
         r = np.array(range(16)).reshape((2,) * 4)
@@ -291,3 +307,6 @@ def slice_for_qubits_equal_to(
     for axis, digit in zip(target_qubit_axes, digits):
         result[axis] = digit
     return tuple(result)
+
+
+# pylint: enable=missing-raises-doc

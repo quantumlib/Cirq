@@ -213,6 +213,8 @@ def in_weyl_chamber(kak_vec: np.ndarray) -> np.ndarray:
     return np.logical_and.reduce((x_inside, y_inside, z_inside))
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def weyl_chamber_mesh(spacing: float) -> np.ndarray:
     """Cubic mesh of points in the Weyl chamber.
 
@@ -235,6 +237,7 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
     return mesh_points[in_weyl_chamber(mesh_points)]
 
 
+# pylint: enable=missing-raises-doc
 _XX = np.zeros((4, 4))
 _XX[(0, 1, 2, 3), (3, 2, 1, 0)] = 1
 _ZZ = np.diag([1, -1, -1, 1])

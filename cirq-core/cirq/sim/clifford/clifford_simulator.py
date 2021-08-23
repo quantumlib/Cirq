@@ -34,7 +34,7 @@ from typing import Any, Dict, List, Sequence, Union
 import numpy as np
 
 import cirq
-from cirq import study, ops, protocols, value
+from cirq import study, protocols, value
 from cirq.protocols import act_on
 from cirq.sim import clifford, simulator, simulator_base
 
@@ -64,10 +64,11 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
-    def _create_act_on_args(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ) -> clifford.ActOnStabilizerCHFormArgs:
         """Creates the ActOnStabilizerChFormArgs for a circuit.
 
@@ -90,30 +91,25 @@ class CliffordSimulator(
         return clifford.ActOnStabilizerCHFormArgs(
             state=state.ch_form,
             prng=self._prng,
-            log_of_measurement_results={},
+            log_of_measurement_results=logs,
             qubits=qubits,
         )
 
     def _create_step_result(
         self,
-        sim_state: clifford.ActOnStabilizerCHFormArgs,
-        qubit_map: Dict['cirq.Qid', int],
+        sim_state: 'cirq.OperationTarget[clifford.ActOnStabilizerCHFormArgs]',
     ):
-        state = CliffordState(qubit_map)
-        state.ch_form = sim_state.state.copy()
-        return CliffordSimulatorStepResult(
-            measurements=sim_state.log_of_measurement_results, state=state
-        )
+        return CliffordSimulatorStepResult(sim_state=sim_state)
 
     def _create_simulator_trial_result(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state,
+        final_step_result: 'CliffordSimulatorStepResult',
     ):
 
         return CliffordTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
 
@@ -122,13 +118,15 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'CliffordState',
+        final_step_result: 'CliffordSimulatorStepResult',
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
-        self.final_state = final_simulator_state
+    @property
+    def final_state(self):
+        return self._final_simulator_state
 
     def __str__(self) -> str:
         samples = super().__str__()
@@ -136,22 +134,21 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class CliffordSimulatorStepResult(simulator.StepResult['CliffordState']):
+class CliffordSimulatorStepResult(
+    simulator_base.StepResultBase['clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs']
+):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    def __init__(self, state: 'CliffordState', measurements):
+    def __init__(
+        self,
+        sim_state: 'cirq.OperationTarget[clifford.ActOnStabilizerCHFormArgs]',
+    ):
         """Results of a step of the simulator.
         Attributes:
-            state: A CliffordState
-            measurements: A dictionary from measurement gate key to measurement
-                results, ordered by the qubits that the measurement operates on.
-            qubit_map: A map from the Qubits in the Circuit to the the index
-                of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state vector (see the state_vector()
-                method).
+            sim_state: The qubit:ActOnArgs lookup for this step.
         """
-        self.measurements = measurements
-        self.state = state.copy()
+        super().__init__(sim_state)
+        self._clifford_state = None
 
     def __str__(self) -> str:
         def bitstring(vals):
@@ -168,27 +165,16 @@ class CliffordSimulatorStepResult(simulator.StepResult['CliffordState']):
 
         return f'{measurements}{final}'
 
+    @property
+    def state(self):
+        if self._clifford_state is None:
+            clifford_state = CliffordState(self._qubit_mapping)
+            clifford_state.ch_form = self._merged_sim_state.state.copy()
+            self._clifford_state = clifford_state
+        return self._clifford_state
+
     def _simulator_state(self):
         return self.state
-
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
-
-        for i in range(repetitions):
-            self.state.apply_measurement(
-                cirq.measure(*qubits, key=str(i)),
-                measurements,
-                value.parse_random_state(seed),
-                collapse_state_vector=False,
-            )
-
-        return np.array(list(measurements.values()), dtype=bool)
 
 
 @value.value_equality

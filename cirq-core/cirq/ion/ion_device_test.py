@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from datetime import timedelta
-import pytest
 
 import numpy as np
+import pytest
 
 import cirq
 import cirq.ion as ci
@@ -106,7 +106,7 @@ def test_validate_measurement_non_adjacent_qubits_ok():
     d = ion_device(3)
 
     d.validate_operation(
-        cirq.GateOperation(cirq.MeasurementGate(2), (cirq.LineQubit(0), cirq.LineQubit(1)))
+        cirq.GateOperation(cirq.MeasurementGate(2, 'key'), (cirq.LineQubit(0), cirq.LineQubit(1)))
     )
 
 
@@ -160,6 +160,8 @@ def test_can_add_operation_into_moment():
         assert not d.can_add_operation_into_moment(cirq.XX(q1, q2), moment)
         assert d.can_add_operation_into_moment(cirq.XX(q2, q3), moment)
         assert d.can_add_operation_into_moment(cirq.Z(q3), moment)
+    circuit = cirq.Circuit([cirq.X(q0)])
+    assert d.can_add_operation_into_moment(cirq.XX(q1, q2), circuit[0])
 
 
 def test_ion_device_eq():

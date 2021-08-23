@@ -15,7 +15,7 @@
 """Quantum channels that are commonly used in the literature."""
 
 import itertools
-from typing import Any, Dict, Iterable, Optional, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -246,7 +246,7 @@ def asymmetric_depolarize(
 
 
 @value.value_equality
-class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
+class DepolarizingChannel(raw_types.Gate):
     """A channel that depolarizes one or several qubits."""
 
     def __init__(self, p: float, n_qubits: int = 1) -> None:
@@ -445,14 +445,14 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
             $$
 
         Args:
-            gamma: the probability of the interaction being dissipative.
-            p: the probability of the qubit and environment exchanging energy.
+            p: the probability of the environment being not excited
+            gamma: the probability of energy transfer
 
         Raises:
             ValueError: if gamma or p is not a valid probability.
         """
-        self._gamma = value.validate_probability(gamma, 'gamma')
         self._p = value.validate_probability(p, 'p')
+        self._gamma = value.validate_probability(gamma, 'gamma')
 
     def _kraus_(self) -> Iterable[np.ndarray]:
         p0 = np.sqrt(self._p)
@@ -486,12 +486,12 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
 
     @property
     def p(self) -> float:
-        """The probability of the qubit and environment exchanging energy."""
+        """The probability of the environment being not excited."""
         return self._p
 
     @property
     def gamma(self) -> float:
-        """The probability of the interaction being dissipative."""
+        """The probability of energy transfer."""
         return self._gamma
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -504,6 +504,8 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         )
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDampingChannel:
     r"""
     Returns a GeneralizedAmplitudeDampingChannel with the given
@@ -552,6 +554,7 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
     return GeneralizedAmplitudeDampingChannel(p, gamma)
 
 
+# pylint: enable=docstring-first-line-empty
 @value.value_equality
 class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through dissipation.
@@ -633,8 +636,7 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
 
 
 def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
-    r"""
-    Returns an AmplitudeDampingChannel with the given probability gamma.
+    r"""Returns an AmplitudeDampingChannel with the given probability gamma.
 
     This channel evolves a density matrix via:
 
@@ -789,6 +791,11 @@ def reset(qubit: 'cirq.Qid') -> raw_types.Operation:
     return ResetChannel(qubit.dimension).on(qubit)
 
 
+def reset_each(*qubits: 'cirq.Qid') -> List[raw_types.Operation]:
+    """Returns a list of `ResetChannel` instances on the given qubits."""
+    return [ResetChannel(q.dimension).on(q) for q in qubits]
+
+
 @value.value_equality
 class PhaseDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit phase.
@@ -869,8 +876,7 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
 
 
 def phase_damp(gamma: float) -> PhaseDampingChannel:
-    r"""
-    Creates a PhaseDampingChannel with damping constant gamma.
+    r"""Creates a PhaseDampingChannel with damping constant gamma.
 
     This channel evolves a density matrix via:
 
@@ -979,15 +985,12 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
 
 
 def _phase_flip_Z() -> common_gates.ZPowGate:
-    """
-    Returns a cirq.Z which corresponds to a guaranteed phase flip.
-    """
+    """Returns a cirq.Z which corresponds to a guaranteed phase flip."""
     return common_gates.ZPowGate()
 
 
 def _phase_flip(p: float) -> PhaseFlipChannel:
-    r"""
-    Returns a PhaseFlipChannel that flips a qubit's phase with probability p.
+    r"""Returns a PhaseFlipChannel that flips a qubit's phase with probability p.
 
     This channel evolves a density matrix via:
 
@@ -1020,6 +1023,8 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
     return PhaseFlipChannel(p)
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseFlipChannel]:
     r"""
     Returns a PhaseFlipChannel that flips a qubit's phase with probability p
@@ -1059,6 +1064,7 @@ def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseF
     return _phase_flip(p)
 
 
+# pylint: enable=docstring-first-line-empty
 @value.value_equality
 class BitFlipChannel(gate_features.SingleQubitGate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
@@ -1134,6 +1140,8 @@ class BitFlipChannel(gate_features.SingleQubitGate):
         return np.isclose(self._p, other._p, atol=atol).item()
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def _bit_flip(p: float) -> BitFlipChannel:
     r"""
     Construct a BitFlipChannel that flips a qubit state
@@ -1170,6 +1178,7 @@ def _bit_flip(p: float) -> BitFlipChannel:
     return BitFlipChannel(p)
 
 
+# TODO(#3388) Add summary line to docstring.
 def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipChannel]:
     r"""
     Construct a BitFlipChannel that flips a qubit state
@@ -1208,3 +1217,6 @@ def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipC
         return pauli_gates.X
 
     return _bit_flip(p)
+
+
+# pylint: enable=docstring-first-line-empty

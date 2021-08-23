@@ -25,8 +25,11 @@ if TYPE_CHECKING:
 class QubitPermutationGate(raw_types.Gate):
     """A qubit permutation gate specified by a permutation list."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, permutation: Sequence[int]):
-        """
+        """Inits QubitPermutationGate.
+
         Args:
             permutation: A shuffled sequence of integers from 0 to
                 len(permutation) - 1. The entry at offset `i` is the result
@@ -48,6 +51,7 @@ class QubitPermutationGate(raw_types.Gate):
 
         self.permutation = tuple(permutation)
 
+    # pylint: enable=missing-raises-doc
     def _value_equality_values_(self):
         return self.permutation
 

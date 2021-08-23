@@ -169,6 +169,8 @@ class Job:
                 measurement_dict[key] = [int(t) for t in value.split(',')]
         return measurement_dict
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def results(
         self, timeout_seconds: int = 7200, polling_seconds: int = 1
     ) -> Union[results.QPUResult, results.SimulatorResult]:
@@ -224,6 +226,7 @@ class Job:
                 repetitions=self.repetitions(),
             )
 
+    # pylint: enable=missing-raises-doc
     def cancel(self):
         """Cancel the given job.
 

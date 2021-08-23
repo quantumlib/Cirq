@@ -1,0 +1,9 @@
+{
+  "cirq_type": "PasqalDevice",
+  "qubits": [
+    {
+      "cirq_type": "NamedQubit",
+      "name": "q0"
+    }
+  ]
+}

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Tuple
 
 import numpy as np
 import pytest
@@ -260,7 +261,7 @@ def test_channel():
 
 def test_measurement_key():
     a = cirq.NamedQubit('a')
-    assert cirq.measurement_key(cirq.measure(a, key='lock')) == 'lock'
+    assert cirq.measurement_key_name(cirq.measure(a, key='lock')) == 'lock'
 
 
 def assert_mixtures_equal(actual, expected):
@@ -388,7 +389,7 @@ def test_with_measurement_key_mapping():
     op = cirq.measure(a, key='m')
 
     remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
-    assert cirq.measurement_keys(remap_op) == {'k'}
+    assert cirq.measurement_key_names(remap_op) == {'k'}
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) is op
 
 
@@ -397,7 +398,7 @@ def test_with_key_path():
     op = cirq.measure(a, key='m')
 
     remap_op = cirq.with_key_path(op, ('a', 'b'))
-    assert cirq.measurement_keys(remap_op) == {'a:b:m'}
+    assert cirq.measurement_key_names(remap_op) == {'a:b:m'}
     assert cirq.with_key_path(remap_op, ('a', 'b')) is remap_op
 
     assert cirq.with_key_path(op, tuple()) is op
@@ -435,3 +436,27 @@ def test_is_parameterized():
     assert not cirq.is_parameterized(No1().on(q))
     assert not cirq.is_parameterized(No2().on(q))
     assert cirq.is_parameterized(Yes().on(q))
+
+
+def test_channel_propagates_to_gate():
+    class TestGate(cirq.SingleQubitGate):
+        def _channel_(self) -> np.ndarray:
+            return (np.eye(2),)
+
+        def _has_channel_(self) -> bool:
+            return True
+
+    def assert_kraus_eq(ks1: Tuple[np.ndarray, ...], ks2: Tuple[np.ndarray, ...]) -> None:
+        assert len(ks1) == len(ks2)
+        for k1, k2 in zip(ks1, ks2):
+            assert np.all(k1 == k2)
+
+    identity_kraus = (np.eye(2),)
+    q = cirq.LineQubit(0)
+    gate = TestGate()
+    gate_op = TestGate().on(q)
+    with cirq.testing.assert_deprecated(deadline='v0.13', count=None):
+        assert cirq.has_channel(gate)
+        assert cirq.has_channel(gate_op)
+        assert_kraus_eq(cirq.channel(gate), identity_kraus)
+        assert_kraus_eq(cirq.channel(gate_op), identity_kraus)

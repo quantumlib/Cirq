@@ -204,9 +204,7 @@ def test_zztheta_zzpow_unsorted_qubits():
 
 
 def test_swap_zztheta():
-    """
-    Construct a Ising gate followed by a swap using a sycamore.
-    """
+    """Construct a Ising gate followed by a swap using a sycamore."""
     qubits = cirq.LineQubit.range(2)
     a, b = qubits
     for theta in np.linspace(0, 2 * np.pi, 10):

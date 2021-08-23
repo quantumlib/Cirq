@@ -14,6 +14,7 @@
 import importlib
 import logging
 import multiprocessing
+import os
 import sys
 import traceback
 import types
@@ -21,6 +22,7 @@ import warnings
 from types import ModuleType
 from typing import Callable, Optional
 from importlib.machinery import ModuleSpec
+from unittest import mock
 
 import numpy as np
 import pandas as pd
@@ -39,6 +41,7 @@ from cirq._compat import (
     deprecated_submodule,
     DeprecatedModuleLoader,
     DeprecatedModuleFinder,
+    DeprecatedModuleImportError,
 )
 
 
@@ -108,6 +111,27 @@ def test_deprecated_with_name():
         assert f(1, 2) == 3
 
 
+def test_deprecated_with_property():
+    class AClass(object):
+        def __init__(self, a):
+            self.a = a
+
+        @property
+        @deprecated(deadline='v1.2', fix='Stop using.', name='AClass.test_func')
+        def f(self):
+            return self.a
+
+    instance = AClass(4)
+    with cirq.testing.assert_deprecated(
+        '_compat_test.py:',
+        'AClass.test_func was used',
+        'will be removed in cirq v1.2',
+        'Stop using.',
+        deadline='v1.2',
+    ):
+        assert instance.f == 4
+
+
 def test_deprecated():
     def new_func(a, b):
         return a + b
@@ -125,7 +149,9 @@ def test_deprecated():
     ):
         assert old_func(1, 2) == 3
 
-    with pytest.raises(ValueError, match='Cirq should not use deprecated functionality'):
+    with pytest.raises(
+        ValueError, match='During testing using Cirq deprecated functionality is not allowed'
+    ):
         old_func(1, 2)
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
@@ -168,7 +194,9 @@ def test_deprecated_parameter():
         # pylint: enable=no-value-for-parameter
         # pylint: enable=unexpected-keyword-arg
 
-    with pytest.raises(ValueError, match='Cirq should not use deprecated functionality'):
+    with pytest.raises(
+        ValueError, match='During testing using Cirq deprecated functionality is not allowed'
+    ):
         # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         f(double_count=1)
@@ -223,7 +251,9 @@ def test_wrap_module():
     ):
         _ = wrapped.foo
 
-    with pytest.raises(ValueError, match='Cirq should not use deprecated functionality'):
+    with pytest.raises(
+        ValueError, match='During testing using Cirq deprecated functionality is not allowed'
+    ):
         _ = wrapped.foo
 
     with cirq.testing.assert_logs(count=0):
@@ -264,7 +294,9 @@ def test_deprecated_class():
         assert repr(old_obj) == 'NewClass: 1'
         assert 'OldClass' in old_obj.hello()
 
-    with pytest.raises(ValueError, match='Cirq should not use deprecated functionality'):
+    with pytest.raises(
+        ValueError, match='During testing using Cirq deprecated functionality is not allowed'
+    ):
         OldClass('1')
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
@@ -516,6 +548,7 @@ def subprocess_context(test_func):
     return isolated_func
 
 
+@mock.patch.dict(os.environ, {"CIRQ_FORCE_DEDUPE_MODULE_DEPRECATION": "1"})
 @pytest.mark.parametrize(
     'outdated_method,deprecation_messages',
     [
@@ -637,6 +670,49 @@ def test_deprecated_module_deadline_validation():
         )
 
 
+def _test_broken_module_1_inner():
+    with pytest.raises(
+        DeprecatedModuleImportError,
+        match="missing_module cannot be imported. " "The typical reasons",
+    ):
+        # pylint: disable=unused-import
+        import cirq.testing._compat_test_data.broken_ref as br  # type: ignore
+
+
+def _test_broken_module_2_inner():
+    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+        with pytest.raises(
+            DeprecatedModuleImportError,
+            match="missing_module cannot be imported. The typical reasons",
+        ):
+            # note that this passes
+            from cirq.testing._compat_test_data import broken_ref  # type: ignore
+
+            # but when you try to use it
+            broken_ref.something()
+
+
+def _test_broken_module_3_inner():
+    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+        with pytest.raises(
+            DeprecatedModuleImportError,
+            match="missing_module cannot be imported. The typical reasons",
+        ):
+            cirq.testing._compat_test_data.broken_ref.something()
+
+
+def test_deprecated_module_error_handling_1():
+    subprocess_context(_test_broken_module_1_inner())
+
+
+def test_deprecated_module_error_handling_2():
+    subprocess_context(_test_broken_module_2_inner())
+
+
+def test_deprecated_module_error_handling_3():
+    subprocess_context(_test_broken_module_3_inner())
+
+
 def test_new_module_is_top_level():
     subprocess_context(_test_new_module_is_top_level_inner)()
 
@@ -753,7 +829,7 @@ def test_invalidate_caches():
             nonlocal called
             called = True
 
-    DeprecatedModuleFinder(FakeFinder(), 'new', 'old', 'v0.1').invalidate_caches()
+    DeprecatedModuleFinder(FakeFinder(), 'new', 'old', 'v0.1', None).invalidate_caches()
     assert called
 
 

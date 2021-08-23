@@ -17,8 +17,17 @@ A CircuitOperation is an Operation object that wraps a FrozenCircuit. When
 applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
-
-from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    AbstractSet,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    Iterator,
+)
 
 import dataclasses
 import numpy as np
@@ -163,10 +172,10 @@ class CircuitOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return self.circuit._is_measurement_()
 
-    def _measurement_keys_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> AbstractSet[str]:
         circuit_keys = [
             value.MeasurementKey.parse_serialized(key_str)
-            for key_str in self.circuit.all_measurement_keys()
+            for key_str in self.circuit.all_measurement_key_names()
         ]
         if self.repetition_ids is not None:
             circuit_keys = [
@@ -188,24 +197,70 @@ class CircuitOperation(ops.Operation):
             )
         }
 
-    def _decompose_(self) -> 'cirq.OP_TREE':
-        result = self.circuit.unfreeze()
-        result = result.transform_qubits(lambda q: self.qubit_map.get(q, q))
+    def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
+        """Applies all maps to the contained circuit and returns the result.
+
+        Args:
+            deep: If true, this will also call mapped_circuit on any
+                CircuitOperations this object contains.
+
+        Returns:
+            The contained circuit with all other member variables (repetitions,
+            qubit mapping, parameterization, etc.) applied to it. This behaves
+            like `cirq.decompose(self)`, but preserving moment structure.
+        """
+        circuit = self.circuit.unfreeze()
+        circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
         if self.repetitions < 0:
-            result = result ** -1
-        result = protocols.with_measurement_key_mapping(result, self.measurement_key_map)
-        result = protocols.resolve_parameters(result, self.param_resolver, recursive=False)
-        # repetition_ids don't need to be taken into account if the circuit has no measurements
-        # or if repetition_ids are unset.
-        if self.repetition_ids is None or not protocols.is_measurement(result):
-            return list(result.all_operations()) * abs(self.repetitions)
-        # If it's a measurement circuit with repetitions/repetition_ids, prefix the repetition_ids
-        # to measurements. Details at https://tinyurl.com/measurement-repeated-circuitop.
-        ops = []  # type: List[cirq.Operation]
-        for repetition_id in self.repetition_ids:
-            path = self.parent_path + (repetition_id,)
-            ops += protocols.with_key_path(result, path).all_operations()
-        return ops
+            circuit = circuit ** -1
+        has_measurements = protocols.is_measurement(circuit)
+        if has_measurements:
+            circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
+        circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
+        if deep:
+
+            def map_deep(op: 'cirq.Operation') -> 'cirq.OP_TREE':
+                return op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
+
+            if self.repetition_ids is None:
+                return circuit.map_operations(map_deep)
+            if not has_measurements:
+                return circuit.map_operations(map_deep) * abs(self.repetitions)
+
+            # Path must be constructed from the top down.
+            rekeyed_circuit = circuits.Circuit(
+                protocols.with_key_path(circuit, self.parent_path + (rep,))
+                for rep in self.repetition_ids
+            )
+            return rekeyed_circuit.map_operations(map_deep)
+
+        if self.repetition_ids is None:
+            return circuit
+        if not has_measurements:
+            return circuit * abs(self.repetitions)
+
+        def rekey_op(op: 'cirq.Operation', rep: str):
+            """Update measurement keys in `op` to include repetition ID `rep`."""
+            rekeyed_op = protocols.with_key_path(op, self.parent_path + (rep,))
+            if rekeyed_op is NotImplemented:
+                return op
+            return rekeyed_op
+
+        return circuits.Circuit(
+            circuit.map_operations(lambda op: rekey_op(op, rep)) for rep in self.repetition_ids
+        )
+
+    def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
+        """As `mapped_circuit`, but wraps the result in a CircuitOperation."""
+        return CircuitOperation(circuit=self.mapped_circuit(deep=deep).freeze())
+
+    def _decompose_(self) -> Iterator['cirq.Operation']:
+        return self.mapped_circuit(deep=False).all_operations()
+
+    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
+        for op in self._decompose_():
+            protocols.act_on(op, args)
+        return True
 
     # Methods for string representation of the operation.
 
@@ -468,14 +523,14 @@ class CircuitOperation(ops.Operation):
                 keys than this operation.
         """
         new_map = {}
-        for k in self.circuit.all_measurement_keys():
+        for k in self.circuit.all_measurement_key_names():
             k = value.MeasurementKey.parse_serialized(k).name
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
             if k_new != k:
                 new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
-        if len(new_op._measurement_keys_()) != len(self._measurement_keys_()):
+        if len(new_op._measurement_key_names_()) != len(self._measurement_key_names_()):
             raise ValueError(
                 f'Collision in measurement key map composition. Original map:\n'
                 f'{self.measurement_key_map}\nApplied changes: {key_map}'

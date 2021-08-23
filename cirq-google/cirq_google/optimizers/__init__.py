@@ -11,9 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Package for optimizers and gate compilers related to Google-specific devices.
-"""
+"""Package for optimizers and gate compilers related to Google-specific devices."""
 from cirq_google.optimizers.two_qubit_gates import (
     gate_product_tabulation,
     GateTabulation,

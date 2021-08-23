@@ -14,6 +14,9 @@
 from collections import defaultdict
 from typing import (
     AbstractSet,
+    Any,
+    Dict,
+    Iterable,
     Mapping,
     Optional,
     Tuple,
@@ -26,12 +29,17 @@ from typing import (
 import numbers
 
 import numpy as np
+from sympy.logic.boolalg import And, Not, Or, Xor
+from sympy.core.expr import Expr
+from sympy.core.symbol import Symbol
+from scipy.sparse import csr_matrix
 
 from cirq import linalg, protocols, qis, value
 from cirq._doc import document
 from cirq.linalg import operator_spaces
 from cirq.ops import identity, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
+from cirq.ops.projector import ProjectorString
 from cirq.value.linear_dict import _format_terms
 
 if TYPE_CHECKING:
@@ -160,6 +168,8 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
             }
         )
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def matrix(self) -> np.ndarray:
         """Reconstructs matrix of self using unitaries of underlying gates.
 
@@ -177,6 +187,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
             result += protocols.unitary(gate) * coefficient
         return result
 
+    # pylint: enable=missing-raises-doc
     def _has_unitary_(self) -> bool:
         m = self.matrix()
         return m is not NotImplemented and linalg.is_unitary(m)
@@ -397,6 +408,59 @@ class PauliSum:
             termdict[key] += pstring.coefficient
         return cls(linear_dict=value.LinearDict(termdict))
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
+    @classmethod
+    def from_boolean_expression(
+        cls, boolean_expr: Expr, qubit_map: Dict[str, 'cirq.Qid']
+    ) -> 'PauliSum':
+        """Builds the Hamiltonian representation of a Boolean expression.
+
+        This is based on "On the representation of Boolean and real functions as Hamiltonians for
+        quantum computing" by Stuart Hadfield, https://arxiv.org/abs/1804.09130
+
+        Args:
+            boolean_expr: A Sympy expression containing symbols and Boolean operations
+            qubit_map: map of string (boolean variable name) to qubit.
+
+        Return:
+            The PauliString that represents the Boolean expression.
+        """
+        if isinstance(boolean_expr, Symbol):
+            # In table 1, the entry for 'x' is '1/2.I - 1/2.Z'
+            return cls.from_pauli_strings(
+                [
+                    PauliString({}, 0.5),
+                    PauliString({qubit_map[boolean_expr.name]: pauli_gates.Z}, -0.5),
+                ]
+            )
+
+        if isinstance(boolean_expr, (And, Not, Or, Xor)):
+            sub_pauli_sums = [
+                cls.from_boolean_expression(sub_boolean_expr, qubit_map)
+                for sub_boolean_expr in boolean_expr.args
+            ]
+            # We apply the equalities of theorem 1.
+            if isinstance(boolean_expr, And):
+                pauli_sum = cls.from_pauli_strings(PauliString({}, 1.0))
+                for sub_pauli_sum in sub_pauli_sums:
+                    pauli_sum = pauli_sum * sub_pauli_sum
+            elif isinstance(boolean_expr, Not):
+                assert len(sub_pauli_sums) == 1
+                pauli_sum = cls.from_pauli_strings(PauliString({}, 1.0)) - sub_pauli_sums[0]
+            elif isinstance(boolean_expr, Or):
+                pauli_sum = cls.from_pauli_strings(PauliString({}, 0.0))
+                for sub_pauli_sum in sub_pauli_sums:
+                    pauli_sum = pauli_sum + sub_pauli_sum - pauli_sum * sub_pauli_sum
+            elif isinstance(boolean_expr, Xor):
+                pauli_sum = cls.from_pauli_strings(PauliString({}, 0.0))
+                for sub_pauli_sum in sub_pauli_sums:
+                    pauli_sum = pauli_sum + sub_pauli_sum - 2.0 * pauli_sum * sub_pauli_sum
+            return pauli_sum
+
+        raise ValueError(f'Unsupported type: {type(boolean_expr)}')
+
+    # pylint: enable=missing-raises-doc
     @property
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
@@ -416,18 +480,21 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
-    def matrix(self) -> np.ndarray:
-        """Reconstructs matrix of self from underlying Pauli operations.
+    def matrix(self, qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
+        """Reconstructs matrix of self from underlying Pauli operations in
+        computational basis of qubits.
 
         Raises:
             TypeError: if any of the gates in self does not provide a unitary.
         """
-        num_qubits = len(self.qubits)
+
+        qubits = self.qubits if qubits is None else tuple(qubits)
+        num_qubits = len(qubits)
         num_dim = 2 ** num_qubits
         result = np.zeros((num_dim, num_dim), dtype=np.complex128)
         for vec, coeff in self._linear_dict.items():
             op = _pauli_string_from_unit(vec)
-            result += coeff * op.matrix(self.qubits)
+            result += coeff * op.matrix(qubits)
         return result
 
     def _has_unitary_(self) -> bool:
@@ -439,6 +506,8 @@ class PauliSum:
             return m
         raise ValueError(f'{self} is not unitary')
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def expectation_from_state_vector(
         self,
         state_vector: np.ndarray,
@@ -495,6 +564,7 @@ class PauliSum:
             p._expectation_from_state_vector_no_validation(state_vector, qubit_map) for p in self
         )
 
+    # TODO(#3388) Add documentation for Raises.
     def expectation_from_density_matrix(
         self,
         state: np.ndarray,
@@ -550,6 +620,7 @@ class PauliSum:
             )
         return sum(p._expectation_from_density_matrix_no_validation(state, qubit_map) for p in self)
 
+    # pylint: enable=missing-raises-doc
     def __iter__(self):
         for vec, coeff in self._linear_dict.items():
             yield _pauli_string_from_unit(vec, coeff)
@@ -571,7 +642,10 @@ class PauliSum:
 
     def __add__(self, other):
         if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
-            return NotImplemented
+            if hasattr(other, 'gate') and isinstance(other.gate, identity.IdentityGate):
+                other = PauliString(other)
+            else:
+                return NotImplemented
         result = self.copy()
         result += other
         return result
@@ -668,3 +742,215 @@ class PauliSum:
 
     def __str__(self) -> str:
         return self.__format__('.3f')
+
+
+def _projector_string_from_projector_dict(projector_dict, coefficient=1.0):
+    return ProjectorString(dict(projector_dict), coefficient)
+
+
+@value.value_equality(approximate=True)
+class ProjectorSum:
+    def __init__(
+        self, linear_dict: Optional[value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]]] = None
+    ):
+        """Constructor for ProjectorSum
+
+        Args:
+            linear_dict: A linear dictionary from a set of tuples of (Qubit, integer) to a complex
+                number. The tuple is a projector onto the qubit and the complex number is the
+                weight of these projections.
+        """
+        self._linear_dict: value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]] = (
+            linear_dict if linear_dict is not None else value.LinearDict({})
+        )
+
+    def _value_equality_values_(self):
+        return self._linear_dict
+
+    @property
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+        qs = {q for k in self._linear_dict.keys() for q, _ in k}
+        return tuple(sorted(qs))
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        linear_dict = []
+        for projector_dict, scalar in dict(self._linear_dict).items():
+            key = [[k, v] for k, v in dict(projector_dict).items()]
+            linear_dict.append([key, scalar])
+        return {
+            'cirq_type': self.__class__.__name__,
+            'linear_dict': linear_dict,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, linear_dict, **kwargs):
+        converted_dict = {}
+        for projector_string in linear_dict:
+            projector_dict = {x[0]: x[1] for x in projector_string[0]}
+            scalar = projector_string[1]
+            key = frozenset(projector_dict.items())
+            converted_dict[key] = scalar
+        return cls(linear_dict=value.LinearDict(converted_dict))
+
+    @classmethod
+    def from_projector_strings(
+        cls, terms: Union[ProjectorString, List[ProjectorString]]
+    ) -> 'ProjectorSum':
+        """Builds a ProjectorSum from one or more ProjectorString(s).
+
+        Args:
+            terms: Either a single ProjectorString or a list of ProjectorStrings.
+
+        Returns:
+            A ProjectorSum.
+        """
+        if isinstance(terms, ProjectorString):
+            terms = [terms]
+        termdict: DefaultDict[FrozenSet[Tuple[raw_types.Qid, int]], value.Scalar] = defaultdict(
+            lambda: 0.0
+        )
+        for pstring in terms:
+            key = frozenset(pstring.projector_dict.items())
+            termdict[key] += pstring.coefficient
+        return cls(linear_dict=value.LinearDict(termdict))
+
+    def copy(self) -> 'ProjectorSum':
+        return ProjectorSum(self._linear_dict.copy())
+
+    def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> csr_matrix:
+        """Returns the matrix of self in computational basis of qubits.
+
+        Args:
+            projector_qids: Ordered collection of qubits that determine the subspace in which the
+                matrix representation of the ProjectorSum is to be computed. Qbits absent from
+                self.qubits are acted on by the identity. Defaults to the qubits of the
+                projector_dict.
+
+        Returns:
+            A sparse matrix that is the projection in the specified basis.
+        """
+        return sum(
+            coeff * _projector_string_from_projector_dict(vec).matrix(projector_qids)
+            for vec, coeff in self._linear_dict.items()
+        )
+
+    def expectation_from_state_vector(
+        self,
+        state_vector: np.ndarray,
+        qid_map: Mapping[raw_types.Qid, int],
+    ) -> float:
+        """Compute the expectation value of this ProjectorSum given a state vector.
+
+        Projects the state vector onto the sum of projectors and computes the expectation of the
+        measurements.
+
+        Args:
+            state_vector: An array representing a valid state vector.
+            qubit_map: A map from all qubits used in this ProjectorSum to the indices of the qubits
+                that `state_vector` is defined over.
+        Returns:
+            The expectation value of the input state.
+        """
+        return sum(
+            coeff
+            * _projector_string_from_projector_dict(vec).expectation_from_state_vector(
+                state_vector, qid_map
+            )
+            for vec, coeff in self._linear_dict.items()
+        )
+
+    def expectation_from_density_matrix(
+        self,
+        state: np.ndarray,
+        qid_map: Mapping[raw_types.Qid, int],
+    ) -> float:
+        """Expectation of the sum of projections from a density matrix.
+
+        Projects the density matrix onto the sum of projectors and computes the expectation of the
+        measurements.
+
+        Args:
+            state: An array representing a valid  density matrix.
+            qubit_map: A map from all qubits used in this ProjectorSum to the indices of the qubits
+                that `state_vector` is defined over.
+        Returns:
+            The expectation value of the input state.
+        """
+        return sum(
+            coeff
+            * _projector_string_from_projector_dict(vec).expectation_from_density_matrix(
+                state, qid_map
+            )
+            for vec, coeff in self._linear_dict.items()
+        )
+
+    def __iter__(self):
+        for vec, coeff in self._linear_dict.items():
+            yield _projector_string_from_projector_dict(vec, coeff)
+
+    def __len__(self) -> int:
+        return len(self._linear_dict)
+
+    def __truediv__(self, a: value.Scalar):
+        return self.__mul__(1 / a)
+
+    def __bool__(self) -> bool:
+        return bool(self._linear_dict)
+
+    def __iadd__(self, other: Union['ProjectorString', 'ProjectorSum']):
+        if isinstance(other, ProjectorString):
+            other = ProjectorSum.from_projector_strings(other)
+        elif not isinstance(other, ProjectorSum):
+            return NotImplemented
+        self._linear_dict += other._linear_dict
+        return self
+
+    def __add__(self, other: Union['ProjectorString', 'ProjectorSum']):
+        if isinstance(other, ProjectorString):
+            other = ProjectorSum.from_projector_strings(other)
+        elif not isinstance(other, ProjectorSum):
+            return NotImplemented
+        result = self.copy()
+        result += other
+        return result
+
+    def __isub__(self, other: Union['ProjectorString', 'ProjectorSum']):
+        if isinstance(other, ProjectorString):
+            other = ProjectorSum.from_projector_strings(other)
+        elif not isinstance(other, ProjectorSum):
+            return NotImplemented
+        self._linear_dict -= other._linear_dict
+        return self
+
+    def __sub__(self, other: Union['ProjectorString', 'ProjectorSum']):
+        if isinstance(other, ProjectorString):
+            other = ProjectorSum.from_projector_strings(other)
+        elif not isinstance(other, ProjectorSum):
+            return NotImplemented
+        result = self.copy()
+        result -= other
+        return result
+
+    def __neg__(self):
+        factory = type(self)
+        return factory(-self._linear_dict)
+
+    def __imul__(self, other: value.Scalar):
+        if not isinstance(other, numbers.Complex):
+            return NotImplemented
+        self._linear_dict *= other
+        return self
+
+    def __mul__(self, other: value.Scalar):
+        if not isinstance(other, numbers.Complex):
+            return NotImplemented
+        result = self.copy()
+        result *= other
+        return result
+
+    def __rmul__(self, other: value.Scalar):
+        if not isinstance(other, numbers.Complex):
+            return NotImplemented
+        result = self.copy()
+        result *= other
+        return result
