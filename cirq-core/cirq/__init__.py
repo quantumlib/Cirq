@@ -91,6 +91,12 @@ from cirq.devices import (
     NoiseModel,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
+    NamedTopology,
+    draw_gridlike,
+    LineTopology,
+    TiltedSquareLattice,
+    get_placements,
+    draw_placements,
 )
 
 from cirq.experiments import (
