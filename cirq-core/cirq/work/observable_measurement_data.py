@@ -112,7 +112,7 @@ class ObservableMeasuredResult:
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
-        # we need to prefix our class name with `cirq.work.`A
+        # we need to prefix our class name with `cirq.work.`
         return (
             f'cirq.work.ObservableMeasuredResult('
             f'setting={self.setting!r}, '
@@ -142,7 +142,18 @@ class ObservableMeasuredResult:
         """
         record = dataclasses.asdict(self)
         del record['circuit_params']
-        record.update(**self.circuit_params)
+        del record['setting']
+        record['init_state'] = self.init_state
+        record['observable'] = self.observable
+
+        # Check if any of the circuit params would clobber fields in the dictionary.
+        # If so, qualify the name with 'circuit_params.'
+        existing_keys = set(record.keys())
+        if any(k in existing_keys for k in self.circuit_params.keys()):
+            circuit_param_dict = {f'circuit_params.{k}': v for k, v in self.circuit_params.items()}
+        else:
+            circuit_param_dict = self.circuit_params
+        record.update(**circuit_param_dict)
         return record
 
 
