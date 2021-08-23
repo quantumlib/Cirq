@@ -598,6 +598,8 @@ def measure_grouped_settings(
         checkpoint.maybe_to_json(list(accumulators.values()))
 
     return list(accumulators.values())
+
+
 # pylint: enable=missing-raises-doc
 
 
@@ -711,7 +713,7 @@ def measure_observables_df(
     checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
 ):
     """Measure observables and return resulting data as a dataframe."""
-    accumulators = measure_observables(
+    results = measure_observables(
         circuit=circuit,
         observables=observables,
         sampler=sampler,
@@ -722,5 +724,5 @@ def measure_observables_df(
         readout_calibrations=readout_calibrations,
         checkpoint=checkpoint,
     )
-    df = pd.DataFrame(list(itertools.chain.from_iterable(acc.records for acc in accumulators)))
+    df = pd.DataFrame(res.as_dict() for res in results)
     return df

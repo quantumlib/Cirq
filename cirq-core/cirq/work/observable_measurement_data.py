@@ -14,7 +14,7 @@
 
 import dataclasses
 import datetime
-from typing import Dict, List, Tuple, TYPE_CHECKING, Iterable
+from typing import Dict, List, Tuple, TYPE_CHECKING, Iterable, Any
 
 import numpy as np
 
@@ -131,6 +131,12 @@ class ObservableMeasuredResult:
     @property
     def stddev(self):
         return np.sqrt(self.variance)
+
+    def as_dict(self) -> Dict[str, Any]:
+        record = dataclasses.asdict(self)
+        del record['circuit_params']
+        record.update(**self.circuit_params)
+        return record
 
 
 def _setting_to_z_observable(setting: InitObsSetting):
@@ -290,10 +296,7 @@ class BitstringAccumulator:
         after chaining these results with those from other BitstringAccumulators.
         """
         for result in self.results:
-            record = dataclasses.asdict(result)
-            del record['circuit_params']
-            record.update(**self._meas_spec.circuit_params)
-            yield record
+            yield result.as_dict()
 
     def _json_dict_(self):
         from cirq.study.result import _pack_digits

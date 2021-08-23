@@ -28,8 +28,9 @@ from cirq.work.observable_measurement import (
     _check_meas_specs_still_todo,
     StoppingCriteria,
     _parse_checkpoint_options,
-    _parse_stopping_criteria,
     measure_observables_df,
+    CheckpointFileOptions,
+    VarianceStoppingCriteria,
 )
 
 
@@ -329,9 +330,6 @@ def test_meas_spec_still_todo_bad_spec():
     bsa, meas_spec = _set_up_meas_specs_for_testing()
 
     class BadStopping(StoppingCriteria):
-        def __init__(self):
-            pass
-
         def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
             return -23
 
@@ -453,8 +451,7 @@ def test_measure_grouped_settings(with_circuit_sweep, checkpoint, tmpdir):
             sampler=cirq.Simulator(),
             stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
             circuit_sweep=ss,
-            checkpoint=checkpoint,
-            checkpoint_fn=checkpoint_fn,
+            checkpoint=CheckpointFileOptions(checkpoint=checkpoint, checkpoint_fn=checkpoint_fn),
         )
         if with_circuit_sweep:
             for result in results:
@@ -509,35 +506,27 @@ def test_measure_grouped_settings_read_checkpoint(tmpdir):
             grouped_settings=grouped_settings,
             sampler=cirq.Simulator(),
             stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
-            checkpoint=True,
-            checkpoint_fn=f'{tmpdir}/obs.json',
-            checkpoint_other_fn=f'{tmpdir}/obs.json',  # Same filename
+            checkpoint=CheckpointFileOptions(
+                checkpoint=True,
+                checkpoint_fn=f'{tmpdir}/obs.json',
+                checkpoint_other_fn=f'{tmpdir}/obs.json',  # Same filename
+            ),
         )
     _ = cw.measure_grouped_settings(
         circuit=circuit,
         grouped_settings=grouped_settings,
         sampler=cirq.Simulator(),
         stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
-        checkpoint=True,
-        checkpoint_fn=f'{tmpdir}/obs.json',
-        checkpoint_other_fn=f'{tmpdir}/obs.prev.json',
+        checkpoint=CheckpointFileOptions(
+            checkpoint=True,
+            checkpoint_fn=f'{tmpdir}/obs.json',
+            checkpoint_other_fn=f'{tmpdir}/obs.prev.json',
+        ),
     )
     results = cirq.read_json(f'{tmpdir}/obs.json')
     (result,) = results  # one group
     assert result.n_repetitions == 1_000
     assert result.means() == [1.0]
-
-
-def _test_parse_stopping_criteria():
-    with pytest.raises(ValueError, match='xxx'):
-        _ = _parse_stopping_criteria('repetitions')
-
-    rep = cw.RepetitionsStoppingCriteria(total_repetitions=1_000)
-    var = cw.VarianceStoppingCriteria(variance_bound=1e-3)
-    assert _parse_stopping_criteria('repetitions', 1_000) == rep
-    assert _parse_stopping_criteria('variance', 1e-3) == var
-    assert _parse_stopping_criteria(rep) == rep
-    assert _parse_stopping_criteria(var) == var
 
 
 Q = cirq.NamedQubit('q')
@@ -557,8 +546,7 @@ def test_XYZ_point8(circuit, observable):
         circuit,
         [observable],
         cirq.Simulator(seed=52),
-        stopping_criteria='variance',
-        stopping_criteria_val=1e-3 ** 2,
+        stopping_criteria=VarianceStoppingCriteria(1e-3 ** 2),
     )
     assert len(df) == 1, 'one obserbale'
     mean = df.loc[0]['mean']
