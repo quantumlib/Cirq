@@ -245,6 +245,9 @@ def get_placements(
             possibilities. It is possible to use `big_graph`, `small_graph` combinations
             that result in an intractable number of placements.
 
+    Raises:
+        ValueError: if the number of placements exceeds `max_placements`.
+
     Returns:
         A list of placement dictionaries. Each dictionary maps the nodes in `small_graph` to
         nodes in `big_graph` with a monomorphic relationship. That's to say: if an edge exists
