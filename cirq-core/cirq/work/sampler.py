@@ -334,9 +334,9 @@ class Sampler(metaclass=abc.ABCMeta):
 
         # Flatten Circuit Sweep into one big list of Params.
         # Keep track of their indices so we can map back.
-        all_params: List[Dict[str, float]] = [pr.param_dict for pr in study.to_resolvers(params)]
+        flat_params: List[Dict[str, float]] = [pr.param_dict for pr in study.to_resolvers(params)]
         circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, float]], int] = {
-            _hashable_param(param.items()): i for i, param in enumerate(all_params)
+            _hashable_param(param.items()): i for i, param in enumerate(flat_params)
         }
 
         obs_meas_results = measure_observables(
@@ -353,7 +353,7 @@ class Sampler(metaclass=abc.ABCMeta):
         # nesting structure, we place the measured values according to the back-mappings we set up
         # above. We also do the sum operation to aggregate multiple PauliString measured values
         # for a given PauliSum.
-        nested_results: List[List[float]] = [[0] * len(pauli_sums) for _ in range(len(all_params))]
+        nested_results: List[List[float]] = [[0] * len(pauli_sums) for _ in range(len(flat_params))]
         for res in obs_meas_results:
             param_i = circuit_param_to_sweep_i[_hashable_param(res.circuit_params.items())]
             psum_i = pstring_to_psum_i[res.setting.observable]
