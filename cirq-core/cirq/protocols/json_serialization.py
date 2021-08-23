@@ -184,14 +184,6 @@ def json_serializable_dataclass(
     defining `_json_dict_` on your dataclasses which simply
     `return dataclass_json_dict(self)`.
 
-    Otherwise, mypy can be tricked by overwriting this decorator with the
-    vanilla `@dataclass` via:
-
-        if TYPE_CHECKING:
-            from dataclasses import dataclass as json_serializable_dataclass
-        else:
-            from cirq.protocols import json_serializable_dataclass
-
     Args:
         namespace: An optional prefix to the value associated with the
             key "cirq_type". The namespace name will be joined with the
