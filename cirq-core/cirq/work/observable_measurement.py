@@ -34,9 +34,8 @@ from typing import (
 import numpy as np
 import pandas as pd
 import sympy
-from cirq import circuits, study, ops, value
+from cirq import circuits, study, ops, value, protocols
 from cirq._doc import document
-from cirq.protocols import json_serializable_dataclass, to_json
 from cirq.work.observable_grouping import group_settings_greedy, GROUPER_T
 from cirq.work.observable_measurement_data import (
     BitstringAccumulator,
@@ -52,6 +51,9 @@ from cirq.work.observable_settings import (
 if TYPE_CHECKING:
     import cirq
     from cirq.value.product_state import _NamedOneQubitState
+    from dataclasses import dataclass as json_serializable_dataclass
+else:
+    from cirq.protocols import json_serializable_dataclass
 
 MAX_REPETITIONS_PER_JOB = 3_000_000
 document(
@@ -188,6 +190,7 @@ def _get_params_for_setting(
     if we know that `setting.init_state` is the all-zeros state and
     `needs_init_layer` is False.
     """
+    setting = _pad_setting(setting, qubits)
     params = {}
     for qubit, flip in itertools.zip_longest(qubits, flips):
         if qubit is None or flip is None:
@@ -214,7 +217,7 @@ def _get_params_for_setting(
 
 def _pad_setting(
     max_setting: InitObsSetting,
-    qubits: List['cirq.Qid'],
+    qubits: Sequence['cirq.Qid'],
     pad_init_state_with=value.KET_ZERO,
     pad_obs_with: 'cirq.Gate' = ops.Z,
 ) -> InitObsSetting:
@@ -450,8 +453,8 @@ class CheckpointFileOptions:
     """
 
     checkpoint: bool = False
-    checkpoint_fn: str = None
-    checkpoint_other_fn: str = None
+    checkpoint_fn: Optional[str] = None
+    checkpoint_other_fn: Optional[str] = None
 
     def __post_init__(self):
         fn, other_fn = _parse_checkpoint_options(
@@ -472,7 +475,7 @@ class CheckpointFileOptions:
         assert self.checkpoint_other_fn is not None, 'mypy'
         if os.path.exists(self.checkpoint_fn):
             os.replace(self.checkpoint_fn, self.checkpoint_other_fn)
-        to_json(obj, self.checkpoint_fn)
+        protocols.to_json(obj, self.checkpoint_fn)
 
 
 # pylint: enable=missing-raises-doc
@@ -494,7 +497,7 @@ def measure_grouped_settings(
     stopping_criteria: StoppingCriteria,
     *,
     readout_symmetrization: bool = False,
-    circuit_sweep: 'cirq.study.sweepable.SweepLike' = None,
+    circuit_sweep: 'cirq.Sweepable' = None,
     readout_calibrations: Optional[BitstringAccumulator] = None,
     checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
 ) -> List[BitstringAccumulator]:
@@ -538,21 +541,16 @@ def measure_grouped_settings(
 
     needs_init_layer = _needs_init_layer(grouped_settings)
     measurement_param_circuit = _with_parameterized_layers(circuit, qubits, needs_init_layer)
-    grouped_settings = {
-        _pad_setting(max_setting, qubits): settings
-        for max_setting, settings in grouped_settings.items()
-    }
-    circuit_sweep = study.UnitSweep if circuit_sweep is None else study.to_sweep(circuit_sweep)
 
     # meas_spec provides a key for accumulators.
     # meas_specs_todo is a mutable list. We will pop things from it as various
     # specs are measured to the satisfaction of the stopping criteria
     accumulators = {}
     meas_specs_todo = []
-    for max_setting, circuit_params in itertools.product(
-        grouped_settings.keys(), circuit_sweep.param_tuples()
+    for max_setting, param_resolver in itertools.product(
+        grouped_settings.keys(), study.to_resolvers(circuit_sweep)
     ):
-        circuit_params = dict(circuit_params)
+        circuit_params = param_resolver.param_dict
         meas_spec = _MeasurementSpec(max_setting=max_setting, circuit_params=circuit_params)
         accumulator = BitstringAccumulator(
             meas_spec=meas_spec,

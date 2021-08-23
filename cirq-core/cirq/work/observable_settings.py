@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Iterable, Dict, TYPE_CHECKING, ItemsView
+from typing import Union, Iterable, Dict, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
 
 from cirq import ops, value
 
@@ -135,7 +135,9 @@ def _fix_precision(val: float, precision) -> int:
     return int(val * precision)
 
 
-def _hashable_param(param_tuples: ItemsView[str, float], precision=1e7):
+def _hashable_param(
+    param_tuples: ItemsView[str, float], precision=1e7
+) -> FrozenSet[Tuple[str, float]]:
     """Hash circuit parameters using fixed precision.
 
     Circuit parameters can be floats but we also need to use them as

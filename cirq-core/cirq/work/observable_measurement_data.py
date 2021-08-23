@@ -17,7 +17,7 @@ import datetime
 from typing import Dict, List, Tuple, TYPE_CHECKING, Iterable, Any
 
 import numpy as np
-from cirq import protocols, ops
+from cirq import ops
 from cirq._compat import proper_repr
 from cirq.work.observable_settings import (
     InitObsSetting,
@@ -29,6 +29,9 @@ from cirq.work.observable_settings import (
 
 if TYPE_CHECKING:
     import cirq
+    from dataclasses import dataclass as json_serializable_dataclass
+else:
+    from cirq.protocols import json_serializable_dataclass
 
 
 def _check_and_get_real_coef(observable: 'cirq.PauliString', atol: float):
@@ -80,7 +83,7 @@ def _stats_from_measurements(
     return obs_mean.item(), obs_err.item()
 
 
-@protocols.json_serializable_dataclass(frozen=True)
+@json_serializable_dataclass(frozen=True)
 class ObservableMeasuredResult:
     """The result of an observable measurement.
 

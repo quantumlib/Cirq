@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tempfile
+from typing import Iterable, Dict, List
 
 import numpy as np
 import pytest
 
 import cirq
 import cirq.work as cw
-from cirq.work import _MeasurementSpec, BitstringAccumulator
+from cirq.work import _MeasurementSpec, BitstringAccumulator, group_settings_greedy, InitObsSetting
 from cirq.work.observable_measurement import (
     _with_parameterized_layers,
     _get_params_for_setting,
@@ -31,6 +32,8 @@ from cirq.work.observable_measurement import (
     measure_observables_df,
     CheckpointFileOptions,
     VarianceStoppingCriteria,
+    measure_observables,
+    RepetitionsStoppingCriteria,
 )
 
 
@@ -548,6 +551,49 @@ def test_XYZ_point8(circuit, observable):
         cirq.Simulator(seed=52),
         stopping_criteria=VarianceStoppingCriteria(1e-3 ** 2),
     )
-    assert len(df) == 1, 'one obserbale'
+    assert len(df) == 1, 'one observable'
     mean = df.loc[0]['mean']
     np.testing.assert_allclose(0.8, mean, atol=1e-2)
+
+
+def _each_in_its_own_group_grouper(
+    settings: Iterable[InitObsSetting],
+) -> Dict[InitObsSetting, List[InitObsSetting]]:
+    return {setting: [setting] for setting in settings}
+
+
+@pytest.mark.parametrize(
+    'grouper', ['greedy', group_settings_greedy, _each_in_its_own_group_grouper]
+)
+def test_measure_observable_grouper(grouper):
+    circuit = cirq.Circuit(cirq.X(Q) ** 0.2)
+    observables = [
+        cirq.Z(Q),
+        cirq.Z(cirq.NamedQubit('q2')),
+    ]
+    results = measure_observables(
+        circuit,
+        observables,
+        cirq.Simulator(seed=52),
+        stopping_criteria=RepetitionsStoppingCriteria(50_000),
+        grouper=grouper,
+    )
+    assert len(results) == 2, 'two observables'
+    np.testing.assert_allclose(0.8, results[0].mean, atol=0.05)
+    np.testing.assert_allclose(1, results[1].mean, atol=1e-9)
+
+
+def test_measure_observable_bad_grouper():
+    circuit = cirq.Circuit(cirq.X(Q) ** 0.2)
+    observables = [
+        cirq.Z(Q),
+        cirq.Z(cirq.NamedQubit('q2')),
+    ]
+    with pytest.raises(ValueError, match=r'Unknown grouping function'):
+        _ = measure_observables(
+            circuit,
+            observables,
+            cirq.Simulator(seed=52),
+            stopping_criteria=RepetitionsStoppingCriteria(50_000),
+            grouper='super fancy grouper',
+        )

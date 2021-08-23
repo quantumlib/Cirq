@@ -221,7 +221,7 @@ def test_sampler_sample_expectation_values_calculation():
 
         def run_sweep(
             self,
-            program: 'cirq.Circuit',
+            program: 'cirq.AbstractCircuit',
             params: 'cirq.Sweepable',
             repetitions: int = 1,
         ) -> List['cirq.Result']:

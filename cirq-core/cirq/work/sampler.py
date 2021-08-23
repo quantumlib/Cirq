@@ -14,7 +14,7 @@
 """Abstract base class for things sampling quantum circuits."""
 
 import abc
-from typing import List, Optional, TYPE_CHECKING, Union, Dict, FrozenSet
+from typing import List, Optional, TYPE_CHECKING, Union, Dict, FrozenSet, Tuple
 from typing import Sequence
 
 import pandas as pd
@@ -334,14 +334,10 @@ class Sampler(metaclass=abc.ABCMeta):
 
         # Flatten Circuit Sweep into one big list of Params.
         # Keep track of their indices so we can map back.
-        circuit_sweep = study.UnitSweep if params is None else study.to_sweep(params)
-        all_circuit_params: List[Dict[str, float]] = [
-            dict(circuit_params) for circuit_params in circuit_sweep.param_tuples()
-        ]
-        circuit_param_to_sweep_i: Dict[FrozenSet[str, float], int] = {
-            _hashable_param(param.items()): i for i, param in enumerate(all_circuit_params)
+        all_params: List[Dict[str, float]] = [pr.param_dict for pr in study.to_resolvers(params)]
+        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, float]], int] = {
+            _hashable_param(param.items()): i for i, param in enumerate(all_params)
         }
-        del params
 
         obs_meas_results = measure_observables(
             circuit=program,
@@ -349,7 +345,7 @@ class Sampler(metaclass=abc.ABCMeta):
             sampler=self,
             stopping_criteria=RepetitionsStoppingCriteria(total_repetitions=num_samples),
             readout_symmetrization=False,
-            circuit_sweep=circuit_sweep,
+            circuit_sweep=params,
             checkpoint=CheckpointFileOptions(checkpoint=False),
         )
 
@@ -357,9 +353,7 @@ class Sampler(metaclass=abc.ABCMeta):
         # nesting structure, we place the measured values according to the back-mappings we set up
         # above. We also do the sum operation to aggregate multiple PauliString measured values
         # for a given PauliSum.
-        nested_results: List[List[float]] = [
-            [0] * len(pauli_sums) for _ in range(len(all_circuit_params))
-        ]
+        nested_results: List[List[float]] = [[0] * len(pauli_sums) for _ in range(len(all_params))]
         for res in obs_meas_results:
             param_i = circuit_param_to_sweep_i[_hashable_param(res.circuit_params.items())]
             psum_i = pstring_to_psum_i[res.setting.observable]
