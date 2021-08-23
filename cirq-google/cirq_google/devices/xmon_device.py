@@ -98,7 +98,7 @@ class XmonDevice(cirq.Device):
             raise ValueError(f'Unsupported gate type: {gate!r}')
 
     def validate_operation(self, operation: cirq.Operation):
-        if not isinstance(operation, cirq.GateOperation):
+        if operation.gate is None:
             raise ValueError(f'Unsupported operation: {operation!r}')
 
         self.validate_gate(operation.gate)
