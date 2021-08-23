@@ -146,13 +146,7 @@ class ObservableMeasuredResult:
         record['init_state'] = self.init_state
         record['observable'] = self.observable
 
-        # Check if any of the circuit params would clobber fields in the dictionary.
-        # If so, qualify the name with 'circuit_params.'
-        existing_keys = set(record.keys())
-        if any(k in existing_keys for k in self.circuit_params.keys()):
-            circuit_param_dict = {f'circuit_params.{k}': v for k, v in self.circuit_params.items()}
-        else:
-            circuit_param_dict = self.circuit_params
+        circuit_param_dict = {f'param.{k}': v for k, v in self.circuit_params.items()}
         record.update(**circuit_param_dict)
         return record
 

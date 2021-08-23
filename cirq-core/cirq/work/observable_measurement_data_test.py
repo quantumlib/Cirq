@@ -106,14 +106,14 @@ def test_observable_measured_result():
         'mean': 0,
         'variance': 25,
         'repetitions': 4,
-        'phi': 52,
+        'param.phi': 52,
     }
     omr2 = dataclasses.replace(
         omr,
         circuit_params={
             'phi': 52,
             'observable': 3.14,  # this would be a bad but legal parameter name
-            'circuit_params.phi': -1,
+            'param.phi': -1,
         },
     )
     assert omr2.as_dict() == {
@@ -122,9 +122,9 @@ def test_observable_measured_result():
         'mean': 0,
         'variance': 25,
         'repetitions': 4,
-        'circuit_params.phi': 52,
-        'circuit_params.observable': 3.14,
-        'circuit_params.circuit_params.phi': -1,
+        'param.phi': 52,
+        'param.observable': 3.14,
+        'param.param.phi': -1,
     }
 
 
