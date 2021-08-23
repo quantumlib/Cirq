@@ -28,7 +28,6 @@ from typing import (
     TYPE_CHECKING,
     Set,
     Sequence,
-    Type,
     Any,
 )
 
@@ -39,7 +38,11 @@ from cirq import circuits, study, ops, value
 from cirq._doc import document
 from cirq.protocols import json_serializable_dataclass, to_json
 from cirq.work.observable_grouping import group_settings_greedy, GROUPER_T
-from cirq.work.observable_measurement_data import BitstringAccumulator, ObservableMeasuredResult
+from cirq.work.observable_measurement_data import (
+    BitstringAccumulator,
+    ObservableMeasuredResult,
+    flatten_grouped_results,
+)
 from cirq.work.observable_settings import (
     InitObsSetting,
     observables_to_settings,
@@ -457,7 +460,7 @@ class CheckpointFileOptions:
         object.__setattr__(self, 'checkpoint_fn', fn)
         object.__setattr__(self, 'checkpoint_other_fn', other_fn)
 
-    def maybe_to_json(self, value: Any):
+    def maybe_to_json(self, obj: Any):
         """Call `cirq.to_json with `value` according to the configuration options in this class.
 
         If `checkpoint=False`, nothing will happen. Otherwise, we will use `checkpoint_fn` and
@@ -469,7 +472,7 @@ class CheckpointFileOptions:
         assert self.checkpoint_other_fn is not None, 'mypy'
         if os.path.exists(self.checkpoint_fn):
             os.replace(self.checkpoint_fn, self.checkpoint_other_fn)
-        to_json(value, self.checkpoint_fn)
+        to_json(obj, self.checkpoint_fn)
 
 
 # pylint: enable=missing-raises-doc
@@ -638,7 +641,7 @@ def measure_observables(
     sampler: Union['cirq.Simulator', 'cirq.Sampler'],
     stopping_criteria: StoppingCriteria,
     *,
-    readout_symmetrization: bool = True,
+    readout_symmetrization: bool = False,
     circuit_sweep: Optional['cirq.Sweepable'] = None,
     grouper: Union[str, GROUPER_T] = group_settings_greedy,
     readout_calibrations: Optional[BitstringAccumulator] = None,
@@ -651,35 +654,30 @@ def measure_observables(
     please see `measure_observables_df`.
 
     Args:
-        circuit: The circuit. This can contain parameters, in which case
-            you should also specify `circuit_sweep`.
-        observables: A collection of PauliString observables to measure.
-            These will be grouped into simultaneously-measurable groups,
-            see `grouper` argument.
-        sampler: A sampler.
-        stopping_criteria: Either a StoppingCriteria object or one of
-            'variance', 'repetitions'. In the latter case, you must
-            also specify `stopping_criteria_val`.
-        stopping_criteria_val: The value used for named stopping criteria.
-            If you specified 'repetitions', this is the number of repetitions.
-            If you specified 'variance', this is the variance.
-        readout_symmetrization: If set to True, each run will be
-            split into two: one normal and one where a bit flip is
-            incorporated prior to measurement. In the latter case, the
-            measured bit will be flipped back classically and accumulated
-            together. This causes readout error to appear symmetric,
-            p(0|0) = p(1|1).
-        circuit_sweep: Additional parameter sweeps for parameters contained
-            in `circuit`. The total sweep is the product of the circuit sweep
-            with parameter settings for the single-qubit basis-change rotations.
-        grouper: Either "greedy" or a function that groups lists of
-            `InitObsSetting`. See the documentation for the `grouped_settings`
-            argument of `measure_grouped_settings` for full details.
+        circuit: The circuit used to prepare the state to measure. This can contain parameters,
+            in which case you should also specify `circuit_sweep`.
+        observables: A collection of PauliString observables to measure. These will be grouped
+            into simultaneously-measurable groups, see `grouper` argument.
+        sampler: The sampler.
+        stopping_criteria: A StoppingCriteria object to indicate how precisely to sample
+            measurements for estimating observables.
+        readout_symmetrization: If set to True, each run will be split into two: one normal and
+            one where a bit flip is incorporated prior to measurement. In the latter case, the
+            measured bit will be flipped back classically and accumulated together. This causes
+            readout error to appear symmetric, p(0|0) = p(1|1).
+        circuit_sweep: Additional parameter sweeps for parameters contained in `circuit`. The
+            total sweep is the product of the circuit sweep with parameter settings for the
+            single-qubit basis-change rotations.
+        grouper: Either "greedy" or a function that groups lists of `InitObsSetting`. See the
+            documentation for the `grouped_settings` argument of `measure_grouped_settings` for
+            full details.
         readout_calibrations: The result of `calibrate_readout_error`.
-        checkpoint: Options to set up optional checkpointing of intermediate
-            data for each iteration of the sampling loop. See the documentation
-            for `CheckpointFileOptions` for more. Load in these results with
-            `cirq.read_json`.
+        checkpoint: Options to set up optional checkpointing of intermediate data for each
+            iteration of the sampling loop. See the documentation for `CheckpointFileOptions` for
+            more. Load in these results with `cirq.read_json`.
+
+    Returns:
+        A list of ObservableMeasuredResult; one for each input PauliString.
     """
     qubits = _get_all_qubits(circuit, observables)
     settings = list(observables_to_settings(observables, qubits))
@@ -696,8 +694,7 @@ def measure_observables(
         readout_calibrations=readout_calibrations,
         checkpoint=checkpoint,
     )
-    results = list(itertools.chain.from_iterable(acc.results for acc in accumulators))
-    return results
+    return flatten_grouped_results(accumulators)
 
 
 def measure_observables_df(
@@ -706,13 +703,16 @@ def measure_observables_df(
     sampler: Union['cirq.Simulator', 'cirq.Sampler'],
     stopping_criteria: StoppingCriteria,
     *,
-    readout_symmetrization: bool = True,
+    readout_symmetrization: bool = False,
     circuit_sweep: Optional['cirq.Sweepable'] = None,
     grouper: Union[str, GROUPER_T] = group_settings_greedy,
     readout_calibrations: Optional[BitstringAccumulator] = None,
     checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
 ):
-    """Measure observables and return resulting data as a dataframe."""
+    """Measure observables and return resulting data as a Pandas dataframe.
+
+    Please see `measure_observables` for argument documentation.
+    """
     results = measure_observables(
         circuit=circuit,
         observables=observables,

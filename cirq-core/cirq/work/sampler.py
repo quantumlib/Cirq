@@ -13,9 +13,9 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 import abc
 from typing import List, Optional, TYPE_CHECKING, Union, Dict, FrozenSet
+from typing import Sequence
 
 import pandas as pd
 from cirq import study, ops
@@ -280,21 +280,12 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> List[List[float]]:
         """Calculates estimated expectation values from samples of a circuit.
 
-        This is a minimal implementation for measuring observables, and is best reserved for
-        simple use cases. For more complex use cases, consider upgrading to
-        `cirq.work.observable_measurement`. Additional features provided by that toolkit include:
-            - Chunking of submissions to support more than (max_shots) from
-              Quantum Engine
-            - Checkpointing so you don't lose your work halfway through a job
-            - Measuring to a variance tolerance rather than a pre-specified
-              number of repetitions
-            - Readout error symmetrization and mitigation
+        Please see also `cirq.work.measure_observables` for more control over how to measure
+        a suite of observables.
 
         This method can be run on any device or simulator that supports circuit sampling. Compare
         with `simulate_expectation_values` in simulator.py, which is limited to simulators
         but provides exact results.
-
-        # TODO: update docstring, mention measure_observables_df.
 
         Args:
             program: The circuit which prepares a state from which we sample expectation values.

@@ -17,7 +17,6 @@ import datetime
 from typing import Dict, List, Tuple, TYPE_CHECKING, Iterable, Any
 
 import numpy as np
-
 from cirq import protocols, ops
 from cirq._compat import proper_repr
 from cirq.work.observable_settings import (
@@ -85,8 +84,8 @@ def _stats_from_measurements(
 class ObservableMeasuredResult:
     """The result of an observable measurement.
 
-    Please see `flatten_grouped_results` or `BitstringAccumulator.results` for information on how
-    to get these from `measure_observables` return values.
+    A list of these is returned by `measure_observables`, or see `flatten_grouped_results` for
+    transformation of `measure_grouped_settings` BitstringAccumulators into these objects.
 
     This is a flattened form of the contents of a `BitstringAccumulator` which may group many
     simultaneously-observable settings into one object. As such, `BitstringAccumulator` has more
@@ -133,6 +132,11 @@ class ObservableMeasuredResult:
         return np.sqrt(self.variance)
 
     def as_dict(self) -> Dict[str, Any]:
+        """Return the contents of this class as a dictionary.
+
+        This makes records suitable for construction of a Pandas dataframe. The circuit parameters
+        are flattened into the top-level of this dictionary.
+        """
         record = dataclasses.asdict(self)
         del record['circuit_params']
         record.update(**self.circuit_params)
