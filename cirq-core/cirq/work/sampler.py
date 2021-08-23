@@ -18,7 +18,11 @@ from typing import List, Optional, TYPE_CHECKING, Union, Dict, FrozenSet
 
 import pandas as pd
 from cirq import study, ops
-from cirq.work.observable_measurement import measure_observables, RepetitionsStoppingCriteria
+from cirq.work.observable_measurement import (
+    measure_observables,
+    RepetitionsStoppingCriteria,
+    CheckpointFileOptions,
+)
 from cirq.work.observable_settings import _hashable_param
 
 if TYPE_CHECKING:
@@ -280,6 +284,8 @@ class Sampler(metaclass=abc.ABCMeta):
         with `simulate_expectation_values` in simulator.py, which is limited to simulators
         but provides exact results.
 
+        # TODO: update docstring, mention measure_observables_df.
+
         Args:
             program: The circuit which prepares a state from which we sample expectation values.
             observables: A list of observables for which to calculate expectation values.
@@ -336,25 +342,26 @@ class Sampler(metaclass=abc.ABCMeta):
         }
         del params
 
-        accumulators = measure_observables(
+        obs_meas_results = measure_observables(
             circuit=program,
             observables=flat_pstrings,
             sampler=self,
             stopping_criteria=RepetitionsStoppingCriteria(total_repetitions=num_samples),
             readout_symmetrization=False,
             circuit_sweep=circuit_sweep,
-            checkpoint=False,
+            checkpoint=CheckpointFileOptions(checkpoint=False),
         )
 
         # Results are ordered by how they're grouped. Since we want the (circuit_sweep, pauli_sum)
         # nesting structure, we place the measured values according to the back-mappings we set up
         # above. We also do the sum operation to aggregate multiple PauliString measured values
         # for a given PauliSum.
-        results: List[List[float]] = [[0] * len(pauli_sums) for _ in range(len(all_circuit_params))]
-        for acc in accumulators:
-            for res in acc.results:
-                param_i = circuit_param_to_sweep_i[_hashable_param(res.circuit_params.items())]
-                psum_i = pstring_to_psum_i[res.setting.observable]
-                results[param_i][psum_i] += res.mean
+        nested_results: List[List[float]] = [
+            [0] * len(pauli_sums) for _ in range(len(all_circuit_params))
+        ]
+        for res in obs_meas_results:
+            param_i = circuit_param_to_sweep_i[_hashable_param(res.circuit_params.items())]
+            psum_i = pstring_to_psum_i[res.setting.observable]
+            nested_results[param_i][psum_i] += res.mean
 
-        return results
+        return nested_results

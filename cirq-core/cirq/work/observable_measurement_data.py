@@ -14,7 +14,7 @@
 
 import dataclasses
 import datetime
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Tuple, TYPE_CHECKING, Iterable
 
 import numpy as np
 
@@ -270,7 +270,7 @@ class BitstringAccumulator:
         return len(self.bitstrings)
 
     @property
-    def results(self):
+    def results(self) -> Iterable[ObservableMeasuredResult]:
         """Yield individual setting results as `ObservableMeasuredResult`
         objects."""
         for setting in self._simul_settings:

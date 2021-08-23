@@ -39,7 +39,7 @@ from cirq import circuits, study, ops, value
 from cirq._doc import document
 from cirq.protocols import json_serializable_dataclass, to_json
 from cirq.work.observable_grouping import group_settings_greedy, GROUPER_T
-from cirq.work.observable_measurement_data import BitstringAccumulator
+from cirq.work.observable_measurement_data import BitstringAccumulator, ObservableMeasuredResult
 from cirq.work.observable_settings import (
     InitObsSetting,
     observables_to_settings,
@@ -635,7 +635,7 @@ def measure_observables(
     grouper: Union[str, GROUPER_T] = group_settings_greedy,
     readout_calibrations: Optional[BitstringAccumulator] = None,
     checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
-) -> List[BitstringAccumulator]:
+) -> List[ObservableMeasuredResult]:
     """Measure a collection of PauliString observables for a state prepared by a Circuit.
 
     If you need more control over the process, please see `measure_grouped_settings` for a
@@ -678,7 +678,7 @@ def measure_observables(
     actual_grouper = _parse_grouper(grouper)
     grouped_settings = actual_grouper(settings)
 
-    return measure_grouped_settings(
+    accumulators = measure_grouped_settings(
         circuit=circuit,
         grouped_settings=grouped_settings,
         sampler=sampler,
@@ -688,6 +688,8 @@ def measure_observables(
         readout_calibrations=readout_calibrations,
         checkpoint=checkpoint,
     )
+    results = list(itertools.chain.from_iterable(acc.results for acc in accumulators))
+    return results
 
 
 def measure_observables_df(
