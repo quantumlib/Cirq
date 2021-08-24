@@ -465,6 +465,9 @@ def build_entangling_layers(
     Returns:
         A list of ops.Moment, with a maximum length of 4. Each ops.Moment
         includes two-qubit gates which can be performed at the same time.
+
+    Raises:
+        ValueError: two-qubit gate is not used.
     """
     if two_qubit_gate.num_qubits != 2:
         raise ValueError('Input must be a two-qubit gate')
