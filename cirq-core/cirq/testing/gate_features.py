@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Marker classes for indicating which additional features gates support.
-
-For example: some gates are reversible, some have known matrices, etc.
-"""
+"""Simple gates used for testing purposes."""
 
 from cirq.ops import raw_types
 
