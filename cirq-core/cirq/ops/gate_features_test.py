@@ -77,7 +77,7 @@ def test_two_qubit_gate_is_abstract_can_implement():
         def matrix(self):
             pass
 
-    with assert_deprecated(deadline="v0.14"):
+    with assert_deprecated(deadline="v0.14", count=2):
         assert isinstance(Included(), cirq.TwoQubitGate)
 
 

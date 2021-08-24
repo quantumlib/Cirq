@@ -18,6 +18,7 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
+import warnings
 
 from cirq import value, ops
 from cirq._compat import deprecated_class
@@ -57,6 +58,10 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 class _TwoQubitGateMeta(value.ABCMetaImplementAnyOneOf):
     def __instancecheck__(cls, instance):
+        warnings.warn(
+            'isinstance(gate, TwoQubitGate) is deprecated. Check gate.num_qubits instead',
+            DeprecationWarning,
+        )
         return isinstance(instance, raw_types.Gate) and instance._num_qubits_() == 2
 
 
@@ -70,6 +75,10 @@ class TwoQubitGate(raw_types.Gate, metaclass=_TwoQubitGateMeta):
 
 class _ThreeQubitGateMeta(value.ABCMetaImplementAnyOneOf):
     def __instancecheck__(cls, instance):
+        warnings.warn(
+            'isinstance(gate, ThreeQubitGate) is deprecated. Check gate.num_qubits instead',
+            DeprecationWarning,
+        )
         return isinstance(instance, raw_types.Gate) and instance._num_qubits_() == 3
 
 
