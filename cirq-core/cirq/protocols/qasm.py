@@ -37,7 +37,8 @@ class QasmArgs(string.Formatter):
         qubit_id_map: Dict['cirq.Qid', str] = None,
         meas_key_id_map: Dict[str, str] = None,
     ) -> None:
-        """
+        """Inits QasmArgs.
+
         Args:
             precision: The number of digits after the decimal to show for
                 numbers in the qasm code.
@@ -146,9 +147,9 @@ def qasm(
         `default` is returned, if it was specified. Otherwise an error is
         raised.
 
-    TypeError:
-        `val` didn't have a `_qasm_` method (or that method returned
-        `NotImplemented` or `None`) and `default` wasn't set.
+    Raises:
+        TypeError: `val` didn't have a `_qasm_` method (or that method returned
+            `NotImplemented` or `None`) and `default` wasn't set.
     """
     method = getattr(val, '_qasm_', None)
     result = NotImplemented

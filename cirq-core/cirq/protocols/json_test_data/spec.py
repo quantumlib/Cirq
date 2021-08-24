@@ -126,6 +126,7 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesAmplitudes',
         'SimulatesExpectationValues',
         'SimulatesFinalState',
+        'NamedTopology',
         # protocols:
         'SupportsActOn',
         'SupportsActOnQubits',
@@ -143,6 +144,7 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsExplicitNumQubits',
         'SupportsExplicitQidShape',
         'SupportsJSON',
+        'SupportsKraus',
         'SupportsMeasurementKey',
         'SupportsMixture',
         'SupportsParameterization',
@@ -178,5 +180,7 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={},
+    deprecated={
+        'ParallelGateOperation': 'v0.14',
+    },
 )

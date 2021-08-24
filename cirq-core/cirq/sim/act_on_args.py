@@ -13,6 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
+import copy
 from typing import (
     Any,
     Iterable,
@@ -50,7 +51,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
-        """
+        """Inits ActOnArgs.
+
         Args:
             prng: The pseudo random number generator to use for probabilistic
                 effects.
@@ -76,6 +78,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Adds a measurement result to the log.
 
@@ -83,7 +87,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             qubits: The qubits to measure.
             key: The key the measurement result should be logged under. Note
                 that operations should only store results under keys they have
-                declared in a `_measurement_keys_` method.
+                declared in a `_measurement_key_names_` method.
             invert_mask: The invert mask for the measurement.
         """
         bits = self._perform_measurement(qubits)
@@ -92,6 +96,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             raise ValueError(f"Measurement already logged to key {key!r}")
         self._log_of_measurement_results[key] = corrected
 
+    # pylint: enable=missing-raises-doc
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]
 
@@ -107,10 +112,6 @@ class ActOnArgs(OperationTarget[TSelf]):
     def create_merged_state(self: TSelf) -> TSelf:
         """Creates a final merged state."""
         return self
-
-    def apply_operation(self, op: 'cirq.Operation'):
-        """Applies the operation to the state."""
-        protocols.act_on(op, self)
 
     def kronecker_product(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""
@@ -138,6 +139,66 @@ class ActOnArgs(OperationTarget[TSelf]):
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._qubits
 
+    def swap(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
+        """Swaps two qubits.
+
+        This only affects the index, and does not modify the underlying
+        state.
+
+        Args:
+            q1: The first qubit to swap.
+            q2: The second qubit to swap.
+            inplace: True to swap the qubits in the current object, False to
+                create a copy with the qubits swapped.
+
+        Returns:
+            The original object with the qubits swapped if inplace is
+            requested, or a copy of the original object with the qubits swapped
+            otherwise.
+
+        Raises:
+            ValueError: If the qubits are of different dimensionality.
+        """
+        if q1.dimension != q2.dimension:
+            raise ValueError(f'Cannot swap different dimensions: q1={q1}, q2={q2}')
+
+        args = self if inplace else copy.copy(self)
+        i1 = self.qubits.index(q1)
+        i2 = self.qubits.index(q2)
+        qubits = list(args.qubits)
+        qubits[i1], qubits[i2] = qubits[i2], qubits[i1]
+        args._qubits = tuple(qubits)
+        args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        return args
+
+    def rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
+        """Renames `q1` to `q2`.
+
+        Args:
+            q1: The qubit to rename.
+            q2: The new name.
+            inplace: True to rename the qubit in the current object, False to
+                create a copy with the qubit renamed.
+
+        Returns:
+            The original object with the qubits renamed if inplace is
+            requested, or a copy of the original object with the qubits renamed
+            otherwise.
+
+        Raises:
+            ValueError: If the qubits are of different dimensionality.
+        """
+        if q1.dimension != q2.dimension:
+            raise ValueError(f'Cannot rename to different dimensions: q1={q1}, q2={q2}')
+
+        args = self if inplace else copy.copy(self)
+        i1 = self.qubits.index(q1)
+        qubits = list(args.qubits)
+        qubits[i1] = q2
+        args._qubits = tuple(qubits)
+        args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        return args
+
     def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:
         if item not in self.qubit_map:
             raise IndexError(f'{item} not in {self.qubits}')
@@ -148,10 +209,6 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
         return iter(self.qubits)
-
-    @abc.abstractmethod
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
-        """Handles the act_on protocol fallback implementation."""
 
     @property  # type: ignore
     @deprecated(

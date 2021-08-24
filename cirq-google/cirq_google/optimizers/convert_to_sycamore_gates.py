@@ -47,8 +47,11 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
         Otherwise raises a TypeError.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, tabulation: Optional[GateTabulation] = None, ignore_failures=False) -> None:
-        """
+        """Inits ConvertToSycamoreGates.
+
         Args:
             tabulation: If set, a tabulation for the Sycamore gate to use for
                 decomposing Matrix gates. If unset, an analytic calculation is
@@ -64,6 +67,7 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
             raise ValueError("provided tabulation must be of type GateTabulation")
         self.tabulation = tabulation
 
+    # pylint: enable=missing-raises-doc
     def _is_native_sycamore_op(self, op: cirq.Operation) -> bool:
         """Check if the given operation is native to a Sycamore device.
 
@@ -98,6 +102,8 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
 
         return False
 
+    # TODO(#3388) Add summary line to docstring.
+    # pylint: disable=docstring-first-line-empty
     def _convert_one(self, op: cirq.Operation) -> cirq.OP_TREE:
         """
         Decomposer intercept:  Upon cirq.protocols.decompose catch and
@@ -113,6 +119,7 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
             )
         return NotImplemented
 
+    # pylint: enable=docstring-first-line-empty
     def convert(self, op: cirq.Operation) -> List[cirq.Operation]:
         def on_stuck_raise(bad):
             return TypeError(
@@ -169,14 +176,15 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
         )
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def known_two_q_operations_to_sycamore_operations(
     qubit_a: cirq.Qid,
     qubit_b: cirq.Qid,
     op: cirq.Operation,
     tabulation: Optional[GateTabulation] = None,
 ) -> cirq.OP_TREE:
-    """
-    Synthesize a known gate operation to a sycamore operation
+    """Synthesizes a known gate operation to a sycamore operation.
 
     This function dispatches based on gate type
 
@@ -229,6 +237,7 @@ def known_two_q_operations_to_sycamore_operations(
         raise ValueError(f"Unrecognized gate: {op!r}")
 
 
+# pylint: enable=missing-raises-doc
 def decompose_phased_iswap_into_syc(
     phase_exponent: float, a: cirq.Qid, b: cirq.Qid
 ) -> cirq.OP_TREE:
@@ -407,6 +416,8 @@ def decompose_swap_into_syc(a: cirq.Qid, b: cirq.Qid):
     yield (cirq.Z ** -0.7034535141382525).on(a)
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 def find_local_equivalents(unitary1: np.ndarray, unitary2: np.ndarray):
     """
     Given two unitaries with the same interaction coefficients but different
@@ -440,6 +451,7 @@ def find_local_equivalents(unitary1: np.ndarray, unitary2: np.ndarray):
     return v_0, v_1, u_0, u_1
 
 
+# pylint: enable=docstring-first-line-empty
 def create_corrected_circuit(
     target_unitary: np.ndarray, program: cirq.Circuit, q0: cirq.Qid, q1: cirq.Qid
 ) -> cirq.OP_TREE:
@@ -496,8 +508,7 @@ def rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
 
 
 def cphase(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
-    """
-    Implement a cphase using the Ising gate generated from 2 Sycamore gates
+    """Implements a cphase using the Ising gate generated from 2 Sycamore gates.
 
     A CPHASE gate has the matrix diag([1, 1, 1, exp(1j * theta)]) and can
     be mapped to the Ising gate by prep and post rotations of Z-pi/4.
@@ -516,8 +527,7 @@ def cphase(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
 
 
 def swap_rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
-    """
-    An implementation of SWAP * EXP(1j theta ZZ) using three sycamore gates.
+    """An implementation of SWAP * EXP(1j theta ZZ) using three sycamore gates.
 
     This builds off of the zztheta method.  A sycamore gate following the
     zz-gate is a SWAP EXP(1j (THETA - pi/24) ZZ).

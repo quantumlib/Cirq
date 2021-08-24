@@ -39,7 +39,7 @@ from cirq.protocols.approximate_equality_protocol import (
     approx_eq,
     SupportsApproximateEquality,
 )
-from cirq.protocols.kraus import (
+from cirq.protocols.kraus_protocol import (
     channel,
     kraus,
     has_channel,
@@ -88,13 +88,16 @@ from cirq.protocols.json_serialization import (
     to_json,
     read_json,
     obj_to_dict_helper,
+    dataclass_json_dict,
     SerializableByKey,
     SupportsJSON,
 )
 from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
+    measurement_key_name,
     measurement_keys,
+    measurement_key_names,
     with_key_path,
     with_measurement_key_mapping,
     SupportsMeasurementKey,

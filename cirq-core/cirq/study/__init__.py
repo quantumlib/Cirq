@@ -49,7 +49,3 @@ from cirq.study.sweeps import (
 from cirq.study.result import (
     Result,
 )
-
-from cirq.study.visualize import (
-    plot_state_histogram,
-)

@@ -34,6 +34,8 @@ class PasqalDevice(cirq.devices.Device):
     execution on the specified device are handled internally by Pasqal.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, qubits: Sequence[cirq.ops.Qid]) -> None:
         """Initializes a device with some qubits.
 
@@ -63,6 +65,7 @@ class PasqalDevice(cirq.devices.Device):
 
         self.qubits = qubits
 
+    # pylint: enable=missing-raises-doc
     @property
     def supported_qubit_type(self):
         return (NamedQubit,)
@@ -97,40 +100,44 @@ class PasqalDevice(cirq.devices.Device):
         if not isinstance(op, cirq.ops.Operation):
             raise ValueError('Got unknown operation:', op)
 
-        valid_op = isinstance(
-            op.gate,
+        if isinstance(op.gate, cirq.ops.MeasurementGate):
+            return True
+
+        op_gate = op.gate.sub_gate if isinstance(op.gate, cirq.ops.ParallelGate) else op.gate
+
+        if isinstance(
+            op_gate,
             (
                 cirq.ops.IdentityGate,
-                cirq.ops.MeasurementGate,
                 cirq.ops.PhasedXPowGate,
                 cirq.ops.XPowGate,
                 cirq.ops.YPowGate,
                 cirq.ops.ZPowGate,
             ),
-        )
+        ):
+            return True
 
-        if not valid_op:  # To prevent further checking if already passed
-            if (
-                isinstance(
-                    op.gate,
-                    (
-                        cirq.ops.HPowGate,
-                        cirq.ops.CNotPowGate,
-                        cirq.ops.CZPowGate,
-                        cirq.ops.CCZPowGate,
-                        cirq.ops.CCXPowGate,
-                    ),
-                )
-                and not cirq.is_parameterized(op)
-            ):
-                expo = op.gate.exponent
-                valid_op = np.isclose(expo, np.around(expo, decimals=0))
+        if (
+            isinstance(
+                op_gate,
+                (
+                    cirq.ops.HPowGate,
+                    cirq.ops.CNotPowGate,
+                    cirq.ops.CZPowGate,
+                    cirq.ops.CCZPowGate,
+                    cirq.ops.CCXPowGate,
+                ),
+            )
+            and not cirq.is_parameterized(op)
+        ):
+            expo = op_gate.exponent
+            return np.isclose(expo, np.around(expo, decimals=0))
+        return False
 
-        return valid_op
-
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def validate_operation(self, operation: cirq.ops.Operation):
-        """
-        Raises an error if the given operation is invalid on this device.
+        """Raises an error if the given operation is invalid on this device.
 
         Args:
             operation: the operation to validate
@@ -161,7 +168,8 @@ class PasqalDevice(cirq.devices.Device):
                     "Measurements on Pasqal devices don't support invert_mask."
                 )
 
-    def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
+    # pylint: enable=missing-raises-doc
+    def validate_circuit(self, circuit: 'cirq.AbstractCircuit') -> None:
         """Raises an error if the given circuit is invalid on this device.
 
         A circuit is invalid if any of its moments are invalid or if there
@@ -287,7 +295,7 @@ class PasqalVirtualDevice(PasqalDevice):
         # Verify that a controlled gate operation is valid
         if isinstance(operation, cirq.ops.GateOperation):
             if len(operation.qubits) > 1 and not isinstance(
-                operation.gate, cirq.ops.MeasurementGate
+                operation.gate, (cirq.ops.MeasurementGate, cirq.ops.ParallelGate)
             ):
                 for p in operation.qubits:
                     for q in operation.qubits:

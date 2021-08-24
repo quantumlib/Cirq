@@ -125,11 +125,11 @@ def decompose_cphase_into_two_fsim(
         of fsim_gate and a few single-qubit rotations.
 
     Raises:
-        ValueError under any of the following circumstances:
-         * cphase_gate or fsim_gate is parametrized,
-         * cphase_gate and fsim_gate do not satisfy the conditions above,
-         * fsim_gate has invalid angles (see atol argument above),
-         * incorrect number of qubits are provided.
+        ValueError: Under any of the following circumstances:
+            * cphase_gate or fsim_gate is parametrized,
+            * cphase_gate and fsim_gate do not satisfy the conditions above,
+            * fsim_gate has invalid angles (see atol argument above),
+            * incorrect number of qubits are provided.
     """
     if protocols.is_parameterized(cphase_gate):
         raise ValueError('Cannot decompose a parametrized gate.')

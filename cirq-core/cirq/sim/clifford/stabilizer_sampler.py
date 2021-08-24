@@ -27,7 +27,8 @@ class StabilizerSampler(sampler.Sampler):
     """An efficient sampler for stabilizer circuits."""
 
     def __init__(self, *, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
-        """
+        """Inits StabilizerSampler.
+
         Args:
             seed: The random seed or generator to use when sampling.
         """
@@ -36,7 +37,7 @@ class StabilizerSampler(sampler.Sampler):
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
     ) -> List['cirq.Result']:
@@ -50,10 +51,10 @@ class StabilizerSampler(sampler.Sampler):
             results.append(cirq.Result(params=param_resolver, measurements=measurements))
         return results
 
-    def _run(self, circuit: circuits.Circuit, repetitions: int) -> Dict[str, np.ndarray]:
+    def _run(self, circuit: circuits.AbstractCircuit, repetitions: int) -> Dict[str, np.ndarray]:
 
         measurements: Dict[str, List[int]] = {
-            key: [] for key in protocols.measurement_keys(circuit)
+            key: [] for key in protocols.measurement_key_names(circuit)
         }
         qubits = circuit.all_qubits()
 

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from logging import warning
 
 from cirq import _import
 
@@ -92,9 +91,16 @@ from cirq.devices import (
     NoiseModel,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
+    NamedTopology,
+    draw_gridlike,
+    LineTopology,
+    TiltedSquareLattice,
+    get_placements,
+    draw_placements,
 )
 
 from cirq.experiments import (
+    estimate_parallel_single_qubit_readout_errors,
     estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
     least_squares_xeb_fidelity_from_expectations,
@@ -131,6 +137,7 @@ from cirq.linalg import (
     dot,
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,
+    is_cptp,
     is_diagonal,
     is_hermitian,
     is_normal,
@@ -175,6 +182,7 @@ from cirq.ops import (
     BaseDensePauliString,
     bit_flip,
     BitFlipChannel,
+    BooleanHamiltonian,
     CCX,
     CCXPowGate,
     CCZ,
@@ -217,9 +225,11 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    KrausChannel,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
     MatrixGate,
+    MixedUnitaryChannel,
     measure,
     measure_each,
     MeasurementGate,
@@ -230,6 +240,8 @@ from cirq.ops import (
     NamedQid,
     OP_TREE,
     Operation,
+    ParallelGate,
+    parallel_gate_op,
     ParallelGateOperation,
     Pauli,
     PAULI_GATE_LIKE,
@@ -251,6 +263,8 @@ from cirq.ops import (
     PhasedXPowGate,
     PhasedXZGate,
     PhaseFlipChannel,
+    ProjectorString,
+    ProjectorSum,
     RandomGateChannel,
     qft,
     Qid,
@@ -345,9 +359,11 @@ from cirq.qis import (
     fidelity,
     kraus_to_channel_matrix,
     kraus_to_choi,
+    kraus_to_superoperator,
     one_hot,
     operation_to_channel_matrix,
     operation_to_choi,
+    operation_to_superoperator,
     QUANTUM_STATE_LIKE,
     QuantumState,
     quantum_state,
@@ -418,7 +434,6 @@ from cirq.study import (
     ParamDictType,
     ParamResolver,
     ParamResolverOrSimilarType,
-    plot_state_histogram,
     Points,
     Product,
     Sweep,
@@ -449,6 +464,7 @@ from cirq.value import (
     MeasurementKey,
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
+    state_vector_to_probabilities,
     Timestamp,
     TParamKey,
     TParamVal,
@@ -496,9 +512,12 @@ from cirq.protocols import (
     is_parameterized,
     JsonResolver,
     json_serializable_dataclass,
+    dataclass_json_dict,
     kraus,
     measurement_key,
+    measurement_key_name,
     measurement_keys,
+    measurement_key_names,
     mixture,
     mul,
     num_qubits,
@@ -533,6 +552,7 @@ from cirq.protocols import (
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
     SupportsJSON,
+    SupportsKraus,
     SupportsMeasurementKey,
     SupportsMixture,
     SupportsParameterization,
@@ -590,70 +610,50 @@ from cirq import (
     testing,
 )
 
-try:
-    _compat.deprecated_submodule(
-        new_module_name='cirq_google',
-        old_parent=__name__,
-        old_child='google',
-        deadline="v0.14",
-        create_attribute=True,
-    )
-except ImportError as ex:
-    # coverage: ignore
-    warning("Can't import cirq_google: ", exc_info=ex)
+_compat.deprecated_submodule(
+    new_module_name='cirq_google',
+    old_parent=__name__,
+    old_child='google',
+    deadline="v0.14",
+    create_attribute=True,
+)
 
-try:
-    _compat.deprecated_submodule(
-        new_module_name='cirq_aqt',
-        old_parent=__name__,
-        old_child='aqt',
-        deadline="v0.14",
-        create_attribute=True,
-    )
-except ImportError as ex:
-    # coverage: ignore
-    warning("Can't import cirq_aqt: ", exc_info=ex)
+_compat.deprecated_submodule(
+    new_module_name='cirq_aqt',
+    old_parent=__name__,
+    old_child='aqt',
+    deadline="v0.14",
+    create_attribute=True,
+)
 
 
-try:
-    _compat.deprecated_submodule(
-        new_module_name='cirq_ionq',
-        old_parent=__name__,
-        old_child='ionq',
-        deadline="v0.14",
-        create_attribute=True,
-    )
-except ImportError as ex:
-    # coverage: ignore
-    warning("Can't import cirq_ionq: ", exc_info=ex)
+_compat.deprecated_submodule(
+    new_module_name='cirq_ionq',
+    old_parent=__name__,
+    old_child='ionq',
+    deadline="v0.14",
+    create_attribute=True,
+)
+
+_compat.deprecated_submodule(
+    new_module_name='cirq_pasqal',
+    old_parent=__name__,
+    old_child='pasqal',
+    deadline="v0.14",
+    create_attribute=True,
+)
 
 
-try:
-    _compat.deprecated_submodule(
-        new_module_name='cirq_pasqal',
-        old_parent=__name__,
-        old_child='pasqal',
-        deadline="v0.14",
-        create_attribute=True,
-    )
-except ImportError as ex:
-    # coverage: ignore
-    warning("Can't import cirq_pasqal: ", exc_info=ex)
+# Registers cirq-core's public classes for JSON serialization.
+# pylint: disable=wrong-import-position
+from cirq.protocols.json_serialization import _register_resolver
+from cirq.json_resolver_cache import _class_resolver_dictionary
 
 
-def _register_resolver() -> None:
-    """Registers the cirq module's public classes for JSON serialization."""
-    from cirq.protocols.json_serialization import _internal_register_resolver
-    from cirq.json_resolver_cache import _class_resolver_dictionary
-
-    _internal_register_resolver(_class_resolver_dictionary)
-
-
-_register_resolver()
+_register_resolver(_class_resolver_dictionary)
 
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
-# pylint: disable=wrong-import-position
 from cirq import (
     contrib,
 )

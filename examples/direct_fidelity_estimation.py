@@ -69,6 +69,8 @@ def compute_characteristic_function(
     return trace, prob
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 async def estimate_characteristic_function(
     circuit: cirq.Circuit,
     pauli_string: cirq.PauliString,
@@ -101,6 +103,7 @@ async def estimate_characteristic_function(
     return sigma_i
 
 
+# TODO(#3388) Add summary line to docstring.
 def _randomly_sample_from_stabilizer_bases(
     stabilizer_basis: List[cirq.DensePauliString], n_measured_operators: int, n_qubits: int
 ):
@@ -129,6 +132,7 @@ def _randomly_sample_from_stabilizer_bases(
     return dense_pauli_strings
 
 
+# TODO(#3388) Add summary line to docstring.
 def _enumerate_all_from_stabilizer_bases(
     stabilizer_basis: List[cirq.DensePauliString], n_qubits: int
 ):
@@ -154,6 +158,7 @@ def _enumerate_all_from_stabilizer_bases(
     return dense_pauli_strings
 
 
+# TODO(#3388) Add summary line to docstring.
 @dataclass
 class PauliTrace:
     """
@@ -171,14 +176,15 @@ class PauliTrace:
     Pr_i: float
 
 
+# pylint: enable=docstring-first-line-empty
 def _estimate_pauli_traces_clifford(
     n_qubits: int,
     stabilizer_basis: List[cirq.DensePauliString],
     n_measured_operators: Optional[int],
 ) -> List[PauliTrace]:
-    """
-    Estimates the Pauli traces in case the circuit is Clifford. When we have a
-    Clifford circuit, there are 2**n Pauli traces that have probability 1/2**n
+    """Estimates the Pauli traces in case the circuit is Clifford.
+
+    When we have a Clifford circuit, there are 2**n Pauli traces that have probability 1/2**n
     and all the other traces have probability 0. In addition, there is a fast
     way to compute find out what the traces are. See the documentation of
     cirq.CliffordTableau for more detail. This function uses the speedup to sample
@@ -234,9 +240,9 @@ def _estimate_pauli_traces_clifford(
 def _estimate_pauli_traces_general(
     qubits: List[cirq.Qid], circuit: cirq.Circuit, n_measured_operators: Optional[int]
 ) -> List[PauliTrace]:
-    """
-    Estimates the Pauli traces in case the circuit is not Clifford. In this case
-    we cannot use the speedup implemented in the function
+    """Estimates the Pauli traces in case the circuit is not Clifford.
+
+    In this case we cannot use the speedup implemented in the function
     _estimate_pauli_traces_clifford() above, and so do a slow, density matrix
     simulation.
 
@@ -274,8 +280,7 @@ def _estimate_pauli_traces_general(
 
 
 def _estimate_std_devs_clifford(fidelity: float, n: int) -> Tuple[Optional[float], float]:
-    """
-    Estimates the standard deviation of the measurement for Clifford circuits.
+    """Estimates the standard deviation of the measurement for Clifford circuits.
 
     Args:
         fidelity: The measured fidelity
@@ -306,9 +311,7 @@ def _estimate_std_devs_clifford(fidelity: float, n: int) -> Tuple[Optional[float
 
 @dataclass
 class Result:
-    """
-    Contains the results of a trial, either by simulator or actual run
-    """
+    """Contains the results of a trial, either by simulator or actual run."""
 
     # The Pauli trace that was measured
     pauli_trace: PauliTrace
@@ -318,6 +321,8 @@ class Result:
     sigma_i: float
 
 
+# TODO(#3388) Add summary line to docstring.
+# pylint: disable=docstring-first-line-empty
 @dataclass
 class DFEIntermediateResult:
     """
@@ -339,6 +344,9 @@ class DFEIntermediateResult:
     std_dev_bound: Optional[float]
 
 
+# TODO(#3388) Add summary line to docstring.
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def direct_fidelity_estimation(
     circuit: cirq.Circuit,
     qubits: List[cirq.Qid],
@@ -363,6 +371,7 @@ def direct_fidelity_estimation(
             simulate noise in the circuit. If greater than 0, we instead use the
             'sampler' parameter directly to estimate the characteristic
             function.
+
     Returns:
         The estimated fidelity and a log of the run.
     """
@@ -471,6 +480,7 @@ def direct_fidelity_estimation(
     return estimated_fidelity, dfe_intermediate_result
 
 
+# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def parse_arguments(args):
     """Helper function that parses the given arguments."""
     parser = argparse.ArgumentParser('Direct fidelity estimation.')

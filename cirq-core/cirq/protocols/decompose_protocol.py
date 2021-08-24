@@ -119,30 +119,6 @@ class SupportsDecomposeWithQubits(Protocol):
         pass
 
 
-# pylint: disable=function-redefined
-@overload
-def decompose(
-    val: Any,
-    *,
-    intercepting_decomposer: Optional[OpDecomposer] = None,
-    fallback_decomposer: Optional[OpDecomposer] = None,
-    keep: Optional[Callable[['cirq.Operation'], bool]] = None,
-) -> List['cirq.Operation']:
-    pass
-
-
-@overload
-def decompose(
-    val: Any,
-    *,
-    intercepting_decomposer: Optional[OpDecomposer] = None,
-    fallback_decomposer: Optional[OpDecomposer] = None,
-    keep: Optional[Callable[['cirq.Operation'], bool]] = None,
-    on_stuck_raise: Union[None, TError, Callable[['cirq.Operation'], Optional[TError]]],
-) -> List['cirq.Operation']:
-    pass
-
-
 def decompose(
     val: Any,
     *,
@@ -212,10 +188,9 @@ def decompose(
         )
 
     if preserve_structure:
-        if intercepting_decomposer is not None:
-            raise ValueError('Cannot specify intercepting_decomposer while preserving structure.')
         return _decompose_preserving_structure(
             val,
+            intercepting_decomposer=intercepting_decomposer,
             fallback_decomposer=fallback_decomposer,
             keep=keep,
             on_stuck_raise=on_stuck_raise,
@@ -263,6 +238,9 @@ def decompose(
     return output
 
 
+# pylint: disable=function-redefined
+
+
 @overload
 def decompose_once(val: Any, **kwargs) -> List['cirq.Operation']:
     pass
@@ -300,9 +278,9 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
         Otherwise `default` is returned, if it was specified. Otherwise an error
         is raised.
 
-    TypeError:
-        `val` didn't have a `_decompose_` method (or that method returned
-        `NotImplemented` or `None`) and `default` wasn't set.
+    Raises:
+        TypeError: `val` didn't have a `_decompose_` method (or that method returned
+            `NotImplemented` or `None`) and `default` wasn't set.
     """
     method = getattr(val, '_decompose_', None)
     decomposed = NotImplemented if method is None else method(*args, **kwargs)
@@ -401,6 +379,7 @@ def _try_decompose_into_operations_and_qubits(
 def _decompose_preserving_structure(
     val: Any,
     *,
+    intercepting_decomposer: Optional[OpDecomposer] = None,
     fallback_decomposer: Optional[OpDecomposer] = None,
     keep: Optional[Callable[['cirq.Operation'], bool]] = None,
     on_stuck_raise: Union[
@@ -431,7 +410,9 @@ def _decompose_preserving_structure(
 
     def dps_interceptor(op: 'cirq.Operation'):
         if not isinstance(op.untagged, CircuitOperation):
-            return NotImplemented
+            if intercepting_decomposer is None:
+                return NotImplemented
+            return intercepting_decomposer(op)
 
         new_fc = FrozenCircuit(
             decompose(

@@ -16,15 +16,10 @@ import os
 from typing import TYPE_CHECKING, Iterable
 
 from dev_tools import shell_tools
+from dev_tools.test_utils import only_on_posix
 
 if TYPE_CHECKING:
     import _pytest.tmpdir
-
-
-def only_on_posix(func):
-    if os.name != 'posix':
-        return None
-    return func
 
 
 def run(
@@ -355,7 +350,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
@@ -379,7 +374,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py master\n'
@@ -395,7 +390,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py origin/master\n'
@@ -411,7 +406,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
@@ -427,7 +422,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
@@ -455,7 +450,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py HEAD\n'
@@ -471,7 +466,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py master\n'
@@ -494,7 +489,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out.startswith(
         'INTERCEPTED check/pytest '
-        '--actually-quiet --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py '

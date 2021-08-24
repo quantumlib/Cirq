@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
+from typing import Sequence, Union
+
 import pytest
 
 import cirq
@@ -31,7 +32,12 @@ class DummyArgs(cirq.ActOnArgs):
     def _perform_measurement(self, qubits):
         return [5, 3]
 
-    def _act_on_fallback_(self, action, qubits, allow_decompose):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> bool:
         return True
 
 
@@ -60,3 +66,19 @@ def test_mapping():
     assert args is r1
     with pytest.raises(IndexError):
         _ = args[cirq.LineQubit(2)]
+
+
+def test_swap_bad_dimensions():
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQid(1, 3)
+    args = DummyArgs()
+    with pytest.raises(ValueError, match='Cannot swap different dimensions'):
+        args.swap(q0, q1)
+
+
+def test_rename_bad_dimensions():
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQid(1, 3)
+    args = DummyArgs()
+    with pytest.raises(ValueError, match='Cannot rename to different dimensions'):
+        args.rename(q0, q1)

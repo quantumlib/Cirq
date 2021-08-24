@@ -25,7 +25,7 @@ def sample_noisy_bitstrings(
     circuit: cirq.Circuit, qubit_order: Sequence[cirq.Qid], depolarization: float, repetitions: int
 ) -> np.ndarray:
     assert 0 <= depolarization <= 1
-    dim = np.product(circuit.qid_shape())
+    dim = np.prod(circuit.qid_shape(), dtype=np.int64)
     n_incoherent = int(depolarization * repetitions)
     n_coherent = repetitions - n_incoherent
     incoherent_samples = np.random.randint(dim, size=n_incoherent)
@@ -167,7 +167,7 @@ def test_least_squares_xeb_fidelity_from_expectations():
             circuit, qubits, depolarization=depolarization, repetitions=5000
         )
         amplitudes = cirq.final_state_vector(circuit)
-        probabilities = np.abs(amplitudes) ** 2
+        probabilities = cirq.state_vector_to_probabilities(amplitudes)
 
         measured_expectations_lin.append(dim * np.mean(probabilities[bitstrings]))
         exact_expectations_lin.append(dim * np.sum(probabilities ** 2))
@@ -216,7 +216,7 @@ def test_least_squares_xeb_fidelity_from_probabilities():
             circuit, qubits, depolarization=depolarization, repetitions=5000
         )
         amplitudes = cirq.final_state_vector(circuit)
-        probabilities = np.abs(amplitudes) ** 2
+        probabilities = cirq.state_vector_to_probabilities(amplitudes)
 
         all_probabilities.append(probabilities)
         observed_probabilities.append(probabilities[bitstrings])

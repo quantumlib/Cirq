@@ -27,6 +27,7 @@ import numpy as np
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
+from cirq.value import state_vector_to_probabilities
 
 
 def linear_xeb_fidelity_from_probabilities(
@@ -185,7 +186,7 @@ def xeb_fidelity(
         ValueError: Circuit is inconsistent with qubit order or one of the
             bitstrings is inconsistent with the number of qubits.
     """
-    dim = np.product(circuit.qid_shape())
+    dim = np.prod(circuit.qid_shape(), dtype=np.int64)
 
     if isinstance(bitstrings, tuple):
         bitstrings = list(bitstrings)
@@ -199,7 +200,7 @@ def xeb_fidelity(
 
     if amplitudes is None:
         output_state = final_state_vector(circuit, qubit_order=qubit_order)
-        output_probabilities = np.abs(output_state) ** 2
+        output_probabilities = state_vector_to_probabilities(output_state)
         bitstring_probabilities = output_probabilities[bitstrings]
     else:
         bitstring_probabilities = np.abs([amplitudes[bitstring] for bitstring in bitstrings]) ** 2

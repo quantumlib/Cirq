@@ -22,7 +22,8 @@ import cirq_pasqal
 
 class PasqalSampler(cirq.work.Sampler):
     def __init__(self, remote_host: str, access_token: str = '') -> None:
-        """
+        """Inits PasqalSampler.
+
         Args:
             remote_host: Address of the remote device.
             access_token: Access token for the remote api.
@@ -31,7 +32,9 @@ class PasqalSampler(cirq.work.Sampler):
         self._authorization_header = {"Authorization": access_token}
 
     def _serialize_circuit(
-        self, circuit: cirq.circuits.Circuit, param_resolver: cirq.study.ParamResolverOrSimilarType
+        self,
+        circuit: cirq.circuits.AbstractCircuit,
+        param_resolver: cirq.study.ParamResolverOrSimilarType,
     ) -> str:
         """Serialize a given Circuit.
         Args:
@@ -98,7 +101,7 @@ class PasqalSampler(cirq.work.Sampler):
         return result
 
     def run_sweep(
-        self, program: cirq.Circuit, params: cirq.study.Sweepable, repetitions: int = 1
+        self, program: cirq.AbstractCircuit, params: cirq.study.Sweepable, repetitions: int = 1
     ) -> List[cirq.study.Result]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter
