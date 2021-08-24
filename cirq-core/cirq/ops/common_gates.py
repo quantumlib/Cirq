@@ -1271,7 +1271,7 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('@', 'X'), exponent=self._diagram_exponent(args)
+            wire_symbols=('@', 'X'), exponent=self._diagram_exponent(args), exponent_qubit_index=1
         )
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
