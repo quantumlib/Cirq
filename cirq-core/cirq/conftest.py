@@ -14,5 +14,5 @@ def pytest_pyfunc_call(pyfuncitem):
         # coverage: ignore
         raise ValueError(
             f'{pyfuncitem._obj.__name__} is a bare async function. '
-            f'Should be decorated with "@duet.sync".'
+            f'It should be decorated with "@duet.sync".'
         )
