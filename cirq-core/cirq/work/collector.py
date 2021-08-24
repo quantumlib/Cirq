@@ -167,7 +167,7 @@ class Collector(metaclass=abc.ABCMeta):
             The collector's result after all desired samples have been
             collected.
         """
-        results = duet.AsyncCollector[Tuple[CircuitSampleJob, 'cirq.Result']]()
+        results: duet.AsyncCollector[Tuple[CircuitSampleJob, 'cirq.Result']] = duet.AsyncCollector()
         job_error = None
         running_jobs = 0
         queued_jobs: List[CircuitSampleJob] = []
@@ -208,9 +208,9 @@ class Collector(metaclass=abc.ABCMeta):
                     break
 
                 # Get result from next completed job and call on_job_result.
-                done_job, done_val = await results.__anext__()
+                job, result = await results.__anext__()
                 running_jobs -= 1
-                self.on_job_result(done_job, done_val)
+                self.on_job_result(job, result)
 
 
 def _flatten_jobs(tree: Optional[CIRCUIT_SAMPLE_JOB_TREE]) -> Iterator[CircuitSampleJob]:
