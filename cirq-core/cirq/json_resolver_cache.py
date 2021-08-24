@@ -128,6 +128,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
+        'SingleQubitCliffordGate': cirq.SingleQubitCliffordGate,
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
         'SingleQubitPauliStringGateOperation': cirq.SingleQubitPauliStringGateOperation,
         'SingleQubitReadoutCalibrationResult': cirq.experiments.SingleQubitReadoutCalibrationResult,

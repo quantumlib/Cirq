@@ -740,12 +740,36 @@ def test_u3_gate():
     assert parsed_qasm.qregs == {'q': 2}
 
 
+def test_r_gate():
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     r(pi, pi / 2.0) q[0];    
+"""
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(QasmUGate(1.0, 0.0, 0.0)(q0))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 1}
+
+
 @pytest.mark.parametrize(
     'qasm_gate',
     [
         'id',
         'u2',
         'u3',
+        'r',
     ]
     + [g[0] for g in rotation_gates]
     + [g[0] for g in single_qubit_gates],
@@ -766,14 +790,7 @@ def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate):
 
 @pytest.mark.parametrize(
     ['qasm_gate', 'num_params'],
-    [
-        ['id', 0],
-        ['u2', 2],
-        ['u3', 3],
-        ['rx', 1],
-        ['ry', 1],
-        ['rz', 1],
-    ]
+    [['id', 0], ['u2', 2], ['u3', 3], ['rx', 1], ['ry', 1], ['rz', 1], ['r', 2]]
     + [[g[0], 0] for g in single_qubit_gates],
 )
 def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
