@@ -59,7 +59,9 @@ class CountingActOnArgs(cirq.ActOnArgs):
 
 
 class SplittableCountingActOnArgs(CountingActOnArgs):
-    def _on_kron(self, other: 'SplittableCountingActOnArgs', target: 'SplittableCountingActOnArgs'):
+    def _on_kronecker_product(
+        self, other: 'SplittableCountingActOnArgs', target: 'SplittableCountingActOnArgs'
+    ):
         target.gate_count = self.gate_count + other.gate_count
         target.measurement_count = self.measurement_count + other.measurement_count
 
@@ -67,7 +69,9 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         remainder.gate_count = 0
         remainder.measurement_count = 0
 
-    def _on_transpose(self, qubits: Sequence['cirq.Qid'], target: 'SplittableCountingActOnArgs'):
+    def _on_transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid'], target: 'SplittableCountingActOnArgs'
+    ):
         pass
 
 

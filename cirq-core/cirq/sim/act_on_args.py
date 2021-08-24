@@ -126,11 +126,11 @@ class ActOnArgs(OperationTarget[TSelf]):
     def kronecker_product(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
-        self._on_kron(other, args)
+        self._on_kronecker_product(other, args)
         args._set_qubits(self.qubits + other.qubits)
         return args
 
-    def _on_kron(self: TSelf, other: TSelf, target: TSelf):
+    def _on_kronecker_product(self: TSelf, other: TSelf, target: TSelf):
         """Subclasses should implement this with any additional state product
         functionality, if supported."""
 
@@ -167,11 +167,11 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Physically reindexes the state by the new basis."""
         args = self if inplace else copy.copy(self)
         assert set(qubits) == set(self.qubits)
-        self._on_transpose(qubits, args)
+        self._on_transpose_to_qubit_order(qubits, args)
         args._set_qubits(qubits)
         return args
 
-    def _on_transpose(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
+    def _on_transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
         """Subclasses should implement this with any additional state transpose
         functionality, if supported."""
 

@@ -202,7 +202,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         target.target_tensor = self.target_tensor.copy()
         target.available_buffer = self.available_buffer.copy()
 
-    def _on_kron(self, other: 'ActOnStateVectorArgs', target: 'ActOnStateVectorArgs'):
+    def _on_kronecker_product(self, other: 'ActOnStateVectorArgs', target: 'ActOnStateVectorArgs'):
         target_tensor = transformations.state_vector_kronecker_product(
             self.target_tensor, other.target_tensor
         )
@@ -226,7 +226,9 @@ class ActOnStateVectorArgs(ActOnArgs):
         remainder.target_tensor = remainder_tensor
         remainder.available_buffer = np.empty_like(remainder_tensor)
 
-    def _on_transpose(self, qubits: Sequence['cirq.Qid'], target: 'ActOnStateVectorArgs'):
+    def _on_transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid'], target: 'ActOnStateVectorArgs'
+    ):
         axes = self.get_axes(qubits)
         new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)
         target.target_tensor = new_tensor
