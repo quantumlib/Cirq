@@ -469,7 +469,7 @@ def build_entangling_layers(
     Raises:
         ValueError: two-qubit gate is not used.
     """
-    if two_qubit_gate.num_qubits != 2:
+    if two_qubit_gate.num_qubits() != 2:
         raise ValueError('Input must be a two-qubit gate')
     interaction_sequence = _default_interaction_sequence(qubits)
     return [
