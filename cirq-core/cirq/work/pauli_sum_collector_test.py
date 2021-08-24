@@ -31,7 +31,7 @@ async def test_pauli_string_sample_collector():
     result = await p.collect_async(sampler=cirq.Simulator())
     assert result is None
     energy = p.estimated_energy()
-    assert isinstance(energy, float) and energy == 11
+    assert isinstance(energy, float) and energy == 12
 
 
 @duet.sync
