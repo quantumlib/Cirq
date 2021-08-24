@@ -357,6 +357,8 @@ class GateOperation(raw_types.Operation):
         *control_qubits: 'cirq.Qid',
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
     ) -> 'cirq.Operation':
+        if len(control_qubits) == 0:
+            return self
         qubits = tuple(control_qubits)
         return self._gate.controlled(
             num_controls=len(qubits),
