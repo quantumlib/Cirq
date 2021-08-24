@@ -466,6 +466,8 @@ def build_entangling_layers(
         A list of ops.Moment, with a maximum length of 4. Each ops.Moment
         includes two-qubit gates which can be performed at the same time.
     """
+    if two_qubit_gate.num_qubits != 2:
+        raise ValueError('Input must be a two-qubit gate')
     interaction_sequence = _default_interaction_sequence(qubits)
     return [
         ops.Moment([two_qubit_gate(q_a, q_b) for (q_a, q_b) in pairs])
