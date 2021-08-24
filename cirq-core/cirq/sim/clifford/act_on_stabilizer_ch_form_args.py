@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable, Union
 
 import numpy as np
 
@@ -23,6 +23,7 @@ from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.act_on_args import ActOnArgs
 from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -82,7 +83,12 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.state = state
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> Union[bool, NotImplementedType]:
         strats = []
         if allow_decompose:
             strats.append(_strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)

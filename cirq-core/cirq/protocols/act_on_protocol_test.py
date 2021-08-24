@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Tuple
+from typing import Any, Tuple, Union, Sequence
 
 import numpy as np
 import pytest
@@ -31,7 +31,15 @@ class DummyActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self, qubits):
         return self.measurements  # coverage: ignore
 
-    def _act_on_fallback_(self, action, qubits, allow_decompose):
+    def copy(self):
+        return DummyActOnArgs(self.fallback_result, self.measurements.copy())  # coverage: ignore
+
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ):
         return self.fallback_result
 
     def sample(self, qubits, repetitions=1, seed=None):
@@ -77,7 +85,12 @@ def test_act_on_errors():
 
 def test_act_on_args_axes_deprecation():
     class Args(DummyActOnArgs):
-        def _act_on_fallback_(self, action, qubits, allow_decompose):
+        def _act_on_fallback_(
+            self,
+            action: Union['cirq.Operation', 'cirq.Gate'],
+            qubits: Sequence['cirq.Qid'] = None,
+            allow_decompose: bool = True,
+        ) -> bool:
             self.measurements.append(qubits)
             return True
 

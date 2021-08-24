@@ -280,6 +280,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def on(self, *qubits) -> 'cirq.PauliString':
         return self.sparse(qubits)
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def sparse(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> 'cirq.PauliString':
         """A `cirq.PauliString` version of this dense pauli string.
 
@@ -304,6 +306,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             qubit_pauli_map={q: PAULI_GATES[p] for q, p in zip(qubits, self.pauli_mask) if p},
         )
 
+    # pylint: enable=missing-raises-doc
     def __str__(self) -> str:
         if self.coefficient == 1:
             coef = '+'

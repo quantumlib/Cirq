@@ -130,7 +130,7 @@ class QuilOutput:
         measurement_id_map: Dict[str, str] = {}
         for op in self.operations:
             if isinstance(op.gate, ops.MeasurementGate):
-                key = protocols.measurement_key(op)
+                key = protocols.measurement_key_name(op)
                 if key in measurement_id_map:
                     continue
                 measurement_id_map[key] = f'm{index}'
@@ -152,7 +152,7 @@ class QuilOutput:
         if len(self.measurements) > 0:
             measurements_declared: Set[str] = set()
             for m in self.measurements:
-                key = protocols.measurement_key(m)
+                key = protocols.measurement_key_name(m)
                 if key in measurements_declared:
                     continue
                 measurements_declared.add(key)

@@ -29,6 +29,8 @@ if TYPE_CHECKING:
     import cirq
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def t1_decay(
     sampler: 'cirq.Sampler',
     *,
@@ -67,7 +69,10 @@ def t1_decay(
     var = sympy.Symbol('delay_ns')
 
     sweep = study.Linspace(
-        var, start=min_delay_dur.total_nanos(), stop=max_delay_dur.total_nanos(), length=num_points
+        var,
+        start=min_delay_dur.total_nanos(),
+        stop=max_delay_dur.total_nanos(),
+        length=num_points,
     )
 
     circuit = circuits.Circuit(
@@ -89,6 +94,7 @@ def t1_decay(
     return T1DecayResult(tab)
 
 
+# pylint: enable=missing-raises-doc
 class T1DecayResult:
     """Results from a Rabi oscillation experiment."""
 

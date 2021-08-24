@@ -53,7 +53,8 @@ class ModuleJsonTestSpec:
     should_not_be_serialized: List[str]
     # points to the resolver cache's dict for this module
     resolver_cache: Dict[str, ObjectFactory]
-    # deprecations
+    # {DeprecatedClass: deprecation_deadline} pairs to avoid deprecation errors
+    # in serialization tests.
     deprecated: Dict[str, str]
 
     def __repr__(self):
