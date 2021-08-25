@@ -671,7 +671,11 @@ class OperationDecorator(Operation):
         )
 
     def _decompose_(self) -> 'cirq.OP_TREE':
-        return [self._rewrap(op) for op in protocols.decompose(self._sub_operation)]
+        result = protocols.decompose_once(self.sub_operation, NotImplemented)
+        if result is NotImplemented:
+            return NotImplemented
+
+        return [self._rewrap(op) for op in result]
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return protocols.pauli_expansion(self._sub_operation)
@@ -747,9 +751,6 @@ class OperationDecorator(Operation):
 
     def __rmul__(self, other: Any) -> Any:
         return self._rewrap(other * self._sub_operation)
-
-    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
-        return protocols.qasm(self._sub_operation, args=args, default=None)
 
     def _equal_up_to_global_phase_(
         self, other: Any, atol: Union[int, float] = 1e-8
@@ -839,6 +840,9 @@ class TaggedOperation(OperationDecorator):
                 sub_op_info.wire_symbols[0] + str(list(self._tags)),
             ) + sub_op_info.wire_symbols[1:]
         return sub_op_info
+
+    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
+        return protocols.qasm(self._sub_operation, args=args, default=None)
 
 
 @value.value_equality
