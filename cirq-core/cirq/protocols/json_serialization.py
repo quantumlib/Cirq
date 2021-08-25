@@ -177,6 +177,13 @@ def json_serializable_dataclass(
     the ``_json_dict_`` protocol method which automatically determines
     the appropriate fields from the dataclass.
 
+    Dataclasses are implemented with somewhat complex metaprogramming, and
+    tooling (PyCharm, mypy) have special cases for dealing with classes
+    decorated with @dataclass. There is very little support (and no plans for
+    support) for decorators that wrap @dataclass like this. Consider explicitly
+    defining `_json_dict_` on your dataclasses which simply
+    `return dataclass_json_dict(self)`.
+
     Args:
         namespace: An optional prefix to the value associated with the
             key "cirq_type". The namespace name will be joined with the
@@ -207,6 +214,21 @@ def json_serializable_dataclass(
 
 
 # pylint: enable=redefined-builtin
+
+
+def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
+    """Return a dictionary suitable for _json_dict_ from a dataclass.
+
+    Dataclasses keep track of their relevant fields, so we can automatically generate these.
+
+    Dataclasses are implemented with somewhat complex metaprogramming, and tooling (PyCharm, mypy)
+    have special cases for dealing with classes decorated with @dataclass. There is very little
+    support (and no plans for support) for decorators that wrap @dataclass (like
+    @cirq.json_serializable_dataclass) or combining additional decorators with @dataclass.
+    Although not as elegant, you may want to consider explicitly defining `_json_dict_` on your
+    dataclasses which simply `return dataclass_json_dict(self)`.
+    """
+    return obj_to_dict_helper(obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace)
 
 
 class CirqEncoder(json.JSONEncoder):

@@ -1,0 +1,21 @@
+{
+  "cirq_type": "ProjectorSum",
+  "linear_dict": [
+    [
+      [
+        [
+          {
+            "cirq_type": "NamedQubit",
+            "name": "q0"
+          },
+          0
+        ]
+      ],
+      {
+        "cirq_type": "complex",
+        "real": 1.0,
+        "imag": 0.0
+      }
+    ]
+  ]
+}

@@ -775,6 +775,24 @@ def test_json_serializable_dataclass_parenthesis():
     assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
 
 
+def test_dataclass_json_dict():
+    @dataclasses.dataclass(frozen=True)
+    class MyDC:
+        q: cirq.LineQubit
+        desc: str
+
+        def _json_dict_(self):
+            return cirq.dataclass_json_dict(self)
+
+    def custom_resolver(name):
+        if name == 'MyDC':
+            return MyDC
+
+    my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
+
+    assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver, *cirq.DEFAULT_RESOLVERS])
+
+
 def test_json_serializable_dataclass_namespace():
     @cirq.json_serializable_dataclass(namespace='cirq.experiments')
     class QuantumVolumeParams:
