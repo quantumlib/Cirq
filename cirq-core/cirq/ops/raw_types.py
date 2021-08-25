@@ -657,14 +657,18 @@ class OperationDecorator(Operation):
         return self._with_sub_operation(self._sub_operation.with_qubits(*new_qubits))
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
-        return self._with_sub_operation(protocols.with_measurement_key_mapping(self._sub_operation, key_map))
+        return self._with_sub_operation(
+            protocols.with_measurement_key_mapping(self._sub_operation, key_map)
+        )
 
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
     ) -> 'cirq.Operation':
-        return self._rewrap(self._sub_operation.controlled_by(*control_qubits, control_values=control_values))
+        return self._rewrap(
+            self._sub_operation.controlled_by(*control_qubits, control_values=control_values)
+        )
 
     def _decompose_(self) -> 'cirq.OP_TREE':
         return [self._rewrap(op) for op in protocols.decompose(self._sub_operation)]
@@ -721,10 +725,10 @@ class OperationDecorator(Operation):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._sub_operation)
 
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> Operation:
-        return self._with_sub_operation(protocols.resolve_parameters(self._sub_operation, resolver, recursive))
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> Operation:
+        return self._with_sub_operation(
+            protocols.resolve_parameters(self._sub_operation, resolver, recursive)
+        )
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
