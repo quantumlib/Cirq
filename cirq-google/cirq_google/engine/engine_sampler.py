@@ -166,9 +166,7 @@ def get_device_sampler(
             ``Engine.list_processors``).
 
     Returns:
-        A tuple of ((`Device`, `int`), `Simulator/Sampler`, `bool`). The first element is the
-        device and it's corresponding line length, the second is a simulator instance, and the
-        third is a boolean value, true if the signin was successful, false otherwise.
+        An instance of DeviceSamplerInfo.
     """
     from cirq_google import (
         PhasedFSimEngineSimulator,
@@ -176,7 +174,6 @@ def get_device_sampler(
         PhasedFSimCharacterization,
         Bristlecone,
         get_engine_device,
-        get_engine_sampler,
     )
 
     # Converting empty strings to None for form field inputs
@@ -193,42 +190,39 @@ def get_device_sampler(
     else:  # pragma: no cover
         os.environ['GOOGLE_CLOUD_PROJECT'] = project_id
 
-        def authenticate_user():
-            """Runs the user through the Colab OAuth process.
+        # Following code runs the user through the Colab OAuth process.
 
-            Checks for Google Application Default Credentials and runs
-            interactive login if the notebook is executed in Colab. In
-            case the notebook is executed in Jupyter notebook or other
-            IPython runtimes, no interactive login is provided, it is
-            assumed that the `GOOGLE_APPLICATION_CREDENTIALS` env var is
-            set or `gcloud auth application-default login` was executed
-            already.
+        # Checks for Google Application Default Credentials and runs
+        # interactive login if the notebook is executed in Colab. In
+        # case the notebook is executed in Jupyter notebook or other
+        # IPython runtimes, no interactive login is provided, it is
+        # assumed that the `GOOGLE_APPLICATION_CREDENTIALS` env var is
+        # set or `gcloud auth application-default login` was executed
+        # already. For more information on using Application Default Credentials
+        # see https://cloud.google.com/docs/authentication/production
 
-            For more information on using Application Default Credentials see
-            https://cloud.google.com/docs/authentication/production
-            """
-            in_colab = False
-            try:
-                from IPython import get_ipython
+        in_colab = False
+        try:
+            from IPython import get_ipython
 
-                in_colab = 'google.colab' in str(get_ipython())
-            except:
-                return
+            in_colab = 'google.colab' in str(get_ipython())
+        except:
+            return
 
-            if in_colab:
-                from google.colab import auth
+        if in_colab:
+            from google.colab import auth
 
-                print("Getting OAuth2 credentials.")
-                print("Press enter after entering the verification code.")
-                auth.authenticate_user(clear_output=False)
-                print("Authentication complete.")
-            else:
-                print(
-                    "Notebook isn't executed with Colab, assuming "
-                    "Application Default Credentials are setup."
-                )
+            print("Getting OAuth2 credentials.")
+            print("Press enter after entering the verification code.")
+            auth.authenticate_user(clear_output=False)
+            print("Authentication complete.")
+        else:
+            print(
+                "Notebook isn't executed with Colab, assuming "
+                "Application Default Credentials are setup."
+            )
 
-        authenticate_user()
+        # End of Google Colab Authentication segment
 
     device: cirq.Device
     sampler: Union['cirq_google.PhasedFSimEngineSimulator', 'cirq_google.QuantumEngineSampler']
