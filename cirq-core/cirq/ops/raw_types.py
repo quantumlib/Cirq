@@ -730,9 +730,7 @@ class OperationDecorator(Operation):
             protocols.resolve_parameters(self._sub_operation, resolver, recursive)
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Any:
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Any:
         return protocols.circuit_diagram_info(self._sub_operation, args, NotImplemented)
 
     def _trace_distance_bound_(self) -> Any:
