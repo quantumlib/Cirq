@@ -15,6 +15,7 @@
 """A simplified time-slice of operations within a sequenced circuit."""
 
 from typing import (
+    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -216,6 +217,9 @@ class Moment:
             else op
             for op in self.operations
         )
+
+    def _measurement_key_names_(self) -> AbstractSet[str]:
+        return {key for op in self.operations for key in protocols.measurement_key_names(op)}
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         return Moment(

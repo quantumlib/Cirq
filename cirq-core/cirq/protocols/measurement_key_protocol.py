@@ -19,7 +19,6 @@ from typing_extensions import Protocol
 
 from cirq._compat import deprecated, _warn_or_error
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -174,12 +173,6 @@ def measurement_key_names(val: Any, *, allow_decompose: bool = True) -> Abstract
     result = _measurement_key_names_from_magic_methods(val)
     if result is not NotImplemented and result is not None:
         return result
-
-    if allow_decompose:
-        operations, _, _ = _try_decompose_into_operations_and_qubits(val)
-        if operations is not None:
-            return {key for op in operations for key in measurement_key_names(op)}
-
     return set()
 
 
@@ -196,7 +189,6 @@ def _is_any_measurement(vals: List[Any], allow_decompose: bool) -> bool:
     constituent decomposed operations. But a decompose operation is only called if all cheaper
     checks are done. A BFS for searching measurements, where "depth" is each level of decompose.
     """
-    vals_to_decompose = []  # type: List[Any]
     while vals:
         val = vals.pop(0)
         result = _is_measurement_from_magic_method(val)
@@ -211,21 +203,6 @@ def _is_any_measurement(vals: List[Any], allow_decompose: bool) -> bool:
         keys = _measurement_key_names_from_magic_methods(val)
         if keys is not NotImplemented and bool(keys) is True:
             return True
-
-        if allow_decompose:
-            vals_to_decompose.append(val)
-
-        # If vals has finished iterating over, keep decomposing from vals_to_decompose until vals
-        # is populated with something.
-        while not vals:
-            if not vals_to_decompose:
-                # Nothing left to process, this is not a measurement.
-                return False
-            operations, _, _ = _try_decompose_into_operations_and_qubits(vals_to_decompose.pop(0))
-            if operations:
-                # Reverse the decomposed operations because measurements are typically at later
-                # moments.
-                vals = operations[::-1]
 
     return False
 
