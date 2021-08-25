@@ -48,7 +48,7 @@ class DensityMatrixSimulator(
         * measurements
         * a `_decompose_` that eventually yields one of the above
     That is, the circuit must have elements that follow on of the protocols:
-        * `cirq.SupportsChannel`
+        * `cirq.SupportsKraus`
         * `cirq.SupportsMixture`
         * `cirq.SupportsConsistentApplyUnitary`
         * `cirq.SupportsUnitary`

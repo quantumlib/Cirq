@@ -372,7 +372,7 @@ cirq.CircuitOperation(
             cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(2)),
         ),
         cirq.Moment(
-            cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), key='m'),
+            cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), key=cirq.MeasurementKey(name='m')),
         ),
     ]),
 )"""

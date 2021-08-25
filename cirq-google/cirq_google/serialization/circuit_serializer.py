@@ -46,7 +46,7 @@ class CircuitSerializer(serializer.Serializer):
         Args:
             gate_set_name: The name used to identify the gate set.
         """
-        self.gate_set_name = gate_set_name
+        super().__init__(gate_set_name)
 
     # TODO(#3388) Add documentation for Raises.
     # pylint: disable=missing-raises-doc
@@ -71,7 +71,7 @@ class CircuitSerializer(serializer.Serializer):
         raw_constants: Dict[Any, int] = {}
         if msg is None:
             msg = v2.program_pb2.Program()
-        msg.language.gate_set = self.gate_set_name
+        msg.language.gate_set = self.name
         msg.language.arg_function_language = (
             arg_function_language or arg_func_langs.MOST_PERMISSIVE_LANGUAGE
         )
@@ -327,10 +327,10 @@ class CircuitSerializer(serializer.Serializer):
         """
         if not proto.HasField('language') or not proto.language.gate_set:
             raise ValueError('Missing gate set specification.')
-        if proto.language.gate_set != self.gate_set_name:
+        if proto.language.gate_set != self.name:
             raise ValueError(
                 'Gate set in proto was {} but expected {}'.format(
-                    proto.language.gate_set, self.gate_set_name
+                    proto.language.gate_set, self.name
                 )
             )
         which = proto.WhichOneof('program')

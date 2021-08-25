@@ -1,0 +1,1 @@
+cirq.ParallelGate(sub_gate=cirq.X, num_copies=4)
