@@ -154,11 +154,17 @@ def test_measurement_keys():
     assert cirq.measurement_key_names([]) == set()
     assert cirq.measurement_key_names(cirq.X) == set()
     assert cirq.measurement_key_names(cirq.X(a)) == set()
-    assert cirq.measurement_key_names(None, allow_decompose=False) == set()
-    assert cirq.measurement_key_names([], allow_decompose=False) == set()
-    assert cirq.measurement_key_names(cirq.X, allow_decompose=False) == set()
+    with cirq.testing.assert_deprecated(deadline="v0.14"):
+        assert cirq.measurement_key_names(None, allow_decompose=False) == set()
+    with cirq.testing.assert_deprecated(deadline="v0.14"):
+        assert cirq.measurement_key_names([], allow_decompose=False) == set()
+    with cirq.testing.assert_deprecated(deadline="v0.14"):
+        assert cirq.measurement_key_names(cirq.X, allow_decompose=False) == set()
     assert cirq.measurement_key_names(cirq.measure(a, key='out')) == {'out'}
-    assert cirq.measurement_key_names(cirq.measure(a, key='out'), allow_decompose=False) == {'out'}
+    with cirq.testing.assert_deprecated(deadline="v0.14"):
+        assert cirq.measurement_key_names(cirq.measure(a, key='out'), allow_decompose=False) == {
+            'out'
+        }
 
     assert cirq.measurement_key_names(
         cirq.Circuit(cirq.measure(a, key='a'), cirq.measure(b, key='2'))

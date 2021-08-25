@@ -17,7 +17,7 @@ from typing import AbstractSet, Any, Dict, List, Iterable, Optional, Tuple
 
 from typing_extensions import Protocol
 
-from cirq._compat import deprecated, _warn_or_error
+from cirq._compat import deprecated, deprecated_parameter, _warn_or_error
 from cirq._doc import doc_private
 
 # This is a special indicator value used by the inverse method to determine
@@ -154,6 +154,13 @@ def measurement_keys(val: Any, *, allow_decompose: bool = True):
     return measurement_key_names(val, allow_decompose=allow_decompose)
 
 
+@deprecated_parameter(
+    deadline='v0.14',
+    fix='Remove the parameter.',
+    func_name='is_measurement',
+    parameter_desc='allow_decompose',
+    match=lambda args, kwargs: 'allow_decompose' in kwargs,
+)
 def measurement_key_names(val: Any, *, allow_decompose: bool = True) -> AbstractSet[str]:
     """Gets the measurement keys of measurements within the given value.
 
@@ -207,6 +214,13 @@ def _is_any_measurement(vals: List[Any], allow_decompose: bool) -> bool:
     return False
 
 
+@deprecated_parameter(
+    deadline='v0.14',
+    fix='Remove the parameter.',
+    func_name='is_measurement',
+    parameter_desc='allow_decompose',
+    match=lambda args, kwargs: 'allow_decompose' in kwargs,
+)
 def is_measurement(val: Any, allow_decompose: bool = True) -> bool:
     """Determines whether or not the given value is a measurement (or contains one).
 
