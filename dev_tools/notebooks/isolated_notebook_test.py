@@ -64,8 +64,6 @@ SKIP_NOTEBOOKS = [
     "examples/*stabilizer_code*",
     # Until openfermion is upgraded, this version of Cirq throws an error
     "docs/tutorials/educators/chemistry.ipynb",
-    # Fails after upgrading notebook to 6.4.1. See #4470.
-    "docs/operators_and_observables.ipynb",
 ] + NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
 # The Rigetti integration requires Python >= 3.7.
