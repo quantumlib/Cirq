@@ -695,7 +695,7 @@ class OperationDecorator(Operation):
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self._sub_operation)
 
-    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+    def _mixture_(self) -> Any:
         return protocols.mixture(self._sub_operation, NotImplemented)
 
     def _has_kraus_(self) -> bool:
@@ -732,10 +732,10 @@ class OperationDecorator(Operation):
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    ) -> Any:
         return protocols.circuit_diagram_info(self._sub_operation, args, NotImplemented)
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Any:
         return protocols.trace_distance_bound(self._sub_operation)
 
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'cirq.Operation':
