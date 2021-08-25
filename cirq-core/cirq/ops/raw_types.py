@@ -604,7 +604,7 @@ class Operation(metaclass=abc.ABCMeta):
 
 
 class OperationDecorator(Operation):
-    """Base class for operation wrapper classes.
+    """Base class for operation decorator classes.
 
     Forwards protocols to child operation by default.
     """
@@ -626,7 +626,7 @@ class OperationDecorator(Operation):
 
     @abc.abstractmethod
     def _with_sub_operation(self, sub_operation: Operation):
-        """Wraps the new suboperation into an equivalent decorator.
+        """Decorates the new suboperation into an equivalent decorator.
 
         Args:
             sub_operation: The operation to decorate.
