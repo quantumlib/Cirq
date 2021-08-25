@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import List, Dict, Any, Sequence, Tuple
+from typing import List, Dict, Any, Sequence, Tuple, Union
 
 import numpy as np
 import pytest
@@ -45,7 +45,12 @@ class CountingActOnArgs(cirq.ActOnArgs):
         args.measurement_count = self.measurement_count
         return args
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> bool:
         self.gate_count += 1
         return True
 

@@ -126,7 +126,7 @@ class MeasurementGate(raw_types.Gate):
     def _is_measurement_(self) -> bool:
         return True
 
-    def _measurement_key_(self):
+    def _measurement_key_name_(self):
         return self.key
 
     def _kraus_(self):
@@ -193,7 +193,7 @@ class MeasurementGate(raw_types.Gate):
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
         args = list(repr(q) for q in qubits)
         if self.key != _default_measurement_key(qubits):
-            args.append(f'key={self.key!r}')
+            args.append(f'key={self.mkey!r}')
         if self.invert_mask:
             args.append(f'invert_mask={self.invert_mask!r}')
         arg_list = ', '.join(args)
@@ -206,7 +206,7 @@ class MeasurementGate(raw_types.Gate):
         return (
             f'cirq.MeasurementGate('
             f'{self.num_qubits()!r}, '
-            f'{self.key!r}, '
+            f'{self.mkey!r}, '
             f'{self.invert_mask}'
             f'{qid_shape_arg})'
         )
@@ -238,7 +238,11 @@ class MeasurementGate(raw_types.Gate):
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         return True
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
+    def _act_on_(self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']) -> bool:
+        from cirq.sim import ActOnArgs
+
+        if not isinstance(args, ActOnArgs):
+            return NotImplemented
         args.measure(qubits, self.key, self.full_invert_mask())
         return True
 

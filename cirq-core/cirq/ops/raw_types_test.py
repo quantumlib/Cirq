@@ -452,7 +452,7 @@ def test_tagged_measurement():
     remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
     assert remap_op.tags == ('tag',)
     assert cirq.is_measurement(remap_op)
-    assert cirq.measurement_keys(remap_op) == {'k'}
+    assert cirq.measurement_key_names(remap_op) == {'k'}
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) == op
 
 
@@ -599,7 +599,7 @@ def test_tagged_operation_forwards_protocols():
     assert cirq.equal_up_to_global_phase(h, tagged_h)
     assert np.isclose(cirq.kraus(h), cirq.kraus(tagged_h)).all()
 
-    assert cirq.measurement_key(cirq.measure(q1, key='blah').with_tags(tag)) == 'blah'
+    assert cirq.measurement_key_name(cirq.measure(q1, key='blah').with_tags(tag)) == 'blah'
 
     parameterized_op = cirq.XPowGate(exponent=sympy.Symbol('t'))(q1).with_tags(tag)
     assert cirq.is_parameterized(parameterized_op)

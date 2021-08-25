@@ -1,0 +1,2 @@
+cirq.SingleQubitCliffordGate(_rotation_map={cirq.X: cirq.PauliTransform(to=cirq.X, flip=False), cirq.Z: cirq.PauliTransform(to=cirq.Y, flip=False), cirq.Y: cirq.PauliTransform(to=cirq.Z, flip=True)},
+_inverse_map={cirq.X: cirq.PauliTransform(to=cirq.X, flip=False), cirq.Y: cirq.PauliTransform(to=cirq.Z, flip=False), cirq.Z: cirq.PauliTransform(to=cirq.Y, flip=True)})

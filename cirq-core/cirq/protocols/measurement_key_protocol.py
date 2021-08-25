@@ -17,6 +17,7 @@ from typing import AbstractSet, Any, Dict, List, Iterable, Optional, Tuple
 
 from typing_extensions import Protocol
 
+from cirq._compat import deprecated, _warn_or_error
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
@@ -30,8 +31,8 @@ class SupportsMeasurementKey(Protocol):
 
     Measurement keys are used in referencing the results of a measurement.
 
-    Users are free to implement either `_measurement_key_` returning one string
-    or `_measurement_keys_` returning an iterable of strings.
+    Users are free to implement either `_measurement_key_name_` returning one string
+    or `_measurement_key_names_` returning an iterable of strings.
 
     Note: Measurements, in contrast to general quantum channels, are
     distinguished by the recording of the quantum operation that occurred.
@@ -47,11 +48,11 @@ class SupportsMeasurementKey(Protocol):
     """
 
     @doc_private
-    def _is_measurement_(self) -> str:
+    def _is_measurement_(self) -> bool:
         """Return if this object is (or contains) a measurement."""
 
     @doc_private
-    def _measurement_key_(self) -> str:
+    def _measurement_key_name_(self) -> str:
         """Return the key that will be used to identify this measurement.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -60,7 +61,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_keys_(self) -> Iterable[str]:
+    def _measurement_key_names_(self) -> Iterable[str]:
         """Return the keys for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -76,7 +77,12 @@ class SupportsMeasurementKey(Protocol):
         """
 
 
+@deprecated(deadline='v0.13', fix='use cirq.measurement_key_name instead')
 def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
+    return measurement_key_name(val, default)
+
+
+def measurement_key_name(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     """Get the single measurement key for the given value.
 
     Args:
@@ -84,19 +90,19 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
         default: Determines the fallback behavior when `val` doesn't have
             a measurement key. If `default` is not set, a TypeError is raised.
             If default is set to a value, that value is returned if the value
-            does not have `_measurement_key_`.
+            does not have `_measurement_key_name_`.
 
     Returns:
-        If `val` has a `_measurement_key_` method and its result is not
+        If `val` has a `_measurement_key_name_` method and its result is not
         `NotImplemented`, that result is returned. Otherwise, if a default
         value was specified, the default value is returned.
 
     Raises:
-        TypeError: `val` doesn't have a _measurement_key_ method (or that method
+        TypeError: `val` doesn't have a _measurement_key_name_ method (or that method
             returned NotImplemented) and also no default value was specified.
         ValueError: `val` has multiple measurement keys.
     """
-    result = measurement_keys(val)
+    result = measurement_key_names(val)
 
     if len(result) == 1:
         return next(iter(result))
@@ -110,23 +116,46 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     raise TypeError(f"Object of type '{type(val)}' had no measurement keys.")
 
 
-def _measurement_keys_from_magic_methods(val: Any) -> Optional[AbstractSet[str]]:
+def _measurement_key_names_from_magic_methods(val: Any) -> Optional[AbstractSet[str]]:
     """Uses the measurement key related magic methods to get the keys for this object."""
 
-    getter = getattr(val, '_measurement_keys_', None)
+    getter = getattr(val, '_measurement_key_names_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
         return set(result)
+    getter = getattr(val, '_measurement_keys_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented and result is not None:
+        _warn_or_error(
+            f'_measurement_keys_ was used but is deprecated.\n'
+            f'It will be removed in cirq v0.13.\n'
+            f'Use _measurement_key_names_ instead.\n'
+        )
+        return set(result)
 
+    getter = getattr(val, '_measurement_key_name_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented and result is not None:
+        return {result}
     getter = getattr(val, '_measurement_key_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
+        _warn_or_error(
+            f'_measurement_key_ was used but is deprecated.\n'
+            f'It will be removed in cirq v0.13.\n'
+            f'Use _measurement_key_name_ instead.\n'
+        )
         return {result}
 
     return result
 
 
-def measurement_keys(val: Any, *, allow_decompose: bool = True) -> AbstractSet[str]:
+@deprecated(deadline='v0.13', fix='use cirq.measurement_key_names instead')
+def measurement_keys(val: Any, *, allow_decompose: bool = True):
+    return measurement_key_names(val, allow_decompose=allow_decompose)
+
+
+def measurement_key_names(val: Any, *, allow_decompose: bool = True) -> AbstractSet[str]:
     """Gets the measurement keys of measurements within the given value.
 
     Args:
@@ -142,14 +171,14 @@ def measurement_keys(val: Any, *, allow_decompose: bool = True) -> AbstractSet[s
         The measurement keys of the value. If the value has no measurement,
         the result is the empty tuple.
     """
-    result = _measurement_keys_from_magic_methods(val)
+    result = _measurement_key_names_from_magic_methods(val)
     if result is not NotImplemented and result is not None:
         return result
 
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
-            return {key for op in operations for key in measurement_keys(op)}
+            return {key for op in operations for key in measurement_key_names(op)}
 
     return set()
 
@@ -179,7 +208,7 @@ def _is_any_measurement(vals: List[Any], allow_decompose: bool) -> bool:
                 # "not measurement".
                 continue
 
-        keys = _measurement_keys_from_magic_methods(val)
+        keys = _measurement_key_names_from_magic_methods(val)
         if keys is not NotImplemented and bool(keys) is True:
             return True
 
