@@ -56,7 +56,7 @@ class Simulator(
     protocol, the `cirq.SupportsMixture` protocol, or the
     `cirq.CompositeOperation` protocol. It is also permitted for the circuit
     to contain measurements which are operations that support
-    `cirq.SupportsChannel` and `cirq.SupportsMeasurementKey`
+    `cirq.SupportsKraus` and `cirq.SupportsMeasurementKey`
 
     This simulator supports four types of simulation.
 
