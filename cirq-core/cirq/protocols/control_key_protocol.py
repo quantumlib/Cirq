@@ -64,6 +64,8 @@ def control_key_names(val: Any, *, allow_decompose: bool = True) -> AbstractSet[
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
-            return {key for op in operations for key in control_key_names(op, allow_decompose=False)}
+            return {
+                key for op in operations for key in control_key_names(op, allow_decompose=False)
+            }
 
     return set()

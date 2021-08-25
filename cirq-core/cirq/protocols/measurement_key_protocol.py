@@ -178,7 +178,9 @@ def measurement_key_names(val: Any, *, allow_decompose: bool = True) -> Abstract
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
-            return {key for op in operations for key in measurement_key_names(op)}
+            return {
+                key for op in operations for key in measurement_key_names(op, allow_decompose=False)
+            }
 
     return set()
 
