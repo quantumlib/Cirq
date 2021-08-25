@@ -204,6 +204,7 @@ def get_device_sampler(
         in_colab = False
         try:
             from IPython import get_ipython
+
             in_colab = 'google.colab' in str(get_ipython())
 
             if in_colab:
