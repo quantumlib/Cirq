@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+import traceback
 
 import numpy as np
+import pytest
 
 import cirq
 
@@ -27,7 +28,8 @@ def test_avoids_decompose_when_matrix_available():
             return np.kron(m, m)
 
         def _decompose_(self, qubits):
-            assert False
+            stack = str(traceback.extract_stack())
+            assert 'control_key' in stack or 'measurement_key' in stack
 
     class OtherOtherXX(cirq.testing.TwoQubitGate):
         # coverage: ignore
@@ -36,7 +38,8 @@ def test_avoids_decompose_when_matrix_available():
             return np.kron(m, m)
 
         def _decompose_(self, qubits):
-            assert False
+            stack = str(traceback.extract_stack())
+            assert 'control_key' in stack or 'measurement_key' in stack
 
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(OtherXX()(a, b), OtherOtherXX()(a, b))
