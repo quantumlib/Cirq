@@ -122,6 +122,17 @@ class Moment:
         """
         return bool(set(qubits) & self.qubits)
 
+    def has_measurement_key_names(self, keys: Iterable[str]) -> bool:
+        """Determines if the moment has operations measuring the given keys.
+
+        Args:
+            keys: The keys that may or may not be measured by operations.
+
+        Returns:
+            Whether this moment has operations measuring the keys.
+        """
+        return bool(set(keys) & self._measurement_key_names_())
+
     def operation_at(self, qubit: raw_types.Qid) -> Optional['cirq.Operation']:
         """Returns the operation on a certain qubit for the moment.
 

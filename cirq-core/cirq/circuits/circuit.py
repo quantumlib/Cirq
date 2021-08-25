@@ -1865,9 +1865,12 @@ class Circuit(AbstractCircuit):
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
+        op_control_keys = protocols.control_key_names(op)
+        op_qubits = op.qubits
         while k > 0:
             k -= 1
-            if not self._can_commute_past(k, op):
+            moment = self._moments[k]
+            if moment.operates_on(op_qubits) or moment.has_measurement_key_names(op_control_keys):
                 return last_available
             if self._can_add_op_at(k, op):
                 last_available = k
@@ -1920,9 +1923,6 @@ class Circuit(AbstractCircuit):
         if not 0 <= moment_index < len(self._moments):
             return True
         return self._device.can_add_operation_into_moment(operation, self._moments[moment_index])
-
-    def _can_commute_past(self, moment_index: int, operation: 'cirq.Operation') -> bool:
-        return not self._moments[moment_index].operates_on(operation.qubits)
 
     def insert(
         self,
