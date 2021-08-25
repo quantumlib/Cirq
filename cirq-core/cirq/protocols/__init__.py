@@ -52,6 +52,10 @@ from cirq.protocols.commutes_protocol import (
     definitely_commutes,
     SupportsCommutes,
 )
+from cirq.protocols.control_key_protocol import (
+    control_key_names,
+    SupportsControlKey,
+)
 from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,
     CircuitDiagramInfo,

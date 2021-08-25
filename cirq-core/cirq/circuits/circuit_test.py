@@ -224,6 +224,35 @@ def test_append_single():
     assert c == cirq.Circuit([cirq.Moment([cirq.X(a)])])
 
 
+def test_append_control_key():
+    q = cirq.LineQubit(0)
+
+    class ControlOp(cirq.Operation):
+        def __init__(self, keys):
+            self._keys = keys
+
+        def with_qubits(self, *new_qids):
+            pass  # coverage: ignore
+
+        @property
+        def qubits(self):
+            return []  # coverage: ignore
+
+        def _control_key_names_(self):
+            return self._keys
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q, key='a'))
+    c.append(ControlOp(['a']))
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q, key='a'))
+    c.append(ControlOp(['b']))
+    c.append(ControlOp(['b']))
+    assert len(c) == 1
+
+
 def test_append_multiple():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
