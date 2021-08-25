@@ -603,8 +603,160 @@ class Operation(metaclass=abc.ABCMeta):
         return np.allclose(m12, m21, atol=atol)
 
 
+class OperationDecorator(Operation):
+    """Base class for operation wrapper classes.
+
+    Forwards protocols to child operation by default.
+    """
+
+    def __init__(self, sub_operation: Operation, *, wrap_derived: bool = True):
+        """Initializes the object.
+
+        Args:
+            sub_operation: The operation to decorate.
+            wrap_derived: True to wrap objects derived by operations like
+                op**2. False to just return the derived suboperation. Note that
+                methods involving qubit or key substitution always rewrap."""
+        self._sub_operation = sub_operation
+        self._wrap_derived = wrap_derived
+
+    @property
+    def sub_operation(self):
+        return self._sub_operation
+
+    @abc.abstractmethod
+    def _with_sub_operation(self, sub_operation: Operation):
+        """Wraps the new suboperation into an equivalent decorator.
+
+        Args:
+            sub_operation: The operation to decorate.
+
+        Returns:
+            The operation in a new decorator."""
+
+    def _rewrap(self, sub_operation: Operation):
+        """Decorates the new suboperation into an equivalent decorator, if
+         wrap_derived is True. Otherwise, returns the original operation.
+
+        Args:
+            sub_operation: The operation to decorate.
+
+        Returns:
+            The operation in a new decorator if necessary."""
+        return self._with_sub_operation(sub_operation) if self._wrap_derived else sub_operation
+
+    @property
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
+        return self._sub_operation.qubits
+
+    @property
+    def gate(self) -> Optional['cirq.Gate']:
+        return self._sub_operation.gate
+
+    def with_qubits(self, *new_qubits: 'cirq.Qid'):
+        return self._with_sub_operation(self._sub_operation.with_qubits(*new_qubits))
+
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+        return self._with_sub_operation(protocols.with_measurement_key_mapping(self._sub_operation, key_map))
+
+    def controlled_by(
+        self,
+        *control_qubits: 'cirq.Qid',
+        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+    ) -> 'cirq.Operation':
+        return self._rewrap(self._sub_operation.controlled_by(*control_qubits, control_values=control_values))
+
+    def _decompose_(self) -> 'cirq.OP_TREE':
+        return [self._rewrap(op) for op in protocols.decompose(self._sub_operation)]
+
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        return protocols.pauli_expansion(self._sub_operation)
+
+    def _apply_unitary_(
+        self, args: 'protocols.ApplyUnitaryArgs'
+    ) -> Union[np.ndarray, None, NotImplementedType]:
+        return protocols.apply_unitary(self._sub_operation, args, default=None)
+
+    def _has_unitary_(self) -> bool:
+        return protocols.has_unitary(self._sub_operation)
+
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        return protocols.unitary(self._sub_operation, default=None)
+
+    def _commutes_(
+        self, other: Any, *, atol: Union[int, float] = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
+        return protocols.commutes(self._sub_operation, other, atol=atol)
+
+    def _has_mixture_(self) -> bool:
+        return protocols.has_mixture(self._sub_operation)
+
+    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+        return protocols.mixture(self._sub_operation, NotImplemented)
+
+    def _has_kraus_(self) -> bool:
+        return protocols.has_kraus(self._sub_operation)
+
+    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        return protocols.kraus(self._sub_operation, NotImplemented)
+
+    def _measurement_key_name_(self) -> str:
+        return protocols.measurement_key_name(self._sub_operation, NotImplemented)
+
+    def _is_measurement_(self) -> bool:
+        sub = getattr(self._sub_operation, "_is_measurement_", None)
+        if sub is not None:
+            return sub()
+        return NotImplemented
+
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self._sub_operation)
+
+    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
+        sub = getattr(self._sub_operation, "_act_on_", None)
+        if sub is not None:
+            return sub(args)
+        return NotImplemented
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self._sub_operation)
+
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> Operation:
+        return self._with_sub_operation(protocols.resolve_parameters(self._sub_operation, resolver, recursive))
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.circuit_diagram_info(self._sub_operation, args, NotImplemented)
+
+    def _trace_distance_bound_(self) -> float:
+        return protocols.trace_distance_bound(self._sub_operation)
+
+    def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'cirq.Operation':
+        return self._rewrap(protocols.phase_by(self._sub_operation, phase_turns, qubit_index))
+
+    def __pow__(self, exponent: Any) -> 'cirq.Operation':
+        return self._rewrap(self._sub_operation ** exponent)
+
+    def __mul__(self, other: Any) -> Any:
+        return self._rewrap(self._sub_operation * other)
+
+    def __rmul__(self, other: Any) -> Any:
+        return self._rewrap(other * self._sub_operation)
+
+    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
+        return protocols.qasm(self._sub_operation, args=args, default=None)
+
+    def _equal_up_to_global_phase_(
+        self, other: Any, atol: Union[int, float] = 1e-8
+    ) -> Union[NotImplementedType, bool]:
+        return protocols.equal_up_to_global_phase(self._sub_operation, other, atol=atol)
+
+
 @value.value_equality
-class TaggedOperation(Operation):
+class TaggedOperation(OperationDecorator):
     """Operation annotated with a set of Tags.
 
     These Tags can be used for special processing.  TaggedOperations
@@ -620,32 +772,15 @@ class TaggedOperation(Operation):
     """
 
     def __init__(self, sub_operation: 'cirq.Operation', *tags: Hashable):
-        self.sub_operation = sub_operation
-        self._tags = tuple(tags)
+        if isinstance(sub_operation, TaggedOperation):
+            super().__init__(sub_operation.sub_operation, wrap_derived=False)
+            self._tags = tuple(tags) + sub_operation.tags
+        else:
+            super().__init__(sub_operation, wrap_derived=False)
+            self._tags = tuple(tags)
 
-    @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
-        return self.sub_operation.qubits
-
-    @property
-    def gate(self) -> Optional['cirq.Gate']:
-        return self.sub_operation.gate
-
-    def with_qubits(self, *new_qubits: 'cirq.Qid'):
-        return TaggedOperation(self.sub_operation.with_qubits(*new_qubits), *self._tags)
-
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
-        sub_op = protocols.with_measurement_key_mapping(self.sub_operation, key_map)
-        if sub_op is NotImplemented:
-            return NotImplemented
-        return TaggedOperation(sub_op, *self.tags)
-
-    def controlled_by(
-        self,
-        *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
-    ) -> 'cirq.Operation':
-        return self.sub_operation.controlled_by(*control_qubits, control_values=control_values)
+    def _with_sub_operation(self, sub_operation: Operation):
+        return TaggedOperation(sub_operation, *self.tags)
 
     @property
     def tags(self) -> Tuple[Hashable, ...]:
@@ -657,17 +792,6 @@ class TaggedOperation(Operation):
         """Returns the underlying operation without any tags."""
         return self.sub_operation
 
-    def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
-        """Creates a new TaggedOperation with combined tags.
-
-        Overloads Operation.with_tags to create a new TaggedOperation
-        that has the tags of this operation combined with the new_tags
-        specified as the parameter.
-        """
-        if not new_tags:
-            return self
-        return TaggedOperation(self.sub_operation, *self._tags, *new_tags)
-
     def __str__(self) -> str:
         tag_repr = ','.join(repr(t) for t in self._tags)
         return f'cirq.TaggedOperation({repr(self.sub_operation)}, {tag_repr})'
@@ -676,7 +800,7 @@ class TaggedOperation(Operation):
         return str(self)
 
     def _value_equality_values_(self) -> Any:
-        return (self.sub_operation, self._tags)
+        return self.sub_operation, self._tags
 
     @classmethod
     def _from_json_dict_(cls, sub_operation, tags, **kwargs):
@@ -685,59 +809,10 @@ class TaggedOperation(Operation):
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
-    def _decompose_(self) -> 'cirq.OP_TREE':
-        return protocols.decompose(self.sub_operation)
-
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
-        return protocols.pauli_expansion(self.sub_operation)
-
-    def _apply_unitary_(
-        self, args: 'protocols.ApplyUnitaryArgs'
-    ) -> Union[np.ndarray, None, NotImplementedType]:
-        return protocols.apply_unitary(self.sub_operation, args, default=None)
-
-    def _has_unitary_(self) -> bool:
-        return protocols.has_unitary(self.sub_operation)
-
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        return protocols.unitary(self.sub_operation, default=None)
-
-    def _commutes_(
-        self, other: Any, *, atol: Union[int, float] = 1e-8
-    ) -> Union[bool, NotImplementedType, None]:
-        return protocols.commutes(self.sub_operation, other, atol=atol)
-
-    def _has_mixture_(self) -> bool:
-        return protocols.has_mixture(self.sub_operation)
-
-    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
-        return protocols.mixture(self.sub_operation, NotImplemented)
-
-    def _has_kraus_(self) -> bool:
-        return protocols.has_kraus(self.sub_operation)
-
-    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
-        return protocols.kraus(self.sub_operation, NotImplemented)
-
-    def _measurement_key_name_(self) -> str:
-        return protocols.measurement_key_name(self.sub_operation, NotImplemented)
-
-    def _is_measurement_(self) -> bool:
-        sub = getattr(self.sub_operation, "_is_measurement_", None)
-        if sub is not None:
-            return sub()
-        return NotImplemented
-
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation) or any(
             protocols.is_parameterized(tag) for tag in self.tags
         )
-
-    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
-        sub = getattr(self.sub_operation, "_act_on_", None)
-        if sub is not None:
-            return sub(args)
-        return NotImplemented
 
     def _parameter_names_(self) -> AbstractSet[str]:
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
@@ -762,29 +837,6 @@ class TaggedOperation(Operation):
                 sub_op_info.wire_symbols[0] + str(list(self._tags)),
             ) + sub_op_info.wire_symbols[1:]
         return sub_op_info
-
-    def _trace_distance_bound_(self) -> float:
-        return protocols.trace_distance_bound(self.sub_operation)
-
-    def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'cirq.Operation':
-        return protocols.phase_by(self.sub_operation, phase_turns, qubit_index)
-
-    def __pow__(self, exponent: Any) -> 'cirq.Operation':
-        return self.sub_operation ** exponent
-
-    def __mul__(self, other: Any) -> Any:
-        return self.sub_operation * other
-
-    def __rmul__(self, other: Any) -> Any:
-        return other * self.sub_operation
-
-    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
-        return protocols.qasm(self.sub_operation, args=args, default=None)
-
-    def _equal_up_to_global_phase_(
-        self, other: Any, atol: Union[int, float] = 1e-8
-    ) -> Union[NotImplementedType, bool]:
-        return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
 
 
 @value.value_equality

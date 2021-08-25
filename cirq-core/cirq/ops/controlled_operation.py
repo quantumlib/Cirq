@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import (
-    AbstractSet,
     Any,
     cast,
     Collection,
@@ -37,7 +36,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class ControlledOperation(raw_types.Operation):
+class ControlledOperation(raw_types.OperationDecorator):
     """Augments existing operations to have one or more control qubits.
 
     This object is typically created via `operation.controlled_by(*qubits)`.
@@ -64,13 +63,16 @@ class ControlledOperation(raw_types.Operation):
                 raise ValueError(f'Control values <{val!r}> outside of range for qubit <{q!r}>.')
 
         if not isinstance(sub_operation, ControlledOperation):
+            super().__init__(sub_operation)
             self.controls = tuple(controls)
-            self.sub_operation = sub_operation
         else:
             # Auto-flatten nested controlled operations.
+            super().__init__(sub_operation.sub_operation)
             self.controls = tuple(controls) + sub_operation.controls
-            self.sub_operation = sub_operation.sub_operation
             self.control_values += sub_operation.control_values
+
+    def _with_sub_operation(self, sub_operation: 'cirq.Operation'):
+        return ControlledOperation(self.controls, sub_operation, self.control_values)
 
     @property
     def gate(self) -> Optional['cirq.ControlledGate']:
@@ -92,15 +94,8 @@ class ControlledOperation(raw_types.Operation):
             new_qubits[:n], self.sub_operation.with_qubits(*new_qubits[n:]), self.control_values
         )
 
-    def _decompose_(self):
-        result = protocols.decompose_once(self.sub_operation, NotImplemented)
-        if result is NotImplemented:
-            return NotImplemented
-
-        return [ControlledOperation(self.controls, op, self.control_values) for op in result]
-
     def _value_equality_values_(self):
-        return (frozenset(zip(self.controls, self.control_values)), self.sub_operation)
+        return frozenset(zip(self.controls, self.control_values)), self.sub_operation
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         n = len(self.controls)
@@ -126,9 +121,6 @@ class ControlledOperation(raw_types.Operation):
 
         return args.target_tensor
 
-    def _has_unitary_(self) -> bool:
-        return protocols.has_unitary(self.sub_operation)
-
     def _extend_matrix(self, sub_matrix: np.ndarray) -> np.ndarray:
         qid_shape = protocols.qid_shape(self)
         sub_n = len(qid_shape) - len(self.controls)
@@ -144,9 +136,6 @@ class ControlledOperation(raw_types.Operation):
         if sub_matrix is None:
             return NotImplemented
         return self._extend_matrix(sub_matrix)
-
-    def _has_mixture_(self) -> bool:
-        return protocols.has_mixture(self.sub_operation)
 
     def _mixture_(self) -> Optional[List[Tuple[float, np.ndarray]]]:
         sub_mixture = protocols.mixture(self.sub_operation, None)
@@ -186,18 +175,6 @@ class ControlledOperation(raw_types.Operation):
             f'controls={self.controls!r})'
         )
 
-    def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self.sub_operation)
-
-    def _parameter_names_(self) -> AbstractSet[str]:
-        return protocols.parameter_names(self.sub_operation)
-
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'ControlledOperation':
-        new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
-        return ControlledOperation(self.controls, new_sub_op, self.control_values)
-
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
@@ -206,12 +183,6 @@ class ControlledOperation(raw_types.Operation):
             return NotImplemented
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
         return protocols.trace_distance_from_angle_list(angle_list)
-
-    def __pow__(self, exponent: Any) -> 'ControlledOperation':
-        new_sub_op = protocols.pow(self.sub_operation, exponent, NotImplemented)
-        if new_sub_op is NotImplemented:
-            return NotImplemented
-        return ControlledOperation(self.controls, new_sub_op, self.control_values)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
