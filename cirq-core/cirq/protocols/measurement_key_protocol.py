@@ -157,7 +157,7 @@ def measurement_keys(val: Any, *, allow_decompose: bool = True):
 @deprecated_parameter(
     deadline='v0.14',
     fix='Remove the parameter.',
-    func_name='is_measurement',
+    func_name='measurement_key_names',
     parameter_desc='allow_decompose',
     match=lambda args, kwargs: 'allow_decompose' in kwargs,
 )
