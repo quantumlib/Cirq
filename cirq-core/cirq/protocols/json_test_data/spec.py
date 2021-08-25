@@ -136,6 +136,7 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsCircuitDiagramInfo',
         'SupportsCommutes',
         'SupportsConsistentApplyUnitary',
+        'SupportsControlKey',
         'SupportsDecompose',
         'SupportsDecomposeWithQubits',
         'SupportsEqualUpToGlobalPhase',
