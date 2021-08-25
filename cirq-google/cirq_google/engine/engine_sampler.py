@@ -204,23 +204,22 @@ def get_device_sampler(
         in_colab = False
         try:
             from IPython import get_ipython
-
             in_colab = 'google.colab' in str(get_ipython())
+
+            if in_colab:
+                from google.colab import auth
+
+                print("Getting OAuth2 credentials.")
+                print("Press enter after entering the verification code.")
+                auth.authenticate_user(clear_output=False)
+                print("Authentication complete.")
+            else:
+                print(
+                    "Notebook isn't executed with Colab, assuming "
+                    "Application Default Credentials are setup."
+                )
         except:
-            return
-
-        if in_colab:
-            from google.colab import auth
-
-            print("Getting OAuth2 credentials.")
-            print("Press enter after entering the verification code.")
-            auth.authenticate_user(clear_output=False)
-            print("Authentication complete.")
-        else:
-            print(
-                "Notebook isn't executed with Colab, assuming "
-                "Application Default Credentials are setup."
-            )
+            pass
 
         # End of Google Colab Authentication segment
 
