@@ -621,7 +621,7 @@ def deprecated_submodule(
             finder, new_module_name, old_module_name, deadline, broken_module_exception
         )
 
-    sys.meta_path = [wrap(finder) for finder in sys.meta_path]
+    sys.meta_path += [wrap(finder) for finder in sys.meta_path]
 
 
 def _setup_deprecated_submodule_attribute(
