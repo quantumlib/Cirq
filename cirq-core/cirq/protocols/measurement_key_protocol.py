@@ -209,7 +209,7 @@ def is_measurement(val: Any, allow_decompose: bool = True) -> bool:
             order to find any measurements keys within the decomposed operations.
     """
     result = _is_measurement_from_magic_method(val)
-    if result is not NotImplemented:
+    if isinstance(result, bool):
         return result
 
     keys = _measurement_key_names_from_magic_methods(val)
