@@ -153,6 +153,6 @@ def test_get_device_sampler():
     result = cg.engine.engine_sampler.get_device_sampler()
     assert result.device is cg.Bristlecone
     assert result.signed_in is False
-    assert type(result.simulator) is cg.PhasedFSimEngineSimulator
+    assert type(result.sampler) is cg.PhasedFSimEngineSimulator
     result = cg.engine.engine_sampler.get_device_sampler("", "")
-    assert result.signed_ == False
+    assert result.signed_in == False

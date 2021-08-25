@@ -148,8 +148,7 @@ def get_engine_sampler(
 @dataclasses.dataclass
 class DeviceSamplerInfo:
     device: cirq.Device
-    device_line_length: int
-    sampler: Union[cirq_google.PhasedFSimEngineSimulator, cirq_google.QuantumEngineSampler]
+    sampler: Union['cirq_google.PhasedFSimEngineSimulator', 'cirq_google.QuantumEngineSampler']
     signed_in: bool
 
 
