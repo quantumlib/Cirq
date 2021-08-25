@@ -189,31 +189,6 @@ def _is_measurement_from_magic_method(val: Any) -> Optional[bool]:
     return NotImplemented if getter is None else getter()
 
 
-def _is_any_measurement(vals: List[Any], allow_decompose: bool) -> bool:
-    """Given a list of objects, returns True if any of them is a measurement.
-
-    If `allow_decompose` is True, decomposes the objects and runs the measurement checks on the
-    constituent decomposed operations. But a decompose operation is only called if all cheaper
-    checks are done. A BFS for searching measurements, where "depth" is each level of decompose.
-    """
-    while vals:
-        val = vals.pop(0)
-        result = _is_measurement_from_magic_method(val)
-        if result is not NotImplemented:
-            if result is True:
-                return True
-            if result is False:
-                # Do not try any other strategies if `val` was explicitly marked as
-                # "not measurement".
-                continue
-
-        keys = _measurement_key_names_from_magic_methods(val)
-        if keys is not NotImplemented and bool(keys) is True:
-            return True
-
-    return False
-
-
 @deprecated_parameter(
     deadline='v0.14',
     fix='Remove the parameter.',
@@ -233,7 +208,12 @@ def is_measurement(val: Any, allow_decompose: bool = True) -> bool:
             don't directly specify their `_is_measurement_` property will be decomposed in
             order to find any measurements keys within the decomposed operations.
     """
-    return _is_any_measurement([val], allow_decompose)
+    result = _is_measurement_from_magic_method(val)
+    if result is not NotImplemented:
+        return result
+
+    keys = _measurement_key_names_from_magic_methods(val)
+    return keys is not NotImplemented and bool(keys)
 
 
 def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
