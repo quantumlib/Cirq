@@ -91,6 +91,9 @@ class Moment:
                 self._qubit_to_op[q] = op
 
         self._qubits = frozenset(self._qubit_to_op.keys())
+        self._measurement_keys = frozenset(
+            key for op in self.operations for key in protocols.measurement_key_names(op)
+        )
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
@@ -119,6 +122,17 @@ class Moment:
             Whether this moment has operations involving the qubits.
         """
         return bool(set(qubits) & self.qubits)
+
+    def has_measurement_key_names(self, keys: Iterable[str]) -> bool:
+        """Determines if the moment has operations measuring the given keys.
+
+        Args:
+            keys: The keys that may or may not be measured by operations.
+
+        Returns:
+            Whether this moment has operations measuring the keys.
+        """
+        return bool(set(keys) & self._measurement_keys)
 
     def operation_at(self, qubit: raw_types.Qid) -> Optional['cirq.Operation']:
         """Returns the operation on a certain qubit for the moment.
@@ -153,6 +167,9 @@ class Moment:
         m = Moment()
         m._operations = self._operations + (operation,)
         m._qubits = frozenset(self._qubits.union(set(operation.qubits)))
+        m._measurement_keys = frozenset(
+            self._measurement_keys.union(protocols.measurement_key_names(operation))
+        )
         m._qubit_to_op = self._qubit_to_op.copy()
         for q in operation.qubits:
             m._qubit_to_op[q] = operation
@@ -183,6 +200,10 @@ class Moment:
         m = Moment()
         m._operations = tuple(operations)
         m._qubits = frozenset(qubits)
+        measurement_keys = frozenset(
+            key for op in operations for key in protocols.measurement_key_names(op)
+        )
+        m._measurement_keys = frozenset(self._measurement_keys.union(measurement_keys))
         m._qubit_to_op = self._qubit_to_op.copy()
         for op in operations:
             for q in op.qubits:
