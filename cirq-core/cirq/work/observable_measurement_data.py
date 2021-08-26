@@ -141,6 +141,8 @@ def _setting_to_z_observable(setting: InitObsSetting):
     )
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 class BitstringAccumulator:
     """A mutable container of bitstrings and associated metadata populated
     during a `measure_observables` run.
@@ -185,7 +187,6 @@ class BitstringAccumulator:
             does *not* validate that both this parameter and the
             `BitstringAccumulator` under construction contain measurements taken
             with readout symmetrization turned on.
-
     """
 
     def __init__(
@@ -504,6 +505,7 @@ class BitstringAccumulator:
         return mean
 
 
+# pylint: enable=missing-param-doc
 def flatten_grouped_results(
     grouped_results: List[BitstringAccumulator],
 ) -> List[ObservableMeasuredResult]:

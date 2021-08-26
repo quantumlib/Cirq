@@ -141,6 +141,8 @@ class AQTNoiseModel(cirq.NoiseModel):
 class AQTSimulator:
     """A simulator for the AQT device."""
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def __init__(
         self,
         num_qubits: int,
@@ -153,7 +155,7 @@ class AQTSimulator:
         Args:
             num_qubits: Number of qubits
             circuit: Optional, circuit to be simulated.
-            Last moment needs to be a measurement over all qubits with key 'm'
+                Last moment needs to be a measurement over all qubits with key 'm'
             simulate_ideal: If True, an ideal circuit will be simulated
         """
         self.circuit = circuit
@@ -164,6 +166,7 @@ class AQTSimulator:
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
 
+    # pylint: enable=missing-param-doc
     def generate_circuit_from_list(self, json_string: str):
         """Generates a list of cirq operations from a json string.
 
