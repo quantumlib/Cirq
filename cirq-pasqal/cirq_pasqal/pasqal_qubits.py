@@ -62,6 +62,8 @@ class ThreeDQubit(cirq.ops.Qid):
         """
         return ThreeDQubit.parallelep(diameter, diameter, diameter, x0=x0, y0=y0, z0=z0)
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     @staticmethod
     def parallelep(
         rows: int, cols: int, lays: int, x0: float = 0, y0: float = 0, z0: float = 0
@@ -85,6 +87,7 @@ class ThreeDQubit(cirq.ops.Qid):
             for x in range(rows)
         ]
 
+    # pylint: enable=missing-param-doc
     def __repr__(self):
         return f'pasqal.ThreeDQubit({self.x}, {self.y}, {self.z})'
 

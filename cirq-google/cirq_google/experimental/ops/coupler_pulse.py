@@ -47,7 +47,7 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
 
     Args:
             hold_time: Length of the 'plateau' part of the coupler trajectory.
-            coupling_MHz: Target qubit-qubit coupling reached at the plateau.
+            coupling_mhz: Target qubit-qubit coupling reached at the plateau.
             rise_time: Width of the rising (or falling) section of the trapezoidal pulse.
             padding_time: Symmetric padding around the coupler pulse.
     """
@@ -63,9 +63,10 @@ class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
 
         Args:
             hold_time: Length of the 'plateau' part of the coupler trajectory.
-            coupling_MHz: Target qubit-qubit coupling reached at the plateau.
+            coupling_mhz: Target qubit-qubit coupling reached at the plateau.
             rise_time: Width of the rising (or falling) action of the trapezoidal pulse.
             padding_time: Symmetric padding around the coupler pulse.
+
         Raises:
             ValueError: If any time is negative or if the total pulse is too long.
         """

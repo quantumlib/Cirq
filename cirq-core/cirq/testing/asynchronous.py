@@ -15,7 +15,10 @@
 import asyncio
 from typing import Union, Awaitable, Coroutine
 
+from cirq._compat import deprecated
 
+
+@deprecated(deadline="v0.14", fix="Use duet instead.")
 def asyncio_pending(
     future: Union[Awaitable, asyncio.Future, Coroutine], timeout: float = 0.001
 ) -> Awaitable[bool]:
