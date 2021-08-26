@@ -22,6 +22,7 @@ import traceback
 import warnings
 from types import ModuleType
 from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
+from importlib.abc import Loader, MetaPathFinder
 
 import numpy as np
 import pandas as pd
@@ -615,13 +616,18 @@ def deprecated_submodule(
             )
 
     def wrap(finder: Any) -> Any:
+        if 'sphinx' in sys.modules:
+            import sphinx
+
+            if isinstance(finder, sphinx.MockFinder):
+                return finder
         if not hasattr(finder, 'find_spec'):
             return finder
         return DeprecatedModuleFinder(
             finder, new_module_name, old_module_name, deadline, broken_module_exception
         )
 
-    sys.meta_path += [wrap(finder) for finder in sys.meta_path]
+    sys.meta_path = [wrap(finder) for finder in sys.meta_path]
 
 
 def _setup_deprecated_submodule_attribute(
