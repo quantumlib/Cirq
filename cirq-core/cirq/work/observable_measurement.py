@@ -51,9 +51,6 @@ from cirq.work.observable_settings import (
 if TYPE_CHECKING:
     import cirq
     from cirq.value.product_state import _NamedOneQubitState
-    from dataclasses import dataclass as json_serializable_dataclass
-else:
-    from cirq.protocols import json_serializable_dataclass
 
 MAX_REPETITIONS_PER_JOB = 3_000_000
 document(
@@ -109,7 +106,7 @@ class StoppingCriteria(abc.ABC):
         """
 
 
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class VarianceStoppingCriteria(StoppingCriteria):
     """Stop sampling when average variance per term drops below a variance bound."""
 
@@ -131,8 +128,11 @@ class VarianceStoppingCriteria(StoppingCriteria):
             return 0
         return self.repetitions_per_chunk
 
+    def _json_dict_(self):
+        return protocols.dataclass_json_dict(self)
 
-@json_serializable_dataclass(frozen=True)
+
+@dataclasses.dataclass(frozen=True)
 class RepetitionsStoppingCriteria(StoppingCriteria):
     """Stop sampling when the number of repetitions has been reached."""
 
@@ -147,6 +147,9 @@ class RepetitionsStoppingCriteria(StoppingCriteria):
 
         to_do_next = min(self.repetitions_per_chunk, todo)
         return to_do_next
+
+    def _json_dict_(self):
+        return protocols.dataclass_json_dict(self)
 
 
 _OBS_TO_PARAM_VAL: Dict[Tuple['cirq.Pauli', bool], Tuple[float, float]] = {
