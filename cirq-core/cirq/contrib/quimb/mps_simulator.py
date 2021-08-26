@@ -448,14 +448,11 @@ class MPSState(ActOnArgs):
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
+        op: 'cirq.Operation',
         allow_decompose: bool = True,
     ) -> bool:
         """Delegates the action to self.apply_op"""
-        if isinstance(action, ops.Gate):
-            action = ops.GateOperation(action, qubits)
-        return self.apply_op(action, self.prng)
+        return self.apply_op(op, self.prng)
 
     def estimation_stats(self):
         """Returns some statistics about the memory usage and quality of the approximation."""

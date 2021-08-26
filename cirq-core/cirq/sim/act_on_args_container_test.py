@@ -34,8 +34,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
+        op: cirq.Operation,
         allow_decompose: bool = True,
     ) -> bool:
         return True
@@ -135,7 +134,7 @@ def test_identity_does_not_join():
 def test_identity_fallback_does_not_join():
     args = create_container(qs2)
     assert len(set(args.values())) == 3
-    args._act_on_fallback_(cirq.I, (q0, q1))
+    args._act_on_fallback_(cirq.IdentityGate(2)(q0, q1))
     assert len(set(args.values())) == 3
     assert args[q0] is not args[q1]
     assert args[q0] is not args[None]

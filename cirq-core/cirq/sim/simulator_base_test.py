@@ -47,8 +47,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
+        op: Union['cirq.Operation', 'cirq.Gate'],
         allow_decompose: bool = True,
     ) -> bool:
         self.gate_count += 1

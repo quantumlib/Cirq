@@ -94,8 +94,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
+        op: 'cirq.Operation',
         allow_decompose: bool = True,
     ) -> bool:
         strats = [
@@ -106,7 +105,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
         # Try each strategy, stopping if one works.
         for strat in strats:
-            result = strat(action, self, qubits)
+            result = strat(op, self, op.qubits)
             if result is False:
                 break  # coverage: ignore
             if result is True:
@@ -115,9 +114,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         raise TypeError(
             "Can't simulate operations that don't implement "
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
-            "SupportsMixture, SupportsChannel or SupportsKraus or is a measurement: {!r}".format(
-                action
-            )
+            "SupportsMixture, SupportsChannel or SupportsKraus or is a measurement: {!r}".format(op)
         )
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:

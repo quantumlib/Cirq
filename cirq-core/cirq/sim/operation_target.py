@@ -50,15 +50,13 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
+        op: 'cirq.Operation',
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
         """Handles the act_on protocol fallback implementation.
 
         Args:
-            action: Either a gate or an operation to act on.
-            qubits: The applicable qubits if a gate is passed as the action.
+            op: An operation to act on.
             allow_decompose: Flag to allow decomposition.
 
         Returns:

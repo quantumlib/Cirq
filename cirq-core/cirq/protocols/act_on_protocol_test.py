@@ -36,8 +36,7 @@ class DummyActOnArgs(cirq.ActOnArgs):
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
+        op: cirq.Operation,
         allow_decompose: bool = True,
     ):
         return self.fallback_result
@@ -87,11 +86,10 @@ def test_act_on_args_axes_deprecation():
     class Args(DummyActOnArgs):
         def _act_on_fallback_(
             self,
-            action: Union['cirq.Operation', 'cirq.Gate'],
-            qubits: Sequence['cirq.Qid'] = None,
+            op: cirq.Operation,
             allow_decompose: bool = True,
         ) -> bool:
-            self.measurements.append(qubits)
+            self.measurements.append(op.qubits)
             return True
 
     args = Args()

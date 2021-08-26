@@ -150,10 +150,12 @@ def act_on(
                 f'{result!r} from {action!r}._act_on_'
             )
 
+    if isinstance(action, ops.Gate) and qubits is not None:
+        action = action.on(*qubits)
+
     arg_fallback = getattr(args, '_act_on_fallback_', None)
     if arg_fallback is not None:
-        qubits = action.qubits if isinstance(action, ops.Operation) else qubits
-        result = arg_fallback(action, qubits=qubits, allow_decompose=allow_decompose)
+        result = arg_fallback(action, allow_decompose=allow_decompose)
         if result is True:
             return
         if result is not NotImplemented:
