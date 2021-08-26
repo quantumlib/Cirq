@@ -616,12 +616,10 @@ def deprecated_submodule(
             )
 
     def wrap(finder: Any) -> Any:
-        if 'sphinx' in sys.modules:
-            import sphinx
-
-            if isinstance(finder, sphinx.MockFinder):
-                return finder
-        if not hasattr(finder, 'find_spec'):
+        # Sphinx looks for non-wrapped finders.
+        if not hasattr(finder, 'find_spec') or finder.__class__.__module__.split('.')[:1] == [
+            'sphinx'
+        ]:
             return finder
         return DeprecatedModuleFinder(
             finder, new_module_name, old_module_name, deadline, broken_module_exception
