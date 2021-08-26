@@ -59,7 +59,7 @@ def benchmark_2q_xeb_fidelities(
     adapted for use on pandas DataFrames for efficient vectorized operation.
 
     Args:
-         sampled_df: The sampled results to benchmark. This is likely produced by a call to
+        sampled_df: The sampled results to benchmark. This is likely produced by a call to
             `sample_2q_xeb_circuits`.
         circuits: The library of circuits corresponding to the sampled results in `sampled_df`.
         cycle_depths: The sequence of cycle depths to benchmark the circuits. If not provided,
