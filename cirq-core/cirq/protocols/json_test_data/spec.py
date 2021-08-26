@@ -64,7 +64,6 @@ TestSpec = ModuleJsonTestSpec(
         'QuilFormatter',
         'QuilOutput',
         'SimulationTrialResult',
-        'SingleQubitCliffordGate',
         'SparseSimulatorStep',
         'StateVectorMixin',
         'TextDiagramDrawer',
@@ -126,6 +125,7 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesAmplitudes',
         'SimulatesExpectationValues',
         'SimulatesFinalState',
+        'NamedTopology',
         # protocols:
         'SupportsActOn',
         'SupportsActOnQubits',

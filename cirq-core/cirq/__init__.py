@@ -91,6 +91,12 @@ from cirq.devices import (
     NoiseModel,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
+    NamedTopology,
+    draw_gridlike,
+    LineTopology,
+    TiltedSquareLattice,
+    get_placements,
+    draw_placements,
 )
 
 from cirq.experiments import (
@@ -506,6 +512,7 @@ from cirq.protocols import (
     is_parameterized,
     JsonResolver,
     json_serializable_dataclass,
+    dataclass_json_dict,
     kraus,
     measurement_key,
     measurement_key_name,

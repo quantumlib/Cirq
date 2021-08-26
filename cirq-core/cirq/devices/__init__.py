@@ -38,3 +38,12 @@ from cirq.devices.noise_model import (
     NoiseModel,
     ConstantQubitNoiseModel,
 )
+
+from cirq.devices.named_topologies import (
+    NamedTopology,
+    draw_gridlike,
+    LineTopology,
+    TiltedSquareLattice,
+    get_placements,
+    draw_placements,
+)
