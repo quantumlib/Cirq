@@ -280,8 +280,9 @@ class T2DecayResult:
     the data to calculate estimated T2 phase decay times.
     """
 
+    # TODO(#3388) Add documentation for Args.
     # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
+    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(self, x_basis_data: pd.DataFrame, y_basis_data: pd.DataFrame):
         """Inits T2DecayResult.
 
@@ -306,7 +307,7 @@ class T2DecayResult:
         self._expectation_pauli_x = self._expectation(x_basis_data)
         self._expectation_pauli_y = self._expectation(y_basis_data)
 
-    # pylint: enable=missing-raises-doc
+    # pylint: enable=missing-param-doc,missing-raises-doc
     def _expectation(self, data: pd.DataFrame) -> pd.DataFrame:
         """Calculates the expected value of the Pauli operator.
 

@@ -30,8 +30,9 @@ class WaitGate(raw_types.Gate):
     simulators and noise models may insert more error for longer waits.
     """
 
+    # TODO(#3388) Add documentation for Args.
     # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
+    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(
         self,
         duration: 'cirq.DURATION_LIKE',
@@ -61,7 +62,7 @@ class WaitGate(raw_types.Gate):
             raise ValueError('len(qid_shape) != num_qubits')
         self._qid_shape = qid_shape
 
-    # pylint: enable=missing-raises-doc
+    # pylint: enable=missing-param-doc,missing-raises-doc
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.duration)
 
@@ -139,7 +140,7 @@ def wait(
 
     Args:
         *target: The qubits that should wait.
-        value: Wait duration (see Duration).
+        duration: Wait duration (see Duration).
         picos: Picoseconds to wait (see Duration).
         nanos: Nanoseconds to wait (see Duration).
         micros: Microseconds to wait (see Duration).

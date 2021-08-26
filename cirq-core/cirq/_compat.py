@@ -439,6 +439,8 @@ def _deduped_module_warn_or_error(old_module_name: str, new_module_name: str, de
     )
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     """A module finder to handle deprecated module references.
 
@@ -549,6 +551,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         return spec
 
 
+# pylint: enable=missing-param-doc
 class _BrokenModule(ModuleType):
     def __init__(self, name, exc):
         self.exc = exc
@@ -562,6 +565,8 @@ class DeprecatedModuleImportError(ImportError):
     pass
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 def deprecated_submodule(
     *, new_module_name: str, old_parent: str, old_child: str, deadline: str, create_attribute: bool
 ):
@@ -582,6 +587,7 @@ def deprecated_submodule(
         old_child: the submodule that is being relocated
         create_attribute: if True, the submodule will be added as a deprecated attribute to the
             old_parent module
+
     Returns:
         None
     """
@@ -628,6 +634,7 @@ def deprecated_submodule(
     sys.meta_path = [wrap(finder) for finder in sys.meta_path]
 
 
+# pylint: enable=missing-param-doc
 def _setup_deprecated_submodule_attribute(
     new_module_name: str,
     old_parent: str,
