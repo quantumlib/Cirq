@@ -22,5 +22,6 @@ def test_get_device_sampler():
     assert result.signed_in is False
     assert type(result.sampler) is cg.PhasedFSimEngineSimulator
     assert not result.is_sampler
+
     result = get_qcs_objects_for_notebook("", "")
     assert not result.signed_in
