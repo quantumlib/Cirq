@@ -636,6 +636,8 @@ class SimulatesIntermediateState(
             The `OperationTarget` for this simulator.
         """
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     @abc.abstractmethod
     def _core_iterator(
         self,
@@ -657,6 +659,7 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
 
+    # pylint: enable=missing-param-doc
     @abc.abstractmethod
     def _create_simulator_trial_result(
         self,

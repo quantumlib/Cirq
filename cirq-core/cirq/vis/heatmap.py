@@ -82,6 +82,8 @@ class Heatmap:
     def __init__(self, value_map: Mapping[grid_qubit.GridQubit, SupportsFloat], **kwargs):
         pass
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def __init__(
         self,
         value_map: Union[
@@ -139,8 +141,7 @@ class Heatmap:
         )
         self._config.update(kwargs)
 
-    # pylint: enable=function-redefined
-
+    # pylint: enable=function-redefined,missing-param-doc
     def _extra_valid_kwargs(self) -> List[str]:
         return []
 
@@ -319,6 +320,8 @@ class Heatmap:
 class TwoQubitInteractionHeatmap(Heatmap):
     """Visualizing interactions between neighboring qubits on a 2D grid."""
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
         """Heatmap to display two-qubit interaction fidelities.
 
@@ -336,6 +339,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         }
         super().__init__(value_map, **kwargs)
 
+    # pylint: enable=missing-param-doc
     def _extra_valid_kwargs(self) -> List[str]:
         return ["coupler_margin", "coupler_width"]
 
