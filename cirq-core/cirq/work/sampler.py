@@ -267,8 +267,6 @@ class Sampler(metaclass=abc.ABCMeta):
             for circuit, params, repetitions in zip(programs, params_list, repetitions)
         ]
 
-    # pylint: enable=missing-raises-doc
-
     def sample_expectation_values(
         self,
         program: 'cirq.AbstractCircuit',

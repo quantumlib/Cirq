@@ -24,7 +24,6 @@ from cirq.work.observable_measurement_data import (
     _check_and_get_real_coef,
     _obs_vals_from_measurements,
     _stats_from_measurements,
-    ObservableMeasuredResult,
 )
 from cirq.work.observable_settings import _MeasurementSpec
 

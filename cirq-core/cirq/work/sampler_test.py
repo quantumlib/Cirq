@@ -290,7 +290,6 @@ def test_sampler_sample_expectation_values_composite():
         num_samples=5,
         params=params,
     )
-    print('\n'.join(str(r) for r in results))
 
     assert len(results) == 8
     assert np.allclose(
