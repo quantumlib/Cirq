@@ -101,8 +101,8 @@ def test_act_on_args_axes_deprecation():
     with cirq.testing.assert_deprecated(
         "ActOnArgs.axes", "Use `protocols.act_on` instead.", deadline="v0.13"
     ):
-        cirq.act_on(object(), args)  # type: ignore
-    assert args.measurements == [[cirq.LineQubit(1)]]
+        with pytest.raises(AttributeError, match="object has no attribute 'qubits'"):
+            cirq.act_on(object(), args)  # type: ignore
 
 
 def test_qubits_not_allowed_for_operations():

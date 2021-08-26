@@ -47,7 +47,9 @@ def test_decomposed_fallback():
 
 def test_cannot_act():
     class NoDetails:
-        pass
+        @property
+        def qubits(self):
+            return []
 
     qid_shape = (2,)
     tensor = cirq.to_valid_density_matrix(

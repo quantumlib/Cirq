@@ -151,7 +151,16 @@ def act_on(
             )
 
     if isinstance(action, ops.Gate) and qubits is not None:
-        action = action.on(*qubits)
+        try:
+            action = action.on(*qubits)
+        except ValueError:
+            raise TypeError(
+                "Failed to act action on state argument.\n"
+                "Tried action._act_on_ but gate can't be applied to the qubits.\n"
+                "\n"
+                f"Gate: {action}\n"
+                f"Qubits: {qubits}\n"
+            )
 
     arg_fallback = getattr(args, '_act_on_fallback_', None)
     if arg_fallback is not None:

@@ -44,7 +44,9 @@ def test_decomposed_fallback():
 
 def test_cannot_act():
     class NoDetails:
-        pass
+        @property
+        def qubits(self):
+            return []
 
     args = cirq.ActOnStateVectorArgs(
         target_tensor=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),

@@ -596,12 +596,15 @@ foo = sympy.Symbol('foo')
 )
 def test_act_on_ch_form(input_gate_sequence, outcome):
     original_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=31)
-    num_qubits = cirq.num_qubits(input_gate_sequence[0])
-    if num_qubits == 1:
-        qubits = [cirq.LineQubit(1)]
-    else:
-        assert num_qubits == 2
-        qubits = cirq.LineQubit.range(2)
+
+    def qubits(gate):
+        num_qubits = cirq.num_qubits(gate)
+        if num_qubits == 1:
+            return [cirq.LineQubit(1)]
+        else:
+            assert num_qubits == 2
+            return cirq.LineQubit.range(2)
+
     args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
         qubits=cirq.LineQubit.range(2),
@@ -614,11 +617,11 @@ def test_act_on_ch_form(input_gate_sequence, outcome):
     if outcome == 'Error':
         with pytest.raises(TypeError, match="Failed to act action on state"):
             for input_gate in input_gate_sequence:
-                cirq.act_on(input_gate, args, qubits)
+                cirq.act_on(input_gate, args, qubits(input_gate))
         return
 
     for input_gate in input_gate_sequence:
-        cirq.act_on(input_gate, args, qubits)
+        cirq.act_on(input_gate, args, qubits(input_gate))
 
     if outcome == 'Original':
         np.testing.assert_allclose(args.state.state_vector(), original_state.state_vector())
