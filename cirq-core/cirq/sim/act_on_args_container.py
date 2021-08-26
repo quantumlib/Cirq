@@ -23,7 +23,6 @@ from typing import (
     Any,
     Tuple,
     List,
-    Union,
 )
 
 import numpy as np

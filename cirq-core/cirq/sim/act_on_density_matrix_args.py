@@ -13,14 +13,14 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence, Iterable, Union
+from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence, Iterable
 
 import numpy as np
 
 from cirq import protocols, sim
 from cirq._compat import deprecated_parameter
-from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
+from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 
 if TYPE_CHECKING:
     import cirq
