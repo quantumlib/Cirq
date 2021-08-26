@@ -88,6 +88,8 @@ class MPSSimulator(
         )
 
     # pylint: enable=missing-raises-doc
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
@@ -118,6 +120,7 @@ class MPSSimulator(
             log_of_measurement_results=logs,
         )
 
+    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[MPSState]',

@@ -64,6 +64,8 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
@@ -95,6 +97,7 @@ class CliffordSimulator(
             qubits=qubits,
         )
 
+    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[clifford.ActOnStabilizerCHFormArgs]',

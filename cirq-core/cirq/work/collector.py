@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, List, Optional, TYPE_CHECKING, Union
 import abc
-import asyncio
+from typing import Any, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing_extensions import Protocol
 
+import duet
 import numpy as np
 
 from cirq import circuits, study, value
-from cirq.work import work_pool
 
 if TYPE_CHECKING:
     import cirq
@@ -56,7 +56,12 @@ class CircuitSampleJob:
         )
 
 
-CIRCUIT_SAMPLE_JOB_TREE = Union[CircuitSampleJob, Iterable[Any]]
+class CircuitSampleJobTree(Protocol):
+    def __iter__(self) -> Iterator[Union[CircuitSampleJob, 'CircuitSampleJobTree']]:
+        pass
+
+
+CIRCUIT_SAMPLE_JOB_TREE = Union[CircuitSampleJob, CircuitSampleJobTree]
 
 
 class Collector(metaclass=abc.ABCMeta):
@@ -126,15 +131,12 @@ class Collector(metaclass=abc.ABCMeta):
         Returns:
             The collector's result after all desired samples have been
             collected.
-
-        See Also:
-            Python 3 documentation "Coroutines and Tasks"
-            https://docs.python.org/3/library/asyncio-task.html
         """
-        return asyncio.get_event_loop().run_until_complete(
-            self.collect_async(
-                sampler, concurrency=concurrency, max_total_samples=max_total_samples
-            )
+        return duet.run(
+            self.collect_async,
+            sampler,
+            concurrency=concurrency,
+            max_total_samples=max_total_samples,
         )
 
     async def collect_async(
@@ -164,53 +166,56 @@ class Collector(metaclass=abc.ABCMeta):
         Returns:
             The collector's result after all desired samples have been
             collected.
-
-        See Also:
-            Python 3 documentation "Coroutines and Tasks"
-            https://docs.python.org/3/library/asyncio-task.html
         """
-        pool = work_pool.CompletionOrderedAsyncWorkPool()
+        results: duet.AsyncCollector[Tuple[CircuitSampleJob, 'cirq.Result']] = duet.AsyncCollector()
+        job_error = None
+        running_jobs = 0
         queued_jobs: List[CircuitSampleJob] = []
         remaining_samples = np.infty if max_total_samples is None else max_total_samples
 
-        async def _start_async_job(job):
-            return job, await sampler.run_async(job.circuit, repetitions=job.repetitions)
+        async def run_job(job):
+            nonlocal job_error
+            try:
+                result = await sampler.run_async(job.circuit, repetitions=job.repetitions)
+            except Exception as error:
+                if not job_error:
+                    results.error(error)
+                    job_error = error
+            else:
+                if not job_error:
+                    results.add((job, result))
 
         # Keep dispatching and processing work.
-        while True:
-            # Fill up the work pool.
-            while remaining_samples > 0 and pool.num_uncollected < concurrency:
-                if not queued_jobs:
-                    queued_jobs.extend(_flatten_jobs(self.next_job()))
+        async with duet.new_scope() as scope:
+            while True:
+                # Fill up the work pool.
+                while remaining_samples > 0 and running_jobs < concurrency:
+                    if not queued_jobs:
+                        queued_jobs.extend(_flatten_jobs(self.next_job()))
 
-                # If no jobs were given, stop asking until something completes.
-                if not queued_jobs:
+                    # If no jobs were given, stop asking until something completes.
+                    if not queued_jobs:
+                        break
+
+                    # Start new sampling job.
+                    new_job = queued_jobs.pop(0)
+                    remaining_samples -= new_job.repetitions
+                    running_jobs += 1
+                    scope.spawn(run_job, new_job)
+
+                # If no jobs are running, we're in a steady state. Halt.
+                if not running_jobs:
                     break
 
-                # Start new sampling job.
-                new_job = queued_jobs.pop(0)
-                remaining_samples -= new_job.repetitions
-                pool.include_work(_start_async_job(new_job))
-
-            # If no jobs were started or running, we're in a steady state. Halt.
-            if not pool.num_uncollected:
-                break
-
-            # Forward next job result from pool.
-            done_job, done_val = await pool.__anext__()
-            self.on_job_result(done_job, done_val)
+                # Get result from next completed job and call on_job_result.
+                job, result = await results.__anext__()
+                running_jobs -= 1
+                self.on_job_result(job, result)
 
 
-def _flatten_jobs(given: Optional[CIRCUIT_SAMPLE_JOB_TREE]) -> List[CircuitSampleJob]:
-    out: List[CircuitSampleJob] = []
-    if given is not None:
-        _flatten_jobs_helper(given, out=out)
-    return out
-
-
-def _flatten_jobs_helper(given: CIRCUIT_SAMPLE_JOB_TREE, *, out: List[CircuitSampleJob]) -> None:
-    if isinstance(given, CircuitSampleJob):
-        out.append(given)
-    elif given is not None:
-        for item in given:
-            _flatten_jobs_helper(item, out=out)
+def _flatten_jobs(tree: Optional[CIRCUIT_SAMPLE_JOB_TREE]) -> Iterator[CircuitSampleJob]:
+    if isinstance(tree, CircuitSampleJob):
+        yield tree
+    elif tree is not None:
+        for item in tree:
+            yield from _flatten_jobs(item)

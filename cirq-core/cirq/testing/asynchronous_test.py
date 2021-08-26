@@ -19,27 +19,32 @@ import pytest
 import cirq
 
 
+def _asyncio_pending(*args, **kw):
+    with cirq.testing.assert_deprecated("Use duet", deadline="v0.14"):
+        return cirq.testing.asyncio_pending(*args, **kw)
+
+
 @pytest.mark.asyncio
 async def test_asyncio_pending():
     f = asyncio.Future()
 
-    assert await cirq.testing.asyncio_pending(f)
+    assert await _asyncio_pending(f)
     f.set_result(5)
-    assert not await cirq.testing.asyncio_pending(f)
-    assert not await cirq.testing.asyncio_pending(f, timeout=100)
+    assert not await _asyncio_pending(f)
+    assert not await _asyncio_pending(f, timeout=100)
 
     e = asyncio.Future()
 
-    assert await cirq.testing.asyncio_pending(e)
+    assert await _asyncio_pending(e)
     e.set_exception(ValueError('test fail'))
-    assert not await cirq.testing.asyncio_pending(e)
-    assert not await cirq.testing.asyncio_pending(e, timeout=100)
+    assert not await _asyncio_pending(e)
+    assert not await _asyncio_pending(e, timeout=100)
 
 
 @pytest.mark.asyncio
 async def test_asyncio_pending_common_mistake_caught():
     f = asyncio.Future()
-    pending = cirq.testing.asyncio_pending(f)
+    pending = _asyncio_pending(f)
     with pytest.raises(RuntimeError, match='forgot the "await"'):
         assert pending
     assert await pending
