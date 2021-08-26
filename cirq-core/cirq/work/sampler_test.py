@@ -16,6 +16,7 @@ from typing import List
 
 import pytest
 
+import duet
 import numpy as np
 import pandas as pd
 import sympy
@@ -23,7 +24,7 @@ import sympy
 import cirq
 
 
-@pytest.mark.asyncio
+@duet.sync
 async def test_sampler_async_fail():
     class FailingSampler(cirq.Sampler):
         def run_sweep(self, program, params, repetitions: int = 1):
@@ -134,7 +135,7 @@ def test_sampler_sample_inconsistent_keys():
         )
 
 
-@pytest.mark.asyncio
+@duet.sync
 async def test_sampler_async_not_run_inline():
     ran = False
 

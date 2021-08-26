@@ -16,7 +16,12 @@ import asyncio
 import collections
 from typing import Optional, Awaitable, Union
 
+from cirq._compat import deprecated_class
 
+
+@deprecated_class(
+    deadline='v0.14', fix='Use duet.AsyncCollector instead. See cirq.Collector for an example.'
+)
 class CompletionOrderedAsyncWorkPool:
     """Ensures given work is executing, and exposes it in completion order."""
 

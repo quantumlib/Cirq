@@ -71,7 +71,7 @@ class Moment:
         """Constructs a moment with the given operations.
 
         Args:
-            operations: The operations applied within the moment.
+            contents: The operations applied within the moment.
                 Will be flattened and frozen into a tuple before storing.
 
         Raises:
