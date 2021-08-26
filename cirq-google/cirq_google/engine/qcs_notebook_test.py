@@ -13,12 +13,13 @@
 # limitations under the License.
 
 import cirq_google as cg
+from cirq_google.engine.qcs_notebook import get_qcs_objects_for_notebook
 
 
 def test_get_device_sampler():
-    result = cg.engine.engine_sampler.get_device_sampler()
+    result = get_qcs_objects_for_notebook()
     assert result.device is cg.Bristlecone
     assert result.signed_in is False
     assert type(result.sampler) is cg.PhasedFSimEngineSimulator
-    result = cg.engine.engine_sampler.get_device_sampler("", "")
+    result = get_qcs_objects_for_notebook("", "")
     assert not result.signed_in

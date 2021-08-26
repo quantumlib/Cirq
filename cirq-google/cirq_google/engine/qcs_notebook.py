@@ -14,11 +14,9 @@
 
 import os
 import dataclasses
-from typing import List, TYPE_CHECKING, Union, Optional, cast, Sequence, Tuple
+from typing import Union, Optional
 
 import cirq
-from cirq_google import engine
-from cirq_google.serialization import gate_sets
 
 from cirq_google import (
     PhasedFSimEngineSimulator,
@@ -26,20 +24,25 @@ from cirq_google import (
     SQRT_ISWAP_INV_PARAMETERS,
     PhasedFSimCharacterization,
     Bristlecone,
+    get_engine_sampler,
     get_engine_device,
 )
 
 
 @dataclasses.dataclass
-class DeviceSamplerInfo:
+class QCSObjectsForNotebook:
     device: cirq.Device
     sampler: Union[PhasedFSimEngineSimulator, QuantumEngineSampler]
     signed_in: bool
 
+    @property
+    def is_sampler(self):
+        return self.sampler is QuantumEngineSampler
 
-def get_device_sampler(
+
+def get_qcs_objects_for_notebook(
     project_id: Optional[str] = None, processor_id: Optional[str] = None
-) -> DeviceSamplerInfo:
+) -> QCSObjectsForNotebook:
     """Authenticates on Google Cloud, can return a Device and Simulator.
 
     Args:
@@ -114,7 +117,7 @@ def get_device_sampler(
     else:  # pragma: no cover
         device = get_engine_device(processor_id)
         sampler = get_engine_sampler(processor_id, gate_set_name="sqrt_iswap")
-    return DeviceSamplerInfo(
+    return QCSObjectsForNotebook(
         device=device,
         sampler=sampler,
         signed_in=not google_cloud_signin_failed,
