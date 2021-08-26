@@ -378,7 +378,9 @@ def test_sim_state_instance_gets_changes_from_step_result(split: bool):
 
 def test_measurements_retained_in_step_results():
     sim = SplittableCountingSimulator()
-    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), cirq.measure(q0, key='c'))
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), cirq.measure(q0, key='c')
+    )
     iterator = sim.simulate_moment_steps(circuit)
     assert next(iterator).measurements.keys() == {'a'}
     assert next(iterator).measurements.keys() == {'a', 'b'}
