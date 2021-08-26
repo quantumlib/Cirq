@@ -147,12 +147,3 @@ def test_get_engine_sampler(monkeypatch):
 
     with pytest.raises(ValueError):
         sampler = cg.get_engine_sampler(processor_id='hi mom', gate_set_name='ccz')
-
-
-def test_get_device_sampler():
-    result = cg.engine.engine_sampler.get_device_sampler()
-    assert result.device is cg.Bristlecone
-    assert result.signed_in is False
-    assert type(result.sampler) is cg.PhasedFSimEngineSimulator
-    result = cg.engine.engine_sampler.get_device_sampler("", "")
-    assert result.signed_in == False
