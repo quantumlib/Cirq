@@ -109,6 +109,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         # Would cause approx_eq to false positive when atol > 1.
         return self.coefficient, tuple(PAULI_CHARS[p] for p in self.pauli_mask)
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     @classmethod
     def one_hot(cls: Type[TCls], *, index: int, length: int, pauli: 'cirq.PAULI_GATE_LIKE') -> TCls:
         """Creates a dense pauli string with only one non-identity Pauli.
@@ -125,6 +127,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         concrete_cls = cast(Callable, DensePauliString if cls is BaseDensePauliString else cls)
         return concrete_cls(pauli_mask=mask)
 
+    # pylint: enable=missing-param-doc
     @classmethod
     def eye(cls: Type[TCls], length: int) -> TCls:
         """Creates a dense pauli string containing only identity gates.

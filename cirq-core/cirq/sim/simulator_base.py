@@ -174,8 +174,9 @@ class SimulatorBase(
             `_run` prefix."""
         return protocols.has_unitary(val)
 
+    # TODO(#3388) Add documentation for Args.
     # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
+    # pylint: disable=missing-param-doc,missing-raises-doc
     def _core_iterator(
         self,
         circuit: circuits.AbstractCircuit,
@@ -225,7 +226,7 @@ class SimulatorBase(
             yield step_result
             sim_state = step_result._sim_state
 
-    # pylint: enable=missing-raises-doc
+    # pylint: enable=missing-param-doc,missing-raises-doc
     def _run(
         self,
         circuit: circuits.AbstractCircuit,
