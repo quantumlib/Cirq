@@ -13,6 +13,6 @@ def pytest_pyfunc_call(pyfuncitem):
     if inspect.iscoroutinefunction(pyfuncitem._obj):
         # coverage: ignore
         raise ValueError(
-            f'{pyfuncitem._obj.__name__} is async but not '
-            f'decorated with "@pytest.mark.asyncio".'
+            f'{pyfuncitem._obj.__name__} is a bare async function. '
+            f'It should be decorated with "@duet.sync".'
         )
