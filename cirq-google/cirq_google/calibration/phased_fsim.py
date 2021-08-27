@@ -977,6 +977,9 @@ class PhaseCalibratedFSimGate:
         Returns:
             Tuple of tuple of operations that describe the compensated gate. The first index
             iterates over moments of the composed operation.
+
+        Raises:
+            ValueError: If the engine gate is not a 2-qubit gate.
         """
         assert parameters.zeta is not None, "Zeta value must not be None"
         zeta = parameters.zeta
