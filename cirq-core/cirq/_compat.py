@@ -20,7 +20,7 @@ import re
 import sys
 import traceback
 import warnings
-from types import FunctionType, MethodType, ModuleType
+from types import FunctionType, ModuleType
 from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
 
 import numpy as np
@@ -662,25 +662,24 @@ def _setup_deprecated_submodule_attribute(
 
 
 class MockModule(ModuleType):
-    def __init__(self, module_name: str, module_doc: Optional[str] = None):
-        ModuleType.__init__(self, module_name, module_doc)
+    def __init__(self, module_name: str):
+        ModuleType.__init__(self, module_name)
         if '.' in module_name:
             package, module = module_name.rsplit('.', 1)
-            get_mock_module(package).__path__ = []
+            # get_mock_module(package).__path__ = []
             setattr(get_mock_module(package), module, self)
 
     def _initialize_(self, module_code: FunctionType):
         self.__dict__.update(module_code(self.__name__))
-        self.__doc__ = module_code.__doc__
 
 
-def get_mock_module(module_name: str) -> MockModule:
+def get_mock_module(module_name: str) -> ModuleType:
     if module_name not in sys.modules:
         sys.modules[module_name] = MockModule(module_name)
     return sys.modules[module_name]
 
 
-def modulize(module_name: str) -> MethodType:
+def modulize(module_name: str) -> Callable[[FunctionType], Any]:
     """Converts a function into a module:
     https://stackoverflow.com/a/45421428/5716192
     """

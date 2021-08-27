@@ -20,7 +20,7 @@ import traceback
 import types
 import warnings
 from types import ModuleType
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 from importlib.machinery import ModuleSpec
 from unittest import mock
 from importlib.abc import MetaPathFinder
@@ -860,17 +860,21 @@ def _dir_is_still_valid_inner():
 
 def test_deprecated_module_does_not_wrap_mockfinder():
     @modulize('sphinx.ext.autodoc.mock')
-    def mock_finder(__name__):
+    def module_code(
+        name,
+    ):  # pylint: disable=unused-variable # https://github.com/PyCQA/pylint/issues/2842
+
         # put module code here
-        class MockFinder:
-            pass
+        class MockFinder(MetaPathFinder):
+            def __init__(self, modnames: List[str]) -> None:
+                super().__init__()
 
         # the function must return locals()
         return locals()
 
     from sphinx.ext.autodoc.mock import MockFinder
 
-    fake_mockfinder = MockFinder()
+    fake_mockfinder = MockFinder([])
     sys.meta_path.insert(0, fake_mockfinder)
     deprecated_submodule(
         new_module_name='sphinx_1',
