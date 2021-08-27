@@ -994,7 +994,7 @@ class PhaseCalibratedFSimGate:
             engine_gate = self.engine_gate
         else:
             if cirq.num_qubits(engine_gate) != 2:
-                raise ValueError('Engine gate must be a two-qubit gate')
+                raise ValueError('Engine gate must be a two-qubit gate')  # coverage: ignore
 
         a, b = qubits
 
