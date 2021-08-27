@@ -20,7 +20,7 @@ import re
 import sys
 import traceback
 import warnings
-from types import ModuleType
+from types import FunctionType, MethodType, ModuleType
 from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
 
 import numpy as np
@@ -621,10 +621,14 @@ def deprecated_submodule(
             )
 
     def wrap(finder: Any) -> Any:
-        # Sphinx looks for non-wrapped finders.
-        if not hasattr(finder, 'find_spec') or finder.__class__.__module__.split('.')[:1] == [
-            'sphinx'
-        ]:
+        # Sphinx looks for non-wrapped Mockfinders
+        # so we have to check for them and not wrap them
+        if 'sphinx' in sys.modules:
+            from sphinx.ext.autodoc.mock import MockFinder
+
+            if isinstance(finder, MockFinder):
+                return finder
+        if not hasattr(finder, 'find_spec'):
             return finder
         return DeprecatedModuleFinder(
             finder, new_module_name, old_module_name, deadline, broken_module_exception
@@ -655,3 +659,29 @@ def _setup_deprecated_submodule_attribute(
             return getattr(parent_module, name)
 
     sys.modules[old_parent] = Wrapped(parent_module.__name__, parent_module.__doc__)
+
+
+class MockModule(ModuleType):
+    def __init__(self, module_name: str, module_doc: Optional[str] = None):
+        ModuleType.__init__(self, module_name, module_doc)
+        if '.' in module_name:
+            package, module = module_name.rsplit('.', 1)
+            get_mock_module(package).__path__ = []
+            setattr(get_mock_module(package), module, self)
+
+    def _initialize_(self, module_code: FunctionType):
+        self.__dict__.update(module_code(self.__name__))
+        self.__doc__ = module_code.__doc__
+
+
+def get_mock_module(module_name: str) -> MockModule:
+    if module_name not in sys.modules:
+        sys.modules[module_name] = MockModule(module_name)
+    return sys.modules[module_name]
+
+
+def modulize(module_name: str) -> MethodType:
+    """Converts a function into a module:
+    https://stackoverflow.com/a/45421428/5716192
+    """
+    return get_mock_module(module_name)._initialize_
