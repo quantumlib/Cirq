@@ -682,4 +682,7 @@ def modulize(module_name: str) -> Callable[[FunctionType], Any]:
     """Converts a function into a module:
     https://stackoverflow.com/a/45421428/5716192
     """
-    return get_mock_module(module_name)._initialize_
+    return get_mock_module(
+        module_name
+    )._initialize_  # type: ignore # mypy can't detect the _initialize_ method
+    # from the MockModule in sys.modules[module_name]
