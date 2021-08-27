@@ -666,7 +666,6 @@ class MockModule(ModuleType):
         ModuleType.__init__(self, module_name)
         if '.' in module_name:
             package, module = module_name.rsplit('.', 1)
-            # get_mock_module(package).__path__ = []
             setattr(get_mock_module(package), module, self)
 
     def _initialize_(self, module_code: FunctionType):
