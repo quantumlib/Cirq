@@ -59,7 +59,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 class _TwoQubitGateMeta(value.ABCMetaImplementAnyOneOf):
     def __instancecheck__(cls, instance):
         warnings.warn(
-            'isinstance(gate, TwoQubitGate) is deprecated. Use gate.num_qubits() instead',
+            'isinstance(gate, TwoQubitGate) is deprecated. Use cirq.num_qubits(gate) == 2 instead',
             DeprecationWarning,
         )
         return isinstance(instance, raw_types.Gate) and instance._num_qubits_() == 2
@@ -76,7 +76,7 @@ class TwoQubitGate(raw_types.Gate, metaclass=_TwoQubitGateMeta):
 class _ThreeQubitGateMeta(value.ABCMetaImplementAnyOneOf):
     def __instancecheck__(cls, instance):
         warnings.warn(
-            'isinstance(gate, ThreeQubitGate) is deprecated. Use gate.num_qubits() instead',
+            'isinstance(gate, TwoQubitGate) is deprecated. Use cirq.num_qubits(gate) == 3 instead',
             DeprecationWarning,
         )
         return isinstance(instance, raw_types.Gate) and instance._num_qubits_() == 3

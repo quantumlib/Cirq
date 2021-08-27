@@ -990,7 +990,8 @@ class PhaseCalibratedFSimGate:
         if engine_gate is None:
             engine_gate = self.engine_gate
         else:
-            assert engine_gate.num_qubits() == 2, "Engine gate must be a two-qubit gate"
+            if cirq.num_qubits(engine_gate) != 2:
+                raise ValueError('Engine gate must be a two-qubit gate')
 
         a, b = qubits
 
