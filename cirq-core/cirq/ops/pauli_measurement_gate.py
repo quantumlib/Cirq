@@ -16,7 +16,14 @@ from typing import Any, Dict, Iterable, Tuple, Sequence, TYPE_CHECKING, Union
 
 
 from cirq import protocols, value
-from cirq.ops import raw_types, measurement_gate, op_tree, dense_pauli_string, pauli_string_phasor
+from cirq.ops import (
+    raw_types,
+    measurement_gate,
+    op_tree,
+    dense_pauli_string,
+    pauli_gates,
+    pauli_string_phasor,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -24,7 +31,7 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class PauliMeasurementGate(raw_types.Gate):
-    """A gate that measures a pauli observable.
+    """A gate that measures a Pauli observable.
 
     PauliMeasurementGate contains a key used to identify results of measurement
     and a list of Paulis which denote the observable to be measured.
@@ -38,14 +45,18 @@ class PauliMeasurementGate(raw_types.Gate):
         """Inits PauliMeasurementGate.
 
         Args:
-            observable: The pauli observable to be measured.
+            observable: Pauli observable to measure. Any `Iterable[cirq.Pauli]`
+                is a valid Pauli observable, including `cirq.DensePauliString`
+                instances, which do not contain any identity gates.
             key: The string key of the measurement.
 
         Raises:
             ValueError: If the observable is empty.
         """
         if not observable:
-            raise ValueError(f'Pauli measurement observable {observable} is empty.')
+            raise ValueError(f'Pauli observable {observable} is empty.')
+        if not all(isinstance(p, pauli_gates.Pauli) for p in observable):
+            raise ValueError(f'Pauli observable {observable} must be Iterable[`cirq.Pauli`].')
         self._observable = tuple(observable)
         self.key = key  # type: ignore
 
@@ -54,11 +65,10 @@ class PauliMeasurementGate(raw_types.Gate):
         return str(self.mkey)
 
     @key.setter
-    def key(self, key: Union[str, value.MeasurementKey]):
-        if isinstance(key, value.MeasurementKey):
-            self.mkey = key
-        else:
-            self.mkey = value.MeasurementKey(name=key)
+    def key(self, key: Union[str, value.MeasurementKey]) -> None:
+        if isinstance(key, str):
+            key = value.MeasurementKey(name=key)
+        self.mkey = key
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return (2,) * len(self._observable)
@@ -69,27 +79,31 @@ class PauliMeasurementGate(raw_types.Gate):
             return self
         return PauliMeasurementGate(self._observable, key=key)
 
-    def _with_key_path_(self, path: Tuple[str, ...]):
+    def _with_key_path_(self, path: Tuple[str, ...]) -> 'PauliMeasurementGate':
         return self.with_key(self.mkey._with_key_path_(path))
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'PauliMeasurementGate':
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
     def with_observable(self, observable: Iterable['cirq.Pauli']) -> 'PauliMeasurementGate':
         """Creates a pauli measurement gate with the new observable and same key."""
+        if tuple(observable) == self._observable:
+            return self
         return PauliMeasurementGate(observable, key=self.key)
 
     def _is_measurement_(self) -> bool:
         return True
 
-    def _measurement_key_name_(self):
+    def _measurement_key_name_(self) -> str:
         return self.key
 
     def observable(self) -> 'cirq.DensePauliString':
         """Pauli observable which should be measured by the gate."""
         return dense_pauli_string.DensePauliString(self._observable)
 
-    def _decompose_(self, qubits):
+    def _decompose_(
+        self, qubits: Tuple['cirq.Qid', ...]
+    ) -> 'protocols.decompose_protocol.DecomposeResult':
         any_qubit = qubits[0]
         to_z_ops = op_tree.freeze_op_tree(self.observable().on(*qubits).to_z_basis_ops())
         xor_decomp = tuple(pauli_string_phasor.xor_nonlocal_decompose(qubits, any_qubit))
@@ -117,7 +131,7 @@ class PauliMeasurementGate(raw_types.Gate):
         arg_list = ', '.join(args)
         return f'cirq.measure_pauli_observable({arg_list})'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'cirq.PauliMeasurementGate(' f'{self._observable!r}, ' f'{self.mkey!r})'
 
     def _value_equality_values_(self) -> Any:
@@ -131,7 +145,7 @@ class PauliMeasurementGate(raw_types.Gate):
         }
 
     @classmethod
-    def _from_json_dict_(cls, observable, key, **kwargs):
+    def _from_json_dict_(cls, observable, key, **kwargs) -> 'PauliMeasurementGate':
         return cls(
             observable=observable,
             key=value.MeasurementKey.parse_serialized(key),

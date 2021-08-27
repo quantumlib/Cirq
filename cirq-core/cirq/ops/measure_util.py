@@ -32,13 +32,14 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 def measure_pauli_observable(
     pauli_observable: pauli_string.PauliString,
     key: Optional[Union[str, value.MeasurementKey]] = None,
-):
+) -> raw_types.Operation:
     """Returns a single PauliMeasurementGate which measures the pauli observable
 
     Args:
-        pauli_observable: The pauli observable to measure.
-        key: The string key of the measurement. If this is None, it defaults
-            to a comma-separated list of the target qubits' str values.
+        pauli_observable: The `cirq.PauliString` observable to measure.
+        key: Optional `str` or `cirq.MeasurementKey` that gate should use.
+            If none provided, it defaults to a comma-separated list of the
+            target qubits' str values.
 
     Returns:
         An operation measuring the pauli observable.
@@ -57,11 +58,12 @@ def measure_pauli_observable(
 
 def measure_in_pauli_basis(
     pauli_basis: pauli_string.PauliString, key_func: Callable[[raw_types.Qid], str] = str
-):
+) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring qubits in the pauli basis.
 
     Args:
-        pauli_basis: The pauli basis in which each qubit should be measured.
+        pauli_basis: The `cirq.PauliString` basis in which each qubit should
+            be measured.
         key_func: Determines the key of the measurements of each qubit. Takes
             the qubit and returns the key for that qubit. Defaults to str.
 
@@ -70,7 +72,7 @@ def measure_in_pauli_basis(
         specified pauli basis.
 
     Raises:
-        ValueError: if the observable is not an instance of cirq.PauliString.
+        ValueError: if `pauli_basis` is not an instance of `cirq.PauliString`.
     """
     if not isinstance(pauli_basis, pauli_string.PauliString):
         raise ValueError(

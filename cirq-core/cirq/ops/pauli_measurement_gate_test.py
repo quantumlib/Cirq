@@ -36,7 +36,7 @@ def test_eval_repr(key):
     assert cirq.measurement_key_name(op) == str(key)
 
 
-@pytest.mark.parametrize('observable', [[cirq.X], [cirq.Y, cirq.Z]])
+@pytest.mark.parametrize('observable', [[cirq.X], [cirq.Y, cirq.Z], cirq.DensePauliString('XYZ')])
 @pytest.mark.parametrize('key', ['a', cirq.MeasurementKey('a')])
 def test_init(observable, key):
     g = cirq.PauliMeasurementGate(observable, key)
@@ -152,9 +152,15 @@ def test_op_repr():
     )
 
 
-def test_empty_observable_raises():
-    with pytest.raises(ValueError, match='Pauli measurement observable .* is empty'):
+def test_bad_observable_raises():
+    with pytest.raises(ValueError, match='Pauli observable .* is empty'):
         _ = cirq.PauliMeasurementGate([])
+
+    with pytest.raises(ValueError, match='Pauli observable .* must be Iterable\[`cirq.Pauli`\]'):
+        _ = cirq.PauliMeasurementGate([cirq.I, cirq.X, cirq.Y])
+
+    with pytest.raises(ValueError, match='Pauli observable .* must be Iterable\[`cirq.Pauli`\]'):
+        _ = cirq.PauliMeasurementGate(cirq.DensePauliString('XYZI'))
 
 
 def test_with_observable():
@@ -163,3 +169,4 @@ def test_with_observable():
     g1 = cirq.PauliMeasurementGate(o1, key='a')
     g2 = cirq.PauliMeasurementGate(o2, key='a')
     assert g1.with_observable(o2) == g2
+    assert g1.with_observable(o1) is g1
