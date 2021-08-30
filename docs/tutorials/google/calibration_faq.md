@@ -7,10 +7,10 @@
 Calibration is a technique to reduce systematic errors in quantum circuits.  This technique aims to adjust for gate errors
 in moments that contain only two-qubit gates. Circuit specific calibrations optimizes gate error for specific circuits.  
 When executing a circuit with multiple simultaneous two-qubit gates, the actual effect may be different than the intended
-effect due to various sorts of errors, such as drift or cross-talk.  Though one may request a √iSWAP gate, the quantum state
+effect due to various sorts of errors, such as drift or cross-talk.  Though one may request a `cirq.SQRT_ISWAP` gate, the quantum state
 may be affected by a unitary effect that is close to, but not exactly, a `cirq.SQRT_ISWAP`.  Characterization attempts to identify 
 the actual effect of the gates using repeated expressions of the two-qubit layer.  Once parameters are identified that more 
-closely resemble the actual effect, the errors can be compensated for by using Z gates to correct phases before and after 
+closely resemble the actual effect, some errors can be compensated for by using Z gates to correct phases before and after 
 each gate. This will improve the accuracy of the overall moment without adding additional duration to the circuit (the newly
 added Z gates will be merged with the already existing Z gates after sending circuits to the QCS.)
 
@@ -43,7 +43,7 @@ the compiler can only adjust for three of the five parameters by inserting Z gat
 This version of XEB is using the client-side Cirq characterization backed by 
 `cirq.experiments.xeb_fitting.characterize_phased_fsim_parameters_with_xeb_by_pair` and when used directly it can support 
 arbitrary gates, including composite ones. However, the compiler which adjusts for ζ, χ, γ angles available in cirq_google 
-package supports only `cirq.SQRT_ISWAP` with its inverse.
+package supports only `cirq.SQRT_ISWAP` with its inverse and `cirq_google.SYC`.
 
 Floquet calibration does not yet support microwave gates, this functionality is planned.
 
@@ -163,6 +163,8 @@ set to false.
 
 ![Illustration of `merge_subsets` option.](merge_subsets.png)
 
+Note that in this image the qubit lines run from top to bottom instead of left to right (the usual in Cirq).
+
 ## What is the difference between moment-oriented and operations-oriented calibrations?
 
 There are two kinds of calibrations available in `cirq_google.calibrations` module: 
@@ -213,6 +215,9 @@ class PhasedFSimCalibrationRequest(abc.ABC):
 After triggering this calibration with the `cirq_google.run_calibrations` method, the `PhasedFSimCalibrationResult` is returned
 with a parameters field that contains the unitary parameters of all the requested gates. The object also contains additional
 execution metadata which might be useful.
+
+If these strategies are still not enough, make sure you are following all best practices outlined in this 
+[guide](../../google/best_practices.md), for example avoiding qubits with high errors.
 
 ## Floquet calibration fails with a message: Readout errors above the tolerance for qubit pairs (...), what can be done?
 
@@ -271,7 +276,7 @@ In order to ensure an apt comparison, it is important to keep the following poin
   - Use parallel readout heatmap to avoid any obviously broken qubits.
   - Use two-qubit error heatmaps to choose various patches of qubits with good two-qubit gate performance.
   - Use a mini-benchmark circuit to sanity check both qubit choice and basic circuit design.
-  - If in doubt, use parallel XEB to check for issues like drift / TLS.
+  - If in doubt, [use parallel XEB to check for issues like drift / TLS](./compare_to_calibration.ipynb).
 
 * Start small with a low number of qubits (e.g. 2 qubits, with 5-10 layers of 2 qubit gates), and increase the number of qubits 
   and gate depth.
@@ -297,8 +302,9 @@ The following references might provide some help on dealing with this issue but 
   that decomposes arbitrary gate into arbitrary two-qubit base gate. This code was not designed for the case where each base
   gate is different and might not be practical to use for actual applications.
 
-* [arXiv:2106.15490](https://arxiv.org/abs/2106.15490) proposes a numerical optimization routines and discusses tradeoffs 
-  between possible fidelity and applying circuits of different costs.
+* [arXiv:2106.15490](https://arxiv.org/abs/2106.15490) proposes a numerical optimization routine for approximate gate 
+  compilation and discusses tradeoffs of using approximate gate compilation (higher decomposition error) to reduce circuit 
+  depth (lower hardware error) in an attempt to maximize overall circuit fidelity.
 
 * [arXiv:2010.07965](https://arxiv.org/abs/2010.07965) in Supplementary Information A describes analytical decomposition 
   of arbitrary FSimGate(0, 𝜙), under the assumption that |𝜙| is larger than twice the parasitic c-phase φ of the base gate.
