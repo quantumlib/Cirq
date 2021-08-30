@@ -107,6 +107,8 @@ upper_tabs:
         path: /cirq/google/specification
       - title: "Calibration metrics"
         path: /cirq/google/calibration
+      - title: "Calibration FAQ"
+        path: /cirq/google/calibration_faq
       - title: "Best practices"
         path: /cirq/google/best_practices
 
@@ -206,8 +208,6 @@ upper_tabs:
           path: /cirq/tutorials/google/floquet_calibration_example
         - title: "XEB calibration: Example and benchmark"
           path: /cirq/tutorials/google/xeb_calibration_example
-        - title: "Calibration FAQ"
-          path: /cirq/tutorials/google/calibration_faq
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"
