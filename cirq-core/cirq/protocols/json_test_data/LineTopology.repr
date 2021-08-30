@@ -1,0 +1,1 @@
+cirq.LineTopology(n_nodes=10)

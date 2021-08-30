@@ -126,7 +126,7 @@ class SerializableDevice(cirq.Device):
         Args:
             proto: A proto describing the qubits on the device, as well as the
                 supported gates and timing information.
-            gate_set: A SerializableGateSet that can translate the gate_ids
+            gate_sets: SerializableGateSets that can translate the gate_ids
                 into cirq Gates.
         """
 

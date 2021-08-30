@@ -41,8 +41,8 @@ class MeasurementKey:
     path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
 
     def __post_init__(self):
-        if not self.name:
-            raise ValueError("Measurement key name cannot be empty")
+        if not isinstance(self.name, str):
+            raise ValueError("Measurement key name must be a valid string.")
         if MEASUREMENT_KEY_SEPARATOR in self.name:
             raise ValueError(
                 f'Invalid key name: {self.name}\n{MEASUREMENT_KEY_SEPARATOR} is not allowed in '

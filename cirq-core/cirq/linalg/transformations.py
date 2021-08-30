@@ -200,7 +200,7 @@ def targeted_conjugate_about(
         target: The tensor that will receive the conjugation.
         indices: The indices which will be contracted between the tensor and
             target.
-        conj_indices; The indices which will be contracted between the
+        conj_indices: The indices which will be contracted between the
             complex conjugate of the tensor and the target. If this is None,
             then these will be the values in indices plus half the number
             of dimensions of the target (`ndim`). This is the most common case

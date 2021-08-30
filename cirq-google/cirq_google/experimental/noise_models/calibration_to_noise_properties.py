@@ -74,7 +74,8 @@ def noise_properties_from_calibration(
     # Unpack all values from Calibration object
     t1_micros = _unpack_from_calibration('single_qubit_idle_t1_micros', calibration)
     t1_nanos = t1_micros * 1000 if t1_micros is not None else None
-    xeb_fidelity = _unpack_from_calibration('xeb', calibration)
+    xeb_error = _unpack_from_calibration('xeb', calibration)
+    xeb_fidelity = 1 - xeb_error if xeb_error is not None else None
     rb_pauli_error = _unpack_from_calibration('single_qubit_rb_pauli_error_per_gate', calibration)
     rb_average_error = _unpack_from_calibration(
         'single_qubit_rb_average_error_per_gate', calibration
