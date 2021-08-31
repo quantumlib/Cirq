@@ -659,30 +659,3 @@ def _setup_deprecated_submodule_attribute(
             return getattr(parent_module, name)
 
     sys.modules[old_parent] = Wrapped(parent_module.__name__, parent_module.__doc__)
-
-
-class MockModule(ModuleType):
-    def __init__(self, module_name: str):
-        ModuleType.__init__(self, module_name)
-        if '.' in module_name:
-            package, module = module_name.rsplit('.', 1)
-            setattr(get_mock_module(package), module, self)
-
-    def _initialize_(self, module_code: FunctionType):
-        self.__dict__.update(module_code(self.__name__))
-
-
-def get_mock_module(module_name: str) -> ModuleType:
-    if module_name not in sys.modules:
-        sys.modules[module_name] = MockModule(module_name)
-    return sys.modules[module_name]
-
-
-def modulize(module_name: str) -> Callable[[FunctionType], Any]:
-    """Converts a function into a module:
-    https://stackoverflow.com/a/45421428/5716192
-    """
-    return get_mock_module(
-        module_name
-    )._initialize_  # type: ignore # mypy can't detect the _initialize_ method
-    # from the MockModule in sys.modules[module_name]
