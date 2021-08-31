@@ -108,6 +108,7 @@ from cirq_google.serialization import (
     GateOpDeserializer,
     CircuitOpSerializer,
     GateOpSerializer,
+    Serializer,
     SerializingArg,
     SerializableGateSet,
     XMON,
