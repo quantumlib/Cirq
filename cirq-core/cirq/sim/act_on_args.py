@@ -164,9 +164,26 @@ class ActOnArgs(OperationTarget[TSelf]):
     def transpose_to_qubit_order(
         self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False
     ) -> TSelf:
-        """Physically reindexes the state by the new basis."""
+        """Physically reindexes the state by the new basis.
+
+        Args:
+            qubits: The desired qubit order.
+            inplace: True to perform this operation inplace.
+
+        Returns:
+            The state with qubit order transposed and underlying representation
+            updated.
+
+        Raises:
+            ValueError: If the provided qubits do not match the existing ones
+                or duplicate qubits provided.
+        """
+        qubit_set = set(qubits)
+        if qubit_set != set(self.qubits):
+            raise ValueError(f'Qubits do not match. Existing: {self.qubits}, provided: {qubits}')
+        if len(qubit_set) != len(qubits):
+            raise ValueError(f'Duplicate qubits provided: {qubits}')
         args = self if inplace else copy.copy(self)
-        assert set(qubits) == set(self.qubits)
         self._on_transpose_to_qubit_order(qubits, args)
         args._set_qubits(qubits)
         return args

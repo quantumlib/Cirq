@@ -217,7 +217,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         validate=True,
         atol=1e-07,
     ):
-        axes = [self.qubit_map[q] for q in qubits]
+        axes = self.get_axes(qubits)
         extracted_tensor, remainder_tensor = transformations.factor_state_vector(
             self.target_tensor, axes, validate=validate, atol=atol
         )

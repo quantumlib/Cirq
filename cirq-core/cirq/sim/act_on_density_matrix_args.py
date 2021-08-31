@@ -155,15 +155,19 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         validate=True,
         atol=1e-07,
     ):
-        axes = [self.qubit_map[q] for q in qubits]
+        axes = self.get_axes(qubits)
         extracted_tensor, remainder_tensor = transformations.factor_density_matrix(
             self.target_tensor, axes, validate=validate, atol=atol
         )
         extracted.target_tensor = extracted_tensor
-        extracted.available_buffer = [np.empty_like(extracted_tensor) for _ in range(3)]
+        extracted.available_buffer = [
+            np.empty_like(extracted_tensor) for _ in self.available_buffer
+        ]
         extracted.qid_shape = extracted_tensor.shape[: int(extracted_tensor.ndim / 2)]
         remainder.target_tensor = remainder_tensor
-        remainder.available_buffer = [np.empty_like(remainder_tensor) for _ in range(3)]
+        remainder.available_buffer = [
+            np.empty_like(remainder_tensor) for _ in self.available_buffer
+        ]
         remainder.qid_shape = remainder_tensor.shape[: int(remainder_tensor.ndim / 2)]
 
     def _on_transpose_to_qubit_order(
@@ -213,7 +217,7 @@ def _strat_apply_channel_to_state(
     )
     if result is None:
         return NotImplemented
-    for i in range(3):
+    for i in range(len(args.available_buffer)):
         if result is args.available_buffer[i]:
             args.available_buffer[i] = args.target_tensor
     args.target_tensor = result
