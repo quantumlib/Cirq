@@ -20,7 +20,7 @@ import re
 import sys
 import traceback
 import warnings
-from types import FunctionType, ModuleType
+from types import ModuleType
 from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
 
 import numpy as np
@@ -627,6 +627,7 @@ def deprecated_submodule(
             from sphinx.ext.autodoc.mock import MockFinder
 
             if isinstance(finder, MockFinder):
+                print("Hello")
                 return finder
         if not hasattr(finder, 'find_spec'):
             return finder

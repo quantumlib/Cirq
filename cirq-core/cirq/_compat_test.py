@@ -888,7 +888,7 @@ def test_deprecated_module_does_not_wrap_mockfinder():
     @modulize('sphinx.ext.autodoc.mock')
     def module_code(
         __name__,
-    ):  # pylint: disable=unused-variable # https://github.com/PyCQA/pylint/issues/2842
+    ):  # pylint: disable=redefined-builtin
 
         # put module code here
         class MockFinder(MetaPathFinder):
