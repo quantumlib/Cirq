@@ -901,7 +901,7 @@ def test_deprecated_module_does_not_wrap_mockfinder():
                 path: Optional[Sequence[Union[bytes, str]]] = None,
                 target: Optional[ModuleType] = None,
             ) -> None:
-                return None
+                pass
 
         # the function must return locals()
         return locals()
