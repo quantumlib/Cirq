@@ -175,14 +175,10 @@ class ActOnArgs(OperationTarget[TSelf]):
             updated.
 
         Raises:
-            ValueError: If the provided qubits do not match the existing ones
-                or duplicate qubits provided.
+            ValueError: If the provided qubits do not match the existing ones.
         """
-        qubit_set = set(qubits)
-        if qubit_set != set(self.qubits):
+        if len(self.qubits) != len(qubits) or set(qubits) != set(self.qubits):
             raise ValueError(f'Qubits do not match. Existing: {self.qubits}, provided: {qubits}')
-        if len(qubit_set) != len(qubits):
-            raise ValueError(f'Duplicate qubits provided: {qubits}')
         args = self if inplace else copy.copy(self)
         self._on_transpose_to_qubit_order(qubits, args)
         args._set_qubits(qubits)
