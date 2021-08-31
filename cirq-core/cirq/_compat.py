@@ -621,7 +621,7 @@ def deprecated_submodule(
             )
 
     def wrap(finder: Any) -> Any:
-        # Sphinx looks for non-wrapped Mockfinders
+        # Sphinx looks for non-wrapped MockFinders
         # so we have to check for them and not wrap them
         if 'sphinx' in sys.modules:
             from sphinx.ext.autodoc.mock import MockFinder
