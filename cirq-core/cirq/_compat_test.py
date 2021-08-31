@@ -886,7 +886,7 @@ def modulize(module_name: str) -> Callable[[types.FunctionType], Any]:
 
 def test_deprecated_module_does_not_wrap_mockfinder():
     @modulize('sphinx.ext.autodoc.mock')
-    def module_code(
+    def module_code(  # pylint: disable=unused-variable # https://github.com/PyCQA/pylint/issues/2842
         __name__,
     ):  # pylint: disable=redefined-builtin
 
