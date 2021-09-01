@@ -177,7 +177,7 @@ class ActOnStateVectorArgs(ActOnArgs):
 
         # Try each strategy, stopping if one works.
         for strat in strats:
-            result = strat(op, self, op.qubits)
+            result = strat(op, self)
             if result is False:
                 break  # coverage: ignore
             if result is True:
@@ -278,16 +278,15 @@ class ActOnStateVectorArgs(ActOnArgs):
 
 
 def _strat_act_on_state_vector_from_apply_unitary(
-    unitary_value: Any,
+    op: 'cirq.Operation',
     args: 'cirq.ActOnStateVectorArgs',
-    qubits: Sequence['cirq.Qid'],
 ) -> bool:
     new_target_tensor = protocols.apply_unitary(
-        unitary_value,
+        op,
         protocols.ApplyUnitaryArgs(
             target_tensor=args.target_tensor,
             available_buffer=args.available_buffer,
-            axes=args.get_axes(qubits),
+            axes=args.get_axes(op.qubits),
         ),
         allow_decompose=False,
         default=NotImplemented,
@@ -299,30 +298,30 @@ def _strat_act_on_state_vector_from_apply_unitary(
 
 
 def _strat_act_on_state_vector_from_mixture(
-    action: Any, args: 'cirq.ActOnStateVectorArgs', qubits: Sequence['cirq.Qid']
+    op: 'cirq.Operation', args: 'cirq.ActOnStateVectorArgs'
 ) -> bool:
-    mixture = protocols.mixture(action, default=None)
+    mixture = protocols.mixture(op, default=None)
     if mixture is None:
         return NotImplemented
     probabilities, unitaries = zip(*mixture)
 
     index = args.prng.choice(range(len(unitaries)), p=probabilities)
-    shape = protocols.qid_shape(action) * 2
+    shape = protocols.qid_shape(op) * 2
     unitary = unitaries[index].astype(args.target_tensor.dtype).reshape(shape)
     linalg.targeted_left_multiply(
-        unitary, args.target_tensor, args.get_axes(qubits), out=args.available_buffer
+        unitary, args.target_tensor, args.get_axes(op.qubits), out=args.available_buffer
     )
     args.swap_target_tensor_for(args.available_buffer)
-    if protocols.is_measurement(action):
-        key = protocols.measurement_key_name(action)
+    if protocols.is_measurement(op):
+        key = protocols.measurement_key_name(op)
         args.log_of_measurement_results[key] = [index]
     return True
 
 
 def _strat_act_on_state_vector_from_channel(
-    action: Any, args: 'cirq.ActOnStateVectorArgs', qubits: Sequence['cirq.Qid']
+    op: 'cirq.Operation', args: 'cirq.ActOnStateVectorArgs'
 ) -> bool:
-    kraus_operators = protocols.kraus(action, default=None)
+    kraus_operators = protocols.kraus(op, default=None)
     if kraus_operators is None:
         return NotImplemented
 
@@ -330,11 +329,11 @@ def _strat_act_on_state_vector_from_channel(
         linalg.targeted_left_multiply(
             left_matrix=kraus_tensors[k],
             right_target=args.target_tensor,
-            target_axes=args.get_axes(qubits),
+            target_axes=args.get_axes(op.qubits),
             out=args.available_buffer,
         )
 
-    shape = protocols.qid_shape(action)
+    shape = protocols.qid_shape(op)
     kraus_tensors = [e.reshape(shape * 2).astype(args.target_tensor.dtype) for e in kraus_operators]
     p = args.prng.random()
     weight = None
@@ -362,7 +361,7 @@ def _strat_act_on_state_vector_from_channel(
 
     args.available_buffer /= np.sqrt(weight)
     args.swap_target_tensor_for(args.available_buffer)
-    if protocols.is_measurement(action):
-        key = protocols.measurement_key_name(action)
+    if protocols.is_measurement(op):
+        key = protocols.measurement_key_name(op)
         args.log_of_measurement_results[key] = [index]
     return True

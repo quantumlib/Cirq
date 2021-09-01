@@ -94,7 +94,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         if allow_decompose:
             strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)
         for strat in strats:
-            result = strat(op, self, op.qubits)
+            result = strat(op, self)
             if result is False:
                 break  # coverage: ignore
             if result is True:
@@ -126,14 +126,15 @@ class ActOnCliffordTableauArgs(ActOnArgs):
 
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
-    val: Any, args: 'cirq.ActOnCliffordTableauArgs', qubits: Sequence['cirq.Qid']
+    op: 'cirq.Operation', args: 'cirq.ActOnCliffordTableauArgs'
 ) -> bool:
-    if num_qubits(val) == 1:
-        if not has_unitary(val):
+    if num_qubits(op) == 1:
+        if not has_unitary(op):
             return NotImplemented
-        u = unitary(val)
+        u = unitary(op)
         clifford_gate = SingleQubitCliffordGate.from_unitary(u)
         if clifford_gate is not None:
+            qubits = op.qubits
             for axis, quarter_turns in clifford_gate.decompose_rotation():
                 if axis == pauli_gates.X:
                     common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)

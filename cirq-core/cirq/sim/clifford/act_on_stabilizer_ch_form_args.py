@@ -92,7 +92,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         if allow_decompose:
             strats.append(_strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
         for strat in strats:
-            result = strat(op, self, op.qubits)
+            result = strat(op, self)
             if result is True:
                 return True
             assert result is NotImplemented, str(result)
@@ -128,17 +128,18 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
 
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
-    val: Any, args: 'cirq.ActOnStabilizerCHFormArgs', qubits: Sequence['cirq.Qid']
+    op: 'cirq.Operation', args: 'cirq.ActOnStabilizerCHFormArgs'
 ) -> bool:
-    if num_qubits(val) == 1:
-        if not has_unitary(val):
+    if num_qubits(op) == 1:
+        if not has_unitary(op):
             return NotImplemented
-        u = unitary(val)
+        u = unitary(op)
         clifford_gate = SingleQubitCliffordGate.from_unitary(u)
         if clifford_gate is not None:
             # Gather the effective unitary applied so as to correct for the
             # global phase later.
             final_unitary = np.eye(2)
+            qubits = op.qubits
             for axis, quarter_turns in clifford_gate.decompose_rotation():
                 gate = None  # type: Optional[cirq.Gate]
                 if axis == pauli_gates.X:

@@ -54,7 +54,7 @@ def test_decompose():
             yield cirq.X(*qubits)
 
     args = DummyArgs()
-    assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
+    assert act_on_args.strat_act_on_from_apply_decompose(Composite().on(cirq.LineQubit(0)), args)
 
 
 def test_mapping():

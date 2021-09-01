@@ -228,13 +228,12 @@ class ActOnArgs(OperationTarget[TSelf]):
 
 
 def strat_act_on_from_apply_decompose(
-    val: Any,
+    val: 'cirq.Operation',
     args: ActOnArgs,
-    qubits: Sequence['cirq.Qid'],
 ) -> bool:
     operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)
-    assert len(qubits1) == len(qubits)
-    qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
+    assert len(qubits1) == len(val.qubits)
+    qubit_map = {q: val.qubits[i] for i, q in enumerate(qubits1)}
     if operations is None:
         return NotImplemented
     for operation in operations:

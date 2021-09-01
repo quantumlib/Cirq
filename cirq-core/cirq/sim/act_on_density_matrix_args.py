@@ -105,7 +105,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
         # Try each strategy, stopping if one works.
         for strat in strats:
-            result = strat(op, self, op.qubits)
+            result = strat(op, self)
             if result is False:
                 break  # coverage: ignore
             if result is True:
@@ -217,13 +217,11 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
 
 
-def _strat_apply_channel_to_state(
-    action: Any, args: ActOnDensityMatrixArgs, qubits: Sequence['cirq.Qid']
-) -> bool:
+def _strat_apply_channel_to_state(op: 'cirq.Operation', args: ActOnDensityMatrixArgs) -> bool:
     """Apply channel to state."""
-    axes = args.get_axes(qubits)
+    axes = args.get_axes(op.qubits)
     result = protocols.apply_channel(
-        action,
+        op,
         args=protocols.ApplyChannelArgs(
             target_tensor=args.target_tensor,
             out_buffer=args.available_buffer[0],
