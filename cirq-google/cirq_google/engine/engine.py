@@ -77,8 +77,9 @@ class EngineContext:
     simply create an Engine object instead of working with one of these
     directly."""
 
+    # TODO(#3388) Add documentation for Args.
     # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
+    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(
         self,
         proto_version: Optional[ProtoVersion] = None,
@@ -111,7 +112,7 @@ class EngineContext:
         self.client = client
         self.timeout = timeout
 
-    # pylint: enable=missing-raises-doc
+    # pylint: enable=missing-param-doc,missing-raises-doc
     def copy(self) -> 'EngineContext':
         return EngineContext(proto_version=self.proto_version, client=self.client)
 

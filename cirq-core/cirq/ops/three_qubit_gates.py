@@ -28,6 +28,7 @@ from cirq.ops import (
     eigen_gate,
     gate_features,
     pauli_gates,
+    raw_types,
     swap_gates,
 )
 
@@ -36,9 +37,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class CCZPowGate(
-    eigen_gate.EigenGate, gate_features.ThreeQubitGate, gate_features.InterchangeableQubitsGate
-):
+class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A doubly-controlled-Z that can be raised to a power.
 
     The matrix of `CCZ**t` is `diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t))`.
@@ -167,9 +166,12 @@ class CCZPowGate(
             return 'CCZ'
         return f'CCZ**{self._exponent}'
 
+    def _num_qubits_(self) -> int:
+        return 3
+
 
 @value.value_equality()
-class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
+class ThreeQubitDiagonalGate(raw_types.Gate):
     """A gate given by a diagonal 8x8 matrix."""
 
     def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
@@ -323,10 +325,11 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
         )
 
+    def _num_qubits_(self) -> int:
+        return 3
 
-class CCXPowGate(
-    eigen_gate.EigenGate, gate_features.ThreeQubitGate, gate_features.InterchangeableQubitsGate
-):
+
+class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
 
     The matrix of `CCX**t` is an 8x8 identity except the bottom right 2x2 area
@@ -424,9 +427,12 @@ class CCXPowGate(
             return 'TOFFOLI'
         return f'TOFFOLI**{self._exponent}'
 
+    def _num_qubits_(self) -> int:
+        return 3
+
 
 @value.value_equality()
-class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubitsGate):
+class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     """A controlled swap gate. The Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -568,6 +574,9 @@ class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubit
 
     def __repr__(self) -> str:
         return 'cirq.FREDKIN'
+
+    def _num_qubits_(self) -> int:
+        return 3
 
 
 CCZ = CCZPowGate()

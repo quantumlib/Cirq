@@ -106,6 +106,8 @@ class ActOnStateVectorArgs(ActOnArgs):
             self.available_buffer = self.target_tensor
         self.target_tensor = new_target_tensor
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def subspace_index(
         self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
     ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
@@ -159,6 +161,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             qid_shape=self.target_tensor.shape,
         )
 
+    # pylint: enable=missing-param-doc
     def _act_on_fallback_(
         self,
         action: Union['cirq.Operation', 'cirq.Gate'],
