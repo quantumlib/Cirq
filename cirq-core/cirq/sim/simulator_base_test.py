@@ -59,50 +59,20 @@ class CountingActOnArgs(cirq.ActOnArgs):
 
 
 class SplittableCountingActOnArgs(CountingActOnArgs):
-    def kronecker_product(
-        self, other: 'SplittableCountingActOnArgs'
-    ) -> 'SplittableCountingActOnArgs':
-        args = SplittableCountingActOnArgs(
-            qubits=self.qubits + other.qubits,
-            logs=self.log_of_measurement_results,
-            state=None,
-        )
-        args.gate_count = self.gate_count + other.gate_count
-        args.measurement_count = self.measurement_count + other.measurement_count
-        return args
+    def _on_kronecker_product(
+        self, other: 'SplittableCountingActOnArgs', target: 'SplittableCountingActOnArgs'
+    ):
+        target.gate_count = self.gate_count + other.gate_count
+        target.measurement_count = self.measurement_count + other.measurement_count
 
-    def factor(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        *,
-        validate=True,
-        atol=1e-07,
-    ) -> Tuple['SplittableCountingActOnArgs', 'SplittableCountingActOnArgs']:
-        extracted_args = SplittableCountingActOnArgs(
-            qubits=qubits,
-            logs=self.log_of_measurement_results,
-            state=None,
-        )
-        extracted_args.gate_count = self.gate_count
-        extracted_args.measurement_count = self.measurement_count
-        remainder_args = SplittableCountingActOnArgs(
-            qubits=tuple(q for q in self.qubits if q not in qubits),
-            logs=self.log_of_measurement_results,
-            state=None,
-        )
-        return extracted_args, remainder_args
+    def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
+        remainder.gate_count = 0
+        remainder.measurement_count = 0
 
-    def transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid']
-    ) -> 'SplittableCountingActOnArgs':
-        args = SplittableCountingActOnArgs(
-            qubits=qubits,
-            logs=self.log_of_measurement_results,
-            state=self.state,
-        )
-        args.gate_count = self.gate_count
-        args.measurement_count = self.measurement_count
-        return args
+    def _on_transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid'], target: 'SplittableCountingActOnArgs'
+    ):
+        pass
 
 
 class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArgs]):
