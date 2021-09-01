@@ -917,5 +917,6 @@ def test_deprecated_module_does_not_wrap_mockfinder():
         deadline='v1.2',
         create_attribute=False,
     )
+    assert fake_mockfinder in sys.meta_path
     # Cleanup sys.metapath after test
     sys.meta_path.remove(fake_mockfinder)

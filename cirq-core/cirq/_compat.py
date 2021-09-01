@@ -627,7 +627,6 @@ def deprecated_submodule(
             from sphinx.ext.autodoc.mock import MockFinder
 
             if isinstance(finder, MockFinder):
-                print("Hello")
                 return finder
         if not hasattr(finder, 'find_spec'):
             return finder
