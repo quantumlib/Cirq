@@ -23,9 +23,6 @@ class DummyArgs(cirq.ActOnArgs):
     def __init__(self):
         super().__init__(qubits=cirq.LineQubit.range(2))
 
-    def copy(self):
-        pass
-
     def sample(self, qubits, repetitions=1, seed=None):
         pass
 
@@ -82,3 +79,13 @@ def test_rename_bad_dimensions():
     args = DummyArgs()
     with pytest.raises(ValueError, match='Cannot rename to different dimensions'):
         args.rename(q0, q1)
+
+
+def test_transpose_qubits():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    args = DummyArgs()
+    assert args.transpose_to_qubit_order((q1, q0)).qubits == (q1, q0)
+    with pytest.raises(ValueError, match='Qubits do not match'):
+        args.transpose_to_qubit_order((q0, q2))
+    with pytest.raises(ValueError, match='Qubits do not match'):
+        args.transpose_to_qubit_order((q0, q1, q1))

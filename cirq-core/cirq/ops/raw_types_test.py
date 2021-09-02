@@ -801,12 +801,9 @@ def test_on_each():
 
 
 def test_on_each_two_qubits():
-    class CustomGate(cirq.TwoQubitGate):
-        pass
-
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    g = CustomGate()
+    g = cirq.testing.TwoQubitGate()
 
     assert g.on_each([]) == []
     assert g.on_each([(a, b)]) == [g(a, b)]
@@ -855,13 +852,10 @@ def test_on_each_two_qubits():
 
 
 def test_on_each_three_qubits():
-    class CustomGate(cirq.ThreeQubitGate):
-        pass
-
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
-    g = CustomGate()
+    g = cirq.testing.ThreeQubitGate()
 
     assert g.on_each([]) == []
     assert g.on_each([(a, b, c)]) == [g(a, b, c)]

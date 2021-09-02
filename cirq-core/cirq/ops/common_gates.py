@@ -1009,9 +1009,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         )
 
 
-class CZPowGate(
-    eigen_gate.EigenGate, gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGate
-):
+class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A gate that applies a phase to the |11⟩ state of two qubits.
 
     The unitary matrix of `CZPowGate(exponent=t)` is:
@@ -1028,6 +1026,9 @@ class CZPowGate(
     `cirq.CZ`, the controlled Z gate, is an instance of this gate at
     `exponent=1`.
     """
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.pauli_interaction_gate import PauliInteractionGate
@@ -1216,7 +1217,7 @@ class CZPowGate(
         )
 
 
-class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+class CXPowGate(eigen_gate.EigenGate):
     """A gate that applies a controlled power of an X gate.
 
     When applying CNOT (controlled-not) to qubits, you can either use
@@ -1240,6 +1241,9 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     `cirq.CNOT`, the controlled NOT gate, is an instance of this gate at
     `exponent=1`.
     """
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.pauli_interaction_gate import PauliInteractionGate
