@@ -325,6 +325,32 @@ def test_clifford_circuit_SHSYSHS():
         cirq.S(q0),
         cirq.H(q0),
         cirq.S(q0),
+    )
+
+    clifford_simulator = ProgressiveSimulator()
+    state_vector_simulator = cirq.Simulator()
+    r = clifford_simulator.simulate(circuit)
+
+    sv2 = state_vector_simulator.simulate(circuit).final_state_vector
+    sv1 = r._final_simulator_state.args.state.state_vector()
+    assert np.allclose(
+        sv1,
+        sv2,
+    )
+
+
+def test_state_vector():
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.X(q0),
+        cirq.S(q0),
+        cirq.H(q0),
+        cirq.S(q0),
+        cirq.Y(q0),
+        cirq.S(q0),
+        cirq.H(q0),
+        cirq.S(q0),
         cirq.HPowGate(exponent=0.4).on(q0),
         cirq.X(q0),
         cirq.S(q0),
