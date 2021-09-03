@@ -122,6 +122,17 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             protocols.act_on(op, ch_form_args)
         return np.array(list(measurements.values()), dtype=bool)
 
+    def _on_kronecker_product(
+        self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
+    ):
+        target.state = self.state.join(other.state)
+
+    def _on_transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStabilizerCHFormArgs'
+    ):
+        axes = [self.qubit_map[q] for q in qubits]
+        target.state = self.state.reindex(axes)
+
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
     val: Any, args: 'cirq.ActOnStabilizerCHFormArgs', qubits: Sequence['cirq.Qid']

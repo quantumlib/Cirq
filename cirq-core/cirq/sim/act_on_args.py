@@ -283,6 +283,10 @@ class ActOnArgs(OperationTarget[TSelf]):
     def axes(self, value: Iterable[int]):
         self._axes = tuple(value)
 
+    def can_extract(self, qubits: Sequence['cirq.Qid']):
+        """Subclasses that allow extraction should override this."""
+        return False
+
 
 def strat_act_on_from_apply_decompose(
     val: Any,

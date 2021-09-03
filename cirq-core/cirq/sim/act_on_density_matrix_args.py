@@ -197,6 +197,9 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             seed=seed,
         )
 
+    def can_extract(self, qubits: Sequence['cirq.Qid']):
+        return True
+
 
 def _strat_apply_channel_to_state(
     action: Any, args: ActOnDensityMatrixArgs, qubits: Sequence['cirq.Qid']

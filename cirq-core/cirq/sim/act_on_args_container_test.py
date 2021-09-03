@@ -55,6 +55,9 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def sample(self, qubits, repetitions=1, seed=None):
         pass
 
+    def can_extract(self, qubits):
+        return True
+
 
 q0, q1, q2 = qs3 = cirq.LineQubit.range(3)
 qs2 = cirq.LineQubit.range(2)
