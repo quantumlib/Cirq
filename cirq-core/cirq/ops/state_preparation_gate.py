@@ -14,7 +14,7 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import Any, Sequence, Dict, List, TYPE_CHECKING
+from typing import Any, Sequence, Dict, List, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -29,9 +29,7 @@ class PrepareState(raw_types.Gate):
     """A unitary qubit gate which resets all qubits to the |0> state
     and then prepares the target state."""
 
-    def __init__(self,
-                 target_state: np.ndarray,
-                 name: str = None) -> None:
+    def __init__(self, target_state: np.ndarray, name: str = None) -> None:
         """Initializes a matrix gate.
 
         Args:
@@ -50,6 +48,7 @@ class PrepareState(raw_types.Gate):
         self._state = target_state
         self._num_qubits = n
         self._name = name if name is not None else "StatePreparation"
+        self._qid_shape = (2,) * n
 
     def _json_dict_(self) -> Dict[str, Any]:
         """Converts the gate object into a serializable dictionary"""
@@ -57,6 +56,9 @@ class PrepareState(raw_types.Gate):
             'cirq_type': self.__class__.__name__,
             'matrix': self._state.tolist(),
         }
+
+    def _num_qubits_(self):
+        return self._num_qubits
 
     @staticmethod
     def _has_unitary_() -> bool:
@@ -73,6 +75,9 @@ class PrepareState(raw_types.Gate):
         """
         return cls(target_state=np.array(target_state))
 
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self._qid_shape
+
     def _circuit_diagram_info_(
         self, _args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
@@ -86,9 +91,7 @@ class PrepareState(raw_types.Gate):
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """Decompose the n-qubit diagonal gates into a Reset channel and a Matrix Gate."""
-        decomposed_circ: List[Any] = [
-            cirq.reset(qubit) for qubit in qubits
-        ]
+        decomposed_circ: List[Any] = [cirq.reset(qubit) for qubit in qubits]
         matrix = np.zeros(shape=(2 ** self._num_qubits, 2 ** self._num_qubits), dtype=np.complex)
         for idx, val in enumerate(self._state):
             matrix[idx][0] = val
