@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import List, Dict, Any, Sequence, Tuple, Union
+from typing import List, Dict, Any, Sequence, Union
 
 import numpy as np
-import pytest
 
 import cirq
 
 
 def int_to_bool_list(num, bits):
-    return [bool(num & (1<<n)) for n in range(bits)]
+    return [bool(num & (1 << n)) for n in range(bits)]
+
 
 class PureActOnArgs(cirq.ActOnArgs):
     b = False
@@ -34,7 +34,7 @@ class PureActOnArgs(cirq.ActOnArgs):
         self.b = b
 
     def as_int(self):
-        return sum(1<<i for i, v in enumerate(reversed(self.b)) if v)
+        return sum(1 << i for i, v in enumerate(reversed(self.b)) if v)
 
     def state_vector(self):
         return cirq.to_valid_state_vector(self.as_int(), len(self.qubits))
@@ -68,20 +68,15 @@ class PureActOnArgs(cirq.ActOnArgs):
         measurements: List[List[int]] = []
 
         for _ in range(repetitions):
-            measurements.append(
-                self._perform_measurement(qubits)
-            )
+            measurements.append(self._perform_measurement(qubits))
 
         return np.array(measurements, dtype=int)
 
-    def _on_kronecker_product(
-        self, other: 'PureActOnArgs', target: 'PureActOnArgs'
-    ):
+    def _on_kronecker_product(self, other: 'PureActOnArgs', target: 'PureActOnArgs'):
         target.b = self.b + other.b
 
 
 class PureStepResult(cirq.StepResultBase[PureActOnArgs, PureActOnArgs]):
-
     def _simulator_state(self) -> PureActOnArgs:
         return self._merged_sim_state
 
@@ -91,9 +86,7 @@ class PureTrialResult(cirq.SimulationTrialResult):
 
 
 class PureSimulator(
-    cirq.SimulatorBase[
-        PureStepResult, PureTrialResult, PureActOnArgs, PureActOnArgs
-    ]
+    cirq.SimulatorBase[PureStepResult, PureTrialResult, PureActOnArgs, PureActOnArgs]
 ):
     def __init__(self, noise=None):
         super().__init__(
@@ -152,19 +145,30 @@ class ProgressiveActOnArgs(cirq.ActOnArgs):
             if self.args._act_on_fallback_(action, qubits, allow_decompose=allow_decompose):
                 return True
             ch = cirq.StabilizerStateChForm(len(self.args.qubits), self.args.as_int())
-            self.args = cirq.ActOnStabilizerCHFormArgs(ch, self.prng, self.log_of_measurement_results, self.qubits)
+            self.args = cirq.ActOnStabilizerCHFormArgs(
+                ch, self.prng, self.log_of_measurement_results, self.qubits
+            )
         if isinstance(self.args, cirq.ActOnStabilizerCHFormArgs):
             if cirq.has_stabilizer_effect(action):
                 cirq.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
                 return True
             sv = self.args.state.state_vector()
-            self.args = cirq.ActOnStateVectorArgs(sv, np.empty_like(sv), self.prng, self.log_of_measurement_results, self.qubits)
+            self.args = cirq.ActOnStateVectorArgs(
+                sv, np.empty_like(sv), self.prng, self.log_of_measurement_results, self.qubits
+            )
         if isinstance(self.args, cirq.ActOnStateVectorArgs):
             if cirq.has_unitary(action):
                 cirq.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
                 return True
             dm = cirq.density_matrix_from_state_vector(self.args.target_tensor)
-            self.args = cirq.ActOnDensityMatrixArgs(dm, [np.empty_like(dm) for _ in range(3)], dm.shape, self.prng, self.log_of_measurement_results, self.qubits)
+            self.args = cirq.ActOnDensityMatrixArgs(
+                dm,
+                [np.empty_like(dm) for _ in range(3)],
+                dm.shape,
+                self.prng,
+                self.log_of_measurement_results,
+                self.qubits,
+            )
         if isinstance(self.args, cirq.DensityMatrixSimulator()):
             cirq.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
             return True
@@ -173,36 +177,72 @@ class ProgressiveActOnArgs(cirq.ActOnArgs):
     def sample(self, qubits, repetitions=1, seed=None):
         return self.args.sample(qubits, repetitions, seed)
 
-    def _on_kronecker_product(
-        self, other: 'ProgressiveActOnArgs', target: 'ProgressiveActOnArgs'
-    ):
+    def _on_kronecker_product(self, other: 'ProgressiveActOnArgs', target: 'ProgressiveActOnArgs'):
         self_args = self.args
         other_args = other.args
         if isinstance(self_args, PureActOnArgs) and not isinstance(other_args, PureActOnArgs):
             ch = cirq.StabilizerStateChForm(len(self_args.qubits), self_args.as_int())
-            self_args = cirq.ActOnStabilizerCHFormArgs(ch, self.prng, self.log_of_measurement_results, self.qubits)
+            self_args = cirq.ActOnStabilizerCHFormArgs(
+                ch, self.prng, self.log_of_measurement_results, self.qubits
+            )
         if not isinstance(self_args, PureActOnArgs) and isinstance(other_args, PureActOnArgs):
             ch = cirq.StabilizerStateChForm(len(other_args.qubits), other_args.as_int())
-            other_args = cirq.ActOnStabilizerCHFormArgs(ch, other.prng, other.log_of_measurement_results, other.qubits, other.axes)
-        if isinstance(self_args, cirq.ActOnStabilizerCHFormArgs) and not isinstance(other_args, cirq.ActOnStabilizerCHFormArgs):
+            other_args = cirq.ActOnStabilizerCHFormArgs(
+                ch, other.prng, other.log_of_measurement_results, other.qubits, other.axes
+            )
+        if isinstance(self_args, cirq.ActOnStabilizerCHFormArgs) and not isinstance(
+            other_args, cirq.ActOnStabilizerCHFormArgs
+        ):
             sv = self_args.state.state_vector()
-            self_args = cirq.ActOnStateVectorArgs(sv, np.empty_like(sv), self.prng, self.log_of_measurement_results, self.qubits)
-        if not isinstance(self_args, cirq.ActOnStabilizerCHFormArgs) and isinstance(other_args, cirq.ActOnStabilizerCHFormArgs):
+            self_args = cirq.ActOnStateVectorArgs(
+                sv, np.empty_like(sv), self.prng, self.log_of_measurement_results, self.qubits
+            )
+        if not isinstance(self_args, cirq.ActOnStabilizerCHFormArgs) and isinstance(
+            other_args, cirq.ActOnStabilizerCHFormArgs
+        ):
             sv = other_args.state.state_vector()
-            other_args = cirq.ActOnStateVectorArgs(sv, np.empty_like(sv), other.prng, other.log_of_measurement_results, other.qubits, other.axes)
-        if isinstance(self_args, cirq.ActOnStateVectorArgs) and not isinstance(other_args, cirq.ActOnStateVectorArgs):
+            other_args = cirq.ActOnStateVectorArgs(
+                sv,
+                np.empty_like(sv),
+                other.prng,
+                other.log_of_measurement_results,
+                other.qubits,
+                other.axes,
+            )
+        if isinstance(self_args, cirq.ActOnStateVectorArgs) and not isinstance(
+            other_args, cirq.ActOnStateVectorArgs
+        ):
             dm = cirq.density_matrix_from_state_vector(self_args.target_tensor)
-            self_args = cirq.ActOnDensityMatrixArgs(dm, [np.empty_like(dm) for _ in range(3)], dm.shape, self.prng, self.log_of_measurement_results, self.qubits)
-        if not isinstance(self_args, cirq.ActOnStateVectorArgs) and isinstance(other_args, cirq.ActOnStateVectorArgs):
+            self_args = cirq.ActOnDensityMatrixArgs(
+                dm,
+                [np.empty_like(dm) for _ in range(3)],
+                dm.shape,
+                self.prng,
+                self.log_of_measurement_results,
+                self.qubits,
+            )
+        if not isinstance(self_args, cirq.ActOnStateVectorArgs) and isinstance(
+            other_args, cirq.ActOnStateVectorArgs
+        ):
             dm = cirq.density_matrix_from_state_vector(other_args.target_tensor)
-            other_args = cirq.ActOnDensityMatrixArgs(dm, [np.empty_like(dm) for _ in range(3)], dm.shape, other.prng, other.log_of_measurement_results, other.qubits, other.axes)
+            other_args = cirq.ActOnDensityMatrixArgs(
+                dm,
+                [np.empty_like(dm) for _ in range(3)],
+                dm.shape,
+                other.prng,
+                other.log_of_measurement_results,
+                other.qubits,
+                other.axes,
+            )
         target.args = self_args.kronecker_product(other_args, inplace=self is target)
 
     def _on_factor(self, qubits, extracted, remainder, validate=False, atol=1e-07):
         extracted.args, remainder.args = self.args.factor(qubits, validate=validate)
         if len(qubits) == 1:
-            x = extracted.args._perform_measurement(qubits)
-            extracted.args = PureActOnArgs(x[0] != 0, extracted.args.qubits, extracted.args.log_of_measurement_results)
+            state = [x != 0 for x in extracted.args._perform_measurement(qubits)]
+            extracted.args = PureActOnArgs(
+                state, extracted.args.qubits, extracted.args.log_of_measurement_results
+            )
 
     def _on_transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid'], target: 'ProgressiveActOnArgs'
@@ -211,7 +251,6 @@ class ProgressiveActOnArgs(cirq.ActOnArgs):
 
 
 class ProgressiveStepResult(cirq.StepResultBase[ProgressiveActOnArgs, ProgressiveActOnArgs]):
-
     def _simulator_state(self) -> ProgressiveActOnArgs:
         return self._merged_sim_state
 
@@ -372,4 +411,3 @@ def test_state_vector():
         sv1,
         sv2,
     )
-
