@@ -274,7 +274,7 @@ class StabilizerStateChForm:
 
         self.update_sum(t, u, delta=delta)
 
-    def join(self, other: 'cirq.StabilizerStateChForm') -> 'cirq.StabilizerStateChForm':
+    def kron(self, other: 'cirq.StabilizerStateChForm') -> 'cirq.StabilizerStateChForm':
         n = self.n + other.n
         copy = StabilizerStateChForm(n)
 

@@ -125,7 +125,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
     def _on_kronecker_product(
         self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
     ):
-        target.state = self.state.join(other.state)
+        target.state = self.state.kron(other.state)
 
     def _on_transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStabilizerCHFormArgs'

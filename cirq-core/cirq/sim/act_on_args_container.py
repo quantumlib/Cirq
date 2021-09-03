@@ -125,7 +125,7 @@ class ActOnArgsContainer(
             gate, (ops.MeasurementGate, ops.ResetChannel)
         ):
             for q in qubits:
-                if op_args.can_extract((q,)):
+                if op_args.can_factor((q,)):
                     q_args, op_args = op_args.factor((q,), validate=False)
                     self.args[q] = q_args
 

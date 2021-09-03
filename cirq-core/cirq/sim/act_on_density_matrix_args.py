@@ -197,7 +197,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             seed=seed,
         )
 
-    def can_extract(self, qubits: Sequence['cirq.Qid']):
+    def can_factor(self, qubits: Sequence['cirq.Qid']):
         return True
 
 

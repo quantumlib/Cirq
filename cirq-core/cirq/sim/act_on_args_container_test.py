@@ -55,7 +55,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def sample(self, qubits, repetitions=1, seed=None):
         pass
 
-    def can_extract(self, qubits):
+    def can_factor(self, qubits):
         return True
 
 
