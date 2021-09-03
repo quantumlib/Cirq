@@ -136,7 +136,7 @@ class StabilizerStateChForm:
         for x in range(2 ** self.n):
             wf[x] = self.inner_product_of_state_and_x(x)
 
-        return wf
+        return wf if self.n != 0 else wf[0]
 
     def _S_right(self, q):
         r"""Right multiplication version of S gate."""
