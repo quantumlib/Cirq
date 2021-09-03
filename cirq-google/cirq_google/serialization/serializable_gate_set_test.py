@@ -304,8 +304,8 @@ def test_deserialize_infinite_recursion_fails():
     inf_op = cirq.CircuitOperation(cirq.FrozenCircuit())
     # Maliciously modify the CircuitOperation to be self-referencing.
     setattr(inf_op.circuit, '_moments', tuple(cirq.Circuit(inf_op).moments))
+    circuit = cirq.Circuit(inf_op)
     with pytest.raises(RecursionError):
-        circuit = cirq.Circuit(inf_op)
         _ = MY_GATE_SET.serialize(circuit)
 
     c_op1 = v2.program_pb2.CircuitOperation()
