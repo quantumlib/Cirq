@@ -92,9 +92,7 @@ class Moment:
                 self._qubit_to_op[q] = op
 
         self._qubits = frozenset(self._qubit_to_op.keys())
-        self._measurement_keys = frozenset(
-            key for op in self.operations for key in protocols.measurement_key_names(op)
-        )
+        self._measurement_keys = None
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
@@ -157,9 +155,6 @@ class Moment:
         m = Moment()
         m._operations = self._operations + (operation,)
         m._qubits = frozenset(self._qubits.union(set(operation.qubits)))
-        m._measurement_keys = frozenset(
-            self._measurement_keys.union(protocols.measurement_key_names(operation))
-        )
         m._qubit_to_op = self._qubit_to_op.copy()
         for q in operation.qubits:
             m._qubit_to_op[q] = operation
@@ -190,10 +185,6 @@ class Moment:
         m = Moment()
         m._operations = tuple(operations)
         m._qubits = frozenset(qubits)
-        measurement_keys = frozenset(
-            key for op in operations for key in protocols.measurement_key_names(op)
-        )
-        m._measurement_keys = frozenset(self._measurement_keys.union(measurement_keys))
         m._qubit_to_op = self._qubit_to_op.copy()
         for op in operations:
             for q in op.qubits:
@@ -229,6 +220,10 @@ class Moment:
         )
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
+        if self._measurement_keys is None:
+            self._measurement_keys = frozenset(
+                key for op in self.operations for key in protocols.measurement_key_names(op)
+            )
         return self._measurement_keys
 
     def _with_key_path_(self, path: Tuple[str, ...]):
