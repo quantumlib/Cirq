@@ -59,20 +59,8 @@ protos=$(find -type f -name "*.proto" -printf '%P\n' \
     | grep "google/api/.*\.proto$" \
     | sed -e "s/\.proto$//")
 
-# Get the changed protos and strip them of ".proto"
-changed=$(git diff --name-only ${rev} -- \
-    | grep "google/api/.*\.proto$" \
-    | sed -e "s/\.proto$//"
-)
-if [[ ! -z "$changed" ]]; then
-    for base in $changed
-    do
-        echo -e "Found changed proto: '${base}.proto'"
-    done
-fi
-
 # We potentially will attempt to build a second time.
-for base in $changed
+for base in $protos
 do
     python -m grpc_tools.protoc -I=cirq-google --python_out=cirq-google --mypy_out=cirq-google ${base}.proto
 done
