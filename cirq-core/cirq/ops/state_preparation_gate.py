@@ -14,7 +14,7 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import Any, Sequence, Dict, TYPE_CHECKING
+from typing import Any, Sequence, Dict, List, TYPE_CHECKING
 
 import numpy as np
 
@@ -74,7 +74,7 @@ class PrepareState(raw_types.Gate):
         return cls(target_state=np.array(target_state))
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
+        self, _args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
         """Returns the information required to draw out the circuit diagram for this gate."""
         symbols = (
@@ -85,5 +85,12 @@ class PrepareState(raw_types.Gate):
         return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        """Decompose the n-qubit diagonal gates into CNOT and Rz gates."""
-        pass
+        """Decompose the n-qubit diagonal gates into a Reset channel and a Matrix Gate."""
+        decomposed_circ: List[Any] = [
+            cirq.reset(qubit) for qubit in qubits
+        ]
+        matrix = np.zeros(shape=(2 ** self._num_qubits, 2 ** self._num_qubits), dtype=np.complex)
+        for idx, val in enumerate(self._state):
+            matrix[idx][0] = val
+        decomposed_circ.append(cirq.MatrixGate(matrix))
+        return decomposed_circ
