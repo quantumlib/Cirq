@@ -1870,7 +1870,9 @@ class Circuit(AbstractCircuit):
         while k > 0:
             k -= 1
             moment = self._moments[k]
-            if moment.operates_on(op_qubits) or moment.has_measurement_key_names(op_control_keys):
+            if moment.operates_on(op_qubits) or bool(
+                set(op_control_keys) & protocols.measurement_key_names(moment)
+            ):
                 return last_available
             if self._can_add_op_at(k, op):
                 last_available = k

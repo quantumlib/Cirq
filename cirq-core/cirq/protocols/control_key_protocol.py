@@ -40,17 +40,11 @@ class SupportsControlKey(Protocol):
         """
 
 
-def control_key_names(val: Any, *, allow_decompose: bool = True) -> AbstractSet[str]:
+def control_key_names(val: Any) -> AbstractSet[str]:
     """Gets the control keys of controls within the given value.
 
     Args:
         val: The value which has the control key.
-        allow_decompose: Defaults to True. When true, composite operations that
-            don't directly specify their control keys will be decomposed in
-            order to find control keys within the decomposed operations. If
-            not set, composite operations will appear to have no control
-            keys. Used by internal methods to stop redundant decompositions from
-            being performed.
 
     Returns:
         The control keys of the value. If the value has no control,
@@ -60,12 +54,5 @@ def control_key_names(val: Any, *, allow_decompose: bool = True) -> AbstractSet[
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
         return set(result)
-
-    if allow_decompose:
-        operations, _, _ = _try_decompose_into_operations_and_qubits(val)
-        if operations is not None:
-            return {
-                key for op in operations for key in control_key_names(op, allow_decompose=False)
-            }
 
     return set()
