@@ -28,8 +28,7 @@ def test_avoids_decompose_when_matrix_available():
             return np.kron(m, m)
 
         def _decompose_(self, qubits):
-            stack = str(traceback.extract_stack())
-            assert 'control_key' in stack or 'measurement_key' in stack
+            assert False
 
     class OtherOtherXX(cirq.TwoQubitGate):
         # coverage: ignore
@@ -38,8 +37,7 @@ def test_avoids_decompose_when_matrix_available():
             return np.kron(m, m)
 
         def _decompose_(self, qubits):
-            stack = str(traceback.extract_stack())
-            assert 'control_key' in stack or 'measurement_key' in stack
+            assert False
 
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(OtherXX()(a, b), OtherOtherXX()(a, b))

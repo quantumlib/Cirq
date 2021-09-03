@@ -124,17 +124,6 @@ class Moment:
         """
         return bool(set(qubits) & self.qubits)
 
-    def has_measurement_key_names(self, keys: Iterable[str]) -> bool:
-        """Determines if the moment has operations measuring the given keys.
-
-        Args:
-            keys: The keys that may or may not be measured by operations.
-
-        Returns:
-            Whether this moment has operations measuring the keys.
-        """
-        return bool(set(keys) & self._measurement_keys)
-
     def operation_at(self, qubit: raw_types.Qid) -> Optional['cirq.Operation']:
         """Returns the operation on a certain qubit for the moment.
 
@@ -240,7 +229,7 @@ class Moment:
         )
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
-        return {key for op in self.operations for key in protocols.measurement_key_names(op)}
+        return self._measurement_keys
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         return Moment(
