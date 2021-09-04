@@ -20,6 +20,8 @@ import numpy as np
 
 from cirq import protocols
 from cirq.ops import raw_types
+from cirq.ops.common_channels import ResetChannel
+from cirq.ops.matrix_gates import MatrixGate
 
 if TYPE_CHECKING:
     import cirq
@@ -89,11 +91,21 @@ class PrepareState(raw_types.Gate):
         )
         return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
+    def _get_unitary_transform(self):
+        initial_basis = np.eye(2 ** self._num_qubits, dtype=np.complex)
+        final_basis = [self._state]
+        for vector in initial_basis:
+            for new_basis_vector in final_basis:
+                vector -= np.dot(new_basis_vector, vector) * new_basis_vector
+            if not np.allclose(vector, 0):
+                vector /= np.linalg.norm(vector)
+                final_basis.append(vector)
+        assert len(final_basis) == initial_basis.shape[0], "Gram Schmidt Orthonormalization is working"
+        final_basis = np.stack(final_basis, axis=0)
+        return final_basis
+
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """Decompose the n-qubit diagonal gates into a Reset channel and a Matrix Gate."""
-        decomposed_circ: List[Any] = [cirq.reset(qubit) for qubit in qubits]
-        matrix = np.zeros(shape=(2 ** self._num_qubits, 2 ** self._num_qubits), dtype=np.complex)
-        for idx, val in enumerate(self._state):
-            matrix[idx][0] = val
-        decomposed_circ.append(cirq.MatrixGate(matrix))
+        decomposed_circ: List[Any] = [ResetChannel(qubit.dimension).on(qubit) for qubit in qubits]
+        decomposed_circ.append(MatrixGate(self._get_unitary_transform()))
         return decomposed_circ
