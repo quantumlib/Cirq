@@ -254,12 +254,12 @@ class TextDiagramDrawer:
             cast(Tuple[int, int], func(int(x), int(y))): v for (x, y), v in self.entries.items()
         }
         self.vertical_lines = [
-            _VerticalLine(func_x(x), func_y(y1), func_y(y2), emph)
-            for x, y1, y2, emph in self.vertical_lines
+            _VerticalLine(func_x(x), func_y(y1), func_y(y2), emph, doubled)
+            for x, y1, y2, emph, doubled in self.vertical_lines
         ]
         self.horizontal_lines = [
-            _HorizontalLine(func_y(y), func_x(x1), func_x(x2), emph)
-            for y, x1, x2, emph in self.horizontal_lines
+            _HorizontalLine(func_y(y), func_x(x1), func_x(x2), emph, doubled)
+            for y, x1, x2, emph, doubled in self.horizontal_lines
         ]
         self.horizontal_padding = {
             int(func_x(int(x))): padding for x, padding in self.horizontal_padding.items()
