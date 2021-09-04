@@ -325,7 +325,7 @@ def _op_info_with_fallback(
     op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
 ) -> 'cirq.CircuitDiagramInfo':
     info = protocols.circuit_diagram_info(op, args, None)
-    qubits = tuple(op.qubits) + tuple(protocols.measurement_keys(op))
+    qubits = tuple(op.qubits) + tuple(protocols.measurement_key_names(op))
     if info is not None:
         if max(1, len(qubits)) != len(info.wire_symbols):
             raise ValueError(
