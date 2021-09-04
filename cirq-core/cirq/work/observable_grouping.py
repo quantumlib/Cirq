@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Dict, List, TYPE_CHECKING, cast
+from typing import Iterable, Dict, List, TYPE_CHECKING, cast, Callable
 
 from cirq import ops, value
 from cirq.work.observable_settings import InitObsSetting, _max_weight_state, _max_weight_observable
 
 if TYPE_CHECKING:
     pass
+
+GROUPER_T = Callable[[Iterable[InitObsSetting]], Dict[InitObsSetting, List[InitObsSetting]]]
 
 
 def group_settings_greedy(

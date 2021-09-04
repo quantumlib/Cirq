@@ -93,8 +93,11 @@ def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List
     CNOT gates and returns a circuit that skips the terminal CZ gate.
 
     Args:
-        a, b, c: the 3 qubits in order
+        q0: first qubit
+        q1: second qubit
+        q2: third qubit
         theta: theta returned from the Cosine Sine decomposition
+
     Returns:
          the operations
     """
@@ -115,6 +118,8 @@ def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List
     return _optimize_multiplexed_angles_circuit(ops)
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 def _two_qubit_multiplexor_to_ops(
     q0: ops.Qid,
     q1: ops.Qid,
@@ -194,6 +199,7 @@ def _two_qubit_multiplexor_to_ops(
     return d_w, circuit_u1u2_l + circuit_u1u2_mid + circuit_u1u2_r
 
 
+# pylint: enable=missing-param-doc
 def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
     """Removes two qubit gates that amount to identity.
     Exploiting the specific multiplexed structure, this methods looks ahead
