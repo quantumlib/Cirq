@@ -634,3 +634,22 @@ def test_single_gate_different_gates():
     a = cirq.H(cirq.NamedQubit('a'))
     b = cirq.X(cirq.NamedQubit('b'))
     assert cirq.Moment([a, b]).get_single_gate_from_moment() is None
+
+
+def test_single_gate_gateless_ops():
+    class NullOperation(cirq.Operation):
+        @property
+        def qubits(self):
+            return ()
+
+        def with_qubits(self):
+            return NullOperation()
+
+    assert cirq.Moment([NullOperation(), NullOperation()]).get_single_gate_from_moment() is None
+
+
+def test_single_gate_same_gate_different_qubits():
+    one_qubit_op = cirq.IdentityGate(1).on(cirq.NamedQubit('a'))
+    two_qubit_op = cirq.IdentityGate(2).on(cirq.NamedQubit('b'), cirq.NamedQubit('c'))
+
+    assert cirq.Moment([one_qubit_op, two_qubit_op]).get_single_gate_from_moment() == cirq.I

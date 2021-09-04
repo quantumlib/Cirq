@@ -49,16 +49,15 @@ def _default_breakdown(qid: 'cirq.Qid') -> Tuple[Any, Any]:
         return None, qid
 
 
-def _have_equal_gates(op1, op2):
-    """Compares two operations and returns a boolean of it their gates
-    match.
+def _have_equal_gates(op1: 'cirq.Operation', op2: 'cirq.Operation') -> bool:
+    """Compares two operations and returns True if their gates match.
     Returns:
         bool: True if both gates are not null, the same, and take in
            the same number of qubits from their operations.
     """
     if op1.gate is None or op2.gate is None:
         return False
-    return len(op1.qubits) == len(op2.qubits) and op1.gate == op2.gate
+    return isinstance(op1.gate, type(op2.gate)) and isinstance(op2.gate, type(op1.gate))
 
 
 class Moment:
