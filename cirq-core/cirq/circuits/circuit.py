@@ -1161,6 +1161,8 @@ class AbstractCircuit(abc.ABC):
             The TextDiagramDrawer instance.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
+        cbits = tuple(protocols.measurement_keys(self))
+        qubits = qubits + cbits
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
         if qubit_namer is None:
@@ -1191,7 +1193,7 @@ class AbstractCircuit(abc.ABC):
 
         w = diagram.width()
         for i in qubit_map.values():
-            diagram.horizontal_line(i, 0, w)
+            diagram.horizontal_line(i, 0, w, doubled=not isinstance(qubits[i], ops.Qid))
 
         if moment_groups and draw_moment_groups:
             _draw_moment_groups_in_diagram(moment_groups, use_unicode_characters, diagram)
@@ -2404,7 +2406,10 @@ def _draw_moment_in_diagram(
 
     max_x = x0
     for op in non_global_ops:
-        indices = [qubit_map[q] for q in op.qubits]
+        qubits = op.qubits
+        cbits = tuple(protocols.measurement_keys(op))
+        qubits += cbits
+        indices = [qubit_map[q] for q in qubits]
         y1 = min(indices)
         y2 = max(indices)
 
@@ -2426,16 +2431,16 @@ def _draw_moment_in_diagram(
 
         # Draw vertical line linking the gate's qubits.
         if y2 > y1 and info.connected:
-            out_diagram.vertical_line(x, y1, y2)
+            out_diagram.vertical_line(x, y1, y2, doubled=len(cbits) != 0)
 
         # Print gate qubit labels.
         symbols = info._wire_symbols_including_formatted_exponent(
             args,
             preferred_exponent_index=max(
-                range(len(op.qubits)), key=lambda i: qubit_map[op.qubits[i]]
+                range(len(qubits)), key=lambda i: qubit_map[qubits[i]]
             ),
         )
-        for s, q in zip(symbols, op.qubits):
+        for s, q in zip(symbols, qubits):
             out_diagram.write(x, qubit_map[q], s)
 
         if x > max_x:
