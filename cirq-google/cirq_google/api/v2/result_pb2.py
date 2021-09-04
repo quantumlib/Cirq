@@ -11,7 +11,7 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from cirq_google.api.v2 import program_pb2 as cirq__google_dot_api_dot_v2_dot_program__pb2
+from . import program_pb2 as cirq__google_dot_api_dot_v2_dot_program__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(

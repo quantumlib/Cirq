@@ -55,19 +55,9 @@ else
 fi
 
 # All the protos.
-echo "Looking for protos in $(pwd)"
+echo "Building protos in $(pwd)"
 
-protos=$(find -type f -name "*.proto" -printf '%P\n' \
-    | grep "google/api/.*\.proto$" \
-    | sed -e "s/\.proto$//")
-
-echo "Found protos: ${protos}"
-
-# We potentially will attempt to build a second time.
-for base in $protos
-do
-    python -m grpc_tools.protoc -I=cirq-google --python_out=cirq-google --mypy_out=cirq-google ${base}.proto
-done
+dev_tools/build-protos.sh
 
 # Filenames with spaces will be ugly (each part will be listed separately)
 # but the error logic will still work.
