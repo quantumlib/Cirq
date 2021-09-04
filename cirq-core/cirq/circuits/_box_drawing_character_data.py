@@ -282,6 +282,30 @@ NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
 )
 
 
+NORMAL_THEN_DOUBLED_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
+    first_char_set=NORMAL_BOX_CHARS,
+    second_char_set=DOUBLED_BOX_CHARS,
+    top_then_left='╛',
+    top_then_right='╘',
+    top_then_left_right='╧',
+    bottom_then_left='╕',
+    bottom_then_right='╒',
+    bottom_then_left_right='╤',
+    left_then_top='╜',
+    left_then_bottom='╖',
+    left_then_top_bottom='╢',
+    right_then_top='╙',
+    right_then_bottom='╓',
+    right_then_top_bottom='╟',
+    top_bottom_then_left='╡',
+    top_bottom_then_right='╞',
+    top_bottom_then_left_right='╪',
+    left_right_then_top='╨',
+    left_right_then_bottom='╥',
+    left_right_then_top_bottom='╫',
+)
+
+
 def box_draw_character(
     first: Optional[BoxDrawCharacterSet],
     second: BoxDrawCharacterSet,
@@ -326,6 +350,11 @@ def box_draw_character(
         combo = NORMAL_THEN_BOLD_MIXED_BOX_CHARS
     if first is BOLD_BOX_CHARS and second is NORMAL_BOX_CHARS:
         combo = NORMAL_THEN_BOLD_MIXED_BOX_CHARS
+        sign = -1
+    if first is NORMAL_BOX_CHARS and second is DOUBLED_BOX_CHARS:
+        combo = NORMAL_THEN_DOUBLED_MIXED_BOX_CHARS
+    if first is DOUBLED_BOX_CHARS and second is NORMAL_BOX_CHARS:
+        combo = NORMAL_THEN_DOUBLED_MIXED_BOX_CHARS
         sign = -1
 
     if combo is None:
