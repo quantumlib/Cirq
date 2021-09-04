@@ -18,19 +18,28 @@ import pytest
 
 
 def test_state_prep_gate():
-    state = np.array([1, 0, 0, 0], dtype=np.complex64)
-    gate = cirq.PrepareState(state)
-    qubits = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
+    states = np.array(
         [
-            cirq.H(qubits[0]),
-            cirq.CNOT(qubits[0], qubits[1]),
-            gate(qubits[0], qubits[1]),
+            [1, 0, 0, 0],
+            [1, 0, 0, 1],
+            [3, 5, 2, 7],
+            [0.7823, 0.12323, 0.4312, 0.12321],
+            [23, 43, 12, 19],
         ]
     )
-    simulator = cirq.Simulator()
-    result = simulator.simulate(circuit, qubit_order=qubits).final_state_vector
-    assert np.allclose(result, state)
+    for state in states:
+        gate = cirq.PrepareState(state)
+        qubits = cirq.LineQubit.range(2)
+        circuit = cirq.Circuit(
+            [
+                cirq.H(qubits[0]),
+                cirq.CNOT(qubits[0], qubits[1]),
+                gate(qubits[0], qubits[1]),
+            ]
+        )
+        simulator = cirq.Simulator()
+        result = simulator.simulate(circuit, qubit_order=qubits).final_state_vector
+        assert np.allclose(result, state / np.linalg.norm(state))
 
 
 def test_state_prep_gate_printing():

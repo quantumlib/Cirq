@@ -96,28 +96,22 @@ class PrepareState(raw_types.Gate):
         return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
     def _get_unitary_transform(self):
-        initial_basis = np.eye(2 ** self._num_qubits, dtype=np.complex64)
+        initial_basis = np.eye(2 ** self._num_qubits, dtype=np.complex)
         final_basis = [self._state]
-        for old_basis_vector in initial_basis:
-            vector = np.copy(old_basis_vector)
+        for vector in initial_basis:
             for new_basis_vector in final_basis:
                 vector -= np.dot(new_basis_vector, vector) * new_basis_vector
             if not np.allclose(vector, 0):
-                vector /= np.linalg.norm(old_basis_vector)
+                vector /= np.linalg.norm(vector)
                 final_basis.append(vector)
-        final_basis = np.stack(final_basis[: initial_basis.shape[0]], axis=0)
-
-        temp = final_basis.dot(np.conj(final_basis.T))
-        assert np.allclose(temp, np.eye(final_basis.shape[0])), (
-            '\n' + str(final_basis) + '\n' + str(temp)
-        )
-
+        final_basis = np.stack(final_basis[: initial_basis.shape[0]], axis=1)
         return final_basis
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """Decompose the n-qubit diagonal gates into a Reset channel and a Matrix Gate."""
         decomposed_circ: List[Any] = [ResetChannel(qubit.dimension).on(qubit) for qubit in qubits]
-        decomposed_circ.append(MatrixGate(self._get_unitary_transform()).on(*qubits))
+        final_basis = self._get_unitary_transform()
+        decomposed_circ.append(MatrixGate(final_basis).on(*qubits))
         return decomposed_circ
 
     def __repr__(self) -> str:
