@@ -47,9 +47,7 @@ class PrepareState(raw_types.Gate):
 
         n = int(np.round(np.log2(target_state.shape[0] or 1)))
         if 2 ** n != target_state.shape[0]:
-            raise ValueError(
-                f'Matrix width ({target_state.shape[0]}) is not a power of 2'
-            )
+            raise ValueError(f'Matrix width ({target_state.shape[0]}) is not a power of 2')
 
         self._state = target_state.astype(np.complex) / np.linalg.norm(target_state)
         self._num_qubits = n
