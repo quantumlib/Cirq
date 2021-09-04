@@ -55,9 +55,13 @@ else
 fi
 
 # All the protos.
+echo "Looking for protos in $(pwd)"
+
 protos=$(find -type f -name "*.proto" -printf '%P\n' \
     | grep "google/api/.*\.proto$" \
     | sed -e "s/\.proto$//")
+
+echo "Found protos: ${protos}"
 
 # We potentially will attempt to build a second time.
 for base in $protos
