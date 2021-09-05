@@ -164,7 +164,7 @@ def kraus(
         return tuple(kraus_result)
 
     mixture_getter = getattr(val, '_mixture_', None)
-    mixture_result = NotImplemented if mpixture_getter is None else mixture_getter()
+    mixture_result = NotImplemented if mixture_getter is None else mixture_getter()
     if mixture_result is not NotImplemented and mixture_result is not None:
         return tuple(np.sqrt(p) * u for p, u in mixture_result)
 
