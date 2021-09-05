@@ -20,9 +20,11 @@ import traceback
 import types
 import warnings
 from types import ModuleType
-from typing import Callable, Optional
+from typing import Any, Callable, List, Optional, Sequence, Union
 from importlib.machinery import ModuleSpec
 from unittest import mock
+from importlib.abc import MetaPathFinder
+
 
 import numpy as np
 import pandas as pd
@@ -853,3 +855,68 @@ def _dir_is_still_valid_inner():
 
     for m in ['fake_a', 'info', 'module_a', 'sys']:
         assert m in dir(mod)
+
+
+class MockModule(ModuleType):
+    def __init__(self, module_name: str):
+        ModuleType.__init__(self, module_name)
+        if '.' in module_name:
+            package, module = module_name.rsplit('.', 1)
+            setattr(get_mock_module(package), module, self)
+
+    def _initialize_(self, module_code: types.FunctionType):
+        self.__dict__.update(module_code(self.__name__))
+
+
+def get_mock_module(module_name: str) -> ModuleType:
+    if module_name not in sys.modules:
+        sys.modules[module_name] = MockModule(module_name)
+    return sys.modules[module_name]
+
+
+def modulize(module_name: str) -> Callable[[types.FunctionType], Any]:
+    """Converts a function into a module:
+    https://stackoverflow.com/a/45421428/5716192
+    """
+    return get_mock_module(
+        module_name
+    )._initialize_  # type: ignore # mypy can't detect the _initialize_ method
+    # from the MockModule in sys.modules[module_name]
+
+
+def test_deprecated_module_does_not_wrap_mockfinder():
+    @modulize('sphinx.ext.autodoc.mock')
+    def module_code(  # pylint: disable=unused-variable # https://github.com/PyCQA/pylint/issues/2842
+        __name__,
+    ):  # pylint: disable=redefined-builtin
+
+        # put module code here
+        class MockFinder(MetaPathFinder):
+            def __init__(self, modnames: List[str]) -> None:
+                super().__init__()
+
+            def find_spec(
+                self,
+                fullname: Optional[str] = None,
+                path: Optional[Sequence[Union[bytes, str]]] = None,
+                target: Optional[ModuleType] = None,
+            ) -> None:
+                pass
+
+        # the function must return locals()
+        return locals()
+
+    from sphinx.ext.autodoc.mock import MockFinder
+
+    fake_mockfinder = MockFinder([])
+    sys.meta_path.insert(0, fake_mockfinder)
+    deprecated_submodule(
+        new_module_name='sphinx_1',
+        old_parent='sphinx_2',
+        old_child='old_ch',
+        deadline='v1.2',
+        create_attribute=False,
+    )
+    assert fake_mockfinder in sys.meta_path
+    # Cleanup sys.metapath after test
+    sys.meta_path.remove(fake_mockfinder)
