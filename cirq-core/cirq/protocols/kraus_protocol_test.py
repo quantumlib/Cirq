@@ -157,6 +157,20 @@ def test_channel_fallback_to_mixture():
     assert cirq.has_kraus(ReturnsMixture())
 
 
+def test_serial_concatation():
+    g = cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=-0.5, z_exponent=1)
+
+    c = (cirq.unitary(g),)
+
+    np.allclose(cirq.kraus(g), c)
+    np.allclose(cirq.kraus(g, None), c)
+    np.allclose(cirq.kraus(g, NotImplemented), c)
+    np.allclose(cirq.kraus(g, (1,)), c)
+    np.allclose(cirq.kraus(g, LOCAL_DEFAULT), c)
+
+    assert cirq.has_kraus(g)
+
+
 def test_channel_fallback_to_unitary():
     u = np.array([[1, 0], [1, 0]])
 
