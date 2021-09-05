@@ -182,11 +182,7 @@ def kraus(
     else:
         operation = val
 
-<<<<<<< HEAD
     kraus_list = list(map(lambda x: kraus(x, default), decompose(operation)))
-=======
-    kraus_list = list(map(lambda x: cirq.kraus(x, default), decompose(operation)))
->>>>>>> 798615cacc34004a9b53b12ff680622a9a1d8587
 
     if all([x != default for x in kraus_list]):
         kraus_result = kraus_list[0]
