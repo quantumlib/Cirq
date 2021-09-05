@@ -100,7 +100,7 @@ class PrepareState(raw_types.Gate):
         final_basis = [self._state]
         for vector in initial_basis:
             for new_basis_vector in final_basis:
-                vector -= np.dot(new_basis_vector, vector) * new_basis_vector
+                vector -= np.conj(np.dot(new_basis_vector, vector)) * new_basis_vector
             if not np.allclose(vector, 0):
                 vector /= np.linalg.norm(vector)
                 final_basis.append(vector)
