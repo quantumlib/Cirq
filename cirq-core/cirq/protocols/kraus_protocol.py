@@ -182,15 +182,9 @@ def kraus(
     else:
         operation = val
 
-    kraus_list = list(map(lambda x: cirq.kraus(x, default), decompose(operation)))
+    kraus_list = list(map(lambda x: kraus(x, default), decompose(operation)))
 
     if all([x != default for x in kraus_list]):
-<<<<<<< HEAD
-=======
-    if all([x != None for x in kraus_list]):
->>>>>>> 1a74e94f... Added serial concatanation and wrote a test for the same
-=======
->>>>>>> d67785ee... Fixed small error
         kraus_result = kraus_list[0]
 
         for i in range(1, len(kraus_list)):
