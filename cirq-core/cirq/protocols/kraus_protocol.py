@@ -184,7 +184,11 @@ def kraus(
 
     kraus_list = list(map(lambda x: cirq.kraus(x, default), decompose(operation)))
 
+<<<<<<< HEAD
     if all([x != default for x in kraus_list]):
+=======
+    if all([x != None for x in kraus_list]):
+>>>>>>> 1a74e94fffc255e9f3789d02a25686196983910a
         kraus_result = kraus_list[0]
 
         for i in range(1, len(kraus_list)):
