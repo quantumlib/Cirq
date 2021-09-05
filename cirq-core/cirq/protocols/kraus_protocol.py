@@ -25,11 +25,11 @@ from cirq._compat import (
     deprecated_class,
 )
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,
-)
+from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits, decompose
 from cirq.protocols.mixture_protocol import has_mixture
 
+from cirq.ops import Gate
+from cirq.devices import LineQid
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -164,7 +164,7 @@ def kraus(
         return tuple(kraus_result)
 
     mixture_getter = getattr(val, '_mixture_', None)
-    mixture_result = NotImplemented if mixture_getter is None else mixture_getter()
+    mixture_result = NotImplemented if mpixture_getter is None else mixture_getter()
     if mixture_result is not NotImplemented and mixture_result is not None:
         return tuple(np.sqrt(p) * u for p, u in mixture_result)
 
@@ -176,6 +176,22 @@ def kraus(
     channel_result = NotImplemented if channel_getter is None else channel_getter()
     if channel_result is not NotImplemented:
         return tuple(channel_result)
+
+    if isinstance(val, Gate):
+        operation = val.on(*LineQid.for_gate(val))
+    else:
+        operation = val
+
+    kraus_list = list(map(lambda x: cirq.kraus(x, default), decompose(operation)))
+
+    if all([x != None for x in kraus_list]):
+        kraus_result = kraus_list[0]
+
+        for i in range(1, len(kraus_list)):
+            kraus_result = [op_1 * op_2 for op_1 in kraus_result for op_2 in kraus_list[i]]
+
+        if len(kraus_result) != 0:
+            return tuple(kraus_result)
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
