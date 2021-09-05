@@ -28,6 +28,8 @@ def test_state_prep_gate():
             [1j, 0, 0, 0],
             [1j, 0, 0, 1j],
             [1j, -1j, -1j, 1j],
+            [1 + 1j, 0, 0, 0],
+            [1 + 1j, 0, 1 + 1j, 0],
         ]
     )
     for state in states:
