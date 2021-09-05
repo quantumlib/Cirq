@@ -46,11 +46,11 @@ class BadGate(cirq.SingleQubitGate):
         return NotImplemented
 
 
-class UnimplementedGate(cirq.TwoQubitGate):
+class UnimplementedGate(cirq.testing.TwoQubitGate):
     pass
 
 
-class UnimplementedUnitaryGate(cirq.TwoQubitGate):
+class UnimplementedUnitaryGate(cirq.testing.TwoQubitGate):
     def _unitary_(self):
         return np.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
 

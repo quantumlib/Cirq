@@ -56,7 +56,7 @@ class QuilOneQubitGate(ops.SingleQubitGate):
 
 
 @value.value_equality(approximate=True)
-class QuilTwoQubitGate(ops.TwoQubitGate):
+class QuilTwoQubitGate(ops.Gate):
     """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4
     unitary matrix.
     """
@@ -68,6 +68,9 @@ class QuilTwoQubitGate(ops.TwoQubitGate):
             matrix: The 4x4 unitary matrix for this gate.
         """
         self.matrix = matrix
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _value_equality_values_(self):
         return self.matrix

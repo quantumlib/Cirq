@@ -246,7 +246,7 @@ def test_circuit_diagram():
     )
 
 
-class MockGate(cirq.TwoQubitGate):
+class MockGate(cirq.testing.TwoQubitGate):
     def _circuit_diagram_info_(
         self, args: protocols.CircuitDiagramInfoArgs
     ) -> protocols.CircuitDiagramInfo:
