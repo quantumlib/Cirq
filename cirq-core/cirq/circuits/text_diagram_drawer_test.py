@@ -155,14 +155,14 @@ def test_line_detects_horizontal():
     d = TextDiagramDrawer()
     with mock.patch.object(d, 'vertical_line') as vertical_line:
         d.grid_line(1, 2, 1, 5, True)
-        vertical_line.assert_called_once_with(1, 2, 5, True)
+        vertical_line.assert_called_once_with(1, 2, 5, True, False)
 
 
 def test_line_detects_vertical():
     d = TextDiagramDrawer()
     with mock.patch.object(d, 'horizontal_line') as horizontal_line:
         d.grid_line(2, 1, 5, 1, True)
-        horizontal_line.assert_called_once_with(1, 2, 5, True)
+        horizontal_line.assert_called_once_with(1, 2, 5, True, False)
 
 
 def test_line_fails_when_not_aligned():
@@ -217,8 +217,8 @@ short     │ │         │
 
 def test_drawer_copy():
     orig_entries = {(0, 0): _DiagramText('entry', '')}
-    orig_vertical_lines = [_VerticalLine(1, 1, 3, True)]
-    orig_horizontal_lines = [_HorizontalLine(0, 0, 3, False)]
+    orig_vertical_lines = [_VerticalLine(1, 1, 3, True, False)]
+    orig_horizontal_lines = [_HorizontalLine(0, 0, 3, False, False)]
     orig_vertical_padding = {0: 2}
     orig_horizontal_padding = {1: 3}
     kwargs = {
