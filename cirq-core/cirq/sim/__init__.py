@@ -53,6 +53,11 @@ from cirq.sim.mux import (
     sample_sweep,
 )
 
+from cirq.sim.progressive_act_on_args import (
+    PureActOnArgs,\
+    ProgressiveActOnArgs,
+)
+
 from cirq.sim.simulator import (
     SimulatesAmplitudes,
     SimulatesExpectationValues,

@@ -170,7 +170,7 @@ class ActOnArgsContainer(
         index_order = [qubit_map[q] for q in qubits]
         return stacked[:, index_order]
 
-    def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
+    def __getitem__(self, item: Optional['cirq.Qid']) -> OperationTarget[TActOnArgs]:
         return self.args[item]
 
     def __len__(self) -> int:

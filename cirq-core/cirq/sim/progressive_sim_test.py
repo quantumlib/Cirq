@@ -76,46 +76,6 @@ class PureActOnArgs(cirq.ActOnArgs):
         target.b = self.b + other.b
 
 
-class PureStepResult(cirq.StepResultBase[PureActOnArgs, PureActOnArgs]):
-    def _simulator_state(self) -> PureActOnArgs:
-        return self._merged_sim_state
-
-
-class PureTrialResult(cirq.SimulationTrialResult):
-    pass
-
-
-class PureSimulator(
-    cirq.SimulatorBase[PureStepResult, PureTrialResult, PureActOnArgs, PureActOnArgs]
-):
-    def __init__(self, noise=None):
-        super().__init__(
-            noise=noise,
-        )
-
-    def _create_partial_act_on_args(
-        self,
-        initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
-    ) -> PureActOnArgs:
-        return PureActOnArgs(qubits=qubits, b=[initial_state], logs=logs)
-
-    def _create_simulator_trial_result(
-        self,
-        params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_step_result: PureStepResult,
-    ) -> PureTrialResult:
-        return PureTrialResult(params, measurements, final_step_result=final_step_result)
-
-    def _create_step_result(
-        self,
-        sim_state: cirq.OperationTarget[PureActOnArgs],
-    ) -> PureStepResult:
-        return PureStepResult(sim_state)
-
-
 class ProgressiveActOnArgs(cirq.ActOnArgs):
     args: cirq.ActOnArgs = None
 
@@ -249,7 +209,6 @@ class ProgressiveActOnArgs(cirq.ActOnArgs):
     ):
         target.args = self.args.transpose_to_qubit_order(qubits)
 
-
 class ProgressiveStepResult(cirq.StepResultBase[ProgressiveActOnArgs, ProgressiveActOnArgs]):
     def _simulator_state(self) -> ProgressiveActOnArgs:
         return self._merged_sim_state
@@ -276,7 +235,8 @@ class ProgressiveSimulator(
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
     ) -> ProgressiveActOnArgs:
-        initial_state = initial_state or 0
+        if initial_state is None:
+            initial_state = 0
         bs = int_to_bool_list(initial_state, len(qubits))
         args = PureActOnArgs(bs, qubits, logs)
         return ProgressiveActOnArgs(args=args, qubits=qubits, logs=logs)

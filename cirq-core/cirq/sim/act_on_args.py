@@ -180,8 +180,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         if len(self.qubits) != len(qubits) or set(qubits) != set(self.qubits):
             raise ValueError(f'Qubits do not match. Existing: {self.qubits}, provided: {qubits}')
         args = self if inplace else copy.copy(self)
-        self._on_transpose_to_qubit_order(qubits, args)
         args._set_qubits(qubits)
+        self._on_transpose_to_qubit_order(qubits, args)
         return args
 
     def _on_transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
@@ -195,6 +195,12 @@ class ActOnArgs(OperationTarget[TSelf]):
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._qubits
+
+    def _on_swap(self: TSelf, q1: 'cirq.Qid', q2: 'cirq.Qid', target: TSelf):
+        """Subclasses swap"""
+
+    def _on_rename(self: TSelf, q1: 'cirq.Qid', q2: 'cirq.Qid', target: TSelf):
+        """Subclassses rename"""
 
     def swap(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
         """Swaps two qubits.
@@ -226,6 +232,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         qubits[i1], qubits[i2] = qubits[i2], qubits[i1]
         args._qubits = tuple(qubits)
         args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        self._on_swap(q1, q2, args)
         return args
 
     def rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
@@ -254,9 +261,10 @@ class ActOnArgs(OperationTarget[TSelf]):
         qubits[i1] = q2
         args._qubits = tuple(qubits)
         args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        self._on_rename(q1, q2, args)
         return args
 
-    def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:
+    def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> OperationTarget[TSelf]:
         if item not in self.qubit_map:
             raise IndexError(f'{item} not in {self.qubits}')
         return self
