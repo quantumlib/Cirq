@@ -22,14 +22,12 @@ if TYPE_CHECKING:
 
 
 class PureActOnArgs(sim.ActOnArgs):
-    b = False
-
     def __init__(self, initial_state: Union[int, Sequence[bool]], qubits, logs):
         super().__init__(
             qubits=qubits,
             log_of_measurement_results=logs,
         )
-        self.b = (
+        self.b = list(
             initial_state
             if isinstance(initial_state, Sequence)
             else [bool(initial_state & (1 << n)) for n in range(len(qubits))]
@@ -45,7 +43,7 @@ class PureActOnArgs(sim.ActOnArgs):
         return [1 if self.b[i] else 0 for i in self.get_axes(qubits)]
 
     def _on_copy(self, target: 'PureActOnArgs'):
-        target.b = self.b.copy()
+        target.b = self.b
 
     def _act_on_fallback_(
         self,
@@ -101,8 +99,6 @@ TActOnArgs = TypeVar('TActOnArgs', bound='cirq.ActOnArgs')
 
 
 class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
-    args: sim.ActOnArgs = None
-
     def __init__(self, args, qubits, logs):
         super().__init__(
             qubits=qubits,
@@ -114,7 +110,7 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return self.args._perform_measurement(qubits)
 
-    def _on_copy(self, target: 'ProgressiveActOnArgs'):
+    def _on_copy(self, target):
         target.args = self.args.copy()
         target.args._log_of_measurement_results = self._log_of_measurement_results
 
@@ -125,7 +121,7 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
         allow_decompose: bool = True,
     ) -> bool:
         if isinstance(action, ops.Operation):
-            qubits = None
+            qubits = None  # type: ignore
         if isinstance(self.args, PureActOnArgs):
             if self.args._act_on_fallback_(action, qubits, allow_decompose=allow_decompose):
                 return True
@@ -164,13 +160,13 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
     def sample(self, qubits, repetitions=1, seed=None):
         return self.args.sample(qubits, repetitions, seed)
 
-    def _on_swap(self, q1: 'cirq.Qid', q2: 'cirq.Qid', target: 'ProgressiveActOnArgs'):
+    def _on_swap(self, q1: 'cirq.Qid', q2: 'cirq.Qid', target):
         target.args = self.args.swap(q1, q2)
 
-    def _on_rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid', target: 'ProgressiveActOnArgs'):
+    def _on_rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid', target):
         target.args = self.args.rename(q1, q2)
 
-    def _on_kronecker_product(self, other: 'ProgressiveActOnArgs', target: 'ProgressiveActOnArgs'):
+    def _on_kronecker_product(self, other, target):
         self_args = self.args
         other_args = other.args
         if isinstance(self_args, PureActOnArgs) and not isinstance(other_args, PureActOnArgs):
@@ -242,9 +238,7 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
                 state, extracted.args.qubits, extracted.args.log_of_measurement_results
             )
 
-    def _on_transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid'], target: 'ProgressiveActOnArgs'
-    ):
+    def _on_transpose_to_qubit_order(self, qubits: Sequence['cirq.Qid'], target):
         target.args = self.args.transpose_to_qubit_order(qubits)
 
     def create_merged_state(self):
