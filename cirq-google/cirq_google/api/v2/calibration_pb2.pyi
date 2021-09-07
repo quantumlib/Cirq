@@ -36,7 +36,6 @@ from typing_extensions import (
     Literal as typing_extensions___Literal,
 )
 
-# Here be a comment
 
 class CalibrationLayerCode(int):
     DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
