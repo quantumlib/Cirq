@@ -105,6 +105,7 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
             log_of_measurement_results=logs,
         )
         self.args = args
+        self._run_progressively = isinstance(self.args, PureActOnArgs)
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return self.args._perform_measurement(qubits)
@@ -221,11 +222,11 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
         target.args = self_args.kronecker_product(other_args, inplace=self is target)
 
     def can_factor(self, q):
-        return False
+        return self.args.can_factor(q)
 
     def _on_factor(self, qubits, extracted, remainder, validate=False, atol=1e-07):
         extracted.args, remainder.args = self.args.factor(qubits, validate=validate)
-        if len(qubits) == 1:
+        if self._run_progressively and len(qubits) == 1:
             state = [x != 0 for x in extracted.args._perform_measurement(qubits)]
             extracted.args = PureActOnArgs(
                 state, extracted.args.qubits, extracted.args.log_of_measurement_results
@@ -258,4 +259,4 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
                 self.log_of_measurement_results,
                 self.qubits,
             )
-        return args
+        return args.create_merged_state()

@@ -126,6 +126,7 @@ class DensityMatrixSimulator(
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
         split_untangled_states: bool = True,
+        use_progressive_state_representations: bool = False,
     ):
         """Density matrix simulator.
 
@@ -140,6 +141,9 @@ class DensityMatrixSimulator(
             split_untangled_states: If True, optimizes simulation by running
                 unentangled qubit sets independently and merging those states
                 at the end.
+            use_progressive_state_representations: If True, uses the simplest
+                state representation to represent the quantum system, upgrading
+                only when necessary.
 
                Example:
                >>> (q0,) = cirq.LineQubit.range(1)
@@ -165,6 +169,7 @@ class DensityMatrixSimulator(
             seed=seed,
             ignore_measurement_results=ignore_measurement_results,
             split_untangled_states=split_untangled_states,
+            use_progressive_state_representations=use_progressive_state_representations
         )
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
@@ -195,7 +200,7 @@ class DensityMatrixSimulator(
 
         if initial_state is None:
             initial_state = 0
-        if isinstance(initial_state, int) and all(q.dimension == 2 for q in qubits) and initial_state == 0:
+        if isinstance(initial_state, int) and all(q.dimension == 2 for q in qubits) and initial_state == 0 and self._use_progressive_state_representations:
             args = sim.PureActOnArgs(initial_state, qubits, logs)
             args1: sim.ProgressiveActOnArgs['cirq.ActOnDensityMatrixArgs'] = sim.ProgressiveActOnArgs(args=args, qubits=qubits, logs=logs)
             return args1

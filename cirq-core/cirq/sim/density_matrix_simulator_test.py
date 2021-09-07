@@ -1208,14 +1208,14 @@ def test_random_seed():
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a) ** 0.5, cirq.measure(a))
 
-    sim = cirq.DensityMatrixSimulator(seed=1234)
+    sim = cirq.DensityMatrixSimulator(seed=1234, use_progressive_state_representations=False)
     result = sim.run(circuit, repetitions=10)
     assert np.all(
         result.measurements['a']
         == [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]]
     )
 
-    sim = cirq.DensityMatrixSimulator(seed=np.random.RandomState(1234))
+    sim = cirq.DensityMatrixSimulator(seed=np.random.RandomState(1234), use_progressive_state_representations=False)
     result = sim.run(circuit, repetitions=10)
     assert np.all(
         result.measurements['a']
@@ -1227,10 +1227,10 @@ def test_random_seed_does_not_modify_global_state_terminal_measurements():
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a) ** 0.5, cirq.measure(a))
 
-    sim = cirq.DensityMatrixSimulator(seed=1234)
+    sim = cirq.DensityMatrixSimulator(seed=1234, use_progressive_state_representations=False)
     result1 = sim.run(circuit, repetitions=50)
 
-    sim = cirq.DensityMatrixSimulator(seed=1234)
+    sim = cirq.DensityMatrixSimulator(seed=1234, use_progressive_state_representations=False)
     _ = np.random.random()
     _ = random.random()
     result2 = sim.run(circuit, repetitions=50)
@@ -1244,10 +1244,10 @@ def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
         cirq.X(a) ** 0.5, cirq.measure(a, key='a0'), cirq.X(a) ** 0.5, cirq.measure(a, key='a1')
     )
 
-    sim = cirq.DensityMatrixSimulator(seed=1234)
+    sim = cirq.DensityMatrixSimulator(seed=1234, use_progressive_state_representations=False)
     result1 = sim.run(circuit, repetitions=50)
 
-    sim = cirq.DensityMatrixSimulator(seed=1234)
+    sim = cirq.DensityMatrixSimulator(seed=1234, use_progressive_state_representations=False)
     _ = np.random.random()
     _ = random.random()
     result2 = sim.run(circuit, repetitions=50)
@@ -1258,7 +1258,7 @@ def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
 def test_random_seed_terminal_measurements_deterministic():
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a) ** 0.5, cirq.measure(a, key='a'))
-    sim = cirq.DensityMatrixSimulator(seed=1234)
+    sim = cirq.DensityMatrixSimulator(seed=1234, use_progressive_state_representations=False)
     result1 = sim.run(circuit, repetitions=30)
     result2 = sim.run(circuit, repetitions=30)
     assert np.all(
@@ -1338,7 +1338,7 @@ def test_random_seed_non_terminal_measurements_deterministic():
     circuit = cirq.Circuit(
         cirq.X(a) ** 0.5, cirq.measure(a, key='a'), cirq.X(a) ** 0.5, cirq.measure(a, key='b')
     )
-    sim = cirq.DensityMatrixSimulator(seed=1234)
+    sim = cirq.DensityMatrixSimulator(seed=1234, use_progressive_state_representations=False)
     result = sim.run(circuit, repetitions=30)
     assert np.all(
         result.measurements['a']

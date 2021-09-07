@@ -97,6 +97,7 @@ class SimulatorBase(
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
         split_untangled_states: bool = False,
+        use_progressive_state_representations: bool = False,
     ):
         """Initializes the simulator.
 
@@ -111,12 +112,16 @@ class SimulatorBase(
             split_untangled_states: If True, optimizes simulation by running
                 unentangled qubit sets independently and merging those states
                 at the end.
+            use_progressive_state_representations: If True, uses the simplest
+                state representation to represent the quantum system, upgrading
+                only when necessary.
         """
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
         self._ignore_measurement_results = ignore_measurement_results
         self._split_untangled_states = split_untangled_states
+        self._use_progressive_state_representations = use_progressive_state_representations
 
     @abc.abstractmethod
     def _create_partial_act_on_args(

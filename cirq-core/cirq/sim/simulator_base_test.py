@@ -74,6 +74,9 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
     ):
         pass
 
+    def can_factor(self, q):
+        return True
+
 
 class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArgs]):
     def sample(
