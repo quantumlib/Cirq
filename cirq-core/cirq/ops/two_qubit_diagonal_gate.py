@@ -23,14 +23,14 @@ import sympy
 
 from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import gate_features
+from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
 
 
 @value.value_equality()
-class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
+class TwoQubitDiagonalGate(raw_types.Gate):
     """A gate given by a diagonal 4\\times 4 matrix."""
 
     def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
@@ -45,6 +45,9 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_3})$.
         """
         self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(angle) for angle in self._diag_angles_radians)
