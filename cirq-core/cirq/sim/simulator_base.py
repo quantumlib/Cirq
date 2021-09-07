@@ -129,7 +129,7 @@ class SimulatorBase(
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
-    ) -> TActOnArgs:
+    ) -> 'cirq.ActOnArgs[TActOnArgs]':
         """Creates an instance of the TActOnArgs class for the simulator.
 
         It represents the supplied qubits initialized to the provided state.
@@ -296,7 +296,7 @@ class SimulatorBase(
 
         log: Dict[str, Any] = {}
         if self._split_untangled_states:
-            args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
+            args_map: Dict[Optional['cirq.Qid'], 'cirq.ActOnArgs[TActOnArgs]'] = {}
             if isinstance(initial_state, int):
                 for q in reversed(qubits):
                     args_map[q] = self._create_partial_act_on_args(

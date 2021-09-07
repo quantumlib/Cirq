@@ -49,7 +49,7 @@ class ActOnArgsContainer(
     # pylint: disable=missing-raises-doc
     def __init__(
         self,
-        args: Dict[Optional['cirq.Qid'], TActOnArgs],
+        args: Dict[Optional['cirq.Qid'], 'cirq.ActOnArgs[TActOnArgs]'],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
         log_of_measurement_results: Dict[str, Any],
@@ -74,10 +74,10 @@ class ActOnArgsContainer(
     # pylint: enable=missing-raises-doc
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
-            return self.args[None]
+            return self.args[None].create_merged_state()
         final_args = self.args[None]
         for args in set([self.args[k] for k in self.args.keys() if k is not None]):
-            final_args = final_args.kronecker_product(args)
+            final_args = final_args.kronecker_product(args)  # type: ignore
         return final_args.transpose_to_qubit_order(self.qubits).create_merged_state()
 
     def _act_on_fallback_(
@@ -104,12 +104,12 @@ class ActOnArgsContainer(
 
         # Go through the op's qubits and join any disparate ActOnArgs states
         # into a new combined state.
-        op_args_opt: Optional[TActOnArgs] = None
+        op_args_opt: Optional['cirq.ActOnArgs[TActOnArgs]'] = None
         for q in qubits:
             if op_args_opt is None:
                 op_args_opt = self.args[q]
             elif q not in op_args_opt.qubits:
-                op_args_opt = op_args_opt.kronecker_product(self.args[q])
+                op_args_opt = op_args_opt.kronecker_product(self.args[q])  # type: ignore
         op_args = op_args_opt or self.args[None]
 
         # (Backfill the args map with the new value)
@@ -140,7 +140,7 @@ class ActOnArgsContainer(
         for copy in copies.values():
             copy._log_of_measurement_results = logs
         args = {q: copies[a] for q, a in self.args.items()}
-        return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, logs)
+        return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, logs)  # type: ignore
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
@@ -170,7 +170,7 @@ class ActOnArgsContainer(
         index_order = [qubit_map[q] for q in qubits]
         return stacked[:, index_order]
 
-    def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
+    def __getitem__(self, item: Optional['cirq.Qid']) -> 'cirq.ActOnArgs[TActOnArgs]':
         return self.args[item]
 
     def __len__(self) -> int:

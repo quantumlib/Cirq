@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgs(OperationTarget[TSelf]):
+class ActOnArgs(Generic[TSelf], OperationTarget[TSelf]):
     """State and context for an operation acting on a state tensor."""
 
     def __init__(

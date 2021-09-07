@@ -182,7 +182,7 @@ class DensityMatrixSimulator(
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
-    ) -> 'cirq.ActOnDensityMatrixArgs':
+    ) -> 'cirq.ActOnArgs[cirq.ActOnDensityMatrixArgs]':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 
         Args:
@@ -227,7 +227,10 @@ class DensityMatrixSimulator(
             prng=self._prng,
             log_of_measurement_results=logs,
         )
-        return sim.ProgressiveActOnArgs(args=args2, qubits=qubits, logs=logs)
+        args3: sim.ProgressiveActOnArgs['cirq.ActOnDensityMatrixArgs'] = sim.ProgressiveActOnArgs(
+            args=args2, qubits=qubits, logs=logs
+        )
+        return args3
 
     # pylint: enable=missing-param-doc
     def _can_be_in_run_prefix(self, val: Any):
