@@ -103,7 +103,7 @@ def test_measurement_gate_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(cirq.measure_pauli_observable(cirq.X(a) * cirq.Y(b))),
+        cirq.Circuit(cirq.measure_single_paulistring(cirq.X(a) * cirq.Y(b))),
         """
 a: ───M(X)───
       │
@@ -111,7 +111,7 @@ b: ───M(Y)───
 """,
     )
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(cirq.measure_pauli_observable(cirq.X(a) * cirq.Y(b), key='test')),
+        cirq.Circuit(cirq.measure_single_paulistring(cirq.X(a) * cirq.Y(b), key='test')),
         """
 a: ───M(X)('test')───
       │
@@ -140,13 +140,13 @@ def test_op_repr():
     a, b, c = cirq.LineQubit.range(3)
     ps = cirq.X(a) * cirq.Y(b) * cirq.Z(c)
     assert (
-        repr(cirq.measure_pauli_observable(ps))
-        == 'cirq.measure_pauli_observable((cirq.X(cirq.LineQubit(0))'
+        repr(cirq.measure_single_paulistring(ps))
+        == 'cirq.measure_single_paulistring((cirq.X(cirq.LineQubit(0))'
         '*cirq.Y(cirq.LineQubit(1))*cirq.Z(cirq.LineQubit(2))))'
     )
     assert (
-        repr(cirq.measure_pauli_observable(ps, key='out'))
-        == "cirq.measure_pauli_observable((cirq.X(cirq.LineQubit(0))"
+        repr(cirq.measure_single_paulistring(ps, key='out'))
+        == "cirq.measure_single_paulistring((cirq.X(cirq.LineQubit(0))"
         "*cirq.Y(cirq.LineQubit(1))*cirq.Z(cirq.LineQubit(2))), "
         "key=cirq.MeasurementKey(name='out'))"
     )

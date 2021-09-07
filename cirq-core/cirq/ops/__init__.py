@@ -173,8 +173,8 @@ from cirq.ops.matrix_gates import (
 from cirq.ops.measure_util import (
     measure,
     measure_each,
-    measure_in_pauli_basis,
-    measure_pauli_observable,
+    measure_paulistring_terms,
+    measure_single_paulistring,
 )
 
 from cirq.ops.measurement_gate import (

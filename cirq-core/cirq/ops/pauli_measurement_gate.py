@@ -129,7 +129,7 @@ class PauliMeasurementGate(raw_types.Gate):
         if self.key != _default_measurement_key(qubits):
             args.append(f'key={self.mkey!r}')
         arg_list = ', '.join(args)
-        return f'cirq.measure_pauli_observable({arg_list})'
+        return f'cirq.measure_single_paulistring({arg_list})'
 
     def __repr__(self) -> str:
         return f'cirq.PauliMeasurementGate(' f'{self._observable!r}, ' f'{self.mkey!r})'

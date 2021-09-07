@@ -29,7 +29,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
     return ','.join(str(q) for q in qubits)
 
 
-def measure_pauli_observable(
+def measure_single_paulistring(
     pauli_observable: pauli_string.PauliString,
     key: Optional[Union[str, value.MeasurementKey]] = None,
 ) -> raw_types.Operation:
@@ -56,7 +56,7 @@ def measure_pauli_observable(
     return PauliMeasurementGate(pauli_observable.values(), key).on(*pauli_observable.keys())
 
 
-def measure_in_pauli_basis(
+def measure_paulistring_terms(
     pauli_basis: pauli_string.PauliString, key_func: Callable[[raw_types.Qid], str] = str
 ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring qubits in the pauli basis.

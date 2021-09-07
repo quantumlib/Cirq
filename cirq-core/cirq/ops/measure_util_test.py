@@ -62,28 +62,28 @@ def test_measure_each():
     ]
 
 
-def test_measure_pauli_observable():
+def test_measure_single_paulistring():
     # Correct application
     q = cirq.LineQubit.range(3)
     ps = cirq.X(q[0]) * cirq.Y(q[1]) * cirq.Z(q[2])
-    assert cirq.measure_pauli_observable(ps, key='a') == cirq.PauliMeasurementGate(
+    assert cirq.measure_single_paulistring(ps, key='a') == cirq.PauliMeasurementGate(
         ps.values(), key='a'
     ).on(*ps.keys())
 
     # Empty application
     with pytest.raises(ValueError, match='should be an instance of cirq.PauliString'):
-        _ = cirq.measure_pauli_observable(cirq.I(q[0]) * cirq.I(q[1]))
+        _ = cirq.measure_single_paulistring(cirq.I(q[0]) * cirq.I(q[1]))
 
     # Wrong type
     with pytest.raises(ValueError, match='should be an instance of cirq.PauliString'):
-        _ = cirq.measure_pauli_observable(q)
+        _ = cirq.measure_single_paulistring(q)
 
 
-def test_measure_in_pauli_basis():
+def test_measure_paulistring_terms():
     # Correct application
     q = cirq.LineQubit.range(3)
     ps = cirq.X(q[0]) * cirq.Y(q[1]) * cirq.Z(q[2])
-    assert cirq.measure_in_pauli_basis(ps) == [
+    assert cirq.measure_paulistring_terms(ps) == [
         cirq.PauliMeasurementGate([cirq.X], key=str(q[0])).on(q[0]),
         cirq.PauliMeasurementGate([cirq.Y], key=str(q[1])).on(q[1]),
         cirq.PauliMeasurementGate([cirq.Z], key=str(q[2])).on(q[2]),
@@ -91,8 +91,8 @@ def test_measure_in_pauli_basis():
 
     # Empty application
     with pytest.raises(ValueError, match='should be an instance of cirq.PauliString'):
-        _ = cirq.measure_in_pauli_basis(cirq.I(q[0]) * cirq.I(q[1]))
+        _ = cirq.measure_paulistring_terms(cirq.I(q[0]) * cirq.I(q[1]))
 
     # Wrong type
     with pytest.raises(ValueError, match='should be an instance of cirq.PauliString'):
-        _ = cirq.measure_in_pauli_basis(q)
+        _ = cirq.measure_paulistring_terms(q)
