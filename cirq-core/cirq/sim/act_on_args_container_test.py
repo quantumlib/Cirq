@@ -16,7 +16,7 @@ from typing import List, Dict, Any, Sequence, Tuple, Optional, Union
 import cirq
 
 
-class EmptyActOnArgs(cirq.ActOnArgs):
+class EmptyActOnArgs(cirq.ActOnArgs['EmptyActOnArgs']):
     def __init__(self, qubits, logs):
         super().__init__(
             qubits=qubits,
@@ -67,7 +67,7 @@ def create_container(
     qubits: Sequence['cirq.Qid'],
     split_untangled_states=True,
 ) -> cirq.ActOnArgsContainer[EmptyActOnArgs]:
-    args_map: Dict[Optional['cirq.Qid'], EmptyActOnArgs] = {}
+    args_map: Dict[Optional['cirq.Qid'], cirq.ActOnArgs['EmptyActOnArgs']] = {}
     log: Dict[str, Any] = {}
     if split_untangled_states:
         for q in reversed(qubits):
