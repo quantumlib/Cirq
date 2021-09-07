@@ -140,6 +140,7 @@ class ActOnArgsContainer(
         for copy in copies.values():
             copy._log_of_measurement_results = logs
         args = {q: copies[a] for q, a in self.args.items()}
+        # pylint: disable=line-too-long
         return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, logs)  # type: ignore
 
     @property
