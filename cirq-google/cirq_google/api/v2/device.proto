@@ -28,6 +28,8 @@ message DeviceSpecification {
   // are advice to users of the device, specified in English text
   // For instance, "All Z gates are converted to VirtualZ gates".
   string developer_recommendations = 4;
+
+  string here_be_a_new_field = 5;
 }
 
 message GateSet {
