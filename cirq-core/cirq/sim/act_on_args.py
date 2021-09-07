@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgs(Generic[TSelf], OperationTarget[TSelf]):
+class ActOnArgs(OperationTarget[TSelf]):
     """State and context for an operation acting on a state tensor."""
 
     def __init__(
@@ -181,8 +181,8 @@ class ActOnArgs(Generic[TSelf], OperationTarget[TSelf]):
         if len(self.qubits) != len(qubits) or set(qubits) != set(self.qubits):
             raise ValueError(f'Qubits do not match. Existing: {self.qubits}, provided: {qubits}')
         args = self if inplace else copy.copy(self)
-        args._set_qubits(qubits)
         self._on_transpose_to_qubit_order(qubits, args)
+        args._set_qubits(qubits)
         return args
 
     def _on_transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
@@ -203,7 +203,7 @@ class ActOnArgs(Generic[TSelf], OperationTarget[TSelf]):
     def _on_rename(self: TSelf, q1: 'cirq.Qid', q2: 'cirq.Qid', target: TSelf):
         """Subclassses rename"""
 
-    def swap(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
+    def swap(self: TSelf, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
         """Swaps two qubits.
 
         This only affects the index, and does not modify the underlying
@@ -227,16 +227,16 @@ class ActOnArgs(Generic[TSelf], OperationTarget[TSelf]):
             raise ValueError(f'Cannot swap different dimensions: q1={q1}, q2={q2}')
 
         args = self if inplace else copy.copy(self)
+        self._on_swap(q1, q2, args)
         i1 = self.qubits.index(q1)
         i2 = self.qubits.index(q2)
         qubits = list(args.qubits)
         qubits[i1], qubits[i2] = qubits[i2], qubits[i1]
         args._qubits = tuple(qubits)
         args.qubit_map = {q: i for i, q in enumerate(qubits)}
-        self._on_swap(q1, q2, args)
         return args
 
-    def rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
+    def rename(self: TSelf, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
         """Renames `q1` to `q2`.
 
         Args:
@@ -257,15 +257,15 @@ class ActOnArgs(Generic[TSelf], OperationTarget[TSelf]):
             raise ValueError(f'Cannot rename to different dimensions: q1={q1}, q2={q2}')
 
         args = self if inplace else copy.copy(self)
+        self._on_rename(q1, q2, args)
         i1 = self.qubits.index(q1)
         qubits = list(args.qubits)
         qubits[i1] = q2
         args._qubits = tuple(qubits)
         args.qubit_map = {q: i for i, q in enumerate(qubits)}
-        self._on_rename(q1, q2, args)
         return args
 
-    def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> OperationTarget[TSelf]:
+    def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:
         if item not in self.qubit_map:
             raise IndexError(f'{item} not in {self.qubits}')
         return self

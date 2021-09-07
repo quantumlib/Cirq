@@ -90,7 +90,7 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     ) -> np.ndarray:
         """Samples the state value."""
 
-    def __getitem__(self, item: Optional['cirq.Qid']) -> 'OperationTarget[TActOnArgs]':
+    def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
         """Gets the item associated with the qubit."""
 
     def __len__(self) -> int:

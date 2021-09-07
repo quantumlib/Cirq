@@ -182,7 +182,7 @@ class DensityMatrixSimulator(
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
-    ) -> 'cirq.ActOnArgs[cirq.ActOnDensityMatrixArgs]':
+    ) -> 'cirq.ActOnDensityMatrixArgs':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 
         Args:
@@ -203,7 +203,6 @@ class DensityMatrixSimulator(
         if (
             isinstance(initial_state, int)
             and all(q.dimension == 2 for q in qubits)
-            and initial_state == 0
             and self._use_progressive_state_representations
         ):
             args = sim.PureActOnArgs(initial_state, qubits, logs)
@@ -220,7 +219,7 @@ class DensityMatrixSimulator(
             initial_matrix = initial_matrix.copy()
 
         tensor = initial_matrix.reshape(qid_shape * 2)
-        args = act_on_density_matrix_args.ActOnDensityMatrixArgs(
+        args2 = act_on_density_matrix_args.ActOnDensityMatrixArgs(
             target_tensor=tensor,
             available_buffer=[np.empty_like(tensor) for _ in range(3)],
             qubits=qubits,
@@ -228,7 +227,7 @@ class DensityMatrixSimulator(
             prng=self._prng,
             log_of_measurement_results=logs,
         )
-        return sim.ProgressiveActOnArgs(args=args, qubits=qubits, logs=logs)
+        return sim.ProgressiveActOnArgs(args=args2, qubits=qubits, logs=logs)
 
     # pylint: enable=missing-param-doc
     def _can_be_in_run_prefix(self, val: Any):
@@ -377,7 +376,7 @@ class DensityMatrixStepResult(
             self._density_matrix = np.array(1)
             state = self._merged_sim_state
             if state is not None:
-                matrix = state.create_merged_state().target_tensor
+                matrix = state.target_tensor
                 size = int(np.sqrt(np.prod(matrix.shape, dtype=np.int64)))
                 self._density_matrix = np.reshape(matrix, (size, size))
         return self._density_matrix.copy() if copy else self._density_matrix

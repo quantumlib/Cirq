@@ -40,7 +40,7 @@ def _rewrite_deprecated_args(args, kwargs):
     return args[:3], kwargs
 
 
-class ActOnDensityMatrixArgs(ActOnArgs['ActOnDensityMatrixArgs']):
+class ActOnDensityMatrixArgs(ActOnArgs):
     """State and context for an operation acting on a density matrix.
 
     To act on this object, directly edit the `target_tensor` property, which is

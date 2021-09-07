@@ -78,7 +78,7 @@ class ActOnArgsContainer(
         final_args = self.args[None]
         for args in set([self.args[k] for k in self.args.keys() if k is not None]):
             final_args = final_args.kronecker_product(args)
-        return final_args.transpose_to_qubit_order(self.qubits)
+        return final_args.transpose_to_qubit_order(self.qubits).create_merged_state()
 
     def _act_on_fallback_(
         self,
@@ -170,7 +170,7 @@ class ActOnArgsContainer(
         index_order = [qubit_map[q] for q in qubits]
         return stacked[:, index_order]
 
-    def __getitem__(self, item: Optional['cirq.Qid']) -> OperationTarget[TActOnArgs]:
+    def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
         return self.args[item]
 
     def __len__(self) -> int:
