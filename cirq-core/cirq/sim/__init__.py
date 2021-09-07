@@ -54,7 +54,7 @@ from cirq.sim.mux import (
 )
 
 from cirq.sim.progressive_act_on_args import (
-    PureActOnArgs,\
+    PureActOnArgs,
     ProgressiveActOnArgs,
 )
 

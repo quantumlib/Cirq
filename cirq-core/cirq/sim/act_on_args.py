@@ -25,7 +25,8 @@ from typing import (
     Tuple,
     cast,
     Optional,
-    Iterator, Generic,
+    Iterator,
+    Generic,
 )
 
 import numpy as np

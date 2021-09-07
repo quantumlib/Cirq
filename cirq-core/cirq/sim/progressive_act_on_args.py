@@ -29,7 +29,11 @@ class PureActOnArgs(sim.ActOnArgs):
             qubits=qubits,
             log_of_measurement_results=logs,
         )
-        self.b = initial_state if isinstance(initial_state, Sequence) else [bool(initial_state & (1 << n)) for n in range(len(qubits))]
+        self.b = (
+            initial_state
+            if isinstance(initial_state, Sequence)
+            else [bool(initial_state & (1 << n)) for n in range(len(qubits))]
+        )
 
     def as_int(self):
         return sum(1 << i for i, v in enumerate(reversed(self.b)) if v)
@@ -141,7 +145,9 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
             if protocols.has_unitary(action):
                 protocols.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
                 return True
-            dm = qis.density_matrix_from_state_vector(self.args.target_tensor).reshape(self.args.target_tensor.shape * 2)
+            dm = qis.density_matrix_from_state_vector(self.args.target_tensor).reshape(
+                self.args.target_tensor.shape * 2
+            )
             self.args = sim.ActOnDensityMatrixArgs(
                 dm,
                 [np.empty_like(dm) for _ in range(3)],
@@ -198,7 +204,9 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
         if isinstance(self_args, sim.ActOnStateVectorArgs) and not isinstance(
             other_args, sim.ActOnStateVectorArgs
         ):
-            dm = qis.density_matrix_from_state_vector(self_args.target_tensor).reshape([q.dimension for q in self.qubits] * 2)
+            dm = qis.density_matrix_from_state_vector(self_args.target_tensor).reshape(
+                [q.dimension for q in self.qubits] * 2
+            )
             self_args = sim.ActOnDensityMatrixArgs(
                 dm,
                 [np.empty_like(dm) for _ in range(3)],
@@ -210,7 +218,9 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
         if not isinstance(self_args, sim.ActOnStateVectorArgs) and isinstance(
             other_args, sim.ActOnStateVectorArgs
         ):
-            dm = qis.density_matrix_from_state_vector(other_args.target_tensor).reshape([q.dimension for q in other.qubits] * 2)
+            dm = qis.density_matrix_from_state_vector(other_args.target_tensor).reshape(
+                [q.dimension for q in other.qubits] * 2
+            )
             other_args = sim.ActOnDensityMatrixArgs(
                 dm,
                 [np.empty_like(dm) for _ in range(3)],

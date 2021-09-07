@@ -169,7 +169,7 @@ class DensityMatrixSimulator(
             seed=seed,
             ignore_measurement_results=ignore_measurement_results,
             split_untangled_states=split_untangled_states,
-            use_progressive_state_representations=use_progressive_state_representations
+            use_progressive_state_representations=use_progressive_state_representations,
         )
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
@@ -200,9 +200,16 @@ class DensityMatrixSimulator(
 
         if initial_state is None:
             initial_state = 0
-        if isinstance(initial_state, int) and all(q.dimension == 2 for q in qubits) and initial_state == 0 and self._use_progressive_state_representations:
+        if (
+            isinstance(initial_state, int)
+            and all(q.dimension == 2 for q in qubits)
+            and initial_state == 0
+            and self._use_progressive_state_representations
+        ):
             args = sim.PureActOnArgs(initial_state, qubits, logs)
-            args1: sim.ProgressiveActOnArgs['cirq.ActOnDensityMatrixArgs'] = sim.ProgressiveActOnArgs(args=args, qubits=qubits, logs=logs)
+            args1: sim.ProgressiveActOnArgs[
+                'cirq.ActOnDensityMatrixArgs'
+            ] = sim.ProgressiveActOnArgs(args=args, qubits=qubits, logs=logs)
             return args1
 
         qid_shape = protocols.qid_shape(qubits)

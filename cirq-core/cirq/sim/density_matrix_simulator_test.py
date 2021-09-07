@@ -1215,7 +1215,9 @@ def test_random_seed():
         == [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]]
     )
 
-    sim = cirq.DensityMatrixSimulator(seed=np.random.RandomState(1234), use_progressive_state_representations=False)
+    sim = cirq.DensityMatrixSimulator(
+        seed=np.random.RandomState(1234), use_progressive_state_representations=False
+    )
     result = sim.run(circuit, repetitions=10)
     assert np.all(
         result.measurements['a']
