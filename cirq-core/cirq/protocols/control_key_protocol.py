@@ -18,7 +18,6 @@ from typing import AbstractSet, Any, Iterable
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
 
 class SupportsControlKey(Protocol):
