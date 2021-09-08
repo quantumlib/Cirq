@@ -4426,6 +4426,21 @@ def test_all_measurement_key_names(circuit_cls):
     )
 
 
+def test_control_keys():
+    c = cirq.Circuit(ControlOp(['a', 'b']))
+    assert cirq.control_key_names(c) == {'a', 'b'}
+    f = c.freeze()
+    assert cirq.control_key_names(f) == {'a', 'b'}
+    op = cirq.CircuitOperation(f)
+    assert cirq.control_key_names(op) == {'a', 'b'}
+    outer = cirq.Circuit(op)
+    assert cirq.control_key_names(outer) == {'a', 'b'}
+    op1 = op.with_measurement_key_mapping({'b': 'c'})
+    assert cirq.control_key_names(op1) == {'a', 'c'}
+    outer1 = cirq.Circuit(op1)
+    assert cirq.control_key_names(outer1) == {'a', 'c'}
+
+
 def test_zip():
     a, b, c, d = cirq.LineQubit.range(4)
 
