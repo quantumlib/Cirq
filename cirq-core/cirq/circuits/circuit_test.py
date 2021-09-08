@@ -298,6 +298,19 @@ def test_append_control_key_subcircuit():
     )
     assert len(c) == 2
 
+    c = cirq.Circuit()
+    c.append(
+        cirq.CircuitOperation(
+            cirq.Circuit(cirq.measure(q, key='a')).freeze()
+        ).with_measurement_key_mapping({'a': 'b'})
+    )
+    c.append(
+        cirq.CircuitOperation(cirq.Circuit(ControlOp(['b'])).freeze()).with_measurement_key_mapping(
+            {'b': 'a'}
+        )
+    )
+    assert len(c) == 1
+
 
 def test_append_multiple():
     a = cirq.NamedQubit('a')
