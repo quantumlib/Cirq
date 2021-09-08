@@ -38,9 +38,7 @@ pauli_eigen_map = cast(
 
 
 @value.value_equality
-class PauliInteractionGate(
-    eigen_gate.EigenGate, gate_features.InterchangeableQubitsGate, gate_features.TwoQubitGate
-):
+class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A CZ conjugated by arbitrary single qubit Cliffords."""
 
     CZ = None  # type: PauliInteractionGate
@@ -72,6 +70,9 @@ class PauliInteractionGate(
         self.invert0 = invert0
         self.pauli1 = pauli1
         self.invert1 = invert1
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _value_equality_values_(self):
         return (self.pauli0, self.invert0, self.pauli1, self.invert1, self._canonical_exponent)

@@ -95,6 +95,11 @@ from cirq.testing.logs import (
     assert_logs,
 )
 
+from cirq.testing.gate_features import (
+    TwoQubitGate,
+    ThreeQubitGate,
+)
+
 from cirq.testing.no_identifier_qubit import (
     NoIdentifierQubit,
 )
