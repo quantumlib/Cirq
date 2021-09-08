@@ -1,0 +1,5 @@
+[
+    cirq.PauliMeasurementGate((cirq.X, cirq.Y, cirq.Z), cirq.MeasurementKey(name='key')),
+    cirq.PauliMeasurementGate((cirq.X, cirq.Y, cirq.Z), cirq.MeasurementKey(path=('p', 'q'), name='key')),
+]
+
