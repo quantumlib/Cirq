@@ -126,7 +126,7 @@ class DensityMatrixSimulator(
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
         split_untangled_states: bool = True,
-        use_progressive_state_representations: bool = False,
+        use_progressive_state_representations: bool = True,
     ):
         """Density matrix simulator.
 
@@ -208,7 +208,7 @@ class DensityMatrixSimulator(
             args = sim.PureActOnArgs(initial_state, qubits, logs)
             args1: sim.ProgressiveActOnArgs[
                 'cirq.ActOnDensityMatrixArgs'
-            ] = sim.ProgressiveActOnArgs(args=args, qubits=qubits, logs=logs)
+            ] = sim.ProgressiveActOnArgs(args=args, prng=self._prng, qubits=qubits, log_of_measurement_results=logs)
             return args1
 
         qid_shape = protocols.qid_shape(qubits)
@@ -228,7 +228,7 @@ class DensityMatrixSimulator(
             log_of_measurement_results=logs,
         )
         args3: sim.ProgressiveActOnArgs['cirq.ActOnDensityMatrixArgs'] = sim.ProgressiveActOnArgs(
-            args=args2, qubits=qubits, logs=logs
+            args=args2, prng=self._prng, qubits=qubits, log_of_measurement_results=logs
         )
         return args3
 

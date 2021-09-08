@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Sequence, Union, TypeVar, Generic, TYPE_CHECKING
+from typing import List, Sequence, Union, TypeVar, Generic, TYPE_CHECKING, Any, Dict
 
 import numpy as np
 
@@ -30,7 +30,7 @@ class PureActOnArgs(sim.ActOnArgs):
         self.b = list(
             initial_state
             if isinstance(initial_state, Sequence)
-            else [bool(initial_state & (1 << n)) for n in range(len(qubits))]
+            else reversed([bool(initial_state & (1 << n)) for n in range(len(qubits))])
         )
 
     def as_int(self):
@@ -43,7 +43,7 @@ class PureActOnArgs(sim.ActOnArgs):
         return [1 if self.b[i] else 0 for i in self.get_axes(qubits)]
 
     def _on_copy(self, target: 'PureActOnArgs'):
-        target.b = self.b
+        target.b = self.b.copy()
 
     def _act_on_fallback_(
         self,
@@ -56,9 +56,12 @@ class PureActOnArgs(sim.ActOnArgs):
         if isinstance(gate, ops.XPowGate) and gate.exponent % 2 == 1:
             for i in self.get_axes(qubits):
                 self.b[i] = not self.b[i]
-
             return True
-        if isinstance(gate, ops.XPowGate) and gate.exponent % 2 == 0:
+        if isinstance(gate, ops.CXPowGate) and gate.exponent % 2 == 1:
+            axes = self.get_axes(qubits)
+            self.b[axes[1]] ^= self.b[axes[0]]
+            return True
+        if isinstance(gate, ops.EigenGate) and gate.exponent % 2 == 0:
             return True
         elif isinstance(gate, ops.ResetChannel):
             for i in self.get_axes(qubits):
@@ -99,15 +102,23 @@ TActOnArgs = TypeVar('TActOnArgs', bound='cirq.ActOnArgs')
 
 
 class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
-    def __init__(self, args, qubits, logs):
+    def __init__(
+        self,
+        args: 'cirq.ActOnArgs',
+        prng: np.random.RandomState,
+        log_of_measurement_results: Dict[str, Any],
+        qubits: Sequence['cirq.Qid'] = None,
+    ):
         super().__init__(
+            prng=prng,
             qubits=qubits,
-            log_of_measurement_results=logs,
+            log_of_measurement_results=log_of_measurement_results,
         )
         self.args = args
         self._run_progressively = isinstance(self.args, PureActOnArgs)
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
+        print(self.args)
         return self.args._perform_measurement(qubits)
 
     def _on_copy(self, target):
@@ -130,7 +141,7 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
                 ch, self.prng, self.log_of_measurement_results, self.qubits
             )
         if isinstance(self.args, sim.ActOnStabilizerCHFormArgs):
-            if protocols.has_stabilizer_effect(action):
+            if protocols.has_stabilizer_effect(action) and (protocols.has_unitary(action) or protocols.is_measurement(action)):
                 protocols.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
                 return True
             sv = self.args.state.state_vector().reshape([q.dimension for q in self.qubits])
@@ -138,7 +149,7 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
                 sv, np.empty_like(sv), self.prng, self.log_of_measurement_results, self.qubits
             )
         if isinstance(self.args, sim.ActOnStateVectorArgs):
-            if protocols.has_unitary(action):
+            if protocols.has_unitary(action) or protocols.is_measurement(action):
                 protocols.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
                 return True
             dm = qis.density_matrix_from_state_vector(self.args.target_tensor).reshape(
@@ -147,7 +158,7 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
             self.args = sim.ActOnDensityMatrixArgs(
                 dm,
                 [np.empty_like(dm) for _ in range(3)],
-                dm.shape,
+                tuple(q.dimension for q in self.qubits),
                 self.prng,
                 self.log_of_measurement_results,
                 self.qubits,
@@ -206,7 +217,7 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
             self_args = sim.ActOnDensityMatrixArgs(
                 dm,
                 [np.empty_like(dm) for _ in range(3)],
-                dm.shape,
+                tuple(q.dimension for q in self.qubits),
                 self.prng,
                 self.log_of_measurement_results,
                 self.qubits,
@@ -220,7 +231,7 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
             other_args = sim.ActOnDensityMatrixArgs(
                 dm,
                 [np.empty_like(dm) for _ in range(3)],
-                dm.shape,
+                tuple(q.dimension for q in other.qubits),
                 other.prng,
                 other.log_of_measurement_results,
                 other.qubits,
@@ -254,11 +265,13 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
                 sv, np.empty_like(sv), self.prng, self.log_of_measurement_results, self.qubits
             )
         if isinstance(args, sim.ActOnStateVectorArgs):
-            dm = qis.density_matrix_from_state_vector(args.target_tensor)
+            dm = qis.density_matrix_from_state_vector(args.target_tensor).reshape(
+                [q.dimension for q in self.qubits] * 2
+            )
             args = sim.ActOnDensityMatrixArgs(
                 dm,
                 [np.empty_like(dm) for _ in range(3)],
-                dm.shape,
+                tuple(q.dimension for q in self.qubits),
                 self.prng,
                 self.log_of_measurement_results,
                 self.qubits,

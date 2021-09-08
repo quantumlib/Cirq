@@ -1492,7 +1492,7 @@ def test_measuring_subcircuits_cause_sweep_repeat():
 
 
 def test_density_matrix_copy():
-    sim = cirq.DensityMatrixSimulator(split_untangled_states=False)
+    sim = cirq.DensityMatrixSimulator(split_untangled_states=False, use_progressive_state_representations=False)
 
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.H(q))
@@ -1534,8 +1534,8 @@ def test_density_matrices_same_with_or_without_split_untangled_states():
     circuit = cirq.Circuit(cirq.H(q0), cirq.CX.on(q0, q1), cirq.reset(q1))
     result1 = sim.simulate(circuit).final_density_matrix
     sim = cirq.DensityMatrixSimulator(split_untangled_states=True)
-    result2 = sim.simulate(circuit).final_density_matrix
-    assert np.allclose(result1, result2)
+    result2 = sim.simulate(circuit)
+    np.testing.assert_allclose(result1, result2.final_density_matrix)
 
 
 def test_large_untangled_okay():
@@ -1547,15 +1547,21 @@ def test_large_untangled_okay():
 
     # Validate this can't be allocated with entangled state
     with pytest.raises(MemoryError, match='Unable to allocate'):
-        _ = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
+        _ = cirq.DensityMatrixSimulator(
+            split_untangled_states=False, use_progressive_state_representations=False
+        ).simulate(circuit)
 
     # Validate a simulation run
-    result = cirq.DensityMatrixSimulator(split_untangled_states=True).simulate(circuit)
+    result = cirq.DensityMatrixSimulator(
+        split_untangled_states=True, use_progressive_state_representations=False
+    ).simulate(circuit)
     assert set(result._final_step_result._qubits) == set(cirq.LineQubit.range(59))
     # _ = result.final_density_matrix hangs (as expected)
 
     # Validate a trial run and sampling
-    result = cirq.DensityMatrixSimulator(split_untangled_states=True).run(circuit, repetitions=1000)
+    result = cirq.DensityMatrixSimulator(
+        split_untangled_states=True, use_progressive_state_representations=False
+    ).run(circuit, repetitions=1000)
     assert len(result.measurements) == 59
     assert len(result.measurements['0']) == 1000
     assert (result.measurements['0'] == np.full(1000, 1)).all()

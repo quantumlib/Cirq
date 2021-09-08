@@ -116,9 +116,9 @@ def test_sample_sweep_seed():
     results = cirq.sample_sweep(
         circuit, [cirq.ParamResolver({'t': 0.5})] * 3, repetitions=2, seed=1234
     )
-    assert np.all(results[0].measurements['q'] == [[False], [True]])
-    assert np.all(results[1].measurements['q'] == [[False], [True]])
-    assert np.all(results[2].measurements['q'] == [[True], [False]])
+    assert np.all(results[0].measurements['q'] == [[1], [1]])
+    assert np.all(results[1].measurements['q'] == [[0], [1]])
+    assert np.all(results[2].measurements['q'] == [[0], [0]])
 
     results = cirq.sample_sweep(
         circuit,
@@ -126,9 +126,9 @@ def test_sample_sweep_seed():
         repetitions=2,
         seed=np.random.RandomState(1234),
     )
-    assert np.all(results[0].measurements['q'] == [[False], [True]])
-    assert np.all(results[1].measurements['q'] == [[False], [True]])
-    assert np.all(results[2].measurements['q'] == [[True], [False]])
+    assert np.all(results[0].measurements['q'] == [[1], [1]])
+    assert np.all(results[1].measurements['q'] == [[0], [1]])
+    assert np.all(results[2].measurements['q'] == [[0], [0]])
 
 
 def test_final_state_vector_different_program_types():
@@ -363,14 +363,14 @@ def test_final_density_matrix_seed_with_collapsing():
         cirq.final_density_matrix(
             [cirq.X(a) ** 0.5, cirq.measure(a)], seed=123, ignore_measurement_results=False
         ),
-        [[0, 0], [0, 1]],
+        [[1, 0], [0, 0]],
         atol=1e-4,
     )
     np.testing.assert_allclose(
         cirq.final_density_matrix(
-            [cirq.X(a) ** 0.5, cirq.measure(a)], seed=124, ignore_measurement_results=False
+            [cirq.X(a) ** 0.5, cirq.measure(a)], seed=125, ignore_measurement_results=False
         ),
-        [[1, 0], [0, 0]],
+        [[0, 0], [0, 1]],
         atol=1e-4,
     )
 
