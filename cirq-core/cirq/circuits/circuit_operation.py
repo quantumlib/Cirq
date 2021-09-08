@@ -192,7 +192,7 @@ class CircuitOperation(ops.Operation):
         circuit_keys = [
             value.MeasurementKey.parse_serialized(key_str)
             for key_str in protocols.control_key_names(self.circuit)
-            # We don't include control keys just used internally.
+            # We don't expose control keys just used internally.
             if key_str not in self.circuit.all_measurement_key_names()
         ]
         return {
