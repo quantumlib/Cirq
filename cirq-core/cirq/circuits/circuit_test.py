@@ -253,6 +253,47 @@ def test_append_control_key():
     assert len(c) == 1
 
 
+def test_control_key_diagram():
+    q0, q1 = cirq.LineQubit.range(2)
+
+    class ControlOp(cirq.Operation):
+        def __init__(self, qubits, keys):
+            self._keys = keys
+            self._qubits = qubits
+
+        def with_qubits(self, *new_qids):
+            pass  # coverage: ignore
+
+        @property
+        def qubits(self):
+            return self._qubits
+
+        def _control_key_names_(self):
+            return self._keys
+
+        def __repr__(self):
+            return "X"
+
+        def _circuit_diagram_info_(
+                self, args: 'cirq.CircuitDiagramInfoArgs'
+        ) -> 'cirq.CircuitDiagramInfo':
+            symbols = ['X'] * len(self._qubits) + ['^'] * len(self._keys)
+            return cirq.CircuitDiagramInfo(symbols)
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q0, key='a'))
+    c.append(ControlOp(qubits=[q1], keys=['a']))
+    assert len(c) == 2
+
+    cirq.testing.assert_has_diagram(c, """
+0: ───M───────
+      ║
+1: ───╫───X───
+      ║   ║
+a: ═══@═══^═══
+""", use_unicode_characters=True)
+
+
 def test_append_multiple():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
