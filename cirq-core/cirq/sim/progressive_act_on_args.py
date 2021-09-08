@@ -141,7 +141,9 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
                 ch, self.prng, self.log_of_measurement_results, self.qubits
             )
         if isinstance(self.args, sim.ActOnStabilizerCHFormArgs):
-            if protocols.has_stabilizer_effect(action) and (protocols.has_unitary(action) or protocols.is_measurement(action)):
+            if protocols.has_stabilizer_effect(action) and (
+                protocols.has_unitary(action) or protocols.is_measurement(action)
+            ):
                 protocols.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
                 return True
             sv = self.args.state.state_vector().reshape([q.dimension for q in self.qubits])

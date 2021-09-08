@@ -208,7 +208,9 @@ class DensityMatrixSimulator(
             args = sim.PureActOnArgs(initial_state, qubits, logs)
             args1: sim.ProgressiveActOnArgs[
                 'cirq.ActOnDensityMatrixArgs'
-            ] = sim.ProgressiveActOnArgs(args=args, prng=self._prng, qubits=qubits, log_of_measurement_results=logs)
+            ] = sim.ProgressiveActOnArgs(
+                args=args, prng=self._prng, qubits=qubits, log_of_measurement_results=logs
+            )
             return args1
 
         qid_shape = protocols.qid_shape(qubits)
