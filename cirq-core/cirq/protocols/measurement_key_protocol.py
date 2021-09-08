@@ -156,7 +156,7 @@ def measurement_keys(val: Any, *, allow_decompose: bool = True):
 
 @deprecated_parameter(
     deadline='v0.14',
-    fix='Remove the parameter.',
+    fix='This protocol no longer uses decomposition, so allow_decompose should be removed',
     func_name='measurement_key_names',
     parameter_desc='allow_decompose',
     match=lambda args, kwargs: 'allow_decompose' in kwargs,
@@ -191,7 +191,7 @@ def _is_measurement_from_magic_method(val: Any) -> Optional[bool]:
 
 @deprecated_parameter(
     deadline='v0.14',
-    fix='Remove the parameter.',
+    fix='This protocol no longer uses decomposition, so allow_decompose should be removed',
     func_name='is_measurement',
     parameter_desc='allow_decompose',
     match=lambda args, kwargs: 'allow_decompose' in kwargs,
