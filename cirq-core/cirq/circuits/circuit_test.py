@@ -83,6 +83,21 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
+class ControlOp(cirq.Operation):
+    def __init__(self, keys):
+        self._keys = keys
+
+    def with_qubits(self, *new_qids):
+        pass  # coverage: ignore
+
+    @property
+    def qubits(self):
+        return []  # coverage: ignore
+
+    def _control_key_names_(self):
+        return self._keys
+
+
 def test_alignment():
     assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
     assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
@@ -227,20 +242,6 @@ def test_append_single():
 def test_append_control_key():
     q = cirq.LineQubit(0)
 
-    class ControlOp(cirq.Operation):
-        def __init__(self, keys):
-            self._keys = keys
-
-        def with_qubits(self, *new_qids):
-            pass  # coverage: ignore
-
-        @property
-        def qubits(self):
-            return []  # coverage: ignore
-
-        def _control_key_names_(self):
-            return self._keys
-
     c = cirq.Circuit()
     c.append(cirq.measure(q, key='a'))
     c.append(ControlOp(['a']))
@@ -251,6 +252,51 @@ def test_append_control_key():
     c.append(ControlOp(['b']))
     c.append(ControlOp(['b']))
     assert len(c) == 1
+
+
+def test_append_control_key_subcircuit():
+    q = cirq.LineQubit(0)
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q, key='a'))
+    c.append(cirq.CircuitOperation(cirq.Circuit(ControlOp(['a'])).freeze()))
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q, key='a'))
+    c.append(cirq.CircuitOperation(cirq.Circuit(ControlOp(['b'])).freeze()))
+    assert len(c) == 1
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q, key='a'))
+    c.append(
+        cirq.CircuitOperation(cirq.Circuit(ControlOp(['b'])).freeze()).with_measurement_key_mapping(
+            {'b': 'a'}
+        )
+    )
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(cirq.CircuitOperation(cirq.Circuit(cirq.measure(q, key='a')).freeze()))
+    c.append(
+        cirq.CircuitOperation(cirq.Circuit(ControlOp(['b'])).freeze()).with_measurement_key_mapping(
+            {'b': 'a'}
+        )
+    )
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(
+        cirq.CircuitOperation(
+            cirq.Circuit(cirq.measure(q, key='a')).freeze()
+        ).with_measurement_key_mapping({'a': 'c'})
+    )
+    c.append(
+        cirq.CircuitOperation(cirq.Circuit(ControlOp(['b'])).freeze()).with_measurement_key_mapping(
+            {'b': 'c'}
+        )
+    )
+    assert len(c) == 2
 
 
 def test_append_multiple():

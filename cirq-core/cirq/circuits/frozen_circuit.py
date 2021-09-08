@@ -75,6 +75,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._all_operations: Optional[Tuple[ops.Operation, ...]] = None
         self._has_measurements: Optional[bool] = None
         self._all_measurement_key_names: Optional[AbstractSet[str]] = None
+        self._control_key_names: Optional[AbstractSet[str]] = None
         self._are_all_measurements_terminal: Optional[bool] = None
 
     @property
@@ -134,6 +135,11 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         if self._all_measurement_key_names is None:
             self._all_measurement_key_names = super().all_measurement_key_names()
         return self._all_measurement_key_names
+
+    def _control_key_names_(self) -> AbstractSet[str]:
+        if self._control_key_names is None:
+            self._control_key_names = super()._control_key_names_()
+        return self._control_key_names
 
     def are_all_measurements_terminal(self) -> bool:
         if self._are_all_measurements_terminal is None:
