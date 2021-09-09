@@ -25,6 +25,8 @@ from cirq.contrib.quirk.quirk_gate import (
     single_qubit_matrix_gate,
 )
 
+from pyQuirk import Quirk
+
 
 def _try_convert_to_quirk_gate(op: ops.Operation, prefer_unknown_gate_to_failure: bool) -> QuirkOp:
     quirk_gate = known_quirk_op_for_operation(op)
@@ -71,6 +73,7 @@ def circuit_to_quirk_url(
             bar).
 
     Returns:
+        A URL to open the given circuit in Quirk.
 
     """
     circuit = circuit.copy()
@@ -101,3 +104,28 @@ def circuit_to_quirk_url(
     else:
         suffix = circuit_json
     return f'http://algassert.com/quirk#circuit={suffix}'
+
+
+def circuit_to_quirk(circuit: circuits.Circuit):
+    """Returns a Quirk Editor embed for the given circuit.
+
+    Args:
+        circuit: The circuit to open in Quirk.
+
+    Returns:
+        A Quirk embed with the given circuit.
+    """
+    circuit_qasm = circuit.to_qasm(header="")
+
+    # Format the qasm string to fit the Quirk's requirements
+    quirk_qasm = "\n".join(
+        [
+            line.rstrip()
+            for line in circuit_qasm.splitlines()
+            if (line.strip() and not line.startswith('//'))
+            # TODO: some keywords cause an Error. (eg: `reset`)
+        ]
+    )
+
+    # TODO: Return a Quirk embed instead of the QASM string
+    return quirk_qasm
