@@ -205,7 +205,7 @@ class DensityMatrixSimulator(
             and all(q.dimension == 2 for q in qubits)
             and self._use_progressive_state_representations
         ):
-            args = sim.PureActOnArgs(initial_state, qubits, logs)
+            args = sim.PureActOnArgs(initial_state, self._prng, qubits, logs)
             args1: sim.ProgressiveActOnArgs[
                 'cirq.ActOnDensityMatrixArgs'
             ] = sim.ProgressiveActOnArgs(

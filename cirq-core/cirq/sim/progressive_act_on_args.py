@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import enum
 from typing import List, Sequence, Union, TypeVar, Generic, TYPE_CHECKING, Any, Dict
 
 import numpy as np
@@ -22,8 +23,9 @@ if TYPE_CHECKING:
 
 
 class PureActOnArgs(sim.ActOnArgs):
-    def __init__(self, initial_state: Union[int, Sequence[bool]], qubits, logs):
+    def __init__(self, initial_state: Union[int, Sequence[bool]], prng, qubits, logs):
         super().__init__(
+            prng=prng,
             qubits=qubits,
             log_of_measurement_results=logs,
         )
@@ -101,13 +103,58 @@ class PureActOnArgs(sim.ActOnArgs):
 TActOnArgs = TypeVar('TActOnArgs', bound='cirq.ActOnArgs')
 
 
+class Progression(enum.IntEnum):
+    PURE = 1
+    CH_FORM = 2
+    STATE_VECTOR = 3
+    DENSITY_MATRIX = 4
+
+
+def _upgrade(args: sim.ActOnArgs, to: Progression) -> sim.ActOnArgs:
+    if isinstance(args, PureActOnArgs) and to > Progression.PURE:
+        ch = sim.StabilizerStateChForm(len(args.qubits), args.as_int())
+        args = sim.ActOnStabilizerCHFormArgs(
+            ch, args.prng, args.log_of_measurement_results, args.qubits
+        )
+    if isinstance(args, sim.ActOnStabilizerCHFormArgs) and to > Progression.CH_FORM:
+        sv = args.state.state_vector().reshape([q.dimension for q in args.qubits])
+        args = sim.ActOnStateVectorArgs(
+            sv, np.empty_like(sv), args.prng, args.log_of_measurement_results, args.qubits
+        )
+    if isinstance(args, sim.ActOnStateVectorArgs) and to > Progression.STATE_VECTOR:
+        dm = qis.density_matrix_from_state_vector(args.target_tensor).reshape(
+            [q.dimension for q in args.qubits] * 2
+        )
+        args = sim.ActOnDensityMatrixArgs(
+            dm,
+            [np.empty_like(dm) for _ in range(3)],
+            tuple(q.dimension for q in args.qubits),
+            args.prng,
+            args.log_of_measurement_results,
+            args.qubits,
+        )
+    return args
+
+
+def _progression(args: sim.ActOnArgs) -> Progression:
+    if isinstance(args, PureActOnArgs):
+        return Progression.PURE
+    if isinstance(args, sim.ActOnStabilizerCHFormArgs):
+        return Progression.CH_FORM
+    if isinstance(args, sim.ActOnStateVectorArgs):
+        return Progression.STATE_VECTOR
+    if isinstance(args, sim.ActOnDensityMatrixArgs):
+        return Progression.DENSITY_MATRIX
+    raise ValueError(f'Args are of unexpected type {type(args)}')
+
+
 class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
     def __init__(
         self,
         args: 'cirq.ActOnArgs',
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
-        qubits: Sequence['cirq.Qid'] = None,
+        qubits: Sequence['cirq.Qid'],
     ):
         super().__init__(
             prng=prng,
@@ -118,7 +165,6 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
         self._run_progressively = isinstance(self.args, PureActOnArgs)
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        print(self.args)
         return self.args._perform_measurement(qubits)
 
     def _on_copy(self, target):
@@ -136,35 +182,19 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
         if isinstance(self.args, PureActOnArgs):
             if self.args._act_on_fallback_(action, qubits, allow_decompose=allow_decompose):
                 return True
-            ch = sim.StabilizerStateChForm(len(self.args.qubits), self.args.as_int())
-            self.args = sim.ActOnStabilizerCHFormArgs(
-                ch, self.prng, self.log_of_measurement_results, self.qubits
-            )
+            self.args = _upgrade(self.args, Progression.CH_FORM)
         if isinstance(self.args, sim.ActOnStabilizerCHFormArgs):
             if protocols.has_stabilizer_effect(action) and (
                 protocols.has_unitary(action) or protocols.is_measurement(action)
             ):
                 protocols.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
                 return True
-            sv = self.args.state.state_vector().reshape([q.dimension for q in self.qubits])
-            self.args = sim.ActOnStateVectorArgs(
-                sv, np.empty_like(sv), self.prng, self.log_of_measurement_results, self.qubits
-            )
+            self.args = _upgrade(self.args, Progression.STATE_VECTOR)
         if isinstance(self.args, sim.ActOnStateVectorArgs):
             if protocols.has_unitary(action) or protocols.is_measurement(action):
                 protocols.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
                 return True
-            dm = qis.density_matrix_from_state_vector(self.args.target_tensor).reshape(
-                self.args.target_tensor.shape * 2
-            )
-            self.args = sim.ActOnDensityMatrixArgs(
-                dm,
-                [np.empty_like(dm) for _ in range(3)],
-                tuple(q.dimension for q in self.qubits),
-                self.prng,
-                self.log_of_measurement_results,
-                self.qubits,
-            )
+            self.args = _upgrade(self.args, Progression.DENSITY_MATRIX)
         if isinstance(self.args, sim.ActOnDensityMatrixArgs):
             protocols.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
             return True
@@ -180,64 +210,11 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
         target.args = self.args.rename(q1, q2)
 
     def _on_kronecker_product(self, other, target):
-        self_args = self.args
-        other_args = other.args
-        if isinstance(self_args, PureActOnArgs) and not isinstance(other_args, PureActOnArgs):
-            ch = sim.StabilizerStateChForm(len(self_args.qubits), self_args.as_int())
-            self_args = sim.ActOnStabilizerCHFormArgs(
-                ch, self.prng, self.log_of_measurement_results, self.qubits
-            )
-        if not isinstance(self_args, PureActOnArgs) and isinstance(other_args, PureActOnArgs):
-            ch = sim.StabilizerStateChForm(len(other_args.qubits), other_args.as_int())
-            other_args = sim.ActOnStabilizerCHFormArgs(
-                ch, other.prng, other.log_of_measurement_results, other.qubits
-            )
-        if isinstance(self_args, sim.ActOnStabilizerCHFormArgs) and not isinstance(
-            other_args, sim.ActOnStabilizerCHFormArgs
-        ):
-            sv = self_args.state.state_vector().reshape([q.dimension for q in self.qubits])
-            self_args = sim.ActOnStateVectorArgs(
-                sv, np.empty_like(sv), self.prng, self.log_of_measurement_results, self.qubits
-            )
-        if not isinstance(self_args, sim.ActOnStabilizerCHFormArgs) and isinstance(
-            other_args, sim.ActOnStabilizerCHFormArgs
-        ):
-            sv = other_args.state.state_vector().reshape([q.dimension for q in other.qubits])
-            other_args = sim.ActOnStateVectorArgs(
-                sv,
-                np.empty_like(sv),
-                other.prng,
-                other.log_of_measurement_results,
-                other.qubits,
-            )
-        if isinstance(self_args, sim.ActOnStateVectorArgs) and not isinstance(
-            other_args, sim.ActOnStateVectorArgs
-        ):
-            dm = qis.density_matrix_from_state_vector(self_args.target_tensor).reshape(
-                [q.dimension for q in self.qubits] * 2
-            )
-            self_args = sim.ActOnDensityMatrixArgs(
-                dm,
-                [np.empty_like(dm) for _ in range(3)],
-                tuple(q.dimension for q in self.qubits),
-                self.prng,
-                self.log_of_measurement_results,
-                self.qubits,
-            )
-        if not isinstance(self_args, sim.ActOnStateVectorArgs) and isinstance(
-            other_args, sim.ActOnStateVectorArgs
-        ):
-            dm = qis.density_matrix_from_state_vector(other_args.target_tensor).reshape(
-                [q.dimension for q in other.qubits] * 2
-            )
-            other_args = sim.ActOnDensityMatrixArgs(
-                dm,
-                [np.empty_like(dm) for _ in range(3)],
-                tuple(q.dimension for q in other.qubits),
-                other.prng,
-                other.log_of_measurement_results,
-                other.qubits,
-            )
+        self_progression = _progression(self.args)
+        other_progression = _progression(other.args)
+        progression = max(self_progression, other_progression)
+        self_args = _upgrade(self.args, progression)
+        other_args = _upgrade(other.args, progression)
         target.args = self_args.kronecker_product(other_args, inplace=self is target)
 
     def can_factor(self, q):
@@ -248,34 +225,12 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
         if self._run_progressively and len(qubits) == 1:
             state = [x != 0 for x in extracted.args._perform_measurement(qubits)]
             extracted.args = PureActOnArgs(
-                state, extracted.args.qubits, extracted.args.log_of_measurement_results
+                state, self.prng, extracted.args.qubits, extracted.args.log_of_measurement_results
             )
 
     def _on_transpose_to_qubit_order(self, qubits: Sequence['cirq.Qid'], target):
         target.args = self.args.transpose_to_qubit_order(qubits)
 
     def create_merged_state(self):
-        args = self.args
-        if isinstance(args, PureActOnArgs):
-            ch = sim.StabilizerStateChForm(len(args.qubits), args.as_int())
-            args = sim.ActOnStabilizerCHFormArgs(
-                ch, self.prng, self.log_of_measurement_results, self.qubits
-            )
-        if isinstance(args, sim.ActOnStabilizerCHFormArgs):
-            sv = args.state.state_vector()
-            args = sim.ActOnStateVectorArgs(
-                sv, np.empty_like(sv), self.prng, self.log_of_measurement_results, self.qubits
-            )
-        if isinstance(args, sim.ActOnStateVectorArgs):
-            dm = qis.density_matrix_from_state_vector(args.target_tensor).reshape(
-                [q.dimension for q in self.qubits] * 2
-            )
-            args = sim.ActOnDensityMatrixArgs(
-                dm,
-                [np.empty_like(dm) for _ in range(3)],
-                tuple(q.dimension for q in self.qubits),
-                self.prng,
-                self.log_of_measurement_results,
-                self.qubits,
-            )
+        args = _upgrade(self.args, Progression.DENSITY_MATRIX)
         return args.create_merged_state()
