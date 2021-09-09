@@ -15,13 +15,12 @@ def get_grid_moments(
     columns, vertical from even rows, vertical from odd rows)
 
     Args:
-        graph: A NetworkX graph (probably generated from
+        problem_graph: A NetworkX graph (probably generated from
             `nx.grid_2d_graph(width, height)` whose nodes are (row, col)
             indices and whose edges optionally have a "weight" property which
             will be provided to the `exponent` argument of `two_qubit_gate`.
         two_qubit_gate: The two qubit gate to use. Should have `exponent`
             and `global_shift` arguments.
-
     """
     row_start = min(r for r, c in problem_graph.nodes)
     row_end = max(r for r, c in problem_graph.nodes) + 1

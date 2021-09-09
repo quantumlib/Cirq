@@ -199,6 +199,8 @@ def _kak_decomposition_to_operations(
     )
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 def _is_trivial_angle(rad: float, atol: float) -> bool:
     """Tests if a circuit for an operator exp(i*rad*XX) (or YY, or ZZ) can
     be performed with a whole CZ.
@@ -209,6 +211,7 @@ def _is_trivial_angle(rad: float, atol: float) -> bool:
     return abs(rad) < atol or abs(abs(rad) - np.pi / 4) < atol
 
 
+# pylint: enable=missing-param-doc
 def _parity_interaction(
     q0: 'cirq.Qid', q1: 'cirq.Qid', rads: float, atol: float, gate: Optional[ops.Gate] = None
 ):
