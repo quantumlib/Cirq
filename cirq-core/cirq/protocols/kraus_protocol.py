@@ -182,15 +182,27 @@ def kraus(
     else:
         operation = val
 
-    kraus_list = list(map(lambda x: kraus(x, default), decompose(operation)))
+    decomposed = decompose(operation)
+    if decomposed != [operation]:
+        kraus_list = list(map(lambda x: kraus(x, default), decomposed))
 
-    if all([x != default for x in kraus_list]):
-        kraus_result = kraus_list[0]
+        def checkEquality(x, y):
+            if type(x) != type(y):
+                return False
+            if type(x) not in [list, tuple, np.ndarray]:
+                return x == y
+            if type(x) == np.ndarray:
+                return x.shape == y.shape and np.all(x == y)
+            if len(x) != len(y):
+                return False
+            return all([checkEquality(a, b) for a, b in zip(x, y)])
 
-        for i in range(1, len(kraus_list)):
-            kraus_result = [op_1 * op_2 for op_1 in kraus_result for op_2 in kraus_list[i]]
+        if not any([checkEquality(x, default) for x in kraus_list]):
+            kraus_result = kraus_list[0]
 
-        if len(kraus_result) != 0:
+            for i in range(1, len(kraus_list)):
+                kraus_result = [op_1 * op_2 for op_1 in kraus_result for op_2 in kraus_list[i]]
+
             return tuple(kraus_result)
 
     if default is not RaiseTypeErrorIfNotProvided:
