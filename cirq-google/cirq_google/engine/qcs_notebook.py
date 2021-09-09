@@ -36,8 +36,8 @@ class QCSObjectsForNotebook:
     signed_in: bool
 
     @property
-    def is_sampler(self):
-        return self.sampler is QuantumEngineSampler
+    def is_simulator(self):
+        return isinstance(self.sampler, PhasedFSimEngineSimulator)
 
 
 def get_qcs_objects_for_notebook(
