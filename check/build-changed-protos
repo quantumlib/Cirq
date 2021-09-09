@@ -64,7 +64,7 @@ dev_tools/build-protos.sh
 uncommitted=$(git status --porcelain 2>/dev/null | grep -E "^?? cirq-google" | cut -d " " -f 3)
 
 if [[ ! -z "$uncommitted" ]]; then
-    echo -e "\033[31mERROR: Uncommitted generated files found! Please generate and commit these files:\033[0m"
+    echo -e "\033[31mERROR: Uncommitted generated files found! Please generate and commit these files using dev_tools/build-protos.sh:\033[0m"
     for generated in $uncommitted
     do
         echo -e "\033[31m   ${generated}\033[0m"
