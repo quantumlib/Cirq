@@ -114,6 +114,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ParamResolver': cirq.ParamResolver,
         'ParallelGateOperation': cirq.ParallelGateOperation,
         'ParallelGate': cirq.ParallelGate,
+        'PauliMeasurementGate': cirq.PauliMeasurementGate,
         'PauliString': cirq.PauliString,
         'PhaseDampingChannel': cirq.PhaseDampingChannel,
         'PhaseFlipChannel': cirq.PhaseFlipChannel,
