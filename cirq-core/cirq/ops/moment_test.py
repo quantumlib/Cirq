@@ -645,7 +645,9 @@ def test_single_gate_gateless_ops():
         def with_qubits(self):
             return NullOperation()
 
-    assert cirq.Moment([NullOperation(), NullOperation()]).get_single_gate_from_moment() is None
+    op1 = NullOperation()
+    op2 = op1.with_qubits()
+    assert cirq.Moment([op1, op2]).get_single_gate_from_moment() is None
 
 
 def test_single_gate_same_gate_different_qubits():
