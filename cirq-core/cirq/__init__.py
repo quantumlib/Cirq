@@ -263,7 +263,7 @@ from cirq.ops import (
     PhasedXPowGate,
     PhasedXZGate,
     PhaseFlipChannel,
-    PrepareState,
+    StatePreparationGate,
     ProjectorString,
     ProjectorSum,
     RandomGateChannel,

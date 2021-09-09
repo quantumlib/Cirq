@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@ import cirq
 import pytest
 
 
-def test_state_prep_gate():
-    states = np.array(
+@pytest.mark.parametrize(
+    'target_state',
+    np.array(
         [
             [1, 0, 0, 0],
             [1, 0, 0, 1],
@@ -31,26 +32,27 @@ def test_state_prep_gate():
             [1 + 1j, 0, 0, 0],
             [1 + 1j, 0, 1 + 1j, 0],
         ]
+    ),
+)
+def test_state_prep_gate(target_state):
+    gate = cirq.StatePreparationGate(target_state)
+    qubits = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        [
+            cirq.H(qubits[0]),
+            cirq.CNOT(qubits[0], qubits[1]),
+            gate(qubits[0], qubits[1]),
+        ]
     )
-    for state in states:
-        gate = cirq.PrepareState(state)
-        qubits = cirq.LineQubit.range(2)
-        circuit = cirq.Circuit(
-            [
-                cirq.H(qubits[0]),
-                cirq.CNOT(qubits[0], qubits[1]),
-                gate(qubits[0], qubits[1]),
-            ]
-        )
-        simulator = cirq.Simulator()
-        result = simulator.simulate(circuit, qubit_order=qubits).final_state_vector
-        assert np.allclose(result, state / np.linalg.norm(state))
+    simulator = cirq.Simulator()
+    result = simulator.simulate(circuit, qubit_order=qubits).final_state_vector
+    assert np.allclose(result, target_state / np.linalg.norm(target_state))
 
 
 def test_state_prep_gate_printing():
     circuit = cirq.Circuit()
     qubits = cirq.LineQubit.range(2)
-    gate = cirq.PrepareState(np.array([1, 0, 0, 1]) / np.sqrt(2))
+    gate = cirq.StatePreparationGate(np.array([1, 0, 0, 1]) / np.sqrt(2))
     circuit.append(cirq.H(qubits[0]))
     circuit.append(cirq.CNOT(qubits[0], qubits[1]))
     circuit.append(gate(qubits[0], qubits[1]))
@@ -64,16 +66,37 @@ def test_state_prep_gate_printing():
     )
 
 
+@pytest.mark.parametrize('name', ['Prep', 'S'])
+def test_state_prep_gate_printing_with_name(name):
+    circuit = cirq.Circuit()
+    qubits = cirq.LineQubit.range(2)
+    gate = cirq.StatePreparationGate(np.array([1, 0, 0, 1]) / np.sqrt(2), name=name)
+    circuit.append(cirq.H(qubits[0]))
+    circuit.append(cirq.CNOT(qubits[0], qubits[1]))
+    circuit.append(gate(qubits[0], qubits[1]))
+    cirq.testing.assert_has_diagram(
+        circuit,
+        f"""
+0: ───H───@───{name}[1]───
+          │   │
+1: ───────X───{name}[2]───
+""",
+    )
+
+
 def test_gate_params():
     state = np.array([1, 0, 0, 0], dtype=np.complex64)
-    gate = cirq.PrepareState(state)
+    gate = cirq.StatePreparationGate(state)
     assert gate.num_qubits() == 2
     assert not gate._has_unitary_()
-    assert repr(gate) == 'cirq.PrepareState(np.array([(1+0j), 0j, 0j, 0j], dtype=np.complex128))'
+    assert (
+        repr(gate)
+        == 'cirq.StatePreparationGate(np.array([(1+0j), 0j, 0j, 0j], dtype=np.complex128))'
+    )
 
 
 def test_gate_error_handling():
     with pytest.raises(ValueError):
-        cirq.PrepareState(np.eye(2))
+        cirq.StatePreparationGate(np.eye(2))
     with pytest.raises(ValueError):
-        cirq.PrepareState(np.ones(shape=5))
+        cirq.StatePreparationGate(np.ones(shape=5))

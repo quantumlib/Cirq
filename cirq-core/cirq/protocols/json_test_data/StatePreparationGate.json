@@ -1,5 +1,5 @@
 {
-  "cirq_type": "PrepareState",
+  "cirq_type": "StatePreparationGate",
   "target_state": [
     {
       "cirq_type": "complex",

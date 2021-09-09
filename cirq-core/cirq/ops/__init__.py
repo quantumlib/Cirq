@@ -294,4 +294,4 @@ from cirq.ops.wait_gate import (
     WaitGate,
 )
 
-from cirq.ops.state_preparation_gate import PrepareState
+from cirq.ops.state_preparation_gate import StatePreparationGate

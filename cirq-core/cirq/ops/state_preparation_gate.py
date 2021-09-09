@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Quantum gates defined by a matrix."""
+"""Quantum gates to prepare a given target state."""
 
 from typing import Any, Sequence, Dict, List, Tuple, TYPE_CHECKING
 
@@ -28,19 +28,19 @@ if TYPE_CHECKING:
     import cirq
 
 
-class PrepareState(raw_types.Gate):
+class StatePreparationGate(raw_types.Gate):
     """A unitary qubit gate which resets all qubits to the |0> state
     and then prepares the target state."""
 
     def __init__(self, target_state: np.ndarray, name: str = "StatePreparation") -> None:
-        """Initializes a matrix gate.
+        """Initializes a State Preparation gate.
 
         Args:
             target_state: The state vector that this gate should prepare.
             name: the name of the gate
 
         Raises:
-            ValueError: if the array is not 1D, or does not have 2**n elements for some n.
+            ValueError: if the array is not 1D, or does not have 2**n elements for some integer n.
         """
         if len(target_state.shape) != 1:
             raise ValueError('`target_state` must be a 1d numpy array.')
@@ -49,20 +49,10 @@ class PrepareState(raw_types.Gate):
         if 2 ** n != target_state.shape[0]:
             raise ValueError(f'Matrix width ({target_state.shape[0]}) is not a power of 2')
 
-        self._state = target_state.astype(np.complex) / np.linalg.norm(target_state)
+        self._state = target_state.astype(np.complex128) / np.linalg.norm(target_state)
         self._num_qubits = n
         self._name = name
         self._qid_shape = (2,) * n
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        """Converts the gate object into a serializable dictionary"""
-        return {
-            'cirq_type': self.__class__.__name__,
-            'target_state': self._state.tolist(),
-        }
-
-    def _num_qubits_(self):
-        return self._num_qubits
 
     @staticmethod
     def _has_unitary_() -> bool:
@@ -71,15 +61,25 @@ class PrepareState(raw_types.Gate):
         it involves measurement."""
         return False
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Converts the gate object into a serializable dictionary"""
+        return {
+            'cirq_type': self.__class__.__name__,
+            'target_state': self._state.tolist(),
+        }
+
     @classmethod
-    def _from_json_dict_(cls, target_state, **_kwargs):
+    def _from_json_dict_(cls, target_state, **kwargs):
         """Recreates the gate object from it's serialized form
 
         Args:
             target_state: the state to prepare using this gate
-            _kwargs: other keyword arguments, ignored
+            kwargs: other keyword arguments, ignored
         """
         return cls(target_state=np.array(target_state))
+
+    def _num_qubits_(self):
+        return self._num_qubits
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
@@ -96,7 +96,7 @@ class PrepareState(raw_types.Gate):
         return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
     def _get_unitary_transform(self):
-        initial_basis = np.eye(2 ** self._num_qubits, dtype=np.complex)
+        initial_basis = np.eye(2 ** self._num_qubits, dtype=np.complex128)
         final_basis = [self._state]
         for vector in initial_basis:
             for new_basis_vector in final_basis:
@@ -115,7 +115,7 @@ class PrepareState(raw_types.Gate):
         return decomposed_circ
 
     def __repr__(self) -> str:
-        return f'cirq.PrepareState({proper_repr(self._state)})'
+        return f'cirq.StatePreparationGate({proper_repr(self._state)})'
 
     @property
     def state(self):
