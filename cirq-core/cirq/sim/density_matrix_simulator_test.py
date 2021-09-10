@@ -1567,3 +1567,28 @@ def test_large_untangled_okay():
     assert len(result.measurements) == 59
     assert len(result.measurements['0']) == 1000
     assert (result.measurements['0'] == np.full(1000, 1)).all()
+
+
+def test_large_entangled_pure_okay():
+    circuit = cirq.Circuit()
+    qubits = 59
+    samples = 1000
+    for _ in range(2):
+        for i in range(qubits):
+            circuit.append(cirq.X(cirq.LineQubit(i)))
+            circuit.append(cirq.CX(cirq.LineQubit(i), cirq.LineQubit((i + 1) % qubits)))
+
+    # Validate a simulation run
+    result = cirq.DensityMatrixSimulator().simulate(circuit)
+    assert set(result._final_step_result._qubits) == set(cirq.LineQubit.range(qubits))
+    # _ = result.final_density_matrix hangs (as expected)
+
+    # Validate a trial run and sampling
+    for i in range(qubits):
+        circuit.append(cirq.reset(cirq.LineQubit(i)))
+        circuit.append(cirq.X(cirq.LineQubit(i)))
+        circuit.append(cirq.measure(cirq.LineQubit(i)))
+    result = cirq.DensityMatrixSimulator().run(circuit, repetitions=samples)
+    assert len(result.measurements) == qubits
+    assert len(result.measurements['0']) == samples
+    assert (result.measurements['0'] == np.full(samples, 1)).all()

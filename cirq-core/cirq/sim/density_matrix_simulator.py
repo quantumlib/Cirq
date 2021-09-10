@@ -198,20 +198,15 @@ class DensityMatrixSimulator(
         if isinstance(initial_state, act_on_density_matrix_args.ActOnDensityMatrixArgs):
             return initial_state
 
-        if initial_state is None:
-            initial_state = 0
         if (
             isinstance(initial_state, int)
             and all(q.dimension == 2 for q in qubits)
             and self._use_progressive_state_representations
         ):
-            args = sim.PureActOnArgs(initial_state, self._prng, qubits, logs)
-            args1: sim.ProgressiveActOnArgs[
+            args: sim.ProgressiveActOnArgs[
                 'cirq.ActOnDensityMatrixArgs'
-            ] = sim.ProgressiveActOnArgs(
-                args=args, prng=self._prng, qubits=qubits, log_of_measurement_results=logs
-            )
-            return args1
+            ] = sim.ProgressiveActOnArgs(sim.PureActOnArgs(initial_state, self._prng, qubits, logs))
+            return args
 
         qid_shape = protocols.qid_shape(qubits)
         initial_matrix = qis.to_valid_density_matrix(
@@ -221,18 +216,17 @@ class DensityMatrixSimulator(
             initial_matrix = initial_matrix.copy()
 
         tensor = initial_matrix.reshape(qid_shape * 2)
-        args2 = act_on_density_matrix_args.ActOnDensityMatrixArgs(
-            target_tensor=tensor,
-            available_buffer=[np.empty_like(tensor) for _ in range(3)],
-            qubits=qubits,
-            qid_shape=qid_shape,
-            prng=self._prng,
-            log_of_measurement_results=logs,
+        args1: sim.ProgressiveActOnArgs['cirq.ActOnDensityMatrixArgs'] = sim.ProgressiveActOnArgs(
+            act_on_density_matrix_args.ActOnDensityMatrixArgs(
+                target_tensor=tensor,
+                available_buffer=[np.empty_like(tensor) for _ in range(3)],
+                qubits=qubits,
+                qid_shape=qid_shape,
+                prng=self._prng,
+                log_of_measurement_results=logs,
+            )
         )
-        args3: sim.ProgressiveActOnArgs['cirq.ActOnDensityMatrixArgs'] = sim.ProgressiveActOnArgs(
-            args=args2, prng=self._prng, qubits=qubits, log_of_measurement_results=logs
-        )
-        return args3
+        return args1
 
     # pylint: enable=missing-param-doc
     def _can_be_in_run_prefix(self, val: Any):

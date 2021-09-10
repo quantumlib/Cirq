@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import enum
-from typing import List, Sequence, Union, TypeVar, Generic, TYPE_CHECKING, Any, Dict
+from typing import List, Sequence, Union, TypeVar, Generic, TYPE_CHECKING
 
 import numpy as np
 
@@ -37,9 +37,6 @@ class PureActOnArgs(sim.ActOnArgs):
 
     def as_int(self):
         return sum(1 << i for i, v in enumerate(reversed(self.b)) if v)
-
-    def state_vector(self):
-        return qis.to_valid_state_vector(self.as_int(), len(self.qubits))
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [1 if self.b[i] else 0 for i in self.get_axes(qubits)]
@@ -79,7 +76,7 @@ class PureActOnArgs(sim.ActOnArgs):
         return np.array(measurements, dtype=int)
 
     def can_factor(self, qubits: Sequence['cirq.Qid']):
-        return False
+        return True
 
     def _on_factor(
         self,
@@ -143,26 +140,22 @@ def _progression(args: sim.ActOnArgs) -> Progression:
         return Progression.CH_FORM
     if isinstance(args, sim.ActOnStateVectorArgs):
         return Progression.STATE_VECTOR
-    if isinstance(args, sim.ActOnDensityMatrixArgs):
-        return Progression.DENSITY_MATRIX
-    raise ValueError(f'Args are of unexpected type {type(args)}')
+    return Progression.DENSITY_MATRIX
 
 
 class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
     def __init__(
         self,
         args: 'cirq.ActOnArgs',
-        prng: np.random.RandomState,
-        log_of_measurement_results: Dict[str, Any],
-        qubits: Sequence['cirq.Qid'],
     ):
+        initial_progression = _progression(args)
         super().__init__(
-            prng=prng,
-            qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
+            prng=args.prng,
+            qubits=args.qubits,
+            log_of_measurement_results=args.log_of_measurement_results,
         )
         self.args = args
-        self._run_progressively = isinstance(self.args, PureActOnArgs)
+        self._run_progressively = initial_progression == Progression.PURE
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return self.args._perform_measurement(qubits)
@@ -195,10 +188,8 @@ class ProgressiveActOnArgs(Generic[TActOnArgs], sim.ActOnArgs[TActOnArgs]):
                 protocols.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
                 return True
             self.args = _upgrade(self.args, Progression.DENSITY_MATRIX)
-        if isinstance(self.args, sim.ActOnDensityMatrixArgs):
-            protocols.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
-            return True
-        return False
+        protocols.act_on(action, self.args, qubits, allow_decompose=allow_decompose)
+        return True
 
     def sample(self, qubits, repetitions=1, seed=None):
         return self.args.sample(qubits, repetitions, seed)
