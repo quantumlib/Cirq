@@ -14,14 +14,12 @@
 
 """Quantum gates to prepare a given target state."""
 
-from typing import Any, Sequence, Dict, List, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols
 from cirq.ops import raw_types
-from cirq.ops.common_channels import ResetChannel
-from cirq.ops.matrix_gates import MatrixGate
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -95,31 +93,27 @@ class StatePreparationGate(raw_types.Gate):
         )
         return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
-    def _get_unitary_transform(self):
-        initial_basis = np.eye(2 ** self._num_qubits, dtype=np.complex128)
-        final_basis = [self._state]
-        for vector in initial_basis:
-            for new_basis_vector in final_basis:
-                vector -= np.conj(np.dot(new_basis_vector, vector)) * new_basis_vector
-            if not np.allclose(vector, 0):
-                vector /= np.linalg.norm(vector)
-                final_basis.append(vector)
-        final_basis = np.stack(final_basis[: initial_basis.shape[0]], axis=1)
-        return final_basis
+    @staticmethod
+    def _has_kraus_():
+        return True
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        """Decompose the n-qubit diagonal gates into a Reset channel and a Matrix Gate."""
-        decomposed_circ: List[Any] = [ResetChannel(qubit.dimension).on(qubit) for qubit in qubits]
-        final_basis = self._get_unitary_transform()
-        decomposed_circ.append(MatrixGate(final_basis).on(*qubits))
-        return decomposed_circ
+    def _kraus_(self):
+        """Returns the Kraus operator for this gate
+        The Kraus Operator is |Psi><i| for all |i>, where |Psi> is the target state.
+        This allows is to take any input state to the target state.
+        The operator satisfies the completeness relation Sum(E^ E) = I.
+        """
+        operator = np.zeros(shape=(2 ** self._num_qubits,) * 3, dtype=np.complex128)
+        for i in range(len(operator)):
+            operator[i, :, i] = self._state
+        return operator
 
     def __repr__(self) -> str:
         return f'cirq.StatePreparationGate({proper_repr(self._state)})'
 
+    def __eq__(self, other: 'cirq.StatePreparationGate') -> bool:
+        return np.allclose(self.state, other.state)
+
     @property
     def state(self):
         return self._state
-
-    def __eq__(self, other):
-        return np.allclose(self._state, other.state)

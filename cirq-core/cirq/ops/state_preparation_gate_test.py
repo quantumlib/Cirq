@@ -31,6 +31,7 @@ import pytest
             [1j, -1j, -1j, 1j],
             [1 + 1j, 0, 0, 0],
             [1 + 1j, 0, 1 + 1j, 0],
+            [3 + 1j, 5 + 8j, 21, 0.85j],
         ]
     ),
 )
@@ -96,7 +97,7 @@ def test_gate_params():
 
 
 def test_gate_error_handling():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='`target_state` must be a 1d numpy array.'):
         cirq.StatePreparationGate(np.eye(2))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=f'Matrix width \\(5\\) is not a power of 2'):
         cirq.StatePreparationGate(np.ones(shape=5))
