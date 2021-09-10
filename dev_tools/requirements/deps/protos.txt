@@ -1,8 +1,6 @@
 # dependencies for proto generation - used by cirq-google
 
-# 1.26.0 is the min version that has python 3.8 wheels
-# however, we can't really go much higher - the protoc version needs to be <= 3.9.2
-# otherwise it will generate pb2 files that are incompatible with tensorflow quantum
-grpcio-tools~=1.26.0
+# This bundles protoc 3.13.0, which we use for generating proto code.
+grpcio-tools~=1.34.1
 
 mypy-protobuf==1.10
