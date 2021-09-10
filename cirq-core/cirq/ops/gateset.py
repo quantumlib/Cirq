@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types defining GateFamily and Gateset"""
+"""Functionality for grouping and validating Cirq Gates"""
 
-from typing import Any, Callable, Dict, FrozenSet, Optional, Type, TYPE_CHECKING, Union
+from typing import Any, Callable, FrozenSet, Optional, Type, TYPE_CHECKING, Union
 from cirq.ops import global_phase_op, op_tree, raw_types
 from cirq import protocols, value
 
@@ -26,13 +26,31 @@ if TYPE_CHECKING:
 class GateFamily:
     """Wrapper around gate instances/types describing a set of accepted gates.
 
-    By default, GateFamily supports initialization and containment for
-        a) Non-parameterized `cirq.Gate` instances.
-        b) Gate types deriving from `cirq.Gate`.
+    GateFamily supports initialization via
+        a) Non-parameterized instances of `cirq.Gate` (Instance Family).
+        b) Python types inheriting from `cirq.Gate` (Type Family).
+
+    By default, the containment checks depend on the initialization type:
+        a) Instance Family: Containment check is done by object equality.
+        b) Type Family: Containment check is done by type comparison.
+
+    For example:
+        a) Instance Family:
+            ```
+            gate_family = cirq.GateFamily(cirq.X)
+            assert (cirq.X in gate_family) == True
+            assert (cirq.X ** sympy.Symbol("theta") not in gate_family) == False
+            ```
+        b) Type Family:
+            ```
+            gate_family = cirq.GateFamily(cirq.XPowGate)
+            assert (cirq.X in gate_family) == True
+            assert (cirq.X ** sympy.Symbol("theta") in gate_family) == True
+            ```
 
     In order to create gate families with constraints on parameters of a gate
     type, users should derive from the GateFamily class and override the
-    predicate method used to check for containment.
+    `predicate` method used to check for gate containment.
     """
 
     def __init__(
@@ -44,12 +62,14 @@ class GateFamily:
     ) -> None:
         """Init GateFamily
         Args:
-            gate: A gate type or a non-parameterized instance of a gate type.
+            gate: A python `type` inheriting from `cirq.Gate` for type based membership checks, or
+                a non-parameterized instance of a `cirq.Gate` for equality based membership checks.
             name: The name of the gate family.
             description: Human readable description of the gate family.
 
         Raises:
             ValueError: if `gate` is not a `cirq.Gate` instance or subclass.
+            ValueError: if `gate` is a parameterized instance of `cirq.Gate`.
         """
         if not (
             isinstance(gate, raw_types.Gate)
@@ -71,16 +91,12 @@ class GateFamily:
         )
 
     def _default_name(self) -> str:
-        if isinstance(self.gate, raw_types.Gate):
-            return f'Instance GateFamily: {self._gate_str()}'
-        else:
-            return f'Type GateFamily: {self._gate_str()}'
+        family_type = 'Instance' if isinstance(self.gate, raw_types.Gate) else 'Type'
+        return f'{family_type} GateFamily: {self._gate_str()}'
 
     def _default_description(self) -> str:
-        if isinstance(self.gate, raw_types.Gate):
-            return f'Accepts `cirq.Gate` instances `g` s.t. `g == {self._gate_str()}`.'
-        else:
-            return f'Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, {self._gate_str()})`.'
+        check_type = r'g == {}' if isinstance(self.gate, raw_types.Gate) else r'isinstance(g, {})'
+        return f'Accepts `cirq.Gate` instances `g` s.t. `{check_type.format(self._gate_str())}`'
 
     @property
     def gate(self) -> Union[Type[raw_types.Gate], raw_types.Gate]:
@@ -94,9 +110,21 @@ class GateFamily:
     def description(self) -> str:
         return self._description
 
-    def predicate(self, g: raw_types.Gate) -> bool:
-        """Checks whether gate instance `g` belongs to this GateFamily."""
-        return g == self.gate if isinstance(self.gate, raw_types.Gate) else isinstance(g, self.gate)
+    def predicate(self, gate: raw_types.Gate) -> bool:
+        """Checks whether `cirq.Gate` instance `g` belongs to this GateFamily.
+
+        The default predicate depends on the gate family initialization type:
+            a) Instance Family: `gate == self.gate`.
+            b) Type Family: `isinstance(gate, self.gate)`.
+
+        Args:
+            gate: `cirq.Gate` instance which should be checked for containment.
+        """
+        return (
+            gate == self.gate
+            if isinstance(self.gate, raw_types.Gate)
+            else isinstance(gate, self.gate)
+        )
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
         if isinstance(item, raw_types.Operation):
