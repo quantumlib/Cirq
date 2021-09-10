@@ -111,7 +111,9 @@ class StatePreparationGate(raw_types.Gate):
     def __repr__(self) -> str:
         return f'cirq.StatePreparationGate({proper_repr(self._state)})'
 
-    def __eq__(self, other: 'cirq.StatePreparationGate') -> bool:
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, StatePreparationGate):
+            return False
         return np.allclose(self.state, other.state)
 
     @property

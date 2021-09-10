@@ -90,6 +90,7 @@ def test_gate_params():
     gate = cirq.StatePreparationGate(state)
     assert gate.num_qubits() == 2
     assert not gate._has_unitary_()
+    assert gate._has_kraus_()
     assert (
         repr(gate)
         == 'cirq.StatePreparationGate(np.array([(1+0j), 0j, 0j, 0j], dtype=np.complex128))'
@@ -101,3 +102,11 @@ def test_gate_error_handling():
         cirq.StatePreparationGate(np.eye(2))
     with pytest.raises(ValueError, match=f'Matrix width \\(5\\) is not a power of 2'):
         cirq.StatePreparationGate(np.ones(shape=5))
+
+
+def test_equality_of_gates():
+    state = np.array([1, 0, 0, 0], dtype=np.complex64)
+    gate_1 = cirq.StatePreparationGate(state)
+    gate_2 = cirq.StatePreparationGate(state)
+    assert gate_1 == gate_2, "Equal state not leading to same gate"
+    assert not gate_1 == state, "Incompatible objects shouldn't be equal"
