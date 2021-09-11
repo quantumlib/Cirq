@@ -14,7 +14,7 @@
 
 """Functionality for grouping and validating Cirq Gates"""
 
-from typing import Any, Callable, FrozenSet, Optional, Type, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, FrozenSet, List, Optional, Type, TYPE_CHECKING, Union
 from cirq.ops import global_phase_op, op_tree, raw_types
 from cirq import protocols, value
 
@@ -36,20 +36,17 @@ class GateFamily:
 
     For example:
         a) Instance Family:
-            ```
-            gate_family = cirq.GateFamily(cirq.X)
-            assert (cirq.X in gate_family) == True
-            assert (cirq.X ** sympy.Symbol("theta") not in gate_family) == False
-            ```
+            >>> gate_family = cirq.GateFamily(cirq.X)
+            >>> assert (cirq.X in gate_family) == True
+            >>> assert (cirq.X ** sympy.Symbol("theta") not in gate_family) == False
+
         b) Type Family:
-            ```
-            gate_family = cirq.GateFamily(cirq.XPowGate)
-            assert (cirq.X in gate_family) == True
-            assert (cirq.X ** sympy.Symbol("theta") in gate_family) == True
-            ```
+            >>> gate_family = cirq.GateFamily(cirq.XPowGate)
+            >>> assert (cirq.X in gate_family) == True
+            >>> assert (cirq.X ** sympy.Symbol("theta") in gate_family) == True
 
     In order to create gate families with constraints on parameters of a gate
-    type, users should derive from the GateFamily class and override the
+    type, users should derive from the `cirq.GateFamily` class and override the
     `predicate` method used to check for gate containment.
     """
 
@@ -150,22 +147,14 @@ class GateFamily:
 
 @value.value_equality()
 class Gateset:
-    """Gatesets represent a collection of GateFamily objects.
+    """Gatesets represent a collection of `cirq.GateFamily` objects.
 
     Gatesets are useful for
         a) Describing the set of allowed gates in a human readable format
         b) Validating a given gate / optree against the set of allowed gates
 
-    Gatesets rely on the underlying GateFamily's for both description and
+    Gatesets rely on the underlying `cirq.GateFamily` for both description and
     validation purposes.
-
-    The default GateFamily can be used to description and validation of the
-    two most common cases:
-        a) A specific gate instance is allowed
-        b) All instances of a specific gate class are allowed.
-
-    Users can define custom gate families for more complex scenarios and
-    use the GateFamily objects as members of a Gateset.
     """
 
     def __init__(
@@ -185,14 +174,25 @@ class Gateset:
         description is populated.
 
         Args:
-            gates: A list of `cirq.Gate` subclasses / `cirq.Gate` instances /
+            *gates: A list of `cirq.Gate` subclasses / `cirq.Gate` instances /
             `cirq.GateFamily` instances to initialize the Gateset.
             name: (Optional) Name for the Gateset. Useful for description.
         """
         self._name = name
         self._gates = frozenset(
-            [g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates]
+            g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates
         )
+        self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
+        self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
+        self._custom_gate_families: List[GateFamily] = []
+        for g in self._gates:
+            if type(g) == GateFamily:
+                if isinstance(g.gate, raw_types.Gate):
+                    self._instance_gate_families[g.gate] = g
+                else:
+                    self._type_gate_families[g.gate] = g
+            else:
+                self._custom_gate_families.append(g)
 
     @property
     def name(self) -> Optional[str]:
@@ -213,11 +213,23 @@ class Gateset:
         `cirq.Circuit` is made up entirely of gates from this Gateset, use the
         `validate` method given below.
 
+        The complexity of the method is:
+            a) O(1) for checking containment in the default `cirq.GateFamily` instances.
+            b) O(n) for checking containment in custom GateFamily instances.
+
         Args:
             item: The `cirq.Gate` or `cirq.Operation` instance to check
                 containment for.
         """
-        for gate_family in self.gates:
+        g = item if isinstance(item, raw_types.Gate) else item.gate
+        if g in self._instance_gate_families:
+            assert item in self._instance_gate_families[g]
+            return True
+        for gate_mro_type in type(g).mro():
+            if gate_mro_type in self._type_gate_families:
+                assert item in self._type_gate_families[gate_mro_type]
+                return True
+        for gate_family in self._custom_gate_families:
             if item in gate_family:
                 return True
         return False
