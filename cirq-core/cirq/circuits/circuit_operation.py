@@ -522,11 +522,11 @@ class CircuitOperation(ops.Operation):
             ValueError: The new operation has a different number of measurement
                 keys than this operation.
         """
-        new_map = {}
-        for k in self.mapped_circuit(True).all_measurement_key_names():
-            k_new = key_map.get(k, k)
-            if k_new != k:
-                new_map[k] = k_new
+        new_map = self.measurement_key_map.copy()
+        for k, v in new_map.items():
+            new_map[k] = key_map.get(v, v)
+        for k, v in key_map.items():
+            new_map[k] = v
         new_op = self.replace(measurement_key_map=new_map)
         if len(new_op._measurement_key_names_()) != len(self._measurement_key_names_()):
             raise ValueError(
