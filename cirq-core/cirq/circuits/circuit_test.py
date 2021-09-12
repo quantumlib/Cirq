@@ -83,6 +83,20 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
+def test_thing():
+    print()
+    q = cirq.LineQubit(0)
+    l2 = cirq.Circuit(cirq.measure(q, key='a'))
+    l1 = cirq.Circuit(cirq.CircuitOperation(l2.freeze(), repetitions=3), cirq.measure(q, key='b'))
+    l0 = cirq.Circuit(cirq.CircuitOperation(l1.freeze(), repetitions=3), cirq.measure(q, key='c'))
+    print(l0)
+    print(cirq.measurement_key_names(l0))
+    print()
+    la = cirq.with_measurement_key_mapping(l0, {'2:2:a':'2:2:d'})
+    print()
+    print(la[0].operations[0].measurement_key_map)
+    print(cirq.measurement_key_names(la))
+
 def test_alignment():
     assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
     assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'

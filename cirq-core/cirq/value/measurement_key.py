@@ -114,6 +114,8 @@ class MeasurementKey:
         return self._with_key_path_((path_component,) + self.path)
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
-        if self.name not in key_map:
-            return self
-        return self.replace(name=key_map[self.name])
+        if self in key_map or str(self) in key_map:
+            return self.parse_serialized(key_map[str(self)])
+        if self.name in key_map:
+            return self.replace(name=key_map[self.name])
+        return self

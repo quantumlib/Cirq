@@ -116,12 +116,12 @@ class CircuitOperation(ops.Operation):
             )
 
         # Disallow mapping to keys containing the `MEASUREMENT_KEY_SEPARATOR`
-        for mapped_key in self.measurement_key_map.values():
-            if value.MEASUREMENT_KEY_SEPARATOR in mapped_key:
-                raise ValueError(
-                    f'Mapping to invalid key: {mapped_key}. "{value.MEASUREMENT_KEY_SEPARATOR}" '
-                    'is not allowed for measurement keys in a CircuitOperation'
-                )
+        # for mapped_key in self.measurement_key_map.values():
+        #     if value.MEASUREMENT_KEY_SEPARATOR in mapped_key:
+        #         raise ValueError(
+        #             f'Mapping to invalid key: {mapped_key}. "{value.MEASUREMENT_KEY_SEPARATOR}" '
+        #             'is not allowed for measurement keys in a CircuitOperation'
+        #         )
 
         # Disallow qid mapping dimension conflicts.
         for q, q_new in self.qubit_map.items():
@@ -523,10 +523,8 @@ class CircuitOperation(ops.Operation):
                 keys than this operation.
         """
         new_map = {}
-        for k in self.circuit.all_measurement_key_names():
-            k = value.MeasurementKey.parse_serialized(k).name
-            k_new = self.measurement_key_map.get(k, k)
-            k_new = key_map.get(k_new, k_new)
+        for k in self.mapped_circuit(True).all_measurement_key_names():
+            k_new = key_map.get(k, k)
             if k_new != k:
                 new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
