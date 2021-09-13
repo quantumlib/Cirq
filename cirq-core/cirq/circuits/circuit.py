@@ -909,7 +909,10 @@ class AbstractCircuit(abc.ABC):
         return protocols.qid_shape(qids)
 
     def all_measurement_key_names(self) -> AbstractSet[str]:
-        return protocols.measurement_key_names(self)
+        return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
+
+    def _measurement_key_names_(self) -> AbstractSet[str]:
+        return self.all_measurement_key_names()
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self._with_sliced_moments(
