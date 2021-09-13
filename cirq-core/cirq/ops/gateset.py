@@ -57,7 +57,8 @@ class GateFamily:
         name: Optional[str] = None,
         description: Optional[str] = None,
     ) -> None:
-        """Init GateFamily
+        """Init GateFamily.
+
         Args:
             gate: A python `type` inheriting from `cirq.Gate` for type based membership checks, or
                 a non-parameterized instance of a `cirq.Gate` for equality based membership checks.
@@ -162,7 +163,7 @@ class Gateset:
         *gates: Union[Type[raw_types.Gate], raw_types.Gate, GateFamily],
         name: Optional[str] = None,
     ) -> None:
-        """Inits Gateset.
+        """Init Gateset.
 
         Accepts a list of gates, each of which should be either
             a) `cirq.Gate` subclass
@@ -279,8 +280,12 @@ class Gateset:
                 accept_global_phase=accept_global_phase,
             )
         elif isinstance(op, circuit_operation.CircuitOperation) and unroll_circuit_op:
+            op_circuit = protocols.resolve_parameters(
+                op.circuit.unfreeze(), op.param_resolver, recursive=False
+            )
+            op_circuit = op_circuit.transform_qubits(lambda q: op.qubit_map.get(q, q))
             return self.validate(
-                op.mapped_circuit(deep=True),
+                op_circuit,
                 unroll_circuit_op=unroll_circuit_op,
                 accept_global_phase=accept_global_phase,
             )

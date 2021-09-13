@@ -211,38 +211,36 @@ def test_gateset_contains(gate, result):
     assert (circuit_op in gateset) is False
 
 
-def test_gateset_validate():
+@pytest.mark.parametrize('use_circuit_op', [True, False])
+@pytest.mark.parametrize('use_global_phase', [True, False])
+def test_gateset_validate(use_circuit_op, use_global_phase):
     def optree_and_circuit(optree):
         yield optree
         yield cirq.Circuit(optree)
 
-    q = cirq.LineQubit.range(2)
-    base_optree = [
-        [CustomX(q[0]).with_tags('custom tags'), CustomX(q[1]) ** 2],
-        [CustomX(q[0]) ** 0.5, cirq.testing.TwoQubitGate()(*q)],
-    ]
-    for item in optree_and_circuit(base_optree):
-        assert gateset.validate(item)
-        assert gateset.validate(item, unroll_circuit_op=False, accept_global_phase=False)
-
-    op_tree_with_circuit_op = base_optree + [
-        [
-            cirq.CircuitOperation(
-                cirq.FrozenCircuit(base_optree[0]),
-                repetitions=10,
+    def get_ops(use_circuit_op, use_global_phase):
+        q = cirq.LineQubit.range(3)
+        yield [CustomX(q[0]).with_tags('custom tags'), CustomX(q[1]) ** 2, CustomX(q[2]) ** 3]
+        yield [CustomX(q[0]) ** 0.5, cirq.testing.TwoQubitGate()(*q[:2])]
+        if use_circuit_op:
+            circuit_op = cirq.CircuitOperation(
+                cirq.FrozenCircuit(get_ops(False, False)), repetitions=10
             ).with_tags('circuit op tags')
-        ]
-    ]
-    for item in optree_and_circuit(op_tree_with_circuit_op):
-        assert gateset.validate(item)
-        assert gateset.validate(item, unroll_circuit_op=False) == False
+            recursive_circuit_op = cirq.CircuitOperation(
+                cirq.FrozenCircuit([circuit_op, CustomX(q[2]) ** 0.5]),
+                repetitions=10,
+                qubit_map={q[0]: q[1], q[1]: q[2], q[2]: q[0]},
+            )
+            yield [circuit_op, recursive_circuit_op]
+        if use_global_phase:
+            yield cirq.GlobalPhaseOperation(1j)
 
-    op_tree_with_circuit_op_and_global_phase = op_tree_with_circuit_op + [
-        [cirq.GlobalPhaseOperation(1j)]
-    ]
-    for item in optree_and_circuit(op_tree_with_circuit_op_and_global_phase):
-        assert gateset.validate(item)
-        assert gateset.validate(item, accept_global_phase=False) == False
+    for item in optree_and_circuit([*get_ops(use_circuit_op, use_global_phase)]):
+        assert gateset.validate(
+            item, unroll_circuit_op=use_circuit_op, accept_global_phase=use_global_phase
+        )
+        if use_circuit_op or use_global_phase:
+            assert not gateset.validate(item, unroll_circuit_op=False, accept_global_phase=False)
 
 
 def test_gateset_eq():
