@@ -241,16 +241,16 @@ def test_get_device_backwards_compatible():
     OLD_SQRT_ISWAP_GATESET = cg.SerializableGateSet(
         gate_set_name='sqrt_iswap',
         serializers=[
-            *cg.gate_sets.SQRT_ISWAP_SERIALIZERS,
-            *cg.gate_sets.SINGLE_QUBIT_SERIALIZERS,
-            cg.gate_sets.MEASUREMENT_SERIALIZER,
-            cg.gate_sets.WAIT_GATE_SERIALIZER,
+            *cg.serialization.gate_sets.SQRT_ISWAP_SERIALIZERS,
+            *cg.serialization.gate_sets.SINGLE_QUBIT_SERIALIZERS,
+            cg.serialization.gate_sets.MEASUREMENT_SERIALIZER,
+            cg.serialization.gate_sets.WAIT_GATE_SERIALIZER,
         ],
         deserializers=[
-            *cg.gate_sets.SQRT_ISWAP_DESERIALIZERS,
-            *cg.gate_sets.SINGLE_QUBIT_DESERIALIZERS,
-            cg.gate_sets.MEASUREMENT_DESERIALIZER,
-            cg.gate_sets.WAIT_GATE_DESERIALIZER,
+            *cg.serialization.gate_sets.SQRT_ISWAP_DESERIALIZERS,
+            *cg.serialization.gate_sets.SINGLE_QUBIT_DESERIALIZERS,
+            cg.serialization.gate_sets.MEASUREMENT_DESERIALIZER,
+            cg.serialization.gate_sets.WAIT_GATE_DESERIALIZER,
         ],
     )
 
