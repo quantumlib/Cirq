@@ -21,7 +21,6 @@ import pandas as pd
 import pytest
 
 import cirq
-from cirq import ops
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 
@@ -34,7 +33,7 @@ def test_sample_2q_xeb_circuits():
             q0,
             q1,
             depth=20,
-            two_qubit_op_factory=lambda a, b, _: ops.SQRT_ISWAP(a, b),
+            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
         )
         for _ in range(2)
     ]

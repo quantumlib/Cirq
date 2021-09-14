@@ -203,7 +203,7 @@ def cphase_to_sqrt_iswap(a, b, turns):
     yield cirq.rz(sign * 0.5 * theta_prime).on(b)
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (-sign * 0.5)
-    yield cirq.SQRT_ISWAP(a, b) ** -1
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.rx(-2 * phi).on(a)
     yield cirq.SQRT_ISWAP(a, b)
 
@@ -234,7 +234,7 @@ def cphase_symbols_to_sqrt_iswap(a, b, turns):
     yield cirq.rz(sign * 0.5 * theta_prime).on(b)
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (-sign * 0.5)
-    yield cirq.SQRT_ISWAP(a, b) ** -1
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.rx(-2 * phi).on(a)
     yield cirq.SQRT_ISWAP(a, b)
     yield cirq.rx(xi).on(a)
@@ -257,10 +257,10 @@ def iswap_to_sqrt_iswap(a, b, turns):
     """
     yield cirq.Z(a) ** 0.75
     yield cirq.Z(b) ** 0.25
-    yield cirq.SQRT_ISWAP(a, b) ** -1
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.Z(a) ** (-turns / 2 + 1)
     yield cirq.Z(b) ** (turns / 2)
-    yield cirq.SQRT_ISWAP(a, b) ** -1
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.Z(a) ** 0.25
     yield cirq.Z(b) ** -0.25
 
