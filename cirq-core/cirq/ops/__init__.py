@@ -18,6 +18,10 @@ from cirq.ops.arithmetic_operation import (
     ArithmeticOperation,
 )
 
+from cirq.ops.boolean_hamiltonian import (
+    BooleanHamiltonian,
+)
+
 from cirq.ops.clifford_gate import (
     PauliTransform,
     SingleQubitCliffordGate,
@@ -116,16 +120,31 @@ from cirq.ops.global_phase_op import (
     GlobalPhaseOperation,
 )
 
+from cirq.ops.kraus_channel import (
+    KrausChannel,
+)
+
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
     PauliSum,
     PauliSumLike,
+    ProjectorSum,
+)
+
+from cirq.ops.mixed_unitary_channel import (
+    MixedUnitaryChannel,
 )
 
 from cirq.ops.pauli_sum_exponential import (
     PauliSumExponential,
 )
+
+from cirq.ops.pauli_measurement_gate import (
+    PauliMeasurementGate,
+)
+
+from cirq.ops.parallel_gate import ParallelGate, parallel_gate_op
 
 from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,
@@ -154,6 +173,8 @@ from cirq.ops.matrix_gates import (
 from cirq.ops.measure_util import (
     measure,
     measure_each,
+    measure_paulistring_terms,
+    measure_single_paulistring,
 )
 
 from cirq.ops.measurement_gate import (

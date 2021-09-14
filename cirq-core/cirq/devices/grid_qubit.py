@@ -203,6 +203,8 @@ class GridQid(_BaseGridQid):
             for col in range(left, left + cols)
         ]
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     @staticmethod
     def from_diagram(diagram: str, dimension: int) -> List['GridQid']:
         """Parse ASCII art device layout into info about qids and
@@ -248,6 +250,7 @@ class GridQid(_BaseGridQid):
         coords = _ascii_diagram_to_coords(diagram)
         return [GridQid(*c, dimension=dimension) for c in coords]
 
+    # pylint: enable=missing-param-doc
     def __repr__(self) -> str:
         return f"cirq.GridQid({self.row}, {self.col}, dimension={self.dimension})"
 

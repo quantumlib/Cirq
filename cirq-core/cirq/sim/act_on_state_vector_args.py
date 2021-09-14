@@ -106,6 +106,8 @@ class ActOnStateVectorArgs(ActOnArgs):
             self.available_buffer = self.target_tensor
         self.target_tensor = new_target_tensor
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def subspace_index(
         self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
     ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
@@ -159,7 +161,13 @@ class ActOnStateVectorArgs(ActOnArgs):
             qid_shape=self.target_tensor.shape,
         )
 
-    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    # pylint: enable=missing-param-doc
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> bool:
         strats = [
             _strat_act_on_state_vector_from_apply_unitary,
             _strat_act_on_state_vector_from_mixture,
@@ -193,66 +201,41 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return bits
 
-    def copy(self) -> 'cirq.ActOnStateVectorArgs':
-        return ActOnStateVectorArgs(
-            target_tensor=self.target_tensor.copy(),
-            available_buffer=self.available_buffer.copy(),
-            qubits=self.qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
-        )
+    def _on_copy(self, target: 'ActOnStateVectorArgs'):
+        target.target_tensor = self.target_tensor.copy()
+        target.available_buffer = self.available_buffer.copy()
 
-    def kronecker_product(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
+    def _on_kronecker_product(self, other: 'ActOnStateVectorArgs', target: 'ActOnStateVectorArgs'):
         target_tensor = transformations.state_vector_kronecker_product(
             self.target_tensor, other.target_tensor
         )
-        buffer = np.empty_like(target_tensor)
-        return ActOnStateVectorArgs(
-            target_tensor=target_tensor,
-            available_buffer=buffer,
-            qubits=self.qubits + other.qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
+        target.target_tensor = target_tensor
+        target.available_buffer = np.empty_like(target_tensor)
 
-    def factor(
+    def _on_factor(
         self,
         qubits: Sequence['cirq.Qid'],
-        *,
+        extracted: 'ActOnStateVectorArgs',
+        remainder: 'ActOnStateVectorArgs',
         validate=True,
         atol=1e-07,
-    ) -> Tuple['cirq.ActOnStateVectorArgs', 'cirq.ActOnStateVectorArgs']:
+    ):
         axes = self.get_axes(qubits)
         extracted_tensor, remainder_tensor = transformations.factor_state_vector(
             self.target_tensor, axes, validate=validate, atol=atol
         )
-        extracted_args = ActOnStateVectorArgs(
-            target_tensor=extracted_tensor,
-            available_buffer=np.empty_like(extracted_tensor),
-            qubits=qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        remainder_args = ActOnStateVectorArgs(
-            target_tensor=remainder_tensor,
-            available_buffer=np.empty_like(remainder_tensor),
-            qubits=tuple(q for q in self.qubits if q not in qubits),
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return extracted_args, remainder_args
+        extracted.target_tensor = extracted_tensor
+        extracted.available_buffer = np.empty_like(extracted_tensor)
+        remainder.target_tensor = remainder_tensor
+        remainder.available_buffer = np.empty_like(remainder_tensor)
 
-    def transpose_to_qubit_order(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStateVectorArgs':
+    def _on_transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid'], target: 'ActOnStateVectorArgs'
+    ):
         axes = self.get_axes(qubits)
         new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)
-        new_args = ActOnStateVectorArgs(
-            target_tensor=new_tensor,
-            available_buffer=np.empty_like(new_tensor),
-            qubits=qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return new_args
+        target.target_tensor = new_tensor
+        target.available_buffer = np.empty_like(new_tensor)
 
     def sample(
         self,
@@ -306,6 +289,9 @@ def _strat_act_on_state_vector_from_mixture(
         unitary, args.target_tensor, args.get_axes(qubits), out=args.available_buffer
     )
     args.swap_target_tensor_for(args.available_buffer)
+    if protocols.is_measurement(action):
+        key = protocols.measurement_key_name(action)
+        args.log_of_measurement_results[key] = [index]
     return True
 
 
@@ -329,13 +315,13 @@ def _strat_act_on_state_vector_from_channel(
     p = args.prng.random()
     weight = None
     fallback_weight = 0
-    fallback_weight_i = 0
-    for i in range(len(kraus_tensors)):
-        prepare_into_buffer(i)
+    fallback_weight_index = 0
+    for index in range(len(kraus_tensors)):
+        prepare_into_buffer(index)
         weight = np.linalg.norm(args.available_buffer) ** 2
 
         if weight > fallback_weight:
-            fallback_weight_i = i
+            fallback_weight_index = index
             fallback_weight = weight
 
         p -= weight
@@ -346,9 +332,13 @@ def _strat_act_on_state_vector_from_channel(
     if p >= 0 or weight == 0:
         # Floating point error resulted in a malformed sample.
         # Fall back to the most likely case.
-        prepare_into_buffer(fallback_weight_i)
+        prepare_into_buffer(fallback_weight_index)
         weight = fallback_weight
+        index = fallback_weight_index
 
     args.available_buffer /= np.sqrt(weight)
     args.swap_target_tensor_for(args.available_buffer)
+    if protocols.is_measurement(action):
+        key = protocols.measurement_key_name(action)
+        args.log_of_measurement_results[key] = [index]
     return True

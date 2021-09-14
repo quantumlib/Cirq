@@ -107,7 +107,7 @@ def test_circuit_operation_conversion():
 
 
 def test_unsupported_gate():
-    class UnknownGate(cirq.TwoQubitGate):
+    class UnknownGate(cirq.testing.TwoQubitGate):
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
@@ -159,7 +159,7 @@ def test_non_gate_operation():
 
 
 def test_three_qubit_gate():
-    class ThreeQubitGate(cirq.ThreeQubitGate):
+    class ThreeQubitGate(cirq.testing.ThreeQubitGate):
         pass
 
     q0 = cirq.LineQubit(0)

@@ -323,7 +323,7 @@ class StabilizerCode(object):
         """Computes the output of the circuit by projecting onto the \bar{Z}.
 
         Args:
-            qubit: the qubits where the (now corrected) code words are stored.
+            qubits: the qubits where the (now corrected) code words are stored.
             ancillas: the qubits where the syndrome is stored
             state_vector: a vector containing the state of the entire circuit
 

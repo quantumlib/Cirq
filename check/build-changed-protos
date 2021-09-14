@@ -55,35 +55,17 @@ else
 fi
 
 # All the protos.
-protos=$(find -type f -name "*.proto" -printf '%P\n' \
-    | grep "google/api/.*\.proto$" \
-    | sed -e "s/\.proto$//")
+echo "Building protos in $(pwd)"
 
-# Get the changed protos and strip them of ".proto"
-changed=$(git diff --name-only ${rev} -- \
-    | grep "google/api/.*\.proto$" \
-    | sed -e "s/\.proto$//"
-)
-if [[ ! -z "$changed" ]]; then
-    for base in $changed
-    do
-        echo -e "Found changed proto: '${base}.proto'"
-    done
-fi
-
-# We potentially will attempt to build a second time.
-for base in $changed
-do
-    python -m grpc_tools.protoc -I=cirq-google --python_out=cirq-google --mypy_out=cirq-google ${base}.proto
-done
+dev_tools/build-protos.sh
 
 # Filenames with spaces will be ugly (each part will be listed separately)
 # but the error logic will still work.
-untracked=$(git status --porcelain 2>/dev/null | grep "^?? cirq/google" | cut -d " " -f 2)
+uncommitted=$(git status --porcelain 2>/dev/null | grep -E "^?? cirq-google" | cut -d " " -f 3)
 
-if [[ ! -z "$untracked" ]]; then
-    echo -e "\033[31mERROR: Uncommitted generated files found! Please generate and commit these files:\033[0m"
-    for generated in $untracked
+if [[ ! -z "$uncommitted" ]]; then
+    echo -e "\033[31mERROR: Uncommitted generated files found! Please generate and commit these files using dev_tools/build-protos.sh:\033[0m"
+    for generated in $uncommitted
     do
         echo -e "\033[31m   ${generated}\033[0m"
     done
