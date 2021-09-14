@@ -82,9 +82,13 @@ from cirq_google.engine import (
 
 from cirq_google.gate_sets import (
     XMON,
+    XMON_WITH_CIRCUITOP,
     FSIM_GATESET,
+    FSIM_GATESET_WITH_CIRCUITOP,
     SQRT_ISWAP_GATESET,
+    SQRT_ISWAP_GATESET_WITH_CIRCUITOP,
     SYC_GATESET,
+    SYC_GATESET_WITH_CIRCUITOP,
     NAMED_GATESETS,
 )
 

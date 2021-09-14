@@ -45,7 +45,6 @@ SYC_GATESET = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_HALF_PI_SERIALIZERS,
         MEASUREMENT_SERIALIZER,
         WAIT_GATE_SERIALIZER,
-        CIRCUIT_OP_SERIALIZER,
     ],
     deserializers=[
         SYC_DESERIALIZER,
@@ -53,10 +52,18 @@ SYC_GATESET = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
         WAIT_GATE_DESERIALIZER,
-        CIRCUIT_OP_DESERIALIZER,
     ],
 )
 document(SYC_GATESET, """Gate set with fsim(pi/2, pi/6) as the core 2 qubit interaction.""")
+
+
+# TODO: merge with SYC_GATESET once server-side support is available.
+SYC_GATESET_WITH_CIRCUITOP = SYC_GATESET.with_added_types(
+    gate_set_name='sycamore_co',
+    serializers=[CIRCUIT_OP_SERIALIZER],
+    deserializers=[CIRCUIT_OP_DESERIALIZER],
+)
+document(SYC_GATESET_WITH_CIRCUITOP, """SYC_GATESET with CircuitOperation support.""")
 
 SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
     gate_set_name='sqrt_iswap',
@@ -65,17 +72,24 @@ SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_SERIALIZERS,
         MEASUREMENT_SERIALIZER,
         WAIT_GATE_SERIALIZER,
-        CIRCUIT_OP_SERIALIZER,
     ],
     deserializers=[
         *SQRT_ISWAP_DESERIALIZERS,
         *SINGLE_QUBIT_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
         WAIT_GATE_DESERIALIZER,
-        CIRCUIT_OP_DESERIALIZER,
     ],
 )
 document(SQRT_ISWAP_GATESET, """Gate set with sqrt(iswap) as the core 2 qubit interaction.""")
+
+
+# TODO: merge with SQRT_ISWAP_GATESET once server-side support is available.
+SQRT_ISWAP_GATESET_WITH_CIRCUITOP = SQRT_ISWAP_GATESET.with_added_types(
+    gate_set_name='sqrt_iswap_co',
+    serializers=[CIRCUIT_OP_SERIALIZER],
+    deserializers=[CIRCUIT_OP_DESERIALIZER],
+)
+document(SQRT_ISWAP_GATESET_WITH_CIRCUITOP, """SQRT_ISWAP_GATESET with CircuitOperation support.""")
 
 
 FSIM_GATESET = serializable_gate_set.SerializableGateSet(
@@ -85,17 +99,24 @@ FSIM_GATESET = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_SERIALIZERS,
         MEASUREMENT_SERIALIZER,
         WAIT_GATE_SERIALIZER,
-        CIRCUIT_OP_SERIALIZER,
     ],
     deserializers=[
         LIMITED_FSIM_DESERIALIZER,
         *SINGLE_QUBIT_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
         WAIT_GATE_DESERIALIZER,
-        CIRCUIT_OP_DESERIALIZER,
     ],
 )
 document(FSIM_GATESET, """Gate set that combines sqrt(iswap) and syc as one fsim id.""")
+
+
+# TODO: merge with FSIM_GATESET once server-side support is available.
+FSIM_GATESET_WITH_CIRCUITOP = FSIM_GATESET.with_added_types(
+    gate_set_name='fsim_co',
+    serializers=[CIRCUIT_OP_SERIALIZER],
+    deserializers=[CIRCUIT_OP_DESERIALIZER],
+)
+document(FSIM_GATESET_WITH_CIRCUITOP, """FSIM_GATESET with CircuitOperation support.""")
 
 
 EXPERIMENTAL_PULSE_GATESET = serializable_gate_set.SerializableGateSet(
@@ -106,7 +127,6 @@ EXPERIMENTAL_PULSE_GATESET = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_SERIALIZERS,
         MEASUREMENT_SERIALIZER,
         WAIT_GATE_SERIALIZER,
-        CIRCUIT_OP_SERIALIZER,
     ],
     deserializers=[
         COUPLER_PULSE_DESERIALIZER,
@@ -114,7 +134,6 @@ EXPERIMENTAL_PULSE_GATESET = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
         WAIT_GATE_DESERIALIZER,
-        CIRCUIT_OP_DESERIALIZER,
     ],
 )
 document(
@@ -130,16 +149,23 @@ XMON = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_SERIALIZERS,
         CZ_POW_SERIALIZER,
         MEASUREMENT_SERIALIZER,
-        CIRCUIT_OP_SERIALIZER,
     ],
     deserializers=[
         *SINGLE_QUBIT_DESERIALIZERS,
         CZ_POW_DESERIALIZER,
         MEASUREMENT_DESERIALIZER,
-        CIRCUIT_OP_DESERIALIZER,
     ],
 )
 document(XMON, """Gate set for XMON devices.""")
+
+
+# TODO: merge with XMON once server-side support is available.
+XMON_WITH_CIRCUITOP = XMON.with_added_types(
+    gate_set_name='xmon_co',
+    serializers=[CIRCUIT_OP_SERIALIZER],
+    deserializers=[CIRCUIT_OP_DESERIALIZER],
+)
+document(XMON_WITH_CIRCUITOP, """XMON with CircuitOperation support.""")
 
 NAMED_GATESETS = {
     'sqrt_iswap': SQRT_ISWAP_GATESET,
@@ -157,3 +183,12 @@ GOOGLE_GATESETS = [
 ]
 
 document(GOOGLE_GATESETS, """All Google gatesets""")
+
+GOOGLE_GATESETS_WITH_CIRCUITOP = [
+    SYC_GATESET_WITH_CIRCUITOP,
+    SQRT_ISWAP_GATESET_WITH_CIRCUITOP,
+    FSIM_GATESET_WITH_CIRCUITOP,
+    XMON_WITH_CIRCUITOP,
+]
+
+document(GOOGLE_GATESETS_WITH_CIRCUITOP, """All Google gatesets with subcircuit support""")

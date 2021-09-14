@@ -469,6 +469,26 @@ def test_get_circuit_batch(get_program):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
+def test_get_circuit_circuitop(get_program):
+    # Verify that circuits with circuit operations are supported.
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(cirq.GridQubit(1, 1)),
+                cirq.measure(cirq.GridQubit(1, 1), key='m'),
+            )
+        )
+    )
+
+    program = cg.EngineProgram('a', 'b', EngineContext())
+    get_program.return_value = qtypes.QuantumProgram(
+        code=_to_any(cg.XMON_WITH_CIRCUITOP.serialize(circuit))
+    )
+    assert program.get_circuit(0) == circuit
+    get_program.assert_called_once_with('a', 'b', True)
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
 def test_get_batch_size(get_program):
     # Has to fetch from engine if not _program specified.
     program = cg.EngineProgram('a', 'b', EngineContext(), result_type=ResultType.Batch)

@@ -110,7 +110,6 @@ class EngineProcessor:
         else:
             return None
 
-    # TODO: this experiences an error.
     def get_device(
         self, gate_sets: Iterable[serializable_gate_set.SerializableGateSet]
     ) -> cirq.Device:

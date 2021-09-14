@@ -552,7 +552,15 @@ def default_circuit():
     )
 
 
-@pytest.mark.parametrize('gateset', [cg.XMON, cg.SYC_GATESET, cg.SQRT_ISWAP_GATESET])
+@pytest.mark.parametrize(
+    'gateset',
+    [
+        cg.XMON_WITH_CIRCUITOP,
+        cg.FSIM_GATESET_WITH_CIRCUITOP,
+        cg.SYC_GATESET_WITH_CIRCUITOP,
+        cg.SQRT_ISWAP_GATESET_WITH_CIRCUITOP,
+    ],
+)
 def test_serialize_deserialize_circuit_op(gateset):
     circuit_op = cirq.CircuitOperation(default_circuit())
     proto = v2.program_pb2.CircuitOperation()

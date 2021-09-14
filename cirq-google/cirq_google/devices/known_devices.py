@@ -182,6 +182,9 @@ def create_device_proto_for_qubits(
     return out
 
 
+# TODO(#3634): remove *_WITH_CIRCUITOP gatesets after internal support is added
+
+
 _FOXTAIL_GRID = """
 AAAAABBBBBB
 CCCCCCDDDDD
@@ -238,7 +241,7 @@ _DURATIONS_FOR_XMON = {
 }
 
 FOXTAIL_PROTO = create_device_proto_from_diagram(
-    _FOXTAIL_GRID, [gate_sets.XMON], _DURATIONS_FOR_XMON
+    _FOXTAIL_GRID, [gate_sets.XMON, gate_sets.XMON_WITH_CIRCUITOP], _DURATIONS_FOR_XMON
 )
 
 _BRISTLECONE_GRID = """
@@ -274,7 +277,7 @@ document(
 )
 
 BRISTLECONE_PROTO = create_device_proto_from_diagram(
-    _BRISTLECONE_GRID, [gate_sets.XMON], _DURATIONS_FOR_XMON
+    _BRISTLECONE_GRID, [gate_sets.XMON, gate_sets.XMON_WITH_CIRCUITOP], _DURATIONS_FOR_XMON
 )
 
 _SYCAMORE_GRID = """
@@ -304,12 +307,23 @@ _SYCAMORE_DURATIONS_PICOS = {
 
 SYCAMORE_PROTO = create_device_proto_from_diagram(
     _SYCAMORE_GRID,
-    [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
+    [
+        gate_sets.SQRT_ISWAP_GATESET,
+        gate_sets.SQRT_ISWAP_GATESET_WITH_CIRCUITOP,
+        gate_sets.SYC_GATESET,
+        gate_sets.SYC_GATESET_WITH_CIRCUITOP,
+    ],
     _SYCAMORE_DURATIONS_PICOS,
 )
 
 Sycamore = SerializableDevice.from_proto(
-    proto=SYCAMORE_PROTO, gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET]
+    proto=SYCAMORE_PROTO,
+    gate_sets=[
+        gate_sets.SQRT_ISWAP_GATESET,
+        gate_sets.SQRT_ISWAP_GATESET_WITH_CIRCUITOP,
+        gate_sets.SYC_GATESET,
+        gate_sets.SYC_GATESET_WITH_CIRCUITOP,
+    ],
 )
 
 # Subset of the Sycamore grid with a reduced layout.
@@ -328,10 +342,21 @@ ABCDE-----
 
 SYCAMORE23_PROTO = create_device_proto_from_diagram(
     _SYCAMORE23_GRID,
-    [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
+    [
+        gate_sets.SQRT_ISWAP_GATESET,
+        gate_sets.SQRT_ISWAP_GATESET_WITH_CIRCUITOP,
+        gate_sets.SYC_GATESET,
+        gate_sets.SYC_GATESET_WITH_CIRCUITOP,
+    ],
     _SYCAMORE_DURATIONS_PICOS,
 )
 
 Sycamore23 = SerializableDevice.from_proto(
-    proto=SYCAMORE23_PROTO, gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET]
+    proto=SYCAMORE23_PROTO,
+    gate_sets=[
+        gate_sets.SQRT_ISWAP_GATESET,
+        gate_sets.SQRT_ISWAP_GATESET_WITH_CIRCUITOP,
+        gate_sets.SYC_GATESET,
+        gate_sets.SYC_GATESET_WITH_CIRCUITOP,
+    ],
 )

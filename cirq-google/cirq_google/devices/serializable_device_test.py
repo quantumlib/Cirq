@@ -147,8 +147,9 @@ def test_foxtail():
 
 def test_mismatched_proto_serializer():
     augmented_proto = copy.deepcopy(cg.devices.known_devices.FOXTAIL_PROTO)
-    # Remove measurement gate
+    # Remove measurement gate from both XMON and XMON_WITH_CIRCUITOP
     del augmented_proto.valid_gate_sets[0].valid_gates[3]
+    del augmented_proto.valid_gate_sets[1].valid_gates[3]
 
     # Should throw value error that measurement gate is serialized
     # but not supported by the hardware

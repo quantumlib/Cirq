@@ -102,6 +102,77 @@ valid_gate_sets {
     gate_duration_picos: 4000000
     valid_targets: "meas_targets"
   }
+}
+valid_gate_sets {
+  name: "xmon_co"
+  valid_gates {
+    id: "xy"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 15000
+  }
+  valid_gates {
+    id: "z"
+    number_of_qubits: 1
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "type"
+      type: STRING
+    }
+  }
+  valid_gates {
+    id: "xyz"
+    number_of_qubits: 1
+    valid_args {
+      name: "x_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "z_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "axis_phase_exponent"
+      type: FLOAT
+    }
+  }
+  valid_gates {
+    id: "cz"
+    number_of_qubits: 2
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "phase_match"
+      type: STRING
+    }
+    gate_duration_picos: 45000
+    valid_targets: "2_qubit_targets"
+  }
+  valid_gates {
+    id: "meas"
+    valid_args {
+      name: "key"
+      type: STRING
+    }
+    valid_args {
+      name: "invert_mask"
+      type: REPEATED_BOOLEAN
+    }
+    gate_duration_picos: 4000000
+    valid_targets: "meas_targets"
+  }
   valid_gates {
     id: "circuit"
   }
@@ -317,13 +388,13 @@ def test_multiple_gate_sets():
         'meas': 14_141,
     }
     test_proto = known_devices.create_device_proto_from_diagram(
-        "aa\naa", [cirq_google.gate_sets.XMON, halfPiGateSet], durations_dict
+        "aa\naa", [cirq_google.gate_sets.XMON_WITH_CIRCUITOP, halfPiGateSet], durations_dict
     )
     assert (
         str(test_proto)
         == """\
 valid_gate_sets {
-  name: "xmon"
+  name: "xmon_co"
   valid_gates {
     id: "xy"
     number_of_qubits: 1

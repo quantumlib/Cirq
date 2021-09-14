@@ -545,7 +545,10 @@ def _deserialize_program(
 
         program = batch.programs[program_num]
     if program:
-        gate_set_map = {g.gate_set_name: g for g in gate_sets.GOOGLE_GATESETS}
+        gate_set_map = {
+            g.gate_set_name: g
+            for g in gate_sets.GOOGLE_GATESETS + gate_sets.GOOGLE_GATESETS_WITH_CIRCUITOP
+        }
         if program.language.gate_set not in gate_set_map:
             raise ValueError(
                 f'Unknown gateset {program.language.gate_set}. '
