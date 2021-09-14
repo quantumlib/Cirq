@@ -232,9 +232,7 @@ def kraus(
             kraus_result = kraus_list[0]
 
             for i in range(1, len(kraus_list)):
-                kraus_result = [
-                    op_2.dot(op_1) for op_1 in kraus_result for op_2 in kraus_list[i]
-                ]
+                kraus_result = [op_2.dot(op_1) for op_1 in kraus_result for op_2 in kraus_list[i]]
 
             return tuple(kraus_result)
 
