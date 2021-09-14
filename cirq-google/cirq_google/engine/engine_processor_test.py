@@ -238,7 +238,7 @@ def test_get_missing_device():
 # TODO(#3634): remove once server-side support is available.
 def test_get_device_backwards_compatible():
     # The SQRT_ISWAP gateset without CircuitOperations.
-    OLD_SQRT_ISWAP_GATESET = cg.serializable_gate_set.SerializableGateSet(
+    OLD_SQRT_ISWAP_GATESET = cg.SerializableGateSet(
         gate_set_name='sqrt_iswap',
         serializers=[
             *cg.gate_sets.SQRT_ISWAP_SERIALIZERS,

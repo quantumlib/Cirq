@@ -117,7 +117,7 @@ def test_unsupported_gate():
 
 
 def test_nested_unsupported_gate():
-    class UnknownGate(cirq.TwoQubitGate):
+    class UnknownGate(cirq.testing.TwoQubitGate):
         pass
 
     q0 = cirq.LineQubit(0)
