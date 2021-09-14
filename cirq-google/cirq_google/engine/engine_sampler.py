@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Sequence, TYPE_CHECKING, Union, Optional, cast
+
+from typing import List, TYPE_CHECKING, Union, Optional, cast, Sequence, Tuple
 
 import cirq
 from cirq_google import engine
