@@ -177,31 +177,70 @@ def kraus(
     if channel_result is not NotImplemented:
         return tuple(channel_result)
 
+    def checkEquality(x, y):
+        if type(x) != type(y):
+            return False
+        if type(x) not in [list, tuple, np.ndarray]:
+            return x == y
+        if type(x) == np.ndarray:
+            return x.shape == y.shape and np.all(x == y)
+        if len(x) != len(y):
+            return False
+        return all([checkEquality(a, b) for a, b in zip(x, y)])
+
+    def kraus_tensor(op, qubits, default):
+        kraus_list = kraus(op, default)
+        if checkEquality(kraus_list, default):
+            return default
+
+        val = None
+        op_q = op.qubits
+        found = False
+        for i in range(len(qubits)):
+            if qubits[i] in op_q:
+                if not found:
+                    found = True
+                    if val is None:
+                        val = kraus_list
+                    else:
+                        val = tuple([np.kron(x, y) for x in val for y in kraus_list])
+
+            elif val is None:
+                val = (np.identity(2),)
+            else:
+                val = tuple([np.kron(x, np.identity(2)) for x in val])
+
+        return val
+
+    qubits = None
     if isinstance(val, Gate):
         operation = val.on(*LineQid.for_gate(val))
+        qubits = LineQid.for_gate(val)
     else:
         operation = val
 
     decomposed = decompose(operation)
-    if decomposed != [operation]:
-        kraus_list = list(map(lambda x: kraus(x, default), decomposed))
 
-        def checkEquality(x, y):
-            if type(x) != type(y):
-                return False
-            if type(x) not in [list, tuple, np.ndarray]:
-                return x == y
-            if type(x) == np.ndarray:
-                return x.shape == y.shape and np.all(x == y)
-            if len(x) != len(y):
-                return False
-            return all([checkEquality(a, b) for a, b in zip(x, y)])
+    if decomposed != [operation]:
+        if qubits is None:
+            qubits = []
+            for x in decomposed:
+                qubits += list(x.qubits)
+            qubits = sorted(list(set(qubits)))
+
+        kraus_list = list(map(lambda x: kraus_tensor(x, qubits, default), decomposed))
 
         if not any([checkEquality(x, default) for x in kraus_list]):
             kraus_result = kraus_list[0]
 
             for i in range(1, len(kraus_list)):
-                kraus_result = [op_1 * op_2 for op_1 in kraus_result for op_2 in kraus_list[i]]
+                try:
+                    kraus_result = [
+                        op_2.dot(op_1) for op_1 in kraus_result for op_2 in kraus_list[i]
+                    ]
+                except:
+                    print("---->", operation)
+                    exit()
 
             return tuple(kraus_result)
 

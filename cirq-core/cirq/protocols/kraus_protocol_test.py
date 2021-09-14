@@ -157,7 +157,7 @@ def test_channel_fallback_to_mixture():
     assert cirq.has_kraus(ReturnsMixture())
 
 
-def test_serial_concatation():
+def test_serial_concatenation():
     g = cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=-0.5, z_exponent=1)
 
     c = (cirq.unitary(g),)
