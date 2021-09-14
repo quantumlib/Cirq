@@ -37,13 +37,13 @@ class GateFamily:
     For example:
         a) Instance Family:
             >>> gate_family = cirq.GateFamily(cirq.X)
-            >>> assert (cirq.X in gate_family) == True
-            >>> assert (cirq.X ** sympy.Symbol("theta") not in gate_family) == False
+            >>> assert cirq.X in gate_family
+            >>> assert cirq.X ** sympy.Symbol("theta") not in gate_family
 
         b) Type Family:
             >>> gate_family = cirq.GateFamily(cirq.XPowGate)
-            >>> assert (cirq.X in gate_family) == True
-            >>> assert (cirq.X ** sympy.Symbol("theta") in gate_family) == True
+            >>> assert cirq.X in gate_family
+            >>> assert cirq.X ** sympy.Symbol("theta") in gate_family
 
     In order to create gate families with constraints on parameters of a gate
     type, users should derive from the `cirq.GateFamily` class and override the
