@@ -28,9 +28,8 @@ from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits, decompose
 from cirq.protocols.mixture_protocol import has_mixture
 
-from cirq.ops import Gate
-from cirq.ops.raw_types import Qid
-from cirq.devices import LineQid
+from cirq.ops.raw_types import Qid, Gate
+from cirq.devices.line_qubit import LineQid
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -228,7 +227,8 @@ def kraus(
         qubits = sorted(list(set(qubits)))
         kraus_list = list(map(lambda x: kraus_tensor(x, qubits, default), decomposed))
 
-        if not any([checkEquality(x, default) for x in kraus_list]) or len(kraus_list) == 0:
+        if len(kraus_list) != 0 and not any([checkEquality(x, default) for x in kraus_list]):
+
             kraus_result = kraus_list[0]
 
             for i in range(1, len(kraus_list)):
