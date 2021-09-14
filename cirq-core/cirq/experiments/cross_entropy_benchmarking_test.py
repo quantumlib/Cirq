@@ -33,6 +33,10 @@ def test_cross_entropy_benchmarking():
     simulator = cirq.Simulator()
     qubits = cirq.GridQubit.square(2)
 
+    # Sanity check single-qubit-gate causes error
+    with pytest.raises(ValueError):
+        build_entangling_layers(qubits, cirq.Z ** 0.91)
+
     # Build a sequence of CZ gates.
     interleaved_ops = build_entangling_layers(qubits, cirq.CZ ** 0.91)
 
