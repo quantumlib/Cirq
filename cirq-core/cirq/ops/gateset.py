@@ -14,7 +14,7 @@
 
 """Functionality for grouping and validating Cirq Gates"""
 
-from typing import Any, Callable, Dict, FrozenSet, List, Optional, Type, TYPE_CHECKING, Union
+from typing import Any, Callable, cast, Dict, FrozenSet, List, Optional, Type, TYPE_CHECKING, Union
 from cirq.ops import global_phase_op, op_tree, raw_types
 from cirq import protocols, value
 
@@ -162,6 +162,8 @@ class Gateset:
         self,
         *gates: Union[Type[raw_types.Gate], raw_types.Gate, GateFamily],
         name: Optional[str] = None,
+        unroll_circuit_op: bool = True,
+        accept_global_phase: bool = True,
     ) -> None:
         """Init Gateset.
 
@@ -178,11 +180,16 @@ class Gateset:
             *gates: A list of `cirq.Gate` subclasses / `cirq.Gate` instances /
             `cirq.GateFamily` instances to initialize the Gateset.
             name: (Optional) Name for the Gateset. Useful for description.
+            unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
+                validated by validating the underlying `cirq.Circuit`.
+            accept_global_phase: If True, `cirq.GlobalPhaseOperation` is accepted.
         """
         self._name = name
         self._gates = frozenset(
             g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates
         )
+        self._unroll_circuit_op = unroll_circuit_op
+        self._accept_global_phase = accept_global_phase
         self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
         self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
         self._custom_gate_families: List[GateFamily] = []
@@ -202,6 +209,47 @@ class Gateset:
     @property
     def gates(self) -> FrozenSet[GateFamily]:
         return self._gates
+
+    def with_params(
+        self,
+        *,
+        name: Optional[str] = None,
+        unroll_circuit_op: Optional[bool] = None,
+        accept_global_phase: Optional[bool] = None,
+    ) -> 'Gateset':
+        """Returns a copy of this Gateset with identical gates and new values for named arguments.
+
+        If a named argument is None then corresponding value of this Gateset is used instead.
+
+        Args:
+            name: New name for the Gateset.
+            unroll_circuit_op: If True, new Gateset will recursively validate
+                `cirq.CircuitOperation` by validating the underlying `cirq.Circuit`.
+            accept_global_phase: If True, new Gateset will accept `cirq.GlobalPhaseOperation`.
+
+        Returns:
+            `self` if all new values are None or identical to the values of current Gateset.
+            else a new Gateset with identical gates and new values for named arguments.
+        """
+
+        def val_if_none(var: Any, val: Any) -> Any:
+            return var if var is not None else val
+
+        name = val_if_none(name, self._name)
+        unroll_circuit_op = val_if_none(unroll_circuit_op, self._unroll_circuit_op)
+        accept_global_phase = val_if_none(accept_global_phase, self._accept_global_phase)
+        if (
+            name == self._name
+            and unroll_circuit_op == self._unroll_circuit_op
+            and accept_global_phase == self._accept_global_phase
+        ):
+            return self
+        return Gateset(
+            *self.gates,
+            name=name,
+            unroll_circuit_op=unroll_circuit_op,
+            accept_global_phase=accept_global_phase,
+        )
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
         """Check for containment of `item` in any of the member `GateFamily`.
@@ -228,7 +276,10 @@ class Gateset:
             return True
         for gate_mro_type in type(g).mro():
             if gate_mro_type in self._type_gate_families:
-                assert item in self._type_gate_families[gate_mro_type]
+                assert item in self._type_gate_families[gate_mro_type], (
+                    f"{g} type {gate_mro_type} matches Type GateFamily:"
+                    f"{self._type_gate_families[gate_mro_type]} but is not accepted by it."
+                )
                 return True
         for gate_family in self._custom_gate_families:
             if item in gate_family:
@@ -238,69 +289,60 @@ class Gateset:
     def validate(
         self,
         circuit_or_optree: Union['cirq.AbstractCircuit', op_tree.OP_TREE],
-        *,
-        unroll_circuit_op: bool = True,
-        accept_global_phase: bool = True,
     ) -> bool:
         """Validates gates forming `circuit_or_optree` should be contained in Gateset.
 
         Args:
             circuit_or_optree: The `cirq.Circuit` or `cirq.OP_TREE` to validate.
-            unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
-                validated by validating the underlying `cirq.Circuit`.
-            accept_global_phase: If True, `cirq.GlobalPhaseOperation` is accepted.
         """
         # To avoid circular import.
         from cirq.circuits import circuit
 
+        print(
+            "Enter Validate:", circuit_or_optree, self._unroll_circuit_op, self._accept_global_phase
+        )
+
         optree = circuit_or_optree
         if isinstance(circuit_or_optree, circuit.AbstractCircuit):
             optree = circuit_or_optree.all_operations()
-        return all(
-            self._validate_operation(
-                op, unroll_circuit_op=unroll_circuit_op, accept_global_phase=accept_global_phase
-            )
-            for op in op_tree.flatten_to_ops(optree)
-        )
+        return all(self._validate_operation(op) for op in op_tree.flatten_to_ops(optree))
 
-    def _validate_operation(
-        self,
-        op: raw_types.Operation,
-        *,
-        unroll_circuit_op: bool = True,
-        accept_global_phase: bool = True,
-    ) -> bool:
+    def _validate_operation(self, op: raw_types.Operation) -> bool:
         # To avoid circular import.
         from cirq.circuits import circuit_operation
 
         if isinstance(op, raw_types.TaggedOperation):
-            return self._validate_operation(
-                op.sub_operation,
-                unroll_circuit_op=unroll_circuit_op,
-                accept_global_phase=accept_global_phase,
-            )
-        elif isinstance(op, circuit_operation.CircuitOperation) and unroll_circuit_op:
+            return self._validate_operation(op.sub_operation)
+        elif isinstance(op, circuit_operation.CircuitOperation) and self._unroll_circuit_op:
+            op = cast(circuit_operation.CircuitOperation, op)
             op_circuit = protocols.resolve_parameters(
                 op.circuit.unfreeze(), op.param_resolver, recursive=False
             )
             op_circuit = op_circuit.transform_qubits(lambda q: op.qubit_map.get(q, q))
-            return self.validate(
-                op_circuit,
-                unroll_circuit_op=unroll_circuit_op,
-                accept_global_phase=accept_global_phase,
-            )
+            return self.validate(op_circuit)
         elif isinstance(op, global_phase_op.GlobalPhaseOperation):
-            return accept_global_phase
+            return self._accept_global_phase
         elif op.gate is not None:
             return op in self
         else:
             return False
 
     def _value_equality_values_(self) -> Any:
-        return frozenset(self.gates), self.name
+        return (
+            frozenset(self.gates),
+            self.name,
+            self._unroll_circuit_op,
+            self._accept_global_phase,
+        )
 
     def __repr__(self) -> str:
-        return f'cirq.Gateset({",".join([repr(g) for g in self.gates])}, name = "{self.name}")'
+        return (
+            f'cirq.Gateset('
+            f'{",".join([repr(g) for g in self.gates])},'
+            f'name = "{self.name}",'
+            f'unroll_circuit_op = {self._unroll_circuit_op},'
+            f'accept_global_phase = {self._accept_global_phase})'
+        )
 
     def __str__(self) -> str:
         header = 'Gateset: '

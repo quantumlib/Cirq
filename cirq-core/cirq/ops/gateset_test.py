@@ -236,18 +236,42 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
             yield cirq.GlobalPhaseOperation(1j)
 
     for item in optree_and_circuit([*get_ops(use_circuit_op, use_global_phase)]):
-        assert gateset.validate(
-            item, unroll_circuit_op=use_circuit_op, accept_global_phase=use_global_phase
-        )
+        assert gateset.with_params(
+            unroll_circuit_op=use_circuit_op,
+            accept_global_phase=use_global_phase,
+        ).validate(item)
         if use_circuit_op or use_global_phase:
-            assert not gateset.validate(item, unroll_circuit_op=False, accept_global_phase=False)
+            assert not gateset.with_params(
+                unroll_circuit_op=False,
+                accept_global_phase=False,
+            ).validate(item)
+
+
+def test_with_params():
+    assert gateset.with_params() is gateset
+    assert (
+        gateset.with_params(
+            name=gateset.name,
+            unroll_circuit_op=gateset._unroll_circuit_op,
+            accept_global_phase=gateset._accept_global_phase,
+        )
+        is gateset
+    )
+    gateset_with_params = gateset.with_params(
+        name='new name', unroll_circuit_op=False, accept_global_phase=False
+    )
+    assert gateset_with_params.name == 'new name'
+    assert gateset_with_params._unroll_circuit_op is False
+    assert gateset_with_params._accept_global_phase is False
 
 
 def test_gateset_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.Gateset(CustomX))
-    eq.add_equality_group(cirq.GateFamily(CustomX ** 3))
+    eq.add_equality_group(cirq.Gateset(CustomX ** 3))
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset'))
+    eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset', unroll_circuit_op=False))
+    eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase=False))
     eq.add_equality_group(
         cirq.Gateset(
             cirq.GateFamily(CustomX, name='custom_name', description='custom_description')
