@@ -258,6 +258,18 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
+    def _measurement_key_obj_(self) -> Optional[value.MeasurementKey]:
+        getter = getattr(self.gate, '_measurement_key_obj_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
+    def _measurement_key_objs_(self) -> Optional[Iterable[value.MeasurementKey]]:
+        getter = getattr(self.gate, '_measurement_key_objs_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
     def _act_on_(self, args: 'cirq.ActOnArgs'):
         getter = getattr(self.gate, '_act_on_', None)
         if getter is not None:
