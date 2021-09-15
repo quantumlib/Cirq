@@ -443,6 +443,11 @@ def test_commutes_single_qubit_gate(gate, other):
     assert_allclose_up_to_global_phase(mat, mat_swap, rtol=1e-7, atol=1e-7)
 
 
+@pytest.mark.parametrize('gate', _all_clifford_gates())
+def test_parses_single_qubit_gate(gate):
+    assert gate == cirq.read_json(json_text=(cirq.to_json(gate)))
+
+
 @pytest.mark.parametrize(
     'gate,pauli,half_turns',
     itertools.product(_all_clifford_gates(), _paulis, (1.0, 0.25, 0.5, -0.5)),

@@ -56,7 +56,7 @@ class Simulator(
     protocol, the `cirq.SupportsMixture` protocol, or the
     `cirq.CompositeOperation` protocol. It is also permitted for the circuit
     to contain measurements which are operations that support
-    `cirq.SupportsChannel` and `cirq.SupportsMeasurementKey`
+    `cirq.SupportsKraus` and `cirq.SupportsMeasurementKey`
 
     This simulator supports four types of simulation.
 
@@ -170,6 +170,8 @@ class Simulator(
         )
 
     # pylint: enable=missing-raises-doc
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
@@ -204,6 +206,7 @@ class Simulator(
             log_of_measurement_results=logs,
         )
 
+    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',

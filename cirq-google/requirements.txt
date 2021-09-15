@@ -1,2 +1,2 @@
 google-api-core[grpc] >= 1.14.0, < 2.0.0dev
-protobuf~=3.13.0
+protobuf>=3.13.0

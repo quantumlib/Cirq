@@ -23,11 +23,12 @@ from typing import (
     Any,
     Tuple,
     List,
+    Union,
 )
 
 import numpy as np
 
-from cirq import ops
+from cirq import ops, protocols
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TActOnArgs,
@@ -79,16 +80,19 @@ class ActOnArgsContainer(
             final_args = final_args.kronecker_product(args)
         return final_args.transpose_to_qubit_order(self.qubits)
 
-    def apply_operation(
+    def _act_on_fallback_(
         self,
-        op: 'cirq.Operation',
-    ):
-        gate = op.gate
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> bool:
+        gate = action.gate if isinstance(action, ops.Operation) else action
+
         if isinstance(gate, ops.IdentityGate):
-            return
+            return True
 
         if isinstance(gate, ops.SwapPowGate) and gate.exponent % 2 == 1 and gate.global_shift == 0:
-            q0, q1 = op.qubits
+            q0, q1 = qubits
             args0 = self.args[q0]
             args1 = self.args[q1]
             if args0 is args1:
@@ -96,12 +100,12 @@ class ActOnArgsContainer(
             else:
                 self.args[q0] = args1.rename(q1, q0, inplace=True)
                 self.args[q1] = args0.rename(q0, q1, inplace=True)
-            return
+            return True
 
         # Go through the op's qubits and join any disparate ActOnArgs states
         # into a new combined state.
         op_args_opt: Optional[TActOnArgs] = None
-        for q in op.qubits:
+        for q in qubits:
             if op_args_opt is None:
                 op_args_opt = self.args[q]
             elif q not in op_args_opt.qubits:
@@ -113,19 +117,21 @@ class ActOnArgsContainer(
             self.args[q] = op_args
 
         # Act on the args with the operation
-        op_args.apply_operation(op)
+        act_on_qubits = qubits if isinstance(action, ops.Gate) else None
+        protocols.act_on(action, op_args, act_on_qubits, allow_decompose=allow_decompose)
 
         # Decouple any measurements or resets
         if self.split_untangled_states and isinstance(
-            op.gate, (ops.MeasurementGate, ops.ResetChannel)
+            gate, (ops.MeasurementGate, ops.ResetChannel)
         ):
-            for q in op.qubits:
+            for q in qubits:
                 q_args, op_args = op_args.factor((q,), validate=False)
                 self.args[q] = q_args
 
             # (Backfill the args map with the new value)
             for q in op_args.qubits:
                 self.args[q] = op_args
+        return True
 
     def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()

@@ -853,7 +853,7 @@ class AbstractCircuit(abc.ABC):
         match its qid shape.
 
         Args:
-            operation: The operation to validate.
+            op_tree: The operation to validate.
 
         Raises:
             ValueError: The operation had qids that don't match its qid shape.
@@ -909,7 +909,10 @@ class AbstractCircuit(abc.ABC):
         return protocols.qid_shape(qids)
 
     def all_measurement_key_names(self) -> AbstractSet[str]:
-        return protocols.measurement_key_names(self)
+        return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
+
+    def _measurement_key_names_(self) -> AbstractSet[str]:
+        return self.all_measurement_key_names()
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self._with_sliced_moments(
@@ -1127,6 +1130,8 @@ class AbstractCircuit(abc.ABC):
             use_unicode_characters=use_unicode_characters,
         )
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def to_text_diagram_drawer(
         self,
         *,
@@ -1198,6 +1203,7 @@ class AbstractCircuit(abc.ABC):
 
         return diagram
 
+    # pylint: enable=missing-param-doc
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(op) for op in self.all_operations())
 
@@ -1286,6 +1292,8 @@ class AbstractCircuit(abc.ABC):
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def zip(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
@@ -1361,6 +1369,7 @@ class AbstractCircuit(abc.ABC):
                 ) from ex
         return result
 
+    # pylint: enable=missing-param-doc
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':

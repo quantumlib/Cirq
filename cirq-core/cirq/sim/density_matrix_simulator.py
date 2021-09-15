@@ -48,7 +48,7 @@ class DensityMatrixSimulator(
         * measurements
         * a `_decompose_` that eventually yields one of the above
     That is, the circuit must have elements that follow on of the protocols:
-        * `cirq.SupportsChannel`
+        * `cirq.SupportsKraus`
         * `cirq.SupportsMixture`
         * `cirq.SupportsConsistentApplyUnitary`
         * `cirq.SupportsUnitary`
@@ -170,6 +170,8 @@ class DensityMatrixSimulator(
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
     # pylint: enable=missing-raises-doc
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
@@ -208,6 +210,7 @@ class DensityMatrixSimulator(
             log_of_measurement_results=logs,
         )
 
+    # pylint: enable=missing-param-doc
     def _can_be_in_run_prefix(self, val: Any):
         return not protocols.is_measurement(val)
 

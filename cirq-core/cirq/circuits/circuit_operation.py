@@ -17,8 +17,17 @@ A CircuitOperation is an Operation object that wraps a FrozenCircuit. When
 applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
-
-from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    AbstractSet,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    Iterator,
+)
 
 import dataclasses
 import numpy as np
@@ -245,8 +254,13 @@ class CircuitOperation(ops.Operation):
         """As `mapped_circuit`, but wraps the result in a CircuitOperation."""
         return CircuitOperation(circuit=self.mapped_circuit(deep=deep).freeze())
 
-    def _decompose_(self) -> 'cirq.OP_TREE':
+    def _decompose_(self) -> Iterator['cirq.Operation']:
         return self.mapped_circuit(deep=False).all_operations()
+
+    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
+        for op in self._decompose_():
+            protocols.act_on(op, args)
+        return True
 
     # Methods for string representation of the operation.
 
