@@ -247,8 +247,8 @@ class Gateset:
         return Gateset(
             *self.gates,
             name=name,
-            unroll_circuit_op=unroll_circuit_op,
-            accept_global_phase=accept_global_phase,
+            unroll_circuit_op=cast(bool, unroll_circuit_op),
+            accept_global_phase=cast(bool, accept_global_phase),
         )
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
@@ -314,11 +314,12 @@ class Gateset:
         if isinstance(op, raw_types.TaggedOperation):
             return self._validate_operation(op.sub_operation)
         elif isinstance(op, circuit_operation.CircuitOperation) and self._unroll_circuit_op:
-            op = cast(circuit_operation.CircuitOperation, op)
             op_circuit = protocols.resolve_parameters(
                 op.circuit.unfreeze(), op.param_resolver, recursive=False
             )
-            op_circuit = op_circuit.transform_qubits(lambda q: op.qubit_map.get(q, q))
+            op_circuit = op_circuit.transform_qubits(
+                lambda q: cast(circuit_operation.CircuitOperation, op).qubit_map.get(q, q)
+            )
             return self.validate(op_circuit)
         elif isinstance(op, global_phase_op.GlobalPhaseOperation):
             return self._accept_global_phase
