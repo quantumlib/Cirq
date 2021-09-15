@@ -91,24 +91,13 @@ def test_is_measurement_memoization():
     assert circuit._has_measurements is True
 
 
-def test_invalid_measurement_keys():
-    a = cirq.LineQubit(0)
-    circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
-    c_op = cirq.CircuitOperation(circuit)
-    # Invalid key remapping
-    with pytest.raises(ValueError, match='Mapping to invalid key: m:a'):
-        _ = c_op.with_measurement_key_mapping({'m': 'm:a'})
-
-    # Invalid key remapping nested CircuitOperation
-    with pytest.raises(ValueError, match='Mapping to invalid key: m:a'):
-        _ = cirq.CircuitOperation(cirq.FrozenCircuit(c_op), measurement_key_map={'m': 'm:a'})
-
-    # Originally invalid key
-    with pytest.raises(ValueError, match='Invalid key name: m:a'):
-        _ = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='m:a')))
-
-    # Remapped to valid key
-    _ = cirq.CircuitOperation(circuit, measurement_key_map={'m:a': 'ma'})
+def test_fully_qualified_key_map():
+    q = cirq.LineQubit(0)
+    l2 = cirq.Circuit(cirq.measure(q, key='c'))
+    l1 = cirq.Circuit(cirq.CircuitOperation(l2.freeze(), repetitions=2), cirq.measure(q, key='b'))
+    l0 = cirq.Circuit(cirq.CircuitOperation(l1.freeze(), repetitions=2), cirq.measure(q, key='a'))
+    c = cirq.with_measurement_key_mapping(l0, {'1:1:c': '1:1:d'})
+    assert cirq.measurement_key_names(c) == {'a', '0:b', '1:b', '0:0:c', '0:1:c', '1:0:c', '1:1:d'}
 
 
 def test_invalid_qubit_mapping():
@@ -200,10 +189,10 @@ def test_with_measurement_keys():
 
     op_with_keys = op_base.with_measurement_key_mapping({'ma': 'pa', 'x': 'z'})
     assert op_with_keys.base_operation() == op_base
-    assert op_with_keys.measurement_key_map == {'ma': 'pa'}
+    assert op_with_keys.measurement_key_map == {'ma': 'pa', 'x': 'z'}
     assert cirq.measurement_key_names(op_with_keys) == {'pa', 'mb'}
 
-    assert cirq.with_measurement_key_mapping(op_base, {'ma': 'pa'}) == op_with_keys
+    assert cirq.with_measurement_key_mapping(op_base, {'ma': 'pa', 'x': 'z'}) == op_with_keys
 
     # Two measurement keys cannot be mapped onto the same target string.
     with pytest.raises(ValueError):
