@@ -123,7 +123,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
-        'StatePreparationGate': cirq.StatePreparationGate,
+        'StatePreparationChannel': cirq.StatePreparationChannel,
         'ProjectorString': cirq.ProjectorString,
         'ProjectorSum': cirq.ProjectorSum,
         'RandomGateChannel': cirq.RandomGateChannel,

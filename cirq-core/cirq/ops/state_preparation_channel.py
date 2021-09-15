@@ -26,12 +26,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-class StatePreparationGate(raw_types.Gate):
-    """A unitary qubit gate which resets all qubits to the |0> state
-    and then prepares the target state."""
+class StatePreparationChannel(raw_types.Gate):
+    """A channel which prepares any state provided as the state vector on it's target qubits."""
 
     def __init__(self, target_state: np.ndarray, name: str = "StatePreparation") -> None:
-        """Initializes a State Preparation gate.
+        """Initializes a State Preparation channel.
 
         Args:
             target_state: The state vector that this gate should prepare.
@@ -68,10 +67,10 @@ class StatePreparationGate(raw_types.Gate):
 
     @classmethod
     def _from_json_dict_(cls, target_state, **kwargs):
-        """Recreates the gate object from it's serialized form
+        """Recreates the channel object from it's serialized form
 
         Args:
-            target_state: the state to prepare using this gate
+            target_state: the state to prepare using this channel
             kwargs: other keyword arguments, ignored
         """
         return cls(target_state=np.array(target_state))
@@ -85,7 +84,7 @@ class StatePreparationGate(raw_types.Gate):
     def _circuit_diagram_info_(
         self, _args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        """Returns the information required to draw out the circuit diagram for this gate."""
+        """Returns the information required to draw out the circuit diagram for this channel."""
         symbols = (
             [self._name]
             if self._num_qubits == 1
@@ -109,10 +108,10 @@ class StatePreparationGate(raw_types.Gate):
         return operator
 
     def __repr__(self) -> str:
-        return f'cirq.StatePreparationGate({proper_repr(self._state)})'
+        return f'cirq.StatePreparationChannel({proper_repr(self._state)})'
 
     def __eq__(self, other) -> bool:
-        if not isinstance(other, StatePreparationGate):
+        if not isinstance(other, StatePreparationChannel):
             return False
         return np.allclose(self.state, other.state)
 

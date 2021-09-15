@@ -18,7 +18,7 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    'target_state',
+    'state',
     np.array(
         [
             [1, 0, 0, 0],
@@ -35,25 +35,41 @@ import pytest
         ]
     ),
 )
-def test_state_prep_gate(target_state):
-    gate = cirq.StatePreparationGate(target_state)
+def test_state_prep_channel_kraus(state):
     qubits = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        [
-            cirq.H(qubits[0]),
-            cirq.CNOT(qubits[0], qubits[1]),
-            gate(qubits[0], qubits[1]),
-        ]
+    gate = cirq.StatePreparationChannel(state)(qubits[0], qubits[1])
+    state = state / np.linalg.norm(state)
+    np.testing.assert_almost_equal(
+        cirq.kraus(gate),
+        (
+            np.array([state, np.zeros(4), np.zeros(4), np.zeros(4)]).T,
+            np.array([np.zeros(4), state, np.zeros(4), np.zeros(4)]).T,
+            np.array([np.zeros(4), np.zeros(4), state, np.zeros(4)]).T,
+            np.array([np.zeros(4), np.zeros(4), np.zeros(4), state]).T,
+        ),
     )
-    simulator = cirq.Simulator()
-    result = simulator.simulate(circuit, qubit_order=qubits).final_state_vector
-    assert np.allclose(result, target_state / np.linalg.norm(target_state))
+
+
+def test_state_prep_channel_kraus_small():
+    gate = cirq.StatePreparationChannel(np.array([0.0, 1.0]))(cirq.LineQubit(0))
+    np.testing.assert_almost_equal(
+        cirq.kraus(gate), (np.array([[0.0, 0.0], [1.0, 0.0]]), np.array([[0.0, 0.0], [0.0, 1.0]]))
+    )
+    assert cirq.has_kraus(gate)
+    assert not cirq.has_mixture(gate)
+
+    gate = cirq.StatePreparationChannel(np.array([1.0, 0.0]))(cirq.LineQubit(0))
+    np.testing.assert_almost_equal(
+        cirq.kraus(gate), (np.array([[1.0, 0.0], [0.0, 0.0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
+    )
+    assert cirq.has_kraus(gate)
+    assert not cirq.has_mixture(gate)
 
 
 def test_state_prep_gate_printing():
     circuit = cirq.Circuit()
     qubits = cirq.LineQubit.range(2)
-    gate = cirq.StatePreparationGate(np.array([1, 0, 0, 1]) / np.sqrt(2))
+    gate = cirq.StatePreparationChannel(np.array([1, 0, 0, 1]) / np.sqrt(2))
     circuit.append(cirq.H(qubits[0]))
     circuit.append(cirq.CNOT(qubits[0], qubits[1]))
     circuit.append(gate(qubits[0], qubits[1]))
@@ -71,7 +87,7 @@ def test_state_prep_gate_printing():
 def test_state_prep_gate_printing_with_name(name):
     circuit = cirq.Circuit()
     qubits = cirq.LineQubit.range(2)
-    gate = cirq.StatePreparationGate(np.array([1, 0, 0, 1]) / np.sqrt(2), name=name)
+    gate = cirq.StatePreparationChannel(np.array([1, 0, 0, 1]) / np.sqrt(2), name=name)
     circuit.append(cirq.H(qubits[0]))
     circuit.append(cirq.CNOT(qubits[0], qubits[1]))
     circuit.append(gate(qubits[0], qubits[1]))
@@ -87,26 +103,26 @@ def test_state_prep_gate_printing_with_name(name):
 
 def test_gate_params():
     state = np.array([1, 0, 0, 0], dtype=np.complex64)
-    gate = cirq.StatePreparationGate(state)
+    gate = cirq.StatePreparationChannel(state)
     assert gate.num_qubits() == 2
     assert not gate._has_unitary_()
     assert gate._has_kraus_()
     assert (
         repr(gate)
-        == 'cirq.StatePreparationGate(np.array([(1+0j), 0j, 0j, 0j], dtype=np.complex128))'
+        == 'cirq.StatePreparationChannel(np.array([(1+0j), 0j, 0j, 0j], dtype=np.complex128))'
     )
 
 
 def test_gate_error_handling():
     with pytest.raises(ValueError, match='`target_state` must be a 1d numpy array.'):
-        cirq.StatePreparationGate(np.eye(2))
+        cirq.StatePreparationChannel(np.eye(2))
     with pytest.raises(ValueError, match=f'Matrix width \\(5\\) is not a power of 2'):
-        cirq.StatePreparationGate(np.ones(shape=5))
+        cirq.StatePreparationChannel(np.ones(shape=5))
 
 
 def test_equality_of_gates():
     state = np.array([1, 0, 0, 0], dtype=np.complex64)
-    gate_1 = cirq.StatePreparationGate(state)
-    gate_2 = cirq.StatePreparationGate(state)
+    gate_1 = cirq.StatePreparationChannel(state)
+    gate_2 = cirq.StatePreparationChannel(state)
     assert gate_1 == gate_2, "Equal state not leading to same gate"
     assert not gate_1 == state, "Incompatible objects shouldn't be equal"
