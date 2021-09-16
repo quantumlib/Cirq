@@ -39,9 +39,7 @@ def test_assert_kraus_is_consistent_with_unitary():
     gate = GoodGateKraus()
     cirq.testing.assert_kraus_is_consistent_with_unitary(gate)
 
-    cirq.testing.assert_kraus_is_consistent_with_unitary(
-        GoodGateKraus().on(cirq.NamedQubit('q'))
-    )
+    cirq.testing.assert_kraus_is_consistent_with_unitary(GoodGateKraus().on(cirq.NamedQubit('q')))
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_kraus_is_consistent_with_unitary(BadGateKraus())

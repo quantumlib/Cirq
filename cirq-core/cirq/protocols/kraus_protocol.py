@@ -177,6 +177,7 @@ def kraus(
     if channel_result is not NotImplemented:
         return tuple(channel_result)
 
+    # serial concatenation
     def checkEquality(x, y):
         if type(x) != type(y):
             return False

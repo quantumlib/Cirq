@@ -16,20 +16,22 @@ from typing import Any
 
 import numpy as np
 
-from cirq import devices, protocols, ops, circuits
+from cirq import protocols, ops
 from cirq.testing import lin_alg_utils
 
 
 def assert_kraus_is_consistent_with_unitary(val: Any, ignoring_global_phase: bool = False):
     """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
     # pylint: disable=unused-variable
-    __tracebackhide__ = True
+    # __tracebackhide__ = True
     # pylint: enable=unused-variable
 
-    expected = (protocols.unitary(val, None),)
+    expected = protocols.unitary(val, None)
     if expected is None:
         # If there's no unitary, it's vacuously consistent.
         return
+    expected = (expected,)
+
     if isinstance(val, ops.Operation):
         has_krs = protocols.kraus_protocol.has_kraus(val)
         krs = protocols.kraus_protocol.kraus(val, default=None)
@@ -37,10 +39,8 @@ def assert_kraus_is_consistent_with_unitary(val: Any, ignoring_global_phase: boo
         has_krs = protocols.kraus_protocol.has_kraus(val)
         krs = protocols.kraus_protocol.kraus(val, default=None)
 
-    if not has_krs:
-        # If there's no kraus, it's vacuously consistent.
-        return
-
+    # there is unitary and hence must have kraus operator
+    assert has_krs
     actual = krs
 
     if ignoring_global_phase:
