@@ -123,6 +123,8 @@ def test_gate_family_eq():
                 (CustomXPowGate(exponent=0.25, global_shift=0.15), True),
                 (cirq.SingleQubitGate(), False),
                 (cirq.X ** 0.5, False),
+                (None, False),
+                (cirq.GlobalPhaseOperation(1j), False),
             ],
         ),
         (
@@ -132,6 +134,8 @@ def test_gate_family_eq():
                 (CustomX ** 2, False),
                 (CustomX ** 3, True),
                 (CustomX ** sympy.Symbol('theta'), False),
+                (None, False),
+                (cirq.GlobalPhaseOperation(1j), False),
             ],
         ),
     ],
@@ -141,8 +145,9 @@ def test_gate_family_predicate_and_containment(gate_family, gates_to_check):
     for gate, result in gates_to_check:
         assert gate_family.predicate(gate) == result
         assert (gate in gate_family) == result
-        assert (gate(q) in gate_family) == result
-        assert (gate(q).with_tags('tags') in gate_family) == result
+        if isinstance(gate, cirq.Gate):
+            assert (gate(q) in gate_family) == result
+            assert (gate(q).with_tags('tags') in gate_family) == result
 
 
 class CustomXGateFamily(cirq.GateFamily):
@@ -208,7 +213,8 @@ def test_gateset_contains(gate, result):
     assert (op in gateset) is result
     assert (op.with_tags('tags') in gateset) is result
     circuit_op = cirq.CircuitOperation(cirq.FrozenCircuit([op] * 5), repetitions=5)
-    assert (circuit_op in gateset) is False
+    assert (circuit_op in gateset) is result
+    assert circuit_op not in gateset.with_params(unroll_circuit_op=False)
 
 
 @pytest.mark.parametrize('use_circuit_op', [True, False])

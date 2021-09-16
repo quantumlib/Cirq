@@ -252,28 +252,41 @@ class Gateset:
         )
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
-        """Check for containment of `item` in any of the member `GateFamily`.
+        """Check for containment of a given Gate/Operation in this Gateset.
 
-        This method just forwards containment checks to the underlying
-        `GateFamily` objects. It returns `True` if any of the member gate
-        families can accept `item`.
+        Containment checks are handled as follows:
+            a) For Gates or Operations that have an underlying gate (i.e. op.gate is not None):
+                - Forwards the containment check to the underlying GateFamily's
+                - Examples of such operations include `GateOperations` and their controlled and
+                    tagged variants (i.e. instances of `TaggedOperation`, `ControlledOperation`
+                    where `op.gate` is not None) etc.
 
-        To validate whether a `cirq.CircuitOperation`/`cirq.OP_TREE`/
-        `cirq.Circuit` is made up entirely of gates from this Gateset, use the
-        `validate` method given below.
+            b) For Operations that do not have an underlying gate:
+                - Forwards the containment check to `self._validate_operation(item)`.
+                - Examples of such operations include `CircuitOperations` and their controlled
+                    and tagged variants (i.e. instances of `TaggedOperation`, `ControlledOperation`
+                    where `op.gate` is None) etc.
 
         The complexity of the method is:
             a) O(1) for checking containment in the default `cirq.GateFamily` instances.
             b) O(n) for checking containment in custom GateFamily instances.
 
         Args:
-            item: The `cirq.Gate` or `cirq.Operation` instance to check
-                containment for.
+            item: The `cirq.Gate` or `cirq.Operation` instance to check containment for.
         """
+        if isinstance(item, raw_types.Operation) and item.gate is None:
+            return self._validate_operation(item)
+
         g = item if isinstance(item, raw_types.Gate) else item.gate
+        assert g is not None, f'`item`: {item} must be a gate or have a valid `item.gate`'
+
         if g in self._instance_gate_families:
-            assert item in self._instance_gate_families[g]
+            assert item in self._instance_gate_families[g], (
+                f"{item} instance matches {self._instance_gate_families[g]} but "
+                f"is not accepted by it."
+            )
             return True
+
         for gate_mro_type in type(g).mro():
             if gate_mro_type in self._type_gate_families:
                 assert item in self._type_gate_families[gate_mro_type], (
@@ -281,10 +294,8 @@ class Gateset:
                     f"{self._type_gate_families[gate_mro_type]} but is not accepted by it."
                 )
                 return True
-        for gate_family in self._custom_gate_families:
-            if item in gate_family:
-                return True
-        return False
+
+        return any(item in gate_family for gate_family in self._custom_gate_families)
 
     def validate(
         self,
@@ -298,18 +309,35 @@ class Gateset:
         # To avoid circular import.
         from cirq.circuits import circuit
 
-        print(
-            "Enter Validate:", circuit_or_optree, self._unroll_circuit_op, self._accept_global_phase
-        )
-
         optree = circuit_or_optree
         if isinstance(circuit_or_optree, circuit.AbstractCircuit):
             optree = circuit_or_optree.all_operations()
         return all(self._validate_operation(op) for op in op_tree.flatten_to_ops(optree))
 
     def _validate_operation(self, op: raw_types.Operation) -> bool:
+        """Validates whether the given operation `op` is contained in this Gateset.
+
+        The containment checks are handled as follows:
+
+        a) For any operation which has an underlying gate (i.e. `op.gate` is not None):
+            - Containment is checked via `self.__contains__` which further checks for containment
+                in any of the underlying gate families.
+
+        b) For all other types of operations (eg: `CircuitOperation`, `GlobalPhaseOperation` etc):
+            - The behavior is controlled via flags passed to the constructor.
+
+        Users should override this method to define custom behavior for operations that do not
+        have an underlying `cirq.Gate`.
+
+        Args:
+            op: The `cirq.Operation` instance to check containment for.
+        """
+
         # To avoid circular import.
         from cirq.circuits import circuit_operation
+
+        if op.gate is not None:
+            return op in self
 
         if isinstance(op, raw_types.TaggedOperation):
             return self._validate_operation(op.sub_operation)
@@ -323,8 +351,6 @@ class Gateset:
             return self.validate(op_circuit)
         elif isinstance(op, global_phase_op.GlobalPhaseOperation):
             return self._accept_global_phase
-        elif op.gate is not None:
-            return op in self
         else:
             return False
 
