@@ -241,16 +241,29 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
         if use_global_phase:
             yield cirq.GlobalPhaseOperation(1j)
 
-    for item in optree_and_circuit([*get_ops(use_circuit_op, use_global_phase)]):
-        assert gateset.with_params(
+    def assert_validate_and_contains_consistent(gateset, op_tree, result):
+        assert all(op in gateset for op in cirq.flatten_to_ops(op_tree)) is result
+        for item in optree_and_circuit(op_tree):
+            assert gateset.validate(item) is result
+
+    op_tree = [*get_ops(use_circuit_op, use_global_phase)]
+    assert_validate_and_contains_consistent(
+        gateset.with_params(
             unroll_circuit_op=use_circuit_op,
             accept_global_phase=use_global_phase,
-        ).validate(item)
-        if use_circuit_op or use_global_phase:
-            assert not gateset.with_params(
+        ),
+        op_tree,
+        True,
+    )
+    if use_circuit_op or use_global_phase:
+        assert_validate_and_contains_consistent(
+            gateset.with_params(
                 unroll_circuit_op=False,
                 accept_global_phase=False,
-            ).validate(item)
+            ),
+            op_tree,
+            False,
+        )
 
 
 def test_with_params():
