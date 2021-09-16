@@ -82,6 +82,11 @@ class MixedUnitaryChannel(raw_types.Gate):
     def _measurement_key_name_(self):
         if self._key is None:
             return NotImplemented
+        return str(self._key)
+
+    def _measurement_key_obj_(self):
+        if self._key is None:
+            return NotImplemented
         return self._key
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
