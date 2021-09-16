@@ -600,6 +600,9 @@ def test_tagged_operation_forwards_protocols():
     assert np.isclose(cirq.kraus(h), cirq.kraus(tagged_h)).all()
 
     assert cirq.measurement_key_name(cirq.measure(q1, key='blah').with_tags(tag)) == 'blah'
+    assert cirq.measurement_key_obj(
+        cirq.measure(q1, key='blah').with_tags(tag)
+    ) == cirq.MeasurementKey('blah')
 
     parameterized_op = cirq.XPowGate(exponent=sympy.Symbol('t'))(q1).with_tags(tag)
     assert cirq.is_parameterized(parameterized_op)

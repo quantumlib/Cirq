@@ -172,21 +172,21 @@ class CircuitOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return self.circuit._is_measurement_()
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
-        circuit_keys = [
-            value.MeasurementKey.parse_serialized(key_str)
-            for key_str in self.circuit.all_measurement_key_names()
-        ]
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        circuit_keys = protocols.measurement_key_objs(self.circuit)
         if self.repetition_ids is not None:
-            circuit_keys = [
+            circuit_keys = {
                 key.with_key_path_prefix(repetition_id)
                 for repetition_id in self.repetition_ids
                 for key in circuit_keys
-            ]
+            }
         return {
-            str(protocols.with_measurement_key_mapping(key, self.measurement_key_map))
+            protocols.with_measurement_key_mapping(key, self.measurement_key_map)
             for key in circuit_keys
         }
+
+    def _measurement_key_names_(self) -> AbstractSet[str]:
+        return {str(key) for key in self._measurement_key_objs_()}
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return {

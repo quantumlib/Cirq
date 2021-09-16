@@ -17,66 +17,119 @@ import pytest
 import cirq
 
 
-def test_measurement_key():
-    class ReturnsStr:
-        def _measurement_key_name_(self):
-            return 'door locker'
+class ReturnsStr:
+    def _measurement_key_name_(self):
+        return 'door locker'
 
+
+class ReturnsObj:
+    def _measurement_key_obj_(self):
+        return cirq.MeasurementKey(name='door locker')
+
+
+@pytest.mark.parametrize('gate', [ReturnsStr(), ReturnsObj()])
+def test_measurement_key_name(gate):
+    assert isinstance(cirq.measurement_key_name(gate), str)
+    assert cirq.measurement_key_name(gate) == 'door locker'
+    assert cirq.measurement_key_obj(gate) == cirq.MeasurementKey(name='door locker')
+
+    assert cirq.measurement_key_name(gate, None) == 'door locker'
+    assert cirq.measurement_key_name(gate, NotImplemented) == 'door locker'
+    assert cirq.measurement_key_name(gate, 'a') == 'door locker'
+
+
+@pytest.mark.parametrize('gate', [ReturnsStr(), ReturnsObj()])
+def test_measurement_key_obj(gate):
+    assert isinstance(cirq.measurement_key_obj(gate), cirq.MeasurementKey)
+    assert cirq.measurement_key_obj(gate) == cirq.MeasurementKey(name='door locker')
+    assert cirq.measurement_key_obj(gate) == 'door locker'
+
+    assert cirq.measurement_key_obj(gate, None) == 'door locker'
+    assert cirq.measurement_key_obj(gate, NotImplemented) == 'door locker'
+    assert cirq.measurement_key_obj(gate, 'a') == 'door locker'
+
+
+@pytest.mark.parametrize('gate', [ReturnsStr(), ReturnsObj()])
+def test_measurement_key_deprecated(gate):
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert isinstance(cirq.measurement_key(gate), str)
+
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert cirq.measurement_key(gate) == cirq.MeasurementKey(name='door locker')
+
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert cirq.measurement_key(gate) == 'door locker'
+
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert cirq.measurement_key(gate, None) == 'door locker'
+
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert cirq.measurement_key(gate, NotImplemented) == 'door locker'
+
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert cirq.measurement_key(gate, 'a') == 'door locker'
+
+
+@pytest.mark.parametrize('key_method', [cirq.measurement_key_name, cirq.measurement_key_obj])
+def test_measurement_key_magic_method_deprecated(key_method):
     class DeprecatedMagicMethod(cirq.SingleQubitGate):
         def _measurement_key_(self):
             return 'door locker'
 
-    assert cirq.is_measurement(ReturnsStr())
+    gate = DeprecatedMagicMethod()
     with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.measurement_key(ReturnsStr()) == 'door locker'
+        assert key_method(gate) == 'door locker'
     with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.measurement_key_name(DeprecatedMagicMethod()) == 'door locker'
+        assert key_method(gate.on(cirq.LineQubit(0))) == 'door locker'
+
     with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert (
-            cirq.measurement_key_name(DeprecatedMagicMethod().on(cirq.LineQubit(0)))
-            == 'door locker'
-        )
+        assert key_method(gate, None) == 'door locker'
 
-    assert cirq.measurement_key_name(ReturnsStr()) == 'door locker'
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert key_method(gate, NotImplemented) == 'door locker'
 
-    assert cirq.measurement_key_name(ReturnsStr(), None) == 'door locker'
-    assert cirq.measurement_key_name(ReturnsStr(), NotImplemented) == 'door locker'
-    assert cirq.measurement_key_name(ReturnsStr(), 'a') == 'door locker'
+    with cirq.testing.assert_deprecated(deadline="v0.13"):
+        assert key_method(gate, 'a') == 'door locker'
 
 
-def test_measurement_key_no_method():
+@pytest.mark.parametrize('key_method', [cirq.measurement_key_name, cirq.measurement_key_obj])
+def test_measurement_key_no_method(key_method):
     class NoMethod:
         pass
 
     with pytest.raises(TypeError, match='no measurement keys'):
-        cirq.measurement_key_name(NoMethod())
+        key_method(NoMethod())
 
     with pytest.raises(ValueError, match='multiple measurement keys'):
-        cirq.measurement_key_name(
+        key_method(
             cirq.Circuit(
                 cirq.measure(cirq.LineQubit(0), key='a'), cirq.measure(cirq.LineQubit(0), key='b')
             )
         )
 
-    assert cirq.measurement_key_name(NoMethod(), None) is None
-    assert cirq.measurement_key_name(NoMethod(), NotImplemented) is NotImplemented
-    assert cirq.measurement_key_name(NoMethod(), 'a') == 'a'
+    assert key_method(NoMethod(), None) is None
+    assert key_method(NoMethod(), NotImplemented) is NotImplemented
+    assert key_method(NoMethod(), 'a') == 'a'
 
-    assert cirq.measurement_key_name(cirq.X, None) is None
-    assert cirq.measurement_key_name(cirq.X(cirq.LineQubit(0)), None) is None
+    assert key_method(cirq.X, None) is None
+    assert key_method(cirq.X(cirq.LineQubit(0)), None) is None
 
 
-def test_measurement_key_not_implemented():
+@pytest.mark.parametrize('key_method', [cirq.measurement_key_name, cirq.measurement_key_obj])
+def test_measurement_key_not_implemented_default_behavior(key_method):
     class ReturnsNotImplemented:
         def _measurement_key_name_(self):
             return NotImplemented
 
-    with pytest.raises(TypeError, match='NotImplemented'):
-        cirq.measurement_key_name(ReturnsNotImplemented())
+        def _measurement_key_obj_(self):
+            return NotImplemented
 
-    assert cirq.measurement_key_name(ReturnsNotImplemented(), None) is None
-    assert cirq.measurement_key_name(ReturnsNotImplemented(), NotImplemented) is NotImplemented
-    assert cirq.measurement_key_name(ReturnsNotImplemented(), 'a') == 'a'
+    with pytest.raises(TypeError, match='NotImplemented'):
+        key_method(ReturnsNotImplemented())
+
+    assert key_method(ReturnsNotImplemented(), None) is None
+    assert key_method(ReturnsNotImplemented(), NotImplemented) is NotImplemented
+    assert key_method(ReturnsNotImplemented(), 'a') == 'a'
 
 
 def test_is_measurement():
@@ -120,7 +173,19 @@ def test_non_measurement_with_key():
             assert False
 
         def _measurement_key_name_(self):
-            # `measurement_key`` should not be called by `is_measurement`
+            # `measurement_key_name`` should not be called by `is_measurement`
+            assert False
+
+        def _measurement_key_names_(self):
+            # `measurement_key_names`` should not be called by `is_measurement`
+            assert False
+
+        def _measurement_key_obj_(self):
+            # `measurement_key_obj`` should not be called by `is_measurement`
+            assert False
+
+        def _measurement_key_objs_(self):
+            # `measurement_key_objs`` should not be called by `is_measurement`
             assert False
 
         def num_qubits(self) -> int:
@@ -129,14 +194,37 @@ def test_non_measurement_with_key():
     assert not cirq.is_measurement(NonMeasurementGate())
 
 
-def test_measurement_keys():
+@pytest.mark.parametrize(
+    ('key_method', 'keys'),
+    [(cirq.measurement_key_names, {'a', 'b'}), (cirq.measurement_key_objs, {'c', 'd'})],
+)
+def test_measurement_keys(key_method, keys):
     class MeasurementKeysGate(cirq.Gate):
         def _measurement_key_names_(self):
             return ['a', 'b']
 
+        def _measurement_key_objs_(self):
+            return [cirq.MeasurementKey('c'), cirq.MeasurementKey('d')]
+
         def num_qubits(self) -> int:
             return 1
 
+    a, b = cirq.LineQubit.range(2)
+    assert key_method(None) == set()
+    assert key_method([]) == set()
+    assert key_method(cirq.X) == set()
+    assert key_method(cirq.X(a)) == set()
+    assert key_method(cirq.measure(a, key='out')) == {'out'}
+    assert key_method(cirq.Circuit(cirq.measure(a, key='a'), cirq.measure(b, key='2'))) == {
+        'a',
+        '2',
+    }
+    assert key_method(MeasurementKeysGate()) == keys
+    assert key_method(MeasurementKeysGate().on(a)) == keys
+
+
+@pytest.mark.parametrize('key_method', [cirq.measurement_key_names, cirq.measurement_key_objs])
+def test_measurement_keys_magic_method_deprecated(key_method):
     class DeprecatedMagicMethod(cirq.Gate):
         def _measurement_keys_(self):
             return ['a', 'b']
@@ -144,33 +232,25 @@ def test_measurement_keys():
         def num_qubits(self) -> int:
             return 1
 
-    a, b = cirq.LineQubit.range(2)
+    a = cirq.LineQubit(0)
     with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.measurement_key_names(DeprecatedMagicMethod()) == {'a', 'b'}
+        assert key_method(DeprecatedMagicMethod()) == {'a', 'b'}
     with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.measurement_key_names(DeprecatedMagicMethod().on(a)) == {'a', 'b'}
+        assert key_method(DeprecatedMagicMethod().on(a)) == {'a', 'b'}
 
-    assert cirq.measurement_key_names(None) == set()
-    assert cirq.measurement_key_names([]) == set()
-    assert cirq.measurement_key_names(cirq.X) == set()
-    assert cirq.measurement_key_names(cirq.X(a)) == set()
+
+def test_measurement_keys_allow_decompose_deprecated():
+    a = cirq.LineQubit(0)
     with cirq.testing.assert_deprecated(deadline="v0.14"):
         assert cirq.measurement_key_names(None, allow_decompose=False) == set()
     with cirq.testing.assert_deprecated(deadline="v0.14"):
         assert cirq.measurement_key_names([], allow_decompose=False) == set()
     with cirq.testing.assert_deprecated(deadline="v0.14"):
         assert cirq.measurement_key_names(cirq.X, allow_decompose=False) == set()
-    assert cirq.measurement_key_names(cirq.measure(a, key='out')) == {'out'}
     with cirq.testing.assert_deprecated(deadline="v0.14"):
         assert cirq.measurement_key_names(cirq.measure(a, key='out'), allow_decompose=False) == {
             'out'
         }
-
-    assert cirq.measurement_key_names(
-        cirq.Circuit(cirq.measure(a, key='a'), cirq.measure(b, key='2'))
-    ) == {'a', '2'}
-    assert cirq.measurement_key_names(MeasurementKeysGate()) == {'a', 'b'}
-    assert cirq.measurement_key_names(MeasurementKeysGate().on(a)) == {'a', 'b'}
 
 
 def test_measurement_key_mapping():
