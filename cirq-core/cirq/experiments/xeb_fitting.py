@@ -164,7 +164,7 @@ def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, float]:
     if gate == ops.SQRT_ISWAP:
         defaults['theta_default'] = -np.pi / 4
         return defaults
-    if gate == ops.SQRT_ISWAP ** -1:
+    if gate == ops.SQRT_ISWAP_INV:
         defaults['theta_default'] = np.pi / 4
         return defaults
     if isinstance(gate, ops.FSimGate):
