@@ -43,6 +43,17 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/noise.ipynb',
     # Named topologies
     'docs/named_topologies.ipynb',
+    # get_qcs_objects_for_notebook
+    'docs/tutorials/google/calibration_api.ipynb',
+    'docs/tutorials/google/colab.ipynb',
+    'docs/tutorials/google/compare_to_calibration.ipynb',
+    'docs/tutorials/google/echoes.ipynb',
+    'docs/tutorials/google/floquet_calibration_example.ipynb',
+    'docs/tutorials/google/reservations.ipynb',
+    'docs/tutorials/google/spin_echoes.ipynb',
+    'docs/tutorials/google/start.ipynb',
+    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
+    'docs/tutorials/google/xeb_calibration_example.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
