@@ -47,7 +47,7 @@ class GateFamily:
 
     In order to create gate families with constraints on parameters of a gate
     type, users should derive from the `cirq.GateFamily` class and override the
-    `predicate` method used to check for gate containment.
+    `_predicate` method used to check for gate containment.
     """
 
     def __init__(
@@ -108,8 +108,8 @@ class GateFamily:
     def description(self) -> str:
         return self._description
 
-    def predicate(self, gate: raw_types.Gate) -> bool:
-        """Checks whether `cirq.Gate` instance `g` belongs to this GateFamily.
+    def _predicate(self, gate: raw_types.Gate) -> bool:
+        """Checks whether `cirq.Gate` instance `gate` belongs to this GateFamily.
 
         The default predicate depends on the gate family initialization type:
             a) Instance Family: `gate == self.gate`.
@@ -129,7 +129,7 @@ class GateFamily:
             if item.gate is None:
                 return False
             item = item.gate
-        return self.predicate(item)
+        return self._predicate(item)
 
     def __str__(self) -> str:
         return f'{self.name}\n{self.description}'
@@ -257,15 +257,15 @@ class Gateset:
         Containment checks are handled as follows:
             a) For Gates or Operations that have an underlying gate (i.e. op.gate is not None):
                 - Forwards the containment check to the underlying GateFamily's
-                - Examples of such operations include `GateOperations` and their controlled and
-                    tagged variants (i.e. instances of `TaggedOperation`, `ControlledOperation`
-                    where `op.gate` is not None) etc.
+                - Examples of such operations include `cirq.GateOperations` and their controlled
+                    and tagged variants (i.e. instances of `cirq.TaggedOperation`,
+                    `cirq.ControlledOperation` where `op.gate` is not None) etc.
 
             b) For Operations that do not have an underlying gate:
                 - Forwards the containment check to `self._validate_operation(item)`.
-                - Examples of such operations include `CircuitOperations` and their controlled
-                    and tagged variants (i.e. instances of `TaggedOperation`, `ControlledOperation`
-                    where `op.gate` is None) etc.
+                - Examples of such operations include `cirq.CircuitOperations` and their controlled
+                    and tagged variants (i.e. instances of `cirq.TaggedOperation`,
+                    `cirq.ControlledOperation` where `op.gate` is None) etc.
 
         The complexity of the method is:
             a) O(1) for checking containment in the default `cirq.GateFamily` instances.
@@ -315,7 +315,7 @@ class Gateset:
         return all(self._validate_operation(op) for op in op_tree.flatten_to_ops(optree))
 
     def _validate_operation(self, op: raw_types.Operation) -> bool:
-        """Validates whether the given operation `op` is contained in this Gateset.
+        """Validates whether the given `cirq.Operation` is contained in this Gateset.
 
         The containment checks are handled as follows:
 
@@ -323,7 +323,8 @@ class Gateset:
             - Containment is checked via `self.__contains__` which further checks for containment
                 in any of the underlying gate families.
 
-        b) For all other types of operations (eg: `CircuitOperation`, `GlobalPhaseOperation` etc):
+        b) For all other types of operations (eg: `cirq.CircuitOperation`,
+        `cirq.GlobalPhaseOperation` etc):
             - The behavior is controlled via flags passed to the constructor.
 
         Users should override this method to define custom behavior for operations that do not

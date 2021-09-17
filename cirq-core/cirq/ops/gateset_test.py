@@ -143,7 +143,7 @@ def test_gate_family_eq():
 def test_gate_family_predicate_and_containment(gate_family, gates_to_check):
     q = cirq.NamedQubit("q")
     for gate, result in gates_to_check:
-        assert gate_family.predicate(gate) == result
+        assert gate_family._predicate(gate) == result
         assert (gate in gate_family) == result
         if isinstance(gate, cirq.Gate):
             assert (gate(q) in gate_family) == result
@@ -160,9 +160,9 @@ class CustomXGateFamily(cirq.GateFamily):
             description='Accepts all integer powers of CustomXPowGate',
         )
 
-    def predicate(self, g: cirq.Gate) -> bool:
+    def _predicate(self, g: cirq.Gate) -> bool:
         """Checks whether gate instance `g` belongs to this GateFamily."""
-        if not super().predicate(g) or cirq.is_parameterized(g):
+        if not super()._predicate(g) or cirq.is_parameterized(g):
             return False
         exp = cast(CustomXPowGate, g).exponent
         return int(exp) == exp
