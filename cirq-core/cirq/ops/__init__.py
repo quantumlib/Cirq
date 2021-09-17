@@ -110,6 +110,8 @@ from cirq.ops.gate_operation import (
     GateOperation,
 )
 
+from cirq.ops.gateset import GateFamily, Gateset
+
 from cirq.ops.identity import (
     I,
     identity_each,
