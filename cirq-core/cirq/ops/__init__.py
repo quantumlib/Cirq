@@ -299,3 +299,5 @@ from cirq.ops.wait_gate import (
     wait,
     WaitGate,
 )
+
+from cirq.ops.state_preparation_channel import StatePreparationChannel
