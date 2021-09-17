@@ -112,10 +112,15 @@ class StatePreparationChannel(raw_types.Gate):
     def __str__(self) -> str:
         return f'StatePreparationChannel({proper_repr(self.state)})'
 
+    def _approx_eq_(self, other: Any, atol) -> bool:
+        if not isinstance(other, StatePreparationChannel):
+            return False
+        return np.allclose(self.state, other.state, rtol=0, atol=atol)
+
     def __eq__(self, other) -> bool:
         if not isinstance(other, StatePreparationChannel):
             return False
-        return np.allclose(self.state, other.state)
+        return np.array_equal(self.state, other.state)
 
     @property
     def state(self) -> np.ndarray:
