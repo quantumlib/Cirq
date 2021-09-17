@@ -108,9 +108,10 @@ def test_gate_params():
     assert not gate._has_unitary_()
     assert gate._has_kraus_()
     assert (
-        repr(gate)
-        == 'cirq.StatePreparationChannel(np.array([(1+0j), 0j, 0j, 0j], dtype=np.complex128))'
+        str(gate)
+        == 'StatePreparationChannel(np.array([(1+0j), 0j, 0j, 0j], dtype=np.complex128))'
     )
+    cirq.testing.assert_equivalent_repr(gate)
 
 
 def test_gate_error_handling():
