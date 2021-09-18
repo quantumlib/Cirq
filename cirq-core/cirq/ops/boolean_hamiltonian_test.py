@@ -112,7 +112,7 @@ def test_with_custom_names():
     ],
 )
 def test_gray_code_sorting(n_bits, expected_hs):
-    hs = []
+    hs_template = []
     for x in range(2 ** n_bits):
         h = []
         for i in range(n_bits):
@@ -120,12 +120,17 @@ def test_gray_code_sorting(n_bits, expected_hs):
                 h.append(i)
                 x -= 1
             x //= 2
-        hs.append(tuple(sorted(h)))
-    random.shuffle(hs)
+        hs_template.append(tuple(sorted(h)))
 
-    sorted_hs = sorted(list(hs), key=functools.cmp_to_key(bh._gray_code_comparator))
+    for seed in range(10):
+        random.seed(seed)
 
-    np.testing.assert_array_equal(sorted_hs, expected_hs)
+        hs = hs_template.copy()
+        random.shuffle(hs)
+
+        sorted_hs = sorted(list(hs), key=functools.cmp_to_key(bh._gray_code_comparator))
+
+        np.testing.assert_array_equal(sorted_hs, expected_hs)
 
 
 @pytest.mark.parametrize(
@@ -159,6 +164,8 @@ def test_gray_code_comparison(seq_a, seq_b, expected):
         # However, the in-between has to share the same target/control.
         ([(0, 1), (0, 2), (0, 1)], False, False, [(0, 1), (0, 2), (0, 1)]),
         ([(0, 1), (2, 1), (0, 1)], True, False, [(0, 1), (2, 1), (0, 1)]),
+        # Can simplify, but violates CNOT ordering assumption
+        ([(0, 1), (2, 3), (0, 1)], False, False, [(0, 1), (2, 3), (0, 1)]),
     ],
 )
 def test_simplify_commuting_cnots(
@@ -183,6 +190,9 @@ def test_simplify_commuting_cnots(
         # Simplify according to equation 11 of [4].
         ([(2, 1), (2, 0), (1, 0)], False, True, [(1, 0), (2, 1)]),
         ([(1, 2), (0, 2), (0, 1)], True, True, [(0, 1), (1, 2)]),
+        # Same as above, but with a intervening CNOTs that prevent simplifications.
+        ([(2, 1), (2, 0), (100, 101), (1, 0)], False, False, [(2, 1), (2, 0), (100, 101), (1, 0)]),
+        ([(2, 1), (100, 101), (2, 0), (1, 0)], False, False, [(2, 1), (100, 101), (2, 0), (1, 0)]),
     ],
 )
 def test_simplify_cnots_triplets(

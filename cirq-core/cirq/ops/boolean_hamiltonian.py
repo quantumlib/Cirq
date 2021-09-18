@@ -19,6 +19,8 @@ References:
     by Stuart Hadfield, https://arxiv.org/pdf/1804.09130.pdf
 [2] https://www.youtube.com/watch?v=AOKM9BkweVU is a useful intro
 [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
+[4] Efficient Quantum Circuits for Diagonal Unitaries Without Ancillas by Jonathan Welch, Daniel
+    Greenbaum, Sarah Mostame, and Alán Aspuru-Guzik, https://arxiv.org/abs/1306.3991
 """
 import itertools
 import functools
@@ -162,7 +164,11 @@ def _simplify_commuting_cnots(
     ───────@───       ───@───────
 
     Args:
-        cnots: A list of CNOTS, encoded as integer tuples (control, target).
+        cnots: A list of CNOTS, encoded as integer tuples (control, target). The code does not make
+            any assumption as to the order of the CNOTs, but it is likely to work better if its
+            inputs are from Gray-sorted Hamiltonians. Regardless of the order of the CNOTs, the
+            code is conservative and should be robust to mis-ordered inputs with the only side
+            effect being a lack of simplification.
         flip_control_and_target: Whether to flip control and target.
 
     Returns:
@@ -210,42 +216,40 @@ def _simplify_cnots_triplets(
 
     Returns:
         A Boolean that tells whether a simplification has been performed.
-        The CNOT list, potentially simplified.
+        The CNOT list, potentially simplified, encoded as integer tuples (control, target).
     """
     target, control = (0, 1) if flip_control_and_target else (1, 0)
 
     # We investigate potential pivots sequentially.
     for j in range(1, len(cnots) - 1):
-        # First, we look back for as long as the targets (resp. controls) are the same.
+        # First, we look back for as long as the controls (resp. targets) are the same.
         # They all commute, so all are potential candidates for being simplified.
-        common_a: Dict[int, int] = {}
+        prev_match_index: Dict[int, int] = {}
         for i in range(j - 1, -1, -1):
             if cnots[i][control] != cnots[j][control]:
                 break
             # We take a note of the control (resp. target).
-            common_a[cnots[i][target]] = i
+            prev_match_index[cnots[i][target]] = i
 
-        # Next, we look forward for as long as the controls (resp. targets) are the
+        # Next, we look forward for as long as the targets (resp. controls) are the
         # same. They all commute, so all are potential candidates for being simplified.
-        common_b: Dict[int, int] = {}
+        post_match_index: Dict[int, int] = {}
         for k in range(j + 1, len(cnots)):
             if cnots[j][target] != cnots[k][target]:
                 break
             # We take a note of the target (resp. control).
-            common_b[cnots[k][control]] = k
+            post_match_index[cnots[k][control]] = k
 
         # Among all the candidates, find if they have a match.
-        keys = common_a.keys() & common_b.keys()
+        keys = prev_match_index.keys() & post_match_index.keys()
         for key in keys:
-            assert common_a[key] != common_b[key]
             # We perform the swap which removes the pivot.
             new_idx: List[int] = (
-                [idx for idx in range(0, j) if idx != common_a[key]]
-                + [common_b[key], common_a[key]]
-                + [idx for idx in range(j + 1, len(cnots)) if idx != common_b[key]]
+                [idx for idx in range(0, j) if idx != prev_match_index[key]]
+                + [post_match_index[key], prev_match_index[key]]
+                + [idx for idx in range(j + 1, len(cnots)) if idx != post_match_index[key]]
             )
             # Since we removed the pivot, the length should be one fewer.
-            assert len(new_idx) == len(cnots) - 1
             cnots = [cnots[idx] for idx in new_idx]
             return True, cnots
 
@@ -263,8 +267,7 @@ def _simplify_cnots(cnots: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
         cnots: A list of CNOTs represented as tuples of integer (control, target).
 
     Returns:
-        A Boolean saying whether a simplification has been found.
-        The simplified list of CNOTs.
+        The simplified list of CNOTs, encoded as integer tuples (control, target).
     """
 
     found_simplification = True
