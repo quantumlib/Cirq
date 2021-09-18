@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Sequence, Optional, Union, Collection
+from typing import Sequence, Optional, Union, Collection
 
 from cirq import protocols, devices, ops
-import sympy
 
 
 def assert_controlled_and_controlled_by_identical(
