@@ -110,6 +110,8 @@ from cirq.ops.gate_operation import (
     GateOperation,
 )
 
+from cirq.ops.gateset import GateFamily, Gateset
+
 from cirq.ops.identity import (
     I,
     identity_each,
@@ -299,3 +301,5 @@ from cirq.ops.wait_gate import (
     wait,
     WaitGate,
 )
+
+from cirq.ops.state_preparation_channel import StatePreparationChannel
