@@ -85,6 +85,9 @@ class CircuitOperation(ops.Operation):
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
+    _final_measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = dataclasses.field(
+        default=None, init=False
+    )
 
     circuit: 'cirq.FrozenCircuit'
     repetitions: int = 1
@@ -173,17 +176,23 @@ class CircuitOperation(ops.Operation):
         return self.circuit._is_measurement_()
 
     def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
-        circuit_keys = protocols.measurement_key_objs(self.circuit)
-        if self.repetition_ids is not None:
-            circuit_keys = {
-                key.with_key_path_prefix(repetition_id)
-                for repetition_id in self.repetition_ids
-                for key in circuit_keys
-            }
-        return {
-            protocols.with_measurement_key_mapping(key, self.measurement_key_map)
-            for key in circuit_keys
-        }
+        if self._final_measurement_key_objs is None:
+            circuit_keys = protocols.measurement_key_objs(self.circuit)
+            if self.repetition_ids is not None:
+                circuit_keys = {
+                    key.with_key_path_prefix(repetition_id)
+                    for repetition_id in self.repetition_ids
+                    for key in circuit_keys
+                }
+            object.__setattr__(
+                self,
+                '_final_measurement_key_objs',
+                {
+                    protocols.with_measurement_key_mapping(key, self.measurement_key_map)
+                    for key in circuit_keys
+                },
+            )
+        return self._final_measurement_key_objs  # type: ignore
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return {str(key) for key in self._measurement_key_objs_()}
@@ -523,14 +532,14 @@ class CircuitOperation(ops.Operation):
                 keys than this operation.
         """
         new_map = {}
-        for k in self.circuit.all_measurement_key_names():
-            k = value.MeasurementKey.parse_serialized(k).name
+        for k_obj in self.circuit.all_measurement_key_objs():
+            k = k_obj.name
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
             if k_new != k:
                 new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
-        if len(new_op._measurement_key_names_()) != len(self._measurement_key_names_()):
+        if len(new_op._measurement_key_objs_()) != len(self._measurement_key_objs_()):
             raise ValueError(
                 f'Collision in measurement key map composition. Original map:\n'
                 f'{self.measurement_key_map}\nApplied changes: {key_map}'

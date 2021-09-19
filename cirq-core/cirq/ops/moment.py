@@ -92,7 +92,6 @@ class Moment:
                 self._qubit_to_op[q] = op
 
         self._qubits = frozenset(self._qubit_to_op.keys())
-        self._measurement_key_names: Optional[AbstractSet[str]] = None
         self._measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = None
 
     @property
@@ -221,14 +220,7 @@ class Moment:
         )
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
-        if self._measurement_key_names is None:
-            if self._measurement_key_objs is not None:
-                self._measurement_key_names = {str(key) for key in self._measurement_key_objs}
-            else:
-                self._measurement_key_names = {
-                    key for op in self.operations for key in protocols.measurement_key_names(op)
-                }
-        return self._measurement_key_names
+        return {str(key) for key in self._measurement_key_objs_()}
 
     def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
         if self._measurement_key_objs is None:
