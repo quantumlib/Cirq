@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import AbstractSet, Any, Dict, Iterable, Optional, Tuple
+from typing import AbstractSet, Any, Dict, Optional, Tuple
 
 from typing_extensions import Protocol
 
@@ -61,7 +61,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_key_objs_(self) -> Iterable[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
         """Return the key objects for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -79,7 +79,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_key_names_(self) -> Iterable[str]:
+    def _measurement_key_names_(self) -> AbstractSet[str]:
         """Return the string keys for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
