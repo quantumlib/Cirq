@@ -26,7 +26,8 @@ from cirq._compat import (
 )
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits, decompose
-from cirq.protocols.mixture_protocol import has_mixture
+from cirq.protocols.mixture_protocol import mixture
+from cirq.protocols.unitary_protocol import unitary
 
 from cirq.ops.raw_types import Qid, Gate
 from cirq.devices.line_qubit import LineQid
@@ -158,24 +159,21 @@ def kraus(
             DeprecationWarning,
         )
 
-    kraus_getter = getattr(val, '_kraus_', None)
-    kraus_result = NotImplemented if kraus_getter is None else kraus_getter()
-    if kraus_result is not NotImplemented:
-        return tuple(kraus_result)
-
-    mixture_getter = getattr(val, '_mixture_', None)
-    mixture_result = NotImplemented if mixture_getter is None else mixture_getter()
-    if mixture_result is not NotImplemented and mixture_result is not None:
-        return tuple(np.sqrt(p) * u for p, u in mixture_result)
-
-    unitary_getter = getattr(val, '_unitary_', None)
-    unitary_result = NotImplemented if unitary_getter is None else unitary_getter()
-    if unitary_result is not NotImplemented and unitary_result is not None:
-        return (unitary_result,)
-
     channel_result = NotImplemented if channel_getter is None else channel_getter()
     if channel_result is not NotImplemented:
         return tuple(channel_result)
+
+    _, kraus_result = _strat_kraus_from_kraus(val)
+    if kraus_result is not None and kraus_result is not NotImplemented:
+        return kraus_result
+
+    mixture_result = mixture(val, None)
+    if mixture_result is not None and mixture_result is not NotImplemented:
+        return tuple(np.sqrt(p) * u for p, u in mixture_result)
+
+    unitary_result = unitary(val, None)
+    if unitary_result is not None and mixture_result is not NotImplemented:
+        return (unitary_result,)
 
     # serial concatenation
     def checkEquality(x, y):
@@ -227,11 +225,10 @@ def kraus(
 
         qubits = sorted(list(set(qubits)))
         kraus_list = list(map(lambda x: kraus_tensor(x, qubits, default), decomposed))
+        assert len(decomposed) != 0
 
-        if len(kraus_list) != 0 and not any([checkEquality(x, default) for x in kraus_list]):
-
+        if not any([checkEquality(x, default) for x in kraus_list]):
             kraus_result = kraus_list[0]
-
             for i in range(1, len(kraus_list)):
                 kraus_result = [op_2.dot(op_1) for op_1 in kraus_result for op_2 in kraus_list[i]]
 
@@ -240,7 +237,10 @@ def kraus(
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if kraus_getter is None and unitary_getter is None and mixture_getter is None:
+    if not any(
+        getattr(val, instance, None) is not None
+        for instance in ['_kraus_', '_unitary_', '_mixture_']
+    ):
         raise TypeError(
             "object of type '{}' has no _kraus_ or _mixture_ or "
             "_unitary_ method.".format(type(val))
@@ -258,7 +258,39 @@ def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
 
 
 def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
-    """Returns whether the value has a Kraus representation.
+    """Determines whether the value has a Kraus representation.
+
+    Determines whether `val` has a Kraus representation by attempting
+    the following strategies:
+
+    1. Try to use `val.has_channel_()`.
+        Case a) Method not present or returns `None`.
+            Continue to next strategy.
+        Case b) Method returns `True`.
+            Kraus.
+
+    2. Try to use `val._kraus_()`.
+        Case a) Method not present or returns `NotImplemented`.
+            Continue to next strategy.
+        Case b) Method returns a 3D array.
+            Kraus.
+
+    3. Try to use `cirq.mixture()`.
+        Case a) Method not present or returns `NotImplemented`.
+            Continue to next strategy.
+        Case b) Method returns a 3D array.
+            Kraus.
+
+    4. Try to use `cirq.unitary()`.
+        Case a) Method not present or returns `NotImplemented`.
+            No Kraus.
+        Case b) Method returns a 3D array.
+            Kraus.
+
+    5. If decomposition is allowed apply recursion and check.
+
+    If all the above methods fail then it is assumed to have no Kraus
+    representation.
 
     Args:
         val: The value to check.
@@ -271,14 +303,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
             the result is skipped.
 
     Returns:
-        If `val` has a `_has_kraus_` method and its result is not
-        NotImplemented, that result is returned. Otherwise, if `val` has a
-        `_has_mixture_` method and its result is not NotImplemented, that
-        result is returned. Otherwise if `val` has a `_has_unitary_` method
-        and its results is not NotImplemented, that result is returned.
-        Otherwise, if the value has a _kraus_ method return if that
-        has a non-default value. Returns False if none of these functions
-        exists.
+        Whether or not `val` has a Kraus representation.
     """
     channel_getter = getattr(val, '_has_channel_', None)
     if channel_getter is not None:
@@ -287,23 +312,56 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
             DeprecationWarning,
         )
 
-    kraus_getter = getattr(val, '_has_kraus_', None)
-    result = NotImplemented if kraus_getter is None else kraus_getter()
-    if result is not NotImplemented:
-        return result
-
-    result = has_mixture(val, allow_decompose=False)
-    if result is not NotImplemented and result:
-        return result
-
     result = NotImplemented if channel_getter is None else channel_getter()
     if result is not NotImplemented:
         return result
+
+    for instance in ['_has_kraus_', '_has_unitary_', '_has_mixture_']:
+        getter = getattr(val, instance, None)
+        result = NotImplemented if getter is None else getter()
+        if result is not NotImplemented:
+            return result
+
+    strats = [_strat_kraus_from_kraus, _strat_kraus_from_mixture, _strat_kraus_from_unitary]
+
+    if any(strat(val)[1] is not None and strat(val)[1] is not NotImplemented for strat in strats):
+        return True
 
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
             return all(has_kraus(val) for val in operations)
 
-    # No has methods, use `_kraus_` or delegates instead.
-    return kraus(val, None) is not None
+    return False
+
+
+def _strat_kraus_from_kraus(val: Any) -> Union[Tuple[np.ndarray, ...], TDefault]:
+    """Attempts to compute the value's kraus via its _kraus_ method."""
+    kraus_getter = getattr(val, '_kraus_', None)
+    kraus_result = NotImplemented if kraus_getter is None else kraus_getter()
+    if kraus_result is not NotImplemented:
+        return kraus_getter, tuple(kraus_result)
+
+    return kraus_getter, kraus_result
+
+
+def _strat_kraus_from_mixture(val: Any) -> Union[Tuple[np.ndarray, ...], TDefault]:
+    """Attempts to compute the value's kraus via its _mixture_ method."""
+
+    mixture_getter = getattr(val, '_mixture_', None)
+    mixture_result = mixture(val, None)
+    if mixture_result is not NotImplemented and mixture_result is not None:
+        return mixture_getter, tuple(np.sqrt(p) * u for p, u in mixture_result)
+
+    return mixture_getter, mixture_result
+
+
+def _strat_kraus_from_unitary(val: Any) -> Union[Tuple[np.ndarray, ...], TDefault]:
+    """Attempts to compute the value's kraus via its _unitary_ method."""
+
+    unitary_getter = getattr(val, '_unitary_', None)
+    unitary_result = unitary(val, None)
+    if unitary_result is not NotImplemented and unitary_result is not None:
+        return unitary_getter, (unitary_result,)
+
+    return unitary_getter, unitary_result

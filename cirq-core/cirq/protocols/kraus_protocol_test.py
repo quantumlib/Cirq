@@ -171,6 +171,18 @@ def test_serial_concatenation():
     assert cirq.has_kraus(g)
 
 
+def test_empty_decompose():
+    g = cirq.PauliString({}) ** 2
+
+    c = (cirq.unitary(g),)
+
+    np.allclose(cirq.kraus(g), c)
+    np.allclose(cirq.kraus(g, None), c)
+    np.allclose(cirq.kraus(g, NotImplemented), c)
+    np.allclose(cirq.kraus(g, (1,)), c)
+    np.allclose(cirq.kraus(g, LOCAL_DEFAULT), c)
+
+
 def test_channel_fallback_to_unitary():
     u = np.array([[1, 0], [1, 0]])
 

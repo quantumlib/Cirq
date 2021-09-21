@@ -21,7 +21,7 @@ from cirq.testing import lin_alg_utils
 
 
 def assert_kraus_is_consistent_with_unitary(val: Any, ignoring_global_phase: bool = False):
-    """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
+    """Uses `cirq.unitary` to check `val.kraus`'s behavior."""
     # pylint: disable=unused-variable
     # __tracebackhide__ = True
     # pylint: enable=unused-variable
@@ -30,21 +30,50 @@ def assert_kraus_is_consistent_with_unitary(val: Any, ignoring_global_phase: boo
     if expected is None:
         # If there's no unitary, it's vacuously consistent.
         return
-    expected = (expected,)
 
     if isinstance(val, ops.Operation):
         has_krs = protocols.kraus_protocol.has_kraus(val)
-        krs = protocols.kraus_protocol.kraus(val, default=None)
+        krs = protocols.kraus_protocol.kraus(val, None)
     else:
         has_krs = protocols.kraus_protocol.has_kraus(val)
-        krs = protocols.kraus_protocol.kraus(val, default=None)
+        krs = protocols.kraus_protocol.kraus(val, None)
 
     # there is unitary and hence must have kraus operator
     assert has_krs
-    actual = krs
+    actual = krs[0]
 
     if ignoring_global_phase:
         lin_alg_utils.assert_allclose_up_to_global_phase(actual, expected, atol=1e-8)
     else:
         # coverage: ignore
         np.testing.assert_allclose(actual, expected, atol=1e-8)
+
+
+def assert_kraus_is_consistent_with_mixture(val: Any, ignoring_global_phase: bool = False):
+    """Uses `cirq.mixture` to check `cirq.kraus`'s behavior."""
+    # pylint: disable=unused-variable
+    # __tracebackhide__ = True
+    # pylint: enable=unused-variable
+
+    expected = protocols.mixture(val, None)
+    if expected is None:
+        # If there's no mixture, it's vacuously consistent.
+        return
+
+    if isinstance(val, ops.Operation):
+        has_krs = protocols.kraus_protocol.has_kraus(val)
+        krs = protocols.kraus_protocol.kraus(val, None)
+    else:
+        has_krs = protocols.kraus_protocol.has_kraus(val)
+        krs = protocols.kraus_protocol.kraus(val, None)
+
+    # there is mixture and hence must have kraus operator
+    assert has_krs
+    expected = np.array([np.sqrt(p) * x for p, x in expected])
+
+    if ignoring_global_phase:
+        lin_alg_utils.assert_allclose_up_to_global_phase(actual, expected, atol=1e-8)
+    else:
+        # coverage: ignore
+        np.testing.assert_allclose(actual, expected, atol=1e-8)
+
