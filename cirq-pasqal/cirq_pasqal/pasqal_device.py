@@ -46,6 +46,8 @@ class PasqalDevice(cirq.devices.Device):
         cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate),
         cirq.IdentityGate,
         cirq.MeasurementGate,
+        unroll_circuit_op=False,
+        accept_global_phase=False,
     )
 
     # TODO(#3388) Add documentation for Raises.

@@ -47,6 +47,8 @@ class IonQAPIDevice(cirq.Device):
         cirq.YYPowGate,
         cirq.ZZPowGate,
         cirq.MeasurementGate,
+        unroll_circuit_op=False,
+        accept_global_phase=False,
     )
 
     def __init__(self, qubits: Union[Sequence[cirq.LineQubit], int], atol=1e-8):
