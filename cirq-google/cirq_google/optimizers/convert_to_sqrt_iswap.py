@@ -18,10 +18,6 @@ import sympy
 
 import cirq
 
-SQRT_ISWAP = cirq.ISWAP ** 0.5
-SQRT_ISWAP_INV = cirq.ISWAP ** -0.5
-
-
 # TODO: Combine this with the equivalent functions in google/gate_set.py
 # Or better yet, write a proper gate set so we don't need this in two places.
 # Github issue: https://github.com/quantumlib/Cirq/issues/2970
@@ -207,9 +203,9 @@ def cphase_to_sqrt_iswap(a, b, turns):
     yield cirq.rz(sign * 0.5 * theta_prime).on(b)
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (-sign * 0.5)
-    yield SQRT_ISWAP_INV(a, b)
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.rx(-2 * phi).on(a)
-    yield SQRT_ISWAP(a, b)
+    yield cirq.SQRT_ISWAP(a, b)
 
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (sign * 0.5)
@@ -238,9 +234,9 @@ def cphase_symbols_to_sqrt_iswap(a, b, turns):
     yield cirq.rz(sign * 0.5 * theta_prime).on(b)
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (-sign * 0.5)
-    yield SQRT_ISWAP_INV(a, b)
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.rx(-2 * phi).on(a)
-    yield SQRT_ISWAP(a, b)
+    yield cirq.SQRT_ISWAP(a, b)
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (sign * 0.5)
 
@@ -257,18 +253,20 @@ def iswap_to_sqrt_iswap(a, b, turns):
     Args:
         a: the first qubit
         b: the second qubit
-        t: Exponent that specifies the evolution time in number of rotations.
+        turns: Exponent that specifies the evolution time in number of rotations.
     """
     yield cirq.Z(a) ** 0.75
     yield cirq.Z(b) ** 0.25
-    yield SQRT_ISWAP_INV(a, b)
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.Z(a) ** (-turns / 2 + 1)
     yield cirq.Z(b) ** (turns / 2)
-    yield SQRT_ISWAP_INV(a, b)
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.Z(a) ** 0.25
     yield cirq.Z(b) ** -0.25
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 def swap_to_sqrt_iswap(a, b, turns):
     """Implement the evolution of the hopping term using two sqrt_iswap gates
      and single-qubit operations. Output unitary:
@@ -277,23 +275,24 @@ def swap_to_sqrt_iswap(a, b, turns):
      [0, -i·g·s,  g·c,    0],
      [0,   0,      0,     1]]
      where c = cos(theta) and s = sin(theta).
-        Args:
-            a: the first qubit
-            b: the second qubit
-            theta: The rotational angle that specifies the gate, where
-            c = cos(π·t/2), s = sin(π·t/2), g = exp(i·π·t/2).
+
+    Args:
+        a: the first qubit
+        b: the second qubit
+        theta: The rotational angle that specifies the gate, where
+        c = cos(π·t/2), s = sin(π·t/2), g = exp(i·π·t/2).
     """
     if not isinstance(turns, sympy.Basic) and _near_mod_n(turns, 1.0, 2):
         # Decomposition for cirq.SWAP
         yield cirq.Y(a) ** 0.5
         yield cirq.Y(b) ** 0.5
-        yield SQRT_ISWAP(a, b)
+        yield cirq.SQRT_ISWAP(a, b)
         yield cirq.Y(a) ** -0.5
         yield cirq.Y(b) ** -0.5
-        yield SQRT_ISWAP(a, b)
+        yield cirq.SQRT_ISWAP(a, b)
         yield cirq.X(a) ** -0.5
         yield cirq.X(b) ** -0.5
-        yield SQRT_ISWAP(a, b)
+        yield cirq.SQRT_ISWAP(a, b)
         yield cirq.X(a) ** 0.5
         yield cirq.X(b) ** 0.5
         return
@@ -309,6 +308,7 @@ def swap_to_sqrt_iswap(a, b, turns):
     yield cirq.CZ.on(a, b) ** (-turns)
 
 
+# pylint: enable=missing-param-doc
 def fsim_gate(a, b, theta, phi):
     """FSimGate has a default decomposition in cirq to XXPowGate and YYPowGate,
     which is an awkward decomposition for this gate set.

@@ -3,6 +3,7 @@
 # for python 3.6 and below dataclasses needs to be installed
 dataclasses; python_version < '3.7'
 
+duet~=0.2.0
 matplotlib~=3.0
 networkx~=2.4
 numpy~=1.16

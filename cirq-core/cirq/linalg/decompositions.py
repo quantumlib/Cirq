@@ -1022,8 +1022,9 @@ def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     return k_vec
 
 
+# TODO(#3388) Add documentation for Args.
 # TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
+# pylint: disable=missing-param-doc,missing-raises-doc
 def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
     """Returns the min number of CNOT/CZ gates required by a two-qubit unitary.
 
@@ -1055,7 +1056,7 @@ def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
     return 3
 
 
-# pylint: enable=missing-raises-doc
+# pylint: enable=missing-param-doc,missing-raises-doc
 def _gamma(u: np.ndarray) -> np.ndarray:
     """Gamma function to convert u to the magic basis.
 

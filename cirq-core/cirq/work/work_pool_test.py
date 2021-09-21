@@ -17,33 +17,39 @@ import asyncio
 import pytest
 
 import cirq
+from cirq.testing.asynchronous_test import _asyncio_pending
 from cirq.work.work_pool import CompletionOrderedAsyncWorkPool
+
+
+def _get_pool() -> CompletionOrderedAsyncWorkPool:
+    with cirq.testing.assert_deprecated("Use duet.AsyncCollector", deadline="v0.14"):
+        return CompletionOrderedAsyncWorkPool()
 
 
 @pytest.mark.asyncio
 async def test_enqueue_then_dequeue():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
     work = asyncio.Future()
     pool.include_work(work)
     result = pool.__anext__()
-    assert await cirq.testing.asynchronous.asyncio_pending(result)
+    assert await _asyncio_pending(result)
     work.set_result(5)
     assert await result == 5
 
 
 @pytest.mark.asyncio
 async def test_async_all_done_pre_flag():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
     done = pool.async_all_done()
 
-    assert await cirq.testing.asynchronous.asyncio_pending(done)
+    assert await _asyncio_pending(done)
     pool.set_all_work_received_flag()
     assert await done is None
 
 
 @pytest.mark.asyncio
 async def test_async_all_done_post_flag():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
     pool.set_all_work_received_flag()
     assert await pool.async_all_done() is None
     assert await pool.async_all_done() is None
@@ -51,41 +57,41 @@ async def test_async_all_done_post_flag():
 
 @pytest.mark.asyncio
 async def test_async_all_done_finish_work_then_flag():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
     done = pool.async_all_done()
 
     work = asyncio.Future()
     pool.include_work(work)
     work.set_result(5)
 
-    assert await cirq.testing.asynchronous.asyncio_pending(done)
+    assert await _asyncio_pending(done)
     pool.set_all_work_received_flag()
     assert await done is None
 
 
 @pytest.mark.asyncio
 async def test_async_all_done_flag_then_finish_work():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
     done = pool.async_all_done()
 
     work = asyncio.Future()
     pool.include_work(work)
     pool.set_all_work_received_flag()
 
-    assert await cirq.testing.asynchronous.asyncio_pending(done)
+    assert await _asyncio_pending(done)
     work.set_result(5)
     assert await done is None
 
 
 @pytest.mark.asyncio
 async def test_enqueue_then_dequeue_with_failure():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
     assert pool.num_active == 0
     work = asyncio.Future()
     pool.include_work(work)
     assert pool.num_active == 1
     result = pool.__anext__()
-    assert await cirq.testing.asynchronous.asyncio_pending(result)
+    assert await _asyncio_pending(result)
     assert pool.num_active == 1
     work.set_exception(ValueError('test'))
     with pytest.raises(ValueError, match='test'):
@@ -95,20 +101,20 @@ async def test_enqueue_then_dequeue_with_failure():
 
 @pytest.mark.asyncio
 async def test_dequeue_then_enqueue():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
     work = asyncio.Future()
     result = pool.__anext__()
     pool.include_work(work)
-    assert await cirq.testing.asynchronous.asyncio_pending(result)
+    assert await _asyncio_pending(result)
     work.set_result(5)
     assert await result == 5
 
 
 @pytest.mark.asyncio
 async def test_dequeue_then_done():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
     result = pool.__anext__()
-    assert await cirq.testing.asynchronous.asyncio_pending(result)
+    assert await _asyncio_pending(result)
     pool.set_all_work_received_flag()
     with pytest.raises(StopAsyncIteration, match='no_more_work'):
         await result
@@ -116,7 +122,7 @@ async def test_dequeue_then_done():
 
 @pytest.mark.asyncio
 async def test_done_then_dequeue():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
     pool.set_all_work_received_flag()
     result = pool.__anext__()
     with pytest.raises(StopAsyncIteration, match='no_more_work'):
@@ -125,7 +131,7 @@ async def test_done_then_dequeue():
 
 @pytest.mark.asyncio
 async def test_ordering():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
     w1 = asyncio.Future()
     w2 = asyncio.Future()
     w3 = asyncio.Future()
@@ -136,22 +142,22 @@ async def test_ordering():
     r2 = pool.__anext__()
     r3 = pool.__anext__()
 
-    assert await cirq.testing.asynchronous.asyncio_pending(r1)
+    assert await _asyncio_pending(r1)
     w2.set_result(6)
     assert await r1 == 6
 
-    assert await cirq.testing.asynchronous.asyncio_pending(r2)
+    assert await _asyncio_pending(r2)
     w1.set_result(7)
     assert await r2 == 7
 
-    assert await cirq.testing.asynchronous.asyncio_pending(r3)
+    assert await _asyncio_pending(r3)
     w3.set_result(8)
     assert await r3 == 8
 
 
 @pytest.mark.asyncio
 async def test_async_for():
-    pool = CompletionOrderedAsyncWorkPool()
+    pool = _get_pool()
 
     async def consume():
         results = []

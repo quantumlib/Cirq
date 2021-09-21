@@ -50,6 +50,8 @@ class QasmGateStatement:
     `cirq.GateOperation`s in the `on` method.
     """
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def __init__(
         self,
         qasm_gate: str,
@@ -73,6 +75,7 @@ class QasmGateStatement:
         assert num_args >= 1
         self.num_args = num_args
 
+    # pylint: enable=missing-param-doc
     def _validate_args(self, args: List[List[ops.Qid]], lineno: int):
         if len(args) != self.num_args:
             raise QasmException(

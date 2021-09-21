@@ -31,7 +31,7 @@ import sympy
 import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import gate_features
+from cirq.ops import gate_features, raw_types
 
 
 def _canonicalize(value: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]:
@@ -53,7 +53,7 @@ def _half_pi_mod_pi(param: Union[float, sympy.Basic]) -> bool:
 
 
 @value.value_equality(approximate=True)
-class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGate):
+class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     """Fermionic simulation gate family.
 
     Contains all two qubit interactions that preserve excitations, up to
@@ -92,6 +92,9 @@ class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGa
         """
         self.theta = _canonicalize(theta)
         self.phi = _canonicalize(phi)
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _value_equality_values_(self) -> Any:
         return self.theta, self.phi
@@ -188,7 +191,7 @@ class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGa
 
 
 @value.value_equality(approximate=True)
-class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGate):
+class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     """General excitation-preserving two-qubit gate.
 
     The unitary matrix of PhasedFSimGate(θ, ζ, χ, γ, φ) is:
@@ -448,3 +451,6 @@ class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQu
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['theta', 'zeta', 'chi', 'gamma', 'phi'])
+
+    def _num_qubits_(self) -> int:
+        return 2

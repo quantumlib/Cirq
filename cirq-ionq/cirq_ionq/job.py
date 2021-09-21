@@ -72,7 +72,7 @@ class Job:
 
         Args:
             client: The client used for calling the API.
-            job: A dict representing the response from a call to get_job on the client.
+            job_dict: A dict representing the response from a call to get_job on the client.
         """
         self._client = client
         self._job = job_dict

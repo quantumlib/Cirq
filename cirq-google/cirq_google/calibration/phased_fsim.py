@@ -962,7 +962,7 @@ class PhaseCalibratedFSimGate:
         qubits: Tuple[cirq.Qid, cirq.Qid],
         parameters: PhasedFSimCharacterization,
         *,
-        engine_gate: Optional[cirq.TwoQubitGate] = None,
+        engine_gate: Optional[cirq.Gate] = None,
     ) -> Tuple[Tuple[cirq.Operation, ...], ...]:
         """Creates a composite operation that compensates for zeta, chi and gamma angles of the
         characterization.
@@ -970,13 +970,16 @@ class PhaseCalibratedFSimGate:
         Args:
             qubits: Qubits that the gate should act on.
             parameters: The results of characterization of the engine gate.
-            engine_gate: TwoQubitGate that represents the engine gate. When None, the internal
+            engine_gate: 2-qubit gate that represents the engine gate. When None, the internal
                 engine_gate of this instance is used. This argument is useful for testing
                 purposes.
 
         Returns:
             Tuple of tuple of operations that describe the compensated gate. The first index
             iterates over moments of the composed operation.
+
+        Raises:
+            ValueError: If the engine gate is not a 2-qubit gate.
         """
         assert parameters.zeta is not None, "Zeta value must not be None"
         zeta = parameters.zeta
@@ -989,6 +992,9 @@ class PhaseCalibratedFSimGate:
 
         if engine_gate is None:
             engine_gate = self.engine_gate
+        else:
+            if cirq.num_qubits(engine_gate) != 2:
+                raise ValueError('Engine gate must be a two-qubit gate')  # coverage: ignore
 
         a, b = qubits
 

@@ -423,7 +423,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
-                job_id: Unique ID of the job within the parent program.
+            job_id: Unique ID of the job within the parent program.
             return_run_context: If true then the run context will be loaded
                 from the job's run_context_location and set on the returned
                 QuantumJob.
@@ -628,7 +628,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            filter: Filter string current only supports 'timestamp' with values
+            filter_str: Filter string current only supports 'timestamp' with values
             of epoch time in seconds or short string 'yyyy-MM-dd'. For example:
                 'timestamp > 1577960125 AND timestamp <= 1578241810'
                 'timestamp > 2020-01-02 AND timestamp <= 2020-01-05'
@@ -791,7 +791,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            filter: A string for filtering quantum reservations.
+            filter_str: A string for filtering quantum reservations.
                 The fields eligible for filtering are start_time and end_time
                 Examples:
                     `start_time >= 1584385200`: Reservation began on or after
@@ -871,7 +871,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            filter:  A string expression for filtering the quantum
+            filter_str:  A string expression for filtering the quantum
                 time slots returned by the list command. The fields
                 eligible for filtering are `start_time`, `end_time`.
 
@@ -946,7 +946,7 @@ def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime
     """Formats datetime or date to filter expressions.
 
     Args:
-        arg_name: the name of the filter parameter (for error messaging)
+        param_name: the name of the filter parameter (for error messaging)
         param: the value of the paramter
     """
     if isinstance(param, datetime.datetime):
