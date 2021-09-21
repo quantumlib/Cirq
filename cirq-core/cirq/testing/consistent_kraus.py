@@ -69,6 +69,7 @@ def assert_kraus_is_consistent_with_mixture(val: Any, ignoring_global_phase: boo
 
     # there is mixture and hence must have kraus operator
     assert has_krs
+    actual = krs
     expected = np.array([np.sqrt(p) * x for p, x in expected])
 
     if ignoring_global_phase:
@@ -76,4 +77,3 @@ def assert_kraus_is_consistent_with_mixture(val: Any, ignoring_global_phase: boo
     else:
         # coverage: ignore
         np.testing.assert_allclose(actual, expected, atol=1e-8)
-

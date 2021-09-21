@@ -312,15 +312,19 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
             DeprecationWarning,
         )
 
+    results = []
     result = NotImplemented if channel_getter is None else channel_getter()
     if result is not NotImplemented:
-        return result
+        results.append(result)
 
     for instance in ['_has_kraus_', '_has_unitary_', '_has_mixture_']:
         getter = getattr(val, instance, None)
         result = NotImplemented if getter is None else getter()
         if result is not NotImplemented:
-            return result
+            results.append(result)
+
+    if any(results):
+        return True
 
     strats = [_strat_kraus_from_kraus, _strat_kraus_from_mixture, _strat_kraus_from_unitary]
 

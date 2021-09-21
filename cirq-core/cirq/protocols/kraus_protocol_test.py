@@ -159,8 +159,8 @@ def test_channel_fallback_to_mixture():
 
 def test_serial_concatenation():
     g = cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=-0.5, z_exponent=1)
-
     c = (cirq.unitary(g),)
+    assert cirq.has_kraus(g)
 
     np.allclose(cirq.kraus(g), c)
     np.allclose(cirq.kraus(g, None), c)
@@ -173,8 +173,9 @@ def test_serial_concatenation():
 
 def test_empty_decompose():
     g = cirq.PauliString({}) ** 2
-
     c = (cirq.unitary(g),)
+
+    assert cirq.has_kraus(g)
 
     np.allclose(cirq.kraus(g), c)
     np.allclose(cirq.kraus(g, None), c)
@@ -190,6 +191,7 @@ def test_channel_fallback_to_unitary():
         def _unitary_(self) -> np.ndarray:
             return u
 
+    assert cirq.has_kraus(ReturnsUnitary())
     np.testing.assert_equal(cirq.kraus(ReturnsUnitary()), (u,))
     np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), None), (u,))
     np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), NotImplemented), (u,))
