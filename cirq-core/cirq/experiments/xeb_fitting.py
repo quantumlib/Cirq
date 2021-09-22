@@ -40,8 +40,6 @@ if TYPE_CHECKING:
 THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
     'theta zeta chi gamma phi'
 )
-SQRT_ISWAP = ops.ISWAP ** 0.5
-
 
 # TODO(#3388) Add documentation for Raises.
 # pylint: disable=missing-raises-doc
@@ -163,10 +161,10 @@ def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, float]:
         'gamma_default': 0.0,
         'phi_default': 0.0,
     }
-    if gate == SQRT_ISWAP:
+    if gate == ops.SQRT_ISWAP:
         defaults['theta_default'] = -np.pi / 4
         return defaults
-    if gate == SQRT_ISWAP ** -1:
+    if gate == ops.SQRT_ISWAP_INV:
         defaults['theta_default'] = np.pi / 4
         return defaults
     if isinstance(gate, ops.FSimGate):
@@ -319,7 +317,9 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
 
 def SqrtISwapXEBOptions(*args, **kwargs):
     """Options for calibrating a sqrt(ISWAP) gate using XEB."""
-    return XEBPhasedFSimCharacterizationOptions(*args, **kwargs).with_defaults_from_gate(SQRT_ISWAP)
+    return XEBPhasedFSimCharacterizationOptions(*args, **kwargs).with_defaults_from_gate(
+        ops.SQRT_ISWAP
+    )
 
 
 def parameterize_circuit(
