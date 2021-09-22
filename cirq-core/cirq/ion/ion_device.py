@@ -28,6 +28,17 @@ class IonDevice(devices.Device):
     Qubits have all-to-all connectivity.
     """
 
+    gateset = ops.Gateset(
+        ops.XXPowGate,
+        ops.MeasurementGate,
+        ops.XPowGate,
+        ops.YPowGate,
+        ops.ZPowGate,
+        ops.PhasedXPowGate,
+        unroll_circuit_op=False,
+        accept_global_phase=False,
+    )
+
     def __init__(
         self,
         measurement_duration: 'cirq.DURATION_LIKE',
@@ -79,17 +90,7 @@ class IonDevice(devices.Device):
         raise ValueError(f'Unsupported gate type: {operation!r}')
 
     def validate_gate(self, gate: ops.Gate):
-        if not isinstance(
-            gate,
-            (
-                ops.XPowGate,
-                ops.YPowGate,
-                ops.ZPowGate,
-                ops.PhasedXPowGate,
-                ops.XXPowGate,
-                ops.MeasurementGate,
-            ),
-        ):
+        if gate not in IonDevice.gateset:
             raise ValueError(f'Unsupported gate type: {gate!r}')
 
     def validate_operation(self, operation):

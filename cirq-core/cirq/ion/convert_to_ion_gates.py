@@ -15,7 +15,7 @@
 import numpy as np
 
 from cirq import ops, protocols, optimizers, circuits
-from cirq.ion import ms, two_qubit_matrix_to_ion_operations
+from cirq.ion import ms, two_qubit_matrix_to_ion_operations, ion_device
 
 
 class ConvertToIonGates:
@@ -47,7 +47,7 @@ class ConvertToIonGates:
         if not isinstance(op, ops.GateOperation):
             raise TypeError(f"{op!r} is not a gate operation.")
 
-        if is_native_ion_gate(op.gate):
+        if op in ion_device.IonDevice.gateset:
             return [op]
         # one choice of known Hadamard gate decomposition
         if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
@@ -88,25 +88,3 @@ class ConvertToIonGates:
         optimizers.merge_single_qubit_gates_into_phased_x_z(new_circuit)
 
         return new_circuit
-
-
-def is_native_ion_gate(gate: ops.Gate) -> bool:
-    """Check if a gate is a native ion gate.
-
-    Args:
-        gate: Input gate.
-
-    Returns:
-        True if the gate is native to the ion, false otherwise.
-    """
-    return isinstance(
-        gate,
-        (
-            ops.XXPowGate,
-            ops.MeasurementGate,
-            ops.XPowGate,
-            ops.YPowGate,
-            ops.ZPowGate,
-            ops.PhasedXPowGate,
-        ),
-    )
