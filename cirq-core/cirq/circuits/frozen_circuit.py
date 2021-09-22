@@ -195,7 +195,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
-    def to_op(self):
+    def to_op(self) -> 'cirq.CircuitOperation':
         """Creates a CircuitOperation wrapping this circuit."""
         from cirq.circuits import CircuitOperation
 
