@@ -73,6 +73,7 @@ class StatePreparationChannel(raw_types.Gate):
 
         Args:
             target_state: the state to prepare using this channel
+            name: the name of the gate for printing in circuit diagrams
             kwargs: other keyword arguments, ignored
         """
         return cls(target_state=np.array(target_state), name=name)
@@ -110,7 +111,10 @@ class StatePreparationChannel(raw_types.Gate):
         return operator
 
     def __repr__(self) -> str:
-        return f'cirq.StatePreparationChannel(target_state={proper_repr(self.state)}, name="{self._name}")'
+        return (
+            f'cirq.StatePreparationChannel('
+            f'target_state={proper_repr(self.state)}, name="{self._name}")'
+        )
 
     def __str__(self) -> str:
         return f'StatePreparationChannel({self.state})'
