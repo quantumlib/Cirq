@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import pytest
-
+import sympy
 import cirq
 
 
@@ -43,6 +43,7 @@ def test_any_integer_power_gate_family():
     assert cirq.CX in gate_family
     assert cirq.CX ** 2 in gate_family
     assert cirq.CX ** 1.5 not in gate_family
+    assert cirq.CX ** sympy.Symbol('theta') not in gate_family
     assert 'CXPowGate' in gate_family.name
     assert '`g.exponent` is an integer' in gate_family.description
 
