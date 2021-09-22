@@ -107,9 +107,7 @@ def test_gate_params():
     assert gate.num_qubits() == 2
     assert not gate._has_unitary_()
     assert gate._has_kraus_()
-    assert (
-        str(gate) == 'StatePreparationChannel(np.array([(1+0j), 0j, 0j, 0j], dtype=np.complex128))'
-    )
+    assert str(gate) == 'StatePreparationChannel([1.+0.j 0.+0.j 0.+0.j 0.+0.j])'
     cirq.testing.assert_equivalent_repr(gate)
 
 

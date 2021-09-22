@@ -29,12 +29,12 @@ if TYPE_CHECKING:
 class StatePreparationChannel(raw_types.Gate):
     """A channel which prepares any state provided as the state vector on it's target qubits."""
 
-    def __init__(self, target_state: np.ndarray, name: str = "StatePreparation") -> None:
+    def __init__(self, target_state: np.ndarray, *, name: str = "StatePreparation") -> None:
         """Initializes a State Preparation channel.
 
         Args:
             target_state: The state vector that this gate should prepare.
-            name: the name of the gate
+            name: the name of the gate, used when printing it in the circuit diagram
 
         Raises:
             ValueError: if the array is not 1D, or does not have 2**n elements for some integer n.
@@ -62,17 +62,20 @@ class StatePreparationChannel(raw_types.Gate):
         return {
             'cirq_type': self.__class__.__name__,
             'target_state': self._state.tolist(),
+            'name': self._name,
         }
 
     @classmethod
-    def _from_json_dict_(cls, target_state, **kwargs) -> 'StatePreparationChannel':
+    def _from_json_dict_(
+        cls, target_state: np.ndarray, name: str, **kwargs
+    ) -> 'StatePreparationChannel':
         """Recreates the channel object from it's serialized form
 
         Args:
             target_state: the state to prepare using this channel
             kwargs: other keyword arguments, ignored
         """
-        return cls(target_state=np.array(target_state))
+        return cls(target_state=np.array(target_state), name=name)
 
     def _num_qubits_(self) -> int:
         return self._num_qubits
@@ -107,10 +110,10 @@ class StatePreparationChannel(raw_types.Gate):
         return operator
 
     def __repr__(self) -> str:
-        return f'cirq.StatePreparationChannel({proper_repr(self.state)})'
+        return f'cirq.StatePreparationChannel(target_state={proper_repr(self.state)}, name="{self._name}")'
 
     def __str__(self) -> str:
-        return f'StatePreparationChannel({proper_repr(self.state)})'
+        return f'StatePreparationChannel({self.state})'
 
     def _approx_eq_(self, other: Any, atol) -> bool:
         if not isinstance(other, StatePreparationChannel):
