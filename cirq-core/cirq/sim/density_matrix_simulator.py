@@ -464,11 +464,8 @@ class DensityMatrixTrialResult(
 
     def __str__(self) -> str:
         samples = super().__str__()
-        substates = self._substates
-        if substates is None:
-            return f'measurements: {samples}\nfinal density matrix:\n{self.final_density_matrix}'
         ret = f'measurements: {samples}'
-        for substate in substates:
+        for substate in self._substates:
             tensor = substate.target_tensor
             size = np.prod([tensor.shape[i] for i in range(tensor.ndim // 2)], dtype=np.int64)
             dm = tensor.reshape((size, size))

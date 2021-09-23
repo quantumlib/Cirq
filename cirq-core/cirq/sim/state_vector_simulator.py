@@ -213,16 +213,8 @@ class StateVectorTrialResult(
 
     def __str__(self) -> str:
         samples = super().__str__()
-        substates = self._substates
-        if substates is None:
-            final = self.state_vector()
-            if len([1 for e in final if abs(e) > 0.001]) < 16:
-                state_vector = self.dirac_notation(3)
-            else:
-                state_vector = str(final)
-            return f'measurements: {samples}\noutput vector: {state_vector}'
         ret = f'measurements: {samples}'
-        for substate in substates:
+        for substate in self._substates:
             final = substate.target_tensor
             shape = final.shape
             size = np.prod(shape, dtype=np.int64)
