@@ -62,7 +62,10 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
         )
 
         switch_to_new = False
-        switch_to_new |= not all(self._may_keep_old_op(old_op) for old_op in old_operations)
+        switch_to_new |= any(
+            len(old_op.qubits) == 2 and not self._may_keep_old_op(old_op)
+            for old_op in old_operations
+        )
 
         # This point cannot be optimized using this method
         if not switch_to_new and old_interaction_count <= 1:
