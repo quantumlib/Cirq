@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import numpy as np
+import pytest
 
 import cirq
 from cirq import ops
@@ -21,7 +21,7 @@ from cirq import ops
 
 def test_coverage():
     q = cirq.LineQubit.range(3)
-    g = cirq.ThreeQubitGate()
+    g = cirq.testing.ThreeQubitGate()
 
     class FakeOperation(ops.Operation):
         def __init__(self, gate, qubits):
@@ -64,11 +64,11 @@ def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
 
 
 def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
-    class OtherCZ(cirq.TwoQubitGate):
+    class OtherCZ(cirq.testing.TwoQubitGate):
         def _unitary_(self) -> np.ndarray:
             return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
 
-    class OtherOtherCZ(cirq.TwoQubitGate):
+    class OtherOtherCZ(cirq.testing.TwoQubitGate):
         def _decompose_(self, qubits):
             return OtherCZ().on(*qubits)
 

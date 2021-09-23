@@ -15,6 +15,7 @@
 """A simplified time-slice of operations within a sequenced circuit."""
 
 from typing import (
+    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -91,6 +92,7 @@ class Moment:
                 self._qubit_to_op[q] = op
 
         self._qubits = frozenset(self._qubit_to_op.keys())
+        self._measurement_key_names: Optional[AbstractSet[str]] = None
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
@@ -216,6 +218,13 @@ class Moment:
             else op
             for op in self.operations
         )
+
+    def _measurement_key_names_(self) -> AbstractSet[str]:
+        if self._measurement_key_names is None:
+            self._measurement_key_names = {
+                key for op in self.operations for key in protocols.measurement_key_names(op)
+            }
+        return self._measurement_key_names
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         return Moment(

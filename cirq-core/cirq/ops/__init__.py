@@ -110,6 +110,8 @@ from cirq.ops.gate_operation import (
     GateOperation,
 )
 
+from cirq.ops.gateset import GateFamily, Gateset
+
 from cirq.ops.identity import (
     I,
     identity_each,
@@ -138,6 +140,10 @@ from cirq.ops.mixed_unitary_channel import (
 
 from cirq.ops.pauli_sum_exponential import (
     PauliSumExponential,
+)
+
+from cirq.ops.pauli_measurement_gate import (
+    PauliMeasurementGate,
 )
 
 from cirq.ops.parallel_gate import ParallelGate, parallel_gate_op
@@ -169,6 +175,8 @@ from cirq.ops.matrix_gates import (
 from cirq.ops.measure_util import (
     measure,
     measure_each,
+    measure_paulistring_terms,
+    measure_single_paulistring,
 )
 
 from cirq.ops.measurement_gate import (
@@ -293,3 +301,5 @@ from cirq.ops.wait_gate import (
     wait,
     WaitGate,
 )
+
+from cirq.ops.state_preparation_channel import StatePreparationChannel

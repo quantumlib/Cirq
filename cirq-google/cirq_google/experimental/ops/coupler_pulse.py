@@ -24,7 +24,7 @@ _MAX_DURATION = cirq.Duration(nanos=200)
 
 
 @cirq.value_equality(approximate=True)
-class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
+class CouplerPulse(cirq.ops.Gate):
     r"""Tunable pulse for entangling adjacent qubits.
 
     For experimental usage only.
