@@ -131,11 +131,11 @@ See the previous section for instructions.
     ```bash
     python dev_tools/modules.py list --mode package-path > 
     ```
-
+    and then adding these to the virtualenv:
     ```bash
-    add2virtualenv <paste modules from last commanbd>
+    add2virtualenv <paste modules from last command>
     ```
-    (Typically add2virtualenv is not executable using xargs, so this two step process is necessary.)
+    (Typically `add2virtualenv` is not executable using xargs, so this two step process is necessary.)
 
 ## Editable installs 
 
