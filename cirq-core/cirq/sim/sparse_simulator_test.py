@@ -1340,7 +1340,7 @@ def test_separated_states_str_does_not_merge():
         cirq.measure(q0),
         cirq.measure(q1),
         cirq.H(q0),
-        cirq.GlobalPhaseOperation(0+1j),
+        cirq.GlobalPhaseOperation(0 + 1j),
     )
 
     result = cirq.Simulator().simulate(circuit)
@@ -1365,7 +1365,7 @@ def test_unseparated_states_str():
         cirq.measure(q0),
         cirq.measure(q1),
         cirq.H(q0),
-        cirq.GlobalPhaseOperation(0+1j),
+        cirq.GlobalPhaseOperation(0 + 1j),
     )
 
     result = cirq.Simulator(split_untangled_states=False).simulate(circuit)
