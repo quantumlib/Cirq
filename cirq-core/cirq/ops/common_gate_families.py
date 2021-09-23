@@ -36,7 +36,7 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
             raise ValueError(f'num_qubits: {num_qubits} must be a positive integer.')
 
         self._num_qubits = num_qubits
-        name = '{}-Qubit UnitaryGateFamily'.format(f'{num_qubits}' if num_qubits else 'Any')
+        name = f'{str(num_qubits) if num_qubits else "Any"}-Qubit UnitaryGateFamily'
         description = 'Accepts any {}unitary gate'.format(
             f'{num_qubits}-qubit ' if num_qubits else ''
         )
