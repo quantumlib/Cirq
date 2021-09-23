@@ -15,50 +15,77 @@
 import pytest
 import sympy
 import cirq
+from cirq.ops.gateset_test import CustomX, CustomXPowGate
+
+
+class UnitaryGate(cirq.Gate):
+    def __init__(self, num_qubits: int) -> None:
+        self._num_qubits = num_qubits
+
+    def _has_unitary_(self) -> bool:
+        return True
+
+    def _num_qubits_(self) -> int:
+        return self._num_qubits
 
 
 def test_any_unitary_gate_family():
-    for gate in [cirq.X, cirq.MatrixGate(cirq.testing.random_unitary(8)), cirq.CNOT ** 0.2]:
-        q = cirq.LineQubit.range(cirq.num_qubits(gate))
-        for num_qubits in [None, cirq.num_qubits(gate)]:
-            gate_family = cirq.AnyUnitaryGateFamily(num_qubits)
+    with pytest.raises(ValueError, match='must be a positive integer'):
+        _ = cirq.AnyUnitaryGateFamily(0)
+
+    for num_qubits in range(1, 6, 2):
+        q = cirq.LineQubit.range(num_qubits)
+        gate = UnitaryGate(num_qubits)
+        for init_num_qubits in [None, num_qubits]:
+            gate_family = cirq.AnyUnitaryGateFamily(init_num_qubits)
             cirq.testing.assert_equivalent_repr(gate_family)
             assert gate in gate_family
             assert gate(*q) in gate_family
-            if num_qubits:
-                assert f'{num_qubits}' in gate_family.name
-                assert f'{num_qubits}' in gate_family.description
+            if init_num_qubits:
+                assert f'{init_num_qubits}' in gate_family.name
+                assert f'{init_num_qubits}' in gate_family.description
+                assert UnitaryGate(num_qubits + 1) not in gate_family
             else:
                 assert f'Any-Qubit' in gate_family.name
                 assert f'any unitary' in gate_family.description
 
-    assert cirq.MeasurementGate(num_qubits=2) not in cirq.AnyUnitaryGateFamily()
+    assert cirq.SingleQubitGate() not in cirq.AnyUnitaryGateFamily()
 
 
 def test_any_integer_power_gate_family():
     with pytest.raises(ValueError, match='subclass of `cirq.EigenGate`'):
-        cirq.AnyIntegerPowerGateFamily(gate=cirq.FSimGate)
-    gate_family = cirq.AnyIntegerPowerGateFamily(cirq.CXPowGate)
+        cirq.AnyIntegerPowerGateFamily(gate=cirq.SingleQubitGate)
+    with pytest.raises(ValueError, match='subclass of `cirq.EigenGate`'):
+        cirq.AnyIntegerPowerGateFamily(gate=CustomXPowGate())
+    gate_family = cirq.AnyIntegerPowerGateFamily(CustomXPowGate)
     cirq.testing.assert_equivalent_repr(gate_family)
-    assert cirq.CX in gate_family
-    assert cirq.CX ** 2 in gate_family
-    assert cirq.CX ** 1.5 not in gate_family
-    assert cirq.CX ** sympy.Symbol('theta') not in gate_family
-    assert 'CXPowGate' in gate_family.name
+    assert CustomX in gate_family
+    assert CustomX ** 2 in gate_family
+    assert CustomX ** 1.5 not in gate_family
+    assert CustomX ** sympy.Symbol('theta') not in gate_family
+    assert 'CustomXPowGate' in gate_family.name
     assert '`g.exponent` is an integer' in gate_family.description
 
 
-@pytest.mark.parametrize('gate', [cirq.X, cirq.ParallelGate(cirq.X, 2), cirq.XPowGate])
+@pytest.mark.parametrize('gate', [CustomX, cirq.ParallelGate(CustomX, 2), CustomXPowGate])
 @pytest.mark.parametrize('name,description', [(None, None), ("Custom Name", "Custom Description")])
-def test_parallel_gate_family(gate, name, description):
+@pytest.mark.parametrize('max_parallel_allowed', [None, 3])
+def test_parallel_gate_family(gate, name, description, max_parallel_allowed):
     gate_family = cirq.ParallelGateFamily(
-        gate, name=name, description=description, max_parallel_allowed=3
+        gate, name=name, description=description, max_parallel_allowed=max_parallel_allowed
     )
     cirq.testing.assert_equivalent_repr(gate_family)
-    for gate_to_test in [cirq.X, cirq.ParallelGate(cirq.X, 2)]:
+    for gate_to_test in [CustomX, cirq.ParallelGate(CustomX, 2)]:
         assert gate_to_test in gate_family
         assert gate_to_test(*cirq.LineQubit.range(cirq.num_qubits(gate_to_test))) in gate_family
-    assert cirq.ParallelGate(cirq.X, 4) not in gate_family
+
+    if isinstance(gate, cirq.ParallelGate) and not max_parallel_allowed:
+        assert gate_family._max_parallel_allowed == cirq.num_qubits(gate)
+        assert cirq.ParallelGate(CustomX, 4) not in gate_family
+    else:
+        assert gate_family._max_parallel_allowed == max_parallel_allowed
+        assert (cirq.ParallelGate(CustomX, 4) in gate_family) == (max_parallel_allowed is None)
+
     str_to_search = 'Custom' if name else 'Parallel'
     assert str_to_search in gate_family.name
     assert str_to_search in gate_family.description
