@@ -1568,9 +1568,12 @@ def test_large_untangled_okay():
 
 
 def test_separated_states_str_does_not_merge():
-    circuit = cirq.Circuit()
-    for i in range(2):
-        circuit.append(cirq.measure(cirq.LineQubit(i)))
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0),
+        cirq.measure(q1),
+        cirq.X(q0),
+    )
 
     result = cirq.DensityMatrixSimulator().simulate(circuit)
     assert (
@@ -1579,8 +1582,8 @@ def test_separated_states_str_does_not_merge():
 
 qubits: (cirq.LineQubit(0),)
 final density matrix:
-[[1.+0.j 0.+0.j]
- [0.+0.j 0.+0.j]]
+[[0.+0.j 0.+0.j]
+ [0.+0.j 1.+0.j]]
 
 qubits: (cirq.LineQubit(1),)
 final density matrix:
@@ -1594,9 +1597,12 @@ final density matrix:
 
 
 def test_unseparated_states_str():
-    circuit = cirq.Circuit()
-    for i in range(2):
-        circuit.append(cirq.measure(cirq.LineQubit(i)))
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0),
+        cirq.measure(q1),
+        cirq.X(q0),
+    )
 
     result = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
     assert (
@@ -1605,8 +1611,8 @@ def test_unseparated_states_str():
 
 qubits: (cirq.LineQubit(0), cirq.LineQubit(1))
 final density matrix:
-[[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
+[[0.+0.j 0.+0.j 0.+0.j 0.+0.j]
  [0.+0.j 0.+0.j 0.+0.j 0.+0.j]
- [0.+0.j 0.+0.j 0.+0.j 0.+0.j]
+ [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
  [0.+0.j 0.+0.j 0.+0.j 0.+0.j]]"""
     )

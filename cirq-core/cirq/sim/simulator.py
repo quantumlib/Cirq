@@ -863,13 +863,13 @@ class SimulationTrialResult:
         if self._final_step_result is None or not hasattr(self._final_step_result, '_sim_state'):
             return None
         sim_state = self._final_step_result._sim_state  # type: ignore
-        state = sim_state  # type: cirq.OperationTarget[cirq.ActOnArgs]
+        state = sim_state  # type: cirq.OperationTarget[cirq.ActOnArgs, int]
         substates = dict()  # type: Dict[cirq.ActOnArgs]
         for q in state.qubits:
-            substates[state[q]] = None
+            substates[state[q]] = 0
         # Add the global phase if it exists
         try:
-            substates[state[None]] = None
+            substates[state[None]] = 0
         except IndexError:
             pass
         return tuple(substates.keys())

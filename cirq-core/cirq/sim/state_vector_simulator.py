@@ -30,7 +30,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, study, value
+from cirq import ops, study, value, qis
 from cirq.sim import simulator, state_vector, simulator_base
 from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 
@@ -221,8 +221,11 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
         for substate in substates:
             substate = cast(ActOnStateVectorArgs, substate)
             final = substate.target_tensor
+            shape = final.shape
+            size = np.prod(shape, dtype=np.int64)
+            final = final.reshape(size)
             if len([1 for e in final if abs(e) > 0.001]) < 16:
-                state_vector = self.dirac_notation(3)
+                state_vector = qis.dirac_notation(final, 3, shape)
             else:
                 state_vector = str(final)
             label = f'qubits: {substate.qubits}' if substate.qubits else 'phase:'

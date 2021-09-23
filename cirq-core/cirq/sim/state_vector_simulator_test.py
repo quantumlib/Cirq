@@ -21,11 +21,15 @@ import cirq.testing
 
 
 def test_state_vector_trial_result_repr():
-    final_step_result = mock.Mock(cirq.StateVectorStepResult)
-    final_step_result._qubit_mapping = {}
-    final_step_result._simulator_state.return_value = cirq.StateVectorSimulatorState(
-        qubit_map={cirq.NamedQubit('a'): 0}, state_vector=np.array([0, 1])
+    q0 = cirq.NamedQubit('a')
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=np.array([0, 1]),
+        available_buffer=np.array([0, 1]),
+        prng=np.random.RandomState(0),
+        log_of_measurement_results={},
+        qubits=[q0],
     )
+    final_step_result = cirq.SparseSimulatorStep(args, cirq.Simulator())
     trial_result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({'s': 1}),
         measurements={'m': np.array([[1]])},
@@ -33,11 +37,12 @@ def test_state_vector_trial_result_repr():
     )
     assert repr(trial_result) == (
         "cirq.StateVectorTrialResult("
-        "params=cirq.ParamResolver({'s': 1}), "
         "measurements={'m': array([[1]])}, "
-        "final_simulator_state=cirq.StateVectorSimulatorState("
-        "state_vector=np.array([0, 1]), "
-        "qubit_map={cirq.NamedQubit('a'): 0}))"
+        "final_step_result=cirq.StateVectorStepResult("
+        "sim_state=cirq.ActOnStateVectorArgs("
+        "target_tensor=array([0, 1]), "
+        "qubits=(cirq.NamedQubit('a'),), "
+        "log_of_measurement_results={})"
     )
 
 
