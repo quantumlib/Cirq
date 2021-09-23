@@ -21,14 +21,25 @@ from cirq import protocols
 
 
 class AnyUnitaryGateFamily(gateset.GateFamily):
+    """GateFamily which accepts any N-Qubit unitary gate."""
+
     def __init__(self, num_qubits: Optional[int] = None) -> None:
+        """Init AnyUnitaryGateFamily
+
+        Args:
+            num_qubits: The GateFamily will accept any unitary gate acting on `num_qubits`.
+                        If left `None`, the GateFamily will accept every unitary gate.
+        Raises:
+            ValueError: If `num_qubits` <= 0.
+        """
+        if num_qubits is not None and num_qubits <= 0:
+            raise ValueError(f'num_qubits: {num_qubits} must be a positive integer.')
+
         self._num_qubits = num_qubits
-        if num_qubits:
-            name = f'{num_qubits}-Qubit UnitaryGateFamily'
-            description = f'Accepts any {num_qubits}-qubit unitary gate.'
-        else:
-            name = 'Any-Qubit UnitaryGateFamily'
-            description = 'Accepts any unitary gate.'
+        name = f'{str(num_qubits) if num_qubits else "Any"}-Qubit UnitaryGateFamily'
+        description = 'Accepts any {}unitary gate'.format(
+            f'{num_qubits}-qubit ' if num_qubits else ''
+        )
         super().__init__(raw_types.Gate, name=name, description=description)
 
     def _predicate(self, g: raw_types.Gate) -> bool:
@@ -41,7 +52,18 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
 
 
 class AnyIntegerPowerGateFamily(gateset.GateFamily):
+    """GateFamily which accepts instances of a given `cirq.EigenGate`, raised to integer power."""
+
     def __init__(self, gate: Type[eigen_gate.EigenGate]) -> None:
+        """Init AnyIntegerPowerGateFamily
+
+        Args:
+            gate: A subclass of `cirq.EigenGate` s.t. an instance `g` of `gate` will be
+                accepted if `g.exponent` is an integer.
+
+        Raises:
+            ValueError: If `gate` is not a subclass of `cirq.EigenGate`.
+        """
         if not (isinstance(gate, type) and issubclass(gate, eigen_gate.EigenGate)):
             raise ValueError(f'{gate} must be a subclass of `cirq.EigenGate`.')
         super().__init__(
@@ -61,15 +83,47 @@ class AnyIntegerPowerGateFamily(gateset.GateFamily):
 
 
 class ParallelGateFamily(gateset.GateFamily):
+    """GateFamily which accepts instances of `cirq.ParallelGate` and it's sub_gate.
+
+    ParallelGateFamily is useful for description and validation of scenarios where multiple
+    copies of a unitary gate can act in parallel. `cirq.ParallelGate` is used to express
+    such a gate with a corresponding unitary `sub_gate` that acts in parallel.
+
+    ParallelGateFamily supports initialization via
+        a) Gate Instance that can be applied in parallel.
+        b) Gate Type whose instances can be applied in parallel.
+
+    In both the cases, the users can specify an additional parameter `max_parallel_allowed` which
+    is used to verify the maximum number of qubits on which any given gate instance can act on.
+
+    To verify containment of a given `cirq.Gate` instance `g`, the gate family verfies that
+        a) `cirq.num_qubits(g)` <= `max_parallel_allowed` if `max_parallel_allowed` is not None.
+        b) `g` or `g.sub_gate` (if `g` is an instance of `cirq.ParallelGate`) is an accepted gate
+            based on type or instance checks depending on the initialization gate type.
+    """
+
     def __init__(
         self,
         gate: Union[Type[raw_types.Gate], raw_types.Gate],
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
-        max_parallel_allowed=None,
+        max_parallel_allowed: Optional[int] = None,
     ) -> None:
+        """Inits ParallelGateFamily
+
+        Args:
+            gate: The gate which can act in parallel. It can be a python `type` inheriting from
+                `cirq.Gate` or a non-parameterized instance of a `cirq.Gate`. If an instance of
+                `cirq.ParallelGate` is passed, then the corresponding `gate.sub_gate` is used.
+            name: The name of the gate family.
+            description: Human readable description of the gate family.
+            max_parallel_allowed: The maximum number of qubits on which a given gate `g`
+            can act on. If None, then any number of qubits are allowed.
+        """
         if isinstance(gate, parallel_gate.ParallelGate):
+            if not max_parallel_allowed:
+                max_parallel_allowed = protocols.num_qubits(gate)
             gate = cast(parallel_gate.ParallelGate, gate).sub_gate
         self._max_parallel_allowed = max_parallel_allowed
         super().__init__(gate, name=name, description=description)
