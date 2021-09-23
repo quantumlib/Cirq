@@ -62,10 +62,7 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
         )
 
         switch_to_new = False
-        switch_to_new |= any(
-            len(old_op.qubits) == 2 and not self._may_keep_old_op(old_op)
-            for old_op in old_operations
-        )
+        switch_to_new |= not all(self._may_keep_old_op(old_op) for old_op in old_operations)
 
         # This point cannot be optimized using this method
         if not switch_to_new and old_interaction_count <= 1:
@@ -229,13 +226,16 @@ class MergeInteractions(MergeInteractionsAbc):
         """
         super().__init__(tolerance=tolerance, post_clean_up=post_clean_up)
         self.allow_partial_czs = allow_partial_czs
+        self.gateset = ops.Gateset(
+            ops.CZPowGate if allow_partial_czs else ops.CZ,
+            unroll_circuit_op=False,
+            accept_global_phase=True,
+        )
 
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
         """Returns True if the old two-qubit operation may be left unchanged
         without decomposition."""
-        if self.allow_partial_czs:
-            return isinstance(old_op.gate, ops.CZPowGate)
-        return isinstance(old_op.gate, ops.CZPowGate) and old_op.gate.exponent == 1
+        return old_op in self.gateset
 
     def _two_qubit_matrix_to_operations(
         self,
