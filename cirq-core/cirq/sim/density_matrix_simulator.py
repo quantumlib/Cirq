@@ -363,9 +363,7 @@ class DensityMatrixStepResult(
         return self._density_matrix.copy() if copy else self._density_matrix
 
     def __repr__(self) -> str:
-        return (
-            f'cirq.DensityMatrixStepResult(sim_state={self._sim_state!r}, dtype={self._dtype!r}'
-        )
+        return f'cirq.DensityMatrixStepResult(sim_state={self._sim_state!r}, dtype={self._dtype!r}'
 
 
 @value.value_equality(unhashable=True)

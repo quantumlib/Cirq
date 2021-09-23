@@ -24,7 +24,8 @@ from typing import (
     Generic,
     TypeVar,
     Type,
-    Optional, cast,
+    Optional,
+    cast,
 )
 
 import numpy as np
@@ -122,9 +123,7 @@ class StateVectorStepResult(
         raise NotImplementedError()
 
     def __repr__(self) -> str:
-        return (
-            f'cirq.StateVectorStepResult(sim_state={self._sim_state!r}'
-        )
+        return f'cirq.StateVectorStepResult(sim_state={self._sim_state!r}'
 
 
 @value.value_equality(unhashable=True)
@@ -250,4 +249,3 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
             f'measurements={self.measurements!r}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )
-
