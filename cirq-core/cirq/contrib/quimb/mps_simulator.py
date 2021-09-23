@@ -149,7 +149,7 @@ class MPSSimulator(
         )
 
 
-class MPSTrialResult(simulator.SimulationTrialResult):
+class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState', 'MPSState']):
     """A single trial reult"""
 
     def __init__(

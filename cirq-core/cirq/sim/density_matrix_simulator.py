@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, List, cast
+from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, List
 
 import numpy as np
 
@@ -396,7 +396,11 @@ class DensityMatrixSimulatorState:
 
 
 @value.value_equality(unhashable=True)
-class DensityMatrixTrialResult(simulator.SimulationTrialResult):
+class DensityMatrixTrialResult(
+    simulator_base.SimulationTrialResultBase[
+        'DensityMatrixSimulatorState', act_on_density_matrix_args.ActOnDensityMatrixArgs
+    ]
+):
     """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
 
     The density matrix that is stored in this result is returned in the
@@ -465,7 +469,6 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
             return f'measurements: {samples}\nfinal density matrix:\n{self.final_density_matrix}'
         ret = f'measurements: {samples}'
         for substate in substates:
-            substate = cast(act_on_density_matrix_args.ActOnDensityMatrixArgs, substate)
             tensor = substate.target_tensor
             size = np.prod([tensor.shape[i] for i in range(tensor.ndim // 2)], dtype=np.int64)
             dm = tensor.reshape((size, size))

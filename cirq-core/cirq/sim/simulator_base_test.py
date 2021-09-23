@@ -91,7 +91,7 @@ class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArg
         return self._merged_sim_state
 
 
-class CountingTrialResult(cirq.SimulationTrialResult):
+class CountingTrialResult(cirq.SimulationTrialResultBase[CountingActOnArgs, CountingActOnArgs]):
     pass
 
 

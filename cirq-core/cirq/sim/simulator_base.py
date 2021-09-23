@@ -43,6 +43,7 @@ from cirq.sim.simulator import (
     SimulatesIntermediateState,
     SimulatesSamples,
     StepResult,
+    SimulationTrialResult,
     check_all_resolved,
     split_into_matching_protocol_then_general,
 )
@@ -354,3 +355,40 @@ class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulator
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
         return self._sim_state.sample(qubits, repetitions, seed)
+
+
+class SimulationTrialResultBase(
+    Generic[TSimulatorState, TActOnArgs], SimulationTrialResult, abc.ABC
+):
+    """A base class for trial results."""
+
+    def __init__(
+        self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_step_result: StepResultBase[TSimulatorState, TActOnArgs],
+    ) -> None:
+        """Initializes the `SimulationTrialResultBase` class.
+
+        Args:
+            params: A ParamResolver of settings used for this result.
+            measurements: A dictionary from measurement gate key to measurement
+                results. Measurement results are a numpy ndarray of actual
+                boolean measurement results (ordered by the qubits acted on by
+                the measurement gate.)
+            final_step_result: The step result coming from the simulation, that
+                can be used to get the final simulator state.
+        """
+        super().__init__(params, measurements, final_step_result=final_step_result)
+        self._final_step_result_typed = final_step_result
+
+    @property
+    def _substates(self) -> Optional[Sequence[TActOnArgs]]:
+        state = self._final_step_result_typed._sim_state
+        if isinstance(state, ActOnArgsContainer):
+            substates = dict()  # type: Dict[TActOnArgs, int]
+            for q in state.qubits:
+                substates[state[q]] = 0
+            substates[state[None]] = 0
+            return tuple(substates.keys())
+        return [state.create_merged_state()]

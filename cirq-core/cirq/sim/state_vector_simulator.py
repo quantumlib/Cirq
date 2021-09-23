@@ -25,7 +25,6 @@ from typing import (
     TypeVar,
     Type,
     Optional,
-    cast,
 )
 
 import numpy as np
@@ -148,7 +147,12 @@ class StateVectorSimulatorState:
 
 
 @value.value_equality(unhashable=True)
-class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.SimulationTrialResult):
+class StateVectorTrialResult(
+    state_vector.StateVectorMixin,
+    simulator_base.SimulationTrialResultBase[
+        StateVectorSimulatorState, 'cirq.ActOnStateVectorArgs'
+    ],
+):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
 
     Attributes:
@@ -219,13 +223,12 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
             return f'measurements: {samples}\noutput vector: {state_vector}'
         ret = f'measurements: {samples}'
         for substate in substates:
-            substate = cast(ActOnStateVectorArgs, substate)
             final = substate.target_tensor
             shape = final.shape
             size = np.prod(shape, dtype=np.int64)
             final = final.reshape(size)
             if len([1 for e in final if abs(e) > 0.001]) < 16:
-                state_vector = qis.dirac_notation(final, 3, shape)
+                state_vector = qis.dirac_notation(final, 3)
             else:
                 state_vector = str(final)
             label = f'qubits: {substate.qubits}' if substate.qubits else 'phase:'

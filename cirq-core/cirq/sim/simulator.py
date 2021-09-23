@@ -858,22 +858,6 @@ class SimulationTrialResult:
             self._final_simulator_state_cache = self._final_step_result._simulator_state()
         return self._final_simulator_state_cache
 
-    @property
-    def _substates(self) -> Optional[Sequence['cirq.ActOnArgs']]:
-        if self._final_step_result is None or not hasattr(self._final_step_result, '_sim_state'):
-            return None
-        sim_state = self._final_step_result._sim_state  # type: ignore
-        state = sim_state  # type: cirq.OperationTarget[cirq.ActOnArgs]
-        substates = dict()  # type: Dict[cirq.ActOnArgs, int]
-        for q in state.qubits:
-            substates[state[q]] = 0
-        # Add the global phase if it exists
-        try:
-            substates[state[None]] = 0
-        except IndexError:
-            pass
-        return tuple(substates.keys())
-
     def __repr__(self) -> str:
         return (
             f'cirq.SimulationTrialResult(params={self.params!r}, '

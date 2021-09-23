@@ -116,7 +116,11 @@ class CliffordSimulator(
         )
 
 
-class CliffordTrialResult(simulator.SimulationTrialResult):
+class CliffordTrialResult(
+    simulator_base.SimulationTrialResultBase[
+        'clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs'
+    ]
+):
     def __init__(
         self,
         params: study.ParamResolver,

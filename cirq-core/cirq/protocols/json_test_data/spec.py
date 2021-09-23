@@ -66,6 +66,7 @@ TestSpec = ModuleJsonTestSpec(
         'QuilFormatter',
         'QuilOutput',
         'SimulationTrialResult',
+        'SimulationTrialResultBase',
         'SparseSimulatorStep',
         'StateVectorMixin',
         'TextDiagramDrawer',
