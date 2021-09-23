@@ -21,14 +21,8 @@ if TYPE_CHECKING:
     import cirq
 
 
-@value.value_equality
-class IonDevice(devices.Device):
-    """A device with qubits placed on a line.
-
-    Qubits have all-to-all connectivity.
-    """
-
-    gateset = ops.Gateset(
+def get_ion_gateset() -> ops.Gateset:
+    return ops.Gateset(
         ops.XXPowGate,
         ops.MeasurementGate,
         ops.XPowGate,
@@ -38,6 +32,14 @@ class IonDevice(devices.Device):
         unroll_circuit_op=False,
         accept_global_phase=False,
     )
+
+
+@value.value_equality
+class IonDevice(devices.Device):
+    """A device with qubits placed on a line.
+
+    Qubits have all-to-all connectivity.
+    """
 
     def __init__(
         self,
@@ -59,6 +61,7 @@ class IonDevice(devices.Device):
         self._twoq_gates_duration = value.Duration(twoq_gates_duration)
         self._oneq_gates_duration = value.Duration(oneq_gates_duration)
         self.qubits = frozenset(qubits)
+        self.gateset = get_ion_gateset()
 
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
@@ -90,7 +93,7 @@ class IonDevice(devices.Device):
         raise ValueError(f'Unsupported gate type: {operation!r}')
 
     def validate_gate(self, gate: ops.Gate):
-        if gate not in IonDevice.gateset:
+        if gate not in self.gateset:
             raise ValueError(f'Unsupported gate type: {gate!r}')
 
     def validate_operation(self, operation):

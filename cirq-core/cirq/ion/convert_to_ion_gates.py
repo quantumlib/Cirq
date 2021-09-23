@@ -30,6 +30,7 @@ class ConvertToIonGates:
         """
         super().__init__()
         self.ignore_failures = ignore_failures
+        self.gateset = ion_device.get_ion_gateset()
 
     # TODO(#3388) Add documentation for Raises.
     # pylint: disable=missing-raises-doc
@@ -47,7 +48,7 @@ class ConvertToIonGates:
         if not isinstance(op, ops.GateOperation):
             raise TypeError(f"{op!r} is not a gate operation.")
 
-        if op in ion_device.IonDevice.gateset:
+        if op in self.gateset:
             return [op]
         # one choice of known Hadamard gate decomposition
         if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
