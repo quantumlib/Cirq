@@ -382,13 +382,23 @@ class SimulationTrialResultBase(
         super().__init__(params, measurements, final_step_result=final_step_result)
         self._final_step_result_typed = final_step_result
 
+    def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TActOnArgs:
+        """Returns the independent state space containing the qubit.
+
+        Args:
+            qubit: The qubit whose state space is required.
+
+        Returns:
+            The state space containing the qubit."""
+        return self._final_step_result_typed._sim_state[qubit]
+
     @property
     def _substates(self) -> Sequence[TActOnArgs]:
         state = self._final_step_result_typed._sim_state
         if isinstance(state, ActOnArgsContainer):
             substates = dict()  # type: Dict[TActOnArgs, int]
             for q in state.qubits:
-                substates[state[q]] = 0
+                substates[self.get_state_containing_qubit(q)] = 0
             substates[state[None]] = 0
             return tuple(substates.keys())
         return [state.create_merged_state()]
