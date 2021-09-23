@@ -173,7 +173,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             _strat_act_on_state_vector_from_channel,
         ]
         if allow_decompose:
-            strats.append(strat_act_on_from_apply_decompose)
+            strats.append(strat_act_on_from_apply_decompose)  # type: ignore
 
         # Try each strategy, stopping if one works.
         for strat in strats:

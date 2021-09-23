@@ -67,7 +67,7 @@ def test_cannot_act():
     class NoDetails:
         @property
         def qubits(self):
-            return []
+            pass
 
     class NoDetailsSingleQubitGate(cirq.SingleQubitGate):
         pass
