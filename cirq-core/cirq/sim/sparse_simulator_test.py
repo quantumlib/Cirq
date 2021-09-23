@@ -1359,6 +1359,16 @@ output vector: 1j|⟩"""
     )
 
 
+def test_separable_non_dirac_str():
+    circuit = cirq.Circuit()
+    for i in range(4):
+        circuit.append(cirq.H(cirq.LineQubit(i)))
+        circuit.append(cirq.CX(cirq.LineQubit(0), cirq.LineQubit(i + 1)))
+
+    result = cirq.Simulator().simulate(circuit)
+    assert '+0.j' in str(result)
+
+
 def test_unseparated_states_str():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
