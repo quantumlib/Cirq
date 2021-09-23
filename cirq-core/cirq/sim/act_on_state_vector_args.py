@@ -252,6 +252,14 @@ class ActOnStateVectorArgs(ActOnArgs):
             seed=seed,
         )
 
+    def __repr__(self) -> str:
+        return (
+            'cirq.ActOnStateVectorArgs('
+            f'target_tensor={self.target_tensor!r},'
+            f' qubits={self.qubits!r},'
+            f' log_of_measurement_results={self.log_of_measurement_results!r}'
+        )
+
 
 def _strat_act_on_state_vector_from_apply_unitary(
     unitary_value: Any,

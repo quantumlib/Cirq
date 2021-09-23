@@ -197,6 +197,15 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             seed=seed,
         )
 
+    def __repr__(self) -> str:
+        return (
+            'cirq.ActOnDensityMatrixArgs('
+            f'target_tensor={self.target_tensor!r},'
+            f' qid_shape={self.qid_shape!r},'
+            f' qubits={self.qubits!r},'
+            f' log_of_measurement_results={self.log_of_measurement_results!r}'
+        )
+
 
 def _strat_apply_channel_to_state(
     action: Any, args: ActOnDensityMatrixArgs, qubits: Sequence['cirq.Qid']

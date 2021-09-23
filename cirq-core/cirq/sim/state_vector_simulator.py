@@ -24,7 +24,7 @@ from typing import (
     Generic,
     TypeVar,
     Type,
-    Optional,
+    Optional, cast,
 )
 
 import numpy as np
@@ -121,6 +121,11 @@ class StateVectorStepResult(
         """
         raise NotImplementedError()
 
+    def __repr__(self) -> str:
+        return (
+            f'cirq.StateVectorStepResult(sim_state={self._sim_state!r}'
+        )
+
 
 @value.value_equality(unhashable=True)
 class StateVectorSimulatorState:
@@ -140,7 +145,7 @@ class StateVectorSimulatorState:
         )
 
     def _value_equality_values_(self) -> Any:
-        return (self.state_vector.tolist(), self.qubit_map)
+        return self.state_vector.tolist(), self.qubit_map
 
 
 @value.value_equality(unhashable=True)
@@ -201,16 +206,29 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
-        return (self.params, measurements, self._final_simulator_state)
+        return self.params, measurements, self._final_simulator_state
 
     def __str__(self) -> str:
         samples = super().__str__()
-        final = self.state_vector()
-        if len([1 for e in final if abs(e) > 0.001]) < 16:
-            state_vector = self.dirac_notation(3)
-        else:
-            state_vector = str(final)
-        return f'measurements: {samples}\noutput vector: {state_vector}'
+        substates = self._substates
+        if substates is None:
+            final = self.state_vector()
+            if len([1 for e in final if abs(e) > 0.001]) < 16:
+                state_vector = self.dirac_notation(3)
+            else:
+                state_vector = str(final)
+            return f'measurements: {samples}\noutput vector: {state_vector}'
+        ret = f'measurements: {samples}'
+        for substate in substates:
+            substate = cast(ActOnStateVectorArgs, substate)
+            final = substate.target_tensor
+            if len([1 for e in final if abs(e) > 0.001]) < 16:
+                state_vector = self.dirac_notation(3)
+            else:
+                state_vector = str(final)
+            label = f'qubits: {substate.qubits}' if substate.qubits else 'phase:'
+            ret += f'\n\n{label}\noutput vector: {state_vector}'
+        return ret
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Text output in Jupyter."""
@@ -221,8 +239,15 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
             p.text(str(self))
 
     def __repr__(self) -> str:
+        if self._final_step_result:
+            return (
+                'cirq.StateVectorTrialResult('
+                f'measurements={self.measurements!r}, '
+                f'final_step_result={self._final_step_result!r})'
+            )
         return (
             f'cirq.StateVectorTrialResult(params={self.params!r}, '
             f'measurements={self.measurements!r}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )
+

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, List
+from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, List, cast
 
 import numpy as np
 
@@ -362,6 +362,11 @@ class DensityMatrixStepResult(
                 self._density_matrix = np.reshape(matrix, (size, size))
         return self._density_matrix.copy() if copy else self._density_matrix
 
+    def __repr__(self) -> str:
+        return (
+            f'cirq.DensityMatrixStepResult(sim_state={self._sim_state!r}, dtype={self._dtype!r}'
+        )
+
 
 @value.value_equality(unhashable=True)
 class DensityMatrixSimulatorState:
@@ -382,7 +387,7 @@ class DensityMatrixSimulatorState:
         return self._qid_shape
 
     def _value_equality_values_(self) -> Any:
-        return (self.density_matrix.tolist(), self.qubit_map)
+        return self.density_matrix.tolist(), self.qubit_map
 
     def __repr__(self) -> str:
         return (
@@ -453,13 +458,30 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
 
     def _value_equality_values_(self) -> Any:
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
-        return (self.params, measurements, self._final_simulator_state)
+        return self.params, measurements, self._final_simulator_state
 
     def __str__(self) -> str:
         samples = super().__str__()
-        return f'measurements: {samples}\nfinal density matrix:\n{self.final_density_matrix}'
+        substates = self._substates
+        if substates is None:
+            return f'measurements: {samples}\nfinal density matrix:\n{self.final_density_matrix}'
+        ret = f'measurements: {samples}'
+        for substate in substates:
+            substate = cast(act_on_density_matrix_args.ActOnDensityMatrixArgs, substate)
+            tensor = substate.target_tensor
+            size = np.prod([tensor.shape[i] for i in range(tensor.ndim // 2)], dtype=np.int64)
+            dm = tensor.reshape((size, size))
+            label = f'qubits: {substate.qubits}' if substate.qubits else 'phase:'
+            ret += f'\n\n{label}\nfinal density matrix:\n{dm}'
+        return ret
 
     def __repr__(self) -> str:
+        if self._final_step_result:
+            return (
+                'cirq.DensityMatrixTrialResult('
+                f'params={self.params!r}, measurements={self.measurements!r}, '
+                f'final_step_result={self._final_step_result!r})'
+            )
         return (
             'cirq.DensityMatrixTrialResult('
             f'params={self.params!r}, measurements={self.measurements!r}, '
