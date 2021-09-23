@@ -157,10 +157,23 @@ def test_channel_fallback_to_mixture():
     assert cirq.has_kraus(ReturnsMixture())
 
 
-def test_serial_concatenation():
-    g = cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=-0.5, z_exponent=1)
-    c = (cirq.unitary(g),)
-    assert cirq.has_kraus(g)
+def test_serial_concatenation_circuit():
+    q1 = cirq.GridQubit(1, 1)
+    q2 = cirq.GridQubit(1, 2)
+
+    class onlyDecompose:
+        def _decompose_(self):
+            circ = cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)])
+            return cirq.decompose(circ)
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return None
+
+    g = onlyDecompose()
+    c = (cirq.unitary(cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)])),)
 
     np.allclose(cirq.kraus(g), c)
     np.allclose(cirq.kraus(g, None), c)
@@ -233,4 +246,5 @@ def test_has_kraus(cls):
 def test_has_channel_when_decomposed(decomposed_cls):
     op = HasKrausWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
     assert cirq.has_kraus(op)
-    assert not cirq.has_kraus(op, allow_decompose=False)
+    if not cirq.has_unitary(op) and not cirq.has_mixture(op):
+        assert not cirq.has_kraus(op, allow_decompose=False)

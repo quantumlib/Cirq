@@ -26,8 +26,9 @@ from cirq._compat import (
 )
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits, decompose
-from cirq.protocols.mixture_protocol import mixture
+from cirq.protocols.mixture_protocol import mixture, has_mixture
 from cirq.protocols.unitary_protocol import unitary
+from cirq.protocols.has_unitary_protocol import has_unitary
 
 from cirq.ops.raw_types import Qid, Gate
 from cirq.devices.line_qubit import LineQid
@@ -172,24 +173,12 @@ def kraus(
         return tuple(np.sqrt(p) * u for p, u in mixture_result)
 
     unitary_result = unitary(val, None)
-    if unitary_result is not None and mixture_result is not NotImplemented:
+    if unitary_result is not None and unitary_result is not NotImplemented:
         return (unitary_result,)
-
-    # serial concatenation
-    def checkEquality(x, y):
-        if type(x) != type(y):
-            return False
-        if type(x) not in [list, tuple, np.ndarray]:
-            return x == y
-        if type(x) == np.ndarray:
-            return x.shape == y.shape and np.all(x == y)
-        if len(x) != len(y):
-            return False
-        return all([checkEquality(a, b) for a, b in zip(x, y)])
 
     def kraus_tensor(op, qubits, default):
         kraus_list = kraus(op, default)
-        if checkEquality(kraus_list, default):
+        if _check_equality(kraus_list, default):
             return default
 
         val = None
@@ -227,7 +216,7 @@ def kraus(
         kraus_list = list(map(lambda x: kraus_tensor(x, qubits, default), decomposed))
         assert len(decomposed) != 0
 
-        if not any([checkEquality(x, default) for x in kraus_list]):
+        if not any([_check_equality(x, default) for x in kraus_list]):
             kraus_result = kraus_list[0]
             for i in range(1, len(kraus_list)):
                 kraus_result = [op_2.dot(op_1) for op_1 in kraus_result for op_2 in kraus_list[i]]
@@ -312,22 +301,21 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
             DeprecationWarning,
         )
 
-    results = []
     result = NotImplemented if channel_getter is None else channel_getter()
-    if result is not NotImplemented:
-        results.append(result)
-
-    for instance in ['_has_kraus_', '_has_unitary_', '_has_mixture_']:
-        getter = getattr(val, instance, None)
-        result = NotImplemented if getter is None else getter()
-        if result is not NotImplemented:
-            results.append(result)
-
-    if any(results):
+    if result is not NotImplemented and result:
         return True
 
-    strats = [_strat_kraus_from_kraus, _strat_kraus_from_mixture, _strat_kraus_from_unitary]
+    for instance in [has_unitary, has_mixture]:
+        result = instance(val)
+        if result is not NotImplemented and result:
+            return True
 
+    getter = getattr(val, '_has_kraus_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented and result:
+        return True
+
+    strats = [_strat_kraus_from_kraus]
     if any(strat(val)[1] is not None and strat(val)[1] is not NotImplemented for strat in strats):
         return True
 
@@ -339,6 +327,18 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     return False
 
 
+def _check_equality(x, y):
+    if type(x) != type(y):
+        return False
+    if type(x) not in [list, tuple, np.ndarray]:
+        return x == y
+    if type(x) == np.ndarray:
+        return x.shape == y.shape and np.all(x == y)
+    if len(x) != len(y):
+        return False
+    return all([_check_equality(a, b) for a, b in zip(x, y)])
+
+
 def _strat_kraus_from_kraus(val: Any) -> Union[Tuple[np.ndarray, ...], TDefault]:
     """Attempts to compute the value's kraus via its _kraus_ method."""
     kraus_getter = getattr(val, '_kraus_', None)
@@ -347,25 +347,3 @@ def _strat_kraus_from_kraus(val: Any) -> Union[Tuple[np.ndarray, ...], TDefault]
         return kraus_getter, tuple(kraus_result)
 
     return kraus_getter, kraus_result
-
-
-def _strat_kraus_from_mixture(val: Any) -> Union[Tuple[np.ndarray, ...], TDefault]:
-    """Attempts to compute the value's kraus via its _mixture_ method."""
-
-    mixture_getter = getattr(val, '_mixture_', None)
-    mixture_result = mixture(val, None)
-    if mixture_result is not NotImplemented and mixture_result is not None:
-        return mixture_getter, tuple(np.sqrt(p) * u for p, u in mixture_result)
-
-    return mixture_getter, mixture_result
-
-
-def _strat_kraus_from_unitary(val: Any) -> Union[Tuple[np.ndarray, ...], TDefault]:
-    """Attempts to compute the value's kraus via its _unitary_ method."""
-
-    unitary_getter = getattr(val, '_unitary_', None)
-    unitary_result = unitary(val, None)
-    if unitary_result is not NotImplemented and unitary_result is not None:
-        return unitary_getter, (unitary_result,)
-
-    return unitary_getter, unitary_result
