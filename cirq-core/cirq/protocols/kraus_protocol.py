@@ -175,30 +175,6 @@ def kraus(
     if unitary_result is not None and unitary_result is not NotImplemented:
         return (unitary_result,)
 
-    def kraus_tensor(op, qubits, default):
-        kraus_list = kraus(op, default)
-        if _check_equality(kraus_list, default):
-            return default
-
-        val = None
-        op_q = op.qubits
-        found = False
-        for i in range(len(qubits)):
-            if qubits[i] in op_q:
-                if not found:
-                    found = True
-                    if val is None:
-                        val = kraus_list
-                    else:
-                        val = tuple([np.kron(x, y) for x in val for y in kraus_list])
-
-            elif val is None:
-                val = (np.identity(2),)
-            else:
-                val = tuple([np.kron(x, np.identity(2)) for x in val])
-
-        return val
-
     decomposed = decompose(val)
 
     if decomposed != [val]:
@@ -207,7 +183,7 @@ def kraus(
             qubits.extend(x.qubits)
 
         qubits = sorted(list(set(qubits)))
-        kraus_list = list(map(lambda x: kraus_tensor(x, qubits, default), decomposed))
+        kraus_list = list(map(lambda x: _kraus_tensor(x, qubits, default), decomposed))
         if not any([_check_equality(x, default) for x in kraus_list]):
             kraus_result = kraus_list[0]
             for i in range(1, len(kraus_list)):
@@ -327,6 +303,31 @@ def _check_equality(x, y):
     if type(x) == np.ndarray:
         return x.shape == y.shape and np.all(x == y)
     return False if len(x) != len(y) else all([_check_equality(a, b) for a, b in zip(x, y)])
+
+
+def _kraus_tensor(op, qubits, default):
+    kraus_list = kraus(op, default)
+    if _check_equality(kraus_list, default):
+        return default
+
+    val = None
+    op_q = op.qubits
+    found = False
+    for i in range(len(qubits)):
+        if qubits[i] in op_q:
+            if not found:
+                found = True
+                if val is None:
+                    val = kraus_list
+                else:
+                    val = tuple([np.kron(x, y) for x in val for y in kraus_list])
+
+        elif val is None:
+            val = (np.identity(2),)
+        else:
+            val = tuple([np.kron(x, np.identity(2)) for x in val])
+
+    return val
 
 
 def _strat_kraus_from_kraus(val: Any):

@@ -12,16 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Protocol for objects that are mixtures (probabilistic combinations)."""
-from typing import Any, Sequence, Tuple, Union
+from typing import Any, Sequence, Tuple, Union, List
 
 import numpy as np
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits, decompose
 from cirq.protocols.has_unitary_protocol import has_unitary
 from cirq.protocols.unitary_protocol import unitary
 from cirq.type_workarounds import NotImplementedType
+from cirq.devices.line_qubit import LineQid
+
+from cirq.ops.raw_types import Qid, Gate
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -85,19 +88,43 @@ def mixture(
         with that probability in the mixture. The probabilities will sum to 1.0.
     """
 
-    mixture_getter = getattr(val, '_mixture_', None)
-    result = NotImplemented if mixture_getter is None else mixture_getter()
-    if result is not NotImplemented:
-        return result
+    mixture_result = _strat_mixture_from_mixture(val)
+    if mixture_result is not None and mixture_result is not NotImplemented:
+        return mixture_result
 
     unitary_result = unitary(val, None)
     if unitary_result is not None and unitary_result is not NotImplemented:
         return ((1.0, unitary_result),)
 
+    if isinstance(val, Gate):
+        val = val.on(*LineQid.for_gate(val))
+    else:
+        val = val
+    # serial concatenation
+    decomposed = decompose(val)
+
+    if decomposed != [val]:
+        qubits: List[Qid] = []
+        for x in decomposed:
+            qubits.extend(x.qubits)
+
+        qubits = sorted(list(set(qubits)))
+        mixture_list = list(map(lambda x: _mixture_tensor(x, qubits, default), decomposed))
+        if not any([_check_equality(x, default) for x in mixture_list]):
+            mixture_result = mixture_list[0]
+            for i in range(1, len(mixture_list)):
+                mixture_result = [
+                    _product_mixture_pair(op_1, op_2)
+                    for op_1 in mixture_result
+                    for op_2 in mixture_list[i]
+                ]
+
+            return tuple(mixture_result)
+
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if not any(getattr(val, instance, None) is not None for instance in ['_unitary_', '_mixture_']):
+    if not any(getattr(val, instance, None) is not None for instance in ["_unitary_", "_mixture_"]):
         raise TypeError(f"object of type '{type(val)}' has no _mixture_ or _unitary_ method.")
 
     raise TypeError(
@@ -126,7 +153,7 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
         has a `_mixture_` method return True if that has a non-default value.
         Returns False if neither function exists.
     """
-    mixture_getter = getattr(val, '_has_mixture_', None)
+    mixture_getter = getattr(val, "_has_mixture_", None)
     result = NotImplemented if mixture_getter is None else mixture_getter()
     if result is not NotImplemented:
         return result
@@ -134,30 +161,87 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     if has_unitary(val, allow_decompose=False):
         return True
 
+    strats = [_strat_mixture_from_mixture]
+    if any(strat(val) is not None and strat(val) is not NotImplemented for strat in strats):
+        return True
+
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
             return all(has_mixture(val) for val in operations)
 
-    # No _has_mixture_ or _has_unitary_ function, use _mixture_ instead.
-    return mixture(val, None) is not None
+    return False
 
 
 def validate_mixture(supports_mixture: SupportsMixture):
     """Validates that the mixture's tuple are valid probabilities."""
     mixture_tuple = mixture(supports_mixture, None)
     if mixture_tuple is None:
-        raise TypeError(f'{supports_mixture}_mixture did not have a _mixture_ method')
+        raise TypeError(f"{supports_mixture}_mixture did not have a _mixture_ method")
 
     def validate_probability(p, p_str):
         if p < 0:
-            raise ValueError(f'{p_str} was less than 0.')
+            raise ValueError(f"{p_str} was less than 0.")
         elif p > 1:
-            raise ValueError(f'{p_str} was greater than 1.')
+            raise ValueError(f"{p_str} was greater than 1.")
 
     total = 0.0
     for p, val in mixture_tuple:
-        validate_probability(p, '{}\'s probability'.format(str(val)))
+        validate_probability(p, "{}'s probability".format(str(val)))
         total += p
     if not np.isclose(total, 1.0):
-        raise ValueError('Sum of probabilities of a mixture was not 1.0')
+        raise ValueError("Sum of probabilities of a mixture was not 1.0")
+
+
+def _strat_mixture_from_mixture(val: Any):
+    """Attempts to compute the value's mixture via its _mixture_ method."""
+    mixture_getter = getattr(val, "_mixture_", None)
+    result = NotImplemented if mixture_getter is None else mixture_getter()
+    return result
+
+
+def _check_equality(x, y):
+    if type(x) != type(y):
+        return False
+    if type(x) not in [list, tuple, np.ndarray]:
+        return x == y
+    if type(x) == np.ndarray:
+        return x.shape == y.shape and np.all(x == y)
+    return False if len(x) != len(y) else all([_check_equality(a, b) for a, b in zip(x, y)])
+
+
+def _tensor_mixture_pair(x, y):
+    p_new = x[0] * y[0]
+    mat_new = np.kron(x[1], y[1])
+    return (p_new, mat_new)
+
+
+def _product_mixture_pair(x, y):
+    p_new = x[0] * y[0]
+    mat_new = y[1].dot(x[1])
+    return (p_new, mat_new)
+
+
+def _mixture_tensor(op, qubits, default):
+    mixture_list = mixture(op, default)
+    if _check_equality(mixture_list, default):
+        return default
+
+    val = None
+    op_q = op.qubits
+    found = False
+    for i in range(len(qubits)):
+        if qubits[i] in op_q:
+            if not found:
+                found = True
+                if val is None:
+                    val = mixture_list
+                else:
+                    val = tuple([_tensor_mixture_pair(x, y) for x in val for y in mixture_list])
+
+        elif val is None:
+            val = ((1, np.identity(2)),)
+        else:
+            val = tuple([_tensor_mixture_pair(x, (1, np.identity(2))) for x in val])
+
+    return val
