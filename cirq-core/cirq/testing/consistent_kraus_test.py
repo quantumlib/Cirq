@@ -26,6 +26,9 @@ class GoodGateKraus(cirq.SingleQubitGate):
     def _unitary_(self):
         return np.array([[0, 1], [1, 0]])
 
+    def _mixture_(self):
+        return ((1, np.array([[0, 1], [1, 0]])),)
+
 
 class BadGateKraus(cirq.SingleQubitGate):
     def _kraus_(self, default=None):
@@ -34,17 +37,35 @@ class BadGateKraus(cirq.SingleQubitGate):
     def _unitary_(self):
         return np.array([[0, 1], [0, 1]])
 
+    def _mixture_(self):
+        return ((1, np.array([[0, 1], [0, 1]])),)
+
 
 def test_assert_kraus_is_consistent_with_unitary():
     gate = GoodGateKraus()
     cirq.testing.assert_kraus_is_consistent_with_unitary(gate)
 
-    cirq.testing.assert_kraus_is_consistent_with_unitary(GoodGateKraus().on(cirq.NamedQubit('q')))
+    cirq.testing.assert_kraus_is_consistent_with_unitary(GoodGateKraus().on(cirq.NamedQubit("q")))
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_kraus_is_consistent_with_unitary(BadGateKraus())
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_kraus_is_consistent_with_unitary(
-            BadGateKraus().on(cirq.NamedQubit('q'))
+            BadGateKraus().on(cirq.NamedQubit("q"))
+        )
+
+
+def test_assert_kraus_is_consistent_with_mixture():
+    gate = GoodGateKraus()
+    cirq.testing.assert_kraus_is_consistent_with_mixture(gate)
+
+    cirq.testing.assert_kraus_is_consistent_with_mixture(GoodGateKraus().on(cirq.NamedQubit("q")))
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_kraus_is_consistent_with_mixture(BadGateKraus())
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_kraus_is_consistent_with_mixture(
+            BadGateKraus().on(cirq.NamedQubit("q"))
         )

@@ -16,7 +16,7 @@ from typing import Any
 
 import numpy as np
 
-from cirq import protocols, ops
+from cirq import protocols
 from cirq.testing import lin_alg_utils
 
 
@@ -31,12 +31,8 @@ def assert_kraus_is_consistent_with_unitary(val: Any, ignoring_global_phase: boo
         # If there's no unitary, it's vacuously consistent.
         return
 
-    if isinstance(val, ops.Operation):
-        has_krs = protocols.kraus_protocol.has_kraus(val)
-        krs = protocols.kraus_protocol.kraus(val, None)
-    else:
-        has_krs = protocols.kraus_protocol.has_kraus(val)
-        krs = protocols.kraus_protocol.kraus(val, None)
+    has_krs = protocols.kraus_protocol.has_kraus(val)
+    krs = protocols.kraus_protocol.kraus(val, None)
 
     # there is unitary and hence must have kraus operator
     assert has_krs
@@ -60,12 +56,8 @@ def assert_kraus_is_consistent_with_mixture(val: Any, ignoring_global_phase: boo
         # If there's no mixture, it's vacuously consistent.
         return
 
-    if isinstance(val, ops.Operation):
-        has_krs = protocols.kraus_protocol.has_kraus(val)
-        krs = protocols.kraus_protocol.kraus(val, None)
-    else:
-        has_krs = protocols.kraus_protocol.has_kraus(val)
-        krs = protocols.kraus_protocol.kraus(val, None)
+    has_krs = protocols.kraus_protocol.has_kraus(val)
+    krs = protocols.kraus_protocol.kraus(val, None)
 
     # there is mixture and hence must have kraus operator
     assert has_krs

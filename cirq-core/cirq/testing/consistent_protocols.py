@@ -29,6 +29,7 @@ from cirq.testing.consistent_decomposition import (
 )
 from cirq.testing.consistent_kraus import (
     assert_kraus_is_consistent_with_unitary,
+    assert_kraus_is_consistent_with_mixture,
 )
 from cirq.testing.consistent_phase_by import (
     assert_phase_by_is_consistent_with_unitary,
@@ -51,10 +52,10 @@ from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 def assert_implements_consistent_protocols(
     val: Any,
     *,
-    exponents: Sequence[Any] = (0, 1, -1, 0.25, -0.5, 0.1, sympy.Symbol('s')),
+    exponents: Sequence[Any] = (0, 1, -1, 0.25, -0.5, 0.1, sympy.Symbol("s")),
     qubit_count: Optional[int] = None,
     ignoring_global_phase: bool = False,
-    setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
+    setup_code: str = "import cirq\nimport numpy as np\nimport sympy",
     global_vals: Optional[Dict[str, Any]] = None,
     local_vals: Optional[Dict[str, Any]] = None,
 ) -> None:
@@ -85,11 +86,11 @@ def assert_implements_consistent_protocols(
 def assert_eigengate_implements_consistent_protocols(
     eigen_gate_type: Type[ops.EigenGate],
     *,
-    exponents: Sequence[value.TParamVal] = (0, 0.5, 1, -1, 0.25, -0.5, 0.1, sympy.Symbol('s')),
+    exponents: Sequence[value.TParamVal] = (0, 0.5, 1, -1, 0.25, -0.5, 0.1, sympy.Symbol("s")),
     global_shifts: Sequence[float] = (0, -0.5, 0.1),
     qubit_count: Optional[int] = None,
     ignoring_global_phase: bool = False,
-    setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
+    setup_code: str = "import cirq\nimport numpy as np\nimport sympy",
     global_vals: Optional[Dict[str, Any]] = None,
     local_vals: Optional[Dict[str, Any]] = None,
 ) -> None:
@@ -157,6 +158,7 @@ def _assert_meets_standards_helper(
     assert_has_consistent_trace_distance_bound(val)
     assert_decompose_is_consistent_with_unitary(val, ignoring_global_phase=ignoring_global_phase)
     assert_kraus_is_consistent_with_unitary(val, ignoring_global_phase=ignoring_global_phase)
+    assert_kraus_is_consistent_with_mixture(val, ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)
     assert_pauli_expansion_is_consistent_with_unitary(val)
     assert_equivalent_repr(
@@ -170,7 +172,7 @@ def assert_commutes_magic_method_consistent_with_unitaries(
     *vals: Sequence[Any], atol: Union[int, float] = 1e-8
 ) -> None:
     if any(isinstance(val, ops.Operation) for val in vals):
-        raise TypeError('`_commutes_` need not be consistent with unitaries for `Operation`.')
+        raise TypeError("`_commutes_` need not be consistent with unitaries for `Operation`.")
     unitaries = [protocols.unitary(val, None) for val in vals]
     pairs = itertools.permutations(zip(vals, unitaries), 2)
     for (left_val, left_unitary), (right_val, right_unitary) in pairs:

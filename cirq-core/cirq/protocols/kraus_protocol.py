@@ -30,8 +30,7 @@ from cirq.protocols.mixture_protocol import mixture, has_mixture
 from cirq.protocols.unitary_protocol import unitary
 from cirq.protocols.has_unitary_protocol import has_unitary
 
-from cirq.ops.raw_types import Qid, Gate
-from cirq.devices.line_qubit import LineQid
+from cirq.ops.raw_types import Qid
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -44,10 +43,10 @@ from cirq.type_workarounds import NotImplementedType
 RaiseTypeErrorIfNotProvided = (np.array([]),)
 
 
-TDefault = TypeVar('TDefault')
+TDefault = TypeVar("TDefault")
 
 
-@deprecated_class(deadline='v0.13', fix='use cirq.SupportsKraus instead')
+@deprecated_class(deadline="v0.13", fix="use cirq.SupportsKraus instead")
 class SupportsChannel(Protocol):
     pass
 
@@ -107,7 +106,7 @@ class SupportsKraus(Protocol):
         """
 
 
-@deprecated(deadline='v0.13', fix='use cirq.kraus instead')
+@deprecated(deadline="v0.13", fix="use cirq.kraus instead")
 def channel(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
 ) -> Union[Tuple[np.ndarray, ...], TDefault]:
@@ -153,10 +152,10 @@ def kraus(
             method returned NotImplemented) and also no default value was
             specified.
     """
-    channel_getter = getattr(val, '_channel_', None)
+    channel_getter = getattr(val, "_channel_", None)
     if channel_getter is not None:
         warnings.warn(
-            '_channel_ is deprecated and will be removed in cirq 0.13, rename to _kraus_',
+            "_channel_ is deprecated and will be removed in cirq 0.13, rename to _kraus_",
             DeprecationWarning,
         )
 
@@ -200,22 +199,15 @@ def kraus(
 
         return val
 
-    if isinstance(val, Gate):
-        operation = val.on(*LineQid.for_gate(val))
-    else:
-        operation = val
+    decomposed = decompose(val)
 
-    decomposed = decompose(operation)
-
-    if decomposed != [operation]:
+    if decomposed != [val]:
         qubits: List[Qid] = []
         for x in decomposed:
             qubits.extend(x.qubits)
 
         qubits = sorted(list(set(qubits)))
         kraus_list = list(map(lambda x: kraus_tensor(x, qubits, default), decomposed))
-        assert len(decomposed) != 0
-
         if not any([_check_equality(x, default) for x in kraus_list]):
             kraus_result = kraus_list[0]
             for i in range(1, len(kraus_list)):
@@ -228,7 +220,7 @@ def kraus(
 
     if not any(
         getattr(val, instance, None) is not None
-        for instance in ['_kraus_', '_unitary_', '_mixture_']
+        for instance in ["_kraus_", "_unitary_", "_mixture_"]
     ):
         raise TypeError(
             "object of type '{}' has no _kraus_ or _mixture_ or "
@@ -241,7 +233,7 @@ def kraus(
     )
 
 
-@deprecated(deadline='v0.13', fix='use cirq.has_kraus instead')
+@deprecated(deadline="v0.13", fix="use cirq.has_kraus instead")
 def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
     return has_kraus(val, allow_decompose=allow_decompose)
 
@@ -294,10 +286,10 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     Returns:
         Whether or not `val` has a Kraus representation.
     """
-    channel_getter = getattr(val, '_has_channel_', None)
+    channel_getter = getattr(val, "_has_channel_", None)
     if channel_getter is not None:
         warnings.warn(
-            '_has_channel_ is deprecated and will be removed in cirq 0.13, rename to _has_kraus_',
+            "_has_channel_ is deprecated and will be removed in cirq 0.13, rename to _has_kraus_",
             DeprecationWarning,
         )
 
@@ -310,7 +302,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
         if result is not NotImplemented and result:
             return True
 
-    getter = getattr(val, '_has_kraus_', None)
+    getter = getattr(val, "_has_kraus_", None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result:
         return True
@@ -334,14 +326,12 @@ def _check_equality(x, y):
         return x == y
     if type(x) == np.ndarray:
         return x.shape == y.shape and np.all(x == y)
-    if len(x) != len(y):
-        return False
-    return all([_check_equality(a, b) for a, b in zip(x, y)])
+    return False if len(x) != len(y) else all([_check_equality(a, b) for a, b in zip(x, y)])
 
 
-def _strat_kraus_from_kraus(val: Any) -> Union[Tuple[np.ndarray, ...], TDefault]:
+def _strat_kraus_from_kraus(val: Any):
     """Attempts to compute the value's kraus via its _kraus_ method."""
-    kraus_getter = getattr(val, '_kraus_', None)
+    kraus_getter = getattr(val, "_kraus_", None)
     kraus_result = NotImplemented if kraus_getter is None else kraus_getter()
     if kraus_result is not NotImplemented:
         return kraus_getter, tuple(kraus_result)
