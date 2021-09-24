@@ -34,22 +34,6 @@ class PasqalDevice(cirq.devices.Device):
     execution on the specified device are handled internally by Pasqal.
     """
 
-    gateset = cirq.Gateset(
-        cirq.ParallelGateFamily(cirq.H),
-        cirq.ParallelGateFamily(cirq.PhasedXPowGate),
-        cirq.ParallelGateFamily(cirq.XPowGate),
-        cirq.ParallelGateFamily(cirq.YPowGate),
-        cirq.ParallelGateFamily(cirq.ZPowGate),
-        cirq.AnyIntegerPowerGateFamily(cirq.CNotPowGate),
-        cirq.AnyIntegerPowerGateFamily(cirq.CCNotPowGate),
-        cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate),
-        cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate),
-        cirq.IdentityGate,
-        cirq.MeasurementGate,
-        unroll_circuit_op=False,
-        accept_global_phase=False,
-    )
-
     # TODO(#3388) Add documentation for Raises.
     # pylint: disable=missing-raises-doc
     def __init__(self, qubits: Sequence[cirq.ops.Qid]) -> None:
@@ -79,6 +63,21 @@ class PasqalDevice(cirq.devices.Device):
                 'qubits.'.format(type(self), self.maximum_qubit_number)
             )
 
+        self.gateset = cirq.Gateset(
+            cirq.ParallelGateFamily(cirq.H),
+            cirq.ParallelGateFamily(cirq.PhasedXPowGate),
+            cirq.ParallelGateFamily(cirq.XPowGate),
+            cirq.ParallelGateFamily(cirq.YPowGate),
+            cirq.ParallelGateFamily(cirq.ZPowGate),
+            cirq.AnyIntegerPowerGateFamily(cirq.CNotPowGate),
+            cirq.AnyIntegerPowerGateFamily(cirq.CCNotPowGate),
+            cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate),
+            cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate),
+            cirq.IdentityGate,
+            cirq.MeasurementGate,
+            unroll_circuit_op=False,
+            accept_global_phase=False,
+        )
         self.qubits = qubits
 
     # pylint: enable=missing-raises-doc
