@@ -81,9 +81,6 @@ def dataclass_repr(value: Any, namespace='cirq'):
     Crucially, this function allows specifying a `namespace` which will be prepended with a "."
     to the class name.
     """
-    if not dataclasses.is_dataclass(value):
-        return repr(value)
-
     field_strs = []
     field: dataclasses.Field
     for field in dataclasses.fields(value):
@@ -91,7 +88,7 @@ def dataclass_repr(value: Any, namespace='cirq'):
             continue
 
         field_val = getattr(value, field.name)
-        field_strs.append(f'{field.name}={dataclass_repr(field_val)}')
+        field_strs.append(f'{field.name}={proper_repr(field_val)}')
 
     clsname = value.__class__.__name__
     return f"{namespace}.{clsname}({', '.join(field_strs)})"

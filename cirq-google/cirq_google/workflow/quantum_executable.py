@@ -120,8 +120,8 @@ class QuantumExecutable:
             isinstance(param_kv, tuple) and len(param_kv) == 2 for param_kv in params
         ):
             frozen_params = params
-        elif isinstance(params, list) and all(
-            isinstance(param_kv, list) and len(param_kv) == 2 for param_kv in params
+        elif isinstance(params, Sequence) and all(
+            isinstance(param_kv, Sequence) and len(param_kv) == 2 for param_kv in params
         ):
             frozen_params = tuple((k, v) for k, v in params)
         elif _is_param_resolver_or_similar_type(params):
