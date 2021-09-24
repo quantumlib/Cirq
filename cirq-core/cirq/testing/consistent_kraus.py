@@ -57,12 +57,12 @@ def assert_kraus_is_consistent_with_mixture(val: Any, ignoring_global_phase: boo
         return
 
     has_krs = protocols.kraus_protocol.has_kraus(val)
-    krs = protocols.kraus_protocol.kraus(val, None)
+    krs = np.array(protocols.kraus_protocol.kraus(val, None))
 
     # there is mixture and hence must have kraus operator
     assert has_krs
     actual = krs
-    expected = np.array([np.sqrt(p) * x for p, x in expected])
+    expected = np.array([np.sqrt(p) * u for p, u in expected])
 
     if ignoring_global_phase:
         lin_alg_utils.assert_allclose_up_to_global_phase(actual, expected, atol=1e-8)
