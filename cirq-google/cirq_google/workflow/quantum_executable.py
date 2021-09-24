@@ -1,11 +1,12 @@
 import abc
 import dataclasses
 from dataclasses import dataclass
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional, Sequence, cast
 
 import cirq
 from cirq import NamedTopology, _compat
 from cirq.protocols import dataclass_json_dict
+from cirq.study.resolver import _is_param_resolver_or_similar_type
 
 
 class ExecutableSpec(metaclass=abc.ABCMeta):
@@ -69,20 +70,20 @@ class QuantumExecutable:
 
     circuit: cirq.FrozenCircuit
     measurement: BitstringsMeasurement
-    params: Tuple[TParamPair, ...] = None
-    spec: ExecutableSpec = None
-    problem_topology: NamedTopology = None
-    initial_state: cirq.ProductState = None
+    params: Optional[Tuple[TParamPair, ...]] = None
+    spec: Optional[ExecutableSpec] = None
+    problem_topology: Optional[NamedTopology] = None
+    initial_state: Optional[cirq.ProductState] = None
 
     # pylint: disable=missing-raises-doc
     def __init__(
         self,
         circuit: cirq.AbstractCircuit,
         measurement: BitstringsMeasurement,
-        params: Union[Tuple[TParamPair, ...], cirq.ParamResolverOrSimilarType] = None,
-        spec: ExecutableSpec = None,
-        problem_topology: NamedTopology = None,
-        initial_state: cirq.ProductState = None,
+        params: Union[Sequence[TParamPair], cirq.ParamResolverOrSimilarType] = None,
+        spec: Optional[ExecutableSpec] = None,
+        problem_topology: Optional[NamedTopology] = None,
+        initial_state: Optional[cirq.ProductState] = None,
     ):
         """Initialize the quantum executable.
 
@@ -123,9 +124,11 @@ class QuantumExecutable:
             isinstance(param_kv, list) and len(param_kv) == 2 for param_kv in params
         ):
             frozen_params = tuple((k, v) for k, v in params)
-        else:
-            param_resolver = cirq.ParamResolver(params)
+        elif _is_param_resolver_or_similar_type(params):
+            param_resolver = cirq.ParamResolver(cast(cirq.ParamResolverOrSimilarType, params))
             frozen_params = tuple(param_resolver.param_dict.items())
+        else:
+            raise ValueError(f"`params` should be a ParamResolverOrSimilarType, not {params}.")
         object.__setattr__(self, 'params', frozen_params)
 
         if not isinstance(spec, ExecutableSpec):

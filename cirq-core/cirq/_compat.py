@@ -85,8 +85,8 @@ def dataclass_repr(value: Any, namespace='cirq'):
         return repr(value)
 
     field_strs = []
+    field: dataclasses.Field
     for field in dataclasses.fields(value):
-        field: dataclasses.Field
         if not field.repr:
             continue
 
