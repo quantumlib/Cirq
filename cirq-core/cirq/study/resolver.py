@@ -145,7 +145,7 @@ class ParamResolver:
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
             base = self.value_of(value.args[0], recursive)
             exponent = self.value_of(value.args[1], recursive)
-            
+
             return np.power(float(base), exponent)
 
         if not isinstance(value, sympy.Basic):

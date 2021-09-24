@@ -130,9 +130,10 @@ def test_value_of_calculations():
 
 def test_resolve_integer_division():
     r = cirq.ParamResolver({'a': 1, 'b': 2})
-    resolved = r.value_of(sympy.Symbol('a')/sympy.Symbol('b'))
+    resolved = r.value_of(sympy.Symbol('a') / sympy.Symbol('b'))
     assert resolved == 0.5
-    
+
+
 def test_param_dict():
     r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
     r2 = cirq.ParamResolver(r)
