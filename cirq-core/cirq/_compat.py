@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Workarounds for compatibility issues between versions and libraries."""
+import dataclasses
 import functools
 import importlib
 import os
@@ -69,6 +70,31 @@ def proper_repr(value: Any) -> str:
         )
 
     return repr(value)
+
+
+def dataclass_repr(value: Any, namespace='cirq'):
+    """Create a Cirq-style repr for a dataclass.
+
+    This creates a repr using the dataclass field names and reprs of their values. It respects
+    the `repr` attribute of dataclass fields if you deign to omit a field from the repr.
+
+    Crucially, this function allows specifying a `namespace` which will be prepended with a "."
+    to the class name.
+    """
+    if not dataclasses.is_dataclass(value):
+        return repr(value)
+
+    field_strs = []
+    for field in dataclasses.fields(value):
+        field: dataclasses.Field
+        if not field.repr:
+            continue
+
+        field_val = getattr(value, field.name)
+        field_strs.append(f'{field.name}={dataclass_repr(field_val)}')
+
+    clsname = value.__class__.__name__
+    return f"{namespace}.{clsname}({', '.join(field_strs)})"
 
 
 def proper_eq(a: Any, b: Any) -> bool:

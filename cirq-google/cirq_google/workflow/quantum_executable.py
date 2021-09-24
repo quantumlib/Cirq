@@ -3,8 +3,8 @@ import dataclasses
 from dataclasses import dataclass
 from typing import Union, Tuple
 
-import cirq.work
-from cirq import NamedTopology
+import cirq
+from cirq import NamedTopology, _compat
 from cirq.protocols import dataclass_json_dict
 
 
@@ -34,6 +34,9 @@ class BitstringsMeasurement:
 
     def _json_dict_(self):
         return dataclass_json_dict(self, namespace='cirq.google')
+
+    def __repr__(self):
+        return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
 TParamPair = Tuple[cirq.TParamKey, cirq.TParamVal]
@@ -143,6 +146,9 @@ class QuantumExecutable:
 
     def __str__(self):
         return f'QuantumExecutable(spec={self.spec})'
+
+    def __repr__(self):
+        return _compat.dataclass_repr(self, namespace='cirq_google')
 
     def _json_dict_(self):
         return dataclass_json_dict(self, namespace='cirq.google')

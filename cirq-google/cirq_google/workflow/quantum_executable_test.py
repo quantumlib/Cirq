@@ -28,8 +28,16 @@ class ExampleSpec(ExecutableSpec):
     name: str
     executable_family = 'cirq_google.algo_benchmarks.example'
 
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self, namespace='cirq.google.testing')
 
-def test_quantum_executable():
+
+def _testing_resolver(cirq_type: str):
+    if cirq_type == 'cirq.google.testing.ExampleSpec':
+        return ExampleSpec
+
+
+def test_quantum_executable(tmpdir):
     qubits = cirq.LineQubit.range(10)
     exe = QuantumExecutable(
         spec=ExampleSpec(name='example-program'),
@@ -62,3 +70,9 @@ def test_quantum_executable():
 
     with pytest.raises(dataclasses.FrozenInstanceError):
         prog3.measurement.n_repetitions = 10
+
+    cirq.to_json(exe, f'{tmpdir}/exe.json')
+    exe_reconstructed = cirq.read_json(
+        f'{tmpdir}/exe.json', resolvers=[_testing_resolver] + cirq.DEFAULT_RESOLVERS
+    )
+    assert exe == exe_reconstructed
