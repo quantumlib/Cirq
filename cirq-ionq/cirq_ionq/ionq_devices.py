@@ -36,21 +36,6 @@ class IonQAPIDevice(cirq.Device):
         * `cirq.MeasurementGate`
     """
 
-    gateset = cirq.Gateset(
-        cirq.H,
-        cirq.CNOT,
-        cirq.SWAP,
-        cirq.XPowGate,
-        cirq.YPowGate,
-        cirq.ZPowGate,
-        cirq.XXPowGate,
-        cirq.YYPowGate,
-        cirq.ZZPowGate,
-        cirq.MeasurementGate,
-        unroll_circuit_op=False,
-        accept_global_phase=False,
-    )
-
     def __init__(self, qubits: Union[Sequence[cirq.LineQubit], int], atol=1e-8):
         """Construct the device.
 
@@ -65,6 +50,20 @@ class IonQAPIDevice(cirq.Device):
         else:
             self.qubits = frozenset(qubits)
         self.atol = atol
+        self.gateset = cirq.Gateset(
+            cirq.H,
+            cirq.CNOT,
+            cirq.SWAP,
+            cirq.XPowGate,
+            cirq.YPowGate,
+            cirq.ZPowGate,
+            cirq.XXPowGate,
+            cirq.YYPowGate,
+            cirq.ZZPowGate,
+            cirq.MeasurementGate,
+            unroll_circuit_op=False,
+            accept_global_phase=False,
+        )
 
     def qubit_set(self) -> AbstractSet['cirq.Qid']:
         return self.qubits
