@@ -69,13 +69,16 @@ class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
         super().__init__(tolerance=tolerance, post_clean_up=post_clean_up)
         self.required_sqrt_iswap_count = required_sqrt_iswap_count
         self.use_sqrt_iswap_inv = use_sqrt_iswap_inv
+        self.gateset = ops.Gateset(
+            ops.SQRT_ISWAP_INV if use_sqrt_iswap_inv else ops.SQRT_ISWAP,
+            unroll_circuit_op=False,
+            accept_global_phase=True,
+        )
 
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
         """Returns True if the old two-qubit operation may be left unchanged
         without decomposition."""
-        if self.use_sqrt_iswap_inv:
-            return isinstance(old_op.gate, ops.ISwapPowGate) and old_op.gate.exponent == -0.5
-        return isinstance(old_op.gate, ops.ISwapPowGate) and old_op.gate.exponent == 0.5
+        return old_op in self.gateset
 
     def _two_qubit_matrix_to_operations(
         self,
