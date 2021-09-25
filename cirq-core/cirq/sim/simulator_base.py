@@ -290,9 +290,9 @@ class SimulatorBase(
     ) -> Iterator[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
 
-        This method returns a result which allows access to the entire
-        state vector. In contrast to simulate, this allows for sweeping
-        over different parameter values.
+        This particular implementation overrides the base implementation such
+        that an unparameterized prefix is simulated and fed into the
+        parameterized suffix circuit.
 
         Args:
             program: The circuit to simulate.
