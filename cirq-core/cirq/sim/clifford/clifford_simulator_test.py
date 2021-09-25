@@ -343,21 +343,26 @@ def test_clifford_circuit():
 def test_clifford_circuit_2(qubits):
     circuit = cirq.Circuit()
 
-    np.random.seed(2)
+    x_list = [0, 5, 0, 6, 3, 2, 3, 0, 2, 1, 3, 5, 2, 4, 4, 4, 5, 3, 6, 4, 2, 3, 3, 6, 2, 1, 2, 4, 3, 5, 0, 4, 6, 6, 3, 1, 2, 0, 4, 6, 4, 2, 4, 2, 1, 6, 0, 2, 5, 2]
+    if(len(qubits) == 4):
+        in_qubits = [0, 3, 1, 0, 2, 3, 2, 3, 0, 3, 2, 1, 3, 3, 1, 3, 3, 3, 2, 0, 0, 0, 1, 3, 3, 2, 0, 2, 3, 3, 3, 2, 2, 1, 2, 0, 3, 3, 1, 0, 0, 2, 2, 3, 3, 1, 3, 2, 0, 0]
+    else:
+        in_qubits = [0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0]
 
-    for _ in range(50):
-        x = np.random.randint(7)
+    for x in x_list:
+        if x != 5 and x != 6:
+            in_qubit = qubits[in_qubits.pop(0)]
 
         if x == 0:
-            circuit.append(cirq.X(np.random.choice(qubits)))  # coverage: ignore
+            circuit.append(cirq.X(in_qubit))  # coverage: ignore
         elif x == 1:
-            circuit.append(cirq.Z(np.random.choice(qubits)))  # coverage: ignore
+            circuit.append(cirq.Z(in_qubit))  # coverage: ignore
         elif x == 2:
-            circuit.append(cirq.Y(np.random.choice(qubits)))  # coverage: ignore
+            circuit.append(cirq.Y(in_qubit))  # coverage: ignore
         elif x == 3:
-            circuit.append(cirq.S(np.random.choice(qubits)))  # coverage: ignore
+            circuit.append(cirq.S(in_qubit))  # coverage: ignore
         elif x == 4:
-            circuit.append(cirq.H(np.random.choice(qubits)))  # coverage: ignore
+            circuit.append(cirq.H(in_qubit))  # coverage: ignore
         elif x == 5:
             circuit.append(cirq.CNOT(qubits[0], qubits[1]))  # coverage: ignore
         elif x == 6:
