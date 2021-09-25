@@ -1362,7 +1362,6 @@ def test_simulate_sweep_parameters_prefix():
         cirq.ParamResolver({'a': 0}),
         cirq.ParamResolver({'a': 1}),
     ]
-    result = simulator.simulate_sweep(program=circuit, params=params)
-    print(result)
+    simulator.simulate_sweep(program=circuit, params=params)
     assert op1.count == 1
     assert op2.count == 2
