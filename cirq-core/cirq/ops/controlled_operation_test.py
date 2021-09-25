@@ -264,7 +264,6 @@ class MockGate(cirq.testing.TwoQubitGate):
 
 
 def test_controlled_diagram_exponent():
-    # Multi Qubit gate with exponent index None
     for q in itertools.permutations(cirq.LineQubit.range(5)):
         for idx in [None, 0, 1]:
             op = MockGate(idx)(*q[:2]).controlled_by(*q[2:])
