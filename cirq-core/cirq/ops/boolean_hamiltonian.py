@@ -172,8 +172,8 @@ def _simplify_commuting_cnots(
         flip_control_and_target: Whether to flip control and target.
 
     Returns:
-        A Boolean that tells whether a simplification has been performed.
-        The CNOT list, potentially simplified.
+        A tuple containing a Boolean that tells whether a simplification has been performed and the
+        CNOT list, potentially simplified, encoded as integer tuples (control, target).
     """
 
     target, control = (0, 1) if flip_control_and_target else (1, 0)
@@ -191,6 +191,7 @@ def _simplify_commuting_cnots(
             k = qubit_to_index[cnots[j][control]]
             # The controls (resp. targets) are the same, so we can simplify away.
             cnots = [cnots[n] for n in range(len(cnots)) if n != j and n != k]
+            # TODO(#4532): Speed up code by not returning early.
             return True, cnots
 
         qubit_to_index[cnots[j][control]] = j
@@ -215,8 +216,8 @@ def _simplify_cnots_triplets(
         flip_control_and_target: Whether to flip control and target.
 
     Returns:
-        A Boolean that tells whether a simplification has been performed.
-        The CNOT list, potentially simplified, encoded as integer tuples (control, target).
+        A tuple containing a Boolean that tells whether a simplification has been performed and the
+        CNOT list, potentially simplified, encoded as integer tuples (control, target).
     """
     target, control = (0, 1) if flip_control_and_target else (1, 0)
 
@@ -251,6 +252,7 @@ def _simplify_cnots_triplets(
             )
             # Since we removed the pivot, the length should be one fewer.
             cnots = [cnots[idx] for idx in new_idx]
+            # TODO(#4532): Speed up code by not returning early.
             return True, cnots
 
     return False, cnots
