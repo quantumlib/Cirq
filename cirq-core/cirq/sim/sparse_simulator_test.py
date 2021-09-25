@@ -1331,7 +1331,7 @@ def test_noise_model():
     simulator = cirq.Simulator(noise=noise_model)
     result = simulator.run(circuit, repetitions=100)
 
-    assert 40 <= sum(result.measurements['0'])[0] < 60
+    assert 20 <= sum(result.measurements['0'])[0] < 80
 
 
 def test_simulate_sweep_parameters_prefix():
