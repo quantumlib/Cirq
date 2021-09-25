@@ -24,8 +24,6 @@ import cirq
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
-SQRT_ISWAP = cirq.ISWAP ** 0.5
-
 
 def test_simulate_2q_xeb_circuits():
     q0, q1 = cirq.LineQubit.range(2)
@@ -34,7 +32,7 @@ def test_simulate_2q_xeb_circuits():
             q0,
             q1,
             depth=50,
-            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
         )
         for _ in range(2)
     ]
@@ -64,7 +62,7 @@ def test_simulate_circuit_length_validation():
             q0,
             q1,
             depth=10,  # not long enough!
-            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
         )
         for _ in range(2)
     ]
@@ -142,7 +140,7 @@ def test_incremental_simulate(multiprocess):
             q0,
             q1,
             depth=100,
-            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
         )
         for _ in range(20)
     ]
