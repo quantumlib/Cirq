@@ -76,6 +76,12 @@ from cirq.ops.common_gates import (
     ZPowGate,
 )
 
+from cirq.ops.common_gate_families import (
+    AnyUnitaryGateFamily,
+    AnyIntegerPowerGateFamily,
+    ParallelGateFamily,
+)
+
 from cirq.ops.controlled_gate import (
     ControlledGate,
 )
