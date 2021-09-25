@@ -22,7 +22,7 @@ def assert_controlled_and_controlled_by_identical(
     *,
     num_controls: Sequence[int] = (2, 1, 3, 10),
     control_values: Optional[Sequence[Optional[Sequence[Union[int, Collection[int]]]]]] = None,
-):
+) -> None:
     """Checks that gate.on().controlled_by() == gate.controlled().on()"""
     if control_values is not None:
         if len(num_controls) != len(control_values):
@@ -38,7 +38,7 @@ def _assert_gate_consistent(
     gate: ops.Gate,
     num_controls: int,
     control_values: Optional[Sequence[Union[int, Collection[int]]]],
-):
+) -> None:
     if isinstance(gate, ops.DensePauliString) and protocols.is_parameterized(gate):
         # Parameterized `DensePauliString`s cannot be applied to qubits to produce valid operations.
         # TODO: This behavior should be fixed (https://github.com/quantumlib/Cirq/issues/4508)
