@@ -291,7 +291,7 @@ class SimulatorBase(
         """Simulates the supplied Circuit.
 
         This particular implementation overrides the base implementation such
-        that an unparameterized prefix is simulated and fed into the
+        that an unparameterized prefix circuit is simulated and fed into the
         parameterized suffix circuit.
 
         Args:
