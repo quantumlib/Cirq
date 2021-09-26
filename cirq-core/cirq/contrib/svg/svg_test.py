@@ -36,6 +36,8 @@ def test_validation():
     with pytest.raises(ValueError):
         circuit_to_svg(cirq.Circuit())
 
-    q0 = cirq.LineQubit(0)
-    with pytest.raises(ValueError):
-        circuit_to_svg(cirq.Circuit([cirq.Moment([cirq.X(q0)]), cirq.Moment([])]))
+
+def test_empty_moments():
+    svg_text = circuit_to_svg(cirq.Circuit((cirq.Moment())))
+    assert '<svg' in svg_text
+    assert '</svg>' in svg_text
