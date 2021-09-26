@@ -21,7 +21,6 @@ from typing import (
     cast,
     Dict,
     FrozenSet,
-    Iterable,
     List,
     Optional,
     Sequence,

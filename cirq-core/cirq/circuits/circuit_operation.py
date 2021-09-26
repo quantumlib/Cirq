@@ -85,7 +85,7 @@ class CircuitOperation(ops.Operation):
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
-    _final_measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = dataclasses.field(
+    _cached_measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = dataclasses.field(
         default=None, init=False
     )
 
@@ -176,7 +176,7 @@ class CircuitOperation(ops.Operation):
         return self.circuit._is_measurement_()
 
     def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
-        if self._final_measurement_key_objs is None:
+        if self._cached_measurement_key_objs is None:
             circuit_keys = protocols.measurement_key_objs(self.circuit)
             if self.repetition_ids is not None:
                 circuit_keys = {
@@ -186,13 +186,13 @@ class CircuitOperation(ops.Operation):
                 }
             object.__setattr__(
                 self,
-                '_final_measurement_key_objs',
+                '_cached_measurement_key_objs',
                 {
                     protocols.with_measurement_key_mapping(key, self.measurement_key_map)
                     for key in circuit_keys
                 },
             )
-        return self._final_measurement_key_objs  # type: ignore
+        return self._cached_measurement_key_objs  # type: ignore
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return {str(key) for key in self._measurement_key_objs_()}
