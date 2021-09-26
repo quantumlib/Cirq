@@ -176,6 +176,8 @@ from cirq.linalg import (
 from cirq.ops import (
     amplitude_damp,
     AmplitudeDampingChannel,
+    AnyIntegerPowerGateFamily,
+    AnyUnitaryGateFamily,
     ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
@@ -245,6 +247,7 @@ from cirq.ops import (
     OP_TREE,
     Operation,
     ParallelGate,
+    ParallelGateFamily,
     parallel_gate_op,
     ParallelGateOperation,
     Pauli,
