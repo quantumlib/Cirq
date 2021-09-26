@@ -11,6 +11,7 @@ FONT = "Arial"
 
 def fixup_text(text: str):
     if '\n' in text:
+        # TODO: Custom MatrixGate
         return '?'
     if '[<virtual>]' in text:
         # https://github.com/quantumlib/Cirq/issues/2905
@@ -66,8 +67,7 @@ def _fit_horizontal(
         col_widths: a list of each column's width in pixels
     """
     max_xi = max(xi for xi, _ in tdd.entries.keys())
-    max_xi = max(max_xi, max(cast(float, xi2)
-                 for _, _, xi2, _ in tdd.horizontal_lines))
+    max_xi = max(max_xi, max(cast(float, xi2) for _, _, xi2, _ in tdd.horizontal_lines))
     col_widths = [0.0] * (max_xi + 2)
     for (xi, _), v in tdd.entries.items():
         tw = _get_text_width(v.text)
@@ -270,7 +270,7 @@ class SVGCircuit:
         # coverage: ignore
         _validate_circuit(self.circuit)
         tdd = self.circuit.to_text_diagram_drawer(transpose=False)
-        if(len(tdd.horizontal_lines) == 0):
+        if len(tdd.horizontal_lines) == 0:
             return '<svg></svg>'
         return tdd_to_svg(tdd)
 
@@ -279,6 +279,6 @@ def circuit_to_svg(circuit: 'cirq.Circuit') -> str:
     """Render a circuit as SVG."""
     _validate_circuit(circuit)
     tdd = circuit.to_text_diagram_drawer(transpose=False)
-    if(len(tdd.horizontal_lines) == 0):
+    if len(tdd.horizontal_lines) == 0:
         return '<svg></svg>'
     return tdd_to_svg(tdd)
