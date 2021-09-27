@@ -147,9 +147,9 @@ def qasm(
         `default` is returned, if it was specified. Otherwise an error is
         raised.
 
-    TypeError:
-        `val` didn't have a `_qasm_` method (or that method returned
-        `NotImplemented` or `None`) and `default` wasn't set.
+    Raises:
+        TypeError: `val` didn't have a `_qasm_` method (or that method returned
+            `NotImplemented` or `None`) and `default` wasn't set.
     """
     method = getattr(val, '_qasm_', None)
     result = NotImplemented

@@ -133,6 +133,8 @@ class GateOpSerializer(OpSerializer):
             on the Operation proto.  Defaults to True.
     """
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def __init__(
         self,
         *,
@@ -162,6 +164,7 @@ class GateOpSerializer(OpSerializer):
         self._can_serialize_predicate = can_serialize_predicate
         self._serialize_tokens = serialize_tokens
 
+    # pylint: enable=missing-param-doc
     @property
     def internal_type(self):
         return self._gate_type

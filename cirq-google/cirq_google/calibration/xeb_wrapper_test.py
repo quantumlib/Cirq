@@ -33,8 +33,6 @@ from cirq_google.calibration.xeb_wrapper import (
     _maybe_multiprocessing_pool,
 )
 
-SQRT_ISWAP = cirq.ISWAP ** -0.5
-
 
 def _minimize_patch(
     fun,
@@ -122,7 +120,7 @@ def test_run_calibration(monkeypatch, fsim_options, x0_should_be):
         random_rotations_between_grid_interaction_layers_circuit(
             qubits,
             depth=depth,
-            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP.on(a, b),
+            two_qubit_op_factory=lambda a, b, _: (cirq.SQRT_ISWAP_INV.on(a, b)),
             pattern=cirq.experiments.GRID_ALIGNED_PATTERN,
             seed=10,
         )

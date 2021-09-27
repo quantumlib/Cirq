@@ -860,7 +860,7 @@ def test_decompose():
         cirq.X(a),
         cirq.Z(b),
     ]
-    assert cirq.decompose_once(cirq.Y(b) * cirq.Z(a)) == [cirq.Z(a), cirq.Y(b)]
+    assert cirq.decompose_once(cirq.Y(b) * cirq.Z(a)) == [cirq.Y(b), cirq.Z(a)]
 
 
 def test_rejects_non_paulis():
@@ -1348,6 +1348,15 @@ def test_dense():
         _ = p.dense([a, b])
     with pytest.raises(ValueError, match=r'not self.keys\(\) <= set\(qubits\)'):
         _ = p.dense([a, b, d])
+
+
+@pytest.mark.parametrize('qubits', [*itertools.permutations(cirq.LineQubit.range(3))])
+def test_gate_consistent(qubits):
+    g = cirq.DensePauliString('XYZ')
+    assert g == g(*qubits).gate
+    a, b, c = cirq.GridQubit.rect(1, 3)
+    ps = cirq.X(a) * cirq.Y(b) * cirq.Z(c)
+    assert ps.gate == ps.with_qubits(*qubits).gate
 
 
 def test_conjugated_by_incorrectly_powered_cliffords():

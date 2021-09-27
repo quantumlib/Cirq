@@ -23,7 +23,6 @@ import pytest
 import cirq
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.xeb_fitting import (
-    SQRT_ISWAP,
     benchmark_2q_xeb_fidelities,
     parameterize_circuit,
     SqrtISwapXEBOptions,
@@ -42,7 +41,7 @@ def circuits_cycle_depths_sampled_df():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
-            q0, q1, depth=50, two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b), seed=52
+            q0, q1, depth=50, two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b), seed=52
         )
         for _ in range(2)
     ]
@@ -167,7 +166,7 @@ def test_benchmark_2q_xeb_fidelities_vectorized():
     pd.testing.assert_frame_equal(df_old, df)
 
 
-@pytest.mark.parametrize('gate', [SQRT_ISWAP, cirq.FSimGate(np.pi / 4, 0)])
+@pytest.mark.parametrize('gate', [cirq.SQRT_ISWAP, cirq.FSimGate(np.pi / 4, 0)])
 def test_parameterize_phased_fsim_circuit(gate):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = rqcg.random_rotations_between_two_qubit_circuit(
@@ -215,7 +214,7 @@ def test_characterize_phased_fsim_parameters_with_xeb():
             q0,
             q1,
             depth=20,
-            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
             seed=rs,
         )
         for _ in range(2)

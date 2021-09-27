@@ -24,7 +24,7 @@ from cirq import value
 from cirq.testing import assert_has_consistent_trace_distance_bound
 
 
-class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
+class CExpZinGate(cirq.EigenGate, cirq.testing.TwoQubitGate):
     """Two-qubit gate for the following matrix:
     [1  0  0  0]
     [0  1  0  0]
@@ -50,7 +50,7 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
         ]
 
 
-class ZGateDef(cirq.EigenGate, cirq.TwoQubitGate):
+class ZGateDef(cirq.EigenGate, cirq.testing.TwoQubitGate):
     @property
     def exponent(self):
         return self._exponent
@@ -148,7 +148,7 @@ def test_approx_eq_periodic():
 
 
 def test_period():
-    class Components(cirq.EigenGate, cirq.TwoQubitGate):
+    class Components(cirq.EigenGate, cirq.testing.TwoQubitGate):
         def __init__(self, a, b, c, d):
             super().__init__()
             self.a = a

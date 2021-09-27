@@ -93,6 +93,8 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
             return moments
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def simple_noise_from_calibration_metrics(
     calibration: engine.Calibration,
     depol_noise: bool = False,
@@ -155,3 +157,6 @@ def simple_noise_from_calibration_metrics(
     return PerQubitDepolarizingWithDampedReadoutNoiseModel(
         depol_probs=depol_probs, decay_probs=readout_decay_probs, bitflip_probs=readout_error_probs
     )
+
+
+# pylint: enable=missing-raises-doc

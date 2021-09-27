@@ -48,6 +48,8 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
     and ensuring the new target register value is normalized modulo the modulus.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         identifier: str,
@@ -83,6 +85,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
             if over:
                 raise ValueError(f'Target too small for modulus.\nTarget: {target}\nModulus: {r}')
 
+    # pylint: enable=missing-raises-doc
     @property
     def operation(self) -> '_QuirkArithmeticCallable':
         return ARITHMETIC_OP_TABLE[self.identifier]

@@ -79,7 +79,7 @@ class MixedUnitaryChannel(raw_types.Gate):
     def _mixture_(self):
         return self._mixture
 
-    def _measurement_key_(self):
+    def _measurement_key_name_(self):
         if self._key is None:
             return NotImplemented
         return self._key

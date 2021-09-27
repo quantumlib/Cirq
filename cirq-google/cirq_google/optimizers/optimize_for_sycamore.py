@@ -112,6 +112,8 @@ def _gate_product_tabulation_cached(
         raise NotImplementedError(f"Gate tabulation not supported for {optimizer_type}")
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def optimized_for_sycamore(
     circuit: cirq.Circuit,
     *,
@@ -165,3 +167,6 @@ def optimized_for_sycamore(
         strategy=cirq.InsertStrategy.EARLIEST,
         device=new_device or copy.device,
     )
+
+
+# pylint: enable=missing-raises-doc

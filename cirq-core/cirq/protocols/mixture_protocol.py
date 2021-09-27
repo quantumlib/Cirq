@@ -60,6 +60,8 @@ class SupportsMixture(Protocol):
         """
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def mixture(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
 ) -> Sequence[Tuple[float, np.ndarray]]:
@@ -104,6 +106,7 @@ def mixture(
     )
 
 
+# pylint: enable=missing-raises-doc
 def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     """Returns whether the value has a mixture representation.
 

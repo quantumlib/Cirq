@@ -17,6 +17,8 @@ import logging
 from typing import ContextManager, List, Optional
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def assert_logs(
     *matches: str,
     count: Optional[int] = 1,
@@ -92,3 +94,6 @@ def assert_logs(
                 )
 
     return Handler()
+
+
+# pylint: enable=missing-raises-doc

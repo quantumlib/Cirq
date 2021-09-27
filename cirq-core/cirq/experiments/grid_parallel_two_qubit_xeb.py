@@ -497,7 +497,7 @@ def _get_xeb_result(
                 step_result = next(step_results)
                 moment_index += 1
             amplitudes = step_result.state_vector()
-            probabilities = np.abs(amplitudes) ** 2
+            probabilities = value.state_vector_to_probabilities(amplitudes)
             _, counts = np.unique(measurements, return_counts=True)
             empirical_probs = counts / len(measurements)
             empirical_probs = np.pad(

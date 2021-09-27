@@ -79,6 +79,14 @@ def test_job_results_failed():
     assert job.status() == 'failed'
 
 
+def test_job_results_failed_no_error_message():
+    job_dict = {'id': 'my_id', 'status': 'failed', 'failure': {}}
+    job = ionq.Job(None, job_dict)
+    with pytest.raises(RuntimeError, match='failed'):
+        _ = job.results()
+    assert job.status() == 'failed'
+
+
 def test_job_results_qpu_endianness():
     job_dict = {
         'id': 'my_id',
@@ -124,7 +132,7 @@ def test_job_results_poll_timeout(mock_sleep):
     mock_client = mock.MagicMock()
     mock_client.get_job.return_value = ready_job
     job = ionq.Job(mock_client, ready_job)
-    with pytest.raises(RuntimeError, match='ready'):
+    with pytest.raises(TimeoutError, match='seconds'):
         _ = job.results(timeout_seconds=1, polling_seconds=0.1)
     assert mock_sleep.call_count == 11
 

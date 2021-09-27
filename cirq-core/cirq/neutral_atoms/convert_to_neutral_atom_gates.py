@@ -93,7 +93,10 @@ class ConvertToNeutralAtomGates(PointOptimizer):
 
 def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
     if isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
-        return is_native_neutral_atom_gate(operation.gate)
+        gate = operation.gate
+        if isinstance(gate, ops.ParallelGate):
+            gate = gate.sub_gate
+        return is_native_neutral_atom_gate(gate)
     return False
 
 
