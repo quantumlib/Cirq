@@ -78,6 +78,11 @@ def test_line_topology():
     assert LineTopology(2).graph.number_of_nodes() == 2
 
 
+def test_line_topology_nodes_as_qubits():
+    for n in range(2, 10, 2):
+        assert LineTopology(n).nodes_as_linequbits() == cirq.LineQubit.range(n)
+
+
 @pytest.mark.parametrize('tilted', [True, False])
 def test_draw_gridlike(tilted):
     graph = nx.grid_2d_graph(3, 3)
