@@ -394,7 +394,7 @@ def test_clifford_circuit_3():
     np.testing.assert_almost_equal(
         clifford_simulator.simulate(circuit).final_state.state_vector(),
         state_vector_simulator.simulate(circuit).final_state_vector,
-        6
+        decimal=6
     )
 
 
