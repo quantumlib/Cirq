@@ -79,8 +79,6 @@ def test_line_topology():
 
 
 def test_line_topology_nodes_as_qubits():
-    with pytest.raises(ValueError, match='greater than 1.*'):
-        _ = LineTopology(1)
     for n in range(2, 10, 2):
         assert LineTopology(n).nodes_as_linequbits() == cirq.LineQubit.range(n)
 
