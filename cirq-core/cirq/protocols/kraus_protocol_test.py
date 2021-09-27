@@ -171,7 +171,7 @@ def test_serial_concatenation_default():
             return None
 
         def _mixture_(self):
-            return None
+            return NotImplemented
 
     class onlyDecompose:
         def _decompose_(self):
@@ -193,9 +193,22 @@ def test_serial_concatenation_circuit():
     q1 = cirq.GridQubit(1, 1)
     q2 = cirq.GridQubit(1, 2)
 
+    class defaultGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _kraus_(self):
+            return cirq.kraus(cirq.X)
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return NotImplemented
+
     class onlyDecompose:
         def _decompose_(self):
-            circ = cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)])
+            circ = cirq.Circuit([cirq.Y.on(q1), defaultGate().on(q2)])
             return cirq.decompose(circ)
 
         def _unitary_(self):
@@ -216,7 +229,34 @@ def test_serial_concatenation_circuit():
     assert cirq.has_kraus(g)
 
 
-def test_empty_decompose():
+def test_kraus_combinatorial_explosion():
+    q1 = cirq.GridQubit(1, 1)
+
+    class defaultGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _kraus_(self):
+            # for one qubit the upper limit is 16 elements
+            ls = [np.array([[1, 0], [0, 1]])] * 16
+            ls.append(np.array([[1, 0], [0, 1]]))
+            return tuple(ls)
+
+    class onlyDecompose:
+        def _decompose_(self):
+            return [cirq.Y.on(q1), defaultGate().on(q1)]
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return NotImplemented
+
+    with pytest.raises(AssertionError, match="combinatorial explosion."):
+        _ = cirq.kraus(onlyDecompose())
+
+
+def test_kraus_empty_decompose():
     g = cirq.PauliString({}) ** 2
     c = (cirq.unitary(g),)
 

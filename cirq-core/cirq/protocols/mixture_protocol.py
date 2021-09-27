@@ -18,9 +18,14 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits, decompose
+from cirq.protocols.decompose_protocol import (
+    _try_decompose_into_operations_and_qubits,
+    decompose,
+    decompose_once_with_qubits,
+)
 from cirq.protocols.has_unitary_protocol import has_unitary
 from cirq.protocols.unitary_protocol import unitary
+from cirq.protocols.qid_shape_protocol import qid_shape
 from cirq.type_workarounds import NotImplementedType
 from cirq.devices.line_qubit import LineQid
 
@@ -96,17 +101,19 @@ def mixture(
     if unitary_result is not None and unitary_result is not NotImplemented:
         return ((1.0, unitary_result),)
 
-    if isinstance(val, Gate):
-        val = val.on(*LineQid.for_gate(val))
-    else:
-        val = val
-    # serial concatenation
-    decomposed = decompose(val)
+    decomposed = (
+        decompose_once_with_qubits(val, LineQid.for_qid_shape(qid_shape(val)), [])
+        if isinstance(val, Gate)
+        else decompose(val)
+    )
 
-    if decomposed != [val]:
+    # serial concatenation
+    if decomposed != [] and decomposed != [val]:
         qubits: List[Qid] = []
         for x in decomposed:
             qubits.extend(x.qubits)
+        qubits = list(set(qubits))
+        limit = (4 ** np.prod(len(qubits))) ** 2
 
         qubits = sorted(list(set(qubits)))
         mixture_list = list(map(lambda x: _mixture_tensor(x, qubits, default), decomposed))
@@ -118,8 +125,11 @@ def mixture(
                     for op_1 in mixture_result
                     for op_2 in mixture_list[i]
                 ]
-
-            return tuple(mixture_result)
+                assert (
+                    len(mixture_result) < limit
+                ), f"{val} mixture decomposition had combinatorial explosion."
+            else:
+                return tuple(mixture_result)
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
@@ -187,7 +197,7 @@ def validate_mixture(supports_mixture: SupportsMixture):
 
     total = 0.0
     for p, val in mixture_tuple:
-        validate_probability(p, "{}'s probability".format(str(val)))
+        validate_probability(p, f"{str(val)}'s probability")
         total += p
     if not np.isclose(total, 1.0):
         raise ValueError("Sum of probabilities of a mixture was not 1.0")

@@ -118,6 +118,33 @@ def test_valid_mixture():
     cirq.validate_mixture(ReturnsValidTuple())
 
 
+def test_combinatorial_explosion():
+    q1 = cirq.GridQubit(1, 1)
+
+    class defaultGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _mixture_(self):
+            # for one qubit the upper limit is 16 elements
+            ls = [(0.1, np.array([[1, 0], [0, 1]]))] * 16
+            ls.append((0.84, np.array([[1, 0], [0, 1]])))
+            return tuple(ls)
+
+    class onlyDecompose:
+        def _decompose_(self):
+            return [cirq.Y.on(q1), defaultGate().on(q1)]
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return NotImplemented
+
+    with pytest.raises(AssertionError, match="combinatorial explosion."):
+        _ = cirq.mixture(onlyDecompose())
+
+
 def test_serial_concatenation_default():
     q1 = cirq.GridQubit(1, 1)
 
@@ -141,9 +168,12 @@ def test_serial_concatenation_default():
         def _mixture_(self):
             return NotImplemented
 
+    default = (1.0, np.array([[1, 0], [0, 1]]))
+
     with pytest.raises(TypeError, match="returned NotImplemented"):
         _ = cirq.mixture(onlyDecompose())
     assert cirq.mixture(onlyDecompose(), 0) == 0
+    np.testing.assert_equal(cirq.mixture(onlyDecompose(), default), default)
     assert not cirq.has_mixture(onlyDecompose())
 
 
@@ -162,15 +192,14 @@ def test_serial_concatenation_circuit():
         def _mixture_(self):
             return NotImplemented
 
-    g = onlyDecompose()
-    c = ((1, cirq.unitary(cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)]))),)
+    c = ((1.0, np.array(cirq.unitary(cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)])))),)
 
-    np.testing.assert_equal(cirq.mixture(g), c)
-    np.testing.assert_equal(cirq.mixture(g, None), c)
-    np.testing.assert_equal(cirq.mixture(g, NotImplemented), c)
-    np.testing.assert_equal(cirq.mixture(g, (1,)), c)
+    np.testing.assert_equal(cirq.mixture(onlyDecompose()), c)
+    np.testing.assert_equal(cirq.mixture(onlyDecompose(), None), c)
+    np.testing.assert_equal(cirq.mixture(onlyDecompose(), NotImplemented), c)
+    np.testing.assert_equal(cirq.mixture(onlyDecompose(), (1,)), c)
 
-    assert cirq.has_mixture(g)
+    assert cirq.has_mixture(onlyDecompose())
 
 
 @pytest.mark.parametrize(

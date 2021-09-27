@@ -25,7 +25,10 @@ from cirq._compat import (
     deprecated_class,
 )
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits, decompose
+from cirq.protocols.decompose_protocol import (
+    _try_decompose_into_operations_and_qubits,
+    decompose,
+)
 from cirq.protocols.mixture_protocol import mixture, has_mixture
 from cirq.protocols.unitary_protocol import unitary
 from cirq.protocols.has_unitary_protocol import has_unitary
@@ -181,14 +184,17 @@ def kraus(
         qubits: List[Qid] = []
         for x in decomposed:
             qubits.extend(x.qubits)
-
         qubits = sorted(list(set(qubits)))
+        limit = (4 ** np.prod(len(qubits))) ** 2
+
         kraus_list = list(map(lambda x: _kraus_tensor(x, qubits, default), decomposed))
         if not any([_check_equality(x, default) for x in kraus_list]):
             kraus_result = kraus_list[0]
             for i in range(1, len(kraus_list)):
                 kraus_result = [op_2.dot(op_1) for op_1 in kraus_result for op_2 in kraus_list[i]]
-
+                assert (
+                    len(kraus_result) < limit
+                ), f"{val} kraus decomposition had combinatorial explosion."
             return tuple(kraus_result)
 
     if default is not RaiseTypeErrorIfNotProvided:
