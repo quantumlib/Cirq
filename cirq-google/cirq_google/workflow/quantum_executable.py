@@ -19,10 +19,8 @@ import dataclasses
 from dataclasses import dataclass
 from typing import Union, Tuple, Optional, Sequence, cast
 
+from cirq import _compat, study
 import cirq
-from cirq import NamedTopology, _compat
-from cirq.protocols import dataclass_json_dict
-from cirq.study.resolver import _is_param_resolver_or_similar_type
 
 
 class ExecutableSpec(metaclass=abc.ABCMeta):
@@ -50,10 +48,10 @@ class BitstringsMeasurement:
     n_repetitions: int
 
     def _json_dict_(self):
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return cirq.dataclass_json_dict(self, namespace='cirq.google')
 
     def __repr__(self):
-        return _compat.dataclass_repr(self, namespace='cirq_google')
+        return cirq._compat.dataclass_repr(self, namespace='cirq_google')
 
 
 TParamPair = Tuple[cirq.TParamKey, cirq.TParamVal]
@@ -88,7 +86,7 @@ class QuantumExecutable:
     measurement: BitstringsMeasurement
     params: Optional[Tuple[TParamPair, ...]] = None
     spec: Optional[ExecutableSpec] = None
-    problem_topology: Optional[NamedTopology] = None
+    problem_topology: Optional[cirq.NamedTopology] = None
     initial_state: Optional[cirq.ProductState] = None
 
     # pylint: disable=missing-raises-doc
@@ -98,7 +96,7 @@ class QuantumExecutable:
         measurement: BitstringsMeasurement,
         params: Union[Sequence[TParamPair], cirq.ParamResolverOrSimilarType] = None,
         spec: Optional[ExecutableSpec] = None,
-        problem_topology: Optional[NamedTopology] = None,
+        problem_topology: Optional[cirq.NamedTopology] = None,
         initial_state: Optional[cirq.ProductState] = None,
     ):
         """Initialize the quantum executable.
@@ -140,7 +138,7 @@ class QuantumExecutable:
             isinstance(param_kv, Sequence) and len(param_kv) == 2 for param_kv in params
         ):
             frozen_params = tuple((k, v) for k, v in params)
-        elif _is_param_resolver_or_similar_type(params):
+        elif study.resolver._is_param_resolver_or_similar_type(params):
             param_resolver = cirq.ParamResolver(cast(cirq.ParamResolverOrSimilarType, params))
             frozen_params = tuple(param_resolver.param_dict.items())
         else:
@@ -151,7 +149,7 @@ class QuantumExecutable:
             raise ValueError(f"`spec` should be an ExecutableSpec, not {spec}.")
         object.__setattr__(self, 'spec', spec)
 
-        if problem_topology is not None and not isinstance(problem_topology, NamedTopology):
+        if problem_topology is not None and not isinstance(problem_topology, cirq.NamedTopology):
             raise ValueError(
                 f"`problem_topology` should be a NamedTopology, " f"not {problem_topology}."
             )
@@ -170,4 +168,4 @@ class QuantumExecutable:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
     def _json_dict_(self):
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return cirq.dataclass_json_dict(self, namespace='cirq.google')
