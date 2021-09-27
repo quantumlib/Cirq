@@ -28,7 +28,8 @@ if TYPE_CHECKING:
 
 
 # TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def complete_acquaintance_strategy(
     qubit_order: Sequence['cirq.Qid'], acquaintance_size: int = 0, swap_gate: 'cirq.Gate' = ops.SWAP
 ) -> 'cirq.Circuit':
@@ -65,4 +66,4 @@ def complete_acquaintance_strategy(
     return strategy
 
 
-# pylint: enable=docstring-first-line-empty
+# pylint: enable=docstring-first-line-empty,missing-raises-doc

@@ -159,7 +159,8 @@ def obj_to_dict_helper(
 
 
 # Copying the Python API, whose usage of `repr` annoys pylint.
-# pylint: disable=redefined-builtin
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=redefined-builtin, missing-param-doc
 def json_serializable_dataclass(
     _cls: Optional[Type] = None,
     *,
@@ -176,6 +177,13 @@ def json_serializable_dataclass(
     This function defers to the ordinary ``dataclass`` decorator but appends
     the ``_json_dict_`` protocol method which automatically determines
     the appropriate fields from the dataclass.
+
+    Dataclasses are implemented with somewhat complex metaprogramming, and
+    tooling (PyCharm, mypy) have special cases for dealing with classes
+    decorated with @dataclass. There is very little support (and no plans for
+    support) for decorators that wrap @dataclass like this. Consider explicitly
+    defining `_json_dict_` on your dataclasses which simply
+    `return dataclass_json_dict(self)`.
 
     Args:
         namespace: An optional prefix to the value associated with the
@@ -206,7 +214,20 @@ def json_serializable_dataclass(
     return wrap(_cls)
 
 
-# pylint: enable=redefined-builtin
+# pylint: enable=redefined-builtin, missing-param-doc
+def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
+    """Return a dictionary suitable for _json_dict_ from a dataclass.
+
+    Dataclasses keep track of their relevant fields, so we can automatically generate these.
+
+    Dataclasses are implemented with somewhat complex metaprogramming, and tooling (PyCharm, mypy)
+    have special cases for dealing with classes decorated with @dataclass. There is very little
+    support (and no plans for support) for decorators that wrap @dataclass (like
+    @cirq.json_serializable_dataclass) or combining additional decorators with @dataclass.
+    Although not as elegant, you may want to consider explicitly defining `_json_dict_` on your
+    dataclasses which simply `return dataclass_json_dict(self)`.
+    """
+    return obj_to_dict_helper(obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace)
 
 
 class CirqEncoder(json.JSONEncoder):
@@ -556,8 +577,8 @@ def to_json(
 
 
 # pylint: enable=function-redefined
-
-
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def read_json(
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
@@ -603,6 +624,7 @@ def read_json(
     return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
 
 
+# pylint: enable=missing-raises-doc
 def to_json_gzip(
     obj: Any,
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,

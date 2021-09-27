@@ -20,15 +20,22 @@ import numpy as np
 from cirq import protocols, value
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
+from cirq._compat import deprecated_class
 
 if TYPE_CHECKING:
     import cirq
 
 
+@deprecated_class(
+    deadline='v0.14',
+    fix='Use cirq.ParallelGate(gate, num_copies).on(qubits) instead',
+)
 @value.value_equality
 class ParallelGateOperation(raw_types.Operation):
     """An application of several copies of a gate to a group of qubits."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, gate: 'cirq.Gate', qubits: Sequence[raw_types.Qid]) -> None:
         """Inits ParallelGateOperation.
 
@@ -45,6 +52,7 @@ class ParallelGateOperation(raw_types.Operation):
         self._gate = gate
         self._qubits = tuple(qubits)
 
+    # pylint: enable=missing-raises-doc
     @property
     def gate(self) -> raw_types.Gate:
         """The single qubit gate applied by the operation."""

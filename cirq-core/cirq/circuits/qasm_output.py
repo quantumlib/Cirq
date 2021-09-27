@@ -85,7 +85,7 @@ class QasmUGate(ops.SingleQubitGate):
 
 
 @value.value_equality
-class QasmTwoQubitGate(ops.TwoQubitGate):
+class QasmTwoQubitGate(ops.Gate):
     def __init__(self, kak: linalg.KakDecomposition) -> None:
         """A two qubit gate represented in QASM by the KAK decomposition.
 
@@ -96,6 +96,9 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
             kak: KAK decomposition of the two-qubit gate.
         """
         self.kak = kak
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _value_equality_values_(self):
         return self.kak
@@ -201,7 +204,7 @@ class QasmOutput:
         meas_comments = {}  # type: Dict[str, Optional[str]]
         meas_i = 0
         for meas in self.measurements:
-            key = protocols.measurement_key(meas)
+            key = protocols.measurement_key_name(meas)
             if key in meas_key_id_map:
                 continue
             meas_id = f'm_{key}'
@@ -274,7 +277,7 @@ class QasmOutput:
         # Pick an id for the creg that will store each measurement
         already_output_keys: Set[str] = set()
         for meas in self.measurements:
-            key = protocols.measurement_key(meas)
+            key = protocols.measurement_key_name(meas)
             if key in already_output_keys:
                 continue
             already_output_keys.add(key)

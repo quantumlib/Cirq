@@ -506,6 +506,14 @@ def test_deserialize_empty_moment():
     assert serializer.deserialize(proto) == circuit
 
 
+def test_circuit_serializer_name():
+    serializer = cg.CircuitSerializer('my_gate_set')
+    assert serializer.name == 'my_gate_set'
+    serializer = cg.CircuitSerializer('serial_box')
+    assert serializer.name == 'serial_box'
+    assert cg.serialization.circuit_serializer.CIRCUIT_SERIALIZER.name == 'v2_5'
+
+
 def test_serialize_unrecognized():
     serializer = cg.CircuitSerializer('my_gate_set')
     with pytest.raises(NotImplementedError, match='program type'):

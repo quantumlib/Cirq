@@ -138,7 +138,7 @@ def _measure_to_proto(gate: cirq.MeasurementGate, qubits: Sequence[cirq.Qid]):
         )
     return operations_pb2.Measurement(
         targets=[_qubit_to_proto(q) for q in qubits],
-        key=cirq.measurement_key(gate),
+        key=cirq.measurement_key_name(gate),
         invert_mask=invert_mask,
     )
 
@@ -191,7 +191,7 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
         Packed bytes, as described in the unpack_results docstring below.
 
     Raises:
-        ValueError if the measurement data do not have the compatible shapes.
+        ValueError: If the measurement data do not have the compatible shapes.
     """
     if not measurements:
         return b''
@@ -285,6 +285,8 @@ def is_native_xmon_gate(gate: cirq.Gate) -> bool:
     )
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
     """Convert the proto to the corresponding operation.
 
@@ -319,6 +321,7 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
     raise ValueError(f'invalid operation: {proto}')
 
 
+# pylint: enable=missing-raises-doc
 def _qubit_from_proto(proto: operations_pb2.Qubit):
     return cirq.GridQubit(row=proto.row, col=proto.col)
 

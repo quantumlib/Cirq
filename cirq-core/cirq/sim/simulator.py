@@ -69,15 +69,17 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.Result]:
         return list(self.run_sweep_iter(program, params, repetitions))
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def run_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> Iterator[study.Result]:
@@ -104,7 +106,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             measurements = {}
             if repetitions == 0:
                 for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    measurements[protocols.measurement_key(op)] = np.empty([0, 1])
+                    measurements[protocols.measurement_key_name(op)] = np.empty([0, 1])
             else:
                 measurements = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
@@ -113,9 +115,13 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 params=param_resolver, measurements=measurements
             )
 
+    # pylint: enable=missing-raises-doc
     @abc.abstractmethod
     def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
+        self,
+        circuit: circuits.AbstractCircuit,
+        param_resolver: study.ParamResolver,
+        repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """Run a simulation, mimicking quantum hardware.
 
@@ -146,7 +152,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def compute_amplitudes(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -175,7 +181,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def compute_amplitudes_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -188,7 +194,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _compute_amplitudes_sweep_to_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -204,7 +210,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
     )
     def compute_amplitudes_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -243,7 +249,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def simulate_expectation_values(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -291,7 +297,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def simulate_expectation_values_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'study.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -315,7 +321,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _simulate_expectation_values_sweep_to_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'study.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -345,7 +351,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
     )
     def simulate_expectation_values_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'study.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -402,7 +408,7 @@ class SimulatesFinalState(
 
     def simulate(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -431,7 +437,7 @@ class SimulatesFinalState(
 
     def simulate_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -444,7 +450,7 @@ class SimulatesFinalState(
 
     def _simulate_sweep_to_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -456,7 +462,7 @@ class SimulatesFinalState(
     @value.alternative(requires='simulate_sweep', implementation=_simulate_sweep_to_iter)
     def simulate_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -504,7 +510,7 @@ class SimulatesIntermediateState(
 
     def simulate_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -547,7 +553,7 @@ class SimulatesIntermediateState(
 
     def simulate_moment_steps(
         self,
-        circuit: circuits.Circuit,
+        circuit: circuits.AbstractCircuit,
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -580,7 +586,7 @@ class SimulatesIntermediateState(
 
     def _base_iterator(
         self,
-        circuit: circuits.Circuit,
+        circuit: circuits.AbstractCircuit,
         qubit_order: ops.QubitOrderOrList,
         initial_state: Any,
     ) -> Iterator[TStepResult]:
@@ -630,10 +636,12 @@ class SimulatesIntermediateState(
             The `OperationTarget` for this simulator.
         """
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     @abc.abstractmethod
     def _core_iterator(
         self,
-        circuit: circuits.Circuit,
+        circuit: circuits.AbstractCircuit,
         sim_state: 'cirq.OperationTarget[TActOnArgs]',
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
@@ -651,6 +659,7 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
 
+    # pylint: enable=missing-param-doc
     @abc.abstractmethod
     def _create_simulator_trial_result(
         self,
@@ -759,7 +768,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError(f'{op.gate} was not a MeasurementGate')
-            key = protocols.measurement_key(gate)
+            key = protocols.measurement_key_name(gate)
             if key in seen_measurement_keys:
                 raise ValueError(f'Duplicate MeasurementGate with key {key}')
             seen_measurement_keys.add(key)
@@ -809,6 +818,8 @@ class SimulationTrialResult:
             measurement gate.)
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         params: study.ParamResolver,
@@ -840,6 +851,7 @@ class SimulationTrialResult:
         self._final_step_result = final_step_result
         self._final_simulator_state_cache = final_simulator_state
 
+    # pylint: enable=missing-raises-doc
     @property
     def _final_simulator_state(self):
         if self._final_simulator_state_cache is None:
@@ -898,9 +910,11 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
     return tuple(qid_shape)
 
 
-def _verify_unique_measurement_keys(circuit: circuits.Circuit):
+def _verify_unique_measurement_keys(circuit: circuits.AbstractCircuit):
     result = collections.Counter(
-        key for op in ops.flatten_op_tree(iter(circuit)) for key in protocols.measurement_keys(op)
+        key
+        for op in ops.flatten_op_tree(iter(circuit))
+        for key in protocols.measurement_key_names(op)
     )
     if result:
         duplicates = [k for k, v in result.most_common() if v > 1]
@@ -919,9 +933,9 @@ def check_all_resolved(circuit):
 
 
 def split_into_matching_protocol_then_general(
-    circuit: 'cirq.Circuit',
+    circuit: 'cirq.AbstractCircuit',
     predicate: Callable[['cirq.Operation'], bool],
-) -> Tuple['cirq.Circuit', 'cirq.Circuit']:
+) -> Tuple['cirq.AbstractCircuit', 'cirq.AbstractCircuit']:
     """Splits the circuit into a matching prefix and non-matching suffix.
 
     The splitting happens in a per-qubit fashion. A non-matching operation on

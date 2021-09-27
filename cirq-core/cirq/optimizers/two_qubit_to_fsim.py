@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     import cirq
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def decompose_two_qubit_interaction_into_four_fsim_gates(
     interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
     *,
@@ -83,6 +85,7 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
     return result
 
 
+# pylint: enable=missing-raises-doc
 def _sticky_0_to_1(v: float, *, atol: float) -> Optional[float]:
     if 0 <= v <= 1:
         return v

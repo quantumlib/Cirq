@@ -436,6 +436,21 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             f'Y:{y_sign}{y.to!s}, Z:{z_sign}{z.to!s})'
         )
 
+    @classmethod
+    def _from_json_dict_(cls, _rotation_map, _inverse_map, **kwargs):
+        return cls(
+            _rotation_map=dict([[k, PauliTransform(*v)] for k, v in _rotation_map]),
+            _inverse_map=dict([[k, PauliTransform(*v)] for k, v in _inverse_map]),
+        )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'cirq_type': self.__class__.__name__,
+            # JSON requires mappings to have string keys.
+            '_rotation_map': list(self._rotation_map.items()),
+            '_inverse_map': list(self._inverse_map.items()),
+        }
+
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':

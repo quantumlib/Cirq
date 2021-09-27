@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 class QubitPermutationGate(raw_types.Gate):
     """A qubit permutation gate specified by a permutation list."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, permutation: Sequence[int]):
         """Inits QubitPermutationGate.
 
@@ -49,6 +51,7 @@ class QubitPermutationGate(raw_types.Gate):
 
         self.permutation = tuple(permutation)
 
+    # pylint: enable=missing-raises-doc
     def _value_equality_values_(self):
         return self.permutation
 

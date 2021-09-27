@@ -120,6 +120,8 @@ class UndirectedGraphDevice(devices.Device):
         * duration_of does not check that operation is valid.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         device_graph: Optional[UndirectedHypergraph] = None,
@@ -148,6 +150,7 @@ class UndirectedGraphDevice(devices.Device):
         self.device_graph = device_graph
         self.crosstalk_graph = crosstalk_graph
 
+    # pylint: enable=missing-raises-doc
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return cast(Tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))

@@ -234,7 +234,7 @@ MEASUREMENT_SERIALIZER = op_serializer.GateOpSerializer(
     serialized_gate_id='meas',
     args=[
         op_serializer.SerializingArg(
-            serialized_name='key', serialized_type=str, op_getter=cirq.measurement_key
+            serialized_name='key', serialized_type=str, op_getter=cirq.measurement_key_name
         ),
         op_serializer.SerializingArg(
             serialized_name='invert_mask', serialized_type=List[bool], op_getter='invert_mask'

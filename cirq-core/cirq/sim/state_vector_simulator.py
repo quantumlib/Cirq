@@ -83,7 +83,7 @@ class SimulatesIntermediateStateVector(
 
     def compute_amplitudes_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,

@@ -15,7 +15,7 @@
 import numpy as np
 
 from cirq import ops, protocols, optimizers, circuits
-from cirq.ion import ms, two_qubit_matrix_to_ion_operations
+from cirq.ion import ms, two_qubit_matrix_to_ion_operations, ion_device
 
 
 class ConvertToIonGates:
@@ -30,11 +30,13 @@ class ConvertToIonGates:
         """
         super().__init__()
         self.ignore_failures = ignore_failures
+        self.gateset = ion_device.get_ion_gateset()
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def convert_one(self, op: ops.Operation) -> ops.OP_TREE:
-        """Convert a single (one- or two-qubit) operation
+        """Convert a single (one- or two-qubit) operation into ion trap native gates.
 
-        into ion trap native gates
         Args:
             op: gate operation to be converted
 
@@ -46,7 +48,7 @@ class ConvertToIonGates:
         if not isinstance(op, ops.GateOperation):
             raise TypeError(f"{op!r} is not a gate operation.")
 
-        if is_native_ion_gate(op.gate):
+        if op in self.gateset:
             return [op]
         # one choice of known Hadamard gate decomposition
         if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
@@ -78,6 +80,7 @@ class ConvertToIonGates:
             "or composite.".format(op.gate)
         )
 
+    # pylint: enable=missing-raises-doc
     def convert_circuit(self, circuit: circuits.Circuit) -> circuits.Circuit:
         new_circuit = circuits.Circuit()
         for moment in circuit:
@@ -86,25 +89,3 @@ class ConvertToIonGates:
         optimizers.merge_single_qubit_gates_into_phased_x_z(new_circuit)
 
         return new_circuit
-
-
-def is_native_ion_gate(gate: ops.Gate) -> bool:
-    """Check if a gate is a native ion gate.
-
-    Args:
-        gate: Input gate.
-
-    Returns:
-        True if the gate is native to the ion, false otherwise.
-    """
-    return isinstance(
-        gate,
-        (
-            ops.XXPowGate,
-            ops.MeasurementGate,
-            ops.XPowGate,
-            ops.YPowGate,
-            ops.ZPowGate,
-            ops.PhasedXPowGate,
-        ),
-    )

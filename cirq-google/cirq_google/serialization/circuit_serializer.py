@@ -46,11 +46,13 @@ class CircuitSerializer(serializer.Serializer):
         Args:
             gate_set_name: The name used to identify the gate set.
         """
-        self.gate_set_name = gate_set_name
+        super().__init__(gate_set_name)
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def serialize(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         msg: Optional[v2.program_pb2.Program] = None,
         *,
         arg_function_language: Optional[str] = None,
@@ -69,7 +71,7 @@ class CircuitSerializer(serializer.Serializer):
         raw_constants: Dict[Any, int] = {}
         if msg is None:
             msg = v2.program_pb2.Program()
-        msg.language.gate_set = self.gate_set_name
+        msg.language.gate_set = self.name
         msg.language.arg_function_language = (
             arg_function_language or arg_func_langs.MOST_PERMISSIVE_LANGUAGE
         )
@@ -82,6 +84,7 @@ class CircuitSerializer(serializer.Serializer):
         )
         return msg
 
+    # pylint: enable=missing-raises-doc
     def _serialize_circuit(
         self,
         circuit: cirq.AbstractCircuit,
@@ -114,6 +117,8 @@ class CircuitSerializer(serializer.Serializer):
                         raw_constants=raw_constants,
                     )
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def _serialize_gate_op(
         self,
         op: cirq.Operation,
@@ -254,6 +259,7 @@ class CircuitSerializer(serializer.Serializer):
                         raw_constants[tag.token] = msg.token_constant_index
         return msg
 
+    # TODO(#3388) Add documentation for Raises.
     def _serialize_circuit_op(
         self,
         op: cirq.CircuitOperation,
@@ -304,6 +310,7 @@ class CircuitSerializer(serializer.Serializer):
             raw_constants=raw_constants,
         )
 
+    # TODO(#3388) Add documentation for Raises.
     def deserialize(
         self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
     ) -> cirq.Circuit:
@@ -320,10 +327,10 @@ class CircuitSerializer(serializer.Serializer):
         """
         if not proto.HasField('language') or not proto.language.gate_set:
             raise ValueError('Missing gate set specification.')
-        if proto.language.gate_set != self.gate_set_name:
+        if proto.language.gate_set != self.name:
             raise ValueError(
                 'Gate set in proto was {} but expected {}'.format(
-                    proto.language.gate_set, self.gate_set_name
+                    proto.language.gate_set, self.name
                 )
             )
         which = proto.WhichOneof('program')
@@ -359,6 +366,7 @@ class CircuitSerializer(serializer.Serializer):
 
         raise NotImplementedError('Program proto does not contain a circuit.')
 
+    # pylint: enable=missing-raises-doc
     def _deserialize_circuit(
         self,
         circuit_proto: v2.program_pb2.Circuit,
@@ -391,6 +399,8 @@ class CircuitSerializer(serializer.Serializer):
             moments.append(cirq.Moment(moment_ops))
         return cirq.Circuit(moments)
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def _deserialize_gate_op(
         self,
         operation_proto: v2.program_pb2.Operation,
@@ -562,6 +572,7 @@ class CircuitSerializer(serializer.Serializer):
 
         return op
 
+    # pylint: enable=missing-raises-doc
     def _deserialize_circuit_op(
         self,
         operation_proto: v2.program_pb2.CircuitOperation,

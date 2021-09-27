@@ -49,6 +49,8 @@ class QubitOrder:
     it is the x coordinate of the qubit).
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     @staticmethod
     def explicit(
         fixed_qubits: Iterable[raw_types.Qid], fallback: Optional['QubitOrder'] = None
@@ -80,6 +82,7 @@ class QubitOrder:
 
         return QubitOrder(func)
 
+    # pylint: enable=missing-raises-doc
     @staticmethod
     def sorted_by(key: Callable[[raw_types.Qid], Any]) -> 'QubitOrder':
         """A basis that orders qubits ascending based on a key function.
@@ -108,6 +111,8 @@ class QubitOrder:
         """
         return self._explicit_func(qubits)
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     @staticmethod
     def as_qubit_order(val: 'qubit_order_or_list.QubitOrderOrList') -> 'QubitOrder':
         """Converts a value into a basis.
@@ -124,6 +129,7 @@ class QubitOrder:
             return val
         raise ValueError(f"Don't know how to interpret <{val}> as a Basis.")
 
+    # pylint: enable=missing-raises-doc
     def map(
         self,
         internalize: Callable[[TExternalQubit], TInternalQubit],

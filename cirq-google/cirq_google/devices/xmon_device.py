@@ -140,7 +140,7 @@ class XmonDevice(cirq.Device):
             for p in other_op.qubits
         )
 
-    def validate_circuit(self, circuit: cirq.Circuit):
+    def validate_circuit(self, circuit: cirq.AbstractCircuit):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 
@@ -206,7 +206,7 @@ def _verify_unique_measurement_keys(operations: Iterable[cirq.Operation]):
     seen: Set[str] = set()
     for op in operations:
         if cirq.is_measurement(op):
-            key = cirq.measurement_key(op)
+            key = cirq.measurement_key_name(op)
             if key in seen:
                 raise ValueError(f'Measurement key {key} repeated')
             seen.add(key)

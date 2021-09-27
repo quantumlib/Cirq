@@ -275,6 +275,8 @@ def get_rigetti_qcs_aspen_device(
 class OctagonalQubit(cirq.ops.Qid):
     """A cirq.Qid supporting Octagonal indexing."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, octagon_position: int):
         r"""Initializes an `OctagonalQubit` using indices 0-7.
               4  - 3
@@ -297,6 +299,7 @@ class OctagonalQubit(cirq.ops.Qid):
         self._octagon_position = octagon_position
         self.index = octagon_position
 
+    # pylint: enable=missing-raises-doc
     @property
     def octagon_position(self):
         return self._octagon_position
@@ -476,6 +479,8 @@ class AspenQubit(OctagonalQubit):
             return AspenQubit.from_aspen_index(_grid_qubit_mapping[grid_qubit])
         raise ValueError(f'{grid_qubit} is not convertible to Aspen qubit')
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     @staticmethod
     def from_named_qubit(qubit: cirq.NamedQubit) -> 'AspenQubit':
         """Converts `cirq.NamedQubit` to `AspenQubit`.
@@ -492,6 +497,7 @@ class AspenQubit(OctagonalQubit):
         except ValueError:
             raise UnsupportedQubit(f'Aspen devices only support named qubits by octagonal index')
 
+    # pylint: enable=missing-raises-doc
     @staticmethod
     def from_aspen_index(index: int) -> 'AspenQubit':
         """Initializes an `AspenQubit` at the given index. See `OctagonalQubit` to understand

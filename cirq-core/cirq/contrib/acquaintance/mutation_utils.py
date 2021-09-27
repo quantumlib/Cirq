@@ -28,6 +28,8 @@ if TYPE_CHECKING:
 STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def rectify_acquaintance_strategy(circuit: 'cirq.Circuit', acquaint_first: bool = True) -> None:
     """Splits moments so that they contain either only acquaintance gates
     or only permutation gates. Orders resulting moments so that the first one
@@ -57,6 +59,7 @@ def rectify_acquaintance_strategy(circuit: 'cirq.Circuit', acquaint_first: bool 
     circuit._moments = rectified_moments
 
 
+# pylint: enable=missing-raises-doc
 # TODO(#3388) Add summary line to docstring.
 # pylint: disable=docstring-first-line-empty
 def replace_acquaintance_with_swap_network(
