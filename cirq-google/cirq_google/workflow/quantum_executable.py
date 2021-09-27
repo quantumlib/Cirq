@@ -67,17 +67,15 @@ class QuantumExecutable:
     optional fields enabling a higher level of abstraction for certain aspects of the executable.
 
     Attributes:
-        circuit: A circuit describing the quantum operations to execute.
-        measurement: A description of the type of measurement. A valid option is to use
-            MeasurementGate in your circuit and specify
-            `measurement=BitstringsMeasurement(n_repetitions)`. Future changes may permit
-            different types of measurement.
-        params: An immutable version of cirq.ParamResolver represented as a tuple of key value
-            pairs.
-        spec: Specification metadata about this executable that is not used by the quantum runtime,
-            but is persisted in result objects to associate executables with results.
-        problem_topology: Description of the multiqubit gate topology present in the circuit.
-            If not specified, the circuit must be compatible with the device topology.
+        circuit: A `cirq.Circuit` describing the quantum operations to execute.
+        measurement: A description of the measurement properties or process.
+        params: An immutable `cirq.ParamResolver` (or similar type). It's representation is
+            normalized to a tuple of key value pairs.
+        spec: Optional `ExecutableSpec` containing metadata about this executable that is not
+            used by the quantum runtime, but will be forwarded to all downstream result objects.
+        problem_topology: Optional `cirq.NamedTopology` instance specifying the topology of the
+            circuit. This is useful when optimizing on-device layout. If none is provided we
+            assume `circuit` already has a valid on-device layout.
         initial_state: How to initialize the quantum system before running `circuit`. If not
             specified, the device will be initialized into the all-zeros state.
     """
@@ -106,7 +104,7 @@ class QuantumExecutable:
 
         Args:
             circuit: The circuit. This will be frozen before being set as an attribute.
-            measurement: A description of the type of measurement.
+            measurement: A description of the measurement properties or process.
             params: A cirq.ParamResolverOrSimilarType which will be frozen into a tuple of
                 key value pairs.
             spec: Specification metadata about this executable that is not used by the quantum
