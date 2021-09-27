@@ -63,7 +63,7 @@ class Sampler(cirq.Sampler):
 
     def run_sweep(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> List['cirq.Result']:

@@ -152,6 +152,8 @@ class GateOpDeserializer(OpDeserializer):
     def serialized_id(self):
         return self._serialized_gate_id
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def from_proto(
         self,
         proto: v2.program_pb2.Operation,
@@ -195,6 +197,7 @@ class GateOpDeserializer(OpDeserializer):
                 op = op.with_tags(CalibrationTag(proto.token_value))
         return op
 
+    # pylint: enable=missing-raises-doc
     def _args_from_proto(
         self, proto: v2.program_pb2.Operation, *, arg_function_language: str
     ) -> Dict[str, arg_func_langs.ARG_LIKE]:
@@ -231,6 +234,8 @@ class CircuitOpDeserializer(OpDeserializer):
     def serialized_id(self):
         return 'circuit'
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def from_proto(
         self,
         proto: v2.program_pb2.CircuitOperation,
@@ -323,3 +328,5 @@ class CircuitOpDeserializer(OpDeserializer):
             arg_map,  # type: ignore
             rep_ids,
         )
+
+    # pylint: enable=missing-raises-doc

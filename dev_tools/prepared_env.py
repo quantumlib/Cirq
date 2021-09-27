@@ -63,6 +63,8 @@ class PreparedEnv:
             return program
         return os.path.join(self.virtual_env_path, 'bin', program)
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def report_status_to_github(
         self, state: str, description: str, context: str, target_url: Optional[str] = None
     ):
@@ -117,6 +119,7 @@ class PreparedEnv:
                 )
             )
 
+    # pylint: enable=missing-raises-doc
     def get_changed_files(self) -> List[str]:
         """Get the files changed on one git branch vs another.
 

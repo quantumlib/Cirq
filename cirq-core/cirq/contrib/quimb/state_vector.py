@@ -24,6 +24,8 @@ def _get_quimb_version():
 QUIMB_VERSION = _get_quimb_version()
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def circuit_to_tensors(
     circuit: cirq.Circuit,
     qubits: Optional[Sequence[cirq.Qid]] = None,
@@ -84,6 +86,7 @@ def circuit_to_tensors(
     return tensors, qubit_frontier, positions
 
 
+# pylint: enable=missing-raises-doc
 def tensor_state_vector(
     circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
 ) -> np.ndarray:

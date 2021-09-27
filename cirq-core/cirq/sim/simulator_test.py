@@ -16,6 +16,7 @@ import abc
 from typing import Generic, Dict, Any, List, Sequence, Union
 from unittest import mock
 
+import duet
 import numpy as np
 import pytest
 
@@ -371,7 +372,7 @@ def test_pretty_print():
     assert p.text_pretty == 'SimulationTrialResult(...)'
 
 
-@pytest.mark.asyncio
+@duet.sync
 async def test_async_sample():
     m = {'mock': np.array([[0], [1]])}
 
@@ -478,7 +479,7 @@ def test_iter_definitions():
 
         def compute_amplitudes_sweep(
             self,
-            program: 'cirq.Circuit',
+            program: 'cirq.AbstractCircuit',
             bitstrings: Sequence[int],
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
@@ -487,7 +488,7 @@ def test_iter_definitions():
 
         def simulate_expectation_values_sweep(
             self,
-            program: 'cirq.Circuit',
+            program: 'cirq.AbstractCircuit',
             observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
             params: 'study.Sweepable',
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
@@ -498,7 +499,7 @@ def test_iter_definitions():
 
         def simulate_sweep(
             self,
-            program: 'cirq.Circuit',
+            program: 'cirq.AbstractCircuit',
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,

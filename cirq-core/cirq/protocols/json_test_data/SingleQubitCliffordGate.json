@@ -1,0 +1,97 @@
+{
+  "cirq_type": "SingleQubitCliffordGate",
+  "_rotation_map": [
+    [
+      {
+        "cirq_type": "_PauliX",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      [
+        {
+          "cirq_type": "_PauliX",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        false
+      ]
+    ],
+    [
+      {
+        "cirq_type": "_PauliZ",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      [
+        {
+          "cirq_type": "_PauliY",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        false
+      ]
+    ],
+    [
+      {
+        "cirq_type": "_PauliY",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      [
+        {
+          "cirq_type": "_PauliZ",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        true
+      ]
+    ]
+  ],
+  "_inverse_map": [
+    [
+      {
+        "cirq_type": "_PauliX",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      [
+        {
+          "cirq_type": "_PauliX",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        false
+      ]
+    ],
+    [
+      {
+        "cirq_type": "_PauliY",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      [
+        {
+          "cirq_type": "_PauliZ",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        false
+      ]
+    ],
+    [
+      {
+        "cirq_type": "_PauliZ",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      [
+        {
+          "cirq_type": "_PauliY",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        true
+      ]
+    ]
+  ]
+}

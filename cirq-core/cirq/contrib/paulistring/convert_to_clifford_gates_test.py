@@ -73,7 +73,7 @@ def test_already_converted():
 
 
 def test_convert_composite():
-    class CompositeDummy(cirq.TwoQubitGate):
+    class CompositeDummy(cirq.testing.TwoQubitGate):
         def _decompose_(self, qubits):
             q0, q1 = qubits
             yield cirq.X(q0)
@@ -100,7 +100,7 @@ def test_convert_composite():
 
 
 def test_ignore_unsupported_gate():
-    class UnsupportedDummy(cirq.TwoQubitGate):
+    class UnsupportedDummy(cirq.testing.TwoQubitGate):
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
@@ -114,7 +114,7 @@ def test_ignore_unsupported_gate():
 
 
 def test_fail_unsupported_gate():
-    class UnsupportedDummy(cirq.TwoQubitGate):
+    class UnsupportedDummy(cirq.testing.TwoQubitGate):
         pass
 
     q0, q1 = cirq.LineQubit.range(2)

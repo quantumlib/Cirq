@@ -482,7 +482,7 @@ def test_circuit_diagram():
     )
 
 
-class MockGate(cirq.TwoQubitGate):
+class MockGate(cirq.testing.TwoQubitGate):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         self.captured_diagram_args = args
         return cirq.CircuitDiagramInfo(wire_symbols=tuple(['MOCK']), exponent=1, connected=True)

@@ -93,6 +93,8 @@ class ApplyUnitaryArgs:
         self.available_buffer = available_buffer
         self.axes = tuple(axes)
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     @staticmethod
     def default(
         num_qubits: Optional[int] = None, *, qid_shape: Optional[Tuple[int, ...]] = None
@@ -104,7 +106,8 @@ class ApplyUnitaryArgs:
         Args:
             num_qubits: The number of qubits to make space for in the state.
             qid_shape: The shape of the state, specifying the dimension of each
-                qid."""
+                qid.
+        """
         if (num_qubits is None) == (qid_shape is None):
             raise TypeError('Specify exactly one of num_qubits or qid_shape.')
         if num_qubits is not None:
@@ -114,6 +117,7 @@ class ApplyUnitaryArgs:
         state = qis.one_hot(index=(0,) * num_qubits, shape=qid_shape, dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
+    # pylint: enable=missing-raises-doc
     def with_axes_transposed_to_start(self) -> 'ApplyUnitaryArgs':
         """Returns a transposed view of the same arguments.
 
@@ -425,6 +429,8 @@ def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Opt
     return apply_unitaries(operations, qubits, args, None)
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def apply_unitaries(
     unitary_values: Iterable[Any],
     qubits: Sequence['cirq.Qid'],
@@ -507,6 +513,7 @@ def apply_unitaries(
     return state
 
 
+# TODO(#3388) Add documentation for Raises.
 def _incorporate_result_into_target(
     args: 'ApplyUnitaryArgs', sub_args: 'ApplyUnitaryArgs', sub_result: np.ndarray
 ):
@@ -557,3 +564,6 @@ def _incorporate_result_into_target(
         return args.available_buffer
     sub_args.target_tensor[...] = sub_result
     return args.target_tensor
+
+
+# pylint: enable=missing-raises-doc

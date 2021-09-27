@@ -62,6 +62,8 @@ class EngineProgram:
         self._program = _program
         self.result_type = result_type
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def run_sweep(
         self,
         job_id: Optional[str] = None,
@@ -115,6 +117,7 @@ class EngineProgram:
             self.project_id, self.program_id, created_job_id, self.context, job
         )
 
+    # pylint: enable=missing-raises-doc
     def run_batch(
         self,
         job_id: Optional[str] = None,
@@ -201,6 +204,8 @@ class EngineProgram:
             result_type=ResultType.Batch,
         )
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def run_calibration(
         self,
         job_id: Optional[str] = None,
@@ -261,6 +266,7 @@ class EngineProgram:
             result_type=ResultType.Batch,
         )
 
+    # pylint: enable=missing-raises-doc
     def run(
         self,
         job_id: Optional[str] = None,
@@ -545,7 +551,7 @@ def _deserialize_program(
 
         program = batch.programs[program_num]
     if program:
-        gate_set_map = {g.gate_set_name: g for g in gate_sets.GOOGLE_GATESETS}
+        gate_set_map = {g.name: g for g in gate_sets.GOOGLE_GATESETS}
         if program.language.gate_set not in gate_set_map:
             raise ValueError(
                 f'Unknown gateset {program.language.gate_set}. '

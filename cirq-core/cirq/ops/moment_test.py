@@ -346,11 +346,11 @@ def test_measurement_keys():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     m = cirq.Moment(cirq.X(a), cirq.X(b))
-    assert cirq.measurement_keys(m) == set()
+    assert cirq.measurement_key_names(m) == set()
     assert not cirq.is_measurement(m)
 
     m2 = cirq.Moment(cirq.measure(a, b, key='foo'))
-    assert cirq.measurement_keys(m2) == {'foo'}
+    assert cirq.measurement_key_names(m2) == {'foo'}
     assert cirq.is_measurement(m2)
 
 
