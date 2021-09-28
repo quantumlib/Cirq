@@ -1,6 +1,6 @@
 # Setting up access and authentication to Azure Quantum
 
-[Azure Quantum](https://docs.microsoft.com/azure/quantum/overview-azure-quantum) is Microsoft's cloud service for running quantum computing programs or solving optimization problems and is currently in [Public Preview](https://cloudblogs.microsoft.com/quantum/2021/02/01/azure-quantum-preview/). You can try Azure Quantum for free today and submit quantum programs to our quantum partners and technologies. Follow the simple steps below to set up access and start sending quantum programs with Cirq to IonQ or Honeywell.
+[Azure Quantum](https://docs.microsoft.com/azure/quantum/overview-azure-quantum) is Microsoft's cloud service for running quantum computing programs or solving optimization problems and is currently in [Public Preview](https://cloudblogs.microsoft.com/quantum/2021/02/01/azure-quantum-preview/). You can try Azure Quantum for free today and submit quantum programs to Azure Quantum's partners and technologies. To send quantum programs with Cirq to IonQ or Honeywell via an Azure Quantum subscription, follow the simple steps below to set up access. If you already have an IonQ API key, you can use [Cirq with the IonQ API](../ionq/access.md).
 
 ## 1. Create an Azure Subscription
 To work in Azure Quantum, you need an Azure subscription. If you don't have an Azure subscription, create a [free account](https://azure.microsoft.com/free/).
