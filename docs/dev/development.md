@@ -129,7 +129,7 @@ See the previous section for instructions.
     or add it to the python path, but only in the virtualenv by first listing the modules
     
     ```bash
-    python dev_tools/modules.py list --mode package-path > 
+    python dev_tools/modules.py list 
     ```
     and then adding these to the virtualenv:
     ```bash
