@@ -95,7 +95,7 @@ class ParamResolver:
             The value of the parameter as resolved by this resolver.
 
         Raises:
-            RecursionError if the ParamResolver detects a loop in recursive
+            RecursionError: If the ParamResolver detects a loop in recursive
                 resolution.
         """
 

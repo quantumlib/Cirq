@@ -25,7 +25,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 
-from cirq import sim
+from cirq import sim, value
 
 if TYPE_CHECKING:
     import cirq
@@ -73,7 +73,7 @@ class _Simulate_2q_XEB_Circuit:
                 continue
 
             psi = step_result.state_vector()
-            pure_probs = np.abs(psi) ** 2
+            pure_probs = value.state_vector_to_probabilities(psi)
 
             records += [
                 {

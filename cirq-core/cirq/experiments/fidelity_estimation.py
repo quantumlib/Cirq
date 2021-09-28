@@ -27,6 +27,7 @@ import numpy as np
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
+from cirq.value import state_vector_to_probabilities
 
 
 def linear_xeb_fidelity_from_probabilities(
@@ -199,7 +200,7 @@ def xeb_fidelity(
 
     if amplitudes is None:
         output_state = final_state_vector(circuit, qubit_order=qubit_order)
-        output_probabilities = np.abs(output_state) ** 2
+        output_probabilities = state_vector_to_probabilities(output_state)
         bitstring_probabilities = output_probabilities[bitstrings]
     else:
         bitstring_probabilities = np.abs([amplitudes[bitstring] for bitstring in bitstrings]) ** 2

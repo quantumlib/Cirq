@@ -1,6 +1,6 @@
 -r ipython.txt
 
-notebook~=6.2.0
+notebook>=6.4.1
 
 # https://github.com/nteract/papermill/issues/519
 ipykernel==5.3.4

@@ -7,7 +7,7 @@ def test_kraus_channel_from_channel():
     q0 = cirq.LineQubit(0)
     dp = cirq.depolarize(0.1)
     kc = cirq.KrausChannel.from_channel(dp, key='dp')
-    assert cirq.measurement_key(kc) == 'dp'
+    assert cirq.measurement_key_name(kc) == 'dp'
 
     circuit = cirq.Circuit(kc.on(q0))
     sim = cirq.Simulator(seed=0)
@@ -48,12 +48,12 @@ def test_kraus_channel_remap_keys():
     dp = cirq.depolarize(0.1)
     kc = cirq.KrausChannel.from_channel(dp)
     with pytest.raises(TypeError):
-        _ = cirq.measurement_key(kc)
+        _ = cirq.measurement_key_name(kc)
     assert cirq.with_measurement_key_mapping(kc, {'a': 'b'}) is NotImplemented
 
     kc_x = cirq.KrausChannel.from_channel(dp, key='x')
     assert cirq.with_measurement_key_mapping(kc_x, {'a': 'b'}) is kc_x
-    assert cirq.measurement_key(cirq.with_key_path(kc_x, ('path',))) == 'path:x'
+    assert cirq.measurement_key_name(cirq.with_key_path(kc_x, ('path',))) == 'path:x'
 
     kc_a = cirq.KrausChannel.from_channel(dp, key='a')
     kc_b = cirq.KrausChannel.from_channel(dp, key='b')
@@ -69,7 +69,7 @@ def test_kraus_channel_from_kraus():
         np.array([[1, -1], [-1, 1]]) * 0.5,
     ]
     x_meas = cirq.KrausChannel(ops, key='x_meas')
-    assert cirq.measurement_key(x_meas) == 'x_meas'
+    assert cirq.measurement_key_name(x_meas) == 'x_meas'
 
     circuit = cirq.Circuit(cirq.H(q0), x_meas.on(q0))
     sim = cirq.Simulator(seed=0)

@@ -141,7 +141,7 @@ def test_decompose_operation():
 
 def test_pasqal_converter():
     q = cirq.NamedQubit.range(2, prefix='q')
-    g = cirq.TwoQubitGate()
+    g = cirq.testing.TwoQubitGate()
 
     class FakeOperation(cirq.ops.GateOperation):
         def __init__(self, gate, qubits):

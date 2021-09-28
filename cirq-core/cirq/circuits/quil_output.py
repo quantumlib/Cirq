@@ -56,7 +56,7 @@ class QuilOneQubitGate(ops.SingleQubitGate):
 
 
 @value.value_equality(approximate=True)
-class QuilTwoQubitGate(ops.TwoQubitGate):
+class QuilTwoQubitGate(ops.Gate):
     """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4
     unitary matrix.
     """
@@ -68,6 +68,9 @@ class QuilTwoQubitGate(ops.TwoQubitGate):
             matrix: The 4x4 unitary matrix for this gate.
         """
         self.matrix = matrix
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _value_equality_values_(self):
         return self.matrix
@@ -130,7 +133,7 @@ class QuilOutput:
         measurement_id_map: Dict[str, str] = {}
         for op in self.operations:
             if isinstance(op.gate, ops.MeasurementGate):
-                key = protocols.measurement_key(op)
+                key = protocols.measurement_key_name(op)
                 if key in measurement_id_map:
                     continue
                 measurement_id_map[key] = f'm{index}'
@@ -152,7 +155,7 @@ class QuilOutput:
         if len(self.measurements) > 0:
             measurements_declared: Set[str] = set()
             for m in self.measurements:
-                key = protocols.measurement_key(m)
+                key = protocols.measurement_key_name(m)
                 if key in measurements_declared:
                     continue
                 measurements_declared.add(key)

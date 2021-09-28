@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import duet
 import pytest
 
 import cirq
@@ -36,7 +38,7 @@ def test_circuit_sample_job_repr():
     )
 
 
-@pytest.mark.asyncio
+@duet.sync
 async def test_async_collect():
     received = []
 
@@ -49,10 +51,10 @@ async def test_async_collect():
         def on_job_result(self, job, result):
             received.append(job.tag)
 
-    completion = TestCollector().collect_async(
+    result = await TestCollector().collect_async(
         sampler=cirq.Simulator(), max_total_samples=100, concurrency=5
     )
-    assert await completion is None
+    assert result is None
     assert received == ['test'] * 10
 
 
@@ -70,6 +72,25 @@ def test_collect():
 
     TestCollector().collect(sampler=cirq.Simulator(), max_total_samples=100, concurrency=5)
     assert received == ['test'] * 10
+
+
+def test_failed_job():
+    class FailingSampler:
+        async def run_async(self, circuit, repetitions):
+            await duet.completed_future(None)
+            raise Exception('job failed!')
+
+    class TestCollector(cirq.Collector):
+        def next_job(self):
+            q = cirq.LineQubit(0)
+            circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
+            return cirq.CircuitSampleJob(circuit=circuit, repetitions=10, tag='test')
+
+        def on_job_result(self, job, result):
+            pass
+
+    with pytest.raises(Exception, match='job failed!'):
+        TestCollector().collect(sampler=FailingSampler(), max_total_samples=100, concurrency=5)
 
 
 def test_collect_with_reaction():

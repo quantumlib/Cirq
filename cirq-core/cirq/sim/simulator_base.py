@@ -174,9 +174,12 @@ class SimulatorBase(
             `_run` prefix."""
         return protocols.has_unitary(val)
 
+    # TODO(#3388) Add documentation for Args.
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-param-doc,missing-raises-doc
     def _core_iterator(
         self,
-        circuit: circuits.Circuit,
+        circuit: circuits.AbstractCircuit,
         sim_state: OperationTarget[TActOnArgs],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResultBase]:
@@ -215,17 +218,20 @@ class SimulatorBase(
                             op = ops.phase_damp(1).on(*op.qubits)
 
                     # Simulate the operation
-                    sim_state.apply_operation(op)
+                    protocols.act_on(op, sim_state)
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
             step_result = self._create_step_result(sim_state)
             yield step_result
             sim_state = step_result._sim_state
-            sim_state.log_of_measurement_results.clear()
 
+    # pylint: enable=missing-param-doc,missing-raises-doc
     def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
+        self,
+        circuit: circuits.AbstractCircuit,
+        param_resolver: study.ParamResolver,
+        repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         if self._ignore_measurement_results:
@@ -268,10 +274,11 @@ class SimulatorBase(
                 sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
             )
             for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    if k not in measurements:
-                        measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=np.uint8))
+                pass
+            for k, v in step_result.measurements.items():
+                if k not in measurements:
+                    measurements[k] = []
+                measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
     def _create_act_on_args(

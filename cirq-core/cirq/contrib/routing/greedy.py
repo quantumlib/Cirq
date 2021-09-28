@@ -42,6 +42,8 @@ SWAP = cca.SwapPermutationGate()
 QidPair = Tuple[ops.Qid, ops.Qid]
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 def route_circuit_greedily(
     circuit: circuits.Circuit, device_graph: nx.Graph, **kwargs
 ) -> SwapNetwork:
@@ -94,6 +96,7 @@ def route_circuit_greedily(
     return swap_network
 
 
+# pylint: enable=missing-param-doc
 class _GreedyRouter:
     """Keeps track of the state of a greedy circuit routing procedure."""
 

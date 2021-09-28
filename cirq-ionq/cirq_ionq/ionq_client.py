@@ -260,18 +260,20 @@ class _IonQClient:
         )
         return cast(str, target or self.default_target)
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def _make_request(self, request: Callable[[], requests.Response]) -> requests.Response:
         """Make a request to the API, retrying if necessary.
 
         Args:
             request: A function that returns a `requests.Response`.
 
+        Returns:
+            The request.Response from the final successful request call.
+
         Raises:
             IonQException: If there was a not-retriable error from the API.
             TimeoutError: If the requests retried for more than `max_retry_seconds`.
-
-        Returns:
-            The request.Response from the final successful request call.
         """
         # Initial backoff of 100ms.
         delay_seconds = 0.1
@@ -312,6 +314,7 @@ class _IonQClient:
             time.sleep(delay_seconds)
             delay_seconds *= 2
 
+    # pylint: enable=missing-raises-doc
     def _list(
         self, resource_path: str, params: dict, response_key: str, limit: int, batch_size: int
     ) -> List[Dict]:

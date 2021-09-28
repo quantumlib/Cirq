@@ -105,6 +105,8 @@ def estimate_single_qubit_readout_errors(
     )
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def estimate_parallel_single_qubit_readout_errors(
     sampler: 'cirq.Sampler',
     *,
@@ -235,3 +237,6 @@ def estimate_parallel_single_qubit_readout_errors(
         repetitions=repetitions,
         timestamp=timestamp,
     )
+
+
+# pylint: enable=missing-raises-doc

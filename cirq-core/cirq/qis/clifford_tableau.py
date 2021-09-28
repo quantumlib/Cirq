@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TYPE_CHECKING
 import numpy as np
 
-import cirq
 from cirq import protocols
 from cirq.value import big_endian_int_to_digits
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class CliffordTableau:
@@ -309,6 +311,8 @@ class CliffordTableau:
             represents the effective single Pauli operator on that qubit. The
             overall phase is captured in the coefficient.
         """
+        from cirq.ops.dense_pauli_string import DensePauliString
+
         coefficient = -1 if self.rs[i] else 1
         pauli_mask = ""
 
@@ -321,7 +325,7 @@ class CliffordTableau:
                 pauli_mask += "Y"
             else:
                 pauli_mask += "I"
-        return cirq.DensePauliString(pauli_mask, coefficient=coefficient)
+        return DensePauliString(pauli_mask, coefficient=coefficient)
 
     # pylint: enable=docstring-first-line-empty
     def stabilizers(self) -> List['cirq.DensePauliString']:
