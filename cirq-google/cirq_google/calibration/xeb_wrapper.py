@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import contextlib
 import multiprocessing
 import multiprocessing.pool
@@ -38,7 +39,8 @@ def _maybe_multiprocessing_pool(
         yield None
         return
 
-    with multiprocessing.get_context('spawn').Pool(processes=n_processes) as pool:
+    ctx = multiprocessing.get_context('spawn' if os.name == 'nt' else 'fork')
+    with ctx.Pool(processes=n_processes) as pool:
         yield pool
 
 
