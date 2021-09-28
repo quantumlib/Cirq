@@ -477,15 +477,14 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         )
 
     @classmethod
-    def _from_json_dict_(cls, _clifford_tableau, **kwargs):
+    def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(n, rs, xs, zs,)
         return cls(_clifford_tableau=_clifford_tableau)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            # JSON requires mappings to have string keys.
-            '_clifford_tableau': self._clifford_tableau,
-        }
+        json_dict = self._clifford_tableau._json_dict_()
+        json_dict['cirq_type'] = self.__class__.__name__
+        return json_dict
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
