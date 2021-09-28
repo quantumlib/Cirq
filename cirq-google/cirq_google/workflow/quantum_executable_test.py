@@ -16,7 +16,6 @@ import dataclasses
 
 import cirq
 import cirq_google
-import networkx as nx
 import pytest
 from cirq_google import QuantumExecutable, BitstringsMeasurement, ExecutableSpec
 
