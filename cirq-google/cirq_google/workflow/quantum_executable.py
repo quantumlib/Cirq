@@ -123,9 +123,6 @@ class QuantumExecutable:
         # We write our own __init__ function to be able to accept a wider range of input formats
         # that can be easily converted to our native, immutable format.
         object.__setattr__(self, 'circuit', circuit.freeze())
-
-        if not isinstance(measurement, BitstringsMeasurement):
-            raise ValueError(f"`measurement` should be a BitstringsMeasurement, not {measurement}.")
         object.__setattr__(self, 'measurement', measurement)
 
         if isinstance(params, tuple) and all(
@@ -143,20 +140,13 @@ class QuantumExecutable:
             raise ValueError(f"`params` should be a ParamResolverOrSimilarType, not {params}.")
         object.__setattr__(self, 'params', frozen_params)
 
-        if not isinstance(spec, ExecutableSpec):
-            raise ValueError(f"`spec` should be an ExecutableSpec, not {spec}.")
         object.__setattr__(self, 'spec', spec)
-
-        if problem_topology is not None and not isinstance(problem_topology, cirq.NamedTopology):
-            raise ValueError(
-                f"`problem_topology` should be a NamedTopology, " f"not {problem_topology}."
-            )
         object.__setattr__(self, 'problem_topology', problem_topology)
-
-        if initial_state is not None and not isinstance(initial_state, cirq.ProductState):
-            raise ValueError(f"`initial_state` should be a ProductState, not {initial_state}.")
         object.__setattr__(self, 'initial_state', initial_state)
 
+        # Hash may be expensive to compute, especially for large circuits.
+        # This should be safe since this class should be immutable. This line will
+        # also check for hashibility of members at construction time.
         object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
 
     def __str__(self):

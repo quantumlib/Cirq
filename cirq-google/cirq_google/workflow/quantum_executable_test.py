@@ -113,19 +113,8 @@ def test_quantum_executable_inputs():
         assert exe == exes[0]
 
     with pytest.raises(ValueError):
-        _ = QuantumExecutable(spec=spec, circuit=circuit, measurement=10_000)
-    with pytest.raises(ValueError):
         _ = QuantumExecutable(
             spec=spec, circuit=circuit, measurement=measurement, params='theta=0.2'
         )
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = QuantumExecutable(spec={'name': 'main'}, circuit=circuit, measurement=measurement)
-    with pytest.raises(ValueError):
-        _ = QuantumExecutable(
-            spec=spec,
-            circuit=circuit,
-            measurement=measurement,
-            problem_topology=nx.grid_2d_graph(2, 2),
-        )
-    with pytest.raises(ValueError):
-        _ = QuantumExecutable(spec=spec, circuit=circuit, measurement=measurement, initial_state=0)
