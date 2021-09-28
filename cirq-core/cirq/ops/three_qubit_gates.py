@@ -397,7 +397,9 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        return protocols.CircuitDiagramInfo(('@', '@', 'X'), exponent=self._diagram_exponent(args))
+        return protocols.CircuitDiagramInfo(
+            ('@', '@', 'X'), exponent=self._diagram_exponent(args), exponent_qubit_index=2
+        )
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:

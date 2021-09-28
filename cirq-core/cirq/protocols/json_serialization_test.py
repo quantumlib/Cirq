@@ -32,8 +32,7 @@ import sympy
 import cirq
 from cirq._compat import proper_eq
 from cirq.protocols import json_serialization
-from cirq.testing import assert_json_roundtrip_works
-from cirq.testing.json import ModuleJsonTestSpec, spec_for
+from cirq.testing.json import ModuleJsonTestSpec, spec_for, assert_json_roundtrip_works
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
 
@@ -82,7 +81,7 @@ if sys.version_info < (3, 7):  # pragma: no cover
     del TESTED_MODULES['cirq_rigetti']
 
 
-def _get_testspecs_for_modules():
+def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
     modules = []
     for m in TESTED_MODULES.keys():
         try:
@@ -230,9 +229,9 @@ def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
     missing_names = set(mod_spec.not_yet_serializable).difference(names)
-    assert len(missing_names) == 0, (
-        f"Defined as Not yet serializable, " f"but missing from {mod_spec}: \n" f"{missing_names}"
-    )
+    assert (
+        len(missing_names) == 0
+    ), f"Defined as Not yet serializable, but missing from {mod_spec}: \n{missing_names}"
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
