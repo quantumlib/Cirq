@@ -478,7 +478,12 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
     @classmethod
     def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
-        _clifford_tableau = qis.CliffordTableau._from_json_dict_(n, rs, xs, zs,)
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
+            n,
+            rs,
+            xs,
+            zs,
+        )
         return cls(_clifford_tableau=_clifford_tableau)
 
     def _json_dict_(self) -> Dict[str, Any]:
