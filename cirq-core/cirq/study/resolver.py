@@ -147,8 +147,7 @@ class ParamResolver:
             exponent = self.value_of(value.args[1], recursive)
             if isinstance(base, numbers.Number):
                 return np.float_power(base, exponent)
-            else:
-                return np.power(base, exponent)
+            return np.power(base, exponent)
 
         if not isinstance(value, sympy.Basic):
             # No known way to resolve this variable, return unchanged.
