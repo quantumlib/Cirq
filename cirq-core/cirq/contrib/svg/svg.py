@@ -67,7 +67,7 @@ def _fit_horizontal(
         col_widths: a list of each column's width in pixels
     """
     max_xi = max(xi for xi, _ in tdd.entries.keys())
-    max_xi = max(max_xi, max(cast(float, xi2) for _, _, xi2, _ in tdd.horizontal_lines))
+    max_xi = max(max_xi, max(cast(int, xi2) for _, _, xi2, _ in tdd.horizontal_lines))
     col_widths = [0.0] * (max_xi + 2)
     for (xi, _), v in tdd.entries.items():
         tw = _get_text_width(v.text)
@@ -187,8 +187,8 @@ def tdd_to_svg(
     # t += _debug_spacing(col_starts, row_starts)
 
     for yi, xi1, xi2, _ in tdd.horizontal_lines:
-        xi1 = cast(float, xi1)
-        xi2 = cast(float, xi2)
+        xi1 = cast(int, xi1)
+        xi2 = cast(int, xi2)
         x1 = col_starts[xi1] + col_widths[xi1] / 2
         x2 = col_starts[xi2] + col_widths[xi2] / 2
 
@@ -209,12 +209,12 @@ def tdd_to_svg(
         y1 = row_starts[yi1] + row_heights[yi1] / 2
         y2 = row_starts[yi2] + row_heights[yi2] / 2
 
-        xi = cast(float, xi)
+        xi = cast(int, xi)
         x = col_starts[xi] + col_widths[xi] / 2
         t += f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" stroke="black" stroke-width="3" />'
 
     for (xi, yi), v in tdd.entries.items():
-        xi = cast(float, xi)
+        xi = cast(int, xi)
         yi = yi_map[yi]
 
         x = col_starts[xi] + col_widths[xi] / 2
