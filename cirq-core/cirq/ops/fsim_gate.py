@@ -88,7 +88,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
                 iSWAP gate. Maximum strength (full iswap) is at pi/2.
             phi: Controlled phase angle, in radians. Determines how much the
                 ``|11⟩`` state is phased. Note: uses opposite sign convention to
-                the CZPowGate. Maximum strength (full cz) is at pi/2.
+                the CZPowGate. Maximum strength (full cz) is at pi.
         """
         self.theta = _canonicalize(theta)
         self.phi = _canonicalize(phi)

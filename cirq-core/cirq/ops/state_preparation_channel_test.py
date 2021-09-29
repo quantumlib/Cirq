@@ -107,10 +107,8 @@ def test_gate_params():
     assert gate.num_qubits() == 2
     assert not gate._has_unitary_()
     assert gate._has_kraus_()
-    assert (
-        repr(gate)
-        == 'cirq.StatePreparationChannel(np.array([(1+0j), 0j, 0j, 0j], dtype=np.complex128))'
-    )
+    assert str(gate) == 'StatePreparationChannel([1.+0.j 0.+0.j 0.+0.j 0.+0.j])'
+    cirq.testing.assert_equivalent_repr(gate)
 
 
 def test_gate_error_handling():
@@ -126,3 +124,28 @@ def test_equality_of_gates():
     gate_2 = cirq.StatePreparationChannel(state)
     assert gate_1 == gate_2, "Equal state not leading to same gate"
     assert not gate_1 == state, "Incompatible objects shouldn't be equal"
+    state = np.array([0, 1, 0, 0], dtype=np.complex64)
+    gate_3 = cirq.StatePreparationChannel(state, name='gate_a')
+    gate_4 = cirq.StatePreparationChannel(state, name='gate_b')
+    assert gate_3 == gate_4, "Equal state with different names not leading to same gate"
+    assert gate_1 != gate_3, "Different states shouldn't lead to same gate"
+
+
+def test_approx_equality_of_gates():
+    state = np.array([1, 0, 0, 0], dtype=np.complex64)
+    gate_1 = cirq.StatePreparationChannel(state)
+    gate_2 = cirq.StatePreparationChannel(state)
+    assert cirq.approx_eq(gate_1, gate_2), "Equal state not leading to same gate"
+    assert not cirq.approx_eq(gate_1, state), "Different object types cannot be approx equal"
+    perturbed_state = np.array([1 - 1e-9, 1e-10, 0, 0], dtype=np.complex64)
+    gate_3 = cirq.StatePreparationChannel(perturbed_state)
+    assert cirq.approx_eq(gate_3, gate_1), "Almost equal states should lead to the same gate"
+    different_state = np.array([1 - 1e-5, 1e-4, 0, 0], dtype=np.complex64)
+    gate_4 = cirq.StatePreparationChannel(different_state)
+    assert not cirq.approx_eq(gate_4, gate_1), "Different states should not lead to the same gate"
+    assert cirq.approx_eq(
+        gate_4, gate_1, atol=1e-3
+    ), "Gates with difference in states under the tolerance aren't equal"
+    assert not cirq.approx_eq(
+        gate_4, gate_1, atol=1e-6
+    ), "Gates with difference in states over the tolerance are equal"

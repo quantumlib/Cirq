@@ -18,10 +18,6 @@ from cirq.ops.arithmetic_operation import (
     ArithmeticOperation,
 )
 
-from cirq.ops.boolean_hamiltonian import (
-    BooleanHamiltonian,
-)
-
 from cirq.ops.clifford_gate import (
     PauliTransform,
     SingleQubitCliffordGate,
@@ -31,6 +27,10 @@ from cirq.ops.dense_pauli_string import (
     BaseDensePauliString,
     DensePauliString,
     MutableDensePauliString,
+)
+
+from cirq.ops.boolean_hamiltonian import (
+    BooleanHamiltonian,
 )
 
 from cirq.ops.common_channels import (
@@ -74,6 +74,12 @@ from cirq.ops.common_gates import (
     XPowGate,
     YPowGate,
     ZPowGate,
+)
+
+from cirq.ops.common_gate_families import (
+    AnyUnitaryGateFamily,
+    AnyIntegerPowerGateFamily,
+    ParallelGateFamily,
 )
 
 from cirq.ops.controlled_gate import (
