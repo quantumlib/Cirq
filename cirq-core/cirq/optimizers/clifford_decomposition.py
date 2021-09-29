@@ -98,6 +98,9 @@ def decompose_clifford_tableau_to_operations(
 
     Returns:
         A list of operations reconstructs the same Clifford tableau.
+
+    Raises:
+        ValueError: The length of input qubit mismatch with the size of tabluea.
     """
     if len(qubits) != clifford_tableau.n:
         raise ValueError(
