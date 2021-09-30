@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple, Any, Sequence, Union, Iterable, TYPE_CHECKING
 
 import networkx as nx
-from cirq.devices import GridQubit
+from cirq.devices import GridQubit, LineQubit
 from cirq.protocols.json_serialization import obj_to_dict_helper
 from matplotlib import pyplot as plt
 
@@ -118,6 +118,10 @@ class LineTopology(NamedTopology):
             [(i1, i2) for i1, i2 in zip(range(self.n_nodes), range(1, self.n_nodes))]
         )
         object.__setattr__(self, 'graph', graph)
+
+    def nodes_as_linequbits(self) -> List['cirq.LineQubit']:
+        """Get the graph nodes as cirq.LineQubit"""
+        return [LineQubit(x) for x in sorted(self.graph.nodes)]
 
     def draw(self, ax=None, tilted: bool = True, **kwargs) -> Dict[Any, Tuple[int, int]]:
         """Draw this graph using Matplotlib.
