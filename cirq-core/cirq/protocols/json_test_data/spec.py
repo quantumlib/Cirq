@@ -25,6 +25,8 @@ TestSpec = ModuleJsonTestSpec(
     resolver_cache=_class_resolver_dictionary(),
     not_yet_serializable=[
         'Alignment',
+        'AnyIntegerPowerGateFamily',
+        'AnyUnitaryGateFamily',
         'AxisAngleDecomposition',
         'CircuitDag',
         'CircuitDiagramInfo',
@@ -48,6 +50,7 @@ TestSpec = ModuleJsonTestSpec(
         'ListSweep',
         'DiagonalGate',
         'NeutralAtomDevice',
+        'ParallelGateFamily',
         'PauliInteractionGate',
         'PauliStringPhasor',
         'PauliSum',
