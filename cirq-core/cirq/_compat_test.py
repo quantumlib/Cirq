@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import dataclasses
 import importlib
 import logging
 import multiprocessing
@@ -35,6 +36,7 @@ from _pytest.outcomes import Failed
 import cirq.testing
 from cirq._compat import (
     proper_repr,
+    dataclass_repr,
     deprecated,
     deprecated_parameter,
     proper_eq,
@@ -82,6 +84,31 @@ def test_proper_repr_data_frame():
     )
     df2 = eval(proper_repr(df))
     pd.testing.assert_frame_equal(df2, df)
+
+
+def test_dataclass_repr_simple():
+    @dataclasses.dataclass
+    class TestClass1:
+        x: int
+        y: str
+        doodle: Any = dataclasses.field(repr=False, default=None)
+
+        def __repr__(self):
+            return dataclass_repr(self)
+
+    assert repr(TestClass1(5, 'hi')) == "cirq.TestClass1(x=5, y='hi')"
+
+
+def test_dataclass_repr_numpy():
+    @dataclasses.dataclass
+    class TestClass2:
+        x: np.ndarray
+
+        def __repr__(self):
+            return dataclass_repr(self, namespace='cirq.testing')
+
+    tc = TestClass2(np.ones(3))
+    assert repr(tc) == "cirq.testing.TestClass2(x=np.array([1.0, 1.0, 1.0], dtype=np.float64))"
 
 
 def test_proper_eq():
