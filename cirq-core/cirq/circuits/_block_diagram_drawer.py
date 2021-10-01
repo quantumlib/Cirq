@@ -158,9 +158,9 @@ class BlockDiagramDrawer:
     """Aligns text and curve data placed onto an abstract 2d grid of blocks."""
 
     def __init__(self):
-        self._blocks = collections.defaultdict(Block)  # type: dict[tuple[int, int], Block]
-        self._min_widths = collections.defaultdict(lambda: 0)  # type: dict[int, int]
-        self._min_heights = collections.defaultdict(lambda: 0)  # type: dict[int, int]
+        self._blocks = collections.defaultdict(Block)  # type: Dict[Tuple[int, int], Block]
+        self._min_widths = collections.defaultdict(lambda: 0)  # type: Dict[int, int]
+        self._min_heights = collections.defaultdict(lambda: 0)  # type: Dict[int, int]
 
         # Populate the origin.
         _ = self._blocks[(0, 0)]

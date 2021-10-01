@@ -11,7 +11,8 @@ FONT = "Arial"
 
 def fixup_text(text: str):
     if '\n' in text:
-        # TODO: Custom MatrixGate
+        # https://github.com/quantumlib/Cirq/issues/4499
+        # TODO: Visualize Custom MatrixGate
         return '?'
     if '[<virtual>]' in text:
         # https://github.com/quantumlib/Cirq/issues/2905

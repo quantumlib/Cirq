@@ -258,10 +258,6 @@ class AbstractCircuit(abc.ABC):
             + '</pre>'
         )
 
-    def _repr_svg_(self) -> str:
-        """Print SVG diagram of the circuit in Jupyter notebook."""
-        # TODO: Convert SVGCircuit() to _repr_svg_ under AbstractCircuit.
-
     def _first_moment_operating_on(
         self, qubits: Iterable['cirq.Qid'], indices: Iterable[int]
     ) -> Optional[int]:
