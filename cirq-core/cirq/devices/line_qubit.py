@@ -51,7 +51,7 @@ class _BaseLineQid(ops.Qid):
         """Returns qubits that are potential neighbors to this LineQubit
 
         Args:
-            qubits: optional Iterable of qubits to constrain neighbors to.
+            qids: optional Iterable of qubits to constrain neighbors to.
         """
         neighbors = set()
         for q in [self - 1, self + 1]:

@@ -18,7 +18,7 @@ from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
 from numpy import sqrt
 from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
-from cirq.ops import MeasurementGate, raw_types
+from cirq.ops import raw_types
 from cirq.value import Duration
 from cirq.neutral_atoms import convert_to_neutral_atom_gates
 
@@ -29,6 +29,23 @@ if TYPE_CHECKING:
 def _subgate_if_parallel_gate(gate: 'cirq.Gate') -> 'cirq.Gate':
     """Returns gate.sub_gate if gate is a ParallelGate, else returns gate"""
     return gate.sub_gate if isinstance(gate, ops.ParallelGate) else gate
+
+
+def neutral_atom_gateset(max_parallel_z=None, max_parallel_xy=None):
+    return ops.Gateset(
+        ops.AnyIntegerPowerGateFamily(ops.CNotPowGate),
+        ops.AnyIntegerPowerGateFamily(ops.CCNotPowGate),
+        ops.AnyIntegerPowerGateFamily(ops.CZPowGate),
+        ops.AnyIntegerPowerGateFamily(ops.CCZPowGate),
+        ops.ParallelGateFamily(ops.ZPowGate, max_parallel_allowed=max_parallel_z),
+        ops.ParallelGateFamily(ops.XPowGate, max_parallel_allowed=max_parallel_xy),
+        ops.ParallelGateFamily(ops.YPowGate, max_parallel_allowed=max_parallel_xy),
+        ops.ParallelGateFamily(ops.PhasedXPowGate, max_parallel_allowed=max_parallel_xy),
+        ops.MeasurementGate,
+        ops.IdentityGate,
+        unroll_circuit_op=False,
+        accept_global_phase=False,
+    )
 
 
 @value.value_equality
@@ -78,6 +95,22 @@ class NeutralAtomDevice(devices.Device):
                 "min of max_parallel_z and max_parallel_xy"
             )
         self._max_parallel_c = max_parallel_c
+        self.xy_gateset_all_allowed = ops.Gateset(
+            ops.ParallelGateFamily(ops.XPowGate),
+            ops.ParallelGateFamily(ops.YPowGate),
+            ops.ParallelGateFamily(ops.PhasedXPowGate),
+            unroll_circuit_op=False,
+            accept_global_phase=False,
+        )
+        self.controlled_gateset = ops.Gateset(
+            ops.AnyIntegerPowerGateFamily(ops.CNotPowGate),
+            ops.AnyIntegerPowerGateFamily(ops.CCNotPowGate),
+            ops.AnyIntegerPowerGateFamily(ops.CZPowGate),
+            ops.AnyIntegerPowerGateFamily(ops.CCZPowGate),
+            unroll_circuit_op=False,
+            accept_global_phase=False,
+        )
+        self.gateset = neutral_atom_gateset(max_parallel_z, max_parallel_xy)
         for q in qubits:
             if not isinstance(q, GridQubit):
                 raise ValueError(f'Unsupported qubit type: {q!r}')
@@ -107,7 +140,7 @@ class NeutralAtomDevice(devices.Device):
         """
         self.validate_operation(operation)
         if isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
-            if isinstance(operation.gate, MeasurementGate):
+            if isinstance(operation.gate, ops.MeasurementGate):
                 return self._measurement_duration
         return self._gate_duration
 
@@ -120,25 +153,10 @@ class NeutralAtomDevice(devices.Device):
         Raises:
             ValueError: If the given gate is not part of the native gate set.
         """
-        if not isinstance(
-            gate,
-            (
-                ops.CCXPowGate,
-                ops.CCZPowGate,
-                ops.CZPowGate,
-                ops.CNotPowGate,
-                ops.XPowGate,
-                ops.YPowGate,
-                ops.PhasedXPowGate,
-                MeasurementGate,
-                ops.ZPowGate,
-                ops.IdentityGate,
-            ),
-        ):
-            raise ValueError(f'Unsupported gate: {gate!r}')
-        if isinstance(gate, (ops.CNotPowGate, ops.CZPowGate, ops.CCXPowGate, ops.CCZPowGate)):
-            if not gate.exponent.is_integer():
+        if gate not in self.gateset:
+            if isinstance(gate, (ops.CNotPowGate, ops.CZPowGate, ops.CCXPowGate, ops.CCZPowGate)):
                 raise ValueError('controlled gates must have integer exponents')
+            raise ValueError(f'Unsupported gate: {gate!r}')
 
     def validate_operation(self, operation: ops.Operation):
         """Raises an error if the given operation is invalid on this device.
@@ -152,43 +170,21 @@ class NeutralAtomDevice(devices.Device):
         if not isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
-        gate = operation.gate
-        if isinstance(gate, ops.ParallelGate):
-            if isinstance(gate.sub_gate, ops.MeasurementGate):
-                raise ValueError(
-                    f'ParallelGate over MeasurementGate is not supported: {operation!r}'
-                )
-            gate = gate.sub_gate
-
-        # The gate must be valid
-        self.validate_gate(gate)
-
         # All qubits the operation acts on must be on the device
         for q in operation.qubits:
             if q not in self.qubits:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-        if isinstance(gate, (ops.MeasurementGate, ops.IdentityGate)):
-            return
+        if operation not in self.gateset and not (
+            operation in self.xy_gateset_all_allowed and len(operation.qubits) == len(self.qubits)
+        ):
+            raise ValueError(f'Unsupported operation: {operation!r}')
 
-        # Verify that a valid number of Z gates are applied in parallel
-        if isinstance(gate, ops.ZPowGate):
-            if len(operation.qubits) > self._max_parallel_z:
-                raise ValueError("Too many Z gates in parallel")
-            return
-
-        # Verify that a valid number of XY gates are applied in parallel
-        if isinstance(gate, (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate)):
-            if len(operation.qubits) > self._max_parallel_xy and len(operation.qubits) != len(
-                self.qubits
-            ):
-                raise ValueError("Bad number of XY gates in parallel")
-            return
-
-        # Verify that a controlled gate operation is valid
-        if len(operation.qubits) > self._max_parallel_c:
-            raise ValueError("Too many qubits acted on in parallel by a controlled gate operation")
-        if len(operation.qubits) > 1:
+        if operation in self.controlled_gateset:
+            if len(operation.qubits) > self._max_parallel_c:
+                raise ValueError(
+                    'Too many qubits acted on in parallel by a controlled gate operation'
+                )
             for p in operation.qubits:
                 for q in operation.qubits:
                     if self.distance(p, q) > self._control_radius:

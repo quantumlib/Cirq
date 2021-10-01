@@ -88,6 +88,8 @@ class MPSSimulator(
         )
 
     # pylint: enable=missing-raises-doc
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
@@ -118,6 +120,7 @@ class MPSSimulator(
             log_of_measurement_results=logs,
         )
 
+    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[MPSState]',
@@ -298,17 +301,11 @@ class MPSState(ActOnArgs):
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.M, self.simulation_options, self.grouping
 
-    def copy(self) -> 'MPSState':
-        state = MPSState(
-            qubits=self.qubits,
-            prng=self.prng,
-            simulation_options=self.simulation_options,
-            grouping=self.grouping,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
-        )
-        state.M = [x.copy() for x in self.M]
-        state.estimated_gate_error_list = self.estimated_gate_error_list
-        return state
+    def _on_copy(self, target: 'MPSState'):
+        target.simulation_options = self.simulation_options
+        target.grouping = self.grouping
+        target.M = [x.copy() for x in self.M]
+        target.estimated_gate_error_list = self.estimated_gate_error_list
 
     def state_vector(self) -> np.ndarray:
         """Returns the full state vector.

@@ -16,6 +16,7 @@ from typing import Tuple
 import numpy as np
 import pytest
 import sympy
+
 import cirq
 
 
@@ -28,7 +29,7 @@ def test_gate_operation_init():
 
 
 def test_invalid_gate_operation():
-    three_qubit_gate = cirq.ThreeQubitGate()
+    three_qubit_gate = cirq.testing.ThreeQubitGate()
     single_qubit = [cirq.GridQubit(0, 0)]
     with pytest.raises(ValueError, match="number of qubits"):
         cirq.GateOperation(three_qubit_gate, single_qubit)
@@ -48,7 +49,7 @@ def test_immutable():
 def test_gate_operation_eq():
     g1 = cirq.SingleQubitGate()
     g2 = cirq.SingleQubitGate()
-    g3 = cirq.TwoQubitGate()
+    g3 = cirq.testing.TwoQubitGate()
     r1 = [cirq.NamedQubit('r1')]
     r2 = [cirq.NamedQubit('r2')]
     r12 = r1 + r2
@@ -143,7 +144,8 @@ def test_gate_operation_pow():
 
 
 def test_with_qubits_and_transform_qubits():
-    g = cirq.ThreeQubitGate()
+    g = cirq.testing.ThreeQubitGate()
+    g = cirq.testing.ThreeQubitGate()
     op = cirq.GateOperation(g, cirq.LineQubit.range(3))
     assert op.with_qubits(*cirq.LineQubit.range(3, 0, -1)) == cirq.GateOperation(
         g, cirq.LineQubit.range(3, 0, -1)

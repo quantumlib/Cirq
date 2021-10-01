@@ -20,7 +20,7 @@ import cirq
 
 
 def test_avoids_decompose_when_matrix_available():
-    class OtherXX(cirq.TwoQubitGate):
+    class OtherXX(cirq.testing.TwoQubitGate):
         # coverage: ignore
         def _unitary_(self) -> np.ndarray:
             m = np.array([[0, 1], [1, 0]])
@@ -29,7 +29,7 @@ def test_avoids_decompose_when_matrix_available():
         def _decompose_(self, qubits):
             assert False
 
-    class OtherOtherXX(cirq.TwoQubitGate):
+    class OtherOtherXX(cirq.testing.TwoQubitGate):
         # coverage: ignore
         def _unitary_(self) -> np.ndarray:
             m = np.array([[0, 1], [1, 0]])
@@ -66,7 +66,7 @@ def test_composite_gates_without_matrix():
             yield cirq.X(qubits[0])
             yield cirq.Y(qubits[0]) ** 0.5
 
-    class CompositeDummy2(cirq.TwoQubitGate):
+    class CompositeDummy2(cirq.testing.TwoQubitGate):
         def _decompose_(self, qubits):
             yield cirq.CZ(qubits[0], qubits[1])
             yield CompositeDummy()(qubits[1])
@@ -93,7 +93,7 @@ def test_composite_gates_without_matrix():
 
 
 def test_ignore_unsupported_gate():
-    class UnsupportedDummy(cirq.TwoQubitGate):
+    class UnsupportedDummy(cirq.testing.TwoQubitGate):
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
@@ -107,7 +107,7 @@ def test_ignore_unsupported_gate():
 
 
 def test_fail_unsupported_gate():
-    class UnsupportedDummy(cirq.TwoQubitGate):
+    class UnsupportedDummy(cirq.testing.TwoQubitGate):
         pass
 
     q0, q1 = cirq.LineQubit.range(2)

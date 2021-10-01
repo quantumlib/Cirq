@@ -104,13 +104,8 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         """Returns the measurement from the stabilizer state form."""
         return [self.state._measure(self.qubit_map[q], self.prng) for q in qubits]
 
-    def copy(self) -> 'cirq.ActOnStabilizerCHFormArgs':
-        return ActOnStabilizerCHFormArgs(
-            state=self.state.copy(),
-            qubits=self.qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
-        )
+    def _on_copy(self, target: 'ActOnStabilizerCHFormArgs'):
+        target.state = self.state.copy()
 
     def sample(
         self,

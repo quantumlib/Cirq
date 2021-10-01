@@ -129,7 +129,7 @@ def test_decompose_returns_not_flat_op_tree():
 
 
 def test_decompose_returns_deep_op_tree():
-    class DummyGate(cirq.TwoQubitGate):
+    class DummyGate(cirq.testing.TwoQubitGate):
         def _decompose_(self, qubits):
             q0, q1 = qubits
             # Yield a tuple

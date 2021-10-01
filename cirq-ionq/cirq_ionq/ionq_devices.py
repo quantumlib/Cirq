@@ -12,7 +12,7 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
-from typing import AbstractSet, Callable, Dict, Sequence, Type, Union
+from typing import AbstractSet, Sequence, Union
 
 import numpy as np
 
@@ -50,20 +50,20 @@ class IonQAPIDevice(cirq.Device):
         else:
             self.qubits = frozenset(qubits)
         self.atol = atol
-        all_gates_valid = lambda x: True
-        near_1_mod_2 = lambda x: abs(x.gate.exponent % 2 - 1) < self.atol
-        self._is_api_gate_dispatch: Dict[Type['cirq.Gate'], Callable] = {
-            cirq.XPowGate: all_gates_valid,
-            cirq.YPowGate: all_gates_valid,
-            cirq.ZPowGate: all_gates_valid,
-            cirq.XXPowGate: all_gates_valid,
-            cirq.YYPowGate: all_gates_valid,
-            cirq.ZZPowGate: all_gates_valid,
-            cirq.CNotPowGate: near_1_mod_2,
-            cirq.HPowGate: near_1_mod_2,
-            cirq.SwapPowGate: near_1_mod_2,
-            cirq.MeasurementGate: all_gates_valid,
-        }
+        self.gateset = cirq.Gateset(
+            cirq.H,
+            cirq.CNOT,
+            cirq.SWAP,
+            cirq.XPowGate,
+            cirq.YPowGate,
+            cirq.ZPowGate,
+            cirq.XXPowGate,
+            cirq.YYPowGate,
+            cirq.ZZPowGate,
+            cirq.MeasurementGate,
+            unroll_circuit_op=False,
+            accept_global_phase=False,
+        )
 
     def qubit_set(self) -> AbstractSet['cirq.Qid']:
         return self.qubits
@@ -79,11 +79,7 @@ class IonQAPIDevice(cirq.Device):
             raise ValueError(f'Operation with qubits not on the device. Qubits: {operation.qubits}')
 
     def is_api_gate(self, operation: cirq.Operation) -> bool:
-        gate = operation.gate
-        for gate_mro_type in type(gate).mro():
-            if gate_mro_type in self._is_api_gate_dispatch:
-                return self._is_api_gate_dispatch[gate_mro_type](operation)
-        return False
+        return operation in self.gateset
 
     def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
         if self.is_api_gate(operation):
@@ -97,7 +93,7 @@ class IonQAPIDevice(cirq.Device):
             return self._decompose_single_qubit(operation)
         if num_qubits == 2:
             return self._decompose_two_qubit(operation)
-        raise ValueError('Operation {operation} not supported by IonQ API.')
+        raise ValueError(f'Operation {operation} not supported by IonQ API.')
 
     def _decompose_single_qubit(self, operation: cirq.Operation) -> cirq.OP_TREE:
         qubit = operation.qubits[0]

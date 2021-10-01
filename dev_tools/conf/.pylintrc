@@ -25,6 +25,7 @@ enable=
     line-too-long,
     lost-exception,
     missing-kwoa,
+    missing-param-doc,
     missing-raises-doc,
     mixed-indentation,
     mixed-line-endings,
