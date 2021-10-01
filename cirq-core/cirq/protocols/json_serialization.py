@@ -28,6 +28,7 @@ from typing import (
     overload,
     Sequence,
     Set,
+    Tuple,
     Type,
     Union,
 )
@@ -503,13 +504,20 @@ def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
 # pylint: disable=function-redefined
 @overload
 def to_json(
-    obj: Any, file_or_fn: Union[IO, pathlib.Path, str], *, indent=2, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: Union[IO, pathlib.Path, str],
+    *,
+    indent=2,
+    separators=None,
+    cls=CirqEncoder,
 ) -> None:
     pass
 
 
 @overload
-def to_json(obj: Any, file_or_fn: None = None, *, indent=2, cls=CirqEncoder) -> str:
+def to_json(
+    obj: Any, file_or_fn: None = None, *, indent=2, separators=None, cls=CirqEncoder
+) -> str:
     pass
 
 
@@ -518,6 +526,7 @@ def to_json(
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
     indent: int = 2,
+    separators: Tuple[str, str] = None,
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[str]:
     """Write a JSON file containing a representation of obj.
@@ -533,6 +542,9 @@ def to_json(
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
             Passed to json.dump.
+        separators: Passed to json.dump; key-value pairs delimiters defined as
+            `(item_separator, key_separators)` tuple. Note that any non-standard
+            operators (':', ',') will cause `read_json` to fail.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
@@ -565,14 +577,14 @@ def to_json(
         cls = ContextualEncoder
 
     if file_or_fn is None:
-        return json.dumps(obj, indent=indent, cls=cls)
+        return json.dumps(obj, indent=indent, separators=separators, cls=cls)
 
     if isinstance(file_or_fn, (str, pathlib.Path)):
         with open(file_or_fn, 'w') as actually_a_file:
             json.dump(obj, actually_a_file, indent=indent, cls=cls)
             return None
 
-    json.dump(obj, file_or_fn, indent=indent, cls=cls)
+    json.dump(obj, file_or_fn, indent=indent, separators=separators, cls=cls)
     return None
 
 
