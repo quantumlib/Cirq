@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import Iterator, List, Optional
+from typing import cast, Iterator, List, Optional
 
 import numpy as np
 import scipy.linalg
@@ -152,7 +152,7 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
             if next_index is not None:
                 ops_in_front = list({circuit.operation_at(q, next_index) for q in op.qubits})
                 if len(ops_in_front) == 1 and ops_in_front[0]:
-                    gate2 = ops_in_front[0].gate
+                    gate2 = cast(cirq.Operation, ops_in_front[0]).gate  # For mypy.
             else:
                 next_index = 0
 
