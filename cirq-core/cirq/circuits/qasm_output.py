@@ -85,7 +85,7 @@ class QasmUGate(ops.SingleQubitGate):
 
 
 @value.value_equality
-class QasmTwoQubitGate(ops.TwoQubitGate):
+class QasmTwoQubitGate(ops.Gate):
     def __init__(self, kak: linalg.KakDecomposition) -> None:
         """A two qubit gate represented in QASM by the KAK decomposition.
 
@@ -96,6 +96,9 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
             kak: KAK decomposition of the two-qubit gate.
         """
         self.kak = kak
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _value_equality_values_(self):
         return self.kak

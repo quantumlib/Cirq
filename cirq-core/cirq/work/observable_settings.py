@@ -12,21 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Iterable, Dict, TYPE_CHECKING, Tuple
+import dataclasses
+from typing import Union, Iterable, Dict, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
 
-from cirq import ops, value
+from cirq import ops, value, protocols
 
 if TYPE_CHECKING:
     import cirq
     from cirq.value.product_state import _NamedOneQubitState
 
-    # Workaround for mypy custom dataclasses
-    from dataclasses import dataclass as json_serializable_dataclass
-else:
-    from cirq.protocols import json_serializable_dataclass
 
-
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class InitObsSetting:
     """A pair of initial state and observable.
 
@@ -58,6 +54,9 @@ class InitObsSetting:
             f'init_state={self.init_state!r}, '
             f'observable={self.observable!r})'
         )
+
+    def _json_dict_(self):
+        return protocols.dataclass_json_dict(self)
 
 
 def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None, ops.PauliString]:
@@ -135,7 +134,9 @@ def _fix_precision(val: float, precision) -> int:
     return int(val * precision)
 
 
-def _hashable_param(param_tuples: Iterable[Tuple[str, float]], precision=1e7):
+def _hashable_param(
+    param_tuples: ItemsView[str, float], precision=1e7
+) -> FrozenSet[Tuple[str, float]]:
     """Hash circuit parameters using fixed precision.
 
     Circuit parameters can be floats but we also need to use them as
@@ -144,7 +145,7 @@ def _hashable_param(param_tuples: Iterable[Tuple[str, float]], precision=1e7):
     return frozenset((k, _fix_precision(v, precision)) for k, v in param_tuples)
 
 
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class _MeasurementSpec:
     """An encapsulation of all the specifications for one run of a
     quantum processor.
@@ -165,3 +166,6 @@ class _MeasurementSpec:
             f'cirq.work._MeasurementSpec(max_setting={self.max_setting!r}, '
             f'circuit_params={self.circuit_params!r})'
         )
+
+    def _json_dict_(self):
+        return protocols.dataclass_json_dict(self)

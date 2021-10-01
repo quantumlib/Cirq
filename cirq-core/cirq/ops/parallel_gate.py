@@ -34,7 +34,7 @@ class ParallelGate(raw_types.Gate):
         """Inits ParallelGate.
 
         Args:
-            gate: The gate to apply.
+            sub_gate: The gate to apply.
             num_copies: Number of copies of the gate to apply in parallel.
 
         Raises:

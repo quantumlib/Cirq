@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
+import dataclasses
 from abc import abstractmethod, ABC
-from dataclasses import dataclass
 from typing import (
     List,
     Optional,
@@ -29,8 +29,7 @@ import pandas as pd
 import scipy.optimize
 import scipy.stats
 import sympy
-
-from cirq import ops
+from cirq import ops, protocols
 from cirq.circuits import Circuit
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
@@ -38,16 +37,9 @@ if TYPE_CHECKING:
     import cirq
     import multiprocessing
 
-    # Workaround for mypy custom dataclasses (python/mypy#5406)
-    from dataclasses import dataclass as json_serializable_dataclass
-else:
-    from cirq.protocols import json_serializable_dataclass
-
 THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
     'theta zeta chi gamma phi'
 )
-SQRT_ISWAP = ops.ISWAP ** 0.5
-
 
 # TODO(#3388) Add documentation for Raises.
 # pylint: disable=missing-raises-doc
@@ -65,7 +57,7 @@ def benchmark_2q_xeb_fidelities(
     adapted for use on pandas DataFrames for efficient vectorized operation.
 
     Args:
-         sampled_df: The sampled results to benchmark. This is likely produced by a call to
+        sampled_df: The sampled results to benchmark. This is likely produced by a call to
             `sample_2q_xeb_circuits`.
         circuits: The library of circuits corresponding to the sampled results in `sampled_df`.
         cycle_depths: The sequence of cycle depths to benchmark the circuits. If not provided,
@@ -169,10 +161,10 @@ def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, float]:
         'gamma_default': 0.0,
         'phi_default': 0.0,
     }
-    if gate == SQRT_ISWAP:
+    if gate == ops.SQRT_ISWAP:
         defaults['theta_default'] = -np.pi / 4
         return defaults
-    if gate == SQRT_ISWAP ** -1:
+    if gate == ops.SQRT_ISWAP_INV:
         defaults['theta_default'] = np.pi / 4
         return defaults
     if isinstance(gate, ops.FSimGate):
@@ -191,8 +183,7 @@ def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, float]:
     raise ValueError(f"Unknown default angles for {gate}.")
 
 
-# mypy issue: https://github.com/python/mypy/issues/5374
-@json_serializable_dataclass(frozen=True)  # type: ignore
+@dataclasses.dataclass(frozen=True)
 class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     """Options for calibrating a PhasedFSim-like gate using XEB.
 
@@ -320,10 +311,15 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
             **gate_to_angles_func(gate),
         )
 
+    def _json_dict_(self):
+        return protocols.dataclass_json_dict(self)
+
 
 def SqrtISwapXEBOptions(*args, **kwargs):
     """Options for calibrating a sqrt(ISWAP) gate using XEB."""
-    return XEBPhasedFSimCharacterizationOptions(*args, **kwargs).with_defaults_from_gate(SQRT_ISWAP)
+    return XEBPhasedFSimCharacterizationOptions(*args, **kwargs).with_defaults_from_gate(
+        ops.SQRT_ISWAP
+    )
 
 
 def parameterize_circuit(
@@ -346,7 +342,7 @@ def parameterize_circuit(
 QPair_T = Tuple['cirq.Qid', 'cirq.Qid']
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class XEBCharacterizationResult:
     """The result of `characterize_phased_fsim_parameters_with_xeb`.
 
@@ -437,7 +433,7 @@ def characterize_phased_fsim_parameters_with_xeb(
     )
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class _CharacterizePhasedFsimParametersWithXebClosure:
     """A closure object to wrap `characterize_phased_fsim_parameters_with_xeb` for use in
     multiprocessing."""

@@ -17,16 +17,17 @@ This code implements the algorithm proposed for an example circuit (defined in
 the function build_circuit()) and a noise (defines in the variable noise).
 """
 
-from typing import cast, List, Optional, Tuple
 import argparse
-import asyncio
-from dataclasses import dataclass
 import itertools
 import math
 import random
 import sys
-import numpy as np
+from dataclasses import dataclass
+from typing import cast, List, Optional, Tuple
+
 import cirq
+import duet
+import numpy as np
 from cirq.sim import clifford
 
 
@@ -73,10 +74,9 @@ def compute_characteristic_function(
 async def estimate_characteristic_function(
     circuit: cirq.Circuit,
     pauli_string: cirq.PauliString,
-    qubits: List[cirq.Qid],
     sampler: cirq.Sampler,
     samples_per_term: int,
-):
+) -> float:
     """
     Estimates the characteristic function using a (noisy) circuit simulator by
     sampling the results.
@@ -84,7 +84,6 @@ async def estimate_characteristic_function(
     Args:
         circuit: The circuit to run the simulation on.
         pauli_string: The Pauli string.
-        qubits: The list of qubits.
         sampler: Either a noisy simulator or an engine.
         samples_per_term: An integer greater than 0, the number of samples.
 
@@ -443,10 +442,12 @@ def direct_fidelity_estimation(
         rho_i = pauli_trace.rho_i
 
         if samples_per_term > 0:
-            sigma_i = asyncio.get_event_loop().run_until_complete(
-                estimate_characteristic_function(
-                    circuit, measure_pauli_string, qubits, sampler, samples_per_term
-                )
+            sigma_i = duet.run(
+                estimate_characteristic_function,
+                circuit,
+                measure_pauli_string,
+                sampler,
+                samples_per_term,
             )
         else:
             sigma_i, _ = compute_characteristic_function(

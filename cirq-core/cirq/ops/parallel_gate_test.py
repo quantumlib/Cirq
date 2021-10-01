@@ -38,7 +38,7 @@ def test_parallel_gate_operation_init(gate, num_copies, qubits):
         (cirq.SingleQubitGate(), 3, cirq.LineQubit.range(2), "Wrong number of qubits"),
         (cirq.SingleQubitGate(), 0, cirq.LineQubit.range(4), "gate must be applied at least once"),
         (cirq.SingleQubitGate(), 2, [cirq.NamedQubit("a"), cirq.NamedQubit("a")], "Duplicate"),
-        (cirq.TwoQubitGate(), 2, cirq.LineQubit.range(4), "must be a single qubit gate"),
+        (cirq.testing.TwoQubitGate(), 2, cirq.LineQubit.range(4), "must be a single qubit gate"),
     ],
 )
 def test_invalid_parallel_gate_operation(gate, num_copies, qubits, error_msg):

@@ -25,6 +25,8 @@ TestSpec = ModuleJsonTestSpec(
     resolver_cache=_class_resolver_dictionary(),
     not_yet_serializable=[
         'Alignment',
+        'AnyIntegerPowerGateFamily',
+        'AnyUnitaryGateFamily',
         'AxisAngleDecomposition',
         'CircuitDag',
         'CircuitDiagramInfo',
@@ -37,6 +39,8 @@ TestSpec = ModuleJsonTestSpec(
         'DensityMatrixStepResult',
         'DensityMatrixTrialResult',
         'ExpressionMap',
+        'GateFamily',
+        'Gateset',
         'InsertStrategy',
         'IonDevice',
         'KakDecomposition',
@@ -46,6 +50,7 @@ TestSpec = ModuleJsonTestSpec(
         'ListSweep',
         'DiagonalGate',
         'NeutralAtomDevice',
+        'ParallelGateFamily',
         'PauliInteractionGate',
         'PauliStringPhasor',
         'PauliSum',
@@ -64,7 +69,6 @@ TestSpec = ModuleJsonTestSpec(
         'QuilFormatter',
         'QuilOutput',
         'SimulationTrialResult',
-        'SingleQubitCliffordGate',
         'SparseSimulatorStep',
         'StateVectorMixin',
         'TextDiagramDrawer',
@@ -126,6 +130,7 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesAmplitudes',
         'SimulatesExpectationValues',
         'SimulatesFinalState',
+        'NamedTopology',
         # protocols:
         'SupportsActOn',
         'SupportsActOnQubits',
@@ -182,4 +187,9 @@ TestSpec = ModuleJsonTestSpec(
     deprecated={
         'ParallelGateOperation': 'v0.14',
     },
+    tested_elsewhere=[
+        # SerializableByKey does not follow common serialization rules.
+        # It is tested separately in test_context_serialization.
+        'SerializableByKey',
+    ],
 )

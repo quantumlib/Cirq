@@ -19,6 +19,7 @@ from typing import (
     AbstractSet,
     Any,
     cast,
+    Collection,
     Dict,
     FrozenSet,
     Iterable,
@@ -350,6 +351,20 @@ class GateOperation(raw_types.Operation):
         if self.qubits != other.qubits:
             return False
         return protocols.equal_up_to_global_phase(self.gate, other.gate, atol=atol)
+
+    def controlled_by(
+        self,
+        *control_qubits: 'cirq.Qid',
+        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+    ) -> 'cirq.Operation':
+        if len(control_qubits) == 0:
+            return self
+        qubits = tuple(control_qubits)
+        return self._gate.controlled(
+            num_controls=len(qubits),
+            control_values=control_values,
+            control_qid_shape=tuple(q.dimension for q in qubits),
+        ).on(*(qubits + self._qubits))
 
 
 TV = TypeVar('TV', bound=raw_types.Gate)

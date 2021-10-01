@@ -16,6 +16,7 @@ import abc
 from typing import Generic, Dict, Any, List, Sequence, Union
 from unittest import mock
 
+import duet
 import numpy as np
 import pytest
 
@@ -371,7 +372,7 @@ def test_pretty_print():
     assert p.text_pretty == 'SimulationTrialResult(...)'
 
 
-@pytest.mark.asyncio
+@duet.sync
 async def test_async_sample():
     m = {'mock': np.array([[0], [1]])}
 

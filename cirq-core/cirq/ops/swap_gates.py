@@ -38,9 +38,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class SwapPowGate(
-    eigen_gate.EigenGate, gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGate
-):
+class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """The SWAP gate, possibly raised to a power. Exchanges qubits.
 
     SwapPowGate()**t = SwapPowGate(exponent=t) and acts on two qubits in the
@@ -59,6 +57,9 @@ class SwapPowGate(
 
     `cirq.SWAP`, the swap gate, is an instance of this gate at exponent=1.
     """
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _decompose_(self, qubits):
         """See base class."""
@@ -181,9 +182,7 @@ class SwapPowGate(
         return f'cirq.SwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
 
 
-class ISwapPowGate(
-    eigen_gate.EigenGate, gate_features.InterchangeableQubitsGate, gate_features.TwoQubitGate
-):
+class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """Rotates the |01⟩ vs |10⟩ subspace of two qubits around its Bloch X-axis.
 
     When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by i. More
@@ -210,6 +209,9 @@ class ISwapPowGate(
         "What is the matrix of the iSwap gate?"
         https://quantumcomputing.stackexchange.com/questions/2594/
     """
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         # yapf: disable

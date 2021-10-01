@@ -108,6 +108,7 @@ from cirq_google.serialization import (
     GateOpDeserializer,
     CircuitOpSerializer,
     GateOpSerializer,
+    Serializer,
     SerializingArg,
     SerializableGateSet,
     XMON,
@@ -115,6 +116,12 @@ from cirq_google.serialization import (
     SQRT_ISWAP_GATESET,
     SYC_GATESET,
     NAMED_GATESETS,
+)
+
+from cirq_google.workflow import (
+    ExecutableSpec,
+    QuantumExecutable,
+    BitstringsMeasurement,
 )
 
 from cirq_google import experimental

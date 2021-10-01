@@ -253,6 +253,8 @@ class Calibration(abc.Mapping):
             + f'{key} has target qubits {value_map.keys()}'
         )
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def plot_histograms(
         self,
         keys: Sequence[str],
@@ -301,6 +303,7 @@ class Calibration(abc.Mapping):
 
         return ax
 
+    # pylint: enable=missing-param-doc
     def plot(
         self, key: str, fig: Optional[mpl.figure.Figure] = None
     ) -> Tuple[mpl.figure.Figure, List[plt.Axes]]:
