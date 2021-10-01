@@ -481,11 +481,8 @@ def _list_public_classes_for_tested_modules():
     _list_public_classes_for_tested_modules(),
 )
 def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
-    if cirq_obj_name == "SerializableByKey":
-        pytest.skip(
-            "SerializableByKey does not follow common serialization rules. "
-            "It is tested separately in test_context_serialization."
-        )
+    if cirq_obj_name in mod_spec.tested_elsewhere:
+        pytest.skip("Tested elsewhere.")
 
     if cirq_obj_name in mod_spec.not_yet_serializable:
         return pytest.xfail(reason="Not serializable (yet)")
