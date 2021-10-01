@@ -94,8 +94,8 @@ class ConvertToNeutralAtomGates(PointOptimizer):
 
 
 def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
-    return operation in neutral_atom_devices.neutral_atom_gateset()  # coverage: ignore
+    return operation in neutral_atom_devices.neutral_atom_gateset()
 
 
 def is_native_neutral_atom_gate(gate: ops.Gate) -> bool:
-    return gate in neutral_atom_devices.neutral_atom_gateset()  # coverage: ignore
+    return gate in neutral_atom_devices.neutral_atom_gateset()
