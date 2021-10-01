@@ -31,18 +31,20 @@ class GateFamily:
         b) Python types inheriting from `cirq.Gate` (Type Family).
 
     By default, the containment checks depend on the initialization type:
-        a) Instance Family: Containment check is done by object equality.
+        a) Instance Family: Containment check is done via `cirq.equal_up_to_global_phase`.
         b) Type Family: Containment check is done by type comparison.
 
     For example:
         a) Instance Family:
             >>> gate_family = cirq.GateFamily(cirq.X)
             >>> assert cirq.X in gate_family
+            >>> assert cirq.Rx(rads=np.pi) in gate_family
             >>> assert cirq.X ** sympy.Symbol("theta") not in gate_family
 
         b) Type Family:
             >>> gate_family = cirq.GateFamily(cirq.XPowGate)
             >>> assert cirq.X in gate_family
+            >>> assert cirq.Rx(rads=np.pi) in gate_family
             >>> assert cirq.X ** sympy.Symbol("theta") in gate_family
 
     In order to create gate families with constraints on parameters of a gate
@@ -56,6 +58,7 @@ class GateFamily:
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
+        ignore_global_phase: bool = True,
     ) -> None:
         """Init GateFamily.
 
@@ -64,6 +67,8 @@ class GateFamily:
                 a non-parameterized instance of a `cirq.Gate` for equality based membership checks.
             name: The name of the gate family.
             description: Human readable description of the gate family.
+            ignore_global_phase: If True, value equality is checked via
+                `cirq.equal_up_to_global_phase`.
 
         Raises:
             ValueError: if `gate` is not a `cirq.Gate` instance or subclass.
@@ -80,6 +85,7 @@ class GateFamily:
         self._gate = gate
         self._name = name if name else self._default_name()
         self._description = description if description else self._default_description()
+        self._ignore_global_phase = ignore_global_phase
 
     def _gate_str(self, gettr: Callable[[Any], str] = str) -> str:
         return (
@@ -112,17 +118,22 @@ class GateFamily:
         """Checks whether `cirq.Gate` instance `gate` belongs to this GateFamily.
 
         The default predicate depends on the gate family initialization type:
-            a) Instance Family: `gate == self.gate`.
+            a) Instance Family: `cirq.equal_up_to_global_phase(gate, self.gate)`
+                                 if self._ignore_global_phase else `gate == self.gate`.
             b) Type Family: `isinstance(gate, self.gate)`.
 
         Args:
             gate: `cirq.Gate` instance which should be checked for containment.
         """
-        return (
-            gate == self.gate
-            if isinstance(self.gate, raw_types.Gate)
-            else isinstance(gate, self.gate)
-        )
+        if isinstance(self.gate, raw_types.Gate):
+            return (
+                protocols.equal_up_to_global_phase(gate, self.gate)
+                if self._ignore_global_phase
+                else gate == self._gate
+            )
+
+        else:
+            return isinstance(gate, self.gate)
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
         if isinstance(item, raw_types.Operation):
@@ -138,12 +149,19 @@ class GateFamily:
         return (
             f'cirq.GateFamily(gate={self._gate_str(repr)},'
             f'name="{self.name}", '
-            f'description="{self.description}")'
+            f'description="{self.description}",'
+            f'ignore_global_phase={self._ignore_global_phase})'
         )
 
     def _value_equality_values_(self) -> Any:
         # `isinstance` is used to ensure the a gate type and gate instance is not compared.
-        return isinstance(self.gate, raw_types.Gate), self.gate, self.name, self.description
+        return (
+            isinstance(self.gate, raw_types.Gate),
+            self.gate,
+            self.name,
+            self.description,
+            self._ignore_global_phase,
+        )
 
 
 @value.value_equality()
@@ -192,15 +210,12 @@ class Gateset:
         self._accept_global_phase = accept_global_phase
         self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
         self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
-        self._custom_gate_families: List[GateFamily] = []
         for g in self._gates:
             if type(g) == GateFamily:
                 if isinstance(g.gate, raw_types.Gate):
                     self._instance_gate_families[g.gate] = g
                 else:
                     self._type_gate_families[g.gate] = g
-            else:
-                self._custom_gate_families.append(g)
 
     @property
     def name(self) -> Optional[str]:
@@ -295,7 +310,7 @@ class Gateset:
                 )
                 return True
 
-        return any(item in gate_family for gate_family in self._custom_gate_families)
+        return any(item in gate_family for gate_family in self._gates)
 
     def validate(
         self,

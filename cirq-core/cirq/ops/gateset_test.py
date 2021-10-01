@@ -131,11 +131,19 @@ def test_gate_family_eq():
             cirq.GateFamily(CustomX),
             [
                 (CustomX, True),
+                (CustomXPowGate(exponent=1, global_shift=0.15), True),
                 (CustomX ** 2, False),
                 (CustomX ** 3, True),
                 (CustomX ** sympy.Symbol('theta'), False),
                 (None, False),
                 (cirq.GlobalPhaseOperation(1j), False),
+            ],
+        ),
+        (
+            cirq.GateFamily(CustomX, ignore_global_phase=False),
+            [
+                (CustomX, True),
+                (CustomXPowGate(exponent=1, global_shift=0.15), False),
             ],
         ),
     ],
@@ -201,7 +209,7 @@ def test_gateset_repr_and_str():
         (CustomX ** 2, True),
         (CustomXPowGate(exponent=3, global_shift=0.5), True),
         (CustomX ** 0.5, True),
-        (CustomXPowGate(exponent=0.5, global_shift=0.5), False),
+        (CustomXPowGate(exponent=0.5, global_shift=0.5), True),
         (CustomX ** 0.25, False),
         (CustomX ** sympy.Symbol('theta'), False),
         (cirq.testing.TwoQubitGate(), True),
