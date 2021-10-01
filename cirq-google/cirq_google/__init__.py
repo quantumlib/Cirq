@@ -118,6 +118,12 @@ from cirq_google.serialization import (
     NAMED_GATESETS,
 )
 
+from cirq_google.workflow import (
+    ExecutableSpec,
+    QuantumExecutable,
+    BitstringsMeasurement,
+)
+
 from cirq_google import experimental
 
 
