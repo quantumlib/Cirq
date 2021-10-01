@@ -136,11 +136,11 @@ def test_validate_operation_errors():
         d.validate_operation(cirq.CCX.on(*d.qubit_list()[0:3]))
     with pytest.raises(ValueError, match="are too far away"):
         d.validate_operation(cirq.CZ.on(cirq.GridQubit(0, 0), cirq.GridQubit(2, 2)))
-    with pytest.raises(ValueError, match="Too many Z gates in parallel"):
+    with pytest.raises(ValueError, match="Unsupported operation"):
         d.validate_operation(cirq.parallel_gate_op(cirq.Z, *d.qubits))
-    with pytest.raises(ValueError, match="Bad number of XY gates in parallel"):
+    with pytest.raises(ValueError, match="Unsupported operation"):
         d.validate_operation(cirq.parallel_gate_op(cirq.X, *d.qubit_list()[1:]))
-    with pytest.raises(ValueError, match="ParallelGate over MeasurementGate is not supported"):
+    with pytest.raises(ValueError, match="Unsupported operation"):
         d.validate_operation(
             cirq.ParallelGate(cirq.MeasurementGate(1, key='a'), 4)(*d.qubit_list()[:4])
         )
