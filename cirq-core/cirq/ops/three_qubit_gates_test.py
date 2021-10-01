@@ -39,6 +39,8 @@ def test_eigen_gates_consistent_protocols(eigen_gate_type):
         (cirq.CSWAP, False),
         (cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]), True),
         (cirq.ThreeQubitDiagonalGate([0, 0, 0, 0, 0, 0, 0, 0]), True),
+        (cirq.CCX, False),
+        (cirq.CCZ, False),
     ),
 )
 def test_consistent_protocols(gate, ignoring_global_phase):
@@ -320,3 +322,10 @@ def test_resolve(resolve_fn):
     diagonal_gate = resolve_fn(diagonal_gate, {'b': 19})
     assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles)
     assert not cirq.is_parameterized(diagonal_gate)
+
+
+@pytest.mark.parametrize('gate', [cirq.CCX, cirq.CCZ, cirq.CSWAP])
+def test_controlled_ops_consistency(gate):
+    a, b, c, d = cirq.LineQubit.range(4)
+    assert gate.controlled(0) is gate
+    assert gate(a, b, c).controlled_by(d) == gate(d, b, c).controlled_by(a)
