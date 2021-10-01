@@ -14,7 +14,7 @@
 
 """Functionality for grouping and validating Cirq Gates"""
 
-from typing import Any, Callable, cast, Dict, FrozenSet, List, Optional, Type, TYPE_CHECKING, Union
+from typing import Any, Callable, cast, Dict, FrozenSet, Optional, Type, TYPE_CHECKING, Union
 from cirq.ops import global_phase_op, op_tree, raw_types
 from cirq import protocols, value
 
