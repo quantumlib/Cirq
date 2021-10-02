@@ -130,15 +130,6 @@ def test_non_measurement_with_key():
 
 
 def test_measurement_keys():
-    class Composite(cirq.Gate):
-        def _decompose_(self, qubits):
-            yield cirq.measure(qubits[0], key='inner1')
-            yield cirq.measure(qubits[1], key='inner2')
-            yield cirq.reset(qubits[0])
-
-        def num_qubits(self) -> int:
-            return 2
-
     class MeasurementKeysGate(cirq.Gate):
         def _measurement_key_names_(self):
             return ['a', 'b']
@@ -154,28 +145,26 @@ def test_measurement_keys():
             return 1
 
     a, b = cirq.LineQubit.range(2)
-    assert cirq.is_measurement(Composite())
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.measurement_keys(Composite()) == {'inner1', 'inner2'}
     with cirq.testing.assert_deprecated(deadline="v0.13"):
         assert cirq.measurement_key_names(DeprecatedMagicMethod()) == {'a', 'b'}
     with cirq.testing.assert_deprecated(deadline="v0.13"):
         assert cirq.measurement_key_names(DeprecatedMagicMethod().on(a)) == {'a', 'b'}
-    assert cirq.measurement_key_names(Composite()) == {'inner1', 'inner2'}
-    assert cirq.measurement_key_names(Composite().on(a, b)) == {'inner1', 'inner2'}
-    assert not cirq.is_measurement(Composite(), allow_decompose=False)
-    assert cirq.measurement_key_names(Composite(), allow_decompose=False) == set()
-    assert cirq.measurement_key_names(Composite().on(a, b), allow_decompose=False) == set()
 
     assert cirq.measurement_key_names(None) == set()
     assert cirq.measurement_key_names([]) == set()
     assert cirq.measurement_key_names(cirq.X) == set()
     assert cirq.measurement_key_names(cirq.X(a)) == set()
-    assert cirq.measurement_key_names(None, allow_decompose=False) == set()
-    assert cirq.measurement_key_names([], allow_decompose=False) == set()
-    assert cirq.measurement_key_names(cirq.X, allow_decompose=False) == set()
+    with cirq.testing.assert_deprecated(deadline="v0.14"):
+        assert cirq.measurement_key_names(None, allow_decompose=False) == set()
+    with cirq.testing.assert_deprecated(deadline="v0.14"):
+        assert cirq.measurement_key_names([], allow_decompose=False) == set()
+    with cirq.testing.assert_deprecated(deadline="v0.14"):
+        assert cirq.measurement_key_names(cirq.X, allow_decompose=False) == set()
     assert cirq.measurement_key_names(cirq.measure(a, key='out')) == {'out'}
-    assert cirq.measurement_key_names(cirq.measure(a, key='out'), allow_decompose=False) == {'out'}
+    with cirq.testing.assert_deprecated(deadline="v0.14"):
+        assert cirq.measurement_key_names(cirq.measure(a, key='out'), allow_decompose=False) == {
+            'out'
+        }
 
     assert cirq.measurement_key_names(
         cirq.Circuit(cirq.measure(a, key='a'), cirq.measure(b, key='2'))

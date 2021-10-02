@@ -44,23 +44,11 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
         super().__init__()
         self.ignore_failures = ignore_failures
         self.allow_partial_czs = allow_partial_czs
-
-    def _keep(self, op: ops.Operation) -> bool:
-        # Check if this is a CZ
-        # Only keep partial CZ gates if allow_partial_czs
-        if isinstance(op.gate, ops.CZPowGate) and (
-            self.allow_partial_czs or value.canonicalize_half_turns(op.gate.exponent) == 1
-        ):
-            return True
-
-        # Measurement in Z basis?
-        if isinstance(op.gate, ops.MeasurementGate):
-            return True
-
-        # SingleQubit known matrix
-        if len(op.qubits) == 1 and protocols.has_unitary(op):
-            return True
-        return False
+        self.gateset = ops.Gateset(
+            ops.CZPowGate if allow_partial_czs else ops.CZ,
+            ops.MeasurementGate,
+            ops.AnyUnitaryGateFamily(1),
+        )
 
     def _decompose_two_qubit_unitaries(self, op: ops.Operation) -> ops.OP_TREE:
         # Known matrix?
@@ -85,7 +73,7 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
         converted = protocols.decompose(
             op,
             intercepting_decomposer=self._decompose_two_qubit_unitaries,
-            keep=self._keep,
+            keep=self.gateset._validate_operation,
             on_stuck_raise=(None if self.ignore_failures else self._on_stuck_raise),
         )
         if converted == [op]:

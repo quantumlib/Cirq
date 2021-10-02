@@ -18,10 +18,6 @@ import sympy
 
 import cirq
 
-SQRT_ISWAP = cirq.ISWAP ** 0.5
-SQRT_ISWAP_INV = cirq.ISWAP ** -0.5
-
-
 # TODO: Combine this with the equivalent functions in google/gate_set.py
 # Or better yet, write a proper gate set so we don't need this in two places.
 # Github issue: https://github.com/quantumlib/Cirq/issues/2970
@@ -207,9 +203,9 @@ def cphase_to_sqrt_iswap(a, b, turns):
     yield cirq.rz(sign * 0.5 * theta_prime).on(b)
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (-sign * 0.5)
-    yield SQRT_ISWAP_INV(a, b)
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.rx(-2 * phi).on(a)
-    yield SQRT_ISWAP(a, b)
+    yield cirq.SQRT_ISWAP(a, b)
 
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (sign * 0.5)
@@ -238,9 +234,9 @@ def cphase_symbols_to_sqrt_iswap(a, b, turns):
     yield cirq.rz(sign * 0.5 * theta_prime).on(b)
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (-sign * 0.5)
-    yield SQRT_ISWAP_INV(a, b)
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.rx(-2 * phi).on(a)
-    yield SQRT_ISWAP(a, b)
+    yield cirq.SQRT_ISWAP(a, b)
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (sign * 0.5)
 
@@ -261,10 +257,10 @@ def iswap_to_sqrt_iswap(a, b, turns):
     """
     yield cirq.Z(a) ** 0.75
     yield cirq.Z(b) ** 0.25
-    yield SQRT_ISWAP_INV(a, b)
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.Z(a) ** (-turns / 2 + 1)
     yield cirq.Z(b) ** (turns / 2)
-    yield SQRT_ISWAP_INV(a, b)
+    yield cirq.SQRT_ISWAP_INV(a, b)
     yield cirq.Z(a) ** 0.25
     yield cirq.Z(b) ** -0.25
 
@@ -290,13 +286,13 @@ def swap_to_sqrt_iswap(a, b, turns):
         # Decomposition for cirq.SWAP
         yield cirq.Y(a) ** 0.5
         yield cirq.Y(b) ** 0.5
-        yield SQRT_ISWAP(a, b)
+        yield cirq.SQRT_ISWAP(a, b)
         yield cirq.Y(a) ** -0.5
         yield cirq.Y(b) ** -0.5
-        yield SQRT_ISWAP(a, b)
+        yield cirq.SQRT_ISWAP(a, b)
         yield cirq.X(a) ** -0.5
         yield cirq.X(b) ** -0.5
-        yield SQRT_ISWAP(a, b)
+        yield cirq.SQRT_ISWAP(a, b)
         yield cirq.X(a) ** 0.5
         yield cirq.X(b) ** 0.5
         return
