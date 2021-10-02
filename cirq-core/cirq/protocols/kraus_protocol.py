@@ -106,7 +106,7 @@ class SupportsKraus(Protocol):
         """
 
 
-@deprecated(deadline="v0.13", fix="use cirq.kraus instead")
+@deprecated(deadline='v0.13', fix='use cirq.kraus instead')
 def channel(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
 ) -> Union[Tuple[np.ndarray, ...], TDefault]:
