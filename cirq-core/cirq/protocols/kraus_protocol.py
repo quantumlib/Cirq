@@ -27,11 +27,8 @@ from cirq._compat import (
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,
-    decompose,
 )
 from cirq.protocols import mixture_protocol, has_unitary_protocol
-from cirq.ops.raw_types import Qid
-
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -171,13 +168,9 @@ def kraus(
     if mixture_result is not None and mixture_result is not NotImplemented:
         return tuple(np.sqrt(p) * u for p, u in mixture_result)
 
-    decomposed = decompose(val)
+    decomposed, qubits, _ = _try_decompose_into_operations_and_qubits(val)
 
-    if decomposed != [val]:
-        qubits: List[Qid] = []
-        for x in decomposed:
-            qubits.extend(x.qubits)
-        qubits = sorted(list(set(qubits)))
+    if decomposed is not None and decomposed != [val]:
         limit = (4 ** np.prod(len(qubits))) ** 2
 
         kraus_list = list(map(lambda x: _kraus_tensor(x, qubits, default), decomposed))
@@ -261,7 +254,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     Returns:
         Whether or not `val` has a Kraus representation.
     """
-    channel_getter = getattr(val, "_has_channel_", None)
+    channel_getter = getattr(val, '_has_channel_', None)
     if channel_getter is not None:
         warnings.warn(
             '_has_channel_ is deprecated and will be removed in cirq 0.13, rename to _has_kraus_',

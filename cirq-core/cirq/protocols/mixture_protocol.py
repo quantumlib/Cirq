@@ -20,15 +20,9 @@ from typing_extensions import Protocol
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,
-    decompose,
-    decompose_once_with_qubits,
 )
 from cirq.protocols import has_unitary_protocol, unitary_protocol
-from cirq.protocols.qid_shape_protocol import qid_shape
 from cirq.type_workarounds import NotImplementedType
-from cirq.devices.line_qubit import LineQid
-
-from cirq.ops.raw_types import Qid, Gate
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -100,18 +94,10 @@ def mixture(
     if unitary_result is not None and unitary_result is not NotImplemented:
         return ((1.0, unitary_result),)
 
-    decomposed = (
-        decompose_once_with_qubits(val, LineQid.for_qid_shape(qid_shape(val)), [])
-        if isinstance(val, Gate)
-        else decompose(val)
-    )
+    decomposed, qubits, _ = _try_decompose_into_operations_and_qubits(val)
 
     # serial concatenation
-    if decomposed != [] and decomposed != [val]:
-        qubits: List[Qid] = []
-        for x in decomposed:
-            qubits.extend(x.qubits)
-        qubits = list(set(qubits))
+    if decomposed is not None and decomposed != [val]:
         limit = (4 ** np.prod(len(qubits))) ** 2
 
         qubits = sorted(list(set(qubits)))
