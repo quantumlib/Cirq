@@ -14,7 +14,17 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import AbstractSet, Any, List, Optional, Tuple, TYPE_CHECKING
+from typing import (
+    AbstractSet,
+    Any,
+    Collection,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 import sympy
@@ -30,6 +40,7 @@ from cirq.ops import (
     pauli_gates,
     raw_types,
     swap_gates,
+    raw_types,
 )
 
 if TYPE_CHECKING:
@@ -168,6 +179,31 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def _num_qubits_(self) -> int:
         return 3
+
+    def controlled(
+        self,
+        num_controls: int = None,
+        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_qid_shape: Optional[Tuple[int, ...]] = None,
+    ) -> raw_types.Gate:
+        """Returns a controlled `ZPowGate` with two additional controls.
+
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate` with `sub_gate = self`. This method
+        overrides this behavior to return a `ControlledGate` with
+        `sub_gate = ZPowGate`.
+        """
+        if num_controls == 0:
+            return self
+        return controlled_gate.ControlledGate(
+            controlled_gate.ControlledGate(
+                common_gates.ZPowGate(exponent=self._exponent, global_shift=self._global_shift),
+                num_controls=2,
+            ),
+            num_controls=num_controls,
+            control_values=control_values,
+            control_qid_shape=control_qid_shape,
+        )
 
 
 @value.value_equality()
@@ -432,6 +468,31 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _num_qubits_(self) -> int:
         return 3
 
+    def controlled(
+        self,
+        num_controls: int = None,
+        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_qid_shape: Optional[Tuple[int, ...]] = None,
+    ) -> raw_types.Gate:
+        """Returns a controlled `XPowGate` with two additional controls.
+
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate` with `sub_gate = self`. This method
+        overrides this behavior to return a `ControlledGate` with
+        `sub_gate = XPowGate`.
+        """
+        if num_controls == 0:
+            return self
+        return controlled_gate.ControlledGate(
+            controlled_gate.ControlledGate(
+                common_gates.XPowGate(exponent=self._exponent, global_shift=self._global_shift),
+                num_controls=2,
+            ),
+            num_controls=num_controls,
+            control_values=control_values,
+            control_qid_shape=control_qid_shape,
+        )
+
 
 @value.value_equality()
 class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
@@ -579,6 +640,28 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def _num_qubits_(self) -> int:
         return 3
+
+    def controlled(
+        self,
+        num_controls: int = None,
+        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_qid_shape: Optional[Tuple[int, ...]] = None,
+    ) -> raw_types.Gate:
+        """Returns a controlled `SWAP` with one additional control.
+
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate` with `sub_gate = self`. This method
+        overrides this behavior to return a `ControlledGate` with
+        `sub_gate = SWAP`.
+        """
+        if num_controls == 0:
+            return self
+        return controlled_gate.ControlledGate(
+            controlled_gate.ControlledGate(swap_gates.SWAP, num_controls=1),
+            num_controls=num_controls,
+            control_values=control_values,
+            control_qid_shape=control_qid_shape,
+        )
 
 
 CCZ = CCZPowGate()

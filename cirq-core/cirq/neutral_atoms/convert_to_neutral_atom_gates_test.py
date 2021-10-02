@@ -46,6 +46,7 @@ def test_coverage():
     with pytest.raises(TypeError, match="Don't know how to work with"):
         cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(op)
     assert not cirq.neutral_atoms.is_native_neutral_atom_op(op)
+    assert not cirq.neutral_atoms.is_native_neutral_atom_gate(g)
 
 
 def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
