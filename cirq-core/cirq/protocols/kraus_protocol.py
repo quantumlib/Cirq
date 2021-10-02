@@ -14,7 +14,7 @@
 
 """Protocol and methods for quantum channels."""
 
-from typing import Any, Sequence, Tuple, TypeVar, Union, List
+from typing import Any, Sequence, Tuple, TypeVar, Union
 import warnings
 
 import numpy as np
@@ -28,7 +28,7 @@ from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,
 )
-from cirq.protocols import mixture_protocol, has_unitary_protocol
+from cirq.protocols import mixture_protocol
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -149,20 +149,9 @@ def kraus(
             method returned NotImplemented) and also no default value was
             specified.
     """
-    channel_getter = getattr(val, '_channel_', None)
-    if channel_getter is not None:
-        warnings.warn(
-            '_channel_ is deprecated and will be removed in cirq 0.13, rename to _kraus_',
-            DeprecationWarning,
-        )
-
-    channel_result = NotImplemented if channel_getter is None else channel_getter()
-    if channel_result is not NotImplemented:
-        return tuple(channel_result)
-
-    _, kraus_result = _strat_kraus_from_kraus(val)
-    if kraus_result is not None and kraus_result is not NotImplemented:
-        return kraus_result
+    result = _gettr_helper(val, ['_kraus_', '_channel_'])
+    if result is not None and result is not NotImplemented:
+        return result
 
     mixture_result = mixture_protocol.mixture(val, None)
     if mixture_result is not None and mixture_result is not NotImplemented:
@@ -186,10 +175,7 @@ def kraus(
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if not any(
-        getattr(val, instance, None) is not None
-        for instance in ["_kraus_", "_unitary_", "_mixture_"]
-    ):
+    if _gettr_helper(val, ['_kraus_', '_unitary_', '_mixture_']) is None:
         raise TypeError(
             "object of type '{}' has no _kraus_ or _mixture_ or "
             "_unitary_ method.".format(type(val))
@@ -230,13 +216,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
         Case b) Method returns a 3D array.
             Kraus.
 
-    4. Try to use `cirq.unitary()`.
-        Case a) Method not present or returns `NotImplemented`.
-            No Kraus.
-        Case b) Method returns a 3D array.
-            Kraus.
-
-    5. If decomposition is allowed apply recursion and check.
+    4. If decomposition is allowed apply recursion and check.
 
     If all the above methods fail then it is assumed to have no Kraus
     representation.
@@ -254,29 +234,11 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     Returns:
         Whether or not `val` has a Kraus representation.
     """
-    channel_getter = getattr(val, '_has_channel_', None)
-    if channel_getter is not None:
-        warnings.warn(
-            '_has_channel_ is deprecated and will be removed in cirq 0.13, rename to _has_kraus_',
-            DeprecationWarning,
-        )
-
-    result = NotImplemented if channel_getter is None else channel_getter()
-    if result is not NotImplemented and result:
+    result = _gettr_helper(val, ['_has_kraus_', '_has_channel_', '_kraus_', '_channel_'])
+    if result is not None and result is not NotImplemented and result:
         return True
 
-    for instance in [has_unitary_protocol.has_unitary, mixture_protocol.has_mixture]:
-        result = instance(val)
-        if result is not NotImplemented and result:
-            return True
-
-    getter = getattr(val, "_has_kraus_", None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented and result:
-        return True
-
-    strats = [_strat_kraus_from_kraus]
-    if any(strat(val)[1] is not None and strat(val)[1] is not NotImplemented for strat in strats):
+    if mixture_protocol.has_mixture(val, allow_decompose=False):
         return True
 
     if allow_decompose:
@@ -284,6 +246,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
         if operations is not None:
             return all(has_kraus(val) for val in operations)
 
+    # No has methods, use `_kraus_` or delegates instead.
     return False
 
 
@@ -322,11 +285,24 @@ def _kraus_tensor(op, qubits, default):
     return val
 
 
-def _strat_kraus_from_kraus(val: Any):
-    """Attempts to compute the value's kraus via its _kraus_ method."""
-    kraus_getter = getattr(val, "_kraus_", None)
-    kraus_result = NotImplemented if kraus_getter is None else kraus_getter()
-    if kraus_result is not NotImplemented:
-        return kraus_getter, tuple(kraus_result)
+def _gettr_helper(val: Any, gett_str_list: Sequence[str]):
+    notImplementedFlag = False
+    for gettr_str in gett_str_list:
+        gettr = getattr(val, gettr_str, None)
+        if gettr is None:
+            continue
+        if 'channel' in gettr_str:
+            warnings.warn(
+                f'{gettr_str} is deprecated and will be removed in cirq 0.13, rename to '
+                f'{gettr_str.replace("channel", "kraus")}',
+                DeprecationWarning,
+            )
+        result = gettr()
+        if result is NotImplemented:
+            notImplementedFlag = True
+        elif result is not None:
+            return result
 
-    return kraus_getter, kraus_result
+    if notImplementedFlag:
+        return NotImplemented
+    return None

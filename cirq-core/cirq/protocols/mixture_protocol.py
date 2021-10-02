@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Protocol for objects that are mixtures (probabilistic combinations)."""
-from typing import Any, Sequence, Tuple, Union, List
+from typing import Any, Sequence, Tuple, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -86,7 +86,7 @@ def mixture(
         with that probability in the mixture. The probabilities will sum to 1.0.
     """
 
-    mixture_result = _strat_mixture_from_mixture(val)
+    mixture_result = _gettr_helper(val, ['_mixture_'])
     if mixture_result is not None and mixture_result is not NotImplemented:
         return mixture_result
 
@@ -100,7 +100,6 @@ def mixture(
     if decomposed is not None and decomposed != [val]:
         limit = (4 ** np.prod(len(qubits))) ** 2
 
-        qubits = sorted(list(set(qubits)))
         mixture_list = list(map(lambda x: _mixture_tensor(x, qubits, default), decomposed))
         if not any([_check_equality(x, default) for x in mixture_list]):
             mixture_result = mixture_list[0]
@@ -119,7 +118,7 @@ def mixture(
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if not any(getattr(val, instance, None) is not None for instance in ["_unitary_", "_mixture_"]):
+    if _gettr_helper(val, ['_unitary_', '_mixture_']) is None:
         raise TypeError(f"object of type '{type(val)}' has no _mixture_ or _unitary_ method.")
 
     raise TypeError(
@@ -148,16 +147,11 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
         has a `_mixture_` method return True if that has a non-default value.
         Returns False if neither function exists.
     """
-    mixture_getter = getattr(val, '_has_mixture_', None)
-    result = NotImplemented if mixture_getter is None else mixture_getter()
-    if result is not NotImplemented:
-        return result
-
-    if has_unitary_protocol.has_unitary(val, allow_decompose=False):
+    result = _gettr_helper(val, ['_has_mixture_', '_mixture_'])
+    if result is not None and result is not NotImplemented and result:
         return True
 
-    strats = [_strat_mixture_from_mixture]
-    if any(strat(val) is not None and strat(val) is not NotImplemented for strat in strats):
+    if has_unitary_protocol.has_unitary(val, allow_decompose=False):
         return True
 
     if allow_decompose:
@@ -186,13 +180,6 @@ def validate_mixture(supports_mixture: SupportsMixture):
         total += p
     if not np.isclose(total, 1.0):
         raise ValueError("Sum of probabilities of a mixture was not 1.0")
-
-
-def _strat_mixture_from_mixture(val: Any):
-    """Attempts to compute the value's mixture via its _mixture_ method."""
-    mixture_getter = getattr(val, "_mixture_", None)
-    result = NotImplemented if mixture_getter is None else mixture_getter()
-    return result
 
 
 def _check_equality(x, y):
@@ -240,3 +227,20 @@ def _mixture_tensor(op, qubits, default):
             val = tuple([_tensor_mixture_pair(x, (1, np.identity(2))) for x in val])
 
     return val
+
+
+def _gettr_helper(val: Any, gett_str_list: Sequence[str]):
+    notImplementedFlag = False
+    for gettr_str in gett_str_list:
+        gettr = getattr(val, gettr_str, None)
+        if gettr is None:
+            continue
+        result = gettr()
+        if result is NotImplemented:
+            notImplementedFlag = True
+        elif result is not None:
+            return result
+
+    if notImplementedFlag:
+        return NotImplemented
+    return None
