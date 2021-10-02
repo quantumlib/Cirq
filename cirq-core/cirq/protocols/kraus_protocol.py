@@ -29,10 +29,7 @@ from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,
     decompose,
 )
-from cirq.protocols.mixture_protocol import mixture, has_mixture
-from cirq.protocols.unitary_protocol import unitary
-from cirq.protocols.has_unitary_protocol import has_unitary
-
+from cirq.protocols import mixture_protocol, has_unitary_protocol
 from cirq.ops.raw_types import Qid
 
 from cirq.type_workarounds import NotImplementedType
@@ -46,10 +43,10 @@ from cirq.type_workarounds import NotImplementedType
 RaiseTypeErrorIfNotProvided = (np.array([]),)
 
 
-TDefault = TypeVar("TDefault")
+TDefault = TypeVar('TDefault')
 
 
-@deprecated_class(deadline="v0.13", fix="use cirq.SupportsKraus instead")
+@deprecated_class(deadline='v0.13', fix='use cirq.SupportsKraus instead')
 class SupportsChannel(Protocol):
     pass
 
@@ -155,10 +152,10 @@ def kraus(
             method returned NotImplemented) and also no default value was
             specified.
     """
-    channel_getter = getattr(val, "_channel_", None)
+    channel_getter = getattr(val, '_channel_', None)
     if channel_getter is not None:
         warnings.warn(
-            "_channel_ is deprecated and will be removed in cirq 0.13, rename to _kraus_",
+            '_channel_ is deprecated and will be removed in cirq 0.13, rename to _kraus_',
             DeprecationWarning,
         )
 
@@ -170,13 +167,9 @@ def kraus(
     if kraus_result is not None and kraus_result is not NotImplemented:
         return kraus_result
 
-    mixture_result = mixture(val, None)
+    mixture_result = mixture_protocol.mixture(val, None)
     if mixture_result is not None and mixture_result is not NotImplemented:
         return tuple(np.sqrt(p) * u for p, u in mixture_result)
-
-    unitary_result = unitary(val, None)
-    if unitary_result is not None and unitary_result is not NotImplemented:
-        return (unitary_result,)
 
     decomposed = decompose(val)
 
@@ -215,7 +208,7 @@ def kraus(
     )
 
 
-@deprecated(deadline="v0.13", fix="use cirq.has_kraus instead")
+@deprecated(deadline='v0.13', fix='use cirq.has_kraus instead')
 def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
     return has_kraus(val, allow_decompose=allow_decompose)
 
@@ -271,7 +264,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     channel_getter = getattr(val, "_has_channel_", None)
     if channel_getter is not None:
         warnings.warn(
-            "_has_channel_ is deprecated and will be removed in cirq 0.13, rename to _has_kraus_",
+            '_has_channel_ is deprecated and will be removed in cirq 0.13, rename to _has_kraus_',
             DeprecationWarning,
         )
 
@@ -279,7 +272,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     if result is not NotImplemented and result:
         return True
 
-    for instance in [has_unitary, has_mixture]:
+    for instance in [has_unitary_protocol.has_unitary, mixture_protocol.has_mixture]:
         result = instance(val)
         if result is not NotImplemented and result:
             return True

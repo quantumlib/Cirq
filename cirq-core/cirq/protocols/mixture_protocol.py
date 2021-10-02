@@ -23,8 +23,7 @@ from cirq.protocols.decompose_protocol import (
     decompose,
     decompose_once_with_qubits,
 )
-from cirq.protocols.has_unitary_protocol import has_unitary
-from cirq.protocols.unitary_protocol import unitary
+from cirq.protocols import has_unitary_protocol, unitary_protocol
 from cirq.protocols.qid_shape_protocol import qid_shape
 from cirq.type_workarounds import NotImplementedType
 from cirq.devices.line_qubit import LineQid
@@ -97,7 +96,7 @@ def mixture(
     if mixture_result is not None and mixture_result is not NotImplemented:
         return mixture_result
 
-    unitary_result = unitary(val, None)
+    unitary_result = unitary_protocol.unitary(val, None)
     if unitary_result is not None and unitary_result is not NotImplemented:
         return ((1.0, unitary_result),)
 
@@ -163,12 +162,12 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
         has a `_mixture_` method return True if that has a non-default value.
         Returns False if neither function exists.
     """
-    mixture_getter = getattr(val, "_has_mixture_", None)
+    mixture_getter = getattr(val, '_has_mixture_', None)
     result = NotImplemented if mixture_getter is None else mixture_getter()
     if result is not NotImplemented:
         return result
 
-    if has_unitary(val, allow_decompose=False):
+    if has_unitary_protocol.has_unitary(val, allow_decompose=False):
         return True
 
     strats = [_strat_mixture_from_mixture]
@@ -187,13 +186,13 @@ def validate_mixture(supports_mixture: SupportsMixture):
     """Validates that the mixture's tuple are valid probabilities."""
     mixture_tuple = mixture(supports_mixture, None)
     if mixture_tuple is None:
-        raise TypeError(f"{supports_mixture}_mixture did not have a _mixture_ method")
+        raise TypeError(f'{supports_mixture}_mixture did not have a _mixture_ method')
 
     def validate_probability(p, p_str):
         if p < 0:
-            raise ValueError(f"{p_str} was less than 0.")
+            raise ValueError(f'{p_str} was less than 0.')
         elif p > 1:
-            raise ValueError(f"{p_str} was greater than 1.")
+            raise ValueError(f'{p_str} was greater than 1.')
 
     total = 0.0
     for p, val in mixture_tuple:
