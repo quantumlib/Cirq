@@ -16,9 +16,9 @@ import typing
 
 import networkx
 
-from cirq.ops.raw_types import Qid
 from cirq.circuits.circuit import Circuit
 from cirq.ops.moment import Moment
+from cirq.ops.raw_types import Qid, Operation
 
 
 class CircuitDagRepresentation(networkx.DiGraph):
@@ -65,10 +65,10 @@ class CircuitDagRepresentation(networkx.DiGraph):
         Returns:
             The representation converted back to the circuit
         """
-        moments_list = [[] for _ in range(self.num_moments)]
+        operations_list: typing.List[typing.List[Operation]] = [[] for _ in range(self.num_moments)]
         for _node_idx, node in self.nodes(data=True):
-            moments_list[node['moment']].append(node['op'])
-        moments_list = list(map(Moment, moments_list))
+            operations_list[node['moment']].append(node['op'])
+        moments_list: typing.List[Moment] = list(map(Moment, operations_list))
         circuit = Circuit(moments_list)
         return circuit
 
