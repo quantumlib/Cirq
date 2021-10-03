@@ -20,10 +20,11 @@ import cirq.testing
 from cirq.vis.density_matrix import plot_density_matrix
 
 
+@pytest.mark.parametrize('show_text', [True, False])
 @pytest.mark.parametrize('size', [2, 4, 8, 16])
-def test_density_matrix_plotter(size):
+def test_density_matrix_plotter(size, show_text):
     matrix = cirq.testing.random_density_matrix(size)
-    plot_density_matrix(matrix)
+    plot_density_matrix(matrix, show_text=show_text)
 
 
 def test_density_matrix_type_error():
