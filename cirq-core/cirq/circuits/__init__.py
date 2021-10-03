@@ -49,3 +49,7 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
 )
+
+from cirq.circuits.representation_dag import (
+    CircuitDagRepresentation,
+)

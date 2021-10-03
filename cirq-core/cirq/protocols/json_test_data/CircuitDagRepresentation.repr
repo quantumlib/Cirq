@@ -1,0 +1,11 @@
+cirq.CircuitDagRepresentation(cirq.Circuit([
+    cirq.Moment(
+        cirq.H(cirq.LineQubit(0)),
+    ),
+    cirq.Moment(
+        cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)),
+    ),
+    cirq.Moment(
+        cirq.X(cirq.LineQubit(1)),
+    ),
+]))
