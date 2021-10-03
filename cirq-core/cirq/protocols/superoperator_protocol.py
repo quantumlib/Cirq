@@ -14,7 +14,7 @@
 
 """Protocol and methods for obtaining matrix representation of quantum channels."""
 
-from typing import Any, Optional, Tuple, TypeVar, Union
+from typing import Any, Tuple, TypeVar, Union
 from typing_extensions import Protocol
 
 import numpy as np
