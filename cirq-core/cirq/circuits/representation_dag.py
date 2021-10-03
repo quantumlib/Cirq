@@ -27,14 +27,26 @@ class CircuitDagRepresentation(networkx.DiGraph):
     they act on the same qubit, and the moments they belong to are labelled.
     """
 
-    def __init__(self, circuit=None):
+    def __init__(self, circuit: Circuit = None):
+        """Initializes a Circuit Dag representation.
+
+        Args:
+            circuit: The circuit for which we need to get the representation
+        """
         super().__init__()
         self.num_moments = 0
         self.device = None
         if circuit is not None:
             self.from_circuit(circuit)
 
-    def from_circuit(self, circuit: Circuit):
+    def from_circuit(self, circuit: Circuit) -> None:
+        """Loads the circuit into a DAG representation, clears out whatever
+        graph existed before it.
+
+        Args:
+            circuit: The circuit for which we need to get the representation
+        """
+        self.clear()
         frontier: typing.Dict[Qid, int] = dict()
         operation_id = 0
         for idx, moment in enumerate(circuit.moments):
@@ -47,9 +59,14 @@ class CircuitDagRepresentation(networkx.DiGraph):
                     frontier[qubit_operands] = operation_id
         self.num_moments = max(self.num_moments, len(circuit.moments))
 
-    def to_circuit(self):
+    def to_circuit(self) -> Circuit:
+        """Initializes a Circuit Dag representation.
+
+        Returns:
+            The representation converted back to the circuit
+        """
         moments_list = [[] for _ in range(self.num_moments)]
-        for node_idx, node in self.nodes(data=True):
+        for _node_idx, node in self.nodes(data=True):
             moments_list[node['moment']].append(node['op'])
         moments_list = list(map(Moment, moments_list))
         circuit = Circuit(moments_list)
