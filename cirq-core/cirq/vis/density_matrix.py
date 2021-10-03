@@ -70,7 +70,9 @@ def plot_density_matrix(matrix: np.ndarray, show_text=False, ax: plt.Axes = None
 
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
-            plot_element_of_density_matrix(i, j, np.abs(matrix[i][j]), np.angle(matrix[i][j]))
+            plot_element_of_density_matrix(
+                i, j, np.abs(matrix[i][-j - 1]), np.angle(matrix[i][-j - 1])
+            )
 
     ticks, labels = np.arange(0.5, matrix.shape[0]), [
         f"{'0'*(num_qubits - len(f'{i:b}'))}{i:b}" for i in range(matrix.shape[0])
@@ -78,6 +80,6 @@ def plot_density_matrix(matrix: np.ndarray, show_text=False, ax: plt.Axes = None
     ax.set_xticks(ticks)
     ax.set_xticklabels(labels)
     ax.set_yticks(ticks)
-    ax.set_yticklabels(labels)
+    ax.set_yticklabels(reversed(labels))
     ax.set_facecolor('#eeeeee')
     return ax
