@@ -153,6 +153,11 @@ from cirq.protocols.qid_shape_protocol import (
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
 )
+from cirq.protocols.superoperator_protocol import (
+    has_superoperator,
+    superoperator,
+    SupportsSuperoperator,
+)
 from cirq.protocols.unitary_protocol import (
     SupportsUnitary,
     unitary,

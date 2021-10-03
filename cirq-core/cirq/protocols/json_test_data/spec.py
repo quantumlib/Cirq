@@ -157,6 +157,7 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsQasm',
         'SupportsQasmWithArgs',
         'SupportsQasmWithArgsAndQubits',
+        'SupportsSuperoperator',
         'SupportsTraceDistanceBound',
         'SupportsUnitary',
         # mypy types:
