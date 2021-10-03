@@ -16,9 +16,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import lines, patches
 
+from cirq.qis.states import validate_density_matrix
 
-def plot_density_matrix(matrix: np.ndarray, ax=None):
-    """Generates a quirk like plot for a given density matrix
+
+def plot_density_matrix(matrix: np.ndarray, ax: plt.Axes = None):
+    """Generates a plot for a given density matrix shows the magnitude of
+    each term of the whole matrix using a proportionally sized circle and
+    the phase angle using a line at that angle.
+
+    Rendering scheme is inspired from https://algassert.com/quirk
 
     Args:
         matrix: The density matrix we want to visualize
@@ -27,12 +33,8 @@ def plot_density_matrix(matrix: np.ndarray, ax=None):
     plt.style.use('ggplot')
 
     matrix = matrix.astype(np.complex128)
-    assert len(matrix.shape) == 2, "Density matrix should be a 2-D numpy array"
-    assert matrix.shape[0] == matrix.shape[1], "The density matrix should be square"
-    assert (
-        2 ** int(np.log2(matrix.shape[0])) == matrix.shape[0]
-    ), "The size of the matrix should be a power of 2"
     num_qubits = int(np.log2(matrix.shape[0]))
+    validate_density_matrix(matrix, qid_shape=(2 ** num_qubits,))
 
     if ax is None:
         _, ax = plt.subplots(figsize=(10, 10))

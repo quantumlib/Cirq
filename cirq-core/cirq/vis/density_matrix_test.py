@@ -16,25 +16,24 @@
 import numpy as np
 import pytest
 
+import cirq.testing
 from cirq.vis.density_matrix import plot_density_matrix
 
 
 @pytest.mark.parametrize('size', [2, 4, 8, 16])
 def test_density_matrix_plotter(size):
-    r = np.random.random((size, size))
-    theta = np.random.random((size, size)) * 2 * np.pi
-    matrix = r * np.exp(theta * 1j)
+    matrix = cirq.testing.random_density_matrix(size)
     plot_density_matrix(matrix)
 
 
 def test_density_matrix_type_error():
-    with pytest.raises(AssertionError, match="Density matrix should be a 2-D numpy array"):
+    with pytest.raises(ValueError, match="Incorrect shape for density matrix:*"):
         matrix = np.random.random(size=(4, 4, 4))
         plot_density_matrix(matrix)
 
 
 def test_density_matrix_size_error():
-    with pytest.raises(AssertionError, match="The size of the matrix should be a power of 2"):
+    with pytest.raises(ValueError, match="Incorrect shape for density matrix:*"):
         r = np.random.random((3, 3))
         theta = np.random.random((3, 3)) * 2 * np.pi
         matrix = r * np.exp(theta * 1j)
@@ -42,7 +41,7 @@ def test_density_matrix_size_error():
 
 
 def test_density_matrix_not_square():
-    with pytest.raises(AssertionError, match="The density matrix should be square"):
+    with pytest.raises(ValueError, match="Incorrect shape for density matrix:*"):
         r = np.random.random((4, 8))
         theta = np.random.random((4, 8)) * 2 * np.pi
         matrix = r * np.exp(theta * 1j)
