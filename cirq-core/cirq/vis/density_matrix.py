@@ -19,7 +19,7 @@ from matplotlib import lines, patches
 from cirq.qis.states import validate_density_matrix
 
 
-def plot_density_matrix(matrix: np.ndarray, show_text=False, ax: plt.Axes = None):
+def plot_density_matrix(matrix: np.ndarray, show_text=False, ax: plt.Axes = None) -> plt.Axes:
     """Generates a plot for a given density matrix shows the magnitude of
     each term of the whole matrix using a proportionally sized circle and
     the phase angle using a line at that angle.
@@ -42,7 +42,7 @@ def plot_density_matrix(matrix: np.ndarray, show_text=False, ax: plt.Axes = None
     ax.set_xlim(0 - 0.001, 2 ** num_qubits + 0.001)
     ax.set_ylim(0 - 0.001, 2 ** num_qubits + 0.001)
 
-    def plot_element_of_density_matrix(x, y, r, phase):
+    def plot_element_of_density_matrix(x, y, r, phase, show_rect=False):
         image_opacity = 0.8 if not show_text else 0.4
         circle_out = plt.Circle((x + 0.5, y + 0.5), radius=1 / 2.2, fill=False, color='#333333')
         circle_in = plt.Circle(
@@ -54,11 +54,12 @@ def plot_density_matrix(matrix: np.ndarray, show_text=False, ax: plt.Axes = None
             color='#333333',
             alpha=image_opacity,
         )
-        rect = patches.Rectangle((x + 0.01, y + 0.01), 1.0 - 0.02, r * (1 - 0.02), alpha=0.25)
-        ax.add_artist(rect)
         ax.add_artist(circle_in)
         ax.add_artist(circle_out)
         ax.add_artist(line)
+        if show_rect:
+            rect = patches.Rectangle((x + 0.01, y + 0.01), 1.0 - 0.02, r * (1 - 0.02), alpha=0.25)
+            ax.add_artist(rect)
         if show_text:
             plt.text(
                 x + 0.5,
@@ -71,7 +72,11 @@ def plot_density_matrix(matrix: np.ndarray, show_text=False, ax: plt.Axes = None
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
             plot_element_of_density_matrix(
-                i, j, np.abs(matrix[i][-j - 1]), np.angle(matrix[i][-j - 1])
+                i,
+                j,
+                np.abs(matrix[i][-j - 1]),
+                np.angle(matrix[i][-j - 1]),
+                show_rect=(i == matrix.shape[1] - j - 1),
             )
 
     ticks, labels = np.arange(0.5, matrix.shape[0]), [
