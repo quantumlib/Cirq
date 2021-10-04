@@ -650,8 +650,7 @@ def test_single_gate_gateless_ops():
     assert cirq.Moment([op1, op2]).get_single_gate_from_moment() is None
 
 
-def test_single_gate_same_gate_different_qubits():
-    one_qubit_op = cirq.IdentityGate(1).on(cirq.NamedQubit('a'))
-    two_qubit_op = cirq.IdentityGate(2).on(cirq.NamedQubit('b'), cirq.NamedQubit('c'))
-
-    assert cirq.Moment([one_qubit_op, two_qubit_op]).get_single_gate_from_moment() == cirq.I
+def test_single_gate_same_gate_different_parameters():
+    a = cirq.XPowGate(exponent=0.25)(cirq.NamedQubit('a'))
+    b = cirq.XPowGate(exponent=0.5)(cirq.NamedQubit('b'))
+    assert cirq.Moment([a, b]).get_single_gate_from_moment() is None

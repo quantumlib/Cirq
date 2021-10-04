@@ -58,7 +58,7 @@ def _have_equal_gates(op1: 'cirq.Operation', op2: 'cirq.Operation') -> bool:
     """
     if op1.gate is None or op2.gate is None:
         return False
-    return isinstance(op1.gate, type(op2.gate)) and isinstance(op2.gate, type(op1.gate))
+    return op1.gate == op2.gate
 
 
 class Moment:
