@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Protocol and methods for quantum channels."""
+"""Protocol and methods for obtaining Kraus representation of quantum channels."""
 
 from typing import Any, Sequence, Tuple, TypeVar, Union
 import warnings
