@@ -155,7 +155,7 @@ def test_choi_to_kraus_fixed_values(choi, expected_kraus):
     actual_kraus = cirq.choi_to_kraus(choi)
     assert len(actual_kraus) == len(expected_kraus)
     for ak, ek in zip(actual_kraus, expected_kraus):
-        assert np.allclose(ak, ek)
+        assert cirq.equal_up_to_global_phase(ak, ek)
 
 
 @pytest.mark.parametrize(
