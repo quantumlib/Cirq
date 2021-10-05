@@ -17,7 +17,7 @@
 import abc
 import dataclasses
 from dataclasses import dataclass
-from typing import Union, Tuple, Optional, Sequence, cast, Iterable
+from typing import Union, Tuple, Optional, Sequence, cast, Iterable, Dict, Any
 
 from cirq import _compat, study
 import cirq
@@ -186,24 +186,24 @@ class QuantumExecutableGroup:
 
         object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.executables)
 
     def __iter__(self) -> Iterable[QuantumExecutable]:
         yield from self.executables
 
-    def __str__(self):
+    def __str__(self) -> str:
         exe_str = ', '.join(str(exe) for exe in self.executables[:2])
         if len(self.executables) > 2:
             exe_str += ', ...'
 
         return f'QuantumExecutable(executables=[{exe_str}])'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
-    def __hash__(self):
-        return self._hash
+    def __hash__(self) -> int:
+        return self._hash  # type: ignore
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return cirq.dataclass_json_dict(self, namespace='cirq.google')
