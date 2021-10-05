@@ -207,8 +207,8 @@ def test_simplify_cnots_triplets(
     assert actual_output_cnots == expected_output_cnots
 
     # Check that the unitaries are the same.
-    num_qubits = max(max(x) for x in input_cnots) + 1
-    qubits = cirq.LineQubit.range(num_qubits)
+    qubit_ids = set(sum(input_cnots, ()))
+    qubits = {qubit_id: cirq.NamedQubit(f"{qubit_id}") for qubit_id in qubit_ids}
 
     target, control = (0, 1) if input_flip_control_and_target else (1, 0)
 
