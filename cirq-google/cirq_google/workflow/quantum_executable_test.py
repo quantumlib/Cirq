@@ -146,7 +146,7 @@ def test_quantum_executable_group_to_tuple():
     assert eg1 == eg2
 
 
-def test_quantum_executable_group_container(tmpdir):
+def test_quantum_executable_group_methods():
     exes = _get_quantum_executables()
     eg = QuantumExecutableGroup(exes)
 
@@ -160,6 +160,11 @@ def test_quantum_executable_group_container(tmpdir):
         "QuantumExecutable(spec=ExampleSpec(name='example-program-1', executable_family='cirq_google.algo_benchmarks.example')), ...])"
     )
     # pylint: enable=line-too-long
+
+
+def test_quantum_executable_group_serialization(tmpdir):
+    exes = _get_quantum_executables()
+    eg = QuantumExecutableGroup(exes)
 
     cirq.testing.assert_equivalent_repr(
         eg, global_vals={'ExampleSpec': ExampleSpec, 'cirq_google': cirq_google}
