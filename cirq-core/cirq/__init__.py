@@ -360,6 +360,7 @@ from cirq.optimizers import (
 
 from cirq.qis import (
     bloch_vector_from_state_vector,
+    choi_to_kraus,
     CliffordTableau,
     density_matrix,
     density_matrix_from_state_vector,
