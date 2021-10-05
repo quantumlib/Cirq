@@ -154,8 +154,13 @@ def test_choi_to_kraus_fixed_values(choi, expected_kraus):
     """Verifies that cirq.choi_to_kraus gives correct results on a few fixed inputs."""
     actual_kraus = cirq.choi_to_kraus(choi)
     assert len(actual_kraus) == len(expected_kraus)
-    for ak, ek in zip(actual_kraus, expected_kraus):
-        assert cirq.equal_up_to_global_phase(ak, ek)
+    for i in (0, 1):
+        for j in (0, 1):
+            input_rho = np.zeros((2, 2))
+            input_rho[i, j] = 1
+            actual_rho = apply_kraus_operators(actual_kraus, input_rho)
+            expected_rho = apply_kraus_operators(expected_kraus, input_rho)
+            assert np.allclose(actual_rho, expected_rho)
 
 
 @pytest.mark.parametrize(
