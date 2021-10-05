@@ -15,6 +15,7 @@
 """Tools and methods for quantum information science."""
 
 from cirq.qis.channels import (
+    choi_to_kraus,
     kraus_to_channel_matrix,
     kraus_to_choi,
     kraus_to_superoperator,
