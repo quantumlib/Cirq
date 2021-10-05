@@ -361,6 +361,7 @@ from cirq.optimizers import (
 from cirq.qis import (
     bloch_vector_from_state_vector,
     choi_to_kraus,
+    choi_to_superoperator,
     CliffordTableau,
     density_matrix,
     density_matrix_from_state_vector,
@@ -379,6 +380,8 @@ from cirq.qis import (
     QuantumState,
     quantum_state,
     STATE_VECTOR_LIKE,
+    superoperator_to_choi,
+    superoperator_to_kraus,
     to_valid_density_matrix,
     to_valid_state_vector,
     validate_density_matrix,

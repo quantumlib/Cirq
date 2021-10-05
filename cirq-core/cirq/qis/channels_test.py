@@ -286,6 +286,186 @@ def test_kraus_to_superoperator(kraus_operators, expected_superoperator):
 
 
 @pytest.mark.parametrize(
+    'superoperator, expected_kraus_operators',
+    (
+        (np.eye(4), [np.eye(2)]),
+        (np.diag([1, -1, -1, 1]), [np.diag([1, -1])]),
+        (np.diag([1, -1j, 1j, 1]), [np.diag([1, 1j])]),
+        (
+            np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
+            cirq.kraus(cirq.depolarize(0.75)),
+        ),
+    ),
+)
+def test_superoperator_to_kraus_fixed_values(superoperator, expected_kraus_operators):
+    """Verifies that cirq.kraus_to_superoperator computes the correct channel matrix."""
+    actual_kraus_operators = cirq.superoperator_to_kraus(superoperator)
+    for i in (0, 1):
+        for j in (0, 1):
+            input_rho = np.zeros((2, 2))
+            input_rho[i, j] = 1
+            actual_rho = apply_kraus_operators(actual_kraus_operators, input_rho)
+            expected_rho = apply_kraus_operators(expected_kraus_operators, input_rho)
+            assert np.allclose(actual_rho, expected_rho)
+
+
+@pytest.mark.parametrize(
+    'superoperator',
+    (
+        np.eye(4),
+        np.diag([1, 0, 0, 1]),
+        np.diag([1, -1j, 1j, 1]),
+        np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+            ]
+        ),
+        np.array(
+            [
+                [1, 0, 0, 0.8],
+                [0, 0.36, 0, 0],
+                [0, 0, 0.36, 0],
+                [0, 0, 0, 0.64],
+            ],
+        ),
+    ),
+)
+def test_superoperator_to_kraus_inverse_of_kraus_to_superoperator(superoperator):
+    """Verifies that cirq.kraus_to_superoperator(cirq.superoperator_to_kraus(.)) is identity."""
+    kraus = cirq.superoperator_to_kraus(superoperator)
+    recovered_superoperator = cirq.kraus_to_superoperator(kraus)
+    assert np.allclose(recovered_superoperator, superoperator)
+
+
+@pytest.mark.parametrize(
+    'choi, error',
+    (
+        (np.array([[1, 2, 3], [4, 5, 6]]), "shape"),
+        (np.eye(2), "shape"),
+        (
+            np.array(
+                [
+                    [0.6, 0.0, -0.1j, 0.1],
+                    [0.0, 0.0, 0.0, 0.0],
+                    [0.1j, 0.0, 0.4, 0.0],
+                    [0.2, 0.0, 0.0, 1.0],
+                ]
+            ),
+            "Hermitian",
+        ),
+    ),
+)
+def test_choi_to_superoperator_invalid_input(choi, error):
+    with pytest.raises(ValueError, match=error):
+        _ = cirq.choi_to_superoperator(choi)
+
+
+@pytest.mark.parametrize(
+    'superoperator, error',
+    (
+        (np.array([[1, 2, 3], [4, 5, 6]]), "shape"),
+        (np.eye(2), "shape"),
+    ),
+)
+def test_superoperator_to_choi_invalid_input(superoperator, error):
+    with pytest.raises(ValueError, match=error):
+        _ = cirq.superoperator_to_choi(superoperator)
+
+
+@pytest.mark.parametrize(
+    'superoperator, choi',
+    (
+        (
+            # Identity channel
+            np.eye(4),
+            np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]),
+        ),
+        (
+            # S gate
+            np.diag([1, -1j, 1j, 1]),
+            np.array([[1, 0, 0, -1j], [0, 0, 0, 0], [0, 0, 0, 0], [1j, 0, 0, 1]]),
+        ),
+        (
+            # Hadamard
+            np.array([[1, 1, 1, 1], [1, -1, 1, -1], [1, 1, -1, -1], [1, -1, -1, 1]]) / 2,
+            np.array([[1, 1, 1, -1], [1, 1, 1, -1], [1, 1, 1, -1], [-1, -1, -1, 1]]) / 2,
+        ),
+        (
+            # Completely dephasing channel
+            np.diag([1, 0, 0, 1]),
+            np.diag([1, 0, 0, 1]),
+        ),
+        (
+            # Amplitude damping channel
+            np.array(
+                [
+                    [1, 0, 0, 0.36],
+                    [0, 0.8, 0, 0],
+                    [0, 0, 0.8, 0],
+                    [0, 0, 0, 0.64],
+                ],
+            ),
+            np.array(
+                [
+                    [1, 0, 0, 0.8],
+                    [0, 0.36, 0, 0],
+                    [0, 0, 0, 0],
+                    [0.8, 0, 0, 0.64],
+                ],
+            ),
+        ),
+        (
+            # Completely depolarizing channel
+            np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
+            np.eye(4) / 2,
+        ),
+    ),
+)
+def test_superoperator_vs_choi_fixed_values(superoperator, choi):
+    recovered_choi = cirq.superoperator_to_choi(superoperator)
+    assert np.allclose(recovered_choi, choi)
+
+    recovered_superoperator = cirq.choi_to_superoperator(choi)
+    assert np.allclose(recovered_superoperator, superoperator)
+
+
+@pytest.mark.parametrize(
+    'choi',
+    (
+        np.eye(4),
+        np.diag([1, 0, 0, 1]),
+        np.diag([0.2, 0.3, 0.8, 0.7]),
+        np.array(
+            [
+                [1, 0, 1, 0],
+                [0, 1, 0, -1],
+                [1, 0, 1, 0],
+                [0, -1, 0, 1],
+            ]
+        ),
+        np.array(
+            [
+                [0.8, 0, 0, 0.5],
+                [0, 0.3, 0, 0],
+                [0, 0, 0.2, 0],
+                [0.5, 0, 0, 0.7],
+            ],
+        ),
+    ),
+)
+def test_choi_to_superoperator_inverse_of_superoperator_to_choi(choi):
+    superoperator = cirq.choi_to_superoperator(choi)
+    recovered_choi = cirq.superoperator_to_choi(superoperator)
+    assert np.allclose(recovered_choi, choi)
+
+    recovered_superoperator = cirq.choi_to_superoperator(recovered_choi)
+    assert np.allclose(recovered_superoperator, superoperator)
+
+
+@pytest.mark.parametrize(
     'channel',
     (
         cirq.I,
