@@ -21,7 +21,7 @@ from cirq._compat import deprecated
 
 
 def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
-    """Returns the unique Choi matrix corresponding to a Kraus representation of a channel.
+    r"""Returns the unique Choi matrix corresponding to a Kraus representation of a channel.
 
     Quantum channel E: L(H1) -> L(H2) may be described by a collection of operators A_i, called
     Kraus operators, such that
@@ -59,7 +59,7 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
 
 
 def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]:
-    """Returns a Kraus representation of a channel with given Choi matrix.
+    r"""Returns a Kraus representation of a channel with given Choi matrix.
 
     Quantum channel E: L(H1) -> L(H2) may be described by a collection of operators A_i, called
     Kraus operators, such that
@@ -116,7 +116,7 @@ def kraus_to_channel_matrix(kraus_operators: Sequence[np.ndarray]) -> np.ndarray
 
 
 def kraus_to_superoperator(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
-    """Returns the matrix representation of the linear map with given Kraus operators.
+    r"""Returns the matrix representation of the linear map with given Kraus operators.
 
     Quantum channel E: L(H1) -> L(H2) may be described by a collection of operators A_i, called
     Kraus operators, such that
@@ -154,7 +154,7 @@ def kraus_to_superoperator(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
 
 
 def superoperator_to_kraus(superoperator: np.ndarray) -> Sequence[np.ndarray]:
-    """Returns a Kraus representation of a channel specified via the superoperator matrix.
+    r"""Returns a Kraus representation of a channel specified via the superoperator matrix.
 
     Quantum channel E: L(H1) -> L(H2) may be described by a collection of operators A_i, called
     Kraus operators, such that
@@ -183,12 +183,15 @@ def superoperator_to_kraus(superoperator: np.ndarray) -> Sequence[np.ndarray]:
 
     Returns:
         Sequence of Kraus operators of the channel specified by superoperator.
+
+    Raises:
+        ValueError: If superoperator is not a valid superoperator matrix.
     """
     return choi_to_kraus(superoperator_to_choi(superoperator))
 
 
 def choi_to_superoperator(choi: np.ndarray) -> np.ndarray:
-    """Returns the superoperator matrix of a quantum channel specified via the Choi matrix.
+    r"""Returns the superoperator matrix of a quantum channel specified via the Choi matrix.
 
     Quantum channel E: L(H1) -> L(H2) may be specified by its Choi matrix J(E) defined as
 
@@ -211,14 +214,18 @@ def choi_to_superoperator(choi: np.ndarray) -> np.ndarray:
     A quantum channel can be viewed as a tensor with four indices. Different ways of grouping
     the indices into two pairs yield different matrix representations of the channel, including
     the superoperator and Choi representations. Hence, the conversion between the superoperator
-    and Choi matrices is essentially a permutation of matrix elements. Therefore, its cost is
-    O(d**4) where d is the dimension of the input and output Hilbert space.
+    and Choi matrices is a permutation of matrix elements effected by reshaping the array and
+    swapping its axes. Therefore, its cost is O(d**4) where d is the dimension of the input and
+    output Hilbert space.
 
     Args:
         choi: Choinmatrix specifying a quantum channel.
 
     Returns:
         Superoperator matrix of the channel specified by choi.
+
+    Raises:
+        ValueError: If Choi is not Hermitian or is of invalid shape.
     """
     d = int(np.round(np.sqrt(choi.shape[0])))
     if choi.shape != (d * d, d * d):
@@ -232,7 +239,7 @@ def choi_to_superoperator(choi: np.ndarray) -> np.ndarray:
 
 
 def superoperator_to_choi(superoperator: np.ndarray) -> np.ndarray:
-    """Returns the Choi matrix of a quantum channel specified via the superoperator matrix.
+    r"""Returns the Choi matrix of a quantum channel specified via the superoperator matrix.
 
     Quantum channel E: L(H1) -> L(H2) may be specified by its Choi matrix J(E) defined as
 
@@ -255,14 +262,18 @@ def superoperator_to_choi(superoperator: np.ndarray) -> np.ndarray:
     A quantum channel can be viewed as a tensor with four indices. Different ways of grouping
     the indices into two pairs yield different matrix representations of the channel, including
     the superoperator and Choi representations. Hence, the conversion between the superoperator
-    and Choi matrices is essentially a permutation of matrix elements. Therefore, its cost is
-    O(d**4) where d is the dimension of the input and output Hilbert space.
+    and Choi matrices is a permutation of matrix elements effected by reshaping the array and
+    swapping its axes. Therefore, its cost is O(d**4) where d is the dimension of the input and
+    output Hilbert space.
 
     Args:
         superoperator: Superoperator matrix specifying a quantum channel.
 
     Returns:
         Choi matrix of the channel specified by superoperator.
+
+    Raises:
+        ValueError: If superoperator has invalid shape.
     """
     d = int(np.round(np.sqrt(superoperator.shape[0])))
     if superoperator.shape != (d * d, d * d):
