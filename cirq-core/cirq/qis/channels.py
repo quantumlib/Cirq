@@ -30,6 +30,36 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     return c
 
 
+def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]:
+    """Returns a Kraus representation of a channel with given Choi matrix.
+
+    Args:
+        choi: Choi matrix of the channel.
+        atol: Tolerance used in checking if choi is positive and in deciding which Kraus
+            operators to omit.
+
+    Returns:
+        Approximate Kraus representation of the quantum channel specified via a Choi matrix.
+        Kraus operators with Frobenius norm smaller than atol are omitted.
+
+    Raises:
+        ValueError: when choi is not a positive square matrix.
+    """
+    d = int(np.round(np.sqrt(choi.shape[0])))
+    if choi.shape != (d * d, d * d):
+        raise ValueError(f"Invalid Choi matrix shape, expected {(d * d, d * d)}, got {choi.shape}")
+    if not np.allclose(choi, choi.T.conj(), atol=atol):
+        raise ValueError("Choi matrix must be Hermitian")
+
+    w, v = np.linalg.eigh(choi)
+    if np.any(w < -atol):
+        raise ValueError(f"Choi matrix must be positive, got one with eigenvalues {w}")
+
+    w = np.maximum(w, 0)
+    u = np.sqrt(w) * v
+    return [k.reshape(d, d) for k in u.T if np.linalg.norm(k) > atol]
+
+
 @deprecated(deadline='v0.14', fix='use cirq.kraus_to_superoperator instead')
 def kraus_to_channel_matrix(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     """Returns the matrix representation of the linear map with given Kraus operators."""
