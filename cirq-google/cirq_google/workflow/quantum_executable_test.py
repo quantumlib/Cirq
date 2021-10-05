@@ -150,9 +150,6 @@ def test_quantum_executable_group_methods():
     exes = _get_quantum_executables()
     eg = QuantumExecutableGroup(exes)
 
-    assert len(eg) == len(exes), '__len__'
-    assert exes == [e for e in eg], '__iter__'
-
     # pylint: disable=line-too-long
     assert str(eg) == (
         "QuantumExecutable(executables=["
@@ -160,6 +157,9 @@ def test_quantum_executable_group_methods():
         "QuantumExecutable(spec=ExampleSpec(name='example-program-1', executable_family='cirq_google.algo_benchmarks.example')), ...])"
     )
     # pylint: enable=line-too-long
+
+    assert len(eg) == len(exes), '__len__'
+    assert exes == [e for e in eg], '__iter__'
 
 
 def test_quantum_executable_group_serialization(tmpdir):
