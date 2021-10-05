@@ -51,7 +51,7 @@ def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]
     if not np.allclose(choi, choi.T.conj(), atol=atol):
         raise ValueError("Choi matrix must be Hermitian")
 
-    w, v = np.linalg.eig(choi)
+    w, v = np.linalg.eigh(choi)
     if np.any(w < -atol):
         raise ValueError(f"Choi matrix must be positive, got one with eigenvalues {w}")
 
