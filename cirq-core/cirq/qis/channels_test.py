@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for channels."""
-from typing import Iterable
+from typing import Iterable, Sequence
 
 import numpy as np
 import pytest
@@ -21,11 +21,14 @@ import cirq
 
 
 def apply_channel(channel: cirq.SupportsKraus, rho: np.ndarray) -> np.ndarray:
-    ks = cirq.kraus(channel)
-    d_out, d_in = ks[0].shape
+    return apply_kraus_operators(cirq.kraus(channel), rho)
+
+
+def apply_kraus_operators(kraus_operators: Sequence[np.ndarray], rho: np.ndarray) -> np.ndarray:
+    d_out, d_in = kraus_operators[0].shape
     assert rho.shape == (d_in, d_in)
     out = np.zeros((d_out, d_out), dtype=np.complex128)
-    for k in ks:
+    for k in kraus_operators:
         out += k @ rho @ k.conj().T
     return out
 
@@ -74,6 +77,156 @@ def compute_superoperator(channel: cirq.SupportsKraus) -> np.ndarray:
 def test_kraus_to_choi(kraus_operators, expected_choi):
     """Verifies that cirq.kraus_to_choi computes the correct Choi matrix."""
     assert np.allclose(cirq.kraus_to_choi(kraus_operators), expected_choi)
+
+
+@pytest.mark.parametrize(
+    'choi, error',
+    (
+        (np.array([[1, 2, 3], [4, 5, 6]]), "shape"),
+        (np.eye(2), "shape"),
+        (np.diag([1, 1, 1, -1]), "positive"),
+        (
+            np.array(
+                [
+                    [0.6, 0.0, -0.1j, 0.1],
+                    [0.0, 0.0, 0.0, 0.0],
+                    [0.1j, 0.0, 0.4, 0.0],
+                    [0.2, 0.0, 0.0, 1.0],
+                ]
+            ),
+            "Hermitian",
+        ),
+    ),
+)
+def test_choi_to_kraus_invalid_input(choi, error):
+    with pytest.raises(ValueError, match=error):
+        _ = cirq.choi_to_kraus(choi)
+
+
+@pytest.mark.parametrize(
+    'choi, expected_kraus',
+    (
+        (
+            # Identity channel
+            np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]),
+            (np.eye(2),),
+        ),
+        (
+            # S gate
+            np.array([[1, 0, 0, -1j], [0, 0, 0, 0], [0, 0, 0, 0], [1j, 0, 0, 1]]),
+            (np.diag([-1j, 1]),),
+        ),
+        (
+            # Hadamard
+            np.array([[1, 1, 1, -1], [1, 1, 1, -1], [1, 1, 1, -1], [-1, -1, -1, 1]]) / 2,
+            (np.array([[1, 1], [1, -1]]) / np.sqrt(2),),
+        ),
+        (
+            # Completely dephasing channel
+            np.diag([1, 0, 0, 1]),
+            (np.diag([1, 0]), np.diag([0, 1])),
+        ),
+        (
+            # Amplitude damping channel
+            np.array(
+                [
+                    [1, 0, 0, 0.8],
+                    [0, 0.36, 0, 0],
+                    [0, 0, 0, 0],
+                    [0.8, 0, 0, 0.64],
+                ],
+            ),
+            (np.diag([1, 0.8]), np.array([[0, 0.6], [0, 0]])),
+        ),
+        (
+            # Completely depolarizing channel
+            np.eye(4) / 2,
+            (
+                np.array([[np.sqrt(0.5), 0], [0, 0]]),
+                np.array([[0, np.sqrt(0.5)], [0, 0]]),
+                np.array([[0, 0], [np.sqrt(0.5), 0]]),
+                np.array([[0, 0], [0, np.sqrt(0.5)]]),
+            ),
+        ),
+    ),
+)
+def test_choi_to_kraus_fixed_values(choi, expected_kraus):
+    """Verifies that cirq.choi_to_kraus gives correct results on a few fixed inputs."""
+    actual_kraus = cirq.choi_to_kraus(choi)
+    assert len(actual_kraus) == len(expected_kraus)
+    for i in (0, 1):
+        for j in (0, 1):
+            input_rho = np.zeros((2, 2))
+            input_rho[i, j] = 1
+            actual_rho = apply_kraus_operators(actual_kraus, input_rho)
+            expected_rho = apply_kraus_operators(expected_kraus, input_rho)
+            assert np.allclose(actual_rho, expected_rho)
+
+
+@pytest.mark.parametrize(
+    'choi',
+    (
+        # Identity channel
+        np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]),
+        # Unitary bit flip channel
+        np.array([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]]),
+        # Constant channel
+        np.eye(4) / 2,
+        # Completely dephasing channel
+        np.diag([1, 0, 0, 1]),
+        # A channel with mixed output on computational basis
+        np.array(
+            [
+                [0.6, 0.0, -0.1j, 0.1],
+                [0.0, 0.1, 0.0, 0.1j],
+                [0.1j, 0.0, 0.4, 0.0],
+                [0.1, -0.1j, 0.0, 0.9],
+            ]
+        ),
+    ),
+)
+def test_choi_to_kraus_action_on_operatorial_basis(choi):
+    """Verifies that cirq.choi_to_kraus computes a valid Kraus representation."""
+    kraus_operators = cirq.choi_to_kraus(choi)
+    c = np.reshape(choi, (2, 2, 2, 2))
+    for i in (0, 1):
+        for j in (0, 1):
+            input_rho = np.zeros((2, 2))
+            input_rho[i, j] = 1
+            actual_rho = apply_kraus_operators(kraus_operators, input_rho)
+            expected_rho = c[:, i, :, j]
+            assert np.allclose(actual_rho, expected_rho)
+
+
+@pytest.mark.parametrize(
+    'choi',
+    (
+        np.eye(4),
+        np.diag([1, 0, 0, 1]),
+        np.diag([0.2, 0.3, 0.8, 0.7]),
+        np.array(
+            [
+                [1, 0, 1, 0],
+                [0, 1, 0, -1],
+                [1, 0, 1, 0],
+                [0, -1, 0, 1],
+            ]
+        ),
+        np.array(
+            [
+                [0.8, 0, 0, 0.5],
+                [0, 0.3, 0, 0],
+                [0, 0, 0.2, 0],
+                [0.5, 0, 0, 0.7],
+            ],
+        ),
+    ),
+)
+def test_choi_to_kraus_inverse_of_kraus_to_choi(choi):
+    """Verifies that cirq.kraus_to_choi(cirq.choi_to_kraus(.)) is identity on Choi matrices."""
+    kraus = cirq.choi_to_kraus(choi)
+    recovered_choi = cirq.kraus_to_choi(kraus)
+    assert np.allclose(recovered_choi, choi)
 
 
 @pytest.mark.parametrize(
