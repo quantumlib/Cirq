@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Sequence, Dict, Union, Tuple, List, Optional, cast, Iterable
+from typing import Sequence, Dict, Union, Tuple, List, Optional
 
 import numpy as np
 import quimb
