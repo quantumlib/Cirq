@@ -48,7 +48,7 @@ def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]
     d = int(np.round(np.sqrt(choi.shape[0])))
     if choi.shape != (d * d, d * d):
         raise ValueError(f"Invalid Choi matrix shape, expected {(d * d, d * d)}, got {choi.shape}")
-    if not np.allclose(choi, choi.T.conj()):
+    if not np.allclose(choi, choi.T.conj(), atol=atol):
         raise ValueError("Choi matrix must be Hermitian")
 
     w, v = np.linalg.eig(choi)
