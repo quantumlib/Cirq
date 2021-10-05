@@ -75,6 +75,38 @@ def kraus_to_superoperator(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     return m
 
 
+def superoperator_to_kraus(superoperator: np.ndarray) -> Sequence[np.ndarray]:
+    """Returns a Kraus representation of a channel specified via the superoperator matrix."""
+    return choi_to_kraus(superoperator_to_choi(superoperator))
+
+
+def choi_to_superoperator(choi: np.ndarray) -> np.ndarray:
+    """Returns the superoperator matrix of a quantum channel specified via the Choi matrix."""
+    d = int(np.round(np.sqrt(choi.shape[0])))
+    if choi.shape != (d * d, d * d):
+        raise ValueError(f"Invalid Choi matrix shape, expected {(d * d, d * d)}, got {choi.shape}")
+    if not np.allclose(choi, choi.T.conj()):
+        raise ValueError("Choi matrix must be Hermitian")
+
+    c = np.reshape(choi, (d, d, d, d))
+    s = np.swapaxes(c, 1, 2)
+    return np.reshape(s, (d * d, d * d))
+
+
+def superoperator_to_choi(superoperator: np.ndarray) -> np.ndarray:
+    """Returns the Choi matrix of a quantum channel specified via the superoperator matrix."""
+    d = int(np.round(np.sqrt(superoperator.shape[0])))
+    if superoperator.shape != (d * d, d * d):
+        raise ValueError(
+            f"Invalid superoperator matrix shape, expected {(d * d, d * d)}, "
+            f"got {superoperator.shape}"
+        )
+
+    s = np.reshape(superoperator, (d, d, d, d))
+    c = np.swapaxes(s, 1, 2)
+    return np.reshape(c, (d * d, d * d))
+
+
 def operation_to_choi(operation: 'protocols.SupportsKraus') -> np.ndarray:
     r"""Returns the unique Choi matrix associated with an operation .
 
