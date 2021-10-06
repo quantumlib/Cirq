@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for kraus.py."""
+"""Tests for kraus_protocol.py."""
 
 from typing import Iterable, Sequence, Tuple
 
@@ -25,7 +25,7 @@ import cirq
 LOCAL_DEFAULT = [np.array([])]
 
 
-def test_channel_no_methods():
+def test_kraus_no_methods():
     class NoMethod:
         pass
 
@@ -117,25 +117,25 @@ def test_unitary_returns_not_implemented():
     assert cirq.kraus(ReturnsNotImplemented(), LOCAL_DEFAULT) is LOCAL_DEFAULT
 
 
-def test_channel():
+def test_explicit_kraus():
     a0 = np.array([[0, 0], [1, 0]])
     a1 = np.array([[1, 0], [0, 0]])
     c = (a0, a1)
 
-    class ReturnsChannel:
+    class ReturnsKraus:
         def _kraus_(self) -> Sequence[np.ndarray]:
             return c
 
-    assert cirq.kraus(ReturnsChannel()) is c
-    assert cirq.kraus(ReturnsChannel(), None) is c
-    assert cirq.kraus(ReturnsChannel(), NotImplemented) is c
-    assert cirq.kraus(ReturnsChannel(), (1,)) is c
-    assert cirq.kraus(ReturnsChannel(), LOCAL_DEFAULT) is c
+    assert cirq.kraus(ReturnsKraus()) is c
+    assert cirq.kraus(ReturnsKraus(), None) is c
+    assert cirq.kraus(ReturnsKraus(), NotImplemented) is c
+    assert cirq.kraus(ReturnsKraus(), (1,)) is c
+    assert cirq.kraus(ReturnsKraus(), LOCAL_DEFAULT) is c
 
-    assert cirq.has_kraus(ReturnsChannel())
+    assert cirq.has_kraus(ReturnsKraus())
 
 
-def test_channel_fallback_to_mixture():
+def test_kraus_fallback_to_mixture():
     m = ((0.3, cirq.unitary(cirq.X)), (0.4, cirq.unitary(cirq.Y)), (0.3, cirq.unitary(cirq.Z)))
 
     class ReturnsMixture:
@@ -148,16 +148,16 @@ def test_channel_fallback_to_mixture():
         np.sqrt(0.3) * cirq.unitary(cirq.Z),
     )
 
-    np.allclose(cirq.kraus(ReturnsMixture()), c)
-    np.allclose(cirq.kraus(ReturnsMixture(), None), c)
-    np.allclose(cirq.kraus(ReturnsMixture(), NotImplemented), c)
-    np.allclose(cirq.kraus(ReturnsMixture(), (1,)), c)
-    np.allclose(cirq.kraus(ReturnsMixture(), LOCAL_DEFAULT), c)
+    np.testing.assert_equal(cirq.kraus(ReturnsMixture()), c)
+    np.testing.assert_equal(cirq.kraus(ReturnsMixture(), None), c)
+    np.testing.assert_equal(cirq.kraus(ReturnsMixture(), NotImplemented), c)
+    np.testing.assert_equal(cirq.kraus(ReturnsMixture(), (1,)), c)
+    np.testing.assert_equal(cirq.kraus(ReturnsMixture(), LOCAL_DEFAULT), c)
 
     assert cirq.has_kraus(ReturnsMixture())
 
 
-def test_channel_fallback_to_unitary():
+def test_kraus_fallback_to_unitary():
     u = np.array([[1, 0], [1, 0]])
 
     class ReturnsUnitary:
@@ -202,7 +202,7 @@ def test_has_kraus(cls):
 
 
 @pytest.mark.parametrize('decomposed_cls', [HasKraus, HasMixture, HasUnitary])
-def test_has_channel_when_decomposed(decomposed_cls):
+def test_has_kraus_when_decomposed(decomposed_cls):
     op = HasKrausWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
     assert cirq.has_kraus(op)
     assert not cirq.has_kraus(op, allow_decompose=False)

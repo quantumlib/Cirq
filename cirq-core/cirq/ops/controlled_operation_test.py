@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Union, Tuple, cast
+import itertools
 
 import numpy as np
 import pytest
@@ -247,11 +248,27 @@ def test_circuit_diagram():
 
 
 class MockGate(cirq.testing.TwoQubitGate):
+    def __init__(self, exponent_qubit_index=None):
+        self._exponent_qubit_index = exponent_qubit_index
+
     def _circuit_diagram_info_(
         self, args: protocols.CircuitDiagramInfoArgs
     ) -> protocols.CircuitDiagramInfo:
         self.captured_diagram_args = args
-        return cirq.CircuitDiagramInfo(wire_symbols=tuple(['MOCK']), exponent=1, connected=True)
+        return cirq.CircuitDiagramInfo(
+            wire_symbols=tuple(['M1', 'M2']),
+            exponent=1,
+            exponent_qubit_index=self._exponent_qubit_index,
+            connected=True,
+        )
+
+
+def test_controlled_diagram_exponent():
+    for q in itertools.permutations(cirq.LineQubit.range(5)):
+        for idx in [None, 0, 1]:
+            op = MockGate(idx)(*q[:2]).controlled_by(*q[2:])
+            add = 0 if idx is None else idx
+            assert cirq.circuit_diagram_info(op).exponent_qubit_index == len(q[2:]) + add
 
 
 def test_uninformed_circuit_diagram_info():
@@ -262,7 +279,7 @@ def test_uninformed_circuit_diagram_info():
     args = protocols.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
 
     assert cirq.circuit_diagram_info(c_op, args) == cirq.CircuitDiagramInfo(
-        wire_symbols=('@', 'MOCK'), exponent=1, connected=True
+        wire_symbols=('@', 'M1', 'M2'), exponent=1, connected=True, exponent_qubit_index=1
     )
     assert mock_gate.captured_diagram_args == args
 
