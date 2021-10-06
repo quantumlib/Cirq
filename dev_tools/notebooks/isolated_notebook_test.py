@@ -61,6 +61,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
     "**/aqt/*.ipynb",
+    "**/azure-quantum/*.ipynb",
     "**/google/*.ipynb",
     "**/ionq/*.ipynb",
     "**/pasqal/*.ipynb",
