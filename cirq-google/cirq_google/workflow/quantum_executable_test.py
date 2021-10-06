@@ -17,7 +17,12 @@ import dataclasses
 import cirq
 import cirq_google
 import pytest
-from cirq_google import QuantumExecutable, BitstringsMeasurement, ExecutableSpec
+from cirq_google import (
+    QuantumExecutable,
+    BitstringsMeasurement,
+    ExecutableSpec,
+    QuantumExecutableGroup,
+)
 
 
 def test_bitstrings_measurement():
@@ -117,3 +122,56 @@ def test_quantum_executable_inputs():
         )
     with pytest.raises(TypeError):
         _ = QuantumExecutable(spec={'name': 'main'}, circuit=circuit, measurement=measurement)
+
+
+def _get_quantum_executables():
+    qubits = cirq.LineQubit.range(10)
+    return [
+        QuantumExecutable(
+            spec=ExampleSpec(name=f'example-program-{i}'),
+            circuit=_get_random_circuit(qubits, random_state=i),
+            measurement=BitstringsMeasurement(n_repetitions=10),
+        )
+        for i in range(3)
+    ]
+
+
+def test_quantum_executable_group_to_tuple():
+    exes1 = list(_get_quantum_executables())
+    exes2 = tuple(_get_quantum_executables())
+
+    eg1 = QuantumExecutableGroup(exes1)
+    eg2 = QuantumExecutableGroup(exes2)
+    assert hash(eg1) == hash(eg2)
+    assert eg1 == eg2
+
+
+def test_quantum_executable_group_methods():
+    exes = _get_quantum_executables()
+    eg = QuantumExecutableGroup(exes)
+
+    # pylint: disable=line-too-long
+    assert str(eg) == (
+        "QuantumExecutable(executables=["
+        "QuantumExecutable(spec=ExampleSpec(name='example-program-0', executable_family='cirq_google.algo_benchmarks.example')), "
+        "QuantumExecutable(spec=ExampleSpec(name='example-program-1', executable_family='cirq_google.algo_benchmarks.example')), ...])"
+    )
+    # pylint: enable=line-too-long
+
+    assert len(eg) == len(exes), '__len__'
+    assert exes == [e for e in eg], '__iter__'
+
+
+def test_quantum_executable_group_serialization(tmpdir):
+    exes = _get_quantum_executables()
+    eg = QuantumExecutableGroup(exes)
+
+    cirq.testing.assert_equivalent_repr(
+        eg, global_vals={'ExampleSpec': ExampleSpec, 'cirq_google': cirq_google}
+    )
+
+    cirq.to_json(eg, f'{tmpdir}/eg.json')
+    eg_reconstructed = cirq.read_json(
+        f'{tmpdir}/eg.json', resolvers=[_testing_resolver] + cirq.DEFAULT_RESOLVERS
+    )
+    assert eg == eg_reconstructed
