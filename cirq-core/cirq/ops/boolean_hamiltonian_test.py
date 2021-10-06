@@ -194,8 +194,11 @@ def test_simplify_commuting_cnots(
         ([(2, 1), (2, 0), (100, 101), (1, 0)], False, False, [(2, 1), (2, 0), (100, 101), (1, 0)]),
         ([(2, 1), (100, 101), (2, 0), (1, 0)], False, False, [(2, 1), (100, 101), (2, 0), (1, 0)]),
         # swap (2, 1) and (1, 0) around (2, 0)
-        ([(2, 1), (2, 3), (2, 0), (3, 0), (1, 0)], True, True, [(2, 3), (1, 0), (2, 1), (3, 0)]),
         ([(2, 1), (2, 3), (2, 0), (3, 0), (1, 0)], False, True, [(2, 3), (1, 0), (2, 1), (3, 0)]),
+        ([(2, 1), (2, 0), (2, 3), (3, 0), (1, 0)], False, True, [(2, 3), (1, 0), (2, 1), (3, 0)]),
+        ([(2, 3), (2, 1), (2, 0), (3, 0), (1, 0)], False, True, [(2, 3), (1, 0), (2, 1), (3, 0)]),
+        ([(2, 1), (2, 3), (3, 0), (2, 0), (1, 0)], False, True, [(2, 3), (1, 0), (2, 1), (3, 0)]),
+        ([(2, 1), (2, 3), (2, 0), (1, 0), (3, 0)], False, True, [(2, 3), (1, 0), (2, 1), (3, 0)]),
     ],
 )
 def test_simplify_cnots_triplets(
@@ -216,12 +219,8 @@ def test_simplify_cnots_triplets(
     circuit_input = cirq.Circuit()
     for input_cnot in input_cnots:
         circuit_input.append(cirq.CNOT(qubits[input_cnot[target]], qubits[input_cnot[control]]))
-    circuit_expected = cirq.Circuit()
-    for expected_output_cnot in expected_output_cnots:
-        circuit_expected.append(
-            cirq.CNOT(qubits[expected_output_cnot[target]], qubits[expected_output_cnot[control]])
-        )
+    circuit_actual = cirq.Circuit()
+    for actual_cnot in actual_output_cnots:
+        circuit_actual.append(cirq.CNOT(qubits[actual_cnot[target]], qubits[actual_cnot[control]]))
 
-    np.testing.assert_allclose(
-        cirq.unitary(circuit_input), cirq.unitary(circuit_expected), atol=1e-6
-    )
+    np.testing.assert_allclose(cirq.unitary(circuit_input), cirq.unitary(circuit_actual), atol=1e-6)
