@@ -219,7 +219,7 @@ def choi_to_superoperator(choi: np.ndarray) -> np.ndarray:
     output Hilbert space.
 
     Args:
-        choi: Choinmatrix specifying a quantum channel.
+        choi: Choi matrix specifying a quantum channel.
 
     Returns:
         Superoperator matrix of the channel specified by choi.
