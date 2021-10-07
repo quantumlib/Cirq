@@ -278,5 +278,5 @@ def circuit_to_svg(circuit: 'cirq.Circuit') -> str:
     _validate_circuit(circuit)
     tdd = circuit.to_text_diagram_drawer(transpose=False)
     if len(tdd.horizontal_lines) == 0:  # in circuits with no non-empty moments,return a blank SVG
-        return '<svg></svg>'
+        return '<svg></svg>'  # coverage: ignore
     return tdd_to_svg(tdd)
