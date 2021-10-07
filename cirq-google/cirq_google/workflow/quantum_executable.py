@@ -45,11 +45,11 @@ class KeyValueExecutableSpec(ExecutableSpec):
     executable_family: str
     key_value_pairs: Tuple[Tuple[str, Any], ...] = ()
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return cirq.dataclass_json_dict(self, namespace='cirq.google')
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any], *, executable_family: str):
+    def from_dict(cls, d: Dict[str, Any], *, executable_family: str) -> 'KeyValueExecutableSpec':
         return cls(
             executable_family=executable_family,
             key_value_pairs=tuple((k, v) for k, v in d.items()),
@@ -58,13 +58,13 @@ class KeyValueExecutableSpec(ExecutableSpec):
     @classmethod
     def _from_json_dict_(
         cls, executable_family: str, key_value_pairs: List[List[Union[str, Any]]], **kwargs
-    ):
+    ) -> 'KeyValueExecutableSpec':
         return cls(
             executable_family=executable_family,
             key_value_pairs=tuple((k, v) for k, v in key_value_pairs),
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return cirq._compat.dataclass_repr(self, namespace='cirq_google')
 
 
