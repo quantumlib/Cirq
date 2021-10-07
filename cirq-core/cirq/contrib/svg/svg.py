@@ -30,9 +30,10 @@ def _get_text_width(t: str) -> float:
     try:
         bb = tp.get_extents()
         return bb.width + 10
-    except: # coverage: ignore
+    except:  # coverage: ignore
         # coverage: ignore
-        return 21 # assumed default column width if t is an empty string (as in the case with empty moments)
+        return 21  # assumed default column width if t is an empty string (empty moments)
+
 
 def _rect(
     x: float,
@@ -239,7 +240,7 @@ def tdd_to_svg(
             t += _text(x, y + 3, '×', fontsize=40)
             continue
         if v.text == '':
-            continue # coverage: ignore
+            continue  # coverage: ignore
 
         v_text = fixup_text(v.text)
         t += _rect(boxx, boxy, boxwidth, boxheight)
@@ -271,10 +272,11 @@ class SVGCircuit:
         # coverage: ignore
         return circuit_to_svg(self.circuit)
 
+
 def circuit_to_svg(circuit: 'cirq.Circuit') -> str:
     """Render a circuit as SVG."""
     _validate_circuit(circuit)
     tdd = circuit.to_text_diagram_drawer(transpose=False)
-    if len(tdd.horizontal_lines) == 0: # in circuits with no non-empty moments,return a blank SVG
+    if len(tdd.horizontal_lines) == 0:  # in circuits with no non-empty moments,return a blank SVG
         return '<svg></svg>'
     return tdd_to_svg(tdd)
