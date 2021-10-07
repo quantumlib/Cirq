@@ -19,7 +19,8 @@ import uuid
 from dataclasses import dataclass
 from typing import List
 
-import cirq.work
+import cirq
+from cirq import _compat
 from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
 from cirq_google.workflow.quantum_executable import ExecutableSpec, QuantumExecutableGroup, \
@@ -41,6 +42,9 @@ class SharedRuntimeInfo:
     def _json_dict_(self):
         return dataclass_json_dict(self, namespace='cirq.google')
 
+    def __repr__(self):
+        return _compat.dataclass_repr(self, namespace='cirq_google')
+
 
 @dataclass
 class RuntimeInfo:
@@ -56,6 +60,9 @@ class RuntimeInfo:
 
     def _json_dict_(self):
         return dataclass_json_dict(self, namespace='cirq.google')
+
+    def __repr__(self):
+        return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
 @dataclass
@@ -74,6 +81,9 @@ class ExecutableResult:
 
     def _json_dict_(self):
         return dataclass_json_dict(self, namespace='cirq.google')
+
+    def __repr__(self):
+        return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
 @dataclass
@@ -96,6 +106,9 @@ class ExecutableGroupResult:
     def _json_dict_(self):
         return dataclass_json_dict(self, namespace='cirq.google')
 
+    def __repr__(self):
+        return _compat.dataclass_repr(self, namespace='cirq_google')
+
 
 @dataclass
 class QuantumRuntimeConfiguration:
@@ -113,6 +126,9 @@ class QuantumRuntimeConfiguration:
 
     def _json_dict_(self):
         return dataclass_json_dict(self, namespace='cirq.google')
+
+    def __repr__(self):
+        return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
 def execute(
