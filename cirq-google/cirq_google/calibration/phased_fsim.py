@@ -570,7 +570,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_gamma: bool
     characterize_phi: bool
     readout_error_tolerance: Optional[float] = None
-    version: int = 1
+    version: int = 2
     measure_qubits: Optional[Tuple[cirq.Qid]] = None
 
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
@@ -696,8 +696,6 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     ) -> PhasedFSimCalibrationResult:
         if result.code != v2.calibration_pb2.SUCCESS:
             raise PhasedFSimCalibrationError(result.error_message)
-
-        print(f'metrics: {list(result.metrics.keys())}')
 
         decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
