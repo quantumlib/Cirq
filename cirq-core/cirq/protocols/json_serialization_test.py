@@ -14,6 +14,7 @@
 import contextlib
 import dataclasses
 import datetime
+import importlib
 import io
 import json
 import os
@@ -31,8 +32,7 @@ import sympy
 import cirq
 from cirq._compat import proper_eq
 from cirq.protocols import json_serialization
-from cirq.testing import assert_json_roundtrip_works
-from cirq.testing.json import ModuleJsonTestSpec, spec_for
+from cirq.testing.json import ModuleJsonTestSpec, spec_for, assert_json_roundtrip_works
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
 
@@ -81,7 +81,7 @@ if sys.version_info < (3, 7):  # pragma: no cover
     del TESTED_MODULES['cirq_rigetti']
 
 
-def _get_testspecs_for_modules():
+def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
     modules = []
     for m in TESTED_MODULES.keys():
         try:
@@ -229,9 +229,9 @@ def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
     missing_names = set(mod_spec.not_yet_serializable).difference(names)
-    assert len(missing_names) == 0, (
-        f"Defined as Not yet serializable, " f"but missing from {mod_spec}: \n" f"{missing_names}"
-    )
+    assert (
+        len(missing_names) == 0
+    ), f"Defined as Not yet serializable, but missing from {mod_spec}: \n{missing_names}"
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
@@ -481,11 +481,8 @@ def _list_public_classes_for_tested_modules():
     _list_public_classes_for_tested_modules(),
 )
 def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
-    if cirq_obj_name == "SerializableByKey":
-        pytest.skip(
-            "SerializableByKey does not follow common serialization rules. "
-            "It is tested separately in test_context_serialization."
-        )
+    if cirq_obj_name in mod_spec.tested_elsewhere:
+        pytest.skip("Tested elsewhere.")
 
     if cirq_obj_name in mod_spec.not_yet_serializable:
         return pytest.xfail(reason="Not serializable (yet)")
@@ -598,25 +595,17 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
 
     imports = {
         'cirq': cirq,
-        'datetime': datetime,
         'pd': pd,
         'sympy': sympy,
         'np': np,
         'datetime': datetime,
     }
-    try:
-        import cirq_google
 
-        imports['cirq_google'] = cirq_google
-    except ImportError:
-        pass
-
-    try:
-        import cirq_pasqal
-
-        imports['cirq_pasqal'] = cirq_pasqal
-    except ImportError:
-        pass
+    for m in TESTED_MODULES.keys():
+        try:
+            imports[m] = importlib.import_module(m)
+        except ImportError:
+            pass
 
     with contextlib.ExitStack() as stack:
         for ctx_manager in ctx_managers:
@@ -782,6 +771,24 @@ def test_json_serializable_dataclass_parenthesis():
     assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
 
 
+def test_dataclass_json_dict():
+    @dataclasses.dataclass(frozen=True)
+    class MyDC:
+        q: cirq.LineQubit
+        desc: str
+
+        def _json_dict_(self):
+            return cirq.dataclass_json_dict(self)
+
+    def custom_resolver(name):
+        if name == 'MyDC':
+            return MyDC
+
+    my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
+
+    assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver, *cirq.DEFAULT_RESOLVERS])
+
+
 def test_json_serializable_dataclass_namespace():
     @cirq.json_serializable_dataclass(namespace='cirq.experiments')
     class QuantumVolumeParams:
@@ -796,3 +803,12 @@ def test_json_serializable_dataclass_namespace():
             return QuantumVolumeParams
 
     assert_json_roundtrip_works(qvp, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
+
+
+def test_numpy_values():
+    assert (
+        cirq.to_json({'value': np.array(1)})
+        == """{
+  "value": 1
+}"""
+    )

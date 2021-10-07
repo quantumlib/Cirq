@@ -165,18 +165,19 @@ class TomographyResult:
         return self._density_matrix
 
     def plot(self, axes: Optional[List[plt.Axes]] = None, **plot_kwargs: Any) -> List[plt.Axes]:
-        """Plots the real and imaginary parts of the density matrix as two
-        3D bar plots.
+        """Plots the real and imaginary parts of the density matrix as two 3D bar plots.
 
         Args:
-            axes: a list of 2 `plt.Axes` instances. Note that they must be in
+            axes: A list of 2 `plt.Axes` instances. Note that they must be in
                 3d projections. If not given, a new figure is created with 2
                 axes and the plotted figure is shown.
-            plot_kwargs: the optional kwargs passed to bar3d.
+            plot_kwargs: The optional kwargs passed to bar3d.
+
         Returns:
             the list of `plt.Axes` being plotted on.
+
         Raises:
-            ValueError if axes is a list with length != 2.
+            ValueError: If axes is a list with length != 2.
         """
         show_plot = axes is None
         if axes is None:

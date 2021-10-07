@@ -178,7 +178,7 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
 
     if result is NotImplemented or result is None:
         return result
-    state_len = np.prod(val_qid_shape, dtype=int)
+    state_len = np.prod(val_qid_shape, dtype=np.int64)
     return result.reshape((state_len, state_len))
 
 
@@ -199,5 +199,5 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     # Package result.
     if result is None:
         return None
-    state_len = np.prod(val_qid_shape, dtype=int)
+    state_len = np.prod(val_qid_shape, dtype=np.int64)
     return result.reshape((state_len, state_len))

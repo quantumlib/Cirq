@@ -133,6 +133,8 @@ def value_equality(
     pass
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def value_equality(
     cls: type = None,
     *,
@@ -229,4 +231,4 @@ def value_equality(
     return cls
 
 
-# pylint: enable=function-redefined
+# pylint: enable=function-redefined,missing-raises-doc

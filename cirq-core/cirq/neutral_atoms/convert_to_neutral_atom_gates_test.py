@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import numpy as np
+import pytest
 
 import cirq
 from cirq import ops
@@ -21,7 +21,7 @@ from cirq import ops
 
 def test_coverage():
     q = cirq.LineQubit.range(3)
-    g = cirq.ThreeQubitGate()
+    g = cirq.testing.ThreeQubitGate()
 
     class FakeOperation(ops.Operation):
         def __init__(self, gate, qubits):
@@ -36,15 +36,17 @@ def test_coverage():
             return FakeOperation(self._gate, new_qubits)
 
     op = FakeOperation(g, q).with_qubits(*q)
-    c = cirq.Circuit(cirq.X.on(q[0]))
+    circuit_ops = [cirq.Y(q[0]), cirq.ParallelGate(cirq.X, 3).on(*q)]
+    c = cirq.Circuit(circuit_ops)
     cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
-    assert c == cirq.Circuit(cirq.X.on(q[0]))
+    assert c == cirq.Circuit(circuit_ops)
     assert cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(cirq.X.on(q[0])) == [
         cirq.X.on(q[0])
     ]
     with pytest.raises(TypeError, match="Don't know how to work with"):
         cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(op)
     assert not cirq.neutral_atoms.is_native_neutral_atom_op(op)
+    assert not cirq.neutral_atoms.is_native_neutral_atom_gate(g)
 
 
 def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
@@ -63,11 +65,11 @@ def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
 
 
 def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
-    class OtherCZ(cirq.TwoQubitGate):
+    class OtherCZ(cirq.testing.TwoQubitGate):
         def _unitary_(self) -> np.ndarray:
             return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
 
-    class OtherOtherCZ(cirq.TwoQubitGate):
+    class OtherOtherCZ(cirq.testing.TwoQubitGate):
         def _decompose_(self, qubits):
             return OtherCZ().on(*qubits)
 

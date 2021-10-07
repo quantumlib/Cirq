@@ -106,7 +106,7 @@ def test_validate_measurement_non_adjacent_qubits_ok():
     d = ion_device(3)
 
     d.validate_operation(
-        cirq.GateOperation(cirq.MeasurementGate(2), (cirq.LineQubit(0), cirq.LineQubit(1)))
+        cirq.GateOperation(cirq.MeasurementGate(2, 'key'), (cirq.LineQubit(0), cirq.LineQubit(1)))
     )
 
 

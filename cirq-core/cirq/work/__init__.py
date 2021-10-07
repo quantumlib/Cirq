@@ -39,6 +39,9 @@ from cirq.work.observable_measurement import (
     RepetitionsStoppingCriteria,
     measure_grouped_settings,
 )
+from cirq.work.observable_readout_calibration import (
+    calibrate_readout_error,
+)
 from cirq.work.sampler import (
     Sampler,
 )

@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import tempfile
+from typing import Iterable, Dict, List
 
 import numpy as np
 import pytest
 
 import cirq
 import cirq.work as cw
-from cirq.work import _MeasurementSpec, BitstringAccumulator
+from cirq.work import _MeasurementSpec, BitstringAccumulator, group_settings_greedy, InitObsSetting
 from cirq.work.observable_measurement import (
     _with_parameterized_layers,
     _get_params_for_setting,
@@ -26,6 +28,12 @@ from cirq.work.observable_measurement import (
     _aggregate_n_repetitions,
     _check_meas_specs_still_todo,
     StoppingCriteria,
+    _parse_checkpoint_options,
+    measure_observables_df,
+    CheckpointFileOptions,
+    VarianceStoppingCriteria,
+    measure_observables,
+    RepetitionsStoppingCriteria,
 )
 
 
@@ -155,7 +163,6 @@ def test_params_and_settings():
 
 
 def test_subdivide_meas_specs():
-
     qubits = cirq.LineQubit.range(2)
     q0, q1 = qubits
     setting = cw.InitObsSetting(
@@ -364,8 +371,56 @@ def test_meas_spec_still_todo_lots_of_params(monkeypatch):
         )
 
 
-@pytest.mark.parametrize('with_circuit_sweep', (True, False))
-def test_measure_grouped_settings(with_circuit_sweep):
+def test_checkpoint_options():
+    # There are three ~binary options (the latter two can be either specified or `None`. We
+    # test those 2^3 cases.
+
+    assert _parse_checkpoint_options(False, None, None) == (None, None)
+    with pytest.raises(ValueError):
+        _parse_checkpoint_options(False, 'test', None)
+    with pytest.raises(ValueError):
+        _parse_checkpoint_options(False, None, 'test')
+    with pytest.raises(ValueError):
+        _parse_checkpoint_options(False, 'test1', 'test2')
+
+    chk, chkprev = _parse_checkpoint_options(True, None, None)
+    assert chk.startswith(tempfile.gettempdir())
+    assert chk.endswith('observables.json')
+    assert chkprev.startswith(tempfile.gettempdir())
+    assert chkprev.endswith('observables.prev.json')
+
+    chk, chkprev = _parse_checkpoint_options(True, None, 'prev.json')
+    assert chk.startswith(tempfile.gettempdir())
+    assert chk.endswith('observables.json')
+    assert chkprev == 'prev.json'
+
+    chk, chkprev = _parse_checkpoint_options(True, 'my_fancy_observables.json', None)
+    assert chk == 'my_fancy_observables.json'
+    assert chkprev == 'my_fancy_observables.prev.json'
+
+    chk, chkprev = _parse_checkpoint_options(True, 'my_fancy/observables.json', None)
+    assert chk == 'my_fancy/observables.json'
+    assert chkprev == 'my_fancy/observables.prev.json'
+
+    with pytest.raises(ValueError, match=r'Please use a `.json` filename.*'):
+        _parse_checkpoint_options(True, 'my_fancy_observables.obs', None)
+
+    with pytest.raises(ValueError, match=r"pattern of 'filename.extension'.*"):
+        _parse_checkpoint_options(True, 'my_fancy_observables', None)
+    with pytest.raises(ValueError, match=r"pattern of 'filename.extension'.*"):
+        _parse_checkpoint_options(True, '.obs', None)
+    with pytest.raises(ValueError, match=r"pattern of 'filename.extension'.*"):
+        _parse_checkpoint_options(True, 'obs.', None)
+    with pytest.raises(ValueError, match=r"pattern of 'filename.extension'.*"):
+        _parse_checkpoint_options(True, '', None)
+
+    chk, chkprev = _parse_checkpoint_options(True, 'test1', 'test2')
+    assert chk == 'test1'
+    assert chkprev == 'test2'
+
+
+@pytest.mark.parametrize(('with_circuit_sweep', 'checkpoint'), [(True, True), (False, False)])
+def test_measure_grouped_settings(with_circuit_sweep, checkpoint, tmpdir):
     qubits = cirq.LineQubit.range(1)
     (q,) = qubits
     tests = [
@@ -381,6 +436,11 @@ def test_measure_grouped_settings(with_circuit_sweep):
     else:
         ss = None
 
+    if checkpoint:
+        checkpoint_fn = f'{tmpdir}/obs.json'
+    else:
+        checkpoint_fn = None
+
     for init, obs, coef in tests:
         setting = cw.InitObsSetting(
             init_state=init(q),
@@ -392,8 +452,9 @@ def test_measure_grouped_settings(with_circuit_sweep):
             circuit=circuit,
             grouped_settings=grouped_settings,
             sampler=cirq.Simulator(),
-            stopping_criteria=cw.RepetitionsStoppingCriteria(1_000),
+            stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
             circuit_sweep=ss,
+            checkpoint=CheckpointFileOptions(checkpoint=checkpoint, checkpoint_fn=checkpoint_fn),
         )
         if with_circuit_sweep:
             for result in results:
@@ -401,3 +462,138 @@ def test_measure_grouped_settings(with_circuit_sweep):
         else:
             (result,) = results  # one group
             assert result.means() == [coef]
+
+
+def _get_some_grouped_settings():
+    qubits = cirq.LineQubit.range(2)
+    q0, q1 = qubits
+    terms = [
+        cirq.X(q0),
+        cirq.Y(q1),
+    ]
+    settings = list(cirq.work.observables_to_settings(terms, qubits))
+    grouped_settings = cirq.work.group_settings_greedy(settings)
+    return grouped_settings, qubits
+
+
+def test_measure_grouped_settings_calibration_validation():
+    dummy_ro_calib = _MockBitstringAccumulator()
+    grouped_settings, qubits = _get_some_grouped_settings()
+
+    with pytest.raises(
+        ValueError, match=r'Readout calibration only works if `readout_symmetrization` is enabled'
+    ):
+        cw.measure_grouped_settings(
+            circuit=cirq.Circuit(cirq.I.on_each(*qubits)),
+            grouped_settings=grouped_settings,
+            sampler=cirq.Simulator(),
+            stopping_criteria=cw.RepetitionsStoppingCriteria(10_000),
+            readout_calibrations=dummy_ro_calib,
+            readout_symmetrization=False,  # no-no!
+        )
+
+
+def test_measure_grouped_settings_read_checkpoint(tmpdir):
+    qubits = cirq.LineQubit.range(1)
+    (q,) = qubits
+
+    setting = cw.InitObsSetting(
+        init_state=cirq.KET_ZERO(q),
+        observable=cirq.Z(q),
+    )
+    grouped_settings = {setting: [setting]}
+    circuit = cirq.Circuit(cirq.I.on_each(*qubits))
+    with pytest.raises(ValueError, match=r'same filename.*'):
+        _ = cw.measure_grouped_settings(
+            circuit=circuit,
+            grouped_settings=grouped_settings,
+            sampler=cirq.Simulator(),
+            stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
+            checkpoint=CheckpointFileOptions(
+                checkpoint=True,
+                checkpoint_fn=f'{tmpdir}/obs.json',
+                checkpoint_other_fn=f'{tmpdir}/obs.json',  # Same filename
+            ),
+        )
+    _ = cw.measure_grouped_settings(
+        circuit=circuit,
+        grouped_settings=grouped_settings,
+        sampler=cirq.Simulator(),
+        stopping_criteria=cw.RepetitionsStoppingCriteria(1_000, repetitions_per_chunk=500),
+        checkpoint=CheckpointFileOptions(
+            checkpoint=True,
+            checkpoint_fn=f'{tmpdir}/obs.json',
+            checkpoint_other_fn=f'{tmpdir}/obs.prev.json',
+        ),
+    )
+    results = cirq.read_json(f'{tmpdir}/obs.json')
+    (result,) = results  # one group
+    assert result.n_repetitions == 1_000
+    assert result.means() == [1.0]
+
+
+Q = cirq.NamedQubit('q')
+
+
+@pytest.mark.parametrize(
+    ['circuit', 'observable'],
+    [
+        (cirq.Circuit(cirq.X(Q) ** 0.2), cirq.Z(Q)),
+        (cirq.Circuit(cirq.X(Q) ** -0.5, cirq.Z(Q) ** 0.2), cirq.Y(Q)),
+        (cirq.Circuit(cirq.Y(Q) ** 0.5, cirq.Z(Q) ** 0.2), cirq.X(Q)),
+    ],
+)
+def test_XYZ_point8(circuit, observable):
+    # each circuit, observable combination should result in the observable value of 0.8
+    df = measure_observables_df(
+        circuit,
+        [observable],
+        cirq.Simulator(seed=52),
+        stopping_criteria=VarianceStoppingCriteria(1e-3 ** 2),
+    )
+    assert len(df) == 1, 'one observable'
+    mean = df.loc[0]['mean']
+    np.testing.assert_allclose(0.8, mean, atol=1e-2)
+
+
+def _each_in_its_own_group_grouper(
+    settings: Iterable[InitObsSetting],
+) -> Dict[InitObsSetting, List[InitObsSetting]]:
+    return {setting: [setting] for setting in settings}
+
+
+@pytest.mark.parametrize(
+    'grouper', ['greedy', group_settings_greedy, _each_in_its_own_group_grouper]
+)
+def test_measure_observable_grouper(grouper):
+    circuit = cirq.Circuit(cirq.X(Q) ** 0.2)
+    observables = [
+        cirq.Z(Q),
+        cirq.Z(cirq.NamedQubit('q2')),
+    ]
+    results = measure_observables(
+        circuit,
+        observables,
+        cirq.Simulator(seed=52),
+        stopping_criteria=RepetitionsStoppingCriteria(50_000),
+        grouper=grouper,
+    )
+    assert len(results) == 2, 'two observables'
+    np.testing.assert_allclose(0.8, results[0].mean, atol=0.05)
+    np.testing.assert_allclose(1, results[1].mean, atol=1e-9)
+
+
+def test_measure_observable_bad_grouper():
+    circuit = cirq.Circuit(cirq.X(Q) ** 0.2)
+    observables = [
+        cirq.Z(Q),
+        cirq.Z(cirq.NamedQubit('q2')),
+    ]
+    with pytest.raises(ValueError, match=r'Unknown grouping function'):
+        _ = measure_observables(
+            circuit,
+            observables,
+            cirq.Simulator(seed=52),
+            stopping_criteria=RepetitionsStoppingCriteria(50_000),
+            grouper='super fancy grouper',
+        )

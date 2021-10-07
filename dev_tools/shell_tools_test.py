@@ -13,17 +13,11 @@
 # limitations under the License.
 
 import subprocess
-import os
 
 import pytest
 
 from dev_tools import shell_tools
-
-
-def only_on_posix(func):
-    if os.name != 'posix':
-        return None
-    return func
+from dev_tools.test_utils import only_on_posix
 
 
 def run_cmd(*args, **kwargs):

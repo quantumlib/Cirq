@@ -59,6 +59,8 @@ class MPSSimulator(
 ):
     """An efficient simulator for MPS circuits."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
@@ -85,6 +87,9 @@ class MPSSimulator(
             seed=seed,
         )
 
+    # pylint: enable=missing-raises-doc
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
@@ -115,6 +120,7 @@ class MPSSimulator(
             log_of_measurement_results=logs,
         )
 
+    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[MPSState]',
@@ -125,23 +131,21 @@ class MPSSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'MPSState',
+        final_step_result: 'MPSSimulatorStepResult',
     ) -> 'MPSTrialResult':
         """Creates a single trial results with the measurements.
 
         Args:
-            circuit: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
+            params: A ParamResolver for determining values of Symbols.
             measurements: A dictionary from measurement key (e.g. qubit) to the
                 actual measurement array.
-            final_simulator_state: The final state of the simulator.
+            final_step_result: The final step result of the simulation.
 
         Returns:
             A single result.
         """
         return MPSTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
 
@@ -152,13 +156,15 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'MPSState',
+        final_step_result: 'MPSSimulatorStepResult',
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
-        self.final_state = final_simulator_state
+    @property
+    def final_state(self):
+        return self._final_simulator_state
 
     def __str__(self) -> str:
         samples = super().__str__()
@@ -206,6 +212,8 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     @deprecated_parameter(
         deadline='v0.13',
         fix='No longer needed. `protocols.act_on` infers axes.',
@@ -274,6 +282,7 @@ class MPSState(ActOnArgs):
         self.simulation_options = simulation_options
         self.estimated_gate_error_list: List[float] = []
 
+    # pylint: enable=missing-raises-doc
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
         return self.format_i.format(i)
@@ -292,17 +301,11 @@ class MPSState(ActOnArgs):
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.M, self.simulation_options, self.grouping
 
-    def copy(self) -> 'MPSState':
-        state = MPSState(
-            qubits=self.qubits,
-            prng=self.prng,
-            simulation_options=self.simulation_options,
-            grouping=self.grouping,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
-        )
-        state.M = [x.copy() for x in self.M]
-        state.estimated_gate_error_list = self.estimated_gate_error_list
-        return state
+    def _on_copy(self, target: 'MPSState'):
+        target.simulation_options = self.simulation_options
+        target.grouping = self.grouping
+        target.M = [x.copy() for x in self.M]
+        target.estimated_gate_error_list = self.estimated_gate_error_list
 
     def state_vector(self) -> np.ndarray:
         """Returns the full state vector.
@@ -440,9 +443,16 @@ class MPSState(ActOnArgs):
             raise ValueError('Can only handle 1 and 2 qubit operations')
         return True
 
-    def _act_on_fallback_(self, op: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+    def _act_on_fallback_(
+        self,
+        action: Union['cirq.Operation', 'cirq.Gate'],
+        qubits: Sequence['cirq.Qid'],
+        allow_decompose: bool = True,
+    ) -> bool:
         """Delegates the action to self.apply_op"""
-        return self.apply_op(op, self.prng)
+        if isinstance(action, ops.Gate):
+            action = ops.GateOperation(action, qubits)
+        return self.apply_op(action, self.prng)
 
     def estimation_stats(self):
         """Returns some statistics about the memory usage and quality of the approximation."""
@@ -464,6 +474,8 @@ class MPSState(ActOnArgs):
             "estimated_fidelity": estimated_fidelity,
         }
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
     ) -> List[int]:
@@ -513,6 +525,7 @@ class MPSState(ActOnArgs):
 
         return results
 
+    # pylint: enable=missing-raises-doc
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
         return self.perform_measurement(qubits, self.prng)

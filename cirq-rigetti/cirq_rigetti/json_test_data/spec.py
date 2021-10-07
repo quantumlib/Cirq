@@ -28,6 +28,9 @@ TestSpec = ModuleJsonTestSpec(
     should_not_be_serialized=[
         "RigettiQCSSampler",
         "RigettiQCSService",
+        "UnsupportedQubit",
+        "UnsupportedRigettiQCSOperation",
+        "UnsupportedRigettiQCSQuantumProcessor",
     ],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={},

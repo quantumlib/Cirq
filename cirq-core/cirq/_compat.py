@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Workarounds for compatibility issues between versions and libraries."""
+import dataclasses
 import functools
 import importlib
 import os
@@ -69,6 +70,31 @@ def proper_repr(value: Any) -> str:
         )
 
     return repr(value)
+
+
+def dataclass_repr(value: Any, namespace: str = 'cirq') -> str:
+    """Create a Cirq-style repr for a dataclass.
+
+    Args:
+        value: The dataclass. We respect the `repr` attribute of dataclass fields if you deign
+            to omit a field from the repr.
+        namespace: The Python namespace or module name to prepend with a "." to the class name.
+            This is the key difference between the default dataclass-generated __repr__.
+
+    Returns:
+        A representation suitable for the __repr__ method of a dataclass.
+    """
+    field_strs = []
+    field: dataclasses.Field
+    for field in dataclasses.fields(value):
+        if not field.repr:
+            continue
+
+        field_val = getattr(value, field.name)
+        field_strs.append(f'{field.name}={proper_repr(field_val)}')
+
+    clsname = value.__class__.__name__
+    return f"{namespace}.{clsname}({', '.join(field_strs)})"
 
 
 def proper_eq(a: Any, b: Any) -> bool:
@@ -438,6 +464,8 @@ def _deduped_module_warn_or_error(old_module_name: str, new_module_name: str, de
     )
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     """A module finder to handle deprecated module references.
 
@@ -548,6 +576,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         return spec
 
 
+# pylint: enable=missing-param-doc
 class _BrokenModule(ModuleType):
     def __init__(self, name, exc):
         self.exc = exc
@@ -561,6 +590,8 @@ class DeprecatedModuleImportError(ImportError):
     pass
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 def deprecated_submodule(
     *, new_module_name: str, old_parent: str, old_child: str, deadline: str, create_attribute: bool
 ):
@@ -581,6 +612,7 @@ def deprecated_submodule(
         old_child: the submodule that is being relocated
         create_attribute: if True, the submodule will be added as a deprecated attribute to the
             old_parent module
+
     Returns:
         None
     """
@@ -615,6 +647,13 @@ def deprecated_submodule(
             )
 
     def wrap(finder: Any) -> Any:
+        # Sphinx looks for non-wrapped MockFinders
+        # so we have to check for them and not wrap them
+        if 'sphinx' in sys.modules:
+            from sphinx.ext.autodoc.mock import MockFinder
+
+            if isinstance(finder, MockFinder):
+                return finder
         if not hasattr(finder, 'find_spec'):
             return finder
         return DeprecatedModuleFinder(
@@ -624,6 +663,7 @@ def deprecated_submodule(
     sys.meta_path = [wrap(finder) for finder in sys.meta_path]
 
 
+# pylint: enable=missing-param-doc
 def _setup_deprecated_submodule_attribute(
     new_module_name: str,
     old_parent: str,

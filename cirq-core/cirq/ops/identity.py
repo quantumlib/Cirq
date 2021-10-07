@@ -13,7 +13,7 @@
 # limitations under the License.
 """IdentityGate."""
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 import sympy
@@ -36,6 +36,8 @@ class IdentityGate(raw_types.Gate):
     `cirq.I` is the single qubit identity gate.
     """
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def __init__(
         self, num_qubits: Optional[int] = None, qid_shape: Optional[Tuple[int, ...]] = None
     ) -> None:
@@ -59,6 +61,10 @@ class IdentityGate(raw_types.Gate):
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
 
+    # pylint: enable=missing-param-doc
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
+        return True
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
@@ -74,7 +80,7 @@ class IdentityGate(raw_types.Gate):
         return True
 
     def _unitary_(self) -> np.ndarray:
-        return np.identity(np.prod(self._qid_shape, dtype=int).item())
+        return np.identity(np.prod(self._qid_shape, dtype=np.int64).item())
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         return args.target_tensor
@@ -167,7 +173,7 @@ def identity_each(*qubits: 'cirq.Qid') -> 'cirq.Operation':
         An identity operation on the given qubits.
 
     Raises:
-        ValueError if the qubits are not instances of Qid.
+        ValueError: If the qubits are not instances of Qid.
     """
     for qubit in qubits:
         if not isinstance(qubit, raw_types.Qid):

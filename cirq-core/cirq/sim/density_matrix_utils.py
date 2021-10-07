@@ -191,7 +191,7 @@ def _probs(
 ) -> np.ndarray:
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
-    all_probs = np.diagonal(np.reshape(density_matrix, (np.prod(qid_shape, dtype=int),) * 2))
+    all_probs = np.diagonal(np.reshape(density_matrix, (np.prod(qid_shape, dtype=np.int64),) * 2))
     # Shape into a tensor
     tensor = np.reshape(all_probs, qid_shape)
 
@@ -200,7 +200,7 @@ def _probs(
         # We're measuring every qudit, so no need for fancy indexing
         probs = np.abs(tensor)
         probs = np.transpose(probs, indices)
-        probs = np.reshape(probs, np.prod(probs.shape))
+        probs = np.reshape(probs, np.prod(probs.shape, dtype=np.int64))
     else:
         # Fancy indexing required
         meas_shape = tuple(qid_shape[i] for i in indices)
@@ -211,7 +211,7 @@ def _probs(
                         indices, big_endian_qureg_value=b, qid_shape=qid_shape
                     )
                 ]
-                for b in range(np.prod(meas_shape, dtype=int))
+                for b in range(np.prod(meas_shape, dtype=np.int64))
             ]
         )
         probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
@@ -229,10 +229,12 @@ def _validate_density_matrix_qid_shape(
     """
     shape = density_matrix.shape
     if len(shape) == 2:
-        if np.prod(qid_shape, dtype=int) ** 2 != np.prod(shape, dtype=int):
+        if np.prod(qid_shape, dtype=np.int64) ** 2 != np.prod(shape, dtype=np.int64):
             raise ValueError(
                 'Matrix size does not match qid shape {!r}. Got matrix with '
-                'shape {!r}. Expected {!r}.'.format(qid_shape, shape, np.prod(qid_shape, dtype=int))
+                'shape {!r}. Expected {!r}.'.format(
+                    qid_shape, shape, np.prod(qid_shape, dtype=np.int64)
+                )
             )
         return qid_shape
     if len(shape) % 2 != 0:
@@ -252,8 +254,8 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     """
     shape = density_matrix.shape
     half_index = len(shape) // 2
-    row_size = np.prod(shape[:half_index]) if len(shape) != 0 else 0
-    col_size = np.prod(shape[half_index:]) if len(shape) != 0 else 0
+    row_size = np.prod(shape[:half_index], dtype=np.int64) if len(shape) != 0 else 0
+    col_size = np.prod(shape[half_index:], dtype=np.int64) if len(shape) != 0 else 0
     if row_size != col_size:
         raise ValueError(f'Matrix was not square. Shape was {shape}')
     if row_size & (row_size - 1):

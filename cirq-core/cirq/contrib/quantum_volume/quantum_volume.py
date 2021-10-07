@@ -2,16 +2,15 @@
 https://arxiv.org/abs/1811.12926.
 """
 
-from typing import Optional, List, cast, Callable, Dict, Tuple, Set, Any
 from dataclasses import dataclass
+from typing import Optional, List, cast, Callable, Dict, Tuple, Set, Any
 
+import networkx as nx
 import numpy as np
 import pandas as pd
-import networkx as nx
 
 import cirq
 import cirq.contrib.routing as ccr
-from cirq._compat import deprecated_parameter
 
 
 def generate_model_circuit(
@@ -213,6 +212,8 @@ class SwapPermutationReplacer(cirq.PointOptimizer):
         return None  # Don't make changes to other gates.
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 def compile_circuit(
     circuit: cirq.Circuit,
     *,
@@ -306,6 +307,7 @@ def compile_circuit(
     )
 
 
+# pylint: enable=missing-param-doc
 @dataclass
 class QuantumVolumeResult:
     """Stores one run of the results and test information used when running the
@@ -428,21 +430,6 @@ def _get_device_graph(device_or_qubits: Any):
     return ccr.gridqubits_to_graph_device(qubits)
 
 
-@deprecated_parameter(
-    deadline="v0.12",
-    fix="use device_graph instead",
-    parameter_desc='device_or_qubits',
-    match=lambda args, kwargs: 'device_or_qubits' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        dict(
-            ('device_graph', _get_device_graph(arg_val))
-            if arg_name == 'device_or_qubits'
-            else (arg_name, arg_val)
-            for arg_name, arg_val in kwargs.items()
-        ),
-    ),
-)
 def calculate_quantum_volume(
     *,
     num_qubits: int,

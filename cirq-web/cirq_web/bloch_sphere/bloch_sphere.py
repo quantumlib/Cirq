@@ -19,20 +19,20 @@ from cirq.qis.states import STATE_VECTOR_LIKE
 
 
 class BlochSphere(widget.Widget):
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         sphere_radius: int = 5,
         state_vector: STATE_VECTOR_LIKE = None,
     ):
-        """Initializes a BlochSphere, gathering all the user information and
-        converting to JSON for output.
+        """Initializes a BlochSphere.
 
         Also initializes it's parent class Widget with the bundle file provided.
 
         Args:
             sphere_radius: the radius of the bloch sphere in the three.js diagram.
-            The default value is 5.
-
+                The default value is 5.
             state_vector: a state vector to pass in to be represented.
         """
         super().__init__()
@@ -44,6 +44,7 @@ class BlochSphere(widget.Widget):
             raise ValueError('No state vector given in BlochSphere initialization')
         self.bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
 
+    # pylint: enable=missing-raises-doc
     def get_client_code(self) -> str:
         return f"""
         <script>

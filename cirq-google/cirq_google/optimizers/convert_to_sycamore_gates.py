@@ -47,6 +47,8 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
         Otherwise raises a TypeError.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(self, tabulation: Optional[GateTabulation] = None, ignore_failures=False) -> None:
         """Inits ConvertToSycamoreGates.
 
@@ -65,6 +67,7 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
             raise ValueError("provided tabulation must be of type GateTabulation")
         self.tabulation = tabulation
 
+    # pylint: enable=missing-raises-doc
     def _is_native_sycamore_op(self, op: cirq.Operation) -> bool:
         """Check if the given operation is native to a Sycamore device.
 
@@ -173,6 +176,8 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
         )
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def known_two_q_operations_to_sycamore_operations(
     qubit_a: cirq.Qid,
     qubit_b: cirq.Qid,
@@ -232,6 +237,7 @@ def known_two_q_operations_to_sycamore_operations(
         raise ValueError(f"Unrecognized gate: {op!r}")
 
 
+# pylint: enable=missing-raises-doc
 def decompose_phased_iswap_into_syc(
     phase_exponent: float, a: cirq.Qid, b: cirq.Qid
 ) -> cirq.OP_TREE:

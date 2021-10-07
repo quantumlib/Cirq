@@ -43,13 +43,14 @@ if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
+# Sanity check
+assert __version__, 'Version string cannot be empty'
+
+requirements += [f'cirq-core=={__version__}']
 
 cirq_packages = ['cirq_pasqal'] + [
     'cirq_pasqal.' + package for package in find_packages(where='cirq_pasqal')
 ]
-
-# Sanity check
-assert __version__, 'Version string cannot be empty'
 
 setup(
     name=name,

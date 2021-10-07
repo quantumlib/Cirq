@@ -1,0 +1,1 @@
+cirq.ProjectorString(projector_dict={cirq.NamedQubit('q0'): 0}, coefficient=20.160913)

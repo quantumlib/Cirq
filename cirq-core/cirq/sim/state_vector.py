@@ -32,6 +32,8 @@ from cirq.qis import STATE_VECTOR_LIKE  # pylint: disable=unused-import,wrong-im
 class StateVectorMixin:
     """A mixin that provide methods for objects that have a state vector."""
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
     def __init__(self, qubit_map: Optional[Dict[ops.Qid, int]] = None, *args, **kwargs):
         """Inits StateVectorMixin.
@@ -46,6 +48,7 @@ class StateVectorMixin:
         qid_shape = simulator._qubit_map_to_shape(self._qubit_map)
         self._qid_shape = None if qubit_map is None else qid_shape
 
+    # pylint: enable=missing-param-doc
     @property
     def qubit_map(self) -> Dict[ops.Qid, int]:
         return self._qubit_map
@@ -324,7 +327,7 @@ def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
         # We're measuring every qudit, so no need for fancy indexing
         probs = np.abs(tensor) ** 2
         probs = np.transpose(probs, indices)
-        probs = np.reshape(probs, np.prod(probs.shape))
+        probs = np.reshape(probs, np.prod(probs.shape, dtype=np.int64))
     else:
         # Fancy indexing required
         meas_shape = tuple(qid_shape[i] for i in indices)
@@ -336,7 +339,7 @@ def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
                             indices, big_endian_qureg_value=b, qid_shape=qid_shape
                         )
                     ]
-                    for b in range(np.prod(meas_shape, dtype=int))
+                    for b in range(np.prod(meas_shape, dtype=np.int64))
                 ]
             )
             ** 2

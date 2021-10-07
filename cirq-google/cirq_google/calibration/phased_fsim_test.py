@@ -25,7 +25,6 @@ import cirq
 import cirq_google
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 from cirq_google.api import v2
-from cirq_google.arg_func_langs import arg_to_proto
 from cirq_google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
@@ -44,6 +43,7 @@ from cirq_google.calibration.phased_fsim import (
     _parse_xeb_fidelities_df,
     _parse_characterized_angles,
 )
+from cirq_google.serialization.arg_func_langs import arg_to_proto
 
 
 def test_asdict():

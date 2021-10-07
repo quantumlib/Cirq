@@ -84,6 +84,8 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
             return NotImplemented
         return (other._index - self._index) % 3 == 1
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def on(self, *qubits: 'cirq.Qid') -> 'SingleQubitPauliStringGateOperation':
         """Returns an application of this gate to the given qubits.
 
@@ -96,6 +98,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return SingleQubitPauliStringGateOperation(self, qubits[0])
 
+    # pylint: enable=missing-raises-doc
     @property
     def _canonical_exponent(self):
         """Overrides EigenGate._canonical_exponent in subclasses."""

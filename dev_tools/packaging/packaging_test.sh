@@ -34,7 +34,7 @@ export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh
 out_dir=${tmp_dir}/dist
 dev_tools/packaging/produce-package.sh ${out_dir} $CIRQ_PRE_RELEASE_VERSION
 
-# test installation 
+# test installation
 "${tmp_dir}/env/bin/python" -m pip install ${out_dir}/*
 
 echo ===========================

@@ -142,15 +142,10 @@ class QuirkInputRotationOperation(ops.Operation):
         sign_char = '-' if self.exponent_sign == -1 else ''
         symbols = list(sub_result.wire_symbols)
         symbols.extend(f'A{i}' for i in range(len(self.register)))
-        qubit_index = (
-            len(self.base_operation.controls)
-            if isinstance(self.base_operation, ops.ControlledOperation)
-            else 0
-        )
         return cirq.CircuitDiagramInfo(
             tuple(symbols),
             exponent=f'({sign_char}A/2^{len(self.register)})',
-            exponent_qubit_index=qubit_index,
+            exponent_qubit_index=sub_result.exponent_qubit_index or 0,
             auto_exponent_parens=False,
         )
 
@@ -162,7 +157,7 @@ class QuirkInputRotationOperation(ops.Operation):
 
         target_axes = transposed_args.axes[: len(self.base_operation.qubits)]
         control_axes = transposed_args.axes[len(self.base_operation.qubits) :]
-        control_max = np.product([q.dimension for q in self.register]).item()
+        control_max = np.prod([q.dimension for q in self.register], dtype=np.int64).item()
 
         for i in range(control_max):
             operation = self.base_operation ** (self.exponent_sign * i / control_max)

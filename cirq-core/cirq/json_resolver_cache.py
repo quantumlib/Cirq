@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import cirq.devices.unconstrained_device
 
 
-@functools.lru_cache(maxsize=1)
+@functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import cirq
     from cirq.ops import raw_types
@@ -52,6 +52,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
         'BitFlipChannel': cirq.BitFlipChannel,
         'BitstringAccumulator': cirq.work.BitstringAccumulator,
+        'BooleanHamiltonian': cirq.BooleanHamiltonian,
         'ProductState': cirq.ProductState,
         'CCNotPowGate': cirq.CCNotPowGate,
         'CCXPowGate': cirq.CCXPowGate,
@@ -89,10 +90,13 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'IdentityGate': cirq.IdentityGate,
         'IdentityOperation': _identity_operation_from_dict,
         'InitObsSetting': cirq.work.InitObsSetting,
+        'KrausChannel': cirq.KrausChannel,
         'LinearDict': cirq.LinearDict,
         'LineQubit': cirq.LineQubit,
         'LineQid': cirq.LineQid,
+        'LineTopology': cirq.LineTopology,
         'MatrixGate': cirq.MatrixGate,
+        'MixedUnitaryChannel': cirq.MixedUnitaryChannel,
         'MeasurementKey': cirq.MeasurementKey,
         'MeasurementGate': cirq.MeasurementGate,
         '_MeasurementSpec': cirq.work._MeasurementSpec,
@@ -109,6 +113,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,
         'ParamResolver': cirq.ParamResolver,
         'ParallelGateOperation': cirq.ParallelGateOperation,
+        'ParallelGate': cirq.ParallelGate,
+        'PauliMeasurementGate': cirq.PauliMeasurementGate,
         'PauliString': cirq.PauliString,
         'PhaseDampingChannel': cirq.PhaseDampingChannel,
         'PhaseFlipChannel': cirq.PhaseFlipChannel,
@@ -117,10 +123,14 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
+        'StatePreparationChannel': cirq.StatePreparationChannel,
+        'ProjectorString': cirq.ProjectorString,
+        'ProjectorSum': cirq.ProjectorSum,
         'RandomGateChannel': cirq.RandomGateChannel,
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
+        'SingleQubitCliffordGate': cirq.SingleQubitCliffordGate,
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
         'SingleQubitPauliStringGateOperation': cirq.SingleQubitPauliStringGateOperation,
         'SingleQubitReadoutCalibrationResult': cirq.experiments.SingleQubitReadoutCalibrationResult,
@@ -128,6 +138,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SwapPowGate': cirq.SwapPowGate,
         'SymmetricalQidPair': cirq.SymmetricalQidPair,
         'TaggedOperation': cirq.TaggedOperation,
+        'TiltedSquareLattice': cirq.TiltedSquareLattice,
         'TrialResult': cirq.Result,  # keep support for Cirq < 0.11.
         'Result': cirq.Result,
         'Rx': cirq.Rx,

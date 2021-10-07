@@ -23,8 +23,8 @@ import cirq_google
 import cirq_google as cg
 import cirq_google.api.v2 as v2
 import cirq_google.api.v2.device_pb2 as device_pb2
-import cirq_google.common_serializers as cgc
 import cirq_google.devices.known_devices as cgdk
+import cirq_google.serialization.common_serializers as cgc
 
 _JUST_CZ = cg.SerializableGateSet(
     gate_set_name='cz_gate_set',
@@ -112,7 +112,7 @@ def test_foxtail():
     invalid_qubit2 = cirq.GridQubit(2, 3)
 
     foxtail = cg.SerializableDevice.from_proto(
-        proto=cg.devices.known_devices.FOXTAIL_PROTO, gate_sets=[cg.gate_sets.XMON]
+        proto=cg.devices.known_devices.FOXTAIL_PROTO, gate_sets=[cg.XMON]
     )
     assert foxtail.qubit_set() == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
     foxtail.validate_operation(cirq.X(valid_qubit1))
@@ -153,13 +153,13 @@ def test_mismatched_proto_serializer():
     # Should throw value error that measurement gate is serialized
     # but not supported by the hardware
     with pytest.raises(ValueError):
-        _ = cg.SerializableDevice.from_proto(proto=augmented_proto, gate_sets=[cg.gate_sets.XMON])
+        _ = cg.SerializableDevice.from_proto(proto=augmented_proto, gate_sets=[cg.XMON])
 
 
 def test_named_qubit():
     augmented_proto = copy.deepcopy(cg.devices.known_devices.FOXTAIL_PROTO)
     augmented_proto.valid_qubits.extend(["scooby_doo"])
-    foxtail = cg.SerializableDevice.from_proto(proto=augmented_proto, gate_sets=[cg.gate_sets.XMON])
+    foxtail = cg.SerializableDevice.from_proto(proto=augmented_proto, gate_sets=[cg.XMON])
     foxtail.validate_operation(cirq.X(cirq.NamedQubit("scooby_doo")))
     with pytest.raises(ValueError):
         foxtail.validate_operation(cirq.X(cirq.NamedQubit("scrappy_doo")))
@@ -169,7 +169,7 @@ def test_duration_of():
     valid_qubit1 = cirq.GridQubit(0, 0)
 
     foxtail = cg.SerializableDevice.from_proto(
-        proto=cg.devices.known_devices.FOXTAIL_PROTO, gate_sets=[cg.gate_sets.XMON]
+        proto=cg.devices.known_devices.FOXTAIL_PROTO, gate_sets=[cg.XMON]
     )
 
     assert foxtail.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=15)
@@ -315,12 +315,12 @@ def test_mixing_types():
 
 
 def test_multiple_gatesets():
-    halfPiGateSet = cirq_google.serializable_gate_set.SerializableGateSet(
+    halfPiGateSet = cirq_google.SerializableGateSet(
         gate_set_name='half_pi_gateset',
         serializers=cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
         deserializers=cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
     )
-    allAnglesGateSet = cirq_google.serializable_gate_set.SerializableGateSet(
+    allAnglesGateSet = cirq_google.SerializableGateSet(
         gate_set_name='all_angles_gateset',
         serializers=cgc.SINGLE_QUBIT_SERIALIZERS,
         deserializers=cgc.SINGLE_QUBIT_DESERIALIZERS,
@@ -346,7 +346,7 @@ def test_half_pi_takes_half_duration():
     gate perform correctly.  In this case, we set the XPowGate to be
     half the duration of the full exponent and make sure it still works.
     """
-    half_pi_gs = cirq_google.serializable_gate_set.SerializableGateSet(
+    half_pi_gs = cirq_google.SerializableGateSet(
         gate_set_name='half_pi',
         serializers=[
             *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
@@ -377,7 +377,7 @@ def test_multiple_fsim_gatesets():
     gate perform correctly.  In this case, we set the XPowGate to be
     half the duration of the full exponent and make sure it still works.
     """
-    half_pi_gs = cirq_google.serializable_gate_set.SerializableGateSet(
+    half_pi_gs = cirq_google.SerializableGateSet(
         gate_set_name='half_pi',
         serializers=[
             *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,

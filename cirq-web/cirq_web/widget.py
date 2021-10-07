@@ -45,10 +45,12 @@ class Widget(ABC):
 
     @abstractmethod
     def get_client_code(self) -> str:
+        """Returns HTML code to render the widget."""
         raise NotImplementedError()
 
     @abstractmethod
     def get_widget_bundle_name(self) -> str:
+        """Returns the name of the Javascript library file for this widget."""
         raise NotImplementedError()
 
     def _repr_html_(self):
@@ -109,7 +111,7 @@ def _to_script_tag(bundle_filename: str) -> str:
     """Dumps the contents of a particular bundle file into a script tag.
 
     Args:
-        path: the path to the bundle file
+        bundle_filename: the path to the bundle file
 
     Returns:
         The bundle file as string (readable by browser) wrapped in HTML script tags.

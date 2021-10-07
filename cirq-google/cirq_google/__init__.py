@@ -16,10 +16,6 @@
 
 from cirq_google import api
 
-from cirq_google.arg_func_langs import (
-    arg_from_proto,
-)
-
 from cirq_google.calibration import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     CircuitWithCalibration,
@@ -80,14 +76,6 @@ from cirq_google.engine import (
     get_engine_sampler,
 )
 
-from cirq_google.gate_sets import (
-    XMON,
-    FSIM_GATESET,
-    SQRT_ISWAP_GATESET,
-    SYC_GATESET,
-    NAMED_GATESETS,
-)
-
 from cirq_google.line import (
     AnnealSequenceSearchStrategy,
     GreedySequenceSearchStrategy,
@@ -111,31 +99,37 @@ from cirq_google.optimizers import (
     optimized_for_xmon,
 )
 
-from cirq_google.op_deserializer import (
+
+from cirq_google.serialization import (
+    arg_from_proto,
+    CircuitSerializer,
     CircuitOpDeserializer,
     DeserializingArg,
     GateOpDeserializer,
-)
-
-from cirq_google.op_serializer import (
     CircuitOpSerializer,
     GateOpSerializer,
+    Serializer,
     SerializingArg,
+    SerializableGateSet,
+    XMON,
+    FSIM_GATESET,
+    SQRT_ISWAP_GATESET,
+    SYC_GATESET,
+    NAMED_GATESETS,
 )
 
-from cirq_google.serializable_gate_set import (
-    SerializableGateSet,
+from cirq_google.workflow import (
+    ExecutableSpec,
+    QuantumExecutable,
+    QuantumExecutableGroup,
+    BitstringsMeasurement,
 )
 
 from cirq_google import experimental
 
 
-def _register_resolver() -> None:
-    """Registers the cirq_google's public classes for JSON serialization."""
-    from cirq.protocols.json_serialization import _internal_register_resolver
-    from cirq_google.json_resolver_cache import _class_resolver_dictionary
+# Register cirq_google's public classes for JSON serialization.
+from cirq.protocols.json_serialization import _register_resolver
+from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
-    _internal_register_resolver(_class_resolver_dictionary)
-
-
-_register_resolver()
+_register_resolver(_class_resolver_dictionary)

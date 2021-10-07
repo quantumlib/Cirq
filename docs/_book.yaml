@@ -86,6 +86,8 @@ upper_tabs:
         path: /cirq/dev/gates
       - title: "Plotting guidelines"
         path: /cirq/dev/plotting
+      - title: "Modules"
+        path: /cirq/dev/modules
       - title: "Serialization guidelines"
         path: /cirq/dev/serialization
       - title: "Triage process"
@@ -105,6 +107,8 @@ upper_tabs:
         path: /cirq/google/specification
       - title: "Calibration metrics"
         path: /cirq/google/calibration
+      - title: "Calibration FAQ"
+        path: /cirq/google/calibration_faq
       - title: "Best practices"
         path: /cirq/google/best_practices
 
@@ -112,6 +116,11 @@ upper_tabs:
       - heading: "AQT hardware"
       - title: "Access and authentication"
         path: /cirq/aqt/access
+      
+      #### Azure Quantum ####
+      - heading: "Azure Quantum"
+      - title: "Access and authentication"
+        path: /cirq/azure-quantum/access
 
       ##### IonQ ####
       - heading: "IonQ hardware"
@@ -189,8 +198,12 @@ upper_tabs:
         path: /cirq/tutorials/google/start
       - title: "Visualizing calibration metrics"
         path: /cirq/tutorials/google/visualizing_calibration_metrics
+      - title: "Compare to latest calibration"
+        path: /cirq/tutorials/google/compare_to_calibration
       - title: "Qubit picking with Loschmidt echoes"
         path: /cirq/tutorials/google/echoes
+      - title: "Circuit optimization, gate alignment, & spin echoes"
+        path: /cirq/tutorials/google/spin_echoes
       - title: "Calibration"
         style: accordion
         section:
@@ -201,12 +214,17 @@ upper_tabs:
         - title: "XEB calibration: Example and benchmark"
           path: /cirq/tutorials/google/xeb_calibration_example
 
-
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"
       - title: "Getting started with AQT hardware"
         path: /cirq/tutorials/aqt/getting_started
 
+      ####  AZURE QUANTUM  ####
+      - heading: "Azure Quantum"
+      - title: "Getting started with Honeywell on Azure Quantum"
+        path: /cirq/tutorials/azure-quantum/getting_started_honeywell
+      - title: "Getting started with IonQ on Azure Quantum"
+        path: /cirq/tutorials/azure-quantum/getting_started_ionq
 
       ####  IONQ HARDWARE ####
       - heading: "IonQ hardware"
@@ -253,14 +271,34 @@ upper_tabs:
         path: /reference/python/cirq/all_symbols
       - include: /reference/python/cirq/_toc.yaml
 
-# uncomment after v0.12 is released
-#      - heading: "cirq-aqt"
-#      - title: "All symbols"
-#        path: /reference/python/cirq_aqt/all_symbols
-#      - include: /reference/python/cirq_aqt/_toc.yaml
+      - heading: "cirq-aqt"
+      - title: "All symbols"
+        path: /reference/python/cirq_aqt/all_symbols
+      - include: /reference/python/cirq_aqt/_toc.yaml
 
       - heading: "cirq-google"
       - title: "All symbols"
         path: /reference/python/cirq_google/all_symbols
       - include: /reference/python/cirq_google/_toc.yaml
+
+      - heading: "cirq-ionq"
+      - title: "All symbols"
+        path: /reference/python/cirq_ionq/all_symbols
+      - include: /reference/python/cirq_ionq/_toc.yaml
+
+      - heading: "cirq-pasqal"
+      - title: "All symbols"
+        path: /reference/python/cirq_pasqal/all_symbols
+      - include: /reference/python/cirq_pasqal/_toc.yaml
+
+      - heading: "cirq-rigetti"
+      - title: "All symbols"
+        path: /reference/python/cirq_rigetti/all_symbols
+      - include: /reference/python/cirq_rigetti/_toc.yaml
+
+      - heading: "cirq-web"
+      - title: "All symbols"
+        path: /reference/python/cirq_web/all_symbols
+      - include: /reference/python/cirq_web/_toc.yaml
+
 - include: /_book/upper_tabs_right.yaml

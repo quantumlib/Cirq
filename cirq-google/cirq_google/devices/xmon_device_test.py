@@ -14,8 +14,8 @@
 
 import pytest
 
-import cirq
 import cirq_google as cg
+import cirq
 
 
 def square_device(width: int, height: int, holes=()) -> cg.XmonDevice:
@@ -133,7 +133,9 @@ def test_validate_measurement_non_adjacent_qubits_ok():
     d = square_device(3, 3)
 
     d.validate_operation(
-        cirq.GateOperation(cirq.MeasurementGate(2), (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0)))
+        cirq.GateOperation(
+            cirq.MeasurementGate(2, 'a'), (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))
+        )
     )
 
 

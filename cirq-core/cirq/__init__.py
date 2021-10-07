@@ -91,9 +91,16 @@ from cirq.devices import (
     NoiseModel,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
+    NamedTopology,
+    draw_gridlike,
+    LineTopology,
+    TiltedSquareLattice,
+    get_placements,
+    draw_placements,
 )
 
 from cirq.experiments import (
+    estimate_parallel_single_qubit_readout_errors,
     estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
     least_squares_xeb_fidelity_from_expectations,
@@ -130,6 +137,7 @@ from cirq.linalg import (
     dot,
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,
+    is_cptp,
     is_diagonal,
     is_hermitian,
     is_normal,
@@ -168,12 +176,15 @@ from cirq.linalg import (
 from cirq.ops import (
     amplitude_damp,
     AmplitudeDampingChannel,
+    AnyIntegerPowerGateFamily,
+    AnyUnitaryGateFamily,
     ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
     BaseDensePauliString,
     bit_flip,
     BitFlipChannel,
+    BooleanHamiltonian,
     CCX,
     CCXPowGate,
     CCZ,
@@ -203,7 +214,9 @@ from cirq.ops import (
     freeze_op_tree,
     FSimGate,
     Gate,
+    GateFamily,
     GateOperation,
+    Gateset,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
     givens,
@@ -216,11 +229,15 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    KrausChannel,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
     MatrixGate,
+    MixedUnitaryChannel,
     measure,
     measure_each,
+    measure_paulistring_terms,
+    measure_single_paulistring,
     MeasurementGate,
     Moment,
     MutableDensePauliString,
@@ -229,11 +246,15 @@ from cirq.ops import (
     NamedQid,
     OP_TREE,
     Operation,
+    ParallelGate,
+    ParallelGateFamily,
+    parallel_gate_op,
     ParallelGateOperation,
     Pauli,
     PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
     PauliInteractionGate,
+    PauliMeasurementGate,
     PauliString,
     PauliStringGateOperation,
     PauliStringPhasor,
@@ -250,6 +271,9 @@ from cirq.ops import (
     PhasedXPowGate,
     PhasedXZGate,
     PhaseFlipChannel,
+    StatePreparationChannel,
+    ProjectorString,
+    ProjectorSum,
     RandomGateChannel,
     qft,
     Qid,
@@ -305,6 +329,7 @@ from cirq.optimizers import (
     AlignRight,
     compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
+    decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
@@ -335,6 +360,8 @@ from cirq.optimizers import (
 
 from cirq.qis import (
     bloch_vector_from_state_vector,
+    choi_to_kraus,
+    choi_to_superoperator,
     CliffordTableau,
     density_matrix,
     density_matrix_from_state_vector,
@@ -344,13 +371,17 @@ from cirq.qis import (
     fidelity,
     kraus_to_channel_matrix,
     kraus_to_choi,
+    kraus_to_superoperator,
     one_hot,
     operation_to_channel_matrix,
     operation_to_choi,
+    operation_to_superoperator,
     QUANTUM_STATE_LIKE,
     QuantumState,
     quantum_state,
     STATE_VECTOR_LIKE,
+    superoperator_to_choi,
+    superoperator_to_kraus,
     to_valid_density_matrix,
     to_valid_state_vector,
     validate_density_matrix,
@@ -417,7 +448,6 @@ from cirq.study import (
     ParamDictType,
     ParamResolver,
     ParamResolverOrSimilarType,
-    plot_state_histogram,
     Points,
     Product,
     Sweep,
@@ -448,6 +478,7 @@ from cirq.value import (
     MeasurementKey,
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
+    state_vector_to_probabilities,
     Timestamp,
     TParamKey,
     TParamVal,
@@ -495,9 +526,12 @@ from cirq.protocols import (
     is_parameterized,
     JsonResolver,
     json_serializable_dataclass,
+    dataclass_json_dict,
     kraus,
     measurement_key,
+    measurement_key_name,
     measurement_keys,
+    measurement_key_names,
     mixture,
     mul,
     num_qubits,
@@ -532,6 +566,7 @@ from cirq.protocols import (
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
     SupportsJSON,
+    SupportsKraus,
     SupportsMeasurementKey,
     SupportsMixture,
     SupportsParameterization,
@@ -623,19 +658,16 @@ _compat.deprecated_submodule(
 )
 
 
-def _register_resolver() -> None:
-    """Registers the cirq module's public classes for JSON serialization."""
-    from cirq.protocols.json_serialization import _internal_register_resolver
-    from cirq.json_resolver_cache import _class_resolver_dictionary
-
-    _internal_register_resolver(_class_resolver_dictionary)
+# Registers cirq-core's public classes for JSON serialization.
+# pylint: disable=wrong-import-position
+from cirq.protocols.json_serialization import _register_resolver
+from cirq.json_resolver_cache import _class_resolver_dictionary
 
 
-_register_resolver()
+_register_resolver(_class_resolver_dictionary)
 
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
-# pylint: disable=wrong-import-position
 from cirq import (
     contrib,
 )

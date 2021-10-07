@@ -1,0 +1,58 @@
+[
+  {
+    "cirq_type": "KrausChannel",
+    "_kraus_ops": [
+      [
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.5,
+          0.5
+        ]
+      ],
+      [
+        [
+          0.5,
+          -0.5
+        ],
+        [
+          -0.5,
+          0.5
+        ]
+      ]
+    ],
+    "_key": {
+      "cirq_type": "MeasurementKey",
+      "name": "x_meas",
+      "path": []
+    }
+  },
+  {
+    "cirq_type": "KrausChannel",
+    "_kraus_ops": [
+      [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    ],
+    "_key": null
+  }
+]

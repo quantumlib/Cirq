@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, TYPE_CHECKING, Union, Optional, cast
+
+from typing import List, TYPE_CHECKING, Union, Optional, cast, Sequence, Tuple
 
 import cirq
-from cirq_google import engine, gate_sets
+from cirq_google import engine
+from cirq_google.serialization import gate_sets
 
 if TYPE_CHECKING:
     import cirq_google
@@ -31,7 +33,7 @@ class QuantumEngineSampler(cirq.Sampler):
         *,
         engine: 'cirq_google.Engine',
         processor_id: Union[str, List[str]],
-        gate_set: 'cirq_google.SerializableGateSet',
+        gate_set: 'cirq_google.serialization.Serializer',
     ):
         """Inits QuantumEngineSampler.
 
@@ -48,7 +50,7 @@ class QuantumEngineSampler(cirq.Sampler):
 
     def run_sweep(
         self,
-        program: Union[cirq.Circuit, 'cirq_google.EngineProgram'],
+        program: Union[cirq.AbstractCircuit, 'cirq_google.EngineProgram'],
         params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> List[cirq.Result]:
@@ -68,7 +70,7 @@ class QuantumEngineSampler(cirq.Sampler):
 
     def run_batch(
         self,
-        programs: List[cirq.Circuit],
+        programs: Sequence['cirq.AbstractCircuit'],
         params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: Union[int, List[int]] = 1,
     ) -> List[List[cirq.Result]]:

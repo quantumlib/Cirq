@@ -1,0 +1,10 @@
+[
+    cirq.KrausChannel(kraus_ops=[
+        np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float64),
+        np.array([[0.5, -0.5], [-0.5, 0.5]], dtype=np.float64)
+    ], key='x_meas'),
+    cirq.KrausChannel(kraus_ops=[
+        np.array([[1, 0], [0, 0]], dtype=np.float64),
+        np.array([[0, 0], [0, 1]], dtype=np.float64)
+    ]),
+]

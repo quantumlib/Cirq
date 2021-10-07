@@ -48,7 +48,7 @@ class DensityMatrixSimulator(
         * measurements
         * a `_decompose_` that eventually yields one of the above
     That is, the circuit must have elements that follow on of the protocols:
-        * `cirq.SupportsChannel`
+        * `cirq.SupportsKraus`
         * `cirq.SupportsMixture`
         * `cirq.SupportsConsistentApplyUnitary`
         * `cirq.SupportsUnitary`
@@ -116,6 +116,8 @@ class DensityMatrixSimulator(
            # step_result.density_matrix()
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         *,
@@ -167,6 +169,9 @@ class DensityMatrixSimulator(
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
+    # pylint: enable=missing-raises-doc
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
@@ -205,6 +210,7 @@ class DensityMatrixSimulator(
             log_of_measurement_results=logs,
         )
 
+    # pylint: enable=missing-param-doc
     def _can_be_in_run_prefix(self, val: Any):
         return not protocols.is_measurement(val)
 
@@ -222,16 +228,16 @@ class DensityMatrixSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'DensityMatrixSimulatorState',
+        final_step_result: 'DensityMatrixStepResult',
     ) -> 'DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
     # TODO(#4209): Deduplicate with identical code in sparse_simulator.
     def simulate_expectation_values_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'study.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -352,7 +358,7 @@ class DensityMatrixStepResult(
             state = self._merged_sim_state
             if state is not None:
                 matrix = state.target_tensor
-                size = int(np.sqrt(np.prod(matrix.shape, dtype=int)))
+                size = int(np.sqrt(np.prod(matrix.shape, dtype=np.int64)))
                 self._density_matrix = np.reshape(matrix, (size, size))
         return self._density_matrix.copy() if copy else self._density_matrix
 
@@ -423,22 +429,27 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
             measurement gate.)
         final_simulator_state: The final simulator state of the system after the
             trial finishes.
-        final_density_matrix: The final density matrix of the system.
     """
 
     def __init__(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: DensityMatrixSimulatorState,
+        final_step_result: DensityMatrixStepResult,
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
-        size = np.prod(protocols.qid_shape(self), dtype=int)
-        self.final_density_matrix = np.reshape(
-            final_simulator_state.density_matrix.copy(), (size, size)
-        )
+        self._final_density_matrix: Optional[np.ndarray] = None
+
+    @property
+    def final_density_matrix(self):
+        if self._final_density_matrix is None:
+            size = np.prod(protocols.qid_shape(self), dtype=np.int64)
+            self._final_density_matrix = np.reshape(
+                self._final_simulator_state.density_matrix.copy(), (size, size)
+            )
+        return self._final_density_matrix
 
     def _value_equality_values_(self) -> Any:
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}

@@ -56,7 +56,7 @@ class Simulator(
     protocol, the `cirq.SupportsMixture` protocol, or the
     `cirq.CompositeOperation` protocol. It is also permitted for the circuit
     to contain measurements which are operations that support
-    `cirq.SupportsChannel` and `cirq.SupportsMeasurementKey`
+    `cirq.SupportsKraus` and `cirq.SupportsMeasurementKey`
 
     This simulator supports four types of simulation.
 
@@ -139,6 +139,8 @@ class Simulator(
     See `Simulator` for the definitions of the supported methods.
     """
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         *,
@@ -167,6 +169,9 @@ class Simulator(
             split_untangled_states=split_untangled_states,
         )
 
+    # pylint: enable=missing-raises-doc
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
@@ -201,6 +206,7 @@ class Simulator(
             log_of_measurement_results=logs,
         )
 
+    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
@@ -213,7 +219,7 @@ class Simulator(
 
     def simulate_expectation_values_sweep_iter(
         self,
-        program: 'cirq.Circuit',
+        program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'cirq.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -308,7 +314,7 @@ class SparseSimulatorStep(
             state = self._merged_sim_state
             if state is not None:
                 vector = state.target_tensor
-                size = np.prod(vector.shape, dtype=int)
+                size = np.prod(vector.shape, dtype=np.int64)
                 self._state_vector = np.reshape(vector, size)
         return self._state_vector.copy() if copy else self._state_vector
 

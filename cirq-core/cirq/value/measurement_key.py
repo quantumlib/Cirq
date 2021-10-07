@@ -41,6 +41,8 @@ class MeasurementKey:
     path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
 
     def __post_init__(self):
+        if not isinstance(self.name, str):
+            raise ValueError("Measurement key name must be a valid string.")
         if MEASUREMENT_KEY_SEPARATOR in self.name:
             raise ValueError(
                 f'Invalid key name: {self.name}\n{MEASUREMENT_KEY_SEPARATOR} is not allowed in '
@@ -59,9 +61,9 @@ class MeasurementKey:
 
     def __repr__(self):
         if self.path:
-            return f'cirq.MeasurementKey(path={self.path}, name={self.name})'
+            return f"cirq.MeasurementKey(path={self.path!r}, name='{self.name}')"
         else:
-            return f'cirq.MeasurementKey(name={self.name})'
+            return f"cirq.MeasurementKey(name='{self.name}')"
 
     def __str__(self):
         if self._str is None:

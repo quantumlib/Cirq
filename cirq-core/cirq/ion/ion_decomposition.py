@@ -44,7 +44,7 @@ def two_qubit_matrix_to_ion_operations(
         q0: The first qubit being operated on.
         q1: The other qubit being operated on.
         mat: Defines the operation to apply to the pair of qubits.
-        tolerance: A limit on the amount of error introduced by the
+        atol: A limit on the amount of error introduced by the
             construction.
 
     Returns:

@@ -13,18 +13,11 @@
 # limitations under the License.
 
 import itertools
-from typing import Iterable, Tuple, Dict, Any
+from typing import Iterable, Tuple, Dict
 
 import networkx as nx
 
 import cirq
-from cirq._compat import deprecated
-
-
-@deprecated(deadline="v0.12", fix="use gridqubits_to_graph_device(device.qubits) instead")
-def xmon_device_to_graph(device: Any) -> nx.Graph:
-    """Gets the graph of an XmonDevice."""
-    return gridqubits_to_graph_device(device.qubits)
 
 
 def get_linear_device_graph(n_qubits: int) -> nx.Graph:

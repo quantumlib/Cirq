@@ -3,6 +3,7 @@ const path = require('path');
 module.exports = {
   entry: {
     bloch_sphere: './src/bloch_sphere/main.ts',
+    circuit: './src/circuit/main.ts',
   },
   devServer: {
     static: path.join(__dirname, 'dist'),

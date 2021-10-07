@@ -29,19 +29,18 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_no
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
     "**/aqt/*.ipynb",
+    "**/azure-quantum/*.ipynb",
     "**/ionq/*.ipynb",
     "**/google/*.ipynb",
     "**/pasqal/*.ipynb",
-    # Rigetti uses local simulation with docker, so should work
-    # if you run into issues locally, run
-    # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
-    # "**/rigetti/*.ipynb",
+    "**/rigetti/*.ipynb",
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
     # chemistry.ipynb requires openfermion, that installs cirq 0.9.1, which interferes
     # with testing cirq itself...
     'docs/tutorials/educators/chemistry.ipynb',
+    'docs/noise.ipynb',
 ]
 
 

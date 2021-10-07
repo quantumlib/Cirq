@@ -1,4 +1,6 @@
 import itertools
+from unittest import mock
+
 import numpy as np
 import pytest
 import sympy
@@ -208,13 +210,14 @@ def test_clifford_state_initial_state():
 
 def test_clifford_trial_result_repr():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.CliffordState(qubit_map={q0: 0})
+    final_step_result = mock.Mock(cirq.CliffordSimulatorStepResult)
+    final_step_result._simulator_state.return_value = cirq.CliffordState(qubit_map={q0: 0})
     assert (
         repr(
             cirq.CliffordTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
-                final_simulator_state=final_simulator_state,
+                final_step_result=final_step_result,
             )
         )
         == "cirq.SimulationTrialResult(params=cirq.ParamResolver({}), "
@@ -225,13 +228,14 @@ def test_clifford_trial_result_repr():
 
 def test_clifford_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.CliffordState(qubit_map={q0: 0})
+    final_step_result = mock.Mock(cirq.CliffordSimulatorStepResult)
+    final_step_result._simulator_state.return_value = cirq.CliffordState(qubit_map={q0: 0})
     assert (
         str(
             cirq.CliffordTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
-                final_simulator_state=final_simulator_state,
+                final_step_result=final_step_result,
             )
         )
         == "measurements: m=1\n"
@@ -371,8 +375,6 @@ def test_clifford_circuit_3():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     circuit = cirq.Circuit()
 
-    np.random.seed(0)
-
     def random_clifford_gate():
         matrix = np.eye(2)
         for _ in range(10):
@@ -392,6 +394,7 @@ def test_clifford_circuit_3():
     np.testing.assert_almost_equal(
         clifford_simulator.simulate(circuit).final_state.state_vector(),
         state_vector_simulator.simulate(circuit).final_state_vector,
+        decimal=6,
     )
 
 

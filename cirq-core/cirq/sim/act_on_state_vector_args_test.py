@@ -222,6 +222,38 @@ def test_random_channel_has_random_behavior():
     assert v[1] > 1
 
 
+def test_measured_channel():
+    # This behaves like an X-basis measurement.
+    kc = cirq.KrausChannel(
+        kraus_ops=(
+            np.array([[1, 1], [1, 1]]) * 0.5,
+            np.array([[1, -1], [-1, 1]]) * 0.5,
+        ),
+        key='m',
+    )
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q0), kc.on(q0))
+    sim = cirq.Simulator(seed=0)
+    results = sim.run(circuit, repetitions=100)
+    assert results.histogram(key='m') == {0: 100}
+
+
+def test_measured_mixture():
+    # This behaves like an X-basis measurement.
+    mm = cirq.MixedUnitaryChannel(
+        mixture=(
+            (0.5, np.array([[1, 0], [0, 1]])),
+            (0.5, np.array([[0, 1], [1, 0]])),
+        ),
+        key='flip',
+    )
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(mm.on(q0), cirq.measure(q0, key='m'))
+    sim = cirq.Simulator(seed=0)
+    results = sim.run(circuit, repetitions=100)
+    assert results.histogram(key='flip') == results.histogram(key='m')
+
+
 def test_axes_deprecation():
     rng = np.random.RandomState()
     state = np.array([1, 0], dtype=np.complex64)

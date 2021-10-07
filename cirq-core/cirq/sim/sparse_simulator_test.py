@@ -784,7 +784,7 @@ def test_simulator_step_state_mixin():
     assert result.dirac_notation() == '|01⟩'
 
 
-class MultiHTestGate(cirq.TwoQubitGate):
+class MultiHTestGate(cirq.testing.TwoQubitGate):
     def _decompose_(self, qubits):
         return cirq.H.on_each(*qubits)
 
@@ -1226,7 +1226,7 @@ def test_separated_measurements():
             cirq.H(a),
             cirq.H(b),
             cirq.CZ(a, b),
-            cirq.measure(a, key=''),
+            cirq.measure(a, key='a'),
             cirq.CZ(a, b),
             cirq.H(b),
             cirq.measure(b, key='zero'),

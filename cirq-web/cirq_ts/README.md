@@ -105,6 +105,6 @@ We take the following steps for visualization testing in our development environ
   3. We take a screenshot of the HTML output in the "browser" (Using Puppeteer)
   4. We compare the result of the screenshot with a pre-generated PNG file.
 
-  The screenshot of the HTML browser output must live in a temporary directory; we use the [temp](https://github.com/bruce/node-temp) package to handle that for us. Reference the test at `e2e/bloch_sphere/test_bloch_sphere.ts` to see how to easily generate the screenshot in a temporary directory.
+  The screenshot of the HTML browser output must live in a temporary directory; we use the [temp](https://github.com/bruce/node-temp) package to handle that for us. Reference the test at `e2e/bloch_sphere/bloch_sphere_e2e_test.ts` to see how to easily generate the screenshot in a temporary directory.
 
   The pre-generated PNG file is a screenshot of the developer's choice that represents what the visualization should look like. Each visualization is required to have at least one expected PNG screenshot. For more complex visualizations, multiple screenshots may be needed.

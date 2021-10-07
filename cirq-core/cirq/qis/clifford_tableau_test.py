@@ -317,13 +317,6 @@ def test_copy():
     assert t == t.copy() == t.__copy__()
 
 
-def test_deprecated_clifford_location():
-    with cirq.testing.assert_deprecated('use cirq.CliffordTableau instead', deadline="v0.12"):
-        from cirq.sim import CliffordTableau
-
-        CliffordTableau(num_qubits=1)
-
-
 def _three_identical_table(num_qubits):
     t1 = cirq.CliffordTableau(num_qubits)
     t2 = cirq.CliffordTableau(num_qubits)

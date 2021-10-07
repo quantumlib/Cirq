@@ -21,6 +21,19 @@ if TYPE_CHECKING:
     import cirq
 
 
+def get_ion_gateset() -> ops.Gateset:
+    return ops.Gateset(
+        ops.XXPowGate,
+        ops.MeasurementGate,
+        ops.XPowGate,
+        ops.YPowGate,
+        ops.ZPowGate,
+        ops.PhasedXPowGate,
+        unroll_circuit_op=False,
+        accept_global_phase=False,
+    )
+
+
 @value.value_equality
 class IonDevice(devices.Device):
     """A device with qubits placed on a line.
@@ -48,6 +61,7 @@ class IonDevice(devices.Device):
         self._twoq_gates_duration = value.Duration(twoq_gates_duration)
         self._oneq_gates_duration = value.Duration(oneq_gates_duration)
         self.qubits = frozenset(qubits)
+        self.gateset = get_ion_gateset()
 
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
@@ -79,17 +93,7 @@ class IonDevice(devices.Device):
         raise ValueError(f'Unsupported gate type: {operation!r}')
 
     def validate_gate(self, gate: ops.Gate):
-        if not isinstance(
-            gate,
-            (
-                ops.XPowGate,
-                ops.YPowGate,
-                ops.ZPowGate,
-                ops.PhasedXPowGate,
-                ops.XXPowGate,
-                ops.MeasurementGate,
-            ),
-        ):
+        if gate not in self.gateset:
             raise ValueError(f'Unsupported gate type: {gate!r}')
 
     def validate_operation(self, operation):
@@ -104,7 +108,7 @@ class IonDevice(devices.Device):
             if q not in self.qubits:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-    def validate_circuit(self, circuit: circuits.Circuit):
+    def validate_circuit(self, circuit: circuits.AbstractCircuit):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 
@@ -153,7 +157,7 @@ def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
     for op in operations:
         if isinstance(op.gate, ops.MeasurementGate):
             meas = op.gate
-            key = protocols.measurement_key(meas)
+            key = protocols.measurement_key_name(meas)
             if key in seen:
                 raise ValueError(f'Measurement key {key} repeated')
             seen.add(key)

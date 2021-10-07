@@ -136,17 +136,6 @@ def test_invalid_levels():
         cirq.testing.assert_logs("test", min_level=logging.CRITICAL, max_level=logging.WARNING)
 
 
-def test_deprecated():
-    with cirq.testing.assert_deprecated(
-        'level parameter of assert_logs was used but is deprecated',
-        'use min_level instead',
-        deadline="v0.12",
-    ):
-        # pylint: disable=unexpected-keyword-arg
-        with cirq.testing.assert_logs("hello critical", level=logging.CRITICAL):
-            logging.critical("hello critical")
-
-
 def test_assert_logs_warnings():
     # Capture all warnings in one context, so that test cases that will
     # display a warning do not do so when the test is run.

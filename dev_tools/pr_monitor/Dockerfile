@@ -1,0 +1,37 @@
+# Copyright 2020 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+########################################################################################
+# This is a minimal Dockerfile to run the  script.
+#
+# Usage:
+#     docker build -t cirqbot -f dev_tools/pr_monitor/Dockerfile dev_tools
+#     docker run -it -e CIRQ_BOT_GITHUB_ACCESS_TOKEN=[access token] cirqbot
+#
+# Alternatively, if your container has access to the GCP Secret Manager, it can take the
+# value of the cirqbot-api-key secret.
+########################################################################################
+
+FROM python:3.7-slim@sha256:1689dea3fe5e2f230c3b2d0cc18b64e96f8214082c78792c67dbc1bda9b6c67c
+
+RUN mkdir -p /app/dev_tools/pr_monitor
+WORKDIR /app
+
+COPY ./pr_monitor/requirements.txt ./dev_tools/pr_monitor/requirements.txt
+RUN pip install -r ./dev_tools/pr_monitor/requirements.txt
+
+COPY ./*.py ./dev_tools/
+
+ENV PYTHONPATH=/app
+CMD ["python", "dev_tools/pr_monitor.py"]

@@ -117,7 +117,7 @@ class PhaseGradientGate(raw_types.Gate):
         if isinstance(self.exponent, sympy.Basic):
             return NotImplemented
 
-        n = int(np.product([args.target_tensor.shape[k] for k in args.axes]))
+        n = int(np.prod([args.target_tensor.shape[k] for k in args.axes], dtype=np.int64))
         for i in range(n):
             p = 1j ** (4 * i / n * self.exponent)
             args.target_tensor[args.subspace_index(big_endian_bits_int=i)] *= p

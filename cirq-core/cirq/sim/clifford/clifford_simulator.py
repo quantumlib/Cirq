@@ -64,6 +64,8 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
@@ -95,6 +97,7 @@ class CliffordSimulator(
             qubits=qubits,
         )
 
+    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[clifford.ActOnStabilizerCHFormArgs]',
@@ -105,11 +108,11 @@ class CliffordSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state,
+        final_step_result: 'CliffordSimulatorStepResult',
     ):
 
         return CliffordTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
 
@@ -118,13 +121,15 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'CliffordState',
+        final_step_result: 'CliffordSimulatorStepResult',
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, final_step_result=final_step_result
         )
 
-        self.final_state = final_simulator_state
+    @property
+    def final_state(self):
+        return self._final_simulator_state
 
     def __str__(self) -> str:
         samples = super().__str__()

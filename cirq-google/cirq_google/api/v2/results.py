@@ -53,7 +53,9 @@ class MeasureInfo:
     tags: List[Hashable]
 
 
-def find_measurements(program: cirq.Circuit) -> List[MeasureInfo]:
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
+def find_measurements(program: cirq.AbstractCircuit) -> List[MeasureInfo]:
     """Find measurements in the given program (circuit).
 
     Returns:
@@ -62,7 +64,7 @@ def find_measurements(program: cirq.Circuit) -> List[MeasureInfo]:
     measurements: List[MeasureInfo] = []
     keys: Set[str] = set()
 
-    if isinstance(program, cirq.Circuit):
+    if isinstance(program, cirq.AbstractCircuit):
         measure_iter = _circuit_measurements(program)
     else:
         raise NotImplementedError(f'Unrecognized program type: {type(program)}')
@@ -76,7 +78,8 @@ def find_measurements(program: cirq.Circuit) -> List[MeasureInfo]:
     return measurements
 
 
-def _circuit_measurements(circuit: cirq.Circuit) -> Iterator[MeasureInfo]:
+# pylint: enable=missing-raises-doc
+def _circuit_measurements(circuit: cirq.AbstractCircuit) -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
             if isinstance(op.gate, cirq.MeasurementGate):
@@ -116,6 +119,8 @@ def unpack_bits(data: bytes, repetitions: int) -> np.ndarray:
     return bits[:repetitions]
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def results_to_proto(
     trial_sweeps: Iterable[Iterable[cirq.Result]],
     measurements: List[MeasureInfo],
@@ -152,6 +157,7 @@ def results_to_proto(
     return out
 
 
+# pylint: enable=missing-raises-doc
 def results_from_proto(
     msg: result_pb2.Result,
     measurements: List[MeasureInfo] = None,
@@ -175,6 +181,8 @@ def results_from_proto(
     ]
 
 
+# TODO(#3388) Add documentation for Raises.
+# pylint: disable=missing-raises-doc
 def _trial_sweep_from_proto(
     msg: result_pb2.SweepResult,
     measure_map: Dict[str, MeasureInfo] = None,
@@ -214,3 +222,6 @@ def _trial_sweep_from_proto(
             )
         )
     return trial_sweep
+
+
+# pylint: enable=missing-raises-doc

@@ -1,0 +1,12 @@
+[
+    cirq.MixedUnitaryChannel(mixture=[
+        (0.5, np.array([[1, 0], [0, 1]], dtype=np.int64)),
+        (0.5, np.array([[0, 1], [1, 0]], dtype=np.int64))
+    ], key='flip'),
+    cirq.MixedUnitaryChannel(mixture=[
+        (0.25, np.array([[1, 0], [0, 1]], dtype=np.complex64)),
+        (0.25, np.array([[0, 1], [1, 0]], dtype=np.complex64)),
+        (0.25, np.array([[0, -1j], [1j, 0]], dtype=np.complex64)),
+        (0.25, np.array([[1, 0], [0, -1]], dtype=np.complex64)),
+    ]),
+]
