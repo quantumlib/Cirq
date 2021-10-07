@@ -44,4 +44,5 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.BitstringsMeasurement': cirq_google.BitstringsMeasurement,
         'cirq.google.QuantumExecutable': cirq_google.QuantumExecutable,
         'cirq.google.QuantumExecutableGroup': cirq_google.QuantumExecutableGroup,
+        'cirq.google.KeyValueExecutableSpec': cirq_google.KeyValueExecutableSpec,
     }
