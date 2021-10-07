@@ -571,7 +571,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_phi: bool
     readout_error_tolerance: Optional[float] = None
     version: int = 2
-    measure_qubits: Optional[Tuple[cirq.Qid]] = None
+    measure_qubits: Optional[Tuple[cirq.Qid, ...]] = None
 
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
