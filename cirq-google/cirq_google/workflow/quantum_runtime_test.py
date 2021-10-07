@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import glob
+import uuid
 from dataclasses import dataclass
-from typing import List
+from typing import List, Set
 
 import cirq
 import cirq_google as cg
 import numpy as np
+import pytest
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
-from cirq_google.workflow.quantum_executable_test import _get_quantum_executables, ExampleSpec
+from cirq_google.workflow.quantum_executable_test import _get_quantum_executables, _get_example_spec
 
 
 @dataclass
@@ -36,11 +38,13 @@ class _MockEngineProcessor(AbstractEngineProcessorShim):
 
 def cg_assert_equivalent_repr(value):
     """cirq.testing.assert_equivalent_repr with cirq_google.workflow imported."""
-    return cirq.testing.assert_equivalent_repr(value, global_vals={
-        'cirq_google': cg,
-        'ExampleSpec': ExampleSpec,
-        '_MockEngineProcessor': _MockEngineProcessor,
-    })
+    return cirq.testing.assert_equivalent_repr(
+        value,
+        global_vals={
+            'cirq_google': cg,
+            '_MockEngineProcessor': _MockEngineProcessor,
+        },
+    )
 
 
 def test_shared_runtime_info():
@@ -56,9 +60,9 @@ def test_runtime_info():
 def test_executable_result():
     rtinfo = cg.RuntimeInfo(execution_index=5)
     er = cg.ExecutableResult(
-        spec=ExampleSpec(name='test-spec'),
+        spec=_get_example_spec(name='test-spec'),
         runtime_info=rtinfo,
-        raw_data=cirq.Result(params=cirq.ParamResolver(), measurements={'z': np.ones((1_000, 4))})
+        raw_data=cirq.Result(params=cirq.ParamResolver(), measurements={'z': np.ones((1_000, 4))}),
     )
     cg_assert_equivalent_repr(er)
 
@@ -74,6 +78,8 @@ def test_quantum_runtime_configuration():
     result = sampler.run(cirq.Circuit(cirq.measure(cirq.LineQubit(0), key='z')))
     assert isinstance(result, cirq.Result)
 
+    assert isinstance(rt_config.processor.get_device(), cirq.Device)
+
 
 def test_executable_group_result():
     egr = cg.ExecutableGroupResult(
@@ -84,13 +90,14 @@ def test_executable_group_result():
         shared_runtime_info=cg.SharedRuntimeInfo(run_id='my run'),
         executable_results=[
             cg.ExecutableResult(
-                spec=ExampleSpec(name=f'test-spec-{i}'),
+                spec=_get_example_spec(name=f'test-spec-{i}'),
                 runtime_info=cg.RuntimeInfo(execution_index=i),
-                raw_data=cirq.Result(params=cirq.ParamResolver(),
-                                     measurements={'z': np.ones((1_000, 4))})
+                raw_data=cirq.Result(
+                    params=cirq.ParamResolver(), measurements={'z': np.ones((1_000, 4))}
+                ),
             )
             for i in range(3)
-        ]
+        ],
     )
     cg_assert_equivalent_repr(egr)
     assert len(egr.executable_results) == 3
@@ -98,29 +105,31 @@ def test_executable_group_result():
 
 def _cg_read_json_gzip(fn):
     def _testing_resolver(cirq_type: str):
-        if cirq_type == 'cirq.google.testing.ExampleSpec':
-            return ExampleSpec
         if cirq_type == 'cirq.google.testing._MockEngineProcessor':
             return _MockEngineProcessor
 
     return cirq.read_json_gzip(fn, resolvers=[_testing_resolver] + cirq.DEFAULT_RESOLVERS)
 
 
-def test_execute(tmpdir):
-    rt_config = cg.QuantumRuntimeConfiguration(
-        processor=_MockEngineProcessor(),
-        run_id='unittests',
-    )
+@pytest.mark.parametrize('run_id', ['unit_test_runid', None])
+def test_execute(tmpdir, run_id):
+    rt_config = cg.QuantumRuntimeConfiguration(processor=_MockEngineProcessor(), run_id=run_id)
     executable_group = cg.QuantumExecutableGroup(_get_quantum_executables())
-    returned_exegroup_result = cg.execute(rt_config=rt_config, executable_group=executable_group,
-                                          base_data_dir=tmpdir)
-    fns = glob.glob(f'{tmpdir}/unittests/ExecutableGroupResult.json.gz')
+    returned_exegroup_result = cg.execute(
+        rt_config=rt_config, executable_group=executable_group, base_data_dir=tmpdir
+    )
+    actual_run_id = returned_exegroup_result.shared_runtime_info.run_id
+    if run_id is not None:
+        assert run_id == actual_run_id
+    else:
+        assert isinstance(uuid.UUID(actual_run_id), uuid.UUID)
+    fns = glob.glob(f'{tmpdir}/{actual_run_id}/ExecutableGroupResult.json.gz')
     assert len(fns) == 1
     exegroup_result: cg.ExecutableGroupResult = _cg_read_json_gzip(fns[0])
 
-    fns = glob.glob(f'{tmpdir}/unittests/ExecutableResult.*.json.gz')
+    fns = glob.glob(f'{tmpdir}/{actual_run_id}/ExecutableResult.*.json.gz')
     assert len(fns) == 3
-    exe_results: List[cg.ExecutableResult] = [_cg_read_json_gzip(fn) for fn in fns]
+    exe_results: Set[cg.ExecutableResult] = set(_cg_read_json_gzip(fn) for fn in fns)
 
     exegroup_result.executable_results = exe_results
     assert returned_exegroup_result == exegroup_result

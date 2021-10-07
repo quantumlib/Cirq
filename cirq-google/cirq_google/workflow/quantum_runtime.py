@@ -17,14 +17,17 @@
 import os
 import uuid
 from dataclasses import dataclass
-from typing import List
+from typing import List, Set, Any, Dict
 
 import cirq
 from cirq import _compat
 from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
-from cirq_google.workflow.quantum_executable import ExecutableSpec, QuantumExecutableGroup, \
-    BitstringsMeasurement
+from cirq_google.workflow.quantum_executable import (
+    ExecutableSpec,
+    QuantumExecutableGroup,
+    BitstringsMeasurement,
+)
 
 
 @dataclass
@@ -37,6 +40,7 @@ class SharedRuntimeInfo:
     Args:
         run_id: A unique `str` identifier for this run.
     """
+
     run_id: str
 
     def _json_dict_(self):
@@ -56,6 +60,7 @@ class RuntimeInfo:
         execution_index: What order (in its `QuantumExecutableGroup`) this `QuantumExecutable` was
             executed.
     """
+
     execution_index: int
 
     def _json_dict_(self):
@@ -75,15 +80,19 @@ class ExecutableResult:
             of the `QuantumExecutable`.
         raw_data: The `cirq.Result` containing the data from the run.
     """
+
     spec: ExecutableSpec
     runtime_info: RuntimeInfo
     raw_data: cirq.Result
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
+
+    def __hash__(self) -> int:
+        return hash(self.spec)
 
 
 @dataclass
@@ -96,15 +105,25 @@ class ExecutableGroupResult:
         shared_runtime_info: A `SharedRuntimeInfo` dataclass containing information gathered
             during execution of the `QuantumExecutableGroup` which is relevant to all
             `executable_results`.
-        executable_results: A list of `ExecutableResult`. Each contains results and raw data
+        executable_results: A set of `ExecutableResult`. Each contains results and raw data
             for an individual `QuantumExecutable`.
     """
+
     runtime_configuration: 'QuantumRuntimeConfiguration'
     shared_runtime_info: SharedRuntimeInfo
-    executable_results: List[ExecutableResult]
+    executable_results: Set[ExecutableResult]
 
-    def _json_dict_(self):
-        return dataclass_json_dict(self, namespace='cirq.google')
+    def _json_dict_(self) -> Dict[str, Any]:
+        d = dataclass_json_dict(self, namespace='cirq.google')
+        # `set` is not JSON-serializable
+        d['executable_results'] = list(d['executable_results'])
+        return d
+
+    @classmethod
+    def _from_json_dict_(cls, **kwargs) -> 'ExecutableGroupResult':
+        kwargs.pop('cirq_type')
+        kwargs['executable_results'] = set(kwargs['executable_results'])
+        return cls(**kwargs)
 
     def __repr__(self):
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -121,6 +140,7 @@ class QuantumRuntimeConfiguration:
             `run_id`, an exception will be raised. If not specified, we will generate a UUID4
             run identifier.
     """
+
     processor: AbstractEngineProcessorShim
     run_id: str = None
 
@@ -132,9 +152,9 @@ class QuantumRuntimeConfiguration:
 
 
 def execute(
-        rt_config: QuantumRuntimeConfiguration,
-        executable_group: QuantumExecutableGroup,
-        base_data_dir: str = ".",
+    rt_config: QuantumRuntimeConfiguration,
+    executable_group: QuantumExecutableGroup,
+    base_data_dir: str = ".",
 ) -> ExecutableGroupResult:
     """Execute a `QuantumExecutableGroup` according to a `QuantumRuntimeConfiguration`.
 
@@ -158,23 +178,25 @@ def execute(
 
     # base_data_dir handling.
     if not base_data_dir:
+        # coverage: ignore
         raise ValueError("Please provide a non-empty `base_data_dir`.")
 
     os.makedirs(f'{base_data_dir}/{run_id}', exist_ok=False)
 
     # Results object that we will fill in in the main loop.
-    exegroup_result = ExecutableGroupResult(runtime_configuration=rt_config,
-                                            shared_runtime_info=SharedRuntimeInfo(run_id=run_id),
-                                            executable_results=[])
+    exegroup_result = ExecutableGroupResult(
+        runtime_configuration=rt_config,
+        shared_runtime_info=SharedRuntimeInfo(run_id=run_id),
+        executable_results=set(),
+    )
     cirq.to_json_gzip(exegroup_result, f'{base_data_dir}/{run_id}/ExecutableGroupResult.json.gz')
 
     # Loop over executables.
     sampler = rt_config.processor.get_sampler()
-    print('# Executables:', len(executable_group), flush=True)
+    n_executables = len(executable_group)
+    print()
     for i, exe in enumerate(executable_group):
-        runtime_info = RuntimeInfo(
-            execution_index=i
-        )
+        runtime_info = RuntimeInfo(execution_index=i)
 
         if exe.params != tuple():
             raise NotImplementedError("Circuit params are not yet supported.")
@@ -192,7 +214,8 @@ def execute(
             raw_data=sampler_run_result,
         )
         cirq.to_json_gzip(exe_result, f'{base_data_dir}/{run_id}/ExecutableResult.{i}.json.gz')
-        exegroup_result.executable_results.append(exe_result)
-        print(i, end=' ', flush=True)
+        exegroup_result.executable_results.add(exe_result)
+        print(f'\r{i+1} / {n_executables}', end='', flush=True)
+    print()
 
     return exegroup_result
