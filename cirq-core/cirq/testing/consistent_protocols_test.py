@@ -22,6 +22,7 @@ import sympy
 import cirq
 from cirq._compat import proper_repr
 from cirq.type_workarounds import NotImplementedType
+import cirq.testing.consistent_controlled_gate_op_test as controlled_gate_op_test
 
 
 class GoodGate(cirq.SingleQubitGate):
@@ -252,6 +253,9 @@ def test_assert_implements_consistent_protocols():
         cirq.testing.assert_implements_consistent_protocols(
             BadGateRepr(phase_exponent=0.25), global_vals={'BadGateRepr': BadGateRepr}
         )
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_implements_consistent_protocols(controlled_gate_op_test.BadGate())
 
 
 def test_assert_eigengate_implements_consistent_protocols():

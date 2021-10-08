@@ -329,6 +329,7 @@ from cirq.optimizers import (
     AlignRight,
     compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
+    decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
@@ -359,6 +360,8 @@ from cirq.optimizers import (
 
 from cirq.qis import (
     bloch_vector_from_state_vector,
+    choi_to_kraus,
+    choi_to_superoperator,
     CliffordTableau,
     density_matrix,
     density_matrix_from_state_vector,
@@ -377,6 +380,8 @@ from cirq.qis import (
     QuantumState,
     quantum_state,
     STATE_VECTOR_LIKE,
+    superoperator_to_choi,
+    superoperator_to_kraus,
     to_valid_density_matrix,
     to_valid_state_vector,
     validate_density_matrix,

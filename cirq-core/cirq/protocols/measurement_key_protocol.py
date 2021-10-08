@@ -31,8 +31,13 @@ class SupportsMeasurementKey(Protocol):
 
     Measurement keys are used in referencing the results of a measurement.
 
-    Users are free to implement either `_measurement_key_name_` returning one string
-    or `_measurement_key_names_` returning an iterable of strings.
+    Users are free to implement one of the following. Do not implement multiple
+    of these returning different values. The protocol behavior will be
+    unexpected in such a case.
+    1. `_measurement_key_objs_` returning an iterable of `MeasurementKey`s
+    2. `_measurement_key_obj_` returning one `MeasurementKey`
+    3. `_measurement_key_names_` returning an iterable of strings
+    4. `_measurement_key_name_` returning one string
 
     Note: Measurements, in contrast to general quantum channels, are
     distinguished by the recording of the quantum operation that occurred.
