@@ -225,8 +225,13 @@ def _simplify_cnots_triplets(
     for j in range(1, len(cnots) - 1):
         # First, we look back for as long as the controls (resp. targets) are the same.
         # They all commute, so all are potential candidates for being simplified.
+        # prev_match_index is qubit to index in `cnots` array.
         prev_match_index: Dict[int, int] = {}
         for i in range(j - 1, -1, -1):
+            # These CNOTs have the same target (resp. control) and though they are not candidates
+            # for simplification, since they commute, we can keep looking for candidates.
+            if cnots[i][target] == cnots[j][target]:
+                continue
             if cnots[i][control] != cnots[j][control]:
                 break
             # We take a note of the control (resp. target).
@@ -234,8 +239,13 @@ def _simplify_cnots_triplets(
 
         # Next, we look forward for as long as the targets (resp. controls) are the
         # same. They all commute, so all are potential candidates for being simplified.
+        # post_match_index is qubit to index in `cnots` array.
         post_match_index: Dict[int, int] = {}
         for k in range(j + 1, len(cnots)):
+            # These CNOTs have the same control (resp. target   ) and though they are not candidates
+            # for simplification, since they commute, we can keep looking for candidates.
+            if cnots[j][control] == cnots[k][control]:
+                continue
             if cnots[j][target] != cnots[k][target]:
                 break
             # We take a note of the target (resp. control).
@@ -246,8 +256,11 @@ def _simplify_cnots_triplets(
         for key in keys:
             # We perform the swap which removes the pivot.
             new_idx: List[int] = (
+                # Anything strictly before the pivot that is not the CNOT to swap.
                 [idx for idx in range(0, j) if idx != prev_match_index[key]]
+                # The two swapped CNOTs.
                 + [post_match_index[key], prev_match_index[key]]
+                # Anything after the pivot that is not the CNOT to swap.
                 + [idx for idx in range(j + 1, len(cnots)) if idx != post_match_index[key]]
             )
             # Since we removed the pivot, the length should be one fewer.
