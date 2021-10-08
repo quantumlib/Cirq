@@ -4309,6 +4309,9 @@ def test_all_measurement_key_names(circuit_cls):
 
     # Big case.
     assert c.all_measurement_key_names() == {'x', 'y', 'xy', 'test'}
+    assert c.all_measurement_key_names() == cirq.measurement_key_names(c)
+    assert c.all_measurement_key_names() == c.all_measurement_key_objs()
+
     with cirq.testing.assert_deprecated(deadline="v0.13"):
         assert c.all_measurement_key_names() == c.all_measurement_keys()
 
