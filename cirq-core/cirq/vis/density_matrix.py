@@ -21,9 +21,10 @@ from cirq.qis.states import validate_density_matrix
 
 def plot_density_matrix(matrix: np.ndarray, show_text=False, ax: plt.Axes = None) -> plt.Axes:
     """Generates a plot for a given density matrix shows the magnitude of
-    each term of the whole matrix using a proportionally sized circle and
-    the phase angle using a line at that angle.
+The plot has two different components:
 
+1. Each entry of the density matrix, a complex number, is plotted as an Argand Diagram where the partially filled red circle represents the magnitude and the line represents the phase angle, going anti-clockwise from positive x - axis. 
+2. The blue rectangles on the diagonal elements represent the probability of measuring the system in state $|i\rangle$
     Rendering scheme is inspired from https://algassert.com/quirk
 
     Args:
