@@ -41,4 +41,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'XEBPhasedFSimCalibrationRequest': cirq_google.XEBPhasedFSimCalibrationRequest,
         'LocalXEBPhasedFSimCalibrationOptions': cirq_google.LocalXEBPhasedFSimCalibrationOptions,
         'LocalXEBPhasedFSimCalibrationRequest': cirq_google.LocalXEBPhasedFSimCalibrationRequest,
+        'cirq.google.BitstringsMeasurement': cirq_google.BitstringsMeasurement,
+        'cirq.google.QuantumExecutable': cirq_google.QuantumExecutable,
+        'cirq.google.QuantumExecutableGroup': cirq_google.QuantumExecutableGroup,
     }
