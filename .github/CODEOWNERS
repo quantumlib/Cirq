@@ -49,6 +49,9 @@ docs/tutorials/pasqal/**/*.* @HGSilveri @rmlarose @quantumlib/cirq-maintainers @
 docs/rigetti/**/*.* @erichulburd @kalzoo @dbanty @quantumlib/cirq-maintainers @vtomole @cduck
 docs/tutorials/rigetti/**/*.* @erichulburd @kalzoo @dbanty @quantumlib/cirq-maintainers @vtomole @cduck
 
+docs/azure-quantum/**/*.* @guenp @anpaz @quantumlib/cirq-maintainers @vtomole @cduck
+docs/tutorials/azure-quantum/**/*.* @guenp @anpaz @quantumlib/cirq-maintainers @vtomole @cduck
+
 #####################################################
 # qcvv docs maintainers: docs maintainers + mrwojtek
 #####################################################
