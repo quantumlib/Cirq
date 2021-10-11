@@ -17,7 +17,7 @@
 import abc
 import dataclasses
 from dataclasses import dataclass
-from typing import Union, Tuple, Optional, Sequence, cast, Iterable, Dict, Any
+from typing import Union, Tuple, Optional, Sequence, cast, Iterable, Dict, Any, List
 
 from cirq import _compat, study
 import cirq
@@ -31,6 +31,49 @@ class ExecutableSpec(metaclass=abc.ABCMeta):
 
     executable_family: str = NotImplemented
     """A unique name to group executables."""
+
+
+@dataclass(frozen=True)
+class KeyValueExecutableSpec(ExecutableSpec):
+    """A generic executable spec whose metadata is a list of key-value pairs.
+
+    The key-value pairs define an implicit data schema. Consider defining a problem-specific
+    subclass of `ExecutableSpec` instead of using this class to realize the benefits of having
+    an explicit schema.
+
+    See Also:
+        `KeyValueExecutableSpec.from_dict` will use a dictionary to populate `key_value_pairs`.
+
+    Args:
+        executable_family: A unique name to group executables.
+        key_value_pairs: A tuple of key-value pairs. The keys should be strings but the values
+            can be any immutable object.
+    """
+
+    executable_family: str
+    key_value_pairs: Tuple[Tuple[str, Any], ...] = ()
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.dataclass_json_dict(self, namespace='cirq.google')
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any], *, executable_family: str) -> 'KeyValueExecutableSpec':
+        return cls(
+            executable_family=executable_family,
+            key_value_pairs=tuple((k, v) for k, v in d.items()),
+        )
+
+    @classmethod
+    def _from_json_dict_(
+        cls, executable_family: str, key_value_pairs: List[List[Union[str, Any]]], **kwargs
+    ) -> 'KeyValueExecutableSpec':
+        return cls(
+            executable_family=executable_family,
+            key_value_pairs=tuple((k, v) for k, v in key_value_pairs),
+        )
+
+    def __repr__(self) -> str:
+        return cirq._compat.dataclass_repr(self, namespace='cirq_google')
 
 
 @dataclass(frozen=True)
@@ -197,7 +240,7 @@ class QuantumExecutableGroup:
         if len(self.executables) > 2:
             exe_str += ', ...'
 
-        return f'QuantumExecutable(executables=[{exe_str}])'
+        return f'QuantumExecutableGroup(executables=[{exe_str}])'
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
