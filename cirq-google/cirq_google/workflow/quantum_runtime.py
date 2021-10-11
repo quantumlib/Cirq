@@ -38,10 +38,10 @@ class SharedRuntimeInfo:
 
     run_id: str
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
@@ -58,10 +58,10 @@ class RuntimeInfo:
 
     execution_index: int
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
