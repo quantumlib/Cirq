@@ -17,7 +17,7 @@
 import os
 import uuid
 from dataclasses import dataclass
-from typing import List, Set, Any, Dict
+from typing import Set, Any, Dict, Optional
 
 import cirq
 from cirq import _compat
@@ -81,7 +81,7 @@ class ExecutableResult:
         raw_data: The `cirq.Result` containing the data from the run.
     """
 
-    spec: ExecutableSpec
+    spec: Optional[ExecutableSpec]
     runtime_info: RuntimeInfo
     raw_data: cirq.Result
 
@@ -142,7 +142,7 @@ class QuantumRuntimeConfiguration:
     """
 
     processor: AbstractEngineProcessorShim
-    run_id: str = None
+    run_id: Optional[str] = None
 
     def _json_dict_(self):
         return dataclass_json_dict(self, namespace='cirq.google')
