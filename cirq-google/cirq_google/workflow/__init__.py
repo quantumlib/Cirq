@@ -5,3 +5,9 @@ from cirq_google.workflow.quantum_executable import (
     QuantumExecutableGroup,
     BitstringsMeasurement,
 )
+
+from cirq_google.workflow.quantum_runtime import (
+    SharedRuntimeInfo,
+    RuntimeInfo,
+    ExecutableResult,
+)
