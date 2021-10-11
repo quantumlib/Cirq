@@ -242,7 +242,7 @@ def _simplify_cnots_triplets(
         # post_match_index is qubit to index in `cnots` array.
         post_match_index: Dict[int, int] = {}
         for k in range(j + 1, len(cnots)):
-            # These CNOTs have the same control (resp. target   ) and though they are not candidates
+            # These CNOTs have the same control (resp. target) and though they are not candidates
             # for simplification, since they commute, we can keep looking for candidates.
             if cnots[j][control] == cnots[k][control]:
                 continue

@@ -188,7 +188,7 @@ def test_simplify_commuting_cnots(
         ([(0, 1)], False, False, [(0, 1)]),
         ([(0, 1)], True, False, [(0, 1)]),
         # Simplify according to equation 11 of [4].
-        ([(2, 1), (2, 0), (1, 0)], False, True, [(1, 0), (2, 1)]),  # Template without interweening
+        ([(2, 1), (2, 0), (1, 0)], False, True, [(1, 0), (2, 1)]),
         ([(1, 2), (0, 2), (0, 1)], True, True, [(0, 1), (1, 2)]),
         # Same as above, but with a intervening CNOTs that prevent simplifications.
         ([(2, 1), (2, 0), (100, 101), (1, 0)], False, False, [(2, 1), (2, 0), (100, 101), (1, 0)]),
