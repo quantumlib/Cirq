@@ -40,6 +40,14 @@ class KeyValueExecutableSpec(ExecutableSpec):
     The key-value pairs define an implicit data schema. Consider defining a problem-specific
     subclass of `ExecutableSpec` instead of using this class to realize the benefits of having
     an explicit schema.
+
+    See Also:
+        `KeyValueExecutableSpec.from_dict` will use a dictionary to populate `key_value_pairs`.
+
+    Args:
+        executable_family: A unique name to group executables.
+        key_value_pairs: A tuple of key-value pairs. The keys should be strings but the values
+            can be any immutable object.
     """
 
     executable_family: str

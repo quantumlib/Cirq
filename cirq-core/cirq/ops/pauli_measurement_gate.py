@@ -97,6 +97,9 @@ class PauliMeasurementGate(raw_types.Gate):
     def _measurement_key_name_(self) -> str:
         return self.key
 
+    def _measurement_key_obj_(self) -> value.MeasurementKey:
+        return self.mkey
+
     def observable(self) -> 'cirq.DensePauliString':
         """Pauli observable which should be measured by the gate."""
         return dense_pauli_string.DensePauliString(self._observable)
