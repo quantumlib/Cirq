@@ -239,7 +239,7 @@ def known_two_q_operations_to_sycamore_operations(
 
 # pylint: enable=missing-raises-doc
 def decompose_phased_iswap_into_syc(
-    phase_exponent: float, a: cirq.Qid, b: cirq.Qid
+    phase_exponent: value.TParamVal, a: cirq.Qid, b: cirq.Qid
 ) -> cirq.OP_TREE:
     """Decompose PhasedISwap with an exponent of 1.
 

@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import sympy
 
 import scipy.linalg
 
@@ -278,3 +279,19 @@ def test_sycamore_invalid_tabulation():
     sycamore_tabulation = {}
     with pytest.raises(ValueError):
         cgoc.ConvertToSycamoreGates(sycamore_tabulation)
+
+def test_decompose_phased_iswap_into_syc():
+    phase_exponent = sympy.Symbol('s')
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    function_circuit = cirq.Circuit(cgoc.decompose_phased_iswap_into_syc(phase_exponent, a, b)) 
+    test_circuit = cirq.Circuit([
+        cirq.Z(a) ** phase_exponent, 
+        cirq.Z(b) ** -phase_exponent, 
+        cgoc.decompose_iswap_into_syc(a, b), 
+        cirq.Z(a) ** -phase_exponent, 
+        cirq.Z(b) ** phase_exponent
+        ])
+    assert(function_circuit == test_circuit)
+
+
