@@ -181,7 +181,7 @@ class Gateset:
         *gates: Union[Type[raw_types.Gate], raw_types.Gate, GateFamily],
         name: Optional[str] = None,
         unroll_circuit_op: bool = True,
-        accept_global_phase: bool = True,
+        accept_global_phase_op: bool = True,
     ) -> None:
         """Init Gateset.
 
@@ -200,14 +200,14 @@ class Gateset:
             name: (Optional) Name for the Gateset. Useful for description.
             unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
                 validated by validating the underlying `cirq.Circuit`.
-            accept_global_phase: If True, `cirq.GlobalPhaseOperation` is accepted.
+            accept_global_phase_op: If True, `cirq.GlobalPhaseOperation` is accepted.
         """
         self._name = name
         self._gates = frozenset(
             g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates
         )
         self._unroll_circuit_op = unroll_circuit_op
-        self._accept_global_phase = accept_global_phase
+        self._accept_global_phase_op = accept_global_phase_op
         self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
         self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
         for g in self._gates:
@@ -230,7 +230,7 @@ class Gateset:
         *,
         name: Optional[str] = None,
         unroll_circuit_op: Optional[bool] = None,
-        accept_global_phase: Optional[bool] = None,
+        accept_global_phase_op: Optional[bool] = None,
     ) -> 'Gateset':
         """Returns a copy of this Gateset with identical gates and new values for named arguments.
 
@@ -240,7 +240,7 @@ class Gateset:
             name: New name for the Gateset.
             unroll_circuit_op: If True, new Gateset will recursively validate
                 `cirq.CircuitOperation` by validating the underlying `cirq.Circuit`.
-            accept_global_phase: If True, new Gateset will accept `cirq.GlobalPhaseOperation`.
+            accept_global_phase_op: If True, new Gateset will accept `cirq.GlobalPhaseOperation`.
 
         Returns:
             `self` if all new values are None or identical to the values of current Gateset.
@@ -252,18 +252,18 @@ class Gateset:
 
         name = val_if_none(name, self._name)
         unroll_circuit_op = val_if_none(unroll_circuit_op, self._unroll_circuit_op)
-        accept_global_phase = val_if_none(accept_global_phase, self._accept_global_phase)
+        accept_global_phase_op = val_if_none(accept_global_phase_op, self._accept_global_phase_op)
         if (
             name == self._name
             and unroll_circuit_op == self._unroll_circuit_op
-            and accept_global_phase == self._accept_global_phase
+            and accept_global_phase_op == self._accept_global_phase_op
         ):
             return self
         return Gateset(
             *self.gates,
             name=name,
             unroll_circuit_op=cast(bool, unroll_circuit_op),
-            accept_global_phase=cast(bool, accept_global_phase),
+            accept_global_phase_op=cast(bool, accept_global_phase_op),
         )
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
@@ -366,7 +366,7 @@ class Gateset:
             )
             return self.validate(op_circuit)
         elif isinstance(op, global_phase_op.GlobalPhaseOperation):
-            return self._accept_global_phase
+            return self._accept_global_phase_op
         else:
             return False
 
@@ -375,7 +375,7 @@ class Gateset:
             frozenset(self.gates),
             self.name,
             self._unroll_circuit_op,
-            self._accept_global_phase,
+            self._accept_global_phase_op,
         )
 
     def __repr__(self) -> str:
@@ -384,7 +384,7 @@ class Gateset:
             f'{",".join([repr(g) for g in self.gates])},'
             f'name = "{self.name}",'
             f'unroll_circuit_op = {self._unroll_circuit_op},'
-            f'accept_global_phase = {self._accept_global_phase})'
+            f'accept_global_phase_op = {self._accept_global_phase_op})'
         )
 
     def __str__(self) -> str:
