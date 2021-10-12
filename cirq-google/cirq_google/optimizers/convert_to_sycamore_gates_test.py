@@ -278,3 +278,23 @@ def test_sycamore_invalid_tabulation():
     sycamore_tabulation = {}
     with pytest.raises(ValueError):
         cgoc.ConvertToSycamoreGates(sycamore_tabulation)
+
+
+q = cirq.GridQubit.rect(1, 3)
+matrix_gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
+
+
+@pytest.mark.parametrize(
+    'op, is_valid',
+    [
+        (cirq.CircuitOperation(cirq.FrozenCircuit(matrix_gate(q[0]))), False),
+        (matrix_gate(q[0]), True),
+        (matrix_gate(q[0]).with_tags('test_tags'), True),
+        (matrix_gate(q[0]).controlled_by(q[1]), True),
+        (matrix_gate(q[0]).controlled_by(q[1]).with_tags('test_tags'), True),
+        (matrix_gate(q[0]).with_tags('test_tags').controlled_by(q[1]), True),
+    ],
+)
+def test_supported_operation(op, is_valid):
+    c = cirq.Circuit(op)
+    assert (cirq_google.ConvertToSycamoreGates().optimization_at(c, 0, op) is not None) == is_valid
