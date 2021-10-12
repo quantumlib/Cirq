@@ -18,26 +18,11 @@ from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence, Iterable, Un
 import numpy as np
 
 from cirq import protocols, sim
-from cirq._compat import deprecated_parameter
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
 
 if TYPE_CHECKING:
     import cirq
-
-
-def _rewrite_deprecated_args(args, kwargs):
-    if len(args) > 3:
-        kwargs['axes'] = args[3]
-    if len(args) > 4:
-        kwargs['qid_shape'] = args[4]
-    if len(args) > 5:
-        kwargs['prng'] = args[5]
-    if len(args) > 6:
-        kwargs['log_of_measurement_results'] = args[6]
-    if len(args) > 7:
-        kwargs['qubits'] = args[7]
-    return args[:3], kwargs
 
 
 class ActOnDensityMatrixArgs(ActOnArgs):
@@ -47,15 +32,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     storing the density matrix of the quantum system with one axis per qubit.
     """
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs
-        or ('qid_shape' in kwargs and len(args) == 4)
-        or (len(args) > 4 and isinstance(args[4], tuple)),
-        rewrite=_rewrite_deprecated_args,
-    )
     def __init__(
         self,
         target_tensor: np.ndarray,
@@ -64,7 +40,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
     ):
         """Inits ActOnDensityMatrixArgs.
 
@@ -84,10 +59,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape
@@ -115,9 +88,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         raise TypeError(
             "Can't simulate operations that don't implement "
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
-            "SupportsMixture, SupportsChannel or SupportsKraus or is a measurement: {!r}".format(
-                action
-            )
+            "SupportsMixture or SupportsKraus or is a measurement: {!r}".format(action)
         )
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:

@@ -18,24 +18,11 @@ from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence, Itera
 import numpy as np
 
 from cirq import linalg, protocols, sim
-from cirq._compat import deprecated_parameter
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
 
 if TYPE_CHECKING:
     import cirq
-
-
-def _rewrite_deprecated_args(args, kwargs):
-    if len(args) > 3:
-        kwargs['axes'] = args[3]
-    if len(args) > 4:
-        kwargs['prng'] = args[4]
-    if len(args) > 5:
-        kwargs['log_of_measurement_results'] = args[5]
-    if len(args) > 6:
-        kwargs['qubits'] = args[6]
-    return args[:3], kwargs
 
 
 class ActOnStateVectorArgs(ActOnArgs):
@@ -49,15 +36,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         then pass `available_buffer` into `swap_target_tensor_for`.
     """
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs
-        or ('prng' in kwargs and len(args) == 4)
-        or (len(args) > 4 and isinstance(args[4], np.random.RandomState)),
-        rewrite=_rewrite_deprecated_args,
-    )
     def __init__(
         self,
         target_tensor: np.ndarray,
@@ -65,7 +43,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
     ):
         """Inits ActOnStateVectorArgs.
 
@@ -85,10 +62,8 @@ class ActOnStateVectorArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
 
