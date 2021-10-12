@@ -131,9 +131,7 @@ class GateFamily:
                 if self._ignore_global_phase
                 else gate == self._gate
             )
-
-        else:
-            return isinstance(gate, self.gate)
+        return isinstance(gate, self.gate)
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
         if isinstance(item, raw_types.Operation):
@@ -271,7 +269,7 @@ class Gateset:
 
         Containment checks are handled as follows:
             a) For Gates or Operations that have an underlying gate (i.e. op.gate is not None):
-                - Forwards the containment check to the underlying GateFamily's
+                - Forwards the containment check to the underlying `cirq.GateFamily` objects.
                 - Examples of such operations include `cirq.GateOperations` and their controlled
                     and tagged variants (i.e. instances of `cirq.TaggedOperation`,
                     `cirq.ControlledOperation` where `op.gate` is not None) etc.
@@ -283,8 +281,11 @@ class Gateset:
                     `cirq.ControlledOperation` where `op.gate` is None) etc.
 
         The complexity of the method is:
-            a) O(1) for checking containment in the default `cirq.GateFamily` instances.
-            b) O(n) for checking containment in custom GateFamily instances.
+            a) O(1) when any default `cirq.GateFamily` instance accepts the given item, except
+                for an Instance GateFamily trying to match an item with a different global phase.
+            b) O(n) for all other cases: matching against custom gate families, matching across
+                global phase for the default Instance GateFamily, no match against any underlying
+                gate family.
 
         Args:
             item: The `cirq.Gate` or `cirq.Operation` instance to check containment for.
