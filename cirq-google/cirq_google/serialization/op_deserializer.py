@@ -26,7 +26,6 @@ import abc
 import sympy
 
 import cirq
-from cirq._compat import deprecated
 from cirq_google.api import v2
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.serialization import arg_func_langs
@@ -142,11 +141,6 @@ class GateOpDeserializer(OpDeserializer):
         self._num_qubits_param = num_qubits_param
         self._op_wrapper = op_wrapper
         self._deserialize_tokens = deserialize_tokens
-
-    @property  # type: ignore
-    @deprecated(deadline='v0.13', fix='Use serialized_id instead.')
-    def serialized_gate_id(self) -> str:
-        return self.serialized_id
 
     @property
     def serialized_id(self):
