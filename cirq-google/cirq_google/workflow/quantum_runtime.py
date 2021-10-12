@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Infrastructure for running quantum executables."""
+"""Runtime information dataclasses that accompany execution of executables."""
 
 import dataclasses
 from typing import Any, Dict, Optional
