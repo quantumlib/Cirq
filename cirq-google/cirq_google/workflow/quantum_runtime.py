@@ -27,10 +27,10 @@ from cirq_google.workflow.quantum_executable import (
 
 @dataclasses.dataclass
 class SharedRuntimeInfo:
-    """Runtime information common to all `QuantumExecutable`s in an execution of a
-    `QuantumExecutableGroup`.
+    """Runtime information common to all `cg.QuantumExecutable`s in an execution of a
+    `cg.QuantumExecutableGroup`.
 
-    There is one `SharedRuntimeInfo` per `ExecutableGroupResult`.
+    There is one `cg.SharedRuntimeInfo` per `cg.ExecutableGroupResult`.
 
     Args:
         run_id: A unique `str` identifier for this run.
@@ -47,13 +47,13 @@ class SharedRuntimeInfo:
 
 @dataclasses.dataclass
 class RuntimeInfo:
-    """Runtime information relevant to a particular `QuantumExecutable`.
+    """Runtime information relevant to a particular `cg.QuantumExecutable`.
 
-    There is one `RuntimeInfo` per `ExecutableResult`
+    There is one `cg.RuntimeInfo` per `cg.ExecutableResult`
 
     Args:
-        execution_index: What order (in its `QuantumExecutableGroup`) this `QuantumExecutable` was
-            executed.
+        execution_index: What order (in its `cg.QuantumExecutableGroup`) this
+            `cg.QuantumExecutable` was executed.
     """
 
     execution_index: int
@@ -67,12 +67,12 @@ class RuntimeInfo:
 
 @dataclasses.dataclass
 class ExecutableResult:
-    """Results for a `QuantumExecutable`.
+    """Results for a `cg.QuantumExecutable`.
 
     Args:
-        spec: The `ExecutableSpec` typifying the `QuantumExecutable`.
-        runtime_info: A `RuntimeInfo` dataclass containing information gathered during execution
-            of the `QuantumExecutable`.
+        spec: The `cg.ExecutableSpec` typifying the `cg.QuantumExecutable`.
+        runtime_info: A `cg.RuntimeInfo` dataclass containing information gathered during
+            execution of the `cg.QuantumExecutable`.
         raw_data: The `cirq.Result` containing the data from the run.
     """
 
