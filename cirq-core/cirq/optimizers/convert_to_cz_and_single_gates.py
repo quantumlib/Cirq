@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from cirq import circuits, ops, protocols, value
+from cirq import circuits, ops, protocols
 from cirq.optimizers import two_qubit_decompositions
 
 
