@@ -57,13 +57,10 @@ TestSpec = ModuleJsonTestSpec(
         for k in [
             'BitstringsMeasurement',
             'QuantumExecutable',
+            'QuantumExecutableGroup',
+            'KeyValueExecutableSpec',
         ]
     },
-    tested_elsewhere=[
-        # Requires a concrete ExecutableSpec,
-        # serialization tested in cirq_google/workflow/quantum_executable_test
-        'cirq.google.QuantumExecutable',
-    ],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={},
 )
