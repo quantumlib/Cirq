@@ -45,4 +45,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.QuantumExecutable': cirq_google.QuantumExecutable,
         'cirq.google.QuantumExecutableGroup': cirq_google.QuantumExecutableGroup,
         'cirq.google.KeyValueExecutableSpec': cirq_google.KeyValueExecutableSpec,
+        'cirq.google.SharedRuntimeInfo': cirq_google.SharedRuntimeInfo,
+        'cirq.google.RuntimeInfo': cirq_google.RuntimeInfo,
+        'cirq.google.ExecutableResult': cirq_google.ExecutableResult,
     }

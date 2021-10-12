@@ -1,0 +1,35 @@
+{
+  "cirq_type": "cirq.google.ExecutableResult",
+  "spec": {
+    "cirq_type": "cirq.google.KeyValueExecutableSpec",
+    "executable_family": "cirq_google.algo_benchmarks.example",
+    "key_value_pairs": [
+      [
+        "name",
+        "test-spec"
+      ]
+    ]
+  },
+  "runtime_info": {
+    "cirq_type": "cirq.google.RuntimeInfo",
+    "execution_index": 5
+  },
+  "raw_data": {
+    "cirq_type": "Result",
+    "params": {
+      "cirq_type": "ParamResolver",
+      "param_dict": []
+    },
+    "measurements": {
+      "z": {
+        "packed_digits": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "binary": true,
+        "dtype": "float64",
+        "shape": [
+          1000,
+          4
+        ]
+      }
+    }
+  }
+}
