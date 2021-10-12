@@ -78,7 +78,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
     """
 
-    def __init__(self, theta: float, phi: float) -> None:
+    def __init__(self, theta: value.TParamVal, phi: value.TParamVal) -> None:
         """Inits FSimGate.
 
         Args:

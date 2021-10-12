@@ -513,7 +513,7 @@ SQRT_ISWAP_DESERIALIZERS = [
 # FSim serializer
 # Only allows iswap, sqrt_iswap and their inverses, iswap, CZ, identity, and sycamore
 # Note that not all combinations may not be available on all processors
-def _can_serialize_limited_fsim(theta: float, phi: float):
+def _can_serialize_limited_fsim(theta: value.TParamVal, phi: value.TParamVal):
     # Symbols for LIMITED_FSIM are allowed, but may fail server-side
     # if an incorrect run context is specified
     if _near_mod_2pi(phi, 0) or isinstance(phi, sympy.Symbol):
