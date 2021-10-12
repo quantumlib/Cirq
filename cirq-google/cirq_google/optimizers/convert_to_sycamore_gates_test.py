@@ -297,7 +297,4 @@ matrix_gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
 )
 def test_supported_operation(op, is_valid):
     c = cirq.Circuit(op)
-    if is_valid:
-        assert cirq_google.ConvertToSycamoreGates().optimization_at(c, 0, op) is not None
-    else:
-        assert cirq_google.ConvertToSycamoreGates().optimization_at(c, 0, op) is None
+    assert (cirq_google.ConvertToSycamoreGates().optimization_at(c, 0, op) is not None) == is_valid

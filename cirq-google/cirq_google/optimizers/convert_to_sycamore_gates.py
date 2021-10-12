@@ -151,8 +151,8 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
             next_index = circuit.next_moment_operating_on(op.qubits, index + 1)
             if next_index is not None:
                 ops_in_front = list({circuit.operation_at(q, next_index) for q in op.qubits})
-                if len(ops_in_front) == 1 and ops_in_front[0]:
-                    gate2 = cast(cirq.Operation, ops_in_front[0]).gate  # For mypy.
+                if len(ops_in_front) == 1 and ops_in_front[0] is not None:
+                    gate2 = ops_in_front[0].gate
             else:
                 next_index = 0
 

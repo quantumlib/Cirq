@@ -68,7 +68,4 @@ def test_bad_operation():
 )
 def test_supported_operation(op, is_valid):
     c = cirq.Circuit(op)
-    if is_valid:
-        assert cirq_google.ConvertToXmonGates().optimization_at(c, 0, op) is not None
-    else:
-        assert cirq_google.ConvertToXmonGates().optimization_at(c, 0, op) is None
+    assert (cirq_google.ConvertToXmonGates().optimization_at(c, 0, op) is not None) == is_valid
