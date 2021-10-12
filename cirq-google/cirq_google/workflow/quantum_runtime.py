@@ -14,7 +14,7 @@
 
 """Infrastructure for running quantum executables."""
 
-from dataclasses import dataclass
+import dataclasses
 from typing import Any, Dict, Optional
 
 import cirq
@@ -25,7 +25,7 @@ from cirq_google.workflow.quantum_executable import (
 )
 
 
-@dataclass
+@dataclasses.dataclass
 class SharedRuntimeInfo:
     """Runtime information common to all `QuantumExecutable`s in an execution of a
     `QuantumExecutableGroup`.
@@ -45,7 +45,7 @@ class SharedRuntimeInfo:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
-@dataclass
+@dataclasses.dataclass
 class RuntimeInfo:
     """Runtime information relevant to a particular `QuantumExecutable`.
 
@@ -65,7 +65,7 @@ class RuntimeInfo:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
-@dataclass
+@dataclasses.dataclass
 class ExecutableResult:
     """Results for a `QuantumExecutable`.
 
