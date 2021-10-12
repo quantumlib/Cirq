@@ -115,11 +115,11 @@ class SerializableGateSet(serializer.Serializer):
     # pylint: disable=missing-raises-doc
     def serialize(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         msg: Optional[v2.program_pb2.Program] = None,
         *,
         arg_function_language: Optional[str] = None,
-        use_constants: bool = True,
+        use_constants: Optional[bool] = True,
     ) -> v2.program_pb2.Program:
         """Serialize a Circuit to cirq_google.api.v2.Program proto.
 
