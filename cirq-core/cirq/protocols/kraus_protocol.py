@@ -20,10 +20,6 @@ import warnings
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq._compat import (
-    deprecated,
-    deprecated_class,
-)
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,
@@ -43,11 +39,6 @@ RaiseTypeErrorIfNotProvided = (np.array([]),)
 
 
 TDefault = TypeVar('TDefault')
-
-
-@deprecated_class(deadline='v0.13', fix='use cirq.SupportsKraus instead')
-class SupportsChannel(Protocol):
-    pass
 
 
 class SupportsKraus(Protocol):
@@ -103,13 +94,6 @@ class SupportsKraus(Protocol):
         Returns:
             True if the value has a channel representation, False otherwise.
         """
-
-
-@deprecated(deadline='v0.13', fix='use cirq.kraus instead')
-def channel(
-    val: Any, default: Any = RaiseTypeErrorIfNotProvided
-) -> Union[Tuple[np.ndarray, ...], TDefault]:
-    return kraus(val, default=default)
 
 
 def kraus(
@@ -192,11 +176,6 @@ def kraus(
     )
 
 
-@deprecated(deadline='v0.13', fix='use cirq.has_kraus instead')
-def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
-    return has_kraus(val, allow_decompose=allow_decompose)
-
-
 def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     """Returns whether the value has a Kraus representation.
 
@@ -220,13 +199,6 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
         has a non-default value. Returns False if none of these functions
         exists.
     """
-    channel_getter = getattr(val, '_has_channel_', None)
-    if channel_getter is not None:
-        warnings.warn(
-            '_has_channel_ is deprecated and will be removed in cirq 0.13, rename to _has_kraus_',
-            DeprecationWarning,
-        )
-
     kraus_getter = getattr(val, '_has_kraus_', None)
     result = NotImplemented if kraus_getter is None else kraus_getter()
     if result is not NotImplemented:
@@ -234,10 +206,6 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
 
     result = has_mixture(val, allow_decompose=False)
     if result is not NotImplemented and result:
-        return result
-
-    result = NotImplemented if channel_getter is None else channel_getter()
-    if result is not NotImplemented:
         return result
 
     if allow_decompose:
