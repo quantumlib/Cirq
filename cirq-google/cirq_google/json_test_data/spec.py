@@ -59,6 +59,9 @@ TestSpec = ModuleJsonTestSpec(
             'QuantumExecutable',
             'QuantumExecutableGroup',
             'KeyValueExecutableSpec',
+            'ExecutableResult',
+            'RuntimeInfo',
+            'SharedRuntimeInfo',
         ]
     },
     resolver_cache=_class_resolver_dictionary(),
