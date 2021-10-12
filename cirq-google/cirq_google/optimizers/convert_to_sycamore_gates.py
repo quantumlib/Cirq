@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import cast, Iterator, List, Optional
+from typing import Iterator, List, Optional
 
 import numpy as np
 import scipy.linalg
