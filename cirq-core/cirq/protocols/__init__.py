@@ -40,11 +40,8 @@ from cirq.protocols.approximate_equality_protocol import (
     SupportsApproximateEquality,
 )
 from cirq.protocols.kraus_protocol import (
-    channel,
     kraus,
-    has_channel,
     has_kraus,
-    SupportsChannel,
     SupportsKraus,
 )
 from cirq.protocols.commutes_protocol import (
@@ -96,8 +93,10 @@ from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
     measurement_key_name,
+    measurement_key_obj,
     measurement_keys,
     measurement_key_names,
+    measurement_key_objs,
     with_key_path,
     with_measurement_key_mapping,
     SupportsMeasurementKey,

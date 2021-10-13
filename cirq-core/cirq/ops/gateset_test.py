@@ -131,11 +131,19 @@ def test_gate_family_eq():
             cirq.GateFamily(CustomX),
             [
                 (CustomX, True),
+                (CustomXPowGate(exponent=1, global_shift=0.15), True),
                 (CustomX ** 2, False),
                 (CustomX ** 3, True),
                 (CustomX ** sympy.Symbol('theta'), False),
                 (None, False),
                 (cirq.GlobalPhaseOperation(1j), False),
+            ],
+        ),
+        (
+            cirq.GateFamily(CustomX, ignore_global_phase=False),
+            [
+                (CustomX, True),
+                (CustomXPowGate(exponent=1, global_shift=0.15), False),
             ],
         ),
     ],
@@ -201,7 +209,7 @@ def test_gateset_repr_and_str():
         (CustomX ** 2, True),
         (CustomXPowGate(exponent=3, global_shift=0.5), True),
         (CustomX ** 0.5, True),
-        (CustomXPowGate(exponent=0.5, global_shift=0.5), False),
+        (CustomXPowGate(exponent=0.5, global_shift=0.5), True),
         (CustomX ** 0.25, False),
         (CustomX ** sympy.Symbol('theta'), False),
         (cirq.testing.TwoQubitGate(), True),
@@ -250,7 +258,7 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
     assert_validate_and_contains_consistent(
         gateset.with_params(
             unroll_circuit_op=use_circuit_op,
-            accept_global_phase=use_global_phase,
+            accept_global_phase_op=use_global_phase,
         ),
         op_tree,
         True,
@@ -259,7 +267,7 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
         assert_validate_and_contains_consistent(
             gateset.with_params(
                 unroll_circuit_op=False,
-                accept_global_phase=False,
+                accept_global_phase_op=False,
             ),
             op_tree,
             False,
@@ -272,16 +280,16 @@ def test_with_params():
         gateset.with_params(
             name=gateset.name,
             unroll_circuit_op=gateset._unroll_circuit_op,
-            accept_global_phase=gateset._accept_global_phase,
+            accept_global_phase_op=gateset._accept_global_phase_op,
         )
         is gateset
     )
     gateset_with_params = gateset.with_params(
-        name='new name', unroll_circuit_op=False, accept_global_phase=False
+        name='new name', unroll_circuit_op=False, accept_global_phase_op=False
     )
     assert gateset_with_params.name == 'new name'
     assert gateset_with_params._unroll_circuit_op is False
-    assert gateset_with_params._accept_global_phase is False
+    assert gateset_with_params._accept_global_phase_op is False
 
 
 def test_gateset_eq():
@@ -290,7 +298,9 @@ def test_gateset_eq():
     eq.add_equality_group(cirq.Gateset(CustomX ** 3))
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset'))
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset', unroll_circuit_op=False))
-    eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase=False))
+    eq.add_equality_group(
+        cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase_op=False)
+    )
     eq.add_equality_group(
         cirq.Gateset(
             cirq.GateFamily(CustomX, name='custom_name', description='custom_description')

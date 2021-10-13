@@ -153,20 +153,39 @@ def test_validate_operation_existing_qubits():
         d.validate_operation(cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)))
 
 
-def test_validate_operation_supported_gate():
+class MyGate(cirq.Gate):
+    def num_qubits(self):
+        return 1
+
+
+q = cirq.GridQubit.rect(1, 3)
+matrix_gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
+
+
+@pytest.mark.parametrize(
+    'op,is_valid',
+    [
+        (cirq.Z(cirq.GridQubit(0, 0)), True),
+        (cirq.Z(cirq.GridQubit(0, 0)).with_tags('test_tag'), True),
+        (
+            cirq.Z(cirq.GridQubit(0, 0)).with_tags('test_tag').controlled_by(cirq.GridQubit(0, 1)),
+            True,
+        ),
+        (
+            cirq.Z(cirq.GridQubit(0, 0)).controlled_by(cirq.GridQubit(0, 1)).with_tags('test_tag'),
+            True,
+        ),
+        (NotImplementedOperation(), False),
+        (MyGate()(cirq.GridQubit(0, 0)), False),
+    ],
+)
+def test_validate_operation_supported_gate(op, is_valid):
     d = square_device(3, 3)
-
-    class MyGate(cirq.Gate):
-        def num_qubits(self):
-            return 1
-
-    d.validate_operation(cirq.GateOperation(cirq.Z, [cirq.GridQubit(0, 0)]))
-
-    assert MyGate().num_qubits() == 1
-    with pytest.raises(ValueError):
-        d.validate_operation(cirq.GateOperation(MyGate(), [cirq.GridQubit(0, 0)]))
-    with pytest.raises(ValueError):
-        d.validate_operation(NotImplementedOperation())
+    if is_valid:
+        d.validate_operation(op)
+    else:
+        with pytest.raises(ValueError):
+            d.validate_operation(op)
 
 
 def test_validate_circuit_repeat_measurement_keys():
