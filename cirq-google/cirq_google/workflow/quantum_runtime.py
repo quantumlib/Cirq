@@ -15,11 +15,12 @@
 """Runtime information dataclasses that accompany execution of executables."""
 
 import dataclasses
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 import cirq
 from cirq import _compat
 from cirq.protocols import dataclass_json_dict
+from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
 from cirq_google.workflow.quantum_executable import (
     ExecutableSpec,
 )
@@ -79,6 +80,53 @@ class ExecutableResult:
     spec: Optional[ExecutableSpec]
     runtime_info: RuntimeInfo
     raw_data: cirq.Result
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return dataclass_json_dict(self, namespace='cirq.google')
+
+    def __repr__(self) -> str:
+        return _compat.dataclass_repr(self, namespace='cirq_google')
+
+
+@dataclasses.dataclass
+class ExecutableGroupResult:
+    """Results for a `cg.QuantumExecutableGroup`.
+
+    Args:
+        runtime_configuration: The `cg.QuantumRuntimeConfiguration` describing how the
+            `cg.QuantumExecutableGroup` was requested to be executed.
+        shared_runtime_info: A `cg.SharedRuntimeInfo` dataclass containing information gathered
+            during execution of the `cg.QuantumExecutableGroup` which is relevant to all
+            `executable_results`.
+        executable_results: A list of `cg.ExecutableResult`. Each contains results and raw data
+            for an individual `cg.QuantumExecutable`.
+    """
+
+    runtime_configuration: 'QuantumRuntimeConfiguration'
+    shared_runtime_info: SharedRuntimeInfo
+    executable_results: List[ExecutableResult]
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return dataclass_json_dict(self, namespace='cirq.google')
+
+    def __repr__(self) -> str:
+        return _compat.dataclass_repr(self, namespace='cirq_google')
+
+
+@dataclasses.dataclass
+class QuantumRuntimeConfiguration:
+    """User-requested configuration of how to execute a given `cg.QuantumExecutableGroup`.
+
+    Args:
+        processor: The `cg.AbstractEngineProcessor` responsible for running circuits and providing
+            device information.
+        run_id: A unique `str` identifier for a run. If data already exists for the specified
+            `run_id`, an exception will be raised. If not specified, we will generate a UUID4
+            run identifier.
+    """
+
+    processor: AbstractEngineProcessorShim
+    run_id: Optional[str] = None
 
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')
