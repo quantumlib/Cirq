@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 
 QBLUE = '#1967d2'
 FONT = "Arial"
+EMPTY_MOMENT_COLWIDTH = float(21)  # assumed default column width
 
 
 def fixup_text(text: str):
@@ -30,9 +31,8 @@ def _get_text_width(t: str) -> float:
     try:
         bb = tp.get_extents()
         return bb.width + 10
-    except:  # coverage: ignore
-        # coverage: ignore
-        return 21  # assumed default column width if t is an empty string (empty moments)
+    except:
+        return EMPTY_MOMENT_COLWIDTH
 
 
 def _rect(
@@ -240,7 +240,7 @@ def tdd_to_svg(
             t += _text(x, y + 3, '×', fontsize=40)
             continue
         if v.text == '':
-            continue  # coverage: ignore
+            continue
 
         v_text = fixup_text(v.text)
         t += _rect(boxx, boxy, boxwidth, boxheight)
@@ -278,5 +278,5 @@ def circuit_to_svg(circuit: 'cirq.Circuit') -> str:
     _validate_circuit(circuit)
     tdd = circuit.to_text_diagram_drawer(transpose=False)
     if len(tdd.horizontal_lines) == 0:  # in circuits with no non-empty moments,return a blank SVG
-        return '<svg></svg>'  # coverage: ignore
+        return '<svg></svg>'
     return tdd_to_svg(tdd)
