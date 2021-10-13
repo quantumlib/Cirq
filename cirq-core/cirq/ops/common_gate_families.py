@@ -14,7 +14,7 @@
 
 """Common Gate Families used in cirq-core"""
 
-from typing import cast, Optional, Type, Union
+from typing import Any, cast, Optional, Type, Union
 
 from cirq.ops import gateset, raw_types, parallel_gate, eigen_gate
 from cirq import protocols
@@ -50,6 +50,9 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
     def __repr__(self) -> str:
         return f'cirq.AnyUnitaryGateFamily(num_qubits = {self._num_qubits})'
 
+    def _value_equality_values_(self) -> Any:
+        return self._num_qubits
+
 
 class AnyIntegerPowerGateFamily(gateset.GateFamily):
     """GateFamily which accepts instances of a given `cirq.EigenGate`, raised to integer power."""
@@ -80,6 +83,9 @@ class AnyIntegerPowerGateFamily(gateset.GateFamily):
 
     def __repr__(self) -> str:
         return f'cirq.AnyIntegerPowerGateFamily({self._gate_str()})'
+
+    def _value_equality_values_(self) -> Any:
+        return self.gate
 
 
 class ParallelGateFamily(gateset.GateFamily):
@@ -165,3 +171,7 @@ class ParallelGateFamily(gateset.GateFamily):
             f'{name_and_description}'
             f'max_parallel_allowed={self._max_parallel_allowed})'
         )
+
+    def _value_equality_values_(self) -> Any:
+        # `isinstance` is used to ensure the a gate type and gate instance is not compared.
+        return super()._value_equality_values_() + (self._max_parallel_allowed,)

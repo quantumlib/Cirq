@@ -23,7 +23,8 @@ if TYPE_CHECKING:
 
 
 def _gate_str(
-    gate: Union[raw_types.Gate, Type[raw_types.Gate]], gettr: Callable[[Any], str] = str
+    gate: Union[raw_types.Gate, Type[raw_types.Gate], 'cirq.GateFamily'],
+    gettr: Callable[[Any], str] = str,
 ) -> str:
     return gettr(gate) if not isinstance(gate, type) else f'{gate.__module__}.{gate.__name__}'
 
@@ -229,7 +230,7 @@ class Gateset:
         return self._name
 
     @property
-    def gates(self) -> Tuple[GateFamily]:
+    def gates(self) -> Tuple[GateFamily, ...]:
         return self._gates
 
     def with_params(
