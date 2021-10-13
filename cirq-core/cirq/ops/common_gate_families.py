@@ -154,9 +154,14 @@ class ParallelGateFamily(gateset.GateFamily):
         return super()._predicate(gate)
 
     def __repr__(self) -> str:
+        name_and_description = ''
+        if self.name != self._default_name() or self.description != self._default_description():
+            name_and_description = (
+                f'name="{self.name}", description=r\'\'\'{self.description}\'\'\', '
+            )
         return (
-            f'cirq.ParallelGateFamily(gate={self._gate_str(repr)},'
-            f'name="{self.name}", '
-            f'description=r\'\'\'' + self.description + '\'\'\','
-            f'max_parallel_allowed="{self._max_parallel_allowed}")'
+            f'cirq.ParallelGateFamily('
+            f'gate={self._gate_str(repr)}, '
+            f'{name_and_description}'
+            f'max_parallel_allowed={self._max_parallel_allowed})'
         )
