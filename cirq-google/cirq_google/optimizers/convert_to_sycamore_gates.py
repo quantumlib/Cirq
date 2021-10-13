@@ -100,6 +100,10 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
         ):
             return True
 
+        if gate is None and isinstance(op.untagged, cirq.CircuitOperation):
+            subcircuit = op.untagged.circuit
+            return all(self._is_native_sycamore_op(op) for op in subcircuit.all_operations())
+
         return False
 
     # TODO(#3388) Add summary line to docstring.
@@ -134,12 +138,13 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
             keep=self._is_native_sycamore_op,
             intercepting_decomposer=self._convert_one,
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise,
+            preserve_structure=True,  # keep CircuitOps but decompose their contents
         )
 
     def optimization_at(
         self, circuit: cirq.Circuit, index: int, op: cirq.Operation
     ) -> Optional[cirq.PointOptimizationSummary]:
-        if op.gate is None:
+        if op.gate is None and not isinstance(op.untagged, cirq.CircuitOperation):
             return None
 
         gate = op.gate
