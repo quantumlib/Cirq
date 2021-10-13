@@ -326,7 +326,7 @@ matrix_gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
 @pytest.mark.parametrize(
     'op, is_valid',
     [
-        (cirq.CircuitOperation(cirq.FrozenCircuit(matrix_gate(q[0]))), False),
+        (cirq.CircuitOperation(cirq.FrozenCircuit(matrix_gate(q[0]))), True),
         (matrix_gate(q[0]), True),
         (matrix_gate(q[0]).with_tags('test_tags'), True),
         (matrix_gate(q[0]).controlled_by(q[1]), True),
