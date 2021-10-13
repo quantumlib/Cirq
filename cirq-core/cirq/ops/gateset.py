@@ -14,7 +14,7 @@
 
 """Functionality for grouping and validating Cirq Gates"""
 
-from typing import Any, Callable, cast, Dict, Tuple, List, Optional, Type, TYPE_CHECKING, Union
+from typing import Any, Callable, cast, Dict, FrozenSet, List, Optional, Type, TYPE_CHECKING, Union
 from cirq.ops import global_phase_op, op_tree, raw_types
 from cirq import protocols, value
 
@@ -223,14 +223,15 @@ class Gateset:
                     self._instance_gate_families[g.gate] = g
                 else:
                     self._type_gate_families[g.gate] = g
-        self._gates = tuple(gates_list)
+        self._gates_str_str = "\n\n".join([str(g) for g in gates_list])
+        self._gates = frozenset(gates_list)
 
     @property
     def name(self) -> Optional[str]:
         return self._name
 
     @property
-    def gates(self) -> Tuple[GateFamily, ...]:
+    def gates(self) -> FrozenSet[GateFamily]:
         return self._gates
 
     def with_params(
@@ -383,7 +384,7 @@ class Gateset:
 
     def _value_equality_values_(self) -> Any:
         return (
-            frozenset(self.gates),
+            self.gates,
             self.name,
             self._unroll_circuit_op,
             self._accept_global_phase_op,
@@ -403,4 +404,4 @@ class Gateset:
         header = 'Gateset: '
         if self.name:
             header += self.name
-        return f'{header}\n' + "\n\n".join([str(g) for g in self.gates])
+        return f'{header}\n' + self._gates_str_str

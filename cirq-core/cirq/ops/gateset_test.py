@@ -186,7 +186,7 @@ gateset = cirq.Gateset(
 
 def test_gateset_init():
     assert gateset.name == 'custom gateset'
-    assert frozenset(gateset.gates) == frozenset(
+    assert gateset.gates == frozenset(
         [
             cirq.GateFamily(CustomX ** 0.5),
             cirq.GateFamily(cirq.testing.TwoQubitGate),
