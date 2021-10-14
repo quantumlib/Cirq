@@ -91,7 +91,8 @@ def circuit_to_density_matrix_tensors(
     Args:
         circuit: The circuit containing operations that support the
             cirq.unitary() or cirq.kraus() protocols.
-        qubits: The qubits in the circuit.
+        qubits: The qubits in the circuit. The `positions` return argument
+            will position qubits according to their index in this list.
 
     Returns:
         tensors: A list of Quimb Tensor objects
