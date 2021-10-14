@@ -14,6 +14,8 @@
 
 """Tool to visualize the magnitudes and phases in the density matrix"""
 
+from typing import Optional
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import lines, patches
@@ -76,7 +78,11 @@ def _plot_element_of_density_matrix(ax, x, y, r, phase, show_rect=False, show_te
 
 
 def plot_density_matrix(
-    matrix: np.ndarray, ax: Optional[plt.Axes] = None, *, show_text: bool=False, title: Optional[str] = None
+    matrix: np.ndarray,
+    ax: Optional[plt.Axes] = None,
+    *,
+    show_text: bool = False,
+    title: Optional[str] = None,
 ) -> plt.Axes:
     """Generates a plot for a given density matrix.
 
@@ -84,7 +90,7 @@ def plot_density_matrix(
     Argand Diagram where the partially filled red circle represents the magnitude
     and the line represents the phase angle, going anti-clockwise from positive x - axis.
     2. The blue rectangles on the diagonal elements represent the probability
-    of measuring the system in state $|i\rangle$. 
+    of measuring the system in state $|i\rangle$.
     Rendering scheme is inspired from https://algassert.com/quirk
 
     Args:
