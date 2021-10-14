@@ -26,13 +26,12 @@ def fixup_text(text: str):
 
 
 def _get_text_width(t: str) -> float:
+    if t == '':  # in case of an empty moment
+        return EMPTY_MOMENT_COLWIDTH
     t = fixup_text(t)
     tp = matplotlib.textpath.TextPath((0, 0), t, size=14, prop=FONT)
-    try:
-        bb = tp.get_extents()
-        return bb.width + 10
-    except:
-        return EMPTY_MOMENT_COLWIDTH
+    bb = tp.get_extents()
+    return bb.width + 10
 
 
 def _rect(
