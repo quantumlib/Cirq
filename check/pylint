@@ -13,4 +13,4 @@ cd "$(git rev-parse --show-toplevel)"
 
 CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
 
-pylint --rcfile=dev_tools/conf/.pylintrc $@ $CIRQ_MODULES dev_tools examples
+env PYTHONPATH=dev_tools pylint --rcfile=dev_tools/conf/.pylintrc $@ $CIRQ_MODULES dev_tools examples
