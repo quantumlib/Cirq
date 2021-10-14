@@ -212,19 +212,17 @@ class Gateset:
         self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
         self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
         self._gates_repr_str = ", ".join([_gate_str(g, repr) for g in gates])
-        gates_list: List[GateFamily] = []
-        for input_gate in gates:
-            g = input_gate if isinstance(input_gate, GateFamily) else GateFamily(gate=input_gate)
-            if g in gates_list:
-                continue
-            gates_list.append(g)
+        unique_gate_list: List[GateFamily] = list(
+            dict.fromkeys(g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates)
+        )
+        for g in unique_gate_list:
             if type(g) == GateFamily:
                 if isinstance(g.gate, raw_types.Gate):
                     self._instance_gate_families[g.gate] = g
                 else:
                     self._type_gate_families[g.gate] = g
-        self._gates_str_str = "\n\n".join([str(g) for g in gates_list])
-        self._gates = frozenset(gates_list)
+        self._gates_str_str = "\n\n".join([str(g) for g in unique_gate_list])
+        self._gates = frozenset(unique_gate_list)
 
     @property
     def name(self) -> Optional[str]:
