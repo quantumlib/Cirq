@@ -44,7 +44,7 @@ def neutral_atom_gateset(max_parallel_z=None, max_parallel_xy=None):
         ops.MeasurementGate,
         ops.IdentityGate,
         unroll_circuit_op=False,
-        accept_global_phase=False,
+        accept_global_phase_op=False,
     )
 
 
@@ -100,7 +100,7 @@ class NeutralAtomDevice(devices.Device):
             ops.ParallelGateFamily(ops.YPowGate),
             ops.ParallelGateFamily(ops.PhasedXPowGate),
             unroll_circuit_op=False,
-            accept_global_phase=False,
+            accept_global_phase_op=False,
         )
         self.controlled_gateset = ops.Gateset(
             ops.AnyIntegerPowerGateFamily(ops.CNotPowGate),
@@ -108,7 +108,7 @@ class NeutralAtomDevice(devices.Device):
             ops.AnyIntegerPowerGateFamily(ops.CZPowGate),
             ops.AnyIntegerPowerGateFamily(ops.CCZPowGate),
             unroll_circuit_op=False,
-            accept_global_phase=False,
+            accept_global_phase_op=False,
         )
         self.gateset = neutral_atom_gateset(max_parallel_z, max_parallel_xy)
         for q in qubits:

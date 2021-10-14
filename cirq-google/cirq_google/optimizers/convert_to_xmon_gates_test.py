@@ -45,8 +45,27 @@ def test_avoids_infinite_cycle_when_matrix_available():
     cirq.protocols.decompose(c)
 
 
+q = cirq.GridQubit.rect(1, 3)
+matrix_gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
+
+
 def test_bad_operation():
-    qubits = cirq.GridQubit.rect(1, 3)
-    c = cirq.Circuit(NonNativeGate().on(qubits[0]))
+    c = cirq.Circuit(NonNativeGate().on(q[0]))
     with pytest.raises(TypeError):
         cirq_google.ConvertToXmonGates().optimize_circuit(c)
+
+
+@pytest.mark.parametrize(
+    'op, is_valid',
+    [
+        (cirq.CircuitOperation(cirq.FrozenCircuit(matrix_gate(q[0]))), False),
+        (matrix_gate(q[0]), True),
+        (matrix_gate(q[0]).with_tags('test_tags'), True),
+        (matrix_gate(q[0]).controlled_by(q[1]), True),
+        (matrix_gate(q[0]).controlled_by(q[1]).with_tags('test_tags'), True),
+        (matrix_gate(q[0]).with_tags('test_tags').controlled_by(q[1]), True),
+    ],
+)
+def test_supported_operation(op, is_valid):
+    c = cirq.Circuit(op)
+    assert (cirq_google.ConvertToXmonGates().optimization_at(c, 0, op) is not None) == is_valid

@@ -52,48 +52,12 @@ def assert_not_implemented(val):
     assert not cirq.has_kraus(val)
 
 
-def test_supports_channel_class_is_deprecated():
-    with cirq.testing.assert_deprecated(deadline='v0.13'):
-
-        class SomeChannel(cirq.SupportsChannel):
-            pass
-
-        _ = SomeChannel()
-
-
-def test_channel_protocol_is_deprecated():
-    with cirq.testing.assert_deprecated(deadline='v0.13'):
-        assert np.allclose(cirq.channel(cirq.X), cirq.kraus(cirq.X))
-
-
-def test_has_channel_protocol_is_deprecated():
-    with cirq.testing.assert_deprecated(deadline='v0.13'):
-        assert cirq.has_channel(cirq.depolarize(0.1)) == cirq.has_kraus(cirq.depolarize(0.1))
-
-
 def test_kraus_returns_not_implemented():
     class ReturnsNotImplemented:
         def _kraus_(self):
             return NotImplemented
 
     assert_not_implemented(ReturnsNotImplemented())
-
-
-def test_channel_generates_deprecation_warning():
-    class UsesDeprecatedChannelMethod:
-        def _has_channel_(self):
-            return True
-
-        def _channel_(self):
-            return (np.eye(2),)
-
-    val = UsesDeprecatedChannelMethod()
-    with pytest.warns(DeprecationWarning, match='_has_kraus_'):
-        assert cirq.has_kraus(val)
-    with pytest.warns(DeprecationWarning, match='_kraus_'):
-        ks = cirq.kraus(val)
-        assert len(ks) == 1
-        assert np.all(ks[0] == np.eye(2))
 
 
 def test_mixture_returns_not_implemented():
