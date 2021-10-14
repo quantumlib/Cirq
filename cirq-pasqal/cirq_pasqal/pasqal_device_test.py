@@ -112,8 +112,8 @@ def test_is_pasqal_device_op():
         cirq.ops.CCX(cirq.NamedQubit('q0'), cirq.NamedQubit('q1'), cirq.NamedQubit('q2')) ** 0.2
     )
     assert not d.is_pasqal_device_op(bad_op(cirq.NamedQubit('q0'), cirq.NamedQubit('q1')))
-    op1 = cirq.ops.CNotPowGate(exponent=1.0)
-    assert d.is_pasqal_device_op(op1(cirq.NamedQubit('q0'), cirq.NamedQubit('q1')))
+    for op1 in [cirq.CNotPowGate(exponent=1.0), cirq.CNotPowGate(exponent=1.0, global_shift=-0.5)]:
+        assert d.is_pasqal_device_op(op1(cirq.NamedQubit('q0'), cirq.NamedQubit('q1')))
 
     op2 = (cirq.ops.H ** sympy.Symbol('exp')).on(d.qubit_list()[0])
     assert not d.is_pasqal_device_op(op2)
@@ -141,7 +141,7 @@ def test_decompose_operation():
 
 def test_pasqal_converter():
     q = cirq.NamedQubit.range(2, prefix='q')
-    g = cirq.TwoQubitGate()
+    g = cirq.testing.TwoQubitGate()
 
     class FakeOperation(cirq.ops.GateOperation):
         def __init__(self, gate, qubits):

@@ -77,7 +77,8 @@ def test_two_qubit_gate_is_abstract_can_implement():
         def matrix(self):
             pass
 
-    assert isinstance(Included(), cirq.TwoQubitGate)
+    with assert_deprecated(deadline="v0.14", count=2):
+        assert isinstance(Included(), cirq.TwoQubitGate)
 
 
 def test_two_qubit_gate_validate_pass():
@@ -85,7 +86,9 @@ def test_two_qubit_gate_validate_pass():
         def matrix(self):
             pass
 
-    g = Dummy()
+    with assert_deprecated(deadline="v0.14"):
+        g = Dummy()
+
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
@@ -101,7 +104,9 @@ def test_two_qubit_gate_validate_wrong_number():
         def matrix(self):
             pass
 
-    g = Dummy()
+    with assert_deprecated(deadline="v0.14"):
+        g = Dummy()
+
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
@@ -119,7 +124,9 @@ def test_three_qubit_gate_validate():
         def matrix(self):
             pass
 
-    g = Dummy()
+    with assert_deprecated(deadline="v0.14"):
+        g = Dummy()
+
     a, b, c, d = cirq.LineQubit.range(4)
 
     assert g.num_qubits() == 3
@@ -206,12 +213,9 @@ def test_supports_on_each_inheritance_shim():
     class SingleQ(cirq.SingleQubitGate):
         pass
 
-    class TwoQ(cirq.TwoQubitGate):
-        pass
-
     not_on_each = NotOnEach()
     single_q = SingleQ()
-    two_q = TwoQ()
+    two_q = cirq.testing.TwoQubitGate()
     with assert_deprecated(deadline="v0.14"):
         on_each = OnEach()
 
@@ -231,3 +235,75 @@ def test_supports_on_each_deprecation():
 
     with assert_deprecated(deadline="v0.14"):
         assert isinstance(CustomGate(), cirq.ops.gate_features.SupportsOnEachGate)
+
+
+def test_supports_two_qubit_inheritance_shim():
+    print()
+
+    class Dummy1(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+    class Dummy1a(cirq.SingleQubitGate):
+        pass
+
+    class Dummy2(cirq.Gate):
+        def num_qubits(self):
+            return 2
+
+    class Dummy2a(cirq.TwoQubitGate):
+        pass
+
+    class NottaGate:
+        def _num_qubits_(self):
+            return 2  # coverage: ignore
+
+    g1 = Dummy1()
+    g1a = Dummy1a()
+    g2 = Dummy2()
+    with assert_deprecated(deadline="v0.14"):
+        g2a = Dummy2a()
+
+    assert not isinstance(g1, cirq.TwoQubitGate)
+    assert not isinstance(g1a, cirq.TwoQubitGate)
+    assert isinstance(g2, cirq.TwoQubitGate)
+    assert isinstance(g2a, cirq.TwoQubitGate)
+    assert not isinstance(cirq.X, cirq.TwoQubitGate)
+    assert isinstance(cirq.CX, cirq.TwoQubitGate)
+    assert not isinstance(NottaGate(), cirq.TwoQubitGate)
+
+
+def test_supports_three_qubit_inheritance_shim():
+    print()
+
+    class Dummy1(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+    class Dummy1a(cirq.SingleQubitGate):
+        pass
+
+    class Dummy3(cirq.Gate):
+        def num_qubits(self):
+            return 3
+
+    class Dummy3a(cirq.ThreeQubitGate):
+        pass
+
+    class NottaGate:
+        def _num_qubits_(self):
+            return 3  # coverage: ignore
+
+    g1 = Dummy1()
+    g1a = Dummy1a()
+    g3 = Dummy3()
+    with assert_deprecated(deadline="v0.14"):
+        g3a = Dummy3a()
+
+    assert not isinstance(g1, cirq.ThreeQubitGate)
+    assert not isinstance(g1a, cirq.ThreeQubitGate)
+    assert isinstance(g3, cirq.ThreeQubitGate)
+    assert isinstance(g3a, cirq.ThreeQubitGate)
+    assert not isinstance(cirq.X, cirq.ThreeQubitGate)
+    assert isinstance(cirq.CCX, cirq.ThreeQubitGate)
+    assert not isinstance(NottaGate(), cirq.ThreeQubitGate)

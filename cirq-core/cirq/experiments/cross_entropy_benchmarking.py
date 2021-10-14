@@ -418,7 +418,7 @@ def cross_entropy_benchmarking(
 
 
 def build_entangling_layers(
-    qubits: Sequence[devices.GridQubit], two_qubit_gate: ops.TwoQubitGate
+    qubits: Sequence[devices.GridQubit], two_qubit_gate: ops.Gate
 ) -> List[ops.Moment]:
     """Builds a sequence of gates that entangle all pairs of qubits on a grid.
 
@@ -465,7 +465,12 @@ def build_entangling_layers(
     Returns:
         A list of ops.Moment, with a maximum length of 4. Each ops.Moment
         includes two-qubit gates which can be performed at the same time.
+
+    Raises:
+        ValueError: two-qubit gate is not used.
     """
+    if protocols.num_qubits(two_qubit_gate) != 2:
+        raise ValueError('Input must be a two-qubit gate')
     interaction_sequence = _default_interaction_sequence(qubits)
     return [
         ops.Moment([two_qubit_gate(q_a, q_b) for (q_a, q_b) in pairs])

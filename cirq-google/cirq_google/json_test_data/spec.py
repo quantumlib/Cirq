@@ -1,9 +1,8 @@
 import pathlib
 
 import cirq_google
-from cirq_google.json_resolver_cache import _class_resolver_dictionary
-
 from cirq.testing.json import ModuleJsonTestSpec
+from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
 TestSpec = ModuleJsonTestSpec(
     name="cirq_google",
@@ -50,7 +49,21 @@ TestSpec = ModuleJsonTestSpec(
         'SerializingArg',
         'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'QuantumEngineSampler',
+        # Abstract:
+        'ExecutableSpec',
     ],
+    custom_class_name_to_cirq_type={
+        k: f'cirq.google.{k}'
+        for k in [
+            'BitstringsMeasurement',
+            'QuantumExecutable',
+            'QuantumExecutableGroup',
+            'KeyValueExecutableSpec',
+            'ExecutableResult',
+            'RuntimeInfo',
+            'SharedRuntimeInfo',
+        ]
+    },
     resolver_cache=_class_resolver_dictionary(),
     deprecated={},
 )

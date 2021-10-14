@@ -18,26 +18,11 @@ from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence, Iterable, Un
 import numpy as np
 
 from cirq import protocols, sim
-from cirq._compat import deprecated_parameter
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
 
 if TYPE_CHECKING:
     import cirq
-
-
-def _rewrite_deprecated_args(args, kwargs):
-    if len(args) > 3:
-        kwargs['axes'] = args[3]
-    if len(args) > 4:
-        kwargs['qid_shape'] = args[4]
-    if len(args) > 5:
-        kwargs['prng'] = args[5]
-    if len(args) > 6:
-        kwargs['log_of_measurement_results'] = args[6]
-    if len(args) > 7:
-        kwargs['qubits'] = args[7]
-    return args[:3], kwargs
 
 
 class ActOnDensityMatrixArgs(ActOnArgs):
@@ -47,15 +32,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     storing the density matrix of the quantum system with one axis per qubit.
     """
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs
-        or ('qid_shape' in kwargs and len(args) == 4)
-        or (len(args) > 4 and isinstance(args[4], tuple)),
-        rewrite=_rewrite_deprecated_args,
-    )
     def __init__(
         self,
         target_tensor: np.ndarray,
@@ -64,7 +40,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
     ):
         """Inits ActOnDensityMatrixArgs.
 
@@ -84,10 +59,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape
@@ -115,9 +88,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         raise TypeError(
             "Can't simulate operations that don't implement "
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
-            "SupportsMixture, SupportsChannel or SupportsKraus or is a measurement: {!r}".format(
-                action
-            )
+            "SupportsMixture or SupportsKraus or is a measurement: {!r}".format(action)
         )
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
@@ -131,78 +102,56 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
         return bits
 
-    def copy(self) -> 'cirq.ActOnDensityMatrixArgs':
-        return ActOnDensityMatrixArgs(
-            target_tensor=self.target_tensor.copy(),
-            available_buffer=[b.copy() for b in self.available_buffer],
-            qubits=self.qubits,
-            qid_shape=self.qid_shape,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
-        )
+    def _on_copy(self, target: 'ActOnDensityMatrixArgs'):
+        target.target_tensor = self.target_tensor.copy()
+        target.available_buffer = [b.copy() for b in self.available_buffer]
 
-    def kronecker_product(
-        self, other: 'cirq.ActOnDensityMatrixArgs'
-    ) -> 'cirq.ActOnDensityMatrixArgs':
+    def _on_kronecker_product(
+        self, other: 'ActOnDensityMatrixArgs', target: 'ActOnDensityMatrixArgs'
+    ):
         target_tensor = transformations.density_matrix_kronecker_product(
             self.target_tensor, other.target_tensor
         )
-        buffer = [np.empty_like(target_tensor) for _ in self.available_buffer]
-        return ActOnDensityMatrixArgs(
-            target_tensor=target_tensor,
-            available_buffer=buffer,
-            qubits=self.qubits + other.qubits,
-            qid_shape=target_tensor.shape[: int(target_tensor.ndim / 2)],
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
+        target.target_tensor = target_tensor
+        target.available_buffer = [
+            np.empty_like(target_tensor) for _ in range(len(self.available_buffer))
+        ]
+        target.qid_shape = target_tensor.shape[: int(target_tensor.ndim / 2)]
 
-    def factor(
+    def _on_factor(
         self,
         qubits: Sequence['cirq.Qid'],
-        *,
+        extracted: 'ActOnDensityMatrixArgs',
+        remainder: 'ActOnDensityMatrixArgs',
         validate=True,
         atol=1e-07,
-    ) -> Tuple['cirq.ActOnDensityMatrixArgs', 'cirq.ActOnDensityMatrixArgs']:
+    ):
         axes = self.get_axes(qubits)
         extracted_tensor, remainder_tensor = transformations.factor_density_matrix(
             self.target_tensor, axes, validate=validate, atol=atol
         )
-        buffer = [np.empty_like(extracted_tensor) for _ in self.available_buffer]
-        extracted_args = ActOnDensityMatrixArgs(
-            target_tensor=extracted_tensor,
-            available_buffer=buffer,
-            qubits=qubits,
-            qid_shape=extracted_tensor.shape[: int(extracted_tensor.ndim / 2)],
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        buffer = [np.empty_like(remainder_tensor) for _ in self.available_buffer]
-        remainder_args = ActOnDensityMatrixArgs(
-            target_tensor=remainder_tensor,
-            available_buffer=buffer,
-            qubits=tuple(q for q in self.qubits if q not in qubits),
-            qid_shape=remainder_tensor.shape[: int(remainder_tensor.ndim / 2)],
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return extracted_args, remainder_args
+        extracted.target_tensor = extracted_tensor
+        extracted.available_buffer = [
+            np.empty_like(extracted_tensor) for _ in self.available_buffer
+        ]
+        extracted.qid_shape = extracted_tensor.shape[: int(extracted_tensor.ndim / 2)]
+        remainder.target_tensor = remainder_tensor
+        remainder.available_buffer = [
+            np.empty_like(remainder_tensor) for _ in self.available_buffer
+        ]
+        remainder.qid_shape = remainder_tensor.shape[: int(remainder_tensor.ndim / 2)]
 
-    def transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.ActOnDensityMatrixArgs':
+    def _on_transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid'], target: 'ActOnDensityMatrixArgs'
+    ):
         axes = self.get_axes(qubits)
-        axes = axes + [i + len(qubits) for i in axes]
-        new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits) * 2))
-        buffer = [np.empty_like(new_tensor) for _ in self.available_buffer]
-        return ActOnDensityMatrixArgs(
-            target_tensor=new_tensor,
-            available_buffer=buffer,
-            qubits=qubits,
-            qid_shape=new_tensor.shape[: int(new_tensor.ndim / 2)],
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
+        new_tensor = transformations.transpose_density_matrix_to_axis_order(
+            self.target_tensor, axes
         )
+        buffer = [np.empty_like(new_tensor) for _ in self.available_buffer]
+        target.target_tensor = new_tensor
+        target.available_buffer = buffer
+        target.qid_shape = new_tensor.shape[: int(new_tensor.ndim / 2)]
 
     def sample(
         self,
@@ -239,7 +188,7 @@ def _strat_apply_channel_to_state(
     )
     if result is None:
         return NotImplemented
-    for i in range(3):
+    for i in range(len(args.available_buffer)):
         if result is args.available_buffer[i]:
             args.available_buffer[i] = args.target_tensor
     args.target_tensor = result
