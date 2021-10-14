@@ -303,14 +303,19 @@ def test_gateset_eq():
     )
     eq.add_equality_group(
         cirq.Gateset(
-            cirq.GateFamily(CustomX, name='custom_name', description='custom_description')
+            cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),
+            cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),
         ),
         cirq.Gateset(
-            cirq.GateFamily(CustomX ** 3, name='custom_name', description='custom_description')
+            cirq.GateFamily(CustomX ** 3, name='custom_name', description='custom_description'),
+            cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),
         ),
     )
     eq.add_equality_group(
-        cirq.Gateset(CustomX, CustomXPowGate), cirq.Gateset(CustomXPowGate, CustomX)
+        cirq.Gateset(CustomX, CustomXPowGate),
+        cirq.Gateset(CustomXPowGate, CustomX),
+        cirq.Gateset(CustomX, CustomX, CustomXPowGate),
+        cirq.Gateset(CustomXPowGate, CustomX, CustomXPowGate),
     )
     eq.add_equality_group(cirq.Gateset(CustomXGateFamily()))
     eq.add_equality_group(
