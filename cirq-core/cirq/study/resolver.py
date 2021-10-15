@@ -39,6 +39,10 @@ document(
 _RecursionFlag = object()
 
 
+def _is_param_resolver_or_similar_type(obj: Any):
+    return obj is None or isinstance(obj, (ParamResolver, dict))
+
+
 class ParamResolver:
     """Resolves parameters to actual values.
 

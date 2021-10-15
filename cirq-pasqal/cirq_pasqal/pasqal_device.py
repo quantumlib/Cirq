@@ -76,7 +76,7 @@ class PasqalDevice(cirq.devices.Device):
             cirq.IdentityGate,
             cirq.MeasurementGate,
             unroll_circuit_op=False,
-            accept_global_phase=False,
+            accept_global_phase_op=False,
         )
         self.qubits = qubits
 
