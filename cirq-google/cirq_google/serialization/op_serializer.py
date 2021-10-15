@@ -19,7 +19,6 @@ import abc
 import numpy as np
 
 import cirq
-from cirq._compat import deprecated
 from cirq.circuits import circuit_operation
 from cirq_google.api import v2
 from cirq_google.ops.calibration_tag import CalibrationTag
@@ -169,19 +168,9 @@ class GateOpSerializer(OpSerializer):
     def internal_type(self):
         return self._gate_type
 
-    @property  # type: ignore
-    @deprecated(deadline='v0.13', fix='Use internal_type instead.')
-    def gate_type(self) -> Type:
-        return self.internal_type
-
     @property
     def serialized_id(self):
         return self._serialized_gate_id
-
-    @property  # type: ignore
-    @deprecated(deadline='v0.13', fix='Use serialized_id instead.')
-    def serialized_gate_id(self) -> str:
-        return self.serialized_id
 
     @property
     def args(self):
