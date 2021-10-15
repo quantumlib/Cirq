@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,6 +28,9 @@ class CopyrightChecker(BaseChecker):
 
     __implements__ = IRawChecker
 
+    # The priority must be negtive. Pylint runs plugins with smaller priorities first.
+    priority = -1
+
     name = "copyright-notice"
     msgs = {
         "R0001": (
@@ -53,7 +56,7 @@ class CopyrightChecker(BaseChecker):
         if not self.linter.is_message_enabled("wrong-copyright-notice"):
             return
         golden = [
-            '# Copyright \\d{4} The Cirq Developers',
+            b'# Copyright \\d{4} The Cirq Developers',
             b'#',
             b'# Licensed under the Apache License, Version 2.0 (the "License");',
             b'# you may not use this file except in compliance with the License.',
@@ -74,7 +77,7 @@ class CopyrightChecker(BaseChecker):
 
                 if lineno == 0:
                     # Use Regex to accept various years such as 2018 and 2021.
-                    if not re.compile(golden[0]).match(line.decode(node.file_encoding)):
+                    if not re.compile(golden[0]).match(line):
                         self.add_message("wrong-copyright-notice", line=1)
                         break
                 elif line.rstrip() != golden[lineno]:

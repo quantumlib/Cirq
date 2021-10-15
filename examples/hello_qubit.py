@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 """Creates and simulates a simple circuit.
 
 === EXAMPLE OUTPUT ===

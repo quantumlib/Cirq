@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 import numpy as np
 import pytest
 import cirq

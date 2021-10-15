@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 # Used for classical post-processing:
 from collections import Counter
 import numpy as np

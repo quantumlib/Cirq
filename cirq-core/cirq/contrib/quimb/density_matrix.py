@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 from functools import lru_cache
 from typing import Sequence, Dict, Union, Tuple, List, Optional, cast, Iterable
 

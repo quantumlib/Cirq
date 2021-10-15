@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 # coverage: ignore
 import cirq_google
 import numpy as np

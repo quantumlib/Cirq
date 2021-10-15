@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 import pytest
 import cirq
 from cirq.testing import assert_equivalent_op_tree

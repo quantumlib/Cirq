@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 import itertools
 import random
 from typing import Any

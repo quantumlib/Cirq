@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 """Code to interact with GitHub API to label and auto-merge pull requests."""
 
 import datetime

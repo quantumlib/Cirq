@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 from typing import cast, Tuple
 import pytest
 import cirq

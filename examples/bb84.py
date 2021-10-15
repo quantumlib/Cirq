@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 """ Example program to demonstrate BB84 QKD Protocol
 
 BB84 [1] is a quantum key distribution (QKD) protocol developed by

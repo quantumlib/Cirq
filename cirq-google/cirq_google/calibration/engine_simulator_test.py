@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 from typing import Iterable, Optional, Tuple
 
 import collections

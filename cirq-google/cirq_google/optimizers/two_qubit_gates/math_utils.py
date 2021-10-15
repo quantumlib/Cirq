@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 import itertools
 from typing import Union, Sequence, Optional
 

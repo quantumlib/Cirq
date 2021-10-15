@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 """Package containing code for interoperating with other quantum software."""
 
 from cirq.interop.quirk import (

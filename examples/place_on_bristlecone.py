@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 # pylint: disable=line-too-long
 """Create a circuit, optimize it, and map it onto a Bristlecone chip.
 

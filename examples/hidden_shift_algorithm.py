@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 import random
 import cirq
 

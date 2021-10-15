@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 import itertools
 from unittest import mock
 

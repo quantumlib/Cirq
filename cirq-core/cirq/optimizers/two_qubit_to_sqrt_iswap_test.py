@@ -1,3 +1,4 @@
+# pylint: disable=wrong-copyright-notice
 import itertools
 import numpy as np
 import pytest
