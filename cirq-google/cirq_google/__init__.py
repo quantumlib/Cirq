@@ -120,9 +120,13 @@ from cirq_google.serialization import (
 
 from cirq_google.workflow import (
     ExecutableSpec,
+    KeyValueExecutableSpec,
     QuantumExecutable,
     QuantumExecutableGroup,
     BitstringsMeasurement,
+    SharedRuntimeInfo,
+    RuntimeInfo,
+    ExecutableResult,
 )
 
 from cirq_google import experimental

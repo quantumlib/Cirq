@@ -232,7 +232,7 @@ class MergeInteractions(MergeInteractionsAbc):
         self.gateset = ops.Gateset(
             ops.CZPowGate if allow_partial_czs else ops.CZ,
             unroll_circuit_op=False,
-            accept_global_phase=True,
+            accept_global_phase_op=True,
         )
 
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:

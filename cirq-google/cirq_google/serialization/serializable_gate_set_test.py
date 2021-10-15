@@ -79,19 +79,8 @@ MY_GATE_SET = cg.SerializableGateSet(
 
 
 def test_deprecated_methods():
-    with assert_deprecated('Use supported_internal_types', deadline='v0.13'):
-        _ = MY_GATE_SET.supported_gate_types()
-
-    with assert_deprecated('Use with_added_types', deadline='v0.13'):
-        _ = MY_GATE_SET.with_added_gates()
-
     with assert_deprecated('Use name instead', deadline='v0.14'):
         _ = MY_GATE_SET.gate_set_name
-
-    with assert_deprecated('Use use_constants', deadline='v0.13'):
-        # pylint: disable=unexpected-keyword-arg
-        _ = MY_GATE_SET.serialize(cirq.Circuit(), use_constants_table_for_tokens=True)
-        # pylint: enable=unexpected-keyword-arg
 
 
 def op_proto(json: Dict) -> v2.program_pb2.Operation:
