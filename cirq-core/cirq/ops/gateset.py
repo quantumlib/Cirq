@@ -14,12 +14,19 @@
 
 """Functionality for grouping and validating Cirq Gates"""
 
-from typing import Any, Callable, cast, Dict, FrozenSet, Optional, Type, TYPE_CHECKING, Union
+from typing import Any, Callable, cast, Dict, FrozenSet, List, Optional, Type, TYPE_CHECKING, Union
 from cirq.ops import global_phase_op, op_tree, raw_types
 from cirq import protocols, value
 
 if TYPE_CHECKING:
     import cirq
+
+
+def _gate_str(
+    gate: Union[raw_types.Gate, Type[raw_types.Gate], 'cirq.GateFamily'],
+    gettr: Callable[[Any], str] = str,
+) -> str:
+    return gettr(gate) if not isinstance(gate, type) else f'{gate.__module__}.{gate.__name__}'
 
 
 @value.value_equality(distinct_child_types=True)
@@ -88,11 +95,7 @@ class GateFamily:
         self._ignore_global_phase = ignore_global_phase
 
     def _gate_str(self, gettr: Callable[[Any], str] = str) -> str:
-        return (
-            gettr(self.gate)
-            if isinstance(self.gate, raw_types.Gate)
-            else f'{self.gate.__module__}.{self.gate.__name__}'
-        )
+        return _gate_str(self.gate, gettr)
 
     def _default_name(self) -> str:
         family_type = 'Instance' if isinstance(self.gate, raw_types.Gate) else 'Type'
@@ -144,10 +147,13 @@ class GateFamily:
         return f'{self.name}\n{self.description}'
 
     def __repr__(self) -> str:
+        name_and_description = ''
+        if self.name != self._default_name() or self.description != self._default_description():
+            name_and_description = f'name="{self.name}", description="{self.description}", '
         return (
-            f'cirq.GateFamily(gate={self._gate_str(repr)},'
-            f'name="{self.name}", '
-            f'description="{self.description}",'
+            f'cirq.GateFamily('
+            f'gate={self._gate_str(repr)}, '
+            f'{name_and_description}'
             f'ignore_global_phase={self._ignore_global_phase})'
         )
 
@@ -201,19 +207,22 @@ class Gateset:
             accept_global_phase_op: If True, `cirq.GlobalPhaseOperation` is accepted.
         """
         self._name = name
-        self._gates = frozenset(
-            g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates
-        )
         self._unroll_circuit_op = unroll_circuit_op
         self._accept_global_phase_op = accept_global_phase_op
         self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
         self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
-        for g in self._gates:
+        self._gates_repr_str = ", ".join([_gate_str(g, repr) for g in gates])
+        unique_gate_list: List[GateFamily] = list(
+            dict.fromkeys(g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates)
+        )
+        for g in unique_gate_list:
             if type(g) == GateFamily:
                 if isinstance(g.gate, raw_types.Gate):
                     self._instance_gate_families[g.gate] = g
                 else:
                     self._type_gate_families[g.gate] = g
+        self._gates_str_str = "\n\n".join([str(g) for g in unique_gate_list])
+        self._gates = frozenset(unique_gate_list)
 
     @property
     def name(self) -> Optional[str]:
@@ -373,17 +382,18 @@ class Gateset:
 
     def _value_equality_values_(self) -> Any:
         return (
-            frozenset(self.gates),
+            self.gates,
             self.name,
             self._unroll_circuit_op,
             self._accept_global_phase_op,
         )
 
     def __repr__(self) -> str:
+        name_str = f'name = "{self.name}", ' if self.name is not None else ''
         return (
             f'cirq.Gateset('
-            f'{",".join([repr(g) for g in self.gates])},'
-            f'name = "{self.name}",'
+            f'{self._gates_repr_str}, '
+            f'{name_str}'
             f'unroll_circuit_op = {self._unroll_circuit_op},'
             f'accept_global_phase_op = {self._accept_global_phase_op})'
         )
@@ -392,4 +402,4 @@ class Gateset:
         header = 'Gateset: '
         if self.name:
             header += self.name
-        return f'{header}\n' + "\n\n".join([str(g) for g in self.gates])
+        return f'{header}\n' + self._gates_str_str
