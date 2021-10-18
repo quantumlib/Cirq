@@ -129,6 +129,7 @@ from cirq_google.workflow import (
     ExecutableResult,
     ExecutableGroupResult,
     QuantumRuntimeConfiguration,
+    execute,
 )
 
 from cirq_google import experimental
