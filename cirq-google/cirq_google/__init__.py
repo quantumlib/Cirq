@@ -128,6 +128,8 @@ from cirq_google.workflow import (
     SharedRuntimeInfo,
     RuntimeInfo,
     ExecutableResult,
+    ExecutableGroupResult,
+    QuantumRuntimeConfiguration,
 )
 
 from cirq_google import experimental
