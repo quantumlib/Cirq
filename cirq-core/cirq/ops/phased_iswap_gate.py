@@ -82,13 +82,9 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         }
 
     def _value_equality_values_cls_(self):
-        if self.phase_exponent == 0:
-            return swap_gates.ISwapPowGate
         return PhasedISwapPowGate
 
     def _value_equality_values_(self):
-        if self.phase_exponent == 0:
-            return self._iswap._value_equality_values_()
         return (self.phase_exponent, *self._iswap._value_equality_values_())
 
     def _is_parameterized_(self) -> bool:
