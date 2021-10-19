@@ -43,7 +43,7 @@ def counts_to_results(
 
     """
 
-    measurement_key_names = list(circuit.all_measurement_keys())
+    measurement_key_names = list(circuit.all_measurement_key_names())
     measurement_key_names.sort()
     # Combines all the measurement key names into a string: {'0', '1'} -> "01"
     combine_key_names = "".join(measurement_key_names)
@@ -84,6 +84,7 @@ class Service:
     these can be specified by setting the environment variables `SUPERSTAQ_REMOTE_HOST` and
     `SUPERSTAQ_API_KEY`.
     """
+
     def __init__(
         self,
         remote_host: Optional[str] = None,
