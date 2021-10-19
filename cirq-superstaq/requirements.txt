@@ -1,0 +1,3 @@
+applications-superstaq>=0.0.4
+cirq>=0.11
+qubovert>=1.2.3

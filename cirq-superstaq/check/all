@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs all checks on the repository
+#
+# Usage:
+#     check/all
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+# tests are ordered based on importance (e.g. when flake8 fails, it often means
+# there is a syntax error) and speed (slow checks last)
+echo "Running flake8 check"
+check/flake8
+echo "Running format check"
+check/format
+echo "Running type check"
+check/mypy
+echo "Running lint check"
+check/pylint
+echo "Running pytest and coverage checks"
+check/coverage

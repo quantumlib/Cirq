@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs black on the repository
+#
+# Usage:
+#     check/format [--flags]
+################################################################################
+
+
+# Parse arguments.
+only_print=1
+
+for arg in $@; do
+    if [[ "${arg}" == "--apply" ]]; then
+        only_print=0
+    fi
+done
+
+
+args=("." "--line-length=100" "--color")
+
+if (( only_print == 1 )); then
+    args+=("--check" "--diff")
+fi
+
+LOGS="$(black "${args[@]}" 2>&1)"
+STATUS=$?
+echo "${LOGS}"
+
+if [[ "$STATUS" == "1" ]]; then
+  echo -e "Run ./check/format --apply and commit the formatted files"
+fi
+
+exit $STATUS

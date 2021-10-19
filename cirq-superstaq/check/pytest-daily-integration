@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs daily integration tests on the repository.
+#
+# Usage:
+#     check/pytest-daily-integration [--flags]
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+# Run pytest
+pytest cirq_superstaq/daily_integration_test.py --ignore=examples/

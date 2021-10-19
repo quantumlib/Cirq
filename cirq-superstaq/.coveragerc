@@ -1,0 +1,4 @@
+ 
+[run]
+include = ./*
+omit = ./venv/*

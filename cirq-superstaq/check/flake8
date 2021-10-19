@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs flake8 on the repository
+#
+# Usage:
+#     check/flake8 [--flags]
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+flake8 . --config=.flake8

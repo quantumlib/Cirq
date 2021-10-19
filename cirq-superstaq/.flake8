@@ -1,0 +1,12 @@
+[flake8]
+
+count = True
+max-complexity = 10
+max-line-length = 100
+show_source = True
+statistics = True
+
+
+# specific configurations for flake8-import-order plugin:
+application-import-names = cirq_superstaq  # this library is considered local
+import-order-style = smarkets
