@@ -148,9 +148,7 @@ class Job:
         Returns:
             collections.Counter that represents the results of the measurements
 
-        Raises:
-            SuperstaQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
-            SuperstaQException: If unable to get the results from the API.
+        :raises RuntimeError: for any failure in the job
         """
         time_waited_seconds: float = 0.0
         while time_waited_seconds < timeout_seconds:

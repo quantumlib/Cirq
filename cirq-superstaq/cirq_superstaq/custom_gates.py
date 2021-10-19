@@ -32,10 +32,8 @@ class FermionicSWAPGate(cirq.Gate, cirq.ops.gate_features.InterchangeableQubitsG
 
     Note that this gate is NOT the same as ``cirq.FSimGate``.
     """
-
     def __init__(self, theta: float) -> None:
-        """
-        Args:
+        """Args:
             theta: ZZ-interaction angle in radians
         """
         self.theta = cirq.ops.fsim_gate._canonicalize(theta)  # between -pi and +pi
@@ -206,12 +204,14 @@ class Barrier(cirq.ops.IdentityGate):
 
 @cirq.value_equality(approximate=True)
 class ParallelGates(cirq.Gate, cirq.InterchangeableQubitsGate):
-    """A single Gate combining a collection of concurrent Gate(s) acting on different qubits"""
-
+    """A single Gate combining a collection of concurrent Gate(s) acting on different qubits.
+        The difference between this gate and cirq.ParallelGate is that this gate can handle gates
+        that take in more than one qubit gates of different types
+        e.g cirq_superstaq.ParallelGates(cirq.CZ, cirq.CZ ** 0.5, cirq.CZ ** -0.5)"""
     def __init__(self, *component_gates: cirq.Gate) -> None:
-        """
-        Args:
+        """Args:
             component_gates: Gate(s) to be collected into single gate
+        :raises ValueError: if measurement gates are passed in
         """
         if any(cirq.is_measurement(gate) for gate in component_gates):
             raise ValueError("ParallelGates cannot contain measurements")

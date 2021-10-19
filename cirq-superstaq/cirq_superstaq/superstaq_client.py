@@ -71,6 +71,13 @@ class _SuperstaQClient:
                 which is the most recent version when this client was downloaded.
             max_retry_seconds: The time to continue retriable responses. Defaults to 3600.
             verbose: Whether to print to stderr and stdio any retriable errors that are encountered.
+            ibmq_token: The IBM API token that's retrieved from https://quantum-computing.ibm.com/
+            ibmq_group: The group that's retrieved from https://quantum-computing.ibm.com/account
+            ibmq_project: The project that's retrieved from
+                https://quantum-computing.ibm.com/account
+            ibmq_hub: The hub that's retrieved from https://quantum-computing.ibm.com/account
+            ibmq_pulse:
+                boolean variable to decided if you want to run you program on a pulse device or not
         """
         url = urllib.parse.urlparse(remote_host)
         assert url.scheme and url.netloc, (

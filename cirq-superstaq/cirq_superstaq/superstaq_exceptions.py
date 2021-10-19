@@ -28,8 +28,7 @@ class SuperstaQException(Exception):
 
 
 class SuperstaQModuleNotFoundException(SuperstaQException):
-    """
-    An exception for SuperstaQ features requiring an uninstalled module."""
+    """An exception for SuperstaQ features requiring an uninstalled module."""
 
     def __init__(self, name: str, context: str):
         message = f"'{context}' requires module '{name}'"

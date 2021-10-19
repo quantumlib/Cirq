@@ -84,7 +84,6 @@ class Service:
     these can be specified by setting the environment variables `SUPERSTAQ_REMOTE_HOST` and
     `SUPERSTAQ_API_KEY`.
     """
-
     def __init__(
         self,
         remote_host: Optional[str] = None,
@@ -117,6 +116,16 @@ class Service:
             api_version: Version of the api.
             max_retry_seconds: The number of seconds to retry calls for. Defaults to one hour.
             verbose: Whether to print to stdio and stderr on retriable errors.
+            ibmq_token: The IBM API token that's retrieved from https://quantum-computing.ibm.com/
+            ibmq_group: The group that's retrieved from https://quantum-computing.ibm.com/account
+            ibmq_project: The project that's retrieved from
+                https://quantum-computing.ibm.com/account
+            ibmq_hub: The hub that's retrieved from https://quantum-computing.ibm.com/account
+            ibmq_pulse:
+                boolean variable to decided if you want to run you program on a pulse device or not
+        :raises EnvironmentError: The service can't run without an API key
+                from https://superstaq.super.tech
+        :raises OSError: Can't get the SUPERSTAQ_REMOTE_HOST environment variable
 
         Raises:
             EnvironmentError: if the `api_key` is None and has no corresponding environment
@@ -354,8 +363,7 @@ class Service:
         years_window: float = 5.0,
         solver: str = "anneal",
     ) -> MaxSharpeOutput:
-        """
-        Finds the optimal equal-weight portfolio from a possible pool of stocks
+        """Finds the optimal equal-weight portfolio from a possible pool of stocks
         according to the following rules:
         -All stock must come from the stock_symbols list.
         -All stocks will be equally weighted in the portfolio.
@@ -409,8 +417,7 @@ class Service:
         return finance.read_json_maxsharpe(json_dict)
 
     def tsp(self, locs: List[str], solver: str = "anneal") -> TSPOutput:
-        """
-        This function solves the traveling salesperson problem (TSP) and
+        """This function solves the traveling salesperson problem (TSP) and
         takes a list of strings as input. TSP finds the shortest tour that
         traverses all locations in a list.
         Each string should be an addresss or name of a landmark
@@ -443,8 +450,7 @@ class Service:
     def warehouse(
         self, k: int, possible_warehouses: List[str], customers: List[str], solver: str = "anneal"
     ) -> WarehouseOutput:
-        """
-        This function solves the warehouse location problem, which is:
+        """This function solves the warehouse location problem, which is:
         given a list of customers to be served and  a list of possible warehouse
         locations, find the optimal k warehouse locations such that the sum of
         the distances to each customer from the nearest facility is minimized.
