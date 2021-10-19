@@ -3,3 +3,4 @@
 -r ../../../cirq-core/requirements.txt
 -r ../../../cirq-google/requirements.txt
 -r ../../../cirq-rigetti/requirements.txt
+-r ../../../cirq-superstaq/requirements.txt
