@@ -20,7 +20,7 @@ import pytest
 from cirq_google import (
     QuantumExecutable,
     BitstringsMeasurement,
-    ExecutableSpec,
+    KeyValueExecutableSpec,
     QuantumExecutableGroup,
 )
 
@@ -36,24 +36,36 @@ def _get_random_circuit(qubits, n_moments=10, op_density=0.8, random_state=52):
     )
 
 
-@dataclasses.dataclass(frozen=True)
-class ExampleSpec(ExecutableSpec):
-    name: str
-    executable_family: str = 'cirq_google.algo_benchmarks.example'
-
-    def _json_dict_(self):
-        return cirq.dataclass_json_dict(self, namespace='cirq.google.testing')
+def _get_example_spec(name='example-program'):
+    return KeyValueExecutableSpec.from_dict(
+        dict(name=name), executable_family='cirq_google.algo_benchmarks.example'
+    )
 
 
-def _testing_resolver(cirq_type: str):
-    if cirq_type == 'cirq.google.testing.ExampleSpec':
-        return ExampleSpec
+def test_kv_executable_spec():
+    kv1 = KeyValueExecutableSpec.from_dict(
+        dict(name='test', idx=5), executable_family='cirq_google.algo_benchmarks.example'
+    )
+    kv2 = KeyValueExecutableSpec(
+        executable_family='cirq_google.algo_benchmarks.example',
+        key_value_pairs=(('name', 'test'), ('idx', 5)),
+    )
+    assert kv1 == kv2
+    assert hash(kv1) == hash(kv2)
+
+    with pytest.raises(TypeError, match='unhashable.*'):
+        hash(KeyValueExecutableSpec(executable_family='', key_value_pairs=[('name', 'test')]))
+
+
+def test_kv_repr():
+    kv = _get_example_spec()
+    cirq.testing.assert_equivalent_repr(kv, global_vals={'cirq_google': cirq_google})
 
 
 def test_quantum_executable(tmpdir):
     qubits = cirq.LineQubit.range(10)
     exe = QuantumExecutable(
-        spec=ExampleSpec(name='example-program'),
+        spec=_get_example_spec(name='example-program'),
         circuit=_get_random_circuit(qubits),
         measurement=BitstringsMeasurement(n_repetitions=10),
     )
@@ -66,7 +78,7 @@ def test_quantum_executable(tmpdir):
     assert hash(dataclasses.astuple(exe)) == exe._hash
 
     prog2 = QuantumExecutable(
-        spec=ExampleSpec(name='example-program'),
+        spec=_get_example_spec(name='example-program'),
         circuit=_get_random_circuit(qubits),
         measurement=BitstringsMeasurement(n_repetitions=10),
     )
@@ -74,7 +86,7 @@ def test_quantum_executable(tmpdir):
     assert hash(exe) == hash(prog2)
 
     prog3 = QuantumExecutable(
-        spec=ExampleSpec(name='example-program'),
+        spec=_get_example_spec(name='example-program'),
         circuit=_get_random_circuit(qubits),
         measurement=BitstringsMeasurement(n_repetitions=20),  # note: changed n_repetitions
     )
@@ -85,23 +97,20 @@ def test_quantum_executable(tmpdir):
         prog3.measurement.n_repetitions = 10
 
     cirq.to_json(exe, f'{tmpdir}/exe.json')
-    exe_reconstructed = cirq.read_json(
-        f'{tmpdir}/exe.json', resolvers=[_testing_resolver] + cirq.DEFAULT_RESOLVERS
-    )
+    exe_reconstructed = cirq.read_json(f'{tmpdir}/exe.json')
     assert exe == exe_reconstructed
 
     assert (
-        str(exe) == "QuantumExecutable(spec=ExampleSpec(name='example-program', "
-        "executable_family='cirq_google.algo_benchmarks.example'))"
+        str(exe) == "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec("
+        "executable_family='cirq_google.algo_benchmarks.example', "
+        "key_value_pairs=(('name', 'example-program'),)))"
     )
-    cirq.testing.assert_equivalent_repr(
-        exe, global_vals={'ExampleSpec': ExampleSpec, 'cirq_google': cirq_google}
-    )
+    cirq.testing.assert_equivalent_repr(exe, global_vals={'cirq_google': cirq_google})
 
 
 def test_quantum_executable_inputs():
     qubits = cirq.LineQubit.range(10)
-    spec = ExampleSpec(name='example-program')
+    spec = _get_example_spec(name='example-program')
     circuit = _get_random_circuit(qubits)
     measurement = BitstringsMeasurement(n_repetitions=10)
 
@@ -128,7 +137,7 @@ def _get_quantum_executables():
     qubits = cirq.LineQubit.range(10)
     return [
         QuantumExecutable(
-            spec=ExampleSpec(name=f'example-program-{i}'),
+            spec=_get_example_spec(name=f'example-program-{i}'),
             circuit=_get_random_circuit(qubits, random_state=i),
             measurement=BitstringsMeasurement(n_repetitions=10),
         )
@@ -152,9 +161,9 @@ def test_quantum_executable_group_methods():
 
     # pylint: disable=line-too-long
     assert str(eg) == (
-        "QuantumExecutable(executables=["
-        "QuantumExecutable(spec=ExampleSpec(name='example-program-0', executable_family='cirq_google.algo_benchmarks.example')), "
-        "QuantumExecutable(spec=ExampleSpec(name='example-program-1', executable_family='cirq_google.algo_benchmarks.example')), ...])"
+        "QuantumExecutableGroup(executables=["
+        "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec(executable_family='cirq_google.algo_benchmarks.example', key_value_pairs=(('name', 'example-program-0'),))), "
+        "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec(executable_family='cirq_google.algo_benchmarks.example', key_value_pairs=(('name', 'example-program-1'),))), ...])"
     )
     # pylint: enable=line-too-long
 
@@ -166,12 +175,8 @@ def test_quantum_executable_group_serialization(tmpdir):
     exes = _get_quantum_executables()
     eg = QuantumExecutableGroup(exes)
 
-    cirq.testing.assert_equivalent_repr(
-        eg, global_vals={'ExampleSpec': ExampleSpec, 'cirq_google': cirq_google}
-    )
+    cirq.testing.assert_equivalent_repr(eg, global_vals={'cirq_google': cirq_google})
 
     cirq.to_json(eg, f'{tmpdir}/eg.json')
-    eg_reconstructed = cirq.read_json(
-        f'{tmpdir}/eg.json', resolvers=[_testing_resolver] + cirq.DEFAULT_RESOLVERS
-    )
+    eg_reconstructed = cirq.read_json(f'{tmpdir}/eg.json')
     assert eg == eg_reconstructed
