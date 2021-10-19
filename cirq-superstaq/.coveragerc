@@ -1,4 +1,0 @@
- 
-[run]
-include = ./*
-omit = ./venv/*
