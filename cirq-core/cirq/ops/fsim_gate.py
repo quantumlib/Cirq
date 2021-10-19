@@ -35,20 +35,20 @@ from cirq.ops import gate_features, raw_types
 
 
 def _canonicalize(value: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]:
-    """Assumes value is 2π-periodic and shifts it into [-π, π]."""
+    """Assumes value is 2π-periodic and shifts it into [-π, π)."""
     if protocols.is_parameterized(value):
         return value
     period = 2 * np.pi
-    return value - period * np.round(value / period)
+    return value - period * np.floor((value + np.pi) / period)
 
 
 def _zero_mod_pi(param: Union[float, sympy.Basic]) -> bool:
-    """Returns True iff param, assumed to be in [-pi, pi], is 0 (mod pi)."""
-    return param in (-np.pi, 0.0, np.pi, -sympy.pi, sympy.pi)
+    """Returns True iff param, assumed to be in [-pi, pi), is 0 (mod pi)."""
+    return param in (0.0, -np.pi, -sympy.pi)
 
 
 def _half_pi_mod_pi(param: Union[float, sympy.Basic]) -> bool:
-    """Returns True iff param, assumed to be in [-pi, pi], is pi/2 (mod pi)."""
+    """Returns True iff param, assumed to be in [-pi, pi), is pi/2 (mod pi)."""
     return param in (-np.pi / 2, np.pi / 2, -sympy.pi / 2, sympy.pi / 2)
 
 

@@ -126,8 +126,11 @@ class MeasurementGate(raw_types.Gate):
     def _is_measurement_(self) -> bool:
         return True
 
-    def _measurement_key_name_(self):
+    def _measurement_key_name_(self) -> str:
         return self.key
+
+    def _measurement_key_obj_(self) -> value.MeasurementKey:
+        return self.mkey
 
     def _kraus_(self):
         size = np.prod(self._qid_shape, dtype=np.int64)

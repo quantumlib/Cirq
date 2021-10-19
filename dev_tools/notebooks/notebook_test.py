@@ -29,6 +29,7 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_no
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
     "**/aqt/*.ipynb",
+    "**/azure-quantum/*.ipynb",
     "**/ionq/*.ipynb",
     "**/google/*.ipynb",
     "**/pasqal/*.ipynb",

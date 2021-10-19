@@ -120,17 +120,22 @@ See the previous section for instructions.
     pytest .
     ```
 
-4. (**OPTIONAL**) include your development copy of cirq in your python path.
+4. (**OPTIONAL**) include your development copy of cirq and its subpackages in your python path.
 
     ```bash
-    PYTHONPATH="$(pwd)":"${PYTHONPATH}"
+    ./dev_tools/pypath
     ```
     
-    or add it to the python path, but only in the virtualenv.
+    or add it to the python path, but only in the virtualenv by first listing the modules
     
     ```bash
-    add2virtualenv ./
+    python dev_tools/modules.py list 
     ```
+    and then adding these to the virtualenv:
+    ```bash
+    add2virtualenv <paste modules from last command>
+    ```
+    (Typically `add2virtualenv` is not executable using xargs, so this two step process is necessary.)
 
 ## Editable installs 
 
