@@ -45,6 +45,28 @@ class TestCopyrightChecker(CheckerTestCase):
         ):
             self.checker.process_module(node)
 
+    def test_shorter_copyright(self) -> None:
+        r"""Report message when the copyright notice is incorrect."""
+        node = parse("# Copyright 2021 The")
+        with self.assertAddsMessages(
+            Message(
+                msg_id='wrong-copyright-notice',
+                line=1,
+            ),
+        ):
+            self.checker.process_module(node)
+
+    def test_longer_copyright(self) -> None:
+        r"""Report message when the copyright notice is incorrect."""
+        node = parse("# Copyright 2021 The Cirq Developers and extra")
+        with self.assertAddsMessages(
+            Message(
+                msg_id='wrong-copyright-notice',
+                line=1,
+            ),
+        ):
+            self.checker.process_module(node)
+
     def test_correct_copyright(self) -> None:
         r"""Do not report a message when the correct copyright notice is shown."""
         node = parse(

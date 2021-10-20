@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
 from astroid import nodes
 
 from pylint.checkers import BaseChecker
@@ -20,7 +19,7 @@ from pylint.interfaces import IRawChecker
 
 
 class CopyrightChecker(BaseChecker):
-    r"""Check for the copyright notices in the beginning of Python source files.
+    r"""Check for the copyright notices at the beginning of a Python source file.
 
     This checker can be disabled by putting `# pylint: disable=wrong-copyright-notice` at the
     beginning of a file.
@@ -56,7 +55,7 @@ class CopyrightChecker(BaseChecker):
         if not self.linter.is_message_enabled("wrong-copyright-notice"):
             return
         golden = [
-            b'# Copyright \\d{4} The Cirq Developers',
+            b'# Copyright 20XX The Cirq Developers',
             b'#',
             b'# Licensed under the Apache License, Version 2.0 (the "License");',
             b'# you may not use this file except in compliance with the License.',
@@ -71,18 +70,22 @@ class CopyrightChecker(BaseChecker):
             b'# limitations under the License.',
         ]
         with node.stream() as stream:
-            for (lineno, line) in enumerate(stream):
-                if lineno >= len(golden):
-                    break
-
-                if lineno == 0:
-                    # Use Regex to accept various years such as 2018 and 2021.
-                    if not re.compile(golden[0]).match(line):
-                        self.add_message("wrong-copyright-notice", line=1)
-                        break
-                elif line.rstrip() != golden[lineno]:
-                    self.add_message("wrong-copyright-notice", line=lineno + 1)
-                    break
+            for expected_line, (lineno, line) in zip(golden, enumerate(stream)):
+                for expected_char, (colno, char) in zip(expected_line, enumerate(line)):
+                    # The text needs to be same as the template except for the year.
+                    if expected_char != char and not (lineno == 0 and 14 <= colno <= 15):
+                        self.add_message(
+                            "wrong-copyright-notice", line=lineno + 1, col_offset=colno
+                        )
+                        return
+                # The line cannot be shorter than the template or contain extra text.
+                if len(line) < len(expected_line) or line[len(expected_line) :].strip() != b'':
+                    self.add_message(
+                        "wrong-copyright-notice",
+                        line=lineno + 1,
+                        col_offset=min(len(line), len(expected_line)),
+                    )
+                    return
 
 
 def register(linter):
