@@ -148,7 +148,7 @@ def execute(
     Args:
         rt_config: The `cg.QuantumRuntimeConfiguration` specifying how to execute
             `executable_group`.
-        executable_group: The `QuantumExecutableGroup` containing the executables to execute.
+        executable_group: The `cg.QuantumExecutableGroup` containing the executables to execute.
         base_data_dir: A filesystem path to write data. We write
             "{base_data_dir}/{run_id}/ExecutableGroupResult.json.gz"
             containing the `cg.ExecutableGroupResult` as well as one file
