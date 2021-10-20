@@ -744,7 +744,7 @@ def test_list_jobs(client_constructor):
             None,
             'proc1',
             None),
-        ('scheduled_processor_ids: proc1 AND scheduled_processor_ids: proc2',
+        ('(scheduled_processor_ids: proc1 OR scheduled_processor_ids: proc2)',
             None,
             None,
             None,

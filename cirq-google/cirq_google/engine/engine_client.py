@@ -395,7 +395,8 @@ class EngineClient:
 
             executed_processor_id: filters jobs by processor ID used for
                 execution.
-            scheduled_processor_ids: filters jobs by scheduled processor IDs.
+            scheduled_processor_ids: filters jobs by any of provided
+                scheduled processor IDs.
         """
         filters = []
 
@@ -416,8 +417,10 @@ class EngineClient:
         if executed_processor_id is not None:
             filters.append(f"executed_processor_id = {executed_processor_id}")
         if scheduled_processor_ids is not None:
+            ids_filter = []
             for processor_id in scheduled_processor_ids:
-                filters.append(f"scheduled_processor_ids: {processor_id}")
+                ids_filter.append(f"scheduled_processor_ids: {processor_id}")
+            filters.append(f"({' OR '.join(ids_filter)})")
 
         if program_id is None:
             program_id = "-"
