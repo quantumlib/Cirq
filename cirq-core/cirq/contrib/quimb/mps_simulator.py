@@ -19,13 +19,12 @@ https://arxiv.org/abs/2002.07730
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, study, ops, protocols, value
-from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -214,12 +213,6 @@ class MPSState(ActOnArgs):
 
     # TODO(#3388) Add documentation for Raises.
     # pylint: disable=missing-raises-doc
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs or len(args) > 6,
-    )
     def __init__(
         self,
         qubits: Sequence['cirq.Qid'],
@@ -227,7 +220,6 @@ class MPSState(ActOnArgs):
         simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
-        axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
         """Creates and MPSState
@@ -240,12 +232,10 @@ class MPSState(ActOnArgs):
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         qubit_map = self.qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():

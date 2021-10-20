@@ -22,7 +22,6 @@ from typing import (
     Collection,
     Dict,
     FrozenSet,
-    Iterable,
     List,
     Optional,
     Sequence,
@@ -200,18 +199,6 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _has_channel_(self) -> bool:
-        getter = getattr(self.gate, '_has_channel_', None)
-        if getter is not None:
-            return getter()
-        return NotImplemented
-
-    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
-        getter = getattr(self.gate, '_channel_', None)
-        if getter is not None:
-            return getter()
-        return NotImplemented
-
     def _has_kraus_(self) -> bool:
         getter = getattr(self.gate, '_has_kraus_', None)
         if getter is not None:
@@ -245,7 +232,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _measurement_key_names_(self) -> Optional[Iterable[str]]:
+    def _measurement_key_names_(self) -> Optional[AbstractSet[str]]:
         getter = getattr(self.gate, '_measurement_key_names_', None)
         if getter is not None:
             return getter()
@@ -256,6 +243,18 @@ class GateOperation(raw_types.Operation):
                 f'It will be removed in cirq v0.13.\n'
                 f'Use _measurement_key_names_ instead.\n'
             )
+            return getter()
+        return NotImplemented
+
+    def _measurement_key_obj_(self) -> Optional[value.MeasurementKey]:
+        getter = getattr(self.gate, '_measurement_key_obj_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
+    def _measurement_key_objs_(self) -> Optional[AbstractSet[value.MeasurementKey]]:
+        getter = getattr(self.gate, '_measurement_key_objs_', None)
+        if getter is not None:
             return getter()
         return NotImplemented
 

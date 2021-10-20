@@ -350,6 +350,7 @@ def test_measurement_keys():
     assert not cirq.is_measurement(m)
 
     m2 = cirq.Moment(cirq.measure(a, b, key='foo'))
+    assert cirq.measurement_key_objs(m2) == {cirq.MeasurementKey('foo')}
     assert cirq.measurement_key_names(m2) == {'foo'}
     assert cirq.is_measurement(m2)
 

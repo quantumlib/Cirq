@@ -8,5 +8,6 @@ cirq_google.FloquetPhasedFSimCalibrationRequest(
                 characterize_gamma=False,
                 characterize_phi=True,
                 readout_error_tolerance=0.4,
+                version=2
             ),
         )
