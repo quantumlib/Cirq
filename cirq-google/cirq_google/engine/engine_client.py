@@ -367,6 +367,8 @@ class EngineClient:
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
         execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+        executed_processor_id: Optional[str] = None,
+        scheduled_processor_ids: Optional[List[str]] = None,
     ):
         """Returns the list of jobs for a given program.
 
@@ -390,6 +392,10 @@ class EngineClient:
             execution_states: retrieve jobs that have an execution state that
                 is contained in `execution_states`. See
                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+
+            executed_processor_id: filters jobs by processor ID used for
+                execution.
+            scheduled_processor_ids: filters jobs by scheduled processor IDs.
         """
         filters = []
 
@@ -407,6 +413,11 @@ class EngineClient:
             for execution_state in execution_states:
                 state_filter.append(f"execution_status.state = {execution_state.name}")
             filters.append(f"({' OR '.join(state_filter)})")
+        if executed_processor_id is not None:
+            filters.append(f"executed_processor_id = {executed_processor_id}")
+        if scheduled_processor_ids is not None:
+            for processor_id in scheduled_processor_ids:
+                filters.append(f"scheduled_processor_ids: {processor_id}")
 
         if program_id is None:
             program_id = "-"
