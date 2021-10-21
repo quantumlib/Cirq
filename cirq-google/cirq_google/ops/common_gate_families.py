@@ -203,12 +203,26 @@ class FSimGateFamily(cirq.GateFamily):
                 return False
         return True
 
+    def _get_value_equality_values(self, g: POSSIBLE_FSIM_GATES) -> Any:
+        # TODO: Remove condition once https://github.com/quantumlib/Cirq/issues/4585 is fixed.
+        if type(g) == cirq.PhasedISwapPowGate:
+            return (g.phase_exponent, *g._iswap._value_equality_values_())  # type: ignore
+        return g._value_equality_values_()
+
+    def _get_value_equality_values_cls(self, g: POSSIBLE_FSIM_GATES) -> Any:
+        # TODO: Remove condition once https://github.com/quantumlib/Cirq/issues/4585 is fixed.
+        if type(g) == cirq.PhasedISwapPowGate:
+            return cirq.PhasedISwapPowGate
+        return g._value_equality_values_cls_()  # type: ignore
+
     def _check_equal(self, g1: POSSIBLE_FSIM_GATES, g2: POSSIBLE_FSIM_GATES) -> bool:
         if not self.allow_symbols:
             return g1 == g2 and not (cirq.is_parameterized(g1) or cirq.is_parameterized(g2))
-        if g1._value_equality_values_cls_() != g2._value_equality_values_cls_():  # type: ignore
+        if self._get_value_equality_values_cls(g1) != self._get_value_equality_values_cls(g2):
             return False
-        return self._approx_eq_or_symbol(g1._value_equality_values_(), g2._value_equality_values_())
+        return self._approx_eq_or_symbol(
+            self._get_value_equality_values(g1), self._get_value_equality_values(g2)
+        )
 
     def _predicate(self, gate: cirq.Gate) -> bool:
         if not isinstance(gate, self.gate_types_to_check):

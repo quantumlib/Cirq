@@ -30,6 +30,10 @@ def test_phased_iswap_init():
     assert gate.exponent == t
 
 
+def test_phased_iswap_equality():
+    assert cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4) == cirq.ISWAP ** 0.4
+
+
 def test_repr():
     p = -0.25
     t = 0.75
