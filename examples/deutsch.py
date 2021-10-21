@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Demonstrates Deutsch's algorithm.
 
 Deutsch's algorithm is one of the simplest demonstrations of quantum parallelism

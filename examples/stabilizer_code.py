@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import Dict, List, Tuple
 
 import numpy as np

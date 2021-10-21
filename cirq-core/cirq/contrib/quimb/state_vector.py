@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import warnings
 from typing import Sequence, Union, List, Tuple, Dict, Optional
 

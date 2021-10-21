@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Utility functions to run the Quantum Volume benchmark defined by IBM in
 https://arxiv.org/abs/1811.12926.
 """

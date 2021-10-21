@@ -28,7 +28,7 @@ class TestCopyrightChecker(CheckerTestCase):
         node = parse("import os")
         with self.assertAddsMessages(
             Message(
-                msg_id='wrong-copyright-notice',
+                msg_id='wrong-or-nonexistent-copyright-notice',
                 line=1,
             ),
         ):
@@ -39,7 +39,7 @@ class TestCopyrightChecker(CheckerTestCase):
         node = parse("# Copyright 2021 Someone else")
         with self.assertAddsMessages(
             Message(
-                msg_id='wrong-copyright-notice',
+                msg_id='wrong-or-nonexistent-copyright-notice',
                 line=1,
             ),
         ):
@@ -50,7 +50,7 @@ class TestCopyrightChecker(CheckerTestCase):
         node = parse("# Copyright 2021 The")
         with self.assertAddsMessages(
             Message(
-                msg_id='wrong-copyright-notice',
+                msg_id='wrong-or-nonexistent-copyright-notice',
                 line=1,
             ),
         ):
@@ -61,7 +61,7 @@ class TestCopyrightChecker(CheckerTestCase):
         node = parse("# Copyright 2021 The Cirq Developers and extra")
         with self.assertAddsMessages(
             Message(
-                msg_id='wrong-copyright-notice',
+                msg_id='wrong-or-nonexistent-copyright-notice',
                 line=1,
             ),
         ):

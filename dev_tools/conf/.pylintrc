@@ -55,7 +55,7 @@ enable=
     unused-variable,
     unused-wildcard-import,
     wildcard-import,
-    wrong-copyright-notice,
+    wrong-or-nonexistent-copyright-notice,
     wrong-import-order,
     wrong-import-position,
     yield-outside-function

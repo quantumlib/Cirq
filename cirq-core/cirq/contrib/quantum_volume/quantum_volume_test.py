@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Tests for the Quantum Volume utilities."""
 
 from unittest.mock import Mock, MagicMock

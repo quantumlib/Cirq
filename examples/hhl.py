@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 # TODO(#3388) Add summary line to docstring.
 # pylint: disable=docstring-first-line-empty
 """

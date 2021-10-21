@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import pytest
 from cirq_rigetti import get_rigetti_qcs_sampler
 

@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Runs the Quantum Approximate Optimization Algorithm on Max-Cut.
 
 === EXAMPLE OUTPUT ===

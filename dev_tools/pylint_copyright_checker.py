@@ -21,7 +21,7 @@ from pylint.interfaces import IRawChecker
 class CopyrightChecker(BaseChecker):
     r"""Check for the copyright notices at the beginning of a Python source file.
 
-    This checker can be disabled by putting `# pylint: disable=wrong-copyright-notice` at the
+    This checker can be disabled by putting `# pylint: disable=wrong-or-nonexistent-copyright-notice` at the
     beginning of a file.
     """
 
@@ -34,7 +34,7 @@ class CopyrightChecker(BaseChecker):
     msgs = {
         "R0001": (
             "Missing or wrong copyright notice",
-            "wrong-copyright-notice",
+            "wrong-or-nonexistent-copyright-notice",
             "Consider putting a correct copyright notice at the beginning of a file.",
         )
     }
@@ -52,7 +52,7 @@ class CopyrightChecker(BaseChecker):
             node: the module to be checked.
         """
         # Exit if the checker is disabled in the source file.
-        if not self.linter.is_message_enabled("wrong-copyright-notice"):
+        if not self.linter.is_message_enabled("wrong-or-nonexistent-copyright-notice"):
             return
         golden = [
             b'# Copyright 20XX The Cirq Developers',
@@ -75,13 +75,15 @@ class CopyrightChecker(BaseChecker):
                     # The text needs to be same as the template except for the year.
                     if expected_char != char and not (lineno == 0 and 14 <= colno <= 15):
                         self.add_message(
-                            "wrong-copyright-notice", line=lineno + 1, col_offset=colno
+                            "wrong-or-nonexistent-copyright-notice",
+                            line=lineno + 1,
+                            col_offset=colno,
                         )
                         return
                 # The line cannot be shorter than the template or contain extra text.
                 if len(line) < len(expected_line) or line[len(expected_line) :].strip() != b'':
                     self.add_message(
-                        "wrong-copyright-notice",
+                        "wrong-or-nonexistent-copyright-notice",
                         line=lineno + 1,
                         col_offset=min(len(line), len(expected_line)),
                     )

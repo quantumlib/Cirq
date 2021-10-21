@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Contains functions for adding JSON serialization and de-serialization for
 classes in Contrib.
 

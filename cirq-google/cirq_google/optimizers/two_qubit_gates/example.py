@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Example application of the two-qubit gate compilation algorithm.
 
 This script demonstrates construction and usage of the GateTabulation class.

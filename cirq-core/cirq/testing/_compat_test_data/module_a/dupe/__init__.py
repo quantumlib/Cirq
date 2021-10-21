@@ -1,2 +1,2 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 DUPE_CONSTANT = False

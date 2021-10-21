@@ -1,4 +1,4 @@
-# pylint: disable=wrong-copyright-notice
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Demonstrates swap networks.
 
 Swap networks are used to get around limited connectivity in a hardware device.
