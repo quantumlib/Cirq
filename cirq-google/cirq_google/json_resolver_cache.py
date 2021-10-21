@@ -49,5 +49,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.RuntimeInfo': cirq_google.RuntimeInfo,
         'cirq.google.ExecutableResult': cirq_google.ExecutableResult,
         'cirq.google.ExecutableGroupResult': cirq_google.ExecutableGroupResult,
+        'cirq.google.ExecutableGroupResultFilesystemRecord': cirq_google.ExecutableGroupResultFilesystemRecord,
         'cirq.google.QuantumRuntimeConfiguration': cirq_google.QuantumRuntimeConfiguration,
     }

@@ -120,6 +120,12 @@ class ExecutableGroupResult:
 class ExecutableGroupResultFilesystemRecord:
     """Filename references to the constituent parts of a `cg.ExecutableGroupResult`.
 
+    Args:
+        runtime_configuration_fn: A filename pointing to the `runtime_configuration` value.
+        shared_runtime_info_fn: A filename pointing to the `shared_runtime_info` value.
+        executable_result_fns: A list of filenames pointing to the `executable_results` values.
+        run_id: The unique `str` identifier from this run. This is used to locate the other
+            values on disk.
     Attributes are filename paths corresponding 1:1 to `cg.ExecutableGroupResult` fields.
     """
 
@@ -127,20 +133,28 @@ class ExecutableGroupResultFilesystemRecord:
     shared_runtime_info_fn: str
     executable_result_fns: List[str]
 
-    def load(self, base_data_dir: str) -> ExecutableGroupResult:
+    run_id: str
+
+    def load(self, *, base_data_dir: str = ".") -> ExecutableGroupResult:
         """Using the filename references in this dataclass, load a `cg.ExecutableGroupResult`
         from its constituent parts.
         """
-        # TODO: run_id?
+        data_dir = f"{base_data_dir}/{self.run_id}"
         return ExecutableGroupResult(
-            runtime_configuration=cirq.read_json(
-                f'{base_data_dir}/{self.runtime_configuration_fn}'
+            runtime_configuration=cirq.read_json_gzip(
+                f'{data_dir}/{self.runtime_configuration_fn}'
             ),
-            shared_runtime_info=cirq.read_json(f'{base_data_dir}/{self.shared_runtime_info_fn}'),
+            shared_runtime_info=cirq.read_json_gzip(f'{data_dir}/{self.shared_runtime_info_fn}'),
             executable_results=[
-                cirq.read_json(f'{base_data_dir}/{exe_fn}') for exe_fn in self.executable_result_fns
+                cirq.read_json_gzip(f'{data_dir}/{exe_fn}') for exe_fn in self.executable_result_fns
             ],
         )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return dataclass_json_dict(self, namespace='cirq.google')
+
+    def __repr__(self) -> str:
+        return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
 @dataclasses.dataclass
@@ -247,8 +261,9 @@ def execute(
     os.makedirs(data_dir, exist_ok=False)
     egr_record = ExecutableGroupResultFilesystemRecord(
         runtime_configuration_fn='QuantumRuntimeConfiguration.json.gz',
-        shared_runtime_info_fn='SharedRuntimeConfiguration.json.gz',
+        shared_runtime_info_fn='SharedRuntimeInfo.json.gz',
         executable_result_fns=[],
+        run_id=run_id,
     )
     cirq.to_json_gzip(rt_config, f'{data_dir}/{egr_record.runtime_configuration_fn}')
 
@@ -260,8 +275,8 @@ def execute(
 
     def _finalize_exe_result(exe_result: ExecutableResult, i: int):
         """Do all the bookkeeping when an ExecutableResult has been completed."""
-        exe_result_fn = f'{data_dir}/ExecutableResult.{i}.json.gz'
-        cirq.to_json_gzip(exe_result, exe_result_fn)
+        exe_result_fn = f'ExecutableResult.{i}.json.gz'
+        cirq.to_json_gzip(exe_result, f"{data_dir}/{exe_result_fn}")
         executable_results.append(exe_result)
         egr_record.executable_result_fns.append(exe_result_fn)
 
