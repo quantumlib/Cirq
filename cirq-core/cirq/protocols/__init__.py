@@ -40,11 +40,8 @@ from cirq.protocols.approximate_equality_protocol import (
     SupportsApproximateEquality,
 )
 from cirq.protocols.kraus_protocol import (
-    channel,
     kraus,
-    has_channel,
     has_kraus,
-    SupportsChannel,
     SupportsKraus,
 )
 from cirq.protocols.commutes_protocol import (

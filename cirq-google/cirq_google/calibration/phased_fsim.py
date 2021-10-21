@@ -570,6 +570,8 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_gamma: bool
     characterize_phi: bool
     readout_error_tolerance: Optional[float] = None
+    version: int = 2
+    measure_qubits: Optional[Tuple[cirq.Qid, ...]] = None
 
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
@@ -664,6 +666,8 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = cirq.Circuit(self.gate.on(*pair) for pair in self.pairs)
+        if self.options.measure_qubits is not None:
+            circuit += cirq.Moment(cirq.measure(*self.options.measure_qubits))
         args: Dict[str, Any] = {
             'est_theta': self.options.characterize_theta,
             'est_zeta': self.options.characterize_zeta,
@@ -672,6 +676,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'est_phi': self.options.characterize_phi,
             # Experimental option that should always be set to True.
             'readout_corrections': True,
+            'version': self.options.version,
         }
         if self.options.readout_error_tolerance is not None:
             # Maximum error of the diagonal elements of the two-qubit readout confusion matrix.

@@ -83,30 +83,6 @@ def test_act_on_errors():
         cirq.act_on(Op(), args)
 
 
-def test_act_on_args_axes_deprecation():
-    class Args(DummyActOnArgs):
-        def _act_on_fallback_(
-            self,
-            action: Union['cirq.Operation', 'cirq.Gate'],
-            qubits: Sequence['cirq.Qid'] = None,
-            allow_decompose: bool = True,
-        ) -> bool:
-            self.measurements.append(qubits)
-            return True
-
-    args = Args()
-    args._qubits = tuple(cirq.LineQubit.range(3))
-    with cirq.testing.assert_deprecated(
-        "ActOnArgs.axes", "Use `protocols.act_on` instead.", deadline="v0.13"
-    ):
-        args.axes = (1,)
-    with cirq.testing.assert_deprecated(
-        "ActOnArgs.axes", "Use `protocols.act_on` instead.", deadline="v0.13"
-    ):
-        cirq.act_on(object(), args)  # type: ignore
-    assert args.measurements == [[cirq.LineQubit(1)]]
-
-
 def test_qubits_not_allowed_for_operations():
     class Op(cirq.Operation):
         @property
@@ -121,3 +97,9 @@ def test_qubits_not_allowed_for_operations():
         ValueError, match='Calls to act_on should not supply qubits if the action is an Operation'
     ):
         cirq.act_on(Op(), args, qubits=[])
+
+
+def test_qubits_should_be_defined_for_operations():
+    args = DummyActOnArgs()
+    with pytest.raises(ValueError, match='Calls to act_on should'):
+        cirq.act_on(cirq.KrausChannel([np.array([[1, 0], [0, 0]])]), args, qubits=None)

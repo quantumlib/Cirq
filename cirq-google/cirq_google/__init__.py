@@ -124,6 +124,11 @@ from cirq_google.workflow import (
     QuantumExecutable,
     QuantumExecutableGroup,
     BitstringsMeasurement,
+    SharedRuntimeInfo,
+    RuntimeInfo,
+    ExecutableResult,
+    ExecutableGroupResult,
+    QuantumRuntimeConfiguration,
 )
 
 from cirq_google import experimental
