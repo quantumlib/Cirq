@@ -153,7 +153,7 @@ def kraus_to_superoperator(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     return m
 
 
-def superoperator_to_kraus(superoperator: np.ndarray) -> Sequence[np.ndarray]:
+def superoperator_to_kraus(superoperator: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]:
     r"""Returns a Kraus representation of a channel specified via the superoperator matrix.
 
     Quantum channel E: L(H1) -> L(H2) may be described by a collection of operators A_i, called
@@ -180,14 +180,16 @@ def superoperator_to_kraus(superoperator: np.ndarray) -> Sequence[np.ndarray]:
 
     Args:
         superoperator: Superoperator matrix specifying a quantum channel.
+        atol: Tolerance used to check which Kraus operators to omit.
 
     Returns:
         Sequence of Kraus operators of the channel specified by superoperator.
+        Kraus operators with Frobenius norm smaller than atol are omitted.
 
     Raises:
         ValueError: If superoperator is not a valid superoperator matrix.
     """
-    return choi_to_kraus(superoperator_to_choi(superoperator))
+    return choi_to_kraus(superoperator_to_choi(superoperator), atol=atol)
 
 
 def choi_to_superoperator(choi: np.ndarray) -> np.ndarray:
