@@ -99,9 +99,7 @@ def multigate_qcircuit_diagram_info(
     assert args.known_qubits is not None
     symbols = tuple(box if (args.qubit_map[q] == min_index) else ghost for q in args.known_qubits)
     # Force exponent=1 to defer to exponent formatting given above.
-    return protocols.CircuitDiagramInfo(
-        symbols, exponent=1, connected=False
-    )
+    return protocols.CircuitDiagramInfo(symbols, exponent=1, connected=False)
 
 
 def fallback_qcircuit_diagram_info(
