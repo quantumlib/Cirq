@@ -164,8 +164,8 @@ def test_sqrt_iswap_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{(0, 0)}}& \qw&\multigate{1}{\text{ISWAP}^{0.5}} \qw&\qw\\
- &\lstick{\text{(0, 1)}}& \qw&\ghost{\text{ISWAP}^{0.5}}        \qw&\qw\\
+ &\lstick{\text{0}}& \qw&\multigate{1}{\text{ISWAP}^{0.5}} \qw&\qw\\
+ &\lstick{\text{1}}& \qw&\ghost{\text{ISWAP}^{0.5}}        \qw&\qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
