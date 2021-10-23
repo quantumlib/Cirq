@@ -16,6 +16,10 @@
 
 from cirq_google import api
 
+from cirq_google._version import (
+    __version__,
+)
+
 from cirq_google.calibration import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     CircuitWithCalibration,
