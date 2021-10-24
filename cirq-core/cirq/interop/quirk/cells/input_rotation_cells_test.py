@@ -64,9 +64,9 @@ def test_input_rotation_cells():
     assert_url_to_circuit_returns(
         '{"cols":[["•","Z^(A/2^n)","inputA2"]]}',
         diagram="""
-0: ───@───────────
+0: ───@^(A/2^2)───
       │
-1: ───Z^(A/2^2)───
+1: ───@───────────
       │
 2: ───A0──────────
       │

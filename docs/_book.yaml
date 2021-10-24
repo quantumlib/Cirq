@@ -116,6 +116,11 @@ upper_tabs:
       - heading: "AQT hardware"
       - title: "Access and authentication"
         path: /cirq/aqt/access
+      
+      #### Azure Quantum ####
+      - heading: "Azure Quantum"
+      - title: "Access and authentication"
+        path: /cirq/azure-quantum/access
 
       ##### IonQ ####
       - heading: "IonQ hardware"
@@ -214,6 +219,12 @@ upper_tabs:
       - title: "Getting started with AQT hardware"
         path: /cirq/tutorials/aqt/getting_started
 
+      ####  AZURE QUANTUM  ####
+      - heading: "Azure Quantum"
+      - title: "Getting started with Honeywell on Azure Quantum"
+        path: /cirq/tutorials/azure-quantum/getting_started_honeywell
+      - title: "Getting started with IonQ on Azure Quantum"
+        path: /cirq/tutorials/azure-quantum/getting_started_ionq
 
       ####  IONQ HARDWARE ####
       - heading: "IonQ hardware"
