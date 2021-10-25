@@ -73,6 +73,10 @@ def _testing_resolver(cirq_type: str):
         return _MockEngineProcessor
 
 
+def _cg_read_json_gzip(fn):
+    return cirq.read_json_gzip(fn, resolvers=[_testing_resolver] + cirq.DEFAULT_RESOLVERS)
+
+
 @pytest.fixture
 def patch_cirq_default_resolvers():
     backup = cirq.DEFAULT_RESOLVERS.copy()
@@ -83,7 +87,7 @@ def patch_cirq_default_resolvers():
 
 def _assert_json_roundtrip(o, tmpdir):
     cirq.to_json_gzip(o, f'{tmpdir}/o.json')
-    o2 = cirq.read_json_gzip(f'{tmpdir}/o.json')
+    o2 = _cg_read_json_gzip(f'{tmpdir}/o.json')
     assert o == o2
 
 
@@ -100,8 +104,7 @@ def test_quantum_runtime_configuration():
     assert isinstance(rt_config.processor.get_device(), cirq.Device)
 
 
-def test_quantum_runtime_configuration_serialization(tmpdir, patch_cirq_default_resolvers):
-    assert patch_cirq_default_resolvers
+def test_quantum_runtime_configuration_serialization(tmpdir):
     rt_config = cg.QuantumRuntimeConfiguration(
         processor=_MockEngineProcessor(),
         run_id='unit-test',
@@ -110,8 +113,7 @@ def test_quantum_runtime_configuration_serialization(tmpdir, patch_cirq_default_
     _assert_json_roundtrip(rt_config, tmpdir)
 
 
-def test_executable_group_result(tmpdir, patch_cirq_default_resolvers):
-    assert patch_cirq_default_resolvers
+def test_executable_group_result(tmpdir):
     egr = cg.ExecutableGroupResult(
         runtime_configuration=cg.QuantumRuntimeConfiguration(
             processor=_MockEngineProcessor(),
@@ -135,6 +137,7 @@ def test_executable_group_result(tmpdir, patch_cirq_default_resolvers):
 
 
 def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
+    """Load `ExecutableGroupResult` "by hand" without suing `ExecutableGroupResultFilesystemRecord`."""
     rt_config = cirq.read_json_gzip(f'{tmpdir}/{run_id}/QuantumRuntimeConfiguration.json.gz')
     shared_rt_info = cirq.read_json_gzip(f'{tmpdir}/{run_id}/SharedRuntimeInfo.json.gz')
     fns = glob.glob(f'{tmpdir}/{run_id}/ExecutableResult.*.json.gz')

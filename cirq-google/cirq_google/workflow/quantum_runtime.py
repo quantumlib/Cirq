@@ -126,7 +126,6 @@ class ExecutableGroupResultFilesystemRecord:
         executable_result_fns: A list of filenames pointing to the `executable_results` values.
         run_id: The unique `str` identifier from this run. This is used to locate the other
             values on disk.
-    Attributes are filename paths corresponding 1:1 to `cg.ExecutableGroupResult` fields.
     """
 
     runtime_configuration_fn: str
@@ -179,7 +178,7 @@ class QuantumRuntimeConfiguration:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
-def _safe_to_json(obj: Any, part_fn: str, nominal_fn: str, bak_fn: str):
+def _safe_to_json(obj: Any, *, part_fn: str, nominal_fn: str, bak_fn: str):
     """Safely update a json file.
 
     1. The new value is written to a "part" file
