@@ -64,6 +64,7 @@ TestSpec = ModuleJsonTestSpec(
             'QuantumRuntimeConfiguration',
             'RuntimeInfo',
             'SharedRuntimeInfo',
+            'ExecutableGroupResultFilesystemRecord',
         ]
     },
     tested_elsewhere=[
