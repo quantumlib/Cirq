@@ -150,7 +150,8 @@ def test_egr_filesystem_record_repr():
 
 
 def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
-    """Load `ExecutableGroupResult` "by hand" without suing `ExecutableGroupResultFilesystemRecord`."""
+    """Load `ExecutableGroupResult` "by hand" without using
+    `ExecutableGroupResultFilesystemRecord`."""
     rt_config = cirq.read_json_gzip(f'{tmpdir}/{run_id}/QuantumRuntimeConfiguration.json.gz')
     shared_rt_info = cirq.read_json_gzip(f'{tmpdir}/{run_id}/SharedRuntimeInfo.json.gz')
     fns = glob.glob(f'{tmpdir}/{run_id}/ExecutableResult.*.json.gz')
