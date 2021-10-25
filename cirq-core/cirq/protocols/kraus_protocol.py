@@ -135,7 +135,7 @@ def kraus(
             method returned NotImplemented) and also no default value was
             specified.
     """
-    result = _gettr_helper(val, ['_kraus_', '_channel_'])
+    result = _gettr_helper(val, ['_kraus_'])
     if result is not None and result is not NotImplemented:
         return result
 
@@ -211,7 +211,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     Returns:
         Whether or not `val` has a Kraus representation.
     """
-    result = _gettr_helper(val, ['_has_kraus_', '_has_channel_', '_kraus_', '_channel_'])
+    result = _gettr_helper(val, ['_has_kraus_', '_has_channel_', '_kraus_'])
     if result is not None and result is not NotImplemented and result:
         return True
 
@@ -268,12 +268,6 @@ def _gettr_helper(val: Any, gett_str_list: Sequence[str]):
         gettr = getattr(val, gettr_str, None)
         if gettr is None:
             continue
-        if 'channel' in gettr_str:
-            warnings.warn(
-                f'{gettr_str} is deprecated and will be removed in cirq 0.13, rename to '
-                f'{gettr_str.replace("channel", "kraus")}',
-                DeprecationWarning,
-            )
         result = gettr()
         if result is NotImplemented:
             notImplementedFlag = True
