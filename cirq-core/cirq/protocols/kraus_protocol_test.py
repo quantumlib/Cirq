@@ -52,25 +52,6 @@ def assert_not_implemented(val):
     assert not cirq.has_kraus(val)
 
 
-def test_supports_channel_class_is_deprecated():
-    with cirq.testing.assert_deprecated(deadline='v0.13'):
-
-        class SomeChannel(cirq.SupportsChannel):
-            pass
-
-        _ = SomeChannel()
-
-
-def test_channel_protocol_is_deprecated():
-    with cirq.testing.assert_deprecated(deadline='v0.13'):
-        assert np.allclose(cirq.channel(cirq.X), cirq.kraus(cirq.X))
-
-
-def test_has_channel_protocol_is_deprecated():
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.has_channel(cirq.depolarize(0.1)) == cirq.has_kraus(cirq.depolarize(0.1))
-
-
 def test_kraus_returns_not_implemented():
     class ReturnsNotImplemented:
         def _kraus_(self):
@@ -140,6 +121,22 @@ def test_kraus_fallback_to_mixture():
     assert cirq.has_kraus(ReturnsMixture())
 
 
+def test_kraus_fallback_to_unitary():
+    u = np.array([[1, 0], [1, 0]])
+
+    class ReturnsUnitary:
+        def _unitary_(self) -> np.ndarray:
+            return u
+
+    np.testing.assert_equal(cirq.kraus(ReturnsUnitary()), (u,))
+    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), None), (u,))
+    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), NotImplemented), (u,))
+    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), (1,)), (u,))
+    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), LOCAL_DEFAULT), (u,))
+
+    assert cirq.has_kraus(ReturnsUnitary())
+
+
 def test_serial_concatenation_default():
     q1 = cirq.GridQubit(1, 1)
 
@@ -201,72 +198,15 @@ def test_serial_concatenation_circuit():
             return None
 
     g = onlyDecompose()
-    c = (cirq.unitary(cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)])),)
+    c = cirq.kraus_to_superoperator((cirq.unitary(cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)])),))
 
-    np.testing.assert_equal(cirq.kraus(g), c)
-    np.testing.assert_equal(cirq.kraus(g, None), c)
-    np.testing.assert_equal(cirq.kraus(g, NotImplemented), c)
-    np.testing.assert_equal(cirq.kraus(g, (1,)), c)
-    np.testing.assert_equal(cirq.kraus(g, LOCAL_DEFAULT), c)
-
-    assert cirq.has_kraus(g)
-
-
-def test_kraus_combinatorial_explosion():
-    q1 = cirq.GridQubit(1, 1)
-
-    class defaultGate(cirq.Gate):
-        def num_qubits(self):
-            return 1
-
-        def _kraus_(self):
-            # for one qubit the upper limit is 16 elements
-            ls = [np.array([[1, 0], [0, 1]])] * 16
-            ls.append(np.array([[1, 0], [0, 1]]))
-            return tuple(ls)
-
-    class onlyDecompose:
-        def _decompose_(self):
-            return [cirq.Y.on(q1), defaultGate().on(q1)]
-
-        def _unitary_(self):
-            return None
-
-        def _mixture_(self):
-            return NotImplemented
-
-    with pytest.raises(AssertionError, match="combinatorial explosion."):
-        _ = cirq.kraus(onlyDecompose())
-
-
-def test_kraus_empty_decompose():
-    g = cirq.PauliString({}) ** 2
-    c = (cirq.unitary(g),)
+    np.testing.assert_almost_equal(cirq.kraus_to_superoperator(cirq.kraus(g)), c)
+    np.testing.assert_almost_equal(cirq.kraus_to_superoperator(cirq.kraus(g, None)), c)
+    np.testing.assert_almost_equal(cirq.kraus_to_superoperator(cirq.kraus(g, NotImplemented)), c)
+    np.testing.assert_almost_equal(cirq.kraus_to_superoperator(cirq.kraus(g, (1,))), c)
+    np.testing.assert_almost_equal(cirq.kraus_to_superoperator(cirq.kraus(g, LOCAL_DEFAULT)), c)
 
     assert cirq.has_kraus(g)
-
-    np.testing.assert_equal(cirq.kraus(g), c)
-    np.testing.assert_equal(cirq.kraus(g, None), c)
-    np.testing.assert_equal(cirq.kraus(g, NotImplemented), c)
-    np.testing.assert_equal(cirq.kraus(g, (1,)), c)
-    np.testing.assert_equal(cirq.kraus(g, LOCAL_DEFAULT), c)
-
-
-def test_kraus_fallback_to_unitary():
-    u = np.array([[1, 0], [1, 0]])
-
-    class ReturnsUnitary:
-        def _unitary_(self) -> np.ndarray:
-            return u
-
-    assert cirq.has_kraus(ReturnsUnitary())
-    np.testing.assert_equal(cirq.kraus(ReturnsUnitary()), (u,))
-    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), None), (u,))
-    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), NotImplemented), (u,))
-    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), (1,)), (u,))
-    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), LOCAL_DEFAULT), (u,))
-
-    assert cirq.has_kraus(ReturnsUnitary())
 
 
 class HasKraus(cirq.SingleQubitGate):
@@ -301,5 +241,4 @@ def test_has_kraus(cls):
 def test_has_kraus_when_decomposed(decomposed_cls):
     op = HasKrausWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
     assert cirq.has_kraus(op)
-    if not cirq.has_unitary(op) and not cirq.has_mixture(op):
-        assert not cirq.has_kraus(op, allow_decompose=False)
+    assert not cirq.has_kraus(op, allow_decompose=False)
