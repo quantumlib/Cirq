@@ -15,8 +15,6 @@
 """Protocol and methods for obtaining Kraus representation of quantum channels."""
 
 from typing import Any, Sequence, Tuple, TypeVar, Union
-import warnings
-
 import numpy as np
 from typing_extensions import Protocol
 
