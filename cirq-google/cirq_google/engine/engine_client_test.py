@@ -665,7 +665,7 @@ def test_list_jobs(client_constructor):
         'created_before, '
         'labels, '
         'execution_states, '
-        'executed_processor_id, '
+        'executed_processor_ids, '
         'scheduled_processor_ids, ',
     [
         ('',
@@ -737,13 +737,27 @@ def test_list_jobs(client_constructor):
             [quantum.enums.ExecutionStatus.State.SUCCESS,],
             None,
             None),
-        ('executed_processor_id = proc1',
+        ('(executed_processor_id = proc1)',
             None,
             None,
             None,
             None,
-            'proc1',
+            ['proc1'],
             None),
+        ('(executed_processor_id = proc1 OR executed_processor_id = proc2)',
+            None,
+            None,
+            None,
+            None,
+            ['proc1', 'proc2'],
+            None),
+        ('(scheduled_processor_ids: proc1)',
+            None,
+            None,
+            None,
+            None,
+            None,
+            ['proc1']),
         ('(scheduled_processor_ids: proc1 OR scheduled_processor_ids: proc2)',
             None,
             None,
@@ -756,7 +770,7 @@ def test_list_jobs(client_constructor):
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_list_jobs_filters(client_constructor, expected_filter, created_before,
                            created_after, labels, execution_states,
-                           executed_processor_id, scheduled_processor_ids):
+                           executed_processor_ids, scheduled_processor_ids):
     grpc_client = setup_mock_(client_constructor)
     client = EngineClient()
     client.list_jobs(project_id='proj',
@@ -765,7 +779,7 @@ def test_list_jobs_filters(client_constructor, expected_filter, created_before,
                      created_after=created_after,
                      has_labels=labels,
                      execution_states=execution_states,
-                     executed_processor_id=executed_processor_id,
+                     executed_processor_ids=executed_processor_ids,
                      scheduled_processor_ids=scheduled_processor_ids)
     assert grpc_client.list_quantum_jobs.call_args[1] == {
         'filter_': expected_filter,
