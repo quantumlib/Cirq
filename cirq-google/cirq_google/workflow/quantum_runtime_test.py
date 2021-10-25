@@ -15,7 +15,7 @@ import glob
 import re
 import uuid
 from dataclasses import dataclass
-from typing import List
+from typing import List, cast
 
 import cirq
 import cirq_google as cg
@@ -155,7 +155,10 @@ def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
     shared_rt_info = cirq.read_json_gzip(f'{tmpdir}/{run_id}/SharedRuntimeInfo.json.gz')
     fns = glob.glob(f'{tmpdir}/{run_id}/ExecutableResult.*.json.gz')
     fns = sorted(
-        fns, key=lambda s: int(re.search(r'ExecutableResult\.(\d+)\.json\.gz$', s).group(1))
+        fns,
+        key=lambda s: int(
+            cast(re.Match, re.search(r'ExecutableResult\.(\d+)\.json\.gz$', s)).group(1)
+        ),
     )
     assert len(fns) == 3
     exe_results: List[cg.ExecutableResult] = [cirq.read_json_gzip(fn) for fn in fns]
