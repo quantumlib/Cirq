@@ -45,6 +45,10 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
             matrix = np.array(matrix, dtype=np.complex128)
         return cirq.MatrixGate(matrix, qid_shape=(2, 2))
 
+    def _parallel_gate_op(gate, qubits):
+        n_copies = len(qubits) // gate.num_qubits()
+        return cirq.ParallelGate(gate, n_copies).on(*qubits)
+
     import sympy
 
     return {
@@ -112,7 +116,9 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_PauliY': cirq.ops.pauli_gates._PauliY,
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,
         'ParamResolver': cirq.ParamResolver,
-        'ParallelGateOperation': cirq.ParallelGateOperation,
+        # pylint: disable=line-too-long
+        'ParallelGateOperation': _parallel_gate_op,  # Deprecated in v0.14 cirq.ParallelGateOperation
+        # pylint: enable=line-too-long
         'ParallelGate': cirq.ParallelGate,
         'PauliMeasurementGate': cirq.PauliMeasurementGate,
         'PauliString': cirq.PauliString,
