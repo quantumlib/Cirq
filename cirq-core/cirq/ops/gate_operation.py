@@ -34,7 +34,6 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import _warn_or_error
 from cirq.ops import raw_types, gate_features
 from cirq.type_workarounds import NotImplementedType
 
@@ -222,27 +221,11 @@ class GateOperation(raw_types.Operation):
         getter = getattr(self.gate, '_measurement_key_name_', None)
         if getter is not None:
             return getter()
-        getter = getattr(self.gate, '_measurement_key_', None)
-        if getter is not None:
-            _warn_or_error(
-                f'_measurement_key_ was used but is deprecated.\n'
-                f'It will be removed in cirq v0.13.\n'
-                f'Use _measurement_key_name_ instead.\n'
-            )
-            return getter()
         return NotImplemented
 
     def _measurement_key_names_(self) -> Optional[AbstractSet[str]]:
         getter = getattr(self.gate, '_measurement_key_names_', None)
         if getter is not None:
-            return getter()
-        getter = getattr(self.gate, '_measurement_keys_', None)
-        if getter is not None:
-            _warn_or_error(
-                f'_measurement_keys_ was used but is deprecated.\n'
-                f'It will be removed in cirq v0.13.\n'
-                f'Use _measurement_key_names_ instead.\n'
-            )
             return getter()
         return NotImplemented
 
