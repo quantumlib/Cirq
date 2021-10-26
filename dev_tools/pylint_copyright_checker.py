@@ -21,8 +21,8 @@ from pylint.interfaces import IRawChecker
 class CopyrightChecker(BaseChecker):
     r"""Check for the copyright notices at the beginning of a Python source file.
 
-    This checker can be disabled by putting `# pylint: disable=wrong-or-nonexistent-copyright-notice` at the
-    beginning of a file.
+    This checker can be disabled by putting `# pylint: disable=wrong-or-nonexistent-copyright-notice`
+    at the beginning of a file.
     """
 
     __implements__ = IRawChecker
