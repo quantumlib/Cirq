@@ -34,7 +34,6 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import _warn_or_error
 from cirq.ops import raw_types, gate_features
 from cirq.type_workarounds import NotImplementedType
 
