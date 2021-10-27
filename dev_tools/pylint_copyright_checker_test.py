@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from astroid import parse  # type: ignore
+from astroid import parse
 from pylint.testutils import CheckerTestCase, Message
 
 from dev_tools.pylint_copyright_checker import CopyrightChecker
