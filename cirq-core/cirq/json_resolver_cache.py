@@ -79,6 +79,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'MutablePauliString': cirq.MutablePauliString,
         'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
         'GateOperation': cirq.GateOperation,
+        'GateTabulation': cirq.GateTabulation,
         'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
         'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
         'GridInteractionLayer': GridInteractionLayer,

@@ -20,7 +20,6 @@ import scipy.linalg
 import cirq
 import cirq_google as google
 from cirq_google.ops import SycamoreGate
-from cirq_google.optimizers.two_qubit_gates.gate_compilation import GateTabulation
 
 
 UNITARY_ZZ = np.kron(cirq.unitary(cirq.Z), cirq.unitary(cirq.Z))
@@ -49,7 +48,9 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
 
     # TODO(#3388) Add documentation for Raises.
     # pylint: disable=missing-raises-doc
-    def __init__(self, tabulation: Optional[GateTabulation] = None, ignore_failures=False) -> None:
+    def __init__(
+        self, tabulation: Optional['cirq.GateTabulation'] = None, ignore_failures=False
+    ) -> None:
         """Inits ConvertToSycamoreGates.
 
         Args:
@@ -63,8 +64,8 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
         """
         super().__init__()
         self.ignore_failures = ignore_failures
-        if tabulation is not None and not isinstance(tabulation, GateTabulation):
-            raise ValueError("provided tabulation must be of type GateTabulation")
+        if tabulation is not None and not isinstance(tabulation, cirq.GateTabulation):
+            raise ValueError("provided tabulation must be of type cirq.GateTabulation")
         self.tabulation = tabulation
 
     # pylint: enable=missing-raises-doc
@@ -182,7 +183,7 @@ def known_two_q_operations_to_sycamore_operations(
     qubit_a: cirq.Qid,
     qubit_b: cirq.Qid,
     op: cirq.Operation,
-    tabulation: Optional[GateTabulation] = None,
+    tabulation: Optional['cirq.GateTabulation'] = None,
 ) -> cirq.OP_TREE:
     """Synthesizes a known gate operation to a sycamore operation.
 
@@ -315,7 +316,7 @@ def decompose_phased_iswap_into_syc_precomputed(
 
 
 def decompose_arbitrary_into_syc_tabulation(
-    qubit_a: cirq.Qid, qubit_b: cirq.Qid, op: cirq.Operation, tabulation: GateTabulation
+    qubit_a: cirq.Qid, qubit_b: cirq.Qid, op: cirq.Operation, tabulation: cirq.GateTabulation
 ) -> cirq.OP_TREE:
     """Synthesize an arbitrary 2 qubit operation to a sycamore operation using
     the given Tabulation.

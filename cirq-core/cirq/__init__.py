@@ -339,6 +339,8 @@ from cirq.optimizers import (
     EjectPhasedPaulis,
     EjectZ,
     ExpandComposite,
+    gate_product_tabulation,
+    GateTabulation,
     is_negligible_turn,
     merge_single_qubit_gates_into_phased_x_z,
     merge_single_qubit_gates_into_phxz,

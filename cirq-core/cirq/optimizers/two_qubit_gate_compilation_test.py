@@ -4,11 +4,11 @@ import pytest
 
 import cirq
 from cirq import value
-from cirq_google.optimizers.two_qubit_gates.gate_compilation import (
+from cirq.optimizers.two_qubit_gate_compilation import (
     gate_product_tabulation,
     GateTabulation,
 )
-from cirq_google.optimizers.two_qubit_gates.math_utils import unitary_entanglement_fidelity
+from cirq.optimizers.two_qubit_gate_math_utils import unitary_entanglement_fidelity
 from cirq.testing import random_special_unitary, assert_equivalent_repr
 
 _rng = value.parse_random_state(11)  # for determinism
@@ -82,9 +82,7 @@ def test_sycamore_gate_tabulation_repr():
         'Sample string',
         (),
     )
-    assert_equivalent_repr(
-        simple_tabulation, setup_code="import cirq\nimport cirq_google\nimport numpy as np"
-    )
+    assert_equivalent_repr(simple_tabulation)
 
 
 def test_sycamore_gate_tabulation_eq():

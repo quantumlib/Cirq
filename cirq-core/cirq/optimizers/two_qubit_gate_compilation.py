@@ -9,7 +9,7 @@ import numpy as np
 import cirq
 from cirq import value
 from cirq._compat import proper_repr, proper_eq
-from cirq_google.optimizers.two_qubit_gates.math_utils import (
+from cirq.optimizers.two_qubit_gate_math_utils import (
     kak_vector_infidelity,
     vector_kron,
     weyl_chamber_mesh,
@@ -133,8 +133,7 @@ class GateTabulation:
             numpy_single_qubit_gates.append(f"[{','.join(gate_repr)}]")
 
         return (
-            f'cirq_google.optimizers.two_qubit_gates.gate_compilation'
-            f'.GateTabulation({proper_repr(self.base_gate)}, '
+            f'cirq.GateTabulation({proper_repr(self.base_gate)}, '
             f'{proper_repr(self.kak_vecs)}, '
             f'[{",".join(numpy_single_qubit_gates)}], '
             f' {proper_repr(self.max_expected_infidelity)}, '
@@ -305,7 +304,7 @@ def gate_product_tabulation(
     *,
     sample_scaling: int = 50,
     allow_missed_points: bool = True,
-    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> GateTabulation:
     r"""Generate a GateTabulation for a base two qubit unitary.
 

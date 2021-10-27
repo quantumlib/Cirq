@@ -23,8 +23,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 import cirq
-from cirq_google.optimizers.two_qubit_gates.gate_compilation import gate_product_tabulation
-from cirq_google.optimizers.two_qubit_gates.math_utils import unitary_entanglement_fidelity
+from cirq.optimizers.two_qubit_gate_math_utils import unitary_entanglement_fidelity
 from cirq.testing import random_special_unitary
 
 
@@ -49,7 +48,7 @@ def main(samples: int = 1000, max_infidelity: float = 0.01):
     # typical distance between an arbitrary two-qubit gate and the nearest
     # tabulated gate.
     start = time()
-    tabulation = gate_product_tabulation(base, max_infidelity)
+    tabulation = cirq.gate_product_tabulation(base, max_infidelity)
 
     print(tabulation.summary)
     print(f'Gate tabulation time : {time() - start} seconds.')
