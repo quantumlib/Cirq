@@ -229,6 +229,13 @@ def test_choi_to_kraus_inverse_of_kraus_to_choi(choi):
     assert np.allclose(recovered_choi, choi)
 
 
+def test_choi_to_kraus_atol():
+    """Verifies that insignificant Kraus operators are omitted."""
+    choi = cirq.kraus_to_choi(cirq.kraus(cirq.phase_damp(1e-6)))
+    assert len(cirq.choi_to_kraus(choi, atol=1e-2)) == 1
+    assert len(cirq.choi_to_kraus(choi, atol=1e-4)) == 2
+
+
 @pytest.mark.parametrize(
     'channel',
     (
@@ -338,6 +345,13 @@ def test_superoperator_to_kraus_inverse_of_kraus_to_superoperator(superoperator)
     kraus = cirq.superoperator_to_kraus(superoperator)
     recovered_superoperator = cirq.kraus_to_superoperator(kraus)
     assert np.allclose(recovered_superoperator, superoperator)
+
+
+def test_superoperator_to_kraus_atol():
+    """Verifies that insignificant Kraus operators are omitted."""
+    superop = cirq.kraus_to_superoperator(cirq.kraus(cirq.phase_damp(1e-6)))
+    assert len(cirq.superoperator_to_kraus(superop, atol=1e-2)) == 1
+    assert len(cirq.superoperator_to_kraus(superop, atol=1e-4)) == 2
 
 
 @pytest.mark.parametrize(

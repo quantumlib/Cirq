@@ -118,6 +118,38 @@ def test_floquet_to_calibration_layer():
             'est_gamma': False,
             'est_phi': True,
             'readout_corrections': True,
+            'version': 2,
+        },
+    )
+
+
+def test_floquet_to_calibration_layer_with_version_override():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    request = FloquetPhasedFSimCalibrationRequest(
+        gate=gate,
+        pairs=((q_00, q_01), (q_02, q_03)),
+        options=FloquetPhasedFSimCalibrationOptions(
+            characterize_theta=True,
+            characterize_zeta=True,
+            characterize_chi=False,
+            characterize_gamma=False,
+            characterize_phi=True,
+            version=3,
+        ),
+    )
+
+    assert request.to_calibration_layer() == cirq_google.CalibrationLayer(
+        calibration_type='floquet_phased_fsim_characterization',
+        program=cirq.Circuit([gate.on(q_00, q_01), gate.on(q_02, q_03)]),
+        args={
+            'est_theta': True,
+            'est_zeta': True,
+            'est_chi': False,
+            'est_gamma': False,
+            'est_phi': True,
+            'readout_corrections': True,
+            'version': 3,
         },
     )
 
@@ -150,6 +182,41 @@ def test_floquet_to_calibration_layer_readout_thresholds():
             'readout_corrections': True,
             'readout_error_tolerance': 0.4,
             'correlated_readout_error_tolerance': 7 / 6 * 0.4 - 1 / 6,
+            'version': 2,
+        },
+    )
+
+
+def test_floquet_to_calibration_layer_with_measure_qubits():
+    qubits = tuple(cirq.GridQubit(0, index) for index in range(5))
+    q_00, q_01, q_02, q_03, _ = qubits
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    request = FloquetPhasedFSimCalibrationRequest(
+        gate=gate,
+        pairs=((q_00, q_01), (q_02, q_03)),
+        options=FloquetPhasedFSimCalibrationOptions(
+            characterize_theta=True,
+            characterize_zeta=True,
+            characterize_chi=False,
+            characterize_gamma=False,
+            characterize_phi=True,
+            measure_qubits=qubits,
+        ),
+    )
+
+    assert request.to_calibration_layer() == cirq_google.CalibrationLayer(
+        calibration_type='floquet_phased_fsim_characterization',
+        program=cirq.Circuit(
+            [gate.on(q_00, q_01), gate.on(q_02, q_03), cirq.measure(*qubits)],
+        ),
+        args={
+            'est_theta': True,
+            'est_zeta': True,
+            'est_chi': False,
+            'est_gamma': False,
+            'est_phi': True,
+            'readout_corrections': True,
+            'version': 2,
         },
     )
 

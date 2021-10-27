@@ -133,6 +133,7 @@ def test_allow_partial_czs():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.CZ(q0, q1) ** 0.5,
+        cirq.CZPowGate(exponent=0.5, global_shift=-0.5).on(q0, q1),
     )
     c_orig = cirq.Circuit(circuit)
     cirq.ConvertToCzAndSingleGates(allow_partial_czs=True).optimize_circuit(circuit)
@@ -155,6 +156,14 @@ def test_allow_partial_czs():
 
 def test_dont_allow_partial_czs():
     q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.CZ(q0, q1),
+        cirq.CZPowGate(exponent=1, global_shift=-0.5).on(q0, q1),
+    )
+    c_orig = cirq.Circuit(circuit)
+    cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
+    assert circuit == c_orig
+
     circuit = cirq.Circuit(
         cirq.CZ(q0, q1) ** 0.5,
     )
