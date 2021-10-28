@@ -72,7 +72,6 @@ def test_json_serialization():
     def custom_resolver(cirq_type: str) -> Union[Callable[..., cirq.Gate], None]:
         if cirq_type == "MSGate":
             return cirq.ion.ion_gates.MSGate
-        return None
 
     assert cirq.read_json(
         json_text=cirq.to_json(cirq.ms(np.pi / 2)), resolvers=[custom_resolver]
