@@ -17,10 +17,10 @@
 import abc
 import dataclasses
 from dataclasses import dataclass
-from typing import Union, Tuple, Optional, Sequence, cast, Iterable, Dict, Any, List
+from typing import Union, Tuple, Optional, Sequence, cast, Dict, Any, List, Iterator
 
-from cirq import _compat, study
 import cirq
+from cirq import _compat, study
 
 
 class ExecutableSpec(metaclass=abc.ABCMeta):
@@ -232,7 +232,7 @@ class QuantumExecutableGroup:
     def __len__(self) -> int:
         return len(self.executables)
 
-    def __iter__(self) -> Iterable[QuantumExecutable]:
+    def __iter__(self) -> Iterator[QuantumExecutable]:
         yield from self.executables
 
     def __str__(self) -> str:

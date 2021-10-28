@@ -49,49 +49,6 @@ def test_measurement_key_obj(gate):
     assert cirq.measurement_key_obj(gate, 'a') == 'door locker'
 
 
-@pytest.mark.parametrize('gate', [ReturnsStr(), ReturnsObj()])
-def test_measurement_key_deprecated(gate):
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert isinstance(cirq.measurement_key(gate), str)
-
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.measurement_key(gate) == cirq.MeasurementKey(name='door locker')
-
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.measurement_key(gate) == 'door locker'
-
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.measurement_key(gate, None) == 'door locker'
-
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.measurement_key(gate, NotImplemented) == 'door locker'
-
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert cirq.measurement_key(gate, 'a') == 'door locker'
-
-
-@pytest.mark.parametrize('key_method', [cirq.measurement_key_name, cirq.measurement_key_obj])
-def test_measurement_key_magic_method_deprecated(key_method):
-    class DeprecatedMagicMethod(cirq.SingleQubitGate):
-        def _measurement_key_(self):
-            return 'door locker'
-
-    gate = DeprecatedMagicMethod()
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert key_method(gate) == 'door locker'
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert key_method(gate.on(cirq.LineQubit(0))) == 'door locker'
-
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert key_method(gate, None) == 'door locker'
-
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert key_method(gate, NotImplemented) == 'door locker'
-
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert key_method(gate, 'a') == 'door locker'
-
-
 @pytest.mark.parametrize('key_method', [cirq.measurement_key_name, cirq.measurement_key_obj])
 def test_measurement_key_no_method(key_method):
     class NoMethod:
@@ -221,22 +178,6 @@ def test_measurement_keys(key_method, keys):
     }
     assert key_method(MeasurementKeysGate()) == keys
     assert key_method(MeasurementKeysGate().on(a)) == keys
-
-
-@pytest.mark.parametrize('key_method', [cirq.measurement_key_names, cirq.measurement_key_objs])
-def test_measurement_keys_magic_method_deprecated(key_method):
-    class DeprecatedMagicMethod(cirq.Gate):
-        def _measurement_keys_(self):
-            return ['a', 'b']
-
-        def num_qubits(self) -> int:
-            return 1
-
-    a = cirq.LineQubit(0)
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert key_method(DeprecatedMagicMethod()) == {'a', 'b'}
-    with cirq.testing.assert_deprecated(deadline="v0.13"):
-        assert key_method(DeprecatedMagicMethod().on(a)) == {'a', 'b'}
 
 
 def test_measurement_keys_allow_decompose_deprecated():

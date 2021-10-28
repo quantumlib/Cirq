@@ -65,7 +65,7 @@ class MSGate(ops.XXPowGate):
         return protocols.obj_to_dict_helper(self, ["rads"])
 
     @classmethod
-    def _from_json_dict_(cls, rads: float, **kwargs: Any) -> Any:
+    def _from_json_dict_(cls, rads: float, **kwargs: Any) -> 'MSGate':
         return cls(rads=rads)
 
 
