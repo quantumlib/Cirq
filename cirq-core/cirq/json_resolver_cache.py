@@ -116,9 +116,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_PauliY': cirq.ops.pauli_gates._PauliY,
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,
         'ParamResolver': cirq.ParamResolver,
-        # pylint: disable=line-too-long
-        'ParallelGateOperation': _parallel_gate_op,  # Deprecated in v0.14 cirq.ParallelGateOperation
-        # pylint: enable=line-too-long
+        'ParallelGateOperation': _parallel_gate_op,  # Removed in v0.14
         'ParallelGate': cirq.ParallelGate,
         'PauliMeasurementGate': cirq.PauliMeasurementGate,
         'PauliString': cirq.PauliString,
