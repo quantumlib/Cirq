@@ -46,8 +46,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         return cirq.MatrixGate(matrix, qid_shape=(2, 2))
 
     def _parallel_gate_op(gate, qubits):
-        n_copies = len(qubits) // gate.num_qubits()
-        return cirq.ParallelGate(gate, n_copies).on(*qubits)
+        return cirq.parallel_gate_op(gate, *qubits)
 
     import sympy
 
