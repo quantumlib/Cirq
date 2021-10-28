@@ -664,9 +664,13 @@ def test_list_jobs(client_constructor):
         'created_after, '
         'created_before, '
         'labels, '
-        'execution_states',
+        'execution_states, '
+        'executed_processor_ids, '
+        'scheduled_processor_ids, ',
     [
         ('',
+            None,
+            None,
             None,
             None,
             None,
@@ -675,10 +679,14 @@ def test_list_jobs(client_constructor):
             datetime.date(2020, 9, 1),
             None,
             None,
+            None,
+            None,
             None),
         ('create_time >= 1598918400',
             datetime.datetime(2020, 9, 1, 0, 0, 0,
                               tzinfo=datetime.timezone.utc),
+            None,
+            None,
             None,
             None,
             None),
@@ -686,11 +694,15 @@ def test_list_jobs(client_constructor):
             None,
             datetime.date(2020, 10, 1),
             None,
+            None,
+            None,
             None),
         ('create_time >= 2020-09-01 AND create_time <= 1598918410',
             datetime.date(2020, 9, 1),
             datetime.datetime(2020, 9, 1, 0, 0, 10,
                             tzinfo=datetime.timezone.utc),
+            None,
+            None,
             None,
             None),
         ('labels.color:red AND labels.shape:*',
@@ -700,16 +712,18 @@ def test_list_jobs(client_constructor):
             'color': 'red',
             'shape': '*'
             },
-            None
-        ),
+            None,
+            None,
+            None),
         ('(execution_status.state = FAILURE OR '
          'execution_status.state = CANCELLED)',
             None,
             None,
             None,
             [quantum.enums.ExecutionStatus.State.FAILURE,
-             quantum.enums.ExecutionStatus.State.CANCELLED,]
-        ),
+             quantum.enums.ExecutionStatus.State.CANCELLED,],
+            None,
+            None),
         ('create_time >= 2020-08-01 AND '
          'create_time <= 1598918400 AND '
          'labels.color:red AND labels.shape:* AND '
@@ -721,12 +735,42 @@ def test_list_jobs(client_constructor):
             'shape': '*'
             },
             [quantum.enums.ExecutionStatus.State.SUCCESS,],
-        ),
+            None,
+            None),
+        ('(executed_processor_id = proc1)',
+            None,
+            None,
+            None,
+            None,
+            ['proc1'],
+            None),
+        ('(executed_processor_id = proc1 OR executed_processor_id = proc2)',
+            None,
+            None,
+            None,
+            None,
+            ['proc1', 'proc2'],
+            None),
+        ('(scheduled_processor_ids: proc1)',
+            None,
+            None,
+            None,
+            None,
+            None,
+            ['proc1']),
+        ('(scheduled_processor_ids: proc1 OR scheduled_processor_ids: proc2)',
+            None,
+            None,
+            None,
+            None,
+            None,
+            ['proc1', 'proc2']),
     ])
 # yapf: enable
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_list_jobs_filters(client_constructor, expected_filter, created_before,
-                           created_after, labels, execution_states):
+                           created_after, labels, execution_states,
+                           executed_processor_ids, scheduled_processor_ids):
     grpc_client = setup_mock_(client_constructor)
     client = EngineClient()
     client.list_jobs(project_id='proj',
@@ -734,7 +778,9 @@ def test_list_jobs_filters(client_constructor, expected_filter, created_before,
                      created_before=created_before,
                      created_after=created_after,
                      has_labels=labels,
-                     execution_states=execution_states)
+                     execution_states=execution_states,
+                     executed_processor_ids=executed_processor_ids,
+                     scheduled_processor_ids=scheduled_processor_ids)
     assert grpc_client.list_quantum_jobs.call_args[1] == {
         'filter_': expected_filter,
     }

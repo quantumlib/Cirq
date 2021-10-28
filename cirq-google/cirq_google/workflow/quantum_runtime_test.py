@@ -11,13 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import glob
+import re
+import uuid
 from dataclasses import dataclass
+from typing import List
+
+import numpy as np
+import pytest
 
 import cirq
 import cirq_google as cg
-import numpy as np
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
-from cirq_google.workflow.quantum_executable_test import _get_example_spec
+from cirq_google.workflow.quantum_executable_test import _get_quantum_executables, _get_example_spec
 
 
 @dataclass
@@ -120,3 +126,30 @@ def test_executable_group_result(tmpdir):
     cg_assert_equivalent_repr(egr)
     assert len(egr.executable_results) == 3
     _assert_json_roundtrip(egr, tmpdir)
+
+
+@pytest.mark.parametrize('run_id', ['unit_test_runid', None])
+def test_execute(tmpdir, run_id):
+    rt_config = cg.QuantumRuntimeConfiguration(processor=_MockEngineProcessor(), run_id=run_id)
+    executable_group = cg.QuantumExecutableGroup(_get_quantum_executables())
+    returned_exegroup_result = cg.execute(
+        rt_config=rt_config, executable_group=executable_group, base_data_dir=tmpdir
+    )
+    actual_run_id = returned_exegroup_result.shared_runtime_info.run_id
+    if run_id is not None:
+        assert run_id == actual_run_id
+    else:
+        assert isinstance(uuid.UUID(actual_run_id), uuid.UUID)
+    fns = glob.glob(f'{tmpdir}/{actual_run_id}/ExecutableGroupResult.json.gz')
+    assert len(fns) == 1
+    exegroup_result: cg.ExecutableGroupResult = _cg_read_json_gzip(fns[0])
+
+    fns = glob.glob(f'{tmpdir}/{actual_run_id}/ExecutableResult.*.json.gz')
+    fns = sorted(
+        fns, key=lambda s: int(re.search(r'ExecutableResult\.(\d+)\.json\.gz$', s).group(1))
+    )
+    assert len(fns) == 3
+    exe_results: List[cg.ExecutableResult] = [_cg_read_json_gzip(fn) for fn in fns]
+
+    exegroup_result.executable_results = exe_results
+    assert returned_exegroup_result == exegroup_result
