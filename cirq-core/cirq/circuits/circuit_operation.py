@@ -85,6 +85,9 @@ class CircuitOperation(ops.Operation):
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
+    _cached_measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = dataclasses.field(
+        default=None, init=False
+    )
 
     circuit: 'cirq.FrozenCircuit'
     repetitions: int = 1
@@ -172,21 +175,27 @@ class CircuitOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return self.circuit._is_measurement_()
 
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        if self._cached_measurement_key_objs is None:
+            circuit_keys = protocols.measurement_key_objs(self.circuit)
+            if self.repetition_ids is not None:
+                circuit_keys = {
+                    key.with_key_path_prefix(repetition_id)
+                    for repetition_id in self.repetition_ids
+                    for key in circuit_keys
+                }
+            object.__setattr__(
+                self,
+                '_cached_measurement_key_objs',
+                {
+                    protocols.with_measurement_key_mapping(key, self.measurement_key_map)
+                    for key in circuit_keys
+                },
+            )
+        return self._cached_measurement_key_objs  # type: ignore
+
     def _measurement_key_names_(self) -> AbstractSet[str]:
-        circuit_keys = [
-            value.MeasurementKey.parse_serialized(key_str)
-            for key_str in self.circuit.all_measurement_key_names()
-        ]
-        if self.repetition_ids is not None:
-            circuit_keys = [
-                key.with_key_path_prefix(repetition_id)
-                for repetition_id in self.repetition_ids
-                for key in circuit_keys
-            ]
-        return {
-            str(protocols.with_measurement_key_mapping(key, self.measurement_key_map))
-            for key in circuit_keys
-        }
+        return {str(key) for key in self._measurement_key_objs_()}
 
     def _control_key_names_(self) -> AbstractSet[str]:
         circuit_keys = [
@@ -535,7 +544,7 @@ class CircuitOperation(ops.Operation):
                 keys than this operation.
         """
         new_map = {}
-        for k in self.circuit.all_measurement_key_names() | protocols.control_key_names(
+        for k in {k.name for k in self.circuit.all_measurement_key_objs()} | protocols.control_key_names(
             self.circuit
         ):
             k = value.MeasurementKey.parse_serialized(k).name
@@ -544,7 +553,7 @@ class CircuitOperation(ops.Operation):
             if k_new != k:
                 new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
-        if len(new_op._measurement_key_names_()) != len(self._measurement_key_names_()) or len(
+        if len(new_op._measurement_key_objs_()) != len(self._measurement_key_objs_()) or len(
             new_op._control_key_names_()
         ) != len(self._control_key_names_()):
             raise ValueError(

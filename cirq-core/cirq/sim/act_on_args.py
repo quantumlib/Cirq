@@ -16,7 +16,6 @@ import abc
 import copy
 from typing import (
     Any,
-    Iterable,
     Dict,
     List,
     TypeVar,
@@ -31,7 +30,6 @@ from typing import (
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import deprecated
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -48,7 +46,6 @@ class ActOnArgs(OperationTarget[TSelf]):
         self,
         prng: np.random.RandomState = None,
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
         """Inits ActOnArgs.
@@ -59,8 +56,6 @@ class ActOnArgs(OperationTarget[TSelf]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
@@ -68,12 +63,9 @@ class ActOnArgs(OperationTarget[TSelf]):
             prng = cast(np.random.RandomState, np.random)
         if qubits is None:
             qubits = ()
-        if axes is None:
-            axes = ()
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
         self._set_qubits(qubits)
-        self._axes = tuple(axes)
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
 
@@ -266,22 +258,6 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
         return iter(self.qubits)
-
-    @property  # type: ignore
-    @deprecated(
-        deadline="v0.13",
-        fix="Use `protocols.act_on` instead.",
-    )
-    def axes(self) -> Tuple[int, ...]:
-        return self._axes
-
-    @axes.setter  # type: ignore
-    @deprecated(
-        deadline="v0.13",
-        fix="Use `protocols.act_on` instead.",
-    )
-    def axes(self, value: Iterable[int]):
-        self._axes = tuple(value)
 
 
 def strat_act_on_from_apply_decompose(

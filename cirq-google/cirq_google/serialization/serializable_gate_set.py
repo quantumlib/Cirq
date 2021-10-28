@@ -26,7 +26,7 @@ from typing import (
 )
 
 import cirq
-from cirq._compat import deprecated, deprecated_parameter
+from cirq._compat import deprecated
 from cirq_google.api import v2
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
@@ -93,26 +93,8 @@ class SerializableGateSet(serializer.Serializer):
             deserializers=[*self.deserializers.values(), *deserializers],
         )
 
-    @deprecated(deadline='v0.13', fix='Use with_added_types instead.')
-    def with_added_gates(
-        self,
-        *,
-        gate_set_name: Optional[str] = None,
-        serializers: Iterable[op_serializer.OpSerializer] = (),
-        deserializers: Iterable[op_deserializer.OpDeserializer] = (),
-    ) -> 'SerializableGateSet':
-        return self.with_added_types(
-            gate_set_name=gate_set_name,
-            serializers=serializers,
-            deserializers=deserializers,
-        )
-
     def supported_internal_types(self) -> Tuple:
         return tuple(self.serializers.keys())
-
-    @deprecated(deadline='v0.13', fix='Use supported_internal_types instead.')
-    def supported_gate_types(self) -> Tuple:
-        return self.supported_internal_types()
 
     def is_supported(self, op_tree: cirq.OP_TREE) -> bool:
         """Whether the given object contains only supported operations."""
@@ -131,26 +113,13 @@ class SerializableGateSet(serializer.Serializer):
 
     # TODO(#3388) Add documentation for Raises.
     # pylint: disable=missing-raises-doc
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='Use use_constants instead.',
-        parameter_desc='keyword use_constants_table_for_tokens',
-        match=lambda args, kwargs: 'use_constants_table_for_tokens' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {
-                ('use_constants' if k == 'use_constants_table_for_tokens' else k): v
-                for k, v in kwargs.items()
-            },
-        ),
-    )
     def serialize(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         msg: Optional[v2.program_pb2.Program] = None,
         *,
         arg_function_language: Optional[str] = None,
-        use_constants: bool = True,
+        use_constants: Optional[bool] = True,
     ) -> v2.program_pb2.Program:
         """Serialize a Circuit to cirq_google.api.v2.Program proto.
 

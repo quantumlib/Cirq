@@ -30,7 +30,7 @@ from typing import (
     Union,
 )
 
-from cirq import protocols, ops
+from cirq import protocols, ops, value
 from cirq.ops import raw_types
 from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
@@ -92,7 +92,7 @@ class Moment:
                 self._qubit_to_op[q] = op
 
         self._qubits = frozenset(self._qubit_to_op.keys())
-        self._measurement_key_names: Optional[AbstractSet[str]] = None
+        self._measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = None
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
@@ -220,11 +220,14 @@ class Moment:
         )
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
-        if self._measurement_key_names is None:
-            self._measurement_key_names = {
-                key for op in self.operations for key in protocols.measurement_key_names(op)
+        return {str(key) for key in self._measurement_key_objs_()}
+
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        if self._measurement_key_objs is None:
+            self._measurement_key_objs = {
+                key for op in self.operations for key in protocols.measurement_key_objs(op)
             }
-        return self._measurement_key_names
+        return self._measurement_key_objs
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         return Moment(
