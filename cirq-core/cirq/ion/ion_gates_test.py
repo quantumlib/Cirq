@@ -73,7 +73,6 @@ def test_json_serialization():
         if cirq_type == "MSGate":
             return cirq.ion.ion_gates.MSGate
 
-    resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     assert cirq.read_json(
-        json_text=cirq.to_json(cirq.ms(np.pi / 2)), resolvers=resolvers
+        json_text=cirq.to_json(cirq.ms(np.pi / 2)), resolvers=[custom_resolver]
     ) == cirq.ms(np.pi / 2)
