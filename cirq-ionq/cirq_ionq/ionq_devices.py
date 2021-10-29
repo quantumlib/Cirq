@@ -62,7 +62,7 @@ class IonQAPIDevice(cirq.Device):
             cirq.ZZPowGate,
             cirq.MeasurementGate,
             unroll_circuit_op=False,
-            accept_global_phase=False,
+            accept_global_phase_op=False,
         )
 
     def qubit_set(self) -> AbstractSet['cirq.Qid']:

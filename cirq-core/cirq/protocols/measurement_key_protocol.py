@@ -17,7 +17,7 @@ from typing import AbstractSet, Any, Dict, Optional, Tuple
 
 from typing_extensions import Protocol
 
-from cirq._compat import deprecated, deprecated_parameter, _warn_or_error
+from cirq._compat import deprecated_parameter
 from cirq._doc import doc_private
 from cirq import value
 
@@ -98,11 +98,6 @@ class SupportsMeasurementKey(Protocol):
 
         This method allows measurement keys to be reassigned at runtime.
         """
-
-
-@deprecated(deadline='v0.13', fix='use cirq.measurement_key_name instead')
-def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
-    return measurement_key_name(val, default)
 
 
 def measurement_key_obj(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
@@ -198,36 +193,13 @@ def _measurement_key_names_from_magic_methods(val: Any) -> Optional[AbstractSet[
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
         return set(result)
-    getter = getattr(val, '_measurement_keys_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented and result is not None:
-        _warn_or_error(
-            f'_measurement_keys_ was used but is deprecated.\n'
-            f'It will be removed in cirq v0.13.\n'
-            f'Use _measurement_key_names_ instead.\n'
-        )
-        return set(result)
 
     getter = getattr(val, '_measurement_key_name_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
         return {result}
-    getter = getattr(val, '_measurement_key_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented and result is not None:
-        _warn_or_error(
-            f'_measurement_key_ was used but is deprecated.\n'
-            f'It will be removed in cirq v0.13.\n'
-            f'Use _measurement_key_name_ instead.\n'
-        )
-        return {result}
 
     return result
-
-
-@deprecated(deadline='v0.13', fix='use cirq.measurement_key_names instead')
-def measurement_keys(val: Any, *, allow_decompose: bool = True):
-    return measurement_key_names(val, allow_decompose=allow_decompose)
 
 
 def measurement_key_objs(val: Any) -> AbstractSet[value.MeasurementKey]:

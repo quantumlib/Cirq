@@ -18,7 +18,6 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable, Union
 
 import numpy as np
 
-from cirq._compat import deprecated_parameter
 from cirq.ops import common_gates
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -31,18 +30,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _rewrite_deprecated_args(args, kwargs):
-    if len(args) > 2:
-        kwargs['axes'] = args[2]
-    if len(args) > 3:
-        kwargs['prng'] = args[3]
-    if len(args) > 4:
-        kwargs['log_of_measurement_results'] = args[4]
-    if len(args) > 5:
-        kwargs['qubits'] = args[5]
-    return args[:2], kwargs
-
-
 class ActOnCliffordTableauArgs(ActOnArgs):
     """State and context for an operation acting on a clifford tableau.
 
@@ -50,22 +37,12 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     storing the density matrix of the quantum system with one axis per qubit.
     """
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs
-        or ('prng' in kwargs and len(args) == 3)
-        or (len(args) > 3 and isinstance(args[3], np.random.RandomState)),
-        rewrite=_rewrite_deprecated_args,
-    )
     def __init__(
         self,
         tableau: CliffordTableau,
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
     ):
         """Inits ActOnCliffordTableauArgs.
 
@@ -79,10 +56,8 @@ class ActOnCliffordTableauArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.tableau = tableau
 
     def _act_on_fallback_(
