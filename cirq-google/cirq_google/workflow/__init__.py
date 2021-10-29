@@ -12,4 +12,5 @@ from cirq_google.workflow.quantum_runtime import (
     ExecutableResult,
     ExecutableGroupResult,
     QuantumRuntimeConfiguration,
+    execute,
 )

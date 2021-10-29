@@ -50,7 +50,6 @@ import networkx
 import numpy as np
 
 import cirq._version
-from cirq._compat import deprecated
 from cirq import devices, ops, protocols, value, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
@@ -914,10 +913,6 @@ class AbstractCircuit(abc.ABC):
 
     def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
         return self.all_measurement_key_objs()
-
-    @deprecated(deadline='v0.13', fix='use all_measurement_key_names instead')
-    def all_measurement_keys(self) -> AbstractSet[str]:
-        return self.all_measurement_key_names()
 
     def all_measurement_key_names(self) -> AbstractSet[str]:
         return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
