@@ -500,7 +500,30 @@ SQRT_ISWAP_DESERIALIZERS = [
     ),
 ]
 
-
+_LIMITED_FSIM_GATE_FAMILY = common_gate_families.FSimGateFamily(
+    gates_to_accept=[
+        cirq.IdentityGate(2),
+        cirq.SQRT_ISWAP_INV,
+        cirq.SQRT_ISWAP,
+        cirq.ISWAP,
+        cirq.ISWAP ** -1,  # type: ignore
+        SYC,
+        cirq.CZ,
+    ],
+    gate_types_to_check=[cirq.FSimGate],
+    allow_symbols=True,
+)
+_LIMITED_ISWAP_GATE_FAMILY = common_gate_families.FSimGateFamily(
+    gates_to_accept=[
+        cirq.IdentityGate(2),
+        cirq.SQRT_ISWAP_INV,
+        cirq.SQRT_ISWAP,
+        cirq.ISWAP,
+        cirq.ISWAP ** -1,  # type: ignore
+    ],
+    gate_types_to_check=[cirq.ISwapPowGate],
+    allow_symbols=True,
+)
 LIMITED_FSIM_SERIALIZERS = [
     op_serializer.GateOpSerializer(
         gate_type=cirq.FSimGate,
@@ -514,22 +537,7 @@ LIMITED_FSIM_SERIALIZERS = [
             ),
             _phase_match_arg,
         ],
-        can_serialize_predicate=(
-            lambda op: op
-            in common_gate_families.FSimGateFamily(
-                gates_to_accept=[
-                    cirq.IdentityGate(2),
-                    cirq.SQRT_ISWAP_INV,
-                    cirq.SQRT_ISWAP,
-                    cirq.ISWAP,
-                    cirq.ISWAP ** -1,  # type: ignore
-                    SYC,
-                    cirq.CZ,
-                ],
-                gate_types_to_check=[cirq.FSimGate],
-                allow_symbols=True,
-            )
-        ),
+        can_serialize_predicate=(lambda op: op in _LIMITED_FSIM_GATE_FAMILY),
     ),
     op_serializer.GateOpSerializer(
         gate_type=cirq.ISwapPowGate,
@@ -546,20 +554,7 @@ LIMITED_FSIM_SERIALIZERS = [
             ),
             _phase_match_arg,
         ],
-        can_serialize_predicate=(
-            lambda op: op
-            in common_gate_families.FSimGateFamily(
-                gates_to_accept=[
-                    cirq.IdentityGate(2),
-                    cirq.SQRT_ISWAP_INV,
-                    cirq.SQRT_ISWAP,
-                    cirq.ISWAP,
-                    cirq.ISWAP ** -1,  # type: ignore
-                ],
-                gate_types_to_check=[cirq.ISwapPowGate],
-                allow_symbols=True,
-            )
-        ),
+        can_serialize_predicate=(lambda op: op in _LIMITED_ISWAP_GATE_FAMILY),
     ),
     op_serializer.GateOpSerializer(
         gate_type=cirq.CZPowGate,

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Common Gate Families used in cirq-google"""
+
 from typing import cast, Dict, Optional, Type, Sequence, Union, Any, Callable
 
 import sympy
@@ -31,10 +32,12 @@ POSSIBLE_FSIM_GATES = Union[
 
 
 def _exp(theta: Union[complex, sympy.Basic]):
+    """Utility method to return exp(theta) using numpy or sympy, depending on the type of theta."""
     return sympy.exp(theta) if cirq.is_parameterized(theta) else np.exp(theta)
 
 
 def _gate_list_to_str(gates: Any, gettr: Callable[[Any], str] = _gate_str) -> str:
+    """Converts a list of gates (types/instances) to string by calling gettr (str/repr) on each."""
     return f'[{",".join([*map(gettr, gates)])}]'
 
 
@@ -50,7 +53,7 @@ class FSimGateFamily(cirq.GateFamily):
     """GateFamily useful to convert/accept `cirq.FSimGate` and other related gate types.
 
     This gate family is useful to work with any of the different representations of `cirq.FSimGate`
-    and it's related types present in Cirq. Specifically, the gate family can be used to convert or
+    and its related types present in Cirq. Specifically, the gate family can be used to convert or
     accept (if possible) compatible instances of any of the following `POSSIBLE_FSIM_GATES` types:
 
     1. `cirq.FSimGate`, `cirq.PhasedFSimGate`
@@ -245,13 +248,43 @@ class FSimGateFamily(cirq.GateFamily):
         return False
 
     def convert(
-        self, g: cirq.Gate, target_gate_type: Type[POSSIBLE_FSIM_GATES]
+        self, gate: cirq.Gate, target_gate_type: Type[POSSIBLE_FSIM_GATES]
     ) -> Optional[POSSIBLE_FSIM_GATES]:
+        """Converts, if possible, the given `gate` to an equivalent instance of `target_gate_type`.
+
+        This method can be used for converting instances of `POSSIBLE_FSIM_GATES` to other
+        equivalent types from the same group. For example, you can convert a sqrt iswap gate
+        to an equivalent fsim gate by calling:
+
+        >>> gf = cirq_google.FSimGateFamily()
+        >>> assert gf.convert(cirq.SQRT_ISWAP, cirq.FSimGate) == cirq.FSimGate(-np.pi/4, 0)
+
+        The method can also be used for converting parameterized gate instances, by setting
+        `allow_symbols=True` in the gate family constructor. Note that, conversion of
+        paramaterized gate instances tries to be lenient and assumes that the correct
+        parameters would eventually be filled during parameter resolution. This can also result
+        in dropping extra parameters during type conversion, assuming the dropped parameters
+        would be supplid the correct values. For example:
+
+        >>> gf = cirq_google.FSimGateFamily(allow_symbols = True)
+        >>> theta, phi = sympy.Symbol("theta"), sympy.Symbol("phi")
+        >>> assert gf.convert(cirq.FSimGate(-np.pi/4, phi), cirq.ISwapPowGate) == cirq.SQRT_ISWAP
+        >>> assert gf.convert(cirq.FSimGate(theta, np.pi/4), cirq.ISwapPowGate) is None
+
+        Args:
+            gate            : `cirq.Gate` instance to convert.
+            target_gate_type: One of `POSSIBLE_FSIM_GATES` types to which the given gate should be
+                              converted to.
+        Returns:
+            The converted gate instances if the converion is possible, else None.
+        Raises:
+            ValueError: If `target_gate_type` is not one of `POSSIBLE_FSIM_GATES`.
+        """
         if target_gate_type not in self._supported_types:
             raise ValueError(f"{target_gate_type} must be one of {self._supported_types}")
-        if not self.allow_symbols and cirq.is_parameterized(g):
+        if not self.allow_symbols and cirq.is_parameterized(gate):
             return None
-        return self._supported_types[target_gate_type](cast(POSSIBLE_FSIM_GATES, g))
+        return self._supported_types[target_gate_type](cast(POSSIBLE_FSIM_GATES, gate))
 
     def _convert_to_fsim(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.FSimGate]:
         theta = phi = None

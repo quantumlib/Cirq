@@ -20,7 +20,7 @@ import numpy as np
 import cirq
 import cirq_google
 
-ALL_POSSIBLE_FSIM_GATES = [
+ALL_POSSIBLE_FSIM_GATESS = [
     cirq.CZPowGate,
     cirq.FSimGate,
     cirq.PhasedFSimGate,
@@ -28,105 +28,105 @@ ALL_POSSIBLE_FSIM_GATES = [
     cirq.PhasedISwapPowGate,
     cirq.IdentityGate,
 ]
-theta, phi = sympy.Symbol("theta"), sympy.Symbol("phi")
-FOR_IDENTITY = [
-    (cirq.CZ ** theta, {theta: 2}),
+THETA, PHI = sympy.Symbol("theta"), sympy.Symbol("phi")
+VALID_IDENTITY = [
+    (cirq.CZ ** THETA, {THETA: 2}),
     (cirq.IdentityGate(2), {}),
-    (cirq.FSimGate(theta, phi), {theta: 0, phi: 0}),
-    (cirq.PhasedFSimGate(theta, 0, 0, 0, phi), {theta: 0, phi: 0}),
-    (cirq.ISWAP ** theta, {theta: 4}),
-    (cirq.PhasedISwapPowGate(exponent=theta, phase_exponent=phi), {theta: 4, phi: 2}),
+    (cirq.FSimGate(THETA, PHI), {THETA: 0, PHI: 0}),
+    (cirq.PhasedFSimGate(THETA, 0, 0, 0, PHI), {THETA: 0, PHI: 0}),
+    (cirq.ISWAP ** THETA, {THETA: 4}),
+    (cirq.PhasedISwapPowGate(exponent=THETA, phase_exponent=PHI), {THETA: 4, PHI: 2}),
 ]
 
-FOR_CZPOW_GATE = [
-    (cirq.CZPowGate(exponent=theta, global_shift=2.5), {theta: 0.1}),
-    (cirq.CZ ** theta, {theta: 0.5}),
-    (cirq.FSimGate(theta=theta, phi=0.1), {theta: 0}),
-    (cirq.FSimGate(theta=2 * np.pi, phi=phi), {phi: -0.4}),
+VALID_CZPOW_GATES = [
+    (cirq.CZPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.1}),
+    (cirq.CZ ** THETA, {THETA: 0.5}),
+    (cirq.FSimGate(theta=THETA, phi=0.1), {THETA: 0}),
+    (cirq.FSimGate(theta=2 * np.pi, phi=PHI), {PHI: -0.4}),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=theta,
+            theta=THETA,
             phi=10,
-            rz_angles_before=(theta, theta),
-            rz_angles_after=(phi, phi),
+            rz_angles_before=(THETA, THETA),
+            rz_angles_after=(PHI, PHI),
         ),
-        {theta: 0, phi: 2 * np.pi},
+        {THETA: 0, PHI: 2 * np.pi},
     ),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=theta,
-            phi=phi,
+            theta=THETA,
+            phi=PHI,
             rz_angles_before=(2 * np.pi, 2 * np.pi),
             rz_angles_after=(0, 0),
         ),
-        {theta: 2 * np.pi, phi: -0.01},
+        {THETA: 2 * np.pi, PHI: -0.01},
     ),
-] + FOR_IDENTITY
+] + VALID_IDENTITY
 
-FOR_ISWAP_GATE = [
-    (cirq.ISwapPowGate(exponent=theta, global_shift=2.5), {theta: 0.1}),
-    (cirq.PhasedISwapPowGate(exponent=0.1, phase_exponent=phi), {phi: 2}),
-    (cirq.SQRT_ISWAP_INV ** theta, {theta: 0.1}),
-    (cirq.FSimGate(theta=theta, phi=phi), {theta: 0.1, phi: 0}),
-    (cirq.FSimGate(theta=-0.4, phi=phi), {phi: 2 * np.pi}),
+VALID_ISWAP_GATES = [
+    (cirq.ISwapPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.1}),
+    (cirq.PhasedISwapPowGate(exponent=0.1, phase_exponent=PHI), {PHI: 2}),
+    (cirq.SQRT_ISWAP_INV ** THETA, {THETA: 0.1}),
+    (cirq.FSimGate(theta=THETA, phi=PHI), {THETA: 0.1, PHI: 0}),
+    (cirq.FSimGate(theta=-0.4, phi=PHI), {PHI: 2 * np.pi}),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
             theta=10,
-            phi=phi,
-            rz_angles_before=(phi, phi),
-            rz_angles_after=(theta, theta),
+            phi=PHI,
+            rz_angles_before=(PHI, PHI),
+            rz_angles_after=(THETA, THETA),
         ),
-        {theta: 2 * np.pi, phi: 0},
+        {THETA: 2 * np.pi, PHI: 0},
     ),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=theta,
-            phi=phi,
-            rz_angles_before=(phi, phi),
+            theta=THETA,
+            phi=PHI,
+            rz_angles_before=(PHI, PHI),
             rz_angles_after=(0, 0),
         ),
-        {theta: -0.01, phi: 2 * np.pi},
+        {THETA: -0.01, PHI: 2 * np.pi},
     ),
-] + FOR_IDENTITY
+] + VALID_IDENTITY
 
-FOR_PHASED_ISWAP_GATE = [
-    (cirq.PhasedISwapPowGate(exponent=0.1, phase_exponent=phi), {phi: 0.24}),
+VALID_PHASED_ISWAP_GATES = [
+    (cirq.PhasedISwapPowGate(exponent=0.1, phase_exponent=PHI), {PHI: 0.24}),
     *[
-        (cirq.PhasedFSimGate.from_fsim_rz(theta, phi, (-p, p), (p, -p)), {theta: tv, phi: pv})
-        for p in [np.pi / 4, 0.01, theta, phi]
+        (cirq.PhasedFSimGate.from_fsim_rz(THETA, PHI, (-p, p), (p, -p)), {THETA: tv, PHI: pv})
+        for p in [np.pi / 4, 0.01, THETA, PHI]
         for tv, pv in [(0.4, 0), (-0.1, 2 * np.pi)]
     ],
-] + FOR_ISWAP_GATE[
+] + VALID_ISWAP_GATES[
     1:
 ]  # type: ignore
 
-FOR_FSIM_GATE = (
+VALID_FSIM_GATES = (
     [
-        (cirq.CZPowGate(exponent=theta, global_shift=2.5), {theta: 0.8}),
-        (cirq.ISwapPowGate(exponent=theta, global_shift=2.5), {theta: 0.8}),
-        (cirq.FSimGate(theta, phi), {theta: 7 * np.pi / 4, phi: 0.0}),
+        (cirq.CZPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.8}),
+        (cirq.ISwapPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.8}),
+        (cirq.FSimGate(THETA, PHI), {THETA: 7 * np.pi / 4, PHI: 0.0}),
         (cirq_google.SYC, {}),
-        (cirq.PhasedFSimGate(theta=0.3, chi=theta, phi=phi), {theta: 0, phi: 0.3}),
+        (cirq.PhasedFSimGate(theta=0.3, chi=THETA, phi=PHI), {THETA: 0, PHI: 0.3}),
     ]
-    + FOR_CZPOW_GATE[1:]  # type: ignore
-    + FOR_ISWAP_GATE[2 : -len(FOR_IDENTITY)]  # type: ignore
+    + VALID_CZPOW_GATES[1:]  # type: ignore
+    + VALID_ISWAP_GATES[2 : -len(VALID_IDENTITY)]  # type: ignore
 )
 
-FOR_PHASED_FSIM_GATE = FOR_FSIM_GATE + [
-    (cirq.PhasedISwapPowGate(exponent=theta, phase_exponent=phi), {theta: -0.5, phi: 0.75}),
-    (cirq.PhasedISwapPowGate(exponent=theta, phase_exponent=phi), {theta: 0.5, phi: 10}),
+VALID_PHASED_FSIM_GATES = VALID_FSIM_GATES + [
+    (cirq.PhasedISwapPowGate(exponent=THETA, phase_exponent=PHI), {THETA: -0.5, PHI: 0.75}),
+    (cirq.PhasedISwapPowGate(exponent=THETA, phase_exponent=PHI), {THETA: 0.5, PHI: 10}),
 ]
 
 
 @pytest.mark.parametrize(
     'gate, params, target_type',
     [
-        *[(g, param, cirq.IdentityGate) for (g, param) in FOR_IDENTITY],
-        *[(g, param, cirq.CZPowGate) for (g, param) in FOR_CZPOW_GATE],
-        *[(g, param, cirq.ISwapPowGate) for (g, param) in FOR_ISWAP_GATE],
-        *[(g, param, cirq.PhasedISwapPowGate) for (g, param) in FOR_PHASED_ISWAP_GATE],
-        *[(g, param, cirq.FSimGate) for (g, param) in FOR_FSIM_GATE],
-        *[(g, param, cirq.PhasedFSimGate) for (g, param) in FOR_PHASED_FSIM_GATE],
+        *[(g, param, cirq.IdentityGate) for (g, param) in VALID_IDENTITY],
+        *[(g, param, cirq.CZPowGate) for (g, param) in VALID_CZPOW_GATES],
+        *[(g, param, cirq.ISwapPowGate) for (g, param) in VALID_ISWAP_GATES],
+        *[(g, param, cirq.PhasedISwapPowGate) for (g, param) in VALID_PHASED_ISWAP_GATES],
+        *[(g, param, cirq.FSimGate) for (g, param) in VALID_FSIM_GATES],
+        *[(g, param, cirq.PhasedFSimGate) for (g, param) in VALID_PHASED_FSIM_GATES],
     ],
 )
 def test_fsim_gate_family_convert_accept(gate, params, target_type):
@@ -150,7 +150,7 @@ def test_fsim_gate_family_raises():
     with pytest.raises(ValueError, match='must be one of'):
         _ = cirq_google.FSimGateFamily(gate_types_to_check=[cirq_google.SycamoreGate])
     with pytest.raises(ValueError, match='Parameterized gate'):
-        _ = cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ ** sympy.Symbol('theta')])
+        _ = cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ ** sympy.Symbol('THETA')])
     with pytest.raises(ValueError, match='must be either a type from or an instance of'):
         _ = cirq_google.FSimGateFamily(gates_to_accept=[cirq.CNOT])
     with pytest.raises(ValueError, match='must be either a type from or an instance of'):
@@ -163,14 +163,16 @@ def test_fsim_gate_family_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         cirq_google.FSimGateFamily(),
-        cirq_google.FSimGateFamily(gate_types_to_check=ALL_POSSIBLE_FSIM_GATES),
-        cirq_google.FSimGateFamily(gate_types_to_check=ALL_POSSIBLE_FSIM_GATES[::-1]),
+        cirq_google.FSimGateFamily(gate_types_to_check=ALL_POSSIBLE_FSIM_GATESS),
+        cirq_google.FSimGateFamily(gate_types_to_check=ALL_POSSIBLE_FSIM_GATESS[::-1]),
     )
     eq.add_equality_group(
         cirq_google.FSimGateFamily(allow_symbols=True),
-        cirq_google.FSimGateFamily(gate_types_to_check=ALL_POSSIBLE_FSIM_GATES, allow_symbols=True),
         cirq_google.FSimGateFamily(
-            gate_types_to_check=ALL_POSSIBLE_FSIM_GATES[::-1], allow_symbols=True
+            gate_types_to_check=ALL_POSSIBLE_FSIM_GATESS, allow_symbols=True
+        ),
+        cirq_google.FSimGateFamily(
+            gate_types_to_check=ALL_POSSIBLE_FSIM_GATESS[::-1], allow_symbols=True
         ),
     )
     eq.add_equality_group(
@@ -193,7 +195,7 @@ def test_fsim_gate_family_eq():
                 cirq.PhasedISwapPowGate,
                 cirq.PhasedISwapPowGate,
             ],
-            gate_types_to_check=ALL_POSSIBLE_FSIM_GATES + [cirq.FSimGate],
+            gate_types_to_check=ALL_POSSIBLE_FSIM_GATESS + [cirq.FSimGate],
             allow_symbols=True,
         ),
         cirq_google.FSimGateFamily(
@@ -203,7 +205,7 @@ def test_fsim_gate_family_eq():
                 cirq.CZPowGate,
                 cirq.PhasedISwapPowGate,
             ],
-            gate_types_to_check=ALL_POSSIBLE_FSIM_GATES[::-1] + [cirq.FSimGate],
+            gate_types_to_check=ALL_POSSIBLE_FSIM_GATESS[::-1] + [cirq.FSimGate],
             allow_symbols=True,
         ),
     )
@@ -221,7 +223,7 @@ def test_fsim_gate_family_eq():
                 cirq.CZPowGate,
                 cirq.PhasedISwapPowGate,
             ],
-            gate_types_to_check=ALL_POSSIBLE_FSIM_GATES[::-1] + [cirq.FSimGate],  # type:ignore
+            gate_types_to_check=ALL_POSSIBLE_FSIM_GATESS[::-1] + [cirq.FSimGate],  # type:ignore
             allow_symbols=True,
             atol=1e-8,
         ),
@@ -236,8 +238,8 @@ def test_fsim_gate_family_repr(gate_family):
 class UnequalSycGate(cirq.FSimGate):
     def __init__(self, is_parameterized: bool = False):
         super().__init__(
-            theta=theta if is_parameterized else np.pi / 2,
-            phi=phi if is_parameterized else np.pi / 6,
+            theta=THETA if is_parameterized else np.pi / 2,
+            phi=PHI if is_parameterized else np.pi / 6,
         )
 
 
@@ -252,6 +254,6 @@ def test_fsim_gate_family_convert_rejects():
         gates_to_accept=[cirq_google.SYC], allow_symbols=True
     )
     # Partially paramaterized incompatible gate.
-    assert cirq.FSimGate(theta, np.pi / 2) not in cirq_google.FSimGateFamily(
+    assert cirq.FSimGate(THETA, np.pi / 2) not in cirq_google.FSimGateFamily(
         gates_to_accept=[cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=0.1), cirq.CZPowGate]
     )
