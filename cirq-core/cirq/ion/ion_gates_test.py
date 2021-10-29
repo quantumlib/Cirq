@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from typing import Callable, Union
 import numpy as np
 
 import cirq
@@ -66,3 +66,15 @@ a: ───×───X───Y───MS(π)───
 b: ───×───────────MS(π)───
 """,
     )
+
+
+def test_json_serialization():
+    def custom_resolver(cirq_type: str) -> Union[Callable[..., cirq.Gate], None]:
+        if cirq_type == "MSGate":
+            return cirq.ion.ion_gates.MSGate
+        return None
+
+    assert cirq.read_json(
+        json_text=cirq.to_json(cirq.ms(np.pi / 2)), resolvers=[custom_resolver]
+    ) == cirq.ms(np.pi / 2)
+    assert custom_resolver('X') == None
