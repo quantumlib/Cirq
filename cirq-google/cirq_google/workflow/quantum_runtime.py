@@ -274,15 +274,7 @@ def execute(
     # Set up to-be-updated objects.
     shared_rt_info = SharedRuntimeInfo(run_id=run_id)
     _update_updatable_files(egr_record, shared_rt_info, data_dir)
-
     executable_results = []
-
-    def _finalize_exe_result(exe_result: ExecutableResult, i: int):
-        """Do all the bookkeeping when an ExecutableResult has been completed."""
-        exe_result_path = f'ExecutableResult.{i}.json.gz'
-        cirq.to_json_gzip(exe_result, f"{data_dir}/{exe_result_path}")
-        executable_results.append(exe_result)
-        egr_record.executable_result_paths.append(exe_result_path)
 
     # Loop over executables.
     sampler = rt_config.processor.get_sampler()
@@ -306,7 +298,12 @@ def execute(
             runtime_info=runtime_info,
             raw_data=sampler_run_result,
         )
-        _finalize_exe_result(exe_result, i)
+        # Do bookkeeping for finished ExecutableResult
+        exe_result_path = f'ExecutableResult.{i}.json.gz'
+        cirq.to_json_gzip(exe_result, f"{data_dir}/{exe_result_path}")
+        executable_results.append(exe_result)
+        egr_record.executable_result_paths.append(exe_result_path)
+
         _update_updatable_files(egr_record, shared_rt_info, data_dir)
         print(f'\r{i + 1} / {n_executables}', end='', flush=True)
     print()
