@@ -226,7 +226,7 @@ def execute(
 ) -> ExecutableGroupResult:
     """Execute a `cg.QuantumExecutableGroup` according to a `cg.QuantumRuntimeConfiguration`.
 
-    The ExecutableGroupResult's constituent parts will be persisted to disk as they become
+    The ExecutableGroupResult's constituent parts will be saved to disk as they become
     available. Within the "{base_data_dir}/{run_id}" directory we save:
         - The `cg.QuantumRuntimeConfiguration` at the start of the execution as a record
           of *how* the executable group was run.
