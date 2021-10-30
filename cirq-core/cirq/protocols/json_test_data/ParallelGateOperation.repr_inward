@@ -1,0 +1,1 @@
+cirq.ParallelGate(cirq.Y, 2).on(cirq.NamedQubit('a'), cirq.NamedQubit('b'))

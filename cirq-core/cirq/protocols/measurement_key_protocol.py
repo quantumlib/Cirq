@@ -17,7 +17,6 @@ from typing import AbstractSet, Any, Dict, Optional, Tuple
 
 from typing_extensions import Protocol
 
-from cirq._compat import deprecated_parameter
 from cirq._doc import doc_private
 from cirq import value
 
@@ -221,14 +220,7 @@ def measurement_key_objs(val: Any) -> AbstractSet[value.MeasurementKey]:
     return set()
 
 
-@deprecated_parameter(
-    deadline='v0.14',
-    fix='This protocol no longer uses decomposition, so allow_decompose should be removed',
-    func_name='measurement_key_names',
-    parameter_desc='allow_decompose',
-    match=lambda args, kwargs: 'allow_decompose' in kwargs,
-)
-def measurement_key_names(val: Any, *, allow_decompose: bool = True) -> AbstractSet[str]:
+def measurement_key_names(val: Any) -> AbstractSet[str]:
     """Gets the measurement key strings of measurements within the given value.
 
     Args:
@@ -259,14 +251,7 @@ def _is_measurement_from_magic_method(val: Any) -> Optional[bool]:
     return NotImplemented if getter is None else getter()
 
 
-@deprecated_parameter(
-    deadline='v0.14',
-    fix='This protocol no longer uses decomposition, so allow_decompose should be removed',
-    func_name='is_measurement',
-    parameter_desc='allow_decompose',
-    match=lambda args, kwargs: 'allow_decompose' in kwargs,
-)
-def is_measurement(val: Any, allow_decompose: bool = True) -> bool:
+def is_measurement(val: Any) -> bool:
     """Determines whether or not the given value is a measurement (or contains one).
 
     Measurements are identified by the fact that any of them may have an `_is_measurement_` method
