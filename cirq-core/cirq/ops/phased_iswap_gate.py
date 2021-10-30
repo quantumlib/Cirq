@@ -63,10 +63,12 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
                 the T gate by default.
             exponent: The exponent on the ISWAP gate, see EigenGate for
                 details.
+            global_shift: The global_shift on the ISWAP gate, see EigenGate for
+                details.
         """
         self._phase_exponent = value.canonicalize_half_turns(phase_exponent)
-        self._iswap = swap_gates.ISwapPowGate(exponent=exponent)
-        super().__init__(exponent=exponent)
+        self._iswap = swap_gates.ISwapPowGate(exponent=exponent, global_shift=global_shift)
+        super().__init__(exponent=exponent, global_shift=global_shift)
 
     @property
     def phase_exponent(self) -> Union[float, sympy.Symbol]:
