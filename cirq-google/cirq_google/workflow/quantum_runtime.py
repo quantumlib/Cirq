@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Runtime information dataclasses that accompany execution of executables."""
+"""Runtime information dataclasses and execution of executables."""
 
 import dataclasses
+import os
+import uuid
 from typing import Any, Dict, Optional, List
 
 import cirq
@@ -23,6 +25,7 @@ from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
 from cirq_google.workflow.quantum_executable import (
     ExecutableSpec,
+    QuantumExecutableGroup,
 )
 
 
@@ -133,3 +136,79 @@ class QuantumRuntimeConfiguration:
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
+
+
+def execute(
+    rt_config: QuantumRuntimeConfiguration,
+    executable_group: QuantumExecutableGroup,
+    base_data_dir: str = ".",
+) -> ExecutableGroupResult:
+    """Execute a `cg.QuantumExecutableGroup` according to a `cg.QuantumRuntimeConfiguration`.
+
+    Args:
+        rt_config: The `cg.QuantumRuntimeConfiguration` specifying how to execute
+            `executable_group`.
+        executable_group: The `cg.QuantumExecutableGroup` containing the executables to execute.
+        base_data_dir: A filesystem path to write data. We write
+            "{base_data_dir}/{run_id}/ExecutableGroupResult.json.gz"
+            containing the `cg.ExecutableGroupResult` as well as one file
+            "{base_data_dir}/{run_id}/ExecutableResult.{i}.json.gz" per `cg.ExecutableResult` as
+            each executable result becomes available.
+
+    Returns:
+        The `cg.ExecutableGroupResult` containing all data and metadata for an execution.
+
+    Raises:
+        NotImplementedError: If an executable uses the `params` field or anything other than
+            a BitstringsMeasurement measurement field.
+        ValueError: If `base_data_dir` is not a valid directory.
+    """
+    # run_id defaults logic.
+    if rt_config.run_id is None:
+        run_id = str(uuid.uuid4())
+    else:
+        run_id = rt_config.run_id
+
+    # base_data_dir handling.
+    if not base_data_dir:
+        # coverage: ignore
+        raise ValueError("Please provide a non-empty `base_data_dir`.")
+
+    os.makedirs(f'{base_data_dir}/{run_id}', exist_ok=False)
+
+    # Results object that we will fill in in the main loop.
+    exegroup_result = ExecutableGroupResult(
+        runtime_configuration=rt_config,
+        shared_runtime_info=SharedRuntimeInfo(run_id=run_id),
+        executable_results=list(),
+    )
+    cirq.to_json_gzip(exegroup_result, f'{base_data_dir}/{run_id}/ExecutableGroupResult.json.gz')
+
+    # Loop over executables.
+    sampler = rt_config.processor.get_sampler()
+    n_executables = len(executable_group)
+    print()
+    for i, exe in enumerate(executable_group):
+        runtime_info = RuntimeInfo(execution_index=i)
+
+        if exe.params != tuple():
+            raise NotImplementedError("Circuit params are not yet supported.")
+
+        circuit = exe.circuit
+
+        if not hasattr(exe.measurement, 'n_repetitions'):
+            raise NotImplementedError("Only `BitstringsMeasurement` are supported.")
+
+        sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
+
+        exe_result = ExecutableResult(
+            spec=exe.spec,
+            runtime_info=runtime_info,
+            raw_data=sampler_run_result,
+        )
+        cirq.to_json_gzip(exe_result, f'{base_data_dir}/{run_id}/ExecutableResult.{i}.json.gz')
+        exegroup_result.executable_results.append(exe_result)
+        print(f'\r{i+1} / {n_executables}', end='', flush=True)
+    print()
+
+    return exegroup_result

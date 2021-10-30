@@ -123,8 +123,6 @@ TestSpec = ModuleJsonTestSpec(
         'InterchangeableQubitsGate',
         'Pauli',
         'SingleQubitGate',
-        'ThreeQubitGate',
-        'TwoQubitGate',
         'ABCMetaImplementAnyOneOf',
         'GenericMetaImplementAnyOneOf',
         'SimulatesAmplitudes',
@@ -183,9 +181,7 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={
-        'ParallelGateOperation': 'v0.14',
-    },
+    deprecated={},
     tested_elsewhere=[
         # SerializableByKey does not follow common serialization rules.
         # It is tested separately in test_context_serialization.

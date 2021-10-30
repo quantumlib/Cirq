@@ -262,37 +262,6 @@ def test_choi_for_completely_dephasing_channel():
 
 
 @pytest.mark.parametrize(
-    'kraus_operators, expected_superoperator',
-    (
-        ([np.eye(2)], np.eye(4)),
-        (
-            cirq.kraus(cirq.depolarize(0.75)),
-            np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
-        ),
-        (
-            [
-                np.array([[0, 1, 0], [0, 0, 1]]) / np.sqrt(2),
-                np.array([[0, 1, 0], [0, 0, -1]]) / np.sqrt(2),
-            ],
-            np.array(
-                [
-                    [0, 0, 0, 0, 1, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1],
-                ]
-            ),
-        ),
-    ),
-)
-def test_kraus_to_superoperator(kraus_operators, expected_superoperator):
-    """Verifies that cirq.kraus_to_superoperator computes the correct channel matrix."""
-    assert np.allclose(cirq.kraus_to_superoperator(kraus_operators), expected_superoperator)
-    with cirq.testing.assert_deprecated(deadline='v0.14'):
-        assert np.allclose(cirq.kraus_to_channel_matrix(kraus_operators), expected_superoperator)
-
-
-@pytest.mark.parametrize(
     'superoperator, expected_kraus_operators',
     (
         (np.eye(4), [np.eye(2)]),
@@ -477,25 +446,6 @@ def test_choi_to_superoperator_inverse_of_superoperator_to_choi(choi):
 
     recovered_superoperator = cirq.choi_to_superoperator(recovered_choi)
     assert np.allclose(recovered_superoperator, superoperator)
-
-
-@pytest.mark.parametrize(
-    'channel',
-    (
-        cirq.I,
-        cirq.X,
-        cirq.CNOT,
-        cirq.depolarize(0.1),
-        cirq.depolarize(0.1, n_qubits=2),
-        cirq.amplitude_damp(0.2),
-    ),
-)
-def test_operation_to_superoperator(channel):
-    """Verifies that cirq.operation_to_superoperator correctly computes the channel matrix."""
-    expected = compute_superoperator(channel)
-    assert np.all(expected == cirq.operation_to_superoperator(channel))
-    with cirq.testing.assert_deprecated(deadline='v0.14'):
-        assert np.all(expected == cirq.operation_to_channel_matrix(channel))
 
 
 def test_superoperator_for_completely_dephasing_channel():

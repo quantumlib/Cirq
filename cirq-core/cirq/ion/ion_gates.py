@@ -14,7 +14,7 @@
 
 """Operations native to iontrap systems."""
 
-from typing import Union, TYPE_CHECKING
+from typing import Any, Dict, Union, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops, value
@@ -39,6 +39,7 @@ class MSGate(ops.XXPowGate):
 
     def __init__(self, *, rads: float):  # Forces keyword args.
         ops.XXPowGate.__init__(self, exponent=rads * 2 / np.pi, global_shift=-0.5)
+        self.rads = rads
 
     def _with_exponent(self: 'MSGate', exponent: value.TParamVal) -> 'MSGate':
         return type(self)(rads=exponent * np.pi / 2)
@@ -59,6 +60,13 @@ class MSGate(ops.XXPowGate):
         if self._exponent == 1:
             return 'cirq.ms(np.pi/2)'
         return f'cirq.ms({self._exponent!r}*np.pi/2)'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ["rads"])
+
+    @classmethod
+    def _from_json_dict_(cls, rads: float, **kwargs: Any) -> 'MSGate':
+        return cls(rads=rads)
 
 
 # TODO(#3388) Add summary line to docstring.

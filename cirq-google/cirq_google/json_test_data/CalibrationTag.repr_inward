@@ -1,1 +1,1 @@
-cirq.google.CalibrationTag('xeb')
+cirq_google.CalibrationTag('xeb')

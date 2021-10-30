@@ -17,7 +17,6 @@ from typing import AbstractSet, Any, Dict, Optional, Tuple
 
 from typing_extensions import Protocol
 
-from cirq._compat import deprecated, deprecated_parameter, _warn_or_error
 from cirq._doc import doc_private
 from cirq import value
 
@@ -98,11 +97,6 @@ class SupportsMeasurementKey(Protocol):
 
         This method allows measurement keys to be reassigned at runtime.
         """
-
-
-@deprecated(deadline='v0.13', fix='use cirq.measurement_key_name instead')
-def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
-    return measurement_key_name(val, default)
 
 
 def measurement_key_obj(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
@@ -198,36 +192,13 @@ def _measurement_key_names_from_magic_methods(val: Any) -> Optional[AbstractSet[
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
         return set(result)
-    getter = getattr(val, '_measurement_keys_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented and result is not None:
-        _warn_or_error(
-            f'_measurement_keys_ was used but is deprecated.\n'
-            f'It will be removed in cirq v0.13.\n'
-            f'Use _measurement_key_names_ instead.\n'
-        )
-        return set(result)
 
     getter = getattr(val, '_measurement_key_name_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
         return {result}
-    getter = getattr(val, '_measurement_key_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented and result is not None:
-        _warn_or_error(
-            f'_measurement_key_ was used but is deprecated.\n'
-            f'It will be removed in cirq v0.13.\n'
-            f'Use _measurement_key_name_ instead.\n'
-        )
-        return {result}
 
     return result
-
-
-@deprecated(deadline='v0.13', fix='use cirq.measurement_key_names instead')
-def measurement_keys(val: Any, *, allow_decompose: bool = True):
-    return measurement_key_names(val, allow_decompose=allow_decompose)
 
 
 def measurement_key_objs(val: Any) -> AbstractSet[value.MeasurementKey]:
@@ -249,14 +220,7 @@ def measurement_key_objs(val: Any) -> AbstractSet[value.MeasurementKey]:
     return set()
 
 
-@deprecated_parameter(
-    deadline='v0.14',
-    fix='This protocol no longer uses decomposition, so allow_decompose should be removed',
-    func_name='measurement_key_names',
-    parameter_desc='allow_decompose',
-    match=lambda args, kwargs: 'allow_decompose' in kwargs,
-)
-def measurement_key_names(val: Any, *, allow_decompose: bool = True) -> AbstractSet[str]:
+def measurement_key_names(val: Any) -> AbstractSet[str]:
     """Gets the measurement key strings of measurements within the given value.
 
     Args:
@@ -287,14 +251,7 @@ def _is_measurement_from_magic_method(val: Any) -> Optional[bool]:
     return NotImplemented if getter is None else getter()
 
 
-@deprecated_parameter(
-    deadline='v0.14',
-    fix='This protocol no longer uses decomposition, so allow_decompose should be removed',
-    func_name='is_measurement',
-    parameter_desc='allow_decompose',
-    match=lambda args, kwargs: 'allow_decompose' in kwargs,
-)
-def is_measurement(val: Any, allow_decompose: bool = True) -> bool:
+def is_measurement(val: Any) -> bool:
     """Determines whether or not the given value is a measurement (or contains one).
 
     Measurements are identified by the fact that any of them may have an `_is_measurement_` method
