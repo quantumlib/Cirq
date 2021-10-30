@@ -137,6 +137,10 @@ class ExecutableGroupResultFilesystemRecord:
     def load(self, *, base_data_dir: str = ".") -> ExecutableGroupResult:
         """Using the filename references in this dataclass, load a `cg.ExecutableGroupResult`
         from its constituent parts.
+
+        Args:
+            base_data_dir: The base data directory. Files should be found at
+                {base_data_dir}/{run_id}/{this class's paths}
         """
         data_dir = f"{base_data_dir}/{self.run_id}"
         return ExecutableGroupResult(
