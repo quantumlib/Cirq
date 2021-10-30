@@ -17,10 +17,8 @@
 from cirq.qis.channels import (
     choi_to_kraus,
     choi_to_superoperator,
-    kraus_to_channel_matrix,
     kraus_to_choi,
     kraus_to_superoperator,
-    operation_to_channel_matrix,
     operation_to_choi,
     operation_to_superoperator,
     superoperator_to_choi,

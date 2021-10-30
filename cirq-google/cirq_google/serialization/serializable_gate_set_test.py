@@ -18,7 +18,6 @@ import sympy
 from google.protobuf import json_format
 
 import cirq
-from cirq.testing import assert_deprecated
 import cirq_google as cg
 from cirq_google.api import v2
 
@@ -76,11 +75,6 @@ MY_GATE_SET = cg.SerializableGateSet(
     serializers=[X_SERIALIZER, CIRCUIT_OP_SERIALIZER],
     deserializers=[X_DESERIALIZER, CIRCUIT_OP_DESERIALIZER],
 )
-
-
-def test_deprecated_methods():
-    with assert_deprecated('Use name instead', deadline='v0.14'):
-        _ = MY_GATE_SET.gate_set_name
 
 
 def op_proto(json: Dict) -> v2.program_pb2.Operation:
