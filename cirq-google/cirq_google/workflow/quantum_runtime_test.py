@@ -138,9 +138,9 @@ def test_executable_group_result(tmpdir):
 
 def test_egr_filesystem_record_repr():
     egr_fs_record = cg.ExecutableGroupResultFilesystemRecord(
-        runtime_configuration_fn='RuntimeConfiguration.json.gz',
-        shared_runtime_info_fn='SharedRuntimeInfo.jzon.gz',
-        executable_result_fns=[
+        runtime_configuration_path='RuntimeConfiguration.json.gz',
+        shared_runtime_info_path='SharedRuntimeInfo.jzon.gz',
+        executable_result_paths=[
             'ExecutableResult.1.json.gz',
             'ExecutableResult.2.json.gz',
         ],
