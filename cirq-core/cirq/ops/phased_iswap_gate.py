@@ -54,6 +54,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         *,
         phase_exponent: Union[float, sympy.Symbol] = 0.25,
         exponent: Union[float, sympy.Symbol] = 1.0,
+        global_shift=0.0,
     ):
         """Inits PhasedISwapPowGate.
 
