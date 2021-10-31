@@ -45,10 +45,6 @@ from cirq_google.engine.engine_processor import (
     EngineProcessor,
 )
 
-from cirq_google.engine.engine_timeslot import (
-    EngineTimeSlot,
-)
-
 from cirq_google.engine.engine_program import (
     EngineProgram,
 )
