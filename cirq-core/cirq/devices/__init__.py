@@ -39,6 +39,13 @@ from cirq.devices.noise_model import (
     ConstantQubitNoiseModel,
 )
 
+from cirq.devices.noise_properties import (
+    FSimEntanglingAngles,
+    FSimPhaseAngles,
+    NoiseProperties,
+    NoiseModelFromNoiseProperties,
+)
+
 from cirq.devices.named_topologies import (
     NamedTopology,
     draw_gridlike,
