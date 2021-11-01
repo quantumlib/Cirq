@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 # coding=utf-8
 r"""Quantum circuit to prepare the BCS ground states for
 superconductors/superfluids. Such states can be prepared by

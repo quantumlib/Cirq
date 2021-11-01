@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import TYPE_CHECKING, List, Tuple, cast, Dict
 
 import matplotlib.textpath

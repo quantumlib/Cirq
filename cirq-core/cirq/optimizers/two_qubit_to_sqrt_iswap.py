@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Utility methods for decomposing two-qubit unitaries into sqrt-iSWAP gates.
 
 References:
