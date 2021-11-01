@@ -71,7 +71,6 @@ from cirq_google.engine import (
     EngineJob,
     EngineProgram,
     EngineProcessor,
-    EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
     get_engine,
