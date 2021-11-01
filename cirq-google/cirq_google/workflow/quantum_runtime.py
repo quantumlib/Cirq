@@ -23,6 +23,7 @@ import cirq
 from cirq import _compat
 from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
+from cirq_google.workflow.progress import _PrintLogger
 from cirq_google.workflow.quantum_executable import (
     ExecutableSpec,
     QuantumExecutableGroup, QuantumExecutable,
@@ -256,26 +257,10 @@ class FilesystemSaver:
         _update_updatable_files(self._egr_record, shared_rt_info, self._data_dir)
 
 
-class PrintLogger:
-    def __init__(self, n_total: int):
-        self.n_total = n_total
-        self.i = 0
-
-    def initialize(self):
-        print()
-
-    def consume_one(self):
-        print(f'\r{self.i + 1} / {self.n_total}', end='', flush=True)
-        self.i += 1
-
-    def finalize(self):
-        print()
-
-
 def _execute_one(exe: QuantumExecutable, i: int, rt_config: QuantumRuntimeConfiguration,
                  executable_results: List[ExecutableResult], saver: FilesystemSaver,
                  shared_rt_info: SharedRuntimeInfo,
-                 logger: PrintLogger):
+                 logger: _PrintLogger):
     runtime_info = RuntimeInfo(execution_index=i)
 
     if exe.params != tuple():
@@ -297,7 +282,7 @@ def _execute_one(exe: QuantumExecutable, i: int, rt_config: QuantumRuntimeConfig
     # Do bookkeeping for finished ExecutableResult
     executable_results.append(exe_result)
     saver.consume_one(exe_result, shared_rt_info)
-    logger.consume_one()
+    logger.consume_one(exe_result, shared_rt_info)
 
 
 def execute(
@@ -347,7 +332,7 @@ def execute(
     saver = FilesystemSaver(base_data_dir=base_data_dir, run_id=run_id)
     saver.initialize(rt_config, shared_rt_info)
 
-    logger = PrintLogger(n_total=len(executable_group))
+    logger = _PrintLogger(n_total=len(executable_group))
     logger.initialize()
 
     for i, exe in enumerate(executable_group):
