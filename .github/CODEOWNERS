@@ -16,6 +16,8 @@ cirq-aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomol
 
 cirq-pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole @cduck
 
+cirq-rigetti/**/*.* @erichulburd @kalzoo @dbanty @quantumlib/cirq-maintainers @vtomole @cduck
+
 ################################################
 # qcvv maintainers @mrwojtek + cirq maintainers
 ################################################
@@ -43,6 +45,9 @@ docs/tutorials/aqt/**/*.* @ma5x @pschindler @alfrisch @rmlarose @quantumlib/cirq
 
 docs/pasqal/**/*.* @HGSilveri @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
 docs/tutorials/pasqal/**/*.* @HGSilveri @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+
+docs/rigetti/**/*.* @erichulburd @kalzoo @dbanty @quantumlib/cirq-maintainers @vtomole @cduck
+docs/tutorials/rigetti/**/*.* @erichulburd @kalzoo @dbanty @quantumlib/cirq-maintainers @vtomole @cduck
 
 docs/azure-quantum/**/*.* @guenp @anpaz @quantumlib/cirq-maintainers @vtomole @cduck
 docs/tutorials/azure-quantum/**/*.* @guenp @anpaz @quantumlib/cirq-maintainers @vtomole @cduck

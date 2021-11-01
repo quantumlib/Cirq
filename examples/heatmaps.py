@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Example heatmaps from the cirq.vis.heatmap package."""
 
 import numpy as np
