@@ -72,3 +72,15 @@ def test_batch_validation():
     sweeps = [cirq.Points(key='t', points=[1, 0]), cirq.Points(key='x', points=[0, 1]), {}]
     with pytest.raises(ValueError, match='Too many batches'):
         results = sampler.run_batch(circuits, sweeps, repetitions=100)
+
+def test_batch_default_sweeps():
+    sampler = cg.ValidatingSampler()
+    q=cirq.GridQubit(2, 2)
+    circuits = [
+        cirq.Circuit(cirq.X(q), cirq.measure(q, key='m')),
+        cirq.Circuit(cirq.measure(q, key='m2')),
+    ]
+    results = sampler.run_batch(circuits, None, repetitions=100)
+    assert np.all(results[0][0].measurements['m'] == 1)
+    assert np.all(results[1][0].measurements['m2'] == 0)
+
