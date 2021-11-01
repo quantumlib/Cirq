@@ -11,3 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from cirq_google.workflow.progress import _PrintLogger
+
+def test_print_logger():
+    pl = _PrintLogger(n_total=10)
+    pl.initialize()
+    for _ in range(10):
+        pl.consume_one(None, None)
+    pl.finalize()
