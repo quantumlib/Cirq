@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Superdense Coding.
 Superdense Coding is a method to transmit two classical bits of information
 by sending only one qubit of information. This is accomplished by
