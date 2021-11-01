@@ -254,64 +254,6 @@ def test_append_control_key():
     assert len(c) == 1
 
 
-def test_append_control_key_subcircuit():
-    q = cirq.LineQubit(0)
-
-    c = cirq.Circuit()
-    c.append(cirq.measure(q, key='a'))
-    c.append(cirq.CircuitOperation(cirq.Circuit(ControlOp(['a'])).freeze()))
-    assert len(c) == 2
-
-    c = cirq.Circuit()
-    c.append(cirq.measure(q, key='a'))
-    c.append(cirq.CircuitOperation(cirq.Circuit(ControlOp(['b'])).freeze()))
-    assert len(c) == 1
-
-    c = cirq.Circuit()
-    c.append(cirq.measure(q, key='a'))
-    c.append(
-        cirq.CircuitOperation(cirq.Circuit(ControlOp(['b'])).freeze()).with_measurement_key_mapping(
-            {'b': 'a'}
-        )
-    )
-    assert len(c) == 2
-
-    c = cirq.Circuit()
-    c.append(cirq.CircuitOperation(cirq.Circuit(cirq.measure(q, key='a')).freeze()))
-    c.append(
-        cirq.CircuitOperation(cirq.Circuit(ControlOp(['b'])).freeze()).with_measurement_key_mapping(
-            {'b': 'a'}
-        )
-    )
-    assert len(c) == 2
-
-    c = cirq.Circuit()
-    c.append(
-        cirq.CircuitOperation(
-            cirq.Circuit(cirq.measure(q, key='a')).freeze()
-        ).with_measurement_key_mapping({'a': 'c'})
-    )
-    c.append(
-        cirq.CircuitOperation(cirq.Circuit(ControlOp(['b'])).freeze()).with_measurement_key_mapping(
-            {'b': 'c'}
-        )
-    )
-    assert len(c) == 2
-
-    c = cirq.Circuit()
-    c.append(
-        cirq.CircuitOperation(
-            cirq.Circuit(cirq.measure(q, key='a')).freeze()
-        ).with_measurement_key_mapping({'a': 'b'})
-    )
-    c.append(
-        cirq.CircuitOperation(cirq.Circuit(ControlOp(['b'])).freeze()).with_measurement_key_mapping(
-            {'b': 'a'}
-        )
-    )
-    assert len(c) == 1
-
-
 def test_append_multiple():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -4426,21 +4368,6 @@ def test_all_measurement_key_names(circuit_cls):
         ).all_measurement_key_names()
         == {'x', 'y'}
     )
-
-
-def test_control_keys():
-    c = cirq.Circuit(ControlOp(['a', 'b']))
-    assert cirq.control_key_names(c) == {'a', 'b'}
-    f = c.freeze()
-    assert cirq.control_key_names(f) == {'a', 'b'}
-    op = cirq.CircuitOperation(f)
-    assert cirq.control_key_names(op) == {'a', 'b'}
-    outer = cirq.Circuit(op)
-    assert cirq.control_key_names(outer) == {'a', 'b'}
-    op1 = op.with_measurement_key_mapping({'b': 'c'})
-    assert cirq.control_key_names(op1) == {'a', 'c'}
-    outer1 = cirq.Circuit(op1)
-    assert cirq.control_key_names(outer1) == {'a', 'c'}
 
 
 def test_zip():
