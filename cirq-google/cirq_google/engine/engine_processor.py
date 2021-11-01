@@ -22,7 +22,6 @@ from cirq_google.engine.client.quantum import enums as qenums
 from cirq_google.api import v2
 from cirq_google.devices import serializable_device
 from cirq_google.engine import calibration
-from cirq_google.engine.engine_timeslot import EngineTimeSlot
 from cirq_google.serialization.serializable_gate_set import SerializableGateSet
 
 if TYPE_CHECKING:
