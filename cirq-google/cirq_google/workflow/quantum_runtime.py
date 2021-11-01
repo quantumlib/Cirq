@@ -25,7 +25,7 @@ from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
 from cirq_google.workflow.quantum_executable import (
     ExecutableSpec,
-    QuantumExecutableGroup,
+    QuantumExecutableGroup, QuantumExecutable,
 )
 
 
@@ -198,9 +198,9 @@ def _safe_to_json(obj: Any, *, part_path: str, nominal_path: str, bak_path: str)
 
 
 def _update_updatable_files(
-    egr_record: ExecutableGroupResultFilesystemRecord,
-    shared_rt_info: SharedRuntimeInfo,
-    data_dir: str,
+        egr_record: ExecutableGroupResultFilesystemRecord,
+        shared_rt_info: SharedRuntimeInfo,
+        data_dir: str,
 ):
     """Safely update ExecutableGroupResultFilesystemRecord.json.gz and SharedRuntimeInfo.json.gz
     during an execution run.
@@ -219,10 +219,91 @@ def _update_updatable_files(
     )
 
 
+class FilesystemSaver:
+    def __init__(self, base_data_dir, run_id):
+        self.base_data_dir = base_data_dir
+        self.run_id = run_id
+
+        self._data_dir = f'{self.base_data_dir}/{self.run_id}'
+        self._egr_record = None
+
+    @property
+    def data_dir(self):
+        return self._data_dir
+
+    @property
+    def egr_record(self):
+        return self._egr_record
+
+    def initialize(self, rt_config: QuantumRuntimeConfiguration, shared_rt_info: SharedRuntimeInfo):
+        os.makedirs(self._data_dir, exist_ok=False)
+        self._egr_record = ExecutableGroupResultFilesystemRecord(
+            runtime_configuration_path='QuantumRuntimeConfiguration.json.gz',
+            shared_runtime_info_path='SharedRuntimeInfo.json.gz',
+            executable_result_paths=[],
+            run_id=self.run_id,
+        )
+        cirq.to_json_gzip(rt_config,
+                          f'{self._data_dir}/{self._egr_record.runtime_configuration_path}')
+        _update_updatable_files(self._egr_record, shared_rt_info, self._data_dir)
+
+    def consume_one(self, exe_result: ExecutableResult, shared_rt_info: SharedRuntimeInfo):
+        i = exe_result.runtime_info.execution_index
+        exe_result_path = f'ExecutableResult.{i}.json.gz'
+        cirq.to_json_gzip(exe_result, f"{self._data_dir}/{exe_result_path}")
+        self._egr_record.executable_result_paths.append(exe_result_path)
+
+        _update_updatable_files(self._egr_record, shared_rt_info, self._data_dir)
+
+
+class PrintLogger:
+    def __init__(self, n_total: int):
+        self.n_total = n_total
+        self.i = 0
+
+    def initialize(self):
+        print()
+
+    def consume_one(self):
+        print(f'\r{self.i + 1} / {self.n_total}', end='', flush=True)
+        self.i += 1
+
+    def finalize(self):
+        print()
+
+
+def _execute_one(exe: QuantumExecutable, i: int, rt_config: QuantumRuntimeConfiguration,
+                 executable_results: List[ExecutableResult], saver: FilesystemSaver,
+                 shared_rt_info: SharedRuntimeInfo,
+                 logger: PrintLogger):
+    runtime_info = RuntimeInfo(execution_index=i)
+
+    if exe.params != tuple():
+        raise NotImplementedError("Circuit params are not yet supported.")
+
+    circuit = exe.circuit
+
+    if not hasattr(exe.measurement, 'n_repetitions'):
+        raise NotImplementedError("Only `BitstringsMeasurement` are supported.")
+
+    sampler = rt_config.processor.get_sampler()
+    sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
+
+    exe_result = ExecutableResult(
+        spec=exe.spec,
+        runtime_info=runtime_info,
+        raw_data=sampler_run_result,
+    )
+    # Do bookkeeping for finished ExecutableResult
+    executable_results.append(exe_result)
+    saver.consume_one(exe_result, shared_rt_info)
+    logger.consume_one()
+
+
 def execute(
-    rt_config: QuantumRuntimeConfiguration,
-    executable_group: QuantumExecutableGroup,
-    base_data_dir: str = ".",
+        rt_config: QuantumRuntimeConfiguration,
+        executable_group: QuantumExecutableGroup,
+        base_data_dir: str = ".",
 ) -> ExecutableGroupResult:
     """Execute a `cg.QuantumExecutableGroup` according to a `cg.QuantumRuntimeConfiguration`.
 
@@ -260,53 +341,19 @@ def execute(
         # coverage: ignore
         raise ValueError("Please provide a non-empty `base_data_dir`.")
 
-    # Set up data saving, save runtime configuration.
-    data_dir = f'{base_data_dir}/{run_id}'
-    os.makedirs(data_dir, exist_ok=False)
-    egr_record = ExecutableGroupResultFilesystemRecord(
-        runtime_configuration_path='QuantumRuntimeConfiguration.json.gz',
-        shared_runtime_info_path='SharedRuntimeInfo.json.gz',
-        executable_result_paths=[],
-        run_id=run_id,
-    )
-    cirq.to_json_gzip(rt_config, f'{data_dir}/{egr_record.runtime_configuration_path}')
-
-    # Set up to-be-updated objects.
     shared_rt_info = SharedRuntimeInfo(run_id=run_id)
-    _update_updatable_files(egr_record, shared_rt_info, data_dir)
     executable_results = []
 
-    # Loop over executables.
-    sampler = rt_config.processor.get_sampler()
-    n_executables = len(executable_group)
-    print()
+    saver = FilesystemSaver(base_data_dir=base_data_dir, run_id=run_id)
+    saver.initialize(rt_config, shared_rt_info)
+
+    logger = PrintLogger(n_total=len(executable_group))
+    logger.initialize()
+
     for i, exe in enumerate(executable_group):
-        runtime_info = RuntimeInfo(execution_index=i)
+        _execute_one(exe, i, rt_config, executable_results, saver, shared_rt_info, logger)
 
-        if exe.params != tuple():
-            raise NotImplementedError("Circuit params are not yet supported.")
-
-        circuit = exe.circuit
-
-        if not hasattr(exe.measurement, 'n_repetitions'):
-            raise NotImplementedError("Only `BitstringsMeasurement` are supported.")
-
-        sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
-
-        exe_result = ExecutableResult(
-            spec=exe.spec,
-            runtime_info=runtime_info,
-            raw_data=sampler_run_result,
-        )
-        # Do bookkeeping for finished ExecutableResult
-        exe_result_path = f'ExecutableResult.{i}.json.gz'
-        cirq.to_json_gzip(exe_result, f"{data_dir}/{exe_result_path}")
-        executable_results.append(exe_result)
-        egr_record.executable_result_paths.append(exe_result_path)
-
-        _update_updatable_files(egr_record, shared_rt_info, data_dir)
-        print(f'\r{i + 1} / {n_executables}', end='', flush=True)
-    print()
+    logger.finalize()
 
     return ExecutableGroupResult(
         runtime_configuration=rt_config,
