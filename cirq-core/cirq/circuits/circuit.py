@@ -1874,7 +1874,7 @@ class Circuit(AbstractCircuit):
             k -= 1
             moment = self._moments[k]
             if moment.operates_on(op_qubits) or (
-                set(op_control_keys) & protocols.measurement_key_objs(moment)
+                op_control_keys & protocols.measurement_key_objs(moment)
             ):
                 return last_available
             if self._can_add_op_at(k, op):
