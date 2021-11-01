@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # coverage: ignore
 
 # The content for all documentation lives in ../docs. That folder is

@@ -15,13 +15,12 @@ import glob
 import re
 import uuid
 from dataclasses import dataclass
-from typing import List
-
-import numpy as np
-import pytest
+from typing import List, cast, Any
 
 import cirq
 import cirq_google as cg
+import numpy as np
+import pytest
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
 from cirq_google.workflow.quantum_executable_test import _get_quantum_executables, _get_example_spec
 
@@ -69,12 +68,21 @@ def test_executable_result():
     cg_assert_equivalent_repr(er)
 
 
-def _cg_read_json_gzip(fn):
-    def _testing_resolver(cirq_type: str):
-        if cirq_type == 'cirq.google.testing._MockEngineProcessor':
-            return _MockEngineProcessor
+def _testing_resolver(cirq_type: str):
+    if cirq_type == 'cirq.google.testing._MockEngineProcessor':
+        return _MockEngineProcessor
 
+
+def _cg_read_json_gzip(fn):
     return cirq.read_json_gzip(fn, resolvers=[_testing_resolver] + cirq.DEFAULT_RESOLVERS)
+
+
+@pytest.fixture
+def patch_cirq_default_resolvers():
+    backup = cirq.DEFAULT_RESOLVERS.copy()
+    cirq.DEFAULT_RESOLVERS.insert(0, _testing_resolver)
+    yield True
+    cirq.DEFAULT_RESOLVERS = backup
 
 
 def _assert_json_roundtrip(o, tmpdir):
@@ -128,28 +136,57 @@ def test_executable_group_result(tmpdir):
     _assert_json_roundtrip(egr, tmpdir)
 
 
-@pytest.mark.parametrize('run_id', ['unit_test_runid', None])
-def test_execute(tmpdir, run_id):
-    rt_config = cg.QuantumRuntimeConfiguration(processor=_MockEngineProcessor(), run_id=run_id)
+def test_egr_filesystem_record_repr():
+    egr_fs_record = cg.ExecutableGroupResultFilesystemRecord(
+        runtime_configuration_path='RuntimeConfiguration.json.gz',
+        shared_runtime_info_path='SharedRuntimeInfo.jzon.gz',
+        executable_result_paths=[
+            'ExecutableResult.1.json.gz',
+            'ExecutableResult.2.json.gz',
+        ],
+        run_id='my-run-id',
+    )
+    cg_assert_equivalent_repr(egr_fs_record)
+
+
+def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
+    """Load `ExecutableGroupResult` "by hand" without using
+    `ExecutableGroupResultFilesystemRecord`."""
+    rt_config = cirq.read_json_gzip(f'{tmpdir}/{run_id}/QuantumRuntimeConfiguration.json.gz')
+    shared_rt_info = cirq.read_json_gzip(f'{tmpdir}/{run_id}/SharedRuntimeInfo.json.gz')
+    fns = glob.glob(f'{tmpdir}/{run_id}/ExecutableResult.*.json.gz')
+    fns = sorted(
+        fns,
+        key=lambda s: int(cast(Any, re.search(r'ExecutableResult\.(\d+)\.json\.gz$', s)).group(1)),
+    )
+    assert len(fns) == 3
+    exe_results: List[cg.ExecutableResult] = [cirq.read_json_gzip(fn) for fn in fns]
+    return cg.ExecutableGroupResult(
+        runtime_configuration=rt_config,
+        shared_runtime_info=shared_rt_info,
+        executable_results=exe_results,
+    )
+
+
+@pytest.mark.parametrize('run_id_in', ['unit_test_runid', None])
+def test_execute(tmpdir, run_id_in, patch_cirq_default_resolvers):
+    assert patch_cirq_default_resolvers
+    rt_config = cg.QuantumRuntimeConfiguration(processor=_MockEngineProcessor(), run_id=run_id_in)
     executable_group = cg.QuantumExecutableGroup(_get_quantum_executables())
     returned_exegroup_result = cg.execute(
         rt_config=rt_config, executable_group=executable_group, base_data_dir=tmpdir
     )
-    actual_run_id = returned_exegroup_result.shared_runtime_info.run_id
-    if run_id is not None:
-        assert run_id == actual_run_id
+    run_id = returned_exegroup_result.shared_runtime_info.run_id
+    if run_id_in is not None:
+        assert run_id_in == run_id
     else:
-        assert isinstance(uuid.UUID(actual_run_id), uuid.UUID)
-    fns = glob.glob(f'{tmpdir}/{actual_run_id}/ExecutableGroupResult.json.gz')
-    assert len(fns) == 1
-    exegroup_result: cg.ExecutableGroupResult = _cg_read_json_gzip(fns[0])
+        assert isinstance(uuid.UUID(run_id), uuid.UUID)
 
-    fns = glob.glob(f'{tmpdir}/{actual_run_id}/ExecutableResult.*.json.gz')
-    fns = sorted(
-        fns, key=lambda s: int(re.search(r'ExecutableResult\.(\d+)\.json\.gz$', s).group(1))
+    manual_exegroup_result = _load_result_by_hand(tmpdir, run_id)
+    egr_record: cg.ExecutableGroupResultFilesystemRecord = cirq.read_json_gzip(
+        f'{tmpdir}/{run_id}/ExecutableGroupResultFilesystemRecord.json.gz'
     )
-    assert len(fns) == 3
-    exe_results: List[cg.ExecutableResult] = [_cg_read_json_gzip(fn) for fn in fns]
+    exegroup_result: cg.ExecutableGroupResult = egr_record.load(base_data_dir=tmpdir)
 
-    exegroup_result.executable_results = exe_results
     assert returned_exegroup_result == exegroup_result
+    assert manual_exegroup_result == exegroup_result

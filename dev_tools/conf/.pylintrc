@@ -1,8 +1,8 @@
 [MASTER]
-load-plugins=pylint.extensions.docstyle,pylint.extensions.docparams
+load-plugins=pylint.extensions.docstyle,pylint.extensions.docparams,pylint_copyright_checker
 max-line-length=100
 disable=all
-ignore-patterns=.*_pb2\.py,quantum_engine_service_client.py,engine_pb2_grpc.py
+ignore-patterns=.*_pb2\.py,quantum_engine_service_client.py,engine_pb2_grpc.py,quantum_pb2_grpc.py
 output-format=colorized
 score=no
 reports=no
@@ -55,6 +55,7 @@ enable=
     unused-variable,
     unused-wildcard-import,
     wildcard-import,
+    wrong-or-nonexistent-copyright-notice,
     wrong-import-order,
     wrong-import-position,
     yield-outside-function

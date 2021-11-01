@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import warnings
 from typing import Sequence, TYPE_CHECKING, List
 from itertools import product

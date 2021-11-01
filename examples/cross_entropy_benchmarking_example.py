@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Cross entropy benchmarking example.
 
 Cross entropy benchmarking is a method for assessing the performance of

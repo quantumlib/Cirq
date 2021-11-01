@@ -117,6 +117,51 @@ class ExecutableGroupResult:
 
 
 @dataclasses.dataclass
+class ExecutableGroupResultFilesystemRecord:
+    """Filename references to the constituent parts of a `cg.ExecutableGroupResult`.
+
+    Args:
+        runtime_configuration_path: A filename pointing to the `runtime_configuration` value.
+        shared_runtime_info_path: A filename pointing to the `shared_runtime_info` value.
+        executable_result_paths: A list of filenames pointing to the `executable_results` values.
+        run_id: The unique `str` identifier from this run. This is used to locate the other
+            values on disk.
+    """
+
+    runtime_configuration_path: str
+    shared_runtime_info_path: str
+    executable_result_paths: List[str]
+
+    run_id: str
+
+    def load(self, *, base_data_dir: str = ".") -> ExecutableGroupResult:
+        """Using the filename references in this dataclass, load a `cg.ExecutableGroupResult`
+        from its constituent parts.
+
+        Args:
+            base_data_dir: The base data directory. Files should be found at
+                {base_data_dir}/{run_id}/{this class's paths}
+        """
+        data_dir = f"{base_data_dir}/{self.run_id}"
+        return ExecutableGroupResult(
+            runtime_configuration=cirq.read_json_gzip(
+                f'{data_dir}/{self.runtime_configuration_path}'
+            ),
+            shared_runtime_info=cirq.read_json_gzip(f'{data_dir}/{self.shared_runtime_info_path}'),
+            executable_results=[
+                cirq.read_json_gzip(f'{data_dir}/{exe_path}')
+                for exe_path in self.executable_result_paths
+            ],
+        )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return dataclass_json_dict(self, namespace='cirq.google')
+
+    def __repr__(self) -> str:
+        return _compat.dataclass_repr(self, namespace='cirq_google')
+
+
+@dataclasses.dataclass
 class QuantumRuntimeConfiguration:
     """User-requested configuration of how to execute a given `cg.QuantumExecutableGroup`.
 
@@ -138,6 +183,42 @@ class QuantumRuntimeConfiguration:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
 
+def _safe_to_json(obj: Any, *, part_path: str, nominal_path: str, bak_path: str):
+    """Safely update a json file.
+
+    1. The new value is written to a "part" file
+    2. The previous file atomically replaces the previous backup file, thereby becoming the
+       current backup file.
+    3. The part file is atomically renamed to the desired filename.
+    """
+    cirq.to_json_gzip(obj, part_path)
+    if os.path.exists(nominal_path):
+        os.replace(nominal_path, bak_path)
+    os.replace(part_path, nominal_path)
+
+
+def _update_updatable_files(
+    egr_record: ExecutableGroupResultFilesystemRecord,
+    shared_rt_info: SharedRuntimeInfo,
+    data_dir: str,
+):
+    """Safely update ExecutableGroupResultFilesystemRecord.json.gz and SharedRuntimeInfo.json.gz
+    during an execution run.
+    """
+    _safe_to_json(
+        shared_rt_info,
+        part_path=f'{data_dir}/SharedRuntimeInfo.json.gz.part',
+        nominal_path=f'{data_dir}/SharedRuntimeInfo.json.gz',
+        bak_path=f'{data_dir}/SharedRuntimeInfo.json.gz.bak',
+    )
+    _safe_to_json(
+        egr_record,
+        part_path=f'{data_dir}/ExecutableGroupResultFilesystemRecord.json.gz.part',
+        nominal_path=f'{data_dir}/ExecutableGroupResultFilesystemRecord.json.gz',
+        bak_path=f'{data_dir}/ExecutableGroupResultFilesystemRecord.json.gz.bak',
+    )
+
+
 def execute(
     rt_config: QuantumRuntimeConfiguration,
     executable_group: QuantumExecutableGroup,
@@ -145,15 +226,20 @@ def execute(
 ) -> ExecutableGroupResult:
     """Execute a `cg.QuantumExecutableGroup` according to a `cg.QuantumRuntimeConfiguration`.
 
+    The ExecutableGroupResult's constituent parts will be saved to disk as they become
+    available. Within the "{base_data_dir}/{run_id}" directory we save:
+        - The `cg.QuantumRuntimeConfiguration` at the start of the execution as a record
+          of *how* the executable group was run.
+        - A `cg.SharedRuntimeInfo` which is updated throughout the run.
+        - An `cg.ExecutableResult` for each `cg.QuantumExecutable` as they become available.
+        - A `cg.ExecutableGroupResultFilesystemRecord` which is updated throughout the run.
+
     Args:
         rt_config: The `cg.QuantumRuntimeConfiguration` specifying how to execute
             `executable_group`.
         executable_group: The `cg.QuantumExecutableGroup` containing the executables to execute.
-        base_data_dir: A filesystem path to write data. We write
-            "{base_data_dir}/{run_id}/ExecutableGroupResult.json.gz"
-            containing the `cg.ExecutableGroupResult` as well as one file
-            "{base_data_dir}/{run_id}/ExecutableResult.{i}.json.gz" per `cg.ExecutableResult` as
-            each executable result becomes available.
+        base_data_dir: Each data file will be written to the "{base_data_dir}/{run_id}/" directory,
+            which must not already exist.
 
     Returns:
         The `cg.ExecutableGroupResult` containing all data and metadata for an execution.
@@ -174,15 +260,21 @@ def execute(
         # coverage: ignore
         raise ValueError("Please provide a non-empty `base_data_dir`.")
 
-    os.makedirs(f'{base_data_dir}/{run_id}', exist_ok=False)
-
-    # Results object that we will fill in in the main loop.
-    exegroup_result = ExecutableGroupResult(
-        runtime_configuration=rt_config,
-        shared_runtime_info=SharedRuntimeInfo(run_id=run_id),
-        executable_results=list(),
+    # Set up data saving, save runtime configuration.
+    data_dir = f'{base_data_dir}/{run_id}'
+    os.makedirs(data_dir, exist_ok=False)
+    egr_record = ExecutableGroupResultFilesystemRecord(
+        runtime_configuration_path='QuantumRuntimeConfiguration.json.gz',
+        shared_runtime_info_path='SharedRuntimeInfo.json.gz',
+        executable_result_paths=[],
+        run_id=run_id,
     )
-    cirq.to_json_gzip(exegroup_result, f'{base_data_dir}/{run_id}/ExecutableGroupResult.json.gz')
+    cirq.to_json_gzip(rt_config, f'{data_dir}/{egr_record.runtime_configuration_path}')
+
+    # Set up to-be-updated objects.
+    shared_rt_info = SharedRuntimeInfo(run_id=run_id)
+    _update_updatable_files(egr_record, shared_rt_info, data_dir)
+    executable_results = []
 
     # Loop over executables.
     sampler = rt_config.processor.get_sampler()
@@ -206,9 +298,18 @@ def execute(
             runtime_info=runtime_info,
             raw_data=sampler_run_result,
         )
-        cirq.to_json_gzip(exe_result, f'{base_data_dir}/{run_id}/ExecutableResult.{i}.json.gz')
-        exegroup_result.executable_results.append(exe_result)
-        print(f'\r{i+1} / {n_executables}', end='', flush=True)
+        # Do bookkeeping for finished ExecutableResult
+        exe_result_path = f'ExecutableResult.{i}.json.gz'
+        cirq.to_json_gzip(exe_result, f"{data_dir}/{exe_result_path}")
+        executable_results.append(exe_result)
+        egr_record.executable_result_paths.append(exe_result_path)
+
+        _update_updatable_files(egr_record, shared_rt_info, data_dir)
+        print(f'\r{i + 1} / {n_executables}', end='', flush=True)
     print()
 
-    return exegroup_result
+    return ExecutableGroupResult(
+        runtime_configuration=rt_config,
+        shared_runtime_info=shared_rt_info,
+        executable_results=executable_results,
+    )

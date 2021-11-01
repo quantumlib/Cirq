@@ -131,6 +131,7 @@ from cirq_google.workflow import (
     RuntimeInfo,
     ExecutableResult,
     ExecutableGroupResult,
+    ExecutableGroupResultFilesystemRecord,
     QuantumRuntimeConfiguration,
     execute,
 )
