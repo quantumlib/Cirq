@@ -94,7 +94,7 @@ class ControlOp(cirq.Operation):
     def qubits(self):
         return []  # coverage: ignore
 
-    def _control_key_names_(self):
+    def _control_keys_(self):
         return self._keys
 
 
@@ -244,13 +244,13 @@ def test_append_control_key():
 
     c = cirq.Circuit()
     c.append(cirq.measure(q, key='a'))
-    c.append(ControlOp(['a']))
+    c.append(ControlOp([cirq.MeasurementKey('a')]))
     assert len(c) == 2
 
     c = cirq.Circuit()
     c.append(cirq.measure(q, key='a'))
-    c.append(ControlOp(['b']))
-    c.append(ControlOp(['b']))
+    c.append(ControlOp([cirq.MeasurementKey('b')]))
+    c.append(ControlOp([cirq.MeasurementKey('b')]))
     assert len(c) == 1
 
 

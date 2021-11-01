@@ -1868,13 +1868,13 @@ class Circuit(AbstractCircuit):
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
-        op_control_keys = protocols.control_key_names(op)
+        op_control_keys = protocols.control_keys(op)
         op_qubits = op.qubits
         while k > 0:
             k -= 1
             moment = self._moments[k]
-            if moment.operates_on(op_qubits) or any(
-                set(op_control_keys) & protocols.measurement_key_names(moment)
+            if moment.operates_on(op_qubits) or (
+                set(op_control_keys) & protocols.measurement_key_objs(moment)
             ):
                 return last_available
             if self._can_add_op_at(k, op):

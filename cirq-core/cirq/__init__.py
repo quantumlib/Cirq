@@ -509,7 +509,7 @@ from cirq.protocols import (
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     commutes,
-    control_key_names,
+    control_keys,
     decompose,
     decompose_once,
     decompose_once_with_qubits,

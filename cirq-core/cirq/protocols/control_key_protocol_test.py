@@ -17,13 +17,13 @@ import cirq
 
 def test_control_key():
     class Named:
-        def _control_key_names_(self):
-            return ['key']
+        def _control_keys_(self):
+            return [cirq.MeasurementKey('key')]
 
     class NoImpl:
-        def _control_key_names_(self):
+        def _control_keys_(self):
             return NotImplemented
 
-    assert cirq.control_key_names(Named()) == {'key'}
-    assert not any(cirq.control_key_names(NoImpl()))
-    assert not any(cirq.control_key_names(5))
+    assert cirq.control_keys(Named()) == {cirq.MeasurementKey('key')}
+    assert not cirq.control_keys(NoImpl())
+    assert not cirq.control_keys(5)
