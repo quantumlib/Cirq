@@ -180,20 +180,6 @@ def test_measurement_keys(key_method, keys):
     assert key_method(MeasurementKeysGate().on(a)) == keys
 
 
-def test_measurement_keys_allow_decompose_deprecated():
-    a = cirq.LineQubit(0)
-    with cirq.testing.assert_deprecated(deadline="v0.14"):
-        assert cirq.measurement_key_names(None, allow_decompose=False) == set()
-    with cirq.testing.assert_deprecated(deadline="v0.14"):
-        assert cirq.measurement_key_names([], allow_decompose=False) == set()
-    with cirq.testing.assert_deprecated(deadline="v0.14"):
-        assert cirq.measurement_key_names(cirq.X, allow_decompose=False) == set()
-    with cirq.testing.assert_deprecated(deadline="v0.14"):
-        assert cirq.measurement_key_names(cirq.measure(a, key='out'), allow_decompose=False) == {
-            'out'
-        }
-
-
 def test_measurement_key_mapping():
     class MultiKeyGate:
         def __init__(self, keys):

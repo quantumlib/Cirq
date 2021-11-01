@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import networkx as nx
 import numpy as np
 import pytest

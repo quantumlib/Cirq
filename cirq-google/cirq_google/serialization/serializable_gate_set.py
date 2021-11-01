@@ -26,7 +26,6 @@ from typing import (
 )
 
 import cirq
-from cirq._compat import deprecated
 from cirq_google.api import v2
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
@@ -61,12 +60,6 @@ class SerializableGateSet(serializer.Serializer):
         for s in serializers:
             self.serializers.setdefault(s.internal_type, []).append(s)
         self.deserializers = {d.serialized_id: d for d in deserializers}
-
-    @property  # type: ignore
-    @deprecated(deadline='v0.14', fix='Use name instead.', name='SerializableGateSet.gate_set_name')
-    def gate_set_name(self):
-        """The name of the serializer."""
-        return self._gate_set_name
 
     def with_added_types(
         self,
