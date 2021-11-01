@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
+from typing import TYPE_CHECKING
 
-from cirq_google.workflow.quantum_runtime import SharedRuntimeInfo, ExecutableResult
+if TYPE_CHECKING:
+    import cirq_google as cg
 
 
 class _WorkflowLogger(abc.ABC):
     def initialize(self):
         """Run at the start of an execution loop."""
 
-    def consume_one(self, exe_result: ExecutableResult, shared_rt_info: SharedRuntimeInfo):
+    def consume_one(self, exe_result: 'cg.ExecutableResult',
+                    shared_rt_info: 'cg.SharedRuntimeInfo'):
         """Run when a result is done."""
 
     def finalize(self):
@@ -35,7 +38,8 @@ class _PrintLogger(_WorkflowLogger):
     def initialize(self):
         print()
 
-    def consume_one(self, exe_result: ExecutableResult, shared_rt_info: SharedRuntimeInfo):
+    def consume_one(self, exe_result: 'cg.ExecutableResult',
+                    shared_rt_info: 'cg.SharedRuntimeInfo'):
         print(f'\r{self.i + 1} / {self.n_total}', end='', flush=True)
         self.i += 1
 
