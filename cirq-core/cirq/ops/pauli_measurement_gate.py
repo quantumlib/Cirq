@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Tuple, Sequence, TYPE_CHECKING, Union
-
+from typing import Any, Dict, Iterable, Tuple, Sequence, TYPE_CHECKING, Union, FrozenSet
 
 from cirq import protocols, value
 from cirq.ops import (
@@ -82,8 +81,13 @@ class PauliMeasurementGate(raw_types.Gate):
     def _with_key_path_(self, path: Tuple[str, ...]) -> 'PauliMeasurementGate':
         return self.with_key(self.mkey._with_key_path_(path))
 
-    def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'PauliMeasurementGate':
-        return self.with_key(self.mkey._with_key_path_prefix_(path))
+    def _with_key_path_prefix_(
+        self,
+        path: Tuple[str, ...],
+        local_keys: FrozenSet[value.MeasurementKey],
+        extern_keys: FrozenSet[value.MeasurementKey],
+    ) -> 'PauliMeasurementGate':
+        return self.with_key(self.mkey._with_key_path_prefix_(path, local_keys, extern_keys))
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'PauliMeasurementGate':
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))

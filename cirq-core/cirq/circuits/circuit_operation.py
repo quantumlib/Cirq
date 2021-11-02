@@ -27,6 +27,7 @@ from typing import (
     Tuple,
     Union,
     Iterator,
+    FrozenSet,
 )
 
 import dataclasses
@@ -77,11 +78,13 @@ class CircuitOperation(ops.Operation):
             The keys and values should be unindexed (i.e. without repetition_ids).
             The values cannot contain the `MEASUREMENT_KEY_SEPARATOR`.
         param_resolver: Resolved values for parameters in the circuit.
-        parent_path: A tuple of identifiers for any parent CircuitOperations containing this one.
         repetition_ids: List of identifiers for each repetition of the
             CircuitOperation. If populated, the length should be equal to the
             repetitions. If not populated and abs(`repetitions`) > 1, it is
             initialized to strings for numbers in `range(repetitions)`.
+        parent_path: A tuple of identifiers for any parent CircuitOperations
+            containing this one.
+        extern_keys: The set of measurement keys defined at extern scope.
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
@@ -96,6 +99,7 @@ class CircuitOperation(ops.Operation):
     param_resolver: study.ParamResolver = study.ParamResolver()
     repetition_ids: Optional[List[str]] = dataclasses.field(default=None)
     parent_path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
+    extern_keys: FrozenSet[value.MeasurementKey] = dataclasses.field(default_factory=frozenset)
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -184,6 +188,9 @@ class CircuitOperation(ops.Operation):
                     for repetition_id in self.repetition_ids
                     for key in circuit_keys
                 }
+            circuit_keys = {
+                protocols.with_key_path_prefix(key, self.parent_path) for key in circuit_keys
+            }
             object.__setattr__(
                 self,
                 '_cached_measurement_key_objs',
@@ -426,8 +433,22 @@ class CircuitOperation(ops.Operation):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return dataclasses.replace(self, parent_path=path)
 
-    def _with_key_path_prefix_(self, path: Tuple[str, ...]):
-        return dataclasses.replace(self, parent_path=path + self.parent_path)
+    def _with_key_path_prefix_(
+        self,
+        path: Tuple[str, ...],
+        local_keys: FrozenSet[value.MeasurementKey],
+        extern_keys: FrozenSet[value.MeasurementKey],
+    ):
+        new_keys = set(extern_keys)
+        for key in local_keys:
+            new_keys.add(protocols.with_key_path_prefix(key, path))
+        for key in self.extern_keys:
+            new_keys.add(protocols.with_key_path_prefix(key, path))
+        return dataclasses.replace(
+            self,
+            parent_path=path + self.parent_path,
+            extern_keys=frozenset(new_keys),
+        )
 
     def with_key_path(self, path: Tuple[str, ...]):
         return self._with_key_path_(path)

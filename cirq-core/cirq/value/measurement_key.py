@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, FrozenSet
 
 import dataclasses
 
@@ -105,8 +105,13 @@ class MeasurementKey:
     def _with_key_path_(self, path: Tuple[str, ...]):
         return self.replace(path=path)
 
-    def _with_key_path_prefix_(self, path: Tuple[str, ...]):
-        return self._with_key_path_(path=path + self.path)
+    def _with_key_path_prefix_(
+        self,
+        path: Tuple[str, ...],
+        local_keys: FrozenSet['MeasurementKey'],
+        extern_keys: FrozenSet['MeasurementKey'],
+    ):
+        return self.replace(path=path + self.path)
 
     def with_key_path_prefix(self, path_component: str):
         """Adds the input path component to the start of the path.
@@ -114,7 +119,7 @@ class MeasurementKey:
         Useful when constructing the path from inside to out (in case of nested subcircuits),
         recursively.
         """
-        return self._with_key_path_prefix_((path_component,))
+        return self.replace(path=(path_component,) + self.path)
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         if self.name not in key_map:

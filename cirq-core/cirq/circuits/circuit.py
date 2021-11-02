@@ -930,9 +930,17 @@ class AbstractCircuit(abc.ABC):
             [protocols.with_key_path(moment, path) for moment in self.moments]
         )
 
-    def _with_key_path_prefix_(self, path: Tuple[str, ...]):
+    def _with_key_path_prefix_(
+        self,
+        path: Tuple[str, ...],
+        local_keys: FrozenSet[value.MeasurementKey],
+        extern_keys: FrozenSet[value.MeasurementKey],
+    ):
         return self._with_sliced_moments(
-            [protocols.with_key_path_prefix(moment, path) for moment in self.moments]
+            [
+                protocols.with_key_path_prefix(moment, path, local_keys, extern_keys)
+                for moment in self.moments
+            ]
         )
 
     def _qid_shape_(self) -> Tuple[int, ...]:

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import AbstractSet, Any, Dict, Optional, Tuple
+from typing import AbstractSet, Any, Dict, Optional, Tuple, FrozenSet
 
 from typing_extensions import Protocol
 
@@ -292,7 +292,12 @@ def with_key_path(val: Any, path: Tuple[str, ...]):
     return NotImplemented if getter is None else getter(path)
 
 
-def with_key_path_prefix(val: Any, path: Tuple[str, ...]):
+def with_key_path_prefix(
+    val: Any,
+    path: Tuple[str, ...],
+    local_keys: FrozenSet[value.MeasurementKey] = None,
+    extern_keys: FrozenSet[value.MeasurementKey] = None,
+):
     """Prefixes the path to the target's measurement keys.
 
     The path usually refers to an identifier or a list of identifiers from a subcircuit that
@@ -300,4 +305,8 @@ def with_key_path_prefix(val: Any, path: Tuple[str, ...]):
     differentiate the actual measurement keys.
     """
     getter = getattr(val, '_with_key_path_prefix_', None)
-    return NotImplemented if getter is None else getter(path)
+    return (
+        NotImplemented
+        if getter is None
+        else getter(path, local_keys or frozenset(), extern_keys or frozenset())
+    )
