@@ -92,7 +92,9 @@ class KrausChannel(raw_types.Gate):
         return KrausChannel(kraus_ops=self._kraus_ops, key=protocols.with_key_path(self._key, path))
 
     def _with_key_path_prefix_(self, path: Tuple[str, ...]):
-        return KrausChannel(kraus_ops=self._kraus_ops, key=protocols.with_key_path_prefix(self._key, path))
+        return KrausChannel(
+            kraus_ops=self._kraus_ops, key=protocols.with_key_path_prefix(self._key, path)
+        )
 
     def __str__(self):
         if self._key is not None:
