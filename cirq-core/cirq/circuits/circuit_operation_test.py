@@ -804,4 +804,11 @@ def test_tag_propagation():
         assert test_tag not in op.tags
 
 
+def test_keys_under_parent_path():
+    a = cirq.LineQubit(0)
+    op1 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='A')))
+    op2 = op1.with_key_path(('B',))
+    assert cirq.measurement_key_names(op2.mapped_circuit()) == {'B:A'}
+
+
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?

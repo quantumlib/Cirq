@@ -222,18 +222,20 @@ class CircuitOperation(ops.Operation):
         circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
         if self.repetitions < 0:
             circuit = circuit ** -1
+        circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         has_measurements = protocols.is_measurement(circuit)
         if has_measurements:
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
-        circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if self.repetition_ids:
             if not has_measurements:
                 circuit = circuit * abs(self.repetitions)
             else:
                 circuit = circuits.Circuit(
-                    protocols.with_key_path(circuit, self.parent_path + (rep,))
+                    protocols.with_key_path(circuit, (rep,))
                     for rep in self.repetition_ids
                 )
+        if self.parent_path:
+            circuit = protocols.with_key_path_prefix(circuit, self.parent_path)
         if deep:
             circuit = circuit.map_operations(
                 lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
@@ -424,6 +426,9 @@ class CircuitOperation(ops.Operation):
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         return dataclasses.replace(self, parent_path=path)
+
+    def _with_key_path_prefix_(self, path: Tuple[str, ...]):
+        return dataclasses.replace(self, parent_path=path + self.parent_path)
 
     def with_key_path(self, path: Tuple[str, ...]):
         return self._with_key_path_(path)

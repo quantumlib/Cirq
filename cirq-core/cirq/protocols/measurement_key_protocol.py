@@ -290,3 +290,14 @@ def with_key_path(val: Any, path: Tuple[str, ...]):
     """
     getter = getattr(val, '_with_key_path_', None)
     return NotImplemented if getter is None else getter(path)
+
+
+def with_key_path_prefix(val: Any, path: Tuple[str, ...]):
+    """Prefixes the path to the target's measurement keys.
+
+    The path usually refers to an identifier or a list of identifiers from a subcircuit that
+    used to contain the target. Since a subcircuit can be repeated and reused, these paths help
+    differentiate the actual measurement keys.
+    """
+    getter = getattr(val, '_with_key_path_prefix_', None)
+    return NotImplemented if getter is None else getter(path)
