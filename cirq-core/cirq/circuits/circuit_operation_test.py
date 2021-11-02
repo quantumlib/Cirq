@@ -758,6 +758,15 @@ def test_decompose_repeated_nested_measurements():
     assert op3.mapped_circuit(deep=True) == expected_circuit
 
 
+def test_keys_under_parent_path():
+    a = cirq.LineQubit(0)
+
+    op1 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='A')))
+    assert cirq.measurement_key_names(op1) == {'A'}
+    op2 = op1.with_key_path(('B',))
+    assert cirq.measurement_key_names(op2) == {'B:A'}
+
+
 def test_mapped_circuit_preserves_moments():
     q0, q1 = cirq.LineQubit.range(2)
     fc = cirq.FrozenCircuit(cirq.Moment(cirq.X(q0)), cirq.Moment(cirq.X(q1)))
