@@ -178,16 +178,16 @@ class CircuitOperation(ops.Operation):
     def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
         if self._cached_measurement_key_objs is None:
             circuit_keys = protocols.measurement_key_objs(self.circuit)
-            circuit_keys = {
-                key._with_key_path_(self.parent_path + key.path)
-                for key in circuit_keys
-            }
             if self.repetition_ids is not None:
                 circuit_keys = {
                     key.with_key_path_prefix(repetition_id)
                     for repetition_id in self.repetition_ids
                     for key in circuit_keys
                 }
+            circuit_keys = {
+                key._with_key_path_(self.parent_path + key.path)
+                for key in circuit_keys
+            }
             object.__setattr__(
                 self,
                 '_cached_measurement_key_objs',
