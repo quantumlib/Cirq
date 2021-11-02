@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Implements direct fidelity estimation.
 
 Fidelity between the desired pure state rho and the actual state sigma is
