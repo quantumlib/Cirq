@@ -1,4 +1,3 @@
-import warnings
 from dataclasses import dataclass, field
 from scipy.linalg import expm
 from typing import Any, Dict, Iterable, Optional, Sequence, TYPE_CHECKING, List, Tuple, Union
@@ -17,12 +16,12 @@ OpIdentifierType = Union[
 ]
 
 
-VIRTUAL_Z_GATE = ops.ZPowGate
+Z_GATE = ops.ZPowGate
 MW_GATE = ops.PhasedXZGate
 MEASURE_GATE = ops.MeasurementGate
 RESET_GATE = ops.ResetChannel
 WAIT_GATE = ops.WaitGate
-SINGLE_QUBIT_GATES = {VIRTUAL_Z_GATE, MW_GATE, MEASURE_GATE, RESET_GATE}
+SINGLE_QUBIT_GATES = {Z_GATE, MW_GATE, MEASURE_GATE, RESET_GATE}
 
 FSIM_GATE = ops.FSimGate
 ISWAP_GATE = ops.ISwapPowGate
@@ -34,7 +33,7 @@ TWO_QUBIT_GATES = SYMMETRIC_TWO_QUBIT_GATES | ASYMMETRIC_TWO_QUBIT_GATES
 _EXPECTED_GATES = SINGLE_QUBIT_GATES | TWO_QUBIT_GATES
 
 
-_REAL_GATE_TAG = 'real_gate'
+_PHYSICAL_GATE_TAG = 'physical_gate'
 
 
 # TODO: merge into single "FSimAngles" dataclass
@@ -183,6 +182,8 @@ def decoherence_matrix(
         heat_rate: Heating rate of the system (default 0).
         dim: Number of energy levels to include (default 2).
 
+    Returns:
+        np.ndarray rate matrix for decay and dephasing.
     """
     # heating (related to a^dag)
     rate_matrix = np.diag(np.arange(1, dim) * heat_rate, 1).T.astype(float)
@@ -222,8 +223,9 @@ class ThermalNoiseModel(devices.NoiseModel):
         noise_ops: List['cirq.Channel'] = []
         moment_ns = 0
         for op in moment:
-            if _REAL_GATE_TAG not in op.tags:
-                # Only real gates get noise applied.
+            if _PHYSICAL_GATE_TAG not in op.tags:
+                # TODO: split virtual/non-virtual moments
+                # Only non-virtual gates get noise applied.
                 return [moment]
             op_data = (type(op.gate), *op.qubits)
             op_duration: Optional[float] = None
@@ -262,6 +264,7 @@ class ThermalNoiseModel(devices.NoiseModel):
 def finite_temp_model(
     qubit_dims: Dict['cirq.Qid', int],
     gate_durations_ns: Dict[OpIdentifierType, float],
+    heat_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
     cool_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
     dephase_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
 ) -> ThermalNoiseModel:
@@ -269,16 +272,20 @@ def finite_temp_model(
 
     Required Args:
         qubit_dims: Dimension for all qubits in the system.
-                    Note, if specifying dimensions other than 2,
-                    LeakageData (of appropriate dims) must be added to the
-                    circuit (either before or after the ThermalNoiseModel).
+                    Currently only supports dimension=2 (qubits, not qudits)
     Optional Args:
+        heat_rate_GHz: single number (units GHz) specifying heating rate,
+                       either per qubit, or global value for all.
+                       Given a rate gh, the Lindblad op will be sqrt(gh)*a^dag
+                       (where a is annihilation),
+                       so that the heating Lindbldian is
+                       gh(a^dag • a - 0.5{a*a^dag, •}).
         cool_rate_GHz: single number (units GHz) specifying cooling rate,
                        either per qubit, or global value for all.
                        Given a rate gc, the Lindblad op will be sqrt(gc)*a
                        so that the cooling Lindbldian is
                        gc(a • a^dag - 0.5{n, •})
-                       This number is equivalent to 1/T1
+                       This number is equivalent to 1/T1.
         dephase_rate_GHz: single number (units GHz) specifying dephasing rate,
                        either per qubit, or global value for all.
                        Given a rate gd, Lindblad op will be sqrt(2*gd)*n where
@@ -386,10 +393,9 @@ class GenericNoiseModel(devices.NoiseModel):
     ) -> 'cirq.OP_TREE':
         noise_ops = []
         for op in moment:
-            if _REAL_GATE_TAG not in op.tags:
+            if _PHYSICAL_GATE_TAG not in op.tags:
                 # Only real gates get noise applied.
                 return [moment]
-            # TODO: virtual-tag ops?
             op_data = (type(op.gate), *op.qubits)
             if op_data in self.ops_added:
                 noise_ops.append(self.ops_added[op_data])
@@ -563,11 +569,26 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
 
         # TODO: HACK HACK HACK
         from cirq import circuits
+        # TODO: is this a Google-only feature?
+        from cirq_google import PhysicalZTag
 
-        split_measure_circuit = circuits.Circuit(
-            ops.Moment(op.with_tags(_REAL_GATE_TAG) for op in moment)
-            for moment in split_measure_moments
-        )
+        new_moments = []
+        for moment in split_measure_moments:
+            virtual_ops = {
+                op for op in moment
+                if isinstance(op.gate, Z_GATE) and PhysicalZTag not in op.tags
+            }
+            physical_ops = [
+                op.with_tags(_PHYSICAL_GATE_TAG) for op in moment
+                if op not in virtual_ops
+            ]
+            if virtual_ops:
+                new_moments.append(ops.Moment(virtual_ops))
+            if physical_ops:
+                new_moments.append(ops.Moment(physical_ops))
+
+        split_measure_circuit = circuits.Circuit(new_moments)
+
 
         # TODO: virtual operation handling
         # noisy_circuit = _split_software_and_real_moments(noisy_circuit)
