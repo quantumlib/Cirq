@@ -222,10 +222,10 @@ class CircuitOperation(ops.Operation):
         circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
         if self.repetitions < 0:
             circuit = circuit ** -1
-        circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         has_measurements = protocols.is_measurement(circuit)
         if has_measurements:
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
+        circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if self.repetition_ids:
             if not has_measurements:
                 circuit = circuit * abs(self.repetitions)
