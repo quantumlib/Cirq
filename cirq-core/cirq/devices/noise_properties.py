@@ -1,76 +1,34 @@
 from dataclasses import dataclass, field
-from scipy.linalg import expm
-from typing import Any, Dict, Iterable, Optional, Sequence, TYPE_CHECKING, List, Tuple, Union
-from cirq import ops, protocols, devices, qis
+from typing import Dict, Iterable, Optional, Sequence, TYPE_CHECKING, List, Set
 import numpy as np
 
+from cirq import ops, protocols, devices
+from cirq.devices.noise_utils import (
+    OpIdentifier,
+    PHYSICAL_GATE_TAG,
+    decoherence_pauli_error,
+)
+
 if TYPE_CHECKING:
-    from typing import Iterable
     import cirq
 
-
-OpIdentifierType = Union[
-    Tuple[type],
-    Tuple[type, 'cirq.Qid'],
-    Tuple[type, 'cirq.Qid', 'cirq.Qid'],
-]
-
-
-Z_GATE = ops.ZPowGate
-MW_GATE = ops.PhasedXZGate
-MEASURE_GATE = ops.MeasurementGate
-RESET_GATE = ops.ResetChannel
-WAIT_GATE = ops.WaitGate
-SINGLE_QUBIT_GATES = {Z_GATE, MW_GATE, MEASURE_GATE, RESET_GATE}
-
-FSIM_GATE = ops.FSimGate
-ISWAP_GATE = ops.ISwapPowGate
-CZ_GATE = ops.CZPowGate
-SYMMETRIC_TWO_QUBIT_GATES = {ISWAP_GATE, FSIM_GATE, CZ_GATE}
-ASYMMETRIC_TWO_QUBIT_GATES = set()
+SINGLE_QUBIT_GATES = {ops.ZPowGate, ops.PhasedXZGate, ops.MeasurementGate, ops.ResetChannel}
+SYMMETRIC_TWO_QUBIT_GATES = {ops.FSimGate, ops.ISwapPowGate, ops.CZPowGate}
+ASYMMETRIC_TWO_QUBIT_GATES: Set[type] = set()
 TWO_QUBIT_GATES = SYMMETRIC_TWO_QUBIT_GATES | ASYMMETRIC_TWO_QUBIT_GATES
-
 _EXPECTED_GATES = SINGLE_QUBIT_GATES | TWO_QUBIT_GATES
 
 
-_PHYSICAL_GATE_TAG = 'physical_gate'
-
-
-# TODO: merge into single "FSimAngles" dataclass
-@dataclass(frozen=True)
-class FSimEntanglingAngles:
-    """Angles of an fsim gate that entangle.
-
-    Parameters match cirq.PhasedFSimGate
-    """
-
-    theta: float
-    phi: float
-
-
-@dataclass(frozen=True)
-class FSimPhaseAngles:
-    """Angles of an fsim gate corresponding to z phases.
-
-    Parameters match cirq.PhasedFSimGate
-    """
-
-    zeta: float
-    chi: float
-    gamma: float
-
-
-@dataclass(frozen=True)
+@dataclass
 class NoiseProperties:
-    gate_times_ns: Dict[str, float]
-    T1_ns: Dict['cirq.GridQubit', float]
-    Tphi_ns: Dict['cirq.GridQubit', float]
-    ro_fidelities: Dict['cirq.GridQubit', np.ndarray]
-    entangler_errors: Dict[OpIdentifierType, 'FSimEntanglingAngles']
-    gate_pauli_errors: Dict[OpIdentifierType, float]
-    z_phase_errors: Optional[Dict[OpIdentifierType, 'FSimPhaseAngles']] = None
+    gate_times_ns: Dict[type, float]
+    T1_ns: Dict['cirq.Qid', float]
+    Tphi_ns: Dict['cirq.Qid', float]
+    ro_fidelities: Dict['cirq.Qid', np.ndarray]
+    gate_pauli_errors: Dict[OpIdentifier, float]
 
-    _qubits: Optional[List['cirq.GridQubit']] = field(init=False, default=None)
+    _qubits: List['cirq.Qid'] = field(init=False, default_factory=list)
+    _depolarizing_error: Dict[OpIdentifier, float] = field(init=False, default_factory=dict)
 
     def __attrs_post_init__(self):
         t1_qubits = set(self.T1_ns)
@@ -89,446 +47,139 @@ class NoiseProperties:
         if gate_error_dict is None:
             return  # some fields are optional
         for op_id, val in gate_error_dict.items():
-            gate_type, qpair = op_id[0], op_id[1:]
-            if len(qpair) != 2:
+            if len(op_id.qubits) != 2:
                 # single qubit op_ids also present, or generic values are
                 # specified. Skip these cases
-                if len(qpair) > 2:
+                if len(op_id.qubits) > 2:
                     raise ValueError(
-                        f'Found gate {gate_type} with {len(qpair)} qubits. '
+                        f'Found gate {op_id.gate} with {len(op_id.qubits)} qubits. '
                         'Symmetric errors can only apply to 2-qubit gates.'
                     )
                 continue
 
-            if gate_type not in SYMMETRIC_TWO_QUBIT_GATES:
-                if gate_type not in ASYMMETRIC_TWO_QUBIT_GATES:
+            if op_id.gate not in SYMMETRIC_TWO_QUBIT_GATES:
+                if op_id.gate not in ASYMMETRIC_TWO_QUBIT_GATES:
                     raise ValueError(
-                        f'Found gate {gate_type} which does not appear in the'
+                        f'Found gate {op_id.gate} which does not appear in the'
                         'symmetric or asymmetric gate sets.'
                     )
                 continue
-            op_id_swapped = (gate_type, *qpair[::-1])
+            op_id_swapped = (op_id.gate, *op_id.qubits[::-1])
             if op_id_swapped not in gate_error_dict:
                 raise ValueError(
                     f'Operation {op_id} of field {field_name} has '
-                    f'errors but its symmetric id '
-                    f'{op_id_swapped} does not.'
+                    f'errors but its symmetric id {op_id_swapped} does not.'
                 )
 
     @property
-    def qubits(self) -> List['cirq.GridQubit']:
+    def qubits(self) -> List['cirq.Qid']:
         """Qubits for which we have data"""
-        if self._qubits == None:
+        if not self._qubits:
             self._qubits = sorted(self.T1_ns)
         return self._qubits
 
+    def get_depolarizing_error(self) -> Dict[OpIdentifier, float]:
+        """Returns the portion of Pauli error from depolarization.
 
-def _left_mul(mat: np.ndarray) -> np.ndarray:
-    """Superoperator associated with left multiplication by a square matrix."""
-    mat = np.asarray(mat)
-    if mat.shape[-1] != mat.shape[-2]:
-        raise ValueError(
-            f'_left_mul only accepts square matrices, but input matrix has shape {mat.shape}.'
-        )
-    dim = mat.shape[-1]
+        The result of this method is memoized.
+        """
+        if self._depolarizing_error:
+            return self._depolarizing_error
 
-    return np.kron(mat, np.eye(dim))
-
-
-def _right_mul(mat: np.ndarray) -> np.ndarray:
-    """Superoperator associated with right multiplication by a square matrix."""
-    mat = np.asarray(mat)
-    if mat.shape[-1] != mat.shape[-2]:
-        raise ValueError(
-            f'_right_mul only accepts square matrices, but input matrix has shape {mat.shape}.'
-        )
-    dim = mat.shape[-1]
-
-    return np.kron(np.eye(dim), np.swapaxes(mat, -2, -1))
-
-
-def lindbladian(left_op: np.ndarray) -> np.ndarray:
-    """Superoperator representing a Lindbladian.
-
-    The Lindbladian generated by a single operator A is the superoperator
-    L(\rho) = A \rho A^\dagger - 0.5 (A^\dagger A \rho + \rho A^\dagger A)
-
-    Args:
-        left_op: The operator acting on the left in the Lindbladian (A above).
-
-    Returns:
-        Superoperator corresponding to the Lindbladian.
-    """
-    left_op = np.asarray(left_op)
-    right_op = left_op.conj().T
-    square = right_op @ left_op
-    out = _left_mul(left_op) @ _right_mul(right_op)
-    out -= 0.5 * (_left_mul(square) + _right_mul(square))
-    return out
-
-
-def decoherence_matrix(
-    cool_rate: float, dephase_rate: float, heat_rate: float = 0.0, dim: int = 2
-) -> np.ndarray:
-    """Construct a rate matrix associated with decay and dephasing.
-
-    The units of the matrix match the units of the rates specified.
-    This matrix can be used to construct a ThermalChannel after rescaling
-    by an idling time (to make it dimensionless).
-
-    Args:
-        cool_rate: Decay rate of the system, usually 1 / T_1
-        dephase_rate: Static dephasing rate of the system, usually 1 / T_phi
-        heat_rate: Heating rate of the system (default 0).
-        dim: Number of energy levels to include (default 2).
-
-    Returns:
-        np.ndarray rate matrix for decay and dephasing.
-    """
-    # heating (related to a^dag)
-    rate_matrix = np.diag(np.arange(1, dim) * heat_rate, 1).T.astype(float)
-    # cooling (related to a)
-    rate_matrix += np.diag(np.arange(1, dim) * cool_rate, 1)
-    # dephasing (related to n=a^dag * a)
-    # we specify i^2 since we take the sqrt to get
-    # Lindblad op later.
-    rate_matrix += np.diag(dephase_rate * np.arange(dim) ** 2)
-    return rate_matrix
-
-
-def _validate_rates(qubit_dims: Dict['cirq.Qid', int], rates: Dict['cirq.Qid', np.ndarray]) -> None:
-    """
-    Check all rate matrices are square, and of appropriate dim.
-    We check rates are positive in the class validator.
-    """
-    if set(qubit_dims) != set(rates):
-        raise ValueError('qubits for rates inconsistent with those through qubit_dims')
-    for q in rates:
-        if rates[q].shape != (qubit_dims[q], qubit_dims[q]):
-            raise ValueError(
-                f'rate matrix invalid shape. '
-                f'should be ({qubit_dims[q]}, {qubit_dims[q]}), '
-                f'but got {rates[q].shape}'
-            )
-
-
-@dataclass
-class ThermalNoiseModel(devices.NoiseModel):
-    gate_durations_ns: Dict[OpIdentifierType, float]
-    rate_matrix_GHz: Dict['cirq.Qid', np.ndarray]
-
-    def noisy_moment(
-        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
-        noise_ops: List['cirq.Channel'] = []
-        moment_ns = 0
-        for op in moment:
-            if _PHYSICAL_GATE_TAG not in op.tags:
-                # TODO: split virtual/non-virtual moments
-                # Only non-virtual gates get noise applied.
-                return [moment]
-            op_data = (type(op.gate), *op.qubits)
-            op_duration: Optional[float] = None
-            for key, duration in self.gate_durations_ns.items():
-                if not issubclass(op_data[0], key):
-                    continue  # gate type doesn't match
-                # TODO: remove assumption of same time across qubits
-                # if len(key) > 1 and op_data[:1] != key[:1]:
-                #     continue  # qubits don't match
-                op_duration = duration
-                break
-            if op_duration is None:
-                if not isinstance(op.gate, ops.WaitGate):
+        depol_errors = {}
+        for op_id, p_error in self.gate_pauli_errors.items():
+            gate_type = op_id.gate
+            time_ns = float(self.gate_times_ns[gate_type])
+            if gate_type in SINGLE_QUBIT_GATES:
+                if issubclass(gate_type, ops.MeasurementGate):
+                    # Non-measurement error can be ignored on measurement gates.
                     continue
-                # special case for wait gates if not predefined
-                op_duration = op.gate.duration.total_ns()
-            moment_ns = max(moment_ns, op_duration)
+                if len(op_id.qubits) != 1:
+                    raise ValueError(
+                        f'Gate {gate_type} only takes one qubit, but {op_id.qubits} were given.'
+                    )
+                q0 = op_id.qubits[0]
+                # Subtract decoherence error.
+                if q0 in self.T1_ns:
+                    rp_0 = decoherence_pauli_error(self.T1_ns[q0], self.Tphi_ns[q0], time_ns)
+                    p_error -= rp_0
 
-        for qubit in system_qubits:
-            rates = self.rate_matrix_GHz[qubit] * moment_ns
-            num_op = np.diag(np.sqrt(np.diag(rates)))
-            annihilation = np.sqrt(np.triu(rates, 1))
-            creation = np.sqrt(np.triu(rates.T, 1)).T
-            # Lindbladian with three Lindblad ops for the three processes
-            # Note: 'time' parameter already specified implicitly through rates
-            op_a = lindbladian(annihilation)
-            op_c = lindbladian(creation)
-            op_n = lindbladian(num_op)
-            L = lindbladian(annihilation) + lindbladian(creation) + 2 * lindbladian(num_op)
-            superop = expm(L.real)
-            kraus_ops = qis.superoperator_to_kraus(superop)
-            noise_ops.append(ops.KrausChannel(kraus_ops).on(qubit))
-        return [moment, ops.Moment(noise_ops)]
-
-
-def finite_temp_model(
-    qubit_dims: Dict['cirq.Qid', int],
-    gate_durations_ns: Dict[OpIdentifierType, float],
-    heat_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
-    cool_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
-    dephase_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
-) -> ThermalNoiseModel:
-    """Construct a ThermalNoiseModel data object.
-
-    Required Args:
-        qubit_dims: Dimension for all qubits in the system.
-                    Currently only supports dimension=2 (qubits, not qudits)
-    Optional Args:
-        heat_rate_GHz: single number (units GHz) specifying heating rate,
-                       either per qubit, or global value for all.
-                       Given a rate gh, the Lindblad op will be sqrt(gh)*a^dag
-                       (where a is annihilation),
-                       so that the heating Lindbldian is
-                       gh(a^dag • a - 0.5{a*a^dag, •}).
-        cool_rate_GHz: single number (units GHz) specifying cooling rate,
-                       either per qubit, or global value for all.
-                       Given a rate gc, the Lindblad op will be sqrt(gc)*a
-                       so that the cooling Lindbldian is
-                       gc(a • a^dag - 0.5{n, •})
-                       This number is equivalent to 1/T1.
-        dephase_rate_GHz: single number (units GHz) specifying dephasing rate,
-                       either per qubit, or global value for all.
-                       Given a rate gd, Lindblad op will be sqrt(2*gd)*n where
-                       n = a^dag * a, so that the dephasing Lindbldian is
-                       2 * gd * (n • n - 0.5{n^2, •}).
-                       This number is equivalent to 1/Tphi.
-
-    Returns:
-        The ThermalNoiseModel with specified parameters.
-    """
-
-    qubits = set(qubit_dims)
-    rate_dict = {}
-
-    def _as_rate_dict(rate_or_dict: Optional[Union[float, dict]]) -> dict:
-        # Convert float or None input into dictionary form. Make sure no
-        # qubits are missing from dictionary input.
-        if np.isscalar(rate_or_dict):
-            return {qb: rate_or_dict for qb in qubits}
-        elif rate_or_dict is None:
-            return {qb: 0.0 for qb in qubits}
-        else:
-            out = rate_or_dict.copy()
-            for qb in qubits:
-                if qb not in rate_or_dict:
-                    out[qb] = 0.0
-            return out
-
-    heat_rate_GHz = _as_rate_dict(None)
-    cool_rate_GHz = _as_rate_dict(cool_rate_GHz)
-    dephase_rate_GHz = _as_rate_dict(dephase_rate_GHz)
-
-    for q, dim in qubit_dims.items():
-        gamma_h = heat_rate_GHz[q]
-        gamma_c = cool_rate_GHz[q]
-        gamma_phi = dephase_rate_GHz[q]
-
-        rate_dict[q] = decoherence_matrix(gamma_c, gamma_phi, gamma_h, dim)
-
-    _validate_rates(qubit_dims, rate_dict)
-
-    return ThermalNoiseModel(gate_durations_ns, rate_dict)
-
-
-def decoherence_pauli_error(T1_ns: float, Tphi_ns: float, gate_time_ns: float) -> float:
-    """The component of Pauli error caused by decoherence."""
-    Gamma2 = (1 / (2 * T1_ns)) + 1 / Tphi_ns
-
-    exp1 = np.exp(-gate_time_ns / T1_ns)
-    exp2 = np.exp(-gate_time_ns * Gamma2)
-    px = 0.25 * (1 - exp1)
-    py = px
-    pz = 0.5 * (1 - exp2) - px
-    return px + py + pz
-
-
-def shapes_broadcastable(shape_0: Tuple[int, ...], shape_1: Tuple[int, ...]) -> bool:
-    return all((m == n) or (m == 1) or (n == 1) for m, n in zip(shape_0[::-1], shape_1[::-1]))
-
-
-def unitary_entanglement_fidelity(U_actual: np.ndarray, U_ideal: np.ndarray) -> np.ndarray:
-    """Entanglement fidelity between two unitaries.
-
-    For unitary matrices, this is related to average unitary fidelity F by:
-
-        :math:`F = \frac{F_e d + 1}{d + 1}`
-
-    where d is the matrix dimension.
-
-    Args:
-        U_actual : Matrix whose fidelity to U_ideal will be computed. This may
-            be a non-unitary matrix, i.e. the projection of a larger unitary
-            matrix into the computational subspace.
-        U_ideal : Unitary matrix to which U_actual will be compared.
-
-    Both arguments may be vectorized, in that their shapes may be of the form
-    (...,M,M) (as long as both shapes can be broadcast together).
-
-    Returns:
-        The entanglement fidelity between the two unitaries. For inputs with
-        shape (...,M,M), the output has shape (...).
-    """
-    U_actual = np.asarray(U_actual)
-    U_ideal = np.asarray(U_ideal)
-    if not shapes_broadcastable(U_actual.shape, U_ideal.shape):
-        raise ValueError('Input arrays do not have matching shapes.')
-    if U_actual.shape[-1] != U_actual.shape[-2]:
-        raise ValueError("Inputs' trailing dimensions must be equal (square).")
-
-    dim = U_ideal.shape[-1]
-
-    prod_trace = np.einsum('...ba,...ba->...', U_actual.conj(), U_ideal)
-
-    return np.real((np.abs(prod_trace)) / dim) ** 2
-
-
-@dataclass
-class GenericNoiseModel(devices.NoiseModel):
-    ops_added: Dict[OpIdentifierType, 'cirq.Operation'] = field(default_factory=dict)
-    prepend: bool = False
-    context: Any = None
-
-    def noisy_moment(
-        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
-        noise_ops = []
-        for op in moment:
-            if _PHYSICAL_GATE_TAG not in op.tags:
-                # Only real gates get noise applied.
-                return [moment]
-            op_data = (type(op.gate), *op.qubits)
-            if op_data in self.ops_added:
-                noise_ops.append(self.ops_added[op_data])
-            elif op_data[:1] in self.ops_added:
-                noise_ops.append(self.ops_added[op_data[:1]])
             else:
-                continue
-        if not noise_ops:
-            return [moment]
-        if self.prepend:
-            return [ops.Moment(noise_ops), moment]
-        return [moment, ops.Moment(noise_ops)]
+                # This must be a 2-qubit gate.
+                if gate_type not in TWO_QUBIT_GATES:
+                    raise ValueError(f'Gate {gate_type} is not in the supported gate list.')
+                if len(op_id.qubits) != 2:
+                    raise ValueError(
+                        f'Gate {gate_type} takes two qubits, but {op_id.qubits} were given.'
+                    )
+                # Subtract decoherence error.
+                q0, q1 = op_id.qubits
+                if q0 in self.T1_ns:
+                    rp_0 = decoherence_pauli_error(self.T1_ns[q0], self.Tphi_ns[q0], time_ns)
+                else:
+                    rp_0 = 0
+                if q1 in self.T1_ns:
+                    rp_1 = decoherence_pauli_error(self.T1_ns[q1], self.Tphi_ns[q1], time_ns)
+                else:
+                    rp_1 = 0
 
+                p_error -= rp_0 + rp_1
+            depol_errors[op_id] = p_error
+        # memoization is OK
+        self._depolarizing_error = depol_errors
+        return self._depolarizing_error
 
-def build_noise_models(data: NoiseProperties) -> List['cirq.NoiseModel']:
-    """Construct all NoiseModels associated with NoiseProperties."""
-    noise_models = []
+    def build_noise_models(self) -> List['cirq.NoiseModel']:
+        """Construct all NoiseModels associated with this NoiseProperties."""
+        noise_models: List['cirq.NoiseModel'] = []
 
-    if set(data.T1_ns) != set(data.Tphi_ns):
-        raise ValueError(
-            f'T1 data has qubits {set(data.T1_ns)}, but Tphi has qubits {set(data.Tphi_ns)}.'
-        )
-    if data.T1_ns:  # level 1 sophistication
-        noise_models.append(
-            finite_temp_model(
-                {q: 2 for q in data.T1_ns},
-                data.gate_times_ns,
-                cool_rate_GHz={q: 1 / T1 for q, T1 in data.T1_ns.items()},
-                dephase_rate_GHz={q: 1 / Tp for q, Tp in data.Tphi_ns.items()},
+        if set(self.T1_ns) != set(self.Tphi_ns):
+            raise ValueError(
+                f'T1 data has qubits {set(self.T1_ns)}, but Tphi has qubits {set(self.Tphi_ns)}.'
             )
-        )
+        if self.T1_ns:  # level 1 sophistication
+            noise_models.append(
+                devices.ThermalNoiseModel.create(
+                    {q: 2 for q in self.T1_ns},
+                    self.gate_times_ns,
+                    cool_rate_GHz={q: 1 / T1 for q, T1 in self.T1_ns.items()},
+                    dephase_rate_GHz={q: 1 / Tp for q, Tp in self.Tphi_ns.items()},
+                )
+            )
 
-    # TODO: move to cirq-google subclass
-    # entangling gate coherent errors
-    if data.z_phase_errors is not None:
+        gate_types = set(op_id.gate for op_id in self.gate_pauli_errors)
+        if not gate_types.issubset(_EXPECTED_GATES):
+            raise ValueError(
+                'Some gates are not in the supported set.'
+                f'\nGates: {gate_types}\nSupported: {_EXPECTED_GATES}'
+            )
 
-        def gate_error(key: Tuple[type, 'cirq.GridQubit', 'cirq.GridQubit']) -> 'cirq.Operation':
-            theta = data.entangler_errors[key].theta
-            phi = data.entangler_errors[key].phi
-            z_error = data.z_phase_errors.get(key, FSimPhaseAngles(0, 0, 0))
-            return ops.PhasedFSimGate(
-                theta=theta, phi=phi, zeta=z_error.zeta, gamma=z_error.gamma, chi=z_error.chi
-            ).on(*key[1:])
-
-        entangler_errors = {k: gate_error(k) for k in data.entangler_errors}
-    else:
-        # only entangling parameter errors
-        entangler_errors = {
-            (gate_type, q0, q1): ops.FSimGate(theta=v.theta, phi=v.phi).on(q0, q1)
-            for (gate_type, q0, q1), v in data.entangler_errors.items()
+        depolarizing_error = self.get_depolarizing_error()
+        added_pauli_errors = {
+            op_id: ops.depolarize(p_error, len(op_id.qubits)).on(*op_id.qubits)
+            for op_id, p_error in depolarizing_error.items()
+            if p_error > 0
         }
-    if entangler_errors:  # level 1 sophistication
-        noise_models.append(GenericNoiseModel(ops_added=entangler_errors))
 
-    # subtract the entangler and decoherence errors from the expected
-    # pauli errors. The remainder is added as depolarizing error after each
-    # gate.
+        # This adds per-qubit pauli error after ops on those qubits.
+        noise_models.append(devices.InsertionNoiseModel(ops_added=added_pauli_errors))
 
-    gate_types = set(k[0] for k in data.gate_pauli_errors)
-    if not gate_types.issubset(_EXPECTED_GATES):
-        raise ValueError(
-            'Some gates are not in the supported set.'
-            f'\nGates: {gate_types}\nSupported: {_EXPECTED_GATES}'
-        )
+        # This adds per-qubit measurement error BEFORE measurement on those qubits.
+        if self.ro_fidelities:
+            added_measure_errors: Dict[OpIdentifier, 'cirq.Operation'] = {}
+            for qubit in self.ro_fidelities:
+                p_00, p_11 = self.ro_fidelities[qubit]
+                p = p_11 / (p_00 + p_11)
+                gamma = p_11 / p
+                added_measure_errors[
+                    OpIdentifier(ops.MeasurementGate, qubit)
+                ] = ops.generalized_amplitude_damp(p, gamma).on(qubit)
 
-    added_pauli_errors = {}
+            noise_models.append(
+                devices.InsertionNoiseModel(ops_added=added_measure_errors, prepend=True)
+            )
 
-    for op_id, p_error in data.gate_pauli_errors.items():
-        gate_type = op_id[0]
-        time_ns = float(data.gate_times_ns[gate_type])
-        if gate_type in SINGLE_QUBIT_GATES:
-            if gate_type is MEASURE_GATE:
-                # Non-measurement error can be ignored on measurement gates.
-                continue
-            if len(op_id) != 2:
-                raise ValueError(
-                    f'Gate {gate_type} only takes one qubit, but {len(op_id) - 1} were given.'
-                )
-            q0 = op_id[1]
-            # add decoherence error
-            if q0 in data.T1_ns:
-                rp_0 = decoherence_pauli_error(data.T1_ns[q0], data.Tphi_ns[q0], time_ns)
-                p_error -= rp_0
-
-        else:
-            # this must be a 2-qubit gate
-            if gate_type not in TWO_QUBIT_GATES:
-                raise ValueError(f'Gate {gate_type} is not in the supported gate list.')
-            if len(op_id) != 3:
-                raise ValueError(
-                    f'Gate {gate_type} takes two qubits, but {len(op_id) - 1} were given.'
-                )
-            # add decoherence error
-            q0, q1 = op_id[1:]
-            if q0 in data.T1_ns:
-                rp_0 = decoherence_pauli_error(data.T1_ns[q0], data.Tphi_ns[q0], time_ns)
-            else:
-                rp_0 = 0
-            if q1 in data.T1_ns:
-                rp_1 = decoherence_pauli_error(data.T1_ns[q1], data.Tphi_ns[q1], time_ns)
-            else:
-                rp_1 = 0
-            # add entangling angle error
-            if op_id in entangler_errors:
-                unitary_err = protocols.unitary(entangler_errors[op_id])
-                fid = unitary_entanglement_fidelity(unitary_err, np.eye(4))
-                rp_fsim = 1 - fid
-            else:
-                rp_fsim = 0
-
-            p_error -= rp_0 + rp_1 + rp_fsim
-
-        if p_error > 0:
-            added_pauli_errors[op_id] = ops.depolarize(p_error, len(op_id[1:])).on(*op_id[1:])
-
-    # This adds per-qubit pauli error after ops on those qubits.
-    noise_models.append(GenericNoiseModel(ops_added=added_pauli_errors))
-
-    # This adds per-qubit measurement error BEFORE measurement on those qubits.
-    if data.ro_fidelities:
-        added_measure_errors: Dict[OpIdentifierType, 'cirq.Operation'] = {}
-        for qubit in data.ro_fidelities:
-            op_id = ('measure', qubit)
-            p_00, p_11 = data.ro_fidelities[qubit]
-            p = p_11 / (p_00 + p_11)
-            gamma = p_11 / p
-            added_measure_errors[(ops.MeasurementGate, qubit)] = ops.generalized_amplitude_damp(
-                p, gamma
-            ).on(qubit)
-
-        noise_models.append(GenericNoiseModel(ops_added=added_measure_errors, prepend=True))
-
-    return noise_models
+        return noise_models
 
 
 class NoiseModelFromNoiseProperties(devices.NoiseModel):
@@ -541,16 +192,23 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         Raises:
             ValueError: if no NoiseProperties object is specified.
         """
-        if noise_properties is not None:
-            self._noise_properties = noise_properties
-        else:
-            raise ValueError('A NoiseProperties object must be specified')
+        self._noise_properties = noise_properties
+        self.noise_models = self._noise_properties.build_noise_models()
 
-        self.noise_models = build_noise_models(self._noise_properties)
+    def virtual_predicate(self, op: 'cirq.Operation') -> bool:
+        """Returns True if an operation is virtual.
+
+        Device-specific subclasses should implement this method to mark any
+        operations which their device handles outside the quantum hardware.
+        """
+        return False
 
     def noisy_moments(
         self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
     ) -> Sequence['cirq.OP_TREE']:
+        # Hack to bypass import order constraints
+        from cirq import circuits
+
         # Split multi-qubit measurements into single-qubit measurements.
         # These will be recombined after noise is applied.
         split_measure_moments = []
@@ -567,20 +225,11 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
                     split_measure_ops.append(ops.measure(q, key=m_key))
             split_measure_moments.append(ops.Moment(split_measure_ops))
 
-        # TODO: HACK HACK HACK
-        from cirq import circuits
-        # TODO: is this a Google-only feature?
-        from cirq_google import PhysicalZTag
-
         new_moments = []
         for moment in split_measure_moments:
-            virtual_ops = {
-                op for op in moment
-                if isinstance(op.gate, Z_GATE) and PhysicalZTag not in op.tags
-            }
+            virtual_ops = {op for op in moment if self.virtual_predicate(op)}
             physical_ops = [
-                op.with_tags(_PHYSICAL_GATE_TAG) for op in moment
-                if op not in virtual_ops
+                op.with_tags(PHYSICAL_GATE_TAG) for op in moment if op not in virtual_ops
             ]
             if virtual_ops:
                 new_moments.append(ops.Moment(virtual_ops))
@@ -588,10 +237,6 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
                 new_moments.append(ops.Moment(physical_ops))
 
         split_measure_circuit = circuits.Circuit(new_moments)
-
-
-        # TODO: virtual operation handling
-        # noisy_circuit = _split_software_and_real_moments(noisy_circuit)
 
         # Add actual noise.
         noisy_circuit = split_measure_circuit.copy()

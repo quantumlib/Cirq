@@ -89,6 +89,8 @@ from cirq.devices import (
     NO_NOISE,
     NOISE_MODEL_LIKE,
     NoiseModel,
+    NoiseProperties,
+    NoiseModelFromNoiseProperties,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
     NamedTopology,

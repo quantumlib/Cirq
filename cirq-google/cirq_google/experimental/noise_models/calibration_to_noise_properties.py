@@ -1,4 +1,5 @@
-import cirq_google
+from typing import Dict
+import cirq, cirq_google
 import numpy as np
 from cirq.devices.noise_properties import NoiseProperties
 
@@ -71,6 +72,20 @@ def noise_properties_from_calibration(
         ValueError: decay constant from RB Pauli Error and XEB Fidelity aren't within tolerance
     """
 
+    # TODO: acquire this based on the target device.
+    # Default map of gates to their durations.
+    DEFAULT_GATE_NS: Dict[type, float] = {
+        cirq.ZPowGate: 25.0,
+        cirq.MeasurementGate: 4000.0,
+        cirq.ResetChannel: 250.0,
+        cirq.PhasedXZGate: 25.0,
+        cirq.FSimGate: 32.0,
+        cirq.ISwapPowGate: 32.0,
+        cirq.CZPowGate: 32.0,
+        # cirq.WaitGate is a special case.
+    }
+
+    # TODO: realign with new NoiseProperties
     # Unpack all values from Calibration object
     t1_micros = _unpack_from_calibration('single_qubit_idle_t1_micros', calibration)
     t1_nanos = t1_micros * 1000 if t1_micros is not None else None
