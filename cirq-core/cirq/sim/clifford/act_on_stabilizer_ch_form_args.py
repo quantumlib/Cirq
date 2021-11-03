@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable, Union
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
 
 import numpy as np
 
