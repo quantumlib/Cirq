@@ -939,11 +939,7 @@ class AbstractCircuit(abc.ABC):
         moments = []
         for moment in self.moments:
             moment_keys = protocols.measurement_key_objs(moment)
-            conflicts = local_keys.intersection(moment_keys)
-            if conflicts:
-                raise ValueError(f'Key conflicts {conflicts}')
-            moment = protocols.with_key_path_prefix(moment, path, local_keys, extern_keys)
-            moments.append(moment)
+            moments.append(protocols.with_key_path_prefix(moment, path, local_keys, extern_keys))
             local_keys = local_keys.union(moment_keys)
         return self._with_sliced_moments(moments)
 

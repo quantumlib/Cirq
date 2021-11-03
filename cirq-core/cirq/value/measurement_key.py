@@ -111,7 +111,12 @@ class MeasurementKey:
         local_keys: FrozenSet['MeasurementKey'],
         extern_keys: FrozenSet['MeasurementKey'],
     ):
-        return self.replace(path=path + self.path)
+        if self in local_keys:
+            raise ValueError(f'Key conflicts locally: {self}')
+        new_key = self.replace(path=path + self.path)
+        if new_key in extern_keys:
+            raise ValueError(f'Key conflicts externally: {new_key}')
+        return new_key
 
     def with_key_path_prefix(self, path_component: str):
         """Adds the input path component to the start of the path.
