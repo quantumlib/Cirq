@@ -267,6 +267,7 @@ from cirq.ops.raw_types import (
 
 from cirq.ops.swap_gates import (
     ISWAP,
+    ISWAP_INV,
     ISwapPowGate,
     riswap,
     SQRT_ISWAP,
