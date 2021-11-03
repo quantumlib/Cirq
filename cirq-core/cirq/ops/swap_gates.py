@@ -16,6 +16,7 @@
 This module creates Gate instances for the following gates:
     SWAP: the swap gate.
     ISWAP: a swap gate with a phase on the swapped subspace.
+    ISWAP_INV: inverse of the ISWAP gate.
     SQRT_ISWAP: square root of the ISWAP gate.
     SQRT_ISWAP_INV: inverse square root of the ISWAP gate.
 
@@ -334,6 +335,21 @@ document(
          [0, 0, i, 0],
          [0, i, 0, 0],
          [0, 0, 0, 1]]
+    ```
+    """,
+)
+
+ISWAP_INV = ISwapPowGate(exponent=-1)
+document(
+    ISWAP_INV,
+    """The inverse of iswap gate.
+
+    Matrix:
+    ```
+        [[1, 0,  0,  0],
+         [0, 0,  -i, 0],
+         [0, -i, 0,  0],
+         [0, 0,  0,  1]]
     ```
     """,
 )

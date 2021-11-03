@@ -551,7 +551,7 @@ def test_wait_gate_multi_qubit():
         (cirq.ISWAP ** 0.5, -np.pi / 4, 0),
         (cirq.ISWAP ** -0.5, np.pi / 4, 0),
         (cirq.ISWAP ** 1.0, -np.pi / 2, 0),
-        (cirq.ISWAP ** -1.0, np.pi / 2, 0),
+        (cirq.ISWAP_INV, np.pi / 2, 0),
         (cirq.ISWAP ** 0.0, 0, 0),
         (cirq.CZ, 0, np.pi),
         (cirq.CZ ** -1.0, 0, np.pi),

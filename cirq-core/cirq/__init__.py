@@ -227,6 +227,7 @@ from cirq.ops import (
     IdentityGate,
     InterchangeableQubitsGate,
     ISWAP,
+    ISWAP_INV,
     ISwapPowGate,
     KrausChannel,
     LinearCombinationOfGates,
