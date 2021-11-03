@@ -862,7 +862,7 @@ def test_keys_conflict_with_repetitions():
 def test_keys_conflict_locally():
     q = cirq.LineQubit(0)
     op1 = cirq.measure(q, key='A')
-    op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1), repetitions=2)
+    op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
     with pytest.raises(ValueError, match='Key conflicts locally: A'):
         _ = op2.mapped_circuit()
 
