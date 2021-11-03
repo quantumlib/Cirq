@@ -15,7 +15,6 @@
 """Runtime information dataclasses and execution of executables."""
 
 import dataclasses
-import os
 import uuid
 from typing import Any, Dict, Optional, List
 
