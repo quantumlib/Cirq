@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence, Iterable
+from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
 
 import numpy as np
 
