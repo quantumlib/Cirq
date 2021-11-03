@@ -22,7 +22,7 @@ import cirq_google as cg
 
 def test_device_validation():
     sampler = cg.ValidatingSampler(
-        device=cg.Sycamore23, validator=lambda c, r: True, sampler=cirq.Simulator()
+        device=cg.Sycamore23, validator=lambda c, s, r: True, sampler=cirq.Simulator()
     )
 
     # Good qubit
@@ -40,7 +40,9 @@ def test_device_validation():
         results = sampler.run_sweep(circuit, sweep, repetitions=100)
 
 
-def _batch_size_less_than_two(circuits: List[cirq.Circuit], sweeps: List[cirq.Sweepable]):
+def _batch_size_less_than_two(
+    circuits: List[cirq.Circuit], sweeps: List[cirq.Sweepable], repetitions: int
+):
     if len(circuits) > 2:
         raise ValueError('Too many batches')
 
@@ -72,6 +74,25 @@ def test_batch_validation():
     sweeps = [cirq.Points(key='t', points=[1, 0]), cirq.Points(key='x', points=[0, 1]), {}]
     with pytest.raises(ValueError, match='Too many batches'):
         results = sampler.run_batch(circuits, sweeps, repetitions=100)
+
+
+def _too_many_reps(circuits: List[cirq.Circuit], sweeps: List[cirq.Sweepable], repetitions: int):
+    if repetitions > 10000:
+        raise ValueError('Too many repetitions')
+
+
+def test_sweeps_validation():
+    sampler = cg.ValidatingSampler(
+        device=cirq.UNCONSTRAINED_DEVICE,
+        validator=_too_many_reps,
+        sampler=cirq.Simulator(),
+    )
+    q = cirq.GridQubit(2, 2)
+    circuit = cirq.Circuit(cirq.X(q) ** sympy.Symbol('t'), cirq.measure(q, key='m'))
+    sweeps = [cirq.Points(key='t', points=[1, 0]), cirq.Points(key='x', points=[0, 1])]
+    with pytest.raises(ValueError, match='Too many repetitions'):
+        _ = sampler.run_sweep(circuit, sweeps, repetitions=20000)
+
 
 def test_batch_default_sweeps():
     sampler = cg.ValidatingSampler()

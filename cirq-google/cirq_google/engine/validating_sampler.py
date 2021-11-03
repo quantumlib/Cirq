@@ -15,25 +15,12 @@ from typing import Callable, List, Optional, Sequence, Union
 
 import cirq
 
-VALIDATOR_TYPE = Callable[[Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable]], None]
+VALIDATOR_TYPE = Callable[
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], Union[int, List[int]]], None
+]
 
 
 class ValidatingSampler(cirq.Sampler):
-    """Wrapper around cirq.Sampler that performs device validation.
-
-    This sampler will delegate to the wrapping sampler after
-    performing validation on the circuit(s) given to the sampler.
-
-    Args:
-        sampler: sampler wrapped by this object.  After validating,
-            samples will be returned by this enclosed cirq.Sampler.
-        device: cirq.Device that will validate_circuit before sampling.
-        validator: A callable that will do any additional validation
-           beyond the device.  For instance, this can perform serialization
-           checks.  Note that this function takes a list of circuits and
-           sweeps so that batch functionality can also be tested.
-    """
-
     def __init__(
         self,
         *,
@@ -41,18 +28,35 @@ class ValidatingSampler(cirq.Sampler):
         validator: Optional[VALIDATOR_TYPE] = None,
         sampler: cirq.Sampler = cirq.Simulator(),
     ):
-        self._sampler = sampler
+        """Wrapper around `cirq.Sampler` that performs device validation.
+
+        This sampler will delegate to the wrapping sampler after
+        performing validation on the circuit(s) given to the sampler.
+
+        Args:
+            device: `cirq.Device` that will validate_circuit before sampling.
+            validator: A callable that will do any additional validation
+               beyond the device.  For instance, this can perform serialization
+               checks.  Note that this function takes a list of circuits and
+               sweeps so that batch functionality can also be tested.
+            sampler: sampler wrapped by this object.  After validating,
+                samples will be returned by this enclosed `cirq.Sampler`.
+        """
         self._device = device
         self._validator = validator
+        self._sampler = sampler
 
     def _validate_circuit(
-        self, circuits: Sequence[cirq.AbstractCircuit], sweeps: List[cirq.Sweepable]
+        self,
+        circuits: Sequence[cirq.AbstractCircuit],
+        sweeps: List[cirq.Sweepable],
+        repetitions: Union[int, List[int]],
     ):
         if self._device:
             for circuit in circuits:
                 self._device.validate_circuit(circuit)
         if self._validator:
-            self._validator(circuits, sweeps)
+            self._validator(circuits, sweeps, repetitions)
 
     def run_sweep(
         self,
@@ -60,7 +64,7 @@ class ValidatingSampler(cirq.Sampler):
         params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> List['cirq.Result']:
-        self._validate_circuit([program], [params])
+        self._validate_circuit([program], [params], repetitions)
         return self._sampler.run_sweep(program, params, repetitions)
 
     def run_batch(
@@ -71,5 +75,5 @@ class ValidatingSampler(cirq.Sampler):
     ) -> List[List['cirq.Result']]:
         if params_list is None:
             params_list = [None] * len(programs)
-        self._validate_circuit(programs, params_list)
+        self._validate_circuit(programs, params_list, repetitions)
         return self._sampler.run_batch(programs, params_list, repetitions)
