@@ -238,10 +238,12 @@ class CircuitOperation(ops.Operation):
                 circuit = circuit * abs(self.repetitions)
             else:
                 circuit = circuits.Circuit(
-                    protocols.with_key_path_prefix(circuit, (rep,)) for rep in self.repetition_ids
+                    protocols.with_key_path_prefix(circuit, (rep,), extern_keys=self.extern_keys)
+                    for rep in self.repetition_ids
                 )
-        if self.parent_path:
-            circuit = protocols.with_key_path_prefix(circuit, self.parent_path)
+        circuit = protocols.with_key_path_prefix(
+            circuit, self.parent_path, extern_keys=self.extern_keys
+        )
         if deep:
             circuit = circuit.map_operations(
                 lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op

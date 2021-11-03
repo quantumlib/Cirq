@@ -936,12 +936,16 @@ class AbstractCircuit(abc.ABC):
         local_keys: FrozenSet[value.MeasurementKey],
         extern_keys: FrozenSet[value.MeasurementKey],
     ):
-        return self._with_sliced_moments(
-            [
-                protocols.with_key_path_prefix(moment, path, local_keys, extern_keys)
-                for moment in self.moments
-            ]
-        )
+        moments = []
+        for moment in self.moments:
+            moment_keys = protocols.measurement_key_objs(moment)
+            conflicts = local_keys.intersection(moment_keys)
+            if conflicts:
+                raise ValueError(f'Key conflicts {conflicts}')
+            moment = protocols.with_key_path_prefix(moment, path, local_keys, extern_keys)
+            moments.append(moment)
+            local_keys = local_keys.union(moment_keys)
+        return self._with_sliced_moments(moments)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
