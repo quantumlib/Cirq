@@ -71,7 +71,6 @@ from cirq_google.engine import (
     EngineJob,
     EngineProgram,
     EngineProcessor,
-    EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
     ValidatingSampler,
@@ -133,6 +132,7 @@ from cirq_google.workflow import (
     RuntimeInfo,
     ExecutableResult,
     ExecutableGroupResult,
+    ExecutableGroupResultFilesystemRecord,
     QuantumRuntimeConfiguration,
     execute,
 )

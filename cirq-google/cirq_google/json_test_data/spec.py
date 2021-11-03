@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import pathlib
 
 import cirq_google
@@ -36,7 +37,6 @@ TestSpec = ModuleJsonTestSpec(
         'EngineJob',
         'EngineProcessor',
         'EngineProgram',
-        'EngineTimeSlot',
         'FSimPhaseCorrections',
         'NAMED_GATESETS',
         'ProtoVersion',
@@ -65,6 +65,7 @@ TestSpec = ModuleJsonTestSpec(
             'QuantumRuntimeConfiguration',
             'RuntimeInfo',
             'SharedRuntimeInfo',
+            'ExecutableGroupResultFilesystemRecord',
         ]
     },
     tested_elsewhere=[

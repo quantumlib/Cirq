@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from cirq.contrib.quimb.state_vector import (
     circuit_for_expectation_value,
     tensor_expectation_value,
