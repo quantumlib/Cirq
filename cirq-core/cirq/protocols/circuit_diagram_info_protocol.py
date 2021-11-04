@@ -24,7 +24,6 @@ from typing import (
     Iterable,
     List,
     Sequence,
-    Tuple,
 )
 
 import numpy as np
@@ -326,9 +325,10 @@ def _op_info_with_fallback(
     op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
 ) -> 'cirq.CircuitDiagramInfo':
     info = protocols.circuit_diagram_info(op, args, None)
-    rows: Tuple[Any, ...] = list(op.qubits)
-    rows += protocols.measurement_key_objs(op) & args.qubit_map.keys()
-    rows += protocols.control_keys(op) & args.qubit_map.keys()
+    rows: List[Any] = list(op.qubits)
+    if args.qubit_map is not None:
+        rows += protocols.measurement_key_objs(op) & args.qubit_map.keys()
+        rows += protocols.control_keys(op) & args.qubit_map.keys()
     if info is not None:
         if max(1, len(rows)) != len(info.wire_symbols):
             raise ValueError(f'Wanted diagram info from {op} for {rows}) but got {info}')
