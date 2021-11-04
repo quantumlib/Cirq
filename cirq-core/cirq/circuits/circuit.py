@@ -920,9 +920,6 @@ class AbstractCircuit(abc.ABC):
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return self.all_measurement_key_names()
 
-    def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:
-        return {key for op in self.all_operations() for key in protocols.control_keys(op)}
-
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self._with_sliced_moments(
             [protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments]
@@ -1172,7 +1169,8 @@ class AbstractCircuit(abc.ABC):
             The TextDiagramDrawer instance.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
-        draw_cregs = bool(protocols.control_keys(self))
+        control_keys = {key for op in self.all_operations() for key in protocols.control_keys(op)}
+        draw_cregs = bool(control_keys)
         if draw_cregs:
             cbits = tuple(protocols.measurement_key_objs(self))
             qubits = qubits + cbits
