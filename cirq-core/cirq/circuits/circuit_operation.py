@@ -226,6 +226,10 @@ class CircuitOperation(ops.Operation):
         if has_measurements:
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
+        if deep:
+            circuit = circuit.map_operations(
+                lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
+            )
         if self.repetition_ids:
             if not has_measurements:
                 circuit = circuit * abs(self.repetitions)
@@ -235,10 +239,6 @@ class CircuitOperation(ops.Operation):
                 )
         if self.parent_path:
             circuit = protocols.with_key_path_prefix(circuit, self.parent_path)
-        if deep:
-            circuit = circuit.map_operations(
-                lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
-            )
         return circuit
 
     def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
