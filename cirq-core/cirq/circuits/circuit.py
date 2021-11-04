@@ -2428,9 +2428,7 @@ def _draw_moment_in_diagram(
         qubits: Tuple[Any, ...] = tuple(op.qubits)
         cbits: Tuple[Any, ...] = ()
         if draw_cregs:
-            cbits = tuple(protocols.measurement_key_objs(op)) + tuple(
-                protocols.control_keys(op)
-            )
+            cbits = tuple(protocols.measurement_key_objs(op) | protocols.control_keys(op))
             qubits += cbits
         indices = [qubit_map[q] for q in qubits]
         y1 = min(indices)
