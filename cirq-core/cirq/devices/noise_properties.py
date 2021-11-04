@@ -1,6 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, Optional, Sequence, TYPE_CHECKING, List, Set
+from typing import Dict, Iterable, Sequence, TYPE_CHECKING, List, Set
 import numpy as np
 
 from cirq import ops, protocols, devices
@@ -47,7 +47,7 @@ class NoiseProperties:
         gate_error_dict = getattr(self, field_name)
         if gate_error_dict is None:
             return  # some fields are optional
-        for op_id, val in gate_error_dict.items():
+        for op_id in gate_error_dict:
             if len(op_id.qubits) != 2:
                 # single qubit op_ids also present, or generic values are
                 # specified. Skip these cases

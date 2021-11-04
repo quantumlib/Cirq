@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Sequence, Set
+from typing import Dict, List, Set
 import numpy as np
 
 import cirq, cirq_google
@@ -18,7 +18,7 @@ TWO_QUBIT_GATES = SYMMETRIC_TWO_QUBIT_GATES | ASYMMETRIC_TWO_QUBIT_GATES
 @dataclass
 class GoogleNoiseProperties(cirq.NoiseProperties):
     """Noise-defining properties for a Google device.
-    
+
     Inherited args:
         gate_times_ns: Dict[type, float] of gate types to their duration on
             Google hardware.
@@ -34,6 +34,7 @@ class GoogleNoiseProperties(cirq.NoiseProperties):
             (potentially on specific qubits) to the PhasedFSim fix-up operation
             for that gate. Defaults to no-op for all gates.
     """
+
     fsim_errors: Dict[OpIdentifier, cirq.PhasedFSimGate] = field(default_factory=dict)
 
     def __attrs_post_init__(self):

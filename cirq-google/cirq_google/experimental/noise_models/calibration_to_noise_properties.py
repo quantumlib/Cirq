@@ -1,76 +1,42 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Dict
+from typing import Dict, Optional
 import cirq, cirq_google
 import numpy as np
-from cirq.devices.noise_properties import NoiseProperties
+from cirq.devices.noise_properties import (
+    NoiseProperties,
+    SINGLE_QUBIT_GATES,
+)
+from cirq.devices.noise_utils import (
+    OpIdentifier,
+)
 
 
-def _xeb_fidelity_to_decay_constant(xeb_fidelity, num_qubits=2):
-    # Converts from XEB Fidelity to depolarization decay constant
-    if xeb_fidelity is not None:
-        N = 2 ** num_qubits  # Dimension of Hilbert space
-        return 1 - (1 - xeb_fidelity) / (1 - 1 / N)
-    return None
-
-
-def _rb_average_error_to_decay_constant(rb_average_error, num_qubits: int = 1):
-    # Converts from randomized benchmarking average error to depolarization decay constant
-    if rb_average_error is not None:
-        N = 2 ** num_qubits  # Dimension of Hilbert space
-        return 1 - rb_average_error / (1 - 1 / N)
-    else:
-        return None
-
-
-def _rb_pauli_error_to_decay_constant(rb_pauli_error, num_qubits: int = 1):
-    # Converts from randomized benchmarking pauli error to depolarization decay constant
-    if rb_pauli_error is not None:
-        N = 2 ** num_qubits  # Dimension of Hilbert space
-        return 1 - rb_pauli_error / (1 - 1 / N ** 2)
-    else:
-        return None
-
-
-def _within_tolerance(val_1, val_2, tolerance):
-    # Helper function to check if two values are within tolerance
+def _within_tolerance(val_1: Optional[float], val_2: Optional[float], tolerance: float) -> bool:
+    """Helper function to check if two values are within a given tolerance."""
     if val_1 is None or val_2 is None:
         return True
     return abs(val_1 - val_2) <= tolerance
 
 
-def _unpack_from_calibration(metric_name, calibration):
-    # Gets the average (over all qubits) of each metric
-    # TODO: Add support for per-qubit noise
-    if metric_name in calibration.keys():
-        return np.mean([value for qubit, value in calibration[metric_name].items()])
-    else:
-        return None
+def _unpack_from_calibration(
+    metric_name: str, calibration: cirq_google.Calibration
+) -> Dict[cirq.Qid, float]:
+    """Converts a single-qubit metric from Calibration to dict format."""
+    if metric_name not in calibration:
+        return {}
+    return {
+        cirq_google.Calibration.key_to_qubit(key): cirq_google.Calibration.value_to_float(val)
+        for key, val in calibration[metric_name].items()
+    }
 
 
-def noise_properties_from_calibration(
-    calibration: cirq_google.Calibration, validate: bool = True, tolerance: float = 0.01
-):
+def noise_properties_from_calibration(calibration: cirq_google.Calibration) -> NoiseProperties:
     """Translates between a Calibration object and a NoiseProperties object.
     The NoiseProperties object can then be used as input to the NoiseModelFromNoiseProperties
     class (cirq.devices.noise_properties) to create a NoiseModel that can be used with a simulator.
 
-    If the validate argument is set to false, the depolarization decay constant will be calculated
-    from the RB Pauli error if defined, the XEB Fidelity if RB Pauli error is not defined, or the
-    RB Average error if the others are not defined.
-
     Args:
         calibration: a Calibration object with hardware metrics
-        validate: whether or not to check that the depolarization decay constants calculated from
-                 RB Pauli error, RB average error, & XEB Fidelity agree to within a given tolerance
-        tolerance: threshold for validating decay constants frmo RB Pauli error, RB Average error,
-                  and XEB fidelity.
-
-    Raises:
-        ValueError: decay constants from RB Average Error and RB Pauli Error aren't within tolerance
-
-        ValueError: decay constants from RB Pauli Error and XEB Fidelity aren't within tolerance
-
-        ValueError: decay constant from RB Pauli Error and XEB Fidelity aren't within tolerance
     """
 
     # TODO: acquire this based on the target device.
@@ -86,47 +52,49 @@ def noise_properties_from_calibration(
         # cirq.WaitGate is a special case.
     }
 
-    # TODO: realign with new NoiseProperties
     # Unpack all values from Calibration object
-    t1_micros = _unpack_from_calibration('single_qubit_idle_t1_micros', calibration)
-    t1_nanos = t1_micros * 1000 if t1_micros is not None else None
-    xeb_error = _unpack_from_calibration('xeb', calibration)
-    xeb_fidelity = 1 - xeb_error if xeb_error is not None else None
-    rb_pauli_error = _unpack_from_calibration('single_qubit_rb_pauli_error_per_gate', calibration)
-    rb_average_error = _unpack_from_calibration(
-        'single_qubit_rb_average_error_per_gate', calibration
+    # 1. Extract T1 for all qubits
+    T1_micros = _unpack_from_calibration('single_qubit_idle_t1_micros', calibration)
+    T1_ns = {q: T1_micro * 1000 for q, T1_micro in T1_micros.items()}
+
+    # 2. Extract Tphi for all qubits
+    rb_incoherent_errors = _unpack_from_calibration(
+        'single_qubit_rb_incoherent_error_per_gate', calibration
     )
+    Tphi_ns = {}
+    if rb_incoherent_errors:
+        microwave_time_ns = DEFAULT_GATE_NS[cirq.PhasedXZGate]
+        for qubit, t1_ns in T1_ns.items():
+            tphi_err = rb_incoherent_errors[qubit] - microwave_time_ns / (3 * t1_ns)
+            if tphi_err > 0:
+                tphi_ns = microwave_time_ns / (3 * tphi_err)
+            else:
+                tphi_ns = 1e10
+            Tphi_ns[qubit] = tphi_ns
+
+    # 3a. Extract Pauli error for single-qubit gates.
+    rb_pauli_errors = _unpack_from_calibration('single_qubit_rb_pauli_error_per_gate', calibration)
+    gate_pauli_errors = {
+        OpIdentifier(gate, q): pauli_err
+        for q, pauli_err in rb_pauli_errors.items()
+        for gate in SINGLE_QUBIT_GATES
+    }
+
+    # TODO: 3a. Extract Pauli error for two-qubit gates.
+
+    # 4. Extract readout fidelity for all qubits.
     p00 = _unpack_from_calibration('single_qubit_p00_error', calibration)
     p11 = _unpack_from_calibration('single_qubit_p11_error', calibration)
-    decay_constant_pauli = _rb_pauli_error_to_decay_constant(rb_pauli_error)
+    ro_fidelities = {
+        q: np.array([p00.get(q, 0), p11.get(q, 0)]) for q in set(p00.keys()) | set(p11.keys())
+    }
 
-    decay_constant_average = _rb_average_error_to_decay_constant(rb_average_error)
+    # TODO: include entangling errors.
 
-    if validate:  # Will throw error if metrics aren't compatible
-        if not _within_tolerance(decay_constant_pauli, decay_constant_average, tolerance):
-            raise ValueError(
-                f'Decay constant from RB Pauli error: {decay_constant_pauli}, '
-                f'decay constant from RB Average error: {decay_constant_average}. '
-                'If validation is disabled, RB Pauli error will be used.'
-            )
-        decay_constant_from_xeb = _xeb_fidelity_to_decay_constant(xeb_fidelity)
-        if not _within_tolerance(decay_constant_from_xeb, decay_constant_pauli, tolerance):
-            raise ValueError(
-                f'Decay constant from RB Pauli error: {decay_constant_pauli}, '
-                f'decay constant from XEB Fidelity: {decay_constant_from_xeb}. '
-                'If validation is disabled, RB Pauli error will be used.'
-            )
-        if not _within_tolerance(decay_constant_from_xeb, decay_constant_average, tolerance):
-            raise ValueError(
-                f'Decay constant from RB Average error: {decay_constant_average}, '
-                f'decay constant from XEB Fidelity: {decay_constant_from_xeb}. '
-                'If validation is disabled, XEB Fidelity will be used.'
-            )
-
-    if decay_constant_pauli is not None:  # can't define both decay constant and xeb
-        return NoiseProperties(
-            t1_ns=t1_nanos, decay_constant=decay_constant_pauli, p00=p00, p11=p11
-        )
-    if xeb_fidelity is not None:
-        return NoiseProperties(t1_ns=t1_nanos, xeb_fidelity=xeb_fidelity, p00=p00, p11=p11)
-    return NoiseProperties(t1_ns=t1_nanos, decay_constant=decay_constant_average, p00=p00, p11=p11)
+    return NoiseProperties(
+        gate_times_ns=DEFAULT_GATE_NS,
+        T1_ns=T1_ns,
+        Tphi_ns=Tphi_ns,
+        ro_fidelities=ro_fidelities,
+        gate_pauli_errors=gate_pauli_errors,
+    )
