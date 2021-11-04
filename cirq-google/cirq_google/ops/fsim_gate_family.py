@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Common Gate Families used in cirq-google"""
+"""Define FSimGateFamily used to convert/accept `cirq.FSimGate` and other related gate types"""
 
 from typing import cast, Dict, Optional, Type, TypeVar, Sequence, Union, Any, Callable
 
