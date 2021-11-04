@@ -12,11 +12,15 @@ from cirq.devices.noise_utils import (
 if TYPE_CHECKING:
     import cirq
 
-SINGLE_QUBIT_GATES = {ops.ZPowGate, ops.PhasedXZGate, ops.MeasurementGate, ops.ResetChannel}
-SYMMETRIC_TWO_QUBIT_GATES = {ops.FSimGate, ops.ISwapPowGate, ops.CZPowGate}
+SINGLE_QUBIT_GATES = {
+    ops.ZPowGate,
+    ops.PhasedXZGate,
+    ops.MeasurementGate,
+    ops.ResetChannel,
+}
+SYMMETRIC_TWO_QUBIT_GATES = {ops.FSimGate, ops.PhasedFSimGate, ops.ISwapPowGate, ops.CZPowGate}
 ASYMMETRIC_TWO_QUBIT_GATES: Set[type] = set()
 TWO_QUBIT_GATES = SYMMETRIC_TWO_QUBIT_GATES | ASYMMETRIC_TWO_QUBIT_GATES
-_EXPECTED_GATES = SINGLE_QUBIT_GATES | TWO_QUBIT_GATES
 
 
 @dataclass
@@ -78,6 +82,18 @@ class NoiseProperties:
             self._qubits = sorted(self.T1_ns)
         return self._qubits
 
+    @classmethod
+    def single_qubit_gates(cls) -> Set[type]:
+        return SINGLE_QUBIT_GATES
+
+    @classmethod
+    def two_qubit_gates(cls) -> Set[type]:
+        return TWO_QUBIT_GATES
+
+    @classmethod
+    def expected_gates(cls) -> Set[type]:
+        return cls.single_qubit_gates() | cls.two_qubit_gates()
+
     def get_depolarizing_error(self) -> Dict[OpIdentifier, float]:
         """Returns the portion of Pauli error from depolarization.
 
@@ -89,8 +105,7 @@ class NoiseProperties:
         depol_errors = {}
         for op_id, p_error in self.gate_pauli_errors.items():
             gate_type = op_id.gate
-            time_ns = float(self.gate_times_ns[gate_type])
-            if gate_type in SINGLE_QUBIT_GATES:
+            if gate_type in self.single_qubit_gates():
                 if issubclass(gate_type, ops.MeasurementGate):
                     # Non-measurement error can be ignored on measurement gates.
                     continue
@@ -98,6 +113,7 @@ class NoiseProperties:
                     raise ValueError(
                         f'Gate {gate_type} only takes one qubit, but {op_id.qubits} were given.'
                     )
+                time_ns = float(self.gate_times_ns[gate_type])
                 q0 = op_id.qubits[0]
                 # Subtract decoherence error.
                 if q0 in self.T1_ns:
@@ -106,12 +122,13 @@ class NoiseProperties:
 
             else:
                 # This must be a 2-qubit gate.
-                if gate_type not in TWO_QUBIT_GATES:
+                if gate_type not in self.two_qubit_gates():
                     raise ValueError(f'Gate {gate_type} is not in the supported gate list.')
                 if len(op_id.qubits) != 2:
                     raise ValueError(
                         f'Gate {gate_type} takes two qubits, but {op_id.qubits} were given.'
                     )
+                time_ns = float(self.gate_times_ns[gate_type])
                 # Subtract decoherence error.
                 q0, q1 = op_id.qubits
                 if q0 in self.T1_ns:
@@ -148,10 +165,10 @@ class NoiseProperties:
             )
 
         gate_types = set(op_id.gate for op_id in self.gate_pauli_errors)
-        if not gate_types.issubset(_EXPECTED_GATES):
+        if not gate_types.issubset(self.expected_gates()):
             raise ValueError(
                 'Some gates are not in the supported set.'
-                f'\nGates: {gate_types}\nSupported: {_EXPECTED_GATES}'
+                f'\nGates: {gate_types}\nSupported: {self.expected_gates()}'
             )
 
         depolarizing_error = self.get_depolarizing_error()

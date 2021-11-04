@@ -1,14 +1,20 @@
 from typing import Dict, List, Tuple
+from cirq.ops.common_channels import GeneralizedAmplitudeDampingChannel
+from cirq.ops.fsim_gate import PhasedFSimGate
 import numpy as np
+import pytest
 import cirq, cirq_google
 
 # from cirq.testing import assert_equivalent_op_tree
-from cirq.devices.noise_properties import (
+from cirq_google.devices.google_noise_properties import (
     SYMMETRIC_TWO_QUBIT_GATES,
     SINGLE_QUBIT_GATES,
     TWO_QUBIT_GATES,
 )
-from cirq.devices.noise_utils import OpIdentifier
+from cirq.devices.noise_utils import (
+    OpIdentifier,
+    PHYSICAL_GATE_TAG,
+)
 
 from cirq_google.devices.google_noise_properties import (
     GoogleNoiseProperties,
@@ -21,7 +27,11 @@ DEFAULT_GATE_NS: Dict[type, float] = {
     cirq.MeasurementGate: 4000.0,
     cirq.ResetChannel: 250.0,
     cirq.PhasedXZGate: 25.0,
+    # SYC is normally 12ns, but setting it equal to other two-qubit gates
+    # simplifies the tests.
+    cirq_google.SycamoreGate: 32.0,
     cirq.FSimGate: 32.0,
+    cirq.PhasedFSimGate: 32.0,
     cirq.ISwapPowGate: 32.0,
     cirq.CZPowGate: 32.0,
     # cirq.WaitGate is a special case.
@@ -50,40 +60,171 @@ def sample_noise_properties(
     )
 
 
-def test_model_from_props():
-    system_qubits = cirq.GridQubit.rect(2, 2)
-    qubit_pairs = [
-        (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
-        (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
-        (cirq.GridQubit(0, 1), cirq.GridQubit(0, 0)),
-        (cirq.GridQubit(0, 1), cirq.GridQubit(1, 1)),
-        (cirq.GridQubit(1, 1), cirq.GridQubit(0, 1)),
-        (cirq.GridQubit(1, 1), cirq.GridQubit(1, 0)),
-        (cirq.GridQubit(1, 0), cirq.GridQubit(0, 0)),
-        (cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)),
-    ]
-    props = sample_noise_properties(system_qubits, qubit_pairs)
-    model = NoiseModelFromGoogleNoiseProperties(props)
-
-    circuit = cirq.Circuit(
-        cirq.H(system_qubits[0]),
-        cirq.H(system_qubits[2]),
-        cirq.CNOT(*system_qubits[0:2]),
-        cirq.CNOT(*system_qubits[2:4]),
-        cirq.measure(*system_qubits, key='m'),
-    )
-    print('circuit')
-    print(circuit)
-    syc_circuit = cirq_google.optimized_for_sycamore(circuit)
-    print('syc_circuit')
-    print(syc_circuit)
-    noisy_circuit = syc_circuit.with_noise(model)
-    print('noisy_circuit')
-    print(noisy_circuit.moments)
-    choi = cirq.kraus_to_choi(cirq.kraus(noisy_circuit.moments[4].operations[0]))
-    print(choi)
-
-    assert False
-
-
 # TODO: all the other tests
+
+
+def test_zphase_gates():
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    model = NoiseModelFromGoogleNoiseProperties(props)
+    circuit = cirq.Circuit(cirq.Z(q0) ** 0.3)
+    noisy_circuit = circuit.with_noise(model)
+    assert noisy_circuit == circuit
+
+
+@pytest.mark.parametrize(
+    'op',
+    [
+        (cirq.Z(cirq.LineQubit(0)) ** 0.3).with_tags(cirq_google.PhysicalZTag),
+        cirq.PhasedXZGate(x_exponent=0.8, z_exponent=0.2, axis_phase_exponent=0.1).on(
+            cirq.LineQubit(0)
+        ),
+    ],
+)
+def test_single_qubit_gates(op):
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    model = NoiseModelFromGoogleNoiseProperties(props)
+    circuit = cirq.Circuit(op)
+    noisy_circuit = circuit.with_noise(model)
+    assert len(noisy_circuit.moments) == 3
+    assert len(noisy_circuit.moments[0].operations) == 1
+    assert noisy_circuit.moments[0].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
+
+    # Depolarizing noise
+    assert len(noisy_circuit.moments[1].operations) == 1
+    depol_op = noisy_circuit.moments[1].operations[0]
+    assert isinstance(depol_op.gate, cirq.DepolarizingChannel)
+    assert np.isclose(depol_op.gate.p, 0.00081252)
+
+    # Thermal noise
+    assert len(noisy_circuit.moments[2].operations) == 1
+    thermal_op = noisy_circuit.moments[2].operations[0]
+    assert isinstance(thermal_op.gate, cirq.KrausChannel)
+    thermal_choi = cirq.kraus_to_choi(cirq.kraus(thermal_op))
+    assert np.allclose(
+        thermal_choi,
+        [
+            [1, 0, 0, 9.99750031e-01],
+            [0, 2.49968753e-04, 0, 0],
+            [0, 0, 0, 0],
+            [9.99750031e-01, 0, 0, 9.99750031e-01],
+        ],
+    )
+
+
+@pytest.mark.parametrize(
+    'op',
+    [
+        cirq.ISWAP(*cirq.LineQubit.range(2)) ** 0.6,
+        cirq.CZ(*cirq.LineQubit.range(2)) ** 0.3,
+        cirq_google.SYC(*cirq.LineQubit.range(2)),
+    ],
+)
+def test_two_qubit_gates(op):
+    q0, q1 = cirq.LineQubit.range(2)
+    props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
+    model = NoiseModelFromGoogleNoiseProperties(props)
+    circuit = cirq.Circuit(op)
+    noisy_circuit = circuit.with_noise(model)
+    assert len(noisy_circuit.moments) == 4
+    assert len(noisy_circuit.moments[0].operations) == 1
+    assert noisy_circuit.moments[0].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
+
+    # Depolarizing noise
+    assert len(noisy_circuit.moments[1].operations) == 1
+    depol_op = noisy_circuit.moments[1].operations[0]
+    assert isinstance(depol_op.gate, cirq.DepolarizingChannel)
+    assert np.isclose(depol_op.gate.p, 0.00719705)
+
+    # FSim angle corrections
+    assert len(noisy_circuit.moments[2].operations) == 1
+    fsim_op = noisy_circuit.moments[2].operations[0]
+    assert isinstance(fsim_op.gate, cirq.PhasedFSimGate)
+    assert fsim_op == PhasedFSimGate(theta=0.01, zeta=0.03, chi=0.04, gamma=0.05, phi=0.02).on(
+        q0, q1
+    )
+
+    # Thermal noise
+    assert len(noisy_circuit.moments[3].operations) == 2
+    thermal_op_0 = noisy_circuit.moments[3].operation_at(q0)
+    thermal_op_1 = noisy_circuit.moments[3].operation_at(q1)
+    assert isinstance(thermal_op_0.gate, cirq.KrausChannel)
+    assert isinstance(thermal_op_1.gate, cirq.KrausChannel)
+    thermal_choi_0 = cirq.kraus_to_choi(cirq.kraus(thermal_op_0))
+    thermal_choi_1 = cirq.kraus_to_choi(cirq.kraus(thermal_op_1))
+    # TODO: check iswap noise
+    expected_thermal_choi = np.array(
+        [
+            [1, 0, 0, 9.99680051e-01],
+            [0, 3.19948805e-04, 0, 0],
+            [0, 0, 0, 0],
+            [9.99680051e-01, 0, 0, 9.99680051e-01],
+        ]
+    )
+    assert np.allclose(thermal_choi_0, expected_thermal_choi)
+    assert np.allclose(thermal_choi_1, expected_thermal_choi)
+
+
+def test_measure_gates():
+    q00, q01, q10, q11 = cirq.GridQubit.rect(2, 2)
+    qubits = [q00, q01, q10, q11]
+    props = sample_noise_properties(
+        qubits,
+        [
+            (q00, q01),
+            (q01, q00),
+            (q10, q11),
+            (q11, q10),
+            (q00, q10),
+            (q10, q00),
+            (q01, q11),
+            (q11, q01),
+        ],
+    )
+    model = NoiseModelFromGoogleNoiseProperties(props)
+    op = cirq.measure(*qubits, key='m')
+    circuit = cirq.Circuit(cirq.measure(*qubits, key='m'))
+    noisy_circuit = circuit.with_noise(model)
+    print(noisy_circuit.moments)
+    assert len(noisy_circuit.moments) == 2
+
+    # Amplitude damping before measurement
+    assert len(noisy_circuit.moments[0].operations) == 4
+    for q in qubits:
+        op = noisy_circuit.moments[0].operation_at(q)
+        assert isinstance(op.gate, cirq.GeneralizedAmplitudeDampingChannel), q
+        assert np.isclose(op.gate.p, 0.90909090), q
+        assert np.isclose(op.gate.gamma, 0.011), q
+
+    # Original measurement is after the noise.
+    assert len(noisy_circuit.moments[1].operations) == 1
+    # Measurements are untagged during reconstruction.
+    assert noisy_circuit.moments[1] == circuit.moments[0]
+
+
+def test_wait_gates():
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    model = NoiseModelFromGoogleNoiseProperties(props)
+    op = cirq.wait(q0, nanos=100)
+    circuit = cirq.Circuit(op)
+    noisy_circuit = circuit.with_noise(model)
+    assert len(noisy_circuit.moments) == 2
+    assert noisy_circuit.moments[0].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
+
+    # No depolarizing noise because WaitGate has none.
+
+    assert len(noisy_circuit.moments[1].operations) == 1
+    thermal_op = noisy_circuit.moments[1].operations[0]
+    assert isinstance(thermal_op.gate, cirq.KrausChannel)
+    thermal_choi = cirq.kraus_to_choi(cirq.kraus(thermal_op))
+    assert np.allclose(
+        thermal_choi,
+        [
+            [1, 0, 0, 9.990005e-01],
+            [0, 9.99500167e-04, 0, 0],
+            [0, 0, 0, 0],
+            [9.990005e-01, 0, 0, 9.990005e-01],
+        ],
+    )

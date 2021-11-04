@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Union
 from scipy.linalg import expm
 import numpy as np
 
-from cirq import devices, ops, qis
+from cirq import devices, ops, protocols, qis
 from cirq.devices.noise_utils import (
     PHYSICAL_GATE_TAG,
 )
@@ -108,6 +108,7 @@ class ThermalNoiseModel(devices.NoiseModel):
     gate_durations_ns: Dict[type, float]
     rate_matrix_GHz: Dict['cirq.Qid', np.ndarray]
     require_physical_tag: bool = True
+    skip_measurements: bool = True
 
     @staticmethod
     def create(
@@ -117,6 +118,7 @@ class ThermalNoiseModel(devices.NoiseModel):
         cool_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
         dephase_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
         require_physical_tag: bool = True,
+        skip_measurements: bool = True,
     ) -> 'ThermalNoiseModel':
         """Construct a ThermalNoiseModel data object.
 
@@ -136,12 +138,15 @@ class ThermalNoiseModel(devices.NoiseModel):
                         so that the cooling Lindbldian is
                         gc(a • a^dag - 0.5{n, •})
                         This number is equivalent to 1/T1.
-            dephase_rate_GHz: single number (units GHz) specifying dephasing rate,
-                        either per qubit, or global value for all.
+            dephase_rate_GHz: single number (units GHz) specifying dephasing
+                        rate, either per qubit, or global value for all.
                         Given a rate gd, Lindblad op will be sqrt(2*gd)*n where
                         n = a^dag * a, so that the dephasing Lindbldian is
                         2 * gd * (n • n - 0.5{n^2, •}).
                         This number is equivalent to 1/Tphi.
+            require_physical_tag: whether to only apply noise to operations
+                        tagged with PHYSICAL_GATE_TAG.
+            skip_measurements: whether to skip applying noise to measurements.
 
         Returns:
             The ThermalNoiseModel with specified parameters.
@@ -189,9 +194,6 @@ class ThermalNoiseModel(devices.NoiseModel):
         noise_ops: List['cirq.Operation'] = []
         moment_ns: float = 0
         for op in moment:
-            if self.require_physical_tag and PHYSICAL_GATE_TAG not in op.tags:
-                # Only non-virtual gates get noise applied.
-                return [moment]
             op_duration: Optional[float] = None
             for key, duration in self.gate_durations_ns.items():
                 if not issubclass(type(op.gate), key):
@@ -209,6 +211,12 @@ class ThermalNoiseModel(devices.NoiseModel):
             moment_ns = max(moment_ns, op_duration)
 
         for qubit in system_qubits:
+            op = moment.operation_at(qubit)
+            if self.skip_measurements and protocols.is_measurement(op):
+                continue
+            if self.require_physical_tag and PHYSICAL_GATE_TAG not in op.tags:
+                # Only non-virtual gates get noise applied.
+                continue
             rates = self.rate_matrix_GHz[qubit] * moment_ns
             num_op = np.diag(np.sqrt(np.diag(rates)))
             annihilation = np.sqrt(np.triu(rates, 1))
@@ -219,4 +227,6 @@ class ThermalNoiseModel(devices.NoiseModel):
             superop = expm(L.real)
             kraus_ops = qis.superoperator_to_kraus(superop)
             noise_ops.append(ops.KrausChannel(kraus_ops).on(qubit))
+        if not noise_ops:
+            return [moment]
         return [moment, ops.Moment(noise_ops)]
