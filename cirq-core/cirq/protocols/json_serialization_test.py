@@ -45,30 +45,10 @@ class _ModuleDeprecation:
 
 # tested modules and their deprecation settings
 TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
-    'cirq_aqt': _ModuleDeprecation(
-        old_name="cirq.aqt",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.aqt", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_ionq': _ModuleDeprecation(
-        old_name="cirq.ionq",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.ionq", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_google': _ModuleDeprecation(
-        old_name="cirq.google",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.google", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_pasqal': _ModuleDeprecation(
-        old_name="cirq.pasqal",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.pasqal", deadline="v0.14", count=None
-        ),
-    ),
+    'cirq_aqt': None,
+    'cirq_ionq': None,
+    'cirq_google': None,
+    'cirq_pasqal': None,
     'cirq_rigetti': None,
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,

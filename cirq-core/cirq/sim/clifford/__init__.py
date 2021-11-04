@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from cirq.sim.clifford.act_on_clifford_tableau_args import (
     ActOnCliffordTableauArgs,
 )

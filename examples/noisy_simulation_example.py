@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Creates and simulate a noisy circuit using cirq.ConstantQubitNoiseModel class."""
 import cirq
 

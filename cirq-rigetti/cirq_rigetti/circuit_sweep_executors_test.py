@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import Tuple, Any, List, Union, Dict
 import pytest
 import cirq
