@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Tuple, Union
-import numpy as np
+from typing import TYPE_CHECKING, List, Tuple
 import warnings
+import numpy as np
 
 if TYPE_CHECKING:
     import cirq
@@ -14,6 +14,7 @@ PHYSICAL_GATE_TAG = 'physical_gate'
 @dataclass(frozen=True)
 class OpIdentifier:
     """Identifies an operation by gate and (optionally) target qubits."""
+
     gate: type
     qubits: List['cirq.Qid']
 
@@ -157,6 +158,10 @@ def unitary_entanglement_fidelity(U_actual: np.ndarray, U_ideal: np.ndarray) -> 
 
     Both arguments may be vectorized, in that their shapes may be of the form
     (...,M,M) (as long as both shapes can be broadcast together).
+
+    Raises:
+        ValueError: if input arrays cannot be broadcast or have mismatching
+        trailing dimensions.
 
     Returns:
         The entanglement fidelity between the two unitaries. For inputs with

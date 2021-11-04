@@ -1,6 +1,5 @@
 from typing import Dict, List, Tuple
 import numpy as np
-import pytest
 import cirq, cirq_google
 
 # from cirq.testing import assert_equivalent_op_tree
@@ -66,6 +65,7 @@ def test_model_from_props():
     )
     print('circuit')
     print(circuit)
+    # TODO: remove cirq_google dependency
     syc_circuit = cirq_google.optimized_for_sycamore(circuit)
     print('syc_circuit')
     print(syc_circuit)
