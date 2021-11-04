@@ -158,9 +158,10 @@ class MeasurementGate(raw_types.Gate):
 
         # Mention the measurement key.
         if not args.known_qubits or self.key != _default_measurement_key(args.known_qubits):
-            if self.key not in args.qubit_map:
+            if args.qubit_map is None or self.key not in args.qubit_map:
                 symbols[0] += f"('{self.key}')"
-        symbols += '@'
+        if args.qubit_map is not None:
+            symbols += '@'
 
         return protocols.CircuitDiagramInfo(symbols)
 
