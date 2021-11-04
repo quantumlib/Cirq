@@ -10,7 +10,19 @@ from cirq.devices.noise_utils import (
 )
 
 
-SYMMETRIC_TWO_QUBIT_GATES = {cirq.FSimGate, cirq.ISwapPowGate, cirq.CZPowGate}
+SINGLE_QUBIT_GATES = {
+    cirq.ZPowGate,
+    cirq.PhasedXZGate,
+    cirq.MeasurementGate,
+    cirq.ResetChannel,
+}
+SYMMETRIC_TWO_QUBIT_GATES = {
+    cirq_google.SycamoreGate,
+    cirq.FSimGate,
+    cirq.PhasedFSimGate,
+    cirq.ISwapPowGate,
+    cirq.CZPowGate,
+}
 ASYMMETRIC_TWO_QUBIT_GATES: Set[type] = set()
 TWO_QUBIT_GATES = SYMMETRIC_TWO_QUBIT_GATES | ASYMMETRIC_TWO_QUBIT_GATES
 
@@ -48,6 +60,14 @@ class GoogleNoiseProperties(cirq.NoiseProperties):
         self._validate_symmetric_errors('gate_pauli_errors')
         self._validate_symmetric_errors('fsim_errors')
 
+    @classmethod
+    def single_qubit_gates(cls) -> Set[type]:
+        return SINGLE_QUBIT_GATES
+
+    @classmethod
+    def two_qubit_gates(cls) -> Set[type]:
+        return TWO_QUBIT_GATES
+
     def get_depolarizing_error(self) -> Dict[OpIdentifier, float]:
         if self._depolarizing_error:
             return self._depolarizing_error
@@ -55,7 +75,7 @@ class GoogleNoiseProperties(cirq.NoiseProperties):
         depol_errors = super().get_depolarizing_error()
 
         for op_id in depol_errors:
-            if op_id.gate not in TWO_QUBIT_GATES:
+            if op_id.gate not in self.two_qubit_gates():
                 continue
             if len(op_id.qubits) != 2:
                 raise ValueError(
@@ -82,8 +102,8 @@ class GoogleNoiseProperties(cirq.NoiseProperties):
         """Construct all NoiseModels associated with NoiseProperties."""
         noise_models = super().build_noise_models()
 
-        # Insert ntangling gate coherent errors after thermal error.
-        if self.fsim_errors is not None:
+        # Insert entangling gate coherent errors after thermal error.
+        if self.fsim_errors:
             fsim_ops = {op_id: gate.on(*op_id.qubits) for op_id, gate in self.fsim_errors.items()}
             noise_models.insert(1, devices.InsertionNoiseModel(ops_added=fsim_ops))
 
