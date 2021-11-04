@@ -14,7 +14,7 @@
 
 """Common Gate Families used in cirq-google"""
 
-from typing import cast, Dict, Optional, Type, Sequence, Union, Any, Callable
+from typing import cast, Dict, Optional, Type, TypeVar, Sequence, Union, Any, Callable
 
 import sympy
 import numpy as np
@@ -29,6 +29,15 @@ POSSIBLE_FSIM_GATES = Union[
     cirq.CZPowGate,
     cirq.IdentityGate,
 ]
+T = TypeVar(
+    'T',
+    cirq.FSimGate,
+    cirq.PhasedFSimGate,
+    cirq.ISwapPowGate,
+    cirq.PhasedISwapPowGate,
+    cirq.CZPowGate,
+    cirq.IdentityGate,
+)
 
 
 def _exp(theta: Union[complex, sympy.Basic]):
@@ -38,7 +47,7 @@ def _exp(theta: Union[complex, sympy.Basic]):
 
 def _gate_list_to_str(gates: Any, gettr: Callable[[Any], str] = _gate_str) -> str:
     """Converts a list of gates (types/instances) to string by calling gettr (str/repr) on each."""
-    return f'[{",".join([*map(gettr, gates)])}]'
+    return f'[{",".join(gettr(g) for g in gates)}]'
 
 
 # Default tolerance for differences in floating point
@@ -180,9 +189,9 @@ class FSimGateFamily(cirq.GateFamily):
         _gate_repr = lambda x: _gate_str(x, repr)
         return (
             'cirq_google.FSimGateFamily('
-            f'gates_to_accept={_gate_list_to_str(self.gates_to_accept, _gate_repr)},'
-            f'gate_types_to_check={_gate_list_to_str(self.gate_types_to_check, _gate_repr)},'
-            f'allow_symbols={self.allow_symbols},'
+            f'gates_to_accept={_gate_list_to_str(self.gates_to_accept, _gate_repr)}, '
+            f'gate_types_to_check={_gate_list_to_str(self.gate_types_to_check, _gate_repr)}, '
+            f'allow_symbols={self.allow_symbols}, '
             f'atol={self.atol})'
         )
 
@@ -233,10 +242,10 @@ class FSimGateFamily(cirq.GateFamily):
         gate = cast(POSSIBLE_FSIM_GATES, gate)
         for g in self.gates_to_accept:
             if isinstance(g, type):
-                cg = self.convert(gate, g)
+                cg = self.convert(gate, cast(type, g))  # mypy hack.
                 if cg is not None:
                     return True
-            else:
+            elif isinstance(g, cirq.Gate):
                 for target in type(gate).mro():
                     if target in self.gate_types_to_check:
                         cg = self.convert(g, target)
@@ -247,9 +256,7 @@ class FSimGateFamily(cirq.GateFamily):
                         break
         return False
 
-    def convert(
-        self, gate: cirq.Gate, target_gate_type: Type[POSSIBLE_FSIM_GATES]
-    ) -> Optional[POSSIBLE_FSIM_GATES]:
+    def convert(self, gate: cirq.Gate, target_gate_type: Type[T]) -> Optional[T]:
         """Converts, if possible, the given `gate` to an equivalent instance of `target_gate_type`.
 
         This method can be used for converting instances of `POSSIBLE_FSIM_GATES` to other
@@ -284,7 +291,7 @@ class FSimGateFamily(cirq.GateFamily):
             raise ValueError(f"{target_gate_type} must be one of {self._supported_types}")
         if not self.allow_symbols and cirq.is_parameterized(gate):
             return None
-        return self._supported_types[target_gate_type](cast(POSSIBLE_FSIM_GATES, gate))
+        return cast(T, self._supported_types[target_gate_type](cast(POSSIBLE_FSIM_GATES, gate)))
 
     def _convert_to_fsim(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.FSimGate]:
         theta = phi = None

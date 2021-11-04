@@ -30,7 +30,7 @@ import sympy
 import cirq
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
-from cirq_google.ops import PhysicalZTag, SYC, common_gate_families
+from cirq_google.ops import PhysicalZTag, SYC, fsim_gate_family
 from cirq_google.serialization import op_deserializer, op_serializer
 
 # Type strings used in serialization for the two types of Z operations
@@ -41,19 +41,19 @@ VIRTUAL_Z = 'virtual_propagates_forward'
 PHASE_MATCH_PHYS_Z = 'phys_z'
 
 
-def _near_mod_n(e, t, n, atol=common_gate_families._DEFAULT_ATOL):
+def _near_mod_n(e, t, n, atol=fsim_gate_family._DEFAULT_ATOL):
     """Returns whether a value, e, translated by t, is equal to 0 mod n."""
     if isinstance(e, sympy.Symbol):
         return False
     return abs((e - t + 1) % n - 1) <= atol
 
 
-def _near_mod_2pi(e, t, atol=common_gate_families._DEFAULT_ATOL):
+def _near_mod_2pi(e, t, atol=fsim_gate_family._DEFAULT_ATOL):
     """Returns whether a value, e, translated by t, is equal to 0 mod 2 * pi."""
     return _near_mod_n(e, t, n=2 * np.pi, atol=atol)
 
 
-def _near_mod_2(e, t, atol=common_gate_families._DEFAULT_ATOL):
+def _near_mod_2(e, t, atol=fsim_gate_family._DEFAULT_ATOL):
     """Returns whether a value, e, translated by t, is equal to 0 mod 2."""
     return _near_mod_n(e, t, n=2, atol=atol)
 
@@ -500,7 +500,7 @@ SQRT_ISWAP_DESERIALIZERS = [
     ),
 ]
 
-_LIMITED_FSIM_GATE_FAMILY = common_gate_families.FSimGateFamily(
+_LIMITED_FSIM_GATE_FAMILY = fsim_gate_family.FSimGateFamily(
     gates_to_accept=[
         cirq.IdentityGate(2),
         cirq.SQRT_ISWAP_INV,
@@ -513,7 +513,7 @@ _LIMITED_FSIM_GATE_FAMILY = common_gate_families.FSimGateFamily(
     gate_types_to_check=[cirq.FSimGate],
     allow_symbols=True,
 )
-_LIMITED_ISWAP_GATE_FAMILY = common_gate_families.FSimGateFamily(
+_LIMITED_ISWAP_GATE_FAMILY = fsim_gate_family.FSimGateFamily(
     gates_to_accept=[
         cirq.IdentityGate(2),
         cirq.SQRT_ISWAP_INV,

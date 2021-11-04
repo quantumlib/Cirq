@@ -16,7 +16,7 @@ from cirq_google.ops.calibration_tag import (
     CalibrationTag,
 )
 
-from cirq_google.ops.common_gate_families import (
+from cirq_google.ops.fsim_gate_family import (
     FSimGateFamily,
 )
 

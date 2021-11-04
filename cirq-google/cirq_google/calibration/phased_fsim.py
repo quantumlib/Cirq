@@ -1059,7 +1059,7 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         If provided gate is equivalent to some PhaseCalibratedFSimGate, returns that gate.
         Otherwise returns None.
     """
-    cgate = cast(Optional[cirq.PhasedFSimGate], FSimGateFamily().convert(gate, cirq.PhasedFSimGate))
+    cgate = FSimGateFamily().convert(gate, cirq.PhasedFSimGate)
     if (cgate is None) or not (np.isclose(cgate.zeta, 0.0) and np.isclose(cgate.gamma, 0.0)):
         return None
     # On comparing the unitary matrices of `PhasedFSimGate` and `PhaseCalibratedFSimGate`, we get:

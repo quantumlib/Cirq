@@ -61,7 +61,8 @@ VALID_CZPOW_GATES = [
         ),
         {THETA: 2 * np.pi, PHI: -0.01},
     ),
-] + VALID_IDENTITY
+    *VALID_IDENTITY,
+]
 
 VALID_ISWAP_GATES = [
     (cirq.ISwapPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.1}),
@@ -87,7 +88,8 @@ VALID_ISWAP_GATES = [
         ),
         {THETA: -0.01, PHI: 2 * np.pi},
     ),
-] + VALID_IDENTITY
+    *VALID_IDENTITY,
+]
 
 VALID_PHASED_ISWAP_GATES = [
     (cirq.PhasedISwapPowGate(exponent=0.1, phase_exponent=PHI), {PHI: 0.24}),
@@ -96,23 +98,21 @@ VALID_PHASED_ISWAP_GATES = [
         for p in [np.pi / 4, 0.01, THETA, PHI]
         for tv, pv in [(0.4, 0), (-0.1, 2 * np.pi)]
     ],
-] + VALID_ISWAP_GATES[
-    1:
-]  # type: ignore
+    *VALID_ISWAP_GATES[1:],
+]
 
-VALID_FSIM_GATES = (
-    [
-        (cirq.CZPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.8}),
-        (cirq.ISwapPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.8}),
-        (cirq.FSimGate(THETA, PHI), {THETA: 7 * np.pi / 4, PHI: 0.0}),
-        (cirq_google.SYC, {}),
-        (cirq.PhasedFSimGate(theta=0.3, chi=THETA, phi=PHI), {THETA: 0, PHI: 0.3}),
-    ]
-    + VALID_CZPOW_GATES[1:]  # type: ignore
-    + VALID_ISWAP_GATES[2 : -len(VALID_IDENTITY)]  # type: ignore
-)
+VALID_FSIM_GATES = [
+    (cirq.CZPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.8}),
+    (cirq.ISwapPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.8}),
+    (cirq.FSimGate(THETA, PHI), {THETA: 7 * np.pi / 4, PHI: 0.0}),
+    (cirq_google.SYC, {}),
+    (cirq.PhasedFSimGate(theta=0.3, chi=THETA, phi=PHI), {THETA: 0, PHI: 0.3}),
+    *VALID_CZPOW_GATES[1:],
+    *VALID_ISWAP_GATES[2 : -len(VALID_IDENTITY)],
+]
 
-VALID_PHASED_FSIM_GATES = VALID_FSIM_GATES + [
+VALID_PHASED_FSIM_GATES = [
+    *VALID_FSIM_GATES,
     (cirq.PhasedISwapPowGate(exponent=THETA, phase_exponent=PHI), {THETA: -0.5, PHI: 0.75}),
     (cirq.PhasedISwapPowGate(exponent=THETA, phase_exponent=PHI), {THETA: 0.5, PHI: 10}),
 ]
