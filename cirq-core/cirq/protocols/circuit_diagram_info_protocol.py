@@ -325,15 +325,13 @@ def _op_info_with_fallback(
     op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
 ) -> 'cirq.CircuitDiagramInfo':
     info = protocols.circuit_diagram_info(op, args, None)
-    rows = (
-        tuple(op.qubits)
-        + tuple(protocols.measurement_key_objs(op))
-        + tuple(protocols.control_keys(op))
-    )
+    rows = list(op.qubits)
+    rows += protocols.measurement_key_objs(op) & args.qubit_map.keys()
+    rows += protocols.control_keys(op) & args.qubit_map.keys()
     if info is not None:
         if max(1, len(rows)) != len(info.wire_symbols):
             raise ValueError(
-                f'Wanted diagram info from {op!r} for ({len(rows)}) but got {info!r}'
+                f'Wanted diagram info from {op} for {rows}) but got {info}'
             )
         return info
 
