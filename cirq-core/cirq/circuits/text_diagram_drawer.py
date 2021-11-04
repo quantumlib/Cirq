@@ -154,7 +154,9 @@ class TextDiagramDrawer:
 
         return False
 
-    def grid_line(self, x1: int, y1: int, x2: int, y2: int, emphasize: bool = False, doubled: bool = False):
+    def grid_line(
+        self, x1: int, y1: int, x2: int, y2: int, emphasize: bool = False, doubled: bool = False
+    ):
         """Adds a vertical or horizontal line from (x1, y1) to (x2, y2).
 
         Horizontal line is selected on equality in the second coordinate and

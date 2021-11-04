@@ -131,8 +131,9 @@ class GreedyExecutionStrategy(ExecutionStrategy):
     qubits in any order are inserted.
     """
 
+    # TODO(#3388) Add documentation for Args.
     # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
+    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(
         self, gates: LogicalGates, initial_mapping: LogicalMapping, device: 'cirq.Device' = None
     ) -> None:
@@ -151,7 +152,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         self._initial_mapping = initial_mapping.copy()
         self._device = device or devices.UNCONSTRAINED_DEVICE
 
-    # pylint: enable=missing-raises-doc
+    # pylint: enable=missing-param-doc,missing-raises-doc
     @property
     def initial_mapping(self) -> LogicalMapping:
         return self._initial_mapping

@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -142,15 +142,10 @@ class QuirkInputRotationOperation(ops.Operation):
         sign_char = '-' if self.exponent_sign == -1 else ''
         symbols = list(sub_result.wire_symbols)
         symbols.extend(f'A{i}' for i in range(len(self.register)))
-        qubit_index = (
-            len(self.base_operation.controls)
-            if isinstance(self.base_operation, ops.ControlledOperation)
-            else 0
-        )
         return cirq.CircuitDiagramInfo(
             tuple(symbols),
             exponent=f'({sign_char}A/2^{len(self.register)})',
-            exponent_qubit_index=qubit_index,
+            exponent_qubit_index=sub_result.exponent_qubit_index or 0,
             auto_exponent_parens=False,
         )
 

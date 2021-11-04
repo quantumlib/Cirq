@@ -1,10 +1,10 @@
-# Copyright 2020 The Cirq developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,11 +14,10 @@
 
 import dataclasses
 import datetime
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Tuple, TYPE_CHECKING, Iterable, Any
 
 import numpy as np
-
-from cirq import protocols, ops
+from cirq import ops, protocols
 from cirq._compat import proper_repr
 from cirq.work.observable_settings import (
     InitObsSetting,
@@ -81,12 +80,12 @@ def _stats_from_measurements(
     return obs_mean.item(), obs_err.item()
 
 
-@protocols.json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class ObservableMeasuredResult:
     """The result of an observable measurement.
 
-    Please see `flatten_grouped_results` or `BitstringAccumulator.results` for information on how
-    to get these from `measure_observables` return values.
+    A list of these is returned by `measure_observables`, or see `flatten_grouped_results` for
+    transformation of `measure_grouped_settings` BitstringAccumulators into these objects.
 
     This is a flattened form of the contents of a `BitstringAccumulator` which may group many
     simultaneously-observable settings into one object. As such, `BitstringAccumulator` has more
@@ -110,7 +109,7 @@ class ObservableMeasuredResult:
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
-        # we need to prefix our class name with `cirq.work.`A
+        # we need to prefix our class name with `cirq.work.`
         return (
             f'cirq.work.ObservableMeasuredResult('
             f'setting={self.setting!r}, '
@@ -132,6 +131,25 @@ class ObservableMeasuredResult:
     def stddev(self):
         return np.sqrt(self.variance)
 
+    def as_dict(self) -> Dict[str, Any]:
+        """Return the contents of this class as a dictionary.
+
+        This makes records suitable for construction of a Pandas dataframe. The circuit parameters
+        are flattened into the top-level of this dictionary.
+        """
+        record = dataclasses.asdict(self)
+        del record['circuit_params']
+        del record['setting']
+        record['init_state'] = self.init_state
+        record['observable'] = self.observable
+
+        circuit_param_dict = {f'param.{k}': v for k, v in self.circuit_params.items()}
+        record.update(**circuit_param_dict)
+        return record
+
+    def _json_dict_(self):
+        return protocols.dataclass_json_dict(self)
+
 
 def _setting_to_z_observable(setting: InitObsSetting):
     qubits = setting.observable.qubits
@@ -141,6 +159,8 @@ def _setting_to_z_observable(setting: InitObsSetting):
     )
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 class BitstringAccumulator:
     """A mutable container of bitstrings and associated metadata populated
     during a `measure_observables` run.
@@ -185,7 +205,6 @@ class BitstringAccumulator:
             does *not* validate that both this parameter and the
             `BitstringAccumulator` under construction contain measurements taken
             with readout symmetrization turned on.
-
     """
 
     def __init__(
@@ -270,7 +289,7 @@ class BitstringAccumulator:
         return len(self.bitstrings)
 
     @property
-    def results(self):
+    def results(self) -> Iterable[ObservableMeasuredResult]:
         """Yield individual setting results as `ObservableMeasuredResult`
         objects."""
         for setting in self._simul_settings:
@@ -290,10 +309,7 @@ class BitstringAccumulator:
         after chaining these results with those from other BitstringAccumulators.
         """
         for result in self.results:
-            record = dataclasses.asdict(result)
-            del record['circuit_params']
-            record.update(**self._meas_spec.circuit_params)
-            yield record
+            yield result.as_dict()
 
     def _json_dict_(self):
         from cirq.study.result import _pack_digits
@@ -504,6 +520,7 @@ class BitstringAccumulator:
         return mean
 
 
+# pylint: enable=missing-param-doc
 def flatten_grouped_results(
     grouped_results: List[BitstringAccumulator],
 ) -> List[ObservableMeasuredResult]:

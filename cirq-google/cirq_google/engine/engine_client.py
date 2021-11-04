@@ -367,6 +367,8 @@ class EngineClient:
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
         execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+        executed_processor_ids: Optional[List[str]] = None,
+        scheduled_processor_ids: Optional[List[str]] = None,
     ):
         """Returns the list of jobs for a given program.
 
@@ -390,6 +392,11 @@ class EngineClient:
             execution_states: retrieve jobs that have an execution state that
                 is contained in `execution_states`. See
                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+
+            executed_processor_ids: filters jobs by processor ID used for
+                execution. Matches any of provided IDs.
+            scheduled_processor_ids: filters jobs by any of provided
+                scheduled processor IDs.
         """
         filters = []
 
@@ -407,6 +414,16 @@ class EngineClient:
             for execution_state in execution_states:
                 state_filter.append(f"execution_status.state = {execution_state.name}")
             filters.append(f"({' OR '.join(state_filter)})")
+        if executed_processor_ids is not None:
+            ids_filter = []
+            for processor_id in executed_processor_ids:
+                ids_filter.append(f"executed_processor_id = {processor_id}")
+            filters.append(f"({' OR '.join(ids_filter)})")
+        if scheduled_processor_ids is not None:
+            ids_filter = []
+            for processor_id in scheduled_processor_ids:
+                ids_filter.append(f"scheduled_processor_ids: {processor_id}")
+            filters.append(f"({' OR '.join(ids_filter)})")
 
         if program_id is None:
             program_id = "-"
@@ -423,7 +440,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
-                job_id: Unique ID of the job within the parent program.
+            job_id: Unique ID of the job within the parent program.
             return_run_context: If true then the run context will be loaded
                 from the job's run_context_location and set on the returned
                 QuantumJob.
@@ -628,7 +645,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            filter: Filter string current only supports 'timestamp' with values
+            filter_str: Filter string current only supports 'timestamp' with values
             of epoch time in seconds or short string 'yyyy-MM-dd'. For example:
                 'timestamp > 1577960125 AND timestamp <= 1578241810'
                 'timestamp > 2020-01-02 AND timestamp <= 2020-01-05'
@@ -791,7 +808,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            filter: A string for filtering quantum reservations.
+            filter_str: A string for filtering quantum reservations.
                 The fields eligible for filtering are start_time and end_time
                 Examples:
                     `start_time >= 1584385200`: Reservation began on or after
@@ -871,7 +888,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            filter:  A string expression for filtering the quantum
+            filter_str:  A string expression for filtering the quantum
                 time slots returned by the list command. The fields
                 eligible for filtering are `start_time`, `end_time`.
 
@@ -946,7 +963,7 @@ def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime
     """Formats datetime or date to filter expressions.
 
     Args:
-        arg_name: the name of the filter parameter (for error messaging)
+        param_name: the name of the filter parameter (for error messaging)
         param: the value of the paramter
     """
     if isinstance(param, datetime.datetime):

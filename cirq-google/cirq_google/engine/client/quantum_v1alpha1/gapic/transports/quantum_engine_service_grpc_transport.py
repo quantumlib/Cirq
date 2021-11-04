@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 
 import google.api_core.grpc_helpers
 
@@ -82,7 +79,7 @@ class QuantumEngineServiceGrpcTransport(object):
 
         Args:
             address (str): The host for the channel to use.
-            credentials (~.Credentials): The
+            credentials (Credentials): The
                 authorization credentials to attach to requests. These
                 credentials identify this application to the service. If
                 none are specified, the client will attempt to ascertain

@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Utility functions to run the Quantum Volume benchmark defined by IBM in
 https://arxiv.org/abs/1811.12926.
 """
@@ -212,6 +213,8 @@ class SwapPermutationReplacer(cirq.PointOptimizer):
         return None  # Don't make changes to other gates.
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 def compile_circuit(
     circuit: cirq.Circuit,
     *,
@@ -305,6 +308,7 @@ def compile_circuit(
     )
 
 
+# pylint: enable=missing-param-doc
 @dataclass
 class QuantumVolumeResult:
     """Stores one run of the results and test information used when running the

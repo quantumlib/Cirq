@@ -72,7 +72,7 @@ class Job:
 
         Args:
             client: The client used for calling the API.
-            job: A dict representing the response from a call to get_job on the client.
+            job_dict: A dict representing the response from a call to get_job on the client.
         """
         self._client = client
         self._job = job_dict
@@ -199,8 +199,10 @@ class Job:
             if 'failure' in self._job and 'error' in self._job['failure']:
                 error = self._job['failure']['error']
                 raise RuntimeError(f'Job failed. Error message: {error}')
+            if time_waited_seconds >= timeout_seconds:
+                raise TimeoutError(f'Job timed out after waiting {time_waited_seconds} seconds.')
             raise RuntimeError(
-                f'Job was not completed successful. Instead had status: {self.status()}'
+                f'Job was not completed successfully. Instead had status: {self.status()}'
             )
         # IonQ returns results in little endian, Cirq prefers to use big endian, so we convert.
         if self.target() == 'qpu':

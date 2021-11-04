@@ -21,7 +21,6 @@ from cirq import _import
 from cirq import (
     # Low level
     _version,
-    _compat,
     _doc,
     type_workarounds,
 )
@@ -176,6 +175,8 @@ from cirq.linalg import (
 from cirq.ops import (
     amplitude_damp,
     AmplitudeDampingChannel,
+    AnyIntegerPowerGateFamily,
+    AnyUnitaryGateFamily,
     ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
@@ -212,7 +213,9 @@ from cirq.ops import (
     freeze_op_tree,
     FSimGate,
     Gate,
+    GateFamily,
     GateOperation,
+    Gateset,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
     givens,
@@ -232,6 +235,8 @@ from cirq.ops import (
     MixedUnitaryChannel,
     measure,
     measure_each,
+    measure_paulistring_terms,
+    measure_single_paulistring,
     MeasurementGate,
     Moment,
     MutableDensePauliString,
@@ -241,12 +246,13 @@ from cirq.ops import (
     OP_TREE,
     Operation,
     ParallelGate,
+    ParallelGateFamily,
     parallel_gate_op,
-    ParallelGateOperation,
     Pauli,
     PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
     PauliInteractionGate,
+    PauliMeasurementGate,
     PauliString,
     PauliStringGateOperation,
     PauliStringPhasor,
@@ -263,6 +269,7 @@ from cirq.ops import (
     PhasedXPowGate,
     PhasedXZGate,
     PhaseFlipChannel,
+    StatePreparationChannel,
     ProjectorString,
     ProjectorSum,
     RandomGateChannel,
@@ -292,12 +299,10 @@ from cirq.ops import (
     SwapPowGate,
     T,
     TaggedOperation,
-    ThreeQubitGate,
     ThreeQubitDiagonalGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitDiagonalGate,
-    TwoQubitGate,
     VirtualTag,
     wait,
     WaitGate,
@@ -320,6 +325,7 @@ from cirq.optimizers import (
     AlignRight,
     compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
+    decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
@@ -350,6 +356,8 @@ from cirq.optimizers import (
 
 from cirq.qis import (
     bloch_vector_from_state_vector,
+    choi_to_kraus,
+    choi_to_superoperator,
     CliffordTableau,
     density_matrix,
     density_matrix_from_state_vector,
@@ -357,17 +365,17 @@ from cirq.qis import (
     entanglement_fidelity,
     eye_tensor,
     fidelity,
-    kraus_to_channel_matrix,
     kraus_to_choi,
     kraus_to_superoperator,
     one_hot,
-    operation_to_channel_matrix,
     operation_to_choi,
     operation_to_superoperator,
     QUANTUM_STATE_LIKE,
     QuantumState,
     quantum_state,
     STATE_VECTOR_LIKE,
+    superoperator_to_choi,
+    superoperator_to_kraus,
     to_valid_density_matrix,
     to_valid_state_vector,
     validate_density_matrix,
@@ -491,19 +499,17 @@ from cirq.protocols import (
     ApplyMixtureArgs,
     ApplyUnitaryArgs,
     approx_eq,
-    channel,
     circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     commutes,
-    control_key_names,
+    control_keys,
     decompose,
     decompose_once,
     decompose_once_with_qubits,
     DEFAULT_RESOLVERS,
     definitely_commutes,
     equal_up_to_global_phase,
-    has_channel,
     has_kraus,
     has_mixture,
     has_stabilizer_effect,
@@ -515,10 +521,10 @@ from cirq.protocols import (
     json_serializable_dataclass,
     dataclass_json_dict,
     kraus,
-    measurement_key,
     measurement_key_name,
-    measurement_keys,
+    measurement_key_obj,
     measurement_key_names,
+    measurement_key_objs,
     mixture,
     mul,
     num_qubits,
@@ -543,7 +549,6 @@ from cirq.protocols import (
     SupportsApplyMixture,
     SupportsApproximateEquality,
     SupportsConsistentApplyUnitary,
-    SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsCommutes,
     SupportsControlKey,
@@ -611,40 +616,6 @@ from cirq.work import (
 from cirq import (
     testing,
 )
-
-_compat.deprecated_submodule(
-    new_module_name='cirq_google',
-    old_parent=__name__,
-    old_child='google',
-    deadline="v0.14",
-    create_attribute=True,
-)
-
-_compat.deprecated_submodule(
-    new_module_name='cirq_aqt',
-    old_parent=__name__,
-    old_child='aqt',
-    deadline="v0.14",
-    create_attribute=True,
-)
-
-
-_compat.deprecated_submodule(
-    new_module_name='cirq_ionq',
-    old_parent=__name__,
-    old_child='ionq',
-    deadline="v0.14",
-    create_attribute=True,
-)
-
-_compat.deprecated_submodule(
-    new_module_name='cirq_pasqal',
-    old_parent=__name__,
-    old_child='pasqal',
-    deadline="v0.14",
-    create_attribute=True,
-)
-
 
 # Registers cirq-core's public classes for JSON serialization.
 # pylint: disable=wrong-import-position

@@ -1,10 +1,10 @@
-# Copyright 2020 The Cirq developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Dict, List, TYPE_CHECKING, cast
+from typing import Iterable, Dict, List, TYPE_CHECKING, cast, Callable
 
 from cirq import ops, value
 from cirq.work.observable_settings import InitObsSetting, _max_weight_state, _max_weight_observable
 
 if TYPE_CHECKING:
     pass
+
+GROUPER_T = Callable[[Iterable[InitObsSetting]], Dict[InitObsSetting, List[InitObsSetting]]]
 
 
 def group_settings_greedy(

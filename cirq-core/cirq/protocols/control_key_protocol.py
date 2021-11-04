@@ -13,44 +13,46 @@
 # limitations under the License.
 """Protocol for object that have control keys."""
 
-from typing import AbstractSet, Any, Iterable
+from typing import AbstractSet, Any, Iterable, TYPE_CHECKING
 
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class SupportsControlKey(Protocol):
-    """An object that is a control and has a control key or keys.
+    """An object that is a has a classical control key or keys.
 
     Control keys are used in referencing the results of a measurement.
 
-    Users are free to implement either `_control_key_names_` returning an
-    iterable of strings.
+    Users should implement `_control_keys_` returning an iterable of
+    `MeasurementKey`.
     """
 
     @doc_private
-    def _control_key_names_(self) -> Iterable[str]:
-        """Return the keys for controls performed by the receiving object.
+    def _control_keys_(self) -> Iterable['cirq.MeasurementKey']:
+        """Return the keys for controls referenced by the receiving object.
 
-        When a control occurs, either on hardware, or in a simulation,
-        these are the key values under which the results of the controls
-        will be stored.
+        Returns:
+            The measurement keys the value is controlled by. If the value is not
+            classically controlled, the result is the empty tuple.
         """
 
 
-def control_key_names(val: Any) -> AbstractSet[str]:
-    """Gets the control keys of controls within the given value.
+def control_keys(val: Any) -> AbstractSet['cirq.MeasurementKey']:
+    """Gets the keys that the value is classically controlled by.
 
     Args:
-        val: The value which has the control key.
+        val: The object that may be classically controlled.
 
     Returns:
-        The control keys of the value. If the value has no control,
-        the result is the empty tuple.
+        The measurement keys the value is controlled by. If the value is not
+        classically controlled, the result is the empty tuple.
     """
-    getter = getattr(val, '_control_key_names_', None)
+    getter = getattr(val, '_control_keys_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
         return set(result)

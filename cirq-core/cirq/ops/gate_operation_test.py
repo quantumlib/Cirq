@@ -11,11 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Tuple
-
 import numpy as np
 import pytest
 import sympy
+
 import cirq
 
 
@@ -28,7 +27,7 @@ def test_gate_operation_init():
 
 
 def test_invalid_gate_operation():
-    three_qubit_gate = cirq.ThreeQubitGate()
+    three_qubit_gate = cirq.testing.ThreeQubitGate()
     single_qubit = [cirq.GridQubit(0, 0)]
     with pytest.raises(ValueError, match="number of qubits"):
         cirq.GateOperation(three_qubit_gate, single_qubit)
@@ -48,7 +47,7 @@ def test_immutable():
 def test_gate_operation_eq():
     g1 = cirq.SingleQubitGate()
     g2 = cirq.SingleQubitGate()
-    g3 = cirq.TwoQubitGate()
+    g3 = cirq.testing.TwoQubitGate()
     r1 = [cirq.NamedQubit('r1')]
     r2 = [cirq.NamedQubit('r2')]
     r12 = r1 + r2
@@ -143,7 +142,8 @@ def test_gate_operation_pow():
 
 
 def test_with_qubits_and_transform_qubits():
-    g = cirq.ThreeQubitGate()
+    g = cirq.testing.ThreeQubitGate()
+    g = cirq.testing.ThreeQubitGate()
     op = cirq.GateOperation(g, cirq.LineQubit.range(3))
     assert op.with_qubits(*cirq.LineQubit.range(3, 0, -1)) == cirq.GateOperation(
         g, cirq.LineQubit.range(3, 0, -1)
@@ -434,27 +434,3 @@ def test_is_parameterized():
     assert not cirq.is_parameterized(No1().on(q))
     assert not cirq.is_parameterized(No2().on(q))
     assert cirq.is_parameterized(Yes().on(q))
-
-
-def test_channel_propagates_to_gate():
-    class TestGate(cirq.SingleQubitGate):
-        def _channel_(self) -> np.ndarray:
-            return (np.eye(2),)
-
-        def _has_channel_(self) -> bool:
-            return True
-
-    def assert_kraus_eq(ks1: Tuple[np.ndarray, ...], ks2: Tuple[np.ndarray, ...]) -> None:
-        assert len(ks1) == len(ks2)
-        for k1, k2 in zip(ks1, ks2):
-            assert np.all(k1 == k2)
-
-    identity_kraus = (np.eye(2),)
-    q = cirq.LineQubit(0)
-    gate = TestGate()
-    gate_op = TestGate().on(q)
-    with cirq.testing.assert_deprecated(deadline='v0.13', count=None):
-        assert cirq.has_channel(gate)
-        assert cirq.has_channel(gate_op)
-        assert_kraus_eq(cirq.channel(gate), identity_kraus)
-        assert_kraus_eq(cirq.channel(gate_op), identity_kraus)

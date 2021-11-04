@@ -50,7 +50,7 @@ import networkx
 import numpy as np
 
 import cirq._version
-from cirq import devices, ops, protocols, qis
+from cirq import devices, ops, protocols, value, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -853,7 +853,7 @@ class AbstractCircuit(abc.ABC):
         match its qid shape.
 
         Args:
-            operation: The operation to validate.
+            op_tree: The operation to validate.
 
         Raises:
             ValueError: The operation had qids that don't match its qid shape.
@@ -908,14 +908,23 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
+    def all_measurement_key_objs(self) -> AbstractSet[value.MeasurementKey]:
+        return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
+
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        return self.all_measurement_key_objs()
+
     def all_measurement_key_names(self) -> AbstractSet[str]:
-        return protocols.measurement_key_names(self)
+        return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
+
+    def _measurement_key_names_(self) -> AbstractSet[str]:
+        return self.all_measurement_key_names()
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
 
-    def _control_key_names_(self) -> AbstractSet[str]:
-        return {key for op in self.all_operations() for key in protocols.control_key_names(op)}
+    def _control_keys_(self) -> AbstractSet[str]:
+        return {key for op in self.all_operations() for key in protocols.control_keys(op)}
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self._with_sliced_moments(
@@ -1133,6 +1142,8 @@ class AbstractCircuit(abc.ABC):
             use_unicode_characters=use_unicode_characters,
         )
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def to_text_diagram_drawer(
         self,
         *,
@@ -1164,7 +1175,7 @@ class AbstractCircuit(abc.ABC):
             The TextDiagramDrawer instance.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
-        draw_cregs = any(protocols.control_key_names(self))
+        draw_cregs = bool(protocols.control_keys(self))
         if draw_cregs:
             cbits = tuple(protocols.measurement_key_names(self))
             qubits = qubits + cbits
@@ -1209,6 +1220,7 @@ class AbstractCircuit(abc.ABC):
 
         return diagram
 
+    # pylint: enable=missing-param-doc
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(op) for op in self.all_operations())
 
@@ -1297,6 +1309,8 @@ class AbstractCircuit(abc.ABC):
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def zip(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
@@ -1372,6 +1386,7 @@ class AbstractCircuit(abc.ABC):
                 ) from ex
         return result
 
+    # pylint: enable=missing-param-doc
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
@@ -1864,13 +1879,13 @@ class Circuit(AbstractCircuit):
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
-        op_control_keys = protocols.control_key_names(op)
+        op_control_keys = protocols.control_keys(op)
         op_qubits = op.qubits
         while k > 0:
             k -= 1
             moment = self._moments[k]
-            if moment.operates_on(op_qubits) or bool(
-                set(op_control_keys) & protocols.measurement_key_names(moment)
+            if moment.operates_on(op_qubits) or (
+                op_control_keys & protocols.measurement_key_objs(moment)
             ):
                 return last_available
             if self._can_add_op_at(k, op):
@@ -2232,7 +2247,7 @@ class Circuit(AbstractCircuit):
         shift = 0
         # Note: python `sorted` is guaranteed to be stable. This matters.
         insertions = sorted(insertions, key=lambda e: e[0])
-        groups = _group_until_different(insertions, key=lambda e: e[0], value=lambda e: e[1])
+        groups = _group_until_different(insertions, key=lambda e: e[0], val=lambda e: e[1])
         for i, group in groups:
             insert_index = i + shift
             next_index = copy.insert(insert_index, reversed(group), InsertStrategy.EARLIEST)
@@ -2416,7 +2431,9 @@ def _draw_moment_in_diagram(
         qubits = tuple(op.qubits)
         cbits = ()
         if draw_cregs:
-            cbits = tuple(protocols.measurement_key_names(op)) + tuple(protocols.control_key_names(op))
+            cbits = tuple(protocols.measurement_key_names(op)) + tuple(
+                str(k) for k in protocols.control_keys(op)
+            )
             qubits += cbits
         indices = [qubit_map[q] for q in qubits]
         y1 = min(indices)
@@ -2445,9 +2462,7 @@ def _draw_moment_in_diagram(
         # Print gate qubit labels.
         symbols = info._wire_symbols_including_formatted_exponent(
             args,
-            preferred_exponent_index=max(
-                range(len(qubits)), key=lambda i: qubit_map[qubits[i]]
-            ),
+            preferred_exponent_index=max(range(len(qubits)), key=lambda i: qubit_map[qubits[i]]),
         )
         for s, q in zip(symbols, qubits):
             out_diagram.write(x, qubit_map[q], s)
@@ -2622,19 +2637,19 @@ def _group_until_different(
 
 @overload
 def _group_until_different(
-    items: Iterable[TIn], key: Callable[[TIn], TKey], value: Callable[[TIn], TOut]
+    items: Iterable[TIn], key: Callable[[TIn], TKey], val: Callable[[TIn], TOut]
 ) -> Iterable[Tuple[TKey, List[TOut]]]:
     pass
 
 
-def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], value=lambda e: e):
+def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], val=lambda e: e):
     """Groups runs of items that are identical according to a keying function.
 
     Args:
         items: The items to group.
         key: If two adjacent items produce the same output from this function,
             they will be grouped.
-        value: Maps each item into a value to put in the group. Defaults to the
+        val: Maps each item into a value to put in the group. Defaults to the
             item itself.
 
     Examples:
@@ -2650,4 +2665,4 @@ def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], val
     Yields:
         Tuples containing the group key and item values.
     """
-    return ((k, [value(i) for i in v]) for (k, v) in groupby(items, key))
+    return ((k, [val(i) for i in v]) for (k, v) in groupby(items, key))

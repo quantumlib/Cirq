@@ -1,3 +1,9 @@
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
 #     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
@@ -835,7 +841,7 @@ two_qubit_gates = [
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', two_qubit_gates)
-def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
+def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate):
     qasm = """
      OPENQASM 2.0;   
      include "qelib1.inc";       
@@ -911,7 +917,7 @@ three_qubit_gates = [('ccx', cirq.TOFFOLI), ('cswap', cirq.CSWAP)]
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', three_qubit_gates)
-def test_three_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
+def test_three_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate):
     qasm = """
      OPENQASM 2.0;
      include "qelib1.inc";       

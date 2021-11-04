@@ -48,7 +48,7 @@ def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) ->
 
 
 def test_fallback_diagram():
-    class MagicGate(cirq.ThreeQubitGate):
+    class MagicGate(cirq.testing.ThreeQubitGate):
         def __str__(self):
             return 'MagicGate'
 
@@ -152,6 +152,20 @@ def test_two_cx_diagram():
  &\lstick{\text{1}}& \qw&         \qw\qwx&\control \qw    &         \qw\qwx&\control \qw    &\qw\\
  &\lstick{\text{2}}& \qw&\targ    \qw\qwx&         \qw\qwx&\targ    \qw\qwx&         \qw\qwx&\qw\\
  &\lstick{\text{3}}& \qw&         \qw    &\targ    \qw\qwx&         \qw    &\targ    \qw\qwx&\qw\\
+ \\
+}""".strip()
+    assert_has_qcircuit_diagram(circuit, expected_diagram)
+
+
+def test_sqrt_iswap_diagram():
+    # test for proper rendering of ISWAP^{0.5}
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.ISWAP(q0, q1) ** 0.5)
+    expected_diagram = r"""
+\Qcircuit @R=1em @C=0.75em {
+ \\
+ &\lstick{\text{0}}& \qw&\multigate{1}{\text{ISWAP}^{0.5}} \qw&\qw\\
+ &\lstick{\text{1}}& \qw&\ghost{\text{ISWAP}^{0.5}}        \qw&\qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)

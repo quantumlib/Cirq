@@ -13,29 +13,16 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence, Iterable
+from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
 
 import numpy as np
 
 from cirq import linalg, protocols, sim
-from cirq._compat import deprecated_parameter
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
 
 if TYPE_CHECKING:
     import cirq
-
-
-def _rewrite_deprecated_args(args, kwargs):
-    if len(args) > 3:
-        kwargs['axes'] = args[3]
-    if len(args) > 4:
-        kwargs['prng'] = args[4]
-    if len(args) > 5:
-        kwargs['log_of_measurement_results'] = args[5]
-    if len(args) > 6:
-        kwargs['qubits'] = args[6]
-    return args[:3], kwargs
 
 
 class ActOnStateVectorArgs(ActOnArgs):
@@ -49,15 +36,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         then pass `available_buffer` into `swap_target_tensor_for`.
     """
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs
-        or ('prng' in kwargs and len(args) == 4)
-        or (len(args) > 4 and isinstance(args[4], np.random.RandomState)),
-        rewrite=_rewrite_deprecated_args,
-    )
     def __init__(
         self,
         target_tensor: np.ndarray,
@@ -65,7 +43,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
     ):
         """Inits ActOnStateVectorArgs.
 
@@ -85,10 +62,8 @@ class ActOnStateVectorArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
 
@@ -106,6 +81,8 @@ class ActOnStateVectorArgs(ActOnArgs):
             self.available_buffer = self.target_tensor
         self.target_tensor = new_target_tensor
 
+    # TODO(#3388) Add documentation for Args.
+    # pylint: disable=missing-param-doc
     def subspace_index(
         self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
     ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
@@ -159,6 +136,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             qid_shape=self.target_tensor.shape,
         )
 
+    # pylint: enable=missing-param-doc
     def _act_on_fallback_(
         self,
         action: Union['cirq.Operation', 'cirq.Gate'],
@@ -198,66 +176,41 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return bits
 
-    def copy(self) -> 'cirq.ActOnStateVectorArgs':
-        return ActOnStateVectorArgs(
-            target_tensor=self.target_tensor.copy(),
-            available_buffer=self.available_buffer.copy(),
-            qubits=self.qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
-        )
+    def _on_copy(self, target: 'ActOnStateVectorArgs'):
+        target.target_tensor = self.target_tensor.copy()
+        target.available_buffer = self.available_buffer.copy()
 
-    def kronecker_product(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
+    def _on_kronecker_product(self, other: 'ActOnStateVectorArgs', target: 'ActOnStateVectorArgs'):
         target_tensor = transformations.state_vector_kronecker_product(
             self.target_tensor, other.target_tensor
         )
-        buffer = np.empty_like(target_tensor)
-        return ActOnStateVectorArgs(
-            target_tensor=target_tensor,
-            available_buffer=buffer,
-            qubits=self.qubits + other.qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
+        target.target_tensor = target_tensor
+        target.available_buffer = np.empty_like(target_tensor)
 
-    def factor(
+    def _on_factor(
         self,
         qubits: Sequence['cirq.Qid'],
-        *,
+        extracted: 'ActOnStateVectorArgs',
+        remainder: 'ActOnStateVectorArgs',
         validate=True,
         atol=1e-07,
-    ) -> Tuple['cirq.ActOnStateVectorArgs', 'cirq.ActOnStateVectorArgs']:
+    ):
         axes = self.get_axes(qubits)
         extracted_tensor, remainder_tensor = transformations.factor_state_vector(
             self.target_tensor, axes, validate=validate, atol=atol
         )
-        extracted_args = ActOnStateVectorArgs(
-            target_tensor=extracted_tensor,
-            available_buffer=np.empty_like(extracted_tensor),
-            qubits=qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        remainder_args = ActOnStateVectorArgs(
-            target_tensor=remainder_tensor,
-            available_buffer=np.empty_like(remainder_tensor),
-            qubits=tuple(q for q in self.qubits if q not in qubits),
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return extracted_args, remainder_args
+        extracted.target_tensor = extracted_tensor
+        extracted.available_buffer = np.empty_like(extracted_tensor)
+        remainder.target_tensor = remainder_tensor
+        remainder.available_buffer = np.empty_like(remainder_tensor)
 
-    def transpose_to_qubit_order(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStateVectorArgs':
+    def _on_transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid'], target: 'ActOnStateVectorArgs'
+    ):
         axes = self.get_axes(qubits)
         new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)
-        new_args = ActOnStateVectorArgs(
-            target_tensor=new_tensor,
-            available_buffer=np.empty_like(new_tensor),
-            qubits=qubits,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return new_args
+        target.target_tensor = new_tensor
+        target.available_buffer = np.empty_like(new_tensor)
 
     def sample(
         self,

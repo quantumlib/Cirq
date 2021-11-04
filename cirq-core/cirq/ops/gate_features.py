@@ -19,8 +19,6 @@ For example: some gates are reversible, some have known matrices, etc.
 
 import abc
 
-from cirq import value, ops
-from cirq._compat import deprecated_class
 from cirq.ops import raw_types
 
 
@@ -32,38 +30,8 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
         return 0
 
 
-class _SupportsOnEachGateMeta(value.ABCMetaImplementAnyOneOf):
-    def __instancecheck__(cls, instance):
-        return isinstance(instance, (SingleQubitGate, ops.DepolarizingChannel)) or issubclass(
-            type(instance), SupportsOnEachGate
-        )
-
-
-@deprecated_class(
-    deadline='v0.14',
-    fix='Remove `SupportsOnEachGate` from the list of parent classes. '
-    '`on_each` is now directly supported in the `Gate` base class.',
-)
-class SupportsOnEachGate(raw_types.Gate, metaclass=_SupportsOnEachGateMeta):
-    pass
-
-
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
 
     def _num_qubits_(self) -> int:
         return 1
-
-
-class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate that must be applied to exactly two qubits."""
-
-    def _num_qubits_(self) -> int:
-        return 2
-
-
-class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate that must be applied to exactly three qubits."""
-
-    def _num_qubits_(self) -> int:
-        return 3

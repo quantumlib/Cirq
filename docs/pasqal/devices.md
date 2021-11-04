@@ -6,11 +6,11 @@ better understanding of the capabilities of future Pasqal devices, where neutral
 are controlled by lasers. Please contact Pasqal to obtain the latest information
 on devices that you plan to use.
 
-Currently, there are two devices to choose from: `cirq.pasqal.PasqalDevice` and `cirq.pasqal.PasqalVirtualDevice`. Let us look at the role each of them plays.
+Currently, there are two devices to choose from: `cirq_pasqal.PasqalDevice` and `cirq_pasqal.PasqalVirtualDevice`. Let us look at the role each of them plays.
 
 ## `PasqalDevice`
 
-The `cirq.pasqal.PasqalDevice` class represents the most general of Pasqal devices, enforcing only restrictions expected to be shared by all future devices.
+The `cirq_pasqal.PasqalDevice` class represents the most general of Pasqal devices, enforcing only restrictions expected to be shared by all future devices.
 
 ### Gate set
 One of the restrictions is on the supported gate set, which is composed of the following gates (all present in the `cirq.ops` module):
@@ -54,10 +54,10 @@ Contrary to `PasqalDevice`, `PasqalVirtualDevice` allows the user to create a ci
 ### Qubit placement and connectivity
 
 Qubits on Pasqal devices can be in arbitrary positions, either in 1D, 2D or 3D, and can be
-created via the `cirq.pasqal.ThreeDQubit`, `cirq.pasqal.TwoDQubit`, `cirq.GridQubit` or `cirq.LineQubit` classes.
+created via the `cirq_pasqal.ThreeDQubit`, `cirq_pasqal.TwoDQubit`, `cirq.GridQubit` or `cirq.LineQubit` classes.
 
 ```python
-from cirq.pasqal import TwoDQubit
+from cirq_pasqal import TwoDQubit
 
 # An array of 9 Pasqal qubits on a square lattice in 2D
 p_qubits = [TwoDQubit(i, j) for i in range(3) for j in range(3)]
@@ -69,11 +69,11 @@ p_qubits = TwoDQubit.square(3)  # Initializes qubits in a square grid of side 3
 
 Connectivity is limited to qubits that are closer than a control radius. In the current
 version, the control radius can be chosen by the user and passed as a parameter of the
-`cirq.pasqal.PasqalVirtualDevice`; it is constrained to be at most three times the minimum
+`cirq_pasqal.PasqalVirtualDevice`; it is constrained to be at most three times the minimum
 distance between all qubits in the layout.
 
 ```python
-from cirq.pasqal import PasqalVirtualDevice
+from cirq_pasqal import PasqalVirtualDevice
 
 # A PasqalVirtualDevice with a control radius of 2.0 times the lattice spacing.
 p_device = PasqalVirtualDevice(control_radius=2.0, qubits=p_qubits)

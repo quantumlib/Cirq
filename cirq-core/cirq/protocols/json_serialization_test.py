@@ -32,8 +32,7 @@ import sympy
 import cirq
 from cirq._compat import proper_eq
 from cirq.protocols import json_serialization
-from cirq.testing import assert_json_roundtrip_works
-from cirq.testing.json import ModuleJsonTestSpec, spec_for
+from cirq.testing.json import ModuleJsonTestSpec, spec_for, assert_json_roundtrip_works
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
 
@@ -46,30 +45,10 @@ class _ModuleDeprecation:
 
 # tested modules and their deprecation settings
 TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
-    'cirq_aqt': _ModuleDeprecation(
-        old_name="cirq.aqt",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.aqt", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_ionq': _ModuleDeprecation(
-        old_name="cirq.ionq",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.ionq", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_google': _ModuleDeprecation(
-        old_name="cirq.google",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.google", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_pasqal': _ModuleDeprecation(
-        old_name="cirq.pasqal",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.pasqal", deadline="v0.14", count=None
-        ),
-    ),
+    'cirq_aqt': None,
+    'cirq_ionq': None,
+    'cirq_google': None,
+    'cirq_pasqal': None,
     'cirq_rigetti': None,
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,
@@ -82,7 +61,7 @@ if sys.version_info < (3, 7):  # pragma: no cover
     del TESTED_MODULES['cirq_rigetti']
 
 
-def _get_testspecs_for_modules():
+def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
     modules = []
     for m in TESTED_MODULES.keys():
         try:
@@ -230,9 +209,9 @@ def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
     missing_names = set(mod_spec.not_yet_serializable).difference(names)
-    assert len(missing_names) == 0, (
-        f"Defined as Not yet serializable, " f"but missing from {mod_spec}: \n" f"{missing_names}"
-    )
+    assert (
+        len(missing_names) == 0
+    ), f"Defined as Not yet serializable, but missing from {mod_spec}: \n{missing_names}"
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
@@ -482,11 +461,8 @@ def _list_public_classes_for_tested_modules():
     _list_public_classes_for_tested_modules(),
 )
 def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
-    if cirq_obj_name == "SerializableByKey":
-        pytest.skip(
-            "SerializableByKey does not follow common serialization rules. "
-            "It is tested separately in test_context_serialization."
-        )
+    if cirq_obj_name in mod_spec.tested_elsewhere:
+        pytest.skip("Tested elsewhere.")
 
     if cirq_obj_name in mod_spec.not_yet_serializable:
         return pytest.xfail(reason="Not serializable (yet)")

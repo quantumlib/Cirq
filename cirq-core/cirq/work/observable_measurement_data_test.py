@@ -1,16 +1,17 @@
-# Copyright 2020 The Cirq developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import dataclasses
 import datetime
 import time
 
@@ -90,13 +91,40 @@ def test_observable_measured_result():
         mean=0,
         variance=5 ** 2,
         repetitions=4,
-        circuit_params={},
+        circuit_params={'phi': 52},
     )
     assert omr.stddev == 5
     assert omr.observable == cirq.Y(a) * cirq.Y(b)
     assert omr.init_state == cirq.Z(a) * cirq.Z(b)
 
     cirq.testing.assert_equivalent_repr(omr)
+
+    assert omr.as_dict() == {
+        'init_state': cirq.Z(a) * cirq.Z(b),
+        'observable': cirq.Y(a) * cirq.Y(b),
+        'mean': 0,
+        'variance': 25,
+        'repetitions': 4,
+        'param.phi': 52,
+    }
+    omr2 = dataclasses.replace(
+        omr,
+        circuit_params={
+            'phi': 52,
+            'observable': 3.14,  # this would be a bad but legal parameter name
+            'param.phi': -1,
+        },
+    )
+    assert omr2.as_dict() == {
+        'init_state': cirq.Z(a) * cirq.Z(b),
+        'observable': cirq.Y(a) * cirq.Y(b),
+        'mean': 0,
+        'variance': 25,
+        'repetitions': 4,
+        'param.phi': 52,
+        'param.observable': 3.14,
+        'param.param.phi': -1,
+    }
 
 
 @pytest.fixture()

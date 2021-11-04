@@ -16,7 +16,6 @@ import abc
 import copy
 from typing import (
     Any,
-    Iterable,
     Dict,
     List,
     TypeVar,
@@ -31,7 +30,6 @@ from typing import (
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import deprecated
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -48,7 +46,6 @@ class ActOnArgs(OperationTarget[TSelf]):
         self,
         prng: np.random.RandomState = None,
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
         """Inits ActOnArgs.
@@ -59,8 +56,6 @@ class ActOnArgs(OperationTarget[TSelf]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
@@ -68,15 +63,15 @@ class ActOnArgs(OperationTarget[TSelf]):
             prng = cast(np.random.RandomState, np.random)
         if qubits is None:
             qubits = ()
-        if axes is None:
-            axes = ()
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
-        self._qubits = tuple(qubits)
-        self.qubit_map = {q: i for i, q in enumerate(qubits)}
-        self._axes = tuple(axes)
+        self._set_qubits(qubits)
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
+
+    def _set_qubits(self, qubits: Sequence['cirq.Qid']):
+        self._qubits = tuple(qubits)
+        self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
 
     # TODO(#3388) Add documentation for Raises.
     # pylint: disable=missing-raises-doc
@@ -105,17 +100,31 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Child classes that perform measurements should implement this with
         the implementation."""
 
-    @abc.abstractmethod
     def copy(self: TSelf) -> TSelf:
         """Creates a copy of the object."""
+        args = copy.copy(self)
+        self._on_copy(args)
+        args._log_of_measurement_results = self.log_of_measurement_results.copy()
+        return args
+
+    def _on_copy(self: TSelf, args: TSelf):
+        """Subclasses should implement this with any additional state copy
+        functionality."""
 
     def create_merged_state(self: TSelf) -> TSelf:
         """Creates a final merged state."""
         return self
 
-    def kronecker_product(self: TSelf, other: TSelf) -> TSelf:
+    def kronecker_product(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
         """Joins two state spaces together."""
-        raise NotImplementedError()
+        args = self if inplace else copy.copy(self)
+        self._on_kronecker_product(other, args)
+        args._set_qubits(self.qubits + other.qubits)
+        return args
+
+    def _on_kronecker_product(self: TSelf, other: TSelf, target: TSelf):
+        """Subclasses should implement this with any additional state product
+        functionality, if supported."""
 
     def factor(
         self: TSelf,
@@ -123,13 +132,53 @@ class ActOnArgs(OperationTarget[TSelf]):
         *,
         validate=True,
         atol=1e-07,
+        inplace=False,
     ) -> Tuple[TSelf, TSelf]:
         """Splits two state spaces after a measurement or reset."""
-        raise NotImplementedError()
+        extracted = copy.copy(self)
+        remainder = self if inplace else copy.copy(self)
+        self._on_factor(qubits, extracted, remainder, validate, atol)
+        extracted._set_qubits(qubits)
+        remainder._set_qubits([q for q in self.qubits if q not in qubits])
+        return extracted, remainder
 
-    def transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
-        """Physically reindexes the state by the new basis."""
-        raise NotImplementedError()
+    def _on_factor(
+        self: TSelf,
+        qubits: Sequence['cirq.Qid'],
+        extracted: TSelf,
+        remainder: TSelf,
+        validate=True,
+        atol=1e-07,
+    ):
+        """Subclasses should implement this with any additional state factor
+        functionality, if supported."""
+
+    def transpose_to_qubit_order(
+        self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False
+    ) -> TSelf:
+        """Physically reindexes the state by the new basis.
+
+        Args:
+            qubits: The desired qubit order.
+            inplace: True to perform this operation inplace.
+
+        Returns:
+            The state with qubit order transposed and underlying representation
+            updated.
+
+        Raises:
+            ValueError: If the provided qubits do not match the existing ones.
+        """
+        if len(self.qubits) != len(qubits) or set(qubits) != set(self.qubits):
+            raise ValueError(f'Qubits do not match. Existing: {self.qubits}, provided: {qubits}')
+        args = self if inplace else copy.copy(self)
+        self._on_transpose_to_qubit_order(qubits, args)
+        args._set_qubits(qubits)
+        return args
+
+    def _on_transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
+        """Subclasses should implement this with any additional state transpose
+        functionality, if supported."""
 
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
@@ -209,22 +258,6 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
         return iter(self.qubits)
-
-    @property  # type: ignore
-    @deprecated(
-        deadline="v0.13",
-        fix="Use `protocols.act_on` instead.",
-    )
-    def axes(self) -> Tuple[int, ...]:
-        return self._axes
-
-    @axes.setter  # type: ignore
-    @deprecated(
-        deadline="v0.13",
-        fix="Use `protocols.act_on` instead.",
-    )
-    def axes(self, value: Iterable[int]):
-        self._axes = tuple(value)
 
 
 def strat_act_on_from_apply_decompose(

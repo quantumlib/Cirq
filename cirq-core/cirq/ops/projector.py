@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
 from typing import (
     Any,
@@ -101,8 +102,9 @@ class ProjectorString:
 
         Args:
             state_vector: An array representing a valid state vector.
-            qubit_map: A map from all qubits used in this ProjectorString to the
+            qid_map: A map from all qubits used in this ProjectorString to the
                 indices of the qubits that `state_vector` is defined over.
+
         Returns:
             The expectation value of the input state.
         """
@@ -124,8 +126,9 @@ class ProjectorString:
 
         Args:
             state: An array representing a valid  density matrix.
-            qubit_map: A map from all qubits used in this ProjectorString to the
+            qid_map: A map from all qubits used in this ProjectorString to the
                 indices of the qubits that `state_vector` is defined over.
+
         Returns:
             The expectation value of the input state.
         """

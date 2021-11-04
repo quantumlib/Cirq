@@ -83,6 +83,21 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
+class ControlOp(cirq.Operation):
+    def __init__(self, keys):
+        self._keys = keys
+
+    def with_qubits(self, *new_qids):
+        pass  # coverage: ignore
+
+    @property
+    def qubits(self):
+        return []  # coverage: ignore
+
+    def _control_keys_(self):
+        return self._keys
+
+
 def test_alignment():
     assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
     assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
@@ -226,30 +241,15 @@ def test_append_single():
 
 def test_append_control_key():
     q = cirq.LineQubit(0)
-
-    class ControlOp(cirq.Operation):
-        def __init__(self, keys):
-            self._keys = keys
-
-        def with_qubits(self, *new_qids):
-            pass  # coverage: ignore
-
-        @property
-        def qubits(self):
-            return []  # coverage: ignore
-
-        def _control_key_names_(self):
-            return self._keys
-
     c = cirq.Circuit()
     c.append(cirq.measure(q, key='a'))
-    c.append(ControlOp(['a']))
+    c.append(ControlOp([cirq.MeasurementKey('a')]))
     assert len(c) == 2
 
     c = cirq.Circuit()
     c.append(cirq.measure(q, key='a'))
-    c.append(ControlOp(['b']))
-    c.append(ControlOp(['b']))
+    c.append(ControlOp([cirq.MeasurementKey('b')]))
+    c.append(ControlOp([cirq.MeasurementKey('b')]))
     assert len(c) == 1
 
 
@@ -268,14 +268,14 @@ def test_control_key_diagram():
         def qubits(self):
             return self._qubits
 
-        def _control_key_names_(self):
+        def _control_keys_(self):
             return self._keys
 
         def __repr__(self):
             return "X"
 
         def _circuit_diagram_info_(
-                self, args: 'cirq.CircuitDiagramInfoArgs'
+            self, args: 'cirq.CircuitDiagramInfoArgs'
         ) -> 'cirq.CircuitDiagramInfo':
             symbols = ['X'] * len(self._qubits) + ['^'] * len(self._keys)
             return cirq.CircuitDiagramInfo(symbols)
@@ -285,13 +285,17 @@ def test_control_key_diagram():
     c.append(ControlOp(qubits=[q1], keys=['a']))
     assert len(c) == 2
 
-    cirq.testing.assert_has_diagram(c, """
+    cirq.testing.assert_has_diagram(
+        c,
+        """
 0: ───M───────
       ║
 1: ───╫───X───
       ║   ║
 a: ═══@═══^═══
-""", use_unicode_characters=True)
+""",
+        use_unicode_characters=True,
+    )
 
 
 def test_append_multiple():
@@ -2297,7 +2301,7 @@ M('msg')─M──────M
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols(circuit_cls):
-    class BadGate(cirq.ThreeQubitGate):
+    class BadGate(cirq.testing.ThreeQubitGate):
         def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, str]:
             return 'a', 'a'
 
@@ -2617,7 +2621,7 @@ def test_circuit_to_unitary_matrix(circuit_cls):
         _ = c.unitary()
 
     # Gates without matrix or decomposition raise exception
-    class MysteryGate(cirq.TwoQubitGate):
+    class MysteryGate(cirq.testing.TwoQubitGate):
         pass
 
     c = circuit_cls(MysteryGate()(a, b))
@@ -2685,7 +2689,7 @@ def test_simple_circuits_to_unitary_matrix(circuit_cls):
     # 2-qubit matrix matches when qubits in order.
     for expected in [np.diag([1, 1j, -1, -1j]), cirq.unitary(cirq.CNOT)]:
 
-        class Passthrough(cirq.TwoQubitGate):
+        class Passthrough(cirq.testing.TwoQubitGate):
             def _unitary_(self) -> np.ndarray:
                 return expected
 
@@ -2696,7 +2700,7 @@ def test_simple_circuits_to_unitary_matrix(circuit_cls):
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_composite_gate_to_unitary_matrix(circuit_cls):
-    class CnotComposite(cirq.TwoQubitGate):
+    class CnotComposite(cirq.testing.TwoQubitGate):
         def _decompose_(self, qubits):
             q0, q1 = qubits
             return cirq.Y(q1) ** -0.5, cirq.CZ(q0, q1), cirq.Y(q1) ** 0.5
@@ -4379,6 +4383,8 @@ def test_all_measurement_key_names(circuit_cls):
 
     # Big case.
     assert c.all_measurement_key_names() == {'x', 'y', 'xy', 'test'}
+    assert c.all_measurement_key_names() == cirq.measurement_key_names(c)
+    assert c.all_measurement_key_names() == c.all_measurement_key_objs()
 
     # Empty case.
     assert circuit_cls().all_measurement_key_names() == set()

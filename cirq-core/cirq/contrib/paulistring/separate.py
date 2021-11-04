@@ -1,4 +1,4 @@
-# Copyright 2018 The ops Developers
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ from cirq import ops, circuits
 from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
 
 
+# TODO(#3388) Add documentation for Args.
+# pylint: disable=missing-param-doc
 def convert_and_separate_circuit(
     circuit: circuits.Circuit,
     leave_cliffords: bool = True,
@@ -46,6 +48,7 @@ def convert_and_separate_circuit(
     return pauli_string_half(circuit), regular_half(circuit)
 
 
+# pylint: enable=missing-param-doc
 def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
     """Return only the Clifford part of a circuit.  See
     convert_and_separate_circuit().

@@ -16,7 +16,7 @@ from typing import Any, cast, Dict, NamedTuple, Optional, Sequence, Tuple, TYPE_
 
 import numpy as np
 
-from cirq import protocols, value, linalg
+from cirq import protocols, value, linalg, qis
 from cirq._doc import document
 from cirq.ops import common_gates, gate_features, named_qubit, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
@@ -41,6 +41,35 @@ def _to_pauli_transform(matrix: np.ndarray) -> Optional[PauliTransform]:
         if np.allclose(matrix, -p):
             return PauliTransform(pauli, True)
     return None
+
+
+def _to_clifford_tableau(
+    rotation_map: Optional[Dict[Pauli, PauliTransform]] = None,
+    *,
+    x_to: Optional[PauliTransform] = None,
+    z_to: Optional[PauliTransform] = None,
+) -> qis.CliffordTableau:
+    """Transfer the rotation map to clifford tableau representation"""
+    if x_to is None and z_to is None and rotation_map is None:
+        raise ValueError(
+            "The function either takes rotation_map or a combination "
+            ' of x_to and z_to but none were given.'
+        )
+    elif rotation_map is not None:
+        x_to = rotation_map[pauli_gates.X]
+        z_to = rotation_map[pauli_gates.Z]
+    else:
+        assert x_to is not None and z_to is not None, "Both x_to and z_to have to be provided."
+
+    clifford_tableau = qis.CliffordTableau(num_qubits=1)
+    clifford_tableau.xs[0, 0] = x_to.to in (pauli_gates.X, pauli_gates.Y)
+    clifford_tableau.zs[0, 0] = x_to.to in (pauli_gates.Y, pauli_gates.Z)
+
+    clifford_tableau.xs[1, 0] = z_to.to in (pauli_gates.X, pauli_gates.Y)
+    clifford_tableau.zs[1, 0] = z_to.to in (pauli_gates.Y, pauli_gates.Z)
+
+    clifford_tableau.rs = (x_to.flip, z_to.flip)
+    return clifford_tableau
 
 
 def _pretend_initialized() -> 'SingleQubitCliffordGate':
@@ -97,11 +126,20 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     def __init__(
         self,
         *,
-        _rotation_map: Dict[Pauli, PauliTransform],
-        _inverse_map: Dict[Pauli, PauliTransform],
+        _clifford_tableau: qis.CliffordTableau,
     ) -> None:
-        self._rotation_map = _rotation_map
-        self._inverse_map = _inverse_map
+        self._clifford_tableau = _clifford_tableau
+
+    @property
+    def clifford_tableau(self):
+        return self._clifford_tableau
+
+    @staticmethod
+    def from_clifford_tableau(tableau: qis.CliffordTableau) -> 'SingleQubitCliffordGate':
+        assert isinstance(tableau, qis.CliffordTableau)
+        if not tableau._validate():
+            raise ValueError('It is not a valid Clifford Gate.')
+        return SingleQubitCliffordGate(_clifford_tableau=tableau)
 
     @staticmethod
     def from_xz_map(
@@ -114,7 +152,9 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             x_to: Which Pauli to transform X to and if it should negate.
             z_to: Which Pauli to transform Z to and if it should negate.
         """
-        return SingleQubitCliffordGate.from_double_map(x_to=x_to, z_to=z_to)
+        return SingleQubitCliffordGate.from_clifford_tableau(
+            _to_clifford_tableau(x_to=PauliTransform(*x_to), z_to=PauliTransform(*z_to))
+        )
 
     @staticmethod
     def from_single_map(
@@ -177,8 +217,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         to3 = trans1.to.third(trans2.to)
         flip3 = trans1.flip ^ trans2.flip ^ ((from1 < from2) != (trans1.to < trans2.to))
         rotation_map[from3] = PauliTransform(to3, flip3)
-        inverse_map = {to: PauliTransform(frm, flip) for frm, (to, flip) in rotation_map.items()}
-        return SingleQubitCliffordGate(_rotation_map=rotation_map, _inverse_map=inverse_map)
+
+        return SingleQubitCliffordGate.from_clifford_tableau(_to_clifford_tableau(rotation_map))
 
     @staticmethod
     def from_pauli(pauli: Pauli, sqrt: bool = False) -> 'SingleQubitCliffordGate':
@@ -196,8 +236,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                 pauli: PauliTransform(pauli, False),
                 next_pauli: PauliTransform(next_pauli, True),
             }
-        inverse_map = {to: PauliTransform(frm, flip) for frm, (to, flip) in rotation_map.items()}
-        return SingleQubitCliffordGate(_rotation_map=rotation_map, _inverse_map=inverse_map)
+        return SingleQubitCliffordGate.from_clifford_tableau(_to_clifford_tableau(rotation_map))
 
     @staticmethod
     def from_quarter_turns(pauli: Pauli, quarter_turns: int) -> 'SingleQubitCliffordGate':
@@ -231,10 +270,23 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         z_to = _to_pauli_transform(u @ z @ u.conj().T)
         if x_to is None or z_to is None:
             return None
-        return SingleQubitCliffordGate.from_double_map({pauli_gates.X: x_to, pauli_gates.Z: z_to})
+        return SingleQubitCliffordGate.from_clifford_tableau(
+            _to_clifford_tableau(x_to=x_to, z_to=z_to)
+        )
 
     def transform(self, pauli: Pauli) -> PauliTransform:
-        return self._rotation_map[pauli]
+        x_to = self._clifford_tableau.destabilizers()[0]
+        z_to = self._clifford_tableau.stabilizers()[0]
+        if pauli == pauli_gates.X:
+            to = x_to
+        elif pauli == pauli_gates.Z:
+            to = z_to
+        else:
+            to = x_to * z_to  # Y = iXZ
+            to.coefficient *= 1j
+        # pauli_mask returns a value between 0 and 4 for [I, X, Y, Z].
+        to_gate = Pauli._XYZ[to.pauli_mask[0] - 1]
+        return PauliTransform(to=to_gate, flip=bool(to.coefficient != 1.0))
 
     def to_phased_xz_gate(self) -> phased_x_z_gate.PhasedXZGate:
         """Convert this gate to a PhasedXZGate instance.
@@ -254,41 +306,40 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             * {middle point of xyz in 4 Quadrant} * 120 is [[0, 1], [1, 1]]
             * {middle point of xyz in 4 Quadrant} * 240 is [[1, 1], [1, 0]]
         """
-        x_to = self._rotation_map[pauli_gates.X]
-        z_to = self._rotation_map[pauli_gates.Z]
-        flip_index = int(z_to.flip) * 2 + int(x_to.flip)
+        x_to_flip, z_to_flip = self.clifford_tableau.rs
+        flip_index = int(z_to_flip) * 2 + x_to_flip
         a, x, z = 0.0, 0.0, 0.0
 
-        if (x_to.to, z_to.to) == (pauli_gates.X, pauli_gates.Z):
+        if np.array_equal(self.clifford_tableau.matrix(), [[1, 0], [0, 1]]):
             # I, Z, X, Y cases
             to_phased_xz = [(0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (0.0, 1.0, 0.0), (0.5, 1.0, 0.0)]
             a, x, z = to_phased_xz[flip_index]
-        elif (x_to.to, z_to.to) == (pauli_gates.X, pauli_gates.Y):
+        elif np.array_equal(self.clifford_tableau.matrix(), [[1, 0], [1, 1]]):
             # +/- X_sqrt, 2 Hadamard-like gates acting on the YZ plane
             a = 0.0
-            x = 0.5 if x_to.flip ^ z_to.flip else -0.5
-            z = 1.0 if x_to.flip else 0.0
-        elif (x_to.to, z_to.to) == (pauli_gates.Z, pauli_gates.X):
+            x = 0.5 if x_to_flip ^ z_to_flip else -0.5
+            z = 1.0 if x_to_flip else 0.0
+        elif np.array_equal(self.clifford_tableau.matrix(), [[0, 1], [1, 0]]):
             # +/- Y_sqrt, 2 Hadamard-like gates acting on the XZ plane
             a = 0.5
-            x = 0.5 if x_to.flip else -0.5
-            z = 0.0 if x_to.flip ^ z_to.flip else 1.0
-        elif (x_to.to, z_to.to) == (pauli_gates.Y, pauli_gates.Z):
+            x = 0.5 if x_to_flip else -0.5
+            z = 0.0 if x_to_flip ^ z_to_flip else 1.0
+        elif np.array_equal(self.clifford_tableau.matrix(), [[1, 1], [0, 1]]):
             # +/- Z_sqrt, 2 Hadamard-like gates acting on the XY plane
             to_phased_xz = [(0.0, 0.0, 0.5), (0.0, 0.0, -0.5), (0.25, 1.0, 0.0), (-0.25, 1.0, 0.0)]
             a, x, z = to_phased_xz[flip_index]
-        elif (x_to.to, z_to.to) == (pauli_gates.Z, pauli_gates.Y):
+        elif np.array_equal(self.clifford_tableau.matrix(), [[0, 1], [1, 1]]):
             # axis swapping rotation -- (312) permutation
             a = 0.5
-            x = 0.5 if x_to.flip else -0.5
-            z = 0.5 if x_to.flip ^ z_to.flip else -0.5
+            x = 0.5 if x_to_flip else -0.5
+            z = 0.5 if x_to_flip ^ z_to_flip else -0.5
         else:
             # axis swapping rotation -- (231) permutation.
             # This should be the only cases left.
-            assert (x_to.to, z_to.to) == (pauli_gates.Y, pauli_gates.X)
+            assert np.array_equal(self.clifford_tableau.matrix(), [[1, 1], [1, 0]])
             a = 0.0
-            x = -0.5 if x_to.flip ^ z_to.flip else 0.5
-            z = -0.5 if x_to.flip else 0.5
+            x = -0.5 if x_to_flip ^ z_to_flip else 0.5
+            z = -0.5 if x_to_flip else 0.5
 
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
@@ -305,9 +356,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         if exponent != -1:
             return NotImplemented
 
-        return SingleQubitCliffordGate(
-            _rotation_map=self._inverse_map, _inverse_map=self._rotation_map
-        )
+        return SingleQubitCliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
 
     def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType]:
         if isinstance(other, SingleQubitCliffordGate):
@@ -319,14 +368,9 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     def commutes_with_single_qubit_gate(self, gate: 'SingleQubitCliffordGate') -> bool:
         """Tests if the two circuits would be equivalent up to global phase:
         --self--gate-- and --gate--self--"""
-        for pauli0 in (pauli_gates.X, pauli_gates.Z):
-            pauli1, flip1 = self.transform(cast(Pauli, pauli0))
-            pauli2, flip2 = gate.transform(cast(Pauli, pauli1))
-            pauli3, flip3 = self._inverse_map[pauli2]
-            pauli4, flip4 = gate._inverse_map[pauli3]
-            if pauli4 != pauli0 or (flip1 ^ flip2 ^ flip3 ^ flip4):
-                return False
-        return True
+        self_then_gate = self.clifford_tableau.then(gate.clifford_tableau)
+        gate_then_self = gate.clifford_tableau.then(self.clifford_tableau)
+        return self_then_gate == gate_then_self
 
     def commutes_with_pauli(self, pauli: Pauli) -> bool:
         to, flip = self.transform(pauli)
@@ -336,12 +380,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         """Returns a SingleQubitCliffordGate such that the circuits
             --output-- and --self--second--
         are equivalent up to global phase."""
-        x_intermediate_pauli, x_flip1 = self.transform(pauli_gates.X)
-        x_final_pauli, x_flip2 = second.transform(x_intermediate_pauli)
-        z_intermediate_pauli, z_flip1 = self.transform(pauli_gates.Z)
-        z_final_pauli, z_flip2 = second.transform(z_intermediate_pauli)
-        return SingleQubitCliffordGate.from_xz_map(
-            (x_final_pauli, x_flip1 ^ x_flip2), (z_final_pauli, z_flip1 ^ z_flip2)
+        return SingleQubitCliffordGate.from_clifford_tableau(
+            self.clifford_tableau.then(second.clifford_tableau)
         )
 
     def _has_unitary_(self) -> bool:
@@ -437,19 +477,19 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         )
 
     @classmethod
-    def _from_json_dict_(cls, _rotation_map, _inverse_map, **kwargs):
-        return cls(
-            _rotation_map=dict([[k, PauliTransform(*v)] for k, v in _rotation_map]),
-            _inverse_map=dict([[k, PauliTransform(*v)] for k, v in _inverse_map]),
+    def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
+            n,
+            rs,
+            xs,
+            zs,
         )
+        return cls(_clifford_tableau=_clifford_tableau)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            # JSON requires mappings to have string keys.
-            '_rotation_map': list(self._rotation_map.items()),
-            '_inverse_map': list(self._inverse_map.items()),
-        }
+        json_dict = self._clifford_tableau._json_dict_()
+        json_dict['cirq_type'] = self.__class__.__name__
+        return json_dict
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'

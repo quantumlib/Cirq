@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Demonstrates Shor's algorithm.
 
 Shor's algorithm [1] is a quantum algorithm for integer factorization. Given

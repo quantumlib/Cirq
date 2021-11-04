@@ -14,7 +14,17 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import AbstractSet, Any, List, Optional, Tuple, TYPE_CHECKING
+from typing import (
+    AbstractSet,
+    Any,
+    Collection,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 import sympy
@@ -28,7 +38,9 @@ from cirq.ops import (
     eigen_gate,
     gate_features,
     pauli_gates,
+    raw_types,
     swap_gates,
+    raw_types,
 )
 
 if TYPE_CHECKING:
@@ -36,9 +48,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class CCZPowGate(
-    eigen_gate.EigenGate, gate_features.ThreeQubitGate, gate_features.InterchangeableQubitsGate
-):
+class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A doubly-controlled-Z that can be raised to a power.
 
     The matrix of `CCZ**t` is `diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t))`.
@@ -167,9 +177,37 @@ class CCZPowGate(
             return 'CCZ'
         return f'CCZ**{self._exponent}'
 
+    def _num_qubits_(self) -> int:
+        return 3
+
+    def controlled(
+        self,
+        num_controls: int = None,
+        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_qid_shape: Optional[Tuple[int, ...]] = None,
+    ) -> raw_types.Gate:
+        """Returns a controlled `ZPowGate` with two additional controls.
+
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate` with `sub_gate = self`. This method
+        overrides this behavior to return a `ControlledGate` with
+        `sub_gate = ZPowGate`.
+        """
+        if num_controls == 0:
+            return self
+        return controlled_gate.ControlledGate(
+            controlled_gate.ControlledGate(
+                common_gates.ZPowGate(exponent=self._exponent, global_shift=self._global_shift),
+                num_controls=2,
+            ),
+            num_controls=num_controls,
+            control_values=control_values,
+            control_qid_shape=control_qid_shape,
+        )
+
 
 @value.value_equality()
-class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
+class ThreeQubitDiagonalGate(raw_types.Gate):
     """A gate given by a diagonal 8x8 matrix."""
 
     def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
@@ -323,10 +361,11 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
         )
 
+    def _num_qubits_(self) -> int:
+        return 3
 
-class CCXPowGate(
-    eigen_gate.EigenGate, gate_features.ThreeQubitGate, gate_features.InterchangeableQubitsGate
-):
+
+class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
 
     The matrix of `CCX**t` is an 8x8 identity except the bottom right 2x2 area
@@ -394,7 +433,9 @@ class CCXPowGate(
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        return protocols.CircuitDiagramInfo(('@', '@', 'X'), exponent=self._diagram_exponent(args))
+        return protocols.CircuitDiagramInfo(
+            ('@', '@', 'X'), exponent=self._diagram_exponent(args), exponent_qubit_index=2
+        )
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
@@ -424,9 +465,37 @@ class CCXPowGate(
             return 'TOFFOLI'
         return f'TOFFOLI**{self._exponent}'
 
+    def _num_qubits_(self) -> int:
+        return 3
+
+    def controlled(
+        self,
+        num_controls: int = None,
+        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_qid_shape: Optional[Tuple[int, ...]] = None,
+    ) -> raw_types.Gate:
+        """Returns a controlled `XPowGate` with two additional controls.
+
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate` with `sub_gate = self`. This method
+        overrides this behavior to return a `ControlledGate` with
+        `sub_gate = XPowGate`.
+        """
+        if num_controls == 0:
+            return self
+        return controlled_gate.ControlledGate(
+            controlled_gate.ControlledGate(
+                common_gates.XPowGate(exponent=self._exponent, global_shift=self._global_shift),
+                num_controls=2,
+            ),
+            num_controls=num_controls,
+            control_values=control_values,
+            control_qid_shape=control_qid_shape,
+        )
+
 
 @value.value_equality()
-class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubitsGate):
+class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     """A controlled swap gate. The Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -568,6 +637,31 @@ class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubit
 
     def __repr__(self) -> str:
         return 'cirq.FREDKIN'
+
+    def _num_qubits_(self) -> int:
+        return 3
+
+    def controlled(
+        self,
+        num_controls: int = None,
+        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_qid_shape: Optional[Tuple[int, ...]] = None,
+    ) -> raw_types.Gate:
+        """Returns a controlled `SWAP` with one additional control.
+
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate` with `sub_gate = self`. This method
+        overrides this behavior to return a `ControlledGate` with
+        `sub_gate = SWAP`.
+        """
+        if num_controls == 0:
+            return self
+        return controlled_gate.ControlledGate(
+            controlled_gate.ControlledGate(swap_gates.SWAP, num_controls=1),
+            num_controls=num_controls,
+            control_values=control_values,
+            control_qid_shape=control_qid_shape,
+        )
 
 
 CCZ = CCZPowGate()
