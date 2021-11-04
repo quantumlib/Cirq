@@ -1174,7 +1174,7 @@ class AbstractCircuit(abc.ABC):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         draw_cregs = bool(protocols.control_keys(self))
         if draw_cregs:
-            cbits = tuple(protocols.measurement_key_names(self))
+            cbits = tuple(protocols.measurement_key_objs(self))
             qubits = qubits + cbits
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
@@ -2428,8 +2428,8 @@ def _draw_moment_in_diagram(
         qubits: Tuple[Any, ...] = tuple(op.qubits)
         cbits: Tuple[Any, ...] = ()
         if draw_cregs:
-            cbits = tuple(protocols.measurement_key_names(op)) + tuple(
-                str(k) for k in protocols.control_keys(op)
+            cbits = tuple(protocols.measurement_key_objs(op)) + tuple(
+                protocols.control_keys(op)
             )
             qubits += cbits
         indices = [qubit_map[q] for q in qubits]
