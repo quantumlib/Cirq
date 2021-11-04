@@ -265,10 +265,7 @@ def test_append_control_key():
 
 def test_control_key_diagram():
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
-        cirq.measure(q0, key='a'),
-        ControlOp(qubits=[q1], keys=['a'])
-    )
+    c = cirq.Circuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q1], keys=['a']))
     assert len(c) == 2
 
     cirq.testing.assert_has_diagram(
