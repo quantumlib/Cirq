@@ -8,10 +8,13 @@ if TYPE_CHECKING:
 
 QBLUE = '#1967d2'
 FONT = "Arial"
+EMPTY_MOMENT_COLWIDTH = float(21)  # assumed default column width
 
 
 def fixup_text(text: str):
     if '\n' in text:
+        # https://github.com/quantumlib/Cirq/issues/4499
+        # TODO: Visualize Custom MatrixGate
         return '?'
     if '[<virtual>]' in text:
         # https://github.com/quantumlib/Cirq/issues/2905
@@ -24,6 +27,8 @@ def fixup_text(text: str):
 
 
 def _get_text_width(t: str) -> float:
+    if t == '':  # in case of an empty moment
+        return EMPTY_MOMENT_COLWIDTH
     t = fixup_text(t)
     tp = matplotlib.textpath.TextPath((0, 0), t, size=14, prop=FONT)
     bb = tp.get_extents()
@@ -234,6 +239,8 @@ def tdd_to_svg(
         if v.text == '×':
             t += _text(x, y + 3, '×', fontsize=40)
             continue
+        if v.text == '':
+            continue
 
         v_text = fixup_text(v.text)
         t += _rect(boxx, boxy, boxwidth, boxheight)
@@ -246,12 +253,6 @@ def tdd_to_svg(
 def _validate_circuit(circuit: 'cirq.Circuit'):
     if len(circuit) == 0:
         raise ValueError("Can't draw SVG diagram for empty circuits")
-
-    if any(len(mom) == 0 for mom in circuit.moments):
-        raise ValueError(
-            "Can't draw SVG diagram for circuits with empty "
-            "moments. Run it through cirq.DropEmptyMoments()"
-        )
 
 
 class SVGCircuit:
@@ -269,13 +270,13 @@ class SVGCircuit:
 
     def _repr_svg_(self) -> str:
         # coverage: ignore
-        _validate_circuit(self.circuit)
-        tdd = self.circuit.to_text_diagram_drawer(transpose=False)
-        return tdd_to_svg(tdd)
+        return circuit_to_svg(self.circuit)
 
 
 def circuit_to_svg(circuit: 'cirq.Circuit') -> str:
     """Render a circuit as SVG."""
     _validate_circuit(circuit)
     tdd = circuit.to_text_diagram_drawer(transpose=False)
+    if len(tdd.horizontal_lines) == 0:  # in circuits with no non-empty moments,return a blank SVG
+        return '<svg></svg>'
     return tdd_to_svg(tdd)
