@@ -1168,7 +1168,9 @@ class AbstractCircuit(abc.ABC):
         Returns:
             The TextDiagramDrawer instance.
         """
-        qubits: Tuple[Any, ...] = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
+        qubits: Tuple[Any, ...] = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits()
+        )
         cbits = tuple(key for op in self.all_operations() for key in protocols.control_keys(op))
         qubits = qubits + cbits
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
@@ -2419,7 +2421,9 @@ def _draw_moment_in_diagram(
     max_x = x0
     for op in non_global_ops:
         qubits: Tuple[Any, ...] = tuple(op.qubits)
-        cbits = tuple((protocols.measurement_key_objs(op) | protocols.control_keys(op)) & qubit_map.keys())
+        cbits = tuple(
+            (protocols.measurement_key_objs(op) | protocols.control_keys(op)) & qubit_map.keys()
+        )
         qubits += cbits
         indices = [qubit_map[q] for q in qubits]
         y1 = min(indices)
