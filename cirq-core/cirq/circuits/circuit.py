@@ -1168,12 +1168,9 @@ class AbstractCircuit(abc.ABC):
         Returns:
             The TextDiagramDrawer instance.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
-        control_keys = {key for op in self.all_operations() for key in protocols.control_keys(op)}
-        draw_cregs = bool(control_keys)
-        if draw_cregs:
-            cbits = tuple(protocols.measurement_key_objs(self))
-            qubits = qubits + cbits
+        qubits: Tuple[Any, ...] = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
+        control_keys = tuple(key for op in self.all_operations() for key in protocols.control_keys(op))
+        qubits = qubits + control_keys
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
         if qubit_namer is None:
@@ -1200,7 +1197,6 @@ class AbstractCircuit(abc.ABC):
                 get_circuit_diagram_info=get_circuit_diagram_info,
                 include_tags=include_tags,
                 first_annotation_row=first_annotation_row,
-                draw_cregs=draw_cregs,
             )
 
         w = diagram.width()
@@ -2413,7 +2409,6 @@ def _draw_moment_in_diagram(
     ],
     include_tags: bool,
     first_annotation_row: int,
-    draw_cregs: bool,
 ):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = circuit_diagram_info_protocol._op_info_with_fallback
@@ -2424,10 +2419,8 @@ def _draw_moment_in_diagram(
     max_x = x0
     for op in non_global_ops:
         qubits: Tuple[Any, ...] = tuple(op.qubits)
-        cbits: Tuple[Any, ...] = ()
-        if draw_cregs:
-            cbits = tuple(protocols.measurement_key_objs(op) | protocols.control_keys(op))
-            qubits += cbits
+        cbits = tuple((protocols.measurement_key_objs(op) | protocols.control_keys(op)) & qubit_map.keys())
+        qubits += cbits
         indices = [qubit_map[q] for q in qubits]
         y1 = min(indices)
         y2 = max(indices)
