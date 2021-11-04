@@ -920,9 +920,6 @@ class AbstractCircuit(abc.ABC):
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return self.all_measurement_key_names()
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
-        return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
-
     def _control_keys_(self) -> AbstractSet[str]:
         return {key for op in self.all_operations() for key in protocols.control_keys(op)}
 
