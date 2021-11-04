@@ -235,9 +235,8 @@ def apply_channel(
         )
 
     # Check if the specialized method is present.
-    func = getattr(val, '_apply_channel_', None)
-    if func is not None:
-        result = func(args)
+    if hasattr(val, '_apply_channel_'):
+        result = val._apply_channel_(args)
         if result is not NotImplemented and result is not None:
 
             def err_str(buf_num_str):
