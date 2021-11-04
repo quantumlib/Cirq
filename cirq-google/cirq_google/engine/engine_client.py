@@ -868,7 +868,7 @@ class EngineClient:
         if end:
             reservation.end_time.seconds = int(end.timestamp())
             paths.append('end_time')
-        if whitelisted_users != None:
+        if whitelisted_users is not None:
             reservation.whitelisted_users.extend(whitelisted_users)
             paths.append('whitelisted_users')
 

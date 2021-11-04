@@ -197,7 +197,7 @@ def test_validate_tableau():
     assert t._validate()
 
     t.xs = np.zeros((4, 2))
-    assert t._validate() == False
+    assert not t._validate()
 
 
 def test_rowsum():
