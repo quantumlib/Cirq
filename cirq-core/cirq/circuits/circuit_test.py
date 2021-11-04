@@ -84,18 +84,28 @@ moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
 class ControlOp(cirq.Operation):
-    def __init__(self, keys):
-        self._keys = keys
+    def __init__(self, keys, qubits=None):
+        self._keys = [cirq.MeasurementKey(k) if isinstance(k, str) else k for k in keys]
+        self._qubits = qubits or []
 
     def with_qubits(self, *new_qids):
         pass  # coverage: ignore
 
     @property
     def qubits(self):
-        return []  # coverage: ignore
+        return self._qubits
 
     def _control_keys_(self):
         return self._keys
+
+    def __repr__(self):
+        return "X"
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        symbols = ['X'] * len(self._qubits) + ['^'] * len(self._keys)
+        return cirq.CircuitDiagramInfo(symbols)
 
 
 def test_alignment():
@@ -243,46 +253,22 @@ def test_append_control_key():
     q = cirq.LineQubit(0)
     c = cirq.Circuit()
     c.append(cirq.measure(q, key='a'))
-    c.append(ControlOp([cirq.MeasurementKey('a')]))
+    c.append(ControlOp(['a']))
     assert len(c) == 2
 
     c = cirq.Circuit()
     c.append(cirq.measure(q, key='a'))
-    c.append(ControlOp([cirq.MeasurementKey('b')]))
-    c.append(ControlOp([cirq.MeasurementKey('b')]))
+    c.append(ControlOp(['b']))
+    c.append(ControlOp(['b']))
     assert len(c) == 1
 
 
 def test_control_key_diagram():
     q0, q1 = cirq.LineQubit.range(2)
-
-    class ControlOp(cirq.Operation):
-        def __init__(self, qubits, keys):
-            self._keys = keys
-            self._qubits = qubits
-
-        def with_qubits(self, *new_qids):
-            pass  # coverage: ignore
-
-        @property
-        def qubits(self):
-            return self._qubits
-
-        def _control_keys_(self):
-            return self._keys
-
-        def __repr__(self):
-            return "X"
-
-        def _circuit_diagram_info_(
-            self, args: 'cirq.CircuitDiagramInfoArgs'
-        ) -> 'cirq.CircuitDiagramInfo':
-            symbols = ['X'] * len(self._qubits) + ['^'] * len(self._keys)
-            return cirq.CircuitDiagramInfo(symbols)
-
-    c = cirq.Circuit()
-    c.append(cirq.measure(q0, key='a'))
-    c.append(ControlOp(qubits=[q1], keys=['a']))
+    c = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        ControlOp(qubits=[q1], keys=['a'])
+    )
     assert len(c) == 2
 
     cirq.testing.assert_has_diagram(
