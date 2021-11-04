@@ -920,7 +920,7 @@ class AbstractCircuit(abc.ABC):
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return self.all_measurement_key_names()
 
-    def _control_keys_(self) -> AbstractSet[str]:
+    def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:
         return {key for op in self.all_operations() for key in protocols.control_keys(op)}
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
@@ -2425,8 +2425,8 @@ def _draw_moment_in_diagram(
 
     max_x = x0
     for op in non_global_ops:
-        qubits = tuple(op.qubits)
-        cbits = ()
+        qubits: Tuple[Any, ...] = tuple(op.qubits)
+        cbits: Tuple[Any, ...] = ()
         if draw_cregs:
             cbits = tuple(protocols.measurement_key_names(op)) + tuple(
                 str(k) for k in protocols.control_keys(op)
