@@ -1169,8 +1169,8 @@ class AbstractCircuit(abc.ABC):
             The TextDiagramDrawer instance.
         """
         qubits: Tuple[Any, ...] = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
-        control_keys = tuple(key for op in self.all_operations() for key in protocols.control_keys(op))
-        qubits = qubits + control_keys
+        cbits = tuple(key for op in self.all_operations() for key in protocols.control_keys(op))
+        qubits = qubits + cbits
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
         if qubit_namer is None:
