@@ -13,9 +13,7 @@ EMPTY_MOMENT_COLWIDTH = float(21)  # assumed default column width
 
 def fixup_text(text: str):
     if '\n' in text:
-        # https://github.com/quantumlib/Cirq/issues/4499
-        # TODO: Visualize Custom MatrixGate
-        return '?'
+        return text  # text is the matrix string
     if '[<virtual>]' in text:
         # https://github.com/quantumlib/Cirq/issues/2905
         # TODO: escape angle brackets when you actually want to display tags
