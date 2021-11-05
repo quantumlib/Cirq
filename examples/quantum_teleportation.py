@@ -54,7 +54,7 @@ def make_quantum_teleportation_circuit(ranX, ranY):
     # Uses the two classical bits from the Bell measurement to recover the
     # original quantum Message on Bob's entangled qubit.
     circuit.append(cirq.ConditionalOperation(cirq.X(bob), ['alice']))
-    circuit.append(cirq.ConditionalOperation(cirq.Z(bob), ['bob']))
+    circuit.append(cirq.ConditionalOperation(cirq.Z(bob), ['msg']))
 
     return circuit
 
