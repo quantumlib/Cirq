@@ -355,6 +355,32 @@ b: ═══════@═══^═══
     )
 
 
+def test_control_key_diagram_multiple_ops_single_moment():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.measure(q1, key='b'),
+        ControlOp(qubits=[q0], keys=['a']),
+        ControlOp(qubits=[q1], keys=['b']),
+    )
+
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+      ┌──┐   ┌──┐
+0: ────M──────X─────
+       ║      ║
+1: ────╫M─────╫X────
+       ║║     ║║
+a: ════@╬═════^╬════
+        ║      ║
+b: ═════@══════^════
+      └──┘   └──┘
+""",
+        use_unicode_characters=True,
+    )
+
+
 def test_control_key_diagram_subcircuit():
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(
