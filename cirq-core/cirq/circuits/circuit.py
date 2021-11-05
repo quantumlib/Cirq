@@ -1171,7 +1171,11 @@ class AbstractCircuit(abc.ABC):
         qubits: Tuple[Any, ...] = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits()
         )
-        cbits = tuple(key for op in self.all_operations() for key in protocols.control_keys(op))
+        cbits = tuple(
+            sorted(
+                (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
+            )
+        )
         qubits = qubits + cbits
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 

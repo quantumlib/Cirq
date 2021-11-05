@@ -277,6 +277,25 @@ a: ═══@═══^═══
     )
 
 
+def test_control_key_diagram_pauli():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.measure_single_paulistring(cirq.X(q0), key='a'), ControlOp(qubits=[q1], keys=['a'])
+    )
+
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+0: ───M(X)───────
+      ║
+1: ───╫──────X───
+      ║      ║
+a: ═══@══════^═══
+""",
+        use_unicode_characters=True,
+    )
+
+
 def test_control_key_diagram_extra_measurements():
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(
@@ -296,7 +315,7 @@ a: ═══@═══^════════
     )
 
 
-def test_control_key_diagram_extra_controls():
+def test_control_key_diagram_extra_controlled_bits():
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q0, q1], keys=['a']))
 
@@ -308,6 +327,29 @@ def test_control_key_diagram_extra_controls():
 1: ───╫───X───
       ║   ║
 a: ═══@═══^═══
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_control_key_diagram_extra_control_bits():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.measure(q0, key='b'),
+        ControlOp(qubits=[q1], keys=['a', 'b']),
+    )
+
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+0: ───M───M───────
+      ║   ║
+1: ───╫───╫───X───
+      ║   ║   ║
+a: ═══@═══╬═══^═══
+          ║   ║
+b: ═══════@═══^═══
 """,
         use_unicode_characters=True,
     )
