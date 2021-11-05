@@ -266,7 +266,6 @@ def test_append_control_key():
 def test_control_key_diagram():
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q1], keys=['a']))
-    assert len(c) == 2
 
     cirq.testing.assert_has_diagram(
         c,
@@ -276,6 +275,94 @@ def test_control_key_diagram():
 1: ───╫───X───
       ║   ║
 a: ═══@═══^═══
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_control_key_diagram_extra_measurements():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), ControlOp(qubits=[q1], keys=['a'])
+    )
+
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+0: ───M───M('b')───
+      ║
+1: ───╫───X────────
+      ║   ║
+a: ═══@═══^════════
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_control_key_diagram_extra_controls():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q0, q1], keys=['a']))
+
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+0: ───M───X───
+      ║   ║
+1: ───╫───X───
+      ║   ║
+a: ═══@═══^═══
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_control_key_diagram_subcircuit():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q1], keys=['a']))
+        )
+    )
+
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+      Circuit_0xfba37d11898c0e81:
+      [ 0: ───M───────          ]
+0: ───[       ║                 ]───
+      [ 1: ───╫───X───          ]
+      [       ║   ║             ]
+      [ a: ═══@═══^═══          ]
+      │
+1: ───#2────────────────────────────
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_control_key_diagram_subcircuit_layered():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q1], keys=['a'])),
+        ),
+        ControlOp(qubits=[q1], keys=['a'])
+    )
+
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+          Circuit_0xa3bc42bd21c25cca:
+          [ 0: ───M───────          ]
+0: ───M───[       ║                 ]───────
+      ║   [ 1: ───╫───X───          ]
+      ║   [       ║   ║             ]
+      ║   [ a: ═══@═══^═══          ]
+      ║   ║
+1: ───╫───#2────────────────────────────X───
+      ║   ║                             ║
+a: ═══@═══╩═════════════════════════════^═══
 """,
         use_unicode_characters=True,
     )
