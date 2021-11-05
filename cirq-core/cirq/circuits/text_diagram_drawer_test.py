@@ -17,7 +17,18 @@ import pytest
 
 from cirq.circuits import TextDiagramDrawer
 from cirq.circuits._block_diagram_drawer_test import _assert_same_diagram
-from cirq.circuits.text_diagram_drawer import _HorizontalLine, _VerticalLine, _DiagramText
+from cirq.circuits._box_drawing_character_data import (
+    ASCII_BOX_CHARS,
+    NORMAL_BOX_CHARS,
+    DOUBLED_BOX_CHARS,
+    BOLD_BOX_CHARS,
+)
+from cirq.circuits.text_diagram_drawer import (
+    _HorizontalLine,
+    _VerticalLine,
+    _DiagramText,
+    pick_charset,
+)
 import cirq.testing as ct
 
 
@@ -406,3 +417,15 @@ def test_drawer_superimposed():
     superimposed_drawer = empty_drawer.superimposed(drawer_with_something)
     assert superimposed_drawer == drawer_with_something
     assert not empty_drawer
+
+
+def test_pick_charset():
+    assert pick_charset(use_unicode=False, emphasize=False, doubled=False) == ASCII_BOX_CHARS
+    assert pick_charset(use_unicode=False, emphasize=False, doubled=True) == ASCII_BOX_CHARS
+    assert pick_charset(use_unicode=False, emphasize=True, doubled=False) == ASCII_BOX_CHARS
+    assert pick_charset(use_unicode=False, emphasize=True, doubled=True) == ASCII_BOX_CHARS
+    assert pick_charset(use_unicode=True, emphasize=False, doubled=False) == NORMAL_BOX_CHARS
+    assert pick_charset(use_unicode=True, emphasize=False, doubled=True) == DOUBLED_BOX_CHARS
+    assert pick_charset(use_unicode=True, emphasize=True, doubled=False) == BOLD_BOX_CHARS
+    with pytest.raises(ValueError):
+        pick_charset(use_unicode=True, emphasize=True, doubled=True)

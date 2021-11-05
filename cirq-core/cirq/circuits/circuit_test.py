@@ -98,9 +98,6 @@ class ControlOp(cirq.Operation):
     def _control_keys_(self):
         return self._keys
 
-    def __repr__(self):
-        return "X"
-
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
@@ -347,7 +344,7 @@ def test_control_key_diagram_subcircuit_layered():
         cirq.CircuitOperation(
             cirq.FrozenCircuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q1], keys=['a'])),
         ),
-        ControlOp(qubits=[q1], keys=['a'])
+        ControlOp(qubits=[q1], keys=['a']),
     )
 
     cirq.testing.assert_has_diagram(
