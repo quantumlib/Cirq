@@ -115,7 +115,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'NamedQid': cirq.NamedQid,
         'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
         'NoiseProperties': cirq.NoiseProperties,
-        'NoiseModelFromNoiseProperties': cirq.NoiseModelFromNoiseProperties,
         '_PauliX': cirq.ops.pauli_gates._PauliX,
         '_PauliY': cirq.ops.pauli_gates._PauliY,
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,

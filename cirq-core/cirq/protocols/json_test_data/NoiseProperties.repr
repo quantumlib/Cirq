@@ -13,9 +13,9 @@ cirq.NoiseProperties(
     Tphi_ns={cirq.LineQubit(0): 200000.0},
     ro_fidelities={cirq.LineQubit(0): [0.001, 0.01]},
     gate_pauli_errors={
-        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_channels.ResetChannel, *(cirq.LineQubit(0),)): 0.001,
-        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_gates.ZPowGate, *(cirq.LineQubit(0),)): 0.001,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.phased_x_z_gate.PhasedXZGate, *(cirq.LineQubit(0),)): 0.001,
         cirq.devices.noise_utils.OpIdentifier(cirq.ops.measurement_gate.MeasurementGate, *(cirq.LineQubit(0),)): 0.001,
-        cirq.devices.noise_utils.OpIdentifier(cirq.ops.phased_x_z_gate.PhasedXZGate, *(cirq.LineQubit(0),)): 0.001
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_gates.ZPowGate, *(cirq.LineQubit(0),)): 0.001,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_channels.ResetChannel, *(cirq.LineQubit(0),)): 0.001
     }
 )

@@ -241,11 +241,11 @@ class NoiseProperties:
             'cirq_type': 'NoiseProperties',
             # JSON requires mappings to have keys of basic types.
             # TODO: Pairs must be sorted to ensure consistent serialization.
-            'gate_times_ns': list(storage_gate_times.items()),
-            'T1_ns': list(self.T1_ns.items()),
-            'Tphi_ns': list(self.Tphi_ns.items()),
-            'ro_fidelities': list(self.ro_fidelities.items()),
-            'gate_pauli_errors': list(storage_pauli_errors.items()),
+            'gate_times_ns': sorted(storage_gate_times.items(), key=str),
+            'T1_ns': sorted(self.T1_ns.items()),
+            'Tphi_ns': sorted(self.Tphi_ns.items()),
+            'ro_fidelities': sorted(self.ro_fidelities.items()),
+            'gate_pauli_errors': sorted(storage_pauli_errors.items(), key=str),
         }
 
     @classmethod
