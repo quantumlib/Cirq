@@ -31,7 +31,8 @@ class OpIdentifier:
         return f'{self.gate}'
 
     def __repr__(self) -> str:
-        return f'OpIdentifier({self.gate.__qualname__}, *{self.qubits})'
+        fullname = f'{self.gate.__module__}.{self.gate.__qualname__}'
+        return f'cirq.devices.noise_utils.OpIdentifier({fullname}, *{self.qubits})'
 
 
 # TODO: expose all from top-level cirq

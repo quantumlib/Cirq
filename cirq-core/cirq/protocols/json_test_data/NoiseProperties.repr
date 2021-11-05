@@ -1,0 +1,21 @@
+cirq.NoiseProperties(
+    gate_times_ns={
+        cirq.ops.common_gates.ZPowGate: 25.0,
+        cirq.ops.measurement_gate.MeasurementGate: 4000.0,
+        cirq.ops.common_channels.ResetChannel: 250.0,
+        cirq.ops.phased_x_z_gate.PhasedXZGate: 25.0,
+        cirq.ops.fsim_gate.FSimGate: 32.0,
+        cirq.ops.fsim_gate.PhasedFSimGate: 32.0,
+        cirq.ops.swap_gates.ISwapPowGate: 32.0,
+        cirq.ops.common_gates.CZPowGate: 32.0
+    },
+    T1_ns={cirq.LineQubit(0): 100000.0},
+    Tphi_ns={cirq.LineQubit(0): 200000.0},
+    ro_fidelities={cirq.LineQubit(0): [0.001, 0.01]},
+    gate_pauli_errors={
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_channels.ResetChannel, *(cirq.LineQubit(0),)): 0.001,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_gates.ZPowGate, *(cirq.LineQubit(0),)): 0.001,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.measurement_gate.MeasurementGate, *(cirq.LineQubit(0),)): 0.001,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.phased_x_z_gate.PhasedXZGate, *(cirq.LineQubit(0),)): 0.001
+    }
+)
