@@ -38,12 +38,27 @@ def sample_noise_properties(
         gate_times_ns=DEFAULT_GATE_NS,
         T1_ns={q: 1e5 for q in system_qubits},
         Tphi_ns={q: 2e5 for q in system_qubits},
-        ro_fidelities={q: np.array([0.001, 0.01]) for q in system_qubits},
+        ro_fidelities={q: [0.001, 0.01] for q in system_qubits},
         gate_pauli_errors={
             **{OpIdentifier(g, q): 0.001 for g in SINGLE_QUBIT_GATES for q in system_qubits},
             **{OpIdentifier(g, q0, q1): 0.01 for g in TWO_QUBIT_GATES for q0, q1 in qubit_pairs},
         },
     )
+
+
+def test_repr_evaluation():
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    props_from_repr = eval(repr(props))
+    assert props_from_repr == props
+
+
+def test_json_serialization():
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    props_json = cirq.to_json(props)
+    props_from_json = cirq.read_json(json_text=props_json)
+    assert props_from_json == props
 
 
 @pytest.mark.parametrize(

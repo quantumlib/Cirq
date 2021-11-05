@@ -3,6 +3,7 @@ from typing import Dict, Iterable, Sequence, TYPE_CHECKING, List, Set
 import numpy as np
 
 from cirq import ops, protocols, devices
+from cirq._compat import proper_repr
 from cirq.devices.noise_utils import (
     OpIdentifier,
     PHYSICAL_GATE_TAG,
@@ -28,7 +29,7 @@ class NoiseProperties:
     gate_times_ns: Dict[type, float]
     T1_ns: Dict['cirq.Qid', float]
     Tphi_ns: Dict['cirq.Qid', float]
-    ro_fidelities: Dict['cirq.Qid', np.ndarray]
+    ro_fidelities: Dict['cirq.Qid', List[float]]
     gate_pauli_errors: Dict[OpIdentifier, float]
 
     _qubits: List['cirq.Qid'] = field(init=False, default_factory=list)
@@ -197,6 +198,76 @@ class NoiseProperties:
             )
 
         return noise_models
+
+    def __str__(self) -> str:
+        return 'NoiseProperties'
+
+    def _repr_args(self) -> List[str]:
+        args = []
+        gate_times_repr = ', '.join(
+            f'{key.__module__}.{key.__qualname__}: {val}'
+            for key, val in self.gate_times_ns.items()
+        )
+        args.append(f'    gate_times_ns={{{gate_times_repr}}}')
+        args.append(f'    T1_ns={self.T1_ns!r}')
+        args.append(f'    Tphi_ns={self.Tphi_ns!r}')
+        args.append(f'    ro_fidelities={self.ro_fidelities!r}')
+        args.append(f'    gate_pauli_errors={self.gate_pauli_errors!r}')
+        return args
+
+    def __repr__(self) -> str:
+        args_str = ',\n'.join(self._repr_args())
+        return f'cirq.NoiseProperties(\n{args_str}\n)'
+
+    def _json_dict_(self):
+        canonical_gate = {
+            ops.ZPowGate: ops.ZPowGate(),
+            ops.PhasedXZGate: ops.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=0),
+            ops.MeasurementGate: ops.MeasurementGate(num_qubits=1),
+            ops.ResetChannel: ops.ResetChannel(),
+            ops.FSimGate: ops.FSimGate(theta=0, phi=0),
+            ops.PhasedFSimGate: ops.PhasedFSimGate(theta=0),
+            ops.ISwapPowGate: ops.ISwapPowGate(),
+            ops.CZPowGate: ops.CZPowGate()
+        }
+
+        storage_gate_times = {canonical_gate[key]: val for key, val in self.gate_times_ns.items()}
+        storage_pauli_errors = {
+            canonical_gate[op_id.gate].on(*op_id.qubits): val
+            for op_id, val in self.gate_pauli_errors.items()
+        }
+        return {
+            'cirq_type': 'NoiseProperties',
+            # JSON requires mappings to have keys of basic types.
+            # TODO: Pairs must be sorted to ensure consistent serialization.
+            'gate_times_ns': list(storage_gate_times.items()),
+            'T1_ns': list(self.T1_ns.items()),
+            'Tphi_ns': list(self.Tphi_ns.items()),
+            'ro_fidelities': list(self.ro_fidelities.items()),
+            'gate_pauli_errors': list(storage_pauli_errors.items()),
+        }
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate_times_ns,
+        T1_ns,
+        Tphi_ns,
+        ro_fidelities,
+        gate_pauli_errors,
+        **kwargs
+    ):
+        gate_type_times = {type(gate): val for gate, val in gate_times_ns}
+        gate_type_pauli_errors = {
+            OpIdentifier(type(op.gate), *op.qubits): val for op, val in gate_pauli_errors
+        }
+        return NoiseProperties(
+            gate_type_times,
+            {k: v for k, v in T1_ns},
+            {k: v for k, v in Tphi_ns},
+            {k: v for k, v in ro_fidelities},
+            gate_type_pauli_errors
+        )
 
 
 class NoiseModelFromNoiseProperties(devices.NoiseModel):
