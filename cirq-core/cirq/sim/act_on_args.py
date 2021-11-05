@@ -46,7 +46,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         self,
         prng: np.random.RandomState = None,
         qubits: Sequence['cirq.Qid'] = None,
-        log_of_measurement_results: Dict[str, Any] = None,
+        log_of_measurement_results: Dict[str, List[int]] = None,
     ):
         """Inits ActOnArgs.
 
@@ -181,7 +181,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         functionality, if supported."""
 
     @property
-    def log_of_measurement_results(self) -> Dict[str, Any]:
+    def log_of_measurement_results(self) -> Dict[str, List[int]]:
         return self._log_of_measurement_results
 
     @property
