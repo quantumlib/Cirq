@@ -11,18 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import sympy
 
 import cirq
 from cirq.ops.conditional_operation import ConditionalOperation
+import cirq.contrib.quimb as ccq
+
+ALL_SIMULATORS = (
+    cirq.Simulator(),
+    cirq.DensityMatrixSimulator(),
+    cirq.CliffordSimulator(),
+    ccq.MPSSimulator(),
+)
 
 
 def test_diagram():
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.measure(q0, key='a'), ConditionalOperation(cirq.X(q1), ['a']))
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), ConditionalOperation(cirq.X(q1), ['a']))
 
     cirq.testing.assert_has_diagram(
-        c,
+        circuit,
         """
 0: ───M───────
       ║
@@ -36,8 +45,8 @@ a: ═══@═══^═══
 
 def test_qasm():
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.measure(q0, key='a'), ConditionalOperation(cirq.X(q1), ['a']))
-    qasm = cirq.qasm(c)
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), ConditionalOperation(cirq.X(q1), ['a']))
+    qasm = cirq.qasm(circuit)
     assert (
         qasm
         == """// Generated from Cirq v0.14.0.dev
@@ -59,13 +68,13 @@ if (m_a!=0) x q[1];
 
 def test_diagram_pauli():
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
+    circuit = cirq.Circuit(
         cirq.measure_single_paulistring(cirq.X(q0), key='a'),
         ConditionalOperation(cirq.X(q1), ['a']),
     )
 
     cirq.testing.assert_has_diagram(
-        c,
+        circuit,
         """
 0: ───M(X)───────
       ║
@@ -79,14 +88,14 @@ a: ═══@══════^═══
 
 def test_diagram_extra_measurements():
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
+    circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.measure(q0, key='b'),
         ConditionalOperation(cirq.X(q1), ['a']),
     )
 
     cirq.testing.assert_has_diagram(
-        c,
+        circuit,
         """
 0: ───M───M('b')───
       ║
@@ -100,13 +109,13 @@ a: ═══@═══^════════
 
 def test_diagram_extra_controlled_bits():
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
+    circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         ConditionalOperation(cirq.CX(q0, q1), ['a']),
     )
 
     cirq.testing.assert_has_diagram(
-        c,
+        circuit,
         """
 0: ───M───@───
       ║   ║
@@ -120,14 +129,14 @@ a: ═══@═══^═══
 
 def test_diagram_extra_control_bits():
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
+    circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.measure(q0, key='b'),
         ConditionalOperation(cirq.X(q1), ['a', 'b']),
     )
 
     cirq.testing.assert_has_diagram(
-        c,
+        circuit,
         """
 0: ───M───M───────
       ║   ║
@@ -143,7 +152,7 @@ b: ═══════@═══^═══
 
 def test_diagram_multiple_ops_single_moment():
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
+    circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.measure(q1, key='b'),
         ConditionalOperation(cirq.X(q0), ['a']),
@@ -151,7 +160,7 @@ def test_diagram_multiple_ops_single_moment():
     )
 
     cirq.testing.assert_has_diagram(
-        c,
+        circuit,
         """
       ┌──┐   ┌──┐
 0: ────M──────X─────
@@ -169,7 +178,7 @@ b: ═════@══════^════
 
 def test_diagram_subcircuit():
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
+    circuit = cirq.Circuit(
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
                 cirq.measure(q0, key='a'),
@@ -179,7 +188,7 @@ def test_diagram_subcircuit():
     )
 
     cirq.testing.assert_has_diagram(
-        c,
+        circuit,
         """
       Circuit_0x0000000000000000:
       [ 0: ───M───────          ]
@@ -196,7 +205,7 @@ def test_diagram_subcircuit():
 
 def test_diagram_subcircuit_layered():
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
+    circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
@@ -208,7 +217,7 @@ def test_diagram_subcircuit_layered():
     )
 
     cirq.testing.assert_has_diagram(
-        c,
+        circuit,
         """
           Circuit_0x0000000000000000:
           [ 0: ───M───────          ]
@@ -225,64 +234,64 @@ a: ═══@═══╩══════════════════�
     )
 
 
-def test_key_unset():
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_key_unset(sim):
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
+    circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         ConditionalOperation(cirq.X(q1), ['a']),
         cirq.measure(q1, key='b'),
     )
-    s = cirq.Simulator()
-    result = s.run(c)
+    result = sim.run(circuit)
     assert result.measurements['a'] == 0
     assert result.measurements['b'] == 0
 
 
-def test_key_set():
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_key_set(sim):
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
+    circuit = cirq.Circuit(
         cirq.X(q0),
         cirq.measure(q0, key='a'),
         ConditionalOperation(cirq.X(q1), ['a']),
         cirq.measure(q1, key='b'),
     )
-    s = cirq.Simulator()
-    result = s.run(c)
+    result = sim.run(circuit)
     assert result.measurements['a'] == 1
     assert result.measurements['b'] == 1
 
 
-def test_subcircuit_key_unset():
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_subcircuit_key_unset(sim):
     q0, q1 = cirq.LineQubit.range(2)
     inner = cirq.Circuit(
-        cirq.measure(q0, key='c'),
-        ConditionalOperation(cirq.X(q1), ['c']),
+        cirq.measure(q0, key='circuit'),
+        ConditionalOperation(cirq.X(q1), ['circuit']),
         cirq.measure(q1, key='b'),
     )
-    c = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=2, measurement_key_map={'c': 'a'})
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, measurement_key_map={'circuit': 'a'})
     )
-    s = cirq.Simulator()
-    result = s.run(c)
+    result = sim.run(circuit)
     assert result.measurements['0:a'] == 0
     assert result.measurements['0:b'] == 0
     assert result.measurements['1:a'] == 0
     assert result.measurements['1:b'] == 0
 
 
-def test_subcircuit_key_set():
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_subcircuit_key_set(sim):
     q0, q1 = cirq.LineQubit.range(2)
     inner = cirq.Circuit(
         cirq.X(q0),
-        cirq.measure(q0, key='c'),
-        ConditionalOperation(cirq.X(q1), ['c']),
+        cirq.measure(q0, key='circuit'),
+        ConditionalOperation(cirq.X(q1), ['circuit']),
         cirq.measure(q1, key='b'),
     )
-    c = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=8, measurement_key_map={'c': 'a'})
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=4, measurement_key_map={'circuit': 'a'})
     )
-    s = cirq.Simulator()
-    result = s.run(c)
+    result = sim.run(circuit)
     assert result.measurements['0:a'] == 1
     assert result.measurements['0:b'] == 1
     assert result.measurements['1:a'] == 0
@@ -291,14 +300,6 @@ def test_subcircuit_key_set():
     assert result.measurements['2:b'] == 0
     assert result.measurements['3:a'] == 0
     assert result.measurements['3:b'] == 0
-    assert result.measurements['4:a'] == 1
-    assert result.measurements['4:b'] == 1
-    assert result.measurements['5:a'] == 0
-    assert result.measurements['5:b'] == 1
-    assert result.measurements['6:a'] == 1
-    assert result.measurements['6:b'] == 0
-    assert result.measurements['7:a'] == 0
-    assert result.measurements['7:b'] == 0
 
 
 def test_key_stacking():
@@ -316,13 +317,13 @@ def test_qubit_mapping():
 
 
 def test_parameterizable():
-    a = sympy.Symbol('S')
+    s = sympy.Symbol('s')
     q0 = cirq.LineQubit(0)
     op = ConditionalOperation(cirq.X(q0), ['a'])
-    opa = ConditionalOperation(cirq.XPowGate(exponent=a).on(q0), ['a'])
+    opa = ConditionalOperation(cirq.XPowGate(exponent=s).on(q0), ['a'])
     assert cirq.is_parameterized(opa)
     assert not cirq.is_parameterized(op)
-    assert cirq.resolve_parameters(opa, cirq.ParamResolver({'S': 1})) == op
+    assert cirq.resolve_parameters(opa, cirq.ParamResolver({'s': 1})) == op
 
 
 def test_decompose():
