@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import os
 from unittest.mock import patch, PropertyMock
 from math import sqrt

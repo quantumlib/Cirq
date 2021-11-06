@@ -42,6 +42,7 @@ def test_fsim_eq():
     eq.add_equality_group(cirq.FSimGate(0, 0))
     eq.add_equality_group(cirq.FSimGate(1, 1))
     eq.add_equality_group(cirq.FSimGate(1, 2).on(a, b), cirq.FSimGate(1, 2).on(b, a))
+    eq.add_equality_group(cirq.FSimGate(np.pi, np.pi), cirq.FSimGate(-np.pi, -np.pi))
 
 
 def test_fsim_approx_eq():
@@ -73,26 +74,26 @@ def test_fsim_circuit():
     cirq.testing.assert_has_diagram(
         c,
         """
-0: ───FSim(0.5π, π)───FSim(-π, 0.5π)───
-      │               │
-1: ───FSim(0.5π, π)───FSim(-π, 0.5π)───
+0: ───FSim(0.5π, -π)───FSim(-π, 0.5π)───
+      │                │
+1: ───FSim(0.5π, -π)───FSim(-π, 0.5π)───
     """,
     )
     cirq.testing.assert_has_diagram(
         c,
         """
-0: ---FSim(0.5pi, pi)---FSim(-pi, 0.5pi)---
-      |                 |
-1: ---FSim(0.5pi, pi)---FSim(-pi, 0.5pi)---
+0: ---FSim(0.5pi, -pi)---FSim(-pi, 0.5pi)---
+      |                  |
+1: ---FSim(0.5pi, -pi)---FSim(-pi, 0.5pi)---
         """,
         use_unicode_characters=False,
     )
     cirq.testing.assert_has_diagram(
         c,
         """
-0: ---FSim(1.5707963267948966, pi)---FSim(-pi, 1.5707963267948966)---
-      |                              |
-1: ---FSim(1.5707963267948966, pi)---FSim(-pi, 1.5707963267948966)---
+0: ---FSim(1.5707963267948966, -pi)---FSim(-pi, 1.5707963267948966)---
+      |                               |
+1: ---FSim(1.5707963267948966, -pi)---FSim(-pi, 1.5707963267948966)---
 """,
         use_unicode_characters=False,
         precision=None,
@@ -379,6 +380,10 @@ def test_phased_fsim_eq():
     eq.add_equality_group(cirq.PhasedFSimGate(1, s, 0, 0, 0))
     eq.add_equality_group(cirq.PhasedFSimGate(r, 1, 0, 0, 0))
     eq.add_equality_group(cirq.PhasedFSimGate(s, 1, 0, 0, 0))
+    eq.add_equality_group(
+        cirq.PhasedFSimGate(np.pi, np.pi, np.pi, np.pi, np.pi),
+        cirq.PhasedFSimGate(-np.pi, -np.pi, -np.pi, -np.pi, -np.pi),
+    )
 
     # Regions of insensitivity to zeta and chi
     eq.add_equality_group(
@@ -392,7 +397,7 @@ def test_phased_fsim_eq():
         cirq.PhasedFSimGate(sympy.pi / 2, 0, 0, 4, 5), cirq.PhasedFSimGate(sympy.pi / 2, 2, 0, 4, 5)
     )
     eq.add_equality_group(
-        cirq.PhasedFSimGate(sympy.pi, 0, 0, 4, 5), cirq.PhasedFSimGate(sympy.pi, 0, 3, 4, 5)
+        cirq.PhasedFSimGate(-sympy.pi, 0, 0, 4, 5), cirq.PhasedFSimGate(-sympy.pi, 0, 3, 4, 5)
     )
 
     # Symmetries under qubit exchange
@@ -410,8 +415,8 @@ def test_phased_fsim_eq():
         cirq.PhasedFSimGate(1, -np.pi, np.pi, 4, 5).on(b, a),
     )
     eq.add_equality_group(
-        cirq.PhasedFSimGate(1, sympy.pi, -sympy.pi, r, 5).on(a, b),
-        cirq.PhasedFSimGate(1, sympy.pi, -sympy.pi, r, 5).on(b, a),
+        cirq.PhasedFSimGate(1, -sympy.pi, -sympy.pi, r, 5).on(a, b),
+        cirq.PhasedFSimGate(1, -sympy.pi, -sympy.pi, r, 5).on(b, a),
     )
     eq.add_equality_group(cirq.PhasedFSimGate(sympy.pi / 3, 2, 0, 4, 5).on(a, b))
     eq.add_equality_group(cirq.PhasedFSimGate(sympy.pi / 3, 2, 0, 4, 5).on(b, a))
@@ -479,27 +484,27 @@ def test_phased_fsim_circuit():
     cirq.testing.assert_has_diagram(
         c,
         """
-0: ───PhFSim(0.5π, π, 0.5π, 0, -0.25π)───PhFSim(-π, 0.5π, 0.1π, 0.2π, 0.3π)───
-      │                                  │
-1: ───PhFSim(0.5π, π, 0.5π, 0, -0.25π)───PhFSim(-π, 0.5π, 0.1π, 0.2π, 0.3π)───
+0: ───PhFSim(0.5π, -π, 0.5π, 0, -0.25π)───PhFSim(-π, 0.5π, 0.1π, 0.2π, 0.3π)───
+      │                                   │
+1: ───PhFSim(0.5π, -π, 0.5π, 0, -0.25π)───PhFSim(-π, 0.5π, 0.1π, 0.2π, 0.3π)───
     """,
     )
     # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         c,
         """
-0: ---PhFSim(0.5pi, pi, 0.5pi, 0, -0.25pi)---PhFSim(-pi, 0.5pi, 0.1pi, 0.2pi, 0.3pi)---
-      |                                      |
-1: ---PhFSim(0.5pi, pi, 0.5pi, 0, -0.25pi)---PhFSim(-pi, 0.5pi, 0.1pi, 0.2pi, 0.3pi)---
+0: ---PhFSim(0.5pi, -pi, 0.5pi, 0, -0.25pi)---PhFSim(-pi, 0.5pi, 0.1pi, 0.2pi, 0.3pi)---
+      |                                       |
+1: ---PhFSim(0.5pi, -pi, 0.5pi, 0, -0.25pi)---PhFSim(-pi, 0.5pi, 0.1pi, 0.2pi, 0.3pi)---
         """,
         use_unicode_characters=False,
     )
     cirq.testing.assert_has_diagram(
         c,
         """
-0: ---PhFSim(1.5707963267948966, pi, 1.5707963267948966, 0, -0.7853981633974483)---PhFSim(-pi, 1.5707963267948966, 0.3141592653589793, 0.6283185307179586, 0.9424777960769379)---
-      |                                                                            |
-1: ---PhFSim(1.5707963267948966, pi, 1.5707963267948966, 0, -0.7853981633974483)---PhFSim(-pi, 1.5707963267948966, 0.3141592653589793, 0.6283185307179586, 0.9424777960769379)---
+0: ---PhFSim(1.5707963267948966, -pi, 1.5707963267948966, 0, -0.7853981633974483)---PhFSim(-pi, 1.5707963267948966, 0.3141592653589793, 0.6283185307179586, 0.9424777960769379)---
+      |                                                                             |
+1: ---PhFSim(1.5707963267948966, -pi, 1.5707963267948966, 0, -0.7853981633974483)---PhFSim(-pi, 1.5707963267948966, 0.3141592653589793, 0.6283185307179586, 0.9424777960769379)---
 """,
         use_unicode_characters=False,
         precision=None,

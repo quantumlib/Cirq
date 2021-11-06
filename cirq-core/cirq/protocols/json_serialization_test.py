@@ -45,30 +45,10 @@ class _ModuleDeprecation:
 
 # tested modules and their deprecation settings
 TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
-    'cirq_aqt': _ModuleDeprecation(
-        old_name="cirq.aqt",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.aqt", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_ionq': _ModuleDeprecation(
-        old_name="cirq.ionq",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.ionq", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_google': _ModuleDeprecation(
-        old_name="cirq.google",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.google", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_pasqal': _ModuleDeprecation(
-        old_name="cirq.pasqal",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.pasqal", deadline="v0.14", count=None
-        ),
-    ),
+    'cirq_aqt': None,
+    'cirq_ionq': None,
+    'cirq_google': None,
+    'cirq_pasqal': None,
     'cirq_rigetti': None,
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,
@@ -481,11 +461,8 @@ def _list_public_classes_for_tested_modules():
     _list_public_classes_for_tested_modules(),
 )
 def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
-    if cirq_obj_name == "SerializableByKey":
-        pytest.skip(
-            "SerializableByKey does not follow common serialization rules. "
-            "It is tested separately in test_context_serialization."
-        )
+    if cirq_obj_name in mod_spec.tested_elsewhere:
+        pytest.skip("Tested elsewhere.")
 
     if cirq_obj_name in mod_spec.not_yet_serializable:
         return pytest.xfail(reason="Not serializable (yet)")

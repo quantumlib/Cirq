@@ -40,9 +40,6 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
-    'docs/noise.ipynb',
-    # Named topologies
-    'docs/named_topologies.ipynb',
     # get_qcs_objects_for_notebook
     'docs/tutorials/google/calibration_api.ipynb',
     'docs/tutorials/google/colab.ipynb',
@@ -61,6 +58,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
     "**/aqt/*.ipynb",
+    "**/azure-quantum/*.ipynb",
     "**/google/*.ipynb",
     "**/ionq/*.ipynb",
     "**/pasqal/*.ipynb",

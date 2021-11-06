@@ -1,4 +1,5 @@
 # Copyright 2021 The Cirq Developers
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -62,7 +63,7 @@ class IonQAPIDevice(cirq.Device):
             cirq.ZZPowGate,
             cirq.MeasurementGate,
             unroll_circuit_op=False,
-            accept_global_phase=False,
+            accept_global_phase_op=False,
         )
 
     def qubit_set(self) -> AbstractSet['cirq.Qid']:
