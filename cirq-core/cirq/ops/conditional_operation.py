@@ -153,3 +153,9 @@ class ConditionalOperation(raw_types.Operation):
 
     def _control_keys_(self) -> Tuple[value.MeasurementKey, ...]:
         return self._controls
+
+    def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
+        args.validate_version('2.0')
+        keys = [f'm_{key}!=0' for key in self._controls]
+        all_keys = " && ".join(keys)
+        return args.format('if ({0}) {1}', all_keys, protocols.qasm(self._sub_operation, args=args))

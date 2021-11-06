@@ -34,6 +34,29 @@ a: ═══@═══^═══
     )
 
 
+def test_qasm():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.measure(q0, key='a'), ConditionalOperation(cirq.X(q1), ['a']))
+    qasm = cirq.qasm(c)
+    assert (
+        qasm
+        == """// Generated from Cirq v0.14.0.dev
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [0, 1]
+qreg q[2];
+creg m_a[1];
+
+
+measure q[0] -> m_a[0];
+if (m_a!=0) x q[1];
+"""
+    )
+
+
 def test_diagram_pauli():
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(
