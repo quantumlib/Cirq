@@ -16,13 +16,11 @@ import sympy
 
 import cirq
 from cirq.ops.conditional_operation import ConditionalOperation
-import cirq.contrib.quimb as ccq
 
 ALL_SIMULATORS = (
     cirq.Simulator(),
     cirq.DensityMatrixSimulator(),
     cirq.CliffordSimulator(),
-    ccq.MPSSimulator(),
 )
 
 
