@@ -198,7 +198,7 @@ def test_simulate_moment_steps_intermediate_measurement():
             np.testing.assert_almost_equal(step.state.to_numpy(), expected)
         if i == 2:
             expected = np.array([np.sqrt(0.5), np.sqrt(0.5) * (-1) ** result])
-            np.testing.assert_almost_equal(step.state.toCliffordTria_numpy(), expected)
+            np.testing.assert_almost_equal(step.state.to_numpy(), expected)
 
 
 def test_clifford_state_initial_state():
