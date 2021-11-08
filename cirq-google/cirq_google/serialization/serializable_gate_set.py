@@ -241,8 +241,8 @@ class SerializableGateSet(serializer.Serializer):
             The cirq.google.api.v2.CircuitOperation proto.
 
         Raises:
-            ValueError: If one of `constants` or `raw_constants` is None, or the cicuit operation
-                cannnot be serialized.
+            ValueError: If one of `constants` or `raw_constants` is None, or the circuit operation
+                cannot be serialized.
         """
         circuit = getattr(op.untagged, 'circuit', None)
         if constants is None or raw_constants is None:

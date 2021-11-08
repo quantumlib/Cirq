@@ -66,7 +66,7 @@ class PullRequestDetails:
             pull_id: The id of the pull request.
 
         Raises:
-            RuntimeError: If the request does not return status 200.
+            RuntimeError: If the request does not return status 200 (success).
         """
         url = "https://api.github.com/repos/{}/{}/pulls/{}".format(
             repo.organization, repo.name, pull_id
@@ -166,13 +166,12 @@ def check_collaborator_has_write(
         repo: The github repo to check.
         username: The github username to check whether the user is a collaborator.
 
-    Raises:
-        RuntimeError: If the call to the github api returns a status different from 200.
-
     Returns:
         CannotAutomergeError if the user does not have admin and write permissions and so
             cannot use automerge, None otherwise.
 
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = "https://api.github.com/repos/{}/{}/collaborators/{}/permission" "".format(
         repo.organization, repo.name, username
@@ -202,10 +201,10 @@ def get_all(repo: GithubRepository, url_func: Callable[[int], str]) -> List[Any]
         url_func: A function from an integer page number to the url to get the result for that page.
 
     Returns:
-        A list of the result by page.
+        A list of the results by page.
 
     Raises:
-        RuntimeError: If the request does not return an OK status.
+        RuntimeError: If the request does not return status 200 (success).
     """
     results: List[Any] = []
     page = 0
@@ -270,10 +269,10 @@ def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
     Arg:
         rep: The github repo whose pull request should have a comment added to.
         pull_id: The id of the pull request to comment on.
-        text: The text of the content.
+        text: The text of the comment.
 
     Raises:
-        RuntimeError: If post to write the comment does not return success status.
+        RuntimeError: If the request does not return status 201 (created).
     """
     url = "https://api.github.com/repos/{}/{}/issues/{}/comments".format(
         repo.organization, repo.name, pull_id
@@ -301,7 +300,7 @@ def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
         comment_id: The id of the comment to edit.
 
     Raises:
-        RuntimeError: If the edit POST request does not return a success status.
+            RuntimeError: If the request does not return status 200 (success).
     """
     url = "https://api.github.com/repos/{}/{}/issues/comments/{}".format(
         repo.organization, repo.name, comment_id
@@ -328,10 +327,10 @@ def get_branch_details(repo: GithubRepository, branch: str) -> Any:
         branch: The name of the branch.
 
     Returns:
-        The raw response the query.
+        The raw response to the query to get details.
 
     Raises:
-        RuntimeError: If the get request returns a status other than success.
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = "https://api.github.com/repos/{}/{}/branches/{}".format(
         repo.organization, repo.name, branch
@@ -361,7 +360,7 @@ def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
         The raw response to the request.
 
     Raises:
-        RuntimeError: If the get request returns a status other than success.
+        RuntimeError: If the request does not return status 200 (success).
     """
 
     url = "https://api.github.com/repos/{}/{}/commits/{}/statuses".format(
@@ -392,7 +391,7 @@ def get_pr_check_status(pr: PullRequestDetails) -> Any:
         The raw response to the request.
 
     Raises:
-        RuntimeError: If the get request returns a status other than success.
+        RuntimeError: If the request does not return status 200 (success).
     """
 
     url = "https://api.github.com/repos/{}/{}/commits/{}/status".format(
@@ -484,7 +483,7 @@ def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
         The full response from the review query.
 
     Raises:
-        RuntimeError: If the GET request does not return success status.
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = (
         f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
@@ -510,13 +509,13 @@ def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
         https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
 
     Args:
-        pr: The pull request to check.
+        pr: The pull request to get checks for.
 
     Returns:
         The raw response of the request.
 
     Raises:
-        RuntimeError: If the GET request returns a response other than success.
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = (
         f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
@@ -580,13 +579,13 @@ def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
 
     Args:
         repo: The github repo to get the reference from.
-        ref: The id of the references.
+        ref: The id of the reference.
 
     Returns:
-        The raw response of the request.
+        The raw response of the request for the reference..
 
     Raises:
-        RuntimeError: If the GET request results in a status other than success.
+        RuntimeError: If the request does not return status 200 (success).
     """
 
     url = f"https://api.github.com/repos/{repo.organization}/{repo.name}/git/refs/{ref}"
@@ -621,7 +620,7 @@ def list_pr_comments(repo: GithubRepository, pull_id: int) -> List[Dict[str, Any
         A list of the raw responses for the pull requests.
 
     Raises:
-        RuntimeError: If the request results in a status other than success.
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = "https://api.github.com/repos/{}/{}/issues/{}/comments".format(
         repo.organization, repo.name, pull_id
@@ -648,7 +647,7 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
         comment_id: The id of the comment to delete.
 
     Raises:
-        RuntimeError: If the response to the delete is anything other than success.
+        RuntimeError: If the request does not return status 204 (no content).
     """
     url = "https://api.github.com/repos/{}/{}/issues/comments/{}".format(
         repo.organization, repo.name, comment_id
@@ -772,7 +771,7 @@ def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeE
         was not possible
 
     Raises:
-        RuntimeError: If the request to merge returned a result other than success.
+        RuntimeError: If the request to merge returned a failed merge response.
     """
     url = "https://api.github.com/repos/{}/{}/pulls/{}/merge".format(
         pr.repo.organization, pr.repo.name, pr.pull_id
@@ -815,7 +814,7 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
         True of the delete was successful, False otherwise.
 
     Raises:
-        RuntimeError: If the request to delete was not successful.
+        RuntimeError: If the request does not return status 204 (no content).
     """
 
     open_pulls = list_open_pull_requests(pr.repo, base_branch=pr.branch_name)
@@ -893,7 +892,7 @@ def remove_label_from_pr(repo: GithubRepository, pull_id: int, label: str) -> bo
         label: The label to remove.
 
     Raises:
-        RuntimeError: If the request to remove the failure returned status other than success.
+        RuntimeError: If the request does not return status 200 (success).
 
     Returns:
         True if the label existed and was deleted. False if the label did not exist.
@@ -933,7 +932,7 @@ def list_open_pull_requests(
         A list of the pull requests.
 
     Raises:
-        RuntimeError: If the request returns a result with status other than success.
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = (
         f"https://api.github.com/repos/{repo.organization}/{repo.name}/pulls"

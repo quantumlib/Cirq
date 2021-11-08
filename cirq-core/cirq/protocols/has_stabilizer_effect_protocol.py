@@ -43,7 +43,7 @@ def has_stabilizer_effect(val: Any) -> bool:
 
 
 def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optional[bool]:
-    """Infer whether val has stabilizer effect via its _has_stabilizer_effect_ method."""
+    """Infer whether val has stabilizer effect via its `_has_stabilizer_effect_` method."""
     if hasattr(val, '_has_stabilizer_effect_'):
         result = val._has_stabilizer_effect_()
         if result is not NotImplemented and result is not None:
@@ -52,7 +52,7 @@ def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optiona
 
 
 def _strat_has_stabilizer_effect_from_gate(val: Any) -> Optional[bool]:
-    """Infer whether val's has stabilizer effect via the value of _has_stabilizer_effect_ method."""
+    """Infer whether val's gate has stabilizer effect via the _has_stabilizer_effect_ method."""
     if hasattr(val, 'gate'):
         return _strat_has_stabilizer_effect_from_has_stabilizer_effect(val.gate)
     return None

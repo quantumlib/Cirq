@@ -205,14 +205,14 @@ class AQTSimulator:
             Result from Cirq.Simulator.
 
         Raises:
-            RuntimeError: Simulate ideally called without a circuit.
+            RuntimeError: Simulate called without a circuit.
         """
         if self.simulate_ideal:
             noise_model = cirq.NO_NOISE
         else:
             noise_model = AQTNoiseModel()
         if self.circuit == cirq.Circuit():
-            raise RuntimeError('Simulate ideal called without a valid circuit.')
+            raise RuntimeError('Simulate called without a valid circuit.')
         sim = cirq.DensityMatrixSimulator(noise=noise_model)
         result = sim.run(self.circuit, repetitions=repetitions)
         return result

@@ -227,7 +227,7 @@ class Engine:
             A single Result for this run.
 
         Raises:
-            ValueError: If not gate set is provided.
+            ValueError: If no gate set is provided.
         """
         if not gate_set:
             raise ValueError('No gate set provided')
@@ -372,7 +372,7 @@ class Engine:
 
         Raises:
             ValueError: If the length of programs mismatches that of params_list, or
-                the processor_ids is not supplied.
+                `processor_ids` is not supplied.
         """
         if params_list is None:
             params_list = [None] * len(programs)
@@ -448,7 +448,7 @@ class Engine:
             calibration_results().
 
         Raises:
-            ValueError: If processor_id and processor_ids are both specified, or neither is
+            ValueError: If `processor_id` and `processor_ids` are both specified, or neither is
                 supplied.
         """
         if processor_id and processor_ids:

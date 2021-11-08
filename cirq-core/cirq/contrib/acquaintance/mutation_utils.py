@@ -66,7 +66,7 @@ def replace_acquaintance_with_swap_network(
     acquaintance_size: Optional[int] = 0,
     swap_gate: 'cirq.Gate' = ops.SWAP,
 ) -> bool:
-    """Replace every moment with acquaintance gates with a generalized swap network.
+    """Replace every rectified moment with acquaintance gates with a generalized swap network.
 
     The generalized swap network has a partition given by the acquaintance gates in that moment
     (and singletons for the free qubits). Accounts for reversing effect of swap networks.
