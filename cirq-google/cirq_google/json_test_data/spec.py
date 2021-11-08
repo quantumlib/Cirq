@@ -39,6 +39,7 @@ TestSpec = ModuleJsonTestSpec(
         'EngineProgram',
         'FSimPhaseCorrections',
         'NAMED_GATESETS',
+        'NoiseModelFromGoogleNoiseProperties',
         'ProtoVersion',
         'GateOpSerializer',
         'GateOpDeserializer',

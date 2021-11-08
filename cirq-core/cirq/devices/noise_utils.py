@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, Sequence, Tuple
 import warnings
 import numpy as np
 
@@ -15,24 +15,23 @@ PHYSICAL_GATE_TAG = 'physical_gate'
 class OpIdentifier:
     """Identifies an operation by gate and (optionally) target qubits."""
 
-    gate: type
-    qubits: List['cirq.Qid']
+    gate_type: type
+    qubits: Sequence['cirq.Qid']
 
-    def __init__(self, gate, *qubits):
-        object.__setattr__(self, 'gate', gate)
+    def __init__(self, gate_type: type, *qubits: 'cirq.Qid'):
+        object.__setattr__(self, 'gate_type', gate_type)
         object.__setattr__(self, 'qubits', qubits)
 
-    def gate_only(self):
-        return OpIdentifier(self.gate)
+    def swapped(self):
+        return OpIdentifier(self.gate_type, *self.qubits[::-1])
 
     def __str__(self):
-        if self.qubits:
-            return f'{self.gate}{self.qubits}'
-        return f'{self.gate}'
+        return f'{self.gate_type}{self.qubits}'
 
     def __repr__(self) -> str:
-        fullname = f'{self.gate.__module__}.{self.gate.__qualname__}'
-        return f'cirq.devices.noise_utils.OpIdentifier({fullname}, *{self.qubits})'
+        fullname = f'{self.gate_type.__module__}.{self.gate_type.__qualname__}'
+        qubits = ', '.join(map(repr, self.qubits))
+        return f'cirq.devices.noise_utils.OpIdentifier({fullname}, {qubits})'
 
 
 # TODO: expose all from top-level cirq

@@ -97,21 +97,22 @@ def _validate_rates(qubit_dims: Dict['cirq.Qid', int], rates: Dict['cirq.Qid', n
     for q in rates:
         if rates[q].shape != (qubit_dims[q], qubit_dims[q]):
             raise ValueError(
-                f'rate matrix invalid shape. '
-                f'should be ({qubit_dims[q]}, {qubit_dims[q]}), '
+                f'Invalid shape for rate matrix: should be ({qubit_dims[q]}, {qubit_dims[q]}), '
                 f'but got {rates[q].shape}'
             )
 
 
 @dataclass
 class ThermalNoiseModel(devices.NoiseModel):
-    gate_durations_ns: Dict[type, float]
-    rate_matrix_GHz: Dict['cirq.Qid', np.ndarray]
-    require_physical_tag: bool = True
-    skip_measurements: bool = True
+    """NoiseModel representing simulated thermalization of a qubit.
 
-    @staticmethod
-    def create(
+    This model is designed for qubits which use energy levels as their states.
+    "Heating" and "cooling" here are used to refer to environmental noise which
+    transitions a qubit to higher or lower energy levels, respectively.
+    """
+
+    def __init__(
+        self,
         qubit_dims: Dict['cirq.Qid', int],
         gate_durations_ns: Dict[type, float],
         heat_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
@@ -119,7 +120,7 @@ class ThermalNoiseModel(devices.NoiseModel):
         dephase_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
         require_physical_tag: bool = True,
         skip_measurements: bool = True,
-    ) -> 'ThermalNoiseModel':
+    ):
         """Construct a ThermalNoiseModel data object.
 
         Required Args:
@@ -151,7 +152,6 @@ class ThermalNoiseModel(devices.NoiseModel):
         Returns:
             The ThermalNoiseModel with specified parameters.
         """
-
         qubits = set(qubit_dims)
         rate_dict = {}
 
@@ -168,12 +168,10 @@ class ThermalNoiseModel(devices.NoiseModel):
                     if qb not in rate_or_dict:
                         out[qb] = 0.0
                 return out
-            elif np.isscalar(rate_or_dict):
-                return {qb: rate_or_dict for qb in qubits}
             else:
-                raise ValueError(f'invalid type passed to _as_rate_dict: {rate_or_dict}')
+                return {qb: rate_or_dict for qb in qubits}
 
-        heat_rate_GHz = _as_rate_dict(None)
+        heat_rate_GHz = _as_rate_dict(heat_rate_GHz)
         cool_rate_GHz = _as_rate_dict(cool_rate_GHz)
         dephase_rate_GHz = _as_rate_dict(dephase_rate_GHz)
 
@@ -185,8 +183,10 @@ class ThermalNoiseModel(devices.NoiseModel):
             rate_dict[q] = _decoherence_matrix(gamma_c, gamma_phi, gamma_h, dim)
 
         _validate_rates(qubit_dims, rate_dict)
-
-        return ThermalNoiseModel(gate_durations_ns, rate_dict, require_physical_tag)
+        self.gate_durations_ns: Dict[type, float] = gate_durations_ns
+        self.rate_matrix_GHz: Dict['cirq.Qid', np.ndarray] = rate_dict
+        self.require_physical_tag: bool = require_physical_tag
+        self.skip_measurements: bool = skip_measurements
 
     def noisy_moment(
         self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
@@ -210,11 +210,16 @@ class ThermalNoiseModel(devices.NoiseModel):
                 op_duration = op.gate.duration.total_nanos()
             moment_ns = max(moment_ns, op_duration)
 
+        if moment_ns == 0:
+            return [moment]
+
         for qubit in system_qubits:
-            op = moment.operation_at(qubit)
-            if self.skip_measurements and protocols.is_measurement(op):
+            qubit_op = moment.operation_at(qubit)
+            if qubit_op is None:
                 continue
-            if self.require_physical_tag and PHYSICAL_GATE_TAG not in op.tags:
+            if self.skip_measurements and protocols.is_measurement(qubit_op):
+                continue
+            if self.require_physical_tag and PHYSICAL_GATE_TAG not in qubit_op.tags:
                 # Only non-virtual gates get noise applied.
                 continue
             rates = self.rate_matrix_GHz[qubit] * moment_ns
