@@ -33,9 +33,7 @@ if TYPE_CHECKING:
 def complete_acquaintance_strategy(
     qubit_order: Sequence['cirq.Qid'], acquaintance_size: int = 0, swap_gate: 'cirq.Gate' = ops.SWAP
 ) -> 'cirq.Circuit':
-    """
-    Returns an acquaintance strategy capable of executing a gate corresponding
-    to any set of at most acquaintance_size qubits.
+    """Returns an acquaintance strategy with can handle the given number of qubits.
 
     Args:
         qubit_order: The qubits on which the strategy should be defined.
@@ -44,8 +42,10 @@ def complete_acquaintance_strategy(
         swap_gate: The gate used to swap logical indices.
 
     Returns:
-        A circuit capable of implementing any set of k-local
-        operations.
+        A circuit capable of implementing any set of k-local operations.
+
+    Raises:
+        ValueError: If `acquaintance_size` is negative.
     """
     if acquaintance_size < 0:
         raise ValueError('acquaintance_size must be non-negative.')
@@ -64,6 +64,3 @@ def complete_acquaintance_strategy(
         expose_acquaintance_gates(strategy)
         replace_acquaintance_with_swap_network(strategy, qubit_order, size_to_acquaint, swap_gate)
     return strategy
-
-
-# pylint: enable=docstring-first-line-empty,missing-raises-doc

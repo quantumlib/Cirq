@@ -31,17 +31,18 @@ import cirq
 gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.PhasedXPowGate}
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
-def get_op_string(op_obj: cirq.Operation) -> str:
-    """Find the string representation for a given gate
+def get_op_string(op_obj: Union[cirq.Operation, cirq.Gate]) -> str:
+    """Find the string representation for a given gate or operation
 
     Args:
         op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate,
-            PhasedXPowGate
+            PhasedXPowGate, or MeasurementGate.
 
     Returns:
-        String representing the gate operations
+        String representing the gate operations.
+
+    Raises:
+        ValueError: If the gate is not one of the supported gates.
     """
     if isinstance(op_obj, cirq.XXPowGate) or isinstance(op_obj.gate, cirq.XXPowGate):
         op_str = 'MS'
@@ -60,7 +61,6 @@ def get_op_string(op_obj: cirq.Operation) -> str:
     return op_str
 
 
-# pylint: enable=missing-raises-doc
 class AQTNoiseModel(cirq.NoiseModel):
     """A noise model for the AQT ion trap"""
 
@@ -166,7 +166,6 @@ class AQTSimulator:
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
 
-    # pylint: enable=missing-param-doc
     def generate_circuit_from_list(self, json_string: str):
         """Generates a list of cirq operations from a json string.
 
@@ -174,7 +173,7 @@ class AQTSimulator:
         of the circuit as there are no measurements defined in the AQT API.
 
         Args:
-            json_string: json that specifies the sequence
+            json_string: json that specifies the sequence.
         """
         self.circuit = cirq.Circuit()
         json_obj = json.loads(json_string)
@@ -196,29 +195,29 @@ class AQTSimulator:
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         self.circuit.append(cirq.measure(*[qubit for qubit in self.qubit_list], key='m'))
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def simulate_samples(self, repetitions: int) -> cirq.Result:
-        """Samples the circuit
+        """Samples the circuit.
 
         Args:
-            repetitions: Number of times the circuit is simulated
+            repetitions: Number of times the circuit is simulated.
 
         Returns:
-            Result from Cirq.Simulator
+            Result from Cirq.Simulator.
+
+        Raises:
+            RuntimeError: Simulate ideally called without a circuit.
         """
         if self.simulate_ideal:
             noise_model = cirq.NO_NOISE
         else:
             noise_model = AQTNoiseModel()
         if self.circuit == cirq.Circuit():
-            raise RuntimeError('simulate ideal called without a valid circuit')
+            raise RuntimeError('Simulate ideal called without a valid circuit.')
         sim = cirq.DensityMatrixSimulator(noise=noise_model)
         result = sim.run(self.circuit, repetitions=repetitions)
         return result
 
 
-# pylint: enable=missing-raises-doc
 def get_aqt_device(num_qubits: int) -> Tuple[cirq.IonDevice, List[cirq.LineQubit]]:
     """Returns an AQT ion device
 
@@ -226,7 +225,7 @@ def get_aqt_device(num_qubits: int) -> Tuple[cirq.IonDevice, List[cirq.LineQubit
         num_qubits: number of qubits
 
     Returns:
-         IonDevice, qubit_list
+         A tuple of IonDevice and qubit_list
     """
     qubit_list = cirq.LineQubit.range(num_qubits)
     us = 1000 * cirq.Duration(nanos=1)

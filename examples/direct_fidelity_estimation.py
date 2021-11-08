@@ -70,17 +70,13 @@ def compute_characteristic_function(
     return trace, prob
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 async def estimate_characteristic_function(
     circuit: cirq.Circuit,
     pauli_string: cirq.PauliString,
     sampler: cirq.Sampler,
     samples_per_term: int,
 ) -> float:
-    """
-    Estimates the characteristic function using a (noisy) circuit simulator by
-    sampling the results.
+    """Estimates the characteristic function using a (noisy) circuit simulator.
 
     Args:
         circuit: The circuit to run the simulation on.
@@ -104,13 +100,10 @@ async def estimate_characteristic_function(
     return sigma_i
 
 
-# TODO(#3388) Add summary line to docstring.
 def _randomly_sample_from_stabilizer_bases(
     stabilizer_basis: List[cirq.DensePauliString], n_measured_operators: int, n_qubits: int
 ):
-    """
-    Given a stabilizer basis, randomly creates Pauli states by including the
-    basis vector or not.
+    """Randomly creates Pauli states by including or not the given stabilizer basis.
 
     Args:
         stabilizer_basis: A list of Pauli strings that is the stabilizer basis
@@ -133,13 +126,10 @@ def _randomly_sample_from_stabilizer_bases(
     return dense_pauli_strings
 
 
-# TODO(#3388) Add summary line to docstring.
 def _enumerate_all_from_stabilizer_bases(
     stabilizer_basis: List[cirq.DensePauliString], n_qubits: int
 ):
-    """
-    Given a stabilizer basis, creates the exhaustive list of Pauli states that
-    are spanned by the basis.
+    """Return the list of Pauli state that are spanned by the given Pauli basis.
 
     Args:
         stabilizer_basis: A list of Pauli strings that is the stabilizer basis
@@ -159,12 +149,11 @@ def _enumerate_all_from_stabilizer_bases(
     return dense_pauli_strings
 
 
-# TODO(#3388) Add summary line to docstring.
 @dataclass
 class PauliTrace:
-    """
-    A class that contains the Pauli states as described on page 2 of:
-    https://arxiv.org/abs/1104.3835
+    """Holder of a description fo Pauli states.
+
+    This class contains the Pauli states as described on page 2 of: https://arxiv.org/abs/1104.3835
     """
 
     # Pauli string.
@@ -177,7 +166,6 @@ class PauliTrace:
     Pr_i: float
 
 
-# pylint: enable=docstring-first-line-empty
 def _estimate_pauli_traces_clifford(
     n_qubits: int,
     stabilizer_basis: List[cirq.DensePauliString],
@@ -322,15 +310,12 @@ class Result:
     sigma_i: float
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 @dataclass
 class DFEIntermediateResult:
-    """
-    A container for the various debug and run data from calling the function
-    direct_fidelity_estimation(). This is useful when running a long-computation
-    on an actual computer, which is expensive. This way, runs can be more easily
-    debugged offline.
+    """A container for debug and run data returned from `direct_fidelity_estimation`.
+
+    This is useful when running a long-computation on an actual computer, which is expensive.
+    This allows theses runs to be more easily debugged offline.
     """
 
     # If the circuit is Clifford, the Clifford tableau from which we can extract
@@ -345,9 +330,6 @@ class DFEIntermediateResult:
     std_dev_bound: Optional[float]
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def direct_fidelity_estimation(
     circuit: cirq.Circuit,
     qubits: List[cirq.Qid],
@@ -355,8 +337,9 @@ def direct_fidelity_estimation(
     n_measured_operators: Optional[int],
     samples_per_term: int,
 ):
-    """
-    Implementation of direct fidelity estimation, as per 'Direct Fidelity
+    """Perform a direct fidelity estimation.
+
+    This implementation of direct fidelity estimation, is that of 'Direct Fidelity
     Estimation from Few Pauli Measurements' https://arxiv.org/abs/1104.4695 and
     'Practical characterization of quantum devices without tomography'
     https://arxiv.org/abs/1104.3835.
@@ -375,6 +358,9 @@ def direct_fidelity_estimation(
 
     Returns:
         The estimated fidelity and a log of the run.
+
+    Raises:
+        TypeError: If the circuit is not made up entirely of Clifford gates.
     """
     # n_measured_operators is upper-case N in https://arxiv.org/abs/1104.3835
 
@@ -481,7 +467,6 @@ def direct_fidelity_estimation(
     return estimated_fidelity, dfe_intermediate_result
 
 
-# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def parse_arguments(args):
     """Helper function that parses the given arguments."""
     parser = argparse.ArgumentParser('Direct fidelity estimation.')
