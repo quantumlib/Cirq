@@ -54,4 +54,4 @@ cd "${repo_dir}"
 
 # Do the thing.
 export PYTHONPATH=${repo_dir}
-python3 ${repo_dir}/dev_tools/pr_monitor.py $@
+python3 ${repo_dir}/dev_tools/pr_monitor.py "$@"
