@@ -24,14 +24,14 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 
 """
 import json
-from typing import cast, Dict, Optional, Sequence, List, Tuple, Union,
+from typing import Any, cast, Dict, Optional, Sequence, List, Tuple, Union
 import numpy as np
 import cirq
 
 gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.PhasedXPowGate}
 
 
-def get_op_string(op_obj: Union[cirq.Operation, cirq.Gate]) -> str:
+def get_op_string(op_obj: cirq.Operation) -> str:
     """Find the string representation for a given gate or operation.
 
     Args:
@@ -44,20 +44,20 @@ def get_op_string(op_obj: Union[cirq.Operation, cirq.Gate]) -> str:
     Raises:
         ValueError: If the gate is not one of the supported gates.
     """
-    if isinstance(op_obj, cirq.XXPowGate) or isinstance(op_obj.gate, cirq.XXPowGate):
+    if isinstance(op_obj.gate, cirq.XXPowGate):
         op_str = 'MS'
-    elif isinstance(op_obj, cirq.XPowGate) or isinstance(op_obj.gate, cirq.XPowGate):
+    elif isinstance(op_obj.gate, cirq.XPowGate):
         op_str = 'X'
-    elif isinstance(op_obj, cirq.YPowGate) or isinstance(op_obj.gate, cirq.YPowGate):
+    elif isinstance(op_obj.gate, cirq.YPowGate):
         op_str = 'Y'
-    elif isinstance(op_obj, cirq.ZPowGate) or isinstance(op_obj.gate, cirq.ZPowGate):
+    elif isinstance(op_obj.gate, cirq.ZPowGate):
         op_str = 'Z'
-    elif isinstance(op_obj, cirq.PhasedXPowGate) or isinstance(op_obj.gate, cirq.PhasedXPowGate):
+    elif isinstance(op_obj.gate, cirq.PhasedXPowGate):
         op_str = 'R'
-    elif isinstance(op_obj, cirq.MeasurementGate) or isinstance(op_obj.gate, cirq.MeasurementGate):
+    elif isinstance(op_obj.gate, cirq.MeasurementGate):
         op_str = 'Meas'
     else:
-        raise ValueError('Got unknown gate:', op_obj)
+        raise ValueError(f'Got unknown gate on operation: {op_obj}.')
     return op_str
 
 
