@@ -24,7 +24,7 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 
 """
 import json
-from typing import Union, Tuple, List, Dict, Sequence, Any, cast
+from typing import cast, Dict, Optional, Sequence, List, Tuple, Union,
 import numpy as np
 import cirq
 
@@ -32,11 +32,11 @@ gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.Pha
 
 
 def get_op_string(op_obj: Union[cirq.Operation, cirq.Gate]) -> str:
-    """Find the string representation for a given gate or operation
+    """Find the string representation for a given gate or operation.
 
     Args:
-        op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate,
-            PhasedXPowGate, or MeasurementGate.
+        op_obj: Gate or operation object. Gate must be one of: XXPowGate, XPowGate, YPowGate,
+        ZPowGate, PhasedXPowGate, or MeasurementGate.
 
     Returns:
         String representing the gate operations.
@@ -141,22 +141,22 @@ class AQTNoiseModel(cirq.NoiseModel):
 class AQTSimulator:
     """A simulator for the AQT device."""
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(
         self,
         num_qubits: int,
         circuit: cirq.Circuit = cirq.Circuit(),
         simulate_ideal: bool = False,
-        noise_dict: Union[dict, None] = None,
+        noise_dict: Optional[Dict] = None,
     ):
-        """Initializes the AQT simulator
+        """Initializes the AQT simulator.
 
         Args:
-            num_qubits: Number of qubits
+            num_qubits: Number of qubits.
             circuit: Optional, circuit to be simulated.
                 Last moment needs to be a measurement over all qubits with key 'm'
-            simulate_ideal: If True, an ideal circuit will be simulated
+            simulate_ideal: If True, an ideal, noiseless, circuit will be simulated.
+            noise_dict: A map from gate to noise to be applied after that gate. If None, uses
+                a default noise model.
         """
         self.circuit = circuit
         self.num_qubits = num_qubits
