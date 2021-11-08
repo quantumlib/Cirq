@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, Dict, Sequence, Union
+from typing import TYPE_CHECKING, Dict, List, Sequence
 
 from cirq import devices, ops
 from cirq.devices.noise_utils import (
@@ -21,38 +21,27 @@ class InsertionNoiseModel(devices.NoiseModel):
 
     Args:
         ops_added: a map of gate types (and optionally, qubits they act on) to
-            either an operations that should be added OR a function that
-            generates the operation to add.
+            operations that should be added.
         prepend: whether to add the new moment before the current one.
         require_physical_tag: whether to only apply noise to operations tagged
             with PHYSICAL_GATE_TAG.
     """
 
-    ops_added: Dict[
-        OpIdentifier, Union['cirq.Operation', Callable[['cirq.Operation'], 'cirq.Operation']]
-    ] = field(default_factory=dict)
+    ops_added: Dict[OpIdentifier, 'cirq.Operation'] = field(default_factory=dict)
     prepend: bool = False
     require_physical_tag: bool = True
 
     def noisy_moment(
         self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
     ) -> 'cirq.OP_TREE':
-        noise_ops = []
+        noise_ops: List['cirq.Operation'] = []
         for op in moment:
             if self.require_physical_tag and PHYSICAL_GATE_TAG not in op.tags:
                 # Only non-virtual gates get noise applied.
                 continue
             op_id = OpIdentifier(type(op.gate), *op.qubits)
             if op_id in self.ops_added:
-                val = self.ops_added[op_id]
-                if isinstance(val, ops.Operation):
-                    noise_ops.append(val)
-                else:
-                    noise_ops.append(val(op))
-            elif op_id.gate_only() in self.ops_added:
-                noise_ops.append(self.ops_added[op_id.gate_only()])
-            else:
-                continue
+                noise_ops.append(self.ops_added[op_id])
         if not noise_ops:
             return [moment]
         if self.prepend:

@@ -1,9 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, Iterable, Sequence, TYPE_CHECKING, List, Set
-import numpy as np
 
 from cirq import ops, protocols, devices
-from cirq._compat import proper_repr
 from cirq.devices.noise_utils import (
     OpIdentifier,
     PHYSICAL_GATE_TAG,
@@ -13,63 +11,82 @@ from cirq.devices.noise_utils import (
 if TYPE_CHECKING:
     import cirq
 
-SINGLE_QUBIT_GATES = {
+SINGLE_QUBIT_GATES: Set[type] = {
     ops.ZPowGate,
     ops.PhasedXZGate,
     ops.MeasurementGate,
     ops.ResetChannel,
 }
-SYMMETRIC_TWO_QUBIT_GATES = {ops.FSimGate, ops.PhasedFSimGate, ops.ISwapPowGate, ops.CZPowGate}
+SYMMETRIC_TWO_QUBIT_GATES: Set[type] = {
+    ops.FSimGate,
+    ops.PhasedFSimGate,
+    ops.ISwapPowGate,
+    ops.CZPowGate,
+}
 ASYMMETRIC_TWO_QUBIT_GATES: Set[type] = set()
 TWO_QUBIT_GATES = SYMMETRIC_TWO_QUBIT_GATES | ASYMMETRIC_TWO_QUBIT_GATES
 
 
 @dataclass
 class NoiseProperties:
+    """Noise-defining properties for a quantum device.
+
+    Args:
+        gate_times_ns: Dict[type, float] of gate types to their duration on
+            Google hardware.
+        T1_ns: Dict[cirq.Qid, float] of qubits to their T1 time, in ns.
+        Tphi_ns: Dict[cirq.Qid, float] of qubits to their Tphi time, in ns.
+        ro_fidelities: Dict[cirq.Qid, np.ndarray] of qubits to their readout
+            fidelity matrix.
+        gate_pauli_errors: Dict[OpIdentifier, float] of gate types
+            (potentially on specific qubits) to the Pauli error for that gate.
+        validate: If True, performs validation on input arguments. Defaults
+            to True.
+    """
+
     gate_times_ns: Dict[type, float]
     T1_ns: Dict['cirq.Qid', float]
     Tphi_ns: Dict['cirq.Qid', float]
     ro_fidelities: Dict['cirq.Qid', List[float]]
     gate_pauli_errors: Dict[OpIdentifier, float]
 
+    validate: bool = True
     _qubits: List['cirq.Qid'] = field(init=False, default_factory=list)
     _depolarizing_error: Dict[OpIdentifier, float] = field(init=False, default_factory=dict)
 
-    def __attrs_post_init__(self):
+    def __post_init__(self):
+        if not self.validate:
+            return
         t1_qubits = set(self.T1_ns)
         tphi_qubits = set(self.Tphi_ns)
 
         if t1_qubits != tphi_qubits:
-            raise ValueError(f'Keys specified for T1 and Tphi are not' f' identical.')
+            raise ValueError('Keys specified for T1 and Tphi are not identical.')
 
         # validate two qubit gate errors.
-        self._validate_symmetric_errors('entangler_errors')
         self._validate_symmetric_errors('gate_pauli_errors')
-        self._validate_symmetric_errors('z_phase_errors')
 
     def _validate_symmetric_errors(self, field_name: str) -> None:
         gate_error_dict = getattr(self, field_name)
-        if gate_error_dict is None:
-            return  # some fields are optional
         for op_id in gate_error_dict:
             if len(op_id.qubits) != 2:
                 # single qubit op_ids also present, or generic values are
                 # specified. Skip these cases
                 if len(op_id.qubits) > 2:
                     raise ValueError(
-                        f'Found gate {op_id.gate} with {len(op_id.qubits)} qubits. '
+                        f'Found gate {op_id.gate_type} with {len(op_id.qubits)} qubits. '
                         'Symmetric errors can only apply to 2-qubit gates.'
                     )
                 continue
 
-            if op_id.gate not in SYMMETRIC_TWO_QUBIT_GATES:
-                if op_id.gate not in ASYMMETRIC_TWO_QUBIT_GATES:
-                    raise ValueError(
-                        f'Found gate {op_id.gate} which does not appear in the'
-                        'symmetric or asymmetric gate sets.'
-                    )
-                continue
-            op_id_swapped = (op_id.gate, *op_id.qubits[::-1])
+            if op_id.gate_type not in self.two_qubit_gates():
+                raise ValueError(
+                    f'Found gate {op_id.gate_type} which does not appear in the '
+                    'symmetric or asymmetric gate sets.'
+                )
+            # TODO: this assumes op is symmetric.
+            # If asymmetric gates are added, we will need to update it.
+            op_id_swapped = op_id.swapped()
             if op_id_swapped not in gate_error_dict:
                 raise ValueError(
                     f'Operation {op_id} of field {field_name} has '
@@ -95,6 +112,31 @@ class NoiseProperties:
     def expected_gates(cls) -> Set[type]:
         return cls.single_qubit_gates() | cls.two_qubit_gates()
 
+    @classmethod
+    def canonical_gates(cls) -> Dict[type, 'cirq.Gate']:
+        return {
+            ops.ZPowGate: ops.ZPowGate(),
+            ops.PhasedXZGate: ops.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=0),
+            ops.MeasurementGate: ops.MeasurementGate(num_qubits=1),
+            ops.ResetChannel: ops.ResetChannel(),
+            ops.FSimGate: ops.FSimGate(theta=0, phi=0),
+            ops.PhasedFSimGate: ops.PhasedFSimGate(theta=0),
+            ops.ISwapPowGate: ops.ISwapPowGate(),
+            ops.CZPowGate: ops.CZPowGate(),
+        }
+
+    @classmethod
+    def get_canonical_gate(cls, gate_type: type) -> 'cirq.Gate':
+        return cls.canonical_gates()[gate_type]
+
+    @classmethod
+    def _identifier_to_op(cls, op_id: OpIdentifier) -> 'cirq.Operation':
+        return cls.get_canonical_gate(op_id.gate_type).on(*op_id.qubits)
+
+    @classmethod
+    def _op_to_identifier(cls, op: 'cirq.Operation'):
+        return OpIdentifier(type(op.gate), *op.qubits)
+
     def get_depolarizing_error(self) -> Dict[OpIdentifier, float]:
         """Returns the portion of Pauli error from depolarization.
 
@@ -105,7 +147,7 @@ class NoiseProperties:
 
         depol_errors = {}
         for op_id, p_error in self.gate_pauli_errors.items():
-            gate_type = op_id.gate
+            gate_type = op_id.gate_type
             if gate_type in self.single_qubit_gates():
                 if issubclass(gate_type, ops.MeasurementGate):
                     # Non-measurement error can be ignored on measurement gates.
@@ -118,8 +160,7 @@ class NoiseProperties:
                 q0 = op_id.qubits[0]
                 # Subtract decoherence error.
                 if q0 in self.T1_ns:
-                    rp_0 = decoherence_pauli_error(self.T1_ns[q0], self.Tphi_ns[q0], time_ns)
-                    p_error -= rp_0
+                    p_error -= decoherence_pauli_error(self.T1_ns[q0], self.Tphi_ns[q0], time_ns)
 
             else:
                 # This must be a 2-qubit gate.
@@ -133,15 +174,10 @@ class NoiseProperties:
                 # Subtract decoherence error.
                 q0, q1 = op_id.qubits
                 if q0 in self.T1_ns:
-                    rp_0 = decoherence_pauli_error(self.T1_ns[q0], self.Tphi_ns[q0], time_ns)
-                else:
-                    rp_0 = 0
+                    p_error -= decoherence_pauli_error(self.T1_ns[q0], self.Tphi_ns[q0], time_ns)
                 if q1 in self.T1_ns:
-                    rp_1 = decoherence_pauli_error(self.T1_ns[q1], self.Tphi_ns[q1], time_ns)
-                else:
-                    rp_1 = 0
+                    p_error -= decoherence_pauli_error(self.T1_ns[q1], self.Tphi_ns[q1], time_ns)
 
-                p_error -= rp_0 + rp_1
             depol_errors[op_id] = p_error
         # memoization is OK
         self._depolarizing_error = depol_errors
@@ -157,7 +193,7 @@ class NoiseProperties:
             )
         if self.T1_ns:  # level 1 sophistication
             noise_models.append(
-                devices.ThermalNoiseModel.create(
+                devices.ThermalNoiseModel(
                     {q: 2 for q in self.T1_ns},
                     self.gate_times_ns,
                     cool_rate_GHz={q: 1 / T1 for q, T1 in self.T1_ns.items()},
@@ -165,7 +201,7 @@ class NoiseProperties:
                 )
             )
 
-        gate_types = set(op_id.gate for op_id in self.gate_pauli_errors)
+        gate_types = set(op_id.gate_type for op_id in self.gate_pauli_errors)
         if not gate_types.issubset(self.expected_gates()):
             raise ValueError(
                 'Some gates are not in the supported set.'
@@ -174,6 +210,7 @@ class NoiseProperties:
 
         depolarizing_error = self.get_depolarizing_error()
         added_pauli_errors = {
+            # TODO: handle op_id not having qubits.
             op_id: ops.depolarize(p_error, len(op_id.qubits)).on(*op_id.qubits)
             for op_id, p_error in depolarizing_error.items()
             if p_error > 0
@@ -202,71 +239,51 @@ class NoiseProperties:
     def __str__(self) -> str:
         return 'NoiseProperties'
 
-    def _repr_args(self) -> List[str]:
+    def __repr__(self) -> str:
         args = []
         gate_times_repr = ', '.join(
-            f'{key.__module__}.{key.__qualname__}: {val}'
-            for key, val in self.gate_times_ns.items()
+            f'{key.__module__}.{key.__qualname__}: {val}' for key, val in self.gate_times_ns.items()
         )
         args.append(f'    gate_times_ns={{{gate_times_repr}}}')
         args.append(f'    T1_ns={self.T1_ns!r}')
         args.append(f'    Tphi_ns={self.Tphi_ns!r}')
         args.append(f'    ro_fidelities={self.ro_fidelities!r}')
         args.append(f'    gate_pauli_errors={self.gate_pauli_errors!r}')
-        return args
-
-    def __repr__(self) -> str:
-        args_str = ',\n'.join(self._repr_args())
+        args_str = ',\n'.join(args)
         return f'cirq.NoiseProperties(\n{args_str}\n)'
 
     def _json_dict_(self):
-        canonical_gate = {
-            ops.ZPowGate: ops.ZPowGate(),
-            ops.PhasedXZGate: ops.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=0),
-            ops.MeasurementGate: ops.MeasurementGate(num_qubits=1),
-            ops.ResetChannel: ops.ResetChannel(),
-            ops.FSimGate: ops.FSimGate(theta=0, phi=0),
-            ops.PhasedFSimGate: ops.PhasedFSimGate(theta=0),
-            ops.ISwapPowGate: ops.ISwapPowGate(),
-            ops.CZPowGate: ops.CZPowGate()
+        storage_gate_times = {
+            self.get_canonical_gate(key): val for key, val in self.gate_times_ns.items()
         }
-
-        storage_gate_times = {canonical_gate[key]: val for key, val in self.gate_times_ns.items()}
         storage_pauli_errors = {
-            canonical_gate[op_id.gate].on(*op_id.qubits): val
-            for op_id, val in self.gate_pauli_errors.items()
+            self._identifier_to_op(op_id): val for op_id, val in self.gate_pauli_errors.items()
         }
         return {
             'cirq_type': 'NoiseProperties',
             # JSON requires mappings to have keys of basic types.
-            # TODO: Pairs must be sorted to ensure consistent serialization.
+            # Pairs must be sorted to ensure consistent serialization.
             'gate_times_ns': sorted(storage_gate_times.items(), key=str),
             'T1_ns': sorted(self.T1_ns.items()),
             'Tphi_ns': sorted(self.Tphi_ns.items()),
             'ro_fidelities': sorted(self.ro_fidelities.items()),
             'gate_pauli_errors': sorted(storage_pauli_errors.items(), key=str),
+            'validate': self.validate,
         }
 
     @classmethod
     def _from_json_dict_(
-        cls,
-        gate_times_ns,
-        T1_ns,
-        Tphi_ns,
-        ro_fidelities,
-        gate_pauli_errors,
-        **kwargs
+        cls, gate_times_ns, T1_ns, Tphi_ns, ro_fidelities, gate_pauli_errors, validate, **kwargs
     ):
         gate_type_times = {type(gate): val for gate, val in gate_times_ns}
-        gate_type_pauli_errors = {
-            OpIdentifier(type(op.gate), *op.qubits): val for op, val in gate_pauli_errors
-        }
+        op_id_pauli_errors = {cls._op_to_identifier(op): val for op, val in gate_pauli_errors}
         return NoiseProperties(
-            gate_type_times,
-            {k: v for k, v in T1_ns},
-            {k: v for k, v in Tphi_ns},
-            {k: v for k, v in ro_fidelities},
-            gate_type_pauli_errors
+            gate_times_ns=gate_type_times,
+            T1_ns={k: v for k, v in T1_ns},
+            Tphi_ns={k: v for k, v in Tphi_ns},
+            ro_fidelities={k: v for k, v in ro_fidelities},
+            gate_pauli_errors=op_id_pauli_errors,
+            validate=validate,
         )
 
 
