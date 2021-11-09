@@ -21,6 +21,7 @@ import pytest
 import sympy
 
 import cirq
+import cirq.testing
 
 
 class PlusGate(cirq.Gate):
@@ -1186,6 +1187,28 @@ def test_density_matrix_trial_result_str():
     assert result_no_whitespace == (
         'measurements:(nomeasurements)finaldensitymatrix:[[0.50.5][0.50.5]]'
     )
+
+
+def test_density_matrix_trial_result_repr_pretty():
+    q0 = cirq.LineQubit(0)
+    final_step_result = mock.Mock(cirq.StepResult)
+    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
+        density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
+    )
+    result = cirq.DensityMatrixTrialResult(
+        params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
+    )
+
+    fake_printer = cirq.testing.FakePrinter()
+    result._repr_pretty_(fake_printer, cycle=False)
+    # numpy varies whitespace in its representation for different versions
+    # Eliminate whitespace to harden tests against this variation
+    result_no_whitespace = fake_printer.text_pretty.replace('\n', '').replace(' ', '')
+    assert result_no_whitespace == (
+        'measurements:(nomeasurements)finaldensitymatrix:[[0.50.5][0.50.5]]'
+    )
+
+    cirq.testing.assert_repr_pretty(result, "cirq.DensityMatrixTrialResult(...)", cycle=True)
 
 
 def test_run_sweep_parameters_not_resolved():

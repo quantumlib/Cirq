@@ -143,7 +143,8 @@ class IonDevice(devices.Device):
 
         return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
 
-    def _repr_pretty_(self, p: Any, cycle: bool) -> str:
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
         p.text("IonDevice(...)" if cycle else self.__str__())
 
     def _value_equality_values_(self) -> Any:

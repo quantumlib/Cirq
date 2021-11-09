@@ -31,7 +31,7 @@ class FakePrinter:
     """
 
     def __init__(self):
-        self.text_pretty = ''
+        self.text_pretty = ""
 
     def text(self, to_print):
         self.text_pretty += to_print
@@ -53,4 +53,4 @@ def assert_repr_pretty(val: Any, text: str, cycle: bool = False):
     """
     p = FakePrinter()
     val._repr_pretty_(p, cycle=cycle)
-    assert p.text_pretty == text
+    assert p.text_pretty == text, f"{p.text_pretty} != {text}"

@@ -126,6 +126,7 @@ from cirq.testing.random_circuit import (
 
 from cirq.testing.repr_pretty_tester import (
     assert_repr_pretty,
+    FakePrinter,
 )
 
 from cirq.testing.sample_circuits import (
