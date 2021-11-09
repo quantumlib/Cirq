@@ -426,8 +426,8 @@ class CircuitOperation(ops.Operation):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return dataclasses.replace(self, parent_path=path)
 
-    def _with_key_path_prefix_(self, path: Tuple[str, ...]):
-        return dataclasses.replace(self, parent_path=path + self.parent_path)
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return dataclasses.replace(self, parent_path=prefix + self.parent_path)
 
     def with_key_path(self, path: Tuple[str, ...]):
         return self._with_key_path_(path)
