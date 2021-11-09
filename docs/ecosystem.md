@@ -18,6 +18,7 @@ The following document provides an ecosystem overview of how the various tools c
 |--- |--- |--- |
 |[OpenFermion](https://github.com/quantumlib/OpenFermion)|Google|An open-source algorithms library for developing new quantum chemistry and materials simulation algorithms|
 |[TensorFlow Quantum](https://tensorflow.org/quantum)|Google|An open-source algorithms library for developing new quantum machine learning algorithms|
+|[Stim](https://github.com/quantumlib/stim)|Google|An open-source library for high speed simulation of Clifford circuits and quantum error correction|
 |[ReCirq](https://github.com/quantumlib/ReCirq)|Google|An open-source repository of example experiments, tools, and tutorials for running experiments on Google’s Quantum Computing Service|
 |[Forge](https://forge.qcware.com/)|QCWare|A proprietary library for domain-specific quantum algorithms and applications|
 |[Pennylane](https://pennylane.ai/)|Xanadu|An open-source library for quantum machine learning with TensorFlow, PyTorch, or NumPy|
@@ -38,12 +39,13 @@ The following document provides an ecosystem overview of how the various tools c
 
 ## Supported quantum cloud services
 
-|Company|Description|
+|Company|Type of Quantum Computer Supported|
 |--- |--- |
-|[Google QCS](https://quantumai.google/cirq/tutorials/google/start)|A quantum computing service based on superconducting qubits|
-|[Alpine Quantum Technologies](https://quantumai.google/cirq/tutorials/aqt/start)|A quantum computing service based on ion traps|
-|[Pasqal](https://quantumai.google/cirq/tutorials/pasqal/start)|A quantum cloud service based on neutral atoms|
-
+|[Google QCS](https://quantumai.google/cirq/tutorials/google/start)|Superconducting qubits|
+|[Alpine Quantum Technologies](https://quantumai.google/cirq/tutorials/aqt/start)|Trapped ions|
+|[Pasqal](https://quantumai.google/cirq/tutorials/pasqal/start)|Neutral atoms|
+|[IonQ](https://quantumai.google/cirq/tutorials/ionq/getting_started)|Trapped ions|
+|[Microsoft Azure Quantum](https://quantumai.google/cirq/tutorials/azure-quantum/getting_started_ionq)|Trapped ions (Honeywell and IonQ)|
 
 
 ## High performance quantum circuit simulators
@@ -51,7 +53,6 @@ The following document provides an ecosystem overview of how the various tools c
 |Name|Main sponsor|Description|
 |--- |--- |--- |
 |[qsim](https://github.com/quantumlib/qsim)|Google|An open-source, high performance circuit simulator for Schrödinger simulations|
-|[qflex](https://github.com/ngnrsaa/qflex)|NASA|An open-source, high performance circuit simulator for Feynman-based simulations optimized for GPUs|
 |[quimb](https://github.com/jcmgray/quimb)|Johnny Gray|An open-source, high performance circuit simulator using tensor-networks|
 |[qulacs](https://github.com/qulacs/cirq-qulacs)|Quansys|An open-source, high performance circuit simulator for Schrödinger simulations|
 
