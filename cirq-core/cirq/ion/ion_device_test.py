@@ -19,6 +19,7 @@ import pytest
 
 import cirq
 import cirq.ion as ci
+from cirq.testing import assert_repr_pretty
 
 
 def ion_device(chain_length: int, use_timedelta=False) -> ci.IonDevice:
@@ -189,6 +190,10 @@ def test_ion_device_str():
 0───1───2
     """.strip()
     )
+
+
+def test_ion_device_pretty_repr():
+    assert_repr_pretty(ion_device(3), "")
 
 
 def test_at():
