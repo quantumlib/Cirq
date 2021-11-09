@@ -99,21 +99,64 @@ def test_average_error(decay_constant, num_qubits, expected_output):
     assert val == expected_output
 
 
-# TODO: finish decoherence_pauli_error and unitary_entanglement_fidelity tests
-# @pytest.mark.parametrize(
-#     'T1_ns,Tphi_ns,gate_time_ns,expected_output',
-#     [],
-# )
-# def test_decoherence_pauli_error(T1_ns, Tphi_ns, gate_time_ns, expected_output):
-#     val = decoherence_pauli_error(T1_ns, Tphi_ns, gate_time_ns)
-#     assert val == expected_output
+@pytest.mark.parametrize(
+    'T1_ns,Tphi_ns,gate_time_ns',
+    [
+        (1e4, 2e4, 25),
+        (1e5, 2e3, 25),
+        (1e4, 2e4, 4000),
+    ],
+)
+def test_decoherence_pauli_error(T1_ns, Tphi_ns, gate_time_ns):
+    val = decoherence_pauli_error(T1_ns, Tphi_ns, gate_time_ns)
+    # Expected value is of the form:
+    #
+    #   (1/4) * [1 - e^(-t/T1)] + (1/2) * [1 - e^(-t/(2*T1) - t/Tphi]
+    #
+    expected_output = 0.25 * (1 - np.exp(-gate_time_ns / T1_ns)) + 0.5 * (
+        1 - np.exp(-gate_time_ns * ((1 / (2 * T1_ns)) + 1 / Tphi_ns))
+    )
+    assert val == expected_output
 
 
-# @pytest.mark.parametrize(
-#     'U_actual,U_ideal,expected_output',
-#     [],
-# )
-# def test_unitary_entanglement_fidelity(U_actual, U_ideal, expected_output):
-#     val = unitary_entanglement_fidelity(U_actual, U_ideal)
-#     assert val == expected_output
+# Surface-level tests to ensure nothing breaks that shouldn't.
+def test_unitary_entanglement_fidelity():
+    # cirq.H(q0) * cirq.H(q1)
+    U_actual = (
+        np.array([[[[1, 1], [1, -1]], [[1, 1], [1, -1]]], [[[1, 1], [1, -1]], [[-1, -1], [-1, 1]]]])
+        / 2
+    )
+    # cirq.X(q0)
+    U_ideal = np.array([[0, 1], [1, 0]])
+    fidelity = unitary_entanglement_fidelity(U_actual, U_ideal)
+    assert fidelity.shape == (2, 2)
 
+
+def test_invalid_unitary_entanglement_fidelity():
+    # 4x4 cannot broadcast to 2x2
+    U_actual_1 = np.array(
+        [
+            [1, 1, 1, 1],
+            [1, -1, 1, -1],
+            [1, 1, -1, -1],
+            [1, 1, -1, 1],
+        ]
+    )
+    U_ideal_1 = np.array([[0, 1], [1, 0]])
+    with pytest.raises(ValueError, match='Input arrays do not have matching shapes.'):
+        _ = unitary_entanglement_fidelity(U_actual_1, U_ideal_1)
+
+    U_actual_2 = np.array(
+        [
+            [[1, 2, 3], [4, 5, 6]],
+            [[1, 2, 3], [4, 5, 6]],
+        ]
+    )
+    U_ideal_2 = np.array(
+        [
+            [[1, 2, 3], [4, 5, 6]],
+            [[1, 2, 3], [4, 5, 6]],
+        ]
+    )
+    with pytest.raises(ValueError, match='trailing dimensions must be equal'):
+        _ = unitary_entanglement_fidelity(U_actual_2, U_ideal_2)

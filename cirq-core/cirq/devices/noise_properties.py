@@ -77,21 +77,20 @@ class NoiseProperties:
                         f'Found gate {op_id.gate_type} with {len(op_id.qubits)} qubits. '
                         'Symmetric errors can only apply to 2-qubit gates.'
                     )
-                continue
-
-            if op_id.gate_type not in self.two_qubit_gates():
+            elif op_id.gate_type not in self.two_qubit_gates():
                 raise ValueError(
                     f'Found gate {op_id.gate_type} which does not appear in the '
                     'symmetric or asymmetric gate sets.'
                 )
-            # TODO: this assumes op is symmetric.
-            # If asymmetric gates are added, we will need to update it.
-            op_id_swapped = op_id.swapped()
-            if op_id_swapped not in gate_error_dict:
-                raise ValueError(
-                    f'Operation {op_id} of field {field_name} has '
-                    f'errors but its symmetric id {op_id_swapped} does not.'
-                )
+            else:
+                # TODO: this assumes op is symmetric.
+                # If asymmetric gates are added, we will need to update it.
+                op_id_swapped = op_id.swapped()
+                if op_id_swapped not in gate_error_dict:
+                    raise ValueError(
+                        f'Operation {op_id} of field {field_name} has errors '
+                        f'but its symmetric id {op_id_swapped} does not.'
+                    )
 
     @property
     def qubits(self) -> List['cirq.Qid']:
