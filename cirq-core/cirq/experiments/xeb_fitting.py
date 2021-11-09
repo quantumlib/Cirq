@@ -34,6 +34,7 @@ from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 if TYPE_CHECKING:
     import cirq
     import multiprocessing
+    import scipy.optimize
 
 THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
     'theta zeta chi gamma phi'
