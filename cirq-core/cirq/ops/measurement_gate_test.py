@@ -156,7 +156,7 @@ def test_qudit_measure_quil():
             cirq.measure(q0, key='a'),
             formatter=cirq.QuilFormatter(qubit_id_map=qubit_id_map, measurement_id_map={}),
         )
-        == None
+        is None
     )
 
 

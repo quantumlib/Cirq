@@ -15,7 +15,7 @@
 ################################################################################
 
 only_print=1
-for arg in $@; do
+for arg in "$@"; do
     if [[ "${arg}" == "--apply" ]]; then
         only_print=0
     else

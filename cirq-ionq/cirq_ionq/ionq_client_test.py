@@ -85,7 +85,7 @@ def test_ionq_client_attributes():
     }
     assert client.default_target == 'qpu'
     assert client.max_retry_seconds == 10
-    assert client.verbose == True
+    assert client.verbose is True
 
 
 @mock.patch('requests.post')

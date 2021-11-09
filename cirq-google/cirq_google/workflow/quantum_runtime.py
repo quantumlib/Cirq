@@ -23,6 +23,7 @@ from cirq import _compat
 from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
 from cirq_google.workflow.io import _FilesystemSaver
+from cirq_google.workflow.progress import _PrintLogger
 from cirq_google.workflow.quantum_executable import (
     ExecutableSpec,
     QuantumExecutableGroup,
@@ -186,8 +187,8 @@ def execute(
     saver.initialize(rt_config, shared_rt_info)
 
     sampler = rt_config.processor.get_sampler()
-    n_executables = len(executable_group)
-    print()
+    logger = _PrintLogger(n_total=len(executable_group))
+    logger.initialize()
     for i, exe in enumerate(executable_group):
         runtime_info = RuntimeInfo(execution_index=i)
 
@@ -209,9 +210,10 @@ def execute(
         # Do bookkeeping for finished ExecutableResult
         executable_results.append(exe_result)
         saver.consume_result(exe_result, shared_rt_info)
-        print(f'\r{i + 1} / {n_executables}', end='', flush=True)
-    print()
+        logger.consume_result(exe_result, shared_rt_info)
+
     saver.finalize()
+    logger.finalize()
 
     return ExecutableGroupResult(
         runtime_configuration=rt_config,
