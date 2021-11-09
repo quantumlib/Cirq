@@ -49,8 +49,6 @@ class QubitOrder:
     it is the x coordinate of the qubit).
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     @staticmethod
     def explicit(
         fixed_qubits: Iterable[raw_types.Qid], fallback: Optional['QubitOrder'] = None
@@ -67,6 +65,10 @@ class QubitOrder:
 
         Returns:
             A Basis instance that forces the given qubits in the given order.
+
+        Raises:
+            ValueError: If a qubit appears twice in `fixed_qubits`, or there were is no fallback
+                specified but there are extra qubits.
         """
         result = tuple(fixed_qubits)
         if len(set(result)) < len(result):
@@ -82,7 +84,6 @@ class QubitOrder:
 
         return QubitOrder(func)
 
-    # pylint: enable=missing-raises-doc
     @staticmethod
     def sorted_by(key: Callable[[raw_types.Qid], Any]) -> 'QubitOrder':
         """A basis that orders qubits ascending based on a key function.
@@ -90,7 +91,6 @@ class QubitOrder:
         Args:
             key: A function that takes a qubit and returns a key value. The
                 basis will be ordered ascending according to these key values.
-
 
         Returns:
             A basis that orders qubits ascending based on a key function.
@@ -111,8 +111,6 @@ class QubitOrder:
         """
         return self._explicit_func(qubits)
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     @staticmethod
     def as_qubit_order(val: 'qubit_order_or_list.QubitOrderOrList') -> 'QubitOrder':
         """Converts a value into a basis.
@@ -122,6 +120,9 @@ class QubitOrder:
 
         Returns:
             The basis implied by the value.
+
+        Raises:
+            ValueError: If `val` is not an iterable or a `QubitOrder`.
         """
         if isinstance(val, Iterable):
             return QubitOrder.explicit(val)
@@ -129,7 +130,6 @@ class QubitOrder:
             return val
         raise ValueError(f"Don't know how to interpret <{val}> as a Basis.")
 
-    # pylint: enable=missing-raises-doc
     def map(
         self,
         internalize: Callable[[TExternalQubit], TInternalQubit],

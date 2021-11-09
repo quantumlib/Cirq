@@ -112,7 +112,6 @@ class EngineContext:
         self.client = client
         self.timeout = timeout
 
-    # pylint: enable=missing-param-doc,missing-raises-doc
     def copy(self) -> 'EngineContext':
         return EngineContext(proto_version=self.proto_version, client=self.client)
 
@@ -138,8 +137,6 @@ class Engine:
         get_processor
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         project_id: str,
@@ -166,6 +163,9 @@ class Engine:
                 to never timeout.
             context: Engine configuration and context to use. For most users
                 this should never be specified.
+
+        Raises:
+            ValueError: If context is provided and one of proto_version, service_args, or verbose.
         """
         if context and (proto_version or service_args or verbose):
             raise ValueError('Either provide context or proto_version, service_args and verbose.')
@@ -180,12 +180,9 @@ class Engine:
             )
         self.context = context
 
-    # pylint: enable=missing-raises-doc
     def __str__(self) -> str:
         return f'Engine(project_id={self.project_id!r})'
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def run(
         self,
         program: cirq.Circuit,
@@ -228,6 +225,9 @@ class Engine:
 
         Returns:
             A single Result for this run.
+
+        Raises:
+            ValueError: If no gate set is provided.
         """
         if not gate_set:
             raise ValueError('No gate set provided')
@@ -247,7 +247,6 @@ class Engine:
             )
         )[0]
 
-    # TODO(#3388) Add documentation for Raises.
     def run_sweep(
         self,
         program: cirq.Circuit,
@@ -294,6 +293,9 @@ class Engine:
         Returns:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
+
+        Raises:
+            ValueError: If no gate set is provided.
         """
         if not gate_set:
             raise ValueError('No gate set provided')
@@ -309,7 +311,6 @@ class Engine:
             labels=job_labels,
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -368,6 +369,10 @@ class Engine:
             first, then the TrialResults for the second, etc. The TrialResults
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
+
+        Raises:
+            ValueError: If the length of programs mismatches that of params_list, or
+                `processor_ids` is not supplied.
         """
         if params_list is None:
             params_list = [None] * len(programs)
@@ -387,7 +392,6 @@ class Engine:
             labels=job_labels,
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def run_calibration(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -442,6 +446,10 @@ class Engine:
         Returns:
             An EngineJob whose results can be retrieved by calling
             calibration_results().
+
+        Raises:
+            ValueError: If `processor_id` and `processor_ids` are both specified, or neither is
+                supplied.
         """
         if processor_id and processor_ids:
             raise ValueError('Only one of processor_id and processor_ids can be specified.')
@@ -461,7 +469,6 @@ class Engine:
             labels=job_labels,
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def create_program(
         self,
         program: cirq.Circuit,
@@ -486,6 +493,9 @@ class Engine:
 
         Returns:
             A EngineProgram for the newly created program.
+
+        Raises:
+            ValueError: If no gate set is provided.
         """
         if not gate_set:
             raise ValueError('No gate set provided')
@@ -505,7 +515,6 @@ class Engine:
             self.project_id, new_program_id, self.context, new_program
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def create_batch_program(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -530,6 +539,9 @@ class Engine:
 
         Returns:
             A EngineProgram for the newly created program.
+
+        Raises:
+            ValueError: If no gate set is provided.
         """
         if not gate_set:
             raise ValueError('Gate set must be specified.')
@@ -552,7 +564,6 @@ class Engine:
             self.project_id, new_program_id, self.context, new_program, result_type=ResultType.Batch
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def create_calibration_program(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -581,6 +592,9 @@ class Engine:
 
         Returns:
             A EngineProgram for the newly created program.
+
+        Raises:
+            ValueError: If not gate set is given.
         """
         if not gate_set:
             raise ValueError('Gate set must be specified.')
@@ -611,7 +625,6 @@ class Engine:
             result_type=ResultType.Calibration,
         )
 
-    # pylint: enable=missing-raises-doc
     def _serialize_program(self, program: cirq.Circuit, gate_set: Serializer) -> any_pb2.Any:
         if not isinstance(program, cirq.Circuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
@@ -780,8 +793,6 @@ class Engine:
         )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def get_engine(project_id: Optional[str] = None) -> Engine:
     """Get an Engine instance assuming some sensible defaults.
 
@@ -800,8 +811,8 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
         The Engine instance.
 
     Raises:
-        EnvironmentError: If the environment variable GOOGLE_CLOUD_PROJECT is
-            not set.
+        OSError: If the environment variable GOOGLE_CLOUD_PROJECT is not set. This is actually
+            an `EnvironmentError`, which by definition is an `OsError`.
     """
     env_project_id = 'GOOGLE_CLOUD_PROJECT'
     if not project_id:
@@ -812,7 +823,6 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     return Engine(project_id=project_id)
 
 
-# pylint: enable=missing-raises-doc
 def get_engine_device(
     processor_id: str,
     project_id: Optional[str] = None,
