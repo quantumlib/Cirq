@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import Any, Dict, Iterable, Tuple, Union
 import numpy as np
 
@@ -51,9 +52,7 @@ class KrausChannel(raw_types.Gate):
         self._key = key
 
     @staticmethod
-    def from_channel(
-        channel: 'protocols.SupportsChannel', key: Union[str, value.MeasurementKey, None] = None
-    ):
+    def from_channel(channel: 'KrausChannel', key: Union[str, value.MeasurementKey, None] = None):
         """Creates a copy of a channel with the given measurement key."""
         return KrausChannel(kraus_ops=list(protocols.kraus(channel)), key=key)
 

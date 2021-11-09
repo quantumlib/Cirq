@@ -29,9 +29,6 @@ if TYPE_CHECKING:
 class MatrixGate(raw_types.Gate):
     """A unitary qubit or qudit gate defined entirely by its matrix."""
 
-    # TODO(#3388) Add documentation for Args.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(
         self,
         matrix: np.ndarray,
@@ -49,6 +46,15 @@ class MatrixGate(raw_types.Gate):
             qid_shape: The shape of state tensor that the matrix applies to.
                 If not specified, this value is inferred by assuming that the
                 matrix is supposed to apply to qubits.
+            unitary_check_rtol: The relative tolerance for checking whether the supplied matrix
+                is unitary. See `cirq.is_unitary`.
+            unitary_check_atol: The absolute tolerance for checking whether the supplied matrix
+                is unitary. See `cirq.is_unitary`.
+
+        Raises:
+            ValueError: If the matrix is not a square numpy array, if the matrix does not match
+                the `qid_shape`, if `qid_shape` is not supplied and the matrix dimension is
+                not a power of 2, or if the matrix not unitary (to the supplied precisions).
         """
         if len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1]:
             raise ValueError('`matrix` must be a square 2d numpy array.')
@@ -76,7 +82,6 @@ class MatrixGate(raw_types.Gate):
         if not linalg.is_unitary(matrix, rtol=unitary_check_rtol, atol=unitary_check_atol):
             raise ValueError(f'Not a unitary matrix: {self._matrix}')
 
-    # pylint: enable=missing-param-doc,missing-raises-doc
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,

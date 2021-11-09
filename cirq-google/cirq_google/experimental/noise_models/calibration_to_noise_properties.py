@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import cirq_google
 import numpy as np
 from cirq.devices.noise_properties import NoiseProperties

@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Quantum Teleportation.
 Quantum Teleportation is a process by which a quantum state can be transmitted
 by sending only two classical bits of information. This is accomplished by
