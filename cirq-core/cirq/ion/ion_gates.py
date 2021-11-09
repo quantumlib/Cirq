@@ -70,7 +70,7 @@ class MSGate(ops.XXPowGate):
 
 
 def ms(rads: float) -> MSGate:
-    """A helper to construct the `cird.MSGate` for the given angle specified in radians.
+    """A helper to construct the `cirq.MSGate` for the given angle specified in radians.
 
     Args:
         rads: The rotation angle in radians.

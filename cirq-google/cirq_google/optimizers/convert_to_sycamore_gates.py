@@ -188,7 +188,7 @@ def known_two_q_operations_to_sycamore_operations(
         op: Operation to decompose.
         tabulation: A tabulation for the Sycamore gate to use for decomposing gates.
     Returns:
-        The operations that yield the gate using Scyamores.
+        The operations that yield the gate using Sycamores.
 
     Raises:
         ValueError: If the gate is a `PhasedISwapPowGate` with an exponent of 0.25 or 1.0,
@@ -246,7 +246,7 @@ def decompose_phased_iswap_into_syc(
     Args:
         phase_exponent: The exponent on the Z gates.
         a: First qubit id to operate on.
-        b: Second qubit id to operate on,
+        b: Second qubit id to operate on.
     Yields:
         A `cirq.OP_TREE` implementing the Phased ISWAP gate.
     """
@@ -338,7 +338,7 @@ def decompose_arbitrary_into_syc_analytic(
         op: Operation to decompose.
         tabulation: A tabulation for the Sycamore gate.
     Yields:
-        An `cirq.OP_TREE` performing the decomposition.
+        A `cirq.OP_TREE` which produces the given operation using Sycamores.
     """
     new_ops = cirq.two_qubit_matrix_to_operations(qubit_a, qubit_b, op, allow_partial_czs=True)
     for new_op in new_ops:

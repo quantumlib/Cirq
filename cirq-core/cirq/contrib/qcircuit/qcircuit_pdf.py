@@ -45,7 +45,7 @@ def circuit_to_pdf_using_qcircuit_via_tex(
         documentclass: The documentclass of the latex file.
 
     Raises:
-        OSError, IOError: If cleanup fails by throwing an OSError.
+        OSError, IOError: If cleanup fails.
     """
     pdf_kwargs = {
         'compiler': 'latexmk',

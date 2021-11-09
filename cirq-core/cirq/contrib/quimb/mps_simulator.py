@@ -74,7 +74,7 @@ class MPSSimulator(
             grouping: How to group qubits together, if None all are individual.
 
         Raises:
-            ValueError: If the noise model is not unitary or a mixture noise model.
+            ValueError: If the noise model is not unitary or a mixture.
         """
         self.init = True
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
@@ -474,7 +474,7 @@ class MPSState(ActOnArgs):
                 the state after the measurement.
 
         Raises:
-            ValueError: If the probabilities for the measurements differ too much from the
+            ValueError: If the probabilities for the measurements differ too much from one for the
                 tolerance specified in simulation options.
         """
         results: List[int] = []

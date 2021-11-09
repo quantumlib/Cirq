@@ -67,7 +67,7 @@ class QubitOrder:
             A Basis instance that forces the given qubits in the given order.
 
         Raises:
-            ValueError: If a qubit appears twice in `fixed_qubits` or there were is no fallback
+            ValueError: If a qubit appears twice in `fixed_qubits`, or there were is no fallback
                 specified but there are extra qubits.
         """
         result = tuple(fixed_qubits)
@@ -122,7 +122,7 @@ class QubitOrder:
             The basis implied by the value.
 
         Raises:
-            ValueError: If `val` is not an interable or a `QubitOrder`.
+            ValueError: If `val` is not an iterable or a `QubitOrder`.
         """
         if isinstance(val, Iterable):
             return QubitOrder.explicit(val)

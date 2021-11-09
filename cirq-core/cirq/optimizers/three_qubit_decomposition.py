@@ -45,7 +45,7 @@ def three_qubit_matrix_to_operations(
     Raises:
         ValueError: If the u matrix is non-unitary or not of shape (8,8).
         ImportError: If the decomposition cannot be done because the SciPy version is less than
-            1.5.0 where the necessary cosine function was provided.
+            1.5.0 and so does not contain the required `cossin` method.
     """
     if np.shape(u) != (8, 8):
         raise ValueError(f"Expected unitary matrix with shape (8,8) got {np.shape(u)}")

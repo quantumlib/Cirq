@@ -35,7 +35,7 @@ class QubitPermutationGate(raw_types.Gate):
 
         Raises:
             ValueError: If the supplied permutation is not valid (empty, repeated indices, indices
-                out of range.
+                out of range).
         """
         if not permutation:
             raise ValueError(f"Invalid permutation (empty): {permutation}")
