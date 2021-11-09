@@ -26,8 +26,6 @@ from typing import (
 
 import numpy as np
 import pandas as pd
-import scipy.optimize
-import scipy.stats
 import sympy
 from cirq import ops, protocols
 from cirq.circuits import Circuit
@@ -354,7 +352,7 @@ class XEBCharacterizationResult:
             fitting the characterization.
     """
 
-    optimization_results: Dict[QPair_T, scipy.optimize.OptimizeResult]
+    optimization_results: Dict[QPair_T, 'scipy.optimize.OptimizeResult']
     final_params: Dict[QPair_T, Dict[str, float]]
     fidelities_df: pd.DataFrame
 
@@ -410,6 +408,9 @@ def characterize_phased_fsim_parameters_with_xeb(
         if verbose:
             print(f"Loss: {loss:7.3g}", flush=True)
         return loss
+
+    # Import scipy.optimize here to avoid costly top level moule import.
+    import scipy.optimize
 
     optimization_result = scipy.optimize.minimize(
         _mean_infidelity,
@@ -571,6 +572,10 @@ def _fit_exponential_decay(
         return 0, 0, np.inf, np.inf
     cycle_depths_pos = cycle_depths[positives]
     log_fidelities = np.log(fidelities[positives])
+
+    # We import here to avoid costly module level load time dependency on scipy.stats.
+    import scipy.stats
+
     slope, intercept, _, _, _ = scipy.stats.linregress(cycle_depths_pos, log_fidelities)
     layer_fid_0 = np.clip(np.exp(slope), 0, 1)
     a_0 = np.clip(np.exp(intercept), 0, 1)
