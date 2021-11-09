@@ -42,8 +42,8 @@ The following document provides an ecosystem overview of how the various tools c
 |Company|Type of Quantum Computer Supported|
 |--- |--- |
 |[Google QCS](https://quantumai.google/cirq/tutorials/google/start)|Superconducting qubits|
-|[Alpine Quantum Technologies](https://quantumai.google/cirq/tutorials/aqt/start)|Trapped ions|
-|[Pasqal](https://quantumai.google/cirq/tutorials/pasqal/start)|Neutral atoms|
+|[Alpine Quantum Technologies](https://quantumai.google/cirq/tutorials/aqt/getting_started)|Trapped ions|
+|[Pasqal](https://quantumai.google/cirq/tutorials/pasqal/getting_started)|Neutral atoms|
 |[IonQ](https://quantumai.google/cirq/tutorials/ionq/getting_started)|Trapped ions|
 |[Microsoft Azure Quantum](https://quantumai.google/cirq/tutorials/azure-quantum/getting_started_ionq)|Trapped ions (Honeywell and IonQ)|
 
