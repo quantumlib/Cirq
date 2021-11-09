@@ -149,7 +149,6 @@ class SerializableGateSet(serializer.Serializer):
         msg.language.arg_function_language = arg_function_language
         return msg
 
-    # pylint: enable=missing-raises-doc
     def serialize_op(
         self,
         op: cirq.Operation,
@@ -195,6 +194,9 @@ class SerializableGateSet(serializer.Serializer):
 
         Returns:
             The cirq.google.api.v2.Operation proto.
+
+        Raises:
+            ValueError: If the op cannot be serialized.
         """
         gate_type = type(op.gate)
         for gate_type_mro in gate_type.mro():
@@ -214,7 +216,6 @@ class SerializableGateSet(serializer.Serializer):
                         return proto_msg
         raise ValueError(f'Cannot serialize op {op!r} of type {gate_type}')
 
-    # TODO(#3388) Add documentation for Raises.
     def serialize_circuit_op(
         self,
         op: cirq.Operation,
@@ -238,6 +239,10 @@ class SerializableGateSet(serializer.Serializer):
 
         Returns:
             The cirq.google.api.v2.CircuitOperation proto.
+
+        Raises:
+            ValueError: If one of `constants` or `raw_constants` is None, or the circuit operation
+                cannot be serialized.
         """
         circuit = getattr(op.untagged, 'circuit', None)
         if constants is None or raw_constants is None:
@@ -323,7 +328,6 @@ class SerializableGateSet(serializer.Serializer):
 
         raise NotImplementedError('Program proto does not contain a circuit.')
 
-    # pylint: enable=missing-raises-doc
     def deserialize_op(
         self,
         operation_proto: Union[
