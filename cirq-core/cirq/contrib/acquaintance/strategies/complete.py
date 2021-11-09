@@ -27,9 +27,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def complete_acquaintance_strategy(
     qubit_order: Sequence['cirq.Qid'], acquaintance_size: int = 0, swap_gate: 'cirq.Gate' = ops.SWAP
 ) -> 'cirq.Circuit':

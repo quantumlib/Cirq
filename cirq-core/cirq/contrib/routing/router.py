@@ -25,8 +25,6 @@ ROUTERS = {
 }
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def route_circuit(
     circuit: circuits.Circuit,
     device_graph: nx.Graph,
@@ -41,11 +39,16 @@ def route_circuit(
 
     Args:
         circuit: The circuit to route.
-        device_graph: The device's graph, in which each vertex is a qubit and
-            each edge indicates the ability to do an operation on those qubits.
+        device_graph: The device's graph, in which each vertex is a qubit and each edge indicates
+            the ability to do an operation on those qubits.
         algo_name: The name of a routing algorithm. Must be in ROUTERS.
         router: The function that actually does the routing.
         **kwargs: Arguments to pass to the routing algorithm.
+
+    Raises:
+        ValueError: If the circuit contains operations on more than two qubits, the number of
+            qubits in the circuit are more than those of the device, both `algo_name` and `router`
+            are specified, or no routing algorithm is specified.
     """
 
     if any(protocols.num_qubits(op) > 2 for op in circuit.all_operations()):
@@ -61,6 +64,3 @@ def route_circuit(
     elif router is None:
         raise ValueError(f'No routing algorithm specified.')
     return router(circuit, device_graph, **kwargs)
-
-
-# pylint: enable=missing-raises-doc
