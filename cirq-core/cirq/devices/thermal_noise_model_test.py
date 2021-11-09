@@ -1,4 +1,3 @@
-from cirq.ops import moment
 import numpy as np
 import pytest
 
@@ -7,16 +6,40 @@ from cirq.devices.noise_utils import (
     PHYSICAL_GATE_TAG,
 )
 from cirq.devices.thermal_noise_model import (
-    ThermalNoiseModel
+    _left_mul,
+    _right_mul,
+    _validate_rates,
+    ThermalNoiseModel,
 )
+
+
+def test_helper_method_errors():
+    with pytest.raises(ValueError, match='_left_mul only accepts square matrices'):
+        _ = _left_mul(np.array([[1, 2, 3], [4, 5, 6]]))
+
+    with pytest.raises(ValueError, match='_right_mul only accepts square matrices'):
+        _ = _right_mul(np.array([[1, 2, 3], [4, 5, 6]]))
+
+    q0, q1 = cirq.LineQubit.range(2)
+    with pytest.raises(ValueError, match='qubits for rates inconsistent'):
+        _validate_rates({q0: 2, q1: 2}, {q0: np.array([[0.01, 0.1], [0.02, 0.2]])})
+
+    with pytest.raises(ValueError, match='qubits for rates inconsistent'):
+        _validate_rates(
+            {q0: 2},
+            {q0: np.array([[0.01, 0.1], [0.02, 0.2]]), q1: np.array([[0.03, 0.3], [0.04, 0.4]])},
+        )
+
+    with pytest.raises(ValueError, match='Invalid shape for rate matrix'):
+        _validate_rates({q0: 2}, {q0: np.array([[0.001, 0.01, 0.1], [0.002, 0.02, 0.2]])})
 
 
 def test_create_thermal_noise_per_qubit():
     q0, q1 = cirq.LineQubit.range(2)
     gate_durations = {cirq.PhasedXZGate: 25.0}
-    heat_rate_GHz={q0: 1e-5, q1: 2e-5}
-    cool_rate_GHz={q0: 1e-4, q1: 2e-4}
-    dephase_rate_GHz={q0: 3e-4, q1: 4e-4}
+    heat_rate_GHz = {q0: 1e-5, q1: 2e-5}
+    cool_rate_GHz = {q0: 1e-4, q1: 2e-4}
+    dephase_rate_GHz = {q0: 3e-4, q1: 4e-4}
     model = ThermalNoiseModel(
         qubit_dims={q0: 2, q1: 2},
         gate_durations_ns=gate_durations,
@@ -34,9 +57,9 @@ def test_create_thermal_noise_per_qubit():
 def test_create_thermal_noise_mixed_type():
     q0, q1 = cirq.LineQubit.range(2)
     gate_durations = {cirq.PhasedXZGate: 25.0}
-    heat_rate_GHz=None
-    cool_rate_GHz={q0: 1e-4, q1: 2e-4}
-    dephase_rate_GHz=3e-4
+    heat_rate_GHz = None
+    cool_rate_GHz = {q0: 1e-4, q1: 2e-4}
+    dephase_rate_GHz = 3e-4
     model = ThermalNoiseModel(
         qubit_dims={q0: 2, q1: 2},
         gate_durations_ns=gate_durations,
@@ -54,8 +77,8 @@ def test_create_thermal_noise_mixed_type():
 def test_incomplete_rates():
     q0, q1 = cirq.LineQubit.range(2)
     gate_durations = {cirq.PhasedXZGate: 25.0}
-    heat_rate_GHz={q1: 1e-5}
-    cool_rate_GHz={q0: 1e-4}
+    heat_rate_GHz = {q1: 1e-5}
+    cool_rate_GHz = {q0: 1e-4}
     model = ThermalNoiseModel(
         qubit_dims={q0: 2, q1: 2},
         gate_durations_ns=gate_durations,
@@ -74,8 +97,8 @@ def test_noise_from_zero_duration():
     # Verify that a moment with no duration has no noise.
     q0, q1 = cirq.LineQubit.range(2)
     gate_durations = {}
-    heat_rate_GHz={q1: 1e-5}
-    cool_rate_GHz={q0: 1e-4}
+    heat_rate_GHz = {q1: 1e-5}
+    cool_rate_GHz = {q0: 1e-4}
     model = ThermalNoiseModel(
         qubit_dims={q0: 2, q1: 2},
         gate_durations_ns=gate_durations,
@@ -83,7 +106,7 @@ def test_noise_from_zero_duration():
         cool_rate_GHz=cool_rate_GHz,
         dephase_rate_GHz=None,
         require_physical_tag=False,
-        skip_measurements=False
+        skip_measurements=False,
     )
     moment = cirq.Moment(cirq.Z(q0), cirq.Z(q1))
     assert model.noisy_moment(moment, system_qubits=[q0, q1]) == [moment]
@@ -94,8 +117,8 @@ def test_noise_from_virtual_gates():
     # require_physical_tag is True.
     q0, q1 = cirq.LineQubit.range(2)
     gate_durations = {cirq.ZPowGate: 25.0}
-    heat_rate_GHz={q1: 1e-5}
-    cool_rate_GHz={q0: 1e-4}
+    heat_rate_GHz = {q1: 1e-5}
+    cool_rate_GHz = {q0: 1e-4}
     model = ThermalNoiseModel(
         qubit_dims={q0: 2, q1: 2},
         gate_durations_ns=gate_durations,
@@ -103,7 +126,7 @@ def test_noise_from_virtual_gates():
         cool_rate_GHz=cool_rate_GHz,
         dephase_rate_GHz=None,
         require_physical_tag=True,
-        skip_measurements=False
+        skip_measurements=False,
     )
     moment = cirq.Moment(cirq.Z(q0), cirq.Z(q1))
     assert model.noisy_moment(moment, system_qubits=[q0, q1]) == [moment]
@@ -123,8 +146,8 @@ def test_noise_from_measurement():
         cirq.ZPowGate: 25.0,
         cirq.MeasurementGate: 4000.0,
     }
-    heat_rate_GHz={q1: 1e-5}
-    cool_rate_GHz={q0: 1e-4}
+    heat_rate_GHz = {q1: 1e-5}
+    cool_rate_GHz = {q0: 1e-4}
     model = ThermalNoiseModel(
         qubit_dims={q0: 2, q1: 2},
         gate_durations_ns=gate_durations,
@@ -132,7 +155,7 @@ def test_noise_from_measurement():
         cool_rate_GHz=cool_rate_GHz,
         dephase_rate_GHz=None,
         require_physical_tag=False,
-        skip_measurements=True
+        skip_measurements=True,
     )
     moment = cirq.Moment(cirq.measure(q0, q1, key='m'))
     assert model.noisy_moment(moment, system_qubits=[q0, q1]) == [moment]
@@ -155,7 +178,7 @@ def test_noisy_moment_one_qubit():
         heat_rate_GHz={q0: 1e-5, q1: 2e-5},
         cool_rate_GHz={q0: 1e-4, q1: 2e-4},
         dephase_rate_GHz={q0: 3e-4, q1: 4e-4},
-        require_physical_tag=False
+        require_physical_tag=False,
     )
     gate = cirq.PhasedXZGate(x_exponent=1, z_exponent=0.5, axis_phase_exponent=0.25)
     moment = cirq.Moment(gate.on(q0))
@@ -169,8 +192,8 @@ def test_noisy_moment_one_qubit():
             [9.99750343e-01, 0, 0, 9.91164267e-01],
             [0, 2.49656565e-03, 0, 0],
             [0, 0, 2.49656565e-04, 0],
-            [9.91164267e-01, 0, 0, 9.97503434e-01]
-        ]
+            [9.91164267e-01, 0, 0, 9.97503434e-01],
+        ],
     )
 
 
@@ -185,7 +208,7 @@ def test_noisy_moment_two_qubit():
         heat_rate_GHz={q0: 1e-5, q1: 2e-5},
         cool_rate_GHz={q0: 1e-4, q1: 2e-4},
         dephase_rate_GHz={q0: 3e-4, q1: 4e-4},
-        require_physical_tag=False
+        require_physical_tag=False,
     )
     gate = cirq.CZ ** 0.5
     moment = cirq.Moment(gate.on(q0, q1))
@@ -199,8 +222,8 @@ def test_noisy_moment_two_qubit():
             [9.99750343e-01, 0, 0, 9.91164267e-01],
             [0, 2.49656565e-03, 0, 0],
             [0, 0, 2.49656565e-04, 0],
-            [9.91164267e-01, 0, 0, 9.97503434e-01]
-        ]
+            [9.91164267e-01, 0, 0, 9.97503434e-01],
+        ],
     )
     noisy_choi_1 = cirq.kraus_to_choi(cirq.kraus(noisy_moment[1].operations[1]))
     assert np.allclose(
@@ -209,6 +232,6 @@ def test_noisy_moment_two_qubit():
             [9.99501372e-01, 0, 0, 9.87330937e-01],
             [0, 4.98627517e-03, 0, 0],
             [0, 0, 4.98627517e-04, 0],
-            [9.87330937e-01, 0, 0, 9.95013725e-01]
-        ]
+            [9.87330937e-01, 0, 0, 9.95013725e-01],
+        ],
     )

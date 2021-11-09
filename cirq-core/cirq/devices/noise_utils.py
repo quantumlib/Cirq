@@ -34,7 +34,7 @@ class OpIdentifier:
         return f'cirq.devices.noise_utils.OpIdentifier({fullname}, {qubits})'
 
 
-# TODO: expose all from top-level cirq
+# TODO: expose all from top-level cirq?
 def decay_constant_to_xeb_fidelity(decay_constant: float, num_qubits: int = 2) -> float:
     """Calculates the XEB fidelity from the depolarization decay constant.
 

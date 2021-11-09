@@ -42,6 +42,18 @@ class InsertionNoiseModel(devices.NoiseModel):
             op_id = OpIdentifier(type(op.gate), *op.qubits)
             if op_id in self.ops_added:
                 noise_ops.append(self.ops_added[op_id])
+                continue
+            # Find the closest match, if one exists.
+            parent_id = OpIdentifier(object, *op.qubits)
+            for added_id in self.ops_added:
+                if added_id.qubits != parent_id.qubits:
+                    continue
+                if not issubclass(op_id.gate_type, added_id.gate_type):
+                    continue
+                if issubclass(added_id.gate_type, parent_id.gate_type):
+                    parent_id = added_id
+            if parent_id.gate_type != object:
+                noise_ops.append(self.ops_added[parent_id])
         if not noise_ops:
             return [moment]
         if self.prepend:
