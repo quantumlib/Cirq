@@ -19,7 +19,6 @@ import pandas as pd
 import sympy
 from matplotlib import pyplot as plt
 import numpy as np
-from scipy import optimize
 
 
 from cirq import circuits, ops, study, value
@@ -131,7 +130,10 @@ class T1DecayResult:
 
         # Fit to exponential decay to find the t1 constant
         try:
-            popt, _ = optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess])
+            # Import scipy.optimize here to avoid costly module level import.
+            import scipy.optimize
+
+            popt, _ = scipy.optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess])
             t1 = popt[0]
             return t1
         except RuntimeError:
