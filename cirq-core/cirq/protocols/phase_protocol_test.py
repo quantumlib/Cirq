@@ -47,8 +47,8 @@ def test_phase_by():
         _ = cirq.phase_by(rin, 1, 0)
 
     # With default
-    assert cirq.phase_by(n, 1, 0, default=None) == None
-    assert cirq.phase_by(rin, 1, 0, default=None) == None
+    assert cirq.phase_by(n, 1, 0, default=None) is None
+    assert cirq.phase_by(rin, 1, 0, default=None) is None
 
     test = PhaseIsAddition(3)
     assert test.phase == [0, 0, 0]
