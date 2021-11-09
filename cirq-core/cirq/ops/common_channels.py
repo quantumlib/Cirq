@@ -179,6 +179,13 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             raise ValueError('num_qubits should be 1')
         return self._error_probabilities.get('Z', 0.0)
 
+    # The following property was deprecated in Cirq v0.14. Please use the num_qubits methos instead.
+    #
+    # @property
+    # def num_qubits(self) -> int:
+    #     """"The number of qubits"""
+    #     return self._num_qubits
+
     @property
     def error_probabilities(self) -> Dict[str, float]:
         """A dictionary from Pauli gates to probability"""
