@@ -227,6 +227,15 @@ OPERATIONS = [
         ),
     ),
     (
+        cirq.FSimGate(theta=0.5, phi=0.0)(Q0, Q1),
+        op_proto(
+            {
+                'fsimgate': {'theta': {'float_value': 0.5}, 'phi': {'float_value': 0.0}},
+                'qubit_constant_index': [0, 1],
+            }
+        ),
+    ),
+    (
         cirq.WaitGate(duration=cirq.Duration(nanos=15))(Q0),
         op_proto(
             {
