@@ -12,7 +12,10 @@ from cirq_google.workflow.quantum_runtime import (
     RuntimeInfo,
     ExecutableResult,
     ExecutableGroupResult,
-    ExecutableGroupResultFilesystemRecord,
     QuantumRuntimeConfiguration,
     execute,
+)
+
+from cirq_google.workflow.io import (
+    ExecutableGroupResultFilesystemRecord,
 )

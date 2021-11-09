@@ -136,19 +136,6 @@ def test_executable_group_result(tmpdir):
     _assert_json_roundtrip(egr, tmpdir)
 
 
-def test_egr_filesystem_record_repr():
-    egr_fs_record = cg.ExecutableGroupResultFilesystemRecord(
-        runtime_configuration_path='RuntimeConfiguration.json.gz',
-        shared_runtime_info_path='SharedRuntimeInfo.jzon.gz',
-        executable_result_paths=[
-            'ExecutableResult.1.json.gz',
-            'ExecutableResult.2.json.gz',
-        ],
-        run_id='my-run-id',
-    )
-    cg_assert_equivalent_repr(egr_fs_record)
-
-
 def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
     """Load `ExecutableGroupResult` "by hand" without using
     `ExecutableGroupResultFilesystemRecord`."""
