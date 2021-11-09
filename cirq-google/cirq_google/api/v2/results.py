@@ -199,7 +199,7 @@ def _trial_sweep_from_proto(
         A list containing a list of trial results for the sweep.
 
     Raises:
-        ValueError: If a qubit repeats in the measurement results.
+        ValueError: If a qubit already exists in the measurement results.
     """
 
     trial_sweep: List[cirq.Result] = []

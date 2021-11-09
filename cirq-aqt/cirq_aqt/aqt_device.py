@@ -36,7 +36,7 @@ def get_op_string(op_obj: cirq.Operation) -> str:
 
     Args:
         op_obj: Gate or operation object. Gate must be one of: XXPowGate, XPowGate, YPowGate,
-        ZPowGate, PhasedXPowGate, or MeasurementGate.
+            ZPowGate, PhasedXPowGate, or MeasurementGate.
 
     Returns:
         String representing the gate operations.
