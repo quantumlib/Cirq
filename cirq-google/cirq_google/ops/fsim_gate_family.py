@@ -55,7 +55,7 @@ def _gate_list_to_str(gates: Any, gettr: Callable[[Any], str] = _gate_str) -> st
 # which trigger a conversion from double precision to single precision
 # This results in errors possibly up to 1e-6
 # (23 bits for mantissa in single precision)
-_DEFAULT_ATOL = 1e-6
+DEFAULT_ATOL = 1e-6
 
 
 class FSimGateFamily(cirq.GateFamily):
@@ -114,7 +114,7 @@ class FSimGateFamily(cirq.GateFamily):
         gates_to_accept: Sequence[Union[Type[POSSIBLE_FSIM_GATES], POSSIBLE_FSIM_GATES]] = (),
         gate_types_to_check: Sequence[Type[POSSIBLE_FSIM_GATES]] = (),
         allow_symbols: bool = False,
-        atol=_DEFAULT_ATOL,
+        atol=DEFAULT_ATOL,
     ):
         """Inits `cirq_google.FSimGateFamily`.
 
@@ -237,6 +237,22 @@ class FSimGateFamily(cirq.GateFamily):
         )
 
     def _predicate(self, gate: cirq.Gate) -> bool:
+        """Checks whether `cirq.Gate` instance `gate` belongs to this GateFamily.
+
+        To get accepted, `gate` must be an instance of a type present in `self.gate_types_to_check`
+        and match a gate / gate type present in `self.gates_to_accept`.
+
+        Let `target_gate` be an element of `self.gates_to_accept`. `gate` would match `target_gate`
+        if
+            a) Type Equality Check: `target_gate` is one of `POSSIBLE_FSIM_GATES` types and `gate`
+               can be converted to an instance of `target_gate`.
+            b) Value Equality Check: `target_gate` is an instance of `POSSIBLE_FSIM_GATES` and is
+               equal to `gate` (modulo type conversion). Note that value equality for parameterized
+               gates tries to be lenient and assumes that the correct parameters would eventually
+               be filled during parameter resolution.
+        Args:
+           gate: `cirq.Gate` instance which should be checked for containment.
+        """
         if not isinstance(gate, self.gate_types_to_check):
             return False
         gate = cast(POSSIBLE_FSIM_GATES, gate)
@@ -271,7 +287,7 @@ class FSimGateFamily(cirq.GateFamily):
         paramaterized gate instances tries to be lenient and assumes that the correct
         parameters would eventually be filled during parameter resolution. This can also result
         in dropping extra parameters during type conversion, assuming the dropped parameters
-        would be supplid the correct values. For example:
+        would be supplied the correct values. For example:
 
         >>> gf = cirq_google.FSimGateFamily(allow_symbols = True)
         >>> theta, phi = sympy.Symbol("theta"), sympy.Symbol("phi")
