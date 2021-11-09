@@ -528,7 +528,9 @@ class CircuitSerializer(serializer.Serializer):
                 arg_function_language=arg_function_language,
                 required_arg_name=None,
             )
-            if isinstance(theta, (float, sympy.Basic)) and isinstance(phi, (float, sympy.Basic)):
+            if isinstance(theta, (int, float, sympy.Basic)) and isinstance(
+                phi, (int, float, sympy.Basic)
+            ):
                 op = cirq.FSimGate(theta=theta, phi=phi)(*qubits)
             else:
                 raise ValueError('theta and phi must be specified for FSimGate')
