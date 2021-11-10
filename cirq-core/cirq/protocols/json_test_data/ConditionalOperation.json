@@ -1,6 +1,6 @@
 {
   "cirq_type": "ConditionalOperation",
-  "controls": [
+  "keys": [
     {
       "cirq_type": "LineQubit",
       "x": 0

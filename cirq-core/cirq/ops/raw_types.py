@@ -608,10 +608,10 @@ class Operation(metaclass=abc.ABCMeta):
         return frozenset()
 
     def with_conditions(
-            self,
-            keys: Union[str, value.MeasurementKey, Sequence[Union[str, value.MeasurementKey]]]
+        self, keys: Union[str, value.MeasurementKey, Sequence[Union[str, value.MeasurementKey]]]
     ) -> 'cirq.ConditionalOperation':
         from cirq.ops.conditional_operation import ConditionalOperation
+
         return ConditionalOperation(self, keys)
 
     def unconditionally(self) -> 'Operation':

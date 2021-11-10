@@ -14,13 +14,14 @@
 from typing import (
     AbstractSet,
     Any,
+    cast,
     Dict,
     FrozenSet,
     Optional,
     Sequence,
     TYPE_CHECKING,
     Tuple,
-    Union, FrozenSet,
+    Union,
 )
 
 from cirq import protocols, value
@@ -41,7 +42,7 @@ class ConditionalOperation(raw_types.Operation):
     ):
         keys = [keys] if isinstance(keys, (str, value.MeasurementKey)) else keys
         keys = tuple(value.MeasurementKey(k) if isinstance(k, str) else k for k in keys)
-        self._control_keys = keys
+        self._control_keys = cast(Tuple['cirq.MeasurementKey', ...], keys)
         self._sub_operation = sub_operation
 
     @property
@@ -57,8 +58,7 @@ class ConditionalOperation(raw_types.Operation):
 
     def with_qubits(self, *new_qubits):
         return ConditionalOperation(
-            self._sub_operation.with_qubits(*new_qubits),
-            self._control_keys
+            self._sub_operation.with_qubits(*new_qubits), self._control_keys
         )
 
     def _decompose_(self):
@@ -118,7 +118,7 @@ class ConditionalOperation(raw_types.Operation):
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
-            'controls': self._control_keys,
+            'keys': self._control_keys,
             'sub_operation': self._sub_operation,
         }
 
