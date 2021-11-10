@@ -22,6 +22,7 @@ from typing import (
     Callable,
     Collection,
     Dict,
+    FrozenSet,
     Hashable,
     Iterable,
     List,
@@ -602,6 +603,20 @@ class Operation(metaclass=abc.ABCMeta):
 
         return np.allclose(m12, m21, atol=atol)
 
+    @property
+    def conditions(self) -> FrozenSet[value.MeasurementKey]:
+        return frozenset()
+
+    def with_conditions(
+            self,
+            keys: Union[str, value.MeasurementKey, Sequence[Union[str, value.MeasurementKey]]]
+    ) -> 'cirq.ConditionalOperation':
+        from cirq.ops.conditional_operation import ConditionalOperation
+        return ConditionalOperation(self, keys)
+
+    def unconditionally(self) -> 'Operation':
+        return self
+
 
 @value.value_equality
 class TaggedOperation(Operation):
@@ -788,6 +803,13 @@ class TaggedOperation(Operation):
         self, other: Any, atol: Union[int, float] = 1e-8
     ) -> Union[NotImplementedType, bool]:
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
+
+    @property
+    def conditions(self) -> FrozenSet[value.MeasurementKey]:
+        return self.sub_operation.conditions
+
+    def unconditionally(self) -> Operation:
+        return TaggedOperation(self.sub_operation.unconditionally(), *self.tags)
 
 
 @value.value_equality

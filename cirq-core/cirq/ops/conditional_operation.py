@@ -14,13 +14,12 @@
 from typing import (
     AbstractSet,
     Any,
-    cast,
     Dict,
     Optional,
     Sequence,
     TYPE_CHECKING,
     Tuple,
-    Union,
+    Union, FrozenSet,
 )
 
 from cirq import protocols, value
@@ -37,48 +36,45 @@ class ConditionalOperation(raw_types.Operation):
     def __init__(
         self,
         sub_operation: 'cirq.Operation',
-        controls: Sequence[Union[str, 'cirq.MeasurementKey']],
+        keys: Union[str, 'cirq.MeasurementKey', Sequence[Union[str, 'cirq.MeasurementKey']]],
     ):
-        controls = tuple(value.MeasurementKey(k) if isinstance(k, str) else k for k in controls)
-        if isinstance(sub_operation, ConditionalOperation):
-            # Auto-flatten nested controlled operations.
-            sub_operation = cast(ConditionalOperation, sub_operation)
-            self._controls = controls + sub_operation.controls
-            self._sub_operation = sub_operation.sub_operation
-        else:
-            self._controls = controls
-            self._sub_operation = sub_operation
+        keys = [keys] if isinstance(keys, (str, value.MeasurementKey)) else keys
+        keys = tuple(value.MeasurementKey(k) if isinstance(k, str) else k for k in keys)
+        self._control_keys = keys
+        self._sub_operation = sub_operation
 
     @property
-    def controls(self):
-        return self._controls
+    def conditions(self) -> FrozenSet['cirq.MeasurementKey']:
+        return frozenset(self._control_keys).union(self._sub_operation.conditions)
 
-    @property
-    def sub_operation(self):
-        return self._sub_operation
+    def unconditionally(self) -> 'cirq.Operation':
+        return self._sub_operation.unconditionally()
 
     @property
     def qubits(self):
-        return self.sub_operation.qubits
+        return self._sub_operation.qubits
 
     def with_qubits(self, *new_qubits):
-        return ConditionalOperation(self._sub_operation.with_qubits(*new_qubits), self._controls)
+        return ConditionalOperation(
+            self._sub_operation.with_qubits(*new_qubits),
+            self._control_keys
+        )
 
     def _decompose_(self):
         result = protocols.decompose_once(self._sub_operation, NotImplemented)
         if result is NotImplemented:
             return NotImplemented
 
-        return [ConditionalOperation(op, self._controls) for op in result]
+        return [ConditionalOperation(op, self._control_keys) for op in result]
 
     def _value_equality_values_(self):
-        return (frozenset(self._controls), self._sub_operation)
+        return (frozenset(self._control_keys), self._sub_operation)
 
     def __str__(self) -> str:
         return repr(self)
 
     def __repr__(self):
-        return f'ConditionalOperation({self._sub_operation!r}, {list(self._controls)!r})'
+        return f'ConditionalOperation({self._sub_operation!r}, {list(self._control_keys)!r})'
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._sub_operation)
@@ -90,13 +86,7 @@ class ConditionalOperation(raw_types.Operation):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'ConditionalOperation':
         new_sub_op = protocols.resolve_parameters(self._sub_operation, resolver, recursive)
-        return ConditionalOperation(new_sub_op, self._controls)
-
-    def __pow__(self, exponent: Any) -> 'ConditionalOperation':
-        new_sub_op = protocols.pow(self._sub_operation, exponent, NotImplemented)
-        if new_sub_op is NotImplemented:
-            return NotImplemented  # coverage: ignore
-        return ConditionalOperation(new_sub_op, self._controls)
+        return ConditionalOperation(new_sub_op, self._control_keys)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -112,12 +102,12 @@ class ConditionalOperation(raw_types.Operation):
         if sub_info is None:
             return NotImplemented  # coverage: ignore
 
-        wire_symbols = sub_info.wire_symbols + ('^',) * len(self._controls)
+        wire_symbols = sub_info.wire_symbols + ('^',) * len(self._control_keys)
         exponent_qubit_index = None
         if sub_info.exponent_qubit_index is not None:
-            exponent_qubit_index = sub_info.exponent_qubit_index + len(self._controls)
+            exponent_qubit_index = sub_info.exponent_qubit_index + len(self._control_keys)
         elif sub_info.exponent is not None:
-            exponent_qubit_index = len(self._controls)
+            exponent_qubit_index = len(self._control_keys)
         return protocols.CircuitDiagramInfo(
             wire_symbols=wire_symbols,
             exponent=sub_info.exponent,
@@ -127,7 +117,7 @@ class ConditionalOperation(raw_types.Operation):
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
-            'controls': self._controls,
+            'controls': self._control_keys,
             'sub_operation': self._sub_operation,
         }
 
@@ -135,27 +125,27 @@ class ConditionalOperation(raw_types.Operation):
         def not_zero(measurement):
             return any(i != 0 for i in measurement)
 
-        measurements = [args.log_of_measurement_results[str(key)] for key in self._controls]
+        measurements = [args.log_of_measurement_results[str(key)] for key in self._control_keys]
         if all(not_zero(measurement) for measurement in measurements):
             protocols.act_on(self._sub_operation, args)
         return True
 
     def _with_key_path_(self, path: Tuple[str, ...]) -> 'ConditionalOperation':
         return ConditionalOperation(
-            self._sub_operation, [protocols.with_key_path(k, path) for k in self._controls]
+            self._sub_operation, [protocols.with_key_path(k, path) for k in self._control_keys]
         )
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'ConditionalOperation':
         return ConditionalOperation(
             self._sub_operation,
-            [protocols.with_measurement_key_mapping(k, key_map) for k in self._controls],
+            [protocols.with_measurement_key_mapping(k, key_map) for k in self._control_keys],
         )
 
-    def _control_keys_(self) -> Tuple[value.MeasurementKey, ...]:
-        return self._controls
+    def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
+        return frozenset(self._control_keys).union(protocols.control_keys(self._sub_operation))
 
     def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
         args.validate_version('2.0')
-        keys = [f'm_{key}!=0' for key in self._controls]
+        keys = [f'm_{key}!=0' for key in self._control_keys]
         all_keys = " && ".join(keys)
         return args.format('if ({0}) {1}', all_keys, protocols.qasm(self._sub_operation, args=args))
