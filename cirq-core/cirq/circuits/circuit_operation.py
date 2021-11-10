@@ -205,6 +205,9 @@ class CircuitOperation(ops.Operation):
         return {str(key) for key in self._measurement_key_objs_()}
 
     def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:
+        # Check if there are any control keys, to work around infinite recursion test.
+        if not protocols.control_keys(self.circuit):
+            return set()
         return protocols.control_keys(self.mapped_circuit())
 
     def _parameter_names_(self) -> AbstractSet[str]:
