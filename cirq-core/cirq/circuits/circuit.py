@@ -1535,6 +1535,12 @@ class AbstractCircuit(abc.ABC):
             self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
         )
 
+    def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
+        all_keys = frozenset()
+        for op in self.all_operations():
+            all_keys = all_keys.union(protocols.control_keys(op))
+        return all_keys.difference(protocols.measurement_key_objs(self))
+
 
 def _overlap_collision_time(
     c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
