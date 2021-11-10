@@ -21,7 +21,7 @@ metrics from a previous run.  Calibration metrics can also be retrieved
 programmatically using an engine instance or with a job.
 
 ```
-import cirq.google as cg
+import cirq_google as cg
 
 # Create an Engine object to use.
 # Replace YOUR_PROJECT_ID with the id from your cloud project.

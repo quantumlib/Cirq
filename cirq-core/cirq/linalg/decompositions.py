@@ -36,7 +36,6 @@ import matplotlib.pyplot as plt
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
 from mpl_toolkits import mplot3d  # pylint: disable=unused-import
 import numpy as np
-import scipy
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
@@ -146,6 +145,9 @@ def unitary_eig(
     """
     if check_preconditions and not predicates.is_normal(matrix, atol=atol):
         raise ValueError(f'Input must correspond to a normal matrix .Received input:\n{matrix}')
+    # Lazy import to avoid costly global module import.
+    import scipy.linalg
+
     R, V = scipy.linalg.schur(matrix, output="complex")
     return R.diagonal(), V
 
