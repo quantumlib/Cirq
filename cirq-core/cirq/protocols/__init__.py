@@ -100,6 +100,7 @@ from cirq.protocols.measurement_key_protocol import (
     measurement_key_names,
     measurement_key_objs,
     with_key_path,
+    with_key_path_prefix,
     with_measurement_key_mapping,
     SupportsMeasurementKey,
 )
