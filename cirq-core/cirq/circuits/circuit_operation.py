@@ -185,7 +185,7 @@ class CircuitOperation(ops.Operation):
                     for key in circuit_keys
                 }
             circuit_keys = {
-                key._with_key_path_(self.parent_path + key.path) for key in circuit_keys
+                protocols.with_key_path_prefix(key, self.parent_path) for key in circuit_keys
             }
             object.__setattr__(
                 self,
