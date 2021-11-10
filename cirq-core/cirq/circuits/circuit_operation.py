@@ -229,11 +229,14 @@ class CircuitOperation(ops.Operation):
             like `cirq.decompose(self)`, but preserving moment structure.
         """
         circuit = self.circuit.unfreeze()
-        circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
+        if self.qubit_map:
+            circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
         if self.repetitions < 0:
             circuit = circuit ** -1
-        circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
-        circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
+        if self.measurement_key_map:
+            circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
+        if self.param_resolver:
+            circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if self.repetition_ids:
             if not protocols.is_measurement(circuit):
                 circuit = circuit * abs(self.repetitions)
