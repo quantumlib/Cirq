@@ -24,4 +24,5 @@ def test_lazy_loader():
     assert linalg._module is not None
     assert globals()["linalg"] == linalg._module
     assert "fun" in linalg.__dict__
+    assert "fun" in linalg.__dir__
     assert linalg.fun == 1
