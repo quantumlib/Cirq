@@ -14,10 +14,6 @@
 
 """Utilities for testing code."""
 
-from cirq.testing.asynchronous import (
-    asyncio_pending,
-)
-
 from cirq.testing.circuit_compare import (
     assert_circuits_with_terminal_measurements_are_equivalent,
     assert_has_consistent_apply_unitary,
@@ -34,6 +30,10 @@ from cirq.testing.consistent_act_on import (
 
 from cirq.testing.consistent_phase_by import (
     assert_phase_by_is_consistent_with_unitary,
+)
+
+from cirq.testing.consistent_controlled_gate_op import (
+    assert_controlled_and_controlled_by_identical,
 )
 
 from cirq.testing.consistent_decomposition import (

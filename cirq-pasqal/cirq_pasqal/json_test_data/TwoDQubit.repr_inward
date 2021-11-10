@@ -1,1 +1,1 @@
-cirq.pasqal.TwoDQubit(10, 11)
+cirq_pasqal.TwoDQubit(10, 11)

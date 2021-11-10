@@ -14,6 +14,10 @@
 
 """Devices, qubits, and sampler for Pasqal's neutral atom device."""
 
+from cirq_pasqal._version import (
+    __version__,
+)
+
 from cirq_pasqal.pasqal_qubits import (
     ThreeDQubit,
     TwoDQubit,

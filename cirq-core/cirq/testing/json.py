@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import dataclasses
 import inspect
 import io
 import pathlib
@@ -56,6 +56,11 @@ class ModuleJsonTestSpec:
     # {DeprecatedClass: deprecation_deadline} pairs to avoid deprecation errors
     # in serialization tests.
     deprecated: Dict[str, str]
+    # The unqualified public name is different from the cirq_type field of the json object,
+    # usually due to namespacing.
+    custom_class_name_to_cirq_type: Dict[str, str] = dataclasses.field(default_factory=dict)
+    # Special cases where classes cannot be tested using the normal infrastructure.
+    tested_elsewhere: List[str] = dataclasses.field(default_factory=list)
 
     def __repr__(self):
         return self.name
@@ -79,6 +84,7 @@ class ModuleJsonTestSpec:
                 if inspect.isclass(obj) and inspect.isabstract(obj):
                     continue
 
+                name = self.custom_class_name_to_cirq_type.get(name, name)
                 yield name, obj
 
     def find_classes_that_should_serialize(self) -> Set[Tuple[str, Type]]:
@@ -103,6 +109,9 @@ class ModuleJsonTestSpec:
         for m in self.packages:
             for name, _ in inspect.getmembers(m, not_module_or_function):
                 yield name
+
+        for name, _ in self.get_resolver_cache_types():
+            yield name
 
     def all_test_data_keys(self) -> List[str]:
         seen = set()

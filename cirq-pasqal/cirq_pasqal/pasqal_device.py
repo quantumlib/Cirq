@@ -76,7 +76,7 @@ class PasqalDevice(cirq.devices.Device):
             cirq.IdentityGate,
             cirq.MeasurementGate,
             unroll_circuit_op=False,
-            accept_global_phase=False,
+            accept_global_phase_op=False,
         )
         self.qubits = qubits
 
@@ -99,7 +99,7 @@ class PasqalDevice(cirq.devices.Device):
 
         decomposition = [operation]
 
-        if not isinstance(operation, (cirq.ops.GateOperation, cirq.ParallelGateOperation)):
+        if not isinstance(operation, cirq.ops.GateOperation):
             raise TypeError(f"{operation!r} is not a gate operation.")
 
         # Try to decompose the operation into elementary device operations
@@ -127,7 +127,7 @@ class PasqalDevice(cirq.devices.Device):
             ValueError: If the operation is not valid
         """
 
-        if not isinstance(operation, (cirq.GateOperation, cirq.ParallelGateOperation)):
+        if not isinstance(operation, cirq.GateOperation):
             raise ValueError("Unsupported operation")
 
         if not self.is_pasqal_device_op(operation):

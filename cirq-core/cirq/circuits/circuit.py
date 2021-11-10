@@ -50,7 +50,7 @@ import networkx
 import numpy as np
 
 import cirq._version
-from cirq import devices, ops, protocols, qis
+from cirq import devices, ops, protocols, value, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -908,6 +908,12 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
+    def all_measurement_key_objs(self) -> AbstractSet[value.MeasurementKey]:
+        return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
+
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        return self.all_measurement_key_objs()
+
     def all_measurement_key_names(self) -> AbstractSet[str]:
         return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
 
@@ -922,6 +928,11 @@ class AbstractCircuit(abc.ABC):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return self._with_sliced_moments(
             [protocols.with_key_path(moment, path) for moment in self.moments]
+        )
+
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return self._with_sliced_moments(
+            [protocols.with_key_path_prefix(moment, prefix) for moment in self.moments]
         )
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -1862,9 +1873,14 @@ class Circuit(AbstractCircuit):
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
+        op_control_keys = protocols.control_keys(op)
+        op_qubits = op.qubits
         while k > 0:
             k -= 1
-            if not self._can_commute_past(k, op):
+            moment = self._moments[k]
+            if moment.operates_on(op_qubits) or (
+                op_control_keys & protocols.measurement_key_objs(moment)
+            ):
                 return last_available
             if self._can_add_op_at(k, op):
                 last_available = k
@@ -1917,9 +1933,6 @@ class Circuit(AbstractCircuit):
         if not 0 <= moment_index < len(self._moments):
             return True
         return self._device.can_add_operation_into_moment(operation, self._moments[moment_index])
-
-    def _can_commute_past(self, moment_index: int, operation: 'cirq.Operation') -> bool:
-        return not self._moments[moment_index].operates_on(operation.qubits)
 
     def insert(
         self,
@@ -2228,7 +2241,7 @@ class Circuit(AbstractCircuit):
         shift = 0
         # Note: python `sorted` is guaranteed to be stable. This matters.
         insertions = sorted(insertions, key=lambda e: e[0])
-        groups = _group_until_different(insertions, key=lambda e: e[0], value=lambda e: e[1])
+        groups = _group_until_different(insertions, key=lambda e: e[0], val=lambda e: e[1])
         for i, group in groups:
             insert_index = i + shift
             next_index = copy.insert(insert_index, reversed(group), InsertStrategy.EARLIEST)
@@ -2612,19 +2625,19 @@ def _group_until_different(
 
 @overload
 def _group_until_different(
-    items: Iterable[TIn], key: Callable[[TIn], TKey], value: Callable[[TIn], TOut]
+    items: Iterable[TIn], key: Callable[[TIn], TKey], val: Callable[[TIn], TOut]
 ) -> Iterable[Tuple[TKey, List[TOut]]]:
     pass
 
 
-def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], value=lambda e: e):
+def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], val=lambda e: e):
     """Groups runs of items that are identical according to a keying function.
 
     Args:
         items: The items to group.
         key: If two adjacent items produce the same output from this function,
             they will be grouped.
-        value: Maps each item into a value to put in the group. Defaults to the
+        val: Maps each item into a value to put in the group. Defaults to the
             item itself.
 
     Examples:
@@ -2640,4 +2653,4 @@ def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], val
     Yields:
         Tuples containing the group key and item values.
     """
-    return ((k, [value(i) for i in v]) for (k, v) in groupby(items, key))
+    return ((k, [val(i) for i in v]) for (k, v) in groupby(items, key))

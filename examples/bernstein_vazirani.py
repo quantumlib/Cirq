@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Demonstrates the Bernstein-Vazirani algorithm.
 
 The (non-recursive) Bernstein-Vazirani algorithm takes a black-box oracle

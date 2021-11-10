@@ -85,6 +85,9 @@ class CircuitOperation(ops.Operation):
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
+    _cached_measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = dataclasses.field(
+        default=None, init=False
+    )
 
     circuit: 'cirq.FrozenCircuit'
     repetitions: int = 1
@@ -172,21 +175,27 @@ class CircuitOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return self.circuit._is_measurement_()
 
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        if self._cached_measurement_key_objs is None:
+            circuit_keys = protocols.measurement_key_objs(self.circuit)
+            if self.repetition_ids is not None:
+                circuit_keys = {
+                    key.with_key_path_prefix(repetition_id)
+                    for repetition_id in self.repetition_ids
+                    for key in circuit_keys
+                }
+            object.__setattr__(
+                self,
+                '_cached_measurement_key_objs',
+                {
+                    protocols.with_measurement_key_mapping(key, self.measurement_key_map)
+                    for key in circuit_keys
+                },
+            )
+        return self._cached_measurement_key_objs  # type: ignore
+
     def _measurement_key_names_(self) -> AbstractSet[str]:
-        circuit_keys = [
-            value.MeasurementKey.parse_serialized(key_str)
-            for key_str in self.circuit.all_measurement_key_names()
-        ]
-        if self.repetition_ids is not None:
-            circuit_keys = [
-                key.with_key_path_prefix(repetition_id)
-                for repetition_id in self.repetition_ids
-                for key in circuit_keys
-            ]
-        return {
-            str(protocols.with_measurement_key_mapping(key, self.measurement_key_map))
-            for key in circuit_keys
-        }
+        return {str(key) for key in self._measurement_key_objs_()}
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return {
@@ -218,37 +227,19 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if deep:
-
-            def map_deep(op: 'cirq.Operation') -> 'cirq.OP_TREE':
-                return op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
-
-            if self.repetition_ids is None:
-                return circuit.map_operations(map_deep)
-            if not has_measurements:
-                return circuit.map_operations(map_deep) * abs(self.repetitions)
-
-            # Path must be constructed from the top down.
-            rekeyed_circuit = circuits.Circuit(
-                protocols.with_key_path(circuit, self.parent_path + (rep,))
-                for rep in self.repetition_ids
+            circuit = circuit.map_operations(
+                lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
             )
-            return rekeyed_circuit.map_operations(map_deep)
-
-        if self.repetition_ids is None:
-            return circuit
-        if not has_measurements:
-            return circuit * abs(self.repetitions)
-
-        def rekey_op(op: 'cirq.Operation', rep: str):
-            """Update measurement keys in `op` to include repetition ID `rep`."""
-            rekeyed_op = protocols.with_key_path(op, self.parent_path + (rep,))
-            if rekeyed_op is NotImplemented:
-                return op
-            return rekeyed_op
-
-        return circuits.Circuit(
-            circuit.map_operations(lambda op: rekey_op(op, rep)) for rep in self.repetition_ids
-        )
+        if self.repetition_ids:
+            if not has_measurements:
+                circuit = circuit * abs(self.repetitions)
+            else:
+                circuit = circuits.Circuit(
+                    protocols.with_key_path_prefix(circuit, (rep,)) for rep in self.repetition_ids
+                )
+        if self.parent_path:
+            circuit = protocols.with_key_path_prefix(circuit, self.parent_path)
+        return circuit
 
     def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
         """As `mapped_circuit`, but wraps the result in a CircuitOperation."""
@@ -435,6 +426,9 @@ class CircuitOperation(ops.Operation):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return dataclasses.replace(self, parent_path=path)
 
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return dataclasses.replace(self, parent_path=prefix + self.parent_path)
+
     def with_key_path(self, path: Tuple[str, ...]):
         return self._with_key_path_(path)
 
@@ -523,14 +517,14 @@ class CircuitOperation(ops.Operation):
                 keys than this operation.
         """
         new_map = {}
-        for k in self.circuit.all_measurement_key_names():
-            k = value.MeasurementKey.parse_serialized(k).name
+        for k_obj in self.circuit.all_measurement_key_objs():
+            k = k_obj.name
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
             if k_new != k:
                 new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
-        if len(new_op._measurement_key_names_()) != len(self._measurement_key_names_()):
+        if len(new_op._measurement_key_objs_()) != len(self._measurement_key_objs_()):
             raise ValueError(
                 f'Collision in measurement key map composition. Original map:\n'
                 f'{self.measurement_key_map}\nApplied changes: {key_map}'

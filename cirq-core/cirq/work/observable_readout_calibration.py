@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import dataclasses
 from typing import Union, Iterable, TYPE_CHECKING
 

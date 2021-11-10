@@ -453,7 +453,8 @@ def test_parses_single_qubit_gate(gate):
     itertools.product(_all_clifford_gates(), _paulis, (1.0, 0.25, 0.5, -0.5)),
 )
 def test_commutes_pauli(gate, pauli, half_turns):
-    pauli_gate = pauli ** half_turns
+    # TODO(#4328) cirq.X**1 should be _PauliX instead of XPowGate
+    pauli_gate = pauli if half_turns == 1 else pauli ** half_turns
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit(
         gate(q0),
@@ -465,7 +466,41 @@ def test_commutes_pauli(gate, pauli, half_turns):
     ).unitary()
     commutes = cirq.commutes(gate, pauli_gate)
     commutes_check = np.allclose(mat, mat_swap)
-    assert commutes == commutes_check
+    assert commutes == commutes_check, f"gate: {gate}, pauli {pauli}"
+
+
+def test_to_clifford_tableau_util_function():
+
+    tableau = cirq.ops.clifford_gate._to_clifford_tableau(
+        x_to=cirq.PauliTransform(to=cirq.X, flip=False),
+        z_to=cirq.PauliTransform(to=cirq.Z, flip=False),
+    )
+    assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=0)
+
+    tableau = cirq.ops.clifford_gate._to_clifford_tableau(
+        x_to=cirq.PauliTransform(to=cirq.X, flip=False),
+        z_to=cirq.PauliTransform(to=cirq.Z, flip=True),
+    )
+    assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=1)
+
+    tableau = cirq.ops.clifford_gate._to_clifford_tableau(
+        rotation_map={
+            cirq.X: cirq.PauliTransform(to=cirq.X, flip=False),
+            cirq.Z: cirq.PauliTransform(to=cirq.Z, flip=False),
+        }
+    )
+    assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=0)
+
+    tableau = cirq.ops.clifford_gate._to_clifford_tableau(
+        rotation_map={
+            cirq.X: cirq.PauliTransform(to=cirq.X, flip=False),
+            cirq.Z: cirq.PauliTransform(to=cirq.Z, flip=True),
+        }
+    )
+    assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=1)
+
+    with pytest.raises(ValueError):
+        cirq.ops.clifford_gate._to_clifford_tableau()
 
 
 @pytest.mark.parametrize(
@@ -535,3 +570,17 @@ def test_to_phased_xz_gate(trans_x, trans_z):
     assert np.isclose(
         actual_phased_xz_gate.axis_phase_exponent, expect_phased_xz_gates.axis_phase_exponent
     )
+
+
+def test_from_xz_to_clifford_tableau():
+    seen_tableau = []
+    for trans_x, trans_z in _all_rotation_pairs():
+        tableau = cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z).clifford_tableau
+        tableau_number = sum(2 ** i * t for i, t in enumerate(tableau.matrix().ravel()))
+        tableau_number = tableau_number * 4 + 2 * tableau.rs[0] + tableau.rs[1]
+        seen_tableau.append(tableau_number)
+        # Satisfy the symplectic property
+        assert sum(tableau.matrix()[0, :2] * tableau.matrix()[1, 1::-1]) % 2 == 1
+
+    # Should not have any duplication.
+    assert len(set(seen_tableau)) == 24
