@@ -76,7 +76,7 @@ class AQTSampler(cirq.Sampler):
             json formatted string of the sequence.
 
         Raises:
-                RuntimeError: If the circuit is empty.
+            RuntimeError: If the circuit is empty.
         """
 
         seq_list: List[
