@@ -579,6 +579,7 @@ from cirq.protocols import (
     unitary,
     validate_mixture,
     with_key_path,
+    with_key_path_prefix,
     with_measurement_key_mapping,
 )
 

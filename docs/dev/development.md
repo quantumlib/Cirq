@@ -279,7 +279,7 @@ def some_method(a: int, b: str) -> float:
     Notice that this docstring is an r-string, since the latex has backslashes.
     We can also include example code:
 
-        print(cirq.google.Foxtail)
+        print(cirq_google.Foxtail)
 
     You can also do inline latex like $y = x^2$ and inline code like
     `cirq.unitary(cirq.X)`.
@@ -416,6 +416,6 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 
     ```bash
     python -m pip install cirq
-    python -c "import cirq; print(cirq.google.Foxtail)"
+    python -c "import cirq; print(cirq_google.Foxtail)"
     python -c "import cirq; print(cirq.__version__)"
     ```

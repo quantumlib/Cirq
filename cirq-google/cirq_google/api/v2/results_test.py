@@ -201,7 +201,7 @@ def test_results_to_proto_sweep_repetitions():
             ),
         ]
     ]
-    with pytest.raises(ValueError, match='different numbers of repetitions'):
+    with pytest.raises(ValueError, match='Different numbers of repetitions'):
         v2.results_to_proto(trial_results, measurements)
 
 
@@ -270,7 +270,7 @@ def test_results_from_proto_duplicate_qubit():
         qmr = mr.qubit_measurement_results.add()
         qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])
-    with pytest.raises(ValueError, match='qubit already exists'):
+    with pytest.raises(ValueError, match='Qubit already exists'):
         v2.results_from_proto(proto, measurements)
 
 

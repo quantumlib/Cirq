@@ -235,6 +235,12 @@ class Moment:
             for op in self.operations
         )
 
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return Moment(
+            protocols.with_key_path_prefix(op, prefix) if protocols.is_measurement(op) else op
+            for op in self.operations
+        )
+
     def __copy__(self):
         return type(self)(self.operations)
 
