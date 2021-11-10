@@ -315,7 +315,7 @@ class SimulatorBase(
 
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(program.all_qubits())
         initial_state = 0 if initial_state is None else initial_state
-        act_on_args = self._create_act_on_args(initial_state, qubits)
+        sim_state = self._create_act_on_args(initial_state, qubits)
         prefix, suffix = (
             split_into_matching_protocol_then_general(program, sweep_prefixable)
             if self._can_be_in_run_prefix(self.noise)
@@ -324,11 +324,11 @@ class SimulatorBase(
         step_result = None
         for step_result in self._core_iterator(
             circuit=prefix,
-            sim_state=act_on_args,
+            sim_state=sim_state,
         ):
             pass
-        act_on_args = step_result._sim_state
-        yield from super().simulate_sweep_iter(suffix, params, qubit_order, act_on_args)
+        sim_state = step_result._sim_state
+        yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
 
     def _create_act_on_args(
         self,
