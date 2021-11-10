@@ -19,7 +19,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, 
 
 import numpy as np
 
-from cirq import protocols, value, _compat
+from cirq import protocols, value
 from cirq.ops import raw_types, common_gates, pauli_gates, gate_features, identity
 
 
@@ -53,6 +53,10 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
         (including identity). The input $\rho$ is the density matrix before the
         depolarization.
+
+        Note: prior to Cirq v0.14, this class contained `num_qubits` as a property.
+        This violates the contract of `cirq.Gate` so it was removed.  One can
+        instead get the number of qubits by calling the method `num_qubits`.
 
         Args:
             p_x: The probability that a Pauli X and no other gate occurs.
@@ -178,13 +182,6 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         if self._num_qubits != 1:
             raise ValueError('num_qubits should be 1')
         return self._error_probabilities.get('Z', 0.0)
-
-    # The following property was deprecated in Cirq v0.14. Please use the num_qubits methos instead.
-    #
-    # @property
-    # def num_qubits(self) -> int:
-    #     """"The number of qubits"""
-    #     return self._num_qubits
 
     @property
     def error_probabilities(self) -> Dict[str, float]:

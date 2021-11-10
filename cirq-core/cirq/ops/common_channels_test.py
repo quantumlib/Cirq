@@ -731,7 +731,7 @@ def test_default_asymmetric_depolarizing_channel():
     assert d.p_x == 0.0
     assert d.p_y == 0.0
     assert d.p_z == 0.0
-    d.num_qubits() == 1
+    assert d.num_qubits() == 1
 
 
 def test_bad_error_probabilities_gate():
