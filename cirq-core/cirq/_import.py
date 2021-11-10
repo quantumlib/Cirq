@@ -206,7 +206,7 @@ class LazyLoader(ModuleType):
         """Load the module and insert it into the parent's globals."""
         # Import the target module and insert it into the parent's namespace
         if self._module:
-            return module
+            return self._module
         self._module = importlib.import_module(self.__name__)
         self._parent_module_globals[self._local_name] = self._module
 
