@@ -812,7 +812,7 @@ def test_tag_propagation():
         assert test_tag not in op.tags
 
 
-def test_keys_under_parent_path():
+def test_mapped_circuit_keeps_keys_under_parent_path():
     q = cirq.LineQubit(0)
     op1 = cirq.CircuitOperation(
         cirq.FrozenCircuit(
