@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Attempt to tabulate single qubit gates required to generate a target 2Q gate
 with a product A k A."""
 from functools import reduce

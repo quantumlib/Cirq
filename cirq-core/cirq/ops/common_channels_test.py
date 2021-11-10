@@ -64,6 +64,8 @@ def test_asymmetric_depolarizing_channel():
     )
     assert cirq.has_kraus(d)
 
+    assert cirq.AsymmetricDepolarizingChannel(p_x=0, p_y=0.1, p_z=0).num_qubits() == 1
+
 
 def test_asymmetric_depolarizing_mixture():
     d = cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
@@ -729,7 +731,7 @@ def test_default_asymmetric_depolarizing_channel():
     assert d.p_x == 0.0
     assert d.p_y == 0.0
     assert d.p_z == 0.0
-    assert d.num_qubits == 1
+    assert d.num_qubits() == 1
 
 
 def test_bad_error_probabilities_gate():

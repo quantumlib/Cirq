@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import Any, Dict, Iterable, Tuple, Union
 import numpy as np
 
@@ -89,6 +90,11 @@ class KrausChannel(raw_types.Gate):
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         return KrausChannel(kraus_ops=self._kraus_ops, key=protocols.with_key_path(self._key, path))
+
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return KrausChannel(
+            kraus_ops=self._kraus_ops, key=protocols.with_key_path_prefix(self._key, prefix)
+        )
 
     def __str__(self):
         if self._key is not None:

@@ -227,37 +227,19 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if deep:
-
-            def map_deep(op: 'cirq.Operation') -> 'cirq.OP_TREE':
-                return op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
-
-            if self.repetition_ids is None:
-                return circuit.map_operations(map_deep)
-            if not has_measurements:
-                return circuit.map_operations(map_deep) * abs(self.repetitions)
-
-            # Path must be constructed from the top down.
-            rekeyed_circuit = circuits.Circuit(
-                protocols.with_key_path(circuit, self.parent_path + (rep,))
-                for rep in self.repetition_ids
+            circuit = circuit.map_operations(
+                lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
             )
-            return rekeyed_circuit.map_operations(map_deep)
-
-        if self.repetition_ids is None:
-            return circuit
-        if not has_measurements:
-            return circuit * abs(self.repetitions)
-
-        def rekey_op(op: 'cirq.Operation', rep: str):
-            """Update measurement keys in `op` to include repetition ID `rep`."""
-            rekeyed_op = protocols.with_key_path(op, self.parent_path + (rep,))
-            if rekeyed_op is NotImplemented:
-                return op
-            return rekeyed_op
-
-        return circuits.Circuit(
-            circuit.map_operations(lambda op: rekey_op(op, rep)) for rep in self.repetition_ids
-        )
+        if self.repetition_ids:
+            if not has_measurements:
+                circuit = circuit * abs(self.repetitions)
+            else:
+                circuit = circuits.Circuit(
+                    protocols.with_key_path_prefix(circuit, (rep,)) for rep in self.repetition_ids
+                )
+        if self.parent_path:
+            circuit = protocols.with_key_path_prefix(circuit, self.parent_path)
+        return circuit
 
     def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
         """As `mapped_circuit`, but wraps the result in a CircuitOperation."""
@@ -443,6 +425,9 @@ class CircuitOperation(ops.Operation):
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         return dataclasses.replace(self, parent_path=path)
+
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return dataclasses.replace(self, parent_path=prefix + self.parent_path)
 
     def with_key_path(self, path: Tuple[str, ...]):
         return self._with_key_path_(path)

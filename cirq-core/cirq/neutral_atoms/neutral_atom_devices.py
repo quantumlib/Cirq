@@ -139,7 +139,7 @@ class NeutralAtomDevice(devices.Device):
                 gate
         """
         self.validate_operation(operation)
-        if isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
+        if isinstance(operation, ops.GateOperation):
             if isinstance(operation.gate, ops.MeasurementGate):
                 return self._measurement_duration
         return self._gate_duration
@@ -167,7 +167,7 @@ class NeutralAtomDevice(devices.Device):
         Raises:
             ValueError: If the operation is not valid
         """
-        if not isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
+        if not isinstance(operation, ops.GateOperation):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
         # All qubits the operation acts on must be on the device
@@ -219,7 +219,7 @@ class NeutralAtomDevice(devices.Device):
 
         categorized_ops: DefaultDict = collections.defaultdict(list)
         for op in moment.operations:
-            assert isinstance(op, (ops.GateOperation, ops.ParallelGateOperation))
+            assert isinstance(op, ops.GateOperation)
             for k, v in CATEGORIES.items():
                 assert isinstance(v, tuple)
                 gate = _subgate_if_parallel_gate(op.gate)
