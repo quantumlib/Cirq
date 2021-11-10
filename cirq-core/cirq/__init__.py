@@ -503,6 +503,7 @@ from cirq.protocols import (
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     commutes,
+    control_keys,
     decompose,
     decompose_once,
     decompose_once_with_qubits,
@@ -550,6 +551,7 @@ from cirq.protocols import (
     SupportsConsistentApplyUnitary,
     SupportsCircuitDiagramInfo,
     SupportsCommutes,
+    SupportsControlKey,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
     SupportsEqualUpToGlobalPhase,
@@ -576,6 +578,7 @@ from cirq.protocols import (
     unitary,
     validate_mixture,
     with_key_path,
+    with_key_path_prefix,
     with_measurement_key_mapping,
 )
 
