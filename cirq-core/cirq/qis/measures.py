@@ -17,7 +17,6 @@
 from typing import Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
-import scipy
 
 from cirq import protocols, value, _import
 from cirq.qis.states import (
