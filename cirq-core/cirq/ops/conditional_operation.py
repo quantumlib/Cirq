@@ -152,11 +152,12 @@ class ConditionalOperation(raw_types.Operation):
             if key in local_keys:
                 return protocols.with_key_path_prefix(key, path)
             for i in range(len(path)):
-                back_path = path[0:len(path) - i]
+                back_path = path[0 : len(path) - i]
                 new_key = protocols.with_key_path_prefix(key, back_path)
                 if new_key in extern_keys:
                     return new_key
             return key
+
         return ConditionalOperation(
             self._sub_operation,
             [map_key(k) for k in self._control_keys],

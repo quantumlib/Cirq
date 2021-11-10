@@ -355,13 +355,13 @@ def test_scope_local():
         cirq.measure(q, key='a'),
         cirq.X(q).with_conditions('a'),
     )
-    middle = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=2)
-    )
+    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
     circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
-    keys = [str(list(op.conditions)[0])
-            for op in circuit.all_operations()
-            if isinstance(op, ConditionalOperation)]
+    keys = [
+        str(list(op.conditions)[0])
+        for op in circuit.all_operations()
+        if isinstance(op, ConditionalOperation)
+    ]
     assert keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
 
 
@@ -373,12 +373,14 @@ def test_scope_extern():
     )
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('b')),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2)
+        cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
     circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
-    keys = [str(list(op.conditions)[0])
-            for op in circuit.all_operations()
-            if isinstance(op, ConditionalOperation)]
+    keys = [
+        str(list(op.conditions)[0])
+        for op in circuit.all_operations()
+        if isinstance(op, ConditionalOperation)
+    ]
     assert keys == ['0:b', '0:b', '1:b', '1:b']
 
 
@@ -390,12 +392,14 @@ def test_scope_root():
     )
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('c')),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2)
+        cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
     circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
-    keys = [str(list(op.conditions)[0])
-            for op in circuit.all_operations()
-            if isinstance(op, ConditionalOperation)]
+    keys = [
+        str(list(op.conditions)[0])
+        for op in circuit.all_operations()
+        if isinstance(op, ConditionalOperation)
+    ]
     assert keys == ['b', 'b', 'b', 'b']
 
 
@@ -407,12 +411,14 @@ def test_scope_extern_mismatch():
     )
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('b', ('0',))),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2)
+        cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
     circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
-    keys = [str(list(op.conditions)[0])
-            for op in circuit.all_operations()
-            if isinstance(op, ConditionalOperation)]
+    keys = [
+        str(list(op.conditions)[0])
+        for op in circuit.all_operations()
+        if isinstance(op, ConditionalOperation)
+    ]
     assert keys == ['b', 'b', 'b', 'b']
 
 
@@ -424,7 +430,7 @@ def test_scope_conflict():
     )
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('a', ('0',))),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2)
+        cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
     with pytest.raises(ValueError, match='Key conflicts externally'):
         _ = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)

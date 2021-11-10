@@ -238,8 +238,7 @@ class CircuitOperation(ops.Operation):
                 circuit = circuit * abs(self.repetitions)
             else:
                 circuit = circuits.Circuit(
-                    protocols.with_key_path_prefix(circuit, (rep,))
-                    for rep in self.repetition_ids
+                    protocols.with_key_path_prefix(circuit, (rep,)) for rep in self.repetition_ids
                 )
         circuit = protocols.with_key_path_prefix(
             circuit, self.parent_path, extern_keys=self.extern_keys
