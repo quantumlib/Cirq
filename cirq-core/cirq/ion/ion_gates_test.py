@@ -77,4 +77,4 @@ def test_json_serialization():
     assert cirq.read_json(
         json_text=cirq.to_json(cirq.ms(np.pi / 2)), resolvers=[custom_resolver]
     ) == cirq.ms(np.pi / 2)
-    assert custom_resolver('X') == None
+    assert custom_resolver('X') is None

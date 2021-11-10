@@ -52,4 +52,4 @@ def test_isolated_packages(cloned_env, module):
         err=shell_tools.TeeCapture(),
         raise_on_fail=False,
     )
-    assert result.exit_code == 0, f"Failed isolated tests for {module.name}:\n{result.stdout}"
+    assert result.exit_code == 0, f"Failed isolated tests for {module.name}:\n{result.out}"

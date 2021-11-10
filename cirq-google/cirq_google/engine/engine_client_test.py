@@ -1028,7 +1028,7 @@ def test_get_reservation_not_found(client_constructor):
 
     client = EngineClient()
     assert (client.get_reservation('proj', 'processor0',
-                                   'papar-party-44') == None)
+                                   'papar-party-44') is None)
     kwargs = grpc_client.get_quantum_reservation.call_args[1]
     assert kwargs == {
         'name': name,

@@ -536,7 +536,7 @@ def test_deserialize_circuit_op_errors():
         serializers=[X_SERIALIZER],
         deserializers=[X_DESERIALIZER],
     )
-    with pytest.raises(ValueError, match='Unsupported serialized CircuitOperation'):
+    with pytest.raises(ValueError, match='Unsupported deserialized of a CircuitOperation'):
         NO_CIRCUIT_OP_GATE_SET.deserialize_op(
             proto, constants=constants, deserialized_constants=deserialized_constants
         )

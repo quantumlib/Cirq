@@ -83,6 +83,21 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
+class ControlOp(cirq.Operation):
+    def __init__(self, keys):
+        self._keys = keys
+
+    def with_qubits(self, *new_qids):
+        pass  # coverage: ignore
+
+    @property
+    def qubits(self):
+        return []  # coverage: ignore
+
+    def _control_keys_(self):
+        return self._keys
+
+
 def test_alignment():
     assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
     assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
@@ -222,6 +237,21 @@ def test_append_single():
     c = cirq.Circuit()
     c.append([cirq.X(a)])
     assert c == cirq.Circuit([cirq.Moment([cirq.X(a)])])
+
+
+def test_append_control_key():
+    q = cirq.LineQubit(0)
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q, key='a'))
+    c.append(ControlOp([cirq.MeasurementKey('a')]))
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q, key='a'))
+    c.append(ControlOp([cirq.MeasurementKey('b')]))
+    c.append(ControlOp([cirq.MeasurementKey('b')]))
+    assert len(c) == 1
 
 
 def test_append_multiple():

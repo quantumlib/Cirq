@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, cast, List, Optional
+from types import ModuleType
+from importlib.machinery import ModuleSpec
+from importlib.abc import Loader
 
 from contextlib import contextmanager
 import importlib
+from importlib import abc
 import sys
 
-# Bug workaround: https://github.com/python/mypy/issues/1498
-ModuleType = Any
 
-
-class InstrumentedFinder(importlib.abc.MetaPathFinder):
+class InstrumentedFinder(abc.MetaPathFinder):
     """A module finder used to hook the python import statement."""
 
     def __init__(
@@ -74,7 +75,7 @@ class InstrumentedFinder(importlib.abc.MetaPathFinder):
         return spec
 
 
-class InstrumentedLoader(importlib.abc.Loader):
+class InstrumentedLoader(abc.Loader):
     """A module loader used to hook the python import statement."""
 
     def __init__(
@@ -106,12 +107,12 @@ class InstrumentedLoader(importlib.abc.Loader):
         self.wrap_module = wrap_module
         self.after_exec = after_exec
 
-    def create_module(self, spec: ModuleType) -> ModuleType:
+    def create_module(self, spec: ModuleSpec) -> ModuleType:
         return self.loader.create_module(spec)
 
     def exec_module(self, module: ModuleType) -> None:
-        module = self.wrap_module(module)
-        if module is not None:
+        wrapped_module = self.wrap_module(module)
+        if wrapped_module is not None:
             self.loader.exec_module(module)
             self.after_exec(module)
 
@@ -168,4 +169,5 @@ def delay_import(module_name: str):
 
     delay = False
     for module in execute_list:
-        module.__loader__.exec_module(module)  # Calls back into wrap_func
+        if module.__loader__ is not None and hasattr(module.__loader__, 'exec_module'):
+            cast(Loader, module.__loader__).exec_module(module)  # Calls back into wrap_func
