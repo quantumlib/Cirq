@@ -142,6 +142,12 @@ class ConditionalOperation(raw_types.Operation):
             [protocols.with_measurement_key_mapping(k, key_map) for k in self._control_keys],
         )
 
+    def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'ConditionalOperation':
+        return ConditionalOperation(
+            self._sub_operation,
+            [protocols.with_key_path_prefix(k, path) for k in self._control_keys],
+        )
+
     def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
         return frozenset(self._control_keys).union(protocols.control_keys(self._sub_operation))
 
