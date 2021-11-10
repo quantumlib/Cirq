@@ -282,12 +282,12 @@ def test_subcircuit_key_set(sim):
     q0, q1 = cirq.LineQubit.range(2)
     inner = cirq.Circuit(
         cirq.X(q0),
-        cirq.measure(q0, key='circuit'),
-        ConditionalOperation(cirq.X(q1), ['circuit']),
+        cirq.measure(q0, key='c'),
+        ConditionalOperation(cirq.X(q1), ['c']),
         cirq.measure(q1, key='b'),
     )
     circuit = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=4, measurement_key_map={'circuit': 'a'})
+        cirq.CircuitOperation(inner.freeze(), repetitions=4, measurement_key_map={'c': 'a'})
     )
     result = sim.run(circuit)
     assert result.measurements['0:a'] == 1
@@ -347,3 +347,76 @@ def test_pow():
     inner = cirq.X(q0)
     op = ConditionalOperation(inner, ['a']) ** 2
     assert op.sub_operation == inner ** 2
+
+
+def test_scope_local():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        ConditionalOperation(cirq.X(q), ['a']),
+    )
+    middle = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2)
+    )
+    circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
+    keys = [str(op.controls[0]) for op in circuit.all_operations() if isinstance(op, ConditionalOperation)]
+    assert keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
+
+
+def test_scope_extern():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        ConditionalOperation(cirq.X(q), ['b']),
+    )
+    middle = cirq.Circuit(
+        cirq.measure(q, key=cirq.MeasurementKey('b')),
+        cirq.CircuitOperation(inner.freeze(), repetitions=2)
+    )
+    circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
+    keys = [str(op.controls[0]) for op in circuit.all_operations() if isinstance(op, ConditionalOperation)]
+    assert keys == ['0:b', '0:b', '1:b', '1:b']
+
+
+def test_scope_root():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        ConditionalOperation(cirq.X(q), ['b']),
+    )
+    middle = cirq.Circuit(
+        cirq.measure(q, key=cirq.MeasurementKey('c')),
+        cirq.CircuitOperation(inner.freeze(), repetitions=2)
+    )
+    circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
+    keys = [str(op.controls[0]) for op in circuit.all_operations() if isinstance(op, ConditionalOperation)]
+    assert keys == ['b', 'b', 'b', 'b']
+
+
+def test_scope_extern_mismatch():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        ConditionalOperation(cirq.X(q), ['b']),
+    )
+    middle = cirq.Circuit(
+        cirq.measure(q, key=cirq.MeasurementKey('b', ('0',))),
+        cirq.CircuitOperation(inner.freeze(), repetitions=2)
+    )
+    circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
+    keys = [str(op.controls[0]) for op in circuit.all_operations() if isinstance(op, ConditionalOperation)]
+    assert keys == ['b', 'b', 'b', 'b']
+
+
+def test_scope_conflict():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        ConditionalOperation(cirq.X(q), ['a']),
+    )
+    middle = cirq.Circuit(
+        cirq.measure(q, key=cirq.MeasurementKey('a', ('0',))),
+        cirq.CircuitOperation(inner.freeze(), repetitions=2)
+    )
+    with pytest.raises(ValueError, match='Key conflicts externally'):
+        _ = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
