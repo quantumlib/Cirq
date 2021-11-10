@@ -24,7 +24,7 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 
 """
 import json
-from typing import Any, cast, Dict, Optional, Sequence, List, Tuple, Union
+from typing import Any, cast, Dict, Optional, Sequence, List, Tuple, Type, Union
 import numpy as np
 import cirq
 
@@ -177,17 +177,17 @@ class AQTSimulator:
         """
         self.circuit = cirq.Circuit()
         json_obj = json.loads(json_string)
-        gate: Union[cirq.PhasedXPowGate, cirq.EigenGate]
+        gate: Union[Type[cirq.PhasedXPowGate], Type[cirq.EigenGate]]
         for circuit_list in json_obj:
             op_str = circuit_list[0]
             if op_str == 'R':
-                gate = cast(cirq.PhasedXPowGate, gate_dict[op_str])
+                gate = cast(Type[cirq.PhasedXPowGate], gate_dict[op_str])
                 theta = circuit_list[1]
                 phi = circuit_list[2]
                 qubits = [self.qubit_list[i] for i in circuit_list[3]]
                 self.circuit.append(gate(phase_exponent=phi, exponent=theta).on(*qubits))
             else:
-                gate = cast(cirq.EigenGate, gate_dict[op_str])
+                gate = cast(Type[cirq.EigenGate], gate_dict[op_str])
                 angle = circuit_list[1]
                 qubits = [self.qubit_list[i] for i in circuit_list[2]]
                 self.circuit.append(gate.on(*qubits) ** angle)

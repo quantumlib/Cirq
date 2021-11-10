@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Dict, Union
+from typing import cast, Callable, Dict, Union, Type
 
 import numpy as np
 from pyquil.parser import parse
@@ -189,7 +189,7 @@ RESET directives have special meaning on QCS, to enable active reset.
 """
 
 # Parameterized gates map to functions that produce Gate constructors.
-SUPPORTED_GATES: Dict[str, Union[Gate, Callable[..., Gate]]] = {
+SUPPORTED_GATES: Dict[str, Union[Gate, Type[Gate], Callable[..., Gate]]] = {
     "CCNOT": CCNOT,
     "CNOT": CNOT,
     "CSWAP": CSWAP,
@@ -258,7 +258,9 @@ def circuit_from_quil(quil: str) -> Circuit:
                 raise UndefinedQuilGate(f"Quil gate {quil_gate_name} not supported in Cirq.")
             cirq_gate_fn = defined_gates[quil_gate_name]
             if quil_gate_params:
-                circuit += cirq_gate_fn(*quil_gate_params)(*line_qubits)
+                circuit += cast(Union[Type[Gate], Callable[..., Gate]], cirq_gate_fn)(
+                    *quil_gate_params
+                )(*line_qubits)
             else:
                 circuit += cirq_gate_fn(*line_qubits)
 
