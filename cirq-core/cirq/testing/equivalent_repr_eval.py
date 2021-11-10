@@ -15,8 +15,6 @@
 from typing import Any, Dict, Optional
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def assert_equivalent_repr(
     value: Any,
     *,
@@ -37,10 +35,11 @@ def assert_equivalent_repr(
             evaluating the repr.
         local_vals: Pre-defined values that should be in the local scope when
             evaluating the repr.
+
+    Raises:
+        AssertionError: If the assertion fails, or eval(repr(value)) raises an error.
     """
-    # pylint: disable=unused-variable
-    __tracebackhide__ = True
-    # pylint: enable=unused-variable
+    __tracebackhide__ = True  # pylint: disable=unused-variable
 
     global_vals = global_vals or {}
     local_vals = local_vals or {}
@@ -99,6 +98,3 @@ def assert_equivalent_repr(
         "{!r}.XXX must be equivalent to ({!r}).XXX, "
         "but it wasn't.".format(type(value), value, value)
     )
-
-
-# pylint: enable=missing-raises-doc
