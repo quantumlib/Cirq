@@ -546,7 +546,7 @@ class CircuitOperation(ops.Operation):
                 keys than this operation.
         """
         new_map = {}
-        for k_obj in self.circuit.all_measurement_key_objs() | protocols.control_keys(self):
+        for k_obj in self.circuit.all_measurement_key_objs() | protocols.control_keys(self.circuit):
             k = k_obj.name
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
