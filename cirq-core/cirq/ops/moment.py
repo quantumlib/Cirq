@@ -214,7 +214,7 @@ class Moment:
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return Moment(
             protocols.with_measurement_key_mapping(op, key_map)
-            if protocols.is_measurement(op)
+            if protocols.is_measurement(op) or protocols.control_keys(op)
             else op
             for op in self.operations
         )

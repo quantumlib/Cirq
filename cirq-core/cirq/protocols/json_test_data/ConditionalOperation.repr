@@ -1,0 +1,1 @@
+cirq.ConditionalOperation(cirq.Y.on(cirq.NamedQubit('target')), [cirq.LineQubit(0), cirq.LineQubit(1)])

@@ -1181,7 +1181,15 @@ class AbstractCircuit(abc.ABC):
         Returns:
             The TextDiagramDrawer instance.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
+        qubits: Tuple[Any, ...] = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits()
+        )
+        cbits = tuple(
+            sorted(
+                (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
+            )
+        )
+        qubits = qubits + cbits
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
         if qubit_namer is None:
@@ -1212,7 +1220,7 @@ class AbstractCircuit(abc.ABC):
 
         w = diagram.width()
         for i in qubit_map.values():
-            diagram.horizontal_line(i, 0, w)
+            diagram.horizontal_line(i, 0, w, doubled=not isinstance(qubits[i], ops.Qid))
 
         if moment_groups and draw_moment_groups:
             _draw_moment_groups_in_diagram(moment_groups, use_unicode_characters, diagram)
@@ -1881,9 +1889,14 @@ class Circuit(AbstractCircuit):
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
+        op_control_keys = protocols.control_keys(op)
+        op_qubits = op.qubits
         while k > 0:
             k -= 1
-            if not self._can_commute_past(k, op):
+            moment = self._moments[k]
+            if moment.operates_on(op_qubits) or (
+                op_control_keys & protocols.measurement_key_objs(moment)
+            ):
                 return last_available
             if self._can_add_op_at(k, op):
                 last_available = k
@@ -1936,9 +1949,6 @@ class Circuit(AbstractCircuit):
         if not 0 <= moment_index < len(self._moments):
             return True
         return self._device.can_add_operation_into_moment(operation, self._moments[moment_index])
-
-    def _can_commute_past(self, moment_index: int, operation: 'cirq.Operation') -> bool:
-        return not self._moments[moment_index].operates_on(operation.qubits)
 
     def insert(
         self,
@@ -2427,7 +2437,12 @@ def _draw_moment_in_diagram(
 
     max_x = x0
     for op in non_global_ops:
-        indices = [qubit_map[q] for q in op.qubits]
+        qubits: Tuple[Any, ...] = tuple(op.qubits)
+        cbits = tuple(
+            (protocols.measurement_key_objs(op) | protocols.control_keys(op)) & qubit_map.keys()
+        )
+        qubits += cbits
+        indices = [qubit_map[q] for q in qubits]
         y1 = min(indices)
         y2 = max(indices)
 
@@ -2449,16 +2464,14 @@ def _draw_moment_in_diagram(
 
         # Draw vertical line linking the gate's qubits.
         if y2 > y1 and info.connected:
-            out_diagram.vertical_line(x, y1, y2)
+            out_diagram.vertical_line(x, y1, y2, doubled=len(cbits) != 0)
 
         # Print gate qubit labels.
         symbols = info._wire_symbols_including_formatted_exponent(
             args,
-            preferred_exponent_index=max(
-                range(len(op.qubits)), key=lambda i: qubit_map[op.qubits[i]]
-            ),
+            preferred_exponent_index=max(range(len(qubits)), key=lambda i: qubit_map[qubits[i]]),
         )
-        for s, q in zip(symbols, op.qubits):
+        for s, q in zip(symbols, qubits):
             out_diagram.write(x, qubit_map[q], s)
 
         if x > max_x:

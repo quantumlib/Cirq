@@ -212,7 +212,7 @@ class DensityMatrixSimulator(
 
     # pylint: enable=missing-param-doc
     def _can_be_in_run_prefix(self, val: Any):
-        return not protocols.is_measurement(val)
+        return not protocols.is_measurement(val) and not protocols.control_keys(val)
 
     def _create_step_result(
         self,
