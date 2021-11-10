@@ -243,7 +243,7 @@ class Moment:
     ):
         return Moment(
             protocols.with_key_path_prefix(op, path, local_keys, extern_keys)
-            if protocols.is_measurement(op)
+            if protocols.is_measurement(op) or protocols.control_keys(op)
             else op
             for op in self.operations
         )

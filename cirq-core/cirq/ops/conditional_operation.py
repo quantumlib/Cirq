@@ -16,6 +16,7 @@ from typing import (
     Any,
     cast,
     Dict,
+    FrozenSet,
     Optional,
     Sequence,
     TYPE_CHECKING,
@@ -149,6 +150,26 @@ class ConditionalOperation(raw_types.Operation):
         return ConditionalOperation(
             self._sub_operation,
             [protocols.with_measurement_key_mapping(k, key_map) for k in self._controls],
+        )
+
+    def _with_key_path_prefix_(
+        self,
+        path: Tuple[str, ...],
+        local_keys: FrozenSet[value.MeasurementKey],
+        extern_keys: FrozenSet[value.MeasurementKey],
+    ) -> 'ConditionalOperation':
+        def map_key(key: value.MeasurementKey) -> value.MeasurementKey:
+            if key in local_keys:
+                return protocols.with_key_path_prefix(key, path)
+            for i in range(len(path)):
+                back_path = path[0:len(path) - i - 1]
+                new_key = protocols.with_key_path_prefix(key, back_path)
+                if new_key in extern_keys:
+                    return new_key
+            return key
+        return ConditionalOperation(
+            self._sub_operation,
+            [map_key(k) for k in self._controls],
         )
 
     def _control_keys_(self) -> Tuple[value.MeasurementKey, ...]:
