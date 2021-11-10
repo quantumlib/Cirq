@@ -202,7 +202,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         _validate_qid_shape(self, qubits)
 
-    def on(self, *qubits: Qid) -> 'Operation':
+    def on(self, *qubits: Qid) -> 'cirq.Operation':
         """Returns an application of this gate to the given qubits.
 
         Args:
@@ -320,8 +320,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         return NotImplemented
 
-    def __call__(self, *args, **kwargs):
-        return self.on(*args, **kwargs)
+    def __call__(self, *qubits: Qid) -> 'cirq.Operation':
+        return self.on(*qubits)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
         from cirq.ops.random_gate_channel import RandomGateChannel
