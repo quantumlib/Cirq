@@ -10,7 +10,7 @@ processor.  For instance, there may be one or more qubit "drop-outs" that are
 non-functional for whatever reason.   There could also be new or experimental
 features enabled on some devices but not on others.
 
-This specification is defined in the Device proto within `cirq.google.api.v2`.
+This specification is defined in the Device proto within `cirq_google.api.v2`.
 
 ## Gate Set Specifications
 
@@ -40,7 +40,7 @@ device is shown below:
 import cirq
 
 # Create an Engine object to use.
-engine = cirq.google.Engine(project_id='your_project_id')
+engine = cirq_google.Engine(project_id='your_project_id')
 
 # Replace the processor id to get the device specification with that id.
 spec = engine.get_processor('processor_id').get_device_specification()
@@ -92,11 +92,11 @@ For instance, "Do not apply two CZ gates in a row."
 
 ## Serializable Devices
 
-The `cirq.google.SerializableDevice` class allows someone to take this
+The `cirq_google.SerializableDevice` class allows someone to take this
 device specification and turn it into a `cirq.Device` that can be used to
 verify a circuit.
 
-The `cirq.google.SerializableDevice` combines a `DeviceSpecification` protocol
+The `cirq_google.SerializableDevice` combines a `DeviceSpecification` protocol
 buffer (defining the device) with a `SerializableGateSet` (that defines the
 translation from serialized id to cirq) to produce a `cirq.Device` that can
 be used to validate a circuit.
@@ -106,11 +106,11 @@ from the engine and then using it to validate a circuit.
 
 ```
 import cirq
-import cirq.google as cg
+import cirq_google as cg
 
 # Create an Engine object to use.
 engine = cg.Engine(project_id='your_project_id',
-                   proto_version=cirq.google.ProtoVersion.V2)
+                   proto_version=cirq_google.ProtoVersion.V2)
 
 # Replace the processor id to get the device with that id.
 device = engine.get_processor('processor_id').get_device(

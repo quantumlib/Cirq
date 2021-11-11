@@ -21,11 +21,14 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 
-from cirq import circuits, ops, study, value
+from cirq import circuits, ops, study, value, _import
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
+
+# We initialize optimize lazily, otherwise it slows global import speed.
+optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")
 
 
 # TODO(#3388) Add documentation for Raises.
@@ -130,10 +133,7 @@ class T1DecayResult:
 
         # Fit to exponential decay to find the t1 constant
         try:
-            # Import scipy.optimize here to avoid costly module level import.
-            import scipy.optimize
-
-            popt, _ = scipy.optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess])
+            popt, _ = optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess])
             t1 = popt[0]
             return t1
         except RuntimeError:
