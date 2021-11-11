@@ -131,11 +131,6 @@ class ConditionalOperation(raw_types.Operation):
             protocols.act_on(self._sub_operation, args)
         return True
 
-    def _with_key_path_(self, path: Tuple[str, ...]) -> 'ConditionalOperation':
-        return ConditionalOperation(
-            self._sub_operation, [protocols.with_key_path(k, path) for k in self._control_keys]
-        )
-
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'ConditionalOperation':
         return ConditionalOperation(
             self._sub_operation,
