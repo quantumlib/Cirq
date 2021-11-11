@@ -1,3 +1,17 @@
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import numpy as np
 import pytest
 
@@ -48,8 +62,8 @@ def test_create_thermal_noise_per_qubit():
         dephase_rate_GHz=dephase_rate_GHz,
     )
     assert model.gate_durations_ns == gate_durations
-    assert model.require_physical_tag == True
-    assert model.skip_measurements == True
+    assert model.require_physical_tag
+    assert model.skip_measurements
     assert np.allclose(model.rate_matrix_GHz[q0], np.array([[0, 1e-4], [1e-5, 3e-4]]))
     assert np.allclose(model.rate_matrix_GHz[q1], np.array([[0, 2e-4], [2e-5, 4e-4]]))
 
@@ -68,8 +82,8 @@ def test_create_thermal_noise_mixed_type():
         dephase_rate_GHz=dephase_rate_GHz,
     )
     assert model.gate_durations_ns == gate_durations
-    assert model.require_physical_tag == True
-    assert model.skip_measurements == True
+    assert model.require_physical_tag
+    assert model.skip_measurements
     assert np.allclose(model.rate_matrix_GHz[q0], np.array([[0, 1e-4], [0, 3e-4]]))
     assert np.allclose(model.rate_matrix_GHz[q1], np.array([[0, 2e-4], [0, 3e-4]]))
 
@@ -87,8 +101,8 @@ def test_incomplete_rates():
         dephase_rate_GHz=None,
     )
     assert model.gate_durations_ns == gate_durations
-    assert model.require_physical_tag == True
-    assert model.skip_measurements == True
+    assert model.require_physical_tag
+    assert model.skip_measurements
     assert np.allclose(model.rate_matrix_GHz[q0], np.array([[0, 1e-4], [0, 0]]))
     assert np.allclose(model.rate_matrix_GHz[q1], np.array([[0, 0], [1e-5, 0]]))
 
@@ -193,6 +207,38 @@ def test_noisy_moment_one_qubit():
             [0, 2.49656565e-03, 0, 0],
             [0, 0, 2.49656565e-04, 0],
             [9.91164267e-01, 0, 0, 9.97503434e-01],
+        ],
+    )
+
+
+def test_noise_from_wait():
+    # Verify that wait-gate noise is duration-dependent.
+    q0 = cirq.LineQubit(0)
+    gate_durations = {cirq.ZPowGate: 25.0}
+    heat_rate_GHz = {q0: 1e-5}
+    cool_rate_GHz = {q0: 1e-4}
+    model = ThermalNoiseModel(
+        qubit_dims={q0: 2},
+        gate_durations_ns=gate_durations,
+        heat_rate_GHz=heat_rate_GHz,
+        cool_rate_GHz=cool_rate_GHz,
+        dephase_rate_GHz=None,
+        require_physical_tag=False,
+        skip_measurements=True,
+    )
+    moment = cirq.Moment(cirq.wait(q0, nanos=100))
+    noisy_moment = model.noisy_moment(moment, system_qubits=[q0])
+    assert noisy_moment[0] == moment
+    assert len(noisy_moment[1]) == 1
+    noisy_choi = cirq.kraus_to_choi(cirq.kraus(noisy_moment[1].operations[0]))
+    print(noisy_choi)
+    assert np.allclose(
+        noisy_choi,
+        [
+            [9.99005480e-01, 0, 0, 9.94515097e-01],
+            [0, 9.94520111e-03, 0, 0],
+            [0, 0, 9.94520111e-04, 0],
+            [9.94515097e-01, 0, 0, 9.90054799e-01],
         ],
     )
 
