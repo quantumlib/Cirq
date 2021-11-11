@@ -187,6 +187,7 @@ class BitstringAccumulator:
             for the settings in `simul_settings`.
         qubit_to_index: A mapping from qubits to contiguous indices starting
             from zero. This allows us to store bitstrings as a 2d numpy array.
+        bitstrings: The bitstrings to record.
         chunksizes: This class accumulates bitstrings from potentially several
             "chunked" processor runs. Each chunk has a certain number of
             repetitions, recorded in this array. This theoretically
@@ -407,7 +408,7 @@ class BitstringAccumulator:
             atol: The absolute tolerance for asserting coefficients are real.
 
         Raises:
-            ValueError if there are no measurements.
+            ValueError: If there are no measurements.
         """
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")

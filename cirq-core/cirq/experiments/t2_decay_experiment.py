@@ -291,6 +291,9 @@ class T2DecayResult:
                 false_count, and true_count.
             y_basis_data: Data frame in y basis with three columns: delay_ns,
                 false_count,  and true_count.
+
+        Raises:
+            ValueError: If the supplied data does not have the proper columns.
         """
         x_cols = list(x_basis_data.columns)
         y_cols = list(y_basis_data.columns)
