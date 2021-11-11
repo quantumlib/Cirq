@@ -1,94 +1,130 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
-import pytest
-import cirq_google
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import cirq, cirq_google
 from cirq_google.api import v2
 from cirq_google.experimental.noise_models.calibration_to_noise_properties import (
     noise_properties_from_calibration,
 )
+from cirq.devices.noise_utils import (
+    OpIdentifier,
+)
 from google.protobuf.text_format import Merge
 import numpy as np
+import pytest
 
 
 def test_noise_properties_from_calibration():
-    xeb_error_1 = 0.999
-    xeb_error_2 = 0.996
-
-    p00_1 = 0.001
-    p00_2 = 0.002
-    p00_3 = 0.003
-
-    t1_1 = 0.005
-    t1_2 = 0.007
-    t1_3 = 0.003
+    qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)]
+    pauli_error = [0.001, 0.002, 0.003]
+    incoherent_error = [0.0001, 0.0002, 0.0003]
+    p00_error = [0.004, 0.005, 0.006]
+    p11_error = [0.007, 0.008, 0.009]
+    t1_micros = [10, 20, 30]
 
     _CALIBRATION_DATA = Merge(
         f"""
     timestamp_ms: 1579214873,
     metrics: [{{
-        name: 'xeb',
-        targets: ['0_0', '0_1'],
+        name: 'single_qubit_rb_pauli_error_per_gate',
+        targets: ['0_0'],
         values: [{{
-            double_val: {xeb_error_1}
+            double_val: {pauli_error[0]}
         }}]
     }}, {{
-        name: 'xeb',
-        targets: ['0_0', '1_0'],
+        name: 'single_qubit_rb_pauli_error_per_gate',
+        targets: ['0_1'],
         values: [{{
-            double_val:{xeb_error_2}
+            double_val:{pauli_error[1]}
+        }}]
+    }}, {{
+        name: 'single_qubit_rb_pauli_error_per_gate',
+        targets: ['1_0'],
+        values: [{{
+            double_val:{pauli_error[2]}
+        }}]
+    }}, {{
+        name: 'single_qubit_rb_incoherent_error_per_gate',
+        targets: ['0_0'],
+        values: [{{
+            double_val: {incoherent_error[0]}
+        }}]
+    }}, {{
+        name: 'single_qubit_rb_incoherent_error_per_gate',
+        targets: ['0_1'],
+        values: [{{
+            double_val:{incoherent_error[1]}
+        }}]
+    }}, {{
+        name: 'single_qubit_rb_incoherent_error_per_gate',
+        targets: ['1_0'],
+        values: [{{
+            double_val:{incoherent_error[2]}
         }}]
     }}, {{
         name: 'single_qubit_p00_error',
         targets: ['0_0'],
         values: [{{
-            double_val: {p00_1}
+            double_val: {p00_error[0]}
         }}]
     }}, {{
         name: 'single_qubit_p00_error',
         targets: ['0_1'],
         values: [{{
-            double_val: {p00_2}
+            double_val: {p00_error[1]}
         }}]
     }}, {{
         name: 'single_qubit_p00_error',
         targets: ['1_0'],
         values: [{{
-            double_val: {p00_3}
+            double_val: {p00_error[2]}
         }}]
     }}, {{
-        name: 'single_qubit_readout_separation_error',
+        name: 'single_qubit_p11_error',
         targets: ['0_0'],
         values: [{{
-            double_val: .004
+            double_val: {p11_error[0]}
         }}]
     }}, {{
-        name: 'single_qubit_readout_separation_error',
+        name: 'single_qubit_p11_error',
         targets: ['0_1'],
         values: [{{
-            double_val: .005
+            double_val: {p11_error[1]}
         }}]
-    }},{{
-        name: 'single_qubit_readout_separation_error',
+    }}, {{
+        name: 'single_qubit_p11_error',
         targets: ['1_0'],
         values: [{{
-            double_val: .006
+            double_val: {p11_error[2]}
         }}]
     }}, {{
         name: 'single_qubit_idle_t1_micros',
         targets: ['0_0'],
         values: [{{
-            double_val: {t1_1}
+            double_val: {t1_micros[0]}
         }}]
     }}, {{
         name: 'single_qubit_idle_t1_micros',
         targets: ['0_1'],
         values: [{{
-            double_val: {t1_2}
+            double_val: {t1_micros[1]}
         }}]
     }}, {{
         name: 'single_qubit_idle_t1_micros',
         targets: ['1_0'],
         values: [{{
-            double_val: {t1_3}
+            double_val: {t1_micros[2]}
         }}]
     }}]
 """,
@@ -99,186 +135,109 @@ def test_noise_properties_from_calibration():
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     prop = noise_properties_from_calibration(calibration)
 
-    expected_t1_nanos = np.mean([t1_1, t1_2, t1_3]) * 1000
-    expected_xeb_fidelity = 1 - np.mean([xeb_error_1, xeb_error_2])
-    expected_p00 = np.mean([p00_1, p00_2, p00_3])
+    for i, q in enumerate(qubits):
+        assert np.isclose(
+            prop.gate_pauli_errors[OpIdentifier(cirq.PhasedXZGate, q)], pauli_error[i]
+        )
+        assert np.allclose(prop.ro_fidelities[q], np.array([p00_error[i], p11_error[i]]))
+        assert np.isclose(prop.T1_ns[q], t1_micros[i] * 1000)
+        # TODO: test Tphi
+        microwave_time_ns = 25.0
+        tphi_err = incoherent_error[i] - microwave_time_ns / (3 * prop.T1_ns[q])
+        if tphi_err > 0:
+            tphi_ns = microwave_time_ns / (3 * tphi_err)
+        else:
+            tphi_ns = 1e10
+        assert prop.Tphi_ns[q] == tphi_ns
 
-    assert np.isclose(prop.t1_ns, expected_t1_nanos)
-    assert np.isclose(prop.xeb, expected_xeb_fidelity)
-    assert np.isclose(prop.p00, expected_p00)
 
+def test_incomplete_calibration():
+    pauli_error = [0.001, 0.002, 0.003]
+    p00_error = [0.004, 0.005, 0.006]
+    p11_error = [0.007, 0.008, 0.009]
+    t1_micros = [10, 20, 30]
 
-def test_from_calibration_rb():
-    rb_pauli_1 = 0.001
-    rb_pauli_2 = 0.002
-    rb_pauli_3 = 0.003
-
-    _CALIBRATION_DATA_RB = Merge(
+    _CALIBRATION_DATA = Merge(
         f"""
     timestamp_ms: 1579214873,
     metrics: [{{
-
         name: 'single_qubit_rb_pauli_error_per_gate',
         targets: ['0_0'],
         values: [{{
-            double_val: {rb_pauli_1}
+            double_val: {pauli_error[0]}
         }}]
     }}, {{
         name: 'single_qubit_rb_pauli_error_per_gate',
         targets: ['0_1'],
         values: [{{
-            double_val: {rb_pauli_2}
+            double_val:{pauli_error[1]}
         }}]
     }}, {{
         name: 'single_qubit_rb_pauli_error_per_gate',
         targets: ['1_0'],
         values: [{{
-            double_val: {rb_pauli_3}
+            double_val:{pauli_error[2]}
         }}]
-     }}]
-    """,
+    }}, {{
+        name: 'single_qubit_p00_error',
+        targets: ['0_0'],
+        values: [{{
+            double_val: {p00_error[0]}
+        }}]
+    }}, {{
+        name: 'single_qubit_p00_error',
+        targets: ['0_1'],
+        values: [{{
+            double_val: {p00_error[1]}
+        }}]
+    }}, {{
+        name: 'single_qubit_p00_error',
+        targets: ['1_0'],
+        values: [{{
+            double_val: {p00_error[2]}
+        }}]
+    }}, {{
+        name: 'single_qubit_p11_error',
+        targets: ['0_0'],
+        values: [{{
+            double_val: {p11_error[0]}
+        }}]
+    }}, {{
+        name: 'single_qubit_p11_error',
+        targets: ['0_1'],
+        values: [{{
+            double_val: {p11_error[1]}
+        }}]
+    }}, {{
+        name: 'single_qubit_p11_error',
+        targets: ['1_0'],
+        values: [{{
+            double_val: {p11_error[2]}
+        }}]
+    }}, {{
+        name: 'single_qubit_idle_t1_micros',
+        targets: ['0_0'],
+        values: [{{
+            double_val: {t1_micros[0]}
+        }}]
+    }}, {{
+        name: 'single_qubit_idle_t1_micros',
+        targets: ['0_1'],
+        values: [{{
+            double_val: {t1_micros[1]}
+        }}]
+    }}, {{
+        name: 'single_qubit_idle_t1_micros',
+        targets: ['1_0'],
+        values: [{{
+            double_val: {t1_micros[2]}
+        }}]
+    }}]
+""",
         v2.metrics_pb2.MetricsSnapshot(),
     )
 
     # Create NoiseProperties object from Calibration
-    rb_calibration = cirq_google.Calibration(_CALIBRATION_DATA_RB)
-    rb_noise_prop = noise_properties_from_calibration(rb_calibration)
-
-    average_pauli_rb = np.mean([rb_pauli_1, rb_pauli_2, rb_pauli_3])
-    assert np.isclose(average_pauli_rb, rb_noise_prop.pauli_error)
-
-
-def test_validate_calibration():
-    # RB Pauli error and RB Average Error disagree
-    rb_pauli_error = 0.05
-    rb_average_error = 0.1
-
-    decay_constant_pauli = 1 - rb_pauli_error / (1 - 1 / 4)
-    decay_constant_average = 1 - rb_average_error / (1 - 1 / 2)
-    _CALIBRATION_DATA_PAULI_AVERAGE = Merge(
-        f"""
-    timestamp_ms: 1579214873,
-    metrics: [{{
-
-        name: 'single_qubit_rb_pauli_error_per_gate',
-        targets: ['0_0'],
-        values: [{{
-            double_val: {rb_pauli_error}
-        }}]
-    }}, {{
-        name: 'single_qubit_rb_average_error_per_gate',
-        targets: ['0_1'],
-        values: [{{
-            double_val: {rb_average_error}
-        }}]
-     }}]
-    """,
-        v2.metrics_pb2.MetricsSnapshot(),
-    )
-    bad_calibration_pauli_average = cirq_google.Calibration(_CALIBRATION_DATA_PAULI_AVERAGE)
-    with pytest.raises(
-        ValueError,
-        match=f'Decay constant from RB Pauli error: {decay_constant_pauli}, '
-        f'decay constant from RB Average error: {decay_constant_average}. '
-        'If validation is disabled, RB Pauli error will be used.',
-    ):
-        noise_properties_from_calibration(bad_calibration_pauli_average)
-
-    assert np.isclose(
-        noise_properties_from_calibration(
-            bad_calibration_pauli_average, validate=False
-        ).pauli_error,
-        rb_pauli_error,
-    )
-
-    # RB Pauli Error and XEB Fidelity disagree
-    xeb_fidelity = 0.99
-
-    decay_constant_from_xeb = 1 - (1 - xeb_fidelity) / (1 - 1 / 4)
-
-    _CALIBRATION_DATA_PAULI_XEB = Merge(
-        f"""
-    timestamp_ms: 1579214873,
-    metrics: [{{
-
-        name: 'single_qubit_rb_pauli_error_per_gate',
-        targets: ['0_0'],
-        values: [{{
-            double_val: {rb_pauli_error}
-        }}]
-    }}, {{
-        name: 'xeb',
-        targets: ['0_0', '1_0'],
-        values: [{{
-            double_val:{1 - xeb_fidelity}
-        }}]
-     }}]
-    """,
-        v2.metrics_pb2.MetricsSnapshot(),
-    )
-
-    bad_calibration_pauli_xeb = cirq_google.Calibration(_CALIBRATION_DATA_PAULI_XEB)
-    with pytest.raises(
-        ValueError,
-        match=f'Decay constant from RB Pauli error: {decay_constant_pauli}, '
-        f'decay constant from XEB Fidelity: {decay_constant_from_xeb}. '
-        'If validation is disabled, RB Pauli error will be used.',
-    ):
-        noise_properties_from_calibration(bad_calibration_pauli_xeb)
-
-    # RB Average Error and XEB Fidelity disagree
-    _CALIBRATION_DATA_AVERAGE_XEB = Merge(
-        f"""
-    timestamp_ms: 1579214873,
-    metrics: [{{
-
-        name: 'single_qubit_rb_average_error_per_gate',
-        targets: ['0_0'],
-        values: [{{
-            double_val: {rb_average_error}
-        }}]
-    }}, {{
-        name: 'xeb',
-        targets: ['0_0', '1_0'],
-        values: [{{
-            double_val:{1 - xeb_fidelity}
-        }}]
-     }}]
-    """,
-        v2.metrics_pb2.MetricsSnapshot(),
-    )
-
-    bad_calibration_average_xeb = cirq_google.Calibration(_CALIBRATION_DATA_AVERAGE_XEB)
-    with pytest.raises(
-        ValueError,
-        match=f'Decay constant from RB Average error: {decay_constant_average}, '
-        f'decay constant from XEB Fidelity: {decay_constant_from_xeb}. '
-        'If validation is disabled, XEB Fidelity will be used.',
-    ):
-        noise_properties_from_calibration(bad_calibration_average_xeb)
-
-    assert np.isclose(
-        noise_properties_from_calibration(bad_calibration_average_xeb, validate=False).xeb,
-        xeb_fidelity,
-    )
-
-    # Calibration data with no RB error or XEB fidelity
-    t1 = 2.0  # microseconds
-
-    _CALIBRATION_DATA_T1 = Merge(
-        f"""
-    timestamp_ms: 1579214873,
-    metrics: [{{
-        name: 'single_qubit_idle_t1_micros',
-        targets: ['0_0'],
-        values: [{{
-            double_val: {t1}
-        }}]
-    }}]
-    """,
-        v2.metrics_pb2.MetricsSnapshot(),
-    )
-
-    calibration_t1 = cirq_google.Calibration(_CALIBRATION_DATA_T1)
-
-    assert np.isclose(noise_properties_from_calibration(calibration_t1).t1_ns, t1 * 1000)
+    calibration = cirq_google.Calibration(_CALIBRATION_DATA)
+    with pytest.raises(ValueError, match='Keys specified for T1 and Tphi are not identical.'):
+        _ = noise_properties_from_calibration(calibration)
