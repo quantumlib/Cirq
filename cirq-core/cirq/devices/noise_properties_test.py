@@ -1,298 +1,385 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
-import pytest
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from typing import Dict, List, Tuple
+import numpy as np
 import cirq
-from cirq.testing import assert_equivalent_op_tree
+import pytest
+
+# from cirq.testing import assert_equivalent_op_tree
 from cirq.devices.noise_properties import (
     NoiseProperties,
     NoiseModelFromNoiseProperties,
-    get_duration_ns,
+    SINGLE_QUBIT_GATES,
+    TWO_QUBIT_GATES,
 )
-import numpy as np
+from cirq.devices.noise_utils import (
+    OpIdentifier,
+    PHYSICAL_GATE_TAG,
+)
 
 
-def test_invalid_arguments():
-    with pytest.raises(ValueError, match='At least one metric must be specified'):
-        NoiseProperties()
-
-    with pytest.raises(ValueError, match='xeb, pauli error, p00, and p11 must be between 0 and 1'):
-        NoiseProperties(p00=1.2)
-
-    with pytest.raises(ValueError, match='xeb, pauli error, p00, and p11 must be between 0 and 1'):
-        NoiseProperties(pauli_error=-0.2)
-
-    with pytest.raises(
-        ValueError,
-        match='Only one of xeb fidelity, pauli error, or decay constant should be defined',
-    ):
-        NoiseProperties(pauli_error=0.2, xeb_fidelity=0.5)
-
-    with pytest.raises(ValueError, match='A NoiseProperties object must be specified'):
-        NoiseModelFromNoiseProperties(None)
+DEFAULT_GATE_NS: Dict[type, float] = {
+    cirq.ZPowGate: 25.0,
+    cirq.MeasurementGate: 4000.0,
+    cirq.ResetChannel: 250.0,
+    cirq.PhasedXZGate: 25.0,
+    cirq.FSimGate: 32.0,
+    cirq.PhasedFSimGate: 32.0,
+    cirq.ISwapPowGate: 32.0,
+    cirq.CZPowGate: 32.0,
+    # cirq.WaitGate is a special case.
+}
 
 
-def test_constructor_and_metrics():
-    prop = NoiseProperties(p00=0.2)
-    assert prop.xeb is None
-    assert prop.pauli_error is None
-    assert prop.decay_constant is None
-    assert prop.average_error() is None
-
-    # These and other metrics in the file are purely for testing and
-    # do not necessarily represent actual hardware behavior
-    xeb_fidelity = 0.95
-    p00 = 0.1
-    t1_ns = 200.0
-
-    # Create fidelity object with a defined XEB fidelity
-    from_xeb = NoiseProperties(xeb_fidelity=xeb_fidelity, p00=p00, t1_ns=t1_ns)
-
-    assert from_xeb.p00 == p00
-    assert from_xeb.p11 is None
-    assert from_xeb.t1_ns == t1_ns
-    assert from_xeb.xeb == xeb_fidelity
-
-    # Create another fidelity object with the decay constant from the first one
-    decay_constant_from_xeb = from_xeb.decay_constant
-
-    from_decay = NoiseProperties(decay_constant=decay_constant_from_xeb)
-
-    # Check that their depolarization metrics match
-    assert np.isclose(xeb_fidelity, from_decay.xeb)
-    assert np.isclose(from_xeb.pauli_error, from_decay.pauli_error)
-    assert np.isclose(from_xeb.average_error(), from_decay.average_error())
-
-
-def test_gate_durations():
-    assert get_duration_ns(cirq.X) == 25.0
-    assert get_duration_ns(cirq.FSimGate(3 * np.pi / 2, np.pi / 6)) == 12.0
-    assert get_duration_ns(cirq.FSimGate(3 * np.pi / 4, np.pi / 6)) == 32.0
-    assert get_duration_ns(cirq.ISWAP) == 32.0
-    assert get_duration_ns(cirq.ZPowGate(exponent=5)) == 0.0
-    assert get_duration_ns(cirq.MeasurementGate(1, 'a')) == 4000.0
-
-    wait_gate = cirq.WaitGate(cirq.Duration(nanos=4))
-    assert get_duration_ns(wait_gate) == 4.0
-
-    assert get_duration_ns(cirq.CZ) == 25.0
-
-
-def test_readout_error():
-    p00 = 0.05
-    p11 = 0.1
-
-    p = p11 / (p00 + p11)
-    gamma = p11 / p
-
-    # Create qubits and circuit
-    qubits = [cirq.LineQubit(0), cirq.LineQubit(1)]
-    circuit = cirq.Circuit(
-        cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment([cirq.H(qubits[1])]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
+# These properties are for testing purposes only - they are not representative
+# of device behavior for any existing hardware.
+def sample_noise_properties(
+    system_qubits: List[cirq.Qid], qubit_pairs: List[Tuple[cirq.Qid, cirq.Qid]]
+):
+    return NoiseProperties(
+        gate_times_ns=DEFAULT_GATE_NS,
+        T1_ns={q: 1e5 for q in system_qubits},
+        Tphi_ns={q: 2e5 for q in system_qubits},
+        ro_fidelities={q: [0.001, 0.01] for q in system_qubits},
+        gate_pauli_errors={
+            **{OpIdentifier(g, q): 0.001 for g in SINGLE_QUBIT_GATES for q in system_qubits},
+            **{OpIdentifier(g, q0, q1): 0.01 for g in TWO_QUBIT_GATES for q0, q1 in qubit_pairs},
+        },
     )
 
-    # Create noise model from NoiseProperties object with specified noise
-    prop = NoiseProperties(p00=p00, p11=p11)
-    noise_model = NoiseModelFromNoiseProperties(prop)
 
-    noisy_circuit = cirq.Circuit(noise_model.noisy_moments(circuit, qubits))
+def test_str():
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    assert str(props) == 'NoiseProperties'
 
-    # Insert expected channels to circuit
-    expected_circuit = cirq.Circuit(
-        cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment([cirq.H(qubits[1])]),
-        cirq.Moment([cirq.GeneralizedAmplitudeDampingChannel(p=p, gamma=gamma).on_each(qubits)]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
+
+def test_repr_evaluation():
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    props_from_repr = eval(repr(props))
+    assert props_from_repr == props
+
+
+def test_json_serialization():
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    props_json = cirq.to_json(props)
+    props_from_json = cirq.read_json(json_text=props_json)
+    assert props_from_json == props
+
+
+def test_init_validation():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    with pytest.raises(ValueError, match='Keys specified for T1 and Tphi are not identical.'):
+        _ = NoiseProperties(
+            gate_times_ns=DEFAULT_GATE_NS,
+            T1_ns={},
+            Tphi_ns={q0: 1},
+            ro_fidelities={q0: [0.1, 0.2]},
+            gate_pauli_errors={},
+        )
+
+    with pytest.raises(ValueError, match='Symmetric errors can only apply to 2-qubit gates.'):
+        _ = NoiseProperties(
+            gate_times_ns=DEFAULT_GATE_NS,
+            T1_ns={q0: 1},
+            Tphi_ns={q0: 1},
+            ro_fidelities={q0: [0.1, 0.2]},
+            gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
+        )
+
+    with pytest.raises(ValueError, match='does not appear in the symmetric or asymmetric'):
+        _ = NoiseProperties(
+            gate_times_ns=DEFAULT_GATE_NS,
+            T1_ns={q0: 1},
+            Tphi_ns={q0: 1},
+            ro_fidelities={q0: [0.1, 0.2]},
+            gate_pauli_errors={
+                OpIdentifier(cirq.CNOT, q0, q1): 0.1,
+                OpIdentifier(cirq.CNOT, q1, q0): 0.1,
+            },
+        )
+
+    with pytest.raises(ValueError, match='has errors but its symmetric id'):
+        _ = NoiseProperties(
+            gate_times_ns=DEFAULT_GATE_NS,
+            T1_ns={q0: 1},
+            Tphi_ns={q0: 1},
+            ro_fidelities={q0: [0.1, 0.2]},
+            gate_pauli_errors={OpIdentifier(cirq.CZPowGate, q0, q1): 0.1},
+        )
+
+    # Single-qubit gates are ignored in symmetric-gate validation.
+    _ = NoiseProperties(
+        gate_times_ns=DEFAULT_GATE_NS,
+        T1_ns={q0: 1},
+        Tphi_ns={q0: 1},
+        ro_fidelities={q0: [0.1, 0.2]},
+        gate_pauli_errors={
+            OpIdentifier(cirq.ZPowGate, q0): 0.1,
+            OpIdentifier(cirq.CZPowGate, q0, q1): 0.1,
+            OpIdentifier(cirq.CZPowGate, q1, q0): 0.1,
+        },
     )
 
-    assert_equivalent_op_tree(expected_circuit, noisy_circuit)
-
-    # Create Noise Model with just p00
-    prop_p00 = NoiseProperties(p00=p00)
-    noise_model_p00 = NoiseModelFromNoiseProperties(prop_p00)
-
-    noisy_circuit_p00 = cirq.Circuit(noise_model_p00.noisy_moments(circuit, qubits))
-
-    # Insert expected channels to circuit
-    expected_circuit_p00 = cirq.Circuit(
-        cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment([cirq.H(qubits[1])]),
-        cirq.Moment([cirq.GeneralizedAmplitudeDampingChannel(p=0.0, gamma=p00).on_each(qubits)]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
+    # All errors are ignored if validation is disabled.
+    _ = NoiseProperties(
+        gate_times_ns=DEFAULT_GATE_NS,
+        T1_ns={},
+        Tphi_ns={q0: 1},
+        ro_fidelities={q0: [0.1, 0.2]},
+        gate_pauli_errors={
+            OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1,
+            OpIdentifier(cirq.CNOT, q0, q1): 0.1,
+        },
+        validate=False,
     )
 
-    assert_equivalent_op_tree(expected_circuit_p00, noisy_circuit_p00)
 
-    # Create Noise Model with just p11
-    prop_p11 = NoiseProperties(p11=p11)
-    noise_model_p11 = NoiseModelFromNoiseProperties(prop_p11)
+def test_qubits():
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    assert props.qubits == [q0]
+    # Confirm memoization behavior.
+    assert props.qubits == [q0]
 
-    noisy_circuit_p11 = cirq.Circuit(noise_model_p11.noisy_moments(circuit, qubits))
 
-    # Insert expected channels to circuit
-    expected_circuit_p11 = cirq.Circuit(
-        cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment([cirq.H(qubits[1])]),
-        cirq.Moment([cirq.GeneralizedAmplitudeDampingChannel(p=1.0, gamma=p11).on_each(qubits)]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
+def test_depol_memoization():
+    # Verify that depolarizing error is memoized.
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    depol_error_a = props.get_depolarizing_error()
+    depol_error_b = props.get_depolarizing_error()
+    assert depol_error_a == depol_error_b
+    assert depol_error_a is depol_error_b
+
+
+def test_depol_validation():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    # Create unvalidated properties with too many qubits on a Z gate.
+    z_2q_props = NoiseProperties(
+        gate_times_ns=DEFAULT_GATE_NS,
+        T1_ns={q0: 1},
+        Tphi_ns={q0: 1},
+        ro_fidelities={q0: [0.1, 0.2]},
+        gate_pauli_errors={OpIdentifier(cirq.ZPowGate, q0, q1): 0.1},
+        validate=False,
     )
+    with pytest.raises(ValueError, match='only takes one qubit'):
+        _ = z_2q_props.get_depolarizing_error()
 
-    assert_equivalent_op_tree(expected_circuit_p11, noisy_circuit_p11)
-
-
-def test_depolarization_error():
-    # Account for floating point errors
-    # Needs Cirq issue 3965 to be resolved
-    pauli_error = 0.09999999999999998
-
-    # Create qubits and circuit
-    qubits = [cirq.LineQubit(0), cirq.LineQubit(1)]
-    circuit = cirq.Circuit(
-        cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment([cirq.H(qubits[1])]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
+    # Create unvalidated properties with an unsupported gate.
+    toffoli_props = NoiseProperties(
+        gate_times_ns=DEFAULT_GATE_NS,
+        T1_ns={q0: 1},
+        Tphi_ns={q0: 1},
+        ro_fidelities={q0: [0.1, 0.2]},
+        gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
+        validate=False,
     )
+    with pytest.raises(ValueError, match='not in the supported gate list'):
+        _ = toffoli_props.get_depolarizing_error()
 
-    # Create noise model from NoiseProperties object with specified noise
-    prop = NoiseProperties(pauli_error=pauli_error)
-    noise_model = NoiseModelFromNoiseProperties(prop)
-
-    noisy_circuit = cirq.Circuit(noise_model.noisy_moments(circuit, qubits))
-
-    # Insert expected channels to circuit
-    expected_circuit = cirq.Circuit(
-        cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment([cirq.depolarize(pauli_error / 3).on_each(qubits)]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment([cirq.depolarize(pauli_error / 3).on_each(qubits)]),
-        cirq.Moment([cirq.H(qubits[1])]),
-        cirq.Moment([cirq.depolarize(pauli_error / 3).on_each(qubits)]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
-        cirq.Moment([cirq.depolarize(pauli_error / 3).on_each(qubits)]),
+    # Create unvalidated properties with too many qubits on a CZ gate.
+    cz_3q_props = NoiseProperties(
+        gate_times_ns=DEFAULT_GATE_NS,
+        T1_ns={q0: 1},
+        Tphi_ns={q0: 1},
+        ro_fidelities={q0: [0.1, 0.2]},
+        gate_pauli_errors={OpIdentifier(cirq.CZPowGate, q0, q1, q2): 0.1},
+        validate=False,
     )
-    assert_equivalent_op_tree(expected_circuit, noisy_circuit)
+    with pytest.raises(ValueError, match='takes two qubits'):
+        _ = cz_3q_props.get_depolarizing_error()
+
+    # If T1_ns is missing, values are filled in as needed.
 
 
-def test_ampl_damping_error():
-    t1_ns = 200.0
-
-    # Create qubits and circuit
-    qubits = [cirq.LineQubit(0), cirq.LineQubit(1)]
-    circuit = cirq.Circuit(
-        cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment([cirq.FSimGate(5 * np.pi / 2, np.pi).on_each(qubits)]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
+def test_build_noise_model_validation():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    # Create unvalidated properties with mismatched T1 and Tphi qubits.
+    t1_tphi_props = NoiseProperties(
+        gate_times_ns=DEFAULT_GATE_NS,
+        T1_ns={},
+        Tphi_ns={q0: 1},
+        ro_fidelities={q0: [0.1, 0.2]},
+        gate_pauli_errors={},
+        validate=False,
     )
+    with pytest.raises(ValueError, match='but Tphi has qubits'):
+        _ = t1_tphi_props.build_noise_models()
 
-    # Create noise model from NoiseProperties object with specified noise
-    prop = NoiseProperties(t1_ns=t1_ns)
-    noise_model = NoiseModelFromNoiseProperties(prop)
-
-    noisy_circuit = cirq.Circuit(noise_model.noisy_moments(circuit, qubits))
-
-    # Insert expected channels to circuit
-    expected_circuit = cirq.Circuit(
-        cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-25.0 / t1_ns)).on_each(qubits)]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-25.0 / t1_ns)).on_each(qubits)]),
-        cirq.Moment([cirq.FSimGate(np.pi / 2, np.pi).on_each(qubits)]),
-        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-12.0 / t1_ns)).on_each(qubits)]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
-        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-4000.0 / t1_ns)).on_each(qubits)]),
+    # Create unvalidated properties with unsupported gates.
+    toffoli_props = NoiseProperties(
+        gate_times_ns=DEFAULT_GATE_NS,
+        T1_ns={q0: 1},
+        Tphi_ns={q0: 1},
+        ro_fidelities={q0: [0.1, 0.2]},
+        gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
+        validate=False,
     )
-    assert_equivalent_op_tree(expected_circuit, noisy_circuit)
+    with pytest.raises(ValueError, match='Some gates are not in the supported set.'):
+        _ = toffoli_props.build_noise_models()
 
 
-def test_combined_error():
-    # Helper function to calculate pauli error from depolarization
-    def pauli_error_from_depolarization(pauli_error, t1_ns, duration):
-        t2 = 2 * t1_ns
-        pauli_error_from_t1 = (1 - np.exp(-duration / t2)) / 2 + (1 - np.exp(-duration / t1_ns)) / 4
-        if pauli_error >= pauli_error_from_t1:
-            return pauli_error - pauli_error_from_t1
-        return pauli_error
-
-    t1_ns = 2000.0
-    p11 = 0.01
-
-    # Account for floating point errors
-    # Needs Cirq issue 3965 to be resolved
-    pauli_error = 0.019999999999999962
-
-    # Create qubits and circuit
-    qubits = [cirq.LineQubit(0), cirq.LineQubit(1)]
-    circuit = cirq.Circuit(
-        cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0')]),
-        cirq.Moment([cirq.ISwapPowGate().on_each(qubits)]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
-    )
-
-    # Create noise model from NoiseProperties object with specified noise
-    prop = NoiseProperties(t1_ns=t1_ns, p11=p11, pauli_error=pauli_error)
-    noise_model = NoiseModelFromNoiseProperties(prop)
-
-    with pytest.warns(
-        RuntimeWarning, match='Pauli error from T1 decay is greater than total Pauli error'
-    ):
-        noisy_circuit = cirq.Circuit(noise_model.noisy_moments(circuit, qubits))
-
-    # Insert expected channels to circuit
-    expected_circuit = cirq.Circuit(
-        cirq.Moment([cirq.X(qubits[0])]),
-        cirq.Moment(
-            [
-                cirq.depolarize(
-                    pauli_error_from_depolarization(pauli_error, t1_ns, 25.0) / 3
-                ).on_each(qubits)
-            ]
+@pytest.mark.parametrize(
+    'op',
+    [
+        cirq.Z(cirq.LineQubit(0)) ** 0.3,
+        cirq.PhasedXZGate(x_exponent=0.8, z_exponent=0.2, axis_phase_exponent=0.1).on(
+            cirq.LineQubit(0)
         ),
-        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-25.0 / t1_ns)).on_each(qubits)]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
-        cirq.Moment(
-            [
-                cirq.depolarize(
-                    pauli_error_from_depolarization(pauli_error, t1_ns, 25.0) / 3
-                ).on_each(qubits)
-            ]
-        ),
-        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-25.0 / t1_ns)).on_each(qubits)]),
-        cirq.Moment([cirq.GeneralizedAmplitudeDampingChannel(p=1.0, gamma=p11).on(qubits[0])]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0')]),
-        cirq.Moment(
-            [
-                cirq.depolarize(
-                    pauli_error_from_depolarization(pauli_error, t1_ns, 4000.0) / 3
-                ).on_each(qubits)
-            ]
-        ),
-        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-4000.0 / t1_ns)).on_each(qubits)]),
-        cirq.Moment([cirq.ISwapPowGate().on_each(qubits)]),
-        cirq.Moment(
-            [
-                cirq.depolarize(
-                    pauli_error_from_depolarization(pauli_error, t1_ns, 32.0) / 3
-                ).on_each(qubits)
-            ]
-        ),
-        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-32.0 / t1_ns)).on_each(qubits)]),
-        cirq.Moment([cirq.GeneralizedAmplitudeDampingChannel(p=1.0, gamma=p11).on_each(qubits)]),
-        cirq.Moment([cirq.measure(qubits[0], key='q0'), cirq.measure(qubits[1], key='q1')]),
-        cirq.Moment(
-            [
-                cirq.depolarize(
-                    pauli_error_from_depolarization(pauli_error, t1_ns, 4000.0) / 3
-                ).on_each(qubits)
-            ]
-        ),
-        cirq.Moment([cirq.amplitude_damp(1 - np.exp(-4000.0 / t1_ns)).on_each(qubits)]),
+    ],
+)
+def test_single_qubit_gates(op):
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    model = NoiseModelFromNoiseProperties(props)
+    circuit = cirq.Circuit(op)
+    noisy_circuit = circuit.with_noise(model)
+    assert len(noisy_circuit.moments) == 3
+    assert len(noisy_circuit.moments[0].operations) == 1
+    assert noisy_circuit.moments[0].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
+
+    # Depolarizing noise
+    assert len(noisy_circuit.moments[1].operations) == 1
+    depol_op = noisy_circuit.moments[1].operations[0]
+    assert isinstance(depol_op.gate, cirq.DepolarizingChannel)
+    assert np.isclose(depol_op.gate.p, 0.00081252)
+
+    # Thermal noise
+    assert len(noisy_circuit.moments[2].operations) == 1
+    thermal_op = noisy_circuit.moments[2].operations[0]
+    assert isinstance(thermal_op.gate, cirq.KrausChannel)
+    thermal_choi = cirq.kraus_to_choi(cirq.kraus(thermal_op))
+    assert np.allclose(
+        thermal_choi,
+        [
+            [1, 0, 0, 9.99750031e-01],
+            [0, 2.49968753e-04, 0, 0],
+            [0, 0, 0, 0],
+            [9.99750031e-01, 0, 0, 9.99750031e-01],
+        ],
     )
-    assert_equivalent_op_tree(expected_circuit, noisy_circuit)
+
+
+@pytest.mark.parametrize(
+    'op',
+    [
+        cirq.ISWAP(*cirq.LineQubit.range(2)) ** 0.6,
+        cirq.CZ(*cirq.LineQubit.range(2)) ** 0.3,
+    ],
+)
+def test_two_qubit_gates(op):
+    q0, q1 = cirq.LineQubit.range(2)
+    props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
+    model = NoiseModelFromNoiseProperties(props)
+    circuit = cirq.Circuit(op)
+    noisy_circuit = circuit.with_noise(model)
+    assert len(noisy_circuit.moments) == 3
+    assert len(noisy_circuit.moments[0].operations) == 1
+    assert noisy_circuit.moments[0].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
+
+    # Depolarizing noise
+    assert len(noisy_circuit.moments[1].operations) == 1
+    depol_op = noisy_circuit.moments[1].operations[0]
+    assert isinstance(depol_op.gate, cirq.DepolarizingChannel)
+    assert np.isclose(depol_op.gate.p, 0.00952008)
+
+    # Thermal noise
+    assert len(noisy_circuit.moments[2].operations) == 2
+    thermal_op_0 = noisy_circuit.moments[2].operation_at(q0)
+    thermal_op_1 = noisy_circuit.moments[2].operation_at(q1)
+    assert isinstance(thermal_op_0.gate, cirq.KrausChannel)
+    assert isinstance(thermal_op_1.gate, cirq.KrausChannel)
+    thermal_choi_0 = cirq.kraus_to_choi(cirq.kraus(thermal_op_0))
+    print(thermal_choi_0)
+    thermal_choi_1 = cirq.kraus_to_choi(cirq.kraus(thermal_op_1))
+    # TODO: check iswap noise
+    expected_thermal_choi = np.array(
+        [
+            [1, 0, 0, 9.99680051e-01],
+            [0, 3.19948805e-04, 0, 0],
+            [0, 0, 0, 0],
+            [9.99680051e-01, 0, 0, 9.99680051e-01],
+        ]
+    )
+    assert np.allclose(thermal_choi_0, expected_thermal_choi)
+    assert np.allclose(thermal_choi_1, expected_thermal_choi)
+
+
+def test_measure_gates():
+    q00, q01, q10, q11 = cirq.GridQubit.rect(2, 2)
+    qubits = [q00, q01, q10, q11]
+    props = sample_noise_properties(
+        qubits,
+        [
+            (q00, q01),
+            (q01, q00),
+            (q10, q11),
+            (q11, q10),
+            (q00, q10),
+            (q10, q00),
+            (q01, q11),
+            (q11, q01),
+        ],
+    )
+    model = NoiseModelFromNoiseProperties(props)
+    op = cirq.measure(*qubits, key='m')
+    circuit = cirq.Circuit(cirq.measure(*qubits, key='m'))
+    noisy_circuit = circuit.with_noise(model)
+    print(noisy_circuit.moments)
+    assert len(noisy_circuit.moments) == 2
+
+    # Amplitude damping before measurement
+    assert len(noisy_circuit.moments[0].operations) == 4
+    for q in qubits:
+        op = noisy_circuit.moments[0].operation_at(q)
+        assert isinstance(op.gate, cirq.GeneralizedAmplitudeDampingChannel), q
+        assert np.isclose(op.gate.p, 0.90909090), q
+        assert np.isclose(op.gate.gamma, 0.011), q
+
+    # Original measurement is after the noise.
+    assert len(noisy_circuit.moments[1].operations) == 1
+    # Measurements are untagged during reconstruction.
+    assert noisy_circuit.moments[1] == circuit.moments[0]
+
+
+def test_wait_gates():
+    q0 = cirq.LineQubit(0)
+    props = sample_noise_properties([q0], [])
+    model = NoiseModelFromNoiseProperties(props)
+    op = cirq.wait(q0, nanos=100)
+    circuit = cirq.Circuit(op)
+    noisy_circuit = circuit.with_noise(model)
+    assert len(noisy_circuit.moments) == 2
+    assert noisy_circuit.moments[0].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
+
+    # No depolarizing noise because WaitGate has none.
+
+    assert len(noisy_circuit.moments[1].operations) == 1
+    thermal_op = noisy_circuit.moments[1].operations[0]
+    assert isinstance(thermal_op.gate, cirq.KrausChannel)
+    thermal_choi = cirq.kraus_to_choi(cirq.kraus(thermal_op))
+    assert np.allclose(
+        thermal_choi,
+        [
+            [1, 0, 0, 9.990005e-01],
+            [0, 9.99500167e-04, 0, 0],
+            [0, 0, 0, 0],
+            [9.990005e-01, 0, 0, 9.990005e-01],
+        ],
+    )
