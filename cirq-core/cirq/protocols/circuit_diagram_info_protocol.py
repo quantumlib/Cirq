@@ -187,7 +187,7 @@ class CircuitDiagramInfoArgs:
             properly handle unicode characters.
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
-        qubit_map: The map from qubits to diagram positions.
+        label_map: The map from label entities to diagram positions.
         include_tags: Whether to print tags from TaggedOperations
     """
 
@@ -199,14 +199,14 @@ class CircuitDiagramInfoArgs:
         known_qubit_count: Optional[int],
         use_unicode_characters: bool,
         precision: Optional[int],
-        qubit_map: Optional[Dict['cirq.Qid', int]],
+        label_map: Optional[Dict[Any, int]],
         include_tags: bool = True,
     ) -> None:
         self.known_qubits = None if known_qubits is None else tuple(known_qubits)
         self.known_qubit_count = known_qubit_count
         self.use_unicode_characters = use_unicode_characters
         self.precision = precision
-        self.qubit_map = qubit_map
+        self.label_map = label_map
         self.include_tags = include_tags
 
     def _value_equality_values_(self) -> Any:
@@ -216,8 +216,8 @@ class CircuitDiagramInfoArgs:
             self.use_unicode_characters,
             self.precision,
             None
-            if self.qubit_map is None
-            else tuple(sorted(self.qubit_map.items(), key=lambda e: e[0])),
+            if self.label_map is None
+            else tuple(sorted(self.label_map.items(), key=lambda e: e[0])),
             self.include_tags,
         )
 
@@ -228,7 +228,7 @@ class CircuitDiagramInfoArgs:
             f'known_qubit_count={self.known_qubit_count!r}, '
             f'use_unicode_characters={self.use_unicode_characters!r}, '
             f'precision={self.precision!r}, '
-            f'qubit_map={self.qubit_map!r},'
+            f'label_map={self.label_map!r},'
             f'include_tags={self.include_tags!r})'
         )
 
@@ -275,7 +275,7 @@ class CircuitDiagramInfoArgs:
             known_qubit_count=self.known_qubit_count,
             use_unicode_characters=self.use_unicode_characters,
             precision=self.precision,
-            qubit_map=self.qubit_map,
+            label_map=self.label_map,
         )
 
     def with_args(self, **kwargs):
@@ -290,7 +290,7 @@ CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=3,
-    qubit_map=None,
+    label_map=None,
 )
 
 
@@ -326,9 +326,9 @@ def _op_info_with_fallback(
 ) -> 'cirq.CircuitDiagramInfo':
     info = protocols.circuit_diagram_info(op, args, None)
     rows: List[Any] = list(op.qubits)
-    if args.qubit_map is not None:
-        rows += protocols.measurement_key_objs(op) & args.qubit_map.keys()
-        rows += protocols.control_keys(op) & args.qubit_map.keys()
+    if args.label_map is not None:
+        rows += protocols.measurement_key_objs(op) & args.label_map.keys()
+        rows += protocols.control_keys(op) & args.label_map.keys()
     if info is not None:
         if max(1, len(rows)) != len(info.wire_symbols):
             raise ValueError(f'Wanted diagram info from {op!r} for {rows!r}) but got {info!r}')

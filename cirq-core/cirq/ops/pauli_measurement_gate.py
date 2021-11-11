@@ -125,11 +125,11 @@ class PauliMeasurementGate(raw_types.Gate):
         symbols = [f'M({g})' for g in self._observable]
 
         # Mention the measurement key.
-        qubit_map = args.qubit_map or {}
+        label_map = args.label_map or {}
         if not args.known_qubits or self.key != _default_measurement_key(args.known_qubits):
-            if self.key not in qubit_map:
+            if self.key not in label_map:
                 symbols[0] += f"('{self.key}')"
-        if self.key in qubit_map:
+        if self.key in label_map:
             symbols += '@'
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
