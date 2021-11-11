@@ -1,32 +1,24 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
-"""
-Demonstrates the algorithm for solving linear systems by Harrow, Hassidim,
-Lloyd (HHL).
+"""Demonstrates the algorithm for solving linear systems by Harrow, Hassidim, Lloyd (HHL).
 
-The HHL algorithm solves a system of linear equations, specifically equations
-of the form Ax = b, where A is a Hermitian matrix, b is a known vector, and
-x is the unknown vector. To solve on a quantum system, b must be rescaled to
-have magnitude 1, and the equation becomes:
+The HHL algorithm solves a system of linear equations, specifically equations of the form Ax = b,
+where A is a Hermitian matrix, b is a known vector, and x is the unknown vector. To solve on a
+quantum system, b must be rescaled to have magnitude 1, and the equation becomes:
 
 |x> = A**-1 |b> / || A**-1 |b> ||
 
-The algorithm uses 3 sets of qubits: a single ancilla qubit, a register (to
-store eigenvalues of A), and memory qubits (to store |b> and |x>). The
-following are performed in order:
+The algorithm uses 3 sets of qubits: a single ancilla qubit, a register (to store eigenvalues of
+A), and memory qubits (to store |b> and |x>). The following are performed in order:
 1) Quantum phase estimation to extract eigenvalues of A
 2) Controlled rotations of ancilla qubit
 3) Uncomputation with inverse quantum phase estimation
 
-For details about the algorithm, please refer to papers in the
-REFERENCE section below. The following description uses variables defined
-in the HHL paper.
+For details about the algorithm, please refer to papers in the REFERENCE section below. The
+following description uses variables defined in the HHL paper.
 
-This example is an implementation of the HHL algorithm for arbitrary 2x2
-Hermitian matrices. The output of the algorithm are the expectation values
-of Pauli observables of |x>. Note that the accuracy of the result depends
-on the following factors:
+This example is an implementation of the HHL algorithm for arbitrary 2x2 Hermitian matrices. The
+output of the algorithm are the expectation values of Pauli observables of |x>. Note that the
+accuracy of the result depends on the following factors:
 * Register size
 * Choice of parameters C and t
 
@@ -35,19 +27,18 @@ The result is perfect if
 
   2π/t * k/N,
 
-  where 0≤k<N, and N=2^n, where n is the register size. In other words, k is a
-  value that can be represented exactly by the register.
+  where 0≤k<N, and N=2^n, where n is the register size. In other words, k is a value that can be
+  represented exactly by the register.
 * C ≤ 2π/t * 1/N, the smallest eigenvalue that can be stored in the circuit.
 
-The result is good if the register size is large enough such that for every
-pair of eigenvalues, the ratio can be approximated by a pair of possible
-register values. Let s be the scaling factor from possible register values to
-eigenvalues. One way to set t is
+The result is good if the register size is large enough such that for every pair of eigenvalues,
+the ratio can be approximated by a pair of possible register values. Let s be the scaling factor
+from possible register values to eigenvalues. One way to set t is
 
 t = 2π/sN
 
-For arbitrary matrices, because properties of their eigenvalues are typically
-unknown, parameters C and t are fine-tuned based on their condition number.
+For arbitrary matrices, because properties of their eigenvalues are typically unknown, parameters C
+and t are fine-tuned based on their condition number.
 
 
 === REFERENCE ===
@@ -72,7 +63,6 @@ Example of circuit with 2 register qubits.
 Note: QFT in the above diagram omits swaps, which are included implicitly by
 reversing qubit order for phase kickbacks.
 """
-# pylint: enable=docstring-first-line-empty
 
 import math
 import numpy as np
@@ -83,9 +73,12 @@ import cirq
 class PhaseEstimation(cirq.Gate):
     """A gate for Quantum Phase Estimation.
 
-    unitary is the unitary gate whose phases will be estimated.
-    The last qubit stores the eigenvector; all other qubits store the
-    estimated phase, in big-endian.
+    The last qubit stores the eigenvector; all other qubits store the estimated phase,
+    in big-endian.
+
+    Args:
+        num_qubits: The number of qubits of the unitary.
+        unitary: The unitary gate whose phases will be estimated.
     """
 
     def __init__(self, num_qubits, unitary):
@@ -105,10 +98,9 @@ class PhaseEstimation(cirq.Gate):
 class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
     """A gate that represents e^iAt.
 
-    This EigenGate + np.linalg.eigh() implementation is used here
-    purely for demonstrative purposes. If a large matrix is used,
-    the circuit should implement actual Hamiltonian simulation,
-    by using the linear operators framework in Cirq for example.
+    This EigenGate + np.linalg.eigh() implementation is used here purely for demonstrative
+    purposes. If a large matrix is used, the circuit should implement actual Hamiltonian
+    simulation, by using the linear operators framework in Cirq, for example.
     """
 
     def __init__(self, A, t, exponent=1.0):
@@ -133,9 +125,8 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
 class PhaseKickback(cirq.Gate):
     """A gate for the phase kickback stage of Quantum Phase Estimation.
 
-    It consists of a series of controlled e^iAt gates with the memory qubit as
-    the target and each register qubit as the control, raised
-    to the power of 2 based on the qubit index.
+    It consists of a series of controlled e^iAt gates with the memory qubit as the target and
+    each register qubit as the control, raised to the power of 2 based on the qubit index.
     unitary is the unitary gate whose phases will be estimated.
     """
 
@@ -154,19 +145,16 @@ class PhaseKickback(cirq.Gate):
             yield cirq.ControlledGate(self.U ** (2 ** i))(qubit, memory)
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 class EigenRotation(cirq.Gate):
-    """
-    EigenRotation performs the set of rotation on the ancilla qubit equivalent
-    to division on the memory register by each eigenvalue of the matrix. The
-    last qubit is the ancilla qubit; all remaining qubits are the register,
-    assumed to be big-endian.
+    """Perform the of the ancilla equivalent to divison of the memory by eigenvalues of matrix.
 
-    It consists of a controlled ancilla qubit rotation for each possible value
-    that can be represented by the register. Each rotation is a Ry gate where
-    the angle is calculated from the eigenvalue corresponding to the register
-    value, up to a normalization factor C.
+    EigenRotation performs the set of rotation on the ancilla qubit equivalent to division on the
+    memory register by each eigenvalue of the matrix. The last qubit is the ancilla qubit; all
+    remaining qubits are the register, assumed to be big-endian.
+
+    It consists of a controlled ancilla qubit rotation for each possible value that can be
+    represented by the register. Each rotation is a Ry gate where the angle is calculated from
+    the eigenvalue corresponding to the register value, up to a normalization factor C.
     """
 
     def __init__(self, num_qubits, C, t):
@@ -204,7 +192,6 @@ class EigenRotation(cirq.Gate):
         return cirq.ry(theta)
 
 
-# pylint: enable=docstring-first-line-empty
 def hhl_circuit(A, C, t, register_size, *input_prep_gates):
     """Constructs the HHL circuit.
 
@@ -213,15 +200,13 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
         C: Algorithm parameter, see above.
         t: Algorithm parameter, see above.
         register_size: The size of the eigenvalue register.
-        memory_basis: The basis to measure the memory in, one of 'x', 'y', 'z'.
-        input_prep_gates: A list of gates to be applied to |0> to generate the
-            desired input state |b>.
+        input_prep_gates: A list of gates to be applied to |0> to generate the desired input
+            state |b>.
 
     Returns:
-        The HHL circuit. The ancilla measurement has key 'a' and the memory
-        measurement is in key 'm'.  There are two parameters in the circuit,
-        `exponent` and `phase_exponent` corresponding to a possible rotation
-        applied before the measurement on the memory with a
+        The HHL circuit. The ancilla measurement has key 'a' and the memory measurement is in key
+        'm'.  There are two parameters in the circuit, `exponent` and `phase_exponent` corresponding
+        to a possible rotation  applied before the measurement on the memory with a
         `cirq.PhasedXPowGate`.
     """
 
@@ -276,12 +261,10 @@ def simulate(circuit):
         print(f'{label} = {expectation}')
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def main():
-    """
-    Simulates HHL with matrix input, and outputs Pauli observables of the
-    resulting qubit state |x>.
+    """The main program loop.
+
+    Simulates HHL with matrix input, and outputs Pauli observables of the resulting qubit state |x>.
     Expected observables are calculated from the expected solution |x>.
     """
 
@@ -305,7 +288,7 @@ def main():
     # circuit.
     C = 2 * math.pi / (2 ** register_size * t)
 
-    # Simulate circuit
+    # Simulate circuit.
     print("Expected observable outputs:")
     print("X =", expected[0])
     print("Y =", expected[1])
@@ -314,6 +297,5 @@ def main():
     simulate(hhl_circuit(A, C, t, register_size, *input_prep_gates))
 
 
-# pylint: enable=docstring-first-line-empty
 if __name__ == '__main__':
     main()

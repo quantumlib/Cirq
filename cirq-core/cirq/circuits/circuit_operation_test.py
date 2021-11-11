@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
-
 import pytest, sympy
 
 import cirq
@@ -774,6 +772,16 @@ def test_decompose_repeated_nested_measurements():
     assert op3.mapped_circuit(deep=True) == expected_circuit
 
 
+def test_keys_under_parent_path():
+    a = cirq.LineQubit(0)
+    op1 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='A')))
+    assert cirq.measurement_key_names(op1) == {'A'}
+    op2 = op1.with_key_path(('B',))
+    assert cirq.measurement_key_names(op2) == {'B:A'}
+    op3 = op2.repeat(2)
+    assert cirq.measurement_key_names(op3) == {'B:0:A', 'B:1:A'}
+
+
 def test_mapped_circuit_preserves_moments():
     q0, q1 = cirq.LineQubit.range(2)
     fc = cirq.FrozenCircuit(cirq.Moment(cirq.X(q0)), cirq.Moment(cirq.X(q1)))
@@ -820,7 +828,7 @@ def test_tag_propagation():
         assert test_tag not in op.tags
 
 
-def test_keys_under_parent_path():
+def test_mapped_circuit_keeps_keys_under_parent_path():
     q = cirq.LineQubit(0)
     op1 = cirq.CircuitOperation(
         cirq.FrozenCircuit(
@@ -865,6 +873,3 @@ def test_keys_conflict_locally():
     op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
     with pytest.raises(ValueError, match='Key conflicts locally: A'):
         _ = op2.mapped_circuit()
-
-
-# TODO: Operation has a "gate" property. What is this for a CircuitOperation?

@@ -1,12 +1,10 @@
-#!/usr/bin/env bash
-
 # Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      https://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,16 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-################################################################################
-# Allows the user to run npm commands from the top-level Cirq
-# directory.
-#
-# Usage:
-#     check/npm
-################################################################################
+from cirq import _import
 
-# Get the working directory to the repo root.
-cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$(git rev-parse --show-toplevel)"
 
-npm --prefix 'cirq-web/cirq_ts' "$@"
+def test_lazy_loader():
+    linalg = _import.LazyLoader("linalg", globals(), "scipy.linalg")
+    linalg.fun = 1
+    assert linalg._module is None
+    assert "linalg" not in linalg.__dict__
+
+    linalg.det([[1]])
+
+    assert linalg._module is not None
+    assert globals()["linalg"] == linalg._module
+    assert "fun" in linalg.__dict__
+    assert "LinAlgError" in dir(linalg)
+    assert linalg.fun == 1

@@ -1,13 +1,9 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
-"""
-Creates and simulates a circuit for Quantum Fourier Transform(QFT)
-on a 4 qubit system.
+"""Creates and simulates a circuit for Quantum Fourier Transform(QFT) on 4 qubits.
 
 In this example we demonstrate Fourier Transform on
-(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) vector. To do the same, we prepare
-the input state of the qubits as |0000>.
+(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) vector. To do the same, we prepare the input state of the
+qubits as |0000>.
 === EXAMPLE OUTPUT ===
 
 Circuit:
@@ -23,7 +19,6 @@ FinalState
 [0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j
  0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j]
 """
-# pylint: enable=docstring-first-line-empty
 
 import numpy as np
 

@@ -50,6 +50,7 @@ import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, work
 from cirq.sim.act_on_args import ActOnArgs
+from cirq.sim.operation_target import OperationTarget
 
 if TYPE_CHECKING:
     import cirq
@@ -538,8 +539,13 @@ class SimulatesIntermediateState(
         """
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in study.to_resolvers(params):
+            state = (
+                initial_state.copy()
+                if isinstance(initial_state, OperationTarget)
+                else initial_state
+            )
             all_step_results = self.simulate_moment_steps(
-                program, param_resolver, qubit_order, initial_state
+                program, param_resolver, qubit_order, state
             )
             measurements = {}  # type: Dict[str, np.ndarray]
             for step_result in all_step_results:

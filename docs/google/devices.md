@@ -125,7 +125,7 @@ This can be done by applying a PhysicalZTag to the Z gate,
 such as in the following example:
 
 ```
-cirq.Z(cirq.GridQubit(5, 5)).with_tags(cirq.google.PhysicalZTag())
+cirq.Z(cirq.GridQubit(5, 5)).with_tags(cirq_google.PhysicalZTag())
 ```
 
 Physical Z gates have a duration of 20 ns on most Google devices.
@@ -144,7 +144,7 @@ and may drift over time.
 #### Sycamore Gate
 
 The hardware provides a gate known as the Sycamore gate that can
-be accessed using `cirq.google.SYC`.  This gate is equivalent to
+be accessed using `cirq_google.SYC`.  This gate is equivalent to
 an FSimGate(π/2, π/6).  That is, it does both a partial swap and
 controlled phase rotation of the |11⟩ state.
 
@@ -162,8 +162,8 @@ $$
 \right]
 $$
 
-This gate has a duration of 12ns and can be used in `cirq.google.SYC_GATESET`
-or in the `cirq.google.FSIM_GATESET`.
+This gate has a duration of 12ns and can be used in `cirq_google.SYC_GATESET`
+or in the `cirq_google.FSIM_GATESET`.
 
 #### Square root of iSWAP
 
@@ -186,7 +186,7 @@ $$
 $$
 
 This gate has a duration of 32ns and can be used in
-`cirq.google.SQRT_ISWAP_GATESET` or in the `cirq.google.FSIM_GATESET`.
+`cirq_google.SQRT_ISWAP_GATESET` or in the `cirq_google.FSIM_GATESET`.
 
 This gate is implemented by using an entangling gate surrounding by
 Z gates.  The preceding Z gates are physical Z gates and will absorb
@@ -268,14 +268,14 @@ It can be accessed using `cirq.GridQubit(row, col)` using grid coordinates speci
 9 ----I-----
 ```
 
-It can be accessing by using `cirq.google.Sycamore`. This device has two possible
+It can be accessing by using `cirq_google.Sycamore`. This device has two possible
 two-qubits gates that can be used.
 
 *  Square root of ISWAP. The gate `cirq.ISWAP ** 0.5` or `cirq.ISWAP ** -0.5` can be
-used on `cirq.google.optimized_for_sycamore` with optimizer type `sqrt_iswap`
-*  Sycamore gate. This gate, equivalent to FSimGate(π/2, π/6) can be used as `cirq.google.SYC`
+used on `cirq_google.optimized_for_sycamore` with optimizer type `sqrt_iswap`
+*  Sycamore gate. This gate, equivalent to FSimGate(π/2, π/6) can be used as `cirq_google.SYC`
 or by using `cirq.FsimGate(numpy.pi/2,numpy.pi/6)`. Circuits can be compiled to use this gate
-by using `cirq.google.optimized_for_sycamore` with optimizer type `sycamore`
+by using `cirq_google.optimized_for_sycamore` with optimizer type `sycamore`
 
 
 ### Sycamore23
@@ -298,7 +298,7 @@ with and presents less hardware-related complications than using the full Sycamo
 9 ----I-----
 ```
 
-This grid can be accessed using `cirq.google.Sycamore23` and uses the same gate sets and
+This grid can be accessed using `cirq_google.Sycamore23` and uses the same gate sets and
 compilation as the Sycamore device.
 
 
@@ -325,8 +325,8 @@ The device is arrayed on a grid in a diamond pattern like this.
 10-----KL-----
 ```
 
-It can be accessing by using `cirq.google.Bristlecone`. Circuits can be compiled to it by using
-`cirq.google.optimized_for_xmon` or by using `cirq.google.optimized_for_sycamore` with
+It can be accessing by using `cirq_google.Bristlecone`. Circuits can be compiled to it by using
+`cirq_google.optimized_for_xmon` or by using `cirq_google.optimized_for_sycamore` with
 optimizer_type `xmon`.
 
 ### Foxtail
@@ -337,6 +337,6 @@ super-conducting quantum devices announced by Google. Due to the small number of
 and limited connectivity, it is still interesting for exploring the space of constrained
 algorithms on NISQ devices.
 
-It can be accessing by using `cirq.google.Foxtail`. Circuits can be compiled to it by using
-`cirq.google.optimized_for_xmon` or by using `cirq.google.optimized_for_sycamore` with
+It can be accessing by using `cirq_google.Foxtail`. Circuits can be compiled to it by using
+`cirq_google.optimized_for_xmon` or by using `cirq_google.optimized_for_sycamore` with
 optimizer_type `xmon`.
