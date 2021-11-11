@@ -97,6 +97,10 @@ See the previous section for instructions.
     ```bash
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
+    
+    This installs docker and docker-compose among other things. You may need to restart
+    docker or configure permissions, see 
+    [docker install instructions](https://docs.docker.com/engine/install/ubuntu/)
 
     There are some extra steps if protocol buffers are changed; see the next section.
 
