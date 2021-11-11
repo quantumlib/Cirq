@@ -465,3 +465,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
             f'params={self.params!r}, measurements={self.measurements!r}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )
+
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.DensityMatrixTrialResult(...)" if cycle else self.__str__())
