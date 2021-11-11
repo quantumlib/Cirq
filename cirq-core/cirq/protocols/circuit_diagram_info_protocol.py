@@ -331,7 +331,7 @@ def _op_info_with_fallback(
         rows += protocols.control_keys(op) & args.qubit_map.keys()
     if info is not None:
         if max(1, len(rows)) != len(info.wire_symbols):
-            raise ValueError(f'Wanted diagram info from {op} for {rows}) but got {info}')
+            raise ValueError(f'Wanted diagram info from {op!r} for {rows!r}) but got {info!r}')
         return info
 
     # Use the untagged operation's __str__.
