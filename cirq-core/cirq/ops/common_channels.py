@@ -316,15 +316,13 @@ class DepolarizingChannel(raw_types.Gate):
             return f"depolarize(p={self._p})"
         return f"depolarize(p={self._p},n_qubits={self._n_qubits})"
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
-        from cirq.sim import clifford
-
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if args.prng.random() < self._p:
-                gate = args.prng.choice([pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
-                protocols.act_on(gate, args, qubits)
-            return True
-        return NotImplemented
+    def _apply_to_tableau_(
+        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
+    ):
+        if prng.random() < self._p:
+            gate = prng.choice([pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
+            protocols.apply_to_tableau(gate, tableau, axes, prng)
+        return True
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
         result: Tuple[str, ...]
@@ -722,14 +720,20 @@ class ResetChannel(gate_features.SingleQubitGate):
     def _qid_shape_(self):
         return (self._dimension,)
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq import sim, ops
+    def _apply_to_ch_form_(
+        self,
+        ch_form: 'cirq.StabilizerStateChForm',
+        axes: Sequence[int],
+        prng: np.random.RandomState,
+    ):
+        from cirq import ops
 
-        if isinstance(args, sim.ActOnStabilizerCHFormArgs):
-            axe = args.qubit_map[qubits[0]]
-            if args.state._measure(axe, args.prng):
-                ops.X._act_on_(args, qubits)
-            return True
+        if ch_form._measure(axes[0], prng):
+            protocols.apply_to_ch_form(ops.X, ch_form, axes, prng)
+        return True
+
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
+        from cirq import sim
 
         if isinstance(args, sim.ActOnStateVectorArgs):
             # Do a silent measurement.

@@ -64,7 +64,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
-        strats = []
+        strats = [_strat_apply_to_ch_form]
         if allow_decompose:
             strats.append(_strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
         for strat in strats:
@@ -98,6 +98,13 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         return np.array(list(measurements.values()), dtype=bool)
 
 
+def _strat_apply_to_ch_form(
+    val: Any, args: 'cirq.ActOnStabilizerCHFormArgs', qubits: Sequence['cirq.Qid']
+) -> bool:
+    gate = val.gate if isinstance(val, ops.Operation) else val
+    return protocols.apply_to_ch_form(gate, args.state, args.get_axes(qubits), args.prng)
+
+
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
     val: Any, args: 'cirq.ActOnStabilizerCHFormArgs', qubits: Sequence['cirq.Qid']
 ) -> bool:
@@ -114,14 +121,14 @@ def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
                 gate = None  # type: Optional[cirq.Gate]
                 if axis == pauli_gates.X:
                     gate = common_gates.XPowGate(exponent=quarter_turns / 2)
-                    assert gate._act_on_(args, qubits)
+                    protocols.act_on(gate, args, qubits)
                 elif axis == pauli_gates.Y:
                     gate = common_gates.YPowGate(exponent=quarter_turns / 2)
-                    assert gate._act_on_(args, qubits)
+                    protocols.act_on(gate, args, qubits)
                 else:
                     assert axis == pauli_gates.Z
                     gate = common_gates.ZPowGate(exponent=quarter_turns / 2)
-                    assert gate._act_on_(args, qubits)
+                    protocols.act_on(gate, args, qubits)
 
                 final_unitary = np.matmul(unitary(gate), final_unitary)
 

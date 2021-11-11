@@ -44,6 +44,12 @@ from cirq.protocols.kraus_protocol import (
     has_kraus,
     SupportsKraus,
 )
+from cirq.protocols.clifford_protocols import (
+    apply_to_ch_form,
+    apply_to_tableau,
+    SupportsApplyToChForm,
+    SupportsApplyToTableau,
+)
 from cirq.protocols.commutes_protocol import (
     commutes,
     definitely_commutes,

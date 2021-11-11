@@ -18,6 +18,7 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
 
 import numpy as np
 
+from cirq import protocols, ops
 from cirq.ops import common_gates
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -66,7 +67,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
-        strats = []
+        strats = [_strat_apply_to_tableau]
         if allow_decompose:
             strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)
         for strat in strats:
@@ -96,6 +97,13 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         raise NotImplementedError()
 
 
+def _strat_apply_to_tableau(
+    val: Any, args: 'cirq.ActOnCliffordTableauArgs', qubits: Sequence['cirq.Qid']
+) -> bool:
+    gate = val.gate if isinstance(val, ops.Operation) else val
+    return protocols.apply_to_tableau(gate, args.tableau, args.get_axes(qubits), args.prng)
+
+
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
     val: Any, args: 'cirq.ActOnCliffordTableauArgs', qubits: Sequence['cirq.Qid']
 ) -> bool:
@@ -107,12 +115,18 @@ def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
         if clifford_gate is not None:
             for axis, quarter_turns in clifford_gate.decompose_rotation():
                 if axis == pauli_gates.X:
-                    common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
+                    protocols.act_on(
+                        common_gates.XPowGate(exponent=quarter_turns / 2), args, qubits
+                    )
                 elif axis == pauli_gates.Y:
-                    common_gates.YPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
+                    protocols.act_on(
+                        common_gates.YPowGate(exponent=quarter_turns / 2), args, qubits
+                    )
                 else:
                     assert axis == pauli_gates.Z
-                    common_gates.ZPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
+                    protocols.act_on(
+                        common_gates.ZPowGate(exponent=quarter_turns / 2), args, qubits
+                    )
             return True
 
     return NotImplemented

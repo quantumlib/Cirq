@@ -94,24 +94,36 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             return None
         return self.exponent % 1 == 0
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq import ops, sim, protocols
+    def _apply_to_tableau_(
+        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
+    ):
+        from cirq import ops
 
-        if isinstance(args, (sim.ActOnStabilizerCHFormArgs, sim.ActOnCliffordTableauArgs)):
-            if not self._has_stabilizer_effect_():
-                return NotImplemented
-            if isinstance(args, sim.ActOnStabilizerCHFormArgs):
-                args.state.omega *= 1j ** (2 * self.global_shift * self._exponent)
+        if not self._has_stabilizer_effect_():
+            return NotImplemented
 
-            if self._exponent % 2 == 1:
-                protocols.act_on(ops.CNOT, args, qubits)
-                protocols.act_on(ops.CNOT, args, tuple(reversed(qubits)))
-                protocols.act_on(ops.CNOT, args, qubits)
+        if self._exponent % 2 == 1:
+            protocols.apply_to_tableau(ops.CNOT, tableau, axes, prng)
+            protocols.apply_to_tableau(ops.CNOT, tableau, tuple(reversed(axes)), prng)
+            protocols.apply_to_tableau(ops.CNOT, tableau, axes, prng)
+        return True
 
-            # An even exponent does not change anything except the global phase above.
-            return True
+    def _apply_to_ch_form_(
+        self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
+    ):
+        from cirq import ops
 
-        return NotImplemented
+        if not self._has_stabilizer_effect_():
+            return NotImplemented
+        state.omega *= 1j ** (2 * self.global_shift * self._exponent)
+
+        if self._exponent % 2 == 1:
+            protocols.apply_to_ch_form(ops.CNOT, state, axes, prng)
+            protocols.apply_to_ch_form(ops.CNOT, state, tuple(reversed(axes)), prng)
+            protocols.apply_to_ch_form(ops.CNOT, state, axes, prng)
+
+        # An even exponent does not change anything except the global phase above.
+        return True
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:

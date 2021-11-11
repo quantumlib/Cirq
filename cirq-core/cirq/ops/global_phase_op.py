@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A no-qubit global phase operation."""
-from typing import Any, Dict, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 
@@ -60,19 +60,18 @@ class GlobalPhaseOperation(raw_types.Operation):
     def _has_stabilizer_effect_(self) -> bool:
         return True
 
-    def _act_on_(self, args: 'cirq.ActOnArgs'):
-        from cirq.sim import clifford
+    def _apply_to_tableau_(
+        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
+    ):
+        # Since CliffordTableau does not keep track of the global phase,
+        # it's safe to just ignore it here.
+        return True
 
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            # Since CliffordTableau does not keep track of the global phase,
-            # it's safe to just ignore it here.
-            return True
-
-        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            args.state.omega *= self.coefficient
-            return True
-
-        return NotImplemented
+    def _apply_to_ch_form_(
+        self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
+    ):
+        state.omega *= self.coefficient
+        return True
 
     def __str__(self) -> str:
         return str(self.coefficient)
