@@ -358,3 +358,7 @@ class NeutralAtomDevice(devices.Device):
                 diagram.grid_line(q.col, q.row, q2.col, q2.row)
 
         return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
+
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.NeutralAtomDevice(...)" if cycle else self.__str__())
