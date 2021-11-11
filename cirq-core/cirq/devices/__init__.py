@@ -39,6 +39,11 @@ from cirq.devices.noise_model import (
     ConstantQubitNoiseModel,
 )
 
+from cirq.devices.noise_properties import (
+    NoiseProperties,
+    NoiseModelFromNoiseProperties,
+)
+
 from cirq.devices.named_topologies import (
     NamedTopology,
     draw_gridlike,
@@ -50,6 +55,10 @@ from cirq.devices.named_topologies import (
 
 from cirq.devices.insertion_noise_model import (
     InsertionNoiseModel,
+)
+
+from cirq.devices.thermal_noise_model import (
+    ThermalNoiseModel,
 )
 
 from cirq.devices.noise_utils import (
