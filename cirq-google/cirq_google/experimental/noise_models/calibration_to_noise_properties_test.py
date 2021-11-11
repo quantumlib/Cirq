@@ -1,5 +1,4 @@
-import cirq
-import cirq_google
+import cirq, cirq_google
 from cirq_google.api import v2
 from cirq_google.experimental.noise_models.calibration_to_noise_properties import (
     noise_properties_from_calibration,

@@ -53,6 +53,11 @@ def test_tilted_square_methods():
     qubits = topo.nodes_as_gridqubits()
     assert all(isinstance(q, cirq.GridQubit) for q in qubits)
 
+    mapping = topo.nodes_to_gridqubits(offset=(3, 5))
+    assert all(
+        isinstance(q, cirq.GridQubit) and q >= cirq.GridQubit(0, 0) for q in mapping.values()
+    )
+
 
 def test_tilted_square_lattice_n_nodes():
     for width, height in itertools.product(list(range(1, 4 + 1)), repeat=2):

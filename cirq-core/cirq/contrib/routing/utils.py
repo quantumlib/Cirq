@@ -55,8 +55,6 @@ def ops_are_consistent_with_device_graph(
     return True
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def is_valid_routing(
     circuit: circuits.Circuit,
     swap_network: SwapNetwork,
@@ -73,6 +71,9 @@ def is_valid_routing(
             `operator.eq`.
         can_reorder: A predicate that determines if two operations may be
             reordered.
+
+    Raises:
+        ValueError: If equals operator or can_reorder throws a ValueError.
     """
     circuit_dag = circuits.CircuitDag.from_circuit(circuit, can_reorder=can_reorder)
     logical_operations = swap_network.get_logical_operations()
@@ -84,7 +85,6 @@ def is_valid_routing(
         raise
 
 
-# pylint: enable=missing-raises-doc
 def get_circuit_connectivity(circuit: 'cirq.Circuit') -> nx.Graph:
     """Return a graph of all 2q interactions in a circuit.
 

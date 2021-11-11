@@ -19,14 +19,16 @@ import pandas as pd
 import sympy
 from matplotlib import pyplot as plt
 import numpy as np
-from scipy import optimize
 
 
-from cirq import circuits, ops, study, value
+from cirq import circuits, ops, study, value, _import
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
+
+# We initialize optimize lazily, otherwise it slows global import speed.
+optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")
 
 
 # TODO(#3388) Add documentation for Raises.

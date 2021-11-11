@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import pytest
 import numpy as np
 
@@ -36,6 +37,23 @@ def test_validation():
     with pytest.raises(ValueError):
         circuit_to_svg(cirq.Circuit())
 
-    q0 = cirq.LineQubit(0)
-    with pytest.raises(ValueError):
-        circuit_to_svg(cirq.Circuit([cirq.Moment([cirq.X(q0)]), cirq.Moment([])]))
+
+def test_empty_moments():
+    a, b = cirq.LineQubit.range(2)
+    svg_1 = circuit_to_svg(
+        cirq.Circuit(
+            cirq.Moment(),
+            cirq.Moment(cirq.CNOT(a, b)),
+            cirq.Moment(),
+            cirq.Moment(cirq.SWAP(a, b)),
+            cirq.Moment(cirq.Z(a)),
+            cirq.Moment(cirq.measure(a, b, key='z')),
+            cirq.Moment(),
+        )
+    )
+    assert '<svg' in svg_1
+    assert '</svg>' in svg_1
+
+    svg_2 = circuit_to_svg(cirq.Circuit(cirq.Moment()))
+    assert '<svg' in svg_2
+    assert '</svg>' in svg_2

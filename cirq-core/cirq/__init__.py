@@ -21,7 +21,6 @@ from cirq import _import
 from cirq import (
     # Low level
     _version,
-    _compat,
     _doc,
     type_workarounds,
 )
@@ -251,7 +250,6 @@ from cirq.ops import (
     ParallelGate,
     ParallelGateFamily,
     parallel_gate_op,
-    ParallelGateOperation,
     Pauli,
     PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
@@ -303,12 +301,10 @@ from cirq.ops import (
     SwapPowGate,
     T,
     TaggedOperation,
-    ThreeQubitGate,
     ThreeQubitDiagonalGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitDiagonalGate,
-    TwoQubitGate,
     VirtualTag,
     wait,
     WaitGate,
@@ -371,11 +367,9 @@ from cirq.qis import (
     entanglement_fidelity,
     eye_tensor,
     fidelity,
-    kraus_to_channel_matrix,
     kraus_to_choi,
     kraus_to_superoperator,
     one_hot,
-    operation_to_channel_matrix,
     operation_to_choi,
     operation_to_superoperator,
     QUANTUM_STATE_LIKE,
@@ -511,6 +505,7 @@ from cirq.protocols import (
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     commutes,
+    control_keys,
     decompose,
     decompose_once,
     decompose_once_with_qubits,
@@ -558,6 +553,7 @@ from cirq.protocols import (
     SupportsConsistentApplyUnitary,
     SupportsCircuitDiagramInfo,
     SupportsCommutes,
+    SupportsControlKey,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
     SupportsEqualUpToGlobalPhase,
@@ -584,6 +580,7 @@ from cirq.protocols import (
     unitary,
     validate_mixture,
     with_key_path,
+    with_key_path_prefix,
     with_measurement_key_mapping,
 )
 
@@ -622,40 +619,6 @@ from cirq.work import (
 from cirq import (
     testing,
 )
-
-_compat.deprecated_submodule(
-    new_module_name='cirq_google',
-    old_parent=__name__,
-    old_child='google',
-    deadline="v0.14",
-    create_attribute=True,
-)
-
-_compat.deprecated_submodule(
-    new_module_name='cirq_aqt',
-    old_parent=__name__,
-    old_child='aqt',
-    deadline="v0.14",
-    create_attribute=True,
-)
-
-
-_compat.deprecated_submodule(
-    new_module_name='cirq_ionq',
-    old_parent=__name__,
-    old_child='ionq',
-    deadline="v0.14",
-    create_attribute=True,
-)
-
-_compat.deprecated_submodule(
-    new_module_name='cirq_pasqal',
-    old_parent=__name__,
-    old_child='pasqal',
-    deadline="v0.14",
-    create_attribute=True,
-)
-
 
 # Registers cirq-core's public classes for JSON serialization.
 # pylint: disable=wrong-import-position

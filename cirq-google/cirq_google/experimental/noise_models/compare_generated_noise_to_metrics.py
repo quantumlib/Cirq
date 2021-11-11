@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 # coverage: ignore
 from typing import Any, List
 import cirq_google

@@ -14,10 +14,6 @@
 
 """Utilities for testing code."""
 
-from cirq.testing.asynchronous import (
-    asyncio_pending,
-)
-
 from cirq.testing.circuit_compare import (
     assert_circuits_with_terminal_measurements_are_equivalent,
     assert_has_consistent_apply_unitary,

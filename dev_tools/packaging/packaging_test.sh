@@ -41,9 +41,9 @@ echo ===========================
 echo Testing that code executes
 echo ===========================
 
-"${tmp_dir}/env/bin/python" -c "import cirq; print(cirq.google.Foxtail)"
-"${tmp_dir}/env/bin/python" -c "import cirq_google; print(cirq_google.Foxtail)"
 "${tmp_dir}/env/bin/python" -c "import cirq; print(cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2))))"
+"${tmp_dir}/env/bin/python" -c "import cirq_google; print(cirq_google.Foxtail)"
+
 
 echo =======================================
 echo Testing that all modules are installed
