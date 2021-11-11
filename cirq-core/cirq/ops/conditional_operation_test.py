@@ -356,18 +356,18 @@ def test_scope_local():
         cirq.X(q).with_conditions('a'),
     )
     middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
-    op = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    circuit = op.mapped_circuit(deep=True)
-    inner_keys = [
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
         str(condition)
         for op in circuit.all_operations()
         for condition in op.conditions
     ]
-    assert inner_keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
-    assert not cirq.control_keys(op)
+    assert internal_control_keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
+    assert not cirq.control_keys(outer_subcircuit)
     assert not cirq.control_keys(circuit)
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(op),
+        cirq.Circuit(outer_subcircuit),
         """
       Circuit_0x0000000000000000:
       [       Circuit_0x0000000000000000:             ]
@@ -404,18 +404,18 @@ def test_scope_extern():
         cirq.measure(q, key=cirq.MeasurementKey('b')),
         cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
-    op = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    circuit = op.mapped_circuit(deep=True)
-    keys = [
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
         str(condition)
         for op in circuit.all_operations()
         for condition in op.conditions
     ]
-    assert keys == ['0:b', '0:b', '1:b', '1:b']
-    assert not cirq.control_keys(op)
+    assert internal_control_keys == ['0:b', '0:b', '1:b', '1:b']
+    assert not cirq.control_keys(outer_subcircuit)
     assert not cirq.control_keys(circuit)
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(op),
+        cirq.Circuit(outer_subcircuit),
         """
       Circuit_0x0000000000000000:
       [           Circuit_0x0000000000000000:             ]
@@ -454,18 +454,18 @@ def test_scope_root():
         cirq.measure(q, key=cirq.MeasurementKey('c')),
         cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
-    op = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    circuit = op.mapped_circuit(deep=True)
-    keys = [
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
         str(condition)
         for op in circuit.all_operations()
         for condition in op.conditions
     ]
-    assert keys == ['b', 'b', 'b', 'b']
-    assert cirq.control_keys(op) == {cirq.MeasurementKey('b')}
+    assert internal_control_keys == ['b', 'b', 'b', 'b']
+    assert cirq.control_keys(outer_subcircuit) == {cirq.MeasurementKey('b')}
     assert cirq.control_keys(circuit) == {cirq.MeasurementKey('b')}
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(op),
+        cirq.Circuit(outer_subcircuit),
         """
       Circuit_0x0000000000000000:
       [                Circuit_0x0000000000000000:             ]
@@ -506,18 +506,18 @@ def test_scope_extern_mismatch():
         cirq.measure(q, key=cirq.MeasurementKey('b', ('0',))),
         cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
-    op = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    circuit = op.mapped_circuit(deep=True)
-    keys = [
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
         str(condition)
         for op in circuit.all_operations()
         for condition in op.conditions
     ]
-    assert keys == ['b', 'b', 'b', 'b']
-    assert cirq.control_keys(op) == {cirq.MeasurementKey('b')}
+    assert internal_control_keys == ['b', 'b', 'b', 'b']
+    assert cirq.control_keys(outer_subcircuit) == {cirq.MeasurementKey('b')}
     assert cirq.control_keys(circuit) == {cirq.MeasurementKey('b')}
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(op),
+        cirq.Circuit(outer_subcircuit),
         """
       Circuit_0x0000000000000000:
       [                  Circuit_0x0000000000000000:             ]
