@@ -14,7 +14,7 @@
 
 """Define FSimGateFamily used to convert/accept `cirq.FSimGate` and other related gate types"""
 
-from typing import cast, Dict, Optional, Type, TypeVar, Sequence, Union, Any, Callable
+from typing import Any, Callable, cast, Dict, Iterable, Optional, Type, TypeVar, Sequence, Union
 
 import sympy
 import numpy as np
@@ -45,7 +45,7 @@ def _exp(theta: Union[complex, sympy.Basic]):
     return sympy.exp(theta) if cirq.is_parameterized(theta) else np.exp(theta)
 
 
-def _gate_list_to_str(gates: Any, gettr: Callable[[Any], str] = _gate_str) -> str:
+def _gates_to_str(gates: Iterable[Any], gettr: Callable[[Any], str] = _gate_str) -> str:
     """Converts a list of gates (types/instances) to string by calling gettr (str/repr) on each."""
     return f'[{",".join(gettr(g) for g in gates)}]'
 
@@ -153,8 +153,8 @@ class FSimGateFamily(cirq.GateFamily):
 
         if any(g not in self._supported_types for g in gate_types_to_check):
             raise ValueError(
-                f"All gates in gate_types_to_check: {_gate_list_to_str(gate_types_to_check)} must "
-                f"be one of {_gate_list_to_str(self._supported_types.keys())}."
+                f"All gates in gate_types_to_check: {_gates_to_str(gate_types_to_check)} must "
+                f"be one of {_gates_to_str(self._supported_types.keys())}."
             )
 
         for g in gates_to_accept:
@@ -166,7 +166,7 @@ class FSimGateFamily(cirq.GateFamily):
             elif g not in self._supported_types:
                 raise ValueError(
                     f"Gate {g} in `gates_to_accept` must be either a type from or an instance of "
-                    f"{_gate_list_to_str(self._supported_types.keys())}"
+                    f"{_gates_to_str(self._supported_types.keys())}"
                 )
         self.gates_to_accept = tuple(dict.fromkeys(gates_to_accept))
         self.gate_types_to_check = tuple(dict.fromkeys(gate_types_to_check))
@@ -180,17 +180,17 @@ class FSimGateFamily(cirq.GateFamily):
     def _default_description(self) -> str:
         return (
             f'`cirq_google.FSimGateFamily` which accepts any instance of gate types in'
-            f'\ngate_types_to_check: {_gate_list_to_str(self.gate_types_to_check)}'
+            f'\ngate_types_to_check: {_gates_to_str(self.gate_types_to_check)}'
             f'\nwhich matches (across types), via instance check / value equality, a gate in'
-            f'\ngates_to_accept: {_gate_list_to_str(self.gates_to_accept)}'
+            f'\ngates_to_accept: {_gates_to_str(self.gates_to_accept)}'
         )
 
     def __repr__(self) -> str:
         _gate_repr = lambda x: _gate_str(x, repr)
         return (
             'cirq_google.FSimGateFamily('
-            f'gates_to_accept={_gate_list_to_str(self.gates_to_accept, _gate_repr)}, '
-            f'gate_types_to_check={_gate_list_to_str(self.gate_types_to_check, _gate_repr)}, '
+            f'gates_to_accept={_gates_to_str(self.gates_to_accept, _gate_repr)}, '
+            f'gate_types_to_check={_gates_to_str(self.gate_types_to_check, _gate_repr)}, '
             f'allow_symbols={self.allow_symbols}, '
             f'atol={self.atol})'
         )
