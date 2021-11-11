@@ -1,5 +1,4 @@
 from typing import Dict, List, Tuple
-from cirq.ops.fsim_gate import PhasedFSimGate
 import numpy as np
 import pytest
 import cirq, cirq_google
@@ -67,7 +66,6 @@ def test_str():
 def test_repr_evaluation():
     q0, q1 = cirq.LineQubit.range(2)
     props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
-    print(repr(props))
     props_from_repr = eval(repr(props))
     assert props_from_repr == props
 
@@ -213,9 +211,13 @@ def test_two_qubit_gates(op):
     assert len(noisy_circuit.moments[2].operations) == 1
     fsim_op = noisy_circuit.moments[2].operations[0]
     assert isinstance(fsim_op.gate, cirq.PhasedFSimGate)
-    assert fsim_op == PhasedFSimGate(theta=0.01, zeta=0.03, chi=0.04, gamma=0.05, phi=0.02).on(
-        q0, q1
-    )
+    assert fsim_op == cirq.PhasedFSimGate(
+        theta=0.01,
+        zeta=0.03,
+        chi=0.04,
+        gamma=0.05,
+        phi=0.02
+    ).on(q0, q1)
 
     # Thermal noise
     assert len(noisy_circuit.moments[3].operations) == 2
@@ -258,7 +260,6 @@ def test_measure_gates():
     op = cirq.measure(*qubits, key='m')
     circuit = cirq.Circuit(cirq.measure(*qubits, key='m'))
     noisy_circuit = circuit.with_noise(model)
-    print(noisy_circuit.moments)
     assert len(noisy_circuit.moments) == 2
 
     # Amplitude damping before measurement

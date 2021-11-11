@@ -28,6 +28,7 @@ ASYMMETRIC_TWO_QUBIT_GATES: Set[type] = set()
 TWO_QUBIT_GATES = SYMMETRIC_TWO_QUBIT_GATES | ASYMMETRIC_TWO_QUBIT_GATES
 
 
+# TODO: missing per-device defaults
 @dataclass
 class NoiseProperties:
     """Noise-defining properties for a quantum device.
