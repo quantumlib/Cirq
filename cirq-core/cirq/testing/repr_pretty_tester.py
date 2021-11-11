@@ -21,11 +21,10 @@ class FakePrinter:
 
     Can be used in tests to test a classes `_repr_pretty_` method:
 
-        ```
-        p = FakePrinter()
-        s = object_under_test._repr_pretty(p, cycle=False)
-        assert p.text_pretty == 'my pretty text'
-        ```
+    >>> p = FakePrinter()
+    >>> s = object_under_test._repr_pretty(p, cycle=False)
+    >>> p.text_pretty
+    'my pretty_text'
 
     Prefer to use `assert_repr_pretty` below.
     """
