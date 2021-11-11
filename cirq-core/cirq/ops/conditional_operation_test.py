@@ -356,13 +356,42 @@ def test_scope_local():
         cirq.X(q).with_conditions('a'),
     )
     middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
-    circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
-    keys = [
-        str(list(op.conditions)[0])
+    op = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = op.mapped_circuit(deep=True)
+    inner_keys = [
+        str(condition)
         for op in circuit.all_operations()
-        if isinstance(op, ConditionalOperation)
+        for condition in op.conditions
     ]
-    assert keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
+    assert inner_keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
+    assert not cirq.control_keys(op)
+    assert not cirq.control_keys(circuit)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+      Circuit_0x0000000000000000:
+      [       Circuit_0x0000000000000000:             ]
+0: ───[ 0: ───[ 0: ───M───X───          ]──────────── ]────────────
+      [       [       ║   ║             ]             ]
+      [       [ a: ═══@═══^═══          ](loops=2)    ](loops=2)
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───────M───X───M───X───M───X───M───X───
+          ║   ║   ║   ║   ║   ║   ║   ║
+0:0:a: ═══@═══^═══╬═══╬═══╬═══╬═══╬═══╬═══
+                  ║   ║   ║   ║   ║   ║
+0:1:a: ═══════════@═══^═══╬═══╬═══╬═══╬═══
+                          ║   ║   ║   ║
+1:0:a: ═══════════════════@═══^═══╬═══╬═══
+                                  ║   ║
+1:1:a: ═══════════════════════════@═══^═══
+""",
+        use_unicode_characters=True,
+    )
 
 
 def test_scope_extern():
@@ -375,13 +404,44 @@ def test_scope_extern():
         cirq.measure(q, key=cirq.MeasurementKey('b')),
         cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
-    circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
+    op = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = op.mapped_circuit(deep=True)
     keys = [
-        str(list(op.conditions)[0])
+        str(condition)
         for op in circuit.all_operations()
-        if isinstance(op, ConditionalOperation)
+        for condition in op.conditions
     ]
     assert keys == ['0:b', '0:b', '1:b', '1:b']
+    assert not cirq.control_keys(op)
+    assert not cirq.control_keys(circuit)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+      Circuit_0x0000000000000000:
+      [           Circuit_0x0000000000000000:             ]
+      [ 0: ───M───[ 0: ───M('a')───X───     ]──────────── ]
+0: ───[       ║   [                ║        ]             ]────────────
+      [       ║   [ b: ════════════^═══     ](loops=2)    ]
+      [       ║   ║                                       ]
+      [ b: ═══@═══╩══════════════════════════════════════ ](loops=2)
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ─────M───M('0:0:a')───X───M('0:1:a')───X───M───M('1:0:a')───X───M('1:1:a')───X───
+        ║                ║                ║   ║                ║                ║
+        ║                ║                ║   ║                ║                ║
+        ║                ║                ║   ║                ║                ║
+0:b: ═══@════════════════^════════════════^═══╬════════════════╬════════════════╬═══
+                                              ║                ║                ║
+                                              ║                ║                ║
+                                              ║                ║                ║
+1:b: ═════════════════════════════════════════@════════════════^════════════════^═══
+""",
+        use_unicode_characters=True,
+    )
 
 
 def test_scope_root():
@@ -394,13 +454,46 @@ def test_scope_root():
         cirq.measure(q, key=cirq.MeasurementKey('c')),
         cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
-    circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
+    op = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = op.mapped_circuit(deep=True)
     keys = [
-        str(list(op.conditions)[0])
+        str(condition)
         for op in circuit.all_operations()
-        if isinstance(op, ConditionalOperation)
+        for condition in op.conditions
     ]
     assert keys == ['b', 'b', 'b', 'b']
+    assert cirq.control_keys(op) == {cirq.MeasurementKey('b')}
+    assert cirq.control_keys(circuit) == {cirq.MeasurementKey('b')}
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+      Circuit_0x0000000000000000:
+      [                Circuit_0x0000000000000000:             ]
+      [ 0: ───M('c')───[ 0: ───M('a')───X───     ]──────────── ]
+0: ───[                [                ║        ]             ]────────────
+      [                [ b: ════════════^═══     ](loops=2)    ]
+      [                ║                                       ]
+      [ b: ════════════╩══════════════════════════════════════ ](loops=2)
+      ║
+b: ═══╩═════════════════════════════════════════════════════════════════════
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───M('0:c')───M('0:0:a')───X───M('0:1:a')───X───M('1:c')───M('1:0:a')───X───M('1:1:a')───X───
+                              ║                ║                           ║                ║
+                              ║                ║                           ║                ║
+                              ║                ║                           ║                ║
+                              ║                ║                           ║                ║
+                              ║                ║                           ║                ║
+                              ║                ║                           ║                ║
+                              ║                ║                           ║                ║
+b: ═══════════════════════════^════════════════^═══════════════════════════^════════════════^═══
+""",
+        use_unicode_characters=True,
+    )
 
 
 def test_scope_extern_mismatch():
@@ -413,13 +506,46 @@ def test_scope_extern_mismatch():
         cirq.measure(q, key=cirq.MeasurementKey('b', ('0',))),
         cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
-    circuit = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
+    op = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = op.mapped_circuit(deep=True)
     keys = [
-        str(list(op.conditions)[0])
+        str(condition)
         for op in circuit.all_operations()
-        if isinstance(op, ConditionalOperation)
+        for condition in op.conditions
     ]
     assert keys == ['b', 'b', 'b', 'b']
+    assert cirq.control_keys(op) == {cirq.MeasurementKey('b')}
+    assert cirq.control_keys(circuit) == {cirq.MeasurementKey('b')}
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+      Circuit_0x0000000000000000:
+      [                  Circuit_0x0000000000000000:             ]
+      [ 0: ───M('0:b')───[ 0: ───M('a')───X───     ]──────────── ]
+0: ───[                  [                ║        ]             ]────────────
+      [                  [ b: ════════════^═══     ](loops=2)    ]
+      [                  ║                                       ]
+      [ b: ══════════════╩══════════════════════════════════════ ](loops=2)
+      ║
+b: ═══╩═══════════════════════════════════════════════════════════════════════
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───M('0:0:b')───M('0:0:a')───X───M('0:1:a')───X───M('1:0:b')───M('1:0:a')───X───M('1:1:a')───X───
+                                ║                ║                             ║                ║
+                                ║                ║                             ║                ║
+                                ║                ║                             ║                ║
+                                ║                ║                             ║                ║
+                                ║                ║                             ║                ║
+                                ║                ║                             ║                ║
+                                ║                ║                             ║                ║
+b: ═════════════════════════════^════════════════^═════════════════════════════^════════════════^═══
+""",
+        use_unicode_characters=True,
+    )
 
 
 def test_scope_conflict():
@@ -432,5 +558,18 @@ def test_scope_conflict():
         cirq.measure(q, key=cirq.MeasurementKey('a', ('0',))),
         cirq.CircuitOperation(inner.freeze(), repetitions=2),
     )
+    op = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    assert not cirq.control_keys(op)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+      Circuit_0x0000000000000000:
+      [                  Circuit_0x0000000000000000:             ]
+0: ───[ 0: ───M('0:a')───[ 0: ───M───X───          ]──────────── ]────────────
+      [                  [       ║   ║             ]             ]
+      [                  [ a: ═══@═══^═══          ](loops=2)    ](loops=2)
+""",
+        use_unicode_characters=True,
+    )
     with pytest.raises(ValueError, match='Key conflicts externally'):
-        _ = cirq.CircuitOperation(middle.freeze(), repetitions=2).mapped_circuit(deep=True)
+        _ = op.mapped_circuit(deep=True)
