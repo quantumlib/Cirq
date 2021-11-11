@@ -500,7 +500,7 @@ def assert_code_snippet_runs_and_prints_expected(
         assert_expected_lines_present_in_order(expected_outputs, output_lines)
     except AssertionError as ex:
         new_msg = ex.args[0] + '\n\nIn snippet{}:\n{}'.format(
-            "" if line_number == None else " (line {})".format(line_number), _indent([snippet])
+            "" if line_number is None else " (line {})".format(line_number), _indent([snippet])
         )
         ex.args = (new_msg,) + tuple(ex.args[1:])
         raise

@@ -222,7 +222,7 @@ class QasmOutput:
 
     def is_valid_qasm_id(self, id_str: str) -> bool:
         """Test if id_str is a valid id in QASM grammar."""
-        return self.valid_id_re.match(id_str) != None
+        return self.valid_id_re.match(id_str) is not None
 
     def save(self, path: Union[str, bytes, int]) -> None:
         """Write QASM output to a file specified by path."""

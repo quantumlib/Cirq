@@ -40,7 +40,7 @@ cd "$(git rev-parse --show-toplevel)"
 only_print=1
 only_changed=1
 rev=""
-for arg in $@; do
+for arg in "$@"; do
     if [[ "${arg}" == "--apply" ]]; then
         only_print=0
     elif [[ "${arg}" == "--all" ]]; then
