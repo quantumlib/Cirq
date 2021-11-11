@@ -756,6 +756,16 @@ def test_decompose_repeated_nested_measurements():
     assert op3.mapped_circuit(deep=True) == expected_circuit
 
 
+def test_keys_under_parent_path():
+    a = cirq.LineQubit(0)
+    op1 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='A')))
+    assert cirq.measurement_key_names(op1) == {'A'}
+    op2 = op1.with_key_path(('B',))
+    assert cirq.measurement_key_names(op2) == {'B:A'}
+    op3 = op2.repeat(2)
+    assert cirq.measurement_key_names(op3) == {'B:0:A', 'B:1:A'}
+
+
 def test_mapped_circuit_preserves_moments():
     q0, q1 = cirq.LineQubit.range(2)
     fc = cirq.FrozenCircuit(cirq.Moment(cirq.X(q0)), cirq.Moment(cirq.X(q1)))
@@ -800,6 +810,20 @@ def test_tag_propagation():
     sub_ops = cirq.decompose(op)
     for op in sub_ops:
         assert test_tag not in op.tags
+
+
+def test_mapped_circuit_keeps_keys_under_parent_path():
+    q = cirq.LineQubit(0)
+    op1 = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.measure(q, key='A'),
+            cirq.measure_single_paulistring(cirq.X(q), key='B'),
+            cirq.MixedUnitaryChannel.from_mixture(cirq.bit_flip(0.5), key='C').on(q),
+            cirq.KrausChannel.from_channel(cirq.phase_damp(0.5), key='D').on(q),
+        )
+    )
+    op2 = op1.with_key_path(('X',))
+    assert cirq.measurement_key_names(op2.mapped_circuit()) == {'X:A', 'X:B', 'X:C', 'X:D'}
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?
