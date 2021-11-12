@@ -121,6 +121,7 @@ def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
             state = args.state
             rng = args.prng
             for axis, quarter_turns in clifford_gate.decompose_rotation():
+                gate = None  # type: Optional[cirq.Gate]
                 if axis == pauli_gates.X:
                     gate = common_gates.XPowGate(exponent=quarter_turns / 2)
                     protocols.apply_to_ch_form(gate, state, axes, rng)

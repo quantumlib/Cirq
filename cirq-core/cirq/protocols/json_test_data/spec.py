@@ -134,6 +134,8 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsActOnQubits',
         'SupportsApplyChannel',
         'SupportsApplyMixture',
+        'SupportsApplyToChForm',
+        'SupportsApplyToTableau',
         'SupportsApproximateEquality',
         'SupportsCircuitDiagramInfo',
         'SupportsCommutes',
