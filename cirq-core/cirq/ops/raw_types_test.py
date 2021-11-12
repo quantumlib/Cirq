@@ -120,7 +120,7 @@ def test_gate():
     _ = g(a, c)
     with pytest.raises(ValueError, match='Wrong number'):
         _ = g(c, b, a)
-    with pytest.raises(ValueError, match='Wrong shape'):
+    with pytest.raises(ValueError, match='g'):
         _ = g(a, b.with_dimension(3))
 
     assert g.controlled(0) is g
