@@ -107,8 +107,6 @@ document(
 
 @value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation, Generic[TKey]):
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         *contents: 'cirq.PAULI_STRING_LIKE',
@@ -150,6 +148,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 specified in `contents`; `contents` are *right* multiplied onto
                 the values in this dictionary.
             coefficient: Initial scalar coefficient. Defaults to 1.
+
+        Raises:
+            TypeError: If the `qubit_pauli_map` has values that are not Paulis.
         """
         if qubit_pauli_map is not None:
             for v in qubit_pauli_map.values():
@@ -163,7 +164,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             self._qubit_pauli_map = m._qubit_pauli_map
             self._coefficient = m._coefficient
 
-    # pylint: enable=missing-raises-doc
     @property
     def coefficient(self) -> complex:
         return self._coefficient
@@ -456,8 +456,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             args.target_tensor *= self.coefficient
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits], self.qubits, args)
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def expectation_from_state_vector(
         self,
         state_vector: np.ndarray,
@@ -498,6 +496,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         Raises:
             NotImplementedError: If this PauliString is non-Hermitian.
+            TypeError: If the input state is not complex.
+            ValueError: If the input state does not have the correct shape.
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
@@ -528,7 +528,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             )
         return self._expectation_from_state_vector_no_validation(state_vector, qubit_map)
 
-    # pylint: enable=missing-raises-doc
     def _expectation_from_state_vector_no_validation(
         self, state_vector: np.ndarray, qubit_map: Mapping[TKey, int]
     ) -> float:
@@ -561,8 +560,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             np.tensordot(state_vector.conj(), ket, axes=len(ket.shape)).item()
         )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def expectation_from_density_matrix(
         self,
         state: np.ndarray,
@@ -603,6 +600,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         Raises:
             NotImplementedError: If this PauliString is non-Hermitian.
+            TypeError: If the input state is not complex.
+            ValueError: If the input state does not have the correct shape.
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
@@ -635,7 +634,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             )
         return self._expectation_from_density_matrix_no_validation(state, qubit_map)
 
-    # pylint: enable=missing-raises-doc
     def _expectation_from_density_matrix_no_validation(
         self, state: np.ndarray, qubit_map: Mapping[TKey, int]
     ) -> float:
@@ -773,8 +771,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 {pauli: (pauli_gates.Z, False)}
             )(qubit)
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def dense(self, qubits: Sequence[TKey]) -> 'cirq.DensePauliString':
         """Returns a `cirq.DensePauliString` version of this Pauli string.
 
@@ -790,6 +786,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Returns:
             A `cirq.DensePauliString` instance `D` such that `D.on(*qubits)`
             equals the receiving `cirq.PauliString` instance `P`.
+
+        Raises:
+            ValueError: If the number of qubits is too small.
         """
         from cirq.ops.dense_pauli_string import DensePauliString
 
@@ -800,7 +799,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         # pylint: enable=too-many-function-args
         return DensePauliString(pauli_mask, coefficient=self.coefficient)
 
-    # pylint: enable=missing-raises-doc
     def conjugated_by(self, clifford: 'cirq.OP_TREE') -> 'PauliString':
         r"""Returns the Pauli string conjugated by a clifford operation.
 
@@ -950,8 +948,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def _validate_qubit_mapping(
     qubit_map: Mapping[TKey, int], pauli_qubits: Tuple[TKey, ...], num_state_qubits: int
 ) -> None:
@@ -965,6 +961,11 @@ def _validate_qubit_mapping(
         qubit_map: A map from qubits to integers.
         pauli_qubits: The qubits that must be contained in `qubit_map`.
         num_state_qubits: The number of qubits over which a state is expressed.
+
+    Raises:
+        TypeError: If the qubit map is between the wrong types.
+        ValueError: If the qubit maps is not complete or does not match with
+            `num_state_qubits`.
     """
     if not isinstance(qubit_map, Mapping) or not all(
         isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()
@@ -987,7 +988,6 @@ def _validate_qubit_mapping(
         )
 
 
-# pylint: enable=missing-raises-doc
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
 class SingleQubitPauliStringGateOperation(  # type: ignore
     gate_operation.GateOperation, PauliString
@@ -1171,8 +1171,6 @@ class MutablePauliString(Generic[TKey]):
         """
         return self.inplace_after(protocols.inverse(ops))
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def inplace_after(self, ops: 'cirq.OP_TREE') -> 'cirq.MutablePauliString':
         r"""Propagates the pauli string from before to after a Clifford effect.
 
@@ -1186,6 +1184,10 @@ class MutablePauliString(Generic[TKey]):
 
         Returns:
             The mutable pauli string that was mutated.
+
+        Raises:
+            NotImplementedError: If any ops decompose into an unsupported
+                Clifford gate.
         """
         for clifford in op_tree.flatten_to_ops(ops):
             for op in _decompose_into_cliffords(clifford):
@@ -1226,7 +1228,6 @@ class MutablePauliString(Generic[TKey]):
                     raise NotImplementedError(f"Unrecognized decomposed Clifford: {op!r}")
         return self
 
-    # pylint: enable=missing-raises-doc
     def _imul_helper(self, other: 'cirq.PAULI_STRING_LIKE', sign: int):
         """Left-multiplies or right-multiplies by a PAULI_STRING_LIKE.
 
