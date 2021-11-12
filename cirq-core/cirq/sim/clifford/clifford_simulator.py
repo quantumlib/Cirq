@@ -136,6 +136,10 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         final = self._final_simulator_state
         return f'measurements: {samples}\noutput state: {final}'
 
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.CliffordTrialResult(...)" if cycle else self.__str__())
+
 
 class CliffordSimulatorStepResult(
     simulator_base.StepResultBase['clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs']
@@ -167,6 +171,10 @@ class CliffordSimulatorStepResult(
         final = self.state
 
         return f'{measurements}{final}'
+
+    def _repr_pretty_(self, p, cycle):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.CliffordSimulatorStateResult(...)" if cycle else self.__str__())
 
     @property
     def state(self):

@@ -168,6 +168,14 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         final = self._final_simulator_state
         return f'measurements: {samples}\noutput state: {final}'
 
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('cirq.MPSTrialResult(...)')
+        else:
+            p.text(str(self))
+
 
 class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState']):
     """A `StepResult` that can perform measurements."""
@@ -200,6 +208,10 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
         final = self.state
 
         return f'{measurements}{final}'
+
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.MPSSimulatorStepResult(...)" if cycle else self.__str__())
 
     def _simulator_state(self):
         return self.state
