@@ -20,7 +20,9 @@ import cirq, cirq_google
 from cirq import devices
 from cirq.devices.noise_utils import (
     OpIdentifier,
-    unitary_entanglement_fidelity,
+)
+from cirq_google.optimizers.two_qubit_gates.math_utils import (
+    unitary_entanglement_fidelity
 )
 
 

@@ -70,5 +70,4 @@ from cirq.devices.noise_utils import (
     pauli_error_from_depolarization,
     average_error,
     decoherence_pauli_error,
-    unitary_entanglement_fidelity,
 )

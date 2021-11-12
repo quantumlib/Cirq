@@ -24,7 +24,6 @@ from cirq.devices.noise_utils import (
     pauli_error_from_depolarization,
     average_error,
     decoherence_pauli_error,
-    unitary_entanglement_fidelity,
 )
 
 
@@ -131,46 +130,3 @@ def test_decoherence_pauli_error(T1_ns, Tphi_ns, gate_time_ns):
         1 - np.exp(-gate_time_ns * ((1 / (2 * T1_ns)) + 1 / Tphi_ns))
     )
     assert val == expected_output
-
-
-# Surface-level tests to ensure nothing breaks that shouldn't.
-def test_unitary_entanglement_fidelity():
-    # cirq.H(q0) * cirq.H(q1)
-    U_actual = (
-        np.array([[[[1, 1], [1, -1]], [[1, 1], [1, -1]]], [[[1, 1], [1, -1]], [[-1, -1], [-1, 1]]]])
-        / 2
-    )
-    # cirq.X(q0)
-    U_ideal = np.array([[0, 1], [1, 0]])
-    fidelity = unitary_entanglement_fidelity(U_actual, U_ideal)
-    assert fidelity.shape == (2, 2)
-
-
-def test_invalid_unitary_entanglement_fidelity():
-    # 4x4 cannot broadcast to 2x2
-    U_actual_1 = np.array(
-        [
-            [1, 1, 1, 1],
-            [1, -1, 1, -1],
-            [1, 1, -1, -1],
-            [1, 1, -1, 1],
-        ]
-    )
-    U_ideal_1 = np.array([[0, 1], [1, 0]])
-    with pytest.raises(ValueError, match='Input arrays do not have matching shapes.'):
-        _ = unitary_entanglement_fidelity(U_actual_1, U_ideal_1)
-
-    U_actual_2 = np.array(
-        [
-            [[1, 2, 3], [4, 5, 6]],
-            [[1, 2, 3], [4, 5, 6]],
-        ]
-    )
-    U_ideal_2 = np.array(
-        [
-            [[1, 2, 3], [4, 5, 6]],
-            [[1, 2, 3], [4, 5, 6]],
-        ]
-    )
-    with pytest.raises(ValueError, match='trailing dimensions must be equal'):
-        _ = unitary_entanglement_fidelity(U_actual_2, U_ideal_2)
