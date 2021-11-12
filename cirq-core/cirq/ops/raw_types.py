@@ -213,6 +213,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         return gate_operation.GateOperation(self, list(qubits))
 
+    # TODO(#3388) Add documentation for Raises.
+    # pylint: disable=missing-raises-doc
     def on_each(self, *targets: Union[Qid, Iterable[Any]]) -> List['cirq.Operation']:
         """Returns a list of operations applying the gate to all targets.
 
@@ -229,7 +231,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Raises:
             ValueError: If targets are not instances of Qid or Iterable[Qid].
                 If the gate qubit number is incompatible.
-            TypeError: If there is only one target, but it is not iterable.
         """
         operations: List['cirq.Operation'] = []
         if self._num_qubits_() > 1:
@@ -263,6 +264,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                 )
         return operations
 
+    # pylint: enable=missing-raises-doc
     def wrap_in_linear_combination(
         self, coefficient: Union[complex, float, int] = 1
     ) -> 'cirq.LinearCombinationOfGates':
@@ -851,16 +853,17 @@ def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
         ValueError: The operation had qids that don't match it's qid shape.
     """
     qid_shape = protocols.qid_shape(val)
-    qubits_shape = protocols.qid_shape(qubits)
-    if len(qid_shape) != len(qubits_shape):
+    if len(qubits) != len(qid_shape):
         raise ValueError(
-            f'Wrong number of qubits for <{val!r}>. '
-            f'Expected {len(qid_shape)} qubits but got <{qubits!r}>.'
+            'Wrong number of qubits for <{!r}>. '
+            'Expected {} qubits but got <{!r}>.'.format(val, len(qid_shape), qubits)
         )
-    if qid_shape != qubits_shape:
+    if any(qid.dimension != dimension for qid, dimension in zip(qubits, qid_shape)):
         raise ValueError(
-            f'Wrong shape of qids for <{val!r}>. '
-            f'Expected {qid_shape} but got {qubits_shape} <{qubits!r}>.'
+            'Wrong shape of qids for <{!r}>. '
+            'Expected {} but got {} <{!r}>.'.format(
+                val, qid_shape, tuple(qid.dimension for qid in qubits), qubits
+            )
         )
     if len(set(qubits)) != len(qubits):
         raise ValueError(
