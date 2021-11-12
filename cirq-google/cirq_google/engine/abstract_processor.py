@@ -11,26 +11,32 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from abc import ABC, abstractmethod
+"""Abstract interface for a quantum processor.
+
+This interface can run circuits, sweeps, batches, or calibration
+requests.  Inheritors of this interface should implement all
+methods.
+"""
+
+import abc
 import datetime
 
 from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
-from cirq_google.engine.client.quantum import types as qtypes
-from cirq_google.engine.client.quantum import enums as qenums
-from cirq_google.api import v2
-from cirq_google.engine import calibration
+import cirq_google.api.v2 as v2
+import cirq_google.engine.calibration as calibration
+import cirq_google.engine.client.quantum as quantum
 
 if TYPE_CHECKING:
     import cirq_google
-    from cirq_google.engine.abstract_engine import AbstractEngine
-    from cirq_google.engine.abstract_job import AbstractJob
-    from cirq_google.engine.abstract_program import AbstractProgram
-    from cirq_google.serialization.serializer import Serializer
+    import cirq_google.engine.abstract_engine as abstract_engine
+    import cirq_google.engine.abstract_job as abstract_job
+    import cirq_google.engine.abstract_program as abstract_program
+    import cirq_google.serialization.serializer as serializer
 
 
-class AbstractProcessor(ABC):
+class AbstractProcessor(abc.ABC):
     """An abstract interface for a quantum processor.
 
     This quantum processor has the ability to execute single circuits
@@ -52,9 +58,9 @@ class AbstractProcessor(ABC):
         program: cirq.Circuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
+        param_resolver: cirq.ParamResolver = None,
         repetitions: int = 1,
-        gate_set: Optional['Serializer'] = None,
+        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -86,7 +92,7 @@ class AbstractProcessor(ABC):
             A single Result for this run.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def run_sweep(
         self,
         program: cirq.Circuit,
@@ -94,12 +100,12 @@ class AbstractProcessor(ABC):
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        gate_set: Optional['Serializer'] = None,
+        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-    ) -> 'AbstractJob':
+    ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuit on this processor.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -129,7 +135,7 @@ class AbstractProcessor(ABC):
             TrialResults, one for each parameter sweep.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -137,12 +143,12 @@ class AbstractProcessor(ABC):
         job_id: Optional[str] = None,
         params_list: List[cirq.Sweepable] = None,
         repetitions: int = 1,
-        gate_set: Optional['Serializer'] = None,
+        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-    ) -> 'AbstractJob':
+    ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuits on this processor.
 
         This will combine each Circuit provided in `programs` into
@@ -183,18 +189,18 @@ class AbstractProcessor(ABC):
             parameter sweep.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def run_calibration(
         self,
         layers: List['cirq_google.CalibrationLayer'],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        gate_set: Optional['Serializer'] = None,
+        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-    ) -> 'AbstractJob':
+    ) -> 'abstract_job.AbstractJob':
         """Runs the specified calibrations on the processor.
 
         Each calibration will be specified by a `CalibrationLayer`
@@ -229,40 +235,40 @@ class AbstractProcessor(ABC):
             calibration_results().
         """
 
-    @abstractmethod
-    def get_sampler(self, gate_set: Optional['Serializer']) -> cirq.Sampler:
+    @abc.abstractmethod
+    def get_sampler(self, gate_set: Optional['serializer.Serializer']) -> cirq.Sampler:
         """Returns a sampler backed by the processor.
 
         Args:
             gate_set: Determines how to serialize circuits if needed.
         """
 
-    @abstractmethod
-    def engine(self) -> Optional['AbstractEngine']:
+    @abc.abstractmethod
+    def engine(self) -> Optional['abstract_engine.AbstractEngine']:
         """Returns the parent Engine object.
 
         Returns:
             The program's parent Engine.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def health(self) -> str:
         """Returns the current health of processor."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def expected_down_time(self) -> 'Optional[datetime.datetime]':
         """Returns the start of the next expected down time of the processor, if
         set."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
         """Returns the expected the processor should be available, if set."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def supported_languages(self) -> List[str]:
         """Returns the list of processor supported program languages."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_device_specification(self) -> Optional[v2.device_pb2.DeviceSpecification]:
         """Returns a device specification proto for use in determining
         information about the device.
@@ -271,38 +277,44 @@ class AbstractProcessor(ABC):
             Device specification proto if present.
         """
 
-    @abstractmethod
-    def get_device(self, gate_sets: Iterable['Serializer']) -> cirq.Device:
+    @abc.abstractmethod
+    def get_device(self, gate_sets: Iterable['serializer.Serializer']) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
-        which is then use to create a `SerializableDevice` that will validate
+        which is then use to create a `Device` that will validate
         that operations are supported and use the correct qubits.
+
+        Args:
+            gate_sets: An iterable of serializers that can be used in the device.
+
+        Returns:
+            A `cirq.Devive` representing the processor.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def list_calibrations(
         self,
-        earliest_timestamp_seconds: Optional[int] = None,
-        latest_timestamp_seconds: Optional[int] = None,
+        earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
+        latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
     ) -> List[calibration.Calibration]:
         """Retrieve metadata about a specific calibration run.
 
-        Params:
-            earliest_timestamp_seconds: The earliest timestamp of a calibration
+        Args:
+            earliest_timestamp: The earliest timestamp of a calibration
                 to return in UTC.
-            latest_timestamp_seconds: The latest timestamp of a calibration to
+            latest_timestamp: The latest timestamp of a calibration to
                 return in UTC.
 
         Returns:
             The list of calibration data with the most recent first.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
         """Retrieve metadata about a specific calibration run.
 
-        Params:
+        Args:
             calibration_timestamp_seconds: The timestamp of the calibration in
                 seconds since epoch.
 
@@ -310,7 +322,7 @@ class AbstractProcessor(ABC):
             The calibration data.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_current_calibration(
         self,
     ) -> Optional[calibration.Calibration]:
@@ -320,13 +332,13 @@ class AbstractProcessor(ABC):
             The calibration data or None if there is no current calibration.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def create_reservation(
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
         whitelisted_users: Optional[List[str]] = None,
-    ) -> qtypes.QuantumReservation:
+    ) -> quantum.types.QuantumReservation:
         """Creates a reservation on this processor.
 
         Args:
@@ -337,15 +349,15 @@ class AbstractProcessor(ABC):
               with permission "quantum.reservations.use" on the project).
         """
 
-    @abstractmethod
-    def remove_reservation(self, reservation_id: str):
+    @abc.abstractmethod
+    def remove_reservation(self, reservation_id: str) -> None:
         """Removes a reservation on this processor."""
 
-    @abstractmethod
-    def get_reservation(self, reservation_id: str) -> qtypes.QuantumReservation:
+    @abc.abstractmethod
+    def get_reservation(self, reservation_id: str) -> quantum.types.QuantumReservation:
         """Retrieve a reservation given its id."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def update_reservation(
         self,
         reservation_id: str,
@@ -360,12 +372,12 @@ class AbstractProcessor(ABC):
         None, it will not be updated.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def list_reservations(
         self,
-        from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
-        to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-    ) -> List[qtypes.QuantumReservation]:
+        from_time: Union[None, datetime.datetime, datetime.timedelta],
+        to_time: Union[None, datetime.datetime, datetime.timedelta],
+    ) -> List[quantum.types.QuantumReservation]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -387,13 +399,13 @@ class AbstractProcessor(ABC):
             A list of reservations.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_schedule(
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-        time_slot_type: Optional[qenums.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[qenums.QuantumTimeSlot]:
+        time_slot_type: Optional[quantum.enums.QuantumTimeSlot.TimeSlotType] = None,
+    ) -> List[quantum.enums.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
