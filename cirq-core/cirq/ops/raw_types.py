@@ -860,7 +860,7 @@ def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
     if qid_shape != qubits_shape:
         raise ValueError(
             f'Wrong shape of qids for <{val!r}>. '
-            f'Expected {qid_shape} but got {qubit_shape} <{qubits!r}>.'
+            f'Expected {qid_shape} but got {qubits_shape} <{qubits!r}>.'
         )
     if len(set(qubits)) != len(qubits):
         raise ValueError(
