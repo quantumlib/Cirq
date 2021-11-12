@@ -113,19 +113,22 @@ def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
         u = unitary(val)
         clifford_gate = SingleQubitCliffordGate.from_unitary(u)
         if clifford_gate is not None:
+            axes = args.get_axes(qubits)
+            tableau = args.tableau
+            rng = args.prng
             for axis, quarter_turns in clifford_gate.decompose_rotation():
                 if axis == pauli_gates.X:
-                    protocols.act_on(
-                        common_gates.XPowGate(exponent=quarter_turns / 2), args, qubits
+                    protocols.apply_to_tableau(
+                        common_gates.XPowGate(exponent=quarter_turns / 2), tableau, axes, rng
                     )
                 elif axis == pauli_gates.Y:
-                    protocols.act_on(
-                        common_gates.YPowGate(exponent=quarter_turns / 2), args, qubits
+                    protocols.apply_to_tableau(
+                        common_gates.YPowGate(exponent=quarter_turns / 2), tableau, axes, rng
                     )
                 else:
                     assert axis == pauli_gates.Z
-                    protocols.act_on(
-                        common_gates.ZPowGate(exponent=quarter_turns / 2), args, qubits
+                    protocols.apply_to_tableau(
+                        common_gates.ZPowGate(exponent=quarter_turns / 2), tableau, axes, rng
                     )
             return True
 

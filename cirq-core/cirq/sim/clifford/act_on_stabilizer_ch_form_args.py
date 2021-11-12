@@ -117,18 +117,20 @@ def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
             # Gather the effective unitary applied so as to correct for the
             # global phase later.
             final_unitary = np.eye(2)
+            axes = args.get_axes(qubits)
+            state = args.state
+            rng = args.prng
             for axis, quarter_turns in clifford_gate.decompose_rotation():
-                gate = None  # type: Optional[cirq.Gate]
                 if axis == pauli_gates.X:
                     gate = common_gates.XPowGate(exponent=quarter_turns / 2)
-                    protocols.act_on(gate, args, qubits)
+                    protocols.apply_to_ch_form(gate, state, axes, rng)
                 elif axis == pauli_gates.Y:
                     gate = common_gates.YPowGate(exponent=quarter_turns / 2)
-                    protocols.act_on(gate, args, qubits)
+                    protocols.apply_to_ch_form(gate, state, axes, rng)
                 else:
                     assert axis == pauli_gates.Z
                     gate = common_gates.ZPowGate(exponent=quarter_turns / 2)
-                    protocols.act_on(gate, args, qubits)
+                    protocols.apply_to_ch_form(gate, state, axes, rng)
 
                 final_unitary = np.matmul(unitary(gate), final_unitary)
 
