@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ class SupportsApplyToTableau(Protocol):
     def _apply_to_tableau_(
         self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
     ) -> Union[bool, NotImplementedType]:
-        """Applies an transform to the given Clifford tableau.
+        """Applies a transform to the given Clifford tableau.
 
         Args:
             tableau: A Clifford tableau that is the target of the transform.
@@ -57,7 +57,7 @@ def apply_to_tableau(
     axes: Sequence[int],
     prng: np.random.RandomState,
 ) -> Union[bool, NotImplementedType]:
-    """Applies an transform to the given Clifford tableau.
+    """Applies a transform to the given Clifford tableau.
 
     Args:
         val: The object (typically a gate) that contains a transform to apply.
@@ -80,7 +80,7 @@ class SupportsApplyToChForm(Protocol):
     def _apply_to_ch_form_(
         self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
     ) -> Union[bool, NotImplementedType]:
-        """Applies an transform to the given Clifford CH-form.
+        """Applies a transform to the given Clifford CH-form.
 
         Args:
             state: A Clifford CH-form that is the target of the transform.
@@ -101,7 +101,7 @@ def apply_to_ch_form(
     axes: Sequence[int],
     prng: np.random.RandomState,
 ) -> Union[bool, NotImplementedType]:
-    """Applies an transform to the given Clifford CH-form.
+    """Applies a transform to the given Clifford CH-form.
 
     Args:
         val: The object (typically a gate) that contains a transform to apply.
