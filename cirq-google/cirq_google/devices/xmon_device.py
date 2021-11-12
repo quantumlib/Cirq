@@ -198,6 +198,9 @@ class XmonDevice(cirq.Device):
 
         return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
 
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        p.text("cirq_google.XmonDevice(...)" if cycle else self.__str__())
+
     def _value_equality_values_(self) -> Any:
         return (self._measurement_duration, self._exp_w_duration, self._exp_z_duration, self.qubits)
 
