@@ -79,7 +79,7 @@ def _decoherence_matrix(
     """Construct a rate matrix associated with decay and dephasing.
 
     The units of the matrix match the units of the rates specified.
-    This matrix can be used to construct a ThermalChannel after rescaling
+    This matrix can be used to construct a noise channel after rescaling
     by an idling time (to make it dimensionless).
 
     Args:
