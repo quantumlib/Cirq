@@ -118,12 +118,10 @@ def _group_similar(items: List[T], comparer: Callable[[T, T], bool]) -> List[Lis
     return groups
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def unitary_eig(
     matrix: np.ndarray, check_preconditions: bool = True, atol: float = 1e-8
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Gives the guaranteed unitary eigendecomposition of a normal matrix.
+    r"""Gives the guaranteed unitary eigendecomposition of a normal matrix.
 
     All hermitian and unitary matrices are normal matrices. This method was
     introduced as for certain classes of unitary matrices (where the eigenvalues
@@ -132,16 +130,21 @@ def unitary_eig(
     For more information, see https://github.com/numpy/numpy/issues/15461.
 
     Args:
-        matrix: a normal matrix. If not normal, this method is not
-            guaranteed to return correct eigenvalues.
-        check_preconditions: when true and matrix is not unitary,
-            a `ValueError` is raised
-        atol: the absolute tolerance when checking whether the original matrix
-            was unitary
+        matrix: A normal matrix. If not normal, this method is not
+            guaranteed to return correct eigenvalues.  A normal matrix
+            is one where $A A^\dagger = A^\dagger A$.
+        check_preconditions: When true and matrix is not unitary,
+            a `ValueError` is raised when the matrix is not normal.
+        atol: The absolute tolerance when checking whether the original matrix
+            was unitary.
 
     Returns:
-         eigvals: the eigenvalues of `matrix`
-         V: the unitary matrix with the eigenvectors as columns
+        A Tuple of
+            eigvals: The eigenvalues of `matrix`.
+            V: The unitary matrix with the eigenvectors as columns.
+
+    Raises:
+        ValueError: if the input matrix is not normal.
     """
     if check_preconditions and not predicates.is_normal(matrix, atol=atol):
         raise ValueError(f'Input must correspond to a normal matrix .Received input:\n{matrix}')
