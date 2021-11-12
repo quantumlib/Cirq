@@ -54,8 +54,6 @@ class Sampler(metaclass=abc.ABCMeta):
         """
         return self.run_sweep(program, study.ParamResolver(param_resolver), repetitions)[0]
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def sample(
         self,
         program: 'cirq.AbstractCircuit',
@@ -83,6 +81,9 @@ class Sampler(metaclass=abc.ABCMeta):
             to convert this integer into bits.
             There is an also index column containing the repetition number,
             for each parameter assignment.
+
+        Raises:
+            ValueError: If a supplied sweep is invalid.
 
         Examples:
             >>> a, b, c = cirq.LineQubit.range(3)

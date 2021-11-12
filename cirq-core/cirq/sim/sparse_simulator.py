@@ -139,8 +139,6 @@ class Simulator(
     See `Simulator` for the definitions of the supported methods.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         *,
@@ -159,6 +157,9 @@ class Simulator(
             split_untangled_states: If True, optimizes simulation by running
                 unentangled qubit sets independently and merging those states
                 at the end.
+
+        Raises:
+            ValueError: If the given dtype is not complex.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
@@ -169,9 +170,6 @@ class Simulator(
             split_untangled_states=split_untangled_states,
         )
 
-    # pylint: enable=missing-raises-doc
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
@@ -186,6 +184,7 @@ class Simulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
+            logs: Log of the measurement results.
 
         Returns:
             ActOnStateVectorArgs for the circuit.
@@ -206,7 +205,6 @@ class Simulator(
             log_of_measurement_results=logs,
         )
 
-    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
