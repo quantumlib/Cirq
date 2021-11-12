@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A no-qubit global phase operation."""
-from typing import Any, Dict, Tuple, TYPE_CHECKING, Sequence
+from typing import Any, Dict, Tuple, TYPE_CHECKING
 
 import numpy as np
 
