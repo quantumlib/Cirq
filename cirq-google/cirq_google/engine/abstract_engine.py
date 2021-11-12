@@ -66,7 +66,7 @@ class AbstractEngine(abc.ABC):
         Args:
             created_after: retrieve programs that were created after this date
                 or time.
-            created_before: retrieve programs that were created after this date
+            created_before: retrieve programs that were created before this date
                 or time.
             has_labels: retrieve programs that have labels on them specified by
                 this dict. If the value is set to `*`, programs having the label
@@ -95,7 +95,7 @@ class AbstractEngine(abc.ABC):
         Args:
             created_after: retrieve jobs that were created after this date
                 or time.
-            created_before: retrieve jobs that were created after this date
+            created_before: retrieve jobs that were created before this date
                 or time.
             has_labels: retrieve jobs that have labels on them specified by
                 this dict. If the value is set to `*`, jobs having the label

@@ -133,7 +133,7 @@ class AbstractProcessor(abc.ABC):
             job_labels: Optional set of labels to set on the job.
         Returns:
             An AbstractJob. If this is iterated over it returns a list of
-            TrialResults, one for each parameter sweep.
+            `cirq.Result`, one for each parameter sweep.
         """
 
     @abc.abstractmethod
@@ -184,8 +184,8 @@ class AbstractProcessor(abc.ABC):
             job_labels: Optional set of labels to set on the job.
         Returns:
             An AbstractJob. If this is iterated over it returns a list of
-            TrialResults. All TrialResults for the first circuit are listed
-            first, then the TrialResults for the second, etc. The TrialResults
+            `cirq.Result`. All Results for the first circuit are listed
+            first, then the Results for the second, etc. The Results
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
         """
