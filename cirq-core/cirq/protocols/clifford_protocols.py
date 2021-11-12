@@ -13,8 +13,9 @@
 # limitations under the License.
 
 from typing import (
-    Union,
+    Any,
     Sequence,
+    Union,
     TYPE_CHECKING,
 )
 
@@ -29,19 +30,47 @@ if TYPE_CHECKING:
 
 
 class SupportsApplyToTableau(Protocol):
+    """An object that can apply a transformation to a Clifford tableau."""
+
     @doc_private
     def _apply_to_tableau_(
         self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
     ) -> Union[bool, NotImplementedType]:
-        """Write me!"""
+        """Applies an transform to the given Clifford tableau.
+
+        Args:
+            tableau: A Clifford tableau that is the target of the transform.
+            axes: The axes to which the transform should be applied.
+            prng: A random number generator to use if necessary.
+
+        Returns:
+            True: The receiving object (`self`) could apply a transform.
+            NotImplemented: The receiving object cannot apply a transform.
+
+            All other return values are considered to be errors.
+        """
 
 
 def apply_to_tableau(
-    val: 'cirq.Gate',
+    val: Any,
     tableau: 'cirq.CliffordTableau',
     axes: Sequence[int],
     prng: np.random.RandomState,
 ) -> Union[bool, NotImplementedType]:
+    """Applies an transform to the given Clifford tableau.
+
+    Args:
+        val: The object (typically a gate) that contains a transform to apply.
+        tableau: A Clifford tableau that is the target of the transform.
+        axes: The axes to which the transform should be applied.
+        prng: The random number generator to use if necessary.
+
+    Returns:
+        True: The receiving object (`self`) could apply a transform.
+        NotImplemented: The receiving object cannot apply a transform.
+
+        All other return values are considered to be errors.
+    """
     getter = getattr(val, '_apply_to_tableau_', None)
     return NotImplemented if getter is None else getter(tableau, axes, prng)
 
@@ -51,14 +80,40 @@ class SupportsApplyToChForm(Protocol):
     def _apply_to_ch_form_(
         self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
     ) -> Union[bool, NotImplementedType]:
-        """Write me!"""
+        """Applies an transform to the given Clifford CH-form.
+
+        Args:
+            state: A Clifford CH-form that is the target of the transform.
+            axes: The axes to which the transform should be applied.
+            prng: The random number generator to use if necessary.
+
+        Returns:
+            True: The receiving object (`self`) could apply a transform.
+            NotImplemented: The receiving object cannot apply a transform.
+
+            All other return values are considered to be errors.
+        """
 
 
 def apply_to_ch_form(
-    val: 'cirq.Gate',
+    val: Any,
     state: 'cirq.StabilizerStateChForm',
     axes: Sequence[int],
     prng: np.random.RandomState,
 ) -> Union[bool, NotImplementedType]:
+    """Applies an transform to the given Clifford CH-form.
+
+    Args:
+        val: The object (typically a gate) that contains a transform to apply.
+        state: A Clifford CH-form that is the target of the transform.
+        axes: The axes to which the transform should be applied.
+        prng: A random number generator to use if necessary.
+
+    Returns:
+        True: The receiving object (`self`) could apply a transform.
+        NotImplemented: The receiving object cannot apply a transform.
+
+        All other return values are considered to be errors.
+    """
     getter = getattr(val, '_apply_to_ch_form_', None)
     return NotImplemented if getter is None else getter(state, axes, prng)
