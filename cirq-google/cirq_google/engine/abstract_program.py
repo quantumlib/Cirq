@@ -11,18 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from abc import ABC, abstractmethod
+"""An interface for quantum programs.
+
+The quantum program represents a circuit (or other execution) that,
+when combined with a run context, will become a quantum job.
+"""
+
+
+import abc
 import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 import cirq
-from cirq_google.engine.client import quantum
+import cirq_google.engine.client.quantum as quantum
 
 if TYPE_CHECKING:
-    from cirq_google.engine.abstract_job import AbstractJob
-    from cirq_google.engine.abstract_engine import AbstractEngine
+    import cirq_google.engine.abstract_job as abstract_job
+    import cirq_google.engine.abstract_engine as abstract_engine
 
 
-class AbstractProgram(ABC):
+class AbstractProgram(abc.ABC):
     """An abstract object representing a quantum program.
 
     This program generally wraps a `Circuit` with additional metadata.
@@ -34,16 +41,16 @@ class AbstractProgram(ABC):
     This is an abstract class that inheritors should implement.
     """
 
-    @abstractmethod
-    def engine(self) -> 'AbstractEngine':
+    @abc.abstractmethod
+    def engine(self) -> 'abstract_engine.AbstractEngine':
         """Returns the parent Engine object.
 
         Returns:
             The program's parent Engine.
         """
 
-    @abstractmethod
-    def get_job(self, job_id: str) -> 'AbstractJob':
+    @abc.abstractmethod
+    def get_job(self, job_id: str) -> 'abstract_job.AbstractJob':
         """Returns an AbstractJob for an existing id.
 
         Args:
@@ -53,14 +60,14 @@ class AbstractProgram(ABC):
             A AbstractJob for this program.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def list_jobs(
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
         execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
-    ) -> Sequence['AbstractJob']:
+    ) -> Sequence['abstract_job.AbstractJob']:
         """Returns the list of jobs for this program.
 
         Args:
@@ -81,21 +88,24 @@ class AbstractProgram(ABC):
             execution_states: retrieve jobs that have an execution state  that
                 is contained in `execution_states`. See
                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+
+        Returns:
+            A sequence of `AbstractJob` objects that satisfy the constraints.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def create_time(self) -> 'datetime.datetime':
         """Returns when the program was created."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def update_time(self) -> 'datetime.datetime':
         """Returns when the program was last updated."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def description(self) -> str:
         """Returns the description of the program."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def set_description(self, description: str) -> 'AbstractProgram':
         """Sets the description of the program.
 
@@ -106,11 +116,11 @@ class AbstractProgram(ABC):
              This AbstractProgram.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def labels(self) -> Dict[str, str]:
         """Returns the labels of the program."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def set_labels(self, labels: Dict[str, str]) -> 'AbstractProgram':
         """Sets (overwriting) the labels for a previously created quantum program.
 
@@ -121,7 +131,7 @@ class AbstractProgram(ABC):
              This AbstractProgram.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def add_labels(self, labels: Dict[str, str]) -> 'AbstractProgram':
         """Adds new labels to a previously created quantum program.
 
@@ -132,7 +142,7 @@ class AbstractProgram(ABC):
              This AbstractProgram.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def remove_labels(self, keys: List[str]) -> 'AbstractProgram':
         """Removes labels with given keys from the labels of a previously
         created quantum program.
@@ -144,7 +154,7 @@ class AbstractProgram(ABC):
              This AbstractProgram.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_circuit(self, program_num: Optional[int] = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
@@ -158,7 +168,7 @@ class AbstractProgram(ABC):
             The program's cirq Circuit.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def batch_size(self) -> int:
         """Returns the number of programs in a batch program.
 
@@ -166,7 +176,7 @@ class AbstractProgram(ABC):
             ValueError: if the program created was not a batch program.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def delete(self, delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
 
@@ -175,6 +185,6 @@ class AbstractProgram(ABC):
                 will fail if the program contains any jobs.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def delete_job(self, job_id: str) -> None:
         """Removes a child job from this program."""
