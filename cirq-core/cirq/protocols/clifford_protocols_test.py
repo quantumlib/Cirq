@@ -11,13 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Tuple, Union, Sequence
 
 import numpy as np
-import pytest
 
 import cirq
-from cirq.ops.raw_types import TSelf
 
 
 class CountingGate(cirq.SingleQubitGate):
