@@ -75,8 +75,6 @@ def _add_to_positions(
     positions[(f'i{mi}b', _qpos_tag(qubits))] = (mi * x_scale, y_scale * qy + yb_offset)
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def circuit_to_density_matrix_tensors(
     circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
 ) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], Dict[Tuple[str, str], Tuple[float, float]]]:
@@ -103,6 +101,9 @@ def circuit_to_density_matrix_tensors(
         positions: A positions dictionary suitable for passing to tn.graph()'s
             `fix` argument to draw the resulting tensor network similar to a
             quantum circuit.
+
+    Raises:
+        ValueError: If an op is encountered that cannot be converted.
     """
     if qubits is None:
         # coverage: ignore
@@ -195,7 +196,6 @@ def circuit_to_density_matrix_tensors(
     return tensors, qubit_frontier, positions
 
 
-# pylint: enable=missing-raises-doc
 def tensor_density_matrix(
     circuit: cirq.Circuit, qubits: Optional[List[cirq.Qid]] = None
 ) -> np.ndarray:
