@@ -80,7 +80,7 @@ def test_prepare_characterization_for_moment_none_for_measurements(options):
 
 
 def test_prepare_floquet_characterization_for_moment_fails_for_non_gate_operation():
-    moment = cirq.Moment(cirq.GlobalPhaseOperation(coefficient=1.0))
+    moment = cirq.Moment(cirq.CircuitOperation(cirq.FrozenCircuit()))
     with pytest.raises(workflow.IncompatibleMomentError):
         workflow.prepare_floquet_characterization_for_moment(
             moment, WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
@@ -92,7 +92,7 @@ def test_prepare_floquet_characterization_for_moment_fails_for_non_gate_operatio
     [WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION, ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION],
 )
 def test_prepare_characterization_for_moment_fails_for_non_gate_operation(options):
-    moment = cirq.Moment(cirq.GlobalPhaseOperation(coefficient=1.0))
+    moment = cirq.Moment(cirq.CircuitOperation(cirq.FrozenCircuit()))
     with pytest.raises(workflow.IncompatibleMomentError):
         workflow.prepare_characterization_for_moment(moment, options)
 
@@ -1469,12 +1469,6 @@ def test_zmake_zeta_chi_gamma_compensation_for_moments_invalid_argument_fails() 
         workflow.make_zeta_chi_gamma_compensation_for_moments(
             circuit_with_calibration, characterizations
         )
-
-    with pytest.raises(workflow.IncompatibleMomentError):
-        circuit_with_calibration = workflow.CircuitWithCalibration(
-            cirq.Circuit(cirq.GlobalPhaseOperation(coefficient=1.0)), [None]
-        )
-        workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
