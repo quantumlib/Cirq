@@ -37,6 +37,7 @@ TestSpec = ModuleJsonTestSpec(
         'EngineJob',
         'EngineProcessor',
         'EngineProgram',
+        'FSimGateFamily',
         'FSimPhaseCorrections',
         'NAMED_GATESETS',
         'ProtoVersion',

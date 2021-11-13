@@ -137,8 +137,6 @@ class Moment:
         else:
             return None
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
         """Returns an equal moment, but with the given op added.
 
@@ -147,6 +145,9 @@ class Moment:
 
         Returns:
             The new moment.
+
+        Raises:
+            ValueError: If the operation given overlaps a current operation in the moment.
         """
         if any(q in self._qubits for q in operation.qubits):
             raise ValueError(f'Overlapping operations: {operation}')
@@ -161,7 +162,6 @@ class Moment:
 
         return m
 
-    # TODO(#3388) Add documentation for Raises.
     def with_operations(self, *contents: 'cirq.OP_TREE') -> 'cirq.Moment':
         """Returns a new moment with the given contents added.
 
@@ -170,6 +170,9 @@ class Moment:
 
         Returns:
             The new moment.
+
+        Raises:
+            ValueError: If the contents given overlaps a current operation in the moment.
         """
         from cirq.ops import op_tree
 
@@ -192,7 +195,6 @@ class Moment:
 
         return m
 
-    # pylint: enable=missing-raises-doc
     def without_operations_touching(self, qubits: Iterable['cirq.Qid']) -> 'cirq.Moment':
         """Returns an equal moment, but without ops on the given qubits.
 
@@ -375,8 +377,6 @@ class Moment:
                     ops_to_keep.append(self._qubit_to_op[q])
             return Moment(frozenset(ops_to_keep))
 
-    # TODO(#3388) Add summary line to docstring.
-    # pylint: disable=docstring-first-line-empty
     def to_text_diagram(
         self: 'cirq.Moment',
         *,
@@ -385,8 +385,9 @@ class Moment:
         use_unicode_characters: bool = True,
         precision: Optional[int] = None,
         include_tags: bool = True,
-    ):
-        """
+    ) -> str:
+        """Create a text diagram for the moment.
+
         Args:
             xy_breakdown_func: A function to split qubits/qudits into x and y
                 components. For example, the default breakdown turns
@@ -469,7 +470,6 @@ class Moment:
 
         return diagram.render()
 
-    # pylint: enable=docstring-first-line-empty
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
     ) -> Union[bool, NotImplementedType]:

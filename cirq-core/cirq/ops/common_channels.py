@@ -504,12 +504,8 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         )
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDampingChannel:
-    r"""
-    Returns a GeneralizedAmplitudeDampingChannel with the given
-    probabilities gamma and p.
+    r"""Returns a GeneralizedAmplitudeDampingChannel with probabilities gamma and p.
 
     This channel evolves a density matrix via:
 
@@ -554,7 +550,6 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
     return GeneralizedAmplitudeDampingChannel(p, gamma)
 
 
-# pylint: enable=docstring-first-line-empty
 @value.value_equality
 class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through dissipation.
@@ -1023,12 +1018,10 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
     return PhaseFlipChannel(p)
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseFlipChannel]:
-    r"""
-    Returns a PhaseFlipChannel that flips a qubit's phase with probability p
-    if p is None, return a guaranteed phase flip in the form of a Z operation.
+    r"""Returns a PhaseFlipChannel that flips a qubit's phase with probability p.
+
+    If `p` is None, return a guaranteed phase flip in the form of a Z operation.
 
     This channel evolves a density matrix via:
 
@@ -1064,7 +1057,6 @@ def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseF
     return _phase_flip(p)
 
 
-# pylint: enable=docstring-first-line-empty
 @value.value_equality
 class BitFlipChannel(gate_features.SingleQubitGate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
@@ -1140,12 +1132,8 @@ class BitFlipChannel(gate_features.SingleQubitGate):
         return np.isclose(self._p, other._p, atol=atol).item()
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def _bit_flip(p: float) -> BitFlipChannel:
-    r"""
-    Construct a BitFlipChannel that flips a qubit state
-    with probability of a flip given by p.
+    r"""Construct a BitFlipChannel that flips a qubit state with probability of a flip given by p.
 
     This channel evolves a density matrix via:
 
@@ -1178,12 +1166,10 @@ def _bit_flip(p: float) -> BitFlipChannel:
     return BitFlipChannel(p)
 
 
-# TODO(#3388) Add summary line to docstring.
 def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipChannel]:
-    r"""
-    Construct a BitFlipChannel that flips a qubit state
-    with probability of a flip given by p. If p is None, return
-    a guaranteed flip in the form of an X operation.
+    r"""Construct a BitFlipChannel that flips a qubit state with probability p.
+
+    If p is None, this returns a guaranteed flip in the form of an X operation.
 
     This channel evolves a density matrix via
 
@@ -1217,6 +1203,3 @@ def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipC
         return pauli_gates.X
 
     return _bit_flip(p)
-
-
-# pylint: enable=docstring-first-line-empty

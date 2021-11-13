@@ -194,8 +194,6 @@ def _arg_func_to_proto(
         raise ValueError(f'Unrecognized arg type: {type(value)}')
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def float_arg_from_proto(
     arg_proto: v2.program_pb2.FloatArg,
     *,
@@ -219,6 +217,9 @@ def float_arg_from_proto(
     Returns:
         The deserialized value, or else None if there was no set value and
         `required_arg_name` was set to `None`.
+
+    Raises:
+        ValueError: If the float arg proto is invalid.
     """
     which = arg_proto.WhichOneof('arg')
     if which == 'float_value':
@@ -247,7 +248,6 @@ def float_arg_from_proto(
         raise ValueError(f'unrecognized argument type ({which}).')
 
 
-# TODO(#3388) Add documentation for Raises.
 def arg_from_proto(
     arg_proto: v2.program_pb2.Arg,
     *,
@@ -268,6 +268,10 @@ def arg_from_proto(
     Returns:
         The deserialized value, or else None if there was no set value and
         `required_arg_name` was set to `None`.
+
+    Raises:
+        ValueError: If the arg protohas a value of an unrecognized type or is
+            missing a required arg name.
     """
 
     which = arg_proto.WhichOneof('arg')
@@ -309,7 +313,6 @@ def arg_from_proto(
     return None
 
 
-# pylint: enable=missing-raises-doc
 def _arg_func_from_proto(
     func: v2.program_pb2.ArgFunction,
     *,
