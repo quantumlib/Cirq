@@ -66,7 +66,7 @@ class Duration:
             millis: A number of milliseconds to add to the time delta.
 
         Raises:
-            TypeError: If the given value is not of a valid type.
+            TypeError: If the given value is not of a `cirq.DURATION_LIKE` type.
 
         Examples:
             >>> print(cirq.Duration(nanos=100))

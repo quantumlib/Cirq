@@ -930,7 +930,7 @@ def kak_vector(
         `unitary.shape[:-2] + (3,)`).
 
     Raises:
-        ValueError: If `atol` is negative.
+        ValueError: If `atol` is negative or if the unitary has the wrong shape.
     """
     unitary = np.asarray(unitary)
     if len(unitary) == 0:

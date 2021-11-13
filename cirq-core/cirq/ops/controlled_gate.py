@@ -54,7 +54,8 @@ class ControlledGate(raw_types.Gate):
 
         Raises:
             ValueError: If the `control_values` or `control_qid_shape` does not
-                match with `num_conrols`.
+                match with `num_conrols`, or if the `control_values` are out of
+                bounds.
         """
         if num_controls is None:
             if control_values is not None:
