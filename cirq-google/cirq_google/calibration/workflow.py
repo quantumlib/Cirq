@@ -50,7 +50,12 @@ from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
 from cirq_google.engine import Engine, QuantumEngineSampler
 from cirq_google.serialization.serializer import Serializer
 
-_CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.SingleQubitGate, cirq.WaitGate, cirq.GlobalPhaseGate
+_CALIBRATION_IRRELEVANT_GATES = (
+    cirq.MeasurementGate,
+    cirq.SingleQubitGate,
+    cirq.WaitGate,
+    cirq.GlobalPhaseGate,
+)
 
 
 @dataclasses.dataclass(frozen=True)
