@@ -491,26 +491,6 @@ def test_run_sweeps_param_resolvers(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_reset_does_not_collapse(dtype: Type[np.number], split: bool):
-    q0, q1 = cirq.LineQubit.range(2)
-    simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
-    circuit = cirq.Circuit(
-        cirq.H(q0),
-        cirq.CX(q0, q1),
-        cirq.reset(q0),
-        cirq.measure(q0, key='m0'),
-        cirq.measure(q1, key='m1a'),
-        cirq.reset(q1),
-        cirq.measure(q1, key='m1b'),
-    )
-    meas = simulator.run(circuit, repetitions=100).measurements
-    assert np.array_equal(meas['m0'], np.zeros((100, 1)))
-    assert 1 < sum(meas['m1a']) < 99
-    assert np.array_equal(meas['m1b'], np.zeros((100, 1)))
-
-
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-@pytest.mark.parametrize('split', [True, False])
 def test_simulate_no_circuit(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
@@ -544,6 +524,23 @@ def test_simulate_qudits(dtype: Type[np.number], split: bool):
     expected[4:, 4:] = np.ones((2, 2)) / 2
     np.testing.assert_almost_equal(result.final_density_matrix, expected)
     assert len(result.measurements) == 0
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+@pytest.mark.parametrize('split', [True, False])
+def test_simulate_reset_does_not_collapse(dtype: Type[np.number], split: bool):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
+    circuit = cirq.Circuit(
+        cirq.H(q0),
+        cirq.CX(q0, q1),
+        cirq.reset(q0),
+    )
+    result = simulator.simulate(circuit)
+    expected = np.zeros((4, 4), dtype=dtype)
+    expected[0, 0] = 0.5
+    expected[1, 1] = 0.5
+    np.testing.assert_almost_equal(result.final_density_matrix, expected)
 
 
 @pytest.mark.parametrize(
