@@ -94,7 +94,7 @@ class EngineProgram:
             TrialResults, one for each parameter sweep.
 
         Raises:
-            ValueError: If called on in a batch mode setting.
+            ValueError: If called on a program that is a batch of programs.
         """
         import cirq_google.engine.engine as engine_base
 

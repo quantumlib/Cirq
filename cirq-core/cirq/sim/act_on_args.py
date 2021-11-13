@@ -84,7 +84,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             invert_mask: The invert mask for the measurement.
 
         Raises:
-            ValueError: If a measurement key has alreadyb een logged to a key.
+            ValueError: If a measurement key has already been logged to a key.
         """
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]

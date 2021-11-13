@@ -185,7 +185,7 @@ class DensityMatrixSimulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            logs: The log of measurement results which is added into.s
+            logs: The log of measurement results that is added into.
 
         Returns:
             ActOnDensityMatrixArgs for the circuit.
