@@ -19,6 +19,7 @@ import pandas as pd
 import pytest
 
 import cirq
+import cirq.testing
 from cirq.study.result import _pack_digits
 
 
@@ -32,6 +33,11 @@ def test_repr():
         params=cirq.ParamResolver({'a': 2}), measurements={'xy': np.array([[1, 0], [0, 1]])}
     )
     cirq.testing.assert_equivalent_repr(v)
+
+
+def test_from_single_parameter_set_deprecation():
+    with cirq.testing.assert_deprecated("use the Result constructor", deadline="v0.15"):
+        _ = cirq.Result.from_single_parameter_set(params=cirq.ParamResolver({}), measurements={})
 
 
 def test_str():

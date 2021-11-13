@@ -129,9 +129,9 @@ class Result:
 
     @staticmethod
     @deprecated(
-        deadline="v0.14",
+        deadline="v0.15",
         fix="The static method from_single_parameter_set is deprecated, "
-        "use the Result constructor instead",
+        "use the Result constructor instead.",
     )
     def from_single_parameter_set(
         *,  # Forces keyword args.
