@@ -112,9 +112,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 measurements = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
                 )
-            yield study.Result.from_single_parameter_set(
-                params=param_resolver, measurements=measurements
-            )
+            yield study.Result(params=param_resolver, measurements=measurements)
 
     # pylint: enable=missing-raises-doc
     @abc.abstractmethod
