@@ -212,16 +212,6 @@ class PauliStringPhasorGate(raw_types.Gate):
             return NotImplemented
         return PauliStringPhasorGate(self.pauli_string, exponent_neg=pn, exponent_pos=pp)
 
-    def can_merge_with(self, other: 'PauliStringPhasorGate') -> bool:
-        return self.pauli_string == other.pauli_string
-
-    def merged_with(self, other: 'PauliStringPhasorGate') -> 'PauliStringPhasorGate':
-        if not self.can_merge_with(other):
-            raise ValueError(f'Cannot merge operations: {self}, {other}')
-        pp = self.exponent_pos + other.exponent_pos
-        pn = self.exponent_neg + other.exponent_neg
-        return PauliStringPhasorGate(self.pauli_string, exponent_pos=pp, exponent_neg=pn)
-
     def _has_unitary_(self):
         return not self._is_parameterized_()
 
@@ -273,13 +263,6 @@ class PauliStringPhasorGate(raw_types.Gate):
             self.pauli_string,
             exponent_neg=resolver.value_of(self.exponent_neg, recursive),
             exponent_pos=resolver.value_of(self.exponent_pos, recursive),
-        )
-
-    def __repr__(self) -> str:
-        return (
-            f'cirq.PauliStringPhasorGate({self.pauli_string!r}, '
-            f'exponent_neg={proper_repr(self.exponent_neg)}, '
-            f'exponent_pos={proper_repr(self.exponent_pos)})'
         )
 
     def __str__(self) -> str:
