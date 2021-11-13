@@ -39,7 +39,11 @@ import numpy as np
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
+from cirq._import import LazyLoader
 from cirq.linalg import combinators, diagonalize, predicates, transformations
+
+linalg = LazyLoader("linalg", globals(), "scipy.linalg")
+
 
 if TYPE_CHECKING:
     import cirq
@@ -148,10 +152,8 @@ def unitary_eig(
     """
     if check_preconditions and not predicates.is_normal(matrix, atol=atol):
         raise ValueError(f'Input must correspond to a normal matrix .Received input:\n{matrix}')
-    # Lazy import to avoid costly global module import.
-    import scipy.linalg
 
-    R, V = scipy.linalg.schur(matrix, output="complex")
+    R, V = linalg.schur(matrix, output="complex")
     return R.diagonal(), V
 
 

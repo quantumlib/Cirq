@@ -36,7 +36,19 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
+from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
+
+# Lazy imports to break circular dependencies.
+controlled_gate = LazyLoader("controlled_gate", globals(), "cirq.ops.controlled_gate")
+controlled_operation = LazyLoader(
+    "controlled_operation", globals(), "cirq.ops.controlled_operation"
+)
+gate_operation = LazyLoader("gate_operation", globals(), "cirq.ops.gate_operation")
+linear_combinations = LazyLoader("linear_combinations", globals(), "cirq.ops.linear_combinations")
+line_qubit = LazyLoader("line_qubit", globals(), "cirq.devices.line_qubit")
+random_gate_channel = LazyLoader("random_gate_channel", globals(), "cirq.ops.random_gate_channel")
+
 
 if TYPE_CHECKING:
     import cirq
@@ -208,9 +220,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
         """
-        # Avoids circular import.
-        from cirq.ops import gate_operation
-
         return gate_operation.GateOperation(self, list(qubits))
 
     # TODO(#3388) Add documentation for Raises.
@@ -268,8 +277,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def wrap_in_linear_combination(
         self, coefficient: Union[complex, float, int] = 1
     ) -> 'cirq.LinearCombinationOfGates':
-        from cirq.ops import linear_combinations
-
         return linear_combinations.LinearCombinationOfGates({self: coefficient})
 
     def __add__(
@@ -303,9 +310,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             return self
 
         if power == -1:
-            # HACK: break cycle
-            from cirq.devices import line_qubit
-
             decomposed = protocols.decompose_once_with_qubits(
                 self, qubits=line_qubit.LineQid.for_gate(self), default=None
             )
@@ -324,11 +328,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return self.on(*args, **kwargs)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
-        from cirq.ops.random_gate_channel import RandomGateChannel
 
         if probability == 1:
             return self
-        return RandomGateChannel(sub_gate=self, probability=probability)
+        return random_gate_channel.RandomGateChannel(sub_gate=self, probability=probability)
 
     def controlled(
         self,
@@ -350,12 +353,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
              expected dimension of each control qid.  Defaults to
              `(2,) * num_controls`.  Specify this argument when using qudits.
         """
-        # Avoids circular import.
-        from cirq.ops import ControlledGate
 
         if num_controls == 0:
             return self
-        return ControlledGate(
+        return controlled_gate.ControlledGate(
             self,
             num_controls=num_controls,
             control_values=control_values,
@@ -412,8 +413,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             return NotImplemented
         if protocols.qid_shape(self) != protocols.qid_shape(other):
             return None
-        # HACK: break cycle
-        from cirq.devices import line_qubit
 
         qs = line_qubit.LineQid.for_qid_shape(protocols.qid_shape(self))
         return protocols.commutes(self(*qs), other(*qs))
@@ -544,22 +543,19 @@ class Operation(metaclass=abc.ABCMeta):
                 the operation is applied.  If unspecified, control values
                 default to 1.
         """
-        # Avoids circular import.
-        from cirq.ops.controlled_operation import ControlledOperation
-
         if len(control_qubits) == 0:
             return self
-        return ControlledOperation(control_qubits, self, control_values)
+        return controlled_operation.ControlledOperation(control_qubits, self, control_values)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Operation':
-        from cirq.ops.random_gate_channel import RandomGateChannel
-
         gate = self.gate
         if gate is None:
             raise NotImplementedError("with_probability on gateless operation.")
         if probability == 1:
             return self
-        return RandomGateChannel(sub_gate=gate, probability=probability).on(*self.qubits)
+        return random_gate_channel.RandomGateChannel(sub_gate=gate, probability=probability).on(
+            *self.qubits
+        )
 
     def validate_args(self, qubits: Sequence['cirq.Qid']):
         """Raises an exception if the `qubits` don't match this operation's qid
