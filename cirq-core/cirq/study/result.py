@@ -33,7 +33,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -128,6 +128,11 @@ class Result:
         return self._data
 
     @staticmethod
+    @deprecated(
+        deadline="v0.15",
+        fix="The static method from_single_parameter_set is deprecated, "
+        "use the Result constructor instead.",
+    )
     def from_single_parameter_set(
         *,  # Forces keyword args.
         params: resolver.ParamResolver,
