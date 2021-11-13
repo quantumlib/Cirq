@@ -86,6 +86,11 @@ def pauli_expansion(
         return default
 
     num_qubits = matrix.shape[0].bit_length() - 1
+    if num_qubits == 0:
+        if default is RaiseTypeErrorIfNotProvided:
+            raise TypeError(f'No Pauli expansion for object {val} of type {type(val)}')
+        return default
+
     basis = operator_spaces.kron_bases(operator_spaces.PAULI_BASIS, repeat=num_qubits)
 
     expansion = operator_spaces.expand_matrix_in_orthogonal_basis(matrix, basis)

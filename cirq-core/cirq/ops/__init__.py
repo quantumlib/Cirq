@@ -123,6 +123,7 @@ from cirq.ops.identity import (
 )
 
 from cirq.ops.global_phase_op import (
+    GlobalPhaseGate,
     GlobalPhaseOperation,
 )
 
