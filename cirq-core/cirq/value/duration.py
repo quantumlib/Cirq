@@ -44,8 +44,6 @@ document(
 class Duration:
     """A time delta that supports symbols and picosecond accuracy."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         value: DURATION_LIKE = None,
@@ -67,6 +65,9 @@ class Duration:
             micros: A number of microseconds to add to the time delta.
             millis: A number of milliseconds to add to the time delta.
 
+        Raises:
+            TypeError: If the given value is not of a `cirq.DURATION_LIKE` type.
+
         Examples:
             >>> print(cirq.Duration(nanos=100))
             100 ns
@@ -86,7 +87,6 @@ class Duration:
             picos + nanos * 1000 + micros * 1000_000 + millis * 1000_000_000
         )
 
-    # pylint: enable=missing-raises-doc
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._picos)
 

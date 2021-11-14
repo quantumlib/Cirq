@@ -116,8 +116,6 @@ class DensityMatrixSimulator(
            # step_result.density_matrix()
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         *,
@@ -141,23 +139,27 @@ class DensityMatrixSimulator(
                 unentangled qubit sets independently and merging those states
                 at the end.
 
-               Example:
-               >>> (q0,) = cirq.LineQubit.range(1)
-               >>> circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+        Raises:
+            ValueError: If the supplied dtype is not `np.complex64` or
+                `np.complex128`.
 
-               Default case (ignore_measurement_results = False):
-               >>> simulator = cirq.DensityMatrixSimulator()
-               >>> result = simulator.run(circuit)
+        Example:
+           >>> (q0,) = cirq.LineQubit.range(1)
+           >>> circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
 
-               The measurement result will be strictly one of 0 or 1.
+           Default case (ignore_measurement_results = False):
+           >>> simulator = cirq.DensityMatrixSimulator()
+           >>> result = simulator.run(circuit)
 
-               In the other case:
-               >>> simulator = cirq.DensityMatrixSimulator(
-               ...     ignore_measurement_results = True)
+           The measurement result will be strictly one of 0 or 1.
 
-               will raise a `ValueError` exception if you call `simulator.run`
-               when `ignore_measurement_results` has been set to True
-               (for more see https://github.com/quantumlib/Cirq/issues/2777).
+           In the other case:
+           >>> simulator = cirq.DensityMatrixSimulator(
+           ...     ignore_measurement_results = True)
+
+           Will raise a `ValueError` exception if you call `simulator.run`
+           when `ignore_measurement_results` has been set to True
+           (for more see https://github.com/quantumlib/Cirq/issues/2777).
         """
         super().__init__(
             dtype=dtype,
@@ -169,9 +171,6 @@ class DensityMatrixSimulator(
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
-    # pylint: enable=missing-raises-doc
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
@@ -186,6 +185,7 @@ class DensityMatrixSimulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
+            logs: The log of measurement results that is added into.
 
         Returns:
             ActOnDensityMatrixArgs for the circuit.
@@ -210,7 +210,6 @@ class DensityMatrixSimulator(
             log_of_measurement_results=logs,
         )
 
-    # pylint: enable=missing-param-doc
     def _can_be_in_run_prefix(self, val: Any):
         return not protocols.is_measurement(val)
 
