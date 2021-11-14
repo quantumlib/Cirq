@@ -876,8 +876,6 @@ def kak_decomposition(
     )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def kak_vector(
     unitary: Union[Iterable[np.ndarray], np.ndarray],
     *,
@@ -930,6 +928,9 @@ def kak_vector(
         the same as the input shape, except the two unitary matrix axes are
         replaced by the kak vector axis (i.e. the output has shape
         `unitary.shape[:-2] + (3,)`).
+
+    Raises:
+        ValueError: If `atol` is negative or if the unitary has the wrong shape.
     """
     unitary = np.asarray(unitary)
     if len(unitary) == 0:
@@ -979,7 +980,6 @@ def kak_vector(
     return _canonicalize_kak_vector(k_vec, atol)
 
 
-# pylint: enable=missing-raises-doc
 def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     r"""Map a KAK vector into its Weyl chamber equivalent vector.
 
@@ -1027,9 +1027,6 @@ def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     return k_vec
 
 
-# TODO(#3388) Add documentation for Args.
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-param-doc,missing-raises-doc
 def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
     """Returns the min number of CNOT/CZ gates required by a two-qubit unitary.
 
@@ -1038,10 +1035,14 @@ def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
     Controlled-Not Gates”.  https://arxiv.org/abs/quant-ph/0308045
 
     Args:
-        u: a two-qubit unitary
+        u: A two-qubit unitary.
+        atol: The absolute tolerance used to make this judgement.
 
     Returns:
-        the number of CNOT or CZ gates required to implement the unitary
+        The number of CNOT or CZ gates required to implement the unitary.
+
+    Raises:
+        ValueError: If the shape of `u` is not 4 by 4.
     """
     if u.shape != (4, 4):
         raise ValueError(f"Expected unitary of shape (4,4), instead got {u.shape}")
@@ -1061,7 +1062,6 @@ def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
     return 3
 
 
-# pylint: enable=missing-param-doc,missing-raises-doc
 def _gamma(u: np.ndarray) -> np.ndarray:
     """Gamma function to convert u to the magic basis.
 
