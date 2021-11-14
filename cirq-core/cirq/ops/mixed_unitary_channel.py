@@ -102,6 +102,11 @@ class MixedUnitaryChannel(raw_types.Gate):
             mixture=self._mixture, key=protocols.with_key_path(self._key, path)
         )
 
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return MixedUnitaryChannel(
+            mixture=self._mixture, key=protocols.with_key_path_prefix(self._key, prefix)
+        )
+
     def __str__(self):
         if self._key is not None:
             return f'MixedUnitaryChannel({self._mixture}, key={self._key})'

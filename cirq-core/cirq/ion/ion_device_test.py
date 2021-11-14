@@ -19,6 +19,7 @@ import pytest
 
 import cirq
 import cirq.ion as ci
+import cirq.testing
 
 
 def ion_device(chain_length: int, use_timedelta=False) -> ci.IonDevice:
@@ -183,12 +184,12 @@ def test_validate_circuit_repeat_measurement_keys():
 
 
 def test_ion_device_str():
-    assert (
-        str(ion_device(3)).strip()
-        == """
-0───1───2
-    """.strip()
-    )
+    assert str(ion_device(3)) == "0───1───2"
+
+
+def test_ion_device_pretty_repr():
+    cirq.testing.assert_repr_pretty(ion_device(3), "0───1───2")
+    cirq.testing.assert_repr_pretty(ion_device(3), "IonDevice(...)", cycle=True)
 
 
 def test_at():

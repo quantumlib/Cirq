@@ -51,12 +51,10 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
         super().__init__()
         self.ignore_failures = ignore_failures
 
-    # TODO(#3388) Add summary line to docstring.
-    # pylint: disable=docstring-first-line-empty
     def _convert_one(self, op: cirq.Operation) -> cirq.OP_TREE:
-        """
-        Decomposer intercept:  Let cirq decompose one-qubit gates,
-        intercept on 2-qubit gates if they are known gates.
+        """The main conversion method.
+
+        Let Cirq decompose one-qubit gates, intercept on 2-qubit gates if they are known gates.
         """
         if isinstance(op, cirq.GlobalPhaseOperation):
             return []
@@ -82,7 +80,6 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
 
         return NotImplemented
 
-    # pylint: enable=docstring-first-line-empty
     def _on_stuck_raise(self, bad):
         return TypeError(
             f"Don't know how to work with {bad}. "
@@ -265,11 +262,10 @@ def iswap_to_sqrt_iswap(a, b, turns):
     yield cirq.Z(b) ** -0.25
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 def swap_to_sqrt_iswap(a, b, turns):
-    """Implement the evolution of the hopping term using two sqrt_iswap gates
-     and single-qubit operations. Output unitary:
+    """Implement the evolution of a hopping term using two sqrt_iswap gates and single qubit gates.
+
+    Output unitary:
     [[1, 0,        0,     0],
      [0, g·c,    -i·g·s,  0],
      [0, -i·g·s,  g·c,    0],
@@ -279,8 +275,11 @@ def swap_to_sqrt_iswap(a, b, turns):
     Args:
         a: the first qubit
         b: the second qubit
-        theta: The rotational angle that specifies the gate, where
-        c = cos(π·t/2), s = sin(π·t/2), g = exp(i·π·t/2).
+        turns: The rotational angle that specifies the gate, where
+            c = cos(π·t/2), s = sin(π·t/2), g = exp(i·π·t/2).
+
+    Yields:
+        A `cirq.OP_TREE` representing the decomposition.
     """
     if not isinstance(turns, sympy.Basic) and _near_mod_n(turns, 1.0, 2):
         # Decomposition for cirq.SWAP
@@ -308,7 +307,6 @@ def swap_to_sqrt_iswap(a, b, turns):
     yield cirq.CZ.on(a, b) ** (-turns)
 
 
-# pylint: enable=missing-param-doc
 def fsim_gate(a, b, theta, phi):
     """FSimGate has a default decomposition in cirq to XXPowGate and YYPowGate,
     which is an awkward decomposition for this gate set.

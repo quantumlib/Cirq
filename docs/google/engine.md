@@ -3,7 +3,7 @@
 Google's Quantum Computing Service provides the Quantum Engine API to execute 
 circuits on Google's quantum processor or simulator backends and 
 to access or manage the jobs, programs, reservations and calibrations. As of Cirq is 
-the only supported client for this API, using the `cirq.google.Engine` class. 
+the only supported client for this API, using the `cirq_google.Engine` class. 
 For other use cases (e.g. from a different language), contact 
 [cirq-maintainers@googlegroups.com](mailto:cirq-maintainers@googlegroups.com) 
 with a short proposal or submit an [RFC](../dev/rfc_process.md). 
@@ -53,7 +53,7 @@ print.results.idx.*
 print()
 --->
 <!---test_substitution
-engine = cirq.google.Engine(.*)
+engine = cirq_google.Engine(.*)
 engine = MockEngine()
 --->
 <!---test_substitution
@@ -66,7 +66,7 @@ sampler = engine
 --->
 ```python
 import cirq
-import cirq.google as cg
+import cirq_google as cg
 
 # A simple sample circuit
 qubit = cirq.GridQubit(5, 2)
@@ -96,7 +96,7 @@ print(results.data)
 
 ## Device Specification
 
-Several public devices have been released and can be found in the `cirq.google`
+Several public devices have been released and can be found in the `cirq_google`
 package.  These are documented further on the [Google Device](devices.md) page. 
 
 However, you can also retrieve the device using the `get_device_specification` of an
@@ -105,7 +105,7 @@ message that contains information about the qubits on the device, the
 connectivity, and the supported gates.
 
 This proto can be queried directly to get information about the device or can be transformed
-into a `cirq.Device` by using `cirq.google.SerializableDevice.from_proto()` that will
+into a `cirq.Device` by using `cirq_google.SerializableDevice.from_proto()` that will
 enforce constraints imposed by the hardware.
 
 See the [Device Specification](specification.md) page for more information on
@@ -188,12 +188,12 @@ for circuit_num in range(num_circuits_in_batch):
 
 # Create an Engine object.
 # Replace YOUR_PROJECT_ID with the id from your cloud project.
-engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
+engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
 
 # Create a sampler from the engine
 job = engine.run_batch(circuit_list,
                        processor_ids=['PROCESSOR_ID'],
-                       gate_set=cirq.google.FSIM_GATESET,
+                       gate_set=cirq_google.FSIM_GATESET,
                        repetitions=1000,
                        params_list=param_list)
 results = job.results()
@@ -236,7 +236,7 @@ See below for an example:
 
 ```python
 # Initialize the engine object
-engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
+engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
 
 # Create an example circuit
 qubit = cirq.GridQubit(5, 2)
@@ -279,14 +279,14 @@ by using our list methods.
 
 ### Listing jobs 
 
-To list the executions of your circuit, i.e. the jobs, you can use `cirq.google.Engine.list_jobs()`. 
+To list the executions of your circuit, i.e. the jobs, you can use `cirq_google.Engine.list_jobs()`. 
 You can search in all the jobs within your project using filtering criteria on creation time, execution state and labels.  
 
 ```python
-from cirq.google.engine.client.quantum import enums
+from cirq_google.engine.client.quantum import enums
 
 # Initialize the engine object
-engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
+engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
 
 # List all the jobs on the project since 2020/09/20 that succeeded:
 jobs = engine.list_jobs(created_after=datetime.date(2020,9,20),
@@ -297,15 +297,15 @@ for j in jobs:
 
 ### Listing programs
 
-To list the different instances of your circuits uploaded, i.e. the programs, you can use `cirq.google.Engine.list_programs()`.
+To list the different instances of your circuits uploaded, i.e. the programs, you can use `cirq_google.Engine.list_programs()`.
 Similar to jobs, filtering makes it possible to list programs by creation time and labels.
-With an existing `cirq.google.EngineProgram` object, you can list any jobs that were run using that program. 
+With an existing `cirq_google.EngineProgram` object, you can list any jobs that were run using that program. 
 
 ```python
-from cirq.google.engine.client.quantum import enums
+from cirq_google.engine.client.quantum import enums
 
 # Initialize the engine object
-engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
+engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
 
 # List all the programs on the project since 2020/09/20 that have 
 # the "variational" label with any value and the "experiment" label 
