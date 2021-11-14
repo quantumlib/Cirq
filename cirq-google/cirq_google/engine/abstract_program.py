@@ -79,8 +79,8 @@ class AbstractProgram(abc.ABC):
             created_before: retrieve jobs that were created after this date
                 or time.
             has_labels: retrieve jobs that have labels on them specified by
-                this dict. If the value is set to `*`, filters having the label
-                regardless of the label value will be filtered. For example, to
+                this dict. If the value is set to `*`, jobs having the label
+                regardless of the label value will be returned. For example, to
                 query programs that have the shape label and have the color
                 label with value red can be queried using
 
