@@ -40,14 +40,8 @@ from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
 
 # Lazy imports to break circular dependencies.
-controlled_gate = LazyLoader("controlled_gate", globals(), "cirq.ops.controlled_gate")
-controlled_operation = LazyLoader(
-    "controlled_operation", globals(), "cirq.ops.controlled_operation"
-)
-gate_operation = LazyLoader("gate_operation", globals(), "cirq.ops.gate_operation")
-linear_combinations = LazyLoader("linear_combinations", globals(), "cirq.ops.linear_combinations")
+ops = LazyLoader("ops", globals(), "cirq.ops")
 line_qubit = LazyLoader("line_qubit", globals(), "cirq.devices.line_qubit")
-random_gate_channel = LazyLoader("random_gate_channel", globals(), "cirq.ops.random_gate_channel")
 
 
 if TYPE_CHECKING:
@@ -220,7 +214,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
         """
-        return gate_operation.GateOperation(self, list(qubits))
+        return ops.gate_operation.GateOperation(self, list(qubits))
 
     # TODO(#3388) Add documentation for Raises.
     # pylint: disable=missing-raises-doc
@@ -277,7 +271,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def wrap_in_linear_combination(
         self, coefficient: Union[complex, float, int] = 1
     ) -> 'cirq.LinearCombinationOfGates':
-        return linear_combinations.LinearCombinationOfGates({self: coefficient})
+        return ops.linear_combinations.LinearCombinationOfGates({self: coefficient})
 
     def __add__(
         self, other: Union['Gate', 'cirq.LinearCombinationOfGates']
@@ -331,7 +325,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         if probability == 1:
             return self
-        return random_gate_channel.RandomGateChannel(sub_gate=self, probability=probability)
+        return ops.random_gate_channel.RandomGateChannel(sub_gate=self, probability=probability)
 
     def controlled(
         self,
@@ -356,7 +350,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         if num_controls == 0:
             return self
-        return controlled_gate.ControlledGate(
+        return ops.controlled_gate.ControlledGate(
             self,
             num_controls=num_controls,
             control_values=control_values,
@@ -545,7 +539,7 @@ class Operation(metaclass=abc.ABCMeta):
         """
         if len(control_qubits) == 0:
             return self
-        return controlled_operation.ControlledOperation(control_qubits, self, control_values)
+        return ops.controlled_operation.ControlledOperation(control_qubits, self, control_values)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Operation':
         gate = self.gate
@@ -553,7 +547,7 @@ class Operation(metaclass=abc.ABCMeta):
             raise NotImplementedError("with_probability on gateless operation.")
         if probability == 1:
             return self
-        return random_gate_channel.RandomGateChannel(sub_gate=gate, probability=probability).on(
+        return ops.random_gate_channel.RandomGateChannel(sub_gate=gate, probability=probability).on(
             *self.qubits
         )
 
