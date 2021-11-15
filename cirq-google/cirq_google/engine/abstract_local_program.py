@@ -31,7 +31,7 @@ class AbstractLocalProgram(AbstractProgram):
     stored using dictionaries.
 
     This is a partially implemented instance.  Inheritors will still
-    A program created via the Engine interface.
+    need to implement abstract methods.
     """
 
     def __init__(self, circuits: List[cirq.Circuit], engine: 'AbstractLocalEngine'):
