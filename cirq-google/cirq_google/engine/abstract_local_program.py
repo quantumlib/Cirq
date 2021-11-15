@@ -27,7 +27,7 @@ class AbstractLocalProgram(AbstractProgram):
     """A quantum program designed for local in-memory computation.
 
     This implements all the methods in `AbstractProgram` using
-    in-memory structions.  Labels, descriptions, and time are all
+    in-memory objects.  Labels, descriptions, and time are all
     stored using dictionaries.
 
     This is a partially implemented instance.  Inheritors will still
@@ -84,7 +84,7 @@ class AbstractLocalProgram(AbstractProgram):
         Args:
             created_after: retrieve jobs that were created after this date
                 or time.
-            created_before: retrieve jobs that were created after this date
+            created_before: retrieve jobs that were created before this date
                 or time.
             has_labels: retrieve jobs that have labels on them specified by
                 this dict. If the value is set to `*`, filters having the label

@@ -49,7 +49,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         processor_id: Unique string id of the processor.
         engine: The parent `AbstractEngine` object, if available.
         expected_down_time: Optional datetime of the next expected downtime.
-            For informational purpose only.yy
+            For informational purpose only.
         expected_recovery_time: Optional datetime when the processor is
             expected to be available again.  For informational purpose only.
         schedule:  List of time slots that the scheduling/reservation should
@@ -71,7 +71,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         self._expected_recovery_time = expected_recovery_time
         self._expected_down_time = expected_down_time
         self._reservations: Dict[str, qtypes.QuantumReservation] = {}
-        self._reservation_id_counter = 0
+        self._resource_id_counter = 0
         self._processor_id = processor_id
         self._project_name = project_name
 
@@ -121,11 +121,11 @@ class AbstractLocalProcessor(AbstractProcessor):
 
     def _create_id(self, id_type: str = 'reservation') -> str:
         """Creates a unique resource id for child objects."""
-        self._reservation_id_counter += 1
+        self._resource_id_counter += 1
         return (
             f'projects/{self._project_name}/'
             f'processors/{self._processor_id}/'
-            f'{id_type}/{self._reservation_id_counter}'
+            f'{id_type}/{self._resource_id_counter}'
         )
 
     def _reservation_to_time_slot(
@@ -173,8 +173,8 @@ class AbstractLocalProcessor(AbstractProcessor):
                 # t should be removed
             else:
                 if not t.end_time.seconds or t.end_time.seconds > time_slot.end_time.seconds:
-                    # [-------------t---------]
                     #    [---time_slot---]
+                    # [-------------t---------]
                     # t should be split
                     start = qtypes.QuantumTimeSlot(
                         processor_name=self._processor_id,
@@ -196,8 +196,8 @@ class AbstractLocalProcessor(AbstractProcessor):
                     new_schedule.append(end)
 
                 else:
-                    # [----t-----]
                     #       [---time_slot---]
+                    # [----t-----]
                     t.end_time.seconds = time_slot.start_time.seconds
                     new_schedule.append(t)
                     new_schedule.append(time_slot)
@@ -254,12 +254,12 @@ class AbstractLocalProcessor(AbstractProcessor):
         self._insert_reservation_into(time_slot)
         return new_reservation
 
-    def remove_reservation(self, reservation_id: str):
+    def remove_reservation(self, reservation_id: str) -> None:
         """Removes a reservation on this processor."""
         if reservation_id in self._reservations:
             del self._reservations[reservation_id]
 
-    def get_reservation(self, reservation_id: str):
+    def get_reservation(self, reservation_id: str) -> qtypes.QuantumReservation:
         """Retrieve a reservation given its id."""
         if reservation_id in self._reservations:
             return self._reservations[reservation_id]
@@ -269,15 +269,27 @@ class AbstractLocalProcessor(AbstractProcessor):
     def update_reservation(
         self,
         reservation_id: str,
-        start_time: datetime.datetime = None,
-        end_time: datetime.datetime = None,
-        whitelisted_users: List[str] = None,
-    ):
+        start_time: Optional[datetime.datetime] = None,
+        end_time: Optional[datetime.datetime] = None,
+        whitelisted_users: Optional[List[str]] = None,
+    ) -> None:
         """Updates a reservation with new information.
 
         Updates a reservation with a new start date, end date, or
         list of additional users.  For each field, it the argument is left as
         None, it will not be updated.
+
+        Args:
+            reservation_id: The string identifier of the reservation to change.
+            start_time: New starting time  of the reservation.  If unspecified,
+                starting time is left unchanged.
+            end_time: New starting time  of the reservation.  If unspecified,
+                ending time is left unchanged.
+            whitelisted_users: The new list of whitelisted users to allow on
+                the reservation.  If unspecified, the users are left unchanged.
+
+        Raises:
+            ValueError: if reservation_id does not exist.
         """
         if reservation_id not in self._reservations:
             raise ValueError(f'Reservation id {reservation_id} does not exist.')
@@ -293,7 +305,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-    ):
+    ) -> List[qtypes.QuantumReservation]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -318,9 +330,9 @@ class AbstractLocalProcessor(AbstractProcessor):
         end_timestamp = _to_timestamp(to_time)
         reservation_list = []
         for reservation in self._reservations.values():
-            if start_timestamp and reservation.start_time.seconds < start_timestamp:
+            if end_timestamp and reservation.start_time.seconds > end_timestamp:
                 continue
-            if end_timestamp and reservation.end_time.seconds > end_timestamp:
+            if start_timestamp and reservation.end_time.seconds < start_timestamp:
                 continue
             reservation_list.append(reservation)
         return reservation_list
@@ -399,7 +411,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         Args:
             created_after: retrieve programs that were created after this date
                 or time.
-            created_before: retrieve programs that were created after this date
+            created_before: retrieve programs that were created before this date
                 or time.
             has_labels: retrieve programs that have labels on them specified by
                 this dict. If the value is set to `*`, filters having the label

@@ -22,6 +22,7 @@ from cirq_google.engine.abstract_local_program_test import NothingProgram
 from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_program import AbstractProgram
+import cirq_google.engine.calibration as calibration
 
 
 class ProgramDictProcessor(AbstractLocalProcessor):
@@ -34,8 +35,8 @@ class ProgramDictProcessor(AbstractLocalProcessor):
     def get_calibration(self, *args, **kwargs):
         pass
 
-    def get_latest_calibration(self, *args, **kwargs):
-        pass
+    def get_latest_calibration(self, timestamp: int) -> Optional[calibration.Calibration]:
+        return calibration.Calibration()
 
     def get_current_calibration(self, *args, **kwargs):
         pass
@@ -98,6 +99,9 @@ def test_get_processor():
     assert engine.get_processor('test') == processor1
     assert engine.get_processor('test').engine() == engine
 
+    with pytest.raises(KeyError):
+        _ = engine.get_processor('invalid')
+
 
 def test_list_processor():
     processor1 = ProgramDictProcessor(programs=[], processor_id='proc')
@@ -113,14 +117,14 @@ def test_list_processor():
 def test_get_programs():
     program1 = NothingProgram([cirq.Circuit()], None)
     job1 = NothingJob(
-        job_id='test3', processor_id='test1', parent_program=program1, repetitions=100, sweeps=[]
+        job_id='test3', processor_id='proc', parent_program=program1, repetitions=100, sweeps=[]
     )
     program1.add_job('jerb', job1)
     job1.add_labels({'color': 'blue'})
 
     program2 = NothingProgram([cirq.Circuit()], None)
     job2 = NothingJob(
-        job_id='test4', processor_id='test2', parent_program=program2, repetitions=100, sweeps=[]
+        job_id='test4', processor_id='crop', parent_program=program2, repetitions=100, sweeps=[]
     )
     program2.add_job('jerb2', job2)
     job2.add_labels({'color': 'red'})
@@ -138,6 +142,17 @@ def test_get_programs():
     assert set(engine.list_jobs()) == {job1, job2}
     assert engine.list_jobs(has_labels={'color': 'blue'}) == [job1]
     assert engine.list_jobs(has_labels={'color': 'red'}) == [job2]
+
+    program3 = NothingProgram([cirq.Circuit()], engine)
+    assert program3.engine() == engine
+
+    job3 = NothingJob(
+        job_id='test5', processor_id='crop', parent_program=program3, repetitions=100, sweeps=[]
+    )
+    assert job3.program() == program3
+    assert job3.engine() == engine
+    assert job3.get_processor() == processor2
+    assert job3.get_calibration() == calibration.Calibration()
 
 
 def test_get_sampler():

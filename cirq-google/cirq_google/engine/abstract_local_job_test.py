@@ -54,6 +54,7 @@ def test_description_and_labels():
     job = NothingJob(
         job_id='test', processor_id='pot_of_gold', parent_program=None, repetitions=100, sweeps=[]
     )
+    assert job.id() == 'test'
     assert job.processor_ids() == ['pot_of_gold']
     assert not job.description()
     job.set_description('nothing much')
@@ -71,7 +72,7 @@ def test_description_and_labels():
     assert job.labels() == {'walls': 'gray'}
 
 
-def test_reps_and_Sweeps():
+def test_reps_and_sweeps():
     job = NothingJob(
         job_id='test',
         processor_id='grill',
@@ -92,15 +93,3 @@ def test_create_update_time():
     job._update_time = update_time
     assert job.create_time() == create_time
     assert job.update_time() == update_time
-
-
-def test_engineand_processor_calibration():
-    pass
-
-
-def test_cwprogramengine():
-    pass
-
-
-def test_abstract_functions():
-    pass
