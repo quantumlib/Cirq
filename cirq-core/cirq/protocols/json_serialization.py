@@ -160,7 +160,7 @@ def obj_to_dict_helper(
 
 
 # Copying the Python API, whose usage of `repr` annoys pylint.
-# pylint: disable=redefine-builtin
+# pylint: disable=redefined-builtin
 def json_serializable_dataclass(
     _cls: Optional[Type] = None,
     *,
@@ -219,7 +219,7 @@ def json_serializable_dataclass(
     return wrap(_cls)
 
 
-# pylint: enable=redefine-builtin
+# pylint: enable=redefined-builtin
 def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
     """Return a dictionary suitable for _json_dict_ from a dataclass.
 
