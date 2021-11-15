@@ -102,7 +102,7 @@ def test_reservations():
     p = NothingProcessor(processor_id='test')
     start_reservation = datetime.datetime.now()
     end_reservation = datetime.datetime.now() + datetime.timedelta(hours=2)
-    users = ['dstrain@google.com']
+    users = ['gooduser@test.com']
 
     # Create Reservation
     reservation = p.create_reservation(
@@ -125,7 +125,7 @@ def test_reservations():
     p.update_reservation(reservation_id=reservation.name, start_time=start_reservation)
     reservation = p.get_reservation(reservation.name)
     assert reservation.start_time.seconds == int(start_reservation.timestamp())
-    users = ['dstrain@google.com', 'dabacon@google.com']
+    users = ['gooduser@test.com', 'otheruser@prod.com']
     p.update_reservation(reservation_id=reservation.name, whitelisted_users=users)
     reservation = p.get_reservation(reservation.name)
     assert reservation.whitelisted_users == users
@@ -155,15 +155,15 @@ def test_list_reservations():
         reservation2,
         reservation3,
     ]
-    assert p.list_reservations(now - 0.5 * hour, now + 3 * hour) == [reservation2, reservation3]
-    assert p.list_reservations(now + 0.5 * hour, now + 3 * hour) == [reservation3]
-    assert p.list_reservations(now - 0.5 * hour, now + 1.5 * hour) == [reservation2]
-    assert p.list_reservations(now - 1.5 * hour, now + 1.5 * hour) == [reservation1, reservation2]
+    assert p.list_reservations(now + 0.5 * hour, now + 3 * hour) == [reservation2, reservation3]
+    assert p.list_reservations(now + 1.5 * hour, now + 3 * hour) == [reservation3]
+    assert p.list_reservations(now + 0.5 * hour, now + 0.75 * hour) == [reservation2]
+    assert p.list_reservations(now - 1.5 * hour, now + 0.5 * hour) == [reservation1, reservation2]
 
-    assert p.list_reservations(-0.5 * hour, 3 * hour) == [reservation2, reservation3]
-    assert p.list_reservations(0.5 * hour, 3 * hour) == [reservation3]
-    assert p.list_reservations(-0.5 * hour, 1.5 * hour) == [reservation2]
-    assert p.list_reservations(-1.5 * hour, 1.5 * hour) == [reservation1, reservation2]
+    assert p.list_reservations(0.5 * hour, 3 * hour) == [reservation2, reservation3]
+    assert p.list_reservations(1.5 * hour, 3 * hour) == [reservation3]
+    assert p.list_reservations(0.25 * hour, 0.5 * hour) == [reservation2]
+    assert p.list_reservations(-1.5 * hour, 0.5 * hour) == [reservation1, reservation2]
 
     assert p.list_reservations(now - 2 * hour, None) == [reservation1, reservation2, reservation3]
 

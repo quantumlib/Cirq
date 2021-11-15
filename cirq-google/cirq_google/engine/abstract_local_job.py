@@ -101,6 +101,7 @@ class AbstractLocalJob(AbstractJob):
              This AbstractJob.
         """
         self._description = description
+        self._update_time = datetime.datetime.now()
         return self
 
     def labels(self) -> Dict[str, str]:
@@ -117,6 +118,7 @@ class AbstractLocalJob(AbstractJob):
              This AbstractJob.
         """
         self._labels = copy.copy(labels)
+        self._update_time = datetime.datetime.now()
         return self
 
     def add_labels(self, labels: Dict[str, str]) -> 'AbstractJob':
@@ -128,6 +130,7 @@ class AbstractLocalJob(AbstractJob):
         Returns:
              This AbstractJob.
         """
+        self._update_time = datetime.datetime.now()
         for key in labels:
             self._labels[key] = labels[key]
         return self
@@ -142,6 +145,7 @@ class AbstractLocalJob(AbstractJob):
         Returns:
             This AbstractJob.
         """
+        self._update_time = datetime.datetime.now()
         for key in keys:
             del self._labels[key]
         return self

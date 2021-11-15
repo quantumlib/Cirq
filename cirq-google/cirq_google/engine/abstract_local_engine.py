@@ -45,7 +45,7 @@ class AbstractLocalEngine(AbstractEngine):
     def get_program(self, program_id: str) -> AbstractProgram:
         """Returns an exsiting AbstractProgram given an identifier.
 
-        Iteratibvely checks each processor for the given id.
+        Iteratively checks each processor for the given id.
 
         Args:
             program_id: Unique ID of the program within the parent project.
