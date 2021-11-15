@@ -38,6 +38,18 @@ VALID_LANGUAGES = [
 ]
 
 
+def _date_to_timestamp(
+    union_time: Optional[Union[datetime.datetime, datetime.date, int]]
+) -> Optional[int]:
+    if isinstance(union_time, int):
+        return union_time
+    elif isinstance(union_time, datetime.datetime):
+        return int(union_time.timestamp())
+    elif isinstance(union_time, datetime.date):
+        return int(datetime.datetime.combine(union_time, datetime.datetime.min.time()).timestamp())
+    return None
+
+
 class SimulatedLocalProcessor(AbstractLocalProcessor):
     """A processor backed by a sampler and device.
 
@@ -121,10 +133,12 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
 
     def list_calibrations(
         self,
-        earliest_timestamp_seconds: Optional[int] = None,
-        latest_timestamp_seconds: Optional[int] = None,
+        earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
+        latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
     ) -> List[calibration.Calibration]:
         calibration_list: List[calibration.Calibration] = []
+        earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp)
+        latest_timestamp_seconds = _date_to_timestamp(latest_timestamp)
         for calibration_seconds in self._calibrations:
             if (
                 earliest_timestamp_seconds is not None
@@ -219,7 +233,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         program: cirq.Circuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
+        param_resolver: Optional[cirq.ParamResolver] = None,
         repetitions: int = 1,
         gate_set: Optional['Serializer'] = None,
         program_description: Optional[str] = None,
@@ -256,7 +270,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program=program,
             program_id=program_id,
             job_id=job_id,
-            params=[param_resolver],
+            params=[param_resolver or cirq.ParamResolver({})],
             repetitions=repetitions,
             gate_set=gate_set,
             program_description=program_description,
