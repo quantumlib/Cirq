@@ -58,8 +58,8 @@ class Service:
             verbose: Whether to print to stdio and stderr on retriable errors.
 
         Raises:
-            OsError: If the `api_key` is None and has no corresponding environment variable set.
-                This is actually an EnvironmentError which is equal to an OsError.
+            OSError: If the `api_key` is None and has no corresponding environment variable set.
+                This is actually an EnvironmentError which is equal to an OSError.
         """
         self.remote_host = (
             remote_host or os.getenv('IONQ_REMOTE_HOST') or f'https://api.ionq.co/{api_version}'
