@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import numbers
 from typing import AbstractSet, Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
@@ -139,6 +140,15 @@ class PhasedXZGate(gate_features.SingleQubitGate):
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
+
+    def _unitary_(self) -> Optional[np.ndarray]:
+        """See `cirq.SupportsUnitary`."""
+        if self._is_parameterized_():
+            return None
+        z_pre = protocols.unitary(ops.Z ** -self._axis_phase_exponent)
+        x = protocols.unitary(ops.X ** self._x_exponent)
+        z_post = protocols.unitary(ops.Z ** (self._axis_phase_exponent + self._z_exponent))
+        return z_post @ x @ z_pre
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         q = qubits[0]

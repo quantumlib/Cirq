@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import cast, List, Optional
 
 import numpy as np

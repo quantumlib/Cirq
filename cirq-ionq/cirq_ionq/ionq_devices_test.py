@@ -1,4 +1,5 @@
 # Copyright 2021 The Cirq Developers
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -28,9 +29,11 @@ VALID_GATES = (
     cirq.ry(0.1),
     cirq.rz(0.1),
     cirq.H,
+    cirq.HPowGate(exponent=1, global_shift=-0.5),
     cirq.T,
     cirq.S,
     cirq.CNOT,
+    cirq.CXPowGate(exponent=1, global_shift=-0.5),
     cirq.XX,
     cirq.YY,
     cirq.ZZ,
@@ -38,6 +41,7 @@ VALID_GATES = (
     cirq.YY ** 0.5,
     cirq.ZZ ** 0.5,
     cirq.SWAP,
+    cirq.SwapPowGate(exponent=1, global_shift=-0.5),
     cirq.MeasurementGate(num_qubits=1, key='a'),
     cirq.MeasurementGate(num_qubits=2, key='b'),
     cirq.MeasurementGate(num_qubits=10, key='c'),

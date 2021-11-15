@@ -24,43 +24,43 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 
 """
 import json
-from typing import Union, Tuple, List, Dict, Sequence, Any, cast
+from typing import Any, cast, Dict, Optional, Sequence, List, Tuple, Union
 import numpy as np
 import cirq
 
 gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.PhasedXPowGate}
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def get_op_string(op_obj: cirq.Operation) -> str:
-    """Find the string representation for a given gate
+    """Find the string representation for a given gate or operation.
 
     Args:
-        op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate,
-            PhasedXPowGate
+        op_obj: Gate or operation object. Gate must be one of: XXPowGate, XPowGate, YPowGate,
+            ZPowGate, PhasedXPowGate, or MeasurementGate.
 
     Returns:
-        String representing the gate operations
+        String representing the gate operations.
+
+    Raises:
+        ValueError: If the gate is not one of the supported gates.
     """
-    if isinstance(op_obj, cirq.XXPowGate) or isinstance(op_obj.gate, cirq.XXPowGate):
+    if isinstance(op_obj.gate, cirq.XXPowGate):
         op_str = 'MS'
-    elif isinstance(op_obj, cirq.XPowGate) or isinstance(op_obj.gate, cirq.XPowGate):
+    elif isinstance(op_obj.gate, cirq.XPowGate):
         op_str = 'X'
-    elif isinstance(op_obj, cirq.YPowGate) or isinstance(op_obj.gate, cirq.YPowGate):
+    elif isinstance(op_obj.gate, cirq.YPowGate):
         op_str = 'Y'
-    elif isinstance(op_obj, cirq.ZPowGate) or isinstance(op_obj.gate, cirq.ZPowGate):
+    elif isinstance(op_obj.gate, cirq.ZPowGate):
         op_str = 'Z'
-    elif isinstance(op_obj, cirq.PhasedXPowGate) or isinstance(op_obj.gate, cirq.PhasedXPowGate):
+    elif isinstance(op_obj.gate, cirq.PhasedXPowGate):
         op_str = 'R'
-    elif isinstance(op_obj, cirq.MeasurementGate) or isinstance(op_obj.gate, cirq.MeasurementGate):
+    elif isinstance(op_obj.gate, cirq.MeasurementGate):
         op_str = 'Meas'
     else:
-        raise ValueError('Got unknown gate:', op_obj)
+        raise ValueError(f'Got unknown gate on operation: {op_obj}.')
     return op_str
 
 
-# pylint: enable=missing-raises-doc
 class AQTNoiseModel(cirq.NoiseModel):
     """A noise model for the AQT ion trap"""
 
@@ -141,22 +141,22 @@ class AQTNoiseModel(cirq.NoiseModel):
 class AQTSimulator:
     """A simulator for the AQT device."""
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(
         self,
         num_qubits: int,
         circuit: cirq.Circuit = cirq.Circuit(),
         simulate_ideal: bool = False,
-        noise_dict: Union[dict, None] = None,
+        noise_dict: Optional[Dict] = None,
     ):
-        """Initializes the AQT simulator
+        """Initializes the AQT simulator.
 
         Args:
-            num_qubits: Number of qubits
+            num_qubits: Number of qubits.
             circuit: Optional, circuit to be simulated.
                 Last moment needs to be a measurement over all qubits with key 'm'
-            simulate_ideal: If True, an ideal circuit will be simulated
+            simulate_ideal: If True, an ideal, noiseless, circuit will be simulated.
+            noise_dict: A map from gate to noise to be applied after that gate. If None, uses
+                a default noise model.
         """
         self.circuit = circuit
         self.num_qubits = num_qubits
@@ -166,7 +166,6 @@ class AQTSimulator:
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
 
-    # pylint: enable=missing-param-doc
     def generate_circuit_from_list(self, json_string: str):
         """Generates a list of cirq operations from a json string.
 
@@ -174,7 +173,7 @@ class AQTSimulator:
         of the circuit as there are no measurements defined in the AQT API.
 
         Args:
-            json_string: json that specifies the sequence
+            json_string: json that specifies the sequence.
         """
         self.circuit = cirq.Circuit()
         json_obj = json.loads(json_string)
@@ -196,29 +195,29 @@ class AQTSimulator:
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         self.circuit.append(cirq.measure(*[qubit for qubit in self.qubit_list], key='m'))
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def simulate_samples(self, repetitions: int) -> cirq.Result:
-        """Samples the circuit
+        """Samples the circuit.
 
         Args:
-            repetitions: Number of times the circuit is simulated
+            repetitions: Number of times the circuit is simulated.
 
         Returns:
-            Result from Cirq.Simulator
+            Result from Cirq.Simulator.
+
+        Raises:
+            RuntimeError: Simulate called without a circuit.
         """
         if self.simulate_ideal:
             noise_model = cirq.NO_NOISE
         else:
             noise_model = AQTNoiseModel()
         if self.circuit == cirq.Circuit():
-            raise RuntimeError('simulate ideal called without a valid circuit')
+            raise RuntimeError('Simulate called without a valid circuit.')
         sim = cirq.DensityMatrixSimulator(noise=noise_model)
         result = sim.run(self.circuit, repetitions=repetitions)
         return result
 
 
-# pylint: enable=missing-raises-doc
 def get_aqt_device(num_qubits: int) -> Tuple[cirq.IonDevice, List[cirq.LineQubit]]:
     """Returns an AQT ion device
 
@@ -226,7 +225,7 @@ def get_aqt_device(num_qubits: int) -> Tuple[cirq.IonDevice, List[cirq.LineQubit
         num_qubits: number of qubits
 
     Returns:
-         IonDevice, qubit_list
+         A tuple of IonDevice and qubit_list
     """
     qubit_list = cirq.LineQubit.range(num_qubits)
     us = 1000 * cirq.Duration(nanos=1)

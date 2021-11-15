@@ -42,13 +42,8 @@ def has_stabilizer_effect(val: Any) -> bool:
     return False
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optional[bool]:
-    """
-    Attempts to infer whether val has stabilizer effect via its
-    _has_stabilizer_effect_ method.
-    """
+    """Infer whether val has stabilizer effect via its `_has_stabilizer_effect_` method."""
     if hasattr(val, '_has_stabilizer_effect_'):
         result = val._has_stabilizer_effect_()
         if result is not NotImplemented and result is not None:
@@ -56,20 +51,16 @@ def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optiona
     return None
 
 
-# TODO(#3388) Add summary line to docstring.
 def _strat_has_stabilizer_effect_from_gate(val: Any) -> Optional[bool]:
-    """
-    Attempts to infer whether val has stabilizer effect via the value of
-    _has_stabilizer_effect_ method of its constituent gate.
-    """
+    """Infer whether val's gate has stabilizer effect via the _has_stabilizer_effect_ method."""
     if hasattr(val, 'gate'):
         return _strat_has_stabilizer_effect_from_has_stabilizer_effect(val.gate)
     return None
 
 
-# pylint: enable=docstring-first-line-empty
 def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
     """Attempts to infer whether val has stabilizer effect from its unitary.
+
     Returns whether unitary of `val` normalizes the Pauli group. Works only for
     2x2 unitaries.
     """

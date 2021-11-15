@@ -155,3 +155,17 @@ def test_two_cx_diagram():
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
+
+
+def test_sqrt_iswap_diagram():
+    # test for proper rendering of ISWAP^{0.5}
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.ISWAP(q0, q1) ** 0.5)
+    expected_diagram = r"""
+\Qcircuit @R=1em @C=0.75em {
+ \\
+ &\lstick{\text{0}}& \qw&\multigate{1}{\text{ISWAP}^{0.5}} \qw&\qw\\
+ &\lstick{\text{1}}& \qw&\ghost{\text{ISWAP}^{0.5}}        \qw&\qw\\
+ \\
+}""".strip()
+    assert_has_qcircuit_diagram(circuit, expected_diagram)

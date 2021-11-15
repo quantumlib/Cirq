@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, TYPE_CHECKING, Union, Optional, cast, Sequence, Tuple
+from typing import cast, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_google import engine
