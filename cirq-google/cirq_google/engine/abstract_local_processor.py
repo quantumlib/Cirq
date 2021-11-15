@@ -283,7 +283,7 @@ class AbstractLocalProcessor(AbstractProcessor):
             reservation_id: The string identifier of the reservation to change.
             start_time: New starting time  of the reservation.  If unspecified,
                 starting time is left unchanged.
-            end_time: New starting time  of the reservation.  If unspecified,
+            end_time: New ending time  of the reservation.  If unspecified,
                 ending time is left unchanged.
             whitelisted_users: The new list of whitelisted users to allow on
                 the reservation.  If unspecified, the users are left unchanged.
