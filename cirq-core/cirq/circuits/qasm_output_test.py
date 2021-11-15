@@ -278,8 +278,6 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
         cirq.X(q0) ** 0.875,
         cirq.H(q1),
         cirq.X(q0) ** 0.5,
-        cirq.X(q0) ** 2.5,
-        cirq.X(q0) ** 1.5,
         cirq.X(q0) ** -0.5,
         cirq.CZ(q0, q1),
         cirq.CZ(q0, q1) ** 0.25,  # Requires 2-qubit decomposition
@@ -366,8 +364,6 @@ x q[0];
 rx(pi*0.875) q[0];
 h q[1];
 sx q[0];
-sx q[0];
-sxdg q[0];
 sxdg q[0];
 cz q[0],q[1];
 

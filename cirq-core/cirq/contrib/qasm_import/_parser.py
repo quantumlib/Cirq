@@ -183,8 +183,8 @@ class QasmParser:
         'sx': QasmGateStatement(
             qasm_gate='sx', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=0.5)
         ),
-        'sxdc': QasmGateStatement(
-            qasm_gate='sxdg', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=1.5)
+        'sxdg': QasmGateStatement(
+            qasm_gate='sxdg', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=-0.5)
         ),
         'ry': QasmGateStatement(
             qasm_gate='ry', cirq_gate=(lambda params: ops.ry(params[0])), num_params=1, num_args=1
