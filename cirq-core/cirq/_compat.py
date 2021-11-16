@@ -464,8 +464,6 @@ def _deduped_module_warn_or_error(old_module_name: str, new_module_name: str, de
     )
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     """A module finder to handle deprecated module references.
 
@@ -473,10 +471,12 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     It is meant to be used as a wrapper around existing MetaPathFinder instances.
 
     Args:
-        finder: the finder to wrap.
-        new_module_name: the new module's fully qualified name
-        old_module_name: the deprecated module's fully qualified name
-        deadline: the deprecation deadline
+        finder: The finder to wrap.
+        new_module_name: The new module's fully qualified name.
+        old_module_name: The deprecated module's fully qualified name.
+        deadline: The deprecation deadline.
+        broken_module_exception: If specified, an exception to throw if
+            the module is found.
     """
 
     def __init__(
@@ -576,7 +576,6 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         return spec
 
 
-# pylint: enable=missing-param-doc
 class _BrokenModule(ModuleType):
     def __init__(self, name, exc):
         self.exc = exc
