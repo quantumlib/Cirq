@@ -213,8 +213,6 @@ class SwapPermutationReplacer(cirq.PointOptimizer):
         return None  # Don't make changes to other gates.
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 def compile_circuit(
     circuit: cirq.Circuit,
     *,
@@ -238,6 +236,9 @@ def compile_circuit(
         routing_attempts: See doc for calculate_quantum_volume.
         compiler: An optional function to deconstruct the model circuit's
             gates down to the target devices gate set and then optimize it.
+        routing_algo_name: The name of the rougint algorithm, currently only
+            supports GREEDY.
+        router: The function that actually does the routing.
         add_readout_error_correction: If true, add some parity bits that will
             later be used to detect readout error.
 
@@ -308,7 +309,6 @@ def compile_circuit(
     )
 
 
-# pylint: enable=missing-param-doc
 @dataclass
 class QuantumVolumeResult:
     """Stores one run of the results and test information used when running the
