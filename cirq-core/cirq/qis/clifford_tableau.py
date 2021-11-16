@@ -299,7 +299,7 @@ class CliffordTableau:
         self._zs[q1, :] ^= self._zs[q2, :]
 
     def _row_to_dense_pauli(self, i: int) -> 'cirq.DensePauliString':
-        """Return a dense pauli string for the given row in the tableau.
+        """Return a dense Pauli string for the given row in the tableau.
 
         Args:
             i: index of the row in the tableau.

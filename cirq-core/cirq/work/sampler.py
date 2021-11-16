@@ -303,7 +303,7 @@ class Sampler(metaclass=abc.ABCMeta):
             observable measured in the second sweep.
 
         Raises:
-            ValueError: If the number of samples was not positive, if not observables were
+            ValueError: If the number of samples was not positive, if empty observables were
                 supplied, or if the provided circuit has terminal measurements and
                 `permit_terminal_measurements` is true.
         """
