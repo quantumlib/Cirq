@@ -819,6 +819,19 @@ class _InverseCompositeGate(Gate):
             for op in protocols.decompose_once_with_qubits(self._original, qubits)
         )
 
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self._original)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self._original)
+
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> '_InverseCompositeGate':
+        return _InverseCompositeGate(
+            protocols.resolve_parameters(self._original, resolver, recursive)
+        )
+
     def _value_equality_values_(self):
         return self._original
 

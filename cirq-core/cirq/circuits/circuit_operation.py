@@ -184,6 +184,9 @@ class CircuitOperation(ops.Operation):
                     for repetition_id in self.repetition_ids
                     for key in circuit_keys
                 }
+            circuit_keys = {
+                protocols.with_key_path_prefix(key, self.parent_path) for key in circuit_keys
+            }
             object.__setattr__(
                 self,
                 '_cached_measurement_key_objs',

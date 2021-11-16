@@ -27,7 +27,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 import sympy
-from cirq import ops, protocols
+from cirq import ops, protocols, _import
 from cirq.circuits import Circuit
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
@@ -35,6 +35,10 @@ if TYPE_CHECKING:
     import cirq
     import multiprocessing
     import scipy.optimize
+
+# We initialize these lazily, otherwise they slow global import speed.
+optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")
+stats = _import.LazyLoader("stats", globals(), "scipy.stats")
 
 THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
     'theta zeta chi gamma phi'
@@ -410,10 +414,7 @@ def characterize_phased_fsim_parameters_with_xeb(
             print(f"Loss: {loss:7.3g}", flush=True)
         return loss
 
-    # Import scipy.optimize here to avoid costly top level moule import.
-    import scipy.optimize
-
-    optimization_result = scipy.optimize.minimize(
+    optimization_result = optimize.minimize(
         _mean_infidelity,
         x0=x0,
         options={
@@ -574,15 +575,12 @@ def _fit_exponential_decay(
     cycle_depths_pos = cycle_depths[positives]
     log_fidelities = np.log(fidelities[positives])
 
-    # We import here to avoid costly module level load time dependency on scipy.stats.
-    import scipy.stats
-
-    slope, intercept, _, _, _ = scipy.stats.linregress(cycle_depths_pos, log_fidelities)
+    slope, intercept, _, _, _ = stats.linregress(cycle_depths_pos, log_fidelities)
     layer_fid_0 = np.clip(np.exp(slope), 0, 1)
     a_0 = np.clip(np.exp(intercept), 0, 1)
 
     try:
-        (a, layer_fid), pcov = scipy.optimize.curve_fit(
+        (a, layer_fid), pcov = optimize.curve_fit(
             exponential_decay,
             cycle_depths,
             fidelities,

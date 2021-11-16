@@ -50,6 +50,7 @@ import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, work
 from cirq.sim.act_on_args import ActOnArgs
+from cirq.sim.operation_target import OperationTarget
 
 if TYPE_CHECKING:
     import cirq
@@ -75,8 +76,6 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     ) -> List[study.Result]:
         return list(self.run_sweep_iter(program, params, repetitions))
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def run_sweep_iter(
         self,
         program: 'cirq.AbstractCircuit',
@@ -96,6 +95,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         Returns:
             Result list for this run; one for each possible parameter
             resolver.
+
+        Raises:
+            ValueError: If the circuit has no measurements.
         """
         if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
@@ -115,7 +117,6 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 params=param_resolver, measurements=measurements
             )
 
-    # pylint: enable=missing-raises-doc
     @abc.abstractmethod
     def _run(
         self,
@@ -538,8 +539,13 @@ class SimulatesIntermediateState(
         """
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in study.to_resolvers(params):
+            state = (
+                initial_state.copy()
+                if isinstance(initial_state, OperationTarget)
+                else initial_state
+            )
             all_step_results = self.simulate_moment_steps(
-                program, param_resolver, qubit_order, initial_state
+                program, param_resolver, qubit_order, state
             )
             measurements = {}  # type: Dict[str, np.ndarray]
             for step_result in all_step_results:
@@ -636,8 +642,6 @@ class SimulatesIntermediateState(
             The `OperationTarget` for this simulator.
         """
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     @abc.abstractmethod
     def _core_iterator(
         self,
@@ -654,12 +658,13 @@ class SimulatesIntermediateState(
             sim_state: The initial args for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
+            all_measurements_are_terminal: Whether all measurements in
+                the circuit are terminal.
 
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
 
-    # pylint: enable=missing-param-doc
     @abc.abstractmethod
     def _create_simulator_trial_result(
         self,
@@ -818,8 +823,6 @@ class SimulationTrialResult:
             measurement gate.)
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         params: study.ParamResolver,
@@ -841,6 +844,10 @@ class SimulationTrialResult:
                 for cases when calculating simulator state may be expensive and
                 unneeded. If this is provided, then final_simulator_state
                 should not be, and vice versa.
+
+        Raises:
+            ValueError: If `final_step_result` and `final_simulator_state` are both
+                None or both not None.
         """
         if [final_step_result, final_simulator_state].count(None) != 1:
             raise ValueError(
@@ -851,7 +858,6 @@ class SimulationTrialResult:
         self._final_step_result = final_step_result
         self._final_simulator_state_cache = final_simulator_state
 
-    # pylint: enable=missing-raises-doc
     @property
     def _final_simulator_state(self):
         if self._final_simulator_state_cache is None:

@@ -18,11 +18,10 @@ The following document provides an ecosystem overview of how the various tools c
 |--- |--- |--- |
 |[OpenFermion](https://github.com/quantumlib/OpenFermion)|Google|An open-source algorithms library for developing new quantum chemistry and materials simulation algorithms|
 |[TensorFlow Quantum](https://tensorflow.org/quantum)|Google|An open-source algorithms library for developing new quantum machine learning algorithms|
+|[Stim](https://github.com/quantumlib/stim)|Google|An open-source library for high speed simulation of Clifford circuits and quantum error correction|
 |[ReCirq](https://github.com/quantumlib/ReCirq)|Google|An open-source repository of example experiments, tools, and tutorials for running experiments on Google’s Quantum Computing Service|
 |[Forge](https://forge.qcware.com/)|QCWare|A proprietary library for domain-specific quantum algorithms and applications|
 |[Pennylane](https://pennylane.ai/)|Xanadu|An open-source library for quantum machine learning with TensorFlow, PyTorch, or NumPy|
-
-
 
 ## Development tools
 
@@ -32,26 +31,26 @@ The following document provides an ecosystem overview of how the various tools c
 |[Orquestra](https://www.zapatacomputing.com/orquestra/)|Zapata|A proprietary workflow management tool for quantum computing|
 |[pyGSTi](https://www.pygsti.info/)|Sandia National Labs|An open-source library for modeling and characterizing noisy quantum information processors|
 |[QUEKO](https://github.com/UCLA-VAST/QUEKO-benchmark)|UCLA|An open-source tool to generate benchmarks with the known optimal solutions|
-|[tket](https://cqcl.github.io/pytket/build/html/index.html#)|Cambridge Quantum|A proprietary and platform agnostic SDK for circuit optimisation, compilation and noise mitigation|
+|[tket](https://cqcl.github.io/tket/pytket/api/index.html)|Cambridge Quantum|An open-source and platform agnostic SDK for circuit optimisation, compilation and noise mitigation|
 |[True-Q](https://trueq.quantumbenchmark.com/)|Quantum Benchmark|A proprietary library for assessing and optimizing quantum hardware and algorithm performance.|
-
 
 ## Supported quantum cloud services
 
-|Company|Description|
+|Company|Type of Quantum Computer|
 |--- |--- |
-|[Google QCS](https://quantumai.google/cirq/tutorials/google/start)|A quantum computing service based on superconducting qubits|
-|[Alpine Quantum Technologies](https://quantumai.google/cirq/tutorials/aqt/start)|A quantum computing service based on ion traps|
-|[Pasqal](https://quantumai.google/cirq/tutorials/pasqal/start)|A quantum cloud service based on neutral atoms|
-
-
+|[Google QCS](https://quantumai.google/cirq/tutorials/google/start)|Superconducting qubits|
+|[Alpine Quantum Technologies](https://quantumai.google/cirq/tutorials/aqt/getting_started)|Trapped ions|
+|[IonQ](https://quantumai.google/cirq/tutorials/ionq/getting_started)|Trapped ions|
+|[Microsoft Azure Quantum](https://quantumai.google/cirq/tutorials/azure-quantum/getting_started_ionq)|Trapped ions (Honeywell and IonQ)|
+|[Pasqal](https://quantumai.google/cirq/tutorials/pasqal/getting_started)|Neutral atoms|
+|[Rigetti](https://quantumai.google/cirq/tutorials/rigetti/getting_started)|Superconducting qubits|
 
 ## High performance quantum circuit simulators
 
 |Name|Main sponsor|Description|
 |--- |--- |--- |
 |[qsim](https://github.com/quantumlib/qsim)|Google|An open-source, high performance circuit simulator for Schrödinger simulations|
-|[qflex](https://github.com/ngnrsaa/qflex)|NASA|An open-source, high performance circuit simulator for Feynman-based simulations optimized for GPUs|
 |[quimb](https://github.com/jcmgray/quimb)|Johnny Gray|An open-source, high performance circuit simulator using tensor-networks|
 |[qulacs](https://github.com/qulacs/cirq-qulacs)|Quansys|An open-source, high performance circuit simulator for Schrödinger simulations|
-
+|[Stim](https://github.com/quantumlib/stim)|Google|An open-source library for high speed simulation of Clifford circuits and quantum error correction|
+|[cuQuantum](https://developer.nvidia.com/cuquantum-sdk)|Nvidia|Tools for speeding up quantum simulation on GPUs|
