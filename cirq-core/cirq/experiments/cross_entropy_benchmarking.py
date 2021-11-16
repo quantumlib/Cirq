@@ -28,7 +28,6 @@ from typing import (
 )
 import dataclasses
 import numpy as np
-import scipy
 from matplotlib import pyplot as plt
 from cirq import _import, circuits, devices, ops, protocols, sim, value, work
 
