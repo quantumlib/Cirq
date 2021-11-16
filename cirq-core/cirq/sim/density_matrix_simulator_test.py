@@ -528,7 +528,9 @@ def test_simulate_qudits(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_reset_does_not_collapse(dtype: Type[np.number], split: bool):
+def test_reset_one_qubit_does_not_affect_partial_trace_of_other_qubits(
+    dtype: Type[np.number], split: bool
+):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(
