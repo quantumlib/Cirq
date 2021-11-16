@@ -31,12 +31,20 @@ from typing import (
 )
 
 from cirq import protocols, ops, value
+from cirq._import import LazyLoader
 from cirq.ops import raw_types
 from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
+
+# Lazy imports to break circular dependencies.
+circuits = LazyLoader("circuits", globals(), "cirq.circuits.circuit")
+op_tree = LazyLoader("op_tree", globals(), "cirq.ops.op_tree")
+text_diagram_drawer = LazyLoader(
+    "text_diagram_drawer", globals(), "cirq.circuits.text_diagram_drawer"
+)
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
@@ -78,8 +86,6 @@ class Moment:
         Raises:
             ValueError: A qubit appears more than once.
         """
-        from cirq.ops import op_tree
-
         self._operations = tuple(op_tree.flatten_to_ops(contents))
 
         # An internal dictionary to support efficient operation access by qubit.
@@ -174,8 +180,6 @@ class Moment:
         Raises:
             ValueError: If the contents given overlaps a current operation in the moment.
         """
-        from cirq.ops import op_tree
-
         operations = list(self._operations)
         qubits = set(self._qubits)
         for op in op_tree.flatten_to_ops(contents):
@@ -331,14 +335,12 @@ class Moment:
         return Moment(operations)
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-        from cirq.circuits import circuit
 
-        if isinstance(other, circuit.AbstractCircuit):
+        if isinstance(other, circuits.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
     def __sub__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-        from cirq.ops import op_tree
 
         must_remove = set(op_tree.flatten_to_ops(other))
         new_ops = []
@@ -421,9 +423,7 @@ class Moment:
             a, b = xy_breakdown_func(q)
             qubit_positions[q] = x_map[a], y_map[b]
 
-        from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-
-        diagram = TextDiagramDrawer()
+        diagram = text_diagram_drawer.TextDiagramDrawer()
 
         def cleanup_key(key: Any) -> Any:
             if isinstance(key, float) and key == int(key):
