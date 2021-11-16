@@ -604,12 +604,12 @@ def deprecated_submodule(
     cache.
 
     Args:
-        new_module_name: Absolute module name for the new module
-        old_parent: The current module that had the original submodule
-        old_child: The submodule that is being relocated
-        deadline: The version of Cirq where the module will be removed.s
+        new_module_name: Absolute module name for the new module.
+        old_parent: The current module that had the original submodule.
+        old_child: The submodule that is being relocated.
+        deadline: The version of Cirq where the module will be removed.
         create_attribute: If True, the submodule will be added as a deprecated attribute to the
-            old_parent module
+            old_parent module.
 
     Returns:
         None

@@ -74,7 +74,7 @@ def benchmark_2q_xeb_fidelities(
 
     Raises:
         ValueError: If `cycle_depths` is not a non-empty array or if the `cycle_depths` provided
-            include some not available in `sampled_df`.
+            includes some values not available in `sampled_df`.
     """
     sampled_cycle_depths = (
         sampled_df.index.get_level_values('cycle_depth').drop_duplicates().sort_values()

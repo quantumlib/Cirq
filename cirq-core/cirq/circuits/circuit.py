@@ -1853,8 +1853,7 @@ class Circuit(AbstractCircuit):
                 function, and with an updated device (if specified).
 
         Raises:
-            TypeError: If `qubit_function` is not a function of dict of the correct
-                type.
+            TypeError: If `qubit_function` is not a function or a dict.
         """
         if callable(qubit_map):
             transform = qubit_map
