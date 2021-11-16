@@ -183,6 +183,9 @@ class QasmParser:
         'sx': QasmGateStatement(
             qasm_gate='sx', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=0.5)
         ),
+        'sxdg': QasmGateStatement(
+            qasm_gate='sxdg', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=-0.5)
+        ),
         'ry': QasmGateStatement(
             qasm_gate='ry', cirq_gate=(lambda params: ops.ry(params[0])), num_params=1, num_args=1
         ),
@@ -355,7 +358,7 @@ class QasmParser:
         p[0] = p[3]
 
     def p_params_single(self, p):
-        """params : expr """
+        """params : expr"""
         p[0] = [p[1]]
 
     # expr : term
@@ -417,7 +420,7 @@ class QasmParser:
     #     | ID '[' NATURAL_NUMBER ']'
 
     def p_quantum_arg_register(self, p):
-        """qarg : ID """
+        """qarg : ID"""
         reg = p[1]
         if reg not in self.qregs.keys():
             raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
@@ -433,7 +436,7 @@ class QasmParser:
     #     | ID '[' NATURAL_NUMBER ']'
 
     def p_classical_arg_register(self, p):
-        """carg : ID """
+        """carg : ID"""
         reg = p[1]
         if reg not in self.cregs.keys():
             raise QasmException(f'Undefined classical register "{reg}" at line {p.lineno(1)}')
@@ -444,7 +447,7 @@ class QasmParser:
         return str(reg) + "_" + str(idx)
 
     def p_quantum_arg_bit(self, p):
-        """qarg : ID '[' NATURAL_NUMBER ']' """
+        """qarg : ID '[' NATURAL_NUMBER ']'"""
         reg = p[1]
         idx = p[3]
         arg_name = self.make_name(idx, reg)
@@ -462,7 +465,7 @@ class QasmParser:
         p[0] = [self.qubits[arg_name]]
 
     def p_classical_arg_bit(self, p):
-        """carg : ID '[' NATURAL_NUMBER ']' """
+        """carg : ID '[' NATURAL_NUMBER ']'"""
         reg = p[1]
         idx = p[3]
         arg_name = self.make_name(idx, reg)
