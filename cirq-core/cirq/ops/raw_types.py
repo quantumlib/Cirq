@@ -216,17 +216,15 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         return ops.gate_operation.GateOperation(self, list(qubits))
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def on_each(self, *targets: Union[Qid, Iterable[Any]]) -> List['cirq.Operation']:
         """Returns a list of operations applying the gate to all targets.
 
         Args:
             *targets: The qubits to apply this gate to. For single-qubit gates
-            this can be provided as varargs or a combination of nested
-            iterables. For multi-qubit gates this must be provided as an
-            `Iterable[Sequence[Qid]]`, where each sequence has `num_qubits`
-            qubits.
+                this can be provided as varargs or a combination of nested
+                iterables. For multi-qubit gates this must be provided as an
+                `Iterable[Sequence[Qid]]`, where each sequence has `num_qubits`
+                qubits.
 
         Returns:
             Operations applying this gate to the target qubits.
@@ -234,6 +232,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Raises:
             ValueError: If targets are not instances of Qid or Iterable[Qid].
                 If the gate qubit number is incompatible.
+            TypeError: If a single target is supplied and it is not iterable.
         """
         operations: List['cirq.Operation'] = []
         if self._num_qubits_() > 1:
@@ -267,7 +266,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                 )
         return operations
 
-    # pylint: enable=missing-raises-doc
     def wrap_in_linear_combination(
         self, coefficient: Union[complex, float, int] = 1
     ) -> 'cirq.LinearCombinationOfGates':

@@ -142,7 +142,6 @@ class Sampler(metaclass=abc.ABCMeta):
 
         return pd.concat(results)
 
-    # pylint: enable=missing-raises-doc
     @abc.abstractmethod
     def run_sweep(
         self,
@@ -207,8 +206,6 @@ class Sampler(metaclass=abc.ABCMeta):
         """
         return self.run_sweep(program, params=params, repetitions=repetitions)
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def run_batch(
         self,
         programs: Sequence['cirq.AbstractCircuit'],
@@ -248,6 +245,10 @@ class Sampler(metaclass=abc.ABCMeta):
             the circuits, while each inner list contains the TrialResults
             for the corresponding circuit, in the order imposed by the
             associated parameter sweep.
+
+        Raises:
+            ValueError: If length of `programs` is not equal to the length
+                of `params_list` or the length of `repetitions`.
         """
         if params_list is None:
             params_list = [None] * len(programs)
@@ -300,6 +301,11 @@ class Sampler(metaclass=abc.ABCMeta):
             A list of expectation-value lists. The outer index determines the sweep, and the inner
             index determines the observable. For instance, results[1][3] would select the fourth
             observable measured in the second sweep.
+
+        Raises:
+            ValueError: If the number of samples was not positive, if empty observables were
+                supplied, or if the provided circuit has terminal measurements and
+                `permit_terminal_measurements` is true.
         """
         if num_samples <= 0:
             raise ValueError(

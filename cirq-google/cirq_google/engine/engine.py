@@ -77,9 +77,6 @@ class EngineContext:
     simply create an Engine object instead of working with one of these
     directly."""
 
-    # TODO(#3388) Add documentation for Args.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(
         self,
         proto_version: Optional[ProtoVersion] = None,
@@ -97,8 +94,14 @@ class EngineContext:
                 configure options on the underlying client.
             verbose: Suppresses stderr messages when set to False. Default is
                 true.
+            client: The engine client to use, if not supplied one will be
+                created.
             timeout: Timeout for polling for results, in seconds.  Default is
                 to never timeout.
+
+        Raises:
+            ValueError: If either `service_args` and `verbose` were supplied
+                or `client` was supplied, or if proto version 1 is specified.
         """
         if (service_args or verbose) and client:
             raise ValueError('either specify service_args and verbose or client')

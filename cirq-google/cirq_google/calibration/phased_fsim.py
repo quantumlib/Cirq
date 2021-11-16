@@ -341,8 +341,6 @@ class PhasedFSimCalibrationResult:
         }
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def merge_matching_results(
     results: Iterable[PhasedFSimCalibrationResult],
 ) -> Optional[PhasedFSimCalibrationResult]:
@@ -356,6 +354,10 @@ def merge_matching_results(
     Returns:
         New PhasedFSimCalibrationResult that contains all the parameters from every result in
         results or None when the results list is empty.
+
+    Raises:
+        ValueError: If the gate and options fields are not all equal, or if the
+            results have shared keys.
     """
     all_parameters: Dict[Tuple[cirq.Qid, cirq.Qid], PhasedFSimCharacterization] = {}
     common_gate = None
@@ -387,7 +389,6 @@ def merge_matching_results(
     return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
 
 
-# pylint: enable=missing-raises-doc
 class PhasedFSimCalibrationError(Exception):
     """Error that indicates the calibration failure."""
 
