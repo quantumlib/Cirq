@@ -160,8 +160,7 @@ def obj_to_dict_helper(
 
 
 # Copying the Python API, whose usage of `repr` annoys pylint.
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=redefined-builtin, missing-param-doc
+# pylint: disable=redefined-builtin
 def json_serializable_dataclass(
     _cls: Optional[Type] = None,
     *,
@@ -187,11 +186,16 @@ def json_serializable_dataclass(
     `return dataclass_json_dict(self)`.
 
     Args:
+        _cls: The class to add JSON serializatin to.
         namespace: An optional prefix to the value associated with the
             key "cirq_type". The namespace name will be joined with the
             class name via a dot (.)
-        init, repr, eq, order, unsafe_hash, frozen: Forwarded to the
-            ``dataclass`` constructor.
+        init: Forwarded to the `dataclass` constructor.
+        repr: Forwarded to the `dataclass` constructor.
+        eq: Forwarded to the `dataclass` constructor.
+        order: Forwarded to the `dataclass` constructor.
+        unsafe_hash: Forwarded to the `dataclass` constructor.
+        frozen: Forwarded to the `dataclass` constructor.
     """
 
     def wrap(cls):
@@ -215,7 +219,7 @@ def json_serializable_dataclass(
     return wrap(_cls)
 
 
-# pylint: enable=redefined-builtin, missing-param-doc
+# pylint: enable=redefined-builtin
 def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
     """Return a dictionary suitable for _json_dict_ from a dataclass.
 
@@ -589,8 +593,6 @@ def to_json(
 
 
 # pylint: enable=function-redefined
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def read_json(
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
@@ -614,6 +616,10 @@ def read_json(
             by pre-pending custom resolvers. Each resolver should return `None`
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
+
+    Raises:
+        ValueError: If either none of `file_or_fn` and `json_text` is specified,
+            or both are specified.
     """
     if (file_or_fn is None) == (json_text is None):
         raise ValueError('Must specify ONE of "file_or_fn" or "json".')
@@ -636,7 +642,6 @@ def read_json(
     return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
 
 
-# pylint: enable=missing-raises-doc
 def to_json_gzip(
     obj: Any,
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,

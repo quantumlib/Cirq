@@ -48,8 +48,6 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
     and ensuring the new target register value is normalized modulo the modulus.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         identifier: str,
@@ -63,6 +61,10 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
             target: The target qubit register.
             inputs: Qubit registers (or classical constants) that
                 determine what happens to the target.
+
+        Raises:
+            ValueError: If given overlapping registers, or the target is too
+                small for a modular operation with too small modulus.
         """
         self.identifier = identifier
         self.target: Tuple['cirq.Qid', ...] = tuple(target)
@@ -85,7 +87,6 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
             if over:
                 raise ValueError(f'Target too small for modulus.\nTarget: {target}\nModulus: {r}')
 
-    # pylint: enable=missing-raises-doc
     @property
     def operation(self) -> '_QuirkArithmeticCallable':
         return ARITHMETIC_OP_TABLE[self.identifier]
