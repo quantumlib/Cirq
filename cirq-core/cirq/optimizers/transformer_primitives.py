@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Defines primitives for common transformer patterns."""
+
 from collections import defaultdict
 from typing import (
     cast,
@@ -31,8 +32,6 @@ if TYPE_CHECKING:
     import cirq
 
 MAPPED_CIRCUIT_OP_TAG = '<mapped_circuit_op>'
-
-# CIRCUIT_TYPE = circuits.circuit.CIRCUIT_TYPE
 
 
 def _to_target_circuit_type(
