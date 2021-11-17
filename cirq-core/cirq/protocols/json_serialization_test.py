@@ -553,7 +553,13 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
     expected_json = f'{{\n  "cirq_type": "type",\n  "typename": "{typename}"\n}}'
     assert cirq.to_json(cls) == expected_json
     assert cirq.read_json(json_text=expected_json) == cls
-    assert_json_roundtrip_works(cls) 
+    assert_json_roundtrip_works(cls)
+
+
+def test_invalid_type_deserialize():
+    invalid_json = f'{{\n  "cirq_type": "type",\n  "typename": "bad_type"\n}}'
+    with pytest.raises(ValueError, match='Could not resolve type'):
+        _ = cirq.read_json(json_text=invalid_json)
 
 
 def test_to_from_strings():

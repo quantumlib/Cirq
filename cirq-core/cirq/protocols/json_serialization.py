@@ -130,7 +130,7 @@ class SupportsJSON(Protocol):
 
 class HasCustomJSONCirqType(Protocol):
     """An object which does not conform to normal cirq type naming.
-    
+
     Most objects in Cirq use cls.__name__ for their JSON 'cirq_type' field.
     Classes which do not do so must implement this protocol, returning the
     alternative cirq_type value from `_json_cirq_type_`.
@@ -538,7 +538,7 @@ def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
 
 def json_cirq_type(obj: Any) -> str:
     """Returns the string type of `obj` used in JSON serialization.
-    
+
     Types can provide custom string types with `_json_cirq_type_`; otherwise, a
     Cirq type will use its type name as its string type.
 
