@@ -81,14 +81,13 @@ class ActOnStateVectorArgs(ActOnArgs):
             self.available_buffer = self.target_tensor
         self.target_tensor = new_target_tensor
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def subspace_index(
         self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
     ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:
+            axes: The qubits that are specified by the index bits.
             little_endian_bits_int: The desired value of the qubits at the
                 targeted `axes`, packed into an integer. The least significant
                 bit of the integer is the desired bit for the first axis, and
@@ -99,7 +98,6 @@ class ActOnStateVectorArgs(ActOnArgs):
                 applies but in a different basis. For example, if the target
                 axes have dimension [a:2, b:3, c:2] then the integer 10
                 decomposes into [a=0, b=2, c=1] via 7 = 1*(3*2) +  2*(2) + 0.
-
             big_endian_bits_int: The desired value of the qubits at the
                 targeted `axes`, packed into an integer. The most significant
                 bit of the integer is the desired bit for the first axis, and
@@ -136,7 +134,6 @@ class ActOnStateVectorArgs(ActOnArgs):
             qid_shape=self.target_tensor.shape,
         )
 
-    # pylint: enable=missing-param-doc
     def _act_on_fallback_(
         self,
         action: Union['cirq.Operation', 'cirq.Gate'],

@@ -213,8 +213,6 @@ class SwapPermutationReplacer(cirq.PointOptimizer):
         return None  # Don't make changes to other gates.
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 def compile_circuit(
     circuit: cirq.Circuit,
     *,
@@ -238,6 +236,9 @@ def compile_circuit(
         routing_attempts: See doc for calculate_quantum_volume.
         compiler: An optional function to deconstruct the model circuit's
             gates down to the target devices gate set and then optimize it.
+        routing_algo_name: The name of the routing algorithm, see ROUTING in
+            `route_circuit.py`.
+        router: The function that actually does the routing.
         add_readout_error_correction: If true, add some parity bits that will
             later be used to detect readout error.
 
@@ -308,7 +309,6 @@ def compile_circuit(
     )
 
 
-# pylint: enable=missing-param-doc
 @dataclass
 class QuantumVolumeResult:
     """Stores one run of the results and test information used when running the
@@ -458,8 +458,8 @@ def calculate_quantum_volume(
         depth: The number of gate layers to generate.
         num_circuits: The number of random circuits to run.
         random_state: Random state or random state seed.
-        device_graph: A graph whose nodes are qubits and edges represent two qubit interactions to
-            run the compiled circuit on.
+        device_graph: A graph whose nodes are qubits and edges represent two
+            qubit interactions to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
