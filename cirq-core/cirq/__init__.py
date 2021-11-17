@@ -518,6 +518,7 @@ from cirq.protocols import (
     is_measurement,
     is_parameterized,
     JsonResolver,
+    json_cirq_type,
     json_serializable_dataclass,
     dataclass_json_dict,
     kraus,

@@ -43,6 +43,10 @@ class SharedRuntimeInfo:
 
     run_id: str
 
+    @classmethod
+    def _cirq_type_(cls) -> str:
+        return 'cirq.google.SharedRuntimeInfo'
+
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')
 
@@ -62,6 +66,10 @@ class RuntimeInfo:
     """
 
     execution_index: int
+
+    @classmethod
+    def _cirq_type_(cls) -> str:
+        return 'cirq.google.RuntimeInfo'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')
@@ -84,6 +92,10 @@ class ExecutableResult:
     spec: Optional[ExecutableSpec]
     runtime_info: RuntimeInfo
     raw_data: cirq.Result
+
+    @classmethod
+    def _cirq_type_(cls) -> str:
+        return 'cirq.google.ExecutableResult'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')

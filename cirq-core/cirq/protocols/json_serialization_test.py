@@ -534,6 +534,28 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
             )
 
 
+@pytest.mark.parametrize(
+    'mod_spec,cirq_obj_name,cls',
+    _list_public_classes_for_tested_modules(),
+)
+def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
+    if cirq_obj_name in mod_spec.tested_elsewhere:
+        pytest.skip("Tested elsewhere.")
+
+    if cirq_obj_name in mod_spec.not_yet_serializable:
+        return pytest.xfail(reason="Not serializable (yet)")
+
+    try:
+        typename = cirq.json_cirq_type(cls)
+    except ValueError as e:
+        pytest.skip(f'No serialization for non-Cirq types: {str(e)}')
+
+    expected_json = f'{{\n  "cirq_type": "type",\n  "typename": "{typename}"\n}}'
+    assert cirq.to_json(cls) == expected_json
+    assert cirq.read_json(json_text=expected_json) == cls
+    assert_json_roundtrip_works(cls) 
+
+
 def test_to_from_strings():
     x_json_text = """{
   "cirq_type": "_PauliX",

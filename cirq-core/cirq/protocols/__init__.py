@@ -84,6 +84,7 @@ from cirq.protocols.json_serialization import (
     DEFAULT_RESOLVERS,
     JsonResolver,
     json_serializable_dataclass,
+    json_cirq_type,
     to_json_gzip,
     read_json_gzip,
     to_json,

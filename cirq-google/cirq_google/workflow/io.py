@@ -66,6 +66,10 @@ class ExecutableGroupResultFilesystemRecord:
             ],
         )
 
+    @classmethod
+    def _cirq_type_(cls) -> str:
+        return 'cirq.google.ExecutableGroupResultFilesystemRecord'
+
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self, namespace='cirq.google')
 
