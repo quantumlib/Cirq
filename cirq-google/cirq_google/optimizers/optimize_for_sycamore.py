@@ -110,8 +110,6 @@ def _gate_product_tabulation_cached(
         raise NotImplementedError(f"Two qubit gate tabulation not supported for {optimizer_type}")
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def optimized_for_sycamore(
     circuit: cirq.Circuit,
     *,
@@ -144,6 +142,9 @@ def optimized_for_sycamore(
             is not known.
     Returns:
         The optimized circuit.
+
+    Raises:
+        ValueError: If the `optimizer_type` is not a supported type.
     """
     copy = circuit.copy()
     if optimizer_type not in _OPTIMIZER_TYPES:
@@ -165,6 +166,3 @@ def optimized_for_sycamore(
         strategy=cirq.InsertStrategy.EARLIEST,
         device=new_device or copy.device,
     )
-
-
-# pylint: enable=missing-raises-doc

@@ -99,8 +99,6 @@ class GateTabulation:
         return local_result
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 @deprecated(deadline='v0.14', fix='Stop using.', name='gate_product_tabulation')
 def gate_product_tabulation(
     base_gate: np.ndarray,
@@ -130,6 +128,10 @@ def gate_product_tabulation(
     Returns:
         A GateTabulation object used to compile new two-qubit gates from
         products of the base gate with 1-local unitaries.
+
+    Raises:
+        ValueError: If `allow_missed_points` is False and not all points
+            in the Weyl chamber were compilable using 2 or 3 base gates.
     """
     result = two_qubit_gate_product_tabulation(
         base_gate,
@@ -146,6 +148,3 @@ def gate_product_tabulation(
         result.summary,
         tuple(result.missed_points),
     )
-
-
-# pylint: enable=missing-raises-doc

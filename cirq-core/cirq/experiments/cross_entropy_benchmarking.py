@@ -28,15 +28,16 @@ from typing import (
 )
 import dataclasses
 import numpy as np
-import scipy
 from matplotlib import pyplot as plt
-from cirq import circuits, devices, ops, protocols, sim, value, work
+from cirq import _import, circuits, devices, ops, protocols, sim, value, work
 
 if TYPE_CHECKING:
     import cirq
 
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int), ('xeb_fidelity', float)])
 SpecklePurityPair = NamedTuple('SpecklePurityPair', [('num_cycle', int), ('purity', float)])
+
+optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")
 
 
 @dataclasses.dataclass
@@ -166,8 +167,6 @@ class CrossEntropyResult:
             spam_depolarization=params[0], cycle_depolarization=params[1], covariance=covariance
         )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def purity_depolarizing_model(self) -> CrossEntropyDepolarizingModel:
         """Fit a depolarizing error model for a cycle to purity data.
 
@@ -182,6 +181,9 @@ class CrossEntropyResult:
             representing the covariance in the estimation of S and p in that
             order. It also has the property `purity` representing the purity
             p**2.
+
+        Raises:
+            ValueError: If no `purity_data` has been supplied to this class.
         """
         if self.purity_data is None:
             raise ValueError(
@@ -195,7 +197,6 @@ class CrossEntropyResult:
             spam_depolarization=params[0], cycle_depolarization=params[1], covariance=covariance
         )
 
-    # pylint: enable=missing-raises-doc
     @classmethod
     def _from_json_dict_(cls, data, repetitions, **kwargs):
         purity_data = kwargs.get('purity_data', None)
@@ -236,7 +237,7 @@ def _fit_exponential_decay(x: Sequence[int], y: Sequence[float]) -> Tuple[np.nda
     def f(a, S, p):
         return S * p ** a
 
-    return scipy.optimize.curve_fit(f, x, y, p0=p0)
+    return optimize.curve_fit(f, x, y, p0=p0)
 
 
 @dataclasses.dataclass
