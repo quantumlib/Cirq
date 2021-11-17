@@ -99,8 +99,6 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
     return cast('cirq.Circuit', result)
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def final_state_vector(
     program: 'cirq.CIRCUIT_LIKE',
     *,
@@ -137,6 +135,10 @@ def final_state_vector(
         the amplitudes in np.kron order, where the order of arguments to kron
         is determined by the qubit order argument (which defaults to just
         sorting the qubits that are present into an ascending order).
+
+    Raises:
+        ValueError: If the program doesn't have a well defined final state because
+            it has non-unitary gates.
     """
     circuit_like = _to_circuit(program)
 
@@ -159,7 +161,6 @@ def final_state_vector(
     return result.state_vector()
 
 
-# pylint: enable=missing-raises-doc
 def sample_sweep(
     program: 'cirq.Circuit',
     params: study.Sweepable,

@@ -103,7 +103,7 @@ def test_run_calibration(monkeypatch, fsim_options, x0_should_be):
     def _minimize_patch_2(*args, **kwargs):
         return _minimize_patch(*args, **kwargs, x0_should_be=x0_should_be)
 
-    monkeypatch.setattr('cirq.experiments.xeb_fitting.scipy.optimize.minimize', _minimize_patch_2)
+    monkeypatch.setattr('scipy.optimize.minimize', _minimize_patch_2)
     monkeypatch.setattr(
         'cirq_google.calibration.xeb_wrapper.xebf.benchmark_2q_xeb_fidelities', _benchmark_patch
     )

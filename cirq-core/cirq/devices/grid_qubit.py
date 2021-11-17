@@ -203,11 +203,9 @@ class GridQid(_BaseGridQid):
             for col in range(left, left + cols)
         ]
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     @staticmethod
     def from_diagram(diagram: str, dimension: int) -> List['GridQid']:
-        """Parse ASCII art device layout into info about qids and
+        r"""Parse ASCII art device layout into info about qids and
         connectivity. As an example, the below diagram will create a list of
         GridQid in a pyramid structure.
         ---A---
@@ -240,6 +238,8 @@ class GridQid(_BaseGridQid):
                 than alphanumerics, spacers, and newlines ('\n'), an error will
                 be thrown. The top-left corner of the diagram will be have
                 coordinate (0,0).
+            dimension: The dimension of the qubits in the `GridQid`s used
+                in this construction.
 
         Returns:
             A list of GridQid corresponding to qids in the provided diagram
@@ -250,7 +250,6 @@ class GridQid(_BaseGridQid):
         coords = _ascii_diagram_to_coords(diagram)
         return [GridQid(*c, dimension=dimension) for c in coords]
 
-    # pylint: enable=missing-param-doc
     def __repr__(self) -> str:
         return f"cirq.GridQid({self.row}, {self.col}, dimension={self.dimension})"
 

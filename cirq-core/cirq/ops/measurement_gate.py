@@ -95,6 +95,9 @@ class MeasurementGate(raw_types.Gate):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return self.with_key(self.mkey._with_key_path_(path))
 
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return self.with_key(self.mkey._with_key_path_prefix_(prefix))
+
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 

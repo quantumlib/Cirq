@@ -405,7 +405,7 @@ def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
             measurements = v1.unpack_results(data, sweep_repetitions, key_sizes)
 
             trial_results.append(
-                cirq.Result.from_single_parameter_set(
+                cirq.Result(
                     params=cirq.ParamResolver(result.params.assignments),
                     measurements=measurements,
                 )

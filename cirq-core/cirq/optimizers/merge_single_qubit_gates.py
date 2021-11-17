@@ -28,8 +28,6 @@ if TYPE_CHECKING:
 class MergeSingleQubitGates(circuits.PointOptimizer):
     """Optimizes runs of adjacent unitary 1-qubit operations."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         *,
@@ -51,6 +49,9 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
                 be specified at the same time as `rewriter`. If `synthesizer`
                 returns `None`, that means "do not rewrite the operations used
                 to make this matrix".
+
+        Raises:
+            ValueError: If both a rewriter and synthesizer were specified.
         """
         super().__init__()
         if rewriter is not None and synthesizer is not None:
@@ -58,7 +59,6 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
         self._rewriter = rewriter
         self._synthesizer = synthesizer
 
-    # pylint: enable=missing-raises-doc
     def _rewrite(self, operations: List[ops.Operation]) -> Optional[ops.OP_TREE]:
         if not operations:
             return None

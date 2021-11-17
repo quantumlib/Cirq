@@ -1,9 +1,9 @@
-cirq.google.CalibrationResult(
+cirq_google.CalibrationResult(
     code=1,
     error_message='a',
     token='b',
     valid_until=datetime.datetime(2020, 11, 25, 15, 59, 44, 41021),
-    metrics=cirq.google.Calibration(
+    metrics=cirq_google.Calibration(
         metrics={
             'xeb': {
                  (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): [0.9999],

@@ -25,8 +25,6 @@ from cirq_web.circuits.symbols import (
 class Circuit3D(widget.Widget):
     """Takes cirq.Circuit objects and displays them in 3D."""
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(
         self,
         circuit: cirq.Circuit,
@@ -36,14 +34,15 @@ class Circuit3D(widget.Widget):
         """Initializes a Circuit instance.
 
         Args:
-            circuit: The cirq.Circuit to be represented in 3D.
+            circuit: The `cirq.Circuit` to be represented in 3D.
+            resolvers: The symbol resolve for how to show symbols in 3D.
+            padding_factor: The distance between meshes.
         """
         super().__init__()
         self.circuit = circuit
         self._resolvers = resolvers
         self.padding_factor = padding_factor
 
-    # pylint: enable=missing-param-doc
     def get_client_code(self) -> str:
         # Remove hyphens from the id so that we can use
         # it as the variable name in TS.

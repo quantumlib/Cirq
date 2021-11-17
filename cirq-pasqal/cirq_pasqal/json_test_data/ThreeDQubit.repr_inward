@@ -1,1 +1,1 @@
-cirq.pasqal.ThreeDQubit(10, 11, 12)
+cirq_pasqal.ThreeDQubit(10, 11, 12)

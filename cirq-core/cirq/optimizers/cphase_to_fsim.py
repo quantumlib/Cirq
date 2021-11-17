@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np

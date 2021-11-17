@@ -1,6 +1,6 @@
 # Pasqal Sampler
 
-The Pasqal sampler, via the `cirq.pasqal.PasqalSampler` class, executes programs and jobs using the
+The Pasqal sampler, via the `cirq_pasqal.PasqalSampler` class, executes programs and jobs using the
 API of Pasqal.
 
 Note that the API of Pasqal is not yet open for public access. Please contact us if you are
@@ -14,7 +14,7 @@ using your PASQAL_API_ACCESS_TOKEN.
 
 ```python
 import cirq
-from cirq.pasqal import ThreeDQubit, PasqalVirtualDevice, PasqalSampler
+from cirq_pasqal import ThreeDQubit, PasqalVirtualDevice, PasqalSampler
 
 # A simple sample circuit
 qubit = ThreeDQubit(0, 0, 0)
@@ -28,7 +28,7 @@ p_circuit.append(cirq.measure(qubit, key='result'))    # Measurement.
 # Replace 'my_token' with the access token and uncomment next lines.
 
 # PASQAL_API_ACCESS_TOKEN = 'my_token'
-# sampler = cirq.pasqal.PasqalSampler(remote_host='http://34.98.71.118/v0/pasqal', access_token=PASQAL_API_ACCESS_TOKEN)
+# sampler = cirq_pasqal.PasqalSampler(remote_host='http://34.98.71.118/v0/pasqal', access_token=PASQAL_API_ACCESS_TOKEN)
 # results = sampler.run(p_circuit, repetitions=1000) # Runs the circuit and returns the results in a 'Result'
 ```
 
