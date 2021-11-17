@@ -33,7 +33,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -128,6 +128,11 @@ class Result:
         return self._data
 
     @staticmethod
+    @deprecated(
+        deadline="v0.15",
+        fix="The static method from_single_parameter_set is deprecated, "
+        "use the Result constructor instead.",
+    )
     def from_single_parameter_set(
         *,  # Forces keyword args.
         params: resolver.ParamResolver,
@@ -332,8 +337,6 @@ class Result:
         )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool]:
     """Returns a string of packed digits and a boolean indicating whether the
     digits were packed as binary values.
@@ -344,6 +347,9 @@ def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool
             using `np.packbits` to save space. If 'never', do not pack binary
             digits. If 'force', use `np.packbits` without checking for
             compatibility.
+
+    Raises:
+        ValueError: If `pack_bits` is not `auto`, `force`, or `never`.
     """
     # If digits are binary, pack them better to save space
 
@@ -365,7 +371,6 @@ def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool
     return packed_digits, False
 
 
-# pylint: enable=missing-raises-doc
 def _pack_bits(bits: np.ndarray) -> str:
     return np.packbits(bits).tobytes().hex()
 

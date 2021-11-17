@@ -49,6 +49,10 @@ from cirq.protocols.commutes_protocol import (
     definitely_commutes,
     SupportsCommutes,
 )
+from cirq.protocols.control_key_protocol import (
+    control_keys,
+    SupportsControlKey,
+)
 from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,
     CircuitDiagramInfo,
@@ -91,13 +95,12 @@ from cirq.protocols.json_serialization import (
 )
 from cirq.protocols.measurement_key_protocol import (
     is_measurement,
-    measurement_key,
     measurement_key_name,
     measurement_key_obj,
-    measurement_keys,
     measurement_key_names,
     measurement_key_objs,
     with_key_path,
+    with_key_path_prefix,
     with_measurement_key_mapping,
     SupportsMeasurementKey,
 )

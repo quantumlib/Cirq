@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Demonstrates Grover algorithm.
 
 The Grover algorithm takes a black-box oracle implementing a function

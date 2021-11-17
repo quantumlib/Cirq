@@ -49,5 +49,9 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.RuntimeInfo': cirq_google.RuntimeInfo,
         'cirq.google.ExecutableResult': cirq_google.ExecutableResult,
         'cirq.google.ExecutableGroupResult': cirq_google.ExecutableGroupResult,
+        # Pylint fights with the black formatter.
+        # pylint: disable=line-too-long
+        'cirq.google.ExecutableGroupResultFilesystemRecord': cirq_google.ExecutableGroupResultFilesystemRecord,
+        # pylint: enable=line-too-long
         'cirq.google.QuantumRuntimeConfiguration': cirq_google.QuantumRuntimeConfiguration,
     }

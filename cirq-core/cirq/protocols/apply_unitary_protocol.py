@@ -93,8 +93,6 @@ class ApplyUnitaryArgs:
         self.available_buffer = available_buffer
         self.axes = tuple(axes)
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     @staticmethod
     def default(
         num_qubits: Optional[int] = None, *, qid_shape: Optional[Tuple[int, ...]] = None
@@ -107,6 +105,10 @@ class ApplyUnitaryArgs:
             num_qubits: The number of qubits to make space for in the state.
             qid_shape: The shape of the state, specifying the dimension of each
                 qid.
+
+        Raises:
+            TypeError: If exactly neither `num_qubits` or `qid_shape` is provided or
+                both are provided.
         """
         if (num_qubits is None) == (qid_shape is None):
             raise TypeError('Specify exactly one of num_qubits or qid_shape.')
@@ -117,7 +119,6 @@ class ApplyUnitaryArgs:
         state = qis.one_hot(index=(0,) * num_qubits, shape=qid_shape, dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
-    # pylint: enable=missing-raises-doc
     def with_axes_transposed_to_start(self) -> 'ApplyUnitaryArgs':
         """Returns a transposed view of the same arguments.
 
@@ -429,8 +430,6 @@ def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Opt
     return apply_unitaries(operations, qubits, args, None)
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def apply_unitaries(
     unitary_values: Iterable[Any],
     qubits: Sequence['cirq.Qid'],
@@ -476,6 +475,8 @@ def apply_unitaries(
     Raises:
         TypeError: An item from `unitary_values` doesn't have a unitary effect
             and `default` wasn't specified.
+        ValueError: If the number of qubits does not match the number of
+            axes provided in the `args`.
     """
     if args is None:
         qid_shape = qid_shape_protocol.qid_shape(qubits)
@@ -513,7 +514,6 @@ def apply_unitaries(
     return state
 
 
-# TODO(#3388) Add documentation for Raises.
 def _incorporate_result_into_target(
     args: 'ApplyUnitaryArgs', sub_args: 'ApplyUnitaryArgs', sub_result: np.ndarray
 ):
@@ -530,16 +530,21 @@ def _incorporate_result_into_target(
             method on `sub_args`.  A transposed subspace of the desired
             result.
 
-    Returns: The full result tensor after applying the unitary.  Always
+    Returns:
+        The full result tensor after applying the unitary.  Always
         `args.target_tensor`.
+
+    Raises:
+        ValueError: If `sub_args` tensors are not views of `args` tensors.
+
     """
     if not (
         np.may_share_memory(args.target_tensor, sub_args.target_tensor)
         and np.may_share_memory(args.available_buffer, sub_args.available_buffer)
     ):
         raise ValueError(
-            'sub_args.target_tensor and .available_buffer must be views of '
-            'args.target_tensor and .available_buffer respectively.'
+            'sub_args.target_tensor and subargs.available_buffer must be views of '
+            'args.target_tensor and args.available_buffer respectively.'
         )
     is_subspace = sub_args.target_tensor.size < args.target_tensor.size
     if sub_result is sub_args.target_tensor:
@@ -564,6 +569,3 @@ def _incorporate_result_into_target(
         return args.available_buffer
     sub_args.target_tensor[...] = sub_result
     return args.target_tensor
-
-
-# pylint: enable=missing-raises-doc

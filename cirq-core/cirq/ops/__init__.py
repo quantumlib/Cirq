@@ -108,8 +108,6 @@ from cirq.ops.fsim_gate import (
 from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
     SingleQubitGate,
-    ThreeQubitGate,
-    TwoQubitGate,
 )
 
 from cirq.ops.gate_operation import (
@@ -153,10 +151,6 @@ from cirq.ops.pauli_measurement_gate import (
 )
 
 from cirq.ops.parallel_gate import ParallelGate, parallel_gate_op
-
-from cirq.ops.parallel_gate_operation import (
-    ParallelGateOperation,
-)
 
 from cirq.ops.projector import (
     ProjectorString,

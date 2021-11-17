@@ -50,7 +50,6 @@ import networkx
 import numpy as np
 
 import cirq._version
-from cirq._compat import deprecated
 from cirq import devices, ops, protocols, value, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
@@ -915,10 +914,6 @@ class AbstractCircuit(abc.ABC):
     def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
         return self.all_measurement_key_objs()
 
-    @deprecated(deadline='v0.13', fix='use all_measurement_key_names instead')
-    def all_measurement_keys(self) -> AbstractSet[str]:
-        return self.all_measurement_key_names()
-
     def all_measurement_key_names(self) -> AbstractSet[str]:
         return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
 
@@ -933,6 +928,11 @@ class AbstractCircuit(abc.ABC):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return self._with_sliced_moments(
             [protocols.with_key_path(moment, path) for moment in self.moments]
+        )
+
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return self._with_sliced_moments(
+            [protocols.with_key_path_prefix(moment, prefix) for moment in self.moments]
         )
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -1141,8 +1141,6 @@ class AbstractCircuit(abc.ABC):
             use_unicode_characters=use_unicode_characters,
         )
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def to_text_diagram_drawer(
         self,
         *,
@@ -1164,6 +1162,7 @@ class AbstractCircuit(abc.ABC):
                 allowed (as opposed to ascii-only diagrams).
             qubit_namer: Names qubits in diagram. Defaults to str.
             transpose: Arranges qubit wires vertically instead of horizontally.
+            include_tags: Whether to include tags in the operation.
             draw_moment_groups: Whether to draw moment symbol or not
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
@@ -1214,7 +1213,6 @@ class AbstractCircuit(abc.ABC):
 
         return diagram
 
-    # pylint: enable=missing-param-doc
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(op) for op in self.all_operations())
 
@@ -1303,8 +1301,6 @@ class AbstractCircuit(abc.ABC):
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def zip(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
@@ -1323,14 +1319,14 @@ class AbstractCircuit(abc.ABC):
 
         Args:
             circuits: The circuits to merge together.
+            align: The alignment for the zip, see `cirq.Alignment`.
 
         Returns:
             The merged circuit.
 
         Raises:
-            ValueError:
-                The zipped circuits have overlapping operations occurring at the
-                same moment index.
+            ValueError: If the zipped circuits have overlapping operations occurring
+                at the same moment index.
 
         Examples:
             >>> import cirq
@@ -1380,7 +1376,6 @@ class AbstractCircuit(abc.ABC):
                 ) from ex
         return result
 
-    # pylint: enable=missing-param-doc
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
@@ -1834,8 +1829,6 @@ class Circuit(AbstractCircuit):
 
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def transform_qubits(
         self,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
@@ -1858,6 +1851,9 @@ class Circuit(AbstractCircuit):
         Returns:
             The receiving circuit but with qubits transformed by the given
                 function, and with an updated device (if specified).
+
+        Raises:
+            TypeError: If `qubit_function` is not a function or a dict.
         """
         if callable(qubit_map):
             transform = qubit_map
@@ -1869,13 +1865,17 @@ class Circuit(AbstractCircuit):
             new_device=self.device if new_device is None else new_device, qubit_mapping=transform
         )
 
-    # pylint: enable=missing-raises-doc
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
+        op_control_keys = protocols.control_keys(op)
+        op_qubits = op.qubits
         while k > 0:
             k -= 1
-            if not self._can_commute_past(k, op):
+            moment = self._moments[k]
+            if moment.operates_on(op_qubits) or (
+                op_control_keys & protocols.measurement_key_objs(moment)
+            ):
                 return last_available
             if self._can_add_op_at(k, op):
                 last_available = k
@@ -1928,9 +1928,6 @@ class Circuit(AbstractCircuit):
         if not 0 <= moment_index < len(self._moments):
             return True
         return self._device.can_add_operation_into_moment(operation, self._moments[moment_index])
-
-    def _can_commute_past(self, moment_index: int, operation: 'cirq.Operation') -> bool:
-        return not self._moments[moment_index].operates_on(operation.qubits)
 
     def insert(
         self,
@@ -2106,8 +2103,6 @@ class Circuit(AbstractCircuit):
                 self._moments[moment_index].operations + tuple(new_ops)
             )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def insert_at_frontier(
         self, operations: 'cirq.OP_TREE', start: int, frontier: Dict['cirq.Qid', int] = None
     ) -> Dict['cirq.Qid', int]:
@@ -2118,6 +2113,9 @@ class Circuit(AbstractCircuit):
             start: The moment at which to start inserting the operations.
             frontier: frontier[q] is the earliest moment in which an operation
                 acting on qubit q can be placed.
+
+        Raises:
+            ValueError: If the frontier given is after start.
         """
         if frontier is None:
             frontier = defaultdict(lambda: 0)
@@ -2141,7 +2139,6 @@ class Circuit(AbstractCircuit):
 
         return frontier
 
-    # pylint: enable=missing-raises-doc
     def batch_remove(self, removals: Iterable[Tuple[int, 'cirq.Operation']]) -> None:
         """Removes several operations from a circuit.
 

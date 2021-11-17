@@ -60,8 +60,6 @@ class SupportsMixture(Protocol):
         """
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def mixture(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
 ) -> Sequence[Tuple[float, np.ndarray]]:
@@ -82,6 +80,10 @@ def mixture(
         An iterable of tuples of size 2. The first element of the tuple is a
         probability (between 0 and 1) and the second is the object that occurs
         with that probability in the mixture. The probabilities will sum to 1.0.
+
+    Raises:
+        TypeError: If `val` has no `_mixture_` or `_unitary_` mehod, or if it
+            does and this method returned `NotImplemented`.
     """
 
     mixture_getter = getattr(val, '_mixture_', None)
@@ -106,7 +108,6 @@ def mixture(
     )
 
 
-# pylint: enable=missing-raises-doc
 def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     """Returns whether the value has a mixture representation.
 
