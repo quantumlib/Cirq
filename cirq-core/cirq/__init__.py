@@ -335,8 +335,6 @@ from cirq.optimizers import (
     EjectPhasedPaulis,
     EjectZ,
     ExpandComposite,
-    gate_product_tabulation,
-    GateTabulation,
     is_negligible_turn,
     merge_single_qubit_gates_into_phased_x_z,
     merge_single_qubit_gates_into_phxz,
@@ -350,9 +348,11 @@ from cirq.optimizers import (
     single_qubit_op_to_framed_phase_form,
     stratified_circuit,
     SynchronizeTerminalMeasurements,
+    two_qubit_gate_product_tabulation,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
+    TwoQubitGateTabulation,
     three_qubit_matrix_to_operations,
 )
 

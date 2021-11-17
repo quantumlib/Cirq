@@ -98,8 +98,8 @@ from cirq.optimizers.two_qubit_decompositions import (
 )
 
 from cirq.optimizers.two_qubit_gate_compilation import (
-    gate_product_tabulation,
-    GateTabulation,
+    two_qubit_gate_product_tabulation,
+    TwoQubitGateTabulation,
 )
 
 from cirq.optimizers.two_qubit_to_sqrt_iswap import (

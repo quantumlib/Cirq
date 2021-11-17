@@ -6,19 +6,19 @@ import pytest
 import cirq
 from cirq import value
 from cirq.optimizers.two_qubit_gate_compilation import (
-    gate_product_tabulation,
-    GateTabulation,
+    two_qubit_gate_product_tabulation,
+    TwoQubitGateTabulation,
 )
 from cirq.optimizers.two_qubit_gate_math_utils import unitary_entanglement_fidelity
 from cirq.testing import random_special_unitary, assert_equivalent_repr
 
 _rng = value.parse_random_state(11)  # for determinism
 
-sycamore_tabulation = gate_product_tabulation(
+sycamore_tabulation = two_qubit_gate_product_tabulation(
     cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6)), 0.2, random_state=_rng
 )
 
-sqrt_iswap_tabulation = gate_product_tabulation(
+sqrt_iswap_tabulation = two_qubit_gate_product_tabulation(
     cirq.unitary(cirq.FSimGate(np.pi / 4, np.pi / 24)), 0.1, random_state=_rng
 )
 
@@ -48,7 +48,7 @@ def test_gate_compilation_on_base_gate_standard(tabulation):
 
 
 def test_gate_compilation_on_base_gate_identity():
-    tabulation = gate_product_tabulation(np.eye(4), 0.25)
+    tabulation = two_qubit_gate_product_tabulation(np.eye(4), 0.25)
     base_gate = tabulation.base_gate
 
     result = tabulation.compile_two_qubit_gate(base_gate)
@@ -61,13 +61,15 @@ def test_gate_compilation_on_base_gate_identity():
 
 def test_gate_compilation_missing_points_raises_error():
     with pytest.raises(ValueError, match='Failed to tabulate a'):
-        gate_product_tabulation(np.eye(4), 0.4, allow_missed_points=False, random_state=_rng)
+        two_qubit_gate_product_tabulation(
+            np.eye(4), 0.4, allow_missed_points=False, random_state=_rng
+        )
 
 
 @pytest.mark.parametrize('seed', [0, 1])
 def test_sycamore_gate_tabulation(seed):
     base_gate = cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6))
-    tab = gate_product_tabulation(
+    tab = two_qubit_gate_product_tabulation(
         base_gate, 0.1, sample_scaling=2, random_state=np.random.RandomState(seed)
     )
     result = tab.compile_two_qubit_gate(base_gate)
@@ -75,7 +77,7 @@ def test_sycamore_gate_tabulation(seed):
 
 
 def test_sycamore_gate_tabulation_repr():
-    simple_tabulation = GateTabulation(
+    simple_tabulation = TwoQubitGateTabulation(
         np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
         np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
         [[]],

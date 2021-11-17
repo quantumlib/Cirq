@@ -50,7 +50,7 @@ class TwoQubitGateCompilation(NamedTuple):
 
 
 @dataclass
-class GateTabulation:
+class TwoQubitGateTabulation:
     """A 2-qubit gate compiler based on precomputing/tabulating gate products."""
 
     base_gate: np.ndarray  # Base two qubit gate. (4x4 unitary)
@@ -134,7 +134,7 @@ class GateTabulation:
             numpy_single_qubit_gates.append(f"[{','.join(gate_repr)}]")
 
         return (
-            f'cirq.GateTabulation({proper_repr(self.base_gate)}, '
+            f'cirq.TwoQubitGateTabulation({proper_repr(self.base_gate)}, '
             f'{proper_repr(self.kak_vecs)}, '
             f'[{",".join(numpy_single_qubit_gates)}], '
             f' {proper_repr(self.max_expected_infidelity)}, '
@@ -299,15 +299,15 @@ def _tabulate_kak_vectors(
 
 # TODO(#3388) Add documentation for Raises.
 # pylint: disable=missing-raises-doc
-def gate_product_tabulation(
+def two_qubit_gate_product_tabulation(
     base_gate: np.ndarray,
     max_infidelity: float,
     *,
     sample_scaling: int = 50,
     allow_missed_points: bool = True,
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> GateTabulation:
-    r"""Generate a GateTabulation for a base two qubit unitary.
+) -> TwoQubitGateTabulation:
+    r"""Generate a TwoQubitGateTabulation for a base two qubit unitary.
 
     Args:
         base_gate: The base gate of the tabulation.
@@ -325,7 +325,7 @@ def gate_product_tabulation(
             in this case.
 
     Returns:
-        A GateTabulation object used to compile new two-qubit gates from
+        A TwoQubitGateTabulation object used to compile new two-qubit gates from
         products of the base gate with 1-local unitaries.
     """
     rng = value.parse_random_state(random_state)
@@ -395,7 +395,9 @@ def gate_product_tabulation(
 
     if not np.any(missing_vec_inds):
         # coverage: ignore
-        return GateTabulation(base_gate, np.array(kak_vecs), sq_cycles, max_infidelity, summary, ())
+        return TwoQubitGateTabulation(
+            base_gate, np.array(kak_vecs), sq_cycles, max_infidelity, summary, ()
+        )
 
     # Run through remaining KAK vectors that don't have products and try to
     # correct them
@@ -474,7 +476,7 @@ def gate_product_tabulation(
         f': {(len(kak_vecs) - 1) / num_mesh_points :.3f}'
     )
 
-    return GateTabulation(
+    return TwoQubitGateTabulation(
         base_gate, kak_vecs, sq_cycles, max_infidelity, summary, tuple(missed_points)
     )
 

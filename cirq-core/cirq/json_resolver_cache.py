@@ -82,7 +82,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'MutablePauliString': cirq.MutablePauliString,
         'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
         'GateOperation': cirq.GateOperation,
-        'GateTabulation': cirq.GateTabulation,
         'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
         'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
         'GridInteractionLayer': GridInteractionLayer,
@@ -144,6 +143,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'TaggedOperation': cirq.TaggedOperation,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
         'TrialResult': cirq.Result,  # keep support for Cirq < 0.11.
+        'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
         'Result': cirq.Result,
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,

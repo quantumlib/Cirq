@@ -38,7 +38,7 @@ def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[[cirq.Circ
 
 
 def _get_xmon_optimizers(
-    tolerance: float, tabulation: Optional['cirq.GateTabulation']
+    tolerance: float, tabulation: Optional['cirq.TwoQubitGateTabulation']
 ) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
@@ -53,7 +53,7 @@ def _get_xmon_optimizers(
 
 
 def _get_xmon_optimizers_part_cz(
-    tolerance: float, tabulation: Optional['cirq.GateTabulation']
+    tolerance: float, tabulation: Optional['cirq.TwoQubitGateTabulation']
 ) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
@@ -67,7 +67,7 @@ def _get_xmon_optimizers_part_cz(
 
 
 def _get_sycamore_optimizers(
-    tolerance: float, tabulation: Optional['cirq.GateTabulation']
+    tolerance: float, tabulation: Optional['cirq.TwoQubitGateTabulation']
 ) -> List[Callable[[cirq.Circuit], None]]:
     return [
         ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit,
@@ -77,7 +77,7 @@ def _get_sycamore_optimizers(
 
 
 def _get_sqrt_iswap_optimizers(
-    tolerance: float, tabulation: Optional['cirq.GateTabulation']
+    tolerance: float, tabulation: Optional['cirq.TwoQubitGateTabulation']
 ) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
@@ -100,14 +100,14 @@ _OPTIMIZER_TYPES = {
 @lru_cache()
 def _gate_product_tabulation_cached(
     optimizer_type: str, tabulation_resolution: float
-) -> cirq.GateTabulation:
+) -> cirq.TwoQubitGateTabulation:
     random_state = np.random.RandomState(51)
     if optimizer_type == 'sycamore':
-        return cirq.gate_product_tabulation(
+        return cirq.two_qubit_gate_product_tabulation(
             cirq.unitary(cg_ops.SYC), tabulation_resolution, random_state=random_state
         )
     else:
-        raise NotImplementedError(f"Gate tabulation not supported for {optimizer_type}")
+        raise NotImplementedError(f"Two qubit gate tabulation not supported for {optimizer_type}")
 
 
 # TODO(#3388) Add documentation for Raises.
@@ -152,7 +152,7 @@ def optimized_for_sycamore(
             f'types are: {_OPTIMIZER_TYPES.keys()}'
         )
 
-    tabulation: Optional['cirq.GateTabulation'] = None
+    tabulation: Optional['cirq.TwoQubitGateTabulation'] = None
     if tabulation_resolution is not None:
         tabulation = _gate_product_tabulation_cached(optimizer_type, tabulation_resolution)
 

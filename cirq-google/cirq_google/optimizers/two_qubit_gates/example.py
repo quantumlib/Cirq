@@ -29,7 +29,7 @@ from cirq.testing import random_special_unitary
 
 
 def main(samples: int = 1000, max_infidelity: float = 0.01):
-    """Demonstration of the usage of the GateTabulation gate compiler.
+    """Demonstration of the usage of the TwoQubitGateTabulation gate compiler.
 
     Args:
         samples: Number of random 2-qubit unitary samples to compile.
@@ -42,14 +42,14 @@ def main(samples: int = 1000, max_infidelity: float = 0.01):
     phi = np.pi / 24
     base = cirq.unitary(cirq.FSimGate(theta, phi))
 
-    # The GateTabulation object is essentially a tabulation of many randomly
+    # The TwoQubitGateTabulation object is essentially a tabulation of many randomly
     # generated gate products (of the form A k A or A k A k A), along with their
     # associate KAK vectors. The parameter max_infidelity determines the
     # approximate "density" of the tabulated gates. Specifically, it bounds the
     # typical distance between an arbitrary two-qubit gate and the nearest
     # tabulated gate.
     start = time()
-    tabulation = cirq.gate_product_tabulation(base, max_infidelity)
+    tabulation = cirq.two_qubit_gate_product_tabulation(base, max_infidelity)
 
     print(tabulation.summary)
     print(f'Gate tabulation time : {time() - start} seconds.')
