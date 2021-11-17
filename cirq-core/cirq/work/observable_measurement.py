@@ -379,8 +379,6 @@ def _to_sweep(param_tuples):
     return to_sweep
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def _parse_checkpoint_options(
     checkpoint: bool, checkpoint_fn: Optional[str], checkpoint_other_fn: Optional[str]
 ) -> Tuple[Optional[str], Optional[str]]:
@@ -392,6 +390,11 @@ def _parse_checkpoint_options(
     Returns:
         checkpoint_fn, checkpoint_other_fn: Parsed or default filenames for primary and previous
             checkpoint files.
+
+    Raises:
+        ValueError: If a `checkpoint_fn` was specified, but `checkpoint` was False, if the
+            `checkpoint_fn` is not of the form filename.json, or if `checkout_fn` and
+            `checkpoint_other_fn` are the same filename.
     """
     if not checkpoint:
         if checkpoint_fn is not None or checkpoint_other_fn is not None:
@@ -481,7 +484,6 @@ class CheckpointFileOptions:
         protocols.to_json(obj, self.checkpoint_fn)
 
 
-# pylint: enable=missing-raises-doc
 def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting]]) -> bool:
     """Helper function to go through init_states and determine if any of them need an
     initialization layer of single-qubit gates."""
@@ -491,8 +493,6 @@ def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting
     return False
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def measure_grouped_settings(
     circuit: 'cirq.AbstractCircuit',
     grouped_settings: Dict[InitObsSetting, List[InitObsSetting]],
@@ -535,6 +535,10 @@ def measure_grouped_settings(
             data for each iteration of the sampling loop. See the documentation
             for `CheckpointFileOptions` for more. Load in these results with
             `cirq.read_json`.
+
+    Raises:
+        ValueError: If readout calibration is specified, but `readout_symmetrization
+            is not True.
     """
     if readout_calibrations is not None and not readout_symmetrization:
         raise ValueError("Readout calibration only works if `readout_symmetrization` is enabled.")
@@ -602,9 +606,6 @@ def measure_grouped_settings(
         checkpoint.maybe_to_json(list(accumulators.values()))
 
     return list(accumulators.values())
-
-
-# pylint: enable=missing-raises-doc
 
 
 _GROUPING_FUNCS: Dict[str, GROUPER_T] = {

@@ -589,8 +589,6 @@ class DeprecatedModuleImportError(ImportError):
     pass
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 def deprecated_submodule(
     *, new_module_name: str, old_parent: str, old_child: str, deadline: str, create_attribute: bool
 ):
@@ -606,11 +604,12 @@ def deprecated_submodule(
     cache.
 
     Args:
-        new_module_name: absolute module name for the new module
-        old_parent: the current module that had the original submodule
-        old_child: the submodule that is being relocated
-        create_attribute: if True, the submodule will be added as a deprecated attribute to the
-            old_parent module
+        new_module_name: Absolute module name for the new module.
+        old_parent: The current module that had the original submodule.
+        old_child: The submodule that is being relocated.
+        deadline: The version of Cirq where the module will be removed.
+        create_attribute: If True, the submodule will be added as a deprecated attribute to the
+            old_parent module.
 
     Returns:
         None
@@ -662,7 +661,6 @@ def deprecated_submodule(
     sys.meta_path = [wrap(finder) for finder in sys.meta_path]
 
 
-# pylint: enable=missing-param-doc
 def _setup_deprecated_submodule_attribute(
     new_module_name: str,
     old_parent: str,

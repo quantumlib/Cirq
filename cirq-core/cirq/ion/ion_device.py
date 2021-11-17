@@ -55,11 +55,19 @@ class IonDevice(devices.Device):
             twoq_gates_duration: The maximum duration of a two qubit operation.
             oneq_gates_duration: The maximum duration of a single qubit
             operation.
-            qubits: Qubits on the device, identified by their x, y location.
+            qubits: Qubits on the device, identified by their x location.
+
+        Raises:
+            TypeError: If not all the qubits supplied are `cirq.LineQubit`s.
         """
         self._measurement_duration = value.Duration(measurement_duration)
         self._twoq_gates_duration = value.Duration(twoq_gates_duration)
         self._oneq_gates_duration = value.Duration(oneq_gates_duration)
+        if not all(isinstance(qubit, devices.LineQubit) for qubit in qubits):
+            raise TypeError(
+                "All qubits were not of type cirq.LineQubit, instead were "
+                f"{set(type(qubit) for qubit in qubits)}"
+            )
         self.qubits = frozenset(qubits)
         self.gateset = get_ion_gateset()
 
