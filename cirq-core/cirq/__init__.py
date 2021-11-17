@@ -514,6 +514,7 @@ from cirq.protocols import (
     has_mixture,
     has_stabilizer_effect,
     has_unitary,
+    HasCustomJSONCirqType,
     inverse,
     is_measurement,
     is_parameterized,

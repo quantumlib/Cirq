@@ -128,17 +128,17 @@ class SupportsJSON(Protocol):
         pass
 
 
-class CustomCirqType(Protocol):
+class HasCustomJSONCirqType(Protocol):
     """An object which does not conform to normal cirq type naming.
     
     Most objects in Cirq use cls.__name__ for their JSON 'cirq_type' field.
     Classes which do not do so must implement this protocol, returning the
-    alternative cirq_type value from `_cirq_type_`.
+    alternative cirq_type value from `_json_cirq_type_`.
     """
 
     @doc_private
     @classmethod
-    def _cirq_type_(cls) -> str:
+    def _json_cirq_type_(cls) -> str:
         pass
 
 
@@ -539,13 +539,13 @@ def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
 def json_cirq_type(obj: Any) -> str:
     """Returns the string type of `obj` used in JSON serialization.
     
-    Types can provide custom string types with `_cirq_type_`; otherwise, a
+    Types can provide custom string types with `_json_cirq_type_`; otherwise, a
     Cirq type will use its type name as its string type.
 
     Non-Cirq types do not have a json_cirq_type value.
     """
-    if hasattr(obj, '_cirq_type_'):
-        return obj._cirq_type_()
+    if hasattr(obj, '_json_cirq_type_'):
+        return obj._json_cirq_type_()
     obj_type = obj if isinstance(obj, type) else type(obj)
     if obj_type.__module__[:4] == 'cirq':
         return obj_type.__name__

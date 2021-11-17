@@ -44,7 +44,7 @@ class SharedRuntimeInfo:
     run_id: str
 
     @classmethod
-    def _cirq_type_(cls) -> str:
+    def _json_cirq_type_(cls) -> str:
         return 'cirq.google.SharedRuntimeInfo'
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -68,7 +68,7 @@ class RuntimeInfo:
     execution_index: int
 
     @classmethod
-    def _cirq_type_(cls) -> str:
+    def _json_cirq_type_(cls) -> str:
         return 'cirq.google.RuntimeInfo'
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -94,7 +94,7 @@ class ExecutableResult:
     raw_data: cirq.Result
 
     @classmethod
-    def _cirq_type_(cls) -> str:
+    def _json_cirq_type_(cls) -> str:
         return 'cirq.google.ExecutableResult'
 
     def _json_dict_(self) -> Dict[str, Any]:

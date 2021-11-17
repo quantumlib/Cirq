@@ -82,6 +82,7 @@ from cirq.protocols.inverse_protocol import (
 )
 from cirq.protocols.json_serialization import (
     DEFAULT_RESOLVERS,
+    HasCustomJSONCirqType,
     JsonResolver,
     json_serializable_dataclass,
     json_cirq_type,
