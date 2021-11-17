@@ -4026,37 +4026,6 @@ def test_moments_property(circuit_cls):
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_operation_shape_validation(circuit_cls):
-    class BadOperation1(cirq.Operation):
-        def _qid_shape_(self):
-            return (1,)
-
-        @property
-        def qubits(self):
-            return cirq.LineQid.for_qid_shape((1, 2, 3))
-
-        def with_qubits(self, *qubits):
-            raise NotImplementedError
-
-    class BadOperation2(cirq.Operation):
-        def _qid_shape_(self):
-            return (1, 2, 3, 9)
-
-        @property
-        def qubits(self):
-            return cirq.LineQid.for_qid_shape((1, 2, 3))
-
-        def with_qubits(self, *qubits):
-            raise NotImplementedError
-
-    _ = circuit_cls(cirq.X(cirq.LineQid(0, 2)))  # Valid
-    with pytest.raises(ValueError, match='Invalid operation'):
-        _ = circuit_cls(BadOperation1())
-    with pytest.raises(ValueError, match='Invalid operation'):
-        _ = circuit_cls(BadOperation2())
-
-
-@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_json_dict(circuit_cls):
     q0, q1 = cirq.LineQubit.range(2)
     c = circuit_cls(cirq.CNOT(q0, q1))

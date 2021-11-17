@@ -848,28 +848,6 @@ class AbstractCircuit(abc.ABC):
             qubits
         )
 
-    def _validate_op_tree_qids(self, op_tree: 'cirq.OP_TREE') -> None:
-        """Raises an exception if any operation in `op_tree` has qids that don't
-        match its qid shape.
-
-        Args:
-            op_tree: The operation to validate.
-
-        Raises:
-            ValueError: The operation had qids that don't match its qid shape.
-        """
-        # Cast from Iterable[Operation, Moment] because preserve_moments is
-        # False.
-        for op in cast(Iterable['cirq.Operation'], ops.flatten_op_tree(op_tree)):
-            if protocols.qid_shape(op) != protocols.qid_shape(op.qubits):
-                raise ValueError(
-                    'Invalid operation. '
-                    'An operation has qid shape <{!r}> but is on qids with '
-                    'shape <{!r}>. The operation is <{!r}>.'.format(
-                        protocols.qid_shape(op), protocols.qid_shape(op.qubits), op
-                    )
-                )
-
     def all_qubits(self) -> FrozenSet['cirq.Qid']:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
@@ -1705,7 +1683,6 @@ class Circuit(AbstractCircuit):
             if not isinstance(value, ops.Moment):
                 raise TypeError('Can only assign Moments into Circuits.')
             self._device.validate_moment(value)
-            self._validate_op_tree_qids(value)
 
         if isinstance(key, slice):
             value = list(value)
@@ -1713,7 +1690,6 @@ class Circuit(AbstractCircuit):
                 raise TypeError('Can only assign Moments into Circuits.')
             for moment in value:
                 self._device.validate_moment(moment)
-                self._validate_op_tree_qids(moment)
 
         self._moments[key] = value
 
@@ -1968,7 +1944,6 @@ class Circuit(AbstractCircuit):
                 self._device.validate_moment(cast(ops.Moment, moment_or_op))
             else:
                 self._device.validate_operation(cast(ops.Operation, moment_or_op))
-            self._validate_op_tree_qids(moment_or_op)
 
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
@@ -2012,7 +1987,6 @@ class Circuit(AbstractCircuit):
         flat_ops = list(ops.flatten_to_ops(operations))
         for op in flat_ops:
             self._device.validate_operation(op)
-        self._validate_op_tree_qids(flat_ops)
 
         i = start
         op_index = 0
@@ -2207,7 +2181,6 @@ class Circuit(AbstractCircuit):
         for i, insertions in insert_intos:
             copy._moments[i] = copy._moments[i].with_operations(insertions)
         self._device.validate_circuit(copy)
-        self._validate_op_tree_qids(copy)
         self._moments = copy._moments
 
     def batch_insert(self, insertions: Iterable[Tuple[int, 'cirq.OP_TREE']]) -> None:
