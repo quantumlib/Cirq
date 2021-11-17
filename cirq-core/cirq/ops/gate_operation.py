@@ -99,6 +99,15 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        new_gate = protocols.with_key_path_prefix(self.gate, prefix)
+        if new_gate is NotImplemented:
+            return NotImplemented
+        if new_gate is self.gate:
+            # As GateOperation is immutable, this can return the original.
+            return self
+        return new_gate.on(*self.qubits)
+
     def __repr__(self):
         if hasattr(self.gate, '_op_repr_'):
             result = self.gate._op_repr_(self.qubits)

@@ -40,8 +40,6 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     their amplitude multiplied by e^(i pi exponent_pos).
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         pauli_string: ps.PauliString,
@@ -58,6 +56,10 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
                 in the form of the t in (-1)**t = exp(i pi t).
             exponent_pos: How much to phase vectors in the positive eigenspace,
                 in the form of the t in (-1)**t = exp(i pi t).
+
+        Raises:
+            ValueError: If the given pauli string does not have eignevalues +1
+                or -1.
         """
         if pauli_string.coefficient == -1:
             pauli_string = -pauli_string
@@ -73,7 +75,6 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         self.exponent_neg = value.canonicalize_half_turns(exponent_neg)
         self.exponent_pos = value.canonicalize_half_turns(exponent_pos)
 
-    # pylint: enable=missing-raises-doc
     @property
     def exponent_relative(self) -> Union[int, float, sympy.Basic]:
         return value.canonicalize_half_turns(self.exponent_neg - self.exponent_pos)

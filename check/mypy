@@ -22,7 +22,7 @@ done
 CIRQ_PACKAGES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
 
 echo -e -n "\033[31m"
-mypy --config-file=dev_tools/conf/mypy.ini "$@" $CIRQ_PACKAGES dev_tools examples
+mypy --config-file=dev_tools/conf/$config_file "$@" $CIRQ_PACKAGES dev_tools examples
 result=$?
 echo -e -n "\033[0m"
 

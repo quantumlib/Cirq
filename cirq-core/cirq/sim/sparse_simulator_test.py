@@ -1174,10 +1174,9 @@ def test_random_seed_mixture_deterministic():
     )
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def test_entangled_reset_does_not_break_randomness():
-    """
+    """Test for bad assumptions on caching the wave function on general channels.
+
     A previous version of cirq made the mistake of assuming that it was okay to
     cache the wavefunction produced by general channels on unrelated qubits
     before repeatedly sampling measurements. This test checks for that mistake.
@@ -1194,7 +1193,6 @@ def test_entangled_reset_does_not_break_randomness():
     assert 10 <= counts[1] <= 90
 
 
-# pylint: enable=docstring-first-line-empty
 def test_overlapping_measurements_at_end():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
@@ -1331,4 +1329,4 @@ def test_noise_model():
     simulator = cirq.Simulator(noise=noise_model)
     result = simulator.run(circuit, repetitions=100)
 
-    assert 40 <= sum(result.measurements['0'])[0] < 60
+    assert 20 <= sum(result.measurements['0'])[0] < 80

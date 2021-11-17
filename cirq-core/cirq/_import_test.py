@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_google.ops.calibration_tag import (
-    CalibrationTag,
-)
+from cirq import _import
 
-from cirq_google.ops.fsim_gate_family import (
-    FSimGateFamily,
-)
 
-from cirq_google.ops.physical_z_tag import (
-    PhysicalZTag,
-)
+def test_lazy_loader():
+    linalg = _import.LazyLoader("linalg", globals(), "scipy.linalg")
+    linalg.fun = 1
+    assert linalg._module is None
+    assert "linalg" not in linalg.__dict__
 
-from cirq_google.ops.sycamore_gate import (
-    SycamoreGate,
-    SYC,
-)
+    linalg.det([[1]])
+
+    assert linalg._module is not None
+    assert globals()["linalg"] == linalg._module
+    assert "fun" in linalg.__dict__
+    assert "LinAlgError" in dir(linalg)
+    assert linalg.fun == 1
