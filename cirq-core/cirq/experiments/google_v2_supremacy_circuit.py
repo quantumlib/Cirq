@@ -176,12 +176,11 @@ def _add_cz_layer(layer_index: int, circuit: circuits.Circuit) -> int:
     return layer_index
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def _make_cz_layer(
     qubits: Iterable[devices.GridQubit], layer_index: int
 ) -> Iterable[ops.Operation]:
-    """
+    """Make the CZ layer gate.
+
     Each layer index corresponds to a shift/transpose of this CZ pattern:
 
         ●───●   ●   ●   ●───●   ●   ● . . .
@@ -235,6 +234,3 @@ def _make_cz_layer(
             continue  # No CZ along this edge for this layer.
 
         yield ops.common_gates.CZ(q, q2)
-
-
-# pylint: enable=docstring-first-line-empty

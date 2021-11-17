@@ -285,8 +285,6 @@ def is_native_xmon_gate(gate: cirq.Gate) -> bool:
     )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
     """Convert the proto to the corresponding operation.
 
@@ -297,6 +295,9 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
 
     Returns:
         The operation.
+
+    Raises:
+        ValueError: If the proto has an operation that is invalid.
     """
     param = _parameterized_value_from_proto
     qubit = _qubit_from_proto
@@ -321,7 +322,6 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
     raise ValueError(f'invalid operation: {proto}')
 
 
-# pylint: enable=missing-raises-doc
 def _qubit_from_proto(proto: operations_pb2.Qubit):
     return cirq.GridQubit(row=proto.row, col=proto.col)
 

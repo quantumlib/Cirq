@@ -298,10 +298,9 @@ class CliffordTableau:
         self._xs[q1, :] ^= self._xs[q2, :]
         self._zs[q1, :] ^= self._zs[q2, :]
 
-    # TODO(#3388) Add summary line to docstring.
-    # pylint: disable=docstring-first-line-empty
     def _row_to_dense_pauli(self, i: int) -> 'cirq.DensePauliString':
-        """
+        """Return a dense Pauli string for the given row in the tableau.
+
         Args:
             i: index of the row in the tableau.
 
@@ -327,7 +326,6 @@ class CliffordTableau:
                 pauli_mask += "I"
         return DensePauliString(pauli_mask, coefficient=coefficient)
 
-    # pylint: enable=docstring-first-line-empty
     def stabilizers(self) -> List['cirq.DensePauliString']:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""

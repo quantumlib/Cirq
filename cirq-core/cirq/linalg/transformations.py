@@ -95,8 +95,6 @@ def match_global_phase(a: np.ndarray, b: np.ndarray) -> Tuple[np.ndarray, np.nda
     return a * dephase(a[k]), b * dephase(b[k])
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def targeted_left_multiply(
     left_matrix: np.ndarray,
     right_target: np.ndarray,
@@ -134,6 +132,9 @@ def targeted_left_multiply(
 
     Returns:
         The output tensor.
+
+    Raises:
+        ValueError: If `out` is either `right_target` or `left_matrix`.
     """
     if out is right_target or out is left_matrix:
         raise ValueError('out is right_target or out is left_matrix')
@@ -166,7 +167,6 @@ def targeted_left_multiply(
     )
 
 
-# pylint: enable=missing-raises-doc
 def targeted_conjugate_about(
     tensor: np.ndarray,
     target: np.ndarray,
@@ -223,8 +223,6 @@ _TSliceAtom = Union[int, slice, 'ellipsis']
 _TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def apply_matrix_to_slices(
     target: np.ndarray,
     matrix: np.ndarray,
@@ -269,6 +267,10 @@ def apply_matrix_to_slices(
 
     Returns:
         The transformed array.
+
+    Raises:
+        ValueError: If `out` is `target` , or the matrix shaped does not match
+            `slices`.
     """
     # Validate arguments.
     if out is target:
@@ -292,7 +294,6 @@ def apply_matrix_to_slices(
     return out
 
 
-# pylint: enable=missing-raises-doc
 def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray:
     """Takes the partial trace of a given tensor.
 
@@ -552,8 +553,6 @@ def density_matrix_kronecker_product(
     )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def factor_state_vector(
     t: np.ndarray,
     axes: Sequence[int],
@@ -580,6 +579,9 @@ def factor_state_vector(
         requested, and with the axes in the requested order, and where
         `remainder` means the sub-state vector on the remaining axes, in the
         same order as the original state vector.
+
+    Raises:
+        ValueError: If the tensor cannot be factored along an axes.
     """
     n_axes = len(axes)
     t1 = np.moveaxis(t, axes, range(n_axes))
@@ -599,7 +601,6 @@ def factor_state_vector(
     return extracted, remainder
 
 
-# TODO(#3388) Add documentation for Raises.
 def factor_density_matrix(
     t: np.ndarray,
     axes: Sequence[int],
@@ -630,6 +631,9 @@ def factor_density_matrix(
         requested, and with the axes in the requested order, and where
         `remainder` means the sub-matrix on the remaining axes, in the same
         order as the original density matrix.
+
+    Raises:
+        ValueError: If the tensor cannot be factored along the given aces.
     """
     extracted = partial_trace(t, axes)
     remaining_axes = [i for i in range(t.ndim // 2) if i not in axes]
@@ -643,7 +647,6 @@ def factor_density_matrix(
     return extracted, remainder
 
 
-# pylint: enable=missing-raises-doc
 def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]):
     """Transposes the axes of a state vector to a specified order.
 
