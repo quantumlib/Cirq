@@ -32,9 +32,6 @@ from cirq.qis import STATE_VECTOR_LIKE  # pylint: disable=unused-import,wrong-im
 class StateVectorMixin:
     """A mixin that provide methods for objects that have a state vector."""
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
-    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
     def __init__(self, qubit_map: Optional[Dict[ops.Qid, int]] = None, *args, **kwargs):
         """Inits StateVectorMixin.
 
@@ -42,13 +39,15 @@ class StateVectorMixin:
             qubit_map: A map from the Qubits in the Circuit to the the index
                 of this qubit for a canonical ordering. This canonical ordering
                 is used to define the state (see the state_vector() method).
+            *args: Passed on to the class that this is mixed in with.
+            **kwargs: Passed on to the class that this is mixed in with.
         """
+        # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
         super().__init__(*args, **kwargs)  # type: ignore
         self._qubit_map = qubit_map or {}
         qid_shape = simulator._qubit_map_to_shape(self._qubit_map)
         self._qid_shape = None if qubit_map is None else qid_shape
 
-    # pylint: enable=missing-param-doc
     @property
     def qubit_map(self) -> Dict[ops.Qid, int]:
         return self._qubit_map
