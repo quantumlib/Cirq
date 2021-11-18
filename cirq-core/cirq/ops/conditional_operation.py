@@ -116,7 +116,7 @@ class ConditionalOperation(raw_types.Operation):
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
-            'keys': self._control_keys,
+            'conditions': self._control_keys,
             'sub_operation': self._sub_operation,
         }
 
