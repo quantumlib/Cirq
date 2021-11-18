@@ -293,8 +293,8 @@ class Gateset:
             a) O(1) when any default `cirq.GateFamily` instance accepts the given item, except
                 for an Instance GateFamily trying to match an item with a different global phase.
             b) O(n) for all other cases: matching against custom gate families, matching across
-                global phase for the default Instance GateFamily, and no match against any
-                underlying gate family.
+                global phase for the default Instance GateFamily, no match against any underlying
+                gate family.
 
         Args:
             item: The `cirq.Gate` or `cirq.Operation` instance to check containment for.
