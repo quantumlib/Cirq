@@ -302,7 +302,7 @@ def test_subcircuit_key_set(sim):
 def test_key_stacking():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_conditions('a').with_tags('t').with_conditions('b')
-    assert set(map(str, op.control_keys)) == {'a', 'b'}
+    assert set(map(str, cirq.control_keys(op))) == {'a', 'b'}
     assert not op.tags
 
 
@@ -310,7 +310,7 @@ def test_key_removal():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_conditions('a').with_tags('t').with_conditions('b')
     op = op.unconditionally()
-    assert not op.control_keys
+    assert not cirq.control_keys(op)
     assert set(map(str, op.tags)) == {'t'}
 
 

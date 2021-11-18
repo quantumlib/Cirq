@@ -44,10 +44,6 @@ class ConditionalOperation(raw_types.Operation):
         self._control_keys = cast(Tuple[value.MeasurementKey, ...], keys)
         self._sub_operation = sub_operation
 
-    @property
-    def control_keys(self) -> FrozenSet['cirq.MeasurementKey']:
-        return frozenset(self._control_keys).union(self._sub_operation.control_keys)
-
     def unconditionally(self) -> 'cirq.Operation':
         return self._sub_operation.unconditionally()
 
