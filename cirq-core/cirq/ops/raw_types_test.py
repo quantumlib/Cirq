@@ -698,6 +698,9 @@ def test_tagged_operation_resolves_parameterized_tags(resolve_fn):
 def test_inverse_composite_standards():
     @cirq.value_equality
     class Gate(cirq.Gate):
+        def __init__(self, param: 'cirq.TParamVal'):
+            self._param = param
+
         def _decompose_(self, qubits):
             return cirq.S.on(qubits[0])
 
@@ -708,14 +711,26 @@ def test_inverse_composite_standards():
             return True
 
         def _value_equality_values_(self):
-            return ()
+            return (self._param,)
+
+        def _parameter_names_(self) -> AbstractSet[str]:
+            return cirq.parameter_names(self._param)
+
+        def _is_parameterized_(self) -> bool:
+            return cirq.is_parameterized(self._param)
+
+        def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'Gate':
+            return Gate(cirq.resolve_parameters(self._param, resolver, recursive))
 
         def __repr__(self):
-            return 'C()'
+            return f'C({self._param})'
 
-    cirq.testing.assert_implements_consistent_protocols(
-        cirq.inverse(Gate()), global_vals={'C': Gate}
-    )
+    a = sympy.Symbol("a")
+    g = cirq.inverse(Gate(a))
+    assert cirq.is_parameterized(g)
+    assert cirq.parameter_names(g) == {'a'}
+    assert cirq.resolve_parameters(g, {a: 0}) == Gate(0) ** -1
+    cirq.testing.assert_implements_consistent_protocols(g, global_vals={'C': Gate, 'a': a})
 
 
 def test_tagged_act_on():

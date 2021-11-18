@@ -31,12 +31,20 @@ from typing import (
 )
 
 from cirq import protocols, ops, value
+from cirq._import import LazyLoader
 from cirq.ops import raw_types
 from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
+
+# Lazy imports to break circular dependencies.
+circuits = LazyLoader("circuits", globals(), "cirq.circuits.circuit")
+op_tree = LazyLoader("op_tree", globals(), "cirq.ops.op_tree")
+text_diagram_drawer = LazyLoader(
+    "text_diagram_drawer", globals(), "cirq.circuits.text_diagram_drawer"
+)
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
@@ -78,8 +86,6 @@ class Moment:
         Raises:
             ValueError: A qubit appears more than once.
         """
-        from cirq.ops import op_tree
-
         self._operations = tuple(op_tree.flatten_to_ops(contents))
 
         # An internal dictionary to support efficient operation access by qubit.
@@ -137,8 +143,6 @@ class Moment:
         else:
             return None
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
         """Returns an equal moment, but with the given op added.
 
@@ -147,6 +151,9 @@ class Moment:
 
         Returns:
             The new moment.
+
+        Raises:
+            ValueError: If the operation given overlaps a current operation in the moment.
         """
         if any(q in self._qubits for q in operation.qubits):
             raise ValueError(f'Overlapping operations: {operation}')
@@ -161,7 +168,6 @@ class Moment:
 
         return m
 
-    # TODO(#3388) Add documentation for Raises.
     def with_operations(self, *contents: 'cirq.OP_TREE') -> 'cirq.Moment':
         """Returns a new moment with the given contents added.
 
@@ -170,9 +176,10 @@ class Moment:
 
         Returns:
             The new moment.
-        """
-        from cirq.ops import op_tree
 
+        Raises:
+            ValueError: If the contents given overlaps a current operation in the moment.
+        """
         operations = list(self._operations)
         qubits = set(self._qubits)
         for op in op_tree.flatten_to_ops(contents):
@@ -192,7 +199,6 @@ class Moment:
 
         return m
 
-    # pylint: enable=missing-raises-doc
     def without_operations_touching(self, qubits: Iterable['cirq.Qid']) -> 'cirq.Moment':
         """Returns an equal moment, but without ops on the given qubits.
 
@@ -331,14 +337,12 @@ class Moment:
         return Moment(operations)
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-        from cirq.circuits import circuit
 
-        if isinstance(other, circuit.AbstractCircuit):
+        if isinstance(other, circuits.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
     def __sub__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-        from cirq.ops import op_tree
 
         must_remove = set(op_tree.flatten_to_ops(other))
         new_ops = []
@@ -377,8 +381,6 @@ class Moment:
                     ops_to_keep.append(self._qubit_to_op[q])
             return Moment(frozenset(ops_to_keep))
 
-    # TODO(#3388) Add summary line to docstring.
-    # pylint: disable=docstring-first-line-empty
     def to_text_diagram(
         self: 'cirq.Moment',
         *,
@@ -387,8 +389,9 @@ class Moment:
         use_unicode_characters: bool = True,
         precision: Optional[int] = None,
         include_tags: bool = True,
-    ):
-        """
+    ) -> str:
+        """Create a text diagram for the moment.
+
         Args:
             xy_breakdown_func: A function to split qubits/qudits into x and y
                 components. For example, the default breakdown turns
@@ -422,9 +425,7 @@ class Moment:
             a, b = xy_breakdown_func(q)
             qubit_positions[q] = x_map[a], y_map[b]
 
-        from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-
-        diagram = TextDiagramDrawer()
+        diagram = text_diagram_drawer.TextDiagramDrawer()
 
         def cleanup_key(key: Any) -> Any:
             if isinstance(key, float) and key == int(key):
@@ -471,7 +472,6 @@ class Moment:
 
         return diagram.render()
 
-    # pylint: enable=docstring-first-line-empty
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
     ) -> Union[bool, NotImplementedType]:
