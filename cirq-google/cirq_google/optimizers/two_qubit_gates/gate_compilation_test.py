@@ -76,3 +76,31 @@ def test_gate_compilation_on_base_gate_identity():
 def test_gate_compilation_missing_points_raises_error():
     with pytest.raises(ValueError, match='Failed to tabulate a'):
         _gate_product_tabulation(np.eye(4), 0.4, allow_missed_points=False, random_state=_rng)
+
+@pytest.mark.parametrize('seed', [0, 1])
+def test_sycamore_gate_tabulation(seed):
+    base_gate = cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6))
+    tab = _gate_product_tabulation(
+
+        base_gate, 0.1, sample_scaling=2, random_state=np.random.RandomState(seed)
+    )
+    result = tab.compile_two_qubit_gate(base_gate)
+    assert result.success
+
+
+def test_sycamore_gate_tabulation_repr():
+    with pytest.raises(
+        ValueError, match='During testing using Cirq deprecated functionality is not allowed'
+    ):
+        simple_tabulation = GateTabulation(
+            np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
+            np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
+            [[]],
+            0.49,
+            'Sample string',
+            (),
+        )
+        assert_equivalent_repr(
+            simple_tabulation, setup_code="import cirq\nimport cirq_google\nimport numpy as np"
+        )
+
