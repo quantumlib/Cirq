@@ -110,6 +110,3 @@ def test_sycamore_gate_tabulation_repr():
             'Sample string',
             (),
         )
-        assert_equivalent_repr(
-            simple_tabulation, setup_code="import cirq\nimport cirq_google\nimport numpy as np"
-        )
