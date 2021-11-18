@@ -56,6 +56,14 @@ def test_init():
     with pytest.raises(ValueError):
         _ = d.duration_of(cirq.SingleQubitGate().on(q0))
 
+    with pytest.raises(TypeError, match="NamedQubit"):
+        _ = cirq.IonDevice(
+            measurement_duration=ms,
+            twoq_gates_duration=ms,
+            oneq_gates_duration=ms,
+            qubits=[cirq.LineQubit(0), cirq.NamedQubit("a")],
+        )
+
 
 def test_init_timedelta():
     d = ion_device(3, use_timedelta=True)

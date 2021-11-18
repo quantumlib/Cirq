@@ -44,8 +44,7 @@ THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
     'theta zeta chi gamma phi'
 )
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
+
 def benchmark_2q_xeb_fidelities(
     sampled_df: pd.DataFrame,
     circuits: Sequence['cirq.Circuit'],
@@ -72,6 +71,10 @@ def benchmark_2q_xeb_fidelities(
 
     Returns:
         A DataFrame with columns 'cycle_depth' and 'fidelity'.
+
+    Raises:
+        ValueError: If `cycle_depths` is not a non-empty array or if the `cycle_depths` provided
+            includes some values not available in `sampled_df`.
     """
     sampled_cycle_depths = (
         sampled_df.index.get_level_values('cycle_depth').drop_duplicates().sort_values()
@@ -136,7 +139,6 @@ def benchmark_2q_xeb_fidelities(
     return df.groupby(groupby_names).apply(per_cycle_depth).reset_index()
 
 
-# pylint: enable=missing-raises-doc
 class XEBCharacterizationOptions(ABC):
     @staticmethod
     @abstractmethod
