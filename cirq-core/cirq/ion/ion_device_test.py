@@ -19,6 +19,7 @@ import pytest
 
 import cirq
 import cirq.ion as ci
+import cirq.testing
 
 
 def ion_device(chain_length: int, use_timedelta=False) -> ci.IonDevice:
@@ -54,6 +55,14 @@ def test_init():
     assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
     with pytest.raises(ValueError):
         _ = d.duration_of(cirq.SingleQubitGate().on(q0))
+
+    with pytest.raises(TypeError, match="NamedQubit"):
+        _ = cirq.IonDevice(
+            measurement_duration=ms,
+            twoq_gates_duration=ms,
+            oneq_gates_duration=ms,
+            qubits=[cirq.LineQubit(0), cirq.NamedQubit("a")],
+        )
 
 
 def test_init_timedelta():
@@ -183,12 +192,12 @@ def test_validate_circuit_repeat_measurement_keys():
 
 
 def test_ion_device_str():
-    assert (
-        str(ion_device(3)).strip()
-        == """
-0───1───2
-    """.strip()
-    )
+    assert str(ion_device(3)) == "0───1───2"
+
+
+def test_ion_device_pretty_repr():
+    cirq.testing.assert_repr_pretty(ion_device(3), "0───1───2")
+    cirq.testing.assert_repr_pretty(ion_device(3), "IonDevice(...)", cycle=True)
 
 
 def test_at():

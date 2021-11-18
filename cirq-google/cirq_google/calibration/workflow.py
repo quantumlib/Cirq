@@ -480,8 +480,6 @@ def prepare_floquet_characterization_for_moments(
     )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def prepare_characterization_for_operations(
     circuit: Union[cirq.Circuit, Iterable[cirq.Circuit]],
     options: PhasedFSimCalibrationOptions[RequestT],
@@ -524,6 +522,7 @@ def prepare_characterization_for_operations(
     Raises:
         IncompatibleMomentError: When circuit contains a moment with operations other than the
             operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
+        ValueError: If unable to cover all interactions with a half grid staggered pattern.
     """
 
     circuits = [circuit] if isinstance(circuit, cirq.Circuit) else circuit
@@ -548,7 +547,6 @@ def prepare_characterization_for_operations(
     return characterizations
 
 
-# pylint: enable=missing-raises-doc
 def prepare_floquet_characterization_for_operations(
     circuit: Union[cirq.Circuit, Iterable[cirq.Circuit]],
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -600,8 +598,6 @@ def prepare_floquet_characterization_for_operations(
     )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def _extract_all_pairs_to_characterize(
     circuits: Iterable[cirq.Circuit],
     gates_translator: Callable[[cirq.Gate], Optional[PhaseCalibratedFSimGate]],
@@ -620,6 +616,10 @@ def _extract_all_pairs_to_characterize(
         Tuple with set of all two-qubit interacting pairs and a common gate that represents those
         interactions. The gate can be used for characterization purposes. If no interactions are
         present the gate is None.
+
+    Raises:
+        ValueError: If multiple types of two qubit gates appear in the (possibly translated)
+            circuits.
     """
 
     all_pairs: Set[Tuple[cirq.Qid, cirq.Qid]] = set()
@@ -649,7 +649,6 @@ def _extract_all_pairs_to_characterize(
     return all_pairs, common_gate
 
 
-# pylint: enable=missing-raises-doc
 def _append_into_calibrations_if_missing(
     calibration: RequestT,
     calibrations: List[RequestT],
@@ -785,8 +784,6 @@ def _run_local_calibrations_via_sampler(
     ]
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def run_calibrations(
     calibrations: Sequence[PhasedFSimCalibrationRequest],
     sampler: Union[Engine, cirq.Sampler],
@@ -815,6 +812,11 @@ def run_calibrations(
 
     Returns:
         List of PhasedFSimCalibrationResult for each requested calibration.
+
+    Raises:
+        ValueError: If less than one layers was requested to be calibrated, if calibrations of
+            different types was supplied, if no `processor_id` or `gate_set` is provided, or
+            if the calibration / sampler combo is not supported.
     """
     if max_layers_per_request < 1:
         raise ValueError(
@@ -874,7 +876,6 @@ def run_calibrations(
     )
 
 
-# pylint: enable=missing-raises-doc
 def make_zeta_chi_gamma_compensation_for_moments(
     circuit: Union[cirq.Circuit, CircuitWithCalibration],
     characterizations: List[PhasedFSimCalibrationResult],
@@ -1047,8 +1048,6 @@ def _make_zeta_chi_gamma_compensation(
     return CircuitWithCalibration(compensated, compensated_moment_to_calibration)
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def _find_moment_zeta_chi_gamma_corrections(
     moment: cirq.Moment,
     characterization_index: Optional[int],
@@ -1076,6 +1075,14 @@ def _find_moment_zeta_chi_gamma_corrections(
            characterization index that matches the original decomposed gate. None when no gate
            was decomposed.
          - other: the remaining gates that were not decomposed.
+
+    Raises:
+        IncompatibleMomentError: If a moment has operations different than `cirq.GateOperation`,
+            if it contains an unsupported greater than one qubit operation, if parameters are
+            missing, if the engine gate does not match the `parameters` gate, or if there is
+            missing characterization data for a pair of qubits.
+        ValueError: If parameter is not supplied, if the translated engine gate does not match
+            the one in parameters, or if pair parameters cannot be obtained.
     """
     default_phases = PhasedFSimCharacterization(zeta=0.0, chi=0.0, gamma=0.0)
 
@@ -1131,7 +1138,6 @@ def _find_moment_zeta_chi_gamma_corrections(
     return decompositions, decompositions_moment_to_calibration, other
 
 
-# pylint: enable=missing-raises-doc
 @dataclasses.dataclass(frozen=True)
 class FSimPhaseCorrections:
     """Operations that compensate for zeta, chi and gamma angles of an approximate FSimGate gate.

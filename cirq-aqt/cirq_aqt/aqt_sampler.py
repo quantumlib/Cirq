@@ -50,8 +50,6 @@ class AQTSampler(cirq.Sampler):
         self.remote_host = remote_host
         self.access_token = access_token
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def _generate_json(
         self,
         circuit: cirq.AbstractCircuit,
@@ -71,11 +69,14 @@ class AQTSampler(cirq.Sampler):
         qubits: list of qubits where the operation acts on.
 
         Args:
-            circuit: Circuit to be run
-            param_resolver: Param resolver for the
+            circuit: Circuit to be run.
+            param_resolver: Param resolver for resolving parameters in circuit.
 
         Returns:
-            json formatted string of the sequence
+            json formatted string of the sequence.
+
+        Raises:
+            RuntimeError: If the circuit is empty.
         """
 
         seq_list: List[
@@ -101,7 +102,6 @@ class AQTSampler(cirq.Sampler):
         json_str = json.dumps(seq_list)
         return json_str
 
-    # TODO(#3388) Add documentation for Raises.
     def _send_json(
         self,
         *,
@@ -128,6 +128,9 @@ class AQTSampler(cirq.Sampler):
 
         Returns:
             Measurement results as an array of boolean.
+
+        Raises:
+            RuntimeError: If there was an unexpected response from the server.
         """
         header = {"Ocp-Apim-Subscription-Key": self.access_token, "SDK": "cirq"}
         response = put(
@@ -174,7 +177,6 @@ class AQTSampler(cirq.Sampler):
                 measurements[i, j] = int(measurement_int_bin[j])
         return measurements
 
-    # pylint: enable=missing-raises-doc
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> List[cirq.Result]:
