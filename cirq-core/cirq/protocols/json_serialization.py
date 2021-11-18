@@ -267,13 +267,6 @@ class CirqEncoder(json.JSONEncoder):
     """
 
     def default(self, o):
-        # Type (not a type instance)?
-        if isinstance(o, type):
-            return {
-                'cirq_type': 'type',
-                'typename': json_cirq_type(o),
-            }
-
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
             return o._json_dict_()
@@ -370,14 +363,6 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
 
     if d['cirq_type'] == '_ContextualSerialization':
         return _ContextualSerialization.deserialize_with_context(**d)
-
-    # Handle serialized types (not instances of those types)
-    if d['cirq_type'] == 'type':
-        for resolver in resolvers:
-            cirq_type = resolver(d['typename'])
-            if cirq_type is not None:
-                return cirq_type
-        raise ValueError(f"Could not resolve type '{d['typename']}' during deserialization")
 
     for resolver in resolvers:
         cls = resolver(d['cirq_type'])
@@ -490,8 +475,6 @@ def has_serializable_by_keys(obj: Any) -> bool:
     """Returns true if obj contains one or more SerializableByKey objects."""
     if isinstance(obj, SerializableByKey):
         return True
-    if isinstance(obj, type):
-        return False
     json_dict = getattr(obj, '_json_dict_', lambda: None)()
     if isinstance(json_dict, Dict):
         return any(has_serializable_by_keys(v) for v in json_dict.values())
@@ -536,20 +519,38 @@ def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
     return []
 
 
-def json_cirq_type(obj: Any) -> str:
-    """Returns the string type of `obj` used in JSON serialization.
+def json_cirq_type(type_obj: Type) -> str:
+    """Returns a string type for JSON serialization of `type_obj`.
 
     Types can provide custom string types with `_json_cirq_type_`; otherwise, a
-    Cirq type will use its type name as its string type.
+    Cirq type will use its type name as its string type. Non-Cirq types do not
+    have a json_cirq_type value.
 
-    Non-Cirq types do not have a json_cirq_type value.
+    This method is not part of the base serialization path. Together with
+    `cirq_type_from_json`, it can be used to provide type-object serialization
+    for classes that need it.
     """
-    if hasattr(obj, '_json_cirq_type_'):
-        return obj._json_cirq_type_()
-    obj_type = obj if isinstance(obj, type) else type(obj)
-    if obj_type.__module__.startswith('cirq'):
-        return obj_type.__name__
-    raise ValueError(f'{obj_type} is not a Cirq type.')
+    if hasattr(type_obj, '_json_cirq_type_'):
+        return type_obj._json_cirq_type_()
+    if type_obj.__module__.startswith('cirq'):
+        return type_obj.__name__
+    raise ValueError(f'{type_obj} is not a Cirq type.')
+
+
+def cirq_type_from_json(type_str: str) -> Type:
+    """Returns a type object for JSON deserialization of `type_str`.
+
+    DEFAULT_RESOLVERS is updated dynamically as cirq submodules are imported.
+
+    This method is not part of the base deserialization path. Together with
+    `json_cirq_type`, it can be used to provide type-object deserialization
+    for classes that need it.
+    """
+    for resolver in DEFAULT_RESOLVERS:
+        cirq_type = resolver(type_str)
+        if cirq_type is not None and isinstance(cirq_type, type):
+            return cirq_type
+    raise ValueError(f"Could not resolve type '{type_str}' during deserialization")
 
 
 # pylint: disable=function-redefined

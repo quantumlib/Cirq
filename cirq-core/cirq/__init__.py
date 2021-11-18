@@ -502,6 +502,7 @@ from cirq.protocols import (
     circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
+    cirq_type_from_json,
     commutes,
     control_keys,
     decompose,
