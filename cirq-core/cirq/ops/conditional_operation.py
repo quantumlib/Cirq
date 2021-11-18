@@ -73,7 +73,7 @@ class ConditionalOperation(raw_types.Operation):
         return f'{self._sub_operation}.with_conditions({keys})'
 
     def __repr__(self):
-        return f'ConditionalOperation({self._sub_operation!r}, {list(self._control_keys)!r})'
+        return f'cirq.ConditionalOperation({self._sub_operation!r}, {list(self._control_keys)!r})'
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._sub_operation)
