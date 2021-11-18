@@ -10,7 +10,7 @@ from cirq_google.optimizers.two_qubit_gates.gate_compilation import (
     GateTabulation,
 )
 from cirq.optimizers.two_qubit_gate_math_utils import unitary_entanglement_fidelity
-from cirq.testing import random_special_unitary, assert_equivalent_repr
+from cirq.testing import random_special_unitary
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
@@ -102,7 +102,7 @@ def test_sycamore_gate_tabulation_repr():
     with pytest.raises(
         ValueError, match='During testing using Cirq deprecated functionality is not allowed'
     ):
-        simple_tabulation = GateTabulation(
+        GateTabulation(
             np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
             np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
             [[]],
