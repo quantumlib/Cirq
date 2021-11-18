@@ -547,7 +547,7 @@ def json_cirq_type(obj: Any) -> str:
     if hasattr(obj, '_json_cirq_type_'):
         return obj._json_cirq_type_()
     obj_type = obj if isinstance(obj, type) else type(obj)
-    if obj_type.__module__[:4] == 'cirq':
+    if obj_type.__module__.startswith('cirq'):
         return obj_type.__name__
     raise ValueError(f'{obj_type} is not a Cirq type.')
 

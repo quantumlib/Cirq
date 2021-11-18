@@ -19,7 +19,7 @@ cd "$(git rev-parse --show-toplevel)"
 
 PYTEST_ARGS=()
 ACTUALLY_QUIET=""
-for arg in $@; do
+for arg in "$@"; do
     if [[ "${arg}" == "--actually-quiet" ]]; then
         ACTUALLY_QUIET=1
     else
