@@ -109,14 +109,13 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         # Would cause approx_eq to false positive when atol > 1.
         return self.coefficient, tuple(PAULI_CHARS[p] for p in self.pauli_mask)
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     @classmethod
     def one_hot(cls: Type[TCls], *, index: int, length: int, pauli: 'cirq.PAULI_GATE_LIKE') -> TCls:
         """Creates a dense pauli string with only one non-identity Pauli.
 
         Args:
             index: The index of the Pauli that is not an identity.
+            length: The total length of the string to create.
             pauli: The pauli gate to put at the hot index. Can be set to either
                 a string ('X', 'Y', 'Z', 'I'), a cirq gate (`cirq.X`,
                 `cirq.Y`, `cirq.Z`, or `cirq.I`), or an integer (0=I, 1=X, 2=Y,
@@ -127,7 +126,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         concrete_cls = cast(Callable, DensePauliString if cls is BaseDensePauliString else cls)
         return concrete_cls(pauli_mask=mask)
 
-    # pylint: enable=missing-param-doc
     @classmethod
     def eye(cls: Type[TCls], length: int) -> TCls:
         """Creates a dense pauli string containing only identity gates.
@@ -283,8 +281,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def on(self, *qubits) -> 'cirq.PauliString':
         return self.sparse(qubits)
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def sparse(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> 'cirq.PauliString':
         """A `cirq.PauliString` version of this dense pauli string.
 
@@ -295,6 +291,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         Returns:
             A `cirq.PauliString` with the non-identity operations from
             this dense pauli string applied to appropriate qubits.
+
+        Raises:
+            ValueError: If the number of qubits supplied does not match that of
+                this instance.
         """
         if qubits is None:
             from cirq import devices
@@ -309,7 +309,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             qubit_pauli_map={q: PAULI_GATES[p] for q, p in zip(qubits, self.pauli_mask) if p},
         )
 
-    # pylint: enable=missing-raises-doc
     def __str__(self) -> str:
         if self.coefficient == 1:
             coef = '+'

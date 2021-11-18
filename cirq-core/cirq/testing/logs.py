@@ -17,8 +17,6 @@ import logging
 from typing import ContextManager, List, Optional
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def assert_logs(
     *matches: str,
     count: Optional[int] = 1,
@@ -59,6 +57,9 @@ def assert_logs(
         A ContextManager that can be entered into which captures the logs
         for code executed within the entered context. This ContextManager
         checks that the asserts for the logs are true on exit.
+
+    Raises:
+        ValueError: If `min_level` is greater than `max_level`.
     """
     if min_level > max_level:
         raise ValueError("min_level should be less than or equal to max_level")
