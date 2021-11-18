@@ -15,7 +15,6 @@ import pytest
 import sympy
 
 import cirq
-from cirq.ops.conditional_operation import ConditionalOperation
 
 ALL_SIMULATORS = (
     cirq.Simulator(),
@@ -107,7 +106,7 @@ def test_diagram_extra_control_bits():
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.measure(q0, key='b'),
-        cirq.X(q1).with_conditions(['a', 'b']),
+        cirq.X(q1).with_conditions('a', 'b'),
     )
 
     cirq.testing.assert_has_diagram(
@@ -188,7 +187,7 @@ def test_diagram_subcircuit_layered():
                 cirq.X(q1).with_conditions('a'),
             ),
         ),
-        ConditionalOperation(cirq.X(q1), ['a']),
+        cirq.X(q1).with_conditions('a'),
     )
 
     cirq.testing.assert_has_diagram(
@@ -303,7 +302,7 @@ def test_subcircuit_key_set(sim):
 def test_key_stacking():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_conditions('a').with_tags('t').with_conditions('b')
-    assert set(map(str, op.conditions)) == {'a', 'b'}
+    assert set(map(str, op.control_keys)) == {'a', 'b'}
     assert not op.tags
 
 
@@ -311,7 +310,7 @@ def test_key_removal():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_conditions('a').with_tags('t').with_conditions('b')
     op = op.unconditionally()
-    assert not op.conditions
+    assert not op.control_keys
     assert set(map(str, op.tags)) == {'t'}
 
 
@@ -325,7 +324,7 @@ def test_parameterizable():
     s = sympy.Symbol('s')
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_conditions('a')
-    opa = ConditionalOperation(cirq.XPowGate(exponent=s).on(q0), ['a'])
+    opa = cirq.XPowGate(exponent=s).on(q0).with_conditions('a')
     assert cirq.is_parameterized(opa)
     assert not cirq.is_parameterized(op)
     assert cirq.resolve_parameters(opa, cirq.ParamResolver({'s': 1})) == op
@@ -343,7 +342,4 @@ def test_decompose():
 def test_str():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_conditions('a')
-    assert (
-        str(op)
-        == "ConditionalOperation(cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')])"
-    )
+    assert str(op) == "X(0).with_conditions(a)"

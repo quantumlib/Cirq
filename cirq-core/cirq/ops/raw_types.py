@@ -592,15 +592,15 @@ class Operation(metaclass=abc.ABCMeta):
         return np.allclose(m12, m21, atol=atol)
 
     @property
-    def conditions(self) -> FrozenSet[value.MeasurementKey]:
+    def control_keys(self) -> FrozenSet[value.MeasurementKey]:
         return frozenset()
 
     def with_conditions(
-        self, keys: Union[str, value.MeasurementKey, Sequence[Union[str, value.MeasurementKey]]]
+        self, *conditions: Union[str, value.MeasurementKey]
     ) -> 'cirq.ConditionalOperation':
         from cirq.ops.conditional_operation import ConditionalOperation
 
-        return ConditionalOperation(self, keys)
+        return ConditionalOperation(self, conditions)
 
     def unconditionally(self) -> 'Operation':
         return self
@@ -793,8 +793,8 @@ class TaggedOperation(Operation):
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
 
     @property
-    def conditions(self) -> FrozenSet[value.MeasurementKey]:
-        return self.sub_operation.conditions
+    def control_keys(self) -> FrozenSet[value.MeasurementKey]:
+        return self.sub_operation.control_keys
 
     def unconditionally(self) -> Operation:
         return TaggedOperation(self.sub_operation.unconditionally(), *self.tags)

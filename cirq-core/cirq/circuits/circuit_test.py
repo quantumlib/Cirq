@@ -228,13 +228,13 @@ def test_append_control_key():
     q0, q1, q2 = cirq.LineQubit.range(3)
     c = cirq.Circuit()
     c.append(cirq.measure(q0, key='a'))
-    c.append(cirq.ConditionalOperation(cirq.X(q1), ['a']))
+    c.append(cirq.X(q1).with_conditions('a'))
     assert len(c) == 2
 
     c = cirq.Circuit()
     c.append(cirq.measure(q0, key='a'))
-    c.append(cirq.ConditionalOperation(cirq.X(q1), ['b']))
-    c.append(cirq.ConditionalOperation(cirq.X(q2), ['b']))
+    c.append(cirq.X(q1).with_conditions('b'))
+    c.append(cirq.X(q2).with_conditions('b'))
     assert len(c) == 1
 
 
