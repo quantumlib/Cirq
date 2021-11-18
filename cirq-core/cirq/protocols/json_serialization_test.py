@@ -605,6 +605,9 @@ def assert_repr_and_json_test_data_agree(
     inward_only: bool,
     deprecation_deadline: Optional[str],
 ):
+    if deprecation_deadline:
+        # proper_eq can't properly handle equality of deprecated classes
+        return
     if not repr_path.exists() and not json_path.exists():
         return
 

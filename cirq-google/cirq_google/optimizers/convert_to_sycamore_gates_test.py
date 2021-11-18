@@ -300,7 +300,7 @@ def test_convert_to_sycamore_equivalent_unitaries(gate):
 
 def test_convert_to_sycamore_tabulation():
     # A tabulation for the sycamore gate with an infidelity of .1.
-    sycamore_tabulation = cirq.gate_product_tabulation(
+    sycamore_tabulation = cirq.two_qubit_gate_product_tabulation(
         cirq.unitary(cirq_google.SYC), 0.1, random_state=_rng
     )
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]

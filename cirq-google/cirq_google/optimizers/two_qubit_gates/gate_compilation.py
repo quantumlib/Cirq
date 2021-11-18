@@ -15,7 +15,6 @@ from cirq._compat import deprecated, deprecated_class
 _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
 
 
-@deprecated_class(deadline='v0.14', fix='Stop using.', name='TwoQubitGateCompilation')
 class TwoQubitGateCompilation(NamedTuple):
     r"""Represents a compilation of a target 2-qubit with respect to a base
     gate.
@@ -89,14 +88,13 @@ class GateTabulation:
             self.missed_points,
         )
         result = gate_tabulation.compile_two_qubit_gate(unitary)
-        local_result = TwoQubitGateCompilation(
+        return TwoQubitGateCompilation(
             result.base_gate_unitary,
             result.target_gate,
             result.local_unitaries,
             result.actual_gate,
-            result.success,
+            result.success
         )
-        return local_result
 
 
 @deprecated(deadline='v0.14', fix='Stop using.', name='gate_product_tabulation')
