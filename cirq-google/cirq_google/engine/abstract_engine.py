@@ -16,6 +16,7 @@
 This class is an abstract class which all Engine implementations
 (production API or locally simulated) should follow.
 """
+
 import abc
 import datetime
 from typing import Dict, List, Optional, Sequence, Set, Union

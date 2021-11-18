@@ -19,18 +19,18 @@ import pandas as pd
 import sympy
 from matplotlib import pyplot as plt
 import numpy as np
-from scipy import optimize
 
 
-from cirq import circuits, ops, study, value
+from cirq import circuits, ops, study, value, _import
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
 
+# We initialize optimize lazily, otherwise it slows global import speed.
+optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
+
 def t1_decay(
     sampler: 'cirq.Sampler',
     *,
@@ -56,6 +56,10 @@ def t1_decay(
 
     Returns:
         A T1DecayResult object that stores and can plot the data.
+
+    Raises:
+        ValueError: If the supplied parameters are not valid: negative repetitions,
+            max delay less than min, or min delay less than 0.
     """
     min_delay_dur = value.Duration(min_delay)
     max_delay_dur = value.Duration(max_delay)
@@ -94,7 +98,6 @@ def t1_decay(
     return T1DecayResult(tab)
 
 
-# pylint: enable=missing-raises-doc
 class T1DecayResult:
     """Results from a Rabi oscillation experiment."""
 

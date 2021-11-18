@@ -17,6 +17,7 @@ import pytest
 
 import cirq
 import cirq.neutral_atoms as neutral_atoms
+import cirq.testing
 
 
 def square_device(
@@ -264,6 +265,19 @@ def test_str():
 (1, 0)───(1, 1)
     """.strip()
     )
+
+
+def test_repr_pretty():
+    cirq.testing.assert_repr_pretty(
+        square_device(2, 2),
+        """
+(0, 0)───(0, 1)
+│        │
+│        │
+(1, 0)───(1, 1)
+    """.strip(),
+    )
+    cirq.testing.assert_repr_pretty(square_device(2, 2), "cirq.NeutralAtomDevice(...)", cycle=True)
 
 
 def test_qubit_set():

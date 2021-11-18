@@ -36,20 +36,20 @@ class IdentityGate(raw_types.Gate):
     `cirq.I` is the single qubit identity gate.
     """
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(
         self, num_qubits: Optional[int] = None, qid_shape: Optional[Tuple[int, ...]] = None
     ) -> None:
         """Inits IdentityGate.
 
         Args:
-            num_qubits:
+            num_qubits: The number of qubits for the idenity gate.
             qid_shape: Specifies the dimension of each qid the measurement
                 applies to.  The default is 2 for every qubit.
 
         Raises:
-            ValueError: If the length of qid_shape doesn't equal num_qubits.
+            ValueError: If the length of qid_shape doesn't equal num_qubits, or
+                neither `num_qubits` or `qid_shape` is supplied.
+
         """
         if qid_shape is None:
             if num_qubits is None:
@@ -61,7 +61,6 @@ class IdentityGate(raw_types.Gate):
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
 
-    # pylint: enable=missing-param-doc
     def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         return True
 

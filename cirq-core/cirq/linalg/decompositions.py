@@ -36,11 +36,14 @@ import matplotlib.pyplot as plt
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
 from mpl_toolkits import mplot3d  # pylint: disable=unused-import
 import numpy as np
-import scipy
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
+from cirq._import import LazyLoader
 from cirq.linalg import combinators, diagonalize, predicates, transformations
+
+linalg = LazyLoader("linalg", globals(), "scipy.linalg")
+
 
 if TYPE_CHECKING:
     import cirq
@@ -119,12 +122,10 @@ def _group_similar(items: List[T], comparer: Callable[[T, T], bool]) -> List[Lis
     return groups
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def unitary_eig(
     matrix: np.ndarray, check_preconditions: bool = True, atol: float = 1e-8
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Gives the guaranteed unitary eigendecomposition of a normal matrix.
+    r"""Gives the guaranteed unitary eigendecomposition of a normal matrix.
 
     All hermitian and unitary matrices are normal matrices. This method was
     introduced as for certain classes of unitary matrices (where the eigenvalues
@@ -133,20 +134,26 @@ def unitary_eig(
     For more information, see https://github.com/numpy/numpy/issues/15461.
 
     Args:
-        matrix: a normal matrix. If not normal, this method is not
-            guaranteed to return correct eigenvalues.
-        check_preconditions: when true and matrix is not unitary,
-            a `ValueError` is raised
-        atol: the absolute tolerance when checking whether the original matrix
-            was unitary
+        matrix: A normal matrix. If not normal, this method is not
+            guaranteed to return correct eigenvalues.  A normal matrix
+            is one where $A A^\dagger = A^\dagger A$.
+        check_preconditions: When true and matrix is not unitary,
+            a `ValueError` is raised when the matrix is not normal.
+        atol: The absolute tolerance when checking whether the original matrix
+            was unitary.
 
     Returns:
-         eigvals: the eigenvalues of `matrix`
-         V: the unitary matrix with the eigenvectors as columns
+        A Tuple of
+            eigvals: The eigenvalues of `matrix`.
+            V: The unitary matrix with the eigenvectors as columns.
+
+    Raises:
+        ValueError: if the input matrix is not normal.
     """
     if check_preconditions and not predicates.is_normal(matrix, atol=atol):
         raise ValueError(f'Input must correspond to a normal matrix .Received input:\n{matrix}')
-    R, V = scipy.linalg.schur(matrix, output="complex")
+
+    R, V = linalg.schur(matrix, output="complex")
     return R.diagonal(), V
 
 
@@ -871,8 +878,6 @@ def kak_decomposition(
     )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def kak_vector(
     unitary: Union[Iterable[np.ndarray], np.ndarray],
     *,
@@ -925,6 +930,9 @@ def kak_vector(
         the same as the input shape, except the two unitary matrix axes are
         replaced by the kak vector axis (i.e. the output has shape
         `unitary.shape[:-2] + (3,)`).
+
+    Raises:
+        ValueError: If `atol` is negative or if the unitary has the wrong shape.
     """
     unitary = np.asarray(unitary)
     if len(unitary) == 0:
@@ -974,7 +982,6 @@ def kak_vector(
     return _canonicalize_kak_vector(k_vec, atol)
 
 
-# pylint: enable=missing-raises-doc
 def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     r"""Map a KAK vector into its Weyl chamber equivalent vector.
 
@@ -1022,9 +1029,6 @@ def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     return k_vec
 
 
-# TODO(#3388) Add documentation for Args.
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-param-doc,missing-raises-doc
 def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
     """Returns the min number of CNOT/CZ gates required by a two-qubit unitary.
 
@@ -1033,10 +1037,14 @@ def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
     Controlled-Not Gates”.  https://arxiv.org/abs/quant-ph/0308045
 
     Args:
-        u: a two-qubit unitary
+        u: A two-qubit unitary.
+        atol: The absolute tolerance used to make this judgement.
 
     Returns:
-        the number of CNOT or CZ gates required to implement the unitary
+        The number of CNOT or CZ gates required to implement the unitary.
+
+    Raises:
+        ValueError: If the shape of `u` is not 4 by 4.
     """
     if u.shape != (4, 4):
         raise ValueError(f"Expected unitary of shape (4,4), instead got {u.shape}")
@@ -1056,7 +1064,6 @@ def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
     return 3
 
 
-# pylint: enable=missing-param-doc,missing-raises-doc
 def _gamma(u: np.ndarray) -> np.ndarray:
     """Gamma function to convert u to the magic basis.
 
