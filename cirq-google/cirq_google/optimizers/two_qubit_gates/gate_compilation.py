@@ -93,7 +93,7 @@ class GateTabulation:
             result.target_gate,
             result.local_unitaries,
             result.actual_gate,
-            result.success
+            result.success,
         )
 
 

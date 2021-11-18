@@ -10,23 +10,33 @@ from cirq_google.optimizers.two_qubit_gates.gate_compilation import (
     GateTabulation,
 )
 from cirq.optimizers.two_qubit_gate_math_utils import unitary_entanglement_fidelity
-from cirq.testing import random_special_unitary, assert_equivalent_repr 
+from cirq.testing import random_special_unitary, assert_equivalent_repr
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
 _rng = value.parse_random_state(11)  # for determinism
 
-def _gate_product_tabulation(base_gate: np.ndarray,
+
+def _gate_product_tabulation(
+    base_gate: np.ndarray,
     max_infidelity: float,
     *,
     sample_scaling: int = 50,
     allow_missed_points: bool = True,
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
-    ):
+):
     with cirq.testing.assert_deprecated(
-        deadline='v0.14', count=None,
+        deadline='v0.14',
+        count=None,
     ):
-        return gate_product_tabulation(base_gate, max_infidelity, sample_scaling=sample_scaling, allow_missed_points=allow_missed_points, random_state=random_state)
+        return gate_product_tabulation(
+            base_gate,
+            max_infidelity,
+            sample_scaling=sample_scaling,
+            allow_missed_points=allow_missed_points,
+            random_state=random_state,
+        )
+
 
 sycamore_tabulation = _gate_product_tabulation(
     cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6)), 0.2, random_state=_rng
@@ -77,11 +87,11 @@ def test_gate_compilation_missing_points_raises_error():
     with pytest.raises(ValueError, match='Failed to tabulate a'):
         _gate_product_tabulation(np.eye(4), 0.4, allow_missed_points=False, random_state=_rng)
 
+
 @pytest.mark.parametrize('seed', [0, 1])
 def test_sycamore_gate_tabulation(seed):
     base_gate = cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6))
     tab = _gate_product_tabulation(
-
         base_gate, 0.1, sample_scaling=2, random_state=np.random.RandomState(seed)
     )
     result = tab.compile_two_qubit_gate(base_gate)
@@ -103,4 +113,3 @@ def test_sycamore_gate_tabulation_repr():
         assert_equivalent_repr(
             simple_tabulation, setup_code="import cirq\nimport cirq_google\nimport numpy as np"
         )
-
