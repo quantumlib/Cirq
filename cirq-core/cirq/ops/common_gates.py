@@ -1019,7 +1019,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if self.exponent % 2 == 0:
             return []
         if self.exponent % 2 == 1:
-            return [('CZ', self.exponent % 2, [0, 1])]
+            return [('CZ', 1, [0, 1])]
         return NotImplemented
 
     def _apply_to_ch_form_(
@@ -1224,7 +1224,7 @@ class CXPowGate(eigen_gate.EigenGate):
         if self.exponent % 2 == 0:
             return []
         if self.exponent % 2 == 1:
-            return [('CX', self.exponent % 2, [0, 1])]
+            return [('CX', 1, [0, 1])]
         return NotImplemented
 
     def _apply_to_ch_form_(

@@ -177,9 +177,9 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         val = val.gate if isinstance(val, ops.Operation) else val
         paulis = protocols.as_paulis(val, self.prng)
         if paulis is not NotImplemented:
-            for pauli, exponent, raw_axes in paulis:
-                qubits = [qubits[i] for i in raw_axes]
-                axes = self.get_axes(qubits)
+            for pauli, exponent, indexes in paulis:
+                affected_qubits = [qubits[i] for i in indexes]
+                axes = self.get_axes(affected_qubits)
                 if pauli == 'X':
                     self._x(exponent, axes[0])
                 elif pauli == 'Y':
