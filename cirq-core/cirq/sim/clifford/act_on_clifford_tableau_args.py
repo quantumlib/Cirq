@@ -67,11 +67,11 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
-        strats = [_strat_apply_to_tableau]
+        strats = [self._strat_apply_to_tableau]
         if allow_decompose:
-            strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)
+            strats.append(self._strat_act_on_clifford_tableau_from_single_qubit_decompose)
         for strat in strats:
-            result = strat(action, self, qubits)
+            result = strat(action, qubits)
             if result is False:
                 break  # coverage: ignore
             if result is True:
@@ -95,41 +95,93 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     ) -> np.ndarray:
         # Unnecessary for now but can be added later if there is a use case.
         raise NotImplementedError()
+    
+    def _x(self, q, exponent):
+        assert exponent % 0.5 == 0.0
+        tableau = self.tableau
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            tableau.xs[:, q] ^= tableau.zs[:, q]
+            tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
+        elif effective_exponent == 1:
+            tableau.rs[:] ^= tableau.zs[:, q]
+        elif effective_exponent == 1.5:
+            tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
+            tableau.xs[:, q] ^= tableau.zs[:, q]
+    
+    def _y(self, q, exponent):
+        assert exponent % 0.5 == 0.0
+        tableau = self.tableau
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
+            (tableau.xs[:, q], tableau.zs[:, q]) = (
+                tableau.zs[:, q].copy(),
+                tableau.xs[:, q].copy(),
+            )
+        elif effective_exponent == 1:
+            tableau.rs[:] ^= tableau.xs[:, q] ^ tableau.zs[:, q]
+        elif effective_exponent == 1.5:
+            tableau.rs[:] ^= ~(tableau.xs[:, q]) & tableau.zs[:, q]
+            (tableau.xs[:, q], tableau.zs[:, q]) = (
+                tableau.zs[:, q].copy(),
+                tableau.xs[:, q].copy(),
+            )
 
+    def _z(self, q, exponent):
+        assert exponent % 0.5 == 0.0
+        tableau = self.tableau
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
+            tableau.zs[:, q] ^= tableau.xs[:, q]
+        elif effective_exponent == 1:
+            tableau.rs[:] ^= tableau.xs[:, q]
+        elif effective_exponent == 1.5:
+            tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
+            tableau.zs[:, q] ^= tableau.xs[:, q]
 
-def _strat_apply_to_tableau(
-    val: Any, args: 'cirq.ActOnCliffordTableauArgs', qubits: Sequence['cirq.Qid']
-) -> bool:
-    gate = val.gate if isinstance(val, ops.Operation) else val
-    return protocols.apply_to_tableau(gate, args.tableau, args.get_axes(qubits), args.prng)
-
-
-def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
-    val: Any, args: 'cirq.ActOnCliffordTableauArgs', qubits: Sequence['cirq.Qid']
-) -> bool:
-    if num_qubits(val) == 1:
-        if not has_unitary(val):
-            return NotImplemented
-        u = unitary(val)
-        clifford_gate = SingleQubitCliffordGate.from_unitary(u)
-        if clifford_gate is not None:
-            axes = args.get_axes(qubits)
-            tableau = args.tableau
-            rng = args.prng
-            for axis, quarter_turns in clifford_gate.decompose_rotation():
-                if axis == pauli_gates.X:
-                    protocols.apply_to_tableau(
-                        common_gates.XPowGate(exponent=quarter_turns / 2), tableau, axes, rng
-                    )
-                elif axis == pauli_gates.Y:
-                    protocols.apply_to_tableau(
-                        common_gates.YPowGate(exponent=quarter_turns / 2), tableau, axes, rng
-                    )
+    def _strat_apply_to_tableau(
+        self, val: Any, qubits: Sequence['cirq.Qid']
+    ) -> bool:
+        val = val.gate if isinstance(val, ops.Operation) else val
+        paulis = protocols.as_paulis(val, self.prng)
+        if paulis is not NotImplemented:
+            for pauli, exponent, axis in paulis:
+                q = self.qubit_map[qubits[axis]]
+                if pauli is pauli_gates.X:
+                    self._x(q, exponent)
+                elif pauli is pauli_gates.Y:
+                    self._y(q, exponent)
+                elif pauli is pauli_gates.Z:
+                    self._z(q, exponent)
                 else:
-                    assert axis == pauli_gates.Z
-                    protocols.apply_to_tableau(
-                        common_gates.ZPowGate(exponent=quarter_turns / 2), tableau, axes, rng
-                    )
+                    assert False
             return True
-
-    return NotImplemented
+        else:
+            gate = val.gate if isinstance(val, ops.Operation) else val
+            return protocols.apply_to_tableau(gate, self.tableau, self.get_axes(qubits), self.prng)
+    
+    def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
+        self, val: Any, qubits: Sequence['cirq.Qid']
+    ) -> bool:
+        if num_qubits(val) == 1:
+            if not has_unitary(val):
+                return NotImplemented
+            u = unitary(val)
+            clifford_gate = SingleQubitCliffordGate.from_unitary(u)
+            if clifford_gate is not None:
+                axes = self.get_axes(qubits)
+                tableau = self.tableau
+                rng = self.prng
+                for axis, quarter_turns in clifford_gate.decompose_rotation():
+                    if axis == pauli_gates.X:
+                        self._x(axes[0], quarter_turns / 2)
+                    elif axis == pauli_gates.Y:
+                        self._y(axes[0], quarter_turns / 2)
+                    else:
+                        assert axis == pauli_gates.Z
+                        self._z(axes[0], quarter_turns / 2)
+                return True
+    
+        return NotImplemented

@@ -316,13 +316,11 @@ class DepolarizingChannel(raw_types.Gate):
             return f"depolarize(p={self._p})"
         return f"depolarize(p={self._p},n_qubits={self._n_qubits})"
 
-    def _apply_to_tableau_(
-        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if prng.random() < self._p:
-            gate = prng.choice([pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
-            protocols.apply_to_tableau(gate, tableau, axes, prng)
-        return True
+    def _as_paulis_(self, prng: np.random.RandomState):
+        if prng.random() > self._p:
+            return []
+        gate = prng.choice([pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
+        return [(gate, 1, 0)]
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
         result: Tuple[str, ...]

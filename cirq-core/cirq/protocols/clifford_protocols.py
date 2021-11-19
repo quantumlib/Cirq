@@ -17,6 +17,7 @@ from typing import (
     Sequence,
     Union,
     TYPE_CHECKING,
+    Tuple,
 )
 
 import numpy as np
@@ -117,3 +118,42 @@ def apply_to_ch_form(
     """
     getter = getattr(val, '_apply_to_ch_form_', None)
     return NotImplemented if getter is None else getter(state, axes, prng)
+
+
+class SupportsAsPaulis(Protocol):
+    @doc_private
+    def _as_paulis_(
+        self, prng: np.random.RandomState
+    ) -> Union[Sequence[Tuple['cirq.Pauli', float, int]], NotImplementedType]:
+        """Transforms the gate to paulis.
+
+        Args:
+            prng: The random number generator to use if necessary.
+
+        Returns:
+            True: The receiving object (`self`) could apply a transform.
+            NotImplemented: The receiving object cannot apply a transform.
+
+            All other return values are considered to be errors.
+        """
+
+
+def as_paulis(
+    gate: 'cirq.Gate', prng: np.random.RandomState
+) -> Union[Sequence[Tuple['cirq.Pauli', float, int]], NotImplementedType]:
+    """Applies a transform to the given Clifford CH-form.
+
+    Args:
+        gate: The object (typically a gate) that contains a transform to apply.
+        state: A Clifford CH-form that is the target of the transform.
+        axes: The axes to which the transform should be applied.
+        prng: A random number generator to use if necessary.
+
+    Returns:
+        True: The receiving object (`self`) could apply a transform.
+        NotImplemented: The receiving object cannot apply a transform.
+
+        All other return values are considered to be errors.
+    """
+    getter = getattr(gate, '_as_paulis_', None)
+    return NotImplemented if getter is None else getter(prng)

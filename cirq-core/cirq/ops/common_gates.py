@@ -102,22 +102,14 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _apply_to_tableau_(
-        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        q = axes[0]
-        effective_exponent = self._exponent % 2
-        if effective_exponent == 0.5:
-            tableau.xs[:, q] ^= tableau.zs[:, q]
-            tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
-        elif effective_exponent == 1:
-            tableau.rs[:] ^= tableau.zs[:, q]
-        elif effective_exponent == 1.5:
-            tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
-            tableau.xs[:, q] ^= tableau.zs[:, q]
-        return True
+    def _as_paulis_(self, prng: np.random.RandomState):
+        from cirq.ops import pauli_gates
+
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 0.5 == 0:
+            return [(pauli_gates.X, self.exponent % 2, 0)]
+        return NotImplemented
 
     def _apply_to_ch_form_(
         self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
@@ -355,28 +347,14 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _apply_to_tableau_(
-        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        q = axes[0]
-        effective_exponent = self._exponent % 2
-        if effective_exponent == 0.5:
-            tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
-            (tableau.xs[:, q], tableau.zs[:, q]) = (
-                tableau.zs[:, q].copy(),
-                tableau.xs[:, q].copy(),
-            )
-        elif effective_exponent == 1:
-            tableau.rs[:] ^= tableau.xs[:, q] ^ tableau.zs[:, q]
-        elif effective_exponent == 1.5:
-            tableau.rs[:] ^= ~(tableau.xs[:, q]) & tableau.zs[:, q]
-            (tableau.xs[:, q], tableau.zs[:, q]) = (
-                tableau.zs[:, q].copy(),
-                tableau.xs[:, q].copy(),
-            )
-        return True
+    def _as_paulis_(self, prng: np.random.RandomState):
+        from cirq.ops import pauli_gates
+
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 0.5 == 0:
+            return [(pauli_gates.Y, self.exponent % 2, 0)]
+        return NotImplemented
 
     def _apply_to_ch_form_(
         self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
@@ -577,22 +555,14 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _apply_to_tableau_(
-        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        q = axes[0]
-        effective_exponent = self._exponent % 2
-        if effective_exponent == 0.5:
-            tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
-            tableau.zs[:, q] ^= tableau.xs[:, q]
-        elif effective_exponent == 1:
-            tableau.rs[:] ^= tableau.xs[:, q]
-        elif effective_exponent == 1.5:
-            tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
-            tableau.zs[:, q] ^= tableau.xs[:, q]
-        return True
+    def _as_paulis_(self, prng: np.random.RandomState):
+        from cirq.ops import pauli_gates
+
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 0.5 == 0:
+            return [(pauli_gates.Z, self.exponent % 2, 0)]
+        return NotImplemented
 
     def _apply_to_ch_form_(
         self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
