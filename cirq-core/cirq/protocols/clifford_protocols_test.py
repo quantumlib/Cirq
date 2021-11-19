@@ -21,25 +21,11 @@ class CountingGate(cirq.SingleQubitGate):
     def __init__(self, implemented: bool = True):
         self._implemented = implemented
 
-    def _apply_to_tableau_(self, tableau: cirq.CliffordTableau, axes, prng):
-        if self._implemented:
-            tableau.n += sum(axes)
-            return True
-        return NotImplemented
-
     def _apply_to_ch_form_(self, state: cirq.StabilizerStateChForm, axes, prng):
         if self._implemented:
             state.n += sum(axes)
             return True
         return NotImplemented
-
-
-def test_apply_to_tableau_succeeds():
-    gate = CountingGate()
-    tableau = cirq.CliffordTableau(1)
-    result = cirq.apply_to_tableau(gate, tableau, [2, 3], np.random.RandomState())
-    assert result is True
-    assert tableau.n == 6
 
 
 def test_apply_to_ch_form_succeeds():
@@ -50,24 +36,10 @@ def test_apply_to_ch_form_succeeds():
     assert state.n == 6
 
 
-def test_apply_to_tableau_not_implemented_explicitly():
-    gate = CountingGate(implemented=False)
-    tableau = cirq.CliffordTableau(1)
-    result = cirq.apply_to_tableau(gate, tableau, [2, 3], np.random.RandomState())
-    assert result is NotImplemented
-
-
 def test_apply_to_ch_form_not_implemented_explicitly():
     gate = CountingGate(implemented=False)
     state = cirq.StabilizerStateChForm(1)
     result = cirq.apply_to_ch_form(gate, state, [2, 3], np.random.RandomState())
-    assert result is NotImplemented
-
-
-def test_apply_to_tableau_not_implemented_implicitly():
-    gate = cirq.SingleQubitGate()
-    tableau = cirq.CliffordTableau(1)
-    result = cirq.apply_to_tableau(gate, tableau, [2, 3], np.random.RandomState())
     assert result is NotImplemented
 
 

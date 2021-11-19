@@ -176,26 +176,24 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     def _strat_apply_to_tableau(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         val = val.gate if isinstance(val, ops.Operation) else val
         paulis = protocols.as_paulis(val, self.prng)
-        if paulis is not NotImplemented:
-            for pauli, exponent, indexes in paulis:
-                affected_qubits = [qubits[i] for i in indexes]
-                axes = self.get_axes(affected_qubits)
-                if pauli == 'X':
-                    self._x(exponent, axes[0])
-                elif pauli == 'Y':
-                    self._y(exponent, axes[0])
-                elif pauli == 'Z':
-                    self._z(exponent, axes[0])
-                elif pauli == 'CZ':
-                    self._cz(exponent, axes[0], axes[1])
-                elif pauli == 'CX':
-                    self._cx(exponent, axes[0], axes[1])
-                else:
-                    assert False
-            return True
-        else:
-            gate = val.gate if isinstance(val, ops.Operation) else val
-            return protocols.apply_to_tableau(gate, self.tableau, self.get_axes(qubits), self.prng)
+        if paulis is NotImplemented:
+            return NotImplemented
+        for pauli, exponent, indexes in paulis:
+            affected_qubits = [qubits[i] for i in indexes]
+            axes = self.get_axes(affected_qubits)
+            if pauli == 'X':
+                self._x(exponent, axes[0])
+            elif pauli == 'Y':
+                self._y(exponent, axes[0])
+            elif pauli == 'Z':
+                self._z(exponent, axes[0])
+            elif pauli == 'CZ':
+                self._cz(exponent, axes[0], axes[1])
+            elif pauli == 'CX':
+                self._cx(exponent, axes[0], axes[1])
+            else:
+                assert False
+        return True
 
     def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
         self, val: Any, qubits: Sequence['cirq.Qid']
