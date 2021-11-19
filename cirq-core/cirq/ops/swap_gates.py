@@ -94,19 +94,16 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             return None
         return self.exponent % 1 == 0
 
-    def _apply_to_tableau_(
-        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        from cirq import ops
-
-        if not self._has_stabilizer_effect_():
-            return NotImplemented
-
-        if self._exponent % 2 == 1:
-            protocols.apply_to_tableau(ops.CNOT, tableau, axes, prng)
-            protocols.apply_to_tableau(ops.CNOT, tableau, tuple(reversed(axes)), prng)
-            protocols.apply_to_tableau(ops.CNOT, tableau, axes, prng)
-        return True
+    def _as_paulis_(self, prng: np.random.RandomState):
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 1:
+            return [
+                ('CX', 1, [0, 1]),
+                ('CX', 1, [1, 0]),
+                ('CX', 1, [0, 1]),
+            ]
+        return NotImplemented
 
     def _apply_to_ch_form_(
         self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState

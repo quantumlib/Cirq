@@ -126,15 +126,6 @@ def test_identity_apply_unitary():
     assert result is v
 
 
-def test_identity_apply_to_tableau():
-    gate = cirq.I
-    tableau = cirq.CliffordTableau(1)
-    copy = tableau.copy()
-    result = cirq.apply_to_tableau(gate, tableau, [0], np.random.RandomState())
-    assert result is True
-    assert tableau == copy
-
-
 def test_identity_apply_to_ch_form():
     gate = cirq.I
     state = cirq.StabilizerStateChForm(1)
