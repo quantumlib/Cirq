@@ -96,7 +96,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         # Unnecessary for now but can be added later if there is a use case.
         raise NotImplementedError()
 
-    def _x(self, exponent, axis):
+    def _x(self, exponent: float, axis: int):
         assert exponent % 0.5 == 0.0
         tableau = self.tableau
         effective_exponent = exponent % 2
@@ -109,7 +109,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             tableau.rs[:] ^= tableau.xs[:, axis] & tableau.zs[:, axis]
             tableau.xs[:, axis] ^= tableau.zs[:, axis]
 
-    def _y(self, exponent, axis):
+    def _y(self, exponent: float, axis: int):
         assert exponent % 0.5 == 0.0
         tableau = self.tableau
         effective_exponent = exponent % 2
@@ -128,7 +128,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
                 tableau.xs[:, axis].copy(),
             )
 
-    def _z(self, exponent, axis):
+    def _z(self, exponent: float, axis: int):
         assert exponent % 0.5 == 0.0
         tableau = self.tableau
         effective_exponent = exponent % 2
@@ -141,7 +141,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             tableau.rs[:] ^= tableau.xs[:, axis] & (~tableau.zs[:, axis])
             tableau.zs[:, axis] ^= tableau.xs[:, axis]
 
-    def _cz(self, exponent, axis1, axis2):
+    def _cz(self, exponent: float, axis1: int, axis2: int):
         assert exponent % 2 == 1
         tableau = self.tableau
         (tableau.xs[:, axis2], tableau.zs[:, axis2]) = (
@@ -162,6 +162,17 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         )
         tableau.rs[:] ^= tableau.xs[:, axis2] & tableau.zs[:, axis2]
 
+    def _cx(self, exponent: float, axis1: int, axis2: int):
+        assert exponent % 2 == 1
+        tableau = self.tableau
+        tableau.rs[:] ^= (
+            tableau.xs[:, axis1]
+            & tableau.zs[:, axis2]
+            & (~(tableau.xs[:, axis2] ^ tableau.zs[:, axis1]))
+        )
+        tableau.xs[:, axis2] ^= tableau.xs[:, axis1]
+        tableau.zs[:, axis1] ^= tableau.zs[:, axis2]
+
     def _strat_apply_to_tableau(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         val = val.gate if isinstance(val, ops.Operation) else val
         paulis = protocols.as_paulis(val, self.prng)
@@ -177,6 +188,8 @@ class ActOnCliffordTableauArgs(ActOnArgs):
                     self._z(exponent, axes[0])
                 elif pauli == 'CZ':
                     self._cz(exponent, axes[0], axes[1])
+                elif pauli == 'CX':
+                    self._cx(exponent, axes[0], axes[1])
                 else:
                     assert False
             return True

@@ -1220,20 +1220,12 @@ class CXPowGate(eigen_gate.EigenGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _apply_to_tableau_(
-        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        q1 = axes[0]
-        q2 = axes[1]
-        if self._exponent % 2 == 1:
-            tableau.rs[:] ^= (
-                tableau.xs[:, q1] & tableau.zs[:, q2] & (~(tableau.xs[:, q2] ^ tableau.zs[:, q1]))
-            )
-            tableau.xs[:, q2] ^= tableau.xs[:, q1]
-            tableau.zs[:, q1] ^= tableau.zs[:, q2]
-        return True
+    def _as_paulis_(self, prng: np.random.RandomState):
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 1:
+            return [('CX', self.exponent % 2, [0, 1])]
+        return NotImplemented
 
     def _apply_to_ch_form_(
         self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
