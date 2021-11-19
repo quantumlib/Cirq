@@ -46,8 +46,10 @@ from cirq.protocols.kraus_protocol import (
 )
 from cirq.protocols.clifford_protocols import (
     apply_to_ch_form,
+    as_ch,
     as_paulis,
     SupportsApplyToChForm,
+    SupportsAsCH,
     SupportsAsPaulis,
 )
 from cirq.protocols.commutes_protocol import (

@@ -138,41 +138,45 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             state.M[axis, :] ^= state.G[axis, :]
             state.gamma[axis] = (state.gamma[axis] - 1) % 4
 
+    def _h(self, exponent: float, axis: int):
+        state = self.state
+    
+        # Prescription for H left multiplication
+        # Reference: https://arxiv.org/abs/1808.00128
+        # Equations 48, 49 and Proposition 4
+        t = state.s ^ (state.G[axis, :] & state.v)
+        u = state.s ^ (state.F[axis, :] & (~state.v)) ^ (state.M[axis, :] & state.v)
+        alpha = sum(state.G[axis, :] & (~state.v) & state.s) % 2
+        beta = sum(state.M[axis, :] & (~state.v) & state.s)
+        beta += sum(state.F[axis, :] & state.v & state.M[axis, :])
+        beta += sum(state.F[axis, :] & state.v & state.s)
+        beta %= 2
+        delta = (state.gamma[axis] + 2 * (alpha + beta)) % 4
+        state.update_sum(t, u, delta=delta, alpha=alpha)
+
     def _cz(self, exponent: float, axis1: int, axis2: int):
         assert exponent % 2 == 1
-        tableau = self.tableau
-        (tableau.xs[:, axis2], tableau.zs[:, axis2]) = (
-            tableau.zs[:, axis2].copy(),
-            tableau.xs[:, axis2].copy(),
-        )
-        tableau.rs[:] ^= tableau.xs[:, axis2] & tableau.zs[:, axis2]
-        tableau.rs[:] ^= (
-            tableau.xs[:, axis1]
-            & tableau.zs[:, axis2]
-            & (~(tableau.xs[:, axis2] ^ tableau.zs[:, axis1]))
-        )
-        tableau.xs[:, axis2] ^= tableau.xs[:, axis1]
-        tableau.zs[:, axis1] ^= tableau.zs[:, axis2]
-        (tableau.xs[:, axis2], tableau.zs[:, axis2]) = (
-            tableau.zs[:, axis2].copy(),
-            tableau.xs[:, axis2].copy(),
-        )
-        tableau.rs[:] ^= tableau.xs[:, axis2] & tableau.zs[:, axis2]
+        state = self.state
+        # Prescription for CZ left multiplication.
+        # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
+        state.M[axis1, :] ^= state.G[axis2, :]
+        state.M[axis2, :] ^= state.G[axis1, :]
 
     def _cx(self, exponent: float, axis1: int, axis2: int):
         assert exponent % 2 == 1
-        tableau = self.tableau
-        tableau.rs[:] ^= (
-            tableau.xs[:, axis1]
-            & tableau.zs[:, axis2]
-            & (~(tableau.xs[:, axis2] ^ tableau.zs[:, axis1]))
-        )
-        tableau.xs[:, axis2] ^= tableau.xs[:, axis1]
-        tableau.zs[:, axis1] ^= tableau.zs[:, axis2]
+        state = self.state
+        # Prescription for CX left multiplication.
+        # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
+        state.gamma[axis1] = (
+            state.gamma[axis1] + state.gamma[axis2] + 2 * (sum(state.M[axis1, :] & state.F[axis2, :]) % 2)
+        ) % 4
+        state.G[axis2, :] ^= state.G[axis1, :]
+        state.F[axis1, :] ^= state.F[axis2, :]
+        state.M[axis1, :] ^= state.M[axis2, :]
 
     def _strat_apply_to_ch_form(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         val = val.gate if isinstance(val, ops.Operation) else val
-        paulis = protocols.as_paulis(val, self.prng)
+        paulis = protocols.as_ch(val, self.prng)
         if paulis is NotImplemented:
             return NotImplemented
         print(paulis)
@@ -180,19 +184,13 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         for pauli, exponent, indexes in paulis:
             affected_qubits = [qubits[i] for i in indexes]
             axes = self.get_axes(affected_qubits)
-            if pauli == 'X':
-                return NotImplemented
-                self._x(exponent, axes[0])
-            elif pauli == 'Y':
-                return NotImplemented
-                self._y(exponent, axes[0])
-            elif pauli == 'Z':
+            if pauli == 'Z':
                 self._z(exponent, axes[0])
+            elif pauli == 'H':
+                self._h(exponent, axes[0])
             elif pauli == 'CZ':
-                return NotImplemented
                 self._cz(exponent, axes[0], axes[1])
             elif pauli == 'CX':
-                return NotImplemented
                 self._cx(exponent, axes[0], axes[1])
             else:
                 assert False

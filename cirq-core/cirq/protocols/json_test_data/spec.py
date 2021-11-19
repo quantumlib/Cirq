@@ -136,6 +136,7 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsApplyMixture',
         'SupportsApplyToChForm',
         'SupportsApproximateEquality',
+        'SupportsAsCH',
         'SupportsAsPaulis',
         'SupportsCircuitDiagramInfo',
         'SupportsCommutes',

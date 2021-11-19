@@ -104,9 +104,23 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def _as_paulis_(self, prng: np.random.RandomState):
         if self.exponent % 2 == 0:
-            return [], 1
+            return []
         if self.exponent % 0.5 == 0:
-            return [('X', self.exponent % 2, [0])], 1
+            return [('X', self.exponent % 2, [0])]
+        return NotImplemented
+
+    def _as_ch_(self, prng: np.random.RandomState):
+        if not protocols.has_stabilizer_effect(self):
+            return NotImplemented
+        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
+        if self.exponent % 2 == 0:
+            return [], phase
+        if self.exponent % 2 == 1:
+            return [
+                ('H', 1, [0]),
+                ('Z', self.exponent, [0]),
+                ('H', 1, [0]),
+            ], phase
         return NotImplemented
 
     def _apply_to_ch_form_(
@@ -347,9 +361,35 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def _as_paulis_(self, prng: np.random.RandomState):
         if self.exponent % 2 == 0:
-            return [], 1
+            return []
         if self.exponent % 0.5 == 0:
-            return [('Y', self.exponent % 2, [0])], 1
+            return [('Y', self.exponent % 2, [0])]
+        return NotImplemented
+
+    def _as_ch_(self, prng: np.random.RandomState):
+        if not protocols.has_stabilizer_effect(self):
+            return NotImplemented
+        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
+        effective_exponent = self._exponent % 2
+        if effective_exponent == 0:
+            return [], phase
+        elif effective_exponent == 0.5:
+            return [
+                ('Z', 1, [0]),
+                ('H', 1, [0]),
+            ], phase * (1 + 1j) / (2 ** 0.5)
+        elif effective_exponent == 1:
+            return [
+                ('Z', 1, [0]),
+                ('H', 1, [0]),
+                ('Z', 1, [0]),
+                ('H', 1, [0]),
+            ], phase * 1j
+        elif effective_exponent == 1.5:
+            return [
+                ('H', 1, [0]),
+                ('Z', 1, [0]),
+            ], phase * (1 - 1j) / (2 ** 0.5)
         return NotImplemented
 
     def _apply_to_ch_form_(
@@ -553,11 +593,19 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def _as_paulis_(self, prng: np.random.RandomState):
         if self.exponent % 2 == 0:
-            return [], 1
+            return []
         if self.exponent % 0.5 == 0:
-            return [('Z', self.exponent % 2, [0])], np.exp(
-                1j * np.pi * self.global_shift * self.exponent
-            )
+            return [('Z', self.exponent % 2, [0])]
+        return NotImplemented
+
+    def _as_ch_(self, prng: np.random.RandomState):
+        if not protocols.has_stabilizer_effect(self):
+            return NotImplemented
+        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
+        if self.exponent % 2 == 0:
+            return [], phase
+        if self.exponent % 0.5 == 0:
+            return [('Z', self.exponent % 2, [0])], phase
         return NotImplemented
 
     def _apply_to_ch_form_(
@@ -840,12 +888,22 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def _as_paulis_(self, prng: np.random.RandomState):
         if self.exponent % 2 == 0:
-            return [], 1
+            return []
         if self.exponent % 2 == 1:
             return [
                 ('Y', 0.5, [0]),
                 ('X', 1, [0]),
-            ], 1
+            ]
+        return NotImplemented
+
+    def _as_ch_(self, prng: np.random.RandomState):
+        if not protocols.has_stabilizer_effect(self):
+            return NotImplemented
+        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
+        if self.exponent % 2 == 0:
+            return [], phase
+        if self.exponent % 2 == 1:
+            return [('H', 1, [0])], phase
         return NotImplemented
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
@@ -1019,9 +1077,19 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def _as_paulis_(self, prng: np.random.RandomState):
         if self.exponent % 2 == 0:
-            return [], 1
+            return []
         if self.exponent % 2 == 1:
-            return [('CZ', 1, [0, 1])], 1
+            return [('CZ', 1, [0, 1])]
+        return NotImplemented
+
+    def _as_ch_(self, prng: np.random.RandomState):
+        if not protocols.has_stabilizer_effect(self):
+            return NotImplemented
+        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
+        if self.exponent % 2 == 0:
+            return [], phase
+        if self.exponent % 2 == 1:
+            return [('CZ', 1, [0, 1])], phase
         return NotImplemented
 
     def _apply_to_ch_form_(
@@ -1224,9 +1292,19 @@ class CXPowGate(eigen_gate.EigenGate):
 
     def _as_paulis_(self, prng: np.random.RandomState):
         if self.exponent % 2 == 0:
-            return [], 1
+            return []
         if self.exponent % 2 == 1:
-            return [('CX', 1, [0, 1])], 1
+            return [('CX', 1, [0, 1])]
+        return NotImplemented
+
+    def _as_ch_(self, prng: np.random.RandomState):
+        if not protocols.has_stabilizer_effect(self):
+            return NotImplemented
+        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
+        if self.exponent % 2 == 0:
+            return [], phase
+        if self.exponent % 2 == 1:
+            return [('CX', 1, [0, 1])], phase
         return NotImplemented
 
     def _apply_to_ch_form_(

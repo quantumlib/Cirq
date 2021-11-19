@@ -96,13 +96,13 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
 
     def _as_paulis_(self, prng: np.random.RandomState):
         if self.exponent % 2 == 0:
-            return [], 1
+            return []
         if self.exponent % 2 == 1:
             return [
                 ('CX', 1, [0, 1]),
                 ('CX', 1, [1, 0]),
                 ('CX', 1, [0, 1]),
-            ], 1
+            ]
         return NotImplemented
 
     def _apply_to_ch_form_(
