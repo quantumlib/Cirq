@@ -66,7 +66,7 @@ class IdentityGate(raw_types.Gate):
         return True
 
     def _as_paulis_(self, prng: np.random.RandomState):
-        return []
+        return [], 1
 
     def _apply_to_ch_form_(
         self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState

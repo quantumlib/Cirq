@@ -19,7 +19,6 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
 import numpy as np
 
 from cirq import protocols, ops
-from cirq.ops import common_gates
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
@@ -178,6 +177,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         paulis = protocols.as_paulis(val, self.prng)
         if paulis is NotImplemented:
             return NotImplemented
+        paulis, _ = paulis
         for pauli, exponent, indexes in paulis:
             affected_qubits = [qubits[i] for i in indexes]
             axes = self.get_axes(affected_qubits)

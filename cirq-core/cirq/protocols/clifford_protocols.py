@@ -78,7 +78,7 @@ class SupportsAsPaulis(Protocol):
     @doc_private
     def _as_paulis_(
         self, prng: np.random.RandomState
-    ) -> Union[Sequence[Tuple[str, float, Sequence[int]]], NotImplementedType]:
+    ) -> Union[Tuple[Sequence[Tuple[str, float, Sequence[int]]], complex], NotImplementedType]:
         """Transforms the gate to paulis.
 
         Args:
@@ -94,7 +94,7 @@ class SupportsAsPaulis(Protocol):
 
 def as_paulis(
     gate: 'cirq.Gate', prng: np.random.RandomState
-) -> Union[Sequence[Tuple[str, float, Sequence[int]]], NotImplementedType]:
+) -> Union[Tuple[Sequence[Tuple[str, float, Sequence[int]]], complex], NotImplementedType]:
     """Applies a transform to the given Clifford CH-form.
 
     Args:
