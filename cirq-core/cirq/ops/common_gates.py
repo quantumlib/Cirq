@@ -103,12 +103,10 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return args.available_buffer
 
     def _as_paulis_(self, prng: np.random.RandomState):
-        from cirq.ops import pauli_gates
-
         if self.exponent % 2 == 0:
             return []
         if self.exponent % 0.5 == 0:
-            return [(pauli_gates.X, self.exponent % 2, 0)]
+            return [('X', self.exponent % 2, [0])]
         return NotImplemented
 
     def _apply_to_ch_form_(
@@ -348,12 +346,10 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return args.available_buffer
 
     def _as_paulis_(self, prng: np.random.RandomState):
-        from cirq.ops import pauli_gates
-
         if self.exponent % 2 == 0:
             return []
         if self.exponent % 0.5 == 0:
-            return [(pauli_gates.Y, self.exponent % 2, 0)]
+            return [('Y', self.exponent % 2, [0])]
         return NotImplemented
 
     def _apply_to_ch_form_(
@@ -556,12 +552,10 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return args.target_tensor
 
     def _as_paulis_(self, prng: np.random.RandomState):
-        from cirq.ops import pauli_gates
-
         if self.exponent % 2 == 0:
             return []
         if self.exponent % 0.5 == 0:
-            return [(pauli_gates.Z, self.exponent % 2, 0)]
+            return [('Z', self.exponent % 2, [0])]
         return NotImplemented
 
     def _apply_to_ch_form_(
@@ -842,6 +836,16 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             }
         )
 
+    def _as_paulis_(self, prng: np.random.RandomState):
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 1:
+            return [
+                ('Y', 0.5, [0]),
+                ('X', 1, [0]),
+            ]
+        return NotImplemented
+
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
@@ -863,20 +867,6 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         p = 1j ** (2 * self._exponent * self._global_shift)
         args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
-
-    def _apply_to_tableau_(
-        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        q = axes[0]
-        if self._exponent % 2 == 1:
-            (tableau.xs[:, q], tableau.zs[:, q]) = (
-                tableau.zs[:, q].copy(),
-                tableau.xs[:, q].copy(),
-            )
-            tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
-        return True
 
     def _apply_to_ch_form_(
         self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
@@ -1025,30 +1015,12 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _apply_to_tableau_(
-        self, tableau: 'cirq.CliffordTableau', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        q1 = axes[0]
-        q2 = axes[1]
-        if self._exponent % 2 == 1:
-            (tableau.xs[:, q2], tableau.zs[:, q2]) = (
-                tableau.zs[:, q2].copy(),
-                tableau.xs[:, q2].copy(),
-            )
-            tableau.rs[:] ^= tableau.xs[:, q2] & tableau.zs[:, q2]
-            tableau.rs[:] ^= (
-                tableau.xs[:, q1] & tableau.zs[:, q2] & (~(tableau.xs[:, q2] ^ tableau.zs[:, q1]))
-            )
-            tableau.xs[:, q2] ^= tableau.xs[:, q1]
-            tableau.zs[:, q1] ^= tableau.zs[:, q2]
-            (tableau.xs[:, q2], tableau.zs[:, q2]) = (
-                tableau.zs[:, q2].copy(),
-                tableau.xs[:, q2].copy(),
-            )
-            tableau.rs[:] ^= tableau.xs[:, q2] & tableau.zs[:, q2]
-        return True
+    def _as_paulis_(self, prng: np.random.RandomState):
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 1:
+            return [('CZ', self.exponent % 2, [0, 1])]
+        return NotImplemented
 
     def _apply_to_ch_form_(
         self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState

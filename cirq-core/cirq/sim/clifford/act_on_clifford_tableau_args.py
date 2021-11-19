@@ -95,73 +95,95 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     ) -> np.ndarray:
         # Unnecessary for now but can be added later if there is a use case.
         raise NotImplementedError()
-    
-    def _x(self, q, exponent):
+
+    def _x(self, exponent, axis):
         assert exponent % 0.5 == 0.0
         tableau = self.tableau
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
-            tableau.xs[:, q] ^= tableau.zs[:, q]
-            tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
+            tableau.xs[:, axis] ^= tableau.zs[:, axis]
+            tableau.rs[:] ^= tableau.xs[:, axis] & tableau.zs[:, axis]
         elif effective_exponent == 1:
-            tableau.rs[:] ^= tableau.zs[:, q]
+            tableau.rs[:] ^= tableau.zs[:, axis]
         elif effective_exponent == 1.5:
-            tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
-            tableau.xs[:, q] ^= tableau.zs[:, q]
-    
-    def _y(self, q, exponent):
+            tableau.rs[:] ^= tableau.xs[:, axis] & tableau.zs[:, axis]
+            tableau.xs[:, axis] ^= tableau.zs[:, axis]
+
+    def _y(self, exponent, axis):
         assert exponent % 0.5 == 0.0
         tableau = self.tableau
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
-            tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
-            (tableau.xs[:, q], tableau.zs[:, q]) = (
-                tableau.zs[:, q].copy(),
-                tableau.xs[:, q].copy(),
+            tableau.rs[:] ^= tableau.xs[:, axis] & (~tableau.zs[:, axis])
+            (tableau.xs[:, axis], tableau.zs[:, axis]) = (
+                tableau.zs[:, axis].copy(),
+                tableau.xs[:, axis].copy(),
             )
         elif effective_exponent == 1:
-            tableau.rs[:] ^= tableau.xs[:, q] ^ tableau.zs[:, q]
+            tableau.rs[:] ^= tableau.xs[:, axis] ^ tableau.zs[:, axis]
         elif effective_exponent == 1.5:
-            tableau.rs[:] ^= ~(tableau.xs[:, q]) & tableau.zs[:, q]
-            (tableau.xs[:, q], tableau.zs[:, q]) = (
-                tableau.zs[:, q].copy(),
-                tableau.xs[:, q].copy(),
+            tableau.rs[:] ^= ~(tableau.xs[:, axis]) & tableau.zs[:, axis]
+            (tableau.xs[:, axis], tableau.zs[:, axis]) = (
+                tableau.zs[:, axis].copy(),
+                tableau.xs[:, axis].copy(),
             )
 
-    def _z(self, q, exponent):
+    def _z(self, exponent, axis):
         assert exponent % 0.5 == 0.0
         tableau = self.tableau
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
-            tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
-            tableau.zs[:, q] ^= tableau.xs[:, q]
+            tableau.rs[:] ^= tableau.xs[:, axis] & tableau.zs[:, axis]
+            tableau.zs[:, axis] ^= tableau.xs[:, axis]
         elif effective_exponent == 1:
-            tableau.rs[:] ^= tableau.xs[:, q]
+            tableau.rs[:] ^= tableau.xs[:, axis]
         elif effective_exponent == 1.5:
-            tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
-            tableau.zs[:, q] ^= tableau.xs[:, q]
+            tableau.rs[:] ^= tableau.xs[:, axis] & (~tableau.zs[:, axis])
+            tableau.zs[:, axis] ^= tableau.xs[:, axis]
 
-    def _strat_apply_to_tableau(
-        self, val: Any, qubits: Sequence['cirq.Qid']
-    ) -> bool:
+    def _cz(self, exponent, axis1, axis2):
+        assert exponent % 2 == 1
+        tableau = self.tableau
+        (tableau.xs[:, axis2], tableau.zs[:, axis2]) = (
+            tableau.zs[:, axis2].copy(),
+            tableau.xs[:, axis2].copy(),
+        )
+        tableau.rs[:] ^= tableau.xs[:, axis2] & tableau.zs[:, axis2]
+        tableau.rs[:] ^= (
+            tableau.xs[:, axis1]
+            & tableau.zs[:, axis2]
+            & (~(tableau.xs[:, axis2] ^ tableau.zs[:, axis1]))
+        )
+        tableau.xs[:, axis2] ^= tableau.xs[:, axis1]
+        tableau.zs[:, axis1] ^= tableau.zs[:, axis2]
+        (tableau.xs[:, axis2], tableau.zs[:, axis2]) = (
+            tableau.zs[:, axis2].copy(),
+            tableau.xs[:, axis2].copy(),
+        )
+        tableau.rs[:] ^= tableau.xs[:, axis2] & tableau.zs[:, axis2]
+
+    def _strat_apply_to_tableau(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         val = val.gate if isinstance(val, ops.Operation) else val
         paulis = protocols.as_paulis(val, self.prng)
         if paulis is not NotImplemented:
-            for pauli, exponent, axis in paulis:
-                q = self.qubit_map[qubits[axis]]
-                if pauli is pauli_gates.X:
-                    self._x(q, exponent)
-                elif pauli is pauli_gates.Y:
-                    self._y(q, exponent)
-                elif pauli is pauli_gates.Z:
-                    self._z(q, exponent)
+            for pauli, exponent, raw_axes in paulis:
+                qubits = [qubits[i] for i in raw_axes]
+                axes = self.get_axes(qubits)
+                if pauli == 'X':
+                    self._x(exponent, axes[0])
+                elif pauli == 'Y':
+                    self._y(exponent, axes[0])
+                elif pauli == 'Z':
+                    self._z(exponent, axes[0])
+                elif pauli == 'CZ':
+                    self._cz(exponent, axes[0], axes[1])
                 else:
                     assert False
             return True
         else:
             gate = val.gate if isinstance(val, ops.Operation) else val
             return protocols.apply_to_tableau(gate, self.tableau, self.get_axes(qubits), self.prng)
-    
+
     def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
         self, val: Any, qubits: Sequence['cirq.Qid']
     ) -> bool:
@@ -171,17 +193,15 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             u = unitary(val)
             clifford_gate = SingleQubitCliffordGate.from_unitary(u)
             if clifford_gate is not None:
-                axes = self.get_axes(qubits)
-                tableau = self.tableau
-                rng = self.prng
-                for axis, quarter_turns in clifford_gate.decompose_rotation():
-                    if axis == pauli_gates.X:
-                        self._x(axes[0], quarter_turns / 2)
-                    elif axis == pauli_gates.Y:
-                        self._y(axes[0], quarter_turns / 2)
+                axis = self.qubit_map[qubits[0]]
+                for gate, quarter_turns in clifford_gate.decompose_rotation():
+                    if gate == pauli_gates.X:
+                        self._x(quarter_turns / 2, axis)
+                    elif gate == pauli_gates.Y:
+                        self._y(quarter_turns / 2, axis)
                     else:
-                        assert axis == pauli_gates.Z
-                        self._z(axes[0], quarter_turns / 2)
+                        assert gate == pauli_gates.Z
+                        self._z(quarter_turns / 2, axis)
                 return True
-    
+
         return NotImplemented
