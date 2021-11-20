@@ -105,22 +105,17 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             ]
         return NotImplemented
 
-    def _apply_to_ch_form_(
-        self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        from cirq import ops
-
-        if not self._has_stabilizer_effect_():
-            return NotImplemented
-        state.omega *= 1j ** (2 * self.global_shift * self._exponent)
-
-        if self._exponent % 2 == 1:
-            protocols.apply_to_ch_form(ops.CNOT, state, axes, prng)
-            protocols.apply_to_ch_form(ops.CNOT, state, tuple(reversed(axes)), prng)
-            protocols.apply_to_ch_form(ops.CNOT, state, axes, prng)
-
-        # An even exponent does not change anything except the global phase above.
-        return True
+    def _as_ch_(self, prng: np.random.RandomState):
+        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
+        if self.exponent % 2 == 0:
+            return [], phase
+        if self.exponent % 2 == 1:
+            return [
+                ('CX', 1, [0, 1]),
+                ('CX', 1, [1, 0]),
+                ('CX', 1, [0, 1]),
+            ], phase
+        return NotImplemented
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:

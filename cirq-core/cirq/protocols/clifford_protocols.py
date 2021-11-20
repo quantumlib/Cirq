@@ -30,50 +30,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-class SupportsApplyToChForm(Protocol):
-    @doc_private
-    def _apply_to_ch_form_(
-        self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
-    ) -> Union[bool, NotImplementedType]:
-        """Applies a transform to the given Clifford CH-form.
-
-        Args:
-            state: A Clifford CH-form that is the target of the transform.
-            axes: The axes to which the transform should be applied.
-            prng: The random number generator to use if necessary.
-
-        Returns:
-            True: The receiving object (`self`) could apply a transform.
-            NotImplemented: The receiving object cannot apply a transform.
-
-            All other return values are considered to be errors.
-        """
-
-
-def apply_to_ch_form(
-    val: Any,
-    state: 'cirq.StabilizerStateChForm',
-    axes: Sequence[int],
-    prng: np.random.RandomState,
-) -> Union[bool, NotImplementedType]:
-    """Applies a transform to the given Clifford CH-form.
-
-    Args:
-        val: The object (typically a gate) that contains a transform to apply.
-        state: A Clifford CH-form that is the target of the transform.
-        axes: The axes to which the transform should be applied.
-        prng: A random number generator to use if necessary.
-
-    Returns:
-        True: The receiving object (`self`) could apply a transform.
-        NotImplemented: The receiving object cannot apply a transform.
-
-        All other return values are considered to be errors.
-    """
-    getter = getattr(val, '_apply_to_ch_form_', None)
-    return NotImplemented if getter is None else getter(state, axes, prng)
-
-
 class SupportsAsPaulis(Protocol):
     @doc_private
     def _as_paulis_(

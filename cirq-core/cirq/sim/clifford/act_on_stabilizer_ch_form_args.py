@@ -64,7 +64,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
-        strats = [self._strat_apply_to_ch_form, self._strat_apply_to_ch_form2]
+        strats = [self._strat_apply_to_ch_form]
         if allow_decompose:
             strats.append(self._strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
         for strat in strats:
@@ -97,38 +97,6 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             protocols.act_on(op, ch_form_args)
         return np.array(list(measurements.values()), dtype=bool)
 
-    def _x(self, exponent: float, axis: int):
-        assert exponent % 0.5 == 0.0
-        tableau = self.tableau
-        effective_exponent = exponent % 2
-        if effective_exponent == 0.5:
-            tableau.xs[:, axis] ^= tableau.zs[:, axis]
-            tableau.rs[:] ^= tableau.xs[:, axis] & tableau.zs[:, axis]
-        elif effective_exponent == 1:
-            tableau.rs[:] ^= tableau.zs[:, axis]
-        elif effective_exponent == 1.5:
-            tableau.rs[:] ^= tableau.xs[:, axis] & tableau.zs[:, axis]
-            tableau.xs[:, axis] ^= tableau.zs[:, axis]
-
-    def _y(self, exponent: float, axis: int):
-        assert exponent % 0.5 == 0.0
-        tableau = self.tableau
-        effective_exponent = exponent % 2
-        if effective_exponent == 0.5:
-            tableau.rs[:] ^= tableau.xs[:, axis] & (~tableau.zs[:, axis])
-            (tableau.xs[:, axis], tableau.zs[:, axis]) = (
-                tableau.zs[:, axis].copy(),
-                tableau.xs[:, axis].copy(),
-            )
-        elif effective_exponent == 1:
-            tableau.rs[:] ^= tableau.xs[:, axis] ^ tableau.zs[:, axis]
-        elif effective_exponent == 1.5:
-            tableau.rs[:] ^= ~(tableau.xs[:, axis]) & tableau.zs[:, axis]
-            (tableau.xs[:, axis], tableau.zs[:, axis]) = (
-                tableau.zs[:, axis].copy(),
-                tableau.xs[:, axis].copy(),
-            )
-
     def _z(self, exponent: float, axis: int):
         effective_exponent = exponent % 2
         state = self.state
@@ -140,7 +108,6 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
 
     def _h(self, exponent: float, axis: int):
         state = self.state
-    
         # Prescription for H left multiplication
         # Reference: https://arxiv.org/abs/1808.00128
         # Equations 48, 49 and Proposition 4
@@ -168,7 +135,9 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         # Prescription for CX left multiplication.
         # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
         state.gamma[axis1] = (
-            state.gamma[axis1] + state.gamma[axis2] + 2 * (sum(state.M[axis1, :] & state.F[axis2, :]) % 2)
+            state.gamma[axis1]
+            + state.gamma[axis2]
+            + 2 * (sum(state.M[axis1, :] & state.F[axis2, :]) % 2)
         ) % 4
         state.G[axis2, :] ^= state.G[axis1, :]
         state.F[axis1, :] ^= state.F[axis2, :]
@@ -179,7 +148,6 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         paulis = protocols.as_ch(val, self.prng)
         if paulis is NotImplemented:
             return NotImplemented
-        print(paulis)
         paulis, phase = paulis
         for pauli, exponent, indexes in paulis:
             affected_qubits = [qubits[i] for i in indexes]
@@ -197,10 +165,6 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         self.state.omega *= phase
         return True
 
-    def _strat_apply_to_ch_form2(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
-        gate = val.gate if isinstance(val, ops.Operation) else val
-        return protocols.apply_to_ch_form(gate, self.state, self.get_axes(qubits), self.prng)
-
     def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
         self, val: Any, qubits: Sequence['cirq.Qid']
     ) -> bool:
@@ -213,21 +177,16 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
                 # Gather the effective unitary applied so as to correct for the
                 # global phase later.
                 final_unitary = np.eye(2)
-                axes = self.get_axes(qubits)
-                state = self.state
-                rng = self.prng
                 for axis, quarter_turns in clifford_gate.decompose_rotation():
                     gate = None  # type: Optional[cirq.Gate]
                     if axis == pauli_gates.X:
                         gate = common_gates.XPowGate(exponent=quarter_turns / 2)
-                        protocols.apply_to_ch_form(gate, state, axes, rng)
                     elif axis == pauli_gates.Y:
                         gate = common_gates.YPowGate(exponent=quarter_turns / 2)
-                        protocols.apply_to_ch_form(gate, state, axes, rng)
-                    else:
-                        assert axis == pauli_gates.Z
+                    elif axis == pauli_gates.Z:
                         gate = common_gates.ZPowGate(exponent=quarter_turns / 2)
-                        protocols.apply_to_ch_form(gate, state, axes, rng)
+                    assert gate is not None
+                    self._strat_apply_to_ch_form(gate, qubits)
 
                     final_unitary = np.matmul(unitary(gate), final_unitary)
 

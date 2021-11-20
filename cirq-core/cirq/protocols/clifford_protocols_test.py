@@ -20,31 +20,3 @@ import cirq
 class CountingGate(cirq.SingleQubitGate):
     def __init__(self, implemented: bool = True):
         self._implemented = implemented
-
-    def _apply_to_ch_form_(self, state: cirq.StabilizerStateChForm, axes, prng):
-        if self._implemented:
-            state.n += sum(axes)
-            return True
-        return NotImplemented
-
-
-def test_apply_to_ch_form_succeeds():
-    gate = CountingGate()
-    state = cirq.StabilizerStateChForm(1)
-    result = cirq.apply_to_ch_form(gate, state, [2, 3], np.random.RandomState())
-    assert result is True
-    assert state.n == 6
-
-
-def test_apply_to_ch_form_not_implemented_explicitly():
-    gate = CountingGate(implemented=False)
-    state = cirq.StabilizerStateChForm(1)
-    result = cirq.apply_to_ch_form(gate, state, [2, 3], np.random.RandomState())
-    assert result is NotImplemented
-
-
-def test_apply_to_ch_form_not_implemented_implicitly():
-    gate = cirq.SingleQubitGate()
-    state = cirq.StabilizerStateChForm(1)
-    result = cirq.apply_to_ch_form(gate, state, [2, 3], np.random.RandomState())
-    assert result is NotImplemented

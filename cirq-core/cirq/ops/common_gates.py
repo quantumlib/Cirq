@@ -113,27 +113,11 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if not protocols.has_stabilizer_effect(self):
             return NotImplemented
         phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
-        if self.exponent % 2 == 0:
-            return [], phase
-        if self.exponent % 2 == 1:
-            return [
-                ('H', 1, [0]),
-                ('Z', self.exponent, [0]),
-                ('H', 1, [0]),
-            ], phase
-        return NotImplemented
-
-    def _apply_to_ch_form_(
-        self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        protocols.apply_to_ch_form(H, state, axes, prng)
-        protocols.apply_to_ch_form(ZPowGate(exponent=self._exponent), state, axes, prng)
-        protocols.apply_to_ch_form(H, state, axes, prng)
-        # Adjust the global phase based on the global_shift parameter.
-        state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-        return True
+        return [
+            ('H', 1, [0]),
+            ('Z', self._exponent, [0]),
+            ('H', 1, [0]),
+        ], phase
 
     def in_su2(self) -> 'Rx':
         """Returns an equal-up-global-phase gate from the group SU2."""
@@ -374,10 +358,11 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if effective_exponent == 0:
             return [], phase
         elif effective_exponent == 0.5:
+            phase *= (1 + 1j) / (2 ** 0.5)
             return [
                 ('Z', 1, [0]),
                 ('H', 1, [0]),
-            ], phase * (1 + 1j) / (2 ** 0.5)
+            ], phase
         elif effective_exponent == 1:
             return [
                 ('Z', 1, [0]),
@@ -386,36 +371,12 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
                 ('H', 1, [0]),
             ], phase * 1j
         elif effective_exponent == 1.5:
+            phase *= (1 - 1j) / (2 ** 0.5)
             return [
                 ('H', 1, [0]),
                 ('Z', 1, [0]),
-            ], phase * (1 - 1j) / (2 ** 0.5)
+            ], phase
         return NotImplemented
-
-    def _apply_to_ch_form_(
-        self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        effective_exponent = self._exponent % 2
-        Z = ZPowGate()
-        if effective_exponent == 0.5:
-            protocols.apply_to_ch_form(Z, state, axes, prng)
-            protocols.apply_to_ch_form(H, state, axes, prng)
-            state.omega *= (1 + 1j) / (2 ** 0.5)
-        elif effective_exponent == 1:
-            protocols.apply_to_ch_form(Z, state, axes, prng)
-            protocols.apply_to_ch_form(H, state, axes, prng)
-            protocols.apply_to_ch_form(Z, state, axes, prng)
-            protocols.apply_to_ch_form(H, state, axes, prng)
-            state.omega *= 1j
-        elif effective_exponent == 1.5:
-            protocols.apply_to_ch_form(H, state, axes, prng)
-            protocols.apply_to_ch_form(Z, state, axes, prng)
-            state.omega *= (1 - 1j) / (2 ** 0.5)
-        # Adjust the global phase based on the global_shift parameter.
-        state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-        return True
 
     def in_su2(self) -> 'Ry':
         """Returns an equal-up-global-phase gate from the group SU2."""
@@ -607,22 +568,6 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if self.exponent % 0.5 == 0:
             return [('Z', self.exponent % 2, [0])], phase
         return NotImplemented
-
-    def _apply_to_ch_form_(
-        self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        q = axes[0]
-        effective_exponent = self._exponent % 2
-        for _ in range(int(effective_exponent * 2)):
-            # Prescription for S left multiplication.
-            # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-            state.M[q, :] ^= state.G[q, :]
-            state.gamma[q] = (state.gamma[q] - 1) % 4
-        # Adjust the global phase based on the global_shift parameter.
-        state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-        return True
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -928,32 +873,6 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
 
-    def _apply_to_ch_form_(
-        self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        q = axes[0]
-        if self._exponent % 2 == 1:
-            # Prescription for H left multiplication
-            # Reference: https://arxiv.org/abs/1808.00128
-            # Equations 48, 49 and Proposition 4
-            t = state.s ^ (state.G[q, :] & state.v)
-            u = state.s ^ (state.F[q, :] & (~state.v)) ^ (state.M[q, :] & state.v)
-
-            alpha = sum(state.G[q, :] & (~state.v) & state.s) % 2
-            beta = sum(state.M[q, :] & (~state.v) & state.s)
-            beta += sum(state.F[q, :] & state.v & state.M[q, :])
-            beta += sum(state.F[q, :] & state.v & state.s)
-            beta %= 2
-
-            delta = (state.gamma[q] + 2 * (alpha + beta)) % 4
-
-            state.update_sum(t, u, delta=delta, alpha=alpha)
-        # Adjust the global phase based on the global_shift parameter.
-        state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-        return True
-
     def _decompose_(self, qubits):
         q = qubits[0]
 
@@ -1091,22 +1010,6 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if self.exponent % 2 == 1:
             return [('CZ', 1, [0, 1])], phase
         return NotImplemented
-
-    def _apply_to_ch_form_(
-        self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        q1 = axes[0]
-        q2 = axes[1]
-        if self._exponent % 2 == 1:
-            # Prescription for CZ left multiplication.
-            # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-            state.M[q1, :] ^= state.G[q2, :]
-            state.M[q2, :] ^= state.G[q1, :]
-        # Adjust the global phase based on the global_shift parameter.
-        state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-        return True
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -1306,26 +1209,6 @@ class CXPowGate(eigen_gate.EigenGate):
         if self.exponent % 2 == 1:
             return [('CX', 1, [0, 1])], phase
         return NotImplemented
-
-    def _apply_to_ch_form_(
-        self, state: 'cirq.StabilizerStateChForm', axes: Sequence[int], prng: np.random.RandomState
-    ):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        q1 = axes[0]
-        q2 = axes[1]
-        if self._exponent % 2 == 1:
-            # Prescription for CX left multiplication.
-            # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-            state.gamma[q1] = (
-                state.gamma[q1] + state.gamma[q2] + 2 * (sum(state.M[q1, :] & state.F[q2, :]) % 2)
-            ) % 4
-            state.G[q2, :] ^= state.G[q1, :]
-            state.F[q1, :] ^= state.F[q2, :]
-            state.M[q1, :] ^= state.M[q2, :]
-        # Adjust the global phase based on the global_shift parameter.
-        state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-        return True
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
