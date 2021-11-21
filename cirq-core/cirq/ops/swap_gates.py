@@ -105,7 +105,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
                 ('CX', 1, [0, 1]),
                 ('CX', 1, [1, 0]),
                 ('CX', 1, [0, 1]),
-            ], phase
+            ], phase ** (1 / 3)
         return NotImplemented
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
