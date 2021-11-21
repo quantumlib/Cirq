@@ -137,6 +137,7 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsApproximateEquality',
         'SupportsAsCH',
         'SupportsAsPaulis',
+        'SupportsAsPaulisWithNondeterminism',
         'SupportsCircuitDiagramInfo',
         'SupportsCommutes',
         'SupportsConsistentApplyUnitary',

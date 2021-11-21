@@ -102,7 +102,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _as_paulis_(self, prng: np.random.RandomState):
+    def _as_paulis_(self):
         if not protocols.has_stabilizer_effect(self):
             return NotImplemented
         phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
@@ -336,7 +336,7 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _as_paulis_(self, prng: np.random.RandomState):
+    def _as_paulis_(self):
         if not protocols.has_stabilizer_effect(self):
             return NotImplemented
         phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
@@ -520,7 +520,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _as_paulis_(self, prng: np.random.RandomState):
+    def _as_paulis_(self):
         if not protocols.has_stabilizer_effect(self):
             return NotImplemented
         phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
@@ -792,7 +792,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             }
         )
 
-    def _as_paulis_(self, prng: np.random.RandomState):
+    def _as_paulis_(self):
         if not protocols.has_stabilizer_effect(self):
             return NotImplemented
         phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
@@ -945,7 +945,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _as_paulis_(self, prng: np.random.RandomState):
+    def _as_paulis_(self):
         if not protocols.has_stabilizer_effect(self):
             return NotImplemented
         phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
@@ -1137,7 +1137,7 @@ class CXPowGate(eigen_gate.EigenGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _as_paulis_(self, prng: np.random.RandomState):
+    def _as_paulis_(self):
         if not protocols.has_stabilizer_effect(self):
             return NotImplemented
         phase = np.exp(1j * np.pi * self.global_shift * self.exponent)

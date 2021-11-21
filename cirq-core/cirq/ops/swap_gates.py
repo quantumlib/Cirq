@@ -94,7 +94,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             return None
         return self.exponent % 1 == 0
 
-    def _as_paulis_(self, prng: np.random.RandomState):
+    def _as_paulis_(self):
         if not protocols.has_stabilizer_effect(self):
             return NotImplemented
         phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
