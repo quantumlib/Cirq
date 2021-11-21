@@ -97,7 +97,32 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             protocols.act_on(op, ch_form_args)
         return np.array(list(measurements.values()), dtype=bool)
 
-    def _z(self, exponent: float, axis: int):
+    def _x(self, exponent: float, axis: int, phase: complex):
+        self._h(1, axis, 1)
+        self._z(exponent, axis, 1)
+        self._h(1, axis, 1)
+        self.state.omega *= phase
+
+    def _y(self, exponent: float, axis: int, phase: complex):
+        if exponent == 0.5:
+            phase *= (1 + 1j) / (2 ** 0.5)
+            self._z(1, axis, 1)
+            self._h(1, axis, 1)
+            self.state.omega *= phase
+        elif exponent == 1:
+            phase *= 1j
+            self._z(1, axis, 1)
+            self._h(1, axis, 1)
+            self._z(1, axis, 1)
+            self._h(1, axis, 1)
+            self.state.omega *= phase
+        if exponent == 1.5:
+            phase *= (1 - 1j) / (2 ** 0.5)
+            self._h(1, axis, 1)
+            self._z(1, axis, 1)
+            self.state.omega *= phase
+
+    def _z(self, exponent: float, axis: int, phase: complex):
         effective_exponent = exponent % 2
         state = self.state
         for _ in range(int(effective_exponent * 2)):
@@ -105,8 +130,9 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
             state.M[axis, :] ^= state.G[axis, :]
             state.gamma[axis] = (state.gamma[axis] - 1) % 4
+        state.omega *= phase
 
-    def _h(self, exponent: float, axis: int):
+    def _h(self, exponent: float, axis: int, phase: complex):
         state = self.state
         # Prescription for H left multiplication
         # Reference: https://arxiv.org/abs/1808.00128
@@ -120,16 +146,18 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         beta %= 2
         delta = (state.gamma[axis] + 2 * (alpha + beta)) % 4
         state.update_sum(t, u, delta=delta, alpha=alpha)
+        state.omega *= phase
 
-    def _cz(self, exponent: float, axis1: int, axis2: int):
+    def _cz(self, exponent: float, axis1: int, axis2: int, phase: complex):
         assert exponent % 2 == 1
         state = self.state
         # Prescription for CZ left multiplication.
         # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
         state.M[axis1, :] ^= state.G[axis2, :]
         state.M[axis2, :] ^= state.G[axis1, :]
+        state.omega *= phase
 
-    def _cx(self, exponent: float, axis1: int, axis2: int):
+    def _cx(self, exponent: float, axis1: int, axis2: int, phase: complex):
         assert exponent % 2 == 1
         state = self.state
         # Prescription for CX left multiplication.
@@ -142,27 +170,31 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         state.G[axis2, :] ^= state.G[axis1, :]
         state.F[axis1, :] ^= state.F[axis2, :]
         state.M[axis1, :] ^= state.M[axis2, :]
+        state.omega *= phase
 
     def _strat_apply_to_ch_form(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         val = val.gate if isinstance(val, ops.Operation) else val
-        paulis = protocols.as_ch(val, self.prng)
+        paulis = protocols.as_paulis(val, self.prng)
         if paulis is NotImplemented:
             return NotImplemented
         paulis, phase = paulis
         for pauli, exponent, indexes in paulis:
             affected_qubits = [qubits[i] for i in indexes]
             axes = self.get_axes(affected_qubits)
-            if pauli == 'Z':
-                self._z(exponent, axes[0])
+            if pauli == 'X':
+                self._x(exponent, axes[0], phase)
+            elif pauli == 'Y':
+                self._y(exponent, axes[0], phase)
+            elif pauli == 'Z':
+                self._z(exponent, axes[0], phase)
             elif pauli == 'H':
-                self._h(exponent, axes[0])
+                self._h(exponent, axes[0], phase)
             elif pauli == 'CZ':
-                self._cz(exponent, axes[0], axes[1])
+                self._cz(exponent, axes[0], axes[1], phase)
             elif pauli == 'CX':
-                self._cx(exponent, axes[0], axes[1])
+                self._cx(exponent, axes[0], axes[1], phase)
             else:
                 assert False
-        self.state.omega *= phase
         return True
 
     def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(

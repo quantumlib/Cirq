@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import (
-    Any,
     Sequence,
     Union,
     TYPE_CHECKING,
@@ -50,7 +49,7 @@ class SupportsAsPaulis(Protocol):
 
 def as_paulis(
     gate: 'cirq.Gate', prng: np.random.RandomState
-) -> Union[Sequence[Tuple[str, float, Sequence[int]]], NotImplementedType]:
+) -> Union[Tuple[Sequence[Tuple[str, float, Sequence[int]]], complex], NotImplementedType]:
     """Applies a transform to the given Clifford CH-form.
 
     Args:

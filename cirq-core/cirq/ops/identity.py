@@ -66,9 +66,6 @@ class IdentityGate(raw_types.Gate):
         return True
 
     def _as_paulis_(self, prng: np.random.RandomState):
-        return []
-
-    def _as_ch_(self, prng: np.random.RandomState):
         return [], 1
 
     def _qid_shape_(self) -> Tuple[int, ...]:

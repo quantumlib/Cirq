@@ -95,17 +95,8 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
         return self.exponent % 1 == 0
 
     def _as_paulis_(self, prng: np.random.RandomState):
-        if self.exponent % 2 == 0:
-            return []
-        if self.exponent % 2 == 1:
-            return [
-                ('CX', 1, [0, 1]),
-                ('CX', 1, [1, 0]),
-                ('CX', 1, [0, 1]),
-            ]
-        return NotImplemented
-
-    def _as_ch_(self, prng: np.random.RandomState):
+        if not protocols.has_stabilizer_effect(self):
+            return NotImplemented
         phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
         if self.exponent % 2 == 0:
             return [], phase

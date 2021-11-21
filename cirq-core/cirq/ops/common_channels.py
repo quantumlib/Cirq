@@ -318,9 +318,9 @@ class DepolarizingChannel(raw_types.Gate):
 
     def _as_paulis_(self, prng: np.random.RandomState):
         if prng.random() > self._p:
-            return []
+            return [], 1
         gate = prng.choice(['X', 'Y', 'Z'])
-        return [(gate, 1, [0])]
+        return [(gate, 1, [0])], 1
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
         result: Tuple[str, ...]
