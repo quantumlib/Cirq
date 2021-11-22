@@ -16,7 +16,7 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
 
 import numpy as np
 
-from cirq import value, ops, protocols
+from cirq import value, ops, protocols, linalg
 from cirq.ops import common_gates, pauli_gates, matrix_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
@@ -67,6 +67,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         strats = [self._strat_apply_to_ch_form, self._strat_apply_mixture_to_ch_form]
         if allow_decompose:
             strats.append(self._strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
+            strats.append(self._strat_decompose)
         for strat in strats:
             result = strat(action, qubits)
             if result is True:
@@ -207,6 +208,8 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         mixture = protocols.mixture(val, None)
         if mixture is None:
             return NotImplemented
+        if not all(linalg.is_unitary(m) for _, m in mixture):
+            return NotImplemented
         rand = self.prng.random()
         psum = 0.0
         for p, mix in mixture:
@@ -243,6 +246,17 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
                 return True
 
         return NotImplemented
+
+    def _strat_decompose(
+        self, val: Any, qubits: Sequence['cirq.Qid']
+    ) -> bool:
+        gate = val.gate if isinstance(val, ops.Operation) else val
+        operations = protocols.decompose_once_with_qubits(gate, qubits, None)
+        if operations is None or not all(protocols.has_stabilizer_effect(op) for op in operations):
+            return NotImplemented
+        for op in operations:
+            assert self._act_on_fallback_(op, op.qubits)
+        return True
 
 
 def _phase(gate):

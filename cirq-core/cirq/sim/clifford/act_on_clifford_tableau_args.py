@@ -18,7 +18,7 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
 
 import numpy as np
 
-from cirq import protocols, ops
+from cirq import protocols, ops, linalg
 from cirq.ops import common_gates, matrix_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
@@ -69,6 +69,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         strats = [self._strat_apply_to_tableau, self._strat_apply_mixture_to_tableau]
         if allow_decompose:
             strats.append(self._strat_act_on_clifford_tableau_from_single_qubit_decompose)
+            strats.append(self._strat_decompose)
         for strat in strats:
             result = strat(action, qubits)
             if result is False:
@@ -219,7 +220,9 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     def _strat_apply_mixture_to_tableau(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         mixture = protocols.mixture(val, None)
         if mixture is None:
-            return False
+            return NotImplemented
+        if not all(linalg.is_unitary(m) for _, m in mixture):
+            return NotImplemented
         rand = self.prng.random()
         psum = 0.0
         for p, mix in mixture:
@@ -244,3 +247,14 @@ class ActOnCliffordTableauArgs(ActOnArgs):
                 return True
 
         return NotImplemented
+
+    def _strat_decompose(
+        self, val: Any, qubits: Sequence['cirq.Qid']
+    ) -> bool:
+        gate = val.gate if isinstance(val, ops.Operation) else val
+        operations = protocols.decompose_once_with_qubits(gate, qubits, None)
+        if operations is None or not all(protocols.has_stabilizer_effect(op) for op in operations):
+            return NotImplemented
+        for op in operations:
+            assert self._act_on_fallback_(op, op.qubits)
+        return True
