@@ -57,6 +57,7 @@ from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
+    LabelEntity,
     SupportsCircuitDiagramInfo,
 )
 from cirq.protocols.decompose_protocol import (

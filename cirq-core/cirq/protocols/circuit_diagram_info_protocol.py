@@ -37,6 +37,9 @@ if TYPE_CHECKING:
     import cirq
 
 
+LabelEntity = Union['cirq.Qid', 'cirq.MeasurementKey']
+
+
 @value.value_equality
 class CircuitDiagramInfo:
     """Describes how to draw an operation in a circuit diagram."""
@@ -200,7 +203,7 @@ class CircuitDiagramInfoArgs:
         known_qubit_count: Optional[int],
         use_unicode_characters: bool,
         precision: Optional[int],
-        label_map: Optional[Dict[Any, int]],
+        label_map: Optional[Dict['cirq.LabelEntity', int]],
         include_tags: bool = True,
     ) -> None:
         self.known_qubits = None if known_qubits is None else tuple(known_qubits)
@@ -326,7 +329,7 @@ def _op_info_with_fallback(
     op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
 ) -> 'cirq.CircuitDiagramInfo':
     info = protocols.circuit_diagram_info(op, args, None)
-    rows: List[Any] = list(op.qubits)
+    rows: List[LabelEntity] = list(op.qubits)
     if args.label_map is not None:
         rows += protocols.measurement_key_objs(op) & args.label_map.keys()
         rows += protocols.control_keys(op) & args.label_map.keys()

@@ -1150,23 +1150,31 @@ class AbstractCircuit(abc.ABC):
         Returns:
             The TextDiagramDrawer instance.
         """
-        qubits: Tuple[Any, ...] = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+        qubits: Tuple[ops.Qid, ...] = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits()
         )
-        cbits: Tuple[Any, ...] = tuple(
+        cbits: Tuple[value.MeasurementKey, ...] = tuple(
             sorted(
                 (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
             )
         )
-        labels = qubits + cbits
+        labels: Tuple[protocols.LabelEntity, ...] = qubits + cbits
         label_map = {labels[i]: i for i in range(len(labels))}
 
+        def default_namer(label_entity):
+            return str(label_entity) + ('' if transpose else ': ')
+
         if qubit_namer is None:
-            qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
+            qubit_namer = default_namer
         diagram = TextDiagramDrawer()
         diagram.write(0, 0, '')
-        for q, i in label_map.items():
-            diagram.write(0, i, qubit_namer(q))
+        for label_entity, i in label_map.items():
+            name = (
+                qubit_namer(label_entity)
+                if isinstance(label_entity, ops.Qid)
+                else default_namer(label_entity)
+            )
+            diagram.write(0, i, name)
         first_annotation_row = max(label_map.values(), default=0) + 1
 
         if any(isinstance(op.untagged, cirq.GlobalPhaseOperation) for op in self.all_operations()):
@@ -2349,7 +2357,7 @@ def _draw_moment_annotations(
     moment: 'cirq.Moment',
     col: int,
     use_unicode_characters: bool,
-    label_map: Dict[Any, int],
+    label_map: Dict['cirq.LabelEntity', int],
     out_diagram: TextDiagramDrawer,
     precision: Optional[int],
     get_circuit_diagram_info: Callable[
@@ -2379,7 +2387,7 @@ def _draw_moment_in_diagram(
     *,
     moment: 'cirq.Moment',
     use_unicode_characters: bool,
-    label_map: Dict[Any, int],
+    label_map: Dict['cirq.LabelEntity', int],
     out_diagram: TextDiagramDrawer,
     precision: Optional[int],
     moment_groups: List[Tuple[int, int]],
@@ -2397,11 +2405,11 @@ def _draw_moment_in_diagram(
 
     max_x = x0
     for op in non_global_ops:
-        qubits: Tuple[Any, ...] = tuple(op.qubits)
-        cbits: Tuple[Any, ...] = tuple(
+        qubits: Tuple[ops.Qid, ...] = tuple(op.qubits)
+        cbits: Tuple[value.MeasurementKey, ...] = tuple(
             (protocols.measurement_key_objs(op) | protocols.control_keys(op)) & label_map.keys()
         )
-        labels = qubits + cbits
+        labels: Tuple[protocols.LabelEntity, ...] = qubits + cbits
         indices = [label_map[label] for label in labels]
         y1 = min(indices)
         y2 = max(indices)
