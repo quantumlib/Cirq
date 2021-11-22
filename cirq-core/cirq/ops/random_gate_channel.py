@@ -22,7 +22,6 @@ from typing import (
     cast,
     SupportsFloat,
     Optional,
-    Sequence,
 )
 
 import numpy as np
