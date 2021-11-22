@@ -19,7 +19,7 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
 import numpy as np
 
 from cirq import protocols, ops
-from cirq.ops import pauli_gates
+from cirq.ops import common_gates, matrix_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.qis.clifford_tableau import CliffordTableau
@@ -66,7 +66,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
-        strats = [self._strat_apply_to_tableau]
+        strats = [self._strat_apply_to_tableau, self._strat_apply_mixture_to_tableau]
         if allow_decompose:
             strats.append(self._strat_act_on_clifford_tableau_from_single_qubit_decompose)
         for strat in strats:
@@ -95,7 +95,10 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         # Unnecessary for now but can be added later if there is a use case.
         raise NotImplementedError()
 
-    def _x(self, exponent: float, axis: int):
+    def _x(self, g: common_gates.XPowGate, axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
         assert exponent % 0.5 == 0.0
         tableau = self.tableau
         effective_exponent = exponent % 2
@@ -108,7 +111,10 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             tableau.rs[:] ^= tableau.xs[:, axis] & tableau.zs[:, axis]
             tableau.xs[:, axis] ^= tableau.zs[:, axis]
 
-    def _y(self, exponent: float, axis: int):
+    def _y(self, g: common_gates.YPowGate, axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
         assert exponent % 0.5 == 0.0
         tableau = self.tableau
         effective_exponent = exponent % 2
@@ -127,7 +133,10 @@ class ActOnCliffordTableauArgs(ActOnArgs):
                 tableau.xs[:, axis].copy(),
             )
 
-    def _z(self, exponent: float, axis: int):
+    def _z(self, g: common_gates.ZPowGate, axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
         assert exponent % 0.5 == 0.0
         tableau = self.tableau
         effective_exponent = exponent % 2
@@ -140,12 +149,18 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             tableau.rs[:] ^= tableau.xs[:, axis] & (~tableau.zs[:, axis])
             tableau.zs[:, axis] ^= tableau.xs[:, axis]
 
-    def _h(self, exponent: float, axis: int):
+    def _h(self, g: common_gates.HPowGate, axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
         assert exponent % 2 == 1
-        self._y(0.5, axis)
-        self._x(1, axis)
+        self._y(common_gates.YPowGate(exponent=0.5), axis)
+        self._x(common_gates.XPowGate(), axis)
 
-    def _cz(self, exponent: float, axis1: int, axis2: int):
+    def _cz(self, g: common_gates.CZPowGate, axis1: int, axis2: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
         assert exponent % 2 == 1
         tableau = self.tableau
         (tableau.xs[:, axis2], tableau.zs[:, axis2]) = (
@@ -166,7 +181,10 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         )
         tableau.rs[:] ^= tableau.xs[:, axis2] & tableau.zs[:, axis2]
 
-    def _cx(self, exponent: float, axis1: int, axis2: int):
+    def _cx(self, g: common_gates.CXPowGate, axis1: int, axis2: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
         assert exponent % 2 == 1
         tableau = self.tableau
         tableau.rs[:] ^= (
@@ -178,29 +196,39 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         tableau.zs[:, axis1] ^= tableau.zs[:, axis2]
 
     def _strat_apply_to_tableau(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
-        val = val.gate if isinstance(val, ops.Operation) else val
-        paulis = protocols.as_paulis(val, self.prng)
-        if paulis is NotImplemented:
+        if not protocols.has_stabilizer_effect(val):
             return NotImplemented
-        paulis, phase = paulis
-        for pauli, exponent, indexes in paulis:
-            affected_qubits = [qubits[i] for i in indexes]
-            axes = self.get_axes(affected_qubits)
-            if pauli == 'X':
-                self._x(exponent, axes[0])
-            elif pauli == 'Y':
-                self._y(exponent, axes[0])
-            elif pauli == 'Z':
-                self._z(exponent, axes[0])
-            elif pauli == 'H':
-                self._h(exponent, axes[0])
-            elif pauli == 'CZ':
-                self._cz(exponent, axes[0], axes[1])
-            elif pauli == 'CX':
-                self._cx(exponent, axes[0], axes[1])
-            else:
-                assert False
+        gate = val.gate if isinstance(val, ops.Operation) else val
+        axes = self.get_axes(qubits)
+        if isinstance(gate, common_gates.XPowGate):
+            self._x(gate, axes[0])
+        elif isinstance(gate, common_gates.YPowGate):
+            self._y(gate, axes[0])
+        elif isinstance(gate, common_gates.ZPowGate):
+            self._z(gate, axes[0])
+        elif isinstance(gate, common_gates.HPowGate):
+            self._h(gate, axes[0])
+        elif isinstance(gate, common_gates.CXPowGate):
+            self._cx(gate, axes[0], axes[1])
+        elif isinstance(gate, common_gates.CZPowGate):
+            self._cz(gate, axes[0], axes[1])
+        else:
+            return NotImplemented
         return True
+
+    def _strat_apply_mixture_to_tableau(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
+        mixture = protocols.mixture(val, None)
+        if mixture is None:
+            return False
+        rand = self.prng.random()
+        psum = 0.0
+        for p, mix in mixture:
+            psum += p
+            if psum >= rand:
+                return self._strat_act_on_clifford_tableau_from_single_qubit_decompose(
+                    matrix_gates.MatrixGate(mix), qubits
+                )
+        raise AssertionError("Probablities don't add to 1")
 
     def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
         self, val: Any, qubits: Sequence['cirq.Qid']
@@ -211,15 +239,8 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             u = unitary(val)
             clifford_gate = SingleQubitCliffordGate.from_unitary(u)
             if clifford_gate is not None:
-                axis = self.qubit_map[qubits[0]]
                 for gate, quarter_turns in clifford_gate.decompose_rotation():
-                    if gate == pauli_gates.X:
-                        self._x(quarter_turns / 2, axis)
-                    elif gate == pauli_gates.Y:
-                        self._y(quarter_turns / 2, axis)
-                    else:
-                        assert gate == pauli_gates.Z
-                        self._z(quarter_turns / 2, axis)
+                    self._strat_apply_to_tableau(gate ** (quarter_turns / 2), qubits)
                 return True
 
         return NotImplemented
