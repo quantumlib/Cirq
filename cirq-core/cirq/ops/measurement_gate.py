@@ -160,10 +160,14 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
+        label_map = args.label_map or {}
         if not args.known_qubits or self.key != _default_measurement_key(args.known_qubits):
-            symbols[0] += f"('{self.key}')"
+            if self.key not in label_map:
+                symbols[0] += f"('{self.key}')"
+        if self.key in label_map:
+            symbols += '@'
 
-        return protocols.CircuitDiagramInfo(tuple(symbols))
+        return protocols.CircuitDiagramInfo(symbols)
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if not all(d == 2 for d in self._qid_shape):

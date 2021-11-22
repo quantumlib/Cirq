@@ -289,7 +289,7 @@ class Gateset:
                     and tagged variants (i.e. instances of `cirq.TaggedOperation`,
                     `cirq.ControlledOperation` where `op.gate` is None) etc.
 
-        The complexity of the method is:
+        The complexity of the method in terms of the number of `gates`, n, is
             a) O(1) when any default `cirq.GateFamily` instance accepts the given item, except
                 for an Instance GateFamily trying to match an item with a different global phase.
             b) O(n) for all other cases: matching against custom gate families, matching across
