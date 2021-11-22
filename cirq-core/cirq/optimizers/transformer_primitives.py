@@ -39,7 +39,9 @@ def _to_target_circuit_type(
 ) -> CIRCUIT_TYPE:
     return cast(
         CIRCUIT_TYPE,
-        circuit.unfreeze() if isinstance(target_circuit, circuits.Circuit) else circuit.freeze(),
+        circuit.unfreeze(copy=False)
+        if isinstance(target_circuit, circuits.Circuit)
+        else circuit.freeze(),
     )
 
 
@@ -53,9 +55,7 @@ def map_moments(
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         map_func: Mapping function from (cirq.Moment, moment_index) to a sequence of moments.
     """
-    return _to_target_circuit_type(
-        circuits.Circuit(map_func(circuit[i], i) for i in range(len(circuit))), circuit
-    )
+    return type(circuit)(map_func(circuit[i], i) for i in range(len(circuit)))
 
 
 def map_operations(
