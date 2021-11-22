@@ -26,7 +26,6 @@ from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
-    from typing import Optional
 
 
 class ActOnStabilizerCHFormArgs(ActOnArgs):
@@ -64,10 +63,9 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
-        strats = [self._strat_apply_to_ch_form, self._strat_apply_mixture_to_ch_form]
+        strats = [self._strat_apply_to_ch_form, self._strat_apply_mixture_to_ch_form, self._strat_decompose]
         if allow_decompose:
             strats.append(self._strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
-            strats.append(self._strat_decompose)
         for strat in strats:
             result = strat(action, qubits)
             if result is True:

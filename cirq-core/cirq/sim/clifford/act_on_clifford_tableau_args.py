@@ -66,10 +66,9 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
-        strats = [self._strat_apply_to_tableau, self._strat_apply_mixture_to_tableau]
+        strats = [self._strat_apply_to_tableau, self._strat_apply_mixture_to_tableau, self._strat_decompose]
         if allow_decompose:
             strats.append(self._strat_act_on_clifford_tableau_from_single_qubit_decompose)
-            strats.append(self._strat_decompose)
         for strat in strats:
             result = strat(action, qubits)
             if result is False:
