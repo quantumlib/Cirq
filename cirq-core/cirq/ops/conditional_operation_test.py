@@ -15,13 +15,11 @@ import pytest
 import sympy
 
 import cirq
-import cirq.contrib.quimb
 
 ALL_SIMULATORS = (
     cirq.Simulator(),
     cirq.DensityMatrixSimulator(),
     cirq.CliffordSimulator(),
-    cirq.contrib.quimb.MPSSimulator(),
 )
 
 
