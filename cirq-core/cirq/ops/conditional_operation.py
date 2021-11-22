@@ -91,7 +91,7 @@ class ConditionalOperation(raw_types.Operation):
             known_qubits=args.known_qubits,
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
-            qubit_map=args.qubit_map,
+            label_map=args.label_map,
         )
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
         if sub_info is None:
