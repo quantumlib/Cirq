@@ -102,16 +102,6 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _as_paulis_(self):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
-        if self.exponent % 2 == 0:
-            return [], phase
-        if self.exponent % 0.5 == 0:
-            return [('X', self.exponent % 2, [0])], phase
-        return NotImplemented
-
     def in_su2(self) -> 'Rx':
         """Returns an equal-up-global-phase gate from the group SU2."""
         return Rx(rads=self._exponent * _pi(self._exponent))
@@ -336,16 +326,6 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _as_paulis_(self):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
-        if self.exponent % 2 == 0:
-            return [], phase
-        if self.exponent % 0.5 == 0:
-            return [('Y', self.exponent % 2, [0])], phase
-        return NotImplemented
-
     def in_su2(self) -> 'Ry':
         """Returns an equal-up-global-phase gate from the group SU2."""
         return Ry(rads=self._exponent * _pi(self._exponent))
@@ -519,16 +499,6 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
-
-    def _as_paulis_(self):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
-        if self.exponent % 2 == 0:
-            return [], phase
-        if self.exponent % 0.5 == 0:
-            return [('Z', self.exponent % 2, [0])], phase
-        return NotImplemented
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -792,16 +762,6 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             }
         )
 
-    def _as_paulis_(self):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
-        if self.exponent % 2 == 0:
-            return [], phase
-        if self.exponent % 2 == 1:
-            return [('H', 1, [0])], phase
-        return NotImplemented
-
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
@@ -944,16 +904,6 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
-
-    def _as_paulis_(self):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
-        if self.exponent % 2 == 0:
-            return [], phase
-        if self.exponent % 2 == 1:
-            return [('CZ', 1, [0, 1])], phase
-        return NotImplemented
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -1136,16 +1086,6 @@ class CXPowGate(eigen_gate.EigenGate):
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
-
-    def _as_paulis_(self):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
-        if self.exponent % 2 == 0:
-            return [], phase
-        if self.exponent % 2 == 1:
-            return [('CX', 1, [0, 1])], phase
-        return NotImplemented
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):

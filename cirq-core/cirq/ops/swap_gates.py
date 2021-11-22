@@ -24,7 +24,7 @@ raised to a power (i.e. SQRT_ISWAP_INV=cirq.ISWAP**-0.5). See the definition in
 EigenGate.
 """
 
-from typing import Optional, Tuple, TYPE_CHECKING, List, Sequence
+from typing import Optional, Tuple, TYPE_CHECKING, List
 
 import numpy as np
 import sympy
@@ -93,20 +93,6 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
         if self._is_parameterized_():
             return None
         return self.exponent % 1 == 0
-
-    def _as_paulis_(self):
-        if not protocols.has_stabilizer_effect(self):
-            return NotImplemented
-        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
-        if self.exponent % 2 == 0:
-            return [], phase
-        if self.exponent % 2 == 1:
-            return [
-                ('CX', 1, [0, 1]),
-                ('CX', 1, [1, 0]),
-                ('CX', 1, [0, 1]),
-            ], phase ** (1 / 3)
-        return NotImplemented
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:

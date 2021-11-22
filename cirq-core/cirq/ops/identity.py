@@ -65,9 +65,6 @@ class IdentityGate(raw_types.Gate):
     def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         return True
 
-    def _as_paulis_(self):
-        return [], 1
-
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
