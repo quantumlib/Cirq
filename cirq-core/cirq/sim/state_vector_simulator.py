@@ -212,8 +212,8 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
             state_vector = str(final)
         return f'measurements: {samples}\noutput vector: {state_vector}'
 
-    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
-        """Text output in Jupyter."""
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
         if cycle:
             # There should never be a cycle.  This is just in case.
             p.text('StateVectorTrialResult(...)')

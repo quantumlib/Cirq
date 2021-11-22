@@ -1,1 +1,0 @@
-cirq.ParallelGateOperation(gate=cirq.Y, qubits=[cirq.NamedQubit('a'), cirq.NamedQubit('b')])

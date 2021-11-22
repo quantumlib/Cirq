@@ -30,7 +30,7 @@ import sympy
 import cirq
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
-from cirq_google.ops import PhysicalZTag
+from cirq_google.ops import PhysicalZTag, SYC, fsim_gate_family
 from cirq_google.serialization import op_deserializer, op_serializer
 
 # Type strings used in serialization for the two types of Z operations
@@ -41,27 +41,19 @@ VIRTUAL_Z = 'virtual_propagates_forward'
 PHASE_MATCH_PHYS_Z = 'phys_z'
 
 
-# Default tolerance for differences in floating point
-# Note that Google protocol buffers use floats
-# which trigger a conversion from double precision to single precision
-# This results in errors possibly up to 1e-6
-# (23 bits for mantissa in single precision)
-_DEFAULT_ATOL = 1e-6
-
-
-def _near_mod_n(e, t, n, atol=_DEFAULT_ATOL):
+def _near_mod_n(e, t, n, atol=fsim_gate_family.DEFAULT_ATOL):
     """Returns whether a value, e, translated by t, is equal to 0 mod n."""
     if isinstance(e, sympy.Symbol):
         return False
     return abs((e - t + 1) % n - 1) <= atol
 
 
-def _near_mod_2pi(e, t, atol=_DEFAULT_ATOL):
+def _near_mod_2pi(e, t, atol=fsim_gate_family.DEFAULT_ATOL):
     """Returns whether a value, e, translated by t, is equal to 0 mod 2 * pi."""
     return _near_mod_n(e, t, n=2 * np.pi, atol=atol)
 
 
-def _near_mod_2(e, t, atol=_DEFAULT_ATOL):
+def _near_mod_2(e, t, atol=fsim_gate_family.DEFAULT_ATOL):
     """Returns whether a value, e, translated by t, is equal to 0 mod 2."""
     return _near_mod_n(e, t, n=2, atol=atol)
 
@@ -508,72 +500,30 @@ SQRT_ISWAP_DESERIALIZERS = [
     ),
 ]
 
-
-#
-# FSim serializer
-# Only allows iswap, sqrt_iswap and their inverses, iswap, CZ, identity, and sycamore
-# Note that not all combinations may not be available on all processors
-def _can_serialize_limited_fsim(theta: float, phi: float):
-    # Symbols for LIMITED_FSIM are allowed, but may fail server-side
-    # if an incorrect run context is specified
-    if _near_mod_2pi(phi, 0) or isinstance(phi, sympy.Symbol):
-        if isinstance(theta, sympy.Symbol):
-            return True
-        # Identity
-        if _near_mod_2pi(theta, 0):
-            return True
-        # sqrt ISWAP
-        if _near_mod_2pi(theta, -np.pi / 4):
-            return True
-        # inverse sqrt ISWAP
-        if _near_mod_2pi(theta, np.pi / 4):
-            return True
-        # ISWAP
-        if _near_mod_2pi(theta, -np.pi / 2):
-            return True
-        # Inverse ISWAP
-        if _near_mod_2pi(theta, np.pi / 2):
-            return True
-    # Sycamore
-    if (
-        (_near_mod_2pi(theta, np.pi / 2) or isinstance(theta, sympy.Symbol))
-        and (_near_mod_2pi(phi, np.pi / 6))
-        or isinstance(phi, sympy.Symbol)
-    ):
-        return True
-    # CZ
-    if (
-        (_near_mod_2pi(theta, 0) or isinstance(theta, sympy.Symbol))
-        and (_near_mod_2pi(phi, np.pi))
-        or isinstance(phi, sympy.Symbol)
-    ):
-        return True
-    return False
-
-
-def _can_serialize_limited_iswap(exponent: float):
-    # Symbols for LIMITED_FSIM are allowed, but may fail server-side
-    # if an incorrect run context is specified
-    if isinstance(exponent, sympy.Symbol):
-        return True
-    # Sqrt ISWAP
-    if _near_mod_n(exponent, 0.5, 4):
-        return True
-    # Inverse Sqrt ISWAP
-    if _near_mod_n(exponent, -0.5, 4):
-        return True
-    # ISWAP
-    if _near_mod_n(exponent, -1.0, 4):
-        return True
-    # Inverse ISWAP
-    if _near_mod_n(exponent, 1.0, 4):
-        return True
-    # Identity
-    if _near_mod_n(exponent, 0.0, 4):
-        return True
-    return False
-
-
+_LIMITED_FSIM_GATE_FAMILY = fsim_gate_family.FSimGateFamily(
+    gates_to_accept=[
+        cirq.IdentityGate(2),
+        cirq.SQRT_ISWAP_INV,
+        cirq.SQRT_ISWAP,
+        cirq.ISWAP,
+        cirq.ISWAP ** -1,  # type: ignore
+        SYC,
+        cirq.CZ,
+    ],
+    gate_types_to_check=[cirq.FSimGate],
+    allow_symbols=True,
+)
+_LIMITED_ISWAP_GATE_FAMILY = fsim_gate_family.FSimGateFamily(
+    gates_to_accept=[
+        cirq.IdentityGate(2),
+        cirq.SQRT_ISWAP_INV,
+        cirq.SQRT_ISWAP,
+        cirq.ISWAP,
+        cirq.ISWAP ** -1,  # type: ignore
+    ],
+    gate_types_to_check=[cirq.ISwapPowGate],
+    allow_symbols=True,
+)
 LIMITED_FSIM_SERIALIZERS = [
     op_serializer.GateOpSerializer(
         gate_type=cirq.FSimGate,
@@ -587,11 +537,7 @@ LIMITED_FSIM_SERIALIZERS = [
             ),
             _phase_match_arg,
         ],
-        can_serialize_predicate=(
-            lambda op: _can_serialize_limited_fsim(
-                cast(cirq.FSimGate, op.gate).theta, cast(cirq.FSimGate, op.gate).phi
-            )
-        ),
+        can_serialize_predicate=(lambda op: op in _LIMITED_FSIM_GATE_FAMILY),
     ),
     op_serializer.GateOpSerializer(
         gate_type=cirq.ISwapPowGate,
@@ -608,9 +554,7 @@ LIMITED_FSIM_SERIALIZERS = [
             ),
             _phase_match_arg,
         ],
-        can_serialize_predicate=(
-            lambda op: _can_serialize_limited_iswap(cast(cirq.ISwapPowGate, op.gate).exponent)
-        ),
+        can_serialize_predicate=(lambda op: op in _LIMITED_ISWAP_GATE_FAMILY),
     ),
     op_serializer.GateOpSerializer(
         gate_type=cirq.CZPowGate,

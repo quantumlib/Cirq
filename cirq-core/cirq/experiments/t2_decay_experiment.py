@@ -35,8 +35,6 @@ class ExperimentType(enum.Enum):
 _T2_COLUMNS = ['delay_ns', 0, 1]
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def t2_decay(
     sampler: 'cirq.Sampler',
     *,
@@ -123,8 +121,14 @@ def t2_decay(
              from min_delay to max_delay with linear steps.
         num_pulses: For CPMG, a list of the number of pulses to use.
              If multiple pulses are specified, each will be swept on.
+
     Returns:
         A T2DecayResult object that stores and can plot the data.
+
+    Raises:
+        ValueError: If invalid parameters are specified, negative repetitions, max
+            less than min durations, negative min delays, or an unsupported experiment
+            configuraiton.
     """
     min_delay_dur = value.Duration(min_delay)
     max_delay_dur = value.Duration(max_delay)
@@ -220,7 +224,6 @@ def t2_decay(
     return T2DecayResult(x_basis_tabulation, y_basis_tabulation)
 
 
-# pylint: enable=missing-raises-doc
 def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
     """Returns a sum of 0 and 1 results per index from a list of measurements."""
     if 'num_pulses' in measurements.columns:
@@ -280,15 +283,17 @@ class T2DecayResult:
     the data to calculate estimated T2 phase decay times.
     """
 
-    # TODO(#3388) Add documentation for Args.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(self, x_basis_data: pd.DataFrame, y_basis_data: pd.DataFrame):
         """Inits T2DecayResult.
 
         Args:
-            data: A data frame with three columns:
-                delay_ns, false_count, true_count.
+            x_basis_data: Data frame in x basis with three columns: delay_ns,
+                false_count, and true_count.
+            y_basis_data: Data frame in y basis with three columns: delay_ns,
+                false_count,  and true_count.
+
+        Raises:
+            ValueError: If the supplied data does not have the proper columns.
         """
         x_cols = list(x_basis_data.columns)
         y_cols = list(y_basis_data.columns)
@@ -307,13 +312,15 @@ class T2DecayResult:
         self._expectation_pauli_x = self._expectation(x_basis_data)
         self._expectation_pauli_y = self._expectation(y_basis_data)
 
-    # pylint: enable=missing-param-doc,missing-raises-doc
     def _expectation(self, data: pd.DataFrame) -> pd.DataFrame:
         """Calculates the expected value of the Pauli operator.
 
         Assuming that the data is measured in the Pauli basis of the operator,
         then the expectation of the Pauli operator would be +1 if the
         measurement is all ones and -1 if the measurement is all zeros.
+
+        Args:
+            data: measurement data to compute the expecation for.
 
         Returns:
             Data frame with columns 'delay_ns', 'num_pulses' and 'value'

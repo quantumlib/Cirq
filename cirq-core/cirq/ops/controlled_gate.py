@@ -29,8 +29,6 @@ class ControlledGate(raw_types.Gate):
     This object is typically created via `gate.controlled()`.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         sub_gate: 'cirq.Gate',
@@ -54,6 +52,10 @@ class ControlledGate(raw_types.Gate):
                 expected dimension of each control qid.  Defaults to
                 `(2,) * num_controls`.  Specify this argument when using qudits.
 
+        Raises:
+            ValueError: If the `control_values` or `control_qid_shape` does not
+                match with `num_conrols`, or if the `control_values` are out of
+                bounds.
         """
         if num_controls is None:
             if control_values is not None:
@@ -94,7 +96,6 @@ class ControlledGate(raw_types.Gate):
         else:
             self.sub_gate = sub_gate
 
-    # pylint: enable=missing-raises-doc
     def num_controls(self) -> int:
         return len(self.control_qid_shape)
 
@@ -209,7 +210,7 @@ class ControlledGate(raw_types.Gate):
             ),
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
-            qubit_map=args.qubit_map,
+            label_map=args.label_map,
         )
         sub_info = protocols.circuit_diagram_info(self.sub_gate, sub_args, None)
         if sub_info is None:

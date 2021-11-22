@@ -50,7 +50,6 @@ import networkx
 import numpy as np
 
 import cirq._version
-from cirq._compat import deprecated
 from cirq import devices, ops, protocols, value, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
@@ -849,28 +848,6 @@ class AbstractCircuit(abc.ABC):
             qubits
         )
 
-    def _validate_op_tree_qids(self, op_tree: 'cirq.OP_TREE') -> None:
-        """Raises an exception if any operation in `op_tree` has qids that don't
-        match its qid shape.
-
-        Args:
-            op_tree: The operation to validate.
-
-        Raises:
-            ValueError: The operation had qids that don't match its qid shape.
-        """
-        # Cast from Iterable[Operation, Moment] because preserve_moments is
-        # False.
-        for op in cast(Iterable['cirq.Operation'], ops.flatten_op_tree(op_tree)):
-            if protocols.qid_shape(op) != protocols.qid_shape(op.qubits):
-                raise ValueError(
-                    'Invalid operation. '
-                    'An operation has qid shape <{!r}> but is on qids with '
-                    'shape <{!r}>. The operation is <{!r}>.'.format(
-                        protocols.qid_shape(op), protocols.qid_shape(op.qubits), op
-                    )
-                )
-
     def all_qubits(self) -> FrozenSet['cirq.Qid']:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
@@ -915,10 +892,6 @@ class AbstractCircuit(abc.ABC):
     def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
         return self.all_measurement_key_objs()
 
-    @deprecated(deadline='v0.13', fix='use all_measurement_key_names instead')
-    def all_measurement_keys(self) -> AbstractSet[str]:
-        return self.all_measurement_key_names()
-
     def all_measurement_key_names(self) -> AbstractSet[str]:
         return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
 
@@ -933,6 +906,11 @@ class AbstractCircuit(abc.ABC):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return self._with_sliced_moments(
             [protocols.with_key_path(moment, path) for moment in self.moments]
+        )
+
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return self._with_sliced_moments(
+            [protocols.with_key_path_prefix(moment, prefix) for moment in self.moments]
         )
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -1141,8 +1119,6 @@ class AbstractCircuit(abc.ABC):
             use_unicode_characters=use_unicode_characters,
         )
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def to_text_diagram_drawer(
         self,
         *,
@@ -1164,6 +1140,7 @@ class AbstractCircuit(abc.ABC):
                 allowed (as opposed to ascii-only diagrams).
             qubit_namer: Names qubits in diagram. Defaults to str.
             transpose: Arranges qubit wires vertically instead of horizontally.
+            include_tags: Whether to include tags in the operation.
             draw_moment_groups: Whether to draw moment symbol or not
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
@@ -1174,18 +1151,32 @@ class AbstractCircuit(abc.ABC):
             The TextDiagramDrawer instance.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
-        qubit_map = {qubits[i]: i for i in range(len(qubits))}
+        cbits = tuple(
+            sorted(
+                (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
+            )
+        )
+        labels = qubits + cbits
+        label_map = {labels[i]: i for i in range(len(labels))}
+
+        def default_namer(label_entity):
+            return str(label_entity) + ('' if transpose else ': ')
 
         if qubit_namer is None:
-            qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
+            qubit_namer = default_namer
         diagram = TextDiagramDrawer()
         diagram.write(0, 0, '')
-        for q, i in qubit_map.items():
-            diagram.write(0, i, qubit_namer(q))
-        first_annotation_row = max(qubit_map.values(), default=0) + 1
+        for label_entity, i in label_map.items():
+            name = (
+                qubit_namer(label_entity)
+                if isinstance(label_entity, ops.Qid)
+                else default_namer(label_entity)
+            )
+            diagram.write(0, i, name)
+        first_annotation_row = max(label_map.values(), default=0) + 1
 
         if any(isinstance(op.untagged, cirq.GlobalPhaseOperation) for op in self.all_operations()):
-            diagram.write(0, max(qubit_map.values(), default=0) + 1, 'global phase:')
+            diagram.write(0, max(label_map.values(), default=0) + 1, 'global phase:')
             first_annotation_row += 1
 
         moment_groups = []  # type: List[Tuple[int, int]]
@@ -1193,7 +1184,7 @@ class AbstractCircuit(abc.ABC):
             _draw_moment_in_diagram(
                 moment=moment,
                 use_unicode_characters=use_unicode_characters,
-                qubit_map=qubit_map,
+                label_map=label_map,
                 out_diagram=diagram,
                 precision=precision,
                 moment_groups=moment_groups,
@@ -1203,8 +1194,8 @@ class AbstractCircuit(abc.ABC):
             )
 
         w = diagram.width()
-        for i in qubit_map.values():
-            diagram.horizontal_line(i, 0, w)
+        for i in label_map.values():
+            diagram.horizontal_line(i, 0, w, doubled=not isinstance(labels[i], ops.Qid))
 
         if moment_groups and draw_moment_groups:
             _draw_moment_groups_in_diagram(moment_groups, use_unicode_characters, diagram)
@@ -1214,7 +1205,6 @@ class AbstractCircuit(abc.ABC):
 
         return diagram
 
-    # pylint: enable=missing-param-doc
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(op) for op in self.all_operations())
 
@@ -1303,8 +1293,6 @@ class AbstractCircuit(abc.ABC):
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def zip(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
@@ -1323,14 +1311,14 @@ class AbstractCircuit(abc.ABC):
 
         Args:
             circuits: The circuits to merge together.
+            align: The alignment for the zip, see `cirq.Alignment`.
 
         Returns:
             The merged circuit.
 
         Raises:
-            ValueError:
-                The zipped circuits have overlapping operations occurring at the
-                same moment index.
+            ValueError: If the zipped circuits have overlapping operations occurring
+                at the same moment index.
 
         Examples:
             >>> import cirq
@@ -1380,7 +1368,6 @@ class AbstractCircuit(abc.ABC):
                 ) from ex
         return result
 
-    # pylint: enable=missing-param-doc
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
@@ -1710,7 +1697,6 @@ class Circuit(AbstractCircuit):
             if not isinstance(value, ops.Moment):
                 raise TypeError('Can only assign Moments into Circuits.')
             self._device.validate_moment(value)
-            self._validate_op_tree_qids(value)
 
         if isinstance(key, slice):
             value = list(value)
@@ -1718,7 +1704,6 @@ class Circuit(AbstractCircuit):
                 raise TypeError('Can only assign Moments into Circuits.')
             for moment in value:
                 self._device.validate_moment(moment)
-                self._validate_op_tree_qids(moment)
 
         self._moments[key] = value
 
@@ -1834,8 +1819,6 @@ class Circuit(AbstractCircuit):
 
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def transform_qubits(
         self,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
@@ -1858,6 +1841,9 @@ class Circuit(AbstractCircuit):
         Returns:
             The receiving circuit but with qubits transformed by the given
                 function, and with an updated device (if specified).
+
+        Raises:
+            TypeError: If `qubit_function` is not a function or a dict.
         """
         if callable(qubit_map):
             transform = qubit_map
@@ -1869,13 +1855,17 @@ class Circuit(AbstractCircuit):
             new_device=self.device if new_device is None else new_device, qubit_mapping=transform
         )
 
-    # pylint: enable=missing-raises-doc
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
+        op_control_keys = protocols.control_keys(op)
+        op_qubits = op.qubits
         while k > 0:
             k -= 1
-            if not self._can_commute_past(k, op):
+            moment = self._moments[k]
+            if moment.operates_on(op_qubits) or (
+                op_control_keys & protocols.measurement_key_objs(moment)
+            ):
                 return last_available
             if self._can_add_op_at(k, op):
                 last_available = k
@@ -1929,9 +1919,6 @@ class Circuit(AbstractCircuit):
             return True
         return self._device.can_add_operation_into_moment(operation, self._moments[moment_index])
 
-    def _can_commute_past(self, moment_index: int, operation: 'cirq.Operation') -> bool:
-        return not self._moments[moment_index].operates_on(operation.qubits)
-
     def insert(
         self,
         index: int,
@@ -1971,7 +1958,6 @@ class Circuit(AbstractCircuit):
                 self._device.validate_moment(cast(ops.Moment, moment_or_op))
             else:
                 self._device.validate_operation(cast(ops.Operation, moment_or_op))
-            self._validate_op_tree_qids(moment_or_op)
 
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
@@ -2015,7 +2001,6 @@ class Circuit(AbstractCircuit):
         flat_ops = list(ops.flatten_to_ops(operations))
         for op in flat_ops:
             self._device.validate_operation(op)
-        self._validate_op_tree_qids(flat_ops)
 
         i = start
         op_index = 0
@@ -2106,8 +2091,6 @@ class Circuit(AbstractCircuit):
                 self._moments[moment_index].operations + tuple(new_ops)
             )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def insert_at_frontier(
         self, operations: 'cirq.OP_TREE', start: int, frontier: Dict['cirq.Qid', int] = None
     ) -> Dict['cirq.Qid', int]:
@@ -2118,6 +2101,9 @@ class Circuit(AbstractCircuit):
             start: The moment at which to start inserting the operations.
             frontier: frontier[q] is the earliest moment in which an operation
                 acting on qubit q can be placed.
+
+        Raises:
+            ValueError: If the frontier given is after start.
         """
         if frontier is None:
             frontier = defaultdict(lambda: 0)
@@ -2141,7 +2127,6 @@ class Circuit(AbstractCircuit):
 
         return frontier
 
-    # pylint: enable=missing-raises-doc
     def batch_remove(self, removals: Iterable[Tuple[int, 'cirq.Operation']]) -> None:
         """Removes several operations from a circuit.
 
@@ -2210,7 +2195,6 @@ class Circuit(AbstractCircuit):
         for i, insertions in insert_intos:
             copy._moments[i] = copy._moments[i].with_operations(insertions)
         self._device.validate_circuit(copy)
-        self._validate_op_tree_qids(copy)
         self._moments = copy._moments
 
     def batch_insert(self, insertions: Iterable[Tuple[int, 'cirq.OP_TREE']]) -> None:
@@ -2371,7 +2355,7 @@ def _draw_moment_annotations(
     moment: 'cirq.Moment',
     col: int,
     use_unicode_characters: bool,
-    qubit_map: Dict['cirq.Qid', int],
+    label_map: Dict['cirq.LabelEntity', int],
     out_diagram: TextDiagramDrawer,
     precision: Optional[int],
     get_circuit_diagram_info: Callable[
@@ -2386,7 +2370,7 @@ def _draw_moment_annotations(
             known_qubits=(),
             known_qubit_count=0,
             use_unicode_characters=use_unicode_characters,
-            qubit_map=qubit_map,
+            label_map=label_map,
             precision=precision,
             include_tags=include_tags,
         )
@@ -2401,7 +2385,7 @@ def _draw_moment_in_diagram(
     *,
     moment: 'cirq.Moment',
     use_unicode_characters: bool,
-    qubit_map: Dict['cirq.Qid', int],
+    label_map: Dict['cirq.LabelEntity', int],
     out_diagram: TextDiagramDrawer,
     precision: Optional[int],
     moment_groups: List[Tuple[int, int]],
@@ -2419,7 +2403,12 @@ def _draw_moment_in_diagram(
 
     max_x = x0
     for op in non_global_ops:
-        indices = [qubit_map[q] for q in op.qubits]
+        qubits = tuple(op.qubits)
+        cbits = tuple(
+            (protocols.measurement_key_objs(op) | protocols.control_keys(op)) & label_map.keys()
+        )
+        labels = qubits + cbits
+        indices = [label_map[label] for label in labels]
         y1 = min(indices)
         y2 = max(indices)
 
@@ -2433,7 +2422,7 @@ def _draw_moment_in_diagram(
             known_qubits=op.qubits,
             known_qubit_count=len(op.qubits),
             use_unicode_characters=use_unicode_characters,
-            qubit_map=qubit_map,
+            label_map=label_map,
             precision=precision,
             include_tags=include_tags,
         )
@@ -2441,17 +2430,15 @@ def _draw_moment_in_diagram(
 
         # Draw vertical line linking the gate's qubits.
         if y2 > y1 and info.connected:
-            out_diagram.vertical_line(x, y1, y2)
+            out_diagram.vertical_line(x, y1, y2, doubled=len(cbits) != 0)
 
         # Print gate qubit labels.
         symbols = info._wire_symbols_including_formatted_exponent(
             args,
-            preferred_exponent_index=max(
-                range(len(op.qubits)), key=lambda i: qubit_map[op.qubits[i]]
-            ),
+            preferred_exponent_index=max(range(len(labels)), key=lambda i: label_map[labels[i]]),
         )
-        for s, q in zip(symbols, op.qubits):
-            out_diagram.write(x, qubit_map[q], s)
+        for s, q in zip(symbols, labels):
+            out_diagram.write(x, label_map[q], s)
 
         if x > max_x:
             max_x = x
@@ -2460,7 +2447,7 @@ def _draw_moment_in_diagram(
         moment=moment,
         use_unicode_characters=use_unicode_characters,
         col=x0,
-        qubit_map=qubit_map,
+        label_map=label_map,
         out_diagram=out_diagram,
         precision=precision,
         get_circuit_diagram_info=get_circuit_diagram_info,
@@ -2474,7 +2461,7 @@ def _draw_moment_in_diagram(
     if global_phase and (global_phase != 1 or not non_global_ops):
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
-            y = max(qubit_map.values(), default=0) + 1
+            y = max(label_map.values(), default=0) + 1
             if tags and include_tags:
                 desc = desc + str(tags)
             out_diagram.write(x0, y, desc)

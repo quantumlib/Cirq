@@ -237,7 +237,11 @@ def assert_has_diagram(
     # pylint: enable=unused-variable
     actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
-    assert actual_diagram == desired_diagram, (
+
+    def remove_subcircuit_labels(s: str):
+        return ''.join(line for line in s.splitlines() if 'Circuit_0x' not in line)
+
+    assert remove_subcircuit_labels(actual_diagram) == remove_subcircuit_labels(desired_diagram), (
         "Circuit's text diagram differs from the desired diagram.\n"
         '\n'
         'Diagram of actual circuit:\n'
@@ -299,8 +303,6 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
         )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 1e-8) -> None:
     """Tests whether a value's _apply_unitary_ handles out-of-order axes.
 
@@ -313,6 +315,10 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 
     Args:
         val: The operation, gate, or other unitary object to test.
         atol: Absolute error tolerance.
+
+    Raises:
+        AssertionError: If `_apply_unitary_` acted differently on the
+            out-of-order axes than on the in-order axes.
     """
 
     # Only test custom apply unitary methods.
@@ -369,7 +375,6 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 
         )
 
 
-# pylint: enable=missing-raises-doc
 def assert_has_consistent_apply_unitary_for_various_exponents(
     val: Any, *, exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s'))
 ) -> None:

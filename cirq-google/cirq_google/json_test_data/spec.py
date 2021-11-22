@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import pathlib
 
 import cirq_google
@@ -36,7 +37,7 @@ TestSpec = ModuleJsonTestSpec(
         'EngineJob',
         'EngineProcessor',
         'EngineProgram',
-        'EngineTimeSlot',
+        'FSimGateFamily',
         'FSimPhaseCorrections',
         'NAMED_GATESETS',
         'ProtoVersion',
@@ -49,6 +50,7 @@ TestSpec = ModuleJsonTestSpec(
         'SerializingArg',
         'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'QuantumEngineSampler',
+        'ValidatingSampler',
         # Abstract:
         'ExecutableSpec',
     ],
@@ -60,10 +62,21 @@ TestSpec = ModuleJsonTestSpec(
             'QuantumExecutableGroup',
             'KeyValueExecutableSpec',
             'ExecutableResult',
+            'ExecutableGroupResult',
+            'QuantumRuntimeConfiguration',
             'RuntimeInfo',
             'SharedRuntimeInfo',
+            'ExecutableGroupResultFilesystemRecord',
         ]
     },
+    tested_elsewhere=[
+        # Until `AbstractEngineProcessor` is implemented, we are using
+        # `AbstractEngineProcessorShim` and a mocked implementation for the `processor` argument
+        # in tests for `QuantumRuntimeConfiguration` (which is copied into `ExecutableGroupResult`).
+        # Therefore, we test json roundtrippability for these two classes in quantum_runtime_test.py
+        'cirq.google.QuantumRuntimeConfiguration',
+        'cirq.google.ExecutableGroupResult',
+    ],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={},
 )

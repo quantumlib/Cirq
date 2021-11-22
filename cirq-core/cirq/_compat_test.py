@@ -455,7 +455,7 @@ def _import_parent_use_constant_from_deprecated_module_attribute():
     # the parent should have fake_a set on it as an attribute - just like
     # a regular module import (e.g. cirq.ops)
     # should have a DUPE_CONSTANT as its imported from the dupe submodule
-    assert cirq.testing._compat_test_data.fake_a.DUPE_CONSTANT == False
+    assert cirq.testing._compat_test_data.fake_a.DUPE_CONSTANT is False
 
     assert 'module_a for module deprecation tests' in cirq.testing._compat_test_data.fake_a.__doc__
     assert 'Test module for deprecation testing' in cirq.testing._compat_test_data.__doc__
@@ -467,7 +467,7 @@ def _import_deprecated_sub_use_constant():
     import cirq.testing._compat_test_data.fake_a.dupe  # type: ignore
 
     # should have a DUPE_CONSTANT as its defined on it, set to False
-    assert cirq.testing._compat_test_data.fake_a.dupe.DUPE_CONSTANT == False
+    assert cirq.testing._compat_test_data.fake_a.dupe.DUPE_CONSTANT is False
 
 
 def _import_deprecated_same_name_in_earlier_subtree():

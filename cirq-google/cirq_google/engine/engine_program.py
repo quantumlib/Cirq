@@ -62,8 +62,6 @@ class EngineProgram:
         self._program = _program
         self.result_type = result_type
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def run_sweep(
         self,
         job_id: Optional[str] = None,
@@ -94,6 +92,9 @@ class EngineProgram:
         Returns:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
+
+        Raises:
+            ValueError: If called on a program that is a batch of programs.
         """
         import cirq_google.engine.engine as engine_base
 
@@ -117,7 +118,6 @@ class EngineProgram:
             self.project_id, self.program_id, created_job_id, self.context, job
         )
 
-    # pylint: enable=missing-raises-doc
     def run_batch(
         self,
         job_id: Optional[str] = None,
@@ -204,8 +204,6 @@ class EngineProgram:
             result_type=ResultType.Batch,
         )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def run_calibration(
         self,
         job_id: Optional[str] = None,
@@ -233,7 +231,10 @@ class EngineProgram:
             labels: Optional set of labels to set on the job.
 
         Returns:
-            An EngineJob.  Results can be accessed with calibration_results().
+            An EngineJob. Results can be accessed with calibration_results().
+
+        Raises:
+            ValueError: If no processors are specified.
         """
         import cirq_google.engine.engine as engine_base
 
@@ -266,7 +267,6 @@ class EngineProgram:
             result_type=ResultType.Batch,
         )
 
-    # pylint: enable=missing-raises-doc
     def run(
         self,
         job_id: Optional[str] = None,
