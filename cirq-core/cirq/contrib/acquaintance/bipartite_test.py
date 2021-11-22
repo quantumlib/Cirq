@@ -293,7 +293,7 @@ def test_bad_args():
         known_qubit_count=None,
         use_unicode_characters=True,
         precision=3,
-        qubit_map=None,
+        label_map=None,
     )
     with pytest.raises(NotImplementedError):
         gate._circuit_diagram_info_(args)

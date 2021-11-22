@@ -1150,27 +1150,33 @@ class AbstractCircuit(abc.ABC):
         Returns:
             The TextDiagramDrawer instance.
         """
-        qubits: Tuple[Any, ...] = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits()
-        )
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
                 (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
             )
         )
-        qubits = qubits + cbits
-        qubit_map = {qubits[i]: i for i in range(len(qubits))}
+        labels = qubits + cbits
+        label_map = {labels[i]: i for i in range(len(labels))}
+
+        def default_namer(label_entity):
+            return str(label_entity) + ('' if transpose else ': ')
 
         if qubit_namer is None:
-            qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
+            qubit_namer = default_namer
         diagram = TextDiagramDrawer()
         diagram.write(0, 0, '')
-        for q, i in qubit_map.items():
-            diagram.write(0, i, qubit_namer(q))
-        first_annotation_row = max(qubit_map.values(), default=0) + 1
+        for label_entity, i in label_map.items():
+            name = (
+                qubit_namer(label_entity)
+                if isinstance(label_entity, ops.Qid)
+                else default_namer(label_entity)
+            )
+            diagram.write(0, i, name)
+        first_annotation_row = max(label_map.values(), default=0) + 1
 
         if any(isinstance(op.untagged, cirq.GlobalPhaseOperation) for op in self.all_operations()):
-            diagram.write(0, max(qubit_map.values(), default=0) + 1, 'global phase:')
+            diagram.write(0, max(label_map.values(), default=0) + 1, 'global phase:')
             first_annotation_row += 1
 
         moment_groups = []  # type: List[Tuple[int, int]]
@@ -1178,7 +1184,7 @@ class AbstractCircuit(abc.ABC):
             _draw_moment_in_diagram(
                 moment=moment,
                 use_unicode_characters=use_unicode_characters,
-                qubit_map=qubit_map,
+                label_map=label_map,
                 out_diagram=diagram,
                 precision=precision,
                 moment_groups=moment_groups,
@@ -1188,8 +1194,8 @@ class AbstractCircuit(abc.ABC):
             )
 
         w = diagram.width()
-        for i in qubit_map.values():
-            diagram.horizontal_line(i, 0, w, doubled=not isinstance(qubits[i], ops.Qid))
+        for i in label_map.values():
+            diagram.horizontal_line(i, 0, w, doubled=not isinstance(labels[i], ops.Qid))
 
         if moment_groups and draw_moment_groups:
             _draw_moment_groups_in_diagram(moment_groups, use_unicode_characters, diagram)
@@ -2349,7 +2355,7 @@ def _draw_moment_annotations(
     moment: 'cirq.Moment',
     col: int,
     use_unicode_characters: bool,
-    qubit_map: Dict['cirq.Qid', int],
+    label_map: Dict['cirq.LabelEntity', int],
     out_diagram: TextDiagramDrawer,
     precision: Optional[int],
     get_circuit_diagram_info: Callable[
@@ -2364,7 +2370,7 @@ def _draw_moment_annotations(
             known_qubits=(),
             known_qubit_count=0,
             use_unicode_characters=use_unicode_characters,
-            qubit_map=qubit_map,
+            label_map=label_map,
             precision=precision,
             include_tags=include_tags,
         )
@@ -2379,7 +2385,7 @@ def _draw_moment_in_diagram(
     *,
     moment: 'cirq.Moment',
     use_unicode_characters: bool,
-    qubit_map: Dict['cirq.Qid', int],
+    label_map: Dict['cirq.LabelEntity', int],
     out_diagram: TextDiagramDrawer,
     precision: Optional[int],
     moment_groups: List[Tuple[int, int]],
@@ -2397,12 +2403,12 @@ def _draw_moment_in_diagram(
 
     max_x = x0
     for op in non_global_ops:
-        qubits: Tuple[Any, ...] = tuple(op.qubits)
+        qubits = tuple(op.qubits)
         cbits = tuple(
-            (protocols.measurement_key_objs(op) | protocols.control_keys(op)) & qubit_map.keys()
+            (protocols.measurement_key_objs(op) | protocols.control_keys(op)) & label_map.keys()
         )
-        qubits += cbits
-        indices = [qubit_map[q] for q in qubits]
+        labels = qubits + cbits
+        indices = [label_map[label] for label in labels]
         y1 = min(indices)
         y2 = max(indices)
 
@@ -2416,7 +2422,7 @@ def _draw_moment_in_diagram(
             known_qubits=op.qubits,
             known_qubit_count=len(op.qubits),
             use_unicode_characters=use_unicode_characters,
-            qubit_map=qubit_map,
+            label_map=label_map,
             precision=precision,
             include_tags=include_tags,
         )
@@ -2429,10 +2435,10 @@ def _draw_moment_in_diagram(
         # Print gate qubit labels.
         symbols = info._wire_symbols_including_formatted_exponent(
             args,
-            preferred_exponent_index=max(range(len(qubits)), key=lambda i: qubit_map[qubits[i]]),
+            preferred_exponent_index=max(range(len(labels)), key=lambda i: label_map[labels[i]]),
         )
-        for s, q in zip(symbols, qubits):
-            out_diagram.write(x, qubit_map[q], s)
+        for s, q in zip(symbols, labels):
+            out_diagram.write(x, label_map[q], s)
 
         if x > max_x:
             max_x = x
@@ -2441,7 +2447,7 @@ def _draw_moment_in_diagram(
         moment=moment,
         use_unicode_characters=use_unicode_characters,
         col=x0,
-        qubit_map=qubit_map,
+        label_map=label_map,
         out_diagram=out_diagram,
         precision=precision,
         get_circuit_diagram_info=get_circuit_diagram_info,
@@ -2455,7 +2461,7 @@ def _draw_moment_in_diagram(
     if global_phase and (global_phase != 1 or not non_global_ops):
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
-            y = max(qubit_map.values(), default=0) + 1
+            y = max(label_map.values(), default=0) + 1
             if tags and include_tags:
                 desc = desc + str(tags)
             out_diagram.write(x0, y, desc)
