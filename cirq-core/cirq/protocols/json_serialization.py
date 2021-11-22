@@ -128,17 +128,20 @@ class SupportsJSON(Protocol):
         pass
 
 
-class HasCustomJSONCirqType(Protocol):
-    """An object which does not conform to normal cirq type naming.
+class HasJSONNamespace(Protocol):
+    """An object which prepends a namespace to its JSON cirq_type.
 
-    Most objects in Cirq use cls.__name__ for their JSON 'cirq_type' field.
-    Classes which do not do so must implement this protocol, returning the
-    alternative cirq_type value from `_json_cirq_type_`.
+    Classes which implement this method have the following cirq_type format:
+
+        f"{obj._json_namespace_()}.{obj.__class__.__name__}
+
+    Classes outside of Cirq or its submodules MUST implement this method to be
+    used in type serialization.
     """
 
     @doc_private
     @classmethod
-    def _json_cirq_type_(cls) -> str:
+    def _json_namespace_(cls) -> str:
         pass
 
 
@@ -513,32 +516,41 @@ def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
     return []
 
 
+def json_namespace(type_obj: Type) -> str:
+    """Returns a namespace for JSON serialization of `type_obj`.
+
+    Types can provide custom namespaces with `_json_namespace_`; otherwise, a
+    Cirq type will not include a namespace in its cirq_type. Non-Cirq types
+    must provide a namespace for serialization in Cirq.
+
+    Args:
+        type_obj: Type to retrieve the namespace from.
+
+    Returns:
+        The namespace to prepend `type_obj` with in its JSON cirq_type.
+
+    Raises:
+        ValueError: if `type_obj` is not a Cirq type and does not explicitly
+            define its namespace with _json_namespace_.
+    """
+    if hasattr(type_obj, '_json_namespace_'):
+        return type_obj._json_namespace_()
+    if type_obj.__module__.startswith('cirq'):
+        return ''
+    raise ValueError(f'{type_obj} is not a Cirq type, and does not define _json_namespace_.')
+
+
 def json_cirq_type(type_obj: Type) -> str:
     """Returns a string type for JSON serialization of `type_obj`.
-
-    Types can provide custom string types with `_json_cirq_type_`; otherwise, a
-    Cirq type will use its type name as its string type. Non-Cirq types do not
-    have a json_cirq_type value.
 
     This method is not part of the base serialization path. Together with
     `cirq_type_from_json`, it can be used to provide type-object serialization
     for classes that need it.
-
-    Args:
-        type_obj: a Type to be converted to its string identifier.
-
-    Returns:
-        A string which uniquely identifies `type_obj`.
-
-    Raises:
-        ValueError: if `type_obj` is not a Cirq type and does not explicitly
-            define its string representation with _json_cirq_type_.
     """
-    if hasattr(type_obj, '_json_cirq_type_'):
-        return type_obj._json_cirq_type_()
-    if type_obj.__module__.startswith('cirq'):
-        return type_obj.__name__
-    raise ValueError(f'{type_obj} is not a Cirq type, and does not define _json_cirq_type_.')
+    namespace = json_namespace(type_obj)
+    if namespace:
+        return f'{namespace}.{type_obj.__name__}'
+    return type_obj.__name__
 
 
 def factory_from_json(

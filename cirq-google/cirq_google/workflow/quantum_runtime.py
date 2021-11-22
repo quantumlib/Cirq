@@ -44,11 +44,11 @@ class SharedRuntimeInfo:
     run_id: str
 
     @classmethod
-    def _json_cirq_type_(cls) -> str:
-        return 'cirq.google.SharedRuntimeInfo'
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self, namespace=cirq.json_namespace(type(self)))
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -68,11 +68,11 @@ class RuntimeInfo:
     execution_index: int
 
     @classmethod
-    def _json_cirq_type_(cls) -> str:
-        return 'cirq.google.RuntimeInfo'
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self, namespace=cirq.json_namespace(type(self)))
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -94,11 +94,11 @@ class ExecutableResult:
     raw_data: cirq.Result
 
     @classmethod
-    def _json_cirq_type_(cls) -> str:
-        return 'cirq.google.ExecutableResult'
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self, namespace=cirq.json_namespace(type(self)))
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
