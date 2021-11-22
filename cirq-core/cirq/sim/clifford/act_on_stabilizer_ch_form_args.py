@@ -63,7 +63,11 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
-        strats = [self._strat_apply_to_ch_form, self._strat_apply_mixture_to_ch_form, self._strat_decompose]
+        strats = [
+            self._strat_apply_to_ch_form,
+            self._strat_apply_mixture_to_ch_form,
+            self._strat_decompose,
+        ]
         if allow_decompose:
             strats.append(self._strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
         for strat in strats:
@@ -245,9 +249,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
 
         return NotImplemented
 
-    def _strat_decompose(
-        self, val: Any, qubits: Sequence['cirq.Qid']
-    ) -> bool:
+    def _strat_decompose(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         gate = val.gate if isinstance(val, ops.Operation) else val
         operations = protocols.decompose_once_with_qubits(gate, qubits, None)
         if operations is None or not all(protocols.has_stabilizer_effect(op) for op in operations):
