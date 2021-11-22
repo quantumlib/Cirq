@@ -15,11 +15,13 @@ import pytest
 import sympy
 
 import cirq
+import cirq.contrib.quimb
 
 ALL_SIMULATORS = (
     cirq.Simulator(),
     cirq.DensityMatrixSimulator(),
     cirq.CliffordSimulator(),
+    cirq.contrib.quimb.MPSSimulator(),
 )
 
 
@@ -299,19 +301,19 @@ def test_subcircuit_key_set(sim):
     assert result.measurements['3:b'] == 0
 
 
-def test_key_stacking():
+def test_condition_stacking():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_conditions('a').with_tags('t').with_conditions('b')
     assert set(map(str, cirq.control_keys(op))) == {'a', 'b'}
     assert not op.tags
 
 
-def test_key_removal():
+def test_condition_removal():
     q0 = cirq.LineQubit(0)
-    op = cirq.X(q0).with_conditions('a').with_tags('t').with_conditions('b')
+    op = cirq.X(q0).with_tags('t1').with_conditions('a').with_tags('t2').with_conditions('b')
     op = op.unconditionally()
     assert not cirq.control_keys(op)
-    assert set(map(str, op.tags)) == {'t'}
+    assert set(map(str, op.tags)) == {'t1'}
 
 
 def test_qubit_mapping():

@@ -789,7 +789,8 @@ class TaggedOperation(Operation):
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
 
     def unconditionally(self) -> Operation:
-        return TaggedOperation(self.sub_operation.unconditionally(), *self.tags)
+        new_sub_operation = self.sub_operation.unconditionally()
+        return self if new_sub_operation is self.sub_operation else new_sub_operation
 
     def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:
         return protocols.control_keys(self.sub_operation)
