@@ -253,7 +253,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         if operations is None or not all(protocols.has_stabilizer_effect(op) for op in operations):
             return NotImplemented
         for op in operations:
-            assert self._act_on_fallback_(op, op.qubits)
+            protocols.act_on(op, self)
         return True
 
 
