@@ -1150,9 +1150,7 @@ class AbstractCircuit(abc.ABC):
         Returns:
             The TextDiagramDrawer instance.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits()
-        )
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
                 (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
