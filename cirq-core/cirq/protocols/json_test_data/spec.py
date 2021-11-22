@@ -53,6 +53,7 @@ TestSpec = ModuleJsonTestSpec(
         'ParallelGateFamily',
         'PauliInteractionGate',
         'PauliStringPhasor',
+        'PauliStringPhasorGate',
         'PauliSum',
         'PauliSumCollector',
         'PauliSumExponential',

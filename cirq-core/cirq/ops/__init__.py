@@ -231,6 +231,7 @@ from cirq.ops.pauli_string import (
 
 from cirq.ops.pauli_string_phasor import (
     PauliStringPhasor,
+    PauliStringPhasorGate,
 )
 
 from cirq.ops.pauli_string_raw_types import (
