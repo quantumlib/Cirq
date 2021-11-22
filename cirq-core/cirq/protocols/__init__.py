@@ -44,11 +44,6 @@ from cirq.protocols.kraus_protocol import (
     has_kraus,
     SupportsKraus,
 )
-from cirq.protocols.clifford_protocols import (
-    as_paulis,
-    SupportsAsPaulis,
-    SupportsAsPaulisWithNondeterminism,
-)
 from cirq.protocols.commutes_protocol import (
     commutes,
     definitely_commutes,
