@@ -45,6 +45,15 @@ def _to_target_circuit_type(
     )
 
 
+def _create_target_circuit_type(ops: ops.OP_TREE, target_circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
+    return cast(
+        CIRCUIT_TYPE,
+        circuits.Circuit(ops)
+        if isinstance(target_circuit, circuits.Circuit)
+        else circuits.FrozenCircuit(ops),
+    )
+
+
 def map_moments(
     circuit: CIRCUIT_TYPE,
     map_func: Callable[[ops.Moment, int], Sequence[ops.Moment]],
@@ -55,7 +64,9 @@ def map_moments(
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         map_func: Mapping function from (cirq.Moment, moment_index) to a sequence of moments.
     """
-    return type(circuit)(map_func(circuit[i], i) for i in range(len(circuit)))
+    return _create_target_circuit_type(
+        (map_func(circuit[i], i) for i in range(len(circuit))), circuit
+    )
 
 
 def map_operations(
