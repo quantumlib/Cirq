@@ -521,6 +521,7 @@ from cirq.protocols import (
     json_serializable_dataclass,
     dataclass_json_dict,
     kraus,
+    LabelEntity,
     measurement_key_name,
     measurement_key_obj,
     measurement_key_names,
