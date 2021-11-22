@@ -86,6 +86,7 @@ def pauli_expansion(
         return default
 
     num_qubits = matrix.shape[0].bit_length() - 1
+
     if num_qubits == 0:
         return default
 
