@@ -401,3 +401,176 @@ def test_str():
     assert str(np.exp(0.5j * np.pi * cirq.X(q0) * cirq.Y(q1))) == 'exp(iπ0.5*X(q0)*Y(q1))'
     assert str(np.exp(-0.25j * np.pi * cirq.X(q0) * cirq.Y(q1))) == 'exp(-iπ0.25*X(q0)*Y(q1))'
     assert str(np.exp(0.5j * np.pi * cirq.PauliString())) == 'exp(iπ0.5*I)'
+
+
+def test_gate_init():
+    a = cirq.LineQubit(0)
+    with pytest.raises(ValueError, match='eigenvalues'):
+        _ = cirq.PauliStringPhasorGate(1j * cirq.X(a))
+
+    v1 = cirq.PauliStringPhasorGate(
+        cirq.DensePauliString('X', coefficient=-1), exponent_neg=0.25, exponent_pos=-0.5
+    )
+    assert v1.dense_pauli_string == cirq.DensePauliString('X')
+    assert v1.exponent_neg == -0.5
+    assert v1.exponent_pos == 0.25
+
+    v2 = cirq.PauliStringPhasorGate(
+        cirq.DensePauliString('X'), exponent_neg=0.75, exponent_pos=-0.125
+    )
+    assert v2.dense_pauli_string == cirq.DensePauliString('X')
+    assert v2.exponent_neg == 0.75
+    assert v2.exponent_pos == -0.125
+
+
+def test_gate_eq_ne_hash():
+    q0, q1, q2 = _make_qubits(3)
+    eq = cirq.testing.EqualsTester()
+    ps1 = cirq.X(q0) * cirq.Y(q1) * cirq.Z(q2)
+    ps2 = cirq.X(q0) * cirq.Y(q1) * cirq.X(q2)
+    eq.make_equality_group(
+        lambda: cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=0.5),
+        lambda: cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=-1.5),
+        lambda: cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=2.5),
+    )
+    eq.make_equality_group(
+        lambda: cirq.PauliStringPhasorGate(-cirq.DensePauliString(''), exponent_neg=-0.5)
+    )
+    eq.add_equality_group(
+        cirq.PauliStringPhasorGate(ps1), cirq.PauliStringPhasorGate(ps1, exponent_neg=1)
+    )
+    eq.add_equality_group(cirq.PauliStringPhasorGate(-ps1, exponent_neg=1))
+    eq.add_equality_group(
+        cirq.PauliStringPhasorGate(ps2), cirq.PauliStringPhasorGate(ps2, exponent_neg=1)
+    )
+    eq.add_equality_group(cirq.PauliStringPhasorGate(-ps2, exponent_neg=1))
+    eq.add_equality_group(cirq.PauliStringPhasorGate(ps2, exponent_neg=0.5))
+    eq.add_equality_group(cirq.PauliStringPhasorGate(-ps2, exponent_neg=-0.5))
+    eq.add_equality_group(cirq.PauliStringPhasorGate(ps1, exponent_neg=sympy.Symbol('a')))
+
+
+def test_gate_equal_up_to_global_phase():
+    a, b = cirq.LineQubit.range(2)
+    groups = [
+        [
+            cirq.PauliStringPhasorGate(cirq.DensePauliString('X'), exponent_neg=0.25),
+            cirq.PauliStringPhasorGate(
+                cirq.DensePauliString('X'), exponent_neg=0, exponent_pos=-0.25
+            ),
+            cirq.PauliStringPhasorGate(
+                cirq.DensePauliString('X'), exponent_pos=-0.125, exponent_neg=0.125
+            ),
+        ],
+        [
+            cirq.PauliStringPhasorGate(cirq.DensePauliString('X')),
+        ],
+        [
+            cirq.PauliStringPhasorGate(cirq.DensePauliString('Y'), exponent_neg=0.25),
+        ],
+        [
+            cirq.PauliStringPhasorGate(cirq.DensePauliString('XY'), exponent_neg=0.25),
+        ],
+    ]
+    for g1 in groups:
+        for e1 in g1:
+            assert not e1.equal_up_to_global_phase("not even close")
+            for g2 in groups:
+                for e2 in g2:
+                    assert e1.equal_up_to_global_phase(e2) == (g1 is g2)
+
+
+def test_gate_pow():
+    a = cirq.LineQubit(0)
+    s = cirq.DensePauliString('X')
+    p = cirq.PauliStringPhasorGate(s, exponent_neg=0.25, exponent_pos=0.5)
+    assert p ** 0.5 == cirq.PauliStringPhasorGate(s, exponent_neg=0.125, exponent_pos=0.25)
+    with pytest.raises(TypeError, match='unsupported operand'):
+        _ = p ** object()
+    assert p ** 1 == p
+
+
+def test_gate_consistent():
+    a, b = cirq.LineQubit.range(2)
+    gate = np.exp(1j * np.pi / 2 * cirq.X(a) * cirq.X(b))
+    cirq.testing.assert_implements_consistent_protocols(gate)
+
+
+def test_gate_extrapolate_effect():
+    gate1 = cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=0.5)
+    gate2 = cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=1.5)
+    gate3 = cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=0.125)
+    assert gate1 ** 3 == gate2
+    assert gate1 ** 0.25 == gate3
+
+
+def test_gate_extrapolate_effect_with_symbol():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=sympy.Symbol('a')),
+        cirq.PauliStringPhasorGate(cirq.DensePauliString('')) ** sympy.Symbol('a'),
+    )
+    eq.add_equality_group(
+        cirq.PauliStringPhasorGate(cirq.DensePauliString('')) ** sympy.Symbol('b')
+    )
+    eq.add_equality_group(
+        cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=0.5) ** sympy.Symbol('b')
+    )
+    eq.add_equality_group(
+        cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=sympy.Symbol('a')) ** 0.5
+    )
+    eq.add_equality_group(
+        cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=sympy.Symbol('a'))
+        ** sympy.Symbol('b')
+    )
+
+
+def test_gate_inverse():
+    i = cirq.DensePauliString('')
+    gate1 = cirq.PauliStringPhasorGate(i, exponent_neg=0.25)
+    gate2 = cirq.PauliStringPhasorGate(i, exponent_neg=-0.25)
+    gate3 = cirq.PauliStringPhasorGate(i, exponent_neg=sympy.Symbol('s'))
+    gate4 = cirq.PauliStringPhasorGate(i, exponent_neg=-sympy.Symbol('s'))
+    assert cirq.inverse(gate1) == gate2
+    assert cirq.inverse(gate3, None) == gate4
+
+
+def test_gate_is_parameterized():
+    gate = cirq.PauliStringPhasorGate(cirq.DensePauliString(''))
+    assert not cirq.is_parameterized(gate)
+    assert not cirq.is_parameterized(gate ** 0.1)
+    assert cirq.is_parameterized(gate ** sympy.Symbol('a'))
+
+
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_gate_with_parameters_resolved_by(resolve_fn):
+    gate = cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=sympy.Symbol('a'))
+    resolver = cirq.ParamResolver({'a': 0.1})
+    actual = resolve_fn(gate, resolver)
+    expected = cirq.PauliStringPhasorGate(cirq.DensePauliString(''), exponent_neg=0.1)
+    assert actual == expected
+
+
+def test_gate_repr():
+    cirq.testing.assert_equivalent_repr(
+        cirq.PauliStringPhasorGate(
+            cirq.DensePauliString('ZYX'),
+            exponent_neg=0.5,
+            exponent_pos=0.25,
+        )
+    )
+    cirq.testing.assert_equivalent_repr(
+        cirq.PauliStringPhasorGate(
+            -cirq.DensePauliString('YX'), exponent_neg=-0.5, exponent_pos=0.25
+        )
+    )
+
+
+def test_gate_str():
+    ps = cirq.PauliStringPhasorGate(cirq.DensePauliString('ZYX', coefficient=+1)) ** 0.5
+    assert str(ps) == '(+ZYX)**0.5'
+
+    ps = cirq.PauliStringPhasorGate(cirq.DensePauliString('ZYX', coefficient=+1)) ** -0.5
+    assert str(ps) == '(+ZYX)**-0.5'
+
+    ps = cirq.PauliStringPhasorGate(cirq.DensePauliString('ZYX', coefficient=-1)) ** -0.5
+    assert str(ps) == '(+ZYX)**0.5'

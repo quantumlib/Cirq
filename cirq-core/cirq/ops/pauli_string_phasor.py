@@ -279,6 +279,13 @@ class PauliStringPhasorGate(raw_types.Gate):
             exponent_pos=resolver.value_of(self._exponent_pos, recursive),
         )
 
+    def __repr__(self) -> str:
+        return (
+            f'cirq.PauliStringPhasorGate({self._dense_pauli_string!r}, '
+            f'exponent_neg={proper_repr(self.exponent_neg)}, '
+            f'exponent_pos={proper_repr(self.exponent_pos)})'
+        )
+
     def __str__(self) -> str:
         if self._exponent_pos == -self._exponent_neg:
             sign = '-' if self._exponent_pos < 0 else ''
