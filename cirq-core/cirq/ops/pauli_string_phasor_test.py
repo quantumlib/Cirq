@@ -572,7 +572,10 @@ def test_gate_str():
     )
     assert str(gate) == 'exp(iπ0.5*+ZYX)'
 
-    gate = cirq.PauliStringPhasorGate(
-        cirq.DensePauliString('ZYX'), exponent_pos=0.5, exponent_neg=-0.5
-    ) ** -0.5
+    gate = (
+        cirq.PauliStringPhasorGate(
+            cirq.DensePauliString('ZYX'), exponent_pos=0.5, exponent_neg=-0.5
+        )
+        ** -0.5
+    )
     assert str(gate) == 'exp(-iπ0.25*+ZYX)'
