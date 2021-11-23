@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for two qubit efficient two qubit state preparation methods."""
+"""Tests for efficient two qubit state preparation methods."""
 
 from copy import deepcopy
 
@@ -66,16 +66,22 @@ def test_prepare_two_qubit_state_using_cz(state):
     ops_2q = [*circuit.findall_operations(lambda op: cirq.num_qubits(op) > 1)]
     assert ops_cz == ops_2q
     assert len(ops_cz) <= 1
-    assert cirq.allclose_up_to_global_phase(circuit.final_state_vector(), state, atol=1e-3)
+    assert cirq.allclose_up_to_global_phase(circuit.final_state_vector(), state)
 
 
 @pytest.mark.parametrize("state", STATES_TO_PREPARE)
-def test_prepare_two_qubit_state_using_sqrt_iswap(state):
+@pytest.mark.parametrize("use_sqrt_iswap_inv", [True, False])
+def test_prepare_two_qubit_state_using_sqrt_iswap(state, use_sqrt_iswap_inv):
     state = cirq.to_valid_state_vector(state, num_qubits=2)
     q = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.prepare_two_qubit_state_using_sqrt_iswap(*q, state))
-    ops_cz = [*circuit.findall_operations(lambda op: op.gate == cirq.SQRT_ISWAP_INV)]
+    circuit = cirq.Circuit(
+        cirq.prepare_two_qubit_state_using_sqrt_iswap(
+            *q, state, use_sqrt_iswap_inv=use_sqrt_iswap_inv
+        )
+    )
+    sqrt_iswap_gate = cirq.SQRT_ISWAP_INV if use_sqrt_iswap_inv else cirq.SQRT_ISWAP
+    ops_iswap = [*circuit.findall_operations(lambda op: op.gate == sqrt_iswap_gate)]
     ops_2q = [*circuit.findall_operations(lambda op: cirq.num_qubits(op) > 1)]
-    assert ops_cz == ops_2q
-    assert len(ops_cz) <= 1
-    assert cirq.allclose_up_to_global_phase(circuit.final_state_vector(), state, atol=1e-3)
+    assert ops_iswap == ops_2q
+    assert len(ops_iswap) <= 1
+    assert cirq.allclose_up_to_global_phase(circuit.final_state_vector(), state)
