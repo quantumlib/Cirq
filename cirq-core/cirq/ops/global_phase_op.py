@@ -46,7 +46,7 @@ class GlobalPhaseOperation(gate_operation.GateOperation):
     )
     def coefficient(self, coefficient):
         # coverage: ignore
-        self._gate._coefficient = coefficient
+        self.gate._coefficient = coefficient
 
     def __str__(self) -> str:
         return str(self.coefficient)
@@ -70,21 +70,21 @@ class GlobalPhaseGate(raw_types.Gate):
         return self._coefficient
 
     def _value_equality_values_(self) -> Any:
-        return self._coefficient
+        return self.coefficient
 
     def _has_unitary_(self) -> bool:
         return True
 
     def __pow__(self, power):
         if isinstance(power, (int, float)):
-            return GlobalPhaseGate(self._coefficient ** power)
+            return GlobalPhaseGate(self.coefficient ** power)
         return NotImplemented
 
     def _unitary_(self) -> np.ndarray:
-        return np.array([[self._coefficient]])
+        return np.array([[self.coefficient]])
 
     def _apply_unitary_(self, args) -> np.ndarray:
-        args.target_tensor *= self._coefficient
+        args.target_tensor *= self.coefficient
         return args.target_tensor
 
     def _has_stabilizer_effect_(self) -> bool:
@@ -99,16 +99,16 @@ class GlobalPhaseGate(raw_types.Gate):
             return True
 
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            args.state.omega *= self._coefficient
+            args.state.omega *= self.coefficient
             return True
 
         return NotImplemented
 
     def __str__(self) -> str:
-        return str(self._coefficient)
+        return str(self.coefficient)
 
     def __repr__(self) -> str:
-        return f'cirq.GlobalPhaseGate({self._coefficient!r})'
+        return f'cirq.GlobalPhaseGate({self.coefficient!r})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['coefficient'])
