@@ -17,7 +17,7 @@ from typing import AbstractSet, Dict, Iterable, Union, TYPE_CHECKING, Sequence, 
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, deprecated
 from cirq.ops import (
     raw_types,
     common_gates,
@@ -75,13 +75,40 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def exponent_neg(self):
         return self._pauli_gate.exponent_neg
 
+    @exponent_neg.setter
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def exponent_neg(self, exponent_neg):
+        self._pauli_gate._exponent_neg = exponent_neg
+
     @property
     def exponent_pos(self):
         return self._pauli_gate.exponent_pos
 
+    @exponent_pos.setter
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def exponent_pos(self, exponent_pos):
+        self._pauli_gate._exponent_pos = exponent_pos
+
     @property
     def pauli_string(self):
         return self._pauli_string
+
+    @pauli_string.setter
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def pauli_string(self, pauli_string):
+        self._pauli_string = pauli_string
+        self._pauli_gate._dense_pauli_string = dps.DensePauliString(
+            pauli_string.values(), coefficient=pauli_string.coefficient
+        )
 
     @property
     def exponent_relative(self) -> Union[int, float, sympy.Basic]:
