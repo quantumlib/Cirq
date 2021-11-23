@@ -19,9 +19,11 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple, Any, Sequence, Union, Iterable, TYPE_CHECKING
 
 import networkx as nx
+from matplotlib import pyplot as plt
+
+from cirq import _compat
 from cirq.devices import GridQubit, LineQubit
 from cirq.protocols.json_serialization import obj_to_dict_helper
-from matplotlib import pyplot as plt
 
 if TYPE_CHECKING:
     import cirq
@@ -137,6 +139,9 @@ class LineTopology(NamedTopology):
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self)
 
+    def __repr__(self) -> str:
+        return _compat.dataclass_repr(self)
+
 
 @dataclass(frozen=True)
 class TiltedSquareLattice(NamedTopology):
@@ -236,6 +241,9 @@ class TiltedSquareLattice(NamedTopology):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self)
+
+    def __repr__(self) -> str:
+        return _compat.dataclass_repr(self)
 
 
 def get_placements(
