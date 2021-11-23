@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Dict, Iterable, Union, TYPE_CHECKING, Sequence, Iterator
+from typing import AbstractSet, Dict, Iterable, Iterator, Sequence, Union, TYPE_CHECKING
 
 import sympy
 
@@ -20,13 +20,13 @@ from cirq import value, protocols
 from cirq._compat import proper_repr, deprecated
 from cirq.ops import (
     raw_types,
+    clifford_gate,
     common_gates,
     dense_pauli_string as dps,
     pauli_string as ps,
     pauli_gates,
     op_tree,
     pauli_string_raw_types,
-    clifford_gate,
 )
 
 if TYPE_CHECKING:
