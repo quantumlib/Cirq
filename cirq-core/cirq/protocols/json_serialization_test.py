@@ -360,7 +360,6 @@ class SBKImpl(cirq.SerializableByKey):
 
     def _json_dict_(self):
         return {
-            "cirq_type": "SBKImpl",
             "name": self.name,
             "data_list": self.data_list,
             "data_tuple": self.data_tuple,
@@ -540,7 +539,6 @@ class SerializableTypeObject:
 
     def _json_dict_(self):
         return {
-            # 'cirq_type': 'SerializableTypeObject',
             'test_type': json_serialization.json_cirq_type(self.test_type),
         }
 

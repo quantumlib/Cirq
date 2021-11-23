@@ -170,7 +170,6 @@ def obj_to_dict_helper(
         d = {'cirq_type': f'{namespace}.' + obj.__class__.__name__}
     else:
         d = {}
-        # d = {'cirq_type': json_cirq_type(obj.__class__)}
 
     for attr_name in attribute_names:
         d[attr_name] = getattr(obj, attr_name)
@@ -224,7 +223,7 @@ def json_serializable_dataclass(
         cls._json_namespace_ = lambda: namespace
 
         cls._json_dict_ = lambda obj: obj_to_dict_helper(
-            obj, [f.name for f in dataclasses.fields(cls)], namespace=namespace
+            obj, [f.name for f in dataclasses.fields(cls)]
         )
 
         return cls
@@ -255,6 +254,16 @@ def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
     return obj_to_dict_helper(obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace)
 
 
+def _json_dict_with_cirq_type(obj: Any):
+    base_dict = obj._json_dict_()
+    if 'cirq_type' in base_dict:
+        raise ValueError(
+            f"Found 'cirq_type': '{base_dict['cirq_type']}' in _json_dict_. "
+            f"Custom values of this field are not permitted."
+        )
+    return {'cirq_type': json_cirq_type(type(obj)), **base_dict}
+
+
 class CirqEncoder(json.JSONEncoder):
     """Extend json.JSONEncoder to support Cirq objects.
 
@@ -275,13 +284,7 @@ class CirqEncoder(json.JSONEncoder):
     def default(self, o):
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
-            base_dict = o._json_dict_()
-            if 'cirq_type' in base_dict:
-                raise ValueError(
-                    f"Found 'cirq_type': '{base_dict['cirq_type']}' in _json_dict_. "
-                    f"Custom values of this field are not permitted."
-                )
-            return {'cirq_type': json_cirq_type(type(o)), **base_dict}
+            return _json_dict_with_cirq_type(o)
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
@@ -684,9 +687,9 @@ def to_json(
                     if candidate.obj == o:
                         if not candidate.key in ContextualEncoder.seen:
                             ContextualEncoder.seen.add(candidate.key)
-                            return candidate.obj._json_dict_()
+                            return _json_dict_with_cirq_type(candidate.obj)
                         else:
-                            return _SerializedKey(candidate.key)._json_dict_()
+                            return _json_dict_with_cirq_type(_SerializedKey(candidate.key))
                 raise ValueError("Object mutated during serialization.")  # coverage: ignore
 
         cls = ContextualEncoder
