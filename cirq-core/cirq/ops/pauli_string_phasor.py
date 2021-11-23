@@ -23,9 +23,9 @@ from cirq.ops import (
     common_gates,
     dense_pauli_string as dps,
     pauli_string as ps,
-    pauli_string_raw_types,
     pauli_gates,
     op_tree,
+    pauli_string_raw_types,
     clifford_gate,
 )
 
@@ -60,7 +60,8 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
                 in the form of the t in (-1)**t = exp(i pi t).
 
         Raises:
-            ValueError: If coefficient is not 1 or -1.
+            ValueError: If the given pauli string does not have eignevalues +1
+                or -1.
         """
         if pauli_string.coefficient == -1:
             pauli_string = -pauli_string
@@ -71,6 +72,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
                 "Given PauliString doesn't have +1 and -1 eigenvalues. "
                 "pauli_string.coefficient must be 1 or -1."
             )
+
         super().__init__(pauli_string)
         self._gate = PauliStringPhasorGate(
             dps.DensePauliString(pauli_string.values(), coefficient=pauli_string.coefficient),
@@ -158,7 +160,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         pn = self.exponent_neg + op.exponent_neg
         return PauliStringPhasor(self.pauli_string, exponent_pos=pp, exponent_neg=pn)
 
-    def _has_unitary_(self) -> bool:
+    def _has_unitary_(self):
         return self._gate._has_unitary_()
 
     def _decompose_(self) -> 'cirq.OP_TREE':
@@ -167,7 +169,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        return self.pauli_string_diagram_info(args, exponent=self.exponent_relative)
+        return self._pauli_string_diagram_info(args, exponent=self.exponent_relative)
 
     def _trace_distance_bound_(self) -> float:
         return self._gate._trace_distance_bound_()
