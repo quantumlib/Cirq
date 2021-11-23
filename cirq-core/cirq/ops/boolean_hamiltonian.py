@@ -123,7 +123,10 @@ class BooleanHamiltonian(raw_types.Operation):
 
     def __repr__(self):
         return (
-            f'cirq.BooleanHamiltonian({self._qubit_map!r}, {self._boolean_strs!r}, {self._theta})'
+            f'cirq.BooleanHamiltonian('
+            f'qubit_map={self._qubit_map!r}, '
+            f'boolean_strs={self._boolean_strs!r}, '
+            f'theta={self._theta!r})'
         )
 
 
@@ -196,7 +199,12 @@ class BooleanHamiltonianGate(raw_types.Gate):
         return True
 
     def __repr__(self):
-        return f'cirq.BooleanHamiltonianGate({self._qubit_map!r}, {self._boolean_strs!r}, {self._theta})'
+        return (
+            f'cirq.BooleanHamiltonianGate('
+            f'qubit_map={self._qubit_map!r}, '
+            f'boolean_strs={self._boolean_strs!r}, '
+            f'theta={self._theta!r})'
+        )
 
 
 def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool = False) -> int:
