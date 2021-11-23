@@ -39,9 +39,11 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     w = diagram.width()
     h = diagram.height()
 
-    qwx = {(x, y + 1) for x, y1, y2, _ in diagram.vertical_lines for y in range(int(y1), int(y2))}
+    qwx = {
+        (x, y + 1) for x, y1, y2, _, _ in diagram.vertical_lines for y in range(int(y1), int(y2))
+    }
 
-    qw = {(x, y) for y, x1, x2, _ in diagram.horizontal_lines for x in range(int(x1), int(x2))}
+    qw = {(x, y) for y, x1, x2, _, _ in diagram.horizontal_lines for x in range(int(x1), int(x2))}
 
     diagram2 = circuits.TextDiagramDrawer()
     for y in range(h):

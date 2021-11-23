@@ -446,7 +446,7 @@ class Moment:
                 known_qubits=op.qubits,
                 known_qubit_count=len(op.qubits),
                 use_unicode_characters=use_unicode_characters,
-                qubit_map=None,
+                label_map=None,
                 precision=precision,
                 include_tags=include_tags,
             )
