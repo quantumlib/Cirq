@@ -14,10 +14,10 @@
 
 """Utility methods efficiently preparing two qubit states."""
 
+from typing import Sequence, TYPE_CHECKING
 import numpy as np
-from typing import Sequence, Tuple, TYPE_CHECKING
 
-from cirq import circuits, ops
+from cirq import ops
 import cirq.optimizers.decompositions as decompositions
 
 if TYPE_CHECKING:
@@ -50,16 +50,16 @@ def prepare_two_qubit_state_using_sqrt_iswap(
             [np.sin(alpha) / np.sqrt(2), 0],
         ]
     )
-    u_iSWAP, s_iSWAP, vh_iSWAP = np.linalg.svd(iSWAP_state_matrix)
+    u_iSWAP, _, vh_iSWAP = np.linalg.svd(iSWAP_state_matrix)
     ret = [ops.ry(2 * alpha).on(q0), ops.SQRT_ISWAP_INV.on(q0, q1)]
     gate_0 = np.dot(u, np.linalg.inv(u_iSWAP))
     gate_1 = np.dot(vh.T, np.linalg.inv(vh_iSWAP.T))
 
-    if decompositions.single_qubit_matrix_to_phxz(gate_0) is not None:
-        ret.append(decompositions.single_qubit_matrix_to_phxz(gate_0).on(q0))
+    if (g := decompositions.single_qubit_matrix_to_phxz(gate_0)) is not None:
+        ret.append(g.on(q0))
 
-    if decompositions.single_qubit_matrix_to_phxz(gate_1) is not None:
-        ret.append(decompositions.single_qubit_matrix_to_phxz(gate_1).on(q1))
+    if (g := decompositions.single_qubit_matrix_to_phxz(gate_1)) is not None:
+        ret.append(g.on(q1))
 
     return ret
 
@@ -90,14 +90,16 @@ def prepare_two_qubit_state_using_cz(
         ]
     )
 
-    u_CZ, s_CZ, vh_CZ = np.linalg.svd(CZ_state_matrix)
+    u_CZ, _, vh_CZ = np.linalg.svd(CZ_state_matrix)
     ret = [ops.ry(2 * alpha).on(q0), ops.H.on(q1), ops.CZ.on(q0, q1)]
 
     gate_0 = np.dot(u, np.linalg.inv(u_CZ))
     gate_1 = np.dot(vh.T, np.linalg.inv(vh_CZ.T))
-    if decompositions.single_qubit_matrix_to_phxz(gate_0) is not None:
-        ret.append(decompositions.single_qubit_matrix_to_phxz(gate_0).on(q0))
 
-    if decompositions.single_qubit_matrix_to_phxz(gate_1) is not None:
-        ret.append(decompositions.single_qubit_matrix_to_phxz(gate_1).on(q1))
+    if (g := decompositions.single_qubit_matrix_to_phxz(gate_0)) is not None:
+        ret.append(g.on(q0))
+
+    if (g := decompositions.single_qubit_matrix_to_phxz(gate_1)) is not None:
+        ret.append(g.on(q1))
+
     return ret

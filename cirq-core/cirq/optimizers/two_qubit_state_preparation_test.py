@@ -13,8 +13,10 @@
 # limitations under the License.
 
 """Tests for two qubit efficient two qubit state preparation methods."""
-import pytest
+
 from copy import deepcopy
+
+import pytest
 import numpy as np
 import cirq
 
@@ -29,17 +31,12 @@ def states_with_phases(st: np.ndarray):
     yield st
     phases = [np.exp(1j * np.pi / 6), -1j, 1j, -1, np.exp(-1j * np.pi / 28)]
     random = np.random.RandomState(1)
-    for rep in range(3):
+    for _ in range(3):
         curr_st = deepcopy(st)
-        print("DEBUG")
-        print(st)
-        print(curr_st)
         cirq.to_valid_state_vector(curr_st, num_qubits=2)
         for i in range(4):
             phase = random.choice(phases)
-            print(phase)
             curr_st[i] *= phase
-        print(curr_st)
         yield curr_st
 
 
