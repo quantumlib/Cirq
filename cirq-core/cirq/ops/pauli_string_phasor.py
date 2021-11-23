@@ -124,7 +124,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
 
     def _value_equality_values_(self):
         return (
-            self._pauli_string,
+            self.pauli_string,
             self.exponent_neg,
             self.exponent_pos,
         )
@@ -136,7 +136,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]):
         return PauliStringPhasor(
-            self._pauli_string.map_qubits(qubit_map),
+            self.pauli_string.map_qubits(qubit_map),
             exponent_neg=self.exponent_neg,
             exponent_pos=self.exponent_pos,
         )
@@ -149,14 +149,14 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         return PauliStringPhasor(self.pauli_string, exponent_neg=pn, exponent_pos=pp)
 
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
-        return self._pauli_string.equal_up_to_coefficient(op.pauli_string)
+        return self.pauli_string.equal_up_to_coefficient(op.pauli_string)
 
     def merged_with(self, op: 'PauliStringPhasor') -> 'PauliStringPhasor':
         if not self.can_merge_with(op):
             raise ValueError(f'Cannot merge operations: {self}, {op}')
         pp = self.exponent_pos + op.exponent_pos
         pn = self.exponent_neg + op.exponent_neg
-        return PauliStringPhasor(self._pauli_string, exponent_pos=pp, exponent_neg=pn)
+        return PauliStringPhasor(self.pauli_string, exponent_pos=pp, exponent_neg=pn)
 
     def _has_unitary_(self) -> bool:
         return self._gate._has_unitary_()
@@ -167,7 +167,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        return self._pauli_string_diagram_info(args, exponent=self.exponent_relative)
+        return self.pauli_string_diagram_info(args, exponent=self.exponent_relative)
 
     def _trace_distance_bound_(self) -> float:
         return self._gate._trace_distance_bound_()
@@ -190,14 +190,14 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     def pass_operations_over(
         self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
     ) -> 'PauliStringPhasor':
-        new_pauli_string = self._pauli_string.pass_operations_over(ops, after_to_before)
+        new_pauli_string = self.pauli_string.pass_operations_over(ops, after_to_before)
         pp = self.exponent_pos
         pn = self.exponent_neg
         return PauliStringPhasor(new_pauli_string, exponent_pos=pp, exponent_neg=pn)
 
     def __repr__(self) -> str:
         return (
-            f'cirq.PauliStringPhasor({self._pauli_string!r}, '
+            f'cirq.PauliStringPhasor({self.pauli_string!r}, '
             f'exponent_neg={proper_repr(self.exponent_neg)}, '
             f'exponent_pos={proper_repr(self.exponent_pos)})'
         )
@@ -206,8 +206,8 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         if self.exponent_pos == -self.exponent_neg:
             sign = '-' if self.exponent_pos < 0 else ''
             exponent = str(abs(self.exponent_pos))
-            return f'exp({sign}iπ{exponent}*{self._pauli_string})'
-        return f'({self._pauli_string})**{self.exponent_relative}'
+            return f'exp({sign}iπ{exponent}*{self.pauli_string})'
+        return f'({self.pauli_string})**{self.exponent_relative}'
 
 
 @value.value_equality(approximate=True)

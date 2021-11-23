@@ -53,7 +53,7 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
         pass
 
     def validate_args(self, qubits: Sequence[raw_types.Qid]) -> None:
-        if len(qubits) != len(self._pauli_string):
+        if len(qubits) != len(self.pauli_string):
             raise ValueError('Incorrect number of qubits for gate')
 
     def with_qubits(
@@ -74,7 +74,7 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
 
     @property
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
-        return tuple(self._pauli_string)
+        return tuple(self.pauli_string)
 
     def _pauli_string_diagram_info(
         self,
@@ -82,5 +82,5 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
         exponent: Any = 1,
     ) -> 'cirq.CircuitDiagramInfo':
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
-        syms = tuple(f'[{self._pauli_string[qubit]}]' for qubit in qubits)
+        syms = tuple(f'[{self.pauli_string[qubit]}]' for qubit in qubits)
         return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=exponent)
