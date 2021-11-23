@@ -21,9 +21,9 @@ from cirq._compat import proper_repr, deprecated
 from cirq.ops import (
     raw_types,
     common_gates,
-    gate_operation,
     dense_pauli_string as dps,
     pauli_string as ps,
+    pauli_string_raw_types,
     pauli_gates,
     op_tree,
     clifford_gate,
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality(approximate=True)
-class PauliStringPhasor(gate_operation.GateOperation):
+class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     """An operation that phases the eigenstates of a Pauli string.
 
     The -1 eigenstates of the Pauli string will have their amplitude multiplied
@@ -62,18 +62,29 @@ class PauliStringPhasor(gate_operation.GateOperation):
         Raises:
             ValueError: If coefficient is not 1 or -1.
         """
-        gate = PauliStringPhasorGate(
+        if pauli_string.coefficient == -1:
+            pauli_string = -pauli_string
+            exponent_pos, exponent_neg = exponent_neg, exponent_pos
+
+        if pauli_string.coefficient != 1:
+            raise ValueError(
+                "Given PauliString doesn't have +1 and -1 eigenvalues. "
+                "pauli_string.coefficient must be 1 or -1."
+            )
+        super().__init__(pauli_string)
+        self._gate = PauliStringPhasorGate(
             dps.DensePauliString(pauli_string.values(), coefficient=pauli_string.coefficient),
             exponent_neg=exponent_neg,
             exponent_pos=exponent_pos,
         )
-        super().__init__(gate, tuple(pauli_string))
-        self._pauli_gate = gate
-        self._pauli_string = gate.dense_pauli_string.on(*self.qubits)
+
+    @property
+    def gate(self):
+        return self._gate
 
     @property
     def exponent_neg(self):
-        return self._pauli_gate.exponent_neg
+        return self._gate.exponent_neg
 
     @exponent_neg.setter  # type: ignore
     @deprecated(
@@ -82,11 +93,11 @@ class PauliStringPhasor(gate_operation.GateOperation):
     )
     def exponent_neg(self, exponent_neg):
         # coverage: ignore
-        self._pauli_gate._exponent_neg = exponent_neg
+        self._gate._exponent_neg = exponent_neg
 
     @property
     def exponent_pos(self):
-        return self._pauli_gate.exponent_pos
+        return self._gate.exponent_pos
 
     @exponent_pos.setter  # type: ignore
     @deprecated(
@@ -95,27 +106,21 @@ class PauliStringPhasor(gate_operation.GateOperation):
     )
     def exponent_pos(self, exponent_pos):
         # coverage: ignore
-        self._pauli_gate._exponent_pos = exponent_pos
+        self._gate._exponent_pos = exponent_pos
 
-    @property
-    def pauli_string(self):
-        return self._pauli_string
-
-    @pauli_string.setter  # type: ignore
     @deprecated(
         deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+        fix="This is a temporary shim until the mutator is deprecated.",
     )
-    def pauli_string(self, pauli_string):
+    def _on_pauli_string_changed(self, pauli_string: 'cirq.PauliString'):
         # coverage: ignore
-        self._pauli_string = pauli_string
-        self._pauli_gate._dense_pauli_string = dps.DensePauliString(
+        self._gate._dense_pauli_string = dps.DensePauliString(
             pauli_string.values(), coefficient=pauli_string.coefficient
         )
 
     @property
     def exponent_relative(self) -> Union[int, float, sympy.Basic]:
-        return self._pauli_gate.exponent_relative
+        return self._gate.exponent_relative
 
     def _value_equality_values_(self):
         return (
@@ -126,7 +131,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
     def equal_up_to_global_phase(self, other):
         if isinstance(other, PauliStringPhasor):
-            return self._pauli_gate.equal_up_to_global_phase(other.gate)
+            return self._gate.equal_up_to_global_phase(other.gate)
         return False
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]):
@@ -135,6 +140,13 @@ class PauliStringPhasor(gate_operation.GateOperation):
             exponent_neg=self.exponent_neg,
             exponent_pos=self.exponent_pos,
         )
+
+    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PauliStringPhasor':
+        pn = protocols.mul(self.exponent_neg, exponent, None)
+        pp = protocols.mul(self.exponent_pos, exponent, None)
+        if pn is None or pp is None:
+            return NotImplemented
+        return PauliStringPhasor(self.pauli_string, exponent_neg=pn, exponent_pos=pp)
 
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
         return self._pauli_string.equal_up_to_coefficient(op.pauli_string)
@@ -146,12 +158,34 @@ class PauliStringPhasor(gate_operation.GateOperation):
         pn = self.exponent_neg + op.exponent_neg
         return PauliStringPhasor(self._pauli_string, exponent_pos=pp, exponent_neg=pn)
 
+    def _has_unitary_(self) -> bool:
+        return self._gate._has_unitary_()
+
+    def _decompose_(self) -> 'cirq.OP_TREE':
+        return protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
+
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        qubits = self.qubits if args.known_qubits is None else args.known_qubits
-        syms = tuple(f'[{self._pauli_string[qubit]}]' for qubit in qubits)
-        return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=self.exponent_relative)
+        return self._pauli_string_diagram_info(args, exponent=self.exponent_relative)
+
+    def _trace_distance_bound_(self) -> float:
+        return self._gate._trace_distance_bound_()
+
+    def _is_parameterized_(self) -> bool:
+        return self._gate._is_parameterized_()
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return self._gate._parameter_names_()
+
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'PauliStringPhasor':
+        return PauliStringPhasor(
+            self.pauli_string,
+            exponent_neg=resolver.value_of(self.exponent_neg, recursive),
+            exponent_pos=resolver.value_of(self.exponent_pos, recursive),
+        )
 
     def pass_operations_over(
         self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
