@@ -121,7 +121,7 @@ def test_kron_bases_consistency(basis1, basis2):
 
 
 @pytest.mark.parametrize(
-    'basis,repeat', itertools.product((PAULI_BASIS, STANDARD_BASIS), range(1, 5))
+    'basis,repeat', itertools.product((PAULI_BASIS, STANDARD_BASIS), range(0, 5))
 )
 def test_kron_bases_repeat_sanity_checks(basis, repeat):
     product_basis = cirq.kron_bases(basis, repeat=repeat)
