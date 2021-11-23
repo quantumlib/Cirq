@@ -63,6 +63,9 @@ def map_moments(
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         map_func: Mapping function from (cirq.Moment, moment_index) to a sequence of moments.
+
+    Returns:
+        Copy of input circuit with mapped moments.
     """
     return _create_target_circuit_type(
         (map_func(circuit[i], i) for i in range(len(circuit))), circuit
@@ -87,6 +90,9 @@ def map_operations(
 
     Raises:
           ValueError if `issubset(qubit_set(map_func(op)), op.qubits) is False`.
+
+    Returns:
+        Copy of input circuit with mapped operations (wrapped in a tagged CircuitOperation).
     """
 
     def apply_map(op: ops.Operation, idx: int) -> ops.OP_TREE:
@@ -116,6 +122,9 @@ def map_operations_and_unroll(
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         map_func: Mapping function from (cirq.Operation, moment_index) to a cirq.OP_TREE.
+
+    Returns:
+        Copy of input circuit with mapped operations, unrolled in a moment preserving way.
     """
     return unroll_circuit_op(map_operations(circuit, map_func))
 
@@ -138,6 +147,9 @@ def unroll_circuit_op(
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         tags_to_check: If specified, only circuit operations tagged with one of the `tags_to_check`
             are unrolled.
+
+    Returns:
+        Copy of input circuit with (Tagged) CircuitOperation's expanded in a moment preserving way.
     """
 
     def map_func(m: ops.Moment, _: int):
@@ -165,6 +177,9 @@ def unroll_circuit_op_greedy_earliest(
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         tags_to_check: If specified, only circuit operations tagged with one of the `tags_to_check`
             are unrolled.
+
+    Returns:
+        Copy of input circuit with (Tagged) CircuitOperation's expanded using EARLIEST strategy.
     """
     batch_removals = [*circuit.findall_operations(lambda op: _check_circuit_op(op, tags_to_check))]
     batch_inserts = [(i, protocols.decompose_once(op)) for i, op in batch_removals]
@@ -187,6 +202,9 @@ def unroll_circuit_op_greedy_frontier(
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         tags_to_check: If specified, only circuit operations tagged with one of the `tags_to_check`
             are unrolled.
+
+    Returns:
+        Copy of input circuit with (Tagged) CircuitOperation's expanded inline at qubit frontier.
     """
     unrolled_circuit = circuit.unfreeze(copy=True)
     frontier: Dict['cirq.Qid', int] = defaultdict(lambda: 0)
