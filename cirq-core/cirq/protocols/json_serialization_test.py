@@ -589,13 +589,13 @@ def test_invalid_type_deserialize():
 
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
     invalid_json = (
-        f'{{\n  "cirq_type": "SerializableTypeObject",\n' f'  "test_type": "bad_type"\n}}'
+        '{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "bad_type"\n}'
     )
     with pytest.raises(ValueError, match='Could not resolve type'):
         _ = cirq.read_json(json_text=invalid_json, resolvers=test_resolvers)
 
     factory_json = (
-        f'{{\n  "cirq_type": "SerializableTypeObject",\n' f'  "test_type": "sympy.Add"\n}}'
+        '{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "sympy.Add"\n}'
     )
     with pytest.raises(ValueError, match='maps to a factory method'):
         _ = cirq.read_json(json_text=factory_json, resolvers=test_resolvers)

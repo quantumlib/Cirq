@@ -108,7 +108,7 @@ def decompose_clifford_tableau_to_operations(
     """
     if len(qubits) != clifford_tableau.n:
         raise ValueError(
-            f"The number of qubits must be the same as the number of Clifford Tableau."
+            "The number of qubits must be the same as the number of Clifford Tableau."
         )
     assert (
         clifford_tableau._validate()

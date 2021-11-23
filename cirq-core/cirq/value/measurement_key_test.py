@@ -63,10 +63,10 @@ def test_str(key_string):
 
 def test_repr():
     mkey = cirq.MeasurementKey('key_string')
-    assert repr(mkey) == f"cirq.MeasurementKey(name='key_string')"
+    assert repr(mkey) == "cirq.MeasurementKey(name='key_string')"
     assert eval(repr(mkey)) == mkey
     mkey = cirq.MeasurementKey.parse_serialized('nested:key')
-    assert repr(mkey) == f"cirq.MeasurementKey(path=('nested',), name='key')"
+    assert repr(mkey) == "cirq.MeasurementKey(path=('nested',), name='key')"
     assert eval(repr(mkey)) == mkey
 
 

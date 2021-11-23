@@ -359,7 +359,7 @@ def test_string_format():
     )
     assert (
         repr(op1)
-        == f"""\
+        == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -448,7 +448,7 @@ cirq.CircuitOperation(
     op5 = cirq.CircuitOperation(fc5)
     assert (
         repr(op5)
-        == f"""\
+        == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
