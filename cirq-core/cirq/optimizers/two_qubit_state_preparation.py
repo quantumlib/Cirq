@@ -18,7 +18,7 @@ from typing import Sequence, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops, qis
-import cirq.optimizers.decompositions as decompositions
+from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
     import cirq
