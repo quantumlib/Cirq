@@ -15,6 +15,7 @@
 """
 
 from cirq.ops.arithmetic_operation import (
+    ArithmeticGate,
     ArithmeticOperation,
 )
 
