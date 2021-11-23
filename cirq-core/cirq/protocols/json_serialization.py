@@ -38,6 +38,7 @@ import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
+from cirq._compat import deprecated_parameter
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -166,11 +167,11 @@ def obj_to_dict_helper(
             class name via a dot (.)
     """
     if namespace is not None:
-        prefix = f'{namespace}.'
+        d = {'cirq_type': f'{namespace}.' + obj.__class__.__name__}
     else:
-        prefix = ''
+        d = {}
+        # d = {'cirq_type': json_cirq_type(obj.__class__)}
 
-    d = {'cirq_type': prefix + obj.__class__.__name__}
     for attr_name in attribute_names:
         d[attr_name] = getattr(obj, attr_name)
     return d
@@ -219,6 +220,8 @@ def json_serializable_dataclass(
         cls = dataclasses.dataclass(
             cls, init=init, repr=repr, eq=eq, order=order, unsafe_hash=unsafe_hash, frozen=frozen
         )
+
+        cls._json_namespace_ = lambda: namespace
 
         cls._json_dict_ = lambda obj: obj_to_dict_helper(
             obj, [f.name for f in dataclasses.fields(cls)], namespace=namespace
@@ -272,7 +275,13 @@ class CirqEncoder(json.JSONEncoder):
     def default(self, o):
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
-            return o._json_dict_()
+            base_dict = o._json_dict_()
+            if 'cirq_type' in base_dict:
+                raise ValueError(
+                    f"Found 'cirq_type': '{base_dict['cirq_type']}' in _json_dict_. "
+                    f"Custom values of this field are not permitted."
+                )
+            return {'cirq_type': json_cirq_type(type(o)), **base_dict}
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy

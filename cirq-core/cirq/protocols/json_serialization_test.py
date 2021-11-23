@@ -540,7 +540,7 @@ class SerializableTypeObject:
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'SerializableTypeObject',
+            # 'cirq_type': 'SerializableTypeObject',
             'test_type': json_serialization.json_cirq_type(self.test_type),
         }
 
