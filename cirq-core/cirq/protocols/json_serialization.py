@@ -16,6 +16,7 @@ import gzip
 import json
 import numbers
 import pathlib
+import warnings
 from typing import (
     Any,
     Callable,
@@ -146,6 +147,20 @@ class HasJSONNamespace(Protocol):
         pass
 
 
+# TODO: remove once deprecated parameter goes away.
+def _obj_to_dict_helper_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, Any]:
+    d = {}
+    for attr_name in attribute_names:
+        d[attr_name] = getattr(obj, attr_name)
+    return d
+
+
+@deprecated_parameter(
+    deadline='v0.15',
+    fix='Define obj._json_namespace_ to return namespace instead.',
+    parameter_desc='namespace',
+    match=lambda args, kwargs: 'namespace' in kwargs,
+)
 def obj_to_dict_helper(
     obj: Any, attribute_names: Iterable[str], namespace: Optional[str] = None
 ) -> Dict[str, Any]:
@@ -166,13 +181,10 @@ def obj_to_dict_helper(
             key "cirq_type". The namespace name will be joined with the
             class name via a dot (.)
     """
+    d = {}
     if namespace is not None:
-        d = {'cirq_type': f'{namespace}.' + obj.__class__.__name__}
-    else:
-        d = {}
-
-    for attr_name in attribute_names:
-        d[attr_name] = getattr(obj, attr_name)
+        d['cirq_type'] = f'{namespace}.' + obj.__class__.__name__
+    d.update(_obj_to_dict_helper_helper(obj, attribute_names))
     return d
 
 
@@ -239,6 +251,12 @@ def json_serializable_dataclass(
 
 
 # pylint: enable=redefined-builtin
+@deprecated_parameter(
+    deadline='v0.15',
+    fix='Define obj._json_namespace_ to return namespace instead.',
+    parameter_desc='namespace',
+    match=lambda args, kwargs: 'namespace' in kwargs,
+)
 def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
     """Return a dictionary suitable for _json_dict_ from a dataclass.
 
@@ -251,15 +269,22 @@ def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
     Although not as elegant, you may want to consider explicitly defining `_json_dict_` on your
     dataclasses which simply `return dataclass_json_dict(self)`.
     """
-    return obj_to_dict_helper(obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace)
+    attribute_names = [f.name for f in dataclasses.fields(obj)]
+    if namespace is not None:
+        return obj_to_dict_helper(obj, attribute_names, namespace=namespace)
+    else:
+        return _obj_to_dict_helper_helper(obj, attribute_names)
 
 
 def _json_dict_with_cirq_type(obj: Any):
     base_dict = obj._json_dict_()
     if 'cirq_type' in base_dict:
-        raise ValueError(
+        # TODO: upgrade to ValueError in v0.15
+        warnings.warn(
             f"Found 'cirq_type': '{base_dict['cirq_type']}' in _json_dict_. "
-            f"Custom values of this field are not permitted."
+            f"Custom values of this field are not permitted, and will produce "
+            "an error starting in Cirq v0.15.",
+            DeprecationWarning,
         )
     return {'cirq_type': json_cirq_type(type(obj)), **base_dict}
 
@@ -291,10 +316,10 @@ class CirqEncoder(json.JSONEncoder):
         # Github issue: https://github.com/quantumlib/Cirq/issues/2014
 
         if isinstance(o, sympy.Symbol):
-            return obj_to_dict_helper(o, ['name'], namespace='sympy')
+            return {'cirq_type': 'sympy.Symbol', 'name': o.name}
 
         if isinstance(o, (sympy.Add, sympy.Mul, sympy.Pow)):
-            return obj_to_dict_helper(o, ['args'], namespace='sympy')
+            return {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args}
 
         if isinstance(o, sympy.Integer):
             return {'cirq_type': 'sympy.Integer', 'i': o.p}
