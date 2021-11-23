@@ -17,7 +17,8 @@ from typing import Any, Dict, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import value, protocols
-from cirq.ops import raw_types, gate_operation
+from cirq._compat import deprecated
+from cirq.ops import gate_operation, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -38,6 +39,15 @@ class GlobalPhaseOperation(gate_operation.GateOperation):
     def coefficient(self):
         return self.gate.coefficient
 
+    @coefficient.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def coefficient(self, coefficient):
+        # coverage: ignore
+        self._gate._coefficient = coefficient
+
     def __str__(self) -> str:
         return str(self.coefficient)
 
@@ -53,24 +63,28 @@ class GlobalPhaseGate(raw_types.Gate):
     def __init__(self, coefficient: value.Scalar, atol: float = 1e-8) -> None:
         if abs(1 - abs(coefficient)) > atol:
             raise ValueError(f'Coefficient is not unitary: {coefficient!r}')
-        self.coefficient = coefficient
+        self._coefficient = coefficient
+
+    @property
+    def coefficient(self):
+        return self._coefficient
 
     def _value_equality_values_(self) -> Any:
-        return self.coefficient
+        return self._coefficient
 
     def _has_unitary_(self) -> bool:
         return True
 
     def __pow__(self, power):
         if isinstance(power, (int, float)):
-            return GlobalPhaseGate(self.coefficient ** power)
+            return GlobalPhaseGate(self._coefficient ** power)
         return NotImplemented
 
     def _unitary_(self) -> np.ndarray:
-        return np.array([[self.coefficient]])
+        return np.array([[self._coefficient]])
 
     def _apply_unitary_(self, args) -> np.ndarray:
-        args.target_tensor *= self.coefficient
+        args.target_tensor *= self._coefficient
         return args.target_tensor
 
     def _has_stabilizer_effect_(self) -> bool:
@@ -85,16 +99,16 @@ class GlobalPhaseGate(raw_types.Gate):
             return True
 
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            args.state.omega *= self.coefficient
+            args.state.omega *= self._coefficient
             return True
 
         return NotImplemented
 
     def __str__(self) -> str:
-        return str(self.coefficient)
+        return str(self._coefficient)
 
     def __repr__(self) -> str:
-        return f'cirq.GlobalPhaseGate({self.coefficient!r})'
+        return f'cirq.GlobalPhaseGate({self._coefficient!r})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['coefficient'])
