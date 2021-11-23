@@ -21,7 +21,7 @@ import os
 import pathlib
 import sys
 import warnings
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Type
 from unittest import mock
 
 import numpy as np
@@ -532,6 +532,73 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
                 f"\n"
                 f"Value with wrong type:\n{obj!r}."
             )
+
+
+@dataclasses.dataclass
+class SerializableTypeObject:
+    test_type: Type
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': 'SerializableTypeObject',
+            'test_type': json_serialization.json_cirq_type(self.test_type),
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, test_type, **kwargs):
+        return cls(json_serialization.cirq_type_from_json(test_type))
+
+
+@pytest.mark.parametrize(
+    'mod_spec,cirq_obj_name,cls',
+    _list_public_classes_for_tested_modules(),
+)
+def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
+    if cirq_obj_name in mod_spec.tested_elsewhere:
+        pytest.skip("Tested elsewhere.")
+
+    if cirq_obj_name in mod_spec.not_yet_serializable:
+        return pytest.xfail(reason="Not serializable (yet)")
+
+    if cls is None:
+        pytest.skip(f'No serialization for None-mapped type: {cirq_obj_name}')
+
+    try:
+        typename = cirq.json_cirq_type(cls)
+    except ValueError as e:
+        pytest.skip(f'No serialization for non-Cirq type: {str(e)}')
+
+    def custom_resolver(name):
+        if name == 'SerializableTypeObject':
+            return SerializableTypeObject
+
+    sto = SerializableTypeObject(cls)
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    expected_json = (
+        f'{{\n  "cirq_type": "SerializableTypeObject",\n' f'  "test_type": "{typename}"\n}}'
+    )
+    assert cirq.to_json(sto) == expected_json
+    assert cirq.read_json(json_text=expected_json, resolvers=test_resolvers) == sto
+    assert_json_roundtrip_works(sto, resolvers=test_resolvers)
+
+
+def test_invalid_type_deserialize():
+    def custom_resolver(name):
+        if name == 'SerializableTypeObject':
+            return SerializableTypeObject
+
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    invalid_json = (
+        f'{{\n  "cirq_type": "SerializableTypeObject",\n' f'  "test_type": "bad_type"\n}}'
+    )
+    with pytest.raises(ValueError, match='Could not resolve type'):
+        _ = cirq.read_json(json_text=invalid_json, resolvers=test_resolvers)
+
+    factory_json = (
+        f'{{\n  "cirq_type": "SerializableTypeObject",\n' f'  "test_type": "sympy.Add"\n}}'
+    )
+    with pytest.raises(ValueError, match='maps to a factory method'):
+        _ = cirq.read_json(json_text=factory_json, resolvers=test_resolvers)
 
 
 def test_to_from_strings():
