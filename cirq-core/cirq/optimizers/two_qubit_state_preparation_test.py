@@ -1,0 +1,84 @@
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Tests for two qubit efficient two qubit state preparation methods."""
+import pytest
+from copy import deepcopy
+import numpy as np
+import cirq
+
+
+def random_state(seed: float):
+    return cirq.testing.random_superposition(4, random_state=seed)
+
+
+def states_with_phases(st: np.ndarray):
+    """Returns several states similar to st with modified global phases."""
+    st = np.array(st, dtype="complex64")
+    yield st
+    phases = [np.exp(1j * np.pi / 6), -1j, 1j, -1, np.exp(-1j * np.pi / 28)]
+    random = np.random.RandomState(1)
+    for rep in range(3):
+        curr_st = deepcopy(st)
+        print("DEBUG")
+        print(st)
+        print(curr_st)
+        cirq.to_valid_state_vector(curr_st, num_qubits=2)
+        for i in range(4):
+            phase = random.choice(phases)
+            print(phase)
+            curr_st[i] *= phase
+        print(curr_st)
+        yield curr_st
+
+
+STATES_TO_PREPARE = [
+    *states_with_phases(np.array([1, 0, 0, 0])),
+    *states_with_phases(np.array([0, 1, 0, 0])),
+    *states_with_phases(np.array([0, 0, 1, 0])),
+    *states_with_phases(np.array([0, 0, 0, 1])),
+    *states_with_phases(np.array([1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)])),
+    *states_with_phases(np.array([1 / np.sqrt(2), 0, 0, -1 / np.sqrt(2)])),
+    *states_with_phases(np.array([0, 1 / np.sqrt(2), 1 / np.sqrt(2), 0])),
+    *states_with_phases(np.array([0, 1 / np.sqrt(2), -1 / np.sqrt(2), 0])),
+    *states_with_phases(random_state(97154)),
+    *states_with_phases(random_state(45375)),
+    *states_with_phases(random_state(78061)),
+    *states_with_phases(random_state(61474)),
+    *states_with_phases(random_state(22897)),
+]
+
+
+@pytest.mark.parametrize("state", STATES_TO_PREPARE)
+def test_prepare_two_qubit_state_using_cz(state):
+    state = cirq.to_valid_state_vector(state, num_qubits=2)
+    q = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.prepare_two_qubit_state_using_cz(*q, state))
+    ops_cz = [*circuit.findall_operations(lambda op: op.gate == cirq.CZ)]
+    ops_2q = [*circuit.findall_operations(lambda op: cirq.num_qubits(op) > 1)]
+    assert ops_cz == ops_2q
+    assert len(ops_cz) <= 1
+    assert cirq.allclose_up_to_global_phase(circuit.final_state_vector(), state, atol=1e-3)
+
+
+@pytest.mark.parametrize("state", STATES_TO_PREPARE)
+def test_prepare_two_qubit_state_using_sqrt_iswap(state):
+    state = cirq.to_valid_state_vector(state, num_qubits=2)
+    q = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.prepare_two_qubit_state_using_sqrt_iswap(*q, state))
+    ops_cz = [*circuit.findall_operations(lambda op: op.gate == cirq.SQRT_ISWAP_INV)]
+    ops_2q = [*circuit.findall_operations(lambda op: cirq.num_qubits(op) > 1)]
+    assert ops_cz == ops_2q
+    assert len(ops_cz) <= 1
+    assert cirq.allclose_up_to_global_phase(circuit.final_state_vector(), state, atol=1e-3)
