@@ -31,8 +31,9 @@ import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 from cirq import value
-from cirq.ops import raw_types
+from cirq.ops import gate_operation, raw_types
 from cirq.ops.linear_combinations import PauliSum, PauliString
+from cirq import protocols
 
 
 @value.value_equality
@@ -72,6 +73,8 @@ class BooleanHamiltonian(raw_types.Operation):
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'BooleanHamiltonian':
         if len(self._qubit_map) != len(new_qubits):
             raise ValueError('Length of replacement qubits must be the same')
+        if protocols.qid_shape(tuple(self._qubit_map.values())) != protocols.qid_shape(new_qubits):
+            raise ValueError('Dimensions of replacement qubits must be the same')
         new_qubit_map = {
             variable_name: new_qubit
             for variable_name, new_qubit in zip(self._qubit_map, new_qubits)
@@ -114,6 +117,86 @@ class BooleanHamiltonian(raw_types.Operation):
         return _get_gates_from_hamiltonians(
             hamiltonian_polynomial_list, self._qubit_map, self._theta
         )
+
+    def _has_unitary_(self):
+        return True
+
+    def __repr__(self):
+        return (
+            f'cirq.BooleanHamiltonian({self._qubit_map!r}, {self._boolean_strs!r}, {self._theta})'
+        )
+
+
+@value.value_equality
+class BooleanHamiltonianGate(raw_types.Gate):
+    """An operation that represents a Hamiltonian from a set of Boolean functions."""
+
+    def __init__(
+        self,
+        qubit_map: Dict[str, int],
+        boolean_strs: Sequence[str],
+        theta: float,
+    ):
+        """Builds a BooleanHamiltonianGate.
+
+        For each element of a sequence of Boolean expressions, the code first transforms it into a
+        polynomial of Pauli Zs that represent that particular expression. Then, we sum all the
+        polynomials, thus making a function that goes from a series to Boolean inputs to an integer
+        that is the number of Boolean expressions that are true.
+
+        For example, if we were using this gate for the unweighted max-cut problem that is typically
+        used to demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
+        Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
+        an XOR.
+
+        Then, we compute exp(-j * theta * polynomial), which is unitary because the polynomial is
+        Hermitian.
+
+        Args:
+            boolean_strs: The list of Sympy-parsable Boolean expressions.
+            qubit_map: map of string (boolean variable name) to qubit dimension.
+            theta: The evolution time (angle) for the Hamiltonian
+        """
+        self._qubit_map: Dict[str, int] = qubit_map
+        self._boolean_strs: Sequence[str] = boolean_strs
+        self._theta: float = theta
+
+    def _qid_shape_(self):
+        return tuple(self._qubit_map.values())
+
+    def on(self, *qubits) -> 'cirq.Operation':
+        return gate_operation.GateOperation(self, qubits)
+
+    def _value_equality_values_(self):
+        return self._qubit_map, self._boolean_strs, self._theta
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'cirq_type': self.__class__.__name__,
+            'qubit_map': self._qubit_map,
+            'boolean_strs': self._boolean_strs,
+            'theta': self._theta,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qubit_map, boolean_strs, theta, **kwargs):
+        return cls(qubit_map, boolean_strs, theta)
+
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+        qubit_map = dict(zip(self._qubit_map.keys(), qubits))
+        boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
+        hamiltonian_polynomial_list = [
+            PauliSum.from_boolean_expression(boolean_expr, qubit_map)
+            for boolean_expr in boolean_exprs
+        ]
+
+        return _get_gates_from_hamiltonians(hamiltonian_polynomial_list, qubit_map, self._theta)
+
+    def _has_unitary_(self):
+        return True
+
+    def __repr__(self):
+        return f'cirq.BooleanHamiltonianGate({self._qubit_map!r}, {self._boolean_strs!r}, {self._theta})'
 
 
 def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool = False) -> int:

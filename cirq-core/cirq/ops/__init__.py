@@ -31,6 +31,7 @@ from cirq.ops.dense_pauli_string import (
 
 from cirq.ops.boolean_hamiltonian import (
     BooleanHamiltonian,
+    BooleanHamiltonianGate,
 )
 
 from cirq.ops.common_channels import (

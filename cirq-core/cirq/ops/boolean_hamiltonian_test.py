@@ -87,6 +87,69 @@ def test_circuit(boolean_str):
     np.testing.assert_array_equal(actual, expected)
 
 
+@pytest.mark.parametrize(
+    'boolean_str',
+    [
+        'x0',
+        '~x0',
+        'x0 ^ x1',
+        'x0 & x1',
+        'x0 | x1',
+        'x0 & x1 & x2',
+        'x0 & x1 & ~x2',
+        'x0 & ~x1 & x2',
+        'x0 & ~x1 & ~x2',
+        '~x0 & x1 & x2',
+        '~x0 & x1 & ~x2',
+        '~x0 & ~x1 & x2',
+        '~x0 & ~x1 & ~x2',
+        'x0 ^ x1 ^ x2',
+        'x0 | (x1 & x2)',
+        'x0 & (x1 | x2)',
+        '(x0 ^ x1 ^ x2) | (x2 ^ x3 ^ x4)',
+        '(x0 ^ x2 ^ x4) | (x1 ^ x2 ^ x3)',
+        'x0 & x1 & (x2 | x3)',
+        'x0 & ~x2',
+        '~x0 & x2',
+        'x2 & ~x0',
+        '~x2 & x0',
+        '(x2 | x1) ^ x0',
+    ],
+)
+def test_gate_circuit(boolean_str):
+    boolean_expr = sympy_parser.parse_expr(boolean_str)
+    var_names = cirq.parameter_names(boolean_expr)
+    qubits = [cirq.NamedQubit(name) for name in var_names]
+
+    # We use Sympy to evaluate the expression:
+    n = len(var_names)
+
+    expected = []
+    for binary_inputs in itertools.product([0, 1], repeat=n):
+        subed_expr = boolean_expr
+        for var_name, binary_input in zip(var_names, binary_inputs):
+            subed_expr = subed_expr.subs(var_name, binary_input)
+        expected.append(bool(subed_expr))
+
+    # We build a circuit and look at its output state vector:
+    circuit = cirq.Circuit()
+    circuit.append(cirq.H.on_each(*qubits))
+
+    hamiltonian_gate = cirq.BooleanHamiltonianGate(
+        {q.name: q.dimension for q in qubits}, [boolean_str], 0.1 * math.pi
+    ).on(*qubits)
+
+    assert cirq.qid_shape(hamiltonian_gate) == cirq.qid_shape(qubits)
+
+    circuit.append(hamiltonian_gate)
+
+    phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
+    actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
+
+    # Compare the two:
+    np.testing.assert_array_equal(actual, expected)
+
+
 def test_with_custom_names():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     original_op = cirq.BooleanHamiltonian(
@@ -101,6 +164,48 @@ def test_with_custom_names():
 
     with pytest.raises(ValueError, match='Length of replacement qubits must be the same'):
         original_op.with_qubits(q2)
+
+    with pytest.raises(ValueError, match='Dimensions of replacement qubits must be the same'):
+        original_op.with_qubits(q0, cirq.LineQid(1, 3))
+
+
+def test_gate_with_custom_names():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    gate = cirq.BooleanHamiltonianGate(
+        {'a': 2, 'b': 2},
+        ['a'],
+        0.1,
+    )
+    assert cirq.decompose(gate.on(q0, q1)) == [cirq.Rz(rads=-0.05).on(q0)]
+    assert cirq.decompose_once_with_qubits(gate, (q0, q1)) == [cirq.Rz(rads=-0.05).on(q0)]
+    assert cirq.decompose(gate.on(q2, q3)) == [cirq.Rz(rads=-0.05).on(q2)]
+    assert cirq.decompose_once_with_qubits(gate, (q2, q3)) == [cirq.Rz(rads=-0.05).on(q2)]
+
+    with pytest.raises(ValueError, match='Wrong number of qubits'):
+        gate.on(q2)
+    with pytest.raises(ValueError, match='Wrong shape of qids'):
+        gate.on(q0, cirq.LineQid(1, 3))
+
+
+def test_consistent():
+    q0, q1 = cirq.LineQubit.range(2)
+    op = cirq.BooleanHamiltonian(
+        {'a': q0, 'b': q1},
+        ['a'],
+        0.1,
+    )
+    cirq.testing.assert_implements_consistent_protocols(op)
+
+
+def test_gate_consistent():
+    gate = cirq.BooleanHamiltonianGate(
+        {'a': 2, 'b': 2},
+        ['a'],
+        0.1,
+    )
+    op = gate.on(*cirq.LineQubit.range(2))
+    cirq.testing.assert_implements_consistent_protocols(gate)
+    cirq.testing.assert_implements_consistent_protocols(op)
 
 
 @pytest.mark.parametrize(

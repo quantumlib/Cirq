@@ -56,6 +56,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'BitFlipChannel': cirq.BitFlipChannel,
         'BitstringAccumulator': cirq.work.BitstringAccumulator,
         'BooleanHamiltonian': cirq.BooleanHamiltonian,
+        'BooleanHamiltonianGate': cirq.BooleanHamiltonianGate,
         'ProductState': cirq.ProductState,
         'CCNotPowGate': cirq.CCNotPowGate,
         'CCXPowGate': cirq.CCXPowGate,
