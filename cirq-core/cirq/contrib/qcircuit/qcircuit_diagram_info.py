@@ -34,10 +34,10 @@ def escape_text_for_latex(text):
 
 
 def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> Optional[Tuple[int, int]]:
-    if (args.qubit_map is None) or (args.known_qubits is None):
+    if (args.label_map is None) or (args.known_qubits is None):
         return None
 
-    indices = [args.qubit_map[q] for q in args.known_qubits]
+    indices = [args.label_map[q] for q in args.known_qubits]
     min_index = min(indices)
     n_qubits = len(args.known_qubits)
     if sorted(indices) != list(range(min_index, min_index + n_qubits)):
@@ -95,9 +95,9 @@ def multigate_qcircuit_diagram_info(
         name += '^{' + str(info.exponent) + '}'
     box = r'\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
     ghost = r'\ghost{' + name + '}'
-    assert args.qubit_map is not None
+    assert args.label_map is not None
     assert args.known_qubits is not None
-    symbols = tuple(box if (args.qubit_map[q] == min_index) else ghost for q in args.known_qubits)
+    symbols = tuple(box if (args.label_map[q] == min_index) else ghost for q in args.known_qubits)
     # Force exponent=1 to defer to exponent formatting given above.
     return protocols.CircuitDiagramInfo(symbols, connected=False)
 
