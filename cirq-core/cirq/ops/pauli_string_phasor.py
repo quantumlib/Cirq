@@ -68,8 +68,8 @@ class PauliStringPhasor(gate_operation.GateOperation):
             exponent_pos=exponent_pos,
         )
         super().__init__(gate, tuple(pauli_string))
-        self._pauli_gate: 'PauliStringPhasorGate' = gate
-        self._pauli_string = pauli_string
+        self._pauli_gate = gate
+        self._pauli_string = gate.dense_pauli_string.on(*self.qubits)
 
     @property
     def exponent_neg(self):
@@ -89,51 +89,51 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
     def _value_equality_values_(self):
         return (
-            self.pauli_string,
+            self._pauli_string,
             self.exponent_neg,
             self.exponent_pos,
         )
 
     def equal_up_to_global_phase(self, other):
         if isinstance(other, PauliStringPhasor):
-            return self._pauli_gate.equal_up_to_global_phase(other._pauli_gate)
+            return self._pauli_gate.equal_up_to_global_phase(other.gate)
         return False
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]):
         return PauliStringPhasor(
-            self.pauli_string.map_qubits(qubit_map),
+            self._pauli_string.map_qubits(qubit_map),
             exponent_neg=self.exponent_neg,
             exponent_pos=self.exponent_pos,
         )
 
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
-        return self.pauli_string.equal_up_to_coefficient(op.pauli_string)
+        return self._pauli_string.equal_up_to_coefficient(op.pauli_string)
 
     def merged_with(self, op: 'PauliStringPhasor') -> 'PauliStringPhasor':
         if not self.can_merge_with(op):
             raise ValueError(f'Cannot merge operations: {self}, {op}')
         pp = self.exponent_pos + op.exponent_pos
         pn = self.exponent_neg + op.exponent_neg
-        return PauliStringPhasor(self.pauli_string, exponent_pos=pp, exponent_neg=pn)
+        return PauliStringPhasor(self._pauli_string, exponent_pos=pp, exponent_neg=pn)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
-        syms = tuple(f'[{self.pauli_string[qubit]}]' for qubit in qubits)
+        syms = tuple(f'[{self._pauli_string[qubit]}]' for qubit in qubits)
         return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=self.exponent_relative)
 
     def pass_operations_over(
         self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
     ) -> 'PauliStringPhasor':
-        new_pauli_string = self.pauli_string.pass_operations_over(ops, after_to_before)
+        new_pauli_string = self._pauli_string.pass_operations_over(ops, after_to_before)
         pp = self.exponent_pos
         pn = self.exponent_neg
         return PauliStringPhasor(new_pauli_string, exponent_pos=pp, exponent_neg=pn)
 
     def __repr__(self) -> str:
         return (
-            f'cirq.PauliStringPhasor({self.pauli_string!r}, '
+            f'cirq.PauliStringPhasor({self._pauli_string!r}, '
             f'exponent_neg={proper_repr(self.exponent_neg)}, '
             f'exponent_pos={proper_repr(self.exponent_pos)})'
         )
@@ -142,8 +142,8 @@ class PauliStringPhasor(gate_operation.GateOperation):
         if self.exponent_pos == -self.exponent_neg:
             sign = '-' if self.exponent_pos < 0 else ''
             exponent = str(abs(self.exponent_pos))
-            return f'exp({sign}iπ{exponent}*{self.pauli_string})'
-        return f'({self.pauli_string})**{self.exponent_relative}'
+            return f'exp({sign}iπ{exponent}*{self._pauli_string})'
+        return f'({self._pauli_string})**{self.exponent_relative}'
 
 
 @value.value_equality(approximate=True)
@@ -157,7 +157,7 @@ class PauliStringPhasorGate(raw_types.Gate):
 
     def __init__(
         self,
-        pauli_string: dps.DensePauliString,
+        dense_pauli_string: dps.DensePauliString,
         *,
         exponent_neg: Union[int, float, sympy.Basic] = 1,
         exponent_pos: Union[int, float, sympy.Basic] = 0,
@@ -165,7 +165,7 @@ class PauliStringPhasorGate(raw_types.Gate):
         """Initializes the PauliStringPhasorGate.
 
         Args:
-            pauli_string: The DensePauliString defining the positive and
+            dense_pauli_string: The DensePauliString defining the positive and
                 negative eigenspaces that will be independently phased.
             exponent_neg: How much to phase vectors in the negative eigenspace,
                 in the form of the t in (-1)**t = exp(i pi t).
@@ -175,57 +175,69 @@ class PauliStringPhasorGate(raw_types.Gate):
         Raises:
             ValueError: If coefficient is not 1 or -1.
         """
-        if pauli_string.coefficient == -1:
-            pauli_string = -pauli_string
+        if dense_pauli_string.coefficient == -1:
+            dense_pauli_string = -dense_pauli_string
             exponent_pos, exponent_neg = exponent_neg, exponent_pos
 
-        if pauli_string.coefficient != 1:
+        if dense_pauli_string.coefficient != 1:
             raise ValueError(
                 "Given PauliString doesn't have +1 and -1 eigenvalues. "
                 "pauli_string.coefficient must be 1 or -1."
             )
 
-        self.pauli_string = pauli_string
-        self.exponent_neg = value.canonicalize_half_turns(exponent_neg)
-        self.exponent_pos = value.canonicalize_half_turns(exponent_pos)
+        self._dense_pauli_string = dense_pauli_string
+        self._exponent_neg = value.canonicalize_half_turns(exponent_neg)
+        self._exponent_pos = value.canonicalize_half_turns(exponent_pos)
 
     @property
     def exponent_relative(self) -> Union[int, float, sympy.Basic]:
-        return value.canonicalize_half_turns(self.exponent_neg - self.exponent_pos)
+        return value.canonicalize_half_turns(self._exponent_neg - self._exponent_pos)
+
+    @property
+    def exponent_neg(self):
+        return self._exponent_neg
+
+    @property
+    def exponent_pos(self):
+        return self._exponent_pos
+
+    @property
+    def dense_pauli_string(self):
+        return self._dense_pauli_string
 
     def _value_equality_values_(self):
         return (
-            self.pauli_string,
-            self.exponent_neg,
-            self.exponent_pos,
+            self._dense_pauli_string,
+            self._exponent_neg,
+            self._exponent_pos,
         )
 
     def equal_up_to_global_phase(self, other):
         if isinstance(other, PauliStringPhasorGate):
             rel1 = self.exponent_relative
             rel2 = other.exponent_relative
-            return rel1 == rel2 and self.pauli_string == other.pauli_string
+            return rel1 == rel2 and self._dense_pauli_string == other.dense_pauli_string
         return False
 
     def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PauliStringPhasorGate':
-        pn = protocols.mul(self.exponent_neg, exponent, None)
-        pp = protocols.mul(self.exponent_pos, exponent, None)
+        pn = protocols.mul(self._exponent_neg, exponent, None)
+        pp = protocols.mul(self._exponent_pos, exponent, None)
         if pn is None or pp is None:
             return NotImplemented
-        return PauliStringPhasorGate(self.pauli_string, exponent_neg=pn, exponent_pos=pp)
+        return PauliStringPhasorGate(self._dense_pauli_string, exponent_neg=pn, exponent_pos=pp)
 
     def _has_unitary_(self):
         return not self._is_parameterized_()
 
     def _to_z_basis_ops(self, qubits: Sequence['cirq.Qid']) -> Iterator[raw_types.Operation]:
         """Returns operations to convert the qubits to the computational basis."""
-        for i in range(len(self.pauli_string)):
+        for i in range(len(self._dense_pauli_string)):
             yield clifford_gate.SingleQubitCliffordGate.from_single_map(
-                {self.pauli_string[i]: (pauli_gates.Z, False)}
+                {self._dense_pauli_string[i]: (pauli_gates.Z, False)}
             )(qubits[i])
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        if len(self.pauli_string) <= 0:
+        if len(self._dense_pauli_string) <= 0:
             return
         any_qubit = qubits[0]
         to_z_ops = op_tree.freeze_op_tree(self._to_z_basis_ops(qubits))
@@ -233,55 +245,55 @@ class PauliStringPhasorGate(raw_types.Gate):
         yield to_z_ops
         yield xor_decomp
 
-        if self.exponent_neg:
-            yield pauli_gates.Z(any_qubit) ** self.exponent_neg
-        if self.exponent_pos:
+        if self._exponent_neg:
+            yield pauli_gates.Z(any_qubit) ** self._exponent_neg
+        if self._exponent_pos:
             yield pauli_gates.X(any_qubit)
-            yield pauli_gates.Z(any_qubit) ** self.exponent_pos
+            yield pauli_gates.Z(any_qubit) ** self._exponent_pos
             yield pauli_gates.X(any_qubit)
 
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
 
     def _trace_distance_bound_(self) -> float:
-        if len(self.pauli_string) == 0:
+        if len(self._dense_pauli_string) == 0:
             return 0.0
         return protocols.trace_distance_bound(pauli_gates.Z ** self.exponent_relative)
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self.exponent_neg) or protocols.is_parameterized(
-            self.exponent_pos
+        return protocols.is_parameterized(self._exponent_neg) or protocols.is_parameterized(
+            self._exponent_pos
         )
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return protocols.parameter_names(self.exponent_neg) | protocols.parameter_names(
-            self.exponent_pos
+        return protocols.parameter_names(self._exponent_neg) | protocols.parameter_names(
+            self._exponent_pos
         )
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'PauliStringPhasorGate':
         return PauliStringPhasorGate(
-            self.pauli_string,
-            exponent_neg=resolver.value_of(self.exponent_neg, recursive),
-            exponent_pos=resolver.value_of(self.exponent_pos, recursive),
+            self._dense_pauli_string,
+            exponent_neg=resolver.value_of(self._exponent_neg, recursive),
+            exponent_pos=resolver.value_of(self._exponent_pos, recursive),
         )
 
     def __str__(self) -> str:
-        if self.exponent_pos == -self.exponent_neg:
-            sign = '-' if self.exponent_pos < 0 else ''
-            exponent = str(abs(self.exponent_pos))
-            return f'exp({sign}iπ{exponent}*{self.pauli_string})'
-        return f'({self.pauli_string})**{self.exponent_relative}'
+        if self._exponent_pos == -self._exponent_neg:
+            sign = '-' if self._exponent_pos < 0 else ''
+            exponent = str(abs(self._exponent_pos))
+            return f'exp({sign}iπ{exponent}*{self._dense_pauli_string})'
+        return f'({self._dense_pauli_string})**{self.exponent_relative}'
 
     def num_qubits(self) -> int:
-        return len(self.pauli_string)
+        return len(self._dense_pauli_string)
 
     def on(self, *qubits: 'cirq.Qid') -> 'cirq.PauliStringPhasor':
         return PauliStringPhasor(
-            self.pauli_string.on(*qubits),
-            exponent_pos=self.exponent_pos,
-            exponent_neg=self.exponent_neg,
+            self._dense_pauli_string.on(*qubits),
+            exponent_pos=self._exponent_pos,
+            exponent_neg=self._exponent_neg,
         )
 
 
