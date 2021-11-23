@@ -116,7 +116,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     )
     def _on_pauli_string_changed(self, pauli_string: 'cirq.PauliString'):
         # coverage: ignore
-        self._gate._dense_pauli_string = dps.DensePauliString(
+        self._gate._dense_pauli_string = dps.DensePauliString(  # type: ignore
             pauli_string.values(), coefficient=pauli_string.coefficient
         )
 
