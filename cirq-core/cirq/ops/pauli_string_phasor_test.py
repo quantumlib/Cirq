@@ -450,7 +450,6 @@ def test_gate_eq_ne_hash():
 
 
 def test_gate_equal_up_to_global_phase():
-    a, b = cirq.LineQubit.range(2)
     groups = [
         [
             cirq.PauliStringPhasorGate(cirq.DensePauliString('X'), exponent_neg=0.25),
@@ -480,19 +479,12 @@ def test_gate_equal_up_to_global_phase():
 
 
 def test_gate_pow():
-    a = cirq.LineQubit(0)
     s = cirq.DensePauliString('X')
     p = cirq.PauliStringPhasorGate(s, exponent_neg=0.25, exponent_pos=0.5)
     assert p ** 0.5 == cirq.PauliStringPhasorGate(s, exponent_neg=0.125, exponent_pos=0.25)
     with pytest.raises(TypeError, match='unsupported operand'):
         _ = p ** object()
     assert p ** 1 == p
-
-
-def test_gate_consistent():
-    a, b = cirq.LineQubit.range(2)
-    gate = np.exp(1j * np.pi / 2 * cirq.X(a) * cirq.X(b))
-    cirq.testing.assert_implements_consistent_protocols(gate)
 
 
 def test_gate_extrapolate_effect():
