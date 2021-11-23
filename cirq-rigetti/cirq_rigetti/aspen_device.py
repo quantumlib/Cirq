@@ -174,9 +174,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
                 return
 
             except ValueError:
-                raise UnsupportedQubit(
-                    'Aspen devices only support named qubits by octagonal index'
-                )
+                raise UnsupportedQubit('Aspen devices only support named qubits by octagonal index')
 
         if isinstance(qubit, (OctagonalQubit, AspenQubit)):
             if not (qubit.index < self._maximum_qubit_number):
