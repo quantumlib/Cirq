@@ -75,7 +75,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def exponent_neg(self):
         return self._pauli_gate.exponent_neg
 
-    @exponent_neg.setter
+    @exponent_neg.setter  # type: ignore
     @deprecated(
         deadline="v0.15",
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
@@ -88,7 +88,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def exponent_pos(self):
         return self._pauli_gate.exponent_pos
 
-    @exponent_pos.setter
+    @exponent_pos.setter  # type: ignore
     @deprecated(
         deadline="v0.15",
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
@@ -101,7 +101,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def pauli_string(self):
         return self._pauli_string
 
-    @pauli_string.setter
+    @pauli_string.setter  # type: ignore
     @deprecated(
         deadline="v0.15",
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
