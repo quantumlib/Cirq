@@ -271,3 +271,62 @@ def test_global_phase_op_json_dict():
         'cirq_type': 'GlobalPhaseOperation',
         'coefficient': -1j,
     }
+
+
+def test_gate_init():
+    gate = cirq.GlobalPhaseGate(1j)
+    assert gate.coefficient == 1j
+    assert isinstance(gate.on(), cirq.GlobalPhaseOperation)
+    assert gate.on().coefficient == 1j
+    assert cirq.has_stabilizer_effect(gate)
+
+    with pytest.raises(ValueError, match='not unitary'):
+        _ = cirq.GlobalPhaseGate(2)
+    with pytest.raises(ValueError, match='0 qubits'):
+        _ = gate.on(cirq.LineQubit(0))
+
+
+def test_gate_protocols():
+    for p in [1, 1j, -1]:
+        cirq.testing.assert_implements_consistent_protocols(cirq.GlobalPhaseGate(p))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.GlobalPhaseGate(1j)), np.array([[1j]]), atol=1e-8
+    )
+
+
+@pytest.mark.parametrize('phase', [1, 1j, -1])
+def test_gate_act_on_tableau(phase):
+    original_tableau = cirq.CliffordTableau(0)
+    args = cirq.ActOnCliffordTableauArgs(original_tableau.copy(), np.random.RandomState(), {})
+    cirq.act_on(cirq.GlobalPhaseGate(phase), args, qubits=(), allow_decompose=False)
+    assert args.tableau == original_tableau
+
+
+@pytest.mark.parametrize('phase', [1, 1j, -1])
+def test_gate_act_on_ch_form(phase):
+    state = cirq.StabilizerStateChForm(0)
+    args = cirq.ActOnStabilizerCHFormArgs(
+        state,
+        qubits=[],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(cirq.GlobalPhaseGate(phase), args, qubits=(), allow_decompose=False)
+    assert state.state_vector() == [[phase]]
+
+
+def test_gate_str():
+    assert str(cirq.GlobalPhaseGate(1j)) == '1j'
+
+
+def test_gate_repr():
+    gate = cirq.GlobalPhaseGate(1j)
+    cirq.testing.assert_equivalent_repr(gate)
+
+
+def test_gate_global_phase_op_json_dict():
+    assert cirq.GlobalPhaseGate(-1j)._json_dict_() == {
+        'cirq_type': 'GlobalPhaseGate',
+        'coefficient': -1j,
+    }

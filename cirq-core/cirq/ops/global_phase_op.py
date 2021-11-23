@@ -115,3 +115,8 @@ class GlobalPhaseGate(raw_types.Gate):
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return tuple()
+
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.GlobalPhaseOperation':
+        if qubits:
+            raise ValueError(f'{self!r} applies to 0 qubits but qubits={qubits!r}.')
+        return GlobalPhaseOperation(self.coefficient)
