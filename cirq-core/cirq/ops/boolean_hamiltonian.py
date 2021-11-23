@@ -129,11 +129,11 @@ class BooleanHamiltonian(raw_types.Operation):
 
 @value.value_equality
 class BooleanHamiltonianGate(raw_types.Gate):
-    """An operation that represents a Hamiltonian from a set of Boolean functions."""
+    """A gate that represents a Hamiltonian from a set of Boolean functions."""
 
     def __init__(
         self,
-        qubit_map: Dict[str, int],
+        qubit_map: Sequence[Tuple[str, int]],
         boolean_strs: Sequence[str],
         theta: float,
     ):
@@ -157,12 +157,12 @@ class BooleanHamiltonianGate(raw_types.Gate):
             qubit_map: map of string (boolean variable name) to qubit dimension.
             theta: The evolution time (angle) for the Hamiltonian
         """
-        self._qubit_map: Dict[str, int] = qubit_map
+        self._qubit_map: Sequence[Tuple[str, int]] = qubit_map
         self._boolean_strs: Sequence[str] = boolean_strs
         self._theta: float = theta
 
     def _qid_shape_(self):
-        return tuple(self._qubit_map.values())
+        return tuple(dim for _, dim in self._qubit_map)
 
     def on(self, *qubits) -> 'cirq.Operation':
         return gate_operation.GateOperation(self, qubits)
@@ -183,7 +183,7 @@ class BooleanHamiltonianGate(raw_types.Gate):
         return cls(qubit_map, boolean_strs, theta)
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        qubit_map = dict(zip(self._qubit_map.keys(), qubits))
+        qubit_map = dict(zip([name for name, _ in self._qubit_map], qubits))
         boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
         hamiltonian_polynomial_list = [
             PauliSum.from_boolean_expression(boolean_expr, qubit_map)

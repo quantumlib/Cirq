@@ -1,9 +1,7 @@
 [
   {
     "cirq_type": "BooleanHamiltonianGate",
-    "qubit_map": {
-      "q0": 2
-    },
+    "qubit_map": [["q0", 2]],
     "boolean_strs": [
       "q0"
     ],
