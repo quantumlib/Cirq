@@ -15,20 +15,21 @@
 
 import abc
 import itertools
-from typing import Union, Iterable, List, Sequence, cast, TypeVar, TYPE_CHECKING, Tuple
+from typing import Union, Iterable, List, Sequence, cast, TypeVar, TYPE_CHECKING
 
 import numpy as np
-from cirq.ops import gate_operation, raw_types
+
+from cirq.ops.raw_types import Operation, Gate
+from cirq.ops.gate_operation import GateOperation
 
 if TYPE_CHECKING:
     import cirq
 
 
 TSelf = TypeVar('TSelf', bound='ArithmeticOperation')
-TSelfGate = TypeVar('TSelfGate', bound='ArithmeticGate')
 
 
-class ArithmeticOperation(raw_types.Operation, metaclass=abc.ABCMeta):
+class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
     """A helper class for implementing reversible classical arithmetic.
 
     Child classes must override the `registers`, `with_registers`, and `apply`
@@ -241,7 +242,10 @@ class ArithmeticOperation(raw_types.Operation, metaclass=abc.ABCMeta):
         return args.target_tensor
 
 
-class ArithmeticGate(raw_types.Gate, metaclass=abc.ABCMeta):
+TSelfGate = TypeVar('TSelfGate', bound='ArithmeticGate')
+
+
+class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
     """A helper gate for implementing reversible classical arithmetic.
 
     Child classes must override the `registers`, `with_registers`, and `apply`
@@ -375,7 +379,7 @@ class ArithmeticGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self):
         shape = []
         for r in self.registers():
             if isinstance(r, Sequence):
@@ -384,7 +388,7 @@ class ArithmeticGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return tuple(shape)
 
     def on(self, *qubits) -> 'cirq.Operation':
-        return gate_operation.GateOperation(self, qubits)
+        return GateOperation(self, qubits)
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         registers = self.registers()
