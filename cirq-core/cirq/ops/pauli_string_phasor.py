@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import AbstractSet, Dict, Iterable, Union, TYPE_CHECKING, Sequence, Iterator
 
 import sympy
@@ -68,6 +69,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         )
         super().__init__(gate, tuple(pauli_string))
         self._pauli_gate: 'PauliStringPhasorGate' = gate
+        self._pauli_string = pauli_string
 
     @property
     def exponent_neg(self):
@@ -79,7 +81,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
     @property
     def pauli_string(self):
-        return self._pauli_gate.pauli_string.on(*self.qubits)
+        return self._pauli_string
 
     @property
     def exponent_relative(self) -> Union[int, float, sympy.Basic]:
@@ -160,7 +162,7 @@ class PauliStringPhasorGate(raw_types.Gate):
         exponent_neg: Union[int, float, sympy.Basic] = 1,
         exponent_pos: Union[int, float, sympy.Basic] = 0,
     ) -> None:
-        """Initializes the operation.
+        """Initializes the PauliStringPhasorGate.
 
         Args:
             pauli_string: The DensePauliString defining the positive and
