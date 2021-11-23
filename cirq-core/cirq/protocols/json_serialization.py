@@ -128,6 +128,23 @@ class SupportsJSON(Protocol):
         pass
 
 
+class HasJSONNamespace(Protocol):
+    """An object which prepends a namespace to its JSON cirq_type.
+
+    Classes which implement this method have the following cirq_type format:
+
+        f"{obj._json_namespace_()}.{obj.__class__.__name__}
+
+    Classes outside of Cirq or its submodules MUST implement this method to be
+    used in type serialization.
+    """
+
+    @doc_private
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        pass
+
+
 def obj_to_dict_helper(
     obj: Any, attribute_names: Iterable[str], namespace: Optional[str] = None
 ) -> Dict[str, Any]:
@@ -350,13 +367,7 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
     if d['cirq_type'] == '_ContextualSerialization':
         return _ContextualSerialization.deserialize_with_context(**d)
 
-    for resolver in resolvers:
-        cls = resolver(d['cirq_type'])
-        if cls is not None:
-            break
-    else:
-        raise ValueError(f"Could not resolve type '{d['cirq_type']}' during deserialization")
-
+    cls = factory_from_json(d['cirq_type'], resolvers=resolvers)
     from_json_dict = getattr(cls, '_from_json_dict_', None)
     if from_json_dict is not None:
         return from_json_dict(**d)
@@ -503,6 +514,97 @@ def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
     if hasattr(obj, '__iter__') and not isinstance(obj, str):
         return [sbk for v in obj for sbk in get_serializable_by_keys(v)]
     return []
+
+
+def json_namespace(type_obj: Type) -> str:
+    """Returns a namespace for JSON serialization of `type_obj`.
+
+    Types can provide custom namespaces with `_json_namespace_`; otherwise, a
+    Cirq type will not include a namespace in its cirq_type. Non-Cirq types
+    must provide a namespace for serialization in Cirq.
+
+    Args:
+        type_obj: Type to retrieve the namespace from.
+
+    Returns:
+        The namespace to prepend `type_obj` with in its JSON cirq_type.
+
+    Raises:
+        ValueError: if `type_obj` is not a Cirq type and does not explicitly
+            define its namespace with _json_namespace_.
+    """
+    if hasattr(type_obj, '_json_namespace_'):
+        return type_obj._json_namespace_()
+    if type_obj.__module__.startswith('cirq'):
+        return ''
+    raise ValueError(f'{type_obj} is not a Cirq type, and does not define _json_namespace_.')
+
+
+def json_cirq_type(type_obj: Type) -> str:
+    """Returns a string type for JSON serialization of `type_obj`.
+
+    This method is not part of the base serialization path. Together with
+    `cirq_type_from_json`, it can be used to provide type-object serialization
+    for classes that need it.
+    """
+    namespace = json_namespace(type_obj)
+    if namespace:
+        return f'{namespace}.{type_obj.__name__}'
+    return type_obj.__name__
+
+
+def factory_from_json(
+    type_str: str, resolvers: Optional[Sequence[JsonResolver]] = None
+) -> ObjectFactory:
+    """Returns a factory for constructing objects of type `type_str`.
+
+    DEFAULT_RESOLVERS is updated dynamically as cirq submodules are imported.
+
+    Args:
+        type_str: string representation of the type to deserialize.
+        resolvers: list of JsonResolvers to use in type resolution. If this is
+            left blank, DEFAULT_RESOLVERS will be used.
+
+    Returns:
+        An ObjectFactory that can be called to construct an object whose type
+        matches the name `type_str`.
+
+    Raises:
+        ValueError: if type_str does not have a match in `resolvers`.
+    """
+    resolvers = resolvers if resolvers is not None else DEFAULT_RESOLVERS
+    for resolver in resolvers:
+        cirq_type = resolver(type_str)
+        if cirq_type is not None:
+            return cirq_type
+    raise ValueError(f"Could not resolve type '{type_str}' during deserialization")
+
+
+def cirq_type_from_json(type_str: str, resolvers: Optional[Sequence[JsonResolver]] = None) -> Type:
+    """Returns a type object for JSON deserialization of `type_str`.
+
+    This method is not part of the base deserialization path. Together with
+    `json_cirq_type`, it can be used to provide type-object deserialization
+    for classes that need it.
+
+    Args:
+        type_str: string representation of the type to deserialize.
+        resolvers: list of JsonResolvers to use in type resolution. If this is
+            left blank, DEFAULT_RESOLVERS will be used.
+
+    Returns:
+        The type object T for which json_cirq_type(T) matches `type_str`.
+
+    Raises:
+        ValueError: if type_str does not have a match in `resolvers`, or if the
+            match found is a factory method instead of a type.
+    """
+    cirq_type = factory_from_json(type_str, resolvers)
+    if isinstance(cirq_type, type):
+        return cirq_type
+    # We assume that if factory_from_json returns a factory, there is not
+    # another resolver which resolves `type_str` to a type object.
+    raise ValueError(f"Type {type_str} maps to a factory method instead of a type.")
 
 
 # pylint: disable=function-redefined
