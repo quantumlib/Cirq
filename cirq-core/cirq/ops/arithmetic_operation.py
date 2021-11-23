@@ -306,9 +306,9 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         """The data acted upon by the arithmetic operation.
 
         Each register in the list can either be a classical constant (an `int`),
-        or else a list of qubits/qudits (a `List[cirq.Qid]`). Registers that
-        are set to a classical constant must not be mutated by the arithmetic
-        operation (their value must remain fixed when passed to `apply`).
+        or else a list of qubit/qudit dimensions. Registers that are set to a
+        classical constant must not be mutated by the arithmetic operation
+        (their value must remain fixed when passed to `apply`).
 
         Registers are big endian. The first qubit is the most significant, the
         last qubit is the 1s qubit, the before last qubit is the 2s qubit, etc.
