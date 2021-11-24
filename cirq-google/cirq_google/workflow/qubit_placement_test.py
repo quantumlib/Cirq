@@ -30,7 +30,7 @@ def test_naive_qubit_placer():
     qp = cg.NaiveQubitPlacer()
     circuit2, mapping = qp.place_circuit(
         circuit,
-        problem_topo=topo,
+        problem_topology=topo,
         shared_rt_info=cg.SharedRuntimeInfo(run_id='1'),
         rs=np.random.RandomState(1),
     )

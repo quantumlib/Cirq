@@ -260,7 +260,7 @@ def execute(
         circuit = exe.circuit
         if exe.problem_topology is not None:
             circuit, mapping = rt_config.qubit_placer.place_circuit(
-                circuit, problem_topo=exe.problem_topology, shared_rt_info=shared_rt_info, rs=rs
+                circuit, problem_topology=exe.problem_topology, shared_rt_info=shared_rt_info, rs=rs
             )
             runtime_info.qubit_placement = mapping
 

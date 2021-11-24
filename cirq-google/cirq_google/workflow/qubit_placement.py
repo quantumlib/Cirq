@@ -32,7 +32,7 @@ class QubitPlacer(metaclass=abc.ABCMeta):
     def place_circuit(
         self,
         circuit: cirq.AbstractCircuit,
-        problem_topo: 'cirq.NamedTopology',
+        problem_topology: 'cirq.NamedTopology',
         shared_rt_info: 'cg.SharedRuntimeInfo',
         rs: np.random.RandomState,
     ) -> Tuple['cirq.FrozenCircuit', Dict[Any, 'cirq.Qid']]:
@@ -40,7 +40,7 @@ class QubitPlacer(metaclass=abc.ABCMeta):
 
         Args:
             circuit: The circuit.
-            problem_topo: The topologies (i.e. connectivity) of the circuit.
+            problem_topology: The topologies (i.e. connectivity) of the circuit.
             shared_rt_info: A `cg.SharedRuntimeInfo` object that may contain additional info
                 to inform placement.
             rs: A `RandomState` to enable pseudo-random placement strategies.
@@ -58,7 +58,7 @@ class NaiveQubitPlacer(QubitPlacer):
     def place_circuit(
         self,
         circuit: 'cirq.AbstractCircuit',
-        problem_topo: 'cirq.NamedTopology',
+        problem_topology: 'cirq.NamedTopology',
         shared_rt_info: 'cg.SharedRuntimeInfo',
         rs: np.random.RandomState,
     ) -> Tuple['cirq.FrozenCircuit', Dict[Any, 'cirq.Qid']]:
