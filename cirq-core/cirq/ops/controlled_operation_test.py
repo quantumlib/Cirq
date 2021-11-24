@@ -397,12 +397,3 @@ def test_controlled_mixture():
             (0.25, cirq.unitary(cirq.CZ)),
         ],
     )
-
-
-def test_no_measurement_gates():
-    q0, q1 = cirq.LineQubit.range(2)
-    with pytest.raises(ValueError, match='using measurement keys'):
-        _ = cirq.ControlledOperation([q1], cirq.measure(q0))
-
-    with pytest.raises(ValueError, match='using measurement keys'):
-        _ = cirq.ControlledOperation([q1], cirq.X(q0).with_conditions('a'))

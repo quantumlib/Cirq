@@ -14,7 +14,6 @@
 from typing import (
     AbstractSet,
     Any,
-    cast,
     Dict,
     FrozenSet,
     Optional,
@@ -40,6 +39,10 @@ class ConditionalOperation(raw_types.Operation):
         sub_operation: 'cirq.Operation',
         conditions: Sequence[Union[str, 'cirq.MeasurementKey']],
     ):
+        if protocols.measurement_key_objs(sub_operation):
+            raise ValueError(
+                f'Cannot conditionally run operations with measurements: {sub_operation}'
+            )
         keys = tuple(value.MeasurementKey(c) if isinstance(c, str) else c for c in conditions)
         if isinstance(sub_operation, ConditionalOperation):
             keys += sub_operation._control_keys
@@ -123,7 +126,12 @@ class ConditionalOperation(raw_types.Operation):
         def not_zero(measurement):
             return any(i != 0 for i in measurement)
 
-        measurements = [args.log_of_measurement_results[str(key)] for key in self._control_keys]
+        measurements = [
+            args.log_of_measurement_results.get(str(key), str(key)) for key in self._control_keys
+        ]
+        missing = [m for m in measurements if isinstance(m, str)]
+        if missing:
+            raise ValueError(f'Measurement keys {missing} missing when performing {self}')
         if all(not_zero(measurement) for measurement in measurements):
             protocols.act_on(self._sub_operation, args)
         return True

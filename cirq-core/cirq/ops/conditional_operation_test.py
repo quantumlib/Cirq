@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
+import re
 import sympy
 
 import cirq
@@ -358,3 +359,19 @@ def test_repr():
     assert repr(op) == (
         "cirq.ConditionalOperation(cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')])"
     )
+
+
+def test_no_measurement_gates():
+    q0 = cirq.LineQubit(0)
+    with pytest.raises(ValueError, match='with measurements'):
+        _ = cirq.measure(q0).with_conditions('a')
+
+
+def test_unmeasured_condition():
+    q0 = cirq.LineQubit(0)
+    bad_circuit = cirq.Circuit(cirq.X(q0).with_conditions('a'))
+    with pytest.raises(
+        ValueError,
+        match=re.escape("Measurement keys ['a'] missing when performing X(0).with_conditions(a)"),
+    ):
+        _ = cirq.Simulator().simulate(bad_circuit)
