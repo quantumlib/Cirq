@@ -22,7 +22,6 @@ import numpy as np
 
 import cirq
 from cirq import _compat
-from cirq.devices.named_topologies import NamedTopology
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -33,10 +32,10 @@ class QubitPlacer(metaclass=abc.ABCMeta):
     def place_circuit(
         self,
         circuit: cirq.AbstractCircuit,
-        problem_topo: NamedTopology,
+        problem_topo: 'cirq.NamedTopology',
         shared_rt_info: 'cg.SharedRuntimeInfo',
         rs: np.random.RandomState,
-    ) -> Tuple[cirq.FrozenCircuit, Dict[Any, cirq.Qid]]:
+    ) -> Tuple['cirq.FrozenCircuit', Dict[Any, 'cirq.Qid']]:
         """Place a circuit with a given topology.
 
         Args:
@@ -54,11 +53,11 @@ class NaiveQubitPlacer(QubitPlacer):
 
     def place_circuit(
         self,
-        circuit: cirq.AbstractCircuit,
-        problem_topo: NamedTopology,
+        circuit: 'cirq.AbstractCircuit',
+        problem_topo: 'cirq.NamedTopology',
         shared_rt_info: 'cg.SharedRuntimeInfo',
         rs: np.random.RandomState,
-    ) -> Tuple[cirq.FrozenCircuit, Dict[Any, cirq.Qid]]:
+    ) -> Tuple['cirq.FrozenCircuit', Dict[Any, 'cirq.Qid']]:
         return circuit.freeze(), {q: q for q in circuit.all_qubits()}
 
     def _json_dict_(self) -> Dict[str, Any]:
