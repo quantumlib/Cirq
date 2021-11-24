@@ -527,7 +527,7 @@ from cirq.protocols import (
     measurement_key_obj,
     measurement_key_names,
     measurement_key_objs,
-    measurement_keys_used,
+    measurement_keys_touched,
     mixture,
     mul,
     num_qubits,

@@ -61,7 +61,7 @@ def control_keys(val: Any) -> AbstractSet['cirq.MeasurementKey']:
     return set()
 
 
-def measurement_keys_used(val: Any) -> AbstractSet['cirq.MeasurementKey']:
+def measurement_keys_touched(val: Any) -> AbstractSet['cirq.MeasurementKey']:
     """Returns all the measurement keys used by the value.
 
     This would be the case if the value is or contains a measurement gate, or
