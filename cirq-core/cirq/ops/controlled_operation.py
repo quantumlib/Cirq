@@ -49,6 +49,8 @@ class ControlledOperation(raw_types.Operation):
         sub_operation: 'cirq.Operation',
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
     ):
+        if protocols.measurement_keys_used(sub_operation):
+            raise ValueError(f'Cannot control operations using measurement keys: {sub_operation}')
         if control_values is None:
             control_values = ((1,),) * len(controls)
         if len(control_values) != len(controls):

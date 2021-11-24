@@ -55,8 +55,10 @@ class ControlledGate(raw_types.Gate):
         Raises:
             ValueError: If the `control_values` or `control_qid_shape` does not
                 match with `num_conrols`, or if the `control_values` are out of
-                bounds.
+                bounds, or if the `sub_gate` is incompatible.
         """
+        if protocols.measurement_keys_used(sub_gate):
+            raise ValueError(f'Cannot control gates using measurement keys: {sub_gate}')
         if num_controls is None:
             if control_values is not None:
                 num_controls = len(control_values)
