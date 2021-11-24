@@ -64,8 +64,12 @@ class NaiveQubitPlacer(QubitPlacer):
     ) -> Tuple['cirq.FrozenCircuit', Dict[Any, 'cirq.Qid']]:
         return circuit.freeze(), {q: q for q in circuit.all_qubits()}
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.dataclass_json_dict(self, namespace='cirq.google')
+        return cirq.dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')

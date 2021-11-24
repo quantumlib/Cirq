@@ -22,10 +22,6 @@ from matplotlib import pyplot as plt
 
 from cirq import _compat
 from cirq.devices import GridQubit, LineQubit
-from cirq.protocols.json_serialization import obj_to_dict_helper
-
-from cirq import _compat
-from cirq.devices import GridQubit, LineQubit
 from cirq.protocols.json_serialization import dataclass_json_dict
 
 if TYPE_CHECKING:
