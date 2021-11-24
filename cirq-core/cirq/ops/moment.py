@@ -220,7 +220,7 @@ class Moment:
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return Moment(
             protocols.with_measurement_key_mapping(op, key_map)
-            if protocols.is_measurement(op) or protocols.control_keys(op)
+            if protocols.measurement_keys_used(op)
             else op
             for op in self.operations
         )
@@ -244,7 +244,7 @@ class Moment:
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
         return Moment(
             protocols.with_key_path_prefix(op, prefix)
-            if (protocols.is_measurement(op) or protocols.control_keys(op))
+            if protocols.measurement_keys_used(op)
             else op
             for op in self.operations
         )

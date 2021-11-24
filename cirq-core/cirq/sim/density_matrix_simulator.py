@@ -211,7 +211,7 @@ class DensityMatrixSimulator(
         )
 
     def _can_be_in_run_prefix(self, val: Any):
-        return not protocols.is_measurement(val) and not protocols.control_keys(val)
+        return not protocols.measurement_keys_used(val)
 
     def _create_step_result(
         self,
