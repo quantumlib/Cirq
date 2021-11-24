@@ -164,7 +164,6 @@ class SymmetricalQidPair:
     def _json_dict_(self):
         return {
             'qids': sorted(self.qids),
-            'cirq_type': self.__class__.__name__,
         }
 
     @classmethod

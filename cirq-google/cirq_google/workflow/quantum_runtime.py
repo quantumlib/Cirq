@@ -48,9 +48,13 @@ class SharedRuntimeInfo:
     run_id: str
     device: Optional[cirq.Device] = None
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
         # TODO (gh-4699): serialize `device` as well once SerializableDevice is serializable.
-        return obj_to_dict_helper(self, attribute_names=['run_id'], namespace='cirq.google')
+        return obj_to_dict_helper(self, attribute_names=['run_id'])
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -79,8 +83,12 @@ class RuntimeInfo:
     execution_index: int
     qubit_placement: Optional[Dict[Any, cirq.Qid]] = None
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        d = dataclass_json_dict(self, namespace='cirq.google')
+        d = dataclass_json_dict(self)
         if d['qubit_placement']:
             d['qubit_placement'] = list(d['qubit_placement'].items())
         return d
@@ -111,8 +119,12 @@ class ExecutableResult:
     runtime_info: RuntimeInfo
     raw_data: cirq.Result
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -136,8 +148,12 @@ class ExecutableGroupResult:
     shared_runtime_info: SharedRuntimeInfo
     executable_results: List[ExecutableResult]
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -164,8 +180,12 @@ class QuantumRuntimeConfiguration:
     random_seed: Optional[int] = None
     qubit_placer: QubitPlacer = NaiveQubitPlacer()
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')

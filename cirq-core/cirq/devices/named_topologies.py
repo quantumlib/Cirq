@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import abc
-import dataclasses
 import warnings
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Any, Sequence, Union, Iterable, TYPE_CHECKING
@@ -25,12 +24,12 @@ from cirq import _compat
 from cirq.devices import GridQubit, LineQubit
 from cirq.protocols.json_serialization import obj_to_dict_helper
 
+from cirq import _compat
+from cirq.devices import GridQubit, LineQubit
+from cirq.protocols.json_serialization import dataclass_json_dict
+
 if TYPE_CHECKING:
     import cirq
-
-
-def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
-    return obj_to_dict_helper(obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace)
 
 
 class NamedTopology(metaclass=abc.ABCMeta):

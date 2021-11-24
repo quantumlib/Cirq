@@ -154,7 +154,7 @@ class Calibration(abc.Mapping):
 
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
-        return {'cirq_type': 'Calibration', 'metrics': json_format.MessageToDict(self.to_proto())}
+        return {'metrics': json_format.MessageToDict(self.to_proto())}
 
     def timestamp_str(self, tz: Optional[datetime.tzinfo] = None, timespec: str = 'auto') -> str:
         """Return a string for the calibration timestamp.
