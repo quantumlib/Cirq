@@ -21,7 +21,7 @@ import os
 import pathlib
 import sys
 import warnings
-from typing import Dict, List, Optional, Tuple, Type
+from typing import ClassVar, Dict, List, Optional, Tuple, Type
 from unittest import mock
 
 import numpy as np
@@ -77,18 +77,24 @@ MODULE_TEST_SPECS = _get_testspecs_for_modules()
 
 def test_deprecated_cirq_type_in_json_dict():
     class HasOldJsonDict:
+        # Required for testing serialization of non-cirq objects.
+        __module__ = 'test.noncirq.namespace'  # type: ignore
+
         def __eq__(self, other):
             return isinstance(other, HasOldJsonDict)
 
         def _json_dict_(self):
-            return {'cirq_type': 'cirq.testing.HasOldJsonDict'}
+            return {'cirq_type': 'test.noncirq.namespace.HasOldJsonDict'}
 
         @classmethod
         def _from_json_dict_(cls, **kwargs):
             return cls()
 
+    with pytest.raises(ValueError, match='not a Cirq type'):
+        _ = cirq.json_cirq_type(HasOldJsonDict)
+
     def custom_resolver(name):
-        if name == 'cirq.testing.HasOldJsonDict':
+        if name == 'test.noncirq.namespace.HasOldJsonDict':
             return HasOldJsonDict
 
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
@@ -98,6 +104,9 @@ def test_deprecated_cirq_type_in_json_dict():
 
 def test_deprecated_obj_to_dict_helper_namespace():
     class HasOldJsonDict:
+        # Required for testing serialization of non-cirq objects.
+        __module__ = 'test.noncirq.namespace'  # type: ignore
+
         def __init__(self, x):
             self.x = x
 
@@ -105,14 +114,19 @@ def test_deprecated_obj_to_dict_helper_namespace():
             return isinstance(other, HasOldJsonDict) and other.x == self.x
 
         def _json_dict_(self):
-            return json_serialization.obj_to_dict_helper(self, ['x'], namespace='cirq.testing')
+            return json_serialization.obj_to_dict_helper(
+                self, ['x'], namespace='test.noncirq.namespace'
+            )
 
         @classmethod
         def _from_json_dict_(cls, x, **kwargs):
             return cls(x)
 
+    with pytest.raises(ValueError, match='not a Cirq type'):
+        _ = cirq.json_cirq_type(HasOldJsonDict)
+
     def custom_resolver(name):
-        if name == 'cirq.testing.HasOldJsonDict':
+        if name == 'test.noncirq.namespace.HasOldJsonDict':
             return HasOldJsonDict
 
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
@@ -125,17 +139,22 @@ def test_deprecated_obj_to_dict_helper_namespace():
 def test_deprecated_dataclass_json_dict_namespace():
     @dataclasses.dataclass
     class HasOldJsonDict:
+        # Required for testing serialization of non-cirq objects.
+        __module__: ClassVar = 'test.noncirq.namespace'  # type: ignore
         x: int
 
         def _json_dict_(self):
-            return json_serialization.dataclass_json_dict(self, namespace='cirq.testing')
+            return json_serialization.dataclass_json_dict(self, namespace='test.noncirq.namespace')
 
         @classmethod
         def _from_json_dict_(cls, x, **kwargs):
             return cls(x)
 
+    with pytest.raises(ValueError, match='not a Cirq type'):
+        _ = cirq.json_cirq_type(HasOldJsonDict)
+
     def custom_resolver(name):
-        if name == 'cirq.testing.HasOldJsonDict':
+        if name == 'test.noncirq.namespace.HasOldJsonDict':
             return HasOldJsonDict
 
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
