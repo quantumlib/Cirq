@@ -40,9 +40,12 @@ class ConditionalOperation(raw_types.Operation):
         sub_operation: 'cirq.Operation',
         conditions: Sequence[Union[str, 'cirq.MeasurementKey']],
     ):
-        keys = tuple(value.MeasurementKey(k) if isinstance(k, str) else k for k in conditions)
-        self._control_keys = cast(Tuple[value.MeasurementKey, ...], keys)
-        self._sub_operation = sub_operation
+        keys = tuple(value.MeasurementKey(c) if isinstance(c, str) else c for c in conditions)
+        if isinstance(sub_operation, ConditionalOperation):
+            keys += sub_operation._control_keys
+            sub_operation = sub_operation._sub_operation
+        self._control_keys: Tuple['cirq.MeasurementKey', ...] = keys
+        self._sub_operation: 'cirq.Operation' = sub_operation
 
     def unconditionally(self) -> 'cirq.Operation':
         return self._sub_operation.unconditionally()

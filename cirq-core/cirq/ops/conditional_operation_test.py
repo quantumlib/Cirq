@@ -299,6 +299,13 @@ def test_subcircuit_key_set(sim):
     assert result.measurements['3:b'] == 0
 
 
+def test_condition_flattening():
+    q0 = cirq.LineQubit(0)
+    op = cirq.X(q0).with_conditions('a').with_conditions('b')
+    assert set(map(str, op._control_keys)) == {'a', 'b'}
+    assert isinstance(op._sub_operation, cirq.GateOperation)
+
+
 def test_condition_stacking():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_conditions('a').with_tags('t').with_conditions('b')
