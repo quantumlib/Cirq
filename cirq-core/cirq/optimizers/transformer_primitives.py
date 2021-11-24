@@ -187,26 +187,27 @@ def merge_operations(
         for op in current_moment:
             op_qs = set(op.qubits)
             idx = ret_circuit.prev_moment_operating_on(tuple(op_qs))
-            if (
-                idx is not None
-                and op_qs.issubset((left_op := ret_circuit[idx][op_qs].operations[0]).qubits)
-                and (new_op := apply_merge_func(left_op, op)) is not None
-            ):
+            if idx is not None and op_qs.issubset(ret_circuit[idx][op_qs].operations[0].qubits):
                 # Case-1: Try to merge op with the larger operation on the left.
-                ret_circuit.batch_replace([(idx, left_op, new_op)])
+                left_op = ret_circuit[idx][op_qs].operations[0]
+                new_op = apply_merge_func(left_op, op)
+                if new_op is not None:
+                    ret_circuit.batch_replace([(idx, left_op, new_op)])
+                else:
+                    new_moment = new_moment.with_operation(op)
                 continue
 
             while idx is not None and len(op_qs) > 0:
                 # Case-2: left_ops will merge right into `op` whenever possible.
                 for left_op in ret_circuit[idx][op_qs].operations:
-                    if (
-                        op_qs.issuperset(left_op.qubits)
-                        and (new_op := apply_merge_func(left_op, op)) is not None
-                    ):
+                    is_merged = False
+                    if op_qs.issuperset(left_op.qubits):
                         # Try to merge left_op into op
-                        ret_circuit.batch_remove([(idx, left_op)])
-                        op = new_op
-                    else:
+                        new_op = apply_merge_func(left_op, op)
+                        if new_op is not None:
+                            ret_circuit.batch_remove([(idx, left_op)])
+                            op, is_merged = new_op, True
+                    if not is_merged:
                         op_qs -= frozenset(left_op.qubits)
                 idx = ret_circuit.prev_moment_operating_on(tuple(op_qs))
             new_moment = new_moment.with_operation(op)
