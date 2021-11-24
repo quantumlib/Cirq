@@ -2,12 +2,14 @@
   "cirq_type": "ConditionalOperation",
   "conditions": [
     {
-      "cirq_type": "LineQubit",
-      "x": 0
+      "cirq_type": "MeasurementKey",
+      "name": "a",
+      "path": []
     },
     {
-      "cirq_type": "LineQubit",
-      "x": 1
+      "cirq_type": "MeasurementKey",
+      "name": "b",
+      "path": []
     }
   ],
   "sub_operation": {
