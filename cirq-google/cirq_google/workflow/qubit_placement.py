@@ -44,6 +44,10 @@ class QubitPlacer(metaclass=abc.ABCMeta):
             shared_rt_info: A `cg.SharedRuntimeInfo` object that may contain additional info
                 to inform placement.
             rs: A `RandomState` to enable pseudo-random placement strategies.
+
+        Returns:
+            A tuple of a new frozen circuit with the qubits placed and a mapping from input
+            qubits or nodes to output qubits.
         """
 
 
