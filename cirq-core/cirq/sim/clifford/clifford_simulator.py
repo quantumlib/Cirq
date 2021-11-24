@@ -208,7 +208,6 @@ class CliffordState:
 
     def _json_dict_(self):
         return {
-            'cirq_type': self.__class__.__name__,
             'qubit_map': [(k, v) for k, v in self.qubit_map.items()],
             'ch_form': self.ch_form,
         }

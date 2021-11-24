@@ -229,7 +229,6 @@ class MeasurementGate(raw_types.Gate):
         if not all(d == 2 for d in self._qid_shape):
             other['qid_shape'] = self._qid_shape
         return {
-            'cirq_type': self.__class__.__name__,
             'num_qubits': len(self._qid_shape),
             'key': self.key,
             'invert_mask': self.invert_mask,

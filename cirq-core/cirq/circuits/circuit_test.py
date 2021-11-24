@@ -4212,7 +4212,6 @@ def test_json_dict(circuit_cls):
     if circuit_cls == cirq.FrozenCircuit:
         moments = tuple(moments)
     assert c._json_dict_() == {
-        'cirq_type': circuit_cls.__name__,
         'moments': moments,
         'device': cirq.UNCONSTRAINED_DEVICE,
     }
