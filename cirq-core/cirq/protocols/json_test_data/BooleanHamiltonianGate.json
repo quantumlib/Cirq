@@ -1,10 +1,8 @@
 [
   {
     "cirq_type": "BooleanHamiltonianGate",
-    "qubit_map": [["q0", 2]],
-    "boolean_strs": [
-      "q0"
-    ],
+    "parameter_names": ["q0", "q1"],
+    "boolean_strs": ["q0"],
     "theta": 0.20160913
   }
 ]

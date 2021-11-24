@@ -136,7 +136,7 @@ def test_gate_circuit(boolean_str):
     circuit.append(cirq.H.on_each(*qubits))
 
     hamiltonian_gate = cirq.BooleanHamiltonianGate(
-        [(q.name, q.dimension) for q in qubits], [boolean_str], 0.1 * math.pi
+        [q.name for q in qubits], [boolean_str], 0.1 * math.pi
     ).on(*qubits)
 
     assert cirq.qid_shape(hamiltonian_gate) == cirq.qid_shape(qubits)
@@ -165,14 +165,14 @@ def test_with_custom_names():
     with pytest.raises(ValueError, match='Length of replacement qubits must be the same'):
         original_op.with_qubits(q2)
 
-    with pytest.raises(ValueError, match='Dimensions of replacement qubits must be the same'):
+    with pytest.raises(ValueError, match='All qubits must be 2-dimensional'):
         original_op.with_qubits(q0, cirq.LineQid(1, 3))
 
 
 def test_gate_with_custom_names():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     gate = cirq.BooleanHamiltonianGate(
-        [('a', 2), ('b', 2)],
+        ['a', 'b'],
         ['a'],
         0.1,
     )
@@ -199,7 +199,7 @@ def test_consistent():
 
 def test_gate_consistent():
     gate = cirq.BooleanHamiltonianGate(
-        [('a', 2), ('b', 2)],
+        ['a', 'b'],
         ['a'],
         0.1,
     )
