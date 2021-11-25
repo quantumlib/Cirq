@@ -220,8 +220,8 @@ def _list_moment_pairs_to_characterize(
         return None
     elif not permit_mixed_moments and other_operation:
         raise IncompatibleMomentError(
-            f'Moment contains mixed two-qubit operations and either single-qubit measurement or '
-            f'wait operations. See permit_mixed_moments option to relax this restriction.'
+            'Moment contains mixed two-qubit operations and either single-qubit measurement or '
+            'wait operations. See permit_mixed_moments option to relax this restriction.'
         )
 
     if sort_pairs:

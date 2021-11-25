@@ -106,7 +106,7 @@ class CircuitOperation(ops.Operation):
             try:
                 protocols.inverse(self.circuit.unfreeze())
             except TypeError:
-                raise ValueError(f'repetitions are negative but the circuit is not invertible')
+                raise ValueError('repetitions are negative but the circuit is not invertible')
 
         # Initialize repetition_ids to default, if unspecified. Else, validate their length.
         loop_size = abs(self.repetitions)

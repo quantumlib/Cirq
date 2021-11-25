@@ -26,7 +26,7 @@ def assert_controlled_and_controlled_by_identical(
     """Checks that gate.on().controlled_by() == gate.controlled().on()"""
     if control_values is not None:
         if len(num_controls) != len(control_values):
-            raise ValueError(f"len(num_controls) != len(control_values)")
+            raise ValueError("len(num_controls) != len(control_values)")
     for i, num_control in enumerate(num_controls):
         control_value = control_values[i] if control_values else None
         if control_value is not None and len(control_value) != num_control:
