@@ -484,7 +484,6 @@ def test_json_dict():
     )
 
     assert op._json_dict_() == {
-        'cirq_type': 'CircuitOperation',
         'circuit': circuit,
         'repetitions': 1,
         'qubit_map': sorted([(k, v) for k, v in op.qubit_map.items()]),

@@ -329,7 +329,6 @@ class CircuitOperation(ops.Operation):
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'CircuitOperation',
             'circuit': self.circuit,
             'repetitions': self.repetitions,
             # JSON requires mappings to have keys of basic types.

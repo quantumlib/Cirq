@@ -229,7 +229,6 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'RigettiQCSAspenDevice',
             'isa': self.isa.to_dict(),
         }
 
@@ -384,7 +383,6 @@ class OctagonalQubit(cirq.ops.Qid):
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'OctagonalQubit',
             'octagon_position': self.octagon_position,
         }
 
@@ -524,7 +522,6 @@ class AspenQubit(OctagonalQubit):
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'AspenQubit',
             'octagon': self.octagon,
             'octagon_position': self.octagon_position,
         }

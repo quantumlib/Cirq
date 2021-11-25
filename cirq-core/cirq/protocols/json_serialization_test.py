@@ -21,7 +21,7 @@ import os
 import pathlib
 import sys
 import warnings
-from typing import Dict, List, Optional, Tuple, Type
+from typing import ClassVar, Dict, List, Optional, Tuple, Type
 from unittest import mock
 
 import numpy as np
@@ -73,6 +73,95 @@ def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
 
 
 MODULE_TEST_SPECS = _get_testspecs_for_modules()
+
+
+def test_deprecated_cirq_type_in_json_dict():
+    class HasOldJsonDict:
+        # Required for testing serialization of non-cirq objects.
+        __module__ = 'test.noncirq.namespace'  # type: ignore
+
+        def __eq__(self, other):
+            return isinstance(other, HasOldJsonDict)
+
+        def _json_dict_(self):
+            return {'cirq_type': 'test.noncirq.namespace.HasOldJsonDict'}
+
+        @classmethod
+        def _from_json_dict_(cls, **kwargs):
+            return cls()
+
+    with pytest.raises(ValueError, match='not a Cirq type'):
+        _ = cirq.json_cirq_type(HasOldJsonDict)
+
+    def custom_resolver(name):
+        if name == 'test.noncirq.namespace.HasOldJsonDict':
+            return HasOldJsonDict
+
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    with cirq.testing.assert_deprecated("Found 'cirq_type'", deadline='v0.15'):
+        assert_json_roundtrip_works(HasOldJsonDict(), resolvers=test_resolvers)
+
+
+def test_deprecated_obj_to_dict_helper_namespace():
+    class HasOldJsonDict:
+        # Required for testing serialization of non-cirq objects.
+        __module__ = 'test.noncirq.namespace'  # type: ignore
+
+        def __init__(self, x):
+            self.x = x
+
+        def __eq__(self, other):
+            return isinstance(other, HasOldJsonDict) and other.x == self.x
+
+        def _json_dict_(self):
+            return json_serialization.obj_to_dict_helper(
+                self, ['x'], namespace='test.noncirq.namespace'
+            )
+
+        @classmethod
+        def _from_json_dict_(cls, x, **kwargs):
+            return cls(x)
+
+    with pytest.raises(ValueError, match='not a Cirq type'):
+        _ = cirq.json_cirq_type(HasOldJsonDict)
+
+    def custom_resolver(name):
+        if name == 'test.noncirq.namespace.HasOldJsonDict':
+            return HasOldJsonDict
+
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    with cirq.testing.assert_deprecated(
+        "Found 'cirq_type'", 'Define obj._json_namespace_', deadline='v0.15', count=3
+    ):
+        assert_json_roundtrip_works(HasOldJsonDict(1), resolvers=test_resolvers)
+
+
+def test_deprecated_dataclass_json_dict_namespace():
+    @dataclasses.dataclass
+    class HasOldJsonDict:
+        # Required for testing serialization of non-cirq objects.
+        __module__: ClassVar = 'test.noncirq.namespace'  # type: ignore
+        x: int
+
+        def _json_dict_(self):
+            return json_serialization.dataclass_json_dict(self, namespace='test.noncirq.namespace')
+
+        @classmethod
+        def _from_json_dict_(cls, x, **kwargs):
+            return cls(x)
+
+    with pytest.raises(ValueError, match='not a Cirq type'):
+        _ = cirq.json_cirq_type(HasOldJsonDict)
+
+    def custom_resolver(name):
+        if name == 'test.noncirq.namespace.HasOldJsonDict':
+            return HasOldJsonDict
+
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    with cirq.testing.assert_deprecated(
+        "Found 'cirq_type'", 'Define obj._json_namespace_', deadline='v0.15', count=5
+    ):
+        assert_json_roundtrip_works(HasOldJsonDict(1), resolvers=test_resolvers)
 
 
 def test_line_qubit_roundtrip():
@@ -360,7 +449,6 @@ class SBKImpl(cirq.SerializableByKey):
 
     def _json_dict_(self):
         return {
-            "cirq_type": "SBKImpl",
             "name": self.name,
             "data_list": self.data_list,
             "data_tuple": self.data_tuple,
@@ -540,7 +628,6 @@ class SerializableTypeObject:
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'SerializableTypeObject',
             'test_type': json_serialization.json_cirq_type(self.test_type),
         }
 
