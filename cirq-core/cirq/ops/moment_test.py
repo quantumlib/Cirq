@@ -374,7 +374,7 @@ def test_json_dict():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     mom = cirq.Moment([cirq.CZ(a, b)])
-    assert mom._json_dict_() == {'cirq_type': 'Moment', 'operations': (cirq.CZ(a, b),)}
+    assert mom._json_dict_() == {'operations': (cirq.CZ(a, b),)}
 
 
 def test_inverse():

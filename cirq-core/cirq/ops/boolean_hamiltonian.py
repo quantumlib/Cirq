@@ -94,7 +94,6 @@ class BooleanHamiltonian(raw_types.Operation):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'qubit_map': self._qubit_map,
             'boolean_strs': self._boolean_strs,
             'theta': self._theta,
