@@ -321,7 +321,7 @@ def test_string_format():
 
     fc0 = cirq.FrozenCircuit()
     op0 = cirq.CircuitOperation(fc0)
-    assert (str(op0) == f"[  ]")
+    assert str(op0) == f"[  ]"
 
     fc0_global_phase_inner = cirq.FrozenCircuit(
         cirq.GlobalPhaseOperation(1j), cirq.GlobalPhaseOperation(1j)
