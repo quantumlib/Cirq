@@ -318,7 +318,6 @@ class Rx(XPowGate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'rads': self._rads,
         }
 
@@ -539,7 +538,6 @@ class Ry(YPowGate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'rads': self._rads,
         }
 
@@ -825,7 +823,6 @@ class Rz(ZPowGate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'rads': self._rads,
         }
 

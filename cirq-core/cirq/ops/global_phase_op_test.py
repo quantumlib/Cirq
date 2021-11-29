@@ -268,6 +268,5 @@ global phase:   -0.5π
 
 def test_global_phase_op_json_dict():
     assert cirq.GlobalPhaseOperation(-1j)._json_dict_() == {
-        'cirq_type': 'GlobalPhaseOperation',
         'coefficient': -1j,
     }
