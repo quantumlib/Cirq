@@ -27,8 +27,6 @@ class SimulatedLocalProgram(AbstractLocalProgram):
 
     This class functions as a parent class for a `SimulatedLocalJob`
     object.
-
-    This is an abstract class that inheritors should implement.
     """
 
     def __init__(

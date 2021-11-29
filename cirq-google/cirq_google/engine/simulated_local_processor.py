@@ -33,7 +33,6 @@ if TYPE_CHECKING:
 
 VALID_LANGUAGES = [
     'type.googleapis.com/cirq.google.api.v2.Program',
-    'type.googleapis.com/cirq.google.api.v2.FocusedCalibration',
     'type.googleapis.com/cirq.google.api.v2.BatchProgram',
 ]
 
@@ -54,7 +53,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
     """A processor backed by a sampler and device.
 
     Intended for local simulation testing, this processor will
-    create a VAlidationSampler that will validate requests based on
+    create a `ValidationSampler` that will validate requests based on
     the provided device and an additional Callable (that can verify
     serialization constraints, for instance).  Jobs will then be
     executed using the provided sampler.
@@ -66,7 +65,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
     API or for testing or mocking.
 
     Attributes:
-        sammpler: A `cirq.Sampler` that can execute the quantum jobs.
+        sampler: A `cirq.Sampler` that can execute the quantum jobs.
         device: An optional device, for validation of qubit connectivity.
         validator: A Callable that can validate additional characteristics
             beyond the device, such as serialization, repetition limits, etc.
@@ -103,15 +102,9 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         return self._calibrations[calibration_timestamp_seconds]
 
     def get_latest_calibration(self, timestamp: int) -> Optional[calibration.Calibration]:
-        latest = None
-        current_calibration = None
-        for calibration_seconds in self._calibrations:
-            if calibration_seconds <= timestamp and (
-                latest is None or latest < calibration_seconds
-            ):
-                latest = calibration_seconds
-                current_calibration = self._calibrations[latest]
-        return current_calibration
+        if not self._calibrations:
+            return None
+        return self._calibrations[max(self._calibrations)]
 
     def get_current_calibration(self) -> Optional[calibration.Calibration]:
         return self.get_latest_calibration(int(datetime.datetime.now().timestamp()))
@@ -126,7 +119,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         return self._device
 
     def get_device_specification(self) -> Optional[v2.device_pb2.DeviceSpecification]:
-        raise NotImplemented  # coverage: ignore
+        raise NotImplementedError
 
     def health(self):
         return 'OK'
@@ -136,22 +129,16 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
         latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
     ) -> List[calibration.Calibration]:
-        calibration_list: List[calibration.Calibration] = []
-        earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp)
-        latest_timestamp_seconds = _date_to_timestamp(latest_timestamp)
-        for calibration_seconds in self._calibrations:
-            if (
-                earliest_timestamp_seconds is not None
-                and earliest_timestamp_seconds > calibration_seconds
-            ):
-                continue
-            if (
-                latest_timestamp_seconds is not None
-                and latest_timestamp_seconds < calibration_seconds
-            ):
-                continue
-            calibration_list.append(self._calibrations[calibration_seconds])
-        return calibration_list
+        earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp) or 0
+        latest_timestamp_seconds = (
+            _date_to_timestamp(latest_timestamp)
+            or datetime.datetime(datetime.MAXYEAR, 1, 1).timestamp()
+        )
+        return [
+            cal[1]
+            for cal in self._calibrations.items()
+            if earliest_timestamp_seconds <= cal[0] <= latest_timestamp_seconds
+        ]
 
     def get_sampler(self, gate_set: Optional['Serializer'] = None) -> cirq.Sampler:
         return self._sampler
@@ -165,18 +152,19 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
     ) -> List[AbstractLocalProgram]:
-        programs: List[AbstractLocalProgram] = []
-        for program in self._programs.values():
-            if created_before is not None and created_before < program.create_time():
-                continue
-            if created_after is not None and created_after > program.create_time():
-                continue
-            if has_labels is not None:
-                labels = program.labels()
-                if any(key not in labels or labels[key] != has_labels[key] for key in has_labels):
-                    continue
-            programs.append(program)
-        return programs
+        before_limit = created_before or datetime.datetime(datetime.MAXYEAR, 1, 1)
+        after_limit = created_after or datetime.datetime(datetime.MINYEAR, 1, 1)
+        labels = has_labels or {}
+        return list(
+            filter(
+                lambda program: after_limit < program.create_time() < before_limit
+                and all(
+                    (key in program.labels() and program.labels()[key] == labels[key])
+                    for key in labels
+                ),
+                self._programs.values(),
+            )
+        )
 
     def get_program(self, program_id: str) -> AbstractProgram:
         """Returns an AbstractProgram for an existing Quantum Engine program.
@@ -316,4 +304,4 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         return job
 
     def run_calibration(self, *args, **kwargs):
-        raise NotImplemented  # coverage: ignore
+        raise NotImplementedError

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A helper for jobs that have been created on the Quantum Engine."""
+"""Tests for SimulatedLocalJob."""
 import pytest
 import numpy as np
 import sympy
@@ -136,3 +136,16 @@ def test_failure():
         code, message = job.failure()
         assert code == '500'
         assert 'Circuit contains ops whose symbols were not specified' in message
+
+
+def test_run_calibration_unsupported():
+    program = ParentProgram([cirq.Circuit()], None)
+    job = SimulatedLocalJob(
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=100,
+        sweeps=[{}],
+    )
+    with pytest.raises(NotImplementedError):
+        _ = job.calibration_results()

@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A helper for jobs that have been created on the Quantum Engine."""
+"""An implementation of AbstractJob that uses in-memory constructs
+and a provided sampler to execute circuits."""
 from typing import cast, List, Optional, Tuple
 
 import cirq
@@ -43,12 +44,12 @@ class SimulatedLocalJob(AbstractLocalJob):
     def __init__(
         self,
         *args,
-        sampler: cirq.Sampler = cirq.Simulator(),
+        sampler: cirq.Sampler = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self._sampler = sampler
+        self._sampler = sampler or cirq.Simulator()
         self._simulation_type = simulation_type
         self._state = quantum.enums.ExecutionStatus.State.READY
         self._type = simulation_type
@@ -122,4 +123,4 @@ class SimulatedLocalJob(AbstractLocalJob):
 
         This function will fail if any other type of results were returned.
         """
-        raise NotImplemented  # coverage: ignore
+        raise NotImplementedError

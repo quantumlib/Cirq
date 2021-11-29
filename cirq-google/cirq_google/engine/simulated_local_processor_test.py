@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A helper for jobs that have been created on the Quantum Engine."""
+"""Tests for SimulatedLocalProcessor"""
 from typing import List
 import datetime
 import pytest
@@ -144,6 +144,7 @@ def test_run_sweep():
     assert len(job) == 2
     assert np.all(job[0].measurements['m'] == 1)
     assert np.all(job[1].measurements['m'] == 0)
+
     # Test iteration
     for idx, result in enumerate(job):
         assert np.all(result.measurements['m'] == 1 - idx)
@@ -157,8 +158,6 @@ def test_run_sweep():
     assert np.all(results[0].measurements['m'] == 1)
     assert np.all(results[1].measurements['m'] == 0)
     assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
-
-    # iteration
 
 
 def test_run_batch():
@@ -217,3 +216,11 @@ def test_additional_validation():
     # Test validation through sampler
     with pytest.raises(ValueError, match='No Y gates allowed!'):
         _ = proc.get_sampler().run_sweep(circuit, params=sweep, repetitions=100)
+
+
+def test_unsupported():
+    proc = SimulatedLocalProcessor(processor_id='test_proc')
+    with pytest.raises(NotImplementedError):
+        _ = proc.get_device_specification()
+    with pytest.raises(NotImplementedError):
+        _ = proc.run_calibration()
