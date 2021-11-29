@@ -132,7 +132,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp) or 0
         latest_timestamp_seconds = (
             _date_to_timestamp(latest_timestamp)
-            or datetime.datetime(datetime.MAXYEAR, 1, 1).timestamp()
+            or (datetime.datetime.now() + datetime.timedelta(days=10000)).timestamp()
         )
         return [
             cal[1]
