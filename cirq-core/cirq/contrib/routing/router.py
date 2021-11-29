@@ -62,5 +62,5 @@ def route_circuit(
     if algo_name is not None:
         router = ROUTERS[algo_name]
     elif router is None:
-        raise ValueError(f'No routing algorithm specified.')
+        raise ValueError('No routing algorithm specified.')
     return router(circuit, device_graph, **kwargs)

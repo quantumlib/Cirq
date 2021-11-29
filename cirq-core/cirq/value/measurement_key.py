@@ -79,7 +79,6 @@ class MeasurementKey:
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'MeasurementKey',
             'name': self.name,
             'path': self.path,
         }

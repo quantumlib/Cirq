@@ -88,11 +88,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def __hash__(self):
         return hash((self.moments, self.device))
 
-    def diagram_name(self):
-        """Name used to represent this in circuit diagrams."""
-        key = hash(self) & 0xFFFF_FFFF_FFFF_FFFF
-        return f'Circuit_0x{key:016x}'
-
     # Memoized methods for commonly-retrieved properties.
 
     def _num_qubits_(self) -> int:

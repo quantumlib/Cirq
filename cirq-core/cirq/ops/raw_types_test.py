@@ -73,7 +73,6 @@ def test_wrapped_qid():
     assert str(ValidQubit('a').with_dimension(3)) == 'TQ_a (d=3)'
 
     assert ValidQubit('zz').with_dimension(3)._json_dict_() == {
-        'cirq_type': '_QubitAsQid',
         'qubit': ValidQubit('zz'),
         'dimension': 3,
     }
@@ -370,9 +369,7 @@ def test_operation_shape():
 
 def test_gate_json_dict():
     g = cirq.CSWAP  # not an eigen gate (which has its own _json_dict_)
-    assert g._json_dict_() == {
-        'cirq_type': 'CSwapGate',
-    }
+    assert g._json_dict_() == {}
 
 
 def test_inverse_composite_diagram_info():

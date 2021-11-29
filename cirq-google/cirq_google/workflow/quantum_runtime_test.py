@@ -33,8 +33,12 @@ class _MockEngineProcessor(AbstractEngineProcessorShim):
     def get_sampler(self) -> cirq.Sampler:
         return cirq.ZerosSampler()
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google.testing'
+
     def _json_dict_(self):
-        return cirq.obj_to_dict_helper(self, attribute_names=[], namespace='cirq.google.testing')
+        return cirq.obj_to_dict_helper(self, attribute_names=[])
 
 
 def cg_assert_equivalent_repr(value):

@@ -254,7 +254,6 @@ class ControlledOperation(raw_types.Operation):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'controls': self.controls,
             'control_values': self.control_values,
             'sub_operation': self.sub_operation,
