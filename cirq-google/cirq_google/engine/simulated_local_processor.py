@@ -155,13 +155,16 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         before_limit = created_before or datetime.datetime(datetime.MAXYEAR, 1, 1)
         after_limit = created_after or datetime.datetime(datetime.MINYEAR, 1, 1)
         labels = has_labels or {}
+
+        def _labels_match(user_labels, program_labels):
+            return all(
+                (key in program_labels and program_labels[key] == labels[key]) for key in labels
+            )
+
         return list(
             filter(
                 lambda program: after_limit < program.create_time() < before_limit
-                and all(
-                    (key in program.labels() and program.labels()[key] == labels[key])
-                    for key in labels
-                ),
+                and _labels_match(labels, program.labels()),
                 self._programs.values(),
             )
         )

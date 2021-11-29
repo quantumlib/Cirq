@@ -105,12 +105,9 @@ class SimulatedLocalJob(AbstractLocalJob):
             program = self.program().get_circuit()
             try:
                 self._state = quantum.enums.ExecutionStatus.State.SUCCESS
-                if sweeps:
-                    return self._sampler.run_sweep(
-                        program=program, params=sweeps[0], repetitions=reps
-                    )
-                else:
-                    return [self._sampler.run(program=program, repetitions=reps)]
+                return self._sampler.run_sweep(
+                    program=program, params=sweeps[0] if sweeps else None, repetitions=reps
+                )
             except Exception as e:
                 self._failure_code = '500'
                 self._failure_message = str(e)
