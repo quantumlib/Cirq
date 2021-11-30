@@ -136,12 +136,10 @@ def test_named_qid_range():
 
 def test_to_json():
     assert cirq.NamedQubit('c')._json_dict_() == {
-        'cirq_type': 'NamedQubit',
         'name': 'c',
     }
 
     assert cirq.NamedQid('c', dimension=3)._json_dict_() == {
-        'cirq_type': 'NamedQid',
         'name': 'c',
         'dimension': 3,
     }

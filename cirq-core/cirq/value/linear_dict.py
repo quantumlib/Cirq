@@ -312,7 +312,6 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         if self._has_validator:
             raise ValueError('LinearDict with a validator is not json serializable.')
         return {
-            'cirq_type': self.__class__.__name__,
             'keys': [k for k in self._terms.keys()],
             'values': [v for v in self._terms.values()],
         }

@@ -53,7 +53,9 @@ fi
 echo "Comparing against revision '${rev}'." >&2
 
 # Get the _test version of changed python files.
-changed=$(git diff --name-only ${rev} -- \
+typeset -a changed
+IFS=$'\n' read -r -d '' -a changed < \
+    <(git diff --name-only ${rev} -- \
     | grep "\.py$" \
     | sed -e "s/\.py$/_test.py/" \
     | sed -e "s/_test_test\.py$/_test.py/" \
@@ -65,7 +67,7 @@ if git diff --name-only "${rev}" -- | grep "__init__\.py$" > /dev/null; then
   # Include global API tests when an __init__ file is touched.
   changed+=('cirq-core/cirq/protocols/json_serialization_test.py')
 fi
-num_changed=$(echo -e "${changed[@]}" | wc -w)
+num_changed=${#changed[@]}
 
 # Run it.
 echo "Found ${num_changed} test files associated with changes." >&2
@@ -75,4 +77,4 @@ fi
 
 source dev_tools/pypath
 
-pytest ${rest} ${changed[@]}
+pytest ${rest} "${changed[@]}"
