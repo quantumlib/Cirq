@@ -175,7 +175,7 @@ class GateFamily:
             'gate': gate_json,
             'name': self.name,
             'description': self.description,
-            'ignore_global_phase': self._ignore_global_phase
+            'ignore_global_phase': self._ignore_global_phase,
         }
 
     @classmethod

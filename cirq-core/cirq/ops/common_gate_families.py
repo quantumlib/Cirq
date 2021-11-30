@@ -203,7 +203,7 @@ class ParallelGateFamily(gateset.GateFamily):
             'gate': gate_json,
             'name': self.name,
             'description': self.description,
-            'max_parallel_allowed': self._max_parallel_allowed
+            'max_parallel_allowed': self._max_parallel_allowed,
         }
 
     @classmethod
