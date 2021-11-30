@@ -321,12 +321,7 @@ def test_string_format():
 
     fc0 = cirq.FrozenCircuit()
     op0 = cirq.CircuitOperation(fc0)
-    assert (
-        str(op0)
-        == f"""\
-{op0.circuit.diagram_name()}:
-[                         ]"""
-    )
+    assert str(op0) == f"[  ]"
 
     fc0_global_phase_inner = cirq.FrozenCircuit(
         cirq.GlobalPhaseOperation(1j), cirq.GlobalPhaseOperation(1j)
@@ -339,10 +334,9 @@ def test_string_format():
     assert (
         str(op0_global_phase_outer)
         == f"""\
-{op0_global_phase_outer.circuit.diagram_name()}:
-[                         ]
-[                         ]
-[ global phase:   -0.5π   ]"""
+[                       ]
+[                       ]
+[ global phase:   -0.5π ]"""
     )
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))
@@ -350,7 +344,6 @@ def test_string_format():
     assert (
         str(op1)
         == f"""\
-{op1.circuit.diagram_name()}:
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
@@ -359,7 +352,7 @@ def test_string_format():
     )
     assert (
         repr(op1)
-        == f"""\
+        == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -387,10 +380,9 @@ cirq.CircuitOperation(
     assert (
         str(op2)
         == f"""\
-{op2.circuit.diagram_name()}:
-[ 0: ───X───X───          ]
-[           │             ]
-[ 1: ───H───@───          ](qubit_map={{1: 2}}, parent_path=('outer', 'inner'),\
+[ 0: ───X───X─── ]
+[           │    ]
+[ 1: ───H───@─── ](qubit_map={{1: 2}}, parent_path=('outer', 'inner'),\
  repetition_ids=['a', 'b', 'c'])"""
     )
     assert (
@@ -427,8 +419,7 @@ cirq.CircuitOperation(
     assert (
         str(op3)
         == f"""\
-{op3.circuit.diagram_name()}:
-[ 0: ───X^b───M('m')───   ](qubit_map={{0: 1}}, \
+[ 0: ───X^b───M('m')─── ](qubit_map={{0: 1}}, \
 key_map={{m: p}}, params={{b: 2}})"""
     )
     assert (
@@ -448,7 +439,7 @@ cirq.CircuitOperation(
     op5 = cirq.CircuitOperation(fc5)
     assert (
         repr(op5)
-        == f"""\
+        == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -484,7 +475,6 @@ def test_json_dict():
     )
 
     assert op._json_dict_() == {
-        'cirq_type': 'CircuitOperation',
         'circuit': circuit,
         'repetitions': 1,
         'qubit_map': sorted([(k, v) for k, v in op.qubit_map.items()]),
