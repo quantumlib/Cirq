@@ -324,6 +324,5 @@ def test_gate_repr():
 
 def test_gate_global_phase_op_json_dict():
     assert cirq.GlobalPhaseGate(-1j)._json_dict_() == {
-        'cirq_type': 'GlobalPhaseGate',
         'coefficient': -1j,
     }
