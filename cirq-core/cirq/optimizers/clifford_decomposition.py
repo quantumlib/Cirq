@@ -107,9 +107,7 @@ def decompose_clifford_tableau_to_operations(
         ValueError: The length of input qubit mismatch with the size of tableau.
     """
     if len(qubits) != clifford_tableau.n:
-        raise ValueError(
-            f"The number of qubits must be the same as the number of Clifford Tableau."
-        )
+        raise ValueError("The number of qubits must be the same as the number of Clifford Tableau.")
     assert (
         clifford_tableau._validate()
     ), "The provided clifford_tableau must satisfy the symplectic property."

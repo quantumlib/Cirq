@@ -67,8 +67,8 @@ class Service:
         self.api_key = api_key or os.getenv('IONQ_API_KEY')
         if not self.api_key:
             raise EnvironmentError(
-                f'Parameter api_key was not specified and the environment variable '
-                f'IONQ_API_KEY was also not set.'
+                'Parameter api_key was not specified and the environment variable '
+                'IONQ_API_KEY was also not set.'
             )
 
         self._client = ionq_client._IonQClient(

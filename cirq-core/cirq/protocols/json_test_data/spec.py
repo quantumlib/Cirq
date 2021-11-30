@@ -130,6 +130,7 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesFinalState',
         'NamedTopology',
         # protocols:
+        'HasJSONNamespace',
         'SupportsActOn',
         'SupportsActOnQubits',
         'SupportsApplyChannel',
@@ -161,6 +162,7 @@ TestSpec = ModuleJsonTestSpec(
         'CIRCUIT_LIKE',
         'DURATION_LIKE',
         'JsonResolver',
+        'LabelEntity',
         'NOISE_MODEL_LIKE',
         'OP_TREE',
         'PAULI_GATE_LIKE',

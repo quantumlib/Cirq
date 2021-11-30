@@ -783,7 +783,6 @@ class ProjectorSum:
             key = [[k, v] for k, v in dict(projector_dict).items()]
             linear_dict.append([key, scalar])
         return {
-            'cirq_type': self.__class__.__name__,
             'linear_dict': linear_dict,
         }
 
