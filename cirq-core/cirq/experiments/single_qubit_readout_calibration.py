@@ -45,7 +45,6 @@ class SingleQubitReadoutCalibrationResult:
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'zero_state_errors': list(self.zero_state_errors.items()),
             'one_state_errors': list(self.one_state_errors.items()),
             'repetitions': self.repetitions,

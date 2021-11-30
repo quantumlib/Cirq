@@ -488,7 +488,6 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         json_dict = self._clifford_tableau._json_dict_()
-        json_dict['cirq_type'] = self.__class__.__name__
         return json_dict
 
     def _circuit_diagram_info_(

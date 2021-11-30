@@ -1,4 +1,4 @@
-# Copyright 2020 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,20 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import cirq
-
-
-def test_named_qubit_repr():
-    q = cirq.testing.NoIdentifierQubit()
-    assert repr(q) == "cirq.testing.NoIdentifierQubit()"
+import enum
 
 
-def test_comparsion_key():
-    q = cirq.testing.NoIdentifierQubit()
-    p = cirq.testing.NoIdentifierQubit()
-    assert p == q
-
-
-def test_to_json():
-    assert cirq.testing.NoIdentifierQubit()._json_dict_() == {}
+class LocalSimulationType(enum.Enum):
+    SYNCHRONOUS = 1
+    ASYNCHRONOUS = 2
+    ASYNCHRONOUS_WITH_DELAY = 3

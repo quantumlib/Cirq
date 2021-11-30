@@ -84,7 +84,6 @@ class MatrixGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'matrix': self._matrix.tolist(),
             'qid_shape': self._qid_shape,
         }

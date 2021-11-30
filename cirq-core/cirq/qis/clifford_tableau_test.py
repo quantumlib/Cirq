@@ -234,7 +234,6 @@ def test_json_dict():
     assert t.stabilizers()[0] == cirq.DensePauliString('Z', coefficient=1)
     json_dict = t._json_dict_()
     except_json_dict = {
-        'cirq_type': 'CliffordTableau',
         'n': 1,
         'rs': [False, False],
         'xs': [[True], [False]],
