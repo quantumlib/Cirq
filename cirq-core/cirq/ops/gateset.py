@@ -97,7 +97,7 @@ class GateFamily:
     def _gate_str(self, gettr: Callable[[Any], str] = str) -> str:
         return _gate_str(self.gate, gettr)
 
-    def _gate_json(self) -> str:
+    def _gate_json(self) -> Union[raw_types.Gate, str]:
         return self.gate if not isinstance(self.gate, type) else protocols.json_cirq_type(self.gate)
 
     def _default_name(self) -> str:
