@@ -95,10 +95,7 @@ class AnyIntegerPowerGateFamily(gateset.GateFamily):
         return self.gate
 
     def _json_dict_(self):
-        gate_json = self.gate
-        if isinstance(self.gate, type):
-            gate_json = protocols.json_cirq_type(self.gate)
-        return {'gate': gate_json}
+        return {'gate': self._gate_json()}
 
     @classmethod
     def _from_json_dict_(cls, gate, **kwargs):
@@ -196,11 +193,8 @@ class ParallelGateFamily(gateset.GateFamily):
         return super()._value_equality_values_() + (self._max_parallel_allowed,)
 
     def _json_dict_(self):
-        gate_json = self.gate
-        if isinstance(self.gate, type):
-            gate_json = protocols.json_cirq_type(self.gate)
         return {
-            'gate': gate_json,
+            'gate': self._gate_json(),
             'name': self.name,
             'description': self.description,
             'max_parallel_allowed': self._max_parallel_allowed,
