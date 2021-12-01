@@ -43,8 +43,12 @@ class SharedRuntimeInfo:
 
     run_id: str
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -63,8 +67,12 @@ class RuntimeInfo:
 
     execution_index: int
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -85,8 +93,12 @@ class ExecutableResult:
     runtime_info: RuntimeInfo
     raw_data: cirq.Result
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -110,8 +122,12 @@ class ExecutableGroupResult:
     shared_runtime_info: SharedRuntimeInfo
     executable_results: List[ExecutableResult]
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -132,8 +148,12 @@ class QuantumRuntimeConfiguration:
     processor: AbstractEngineProcessorShim
     run_id: Optional[str] = None
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')

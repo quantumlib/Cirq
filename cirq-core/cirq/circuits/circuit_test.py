@@ -392,14 +392,13 @@ def test_control_key_diagram_subcircuit():
     cirq.testing.assert_has_diagram(
         c,
         """
-      Circuit_0xfba37d11898c0e81:
-      [ 0: ───M───────          ]
-0: ───[       ║                 ]───
-      [ 1: ───╫───X───          ]
-      [       ║   ║             ]
-      [ a: ═══@═══^═══          ]
+      [ 0: ───M─────── ]
+      [       ║        ]
+0: ───[ 1: ───╫───X─── ]───
+      [       ║   ║    ]
+      [ a: ═══@═══^═══ ]
       │
-1: ───#2────────────────────────────
+1: ───#2───────────────────
 """,
         use_unicode_characters=True,
     )
@@ -418,16 +417,15 @@ def test_control_key_diagram_subcircuit_layered():
     cirq.testing.assert_has_diagram(
         c,
         """
-          Circuit_0xa3bc42bd21c25cca:
-          [ 0: ───M───────          ]
-0: ───M───[       ║                 ]───────
-      ║   [ 1: ───╫───X───          ]
-      ║   [       ║   ║             ]
-      ║   [ a: ═══@═══^═══          ]
+          [ 0: ───M─────── ]
+          [       ║        ]
+0: ───M───[ 1: ───╫───X─── ]───────
+      ║   [       ║   ║    ]
+      ║   [ a: ═══@═══^═══ ]
       ║   ║
-1: ───╫───#2────────────────────────────X───
-      ║   ║                             ║
-a: ═══@═══╩═════════════════════════════^═══
+1: ───╫───#2───────────────────X───
+      ║   ║                    ║
+a: ═══@═══╩════════════════════^═══
 """,
         use_unicode_characters=True,
     )
@@ -4212,7 +4210,6 @@ def test_json_dict(circuit_cls):
     if circuit_cls == cirq.FrozenCircuit:
         moments = tuple(moments)
     assert c._json_dict_() == {
-        'cirq_type': circuit_cls.__name__,
         'moments': moments,
         'device': cirq.UNCONSTRAINED_DEVICE,
     }

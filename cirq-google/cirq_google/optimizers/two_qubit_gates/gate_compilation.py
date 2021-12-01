@@ -113,7 +113,6 @@ class GateTabulation:
 
     def _json_dict_(self):
         return {
-            'cirq_type': self.__class__.__name__,
             'base_gate': self.base_gate.tolist(),
             'kak_vecs': self.kak_vecs.tolist(),
             'single_qubit_gates': self.single_qubit_gates,
