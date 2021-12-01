@@ -149,7 +149,6 @@ class PauliMeasurementGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'observable': self._observable,
             'key': self.key,
         }

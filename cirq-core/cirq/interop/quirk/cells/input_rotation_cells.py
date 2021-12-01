@@ -90,7 +90,7 @@ class InputRotationCell(Cell):
 
     def operations(self) -> 'cirq.OP_TREE':
         if self.register is None:
-            raise ValueError(f"Missing input 'a'")
+            raise ValueError("Missing input 'a'")
         return QuirkInputRotationOperation(
             self.identifier, self.register, self.base_operation, self.exponent_sign
         )
