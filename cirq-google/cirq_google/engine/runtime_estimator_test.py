@@ -145,7 +145,6 @@ def test_estimate_run_batch_time():
 
 
 def test_estimate_run_batch_time_average_depths():
-    # Different depths
     qubits = cirq.GridQubit.rect(4, 5)
     circuit_depth_20 = cirq.testing.random_circuit(qubits, n_moments=20, op_density=1.0)
     circuit_depth_30 = cirq.testing.random_circuit(qubits, n_moments=30, op_density=1.0)
@@ -159,4 +158,8 @@ def test_estimate_run_batch_time_average_depths():
     depth_30 = runtime_estimator.estimate_run_sweep_time(
         circuit_depth_30, sweeps_20, repetitions=1000
     )
+    depth_40 = runtime_estimator.estimate_run_sweep_time(
+        circuit_depth_40, sweeps_20, repetitions=1000
+    )
     assert depth_20_and_40 == depth_30
+    assert depth_20_and_40 < depth_40

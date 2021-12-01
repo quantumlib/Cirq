@@ -177,7 +177,6 @@ def estimate_run_batch_time(
                 total_time += _estimate_run_time_seconds(
                     width, total_depth // num_circuits, total_sweeps, repetitions, 0.25
                 )
-                print(total_time)
             num_circuits = 0
             total_depth = 0
             total_sweeps = 0
@@ -185,11 +184,6 @@ def estimate_run_batch_time(
         total_depth += len(program)
         num_circuits += 1
         total_sweeps += len(list(cirq.to_resolvers(params_list[idx])))
-    print('---')
-    print(_estimate_run_time_seconds(20, 40, 10, 1000, 0.0))
-    print(_estimate_run_time_seconds(20, 40, 30, 1000, 0.0))
-    print(_estimate_run_time_seconds(20, 40, 40, 1000, 0.0))
-    print('')
     if num_circuits > 0:
         total_time += _estimate_run_time_seconds(
             width, total_depth // num_circuits, total_sweeps, repetitions, 0.0
