@@ -48,7 +48,7 @@ class QPUResult:
         If a key parameter is supplied, these are the counts for the measurement results for
         the qubits measured by the measurement gate with that key.  If no key is given, these
         are the measurement results from measuring all qubits in the circuit.
-        
+
         The value in the returned list is the computational basis state measured for the
         qubits that have been measured.  This is expressed in big-endian form. For example, if
         no measurement key is supplied and all qubits are measured, each entry in this returned dict
@@ -71,7 +71,7 @@ class QPUResult:
             bit_value = sum(bit * (1 << i) for i, bit in enumerate(bits[::-1]))
             result.extend([bit_value] * count)
         return result
-        
+
     def counts(self, key: Optional[str] = None) -> Counter[int]:
         """Returns the processed counts of the measurement results.
 
