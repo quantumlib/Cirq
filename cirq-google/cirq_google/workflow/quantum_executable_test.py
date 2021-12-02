@@ -138,6 +138,7 @@ def _get_quantum_executables():
     return [
         QuantumExecutable(
             spec=_get_example_spec(name=f'example-program-{i}'),
+            problem_topology=cirq.LineTopology(10),
             circuit=_get_random_circuit(qubits, random_state=i),
             measurement=BitstringsMeasurement(n_repetitions=10),
         )

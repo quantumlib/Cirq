@@ -1,0 +1,4 @@
+[
+    cirq.GateFamily(gate=cirq.ops.common_gates.XPowGate, ignore_global_phase=True),
+    cirq.GateFamily(gate=cirq.X, name="XFamily", description="Just the X gate.", ignore_global_phase=False)
+]
