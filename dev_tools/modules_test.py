@@ -155,7 +155,7 @@ def test_get_version_on_no_modules():
 def test_get_version_on_inconsistent_version_modules():
     modules.replace_version(search_dir=Path("./mod2"), old="1.2.3.dev", new="1.2.4.dev")
     assert modules.get_version(search_dir=Path("./mod2")) == "1.2.4.dev"
-    with pytest.raises(ValueError, match=f"Versions should be the same, instead:"):
+    with pytest.raises(ValueError, match="Versions should be the same, instead:"):
         modules.get_version(search_dir=Path("."))
 
 

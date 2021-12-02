@@ -378,7 +378,7 @@ def merge_matching_results(
             )
 
         if not all_parameters.keys().isdisjoint(result.parameters):
-            raise ValueError(f'Only results with disjoint parameters sets can be merged')
+            raise ValueError('Only results with disjoint parameters sets can be merged')
 
         all_parameters.update(result.parameters)
 

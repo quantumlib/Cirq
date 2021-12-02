@@ -286,6 +286,7 @@ def _json_dict_with_cirq_type(obj: Any):
             "an error starting in Cirq v0.15.",
             DeprecationWarning,
         )
+        return base_dict
     return {'cirq_type': json_cirq_type(type(obj)), **base_dict}
 
 
