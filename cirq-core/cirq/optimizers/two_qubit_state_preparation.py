@@ -14,7 +14,7 @@
 
 """Utility methods for efficiently preparing two qubit states."""
 
-from typing import Sequence, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops, qis
@@ -40,8 +40,11 @@ def prepare_two_qubit_state_using_sqrt_iswap(
     state: 'cirq.STATE_VECTOR_LIKE',
     *,
     use_sqrt_iswap_inv: bool = True,
-) -> Sequence['cirq.Operation']:
+) -> List['cirq.Operation']:
     """Prepares the given 2q state from |00> using at-most 1 √iSWAP gate + single qubit rotations.
+
+    Entangled states are prepared using exactly 1 √iSWAP gate while product states are prepared
+    using only single qubit rotations (0 √iSWAP gates)
 
     Args:
         q0: The first qubit being operated on.
@@ -50,7 +53,7 @@ def prepare_two_qubit_state_using_sqrt_iswap(
         use_sqrt_iswap_inv: If True, uses `cirq.SQRT_ISWAP_INV` instead of `cirq.SQRT_ISWAP`.
 
     Returns:
-        List of operations (a single CZ + single qubit rotations) preparing `state` from |00>.
+        List of operations (at-most 1 √iSWAP + single qubit rotations) preparing `state` from |00>.
     """
     state = qis.to_valid_state_vector(state, num_qubits=2)
     state = state / np.linalg.norm(state)
@@ -79,8 +82,11 @@ def prepare_two_qubit_state_using_sqrt_iswap(
 
 def prepare_two_qubit_state_using_cz(
     q0: 'cirq.Qid', q1: 'cirq.Qid', state: 'cirq.STATE_VECTOR_LIKE'
-) -> Sequence['cirq.Operation']:
+) -> List['cirq.Operation']:
     """Prepares the given 2q state from |00> using at-most 1 CZ gate + single qubit rotations.
+
+    Entangled states are prepared using exactly 1 CZ gate while product states are prepared
+    using only single qubit rotations (0 CZ gates)
 
     Args:
         q0: The first qubit being operated on.
@@ -88,7 +94,7 @@ def prepare_two_qubit_state_using_cz(
         state: 4x1 matrix representing two qubit state vector, ordered as 00, 01, 10, 11.
 
     Returns:
-        List of operations (a single CZ + single qubit rotations) preparing `state` from |00>.
+        List of operations (at-most 1 CZ + single qubit rotations) preparing `state` from |00>.
     """
     state = qis.to_valid_state_vector(state, num_qubits=2)
     state = state / np.linalg.norm(state)

@@ -14,7 +14,7 @@
 
 """Tests for efficient two qubit state preparation methods."""
 
-from copy import deepcopy
+import copy
 
 import pytest
 import numpy as np
@@ -32,7 +32,7 @@ def states_with_phases(st: np.ndarray):
     phases = [np.exp(1j * np.pi / 6), -1j, 1j, -1, np.exp(-1j * np.pi / 28)]
     random = np.random.RandomState(1)
     for _ in range(3):
-        curr_st = deepcopy(st)
+        curr_st = copy.deepcopy(st)
         cirq.to_valid_state_vector(curr_st, num_qubits=2)
         for i in range(4):
             phase = random.choice(phases)
