@@ -27,9 +27,6 @@ from cirq_google.engine.calibration_result import (
 )
 from cirq_google.engine.engine import (
     Engine,
-    estimate_run_time,
-    estimate_run_batch_time,
-    estimate_run_sweep_time,
     get_engine,
     get_engine_calibration,
     get_engine_device,
@@ -50,6 +47,12 @@ from cirq_google.engine.engine_processor import (
 
 from cirq_google.engine.engine_program import (
     EngineProgram,
+)
+
+from cirq_google.engine.runtime_estimator import (
+    estimate_run_time,
+    estimate_run_batch_time,
+    estimate_run_sweep_time,
 )
 
 from cirq_google.engine.engine_sampler import (
