@@ -21,6 +21,15 @@ of various sizes and shapes of circuits.
 Times were extrapolated from actual runs on Sycamore processors duing
 November 2021.  These times should only be used as a rough guide.
 Your experience may vary based on many factors not captured here.
+
+Parameters were calculated using a variety of width/depth/sweeps from
+the rep rate calculator, see:
+
+https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/
+
+Model was then fitted by hand, correcting for anomalies and outliers
+when possible.
+
 """
 from typing import List, Optional, Sequence
 import cirq
