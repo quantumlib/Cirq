@@ -112,6 +112,20 @@ class SerializableDevice(cirq.Device):
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
+    def _json_dict_(self):
+        # TODO gate_definitions
+        return cirq.protocols.obj_to_dict_helper(self, attribute_names=['qubits'])
+
+    @classmethod
+    def _from_json_dict_(cls, qubits, **kwargs):
+        # TODO: gate_definitions
+        return cls(qubits=qubits, gate_definitions={})
+
+    def __eq__(self, other):
+        if not isinstance(other, SerializableDevice):
+            return False
+        return (self.qubits, self.gate_definitions) == (other.qubits, other.gate_definitions)
+
     @classmethod
     def from_proto(
         cls,

@@ -147,6 +147,11 @@ class Device(metaclass=abc.ABCMeta):
         """
         return not moment.operates_on(operation.qubits)
 
+    def get_nx_graph(self):
+        import cirq.contrib.routing as ccr
+
+        return ccr.gridqubits_to_graph_device(self.qubit_set())
+
 
 @value.value_equality
 class SymmetricalQidPair:
