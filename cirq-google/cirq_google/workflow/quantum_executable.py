@@ -58,7 +58,7 @@ class KeyValueExecutableSpec(ExecutableSpec):
         return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.dataclass_json_dict(self, namespace=cirq.json_namespace(type(self)))
+        return cirq.dataclass_json_dict(self)
 
     @classmethod
     def from_dict(cls, d: Dict[str, Any], *, executable_family: str) -> 'KeyValueExecutableSpec':
@@ -99,7 +99,7 @@ class BitstringsMeasurement:
         return 'cirq.google'
 
     def _json_dict_(self):
-        return cirq.dataclass_json_dict(self, namespace=cirq.json_namespace(type(self)))
+        return cirq.dataclass_json_dict(self)
 
     def __repr__(self):
         return cirq._compat.dataclass_repr(self, namespace='cirq_google')
@@ -211,7 +211,7 @@ class QuantumExecutable:
         return 'cirq.google'
 
     def _json_dict_(self):
-        return cirq.dataclass_json_dict(self, namespace=cirq.json_namespace(type(self)))
+        return cirq.dataclass_json_dict(self)
 
 
 @dataclass(frozen=True)
@@ -265,4 +265,4 @@ class QuantumExecutableGroup:
         return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.dataclass_json_dict(self, namespace=cirq.json_namespace(type(self)))
+        return cirq.dataclass_json_dict(self)

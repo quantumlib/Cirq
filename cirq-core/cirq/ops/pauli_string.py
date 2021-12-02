@@ -177,7 +177,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
             'qubit_pauli_map': list(self._qubit_pauli_map.items()),
             'coefficient': self.coefficient,
@@ -1294,7 +1293,6 @@ class MutablePauliString(Generic[TKey]):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
             'pauli_int_dict': list(self.pauli_int_dict.items()),
             'coefficient': self.coefficient,
