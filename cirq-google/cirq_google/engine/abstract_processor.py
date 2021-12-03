@@ -24,9 +24,10 @@ import datetime
 from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
-import cirq_google.api.v2 as v2
-import cirq_google.engine.calibration as calibration
-import cirq_google.engine.client.quantum as quantum
+
+from cirq_google.api import v2
+from cirq_google.engine import calibration
+from cirq_google.engine.client import quantum
 
 if TYPE_CHECKING:
     import cirq_google
