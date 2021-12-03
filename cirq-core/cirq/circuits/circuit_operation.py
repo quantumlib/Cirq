@@ -27,6 +27,7 @@ from typing import (
     Tuple,
     Union,
     Iterator,
+    Sequence,
 )
 
 import dataclasses
@@ -568,3 +569,175 @@ class CircuitOperation(ops.Operation):
                 'Use "recursive=False" to prevent this error.'
             )
         return self.with_params(resolver.param_dict)
+
+
+@dataclasses.dataclass(frozen=True)
+class CircuitGate(ops.Gate):
+    circuit: Tuple[Tuple[ops.Gate, Tuple[int, ...]], ...]
+
+    def _qid_shape_(self):
+        size = max(axis for _, axes in self.circuit for axis in axes) + 1
+        dims = [-1] * size
+        for g, axes in self.circuit:
+            shape = protocols.qid_shape(g)
+            for axis, dim in zip(axes, shape):
+                if dims[axis] != -1 and dims[axis] != dim:
+                    raise ValueError('ops of incompatible shapes')
+                dims[axis] = dim
+        if any(d == -1 for d in dims):
+            raise ValueError('a gate is unused')
+        return tuple(dims)
+
+    def _has_unitary_(self):
+        return all(protocols.has_unitary(g) for g, _ in self.circuit)
+
+    def _is_measurement_(self) -> bool:
+        return any(protocols.is_measurement(g) for g, _ in self.circuit)
+
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        return set().union(*[protocols.measurement_key_objs(g) for g, _ in self.circuit])
+
+    def _measurement_key_names_(self) -> AbstractSet[str]:
+        return {str(key) for key in self._measurement_key_objs_()}
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return set().union(*[protocols.parameter_names(g) for g, _ in self.circuit])
+
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+        return tuple(g.on(*[qubits[i] for i in axes]) for g, axes in self.circuit)
+
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
+        for op in self._decompose_(qubits):
+            protocols.act_on(op, args)
+        return True
+
+    def __pow__(self, power: int) -> 'CircuitGate':
+        return CircuitGate(self.circuit * power)
+
+    def _with_key_path_(self, path: Tuple[str, ...]):
+        circuit = tuple((protocols.with_key_path(g, path), axes) for g, axes in self.circuit)
+        return CircuitGate(circuit)
+
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        circuit = tuple(
+            (protocols.with_key_path_prefix(g, prefix), axes) for g, axes in self.circuit
+        )
+        return CircuitGate(circuit)
+
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'CircuitGate':
+        circuit = tuple(
+            (protocols.with_measurement_key_mapping(g, key_map), axes) for g, axes in self.circuit
+        )
+        return CircuitGate(circuit)
+
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'CircuitGate':
+        circuit = tuple(
+            (protocols.resolve_parameters(g, resolver, recursive), axes) for g, axes in self.circuit
+        )
+        return CircuitGate(circuit)
+
+
+@dataclasses.dataclass(frozen=True)
+class RepeatGate(ops.Gate):
+    gate: ops.Gate
+    repeat: int
+    _path_prefix: Tuple[str] = dataclasses.field(default=tuple(), init=False)
+
+    def _qid_shape_(self):
+        return protocols.qid_shape(self.gate)
+
+    def _has_unitary_(self):
+        return protocols.has_unitary(self.gate)
+
+    def _is_measurement_(self) -> bool:
+        return protocols.is_measurement(self.gate)
+
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        return protocols.measurement_key_objs(self.gate)
+
+    def _measurement_key_names_(self) -> AbstractSet[str]:
+        return protocols.measurement_key_names(self.gate)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self.gate)
+
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+        ops = protocols.decompose_once_with_qubits(self.gate, qubits)
+        vals = []
+        repeat = self.repeat
+        if repeat < 0:
+            repeat = -repeat
+            ops = list(reversed(ops))
+        for i in range(repeat):
+            prefix = self._path_prefix + (str(i),)
+            for op in ops:
+                vals.append(protocols.with_key_path_prefix(op, prefix))
+        return vals
+
+    def __pow__(self, power: int) -> 'RepeatGate':
+        return dataclasses.replace(self, repeat=self.repeat * power)
+
+    def _with_key_path_(self, path: Tuple[str, ...]) -> 'RepeatGate':
+        copy = dataclasses.replace(self)
+        object.__setattr__(copy, '_path_prefix', path)
+        return copy
+
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> 'RepeatGate':
+        copy = dataclasses.replace(self)
+        object.__setattr__(copy, '_path_prefix', prefix + self._path_prefix)
+        return copy
+
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'RepeatGate':
+        return dataclasses.replace(self, gate=protocols.with_measurement_key_mapping(self.gate, key_map))
+
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'RepeatGate':
+        return dataclasses.replace(
+            self, gate=protocols.resolve_parameters(self.gate, resolver, recursive)
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class KeyMapGate(ops.Gate):
+    gate: ops.Gate
+    map: Dict[str, str]
+
+    def _qid_shape_(self):
+        return protocols.qid_shape(self.gate)
+
+    def _has_unitary_(self):
+        return protocols.has_unitary(self.gate)
+
+    def _is_measurement_(self) -> bool:
+        return protocols.is_measurement(self.gate)
+
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        return protocols.measurement_key_objs(
+            protocols.with_measurement_key_mapping(self.gate, self.map)
+        )
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self.gate)
+
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+        return protocols.decompose_once_with_qubits(
+            protocols.with_measurement_key_mapping(self.gate, self.map), qubits
+        )
+
+    def __pow__(self, power: int) -> 'KeyMapGate':
+        return dataclasses.replace(self, gate=self.gate * power)
+
+    def _with_key_path_(self, path: Tuple[str, ...]) -> 'KeyMapGate':
+        return dataclasses.replace(self, gate=protocols.with_key_path(self.gate, path))
+
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> 'KeyMapGate':
+        return dataclasses.replace(self, gate=protocols.with_key_path_prefix(self.gate, prefix))
+
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'KeyMapGate':
+        return KeyMapGate(self, key_map)
+
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'KeyMapGate':
+        return dataclasses.replace(
+            self, gate=protocols.resolve_parameters(self.gate, resolver, recursive)
+        )

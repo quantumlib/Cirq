@@ -17,6 +17,8 @@ import pytest, sympy
 import cirq
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
+from cirq.circuits.circuit_operation import CircuitGate, RepeatGate, KeyMapGate
+
 
 def test_properties():
     a, b, c = cirq.LineQubit.range(3)
@@ -606,6 +608,37 @@ def test_decompose_loops():
     assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
 
 
+def test_decompose_loops1():
+    a, b = cirq.LineQubit.range(2)
+    circuit = CircuitGate(
+        (
+            (cirq.H, (0,)),
+            (cirq.CX, (0, 1)),
+        )
+    )
+    base_op = circuit
+
+    op = RepeatGate(base_op, 3).on(b, a)
+    expected_circuit = cirq.Circuit(
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.H(b),
+        cirq.CX(b, a),
+    )
+    assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
+
+    op = RepeatGate(base_op, -2).on(a, b)
+    expected_circuit = cirq.Circuit(
+        cirq.CX(a, b),
+        cirq.H(a),
+        cirq.CX(a, b),
+        cirq.H(a),
+    )
+    assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
+
+
 def test_decompose_loops_with_measurements():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.FrozenCircuit(
@@ -616,6 +649,32 @@ def test_decompose_loops_with_measurements():
     base_op = cirq.CircuitOperation(circuit)
 
     op = base_op.with_qubits(b, a).repeat(3)
+    expected_circuit = cirq.Circuit(
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.measure(b, a, key=cirq.MeasurementKey.parse_serialized('0:m')),
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.measure(b, a, key=cirq.MeasurementKey.parse_serialized('1:m')),
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.measure(b, a, key=cirq.MeasurementKey.parse_serialized('2:m')),
+    )
+    assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
+
+
+def test_decompose_loops_with_measurements1():
+    a, b = cirq.LineQubit.range(2)
+    circuit = CircuitGate(
+        (
+            (cirq.H, (0,)),
+            (cirq.CX, (0, 1)),
+            (cirq.MeasurementGate(2, 'm'), (0, 1)),
+        )
+    )
+    base_op = circuit
+
+    op = RepeatGate(base_op, 3).on(b, a)
     expected_circuit = cirq.Circuit(
         cirq.H(b),
         cirq.CX(b, a),
@@ -692,6 +751,66 @@ def test_decompose_nested():
     assert cirq.Circuit(cirq.decompose(final_op)) == expected_circuit
     # Verify that mapped_circuit gives the same operations.
     assert final_op.mapped_circuit(deep=True) == expected_circuit
+
+
+def test_decompose_nested1():
+    a, b, c, d = q = cirq.LineQubit.range(4)
+    exp1 = sympy.Symbol('exp1')
+    exp_half = sympy.Symbol('exp_half')
+    exp_one = sympy.Symbol('exp_one')
+    exp_two = sympy.Symbol('exp_two')
+    gate1 = CircuitGate(((cirq.X ** exp1, (0,)), (cirq.MeasurementGate(1, 'm1'), (0,))))
+    gate2 = CircuitGate((
+        (KeyMapGate(gate1, {'m1': 'ma'}), (0,)),
+        (KeyMapGate(gate1, {'m1': 'mb'}), (1,)),
+        (KeyMapGate(gate1, {'m1': 'mc'}), (2,)),
+        (KeyMapGate(gate1, {'m1': 'md'}), (3,)),
+    ))
+    gate3 = CircuitGate((
+        (cirq.resolve_parameters(gate2, {exp1: exp_half}), (0, 1, 2, 3)),
+        (cirq.resolve_parameters(gate2, {exp1: exp_one}), (0, 1, 2, 3)),
+        (cirq.resolve_parameters(gate2, {exp1: exp_two}), (0, 1, 2, 3)),
+    ))
+
+    final_gate = cirq.resolve_parameters(gate3, {exp_half: 0.5, exp_one: 1.0, exp_two: 2.0})
+    final_op = final_gate.on(*q)
+
+    expected_circuit1 = cirq.Circuit(
+        cirq.resolve_parameters(gate2(*q), {exp1: 0.5, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0}),
+        cirq.resolve_parameters(gate2(*q), {exp1: 1.0, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0}),
+        cirq.resolve_parameters(gate2(*q), {exp1: 2.0, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0}),
+    )
+
+    result_ops1 = cirq.decompose_once(final_op)
+    assert cirq.Circuit(result_ops1) == expected_circuit1
+
+    expected_circuit = cirq.Circuit(
+        cirq.X(a) ** 0.5,
+        cirq.measure(a, key='ma'),
+        cirq.X(b) ** 0.5,
+        cirq.measure(b, key='mb'),
+        cirq.X(c) ** 0.5,
+        cirq.measure(c, key='mc'),
+        cirq.X(d) ** 0.5,
+        cirq.measure(d, key='md'),
+        cirq.X(a) ** 1.0,
+        cirq.measure(a, key='ma'),
+        cirq.X(b) ** 1.0,
+        cirq.measure(b, key='mb'),
+        cirq.X(c) ** 1.0,
+        cirq.measure(c, key='mc'),
+        cirq.X(d) ** 1.0,
+        cirq.measure(d, key='md'),
+        cirq.X(a) ** 2.0,
+        cirq.measure(a, key='ma'),
+        cirq.X(b) ** 2.0,
+        cirq.measure(b, key='mb'),
+        cirq.X(c) ** 2.0,
+        cirq.measure(c, key='mc'),
+        cirq.X(d) ** 2.0,
+        cirq.measure(d, key='md'),
+    )
+    assert cirq.Circuit(cirq.decompose(final_op)) == expected_circuit
 
 
 def test_decompose_repeated_nested_measurements():

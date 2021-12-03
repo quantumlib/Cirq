@@ -278,7 +278,7 @@ def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
     assign measurement keys from a higher-level object (such as a Circuit).
     """
     getter = getattr(val, '_with_measurement_key_mapping_', None)
-    return NotImplemented if getter is None else getter(key_map)
+    return val if getter is None else getter(key_map)
 
 
 def with_key_path(val: Any, path: Tuple[str, ...]):
@@ -289,7 +289,7 @@ def with_key_path(val: Any, path: Tuple[str, ...]):
     differentiate the actual measurement keys.
     """
     getter = getattr(val, '_with_key_path_', None)
-    return NotImplemented if getter is None else getter(path)
+    return val if getter is None else getter(path)
 
 
 def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
@@ -304,4 +304,4 @@ def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
         prefix: The prefix to apply to the value's path.
     """
     getter = getattr(val, '_with_key_path_prefix_', None)
-    return NotImplemented if getter is None else getter(prefix)
+    return val if getter is None else getter(prefix)
