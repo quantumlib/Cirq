@@ -200,7 +200,7 @@ def decompose_cphase_into_two_fsim(
         fsim_gate.on(q0, q1),
         ops.rz(phi / 2).on(q0),
         ops.rz(phi / 2).on(q1),
-        ops.GlobalPhaseOperation(np.exp(1j * phi / 4)),
+        ops.global_phase_operation(np.exp(1j * phi / 4)),
         # exp(i X1 α)
         ops.rx(-2 * alpha).on(q0),
         # Y(-θ, φ) := exp(i X⊗X θ/2) exp(i Y⊗Y θ/2) exp(-i Z⊗Z φ/4)
@@ -208,7 +208,7 @@ def decompose_cphase_into_two_fsim(
         fsim_gate.on(q0, q1),
         ops.rz(phi / 2).on(q0),
         ops.rz(phi / 2).on(q1),
-        ops.GlobalPhaseOperation(np.exp(1j * phi / 4)),
+        ops.global_phase_operation(np.exp(1j * phi / 4)),
         ops.Z(q0),
         # Local X rotations to convert Γ1⊗I − iZ⊗Γ2 into exp(-i Z⊗Z δ/4)
         ops.rx(-eta).on(q1),
@@ -216,5 +216,5 @@ def decompose_cphase_into_two_fsim(
         # Local Z rotations to convert exp(-i Z⊗Z δ/4) into desired CPhase.
         ops.rz(-delta / 2).on(q0),
         ops.rz(-delta / 2).on(q1),
-        ops.GlobalPhaseOperation(np.exp(-1j * delta / 4)),
+        ops.global_phase_operation(np.exp(-1j * delta / 4)),
     )

@@ -17,7 +17,7 @@ from typing import Any, Dict, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import value, protocols
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_class
 from cirq.ops import gate_operation, raw_types
 
 if TYPE_CHECKING:
@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality(approximate=True)
+@deprecated_class(deadline='v0.15', fix='Use global_phase_operation')
 class GlobalPhaseOperation(gate_operation.GateOperation):
     def __init__(self, coefficient: value.Scalar, atol: float = 1e-8) -> None:
         gate = GlobalPhaseGate(coefficient, atol)
@@ -116,7 +117,6 @@ class GlobalPhaseGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return tuple()
 
-    def on(self, *qubits: 'cirq.Qid') -> 'cirq.GlobalPhaseOperation':
-        if qubits:
-            raise ValueError(f'{self!r} applies to 0 qubits but qubits={qubits!r}.')
-        return GlobalPhaseOperation(self.coefficient)
+
+def global_phase_operation(coefficient: value.Scalar, atol: float = 1e-8):
+    return GlobalPhaseGate(coefficient, atol)()

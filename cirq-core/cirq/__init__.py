@@ -221,6 +221,7 @@ from cirq.ops import (
     givens,
     GlobalPhaseGate,
     GlobalPhaseOperation,
+    global_phase_operation,
     H,
     HPowGate,
     I,

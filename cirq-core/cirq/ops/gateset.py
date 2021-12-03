@@ -378,8 +378,6 @@ class Gateset:
                 lambda q: cast(circuit_operation.CircuitOperation, op).qubit_map.get(q, q)
             )
             return self.validate(op_circuit)
-        elif isinstance(op, global_phase_op.GlobalPhaseOperation):
-            return self._accept_global_phase_op
         else:
             return False
 
