@@ -170,7 +170,7 @@ class GateFamily:
             self._ignore_global_phase,
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'gate': self._gate_json(),
             'name': self.name,
@@ -179,7 +179,9 @@ class GateFamily:
         }
 
     @classmethod
-    def _from_json_dict_(cls, gate, name, description, ignore_global_phase, **kwargs):
+    def _from_json_dict_(
+        cls, gate, name, description, ignore_global_phase, **kwargs
+    ) -> 'GateFamily':
         if isinstance(gate, str):
             gate = protocols.cirq_type_from_json(gate)
         return cls(
@@ -422,3 +424,22 @@ class Gateset:
         if self.name:
             header += self.name
         return f'{header}\n' + self._gates_str_str
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'gates': list(self.gates),
+            'name': self.name,
+            'unroll_circuit_op': self._unroll_circuit_op,
+            'accept_global_phase_op': self._accept_global_phase_op,
+        }
+
+    @classmethod
+    def _from_json_dict_(
+        cls, gates, name, unroll_circuit_op, accept_global_phase_op, **kwargs
+    ) -> 'Gateset':
+        return cls(
+            *gates,
+            name=name,
+            unroll_circuit_op=unroll_circuit_op,
+            accept_global_phase_op=accept_global_phase_op,
+        )
