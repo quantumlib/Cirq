@@ -128,6 +128,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self,
         earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
         latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
+        **kwargs,
     ) -> List[calibration.Calibration]:
         earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp) or 0
         latest_timestamp_seconds = (
