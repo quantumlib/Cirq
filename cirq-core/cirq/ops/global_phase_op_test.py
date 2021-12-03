@@ -65,9 +65,20 @@ def test_str():
     assert str(cirq.global_phase_operation(1j)) == '1j'
 
 
+def test_str_old():
+    with cirq.testing.assert_deprecated('Use global_phase_operation', deadline='v0.15'):
+        assert str(cirq.GlobalPhaseOperation(1j)) == '1j'
+
+
 def test_repr():
     op = cirq.global_phase_operation(1j)
     cirq.testing.assert_equivalent_repr(op)
+
+
+def test_repr_old():
+    with cirq.testing.assert_deprecated('Use global_phase_operation', deadline='v0.15', count=4):
+        op = cirq.GlobalPhaseOperation(1j)
+        cirq.testing.assert_equivalent_repr(op)
 
 
 def test_diagram():
