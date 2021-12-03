@@ -242,7 +242,7 @@ class Gateset:
                     self._instance_gate_families[g.gate] = g
                 else:
                     self._type_gate_families[g.gate] = g
-        self._gates_str_str = "\n\n".join([str(g) for g in unique_gate_list])
+        self._unique_gate_list = unique_gate_list
         self._gates = frozenset(unique_gate_list)
 
     @property
@@ -423,11 +423,11 @@ class Gateset:
         header = 'Gateset: '
         if self.name:
             header += self.name
-        return f'{header}\n' + self._gates_str_str
+        return f'{header}\n' + "\n\n".join([str(g) for g in self._unique_gate_list])
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'gates': list(self.gates),
+            'gates': self._unique_gate_list,
             'name': self.name,
             'unroll_circuit_op': self._unroll_circuit_op,
             'accept_global_phase_op': self._accept_global_phase_op,
