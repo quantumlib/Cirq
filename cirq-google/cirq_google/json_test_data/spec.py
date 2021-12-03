@@ -37,7 +37,6 @@ TestSpec = ModuleJsonTestSpec(
         'EngineJob',
         'EngineProcessor',
         'EngineProgram',
-        'FSimGateFamily',
         'FSimPhaseCorrections',
         'NAMED_GATESETS',
         'ProtoVersion',
@@ -67,6 +66,7 @@ TestSpec = ModuleJsonTestSpec(
             'RuntimeInfo',
             'SharedRuntimeInfo',
             'ExecutableGroupResultFilesystemRecord',
+            'NaiveQubitPlacer',
         ]
     },
     tested_elsewhere=[

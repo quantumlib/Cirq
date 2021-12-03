@@ -97,6 +97,14 @@ def test_gate_family_repr_and_str(gate, name, description):
     assert g.description in str(g)
 
 
+@pytest.mark.parametrize('gate', [cirq.X, cirq.XPowGate(), cirq.XPowGate])
+@pytest.mark.parametrize('name, description', [(None, None), ('custom_name', 'custom_description')])
+def test_gate_family_json(gate, name, description):
+    g = cirq.GateFamily(gate, name=name, description=description)
+    g_json = cirq.to_json(g)
+    assert cirq.read_json(json_text=g_json) == g
+
+
 def test_gate_family_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.GateFamily(CustomX))
