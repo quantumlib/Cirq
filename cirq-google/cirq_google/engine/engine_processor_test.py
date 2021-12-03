@@ -425,13 +425,16 @@ def test_list_calibrations(list_calibrations):
         )
     ] == [1562544000021]
     list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000')
-    assert [
-        c.timestamp
-        for c in processor.list_calibrations(
-            earliest_timestamp=datetime.datetime.fromtimestamp(1562500000).date()
-        )
-    ] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562482800')
+
+    today = datetime.date.today()
+    # Use local time to get timestamp
+    today_midnight_timestamp = int(
+        datetime.datetime(today.year, today.month, today.day).timestamp()
+    )
+    assert [c.timestamp for c in processor.list_calibrations(earliest_timestamp=today)] == [
+        1562544000021
+    ]
+    list_calibrations.assert_called_with('a', 'p', f'timestamp >= {today_midnight_timestamp}')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration')
