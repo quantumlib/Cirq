@@ -572,9 +572,13 @@ class CircuitOperation(ops.Operation):
 
     @property
     def gate(self):
-        axis_map = {q: i for i, q in enumerate(self.circuit.all_qubits())}
-        ops = self.circuit.all_operations()
-        gates = tuple((op.gate, tuple(axis_map[q] for q in op.qubits)) for op in ops)
+        circuit_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
+        axis_map = {q: i for i, q in enumerate(circuit_qubits)}
+        circuit_ops = tuple(self.circuit.all_operations())
+        gateless_ops = [op for op in circuit_ops if op.gate is None]
+        if gateless_ops:
+            raise ValueError(f'Subcircuit contains gateless operations: {gateless_ops}.')
+        gates = tuple((op.gate, tuple(axis_map[q] for q in op.qubits)) for op in circuit_ops)
         gate = CircuitGate(gates)  # type: cirq.Gate
         if self.repetitions != 1:
             gate = RepeatGate(gate, self.repetitions)

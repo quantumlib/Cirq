@@ -752,7 +752,7 @@ def test_decompose_nested():
     # Verify that mapped_circuit gives the same operations.
     assert final_op.mapped_circuit(deep=True) == expected_circuit
 
-    assert cirq.Circuit(cirq.decompose(final_op.gate.on(a, b, c, d))) == expected_circuit
+    assert cirq.Circuit(cirq.decompose(final_op.gate.on(*final_op.qubits))) == expected_circuit
 
 
 def test_decompose_nested1():
