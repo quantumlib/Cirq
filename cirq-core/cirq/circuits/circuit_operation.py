@@ -570,6 +570,18 @@ class CircuitOperation(ops.Operation):
             )
         return self.with_params(resolver.param_dict)
 
+    @property
+    def gate(self):
+        axis_map = {q: i for i, q in enumerate(self.circuit.all_qubits())}
+        ops = self.circuit.all_operations()
+        gates = tuple((op.gate, tuple(axis_map[q] for q in op.qubits)) for op in ops)
+        gate = CircuitGate(gates)  # type: cirq.Gate
+        if self.repetitions != 1:
+            gate = RepeatGate(gate, self.repetitions)
+        if self.measurement_key_map:
+            gate = KeyMapGate(gate, self.measurement_key_map)
+        return protocols.resolve_parameters(gate, self.param_resolver)
+
 
 @dataclasses.dataclass(frozen=True)
 class CircuitGate(ops.Gate):
