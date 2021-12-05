@@ -98,7 +98,7 @@ class XmonDevice(cirq.Device):
             raise ValueError(f'Unsupported gate type: {gate!r}')
 
     def validate_operation(self, operation: cirq.Operation):
-        if not isinstance(operation, cirq.GateOperation):
+        if operation.gate is None:
             raise ValueError(f'Unsupported operation: {operation!r}')
 
         self.validate_gate(operation.gate)
@@ -197,6 +197,9 @@ class XmonDevice(cirq.Device):
                 diagram.grid_line(q.col, q.row, q2.col, q2.row)
 
         return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
+
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        p.text("cirq_google.XmonDevice(...)" if cycle else self.__str__())
 
     def _value_equality_values_(self) -> Any:
         return (self._measurement_duration, self._exp_w_duration, self._exp_z_duration, self.qubits)

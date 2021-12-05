@@ -102,6 +102,9 @@ valid_gate_sets {
     gate_duration_picos: 4000000
     valid_targets: "meas_targets"
   }
+  valid_gates {
+    id: "circuit"
+  }
 }
 valid_qubits: "0_0"
 valid_qubits: "0_1"
@@ -389,6 +392,9 @@ valid_gate_sets {
     gate_duration_picos: 14141
     valid_targets: "meas_targets"
   }
+  valid_gates {
+    id: "circuit"
+  }
 }
 valid_gate_sets {
   name: "half_pi_gateset"
@@ -458,12 +464,10 @@ valid_targets {
 
 def test_json_dict():
     assert cirq_google.Foxtail._json_dict_() == {
-        'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq_google.Foxtail',
     }
 
     assert cirq_google.Bristlecone._json_dict_() == {
-        'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq_google.Bristlecone',
     }
 

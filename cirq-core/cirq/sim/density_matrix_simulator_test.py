@@ -21,6 +21,7 @@ import pytest
 import sympy
 
 import cirq
+import cirq.testing
 
 
 class PlusGate(cirq.Gate):
@@ -524,6 +525,25 @@ def test_simulate_qudits(dtype: Type[np.number], split: bool):
     expected[4:, 4:] = np.ones((2, 2)) / 2
     np.testing.assert_almost_equal(result.final_density_matrix, expected)
     assert len(result.measurements) == 0
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+@pytest.mark.parametrize('split', [True, False])
+def test_reset_one_qubit_does_not_affect_partial_trace_of_other_qubits(
+    dtype: Type[np.number], split: bool
+):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
+    circuit = cirq.Circuit(
+        cirq.H(q0),
+        cirq.CX(q0, q1),
+        cirq.reset(q0),
+    )
+    result = simulator.simulate(circuit)
+    expected = np.zeros((4, 4), dtype=dtype)
+    expected[0, 0] = 0.5
+    expected[1, 1] = 0.5
+    np.testing.assert_almost_equal(result.final_density_matrix, expected)
 
 
 @pytest.mark.parametrize(
@@ -1188,6 +1208,28 @@ def test_density_matrix_trial_result_str():
     )
 
 
+def test_density_matrix_trial_result_repr_pretty():
+    q0 = cirq.LineQubit(0)
+    final_step_result = mock.Mock(cirq.StepResult)
+    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
+        density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
+    )
+    result = cirq.DensityMatrixTrialResult(
+        params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
+    )
+
+    fake_printer = cirq.testing.FakePrinter()
+    result._repr_pretty_(fake_printer, cycle=False)
+    # numpy varies whitespace in its representation for different versions
+    # Eliminate whitespace to harden tests against this variation
+    result_no_whitespace = fake_printer.text_pretty.replace('\n', '').replace(' ', '')
+    assert result_no_whitespace == (
+        'measurements:(nomeasurements)finaldensitymatrix:[[0.50.5][0.50.5]]'
+    )
+
+    cirq.testing.assert_repr_pretty(result, "cirq.DensityMatrixTrialResult(...)", cycle=True)
+
+
 def test_run_sweep_parameters_not_resolved():
     a = cirq.LineQubit(0)
     simulator = cirq.DensityMatrixSimulator()
@@ -1557,3 +1599,34 @@ def test_large_untangled_okay():
     assert len(result.measurements) == 59
     assert len(result.measurements['0']) == 1000
     assert (result.measurements['0'] == np.full(1000, 1)).all()
+
+
+def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries():
+    q = cirq.LineQubit(0)
+
+    class NonUnitaryOp(cirq.Operation):
+        count = 0
+
+        def _act_on_(self, args):
+            self.count += 1
+            return True
+
+        def with_qubits(self, qubits):
+            pass
+
+        @property
+        def qubits(self):
+            return (q,)
+
+    simulator = cirq.DensityMatrixSimulator()
+    params = [
+        cirq.ParamResolver({'a': 0}),
+        cirq.ParamResolver({'a': 1}),
+    ]
+
+    op1 = NonUnitaryOp()
+    op2 = NonUnitaryOp()
+    circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol('a'))(q), op2)
+    simulator.simulate_sweep(program=circuit, params=params)
+    assert op1.count == 1
+    assert op2.count == 2

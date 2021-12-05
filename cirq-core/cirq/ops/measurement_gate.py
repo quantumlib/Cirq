@@ -95,6 +95,9 @@ class MeasurementGate(raw_types.Gate):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return self.with_key(self.mkey._with_key_path_(path))
 
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return self.with_key(self.mkey._with_key_path_prefix_(prefix))
+
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
@@ -126,8 +129,11 @@ class MeasurementGate(raw_types.Gate):
     def _is_measurement_(self) -> bool:
         return True
 
-    def _measurement_key_name_(self):
+    def _measurement_key_name_(self) -> str:
         return self.key
+
+    def _measurement_key_obj_(self) -> value.MeasurementKey:
+        return self.mkey
 
     def _kraus_(self):
         size = np.prod(self._qid_shape, dtype=np.int64)
@@ -154,10 +160,14 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
+        label_map = args.label_map or {}
         if not args.known_qubits or self.key != _default_measurement_key(args.known_qubits):
-            symbols[0] += f"('{self.key}')"
+            if self.key not in label_map:
+                symbols[0] += f"('{self.key}')"
+        if self.key in label_map:
+            symbols += '@'
 
-        return protocols.CircuitDiagramInfo(tuple(symbols))
+        return protocols.CircuitDiagramInfo(symbols)
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if not all(d == 2 for d in self._qid_shape):
@@ -219,7 +229,6 @@ class MeasurementGate(raw_types.Gate):
         if not all(d == 2 for d in self._qid_shape):
             other['qid_shape'] = self._qid_shape
         return {
-            'cirq_type': self.__class__.__name__,
             'num_qubits': len(self._qid_shape),
             'key': self.key,
             'invert_mask': self.invert_mask,

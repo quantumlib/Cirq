@@ -165,7 +165,6 @@ def test_to_json():
     q = ThreeDQubit(1.3, 1, 1)
     d = q._json_dict_()
     assert d == {
-        'cirq_type': 'ThreeDQubit',
         'x': 1.3,
         'y': 1,
         'z': 1,
@@ -173,7 +172,6 @@ def test_to_json():
     q = TwoDQubit(1.3, 1)
     d = q._json_dict_()
     assert d == {
-        'cirq_type': 'TwoDQubit',
         'x': 1.3,
         'y': 1,
     }

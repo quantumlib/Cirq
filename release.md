@@ -119,6 +119,7 @@ updates, leave it as it is.
 ```bash
 git checkout master -b "version_bump_${NEXT_VER}"
 python dev_tools/modules.py replace_version --old ${VER}.dev --new ${NEXT_VER}.dev
+git add .
 git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "version_bump_${NEXT_VER}"
 ```

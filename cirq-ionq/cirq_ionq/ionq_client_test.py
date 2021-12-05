@@ -1,4 +1,5 @@
 # Copyright 2020 The Cirq Developers
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -84,7 +85,7 @@ def test_ionq_client_attributes():
     }
     assert client.default_target == 'qpu'
     assert client.max_retry_seconds == 10
-    assert client.verbose == True
+    assert client.verbose is True
 
 
 @mock.patch('requests.post')

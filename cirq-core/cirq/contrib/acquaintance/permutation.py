@@ -40,14 +40,13 @@ LogicalMappingKey = TypeVar('LogicalMappingKey', bound=ops.Qid)
 LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
     """A permutation gate indicates a change in the mapping from qubits to
     logical indices.
 
     Args:
-        swap_gate: the gate that swaps the indices mapped to by a pair of
+        num_qubits: The number of qubits the gate should act on.
+        swap_gate: The gate that swaps the indices mapped to by a pair of
             qubits (e.g. SWAP or fermionic swap).
     """
 
@@ -108,7 +107,6 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         return wire_symbols
 
 
-# pylint: enable=missing-param-doc
 class MappingDisplayGate(ops.Gate):
     """Displays the indices mapped to a set of wires."""
 
@@ -188,14 +186,13 @@ class LinearPermutationGate(PermutationGate):
     """A permutation gate that decomposes a given permutation using a linear
     sorting network."""
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(
         self, num_qubits: int, permutation: Dict[int, int], swap_gate: 'cirq.Gate' = ops.SWAP
     ) -> None:
         """Initializes a linear permutation gate.
 
         Args:
+            num_qubits: The number of qubits to permute.
             permutation: The permutation effected by the gate.
             swap_gate: The swap gate used in decompositions.
         """
@@ -203,7 +200,6 @@ class LinearPermutationGate(PermutationGate):
         PermutationGate.validate_permutation(permutation, num_qubits)
         self._permutation = permutation
 
-    # pylint: enable=missing-param-doc
     def permutation(self) -> Dict[int, int]:
         return self._permutation
 

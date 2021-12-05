@@ -34,8 +34,6 @@ class PasqalDevice(cirq.devices.Device):
     execution on the specified device are handled internally by Pasqal.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(self, qubits: Sequence[cirq.ops.Qid]) -> None:
         """Initializes a device with some qubits.
 
@@ -43,7 +41,9 @@ class PasqalDevice(cirq.devices.Device):
             qubits (NamedQubit): Qubits on the device, exclusively unrelated to
                 a physical position.
         Raises:
-            TypeError: if the wrong qubit type is provided.
+            TypeError: If the wrong qubit type is provided.
+            ValueError: If the number of qubits is greater than the devices maximum.
+
         """
         if len(qubits) > 0:
             q_type = type(qubits[0])
@@ -76,7 +76,7 @@ class PasqalDevice(cirq.devices.Device):
             cirq.IdentityGate,
             cirq.MeasurementGate,
             unroll_circuit_op=False,
-            accept_global_phase=False,
+            accept_global_phase_op=False,
         )
         self.qubits = qubits
 
@@ -99,7 +99,7 @@ class PasqalDevice(cirq.devices.Device):
 
         decomposition = [operation]
 
-        if not isinstance(operation, (cirq.ops.GateOperation, cirq.ParallelGateOperation)):
+        if not isinstance(operation, cirq.ops.GateOperation):
             raise TypeError(f"{operation!r} is not a gate operation.")
 
         # Try to decompose the operation into elementary device operations
@@ -115,19 +115,19 @@ class PasqalDevice(cirq.devices.Device):
             raise ValueError('Got unknown operation:', op)
         return op in self.gateset
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def validate_operation(self, operation: cirq.ops.Operation):
         """Raises an error if the given operation is invalid on this device.
 
         Args:
-            operation: the operation to validate
+            operation: The operation to validate.
 
         Raises:
-            ValueError: If the operation is not valid
+            ValueError: If the operation is not valid.
+            NotImplementedError: If the operation is a measurement with an invert
+                mask.
         """
 
-        if not isinstance(operation, (cirq.GateOperation, cirq.ParallelGateOperation)):
+        if not isinstance(operation, cirq.GateOperation):
             raise ValueError("Unsupported operation")
 
         if not self.is_pasqal_device_op(operation):
@@ -149,7 +149,6 @@ class PasqalDevice(cirq.devices.Device):
                     "Measurements on Pasqal devices don't support invert_mask."
                 )
 
-    # pylint: enable=missing-raises-doc
     def validate_circuit(self, circuit: 'cirq.AbstractCircuit') -> None:
         """Raises an error if the given circuit is invalid on this device.
 

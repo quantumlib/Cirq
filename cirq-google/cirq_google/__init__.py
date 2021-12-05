@@ -16,6 +16,10 @@
 
 from cirq_google import api
 
+from cirq_google._version import (
+    __version__,
+)
+
 from cirq_google.calibration import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     CircuitWithCalibration,
@@ -67,9 +71,9 @@ from cirq_google.engine import (
     EngineJob,
     EngineProgram,
     EngineProcessor,
-    EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
+    ValidatingSampler,
     get_engine,
     get_engine_calibration,
     get_engine_device,
@@ -85,6 +89,7 @@ from cirq_google.line import (
 
 from cirq_google.ops import (
     CalibrationTag,
+    FSimGateFamily,
     PhysicalZTag,
     SycamoreGate,
     SYC,
@@ -120,8 +125,19 @@ from cirq_google.serialization import (
 
 from cirq_google.workflow import (
     ExecutableSpec,
+    KeyValueExecutableSpec,
     QuantumExecutable,
+    QuantumExecutableGroup,
     BitstringsMeasurement,
+    SharedRuntimeInfo,
+    RuntimeInfo,
+    ExecutableResult,
+    ExecutableGroupResult,
+    ExecutableGroupResultFilesystemRecord,
+    QuantumRuntimeConfiguration,
+    execute,
+    QubitPlacer,
+    NaiveQubitPlacer,
 )
 
 from cirq_google import experimental

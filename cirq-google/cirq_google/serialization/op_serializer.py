@@ -19,7 +19,6 @@ import abc
 import numpy as np
 
 import cirq
-from cirq._compat import deprecated
 from cirq.circuits import circuit_operation
 from cirq_google.api import v2
 from cirq_google.ops.calibration_tag import CalibrationTag
@@ -133,8 +132,6 @@ class GateOpSerializer(OpSerializer):
             on the Operation proto.  Defaults to True.
     """
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(
         self,
         *,
@@ -149,14 +146,16 @@ class GateOpSerializer(OpSerializer):
         Args:
             gate_type: The type of the gate that is being serialized.
             serialized_gate_id: The string id of the gate when serialized.
+            args: A list of specification of the arguments to the gate when
+                serializing, including how to get this information from the
+                gate of the given gate type.
             can_serialize_predicate: Sometimes an Operation can only be
                 serialized for particular parameters. This predicate will be
                 checked before attempting to serialize the Operation. If the
                 predicate is False, serialization will result in a None value.
                 Default value is a lambda that always returns True.
-            args: A list of specification of the arguments to the gate when
-                serializing, including how to get this information from the
-                gate of the given gate type.
+            serialize_tokens: Whether to convert calibration tags into tokens
+                on the Operation proto.
         """
         self._gate_type = gate_type
         self._serialized_gate_id = serialized_gate_id
@@ -164,24 +163,13 @@ class GateOpSerializer(OpSerializer):
         self._can_serialize_predicate = can_serialize_predicate
         self._serialize_tokens = serialize_tokens
 
-    # pylint: enable=missing-param-doc
     @property
     def internal_type(self):
         return self._gate_type
 
-    @property  # type: ignore
-    @deprecated(deadline='v0.13', fix='Use internal_type instead.')
-    def gate_type(self) -> Type:
-        return self.internal_type
-
     @property
     def serialized_id(self):
         return self._serialized_gate_id
-
-    @property  # type: ignore
-    @deprecated(deadline='v0.13', fix='Use serialized_id instead.')
-    def serialized_gate_id(self) -> str:
-        return self.serialized_id
 
     @property
     def args(self):

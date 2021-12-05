@@ -218,10 +218,45 @@ OPERATIONS = [
         ),
     ),
     (
+        cirq.FSimGate(theta=2 + sympy.Symbol('a'), phi=1)(Q0, Q1),
+        op_proto(
+            {
+                'fsimgate': {
+                    'theta': {
+                        'func': {
+                            'type': 'add',
+                            'args': [{'arg_value': {'float_value': 2.00}}, {'symbol': 'a'}],
+                        }
+                    },
+                    'phi': {'float_value': 1.0},
+                },
+                'qubit_constant_index': [0, 1],
+            }
+        ),
+    ),
+    (
         cirq.FSimGate(theta=0.5, phi=0.25)(Q0, Q1),
         op_proto(
             {
                 'fsimgate': {'theta': {'float_value': 0.5}, 'phi': {'float_value': 0.25}},
+                'qubit_constant_index': [0, 1],
+            }
+        ),
+    ),
+    (
+        cirq.FSimGate(theta=0.5, phi=0.0)(Q0, Q1),
+        op_proto(
+            {
+                'fsimgate': {'theta': {'float_value': 0.5}, 'phi': {'float_value': 0.0}},
+                'qubit_constant_index': [0, 1],
+            }
+        ),
+    ),
+    (
+        cirq.FSimGate(theta=2, phi=1)(Q0, Q1),
+        op_proto(
+            {
+                'fsimgate': {'theta': {'float_value': 2.0}, 'phi': {'float_value': 1.0}},
                 'qubit_constant_index': [0, 1],
             }
         ),

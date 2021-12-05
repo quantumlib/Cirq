@@ -22,6 +22,13 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _gate_str(
+    gate: Union[raw_types.Gate, Type[raw_types.Gate], 'cirq.GateFamily'],
+    gettr: Callable[[Any], str] = str,
+) -> str:
+    return gettr(gate) if not isinstance(gate, type) else f'{gate.__module__}.{gate.__name__}'
+
+
 @value.value_equality(distinct_child_types=True)
 class GateFamily:
     """Wrapper around gate instances/types describing a set of accepted gates.
@@ -31,18 +38,20 @@ class GateFamily:
         b) Python types inheriting from `cirq.Gate` (Type Family).
 
     By default, the containment checks depend on the initialization type:
-        a) Instance Family: Containment check is done by object equality.
+        a) Instance Family: Containment check is done via `cirq.equal_up_to_global_phase`.
         b) Type Family: Containment check is done by type comparison.
 
     For example:
         a) Instance Family:
             >>> gate_family = cirq.GateFamily(cirq.X)
             >>> assert cirq.X in gate_family
+            >>> assert cirq.Rx(rads=np.pi) in gate_family
             >>> assert cirq.X ** sympy.Symbol("theta") not in gate_family
 
         b) Type Family:
             >>> gate_family = cirq.GateFamily(cirq.XPowGate)
             >>> assert cirq.X in gate_family
+            >>> assert cirq.Rx(rads=np.pi) in gate_family
             >>> assert cirq.X ** sympy.Symbol("theta") in gate_family
 
     In order to create gate families with constraints on parameters of a gate
@@ -56,6 +65,7 @@ class GateFamily:
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
+        ignore_global_phase: bool = True,
     ) -> None:
         """Init GateFamily.
 
@@ -64,6 +74,8 @@ class GateFamily:
                 a non-parameterized instance of a `cirq.Gate` for equality based membership checks.
             name: The name of the gate family.
             description: Human readable description of the gate family.
+            ignore_global_phase: If True, value equality is checked via
+                `cirq.equal_up_to_global_phase`.
 
         Raises:
             ValueError: if `gate` is not a `cirq.Gate` instance or subclass.
@@ -80,13 +92,13 @@ class GateFamily:
         self._gate = gate
         self._name = name if name else self._default_name()
         self._description = description if description else self._default_description()
+        self._ignore_global_phase = ignore_global_phase
 
     def _gate_str(self, gettr: Callable[[Any], str] = str) -> str:
-        return (
-            gettr(self.gate)
-            if isinstance(self.gate, raw_types.Gate)
-            else f'{self.gate.__module__}.{self.gate.__name__}'
-        )
+        return _gate_str(self.gate, gettr)
+
+    def _gate_json(self) -> Union[raw_types.Gate, str]:
+        return self.gate if not isinstance(self.gate, type) else protocols.json_cirq_type(self.gate)
 
     def _default_name(self) -> str:
         family_type = 'Instance' if isinstance(self.gate, raw_types.Gate) else 'Type'
@@ -112,17 +124,20 @@ class GateFamily:
         """Checks whether `cirq.Gate` instance `gate` belongs to this GateFamily.
 
         The default predicate depends on the gate family initialization type:
-            a) Instance Family: `gate == self.gate`.
+            a) Instance Family: `cirq.equal_up_to_global_phase(gate, self.gate)`
+                                 if self._ignore_global_phase else `gate == self.gate`.
             b) Type Family: `isinstance(gate, self.gate)`.
 
         Args:
             gate: `cirq.Gate` instance which should be checked for containment.
         """
-        return (
-            gate == self.gate
-            if isinstance(self.gate, raw_types.Gate)
-            else isinstance(gate, self.gate)
-        )
+        if isinstance(self.gate, raw_types.Gate):
+            return (
+                protocols.equal_up_to_global_phase(gate, self.gate)
+                if self._ignore_global_phase
+                else gate == self._gate
+            )
+        return isinstance(gate, self.gate)
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
         if isinstance(item, raw_types.Operation):
@@ -135,15 +150,41 @@ class GateFamily:
         return f'{self.name}\n{self.description}'
 
     def __repr__(self) -> str:
+        name_and_description = ''
+        if self.name != self._default_name() or self.description != self._default_description():
+            name_and_description = f'name="{self.name}", description="{self.description}", '
         return (
-            f'cirq.GateFamily(gate={self._gate_str(repr)},'
-            f'name="{self.name}", '
-            f'description="{self.description}")'
+            f'cirq.GateFamily('
+            f'gate={self._gate_str(repr)}, '
+            f'{name_and_description}'
+            f'ignore_global_phase={self._ignore_global_phase})'
         )
 
     def _value_equality_values_(self) -> Any:
         # `isinstance` is used to ensure the a gate type and gate instance is not compared.
-        return isinstance(self.gate, raw_types.Gate), self.gate, self.name, self.description
+        return (
+            isinstance(self.gate, raw_types.Gate),
+            self.gate,
+            self.name,
+            self.description,
+            self._ignore_global_phase,
+        )
+
+    def _json_dict_(self):
+        return {
+            'gate': self._gate_json(),
+            'name': self.name,
+            'description': self.description,
+            'ignore_global_phase': self._ignore_global_phase,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, gate, name, description, ignore_global_phase, **kwargs):
+        if isinstance(gate, str):
+            gate = protocols.cirq_type_from_json(gate)
+        return cls(
+            gate, name=name, description=description, ignore_global_phase=ignore_global_phase
+        )
 
 
 @value.value_equality()
@@ -163,7 +204,7 @@ class Gateset:
         *gates: Union[Type[raw_types.Gate], raw_types.Gate, GateFamily],
         name: Optional[str] = None,
         unroll_circuit_op: bool = True,
-        accept_global_phase: bool = True,
+        accept_global_phase_op: bool = True,
     ) -> None:
         """Init Gateset.
 
@@ -182,25 +223,25 @@ class Gateset:
             name: (Optional) Name for the Gateset. Useful for description.
             unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
                 validated by validating the underlying `cirq.Circuit`.
-            accept_global_phase: If True, `cirq.GlobalPhaseOperation` is accepted.
+            accept_global_phase_op: If True, `cirq.GlobalPhaseOperation` is accepted.
         """
         self._name = name
-        self._gates = frozenset(
-            g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates
-        )
         self._unroll_circuit_op = unroll_circuit_op
-        self._accept_global_phase = accept_global_phase
+        self._accept_global_phase_op = accept_global_phase_op
         self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
         self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
-        self._custom_gate_families: List[GateFamily] = []
-        for g in self._gates:
+        self._gates_repr_str = ", ".join([_gate_str(g, repr) for g in gates])
+        unique_gate_list: List[GateFamily] = list(
+            dict.fromkeys(g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates)
+        )
+        for g in unique_gate_list:
             if type(g) == GateFamily:
                 if isinstance(g.gate, raw_types.Gate):
                     self._instance_gate_families[g.gate] = g
                 else:
                     self._type_gate_families[g.gate] = g
-            else:
-                self._custom_gate_families.append(g)
+        self._gates_str_str = "\n\n".join([str(g) for g in unique_gate_list])
+        self._gates = frozenset(unique_gate_list)
 
     @property
     def name(self) -> Optional[str]:
@@ -215,7 +256,7 @@ class Gateset:
         *,
         name: Optional[str] = None,
         unroll_circuit_op: Optional[bool] = None,
-        accept_global_phase: Optional[bool] = None,
+        accept_global_phase_op: Optional[bool] = None,
     ) -> 'Gateset':
         """Returns a copy of this Gateset with identical gates and new values for named arguments.
 
@@ -225,7 +266,7 @@ class Gateset:
             name: New name for the Gateset.
             unroll_circuit_op: If True, new Gateset will recursively validate
                 `cirq.CircuitOperation` by validating the underlying `cirq.Circuit`.
-            accept_global_phase: If True, new Gateset will accept `cirq.GlobalPhaseOperation`.
+            accept_global_phase_op: If True, new Gateset will accept `cirq.GlobalPhaseOperation`.
 
         Returns:
             `self` if all new values are None or identical to the values of current Gateset.
@@ -237,18 +278,18 @@ class Gateset:
 
         name = val_if_none(name, self._name)
         unroll_circuit_op = val_if_none(unroll_circuit_op, self._unroll_circuit_op)
-        accept_global_phase = val_if_none(accept_global_phase, self._accept_global_phase)
+        accept_global_phase_op = val_if_none(accept_global_phase_op, self._accept_global_phase_op)
         if (
             name == self._name
             and unroll_circuit_op == self._unroll_circuit_op
-            and accept_global_phase == self._accept_global_phase
+            and accept_global_phase_op == self._accept_global_phase_op
         ):
             return self
         return Gateset(
             *self.gates,
             name=name,
             unroll_circuit_op=cast(bool, unroll_circuit_op),
-            accept_global_phase=cast(bool, accept_global_phase),
+            accept_global_phase_op=cast(bool, accept_global_phase_op),
         )
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
@@ -256,7 +297,7 @@ class Gateset:
 
         Containment checks are handled as follows:
             a) For Gates or Operations that have an underlying gate (i.e. op.gate is not None):
-                - Forwards the containment check to the underlying GateFamily's
+                - Forwards the containment check to the underlying `cirq.GateFamily` objects.
                 - Examples of such operations include `cirq.GateOperations` and their controlled
                     and tagged variants (i.e. instances of `cirq.TaggedOperation`,
                     `cirq.ControlledOperation` where `op.gate` is not None) etc.
@@ -267,9 +308,12 @@ class Gateset:
                     and tagged variants (i.e. instances of `cirq.TaggedOperation`,
                     `cirq.ControlledOperation` where `op.gate` is None) etc.
 
-        The complexity of the method is:
-            a) O(1) for checking containment in the default `cirq.GateFamily` instances.
-            b) O(n) for checking containment in custom GateFamily instances.
+        The complexity of the method in terms of the number of `gates`, n, is
+            a) O(1) when any default `cirq.GateFamily` instance accepts the given item, except
+                for an Instance GateFamily trying to match an item with a different global phase.
+            b) O(n) for all other cases: matching against custom gate families, matching across
+                global phase for the default Instance GateFamily, no match against any underlying
+                gate family.
 
         Args:
             item: The `cirq.Gate` or `cirq.Operation` instance to check containment for.
@@ -295,7 +339,7 @@ class Gateset:
                 )
                 return True
 
-        return any(item in gate_family for gate_family in self._custom_gate_families)
+        return any(item in gate_family for gate_family in self._gates)
 
     def validate(
         self,
@@ -351,29 +395,30 @@ class Gateset:
             )
             return self.validate(op_circuit)
         elif isinstance(op, global_phase_op.GlobalPhaseOperation):
-            return self._accept_global_phase
+            return self._accept_global_phase_op
         else:
             return False
 
     def _value_equality_values_(self) -> Any:
         return (
-            frozenset(self.gates),
+            self.gates,
             self.name,
             self._unroll_circuit_op,
-            self._accept_global_phase,
+            self._accept_global_phase_op,
         )
 
     def __repr__(self) -> str:
+        name_str = f'name = "{self.name}", ' if self.name is not None else ''
         return (
             f'cirq.Gateset('
-            f'{",".join([repr(g) for g in self.gates])},'
-            f'name = "{self.name}",'
+            f'{self._gates_repr_str}, '
+            f'{name_str}'
             f'unroll_circuit_op = {self._unroll_circuit_op},'
-            f'accept_global_phase = {self._accept_global_phase})'
+            f'accept_global_phase_op = {self._accept_global_phase_op})'
         )
 
     def __str__(self) -> str:
         header = 'Gateset: '
         if self.name:
             header += self.name
-        return f'{header}\n' + "\n\n".join([str(g) for g in self.gates])
+        return f'{header}\n' + self._gates_str_str

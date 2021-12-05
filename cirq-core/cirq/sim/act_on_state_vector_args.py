@@ -13,29 +13,16 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence, Iterable
+from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
 
 import numpy as np
 
 from cirq import linalg, protocols, sim
-from cirq._compat import deprecated_parameter
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
 
 if TYPE_CHECKING:
     import cirq
-
-
-def _rewrite_deprecated_args(args, kwargs):
-    if len(args) > 3:
-        kwargs['axes'] = args[3]
-    if len(args) > 4:
-        kwargs['prng'] = args[4]
-    if len(args) > 5:
-        kwargs['log_of_measurement_results'] = args[5]
-    if len(args) > 6:
-        kwargs['qubits'] = args[6]
-    return args[:3], kwargs
 
 
 class ActOnStateVectorArgs(ActOnArgs):
@@ -49,15 +36,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         then pass `available_buffer` into `swap_target_tensor_for`.
     """
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs
-        or ('prng' in kwargs and len(args) == 4)
-        or (len(args) > 4 and isinstance(args[4], np.random.RandomState)),
-        rewrite=_rewrite_deprecated_args,
-    )
     def __init__(
         self,
         target_tensor: np.ndarray,
@@ -65,7 +43,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
     ):
         """Inits ActOnStateVectorArgs.
 
@@ -85,10 +62,8 @@ class ActOnStateVectorArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
 
@@ -106,14 +81,13 @@ class ActOnStateVectorArgs(ActOnArgs):
             self.available_buffer = self.target_tensor
         self.target_tensor = new_target_tensor
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def subspace_index(
         self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
     ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:
+            axes: The qubits that are specified by the index bits.
             little_endian_bits_int: The desired value of the qubits at the
                 targeted `axes`, packed into an integer. The least significant
                 bit of the integer is the desired bit for the first axis, and
@@ -124,7 +98,6 @@ class ActOnStateVectorArgs(ActOnArgs):
                 applies but in a different basis. For example, if the target
                 axes have dimension [a:2, b:3, c:2] then the integer 10
                 decomposes into [a=0, b=2, c=1] via 7 = 1*(3*2) +  2*(2) + 0.
-
             big_endian_bits_int: The desired value of the qubits at the
                 targeted `axes`, packed into an integer. The most significant
                 bit of the integer is the desired bit for the first axis, and
@@ -161,7 +134,6 @@ class ActOnStateVectorArgs(ActOnArgs):
             qid_shape=self.target_tensor.shape,
         )
 
-    # pylint: enable=missing-param-doc
     def _act_on_fallback_(
         self,
         action: Union['cirq.Operation', 'cirq.Gate'],

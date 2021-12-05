@@ -26,7 +26,6 @@ import abc
 import sympy
 
 import cirq
-from cirq._compat import deprecated
 from cirq_google.api import v2
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.serialization import arg_func_langs
@@ -143,17 +142,10 @@ class GateOpDeserializer(OpDeserializer):
         self._op_wrapper = op_wrapper
         self._deserialize_tokens = deserialize_tokens
 
-    @property  # type: ignore
-    @deprecated(deadline='v0.13', fix='Use serialized_id instead.')
-    def serialized_gate_id(self) -> str:
-        return self.serialized_id
-
     @property
     def serialized_id(self):
         return self._serialized_gate_id
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def from_proto(
         self,
         proto: v2.program_pb2.Operation,
@@ -174,6 +166,10 @@ class GateOpDeserializer(OpDeserializer):
 
         Returns:
             The deserialized GateOperation represented by `proto`.
+
+        Raises:
+            ValueError: If the proto references a missing constants table, or a required arg is
+                missing.
         """
         qubits = [v2.qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(proto, arg_function_language=arg_function_language)
@@ -197,7 +193,6 @@ class GateOpDeserializer(OpDeserializer):
                 op = op.with_tags(CalibrationTag(proto.token_value))
         return op
 
-    # pylint: enable=missing-raises-doc
     def _args_from_proto(
         self, proto: v2.program_pb2.Operation, *, arg_function_language: str
     ) -> Dict[str, arg_func_langs.ARG_LIKE]:
@@ -234,8 +229,6 @@ class CircuitOpDeserializer(OpDeserializer):
     def serialized_id(self):
         return 'circuit'
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def from_proto(
         self,
         proto: v2.program_pb2.CircuitOperation,
@@ -257,6 +250,9 @@ class CircuitOpDeserializer(OpDeserializer):
 
         Returns:
             The deserialized CircuitOperation represented by `proto`.
+
+        Raises:
+            ValueError: If the circuit operatio proto cannot be deserialied because it is malformed.
         """
         if constants is None or deserialized_constants is None:
             raise ValueError(
@@ -328,5 +324,3 @@ class CircuitOpDeserializer(OpDeserializer):
             arg_map,  # type: ignore
             rep_ids,
         )
-
-    # pylint: enable=missing-raises-doc

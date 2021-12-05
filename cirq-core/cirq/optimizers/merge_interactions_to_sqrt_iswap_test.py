@@ -155,35 +155,26 @@ def test_works_with_tags():
 
 def test_no_touch_single_sqrt_iswap():
     a, b = cirq.LineQubit.range(2)
-    assert_optimizes(
-        before=cirq.Circuit(
-            [
-                cirq.Moment([cirq.SQRT_ISWAP(a, b).with_tags('mytag')]),
-            ]
-        ),
-        expected=cirq.Circuit(
-            [
-                cirq.Moment([cirq.SQRT_ISWAP(a, b).with_tags('mytag')]),
-            ]
-        ),
+    circuit = cirq.Circuit(
+        [
+            cirq.Moment(
+                [cirq.ISwapPowGate(exponent=0.5, global_shift=-0.5).on(a, b).with_tags('mytag')]
+            ),
+        ]
     )
+    assert_optimizes(before=circuit, expected=circuit)
 
 
 def test_no_touch_single_sqrt_iswap_inv():
     a, b = cirq.LineQubit.range(2)
-    assert_optimizes(
-        use_sqrt_iswap_inv=True,
-        before=cirq.Circuit(
-            [
-                cirq.Moment([cirq.SQRT_ISWAP_INV(a, b).with_tags('mytag')]),
-            ]
-        ),
-        expected=cirq.Circuit(
-            [
-                cirq.Moment([cirq.SQRT_ISWAP_INV(a, b).with_tags('mytag')]),
-            ]
-        ),
+    circuit = cirq.Circuit(
+        [
+            cirq.Moment(
+                [cirq.ISwapPowGate(exponent=-0.5, global_shift=-0.5).on(a, b).with_tags('mytag')]
+            ),
+        ]
     )
+    assert_optimizes(before=circuit, expected=circuit, use_sqrt_iswap_inv=True)
 
 
 def test_cnots_separated_by_single_gates_correct():

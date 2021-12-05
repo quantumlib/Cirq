@@ -93,8 +93,6 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
             return moments
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def simple_noise_from_calibration_metrics(
     calibration: engine.Calibration,
     depol_noise: bool = False,
@@ -119,6 +117,10 @@ def simple_noise_from_calibration_metrics(
     Returns:
         A PerQubitDepolarizingWithDampedReadoutNoiseModel with error
             probabilities generated from the provided calibration data.
+    Raises:
+        NotImplementedError: If `damping_noise` is True, as this is not yet
+            supported.
+        ValueError: If none of the noises is set to True.
     """
     if not any([depol_noise, damping_noise, readout_decay_noise, readout_error_noise]):
         raise ValueError('At least one error type must be specified.')
@@ -157,6 +159,3 @@ def simple_noise_from_calibration_metrics(
     return PerQubitDepolarizingWithDampedReadoutNoiseModel(
         depol_probs=depol_probs, decay_probs=readout_decay_probs, bitflip_probs=readout_error_probs
     )
-
-
-# pylint: enable=missing-raises-doc

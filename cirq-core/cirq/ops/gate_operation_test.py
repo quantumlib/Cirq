@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Tuple
-
 import numpy as np
 import pytest
 import sympy
@@ -406,6 +404,16 @@ def test_with_key_path():
     assert cirq.with_key_path(cirq.X(a), ('a', 'b')) is NotImplemented
 
 
+def test_with_key_path_prefix():
+    a = cirq.LineQubit(0)
+    op = cirq.measure(a, key='m')
+    remap_op = cirq.with_key_path_prefix(op, ('a', 'b'))
+    assert cirq.measurement_key_names(remap_op) == {'a:b:m'}
+    assert cirq.with_key_path_prefix(remap_op, tuple()) is remap_op
+    assert cirq.with_key_path_prefix(op, tuple()) is op
+    assert cirq.with_key_path_prefix(cirq.X(a), ('a', 'b')) is NotImplemented
+
+
 def test_cannot_remap_non_measurement_gate():
     a = cirq.LineQubit(0)
     op = cirq.X(a)
@@ -436,27 +444,3 @@ def test_is_parameterized():
     assert not cirq.is_parameterized(No1().on(q))
     assert not cirq.is_parameterized(No2().on(q))
     assert cirq.is_parameterized(Yes().on(q))
-
-
-def test_channel_propagates_to_gate():
-    class TestGate(cirq.SingleQubitGate):
-        def _channel_(self) -> np.ndarray:
-            return (np.eye(2),)
-
-        def _has_channel_(self) -> bool:
-            return True
-
-    def assert_kraus_eq(ks1: Tuple[np.ndarray, ...], ks2: Tuple[np.ndarray, ...]) -> None:
-        assert len(ks1) == len(ks2)
-        for k1, k2 in zip(ks1, ks2):
-            assert np.all(k1 == k2)
-
-    identity_kraus = (np.eye(2),)
-    q = cirq.LineQubit(0)
-    gate = TestGate()
-    gate_op = TestGate().on(q)
-    with cirq.testing.assert_deprecated(deadline='v0.13', count=None):
-        assert cirq.has_channel(gate)
-        assert cirq.has_channel(gate_op)
-        assert_kraus_eq(cirq.channel(gate), identity_kraus)
-        assert_kraus_eq(cirq.channel(gate_op), identity_kraus)

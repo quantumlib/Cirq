@@ -19,13 +19,12 @@ https://arxiv.org/abs/2002.07730
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, study, ops, protocols, value
-from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -59,8 +58,6 @@ class MPSSimulator(
 ):
     """An efficient simulator for MPS circuits."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
@@ -75,6 +72,9 @@ class MPSSimulator(
             seed: The random seed to use for this simulator.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
+
+        Raises:
+            ValueError: If the noise model is not unitary or a mixture.
         """
         self.init = True
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
@@ -87,9 +87,6 @@ class MPSSimulator(
             seed=seed,
         )
 
-    # pylint: enable=missing-raises-doc
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
@@ -104,6 +101,7 @@ class MPSSimulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
+            logs: A mutable object that measurements are recorded into.
 
         Returns:
             MPSState args for simulating the Circuit.
@@ -120,7 +118,6 @@ class MPSSimulator(
             log_of_measurement_results=logs,
         )
 
-    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[MPSState]',
@@ -171,6 +168,14 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         final = self._final_simulator_state
         return f'measurements: {samples}\noutput state: {final}'
 
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('cirq.MPSTrialResult(...)')
+        else:
+            p.text(str(self))
+
 
 class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState']):
     """A `StepResult` that can perform measurements."""
@@ -204,6 +209,10 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 
         return f'{measurements}{final}'
 
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.MPSSimulatorStepResult(...)" if cycle else self.__str__())
+
     def _simulator_state(self):
         return self.state
 
@@ -212,14 +221,6 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs or len(args) > 6,
-    )
     def __init__(
         self,
         qubits: Sequence['cirq.Qid'],
@@ -227,7 +228,6 @@ class MPSState(ActOnArgs):
         simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
-        axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
         """Creates and MPSState
@@ -240,12 +240,13 @@ class MPSState(ActOnArgs):
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+
+        Raises:
+            ValueError: If the grouping does not cover the qubits.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         qubit_map = self.qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():
@@ -282,7 +283,6 @@ class MPSState(ActOnArgs):
         self.simulation_options = simulation_options
         self.estimated_gate_error_list: List[float] = []
 
-    # pylint: enable=missing-raises-doc
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
         return self.format_i.format(i)
@@ -474,8 +474,6 @@ class MPSState(ActOnArgs):
             "estimated_fidelity": estimated_fidelity,
         }
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
     ) -> List[int]:
@@ -486,6 +484,10 @@ class MPSState(ActOnArgs):
             prng: A random number generator, used to simulate measurements.
             collapse_state_vector: A Boolean specifying whether we should mutate
                 the state after the measurement.
+
+        Raises:
+            ValueError: If the probabilities for the measurements differ too much from one for the
+                tolerance specified in simulation options.
         """
         results: List[int] = []
 
@@ -525,7 +527,6 @@ class MPSState(ActOnArgs):
 
         return results
 
-    # pylint: enable=missing-raises-doc
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
         return self.perform_measurement(qubits, self.prng)
