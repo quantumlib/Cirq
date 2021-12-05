@@ -17,7 +17,7 @@ import pytest, sympy
 import cirq
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
-from cirq.circuits.circuit_operation import CircuitGate, RepeatGate, KeyMapGate
+from cirq.circuits.circuit_operation import CircuitGate, RepeatGate, KeyMapGate, ResolverGate
 
 
 def test_properties():
@@ -762,19 +762,23 @@ def test_decompose_nested1():
     exp_one = sympy.Symbol('exp_one')
     exp_two = sympy.Symbol('exp_two')
     gate1 = CircuitGate(((cirq.X ** exp1, (0,)), (cirq.MeasurementGate(1, 'm1'), (0,))))
-    gate2 = CircuitGate((
-        (KeyMapGate(gate1, {'m1': 'ma'}), (0,)),
-        (KeyMapGate(gate1, {'m1': 'mb'}), (1,)),
-        (KeyMapGate(gate1, {'m1': 'mc'}), (2,)),
-        (KeyMapGate(gate1, {'m1': 'md'}), (3,)),
-    ))
-    gate3 = CircuitGate((
-        (cirq.resolve_parameters(gate2, {exp1: exp_half}), (0, 1, 2, 3)),
-        (cirq.resolve_parameters(gate2, {exp1: exp_one}), (0, 1, 2, 3)),
-        (cirq.resolve_parameters(gate2, {exp1: exp_two}), (0, 1, 2, 3)),
-    ))
+    gate2 = CircuitGate(
+        (
+            (KeyMapGate(gate1, {'m1': 'ma'}), (0,)),
+            (KeyMapGate(gate1, {'m1': 'mb'}), (1,)),
+            (KeyMapGate(gate1, {'m1': 'mc'}), (2,)),
+            (KeyMapGate(gate1, {'m1': 'md'}), (3,)),
+        )
+    )
+    gate3 = CircuitGate(
+        (
+            (ResolverGate(gate2, {exp1: exp_half}), (0, 1, 2, 3)),
+            (ResolverGate(gate2, {exp1: exp_one}), (0, 1, 2, 3)),
+            (ResolverGate(gate2, {exp1: exp_two}), (0, 1, 2, 3)),
+        )
+    )
 
-    final_gate = cirq.resolve_parameters(gate3, {exp_half: 0.5, exp_one: 1.0, exp_two: 2.0})
+    final_gate = ResolverGate(gate3, {exp_half: 0.5, exp_one: 1.0, exp_two: 2.0})
     final_op = final_gate.on(*q)
 
     expected_circuit1 = cirq.Circuit(
