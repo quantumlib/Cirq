@@ -645,7 +645,8 @@ class CircuitGate(ContainerGate):
         return True
 
     def __pow__(self, power: int) -> 'CircuitGate':
-        return CircuitGate(self.circuit * power)
+        circuit = self.circuit if power >= 0 else [(g ** -1, a) for g, a in self.circuit[::-1]]
+        return CircuitGate(circuit * abs(power))
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         circuit = tuple((protocols.with_key_path(g, path), axes) for g, axes in self.circuit)
@@ -708,17 +709,16 @@ class RepeatGate(WrapperGate):
     _path_prefix: Tuple[str] = dataclasses.field(default=tuple(), init=False)
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        ops = protocols.decompose_once_with_qubits(self.gate, qubits)
-        vals = []
+        gate = self.gate
         repeat = self.repeat
         if repeat < 0:
             repeat = -repeat
-            ops = list(reversed(ops))
-        for i in range(repeat):
-            prefix = self._path_prefix + (str(i),)
-            for op in ops:
-                vals.append(protocols.with_key_path_prefix(op, prefix))
-        return vals
+            gate = gate ** -1
+        gates = [
+            protocols.with_key_path_prefix(gate, self._path_prefix + (str(i),))
+            for i in range(repeat)
+        ]
+        return [op for gate in gates for op in protocols.decompose_once_with_qubits(gate, qubits)]
 
     def __pow__(self, power: int) -> 'RepeatGate':
         return dataclasses.replace(self, repeat=self.repeat * power)
