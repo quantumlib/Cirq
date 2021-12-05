@@ -591,9 +591,37 @@ class CircuitOperation(ops.Operation):
         return gate
 
 
+TSelf = TypeVar('TSelf', bound='ContainerGate')
+
+
 @dataclasses.dataclass(frozen=True)
-class CircuitGate(ops.Gate):
+class ContainerGate(ops.Gate, abc.ABC):
+    @abc.abstractmethod
+    def _get_gates(self) -> Tuple['cirq.Gate', ...]:
+        raise NotImplementedError()
+
+    def _has_unitary_(self):
+        return all(protocols.has_unitary(g) for g in self._get_gates())
+
+    def _is_measurement_(self) -> bool:
+        return any(protocols.is_measurement(g) for g in self._get_gates())
+
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        return set().union(*[protocols.measurement_key_objs(g) for g in self._get_gates()])
+
+    def _measurement_key_names_(self) -> AbstractSet[value.MeasurementKey]:
+        return set().union(*[protocols.measurement_key_names(g) for g in self._get_gates()])
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return set().union(*[protocols.parameter_names(g) for g in self._get_gates()])
+
+
+@dataclasses.dataclass(frozen=True)
+class CircuitGate(ContainerGate):
     circuit: Tuple[Tuple[ops.Gate, Tuple[int, ...]], ...]
+
+    def _get_gates(self) -> Tuple['cirq.Gate', ...]:
+        return tuple(g for g, _ in self.circuit)
 
     def _qid_shape_(self):
         size = max(axis for _, axes in self.circuit for axis in axes) + 1
@@ -607,21 +635,6 @@ class CircuitGate(ops.Gate):
         if any(d == -1 for d in dims):
             raise ValueError('a gate is unused')
         return tuple(dims)
-
-    def _has_unitary_(self):
-        return all(protocols.has_unitary(g) for g, _ in self.circuit)
-
-    def _is_measurement_(self) -> bool:
-        return any(protocols.is_measurement(g) for g, _ in self.circuit)
-
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
-        return set().union(*[protocols.measurement_key_objs(g) for g, _ in self.circuit])
-
-    def _measurement_key_names_(self) -> AbstractSet[str]:
-        return {str(key) for key in self._measurement_key_objs_()}
-
-    def _parameter_names_(self) -> AbstractSet[str]:
-        return set().union(*[protocols.parameter_names(g) for g, _ in self.circuit])
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         return tuple(g.on(*[qubits[i] for i in axes]) for g, axes in self.circuit)
@@ -659,30 +672,15 @@ class CircuitGate(ops.Gate):
         return CircuitGate(circuit)
 
 
-TSelf = TypeVar('TSelf', bound='WrapperGate')
-
-
 @dataclasses.dataclass(frozen=True)
-class WrapperGate(ops.Gate, abc.ABC):
+class WrapperGate(ContainerGate, abc.ABC):
     gate: ops.Gate
+
+    def _get_gates(self) -> Tuple['cirq.Gate', ...]:
+        return (self.gate,)
 
     def _qid_shape_(self):
         return protocols.qid_shape(self.gate)
-
-    def _has_unitary_(self):
-        return protocols.has_unitary(self.gate)
-
-    def _is_measurement_(self) -> bool:
-        return protocols.is_measurement(self.gate)
-
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
-        return protocols.measurement_key_objs(self.gate)
-
-    def _measurement_key_names_(self) -> AbstractSet[str]:
-        return protocols.measurement_key_names(self.gate)
-
-    def _parameter_names_(self) -> AbstractSet[str]:
-        return protocols.parameter_names(self.gate)
 
     def __pow__(self: TSelf, power: int) -> TSelf:
         return dataclasses.replace(self, gate=self.gate * power)
