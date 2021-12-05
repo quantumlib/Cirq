@@ -597,7 +597,7 @@ TSelf = TypeVar('TSelf', bound='ContainerGate')
 @dataclasses.dataclass(frozen=True)
 class ContainerGate(ops.Gate, abc.ABC):
     @abc.abstractmethod
-    def _get_gates(self) -> Tuple['cirq.Gate', ...]:
+    def _get_gates(self) -> Sequence['cirq.Gate']:
         raise NotImplementedError()
 
     def _has_unitary_(self):
@@ -620,8 +620,8 @@ class ContainerGate(ops.Gate, abc.ABC):
 class CircuitGate(ContainerGate):
     circuit: Tuple[Tuple[ops.Gate, Tuple[int, ...]], ...]
 
-    def _get_gates(self) -> Tuple['cirq.Gate', ...]:
-        return tuple(g for g, _ in self.circuit)
+    def _get_gates(self) -> Sequence['cirq.Gate']:
+        return [g for g, _ in self.circuit]
 
     def _qid_shape_(self):
         size = max(axis for _, axes in self.circuit for axis in axes) + 1
@@ -677,8 +677,12 @@ class CircuitGate(ContainerGate):
 class WrapperGate(ContainerGate, abc.ABC):
     gate: ops.Gate
 
-    def _get_gates(self) -> Tuple['cirq.Gate', ...]:
-        return (self.gate,)
+    @abc.abstractmethod
+    def _apply_self(self) -> Sequence['cirq.Gate']:
+        raise NotImplementedError()
+
+    def _get_gates(self) -> Sequence['cirq.Gate']:
+        return [self.gate]
 
     def _qid_shape_(self):
         return protocols.qid_shape(self.gate)
@@ -702,23 +706,26 @@ class WrapperGate(ContainerGate, abc.ABC):
             self, gate=protocols.resolve_parameters(self.gate, resolver, recursive)
         )
 
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+        gates = self._apply_self()
+        return [op for gate in gates for op in protocols.decompose_once_with_qubits(gate, qubits)]
+
 
 @dataclasses.dataclass(frozen=True)
 class RepeatGate(WrapperGate):
     repeat: int
     _path_prefix: Tuple[str] = dataclasses.field(default=tuple(), init=False)
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _apply_self(self) -> Sequence['cirq.Gate']:
         gate = self.gate
         repeat = self.repeat
         if repeat < 0:
             repeat = -repeat
             gate = gate ** -1
-        gates = [
+        return [
             protocols.with_key_path_prefix(gate, self._path_prefix + (str(i),))
             for i in range(repeat)
         ]
-        return [op for gate in gates for op in protocols.decompose_once_with_qubits(gate, qubits)]
 
     def __pow__(self, power: int) -> 'RepeatGate':
         return dataclasses.replace(self, repeat=self.repeat * power)
@@ -735,38 +742,30 @@ class RepeatGate(WrapperGate):
 
 
 @dataclasses.dataclass(frozen=True)
-class ApplierGate(WrapperGate, abc.ABC):
-    @abc.abstractmethod
-    def _apply_self(self) -> 'cirq.Gate':
-        raise NotImplementedError()
-
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        return protocols.decompose_once_with_qubits(self._apply_self(), qubits)
-
-
-@dataclasses.dataclass(frozen=True)
-class KeyMapGate(ApplierGate):
+class KeyMapGate(WrapperGate):
     map: Dict[str, str]
 
-    def _apply_self(self) -> 'cirq.Gate':
-        return protocols.with_measurement_key_mapping(self.gate, self.map)
+    def _apply_self(self) -> Sequence['cirq.Gate']:
+        return [protocols.with_measurement_key_mapping(self.gate, self.map)]
 
     def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
-        return protocols.measurement_key_objs(self._apply_self())
+        return protocols.measurement_key_objs(
+            protocols.with_measurement_key_mapping(self.gate, self.map)
+        )
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'KeyMapGate':
         return KeyMapGate(self, key_map)
 
 
 @dataclasses.dataclass(frozen=True)
-class ResolverGate(ApplierGate):
+class ResolverGate(WrapperGate):
     map: 'cirq.ParamResolverOrSimilarType'
 
-    def _apply_self(self) -> 'cirq.Gate':
-        return protocols.resolve_parameters(self.gate, self.map)
+    def _apply_self(self) -> Sequence['cirq.Gate']:
+        return [protocols.resolve_parameters(self.gate, self.map)]
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return protocols.parameter_names(self._apply_self())
+        return protocols.parameter_names(protocols.resolve_parameters(self.gate, self.map))
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'cirq.Gate':
         merged = protocols.resolve_parameters(resolver, self.map)
