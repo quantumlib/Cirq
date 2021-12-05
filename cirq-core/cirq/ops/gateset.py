@@ -339,7 +339,14 @@ class Gateset:
                 )
                 return True
 
-        return any(item in gate_family for gate_family in self._gates)
+        if any(item in gate_family for gate_family in self._gates):
+            return True
+
+        from cirq.circuits.circuit_operation import ContainerGate
+        if isinstance(g, ContainerGate) and self._unroll_circuit_op:
+            return all(g0 in self for g0 in g._get_gates())
+
+        return False
 
     def validate(
         self,
