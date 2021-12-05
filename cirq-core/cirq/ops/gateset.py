@@ -343,6 +343,7 @@ class Gateset:
             return True
 
         from cirq.circuits.circuit_operation import ContainerGate
+
         if isinstance(g, ContainerGate) and self._unroll_circuit_op:
             return all(g0 in self for g0 in g._get_gates())
 
