@@ -58,7 +58,6 @@ from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.protocols import circuit_diagram_info_protocol
-from cirq.qis.channels import kraus_to_superoperator
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -1002,42 +1001,15 @@ class AbstractCircuit(abc.ABC):
 
     def _superoperator_(self) -> np.ndarray:
         """Compute superoperator matrix for quantum channel specified by this circuit."""
-        all_qubits = sorted(self.all_qubits())
+        all_qubits = self.all_qubits()
         n = len(all_qubits)
-        d = 2 ** n
         if n > 10:
             raise ValueError(f"{n} > 10 qubits is too many to compute superoperator")
-        qubit_to_col_name = dict(zip(all_qubits, "ABCDEFGHIJ"))
-        qubit_to_row_name = dict(zip(all_qubits, "abcdefghij"))
 
-        def col_names(qs: Sequence['cirq.Qid']) -> str:
-            """Returns names of the input indices corresponding to given qubits."""
-            return "".join(qubit_to_col_name[q] for q in qs)
-
-        def row_names(qs: Sequence['cirq.Qid']) -> str:
-            """Returns names of the output indices corresponding to given qubits."""
-            return "".join(qubit_to_row_name[q] for q in qs)
-
-        def all_operations(moment: 'cirq.Moment') -> Sequence['cirq.Operation']:
-            """Returns all operations in a moment, including implicit identities."""
-            return list(moment.operations) + [cirq.I(q) for q in set(all_qubits) - moment.qubits]
-
-        def kraus_tensors(op: 'cirq.Operation') -> Sequence[np.ndarray]:
-            """Returns Kraus operators as tensors with one input and one output index per qubit."""
-            return tuple(np.reshape(k, (2, 2) * len(op.qubits)) for k in cirq.kraus(op))
-
-        def operations_to_kraus(ops: Sequence['cirq.Operation']) -> Sequence[np.ndarray]:
-            """Computes Kraus representation of a moment."""
-            inputs = ",".join(row_names(op.qubits) + col_names(op.qubits) for op in ops)
-            outputs = row_names(all_qubits) + col_names(all_qubits)
-            mapping = inputs + '->' + outputs
-            kss = [kraus_tensors(op) for op in ops]
-            return [np.reshape(np.einsum(mapping, *ks), (d, d)) for ks in itertools.product(*kss)]
-
-        circuit_superoperator = np.eye(d * d)
+        circuit_superoperator = np.eye(4 ** n)
         for moment in self:
-            ops = all_operations(moment)
-            moment_superoperator = kraus_to_superoperator(operations_to_kraus(ops))
+            full_moment = moment.expand_to(all_qubits)
+            moment_superoperator = full_moment._superoperator_()
             circuit_superoperator = moment_superoperator @ circuit_superoperator
         return circuit_superoperator
 
