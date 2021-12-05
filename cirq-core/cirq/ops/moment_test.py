@@ -647,7 +647,7 @@ def test_kraus():
     m = cirq.Moment()
     k = cirq.kraus(m)
     assert len(k) == 1
-    assert np.allclose(k[0], np.array([[1.]]))
+    assert np.allclose(k[0], np.array([[1.0]]))
 
     m = cirq.Moment(cirq.S(a))
     k = cirq.kraus(m)
@@ -692,7 +692,7 @@ def test_superoperator():
 
     m = cirq.Moment()
     s = m._superoperator_()
-    assert np.allclose(s, np.array([[1.]]))
+    assert np.allclose(s, np.array([[1.0]]))
 
     m = cirq.Moment(cirq.I(a))
     s = m._superoperator_()

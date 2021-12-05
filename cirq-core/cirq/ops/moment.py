@@ -347,7 +347,7 @@ class Moment:
         qubits = sorted(self.qubits)
         n = len(qubits)
         if n < 1:
-            return (np.array([[1+0j]]),)
+            return (np.array([[1 + 0j]]),)
         if n > 10:
             raise ValueError(f'Cannot compute Kraus representation of moment with {n} > 10 qubits')
 
@@ -364,8 +364,7 @@ class Moment:
             return tuple(np.reshape(k, (2, 2) * len(op.qubits)) for k in protocols.kraus(op))
 
         input_subscripts = ','.join(
-            row_subscripts(op.qubits) + col_subscripts(op.qubits)
-            for op in self.operations
+            row_subscripts(op.qubits) + col_subscripts(op.qubits) for op in self.operations
         )
         output_subscripts = row_subscripts(qubits) + col_subscripts(qubits)
         assert len(input_subscripts) == 2 * n + len(self.operations) - 1
