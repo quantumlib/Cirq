@@ -29,7 +29,6 @@ from typing import (
     Union,
     Iterator,
     Sequence,
-    TypeVar,
 )
 
 import dataclasses
@@ -591,7 +590,6 @@ class CircuitOperation(ops.Operation):
         return gate
 
 
-@dataclasses.dataclass(frozen=True)
 class ContainerGate(ops.Gate, abc.ABC):
     @abc.abstractmethod
     def _get_gates(self) -> Sequence['cirq.Gate']:
@@ -603,14 +601,14 @@ class ContainerGate(ops.Gate, abc.ABC):
     def _is_measurement_(self) -> bool:
         return any(protocols.is_measurement(g) for g in self._get_gates())
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
-        return set().union(*[protocols.measurement_key_objs(g) for g in self._get_gates()])
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+        return set(k for g in self._get_gates() for k in protocols.measurement_key_objs(g))
 
-    def _measurement_key_names_(self) -> AbstractSet[value.MeasurementKey]:
-        return set().union(*[protocols.measurement_key_names(g) for g in self._get_gates()])
+    def _measurement_key_names_(self) -> AbstractSet[str]:
+        return set(k for g in self._get_gates() for k in protocols.measurement_key_names(g))
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return set().union(*[protocols.parameter_names(g) for g in self._get_gates()])
+        return set(k for g in self._get_gates() for k in protocols.parameter_names(g))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -633,7 +631,7 @@ class CircuitGate(ContainerGate):
             raise ValueError('a gate is unused')
         return tuple(dims)
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Tuple['cirq.Operation', ...]:
         return tuple(g.on(*[qubits[i] for i in axes]) for g, axes in self.circuit)
 
     def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
@@ -642,8 +640,9 @@ class CircuitGate(ContainerGate):
         return True
 
     def __pow__(self, power: int) -> 'CircuitGate':
-        circuit = self.circuit if power >= 0 else [(g ** -1, a) for g, a in self.circuit[::-1]]
-        return CircuitGate(circuit * abs(power))
+        if power >= 0:
+            return CircuitGate(self.circuit * power)
+        return CircuitGate(tuple([(g ** -1, a) for g, a in self.circuit[::-1]]) * (-power))
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         circuit = tuple((protocols.with_key_path(g, path), axes) for g, axes in self.circuit)
@@ -671,10 +670,9 @@ class CircuitGate(ContainerGate):
 
 
 @dataclasses.dataclass(frozen=True)
-class WrapperGate(ContainerGate, abc.ABC):
+class WrapperGate(ContainerGate):
     gate: ops.Gate
 
-    @abc.abstractmethod
     def _apply_self(self) -> Sequence['cirq.Gate']:
         raise NotImplementedError()
 
@@ -711,7 +709,7 @@ class WrapperGate(ContainerGate, abc.ABC):
 @dataclasses.dataclass(frozen=True)
 class RepeatGate(WrapperGate):
     repeat: int
-    _path_prefix: Tuple[str] = dataclasses.field(default=tuple(), init=False)
+    _path_prefix: Tuple[str, ...] = dataclasses.field(default=tuple(), init=False)
 
     def _apply_self(self) -> Sequence['cirq.Gate']:
         gate = self.gate
