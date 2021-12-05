@@ -591,9 +591,6 @@ class CircuitOperation(ops.Operation):
         return gate
 
 
-TSelf = TypeVar('TSelf', bound='ContainerGate')
-
-
 @dataclasses.dataclass(frozen=True)
 class ContainerGate(ops.Gate, abc.ABC):
     @abc.abstractmethod
@@ -687,21 +684,21 @@ class WrapperGate(ContainerGate, abc.ABC):
     def _qid_shape_(self):
         return protocols.qid_shape(self.gate)
 
-    def __pow__(self: TSelf, power: int) -> TSelf:
+    def __pow__(self, power: int) -> 'cirq.Gate':
         return dataclasses.replace(self, gate=self.gate * power)
 
-    def _with_key_path_(self: TSelf, path: Tuple[str, ...]) -> TSelf:
+    def _with_key_path_(self, path: Tuple[str, ...]) -> 'cirq.Gate':
         return dataclasses.replace(self, gate=protocols.with_key_path(self.gate, path))
 
-    def _with_key_path_prefix_(self: TSelf, prefix: Tuple[str, ...]) -> TSelf:
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> 'cirq.Gate':
         return dataclasses.replace(self, gate=protocols.with_key_path_prefix(self.gate, prefix))
 
-    def _with_measurement_key_mapping_(self: TSelf, key_map: Dict[str, str]) -> TSelf:
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'cirq.Gate':
         return dataclasses.replace(
             self, gate=protocols.with_measurement_key_mapping(self.gate, key_map)
         )
 
-    def _resolve_parameters_(self: TSelf, resolver: 'cirq.ParamResolver', recursive: bool) -> TSelf:
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'cirq.Gate':
         return dataclasses.replace(
             self, gate=protocols.resolve_parameters(self.gate, resolver, recursive)
         )
