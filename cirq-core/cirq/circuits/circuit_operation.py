@@ -17,6 +17,7 @@ A CircuitOperation is an Operation object that wraps a FrozenCircuit. When
 applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
+import abc
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
@@ -28,6 +29,7 @@ from typing import (
     Union,
     Iterator,
     Sequence,
+    TypeVar,
 )
 
 import dataclasses
@@ -657,11 +659,12 @@ class CircuitGate(ops.Gate):
         return CircuitGate(circuit)
 
 
+TSelf = TypeVar('TSelf', bound='WrapperGate')
+
+
 @dataclasses.dataclass(frozen=True)
-class RepeatGate(ops.Gate):
+class WrapperGate(ops.Gate, abc.ABC):
     gate: ops.Gate
-    repeat: int
-    _path_prefix: Tuple[str] = dataclasses.field(default=tuple(), init=False)
 
     def _qid_shape_(self):
         return protocols.qid_shape(self.gate)
@@ -680,6 +683,31 @@ class RepeatGate(ops.Gate):
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.gate)
+
+    def __pow__(self: TSelf, power: int) -> TSelf:
+        return dataclasses.replace(self, gate=self.gate * power)
+
+    def _with_key_path_(self: TSelf, path: Tuple[str, ...]) -> TSelf:
+        return dataclasses.replace(self, gate=protocols.with_key_path(self.gate, path))
+
+    def _with_key_path_prefix_(self: TSelf, prefix: Tuple[str, ...]) -> TSelf:
+        return dataclasses.replace(self, gate=protocols.with_key_path_prefix(self.gate, prefix))
+
+    def _with_measurement_key_mapping_(self: TSelf, key_map: Dict[str, str]) -> TSelf:
+        return dataclasses.replace(
+            self, gate=protocols.with_measurement_key_mapping(self.gate, key_map)
+        )
+
+    def _resolve_parameters_(self: TSelf, resolver: 'cirq.ParamResolver', recursive: bool) -> TSelf:
+        return dataclasses.replace(
+            self, gate=protocols.resolve_parameters(self.gate, resolver, recursive)
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class RepeatGate(WrapperGate):
+    repeat: int
+    _path_prefix: Tuple[str] = dataclasses.field(default=tuple(), init=False)
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         ops = protocols.decompose_once_with_qubits(self.gate, qubits)
@@ -707,100 +735,40 @@ class RepeatGate(ops.Gate):
         object.__setattr__(copy, '_path_prefix', prefix + self._path_prefix)
         return copy
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'RepeatGate':
-        return dataclasses.replace(
-            self, gate=protocols.with_measurement_key_mapping(self.gate, key_map)
-        )
 
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'RepeatGate':
-        return dataclasses.replace(
-            self, gate=protocols.resolve_parameters(self.gate, resolver, recursive)
-        )
+@dataclasses.dataclass(frozen=True)
+class ApplierGate(WrapperGate, abc.ABC):
+    @abc.abstractmethod
+    def _apply_self(self) -> 'cirq.Gate':
+        raise NotImplementedError()
+
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+        return protocols.decompose_once_with_qubits(self._apply_self(), qubits)
 
 
 @dataclasses.dataclass(frozen=True)
-class KeyMapGate(ops.Gate):
-    gate: ops.Gate
+class KeyMapGate(ApplierGate):
     map: Dict[str, str]
 
-    def _qid_shape_(self):
-        return protocols.qid_shape(self.gate)
-
-    def _has_unitary_(self):
-        return protocols.has_unitary(self.gate)
-
-    def _is_measurement_(self) -> bool:
-        return protocols.is_measurement(self.gate)
+    def _apply_self(self) -> 'cirq.Gate':
+        return protocols.with_measurement_key_mapping(self.gate, self.map)
 
     def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
-        return protocols.measurement_key_objs(
-            protocols.with_measurement_key_mapping(self.gate, self.map)
-        )
-
-    def _parameter_names_(self) -> AbstractSet[str]:
-        return protocols.parameter_names(self.gate)
-
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        return protocols.decompose_once_with_qubits(
-            protocols.with_measurement_key_mapping(self.gate, self.map), qubits
-        )
-
-    def __pow__(self, power: int) -> 'KeyMapGate':
-        return dataclasses.replace(self, gate=self.gate * power)
-
-    def _with_key_path_(self, path: Tuple[str, ...]) -> 'KeyMapGate':
-        return dataclasses.replace(self, gate=protocols.with_key_path(self.gate, path))
-
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> 'KeyMapGate':
-        return dataclasses.replace(self, gate=protocols.with_key_path_prefix(self.gate, prefix))
+        return protocols.measurement_key_objs(self._apply_self())
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'KeyMapGate':
         return KeyMapGate(self, key_map)
 
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'KeyMapGate':
-        return dataclasses.replace(
-            self, gate=protocols.resolve_parameters(self.gate, resolver, recursive)
-        )
-
 
 @dataclasses.dataclass(frozen=True)
-class ResolverGate(ops.Gate):
-    gate: ops.Gate
+class ResolverGate(ApplierGate):
     map: 'cirq.ParamResolverOrSimilarType'
 
-    def _qid_shape_(self):
-        return protocols.qid_shape(self.gate)
-
-    def _has_unitary_(self):
-        return protocols.has_unitary(self.gate)
-
-    def _is_measurement_(self) -> bool:
-        return protocols.is_measurement(self.gate)
-
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
-        return protocols.measurement_key_objs(self.gate)
+    def _apply_self(self) -> 'cirq.Gate':
+        return protocols.resolve_parameters(self.gate, self.map)
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return protocols.parameter_names(protocols.resolve_parameters(self.gate, self.map))
-
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        return protocols.decompose_once_with_qubits(
-            protocols.resolve_parameters(self.gate, self.map), qubits
-        )
-
-    def __pow__(self, power: int) -> 'ResolverGate':
-        return dataclasses.replace(self, gate=self.gate * power)
-
-    def _with_key_path_(self, path: Tuple[str, ...]) -> 'ResolverGate':
-        return dataclasses.replace(self, gate=protocols.with_key_path(self.gate, path))
-
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> 'ResolverGate':
-        return dataclasses.replace(self, gate=protocols.with_key_path_prefix(self.gate, prefix))
-
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'ResolverGate':
-        return dataclasses.replace(
-            self, gate=protocols.with_measurement_key_mapping(self.gate, key_map)
-        )
+        return protocols.parameter_names(self._apply_self())
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'cirq.Gate':
         merged = protocols.resolve_parameters(resolver, self.map)
