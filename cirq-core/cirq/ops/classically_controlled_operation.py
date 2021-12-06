@@ -77,7 +77,8 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return f'{self._sub_operation}.with_classical_controls({keys})'
 
     def __repr__(self):
-        return f'cirq.ClassicallyControlledOperation({self._sub_operation!r}, {list(self._control_keys)!r})'
+        return f'cirq.ClassicallyControlledOperation(' \
+               f'{self._sub_operation!r}, {list(self._control_keys)!r})'
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._sub_operation)

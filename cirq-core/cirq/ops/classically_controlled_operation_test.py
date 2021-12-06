@@ -387,14 +387,16 @@ def test_decompose():
 def test_str():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a')
-    assert str(op) == "X(0).with_classical_controls(a)"
+    assert str(op) == 'X(0).with_classical_controls(a)'
 
 
 def test_repr():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a')
     assert repr(op) == (
-        "cirq.ClassicallyControlledOperation(cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')])"
+        "cirq.ClassicallyControlledOperation("
+        "cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')]"
+        ")"
     )
 
 

@@ -22,7 +22,6 @@ from typing import (
     Callable,
     Collection,
     Dict,
-    FrozenSet,
     Hashable,
     Iterable,
     List,
