@@ -591,14 +591,14 @@ class Operation(metaclass=abc.ABCMeta):
 
         return np.allclose(m12, m21, atol=atol)
 
-    def with_conditions(
-        self, *conditions: Union[str, value.MeasurementKey]
+    def with_classical_controls(
+        self, *conditions: Union[str, 'cirq.MeasurementKey']
     ) -> 'cirq.ClassicallyControlledOperation':
         from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
 
         return ClassicallyControlledOperation(self, conditions)
 
-    def unconditionally(self) -> 'Operation':
+    def without_classical_controls(self) -> 'cirq.Operation':
         return self
 
 
@@ -788,8 +788,8 @@ class TaggedOperation(Operation):
     ) -> Union[NotImplementedType, bool]:
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
 
-    def unconditionally(self) -> Operation:
-        new_sub_operation = self.sub_operation.unconditionally()
+    def without_classical_controls(self) -> 'cirq.Operation':
+        new_sub_operation = self.sub_operation.without_classical_controls()
         return self if new_sub_operation is self.sub_operation else new_sub_operation
 
     def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:

@@ -50,15 +50,17 @@ class ClassicallyControlledOperation(raw_types.Operation):
         self._control_keys: Tuple['cirq.MeasurementKey', ...] = keys
         self._sub_operation: 'cirq.Operation' = sub_operation
 
-    def unconditionally(self) -> 'cirq.Operation':
-        return self._sub_operation.unconditionally()
+    def without_classical_controls(self) -> 'cirq.Operation':
+        return self._sub_operation.without_classical_controls()
 
     @property
     def qubits(self):
         return self._sub_operation.qubits
 
     def with_qubits(self, *new_qubits):
-        return self._sub_operation.with_qubits(*new_qubits).with_conditions(*self._control_keys)
+        return self._sub_operation.with_qubits(*new_qubits).with_classical_controls(
+            *self._control_keys
+        )
 
     def _decompose_(self):
         result = protocols.decompose_once(self._sub_operation, NotImplemented)
@@ -72,7 +74,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def __str__(self) -> str:
         keys = ', '.join(map(str, self._control_keys))
-        return f'{self._sub_operation}.with_conditions({keys})'
+        return f'{self._sub_operation}.with_classical_controls({keys})'
 
     def __repr__(self):
         return f'cirq.ClassicallyControlledOperation({self._sub_operation!r}, {list(self._control_keys)!r})'
@@ -87,7 +89,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'ClassicallyControlledOperation':
         new_sub_op = protocols.resolve_parameters(self._sub_operation, resolver, recursive)
-        return new_sub_op.with_conditions(*self._control_keys)
+        return new_sub_op.with_classical_controls(*self._control_keys)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -136,13 +138,15 @@ class ClassicallyControlledOperation(raw_types.Operation):
             protocols.act_on(self._sub_operation, args)
         return True
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'ClassicallyControlledOperation':
+    def _with_measurement_key_mapping_(
+        self, key_map: Dict[str, str]
+    ) -> 'ClassicallyControlledOperation':
         keys = [protocols.with_measurement_key_mapping(k, key_map) for k in self._control_keys]
-        return self._sub_operation.with_conditions(*keys)
+        return self._sub_operation.with_classical_controls(*keys)
 
     def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'ClassicallyControlledOperation':
         keys = [protocols.with_key_path_prefix(k, path) for k in self._control_keys]
-        return self._sub_operation.with_conditions(*keys)
+        return self._sub_operation.with_classical_controls(*keys)
 
     def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
         return frozenset(self._control_keys).union(protocols.control_keys(self._sub_operation))
