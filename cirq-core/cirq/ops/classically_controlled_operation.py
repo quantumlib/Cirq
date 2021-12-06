@@ -32,13 +32,34 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class ClassicallyControlledOperation(raw_types.Operation):
-    """Augments existing operations to be conditionally executed."""
+    """Augments existing operations to be conditionally executed.
+
+    An operation that is classically controlled is executed iff all conditions
+    evaluate to True. Currently the only condition type is a measurement key.
+    A measurement key evaluates to True iff any qubit in the corresponding
+    measurement operation evaluated to a non-zero value.
+
+    This object is typically created via
+     `operation.with_classical_controls(*conditions)`.
+    """
 
     def __init__(
         self,
         sub_operation: 'cirq.Operation',
         conditions: Sequence[Union[str, 'cirq.MeasurementKey']],
     ):
+        """Initializes a `ClassicallyControlledOperation`.
+
+        Multiple consecutive `ClassicallyControlledOperation` layers are
+        squashed when possible, so one should not depend on a specific number
+        of layers.
+
+        Args:
+            sub_operation: The operation to gate with a classical control
+                condition.
+            conditions: A sequence of measurement keys, or strings that can be
+                parsed into measurement keys.
+        """
         if protocols.measurement_key_objs(sub_operation):
             raise ValueError(
                 f'Cannot conditionally run operations with measurements: {sub_operation}'
@@ -77,8 +98,10 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return f'{self._sub_operation}.with_classical_controls({keys})'
 
     def __repr__(self):
-        return f'cirq.ClassicallyControlledOperation(' \
-               f'{self._sub_operation!r}, {list(self._control_keys)!r})'
+        return (
+            f'cirq.ClassicallyControlledOperation('
+            f'{self._sub_operation!r}, {list(self._control_keys)!r})'
+        )
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._sub_operation)
