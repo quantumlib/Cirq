@@ -46,48 +46,40 @@ _CALIBRATION = qtypes.QuantumCalibration(
     name='projects/a/processors/p/calibrations/1562715599',
     timestamp=_to_timestamp('2019-07-09T23:39:59Z'),
     data=_to_any(
-        Merge(
-            """
-    timestamp_ms: 1562544000021,
-    metrics: [{
-        name: 'xeb',
-        targets: ['0_0', '0_1'],
-        values: [{
-            double_val: .9999
-        }]
-    }, {
-        name: 'xeb',
-        targets: ['0_0', '1_0'],
-        values: [{
-            double_val: .9998
-        }]
-    }, {
-        name: 't1',
-        targets: ['0_0'],
-        values: [{
-            double_val: 321
-        }]
-    }, {
-        name: 't1',
-        targets: ['0_1'],
-        values: [{
-            double_val: 911
-        }]
-    }, {
-        name: 't1',
-        targets: ['1_0'],
-        values: [{
-            double_val: 505
-        }]
-    }, {
-        name: 'globalMetric',
-        values: [{
-            int32_val: 12300
-        }]
-    }]
-""",
-            v2.metrics_pb2.MetricsSnapshot(),
-        )
+        v2.metrics_pb2.MetricsSnapshot(
+            timestamp_ms=1562544000021,
+            metrics=[
+                v2.metrics_pb2.Metric(
+                    name='xeb',
+                    targets=['0_0', '0_1'],
+                    values=[v2.metrics_pb2.Value(double_val=0.9999)],
+                ),
+                v2.metrics_pb2.Metric(
+                    name='xeb',
+                    targets=['0_0', '1_0'],
+                    values=[v2.metrics_pb2.Value(double_val=0.9998)],
+                ),
+                v2.metrics_pb2.Metric(
+                    name='t1',
+                    targets=['0_0'],
+                    values=[v2.metrics_pb2.Value(double_val=321)],
+                ),
+                v2.metrics_pb2.Metric(
+                    name='t1',
+                    targets=['0_1'],
+                    values=[v2.metrics_pb2.Value(double_val=911)],
+                ),
+                v2.metrics_pb2.Metric(
+                    name='t1',
+                    targets=['0_1'],
+                    values=[v2.metrics_pb2.Value(double_val=505)],
+                ),
+                v2.metrics_pb2.Metric(
+                    name='globalMetric',
+                    values=[v2.metrics_pb2.Value(int32_val=12300)],
+                ),
+            ],
+        ),
     ),
 )
 
@@ -131,156 +123,106 @@ _CIRCUIT = cirq.Circuit(
 )
 
 
-_RESULTS_V2 = _to_any(
-    Merge(
-        """
-sweep_results: [{
-        repetitions: 1,
-        parameterized_results: [{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 1
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\000\001'
-                }]
-            }
-        },{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 2
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\000\001'
-                }]
-            }
-        }]
-    }]
-""",
-        v2.result_pb2.Result(),
-    )
+_RESULTS_V2 = v2.result_pb2.Result(
+    sweep_results=[
+        v2.result_pb2.SweepResult(
+            repetitions=1,
+            parameterized_results=[
+                v2.result_pb2.ParameterizedResult(
+                    params=v2.result_pb2.ParameterDict(assignments={'a': 1}),
+                    measurement_results=[
+                        v2.result_pb2.MeasurementResult(
+                            key='q',
+                            qubit_measurement_results=[
+                                v2.result_pb2.QubitMeasurementResult(
+                                    qubit=v2.program_pb2.Qubit(id='1_1'), results=b'\000\001'
+                                )
+                            ],
+                        )
+                    ],
+                ),
+                v2.result_pb2.ParameterizedResult(
+                    params=v2.result_pb2.ParameterDict(assignments={'a': 2}),
+                    measurement_results=[
+                        v2.result_pb2.MeasurementResult(
+                            key='q',
+                            qubit_measurement_results=[
+                                v2.result_pb2.QubitMeasurementResult(
+                                    qubit=v2.program_pb2.Qubit(id='1_1'), results=b'\000\001'
+                                )
+                            ],
+                        )
+                    ],
+                ),
+            ],
+        )
+    ]
+)
+
+
+_RESULTS2_V2 = v2.result_pb2.Result(
+    sweep_results=[
+        v2.result_pb2.SweepResult(
+            repetitions=1,
+            parameterized_results=[
+                v2.result_pb2.ParameterizedResult(
+                    params=v2.result_pb2.ParameterDict(assignments={'a': 3}),
+                    measurement_results=[
+                        v2.result_pb2.MeasurementResult(
+                            key='q',
+                            qubit_measurement_results=[
+                                v2.result_pb2.QubitMeasurementResult(
+                                    qubit=v2.program_pb2.Qubit(id='1_1'), results=b'\000\001'
+                                )
+                            ],
+                        )
+                    ],
+                ),
+                v2.result_pb2.ParameterizedResult(
+                    params=v2.result_pb2.ParameterDict(assignments={'a': 4}),
+                    measurement_results=[
+                        v2.result_pb2.MeasurementResult(
+                            key='q',
+                            qubit_measurement_results=[
+                                v2.result_pb2.QubitMeasurementResult(
+                                    qubit=v2.program_pb2.Qubit(id='1_1'), results=b'\000\001'
+                                )
+                            ],
+                        )
+                    ],
+                ),
+            ],
+        )
+    ]
 )
 
 
 _BATCH_RESULTS_V2 = _to_any(
-    Merge(
-        """
-results: [{
-    sweep_results: [{
-        repetitions: 1,
-        parameterized_results: [{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 1
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\000\001'
-                }]
-            }
-        },{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 2
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\000\001'
-                }]
-            }
-        }]
-    }],
-    },{
-    sweep_results: [{
-        repetitions: 1,
-        parameterized_results: [{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 3
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\000\001'
-                }]
-            }
-        },{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 4
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\000\001'
-                }]
-            }
-        }]
-    }]
-}]
-""",
-        v2.batch_pb2.BatchResult(),
-    )
+    v2.batch_pb2.BatchResult(results=[_RESULTS_V2, _RESULTS2_V2]),
 )
 
 
 _CALIBRATION_RESULTS_V2 = _to_any(
-    Merge(
-        """
-results: [{
-    code: 1
-    error_message: 'First success'
-    token: 'abc123'
-    metrics: {
-      metrics: [{
-        name: 'fidelity'
-        targets: ['q2_3','q2_4']
-        values: [{
-            double_val: 0.75
-    }]
-    }]}
-    },{
-    code: 1
-    error_message: 'Second success'
-}]
-""",
-        v2.calibration_pb2.FocusedCalibrationResult(),
+    v2.calibration_pb2.FocusedCalibrationResult(
+        results=[
+            v2.calibration_pb2.CalibrationLayerResult(
+                code=v2.calibration_pb2.SUCCESS,
+                error_message='First success',
+                token='abc123',
+                metrics=v2.metrics_pb2.MetricsSnapshot(
+                    metrics=[
+                        v2.metrics_pb2.Metric(
+                            name='fidelity',
+                            targets=['q2_3', 'q2_4'],
+                            values=[v2.metrics_pb2.Value(double_val=0.75)],
+                        )
+                    ]
+                ),
+            ),
+            v2.calibration_pb2.CalibrationLayerResult(
+                code=v2.calibration_pb2.SUCCESS, error_message='Second success'
+            ),
+        ]
     )
 )
 
@@ -404,13 +346,13 @@ def test_list_calibrations(list_calibrations):
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     assert [c.timestamp for c in processor.list_calibrations()] == [1562544000021]
     list_calibrations.assert_called_with('a', 'p', '')
-    assert [
-        c.timestamp for c in processor.list_calibrations(earliest_timestamp_seconds=1562500000)
-    ] == [1562544000021]
+    assert [c.timestamp for c in processor.list_calibrations(earliest_timestamp=1562500000)] == [
+        1562544000021
+    ]
     list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000')
-    assert [
-        c.timestamp for c in processor.list_calibrations(latest_timestamp_seconds=1562600000)
-    ] == [1562544000021]
+    assert [c.timestamp for c in processor.list_calibrations(latest_timestamp=1562600000)] == [
+        1562544000021
+    ]
     list_calibrations.assert_called_with('a', 'p', 'timestamp <= 1562600000')
     assert [c.timestamp for c in processor.list_calibrations(1562500000, 1562600000)] == [
         1562544000021
@@ -435,6 +377,24 @@ def test_list_calibrations(list_calibrations):
         1562544000021
     ]
     list_calibrations.assert_called_with('a', 'p', f'timestamp >= {today_midnight_timestamp}')
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations')
+def test_list_calibrations_old_params(list_calibrations):
+    # Disable pylint warnings for use of deprecated parameters
+    # pylint: disable=unexpected-keyword-arg
+    list_calibrations.return_value = [_CALIBRATION]
+    processor = cg.EngineProcessor('a', 'p', EngineContext())
+    with cirq.testing.assert_deprecated('Change earliest_timestamp_seconds', deadline='v1.0'):
+        assert [
+            c.timestamp for c in processor.list_calibrations(earliest_timestamp_seconds=1562500000)
+        ] == [1562544000021]
+    list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000')
+    with cirq.testing.assert_deprecated('Change latest_timestamp_seconds', deadline='v1.0'):
+        assert [
+            c.timestamp for c in processor.list_calibrations(latest_timestamp_seconds=1562600000)
+        ] == [1562544000021]
+    list_calibrations.assert_called_with('a', 'p', 'timestamp <= 1562600000')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration')
@@ -866,7 +826,7 @@ def test_run_sweep_params(client):
         ),
     )
     client().get_job.return_value = qtypes.QuantumJob(execution_status={'state': 'SUCCESS'})
-    client().get_job_results.return_value = qtypes.QuantumResult(result=_RESULTS_V2)
+    client().get_job_results.return_value = qtypes.QuantumResult(result=_to_any(_RESULTS_V2))
 
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     job = processor.run_sweep(
@@ -1001,7 +961,7 @@ def test_sampler(client):
         ),
     )
     client().get_job.return_value = qtypes.QuantumJob(execution_status={'state': 'SUCCESS'})
-    client().get_job_results.return_value = qtypes.QuantumResult(result=_RESULTS_V2)
+    client().get_job_results.return_value = qtypes.QuantumResult(result=_to_any(_RESULTS_V2))
     processor = cg.EngineProcessor('proj', 'mysim', EngineContext())
     sampler = processor.get_sampler(gate_set=cg.XMON)
     results = sampler.run_sweep(

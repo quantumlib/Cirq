@@ -189,7 +189,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        params_list: List[cirq.Sweepable] = None,
+        params_list: Sequence[cirq.Sweepable] = None,
         repetitions: int = 1,
         gate_set: Optional['Serializer'] = None,
         program_description: Optional[str] = None,
@@ -213,7 +213,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             processor_id=self.processor_id,
             parent_program=self._programs[program_id],
             repetitions=repetitions,
-            sweeps=params_list,
+            sweeps=list(params_list) if params_list is not None else None,
             sampler=self._sampler,
             simulation_type=self._simulation_type,
         )

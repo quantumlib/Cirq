@@ -27,9 +27,7 @@ from cirq_google.engine import (
     calibration_layer,
     engine_sampler,
 )
-from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
-from cirq_google.serialization.serializable_gate_set import SerializableGateSet
-from cirq_google.serialization.serializer import Serializer
+from cirq_google.serialization import circuit_serializer, serializable_gate_set, serializer
 
 if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
@@ -46,6 +44,16 @@ def _date_to_timestamp(
     elif isinstance(union_time, datetime.date):
         return int(datetime.datetime.combine(union_time, datetime.datetime.min.time()).timestamp())
     return None
+
+
+def _fix_deprecated_seconds_kwargs(kwargs):
+    if 'earliest_timestamp_seconds' in kwargs:
+        kwargs['earliest_timestamp'] = kwargs['earliest_timestamp_seconds']
+        del kwargs['earliest_timestamp_seconds']
+    if 'latest_timestamp_seconds' in kwargs:
+        kwargs['latest_timestamp'] = kwargs['latest_timestamp_seconds']
+        del kwargs['latest_timestamp_seconds']
+    return kwargs
 
 
 class EngineProcessor(abstract_processor.AbstractProcessor):
@@ -86,19 +94,24 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         return engine_base.Engine(self.project_id, context=self.context)
 
-    def get_sampler(self, gate_set: Optional[Serializer]) -> engine_sampler.QuantumEngineSampler:
+    def get_sampler(
+        self, gate_set: Optional[serializer.Serializer]
+    ) -> engine_sampler.QuantumEngineSampler:
         """Returns a sampler backed by the engine.
 
         Args:
-            processor_id: String identifier, or list of string identifiers,
-                determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
+            gate_set: A `Serializer` that determines how to serialize circuits
+            when requesting samples.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.1
         """
         return engine_sampler.QuantumEngineSampler(
             engine=self.engine(),
             processor_id=self.processor_id,
-            gate_set=gate_set or CIRCUIT_SERIALIZER,
+            gate_set=gate_set or circuit_serializer.CIRCUIT_SERIALIZER,
         )
 
     def run_batch(
@@ -106,9 +119,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        params_list: List[cirq.Sweepable] = None,
+        params_list: Sequence[cirq.Sweepable] = None,
         repetitions: int = 1,
-        gate_set: Optional[Serializer] = None,
+        gate_set: Optional[serializer.Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -147,8 +160,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
         Returns:
-            An AbstractJob. If this is iterated over it returns a list of
-            `cirq.Result`. All Results for the first circuit are listed
+            An `abstract_job.AbstractJob`. If this is iterated over it returns
+            a list of `cirq.Result`. All Results for the first circuit are listed
             first, then the Results for the second, etc. The Results
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
@@ -157,7 +170,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             programs=programs,
             processor_ids=[self.processor_id],
             program_id=program_id,
-            params_list=params_list,
+            params_list=list(params_list) if params_list is not None else None,
             repetitions=repetitions,
             gate_set=gate_set,
             program_description=program_description,
@@ -171,7 +184,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         layers: List[calibration_layer.CalibrationLayer],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        gate_set: Optional[Serializer] = None,
+        gate_set: Optional[serializer.Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -187,6 +200,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         require a single moment defining the gates to optimize, for example.
         Note: this is an experimental API and is not yet fully supported
         for all users.
+
         Args:
             layers: The layers of calibration to execute as a batch.
             program_id: A user-provided identifier for the program. This must
@@ -229,7 +243,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        gate_set: Optional[Serializer] = None,
+        gate_set: Optional[serializer.Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -239,6 +253,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         In contrast to run, this runs across multiple parameter sweeps, and
         does not block until a result is returned.
+
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
@@ -320,27 +335,40 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
-    def get_device(self, gate_sets: Iterable[Serializer]) -> cirq.Device:
+    def get_device(self, gate_sets: Iterable[serializer.Serializer]) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
-        which is then use to create a `SerializableDevice` that will validate
+        which is then use to create a `serializable_gate_set.SerializableDevice` that will validate
         that operations are supported and use the correct qubits.
         """
         spec = self.get_device_specification()
         if not spec:
             raise ValueError('Processor does not have a device specification')
-        if not all(isinstance(gs, SerializableGateSet) for gs in gate_sets):
+        if not all(isinstance(gs, serializable_gate_set.SerializableGateSet) for gs in gate_sets):
             raise ValueError('All gate_sets must be SerializableGateSet currently.')
         return serializable_device.SerializableDevice.from_proto(
-            spec, cast(Iterable[SerializableGateSet], gate_sets)
+            spec, cast(Iterable[serializable_gate_set.SerializableGateSet], gate_sets)
         )
 
+    @cirq._compat.deprecated_parameter(
+        deadline='v1.0',
+        fix='Change earliest_timestamp_seconds to earliest_timestamp.',
+        parameter_desc='earliest_timestamp_seconds',
+        match=lambda args, kwargs: 'earliest_timestamp_seconds' in kwargs,
+        rewrite=lambda args, kwargs: (args, _fix_deprecated_seconds_kwargs(kwargs)),
+    )
+    @cirq._compat.deprecated_parameter(
+        deadline='v1.0',
+        fix='Change latest_timestamp_seconds to latest_timestamp.',
+        parameter_desc='latest_timestamp_seconds',
+        match=lambda args, kwargs: 'latest_timestamp_seconds' in kwargs,
+        rewrite=lambda args, kwargs: (args, _fix_deprecated_seconds_kwargs(kwargs)),
+    )
     def list_calibrations(
         self,
         earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
         latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-        **kwargs,
     ) -> List[calibration.Calibration]:
         """Retrieve metadata about a specific calibration run.
 
@@ -353,14 +381,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Returns:
             The list of calibration data with the most recent first.
         """
-        if 'earliest_timestamp_seconds' in kwargs:
-            earliest_timestamp_seconds = kwargs['earliest_timestamp_seconds']
-        else:
-            earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp)
-        if 'latest_timestamp_seconds' in kwargs:
-            latest_timestamp_seconds = kwargs['latest_timestamp_seconds']
-        else:
-            latest_timestamp_seconds = _date_to_timestamp(latest_timestamp)
+        earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp)
+        latest_timestamp_seconds = _date_to_timestamp(latest_timestamp)
 
         if earliest_timestamp_seconds and latest_timestamp_seconds:
             filter_str = 'timestamp >= %d AND timestamp <= %d' % (

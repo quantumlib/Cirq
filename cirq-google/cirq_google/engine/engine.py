@@ -790,8 +790,13 @@ class Engine(abstract_engine.AbstractEngine):
         Args:
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
+            gate_set: A `Serializer` that determines how to serialize
+                 circuits when requesting samples.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
         """
         return self.get_sampler(processor_id, gate_set)
 
@@ -803,8 +808,13 @@ class Engine(abstract_engine.AbstractEngine):
         Args:
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
+            gate_set: A `Serializer` that determines how to serialize
+                 circuits when requesting samples.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
         """
         return engine_sampler.QuantumEngineSampler(
             engine=self, processor_id=processor_id, gate_set=gate_set

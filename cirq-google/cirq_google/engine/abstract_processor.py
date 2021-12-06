@@ -142,7 +142,7 @@ class AbstractProcessor(abc.ABC):
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        params_list: List[cirq.Sweepable] = None,
+        params_list: Sequence[cirq.Sweepable] = None,
         repetitions: int = 1,
         gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
