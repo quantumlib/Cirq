@@ -22,7 +22,7 @@ import abc
 import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 import cirq
-import cirq_google.engine.client.quantum as quantum
+from cirq_google.engine.client import quantum
 
 if TYPE_CHECKING:
     import cirq_google.engine.abstract_job as abstract_job
