@@ -593,10 +593,10 @@ class Operation(metaclass=abc.ABCMeta):
 
     def with_conditions(
         self, *conditions: Union[str, value.MeasurementKey]
-    ) -> 'cirq.ConditionalOperation':
-        from cirq.ops.conditional_operation import ConditionalOperation
+    ) -> 'cirq.ClassicallyControlledOperation':
+        from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
 
-        return ConditionalOperation(self, conditions)
+        return ClassicallyControlledOperation(self, conditions)
 
     def unconditionally(self) -> 'Operation':
         return self

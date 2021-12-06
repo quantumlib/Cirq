@@ -355,7 +355,7 @@ def test_repr():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_conditions('a')
     assert repr(op) == (
-        "cirq.ConditionalOperation(cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')])"
+        "cirq.ClassicallyControlledOperation(cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')])"
     )
 
 
