@@ -59,6 +59,10 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 condition.
             conditions: A sequence of measurement keys, or strings that can be
                 parsed into measurement keys.
+
+        Raises:
+            ValueError: If an unsupported gate is being classically
+                controlled.
         """
         if protocols.measurement_key_objs(sub_operation):
             raise ValueError(
