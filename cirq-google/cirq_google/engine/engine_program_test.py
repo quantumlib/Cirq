@@ -537,6 +537,13 @@ def test_delete(delete_program):
     delete_program.assert_called_with('a', 'b', delete_jobs=True)
 
 
+@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_job')
+def test_delete_jobs(delete_job):
+    program = cg.EngineProgram('a', 'b', EngineContext())
+    program.delete_job('c')
+    delete_job.assert_called_with('a', 'b', 'c')
+
+
 def test_str():
     program = cg.EngineProgram('my-proj', 'my-prog', EngineContext())
     assert str(program) == 'EngineProgram(project_id=\'my-proj\', program_id=\'my-prog\')'
