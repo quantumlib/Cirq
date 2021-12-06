@@ -298,7 +298,6 @@ class AbstractProcessor(abc.ABC):
         self,
         earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
         latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-        **kwargs,
     ) -> List[calibration.Calibration]:
         """Retrieve metadata about a specific calibration run.
 
@@ -307,8 +306,6 @@ class AbstractProcessor(abc.ABC):
                 to return in UTC.
             latest_timestamp: The latest timestamp of a calibration to
                 return in UTC.
-            kwargs: keyword arguments for backwards compatibility to support old
-                arguments (earliest_timestamp_seconds, etc)
 
         Returns:
             The list of calibration data with the most recent first.
