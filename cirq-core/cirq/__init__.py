@@ -344,6 +344,8 @@ from cirq.optimizers import (
     MergeInteractions,
     MergeInteractionsToSqrtIswap,
     MergeSingleQubitGates,
+    prepare_two_qubit_state_using_cz,
+    prepare_two_qubit_state_using_sqrt_iswap,
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
