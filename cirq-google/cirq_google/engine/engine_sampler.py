@@ -60,7 +60,7 @@ class QuantumEngineSampler(cirq.Sampler):
             )
         else:
             job = self._engine.run_sweep(
-                program=cast(cirq.Circuit, program),
+                program=cast(cirq.Circuit, program.unfreeze()),
                 params=params,
                 repetitions=repetitions,
                 processor_ids=self._processor_ids,
