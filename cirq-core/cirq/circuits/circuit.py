@@ -22,9 +22,9 @@ Moment the Operations must all act on distinct Qubits.
 import abc
 import enum
 import html
+import itertools
 import math
 from collections import defaultdict
-from itertools import groupby
 from typing import (
     AbstractSet,
     Any,
@@ -998,6 +998,20 @@ class AbstractCircuit(abc.ABC):
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
+
+    def _superoperator_(self) -> np.ndarray:
+        """Compute superoperator matrix for quantum channel specified by this circuit."""
+        all_qubits = self.all_qubits()
+        n = len(all_qubits)
+        if n > 10:
+            raise ValueError(f"{n} > 10 qubits is too many to compute superoperator")
+
+        circuit_superoperator = np.eye(4 ** n)
+        for moment in self:
+            full_moment = moment.expand_to(all_qubits)
+            moment_superoperator = full_moment._superoperator_()
+            circuit_superoperator = moment_superoperator @ circuit_superoperator
+        return circuit_superoperator
 
     def final_state_vector(
         self,
@@ -2638,4 +2652,4 @@ def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], val
     Yields:
         Tuples containing the group key and item values.
     """
-    return ((k, [val(i) for i in v]) for (k, v) in groupby(items, key))
+    return ((k, [val(i) for i in v]) for (k, v) in itertools.groupby(items, key))

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
 
 import cirq
@@ -618,3 +619,97 @@ def test_transform_qubits():
     assert original.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
+
+
+def test_expand_to():
+    a, b = cirq.LineQubit.range(2)
+    m1 = cirq.Moment(cirq.H(a))
+    m2 = m1.expand_to({a})
+    assert m1 == m2
+
+    m3 = m1.expand_to({a, b})
+    assert m1 != m3
+    assert m3.qubits == {a, b}
+    assert m3.operations == (cirq.H(a), cirq.I(b))
+
+    with pytest.raises(ValueError, match='superset'):
+        _ = m1.expand_to({b})
+
+
+def test_kraus():
+    I = np.eye(2)
+    X = np.array([[0, 1], [1, 0]])
+    Y = np.array([[0, -1j], [1j, 0]])
+    Z = np.diag([1, -1])
+
+    a, b = cirq.LineQubit.range(2)
+
+    m = cirq.Moment()
+    k = cirq.kraus(m)
+    assert len(k) == 1
+    assert np.allclose(k[0], np.array([[1.0]]))
+
+    m = cirq.Moment(cirq.S(a))
+    k = cirq.kraus(m)
+    assert len(k) == 1
+    assert np.allclose(k[0], np.diag([1, 1j]))
+
+    m = cirq.Moment(cirq.CNOT(a, b))
+    k = cirq.kraus(m)
+    print(k[0])
+    assert len(k) == 1
+    assert np.allclose(k[0], np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]))
+
+    p = 0.1
+    m = cirq.Moment(cirq.depolarize(p).on(a))
+    k = cirq.kraus(m)
+    assert len(k) == 4
+    assert np.allclose(k[0], np.sqrt(1 - p) * I)
+    assert np.allclose(k[1], np.sqrt(p / 3) * X)
+    assert np.allclose(k[2], np.sqrt(p / 3) * Y)
+    assert np.allclose(k[3], np.sqrt(p / 3) * Z)
+
+    p = 0.2
+    q = 0.3
+    m = cirq.Moment(cirq.bit_flip(p).on(a), cirq.phase_flip(q).on(b))
+    k = cirq.kraus(m)
+    assert len(k) == 4
+    assert np.allclose(k[0], np.sqrt((1 - p) * (1 - q)) * np.kron(I, I))
+    assert np.allclose(k[1], np.sqrt(q * (1 - p)) * np.kron(I, Z))
+    assert np.allclose(k[2], np.sqrt(p * (1 - q)) * np.kron(X, I))
+    assert np.allclose(k[3], np.sqrt(p * q) * np.kron(X, Z))
+
+
+def test_kraus_too_big():
+    with pytest.raises(ValueError, match='11 > 10 qubits'):
+        _ = cirq.kraus(cirq.Moment(cirq.IdentityGate(11).on(*cirq.LineQubit.range(11))))
+
+
+def test_superoperator():
+    cnot = cirq.unitary(cirq.CNOT)
+
+    a, b = cirq.LineQubit.range(2)
+
+    m = cirq.Moment()
+    s = m._superoperator_()
+    assert np.allclose(s, np.array([[1.0]]))
+
+    m = cirq.Moment(cirq.I(a))
+    s = m._superoperator_()
+    assert np.allclose(s, np.eye(4))
+
+    m = cirq.Moment(cirq.IdentityGate(2).on(a, b))
+    s = m._superoperator_()
+    assert np.allclose(s, np.eye(16))
+
+    m = cirq.Moment(cirq.S(a))
+    s = m._superoperator_()
+    assert np.allclose(s, np.diag([1, -1j, 1j, 1]))
+
+    m = cirq.Moment(cirq.CNOT(a, b))
+    s = m._superoperator_()
+    assert np.allclose(s, np.kron(cnot, cnot))
+
+    m = cirq.Moment(cirq.depolarize(0.75).on(a))
+    s = m._superoperator_()
+    assert np.allclose(s, np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2)
