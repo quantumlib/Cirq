@@ -343,7 +343,29 @@ class Moment:
         return Moment(*operations)
 
     def _kraus_(self) -> Sequence[np.ndarray]:
-        """Returns Kraus representation of self."""
+        """Returns Kraus representation of self.
+
+        The method computes a Kraus representation of self from Kraus representations of its
+        constituent operations by taking the tensor product of Kraus operators along all paths
+        corresponding to the possible choices of the Kraus operators of the operations. More
+        precisely, it computes all terms in the expression
+
+        $$
+        \sum_{i_1} \sum_{i_2} \dots \sum_{i_m} \bigotimes_{k=1}^m K_{k,i_k}
+        $$
+
+        where $K_{k,j}$ is the jth Kraus operator of the kth operation in self. Each term becomes
+        an element in the sequence returned by this method.
+
+        Args:
+            self: This Moment.
+        Returns:
+            A Kraus representation of self.
+        Raises:
+            ValueError if self uses more than ten qubits as the length of the resulting sequence
+            is the product of the lengths of the Kraus representations returned by _kraus_ for
+            each constituent operation.
+        """
         qubits = sorted(self.qubits)
         n = len(qubits)
         if n < 1:
