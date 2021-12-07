@@ -343,7 +343,7 @@ class Moment:
         return Moment(*operations)
 
     def _kraus_(self) -> Sequence[np.ndarray]:
-        """Returns Kraus representation of self.
+        r"""Returns Kraus representation of self.
 
         The method computes a Kraus representation of self from Kraus representations of its
         constituent operations by taking the tensor product of Kraus operators along all paths
