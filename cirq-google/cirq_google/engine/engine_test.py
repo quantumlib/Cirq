@@ -893,7 +893,7 @@ def test_sampler(client):
     setup_run_circuit_with_result_(client, _RESULTS)
 
     engine = cg.Engine(project_id='proj')
-    sampler = engine.sampler(processor_id='tmp', gate_set=cg.XMON)
+    sampler = engine.get_sampler(processor_id='tmp', gate_set=cg.XMON)
     results = sampler.run_sweep(
         program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )
@@ -903,6 +903,9 @@ def test_sampler(client):
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().create_program.call_args[0][0] == 'proj'
+
+    with cirq.testing.assert_deprecated('sampler', deadline='1.0'):
+        _ = engine.sampler(processor_id='tmp', gate_set=cg.XMON)
 
 
 @mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')

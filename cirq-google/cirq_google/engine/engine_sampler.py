@@ -140,4 +140,4 @@ def get_engine_sampler(
             f"{sorted(gate_sets.NAMED_GATESETS.keys())}."
         )
     gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
-    return engine.get_engine(project_id).sampler(processor_id=processor_id, gate_set=gate_set)
+    return engine.get_engine(project_id).get_sampler(processor_id=processor_id, gate_set=gate_set)

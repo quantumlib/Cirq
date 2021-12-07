@@ -16,7 +16,7 @@ import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import cirq
-from cirq_google.engine import engine_client
+from cirq_google.engine import abstract_program, engine_client
 from cirq_google.engine.client import quantum
 from cirq_google.engine.client.quantum import types as qtypes
 from cirq_google.engine.result_type import ResultType
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
 
 
-class EngineProgram:
+class EngineProgram(abstract_program.AbstractProgram):
     """A program created via the Quantum Engine API.
 
     This program wraps a Circuit with additional metadata used to
@@ -522,6 +522,10 @@ class EngineProgram:
         self.context.client.delete_program(
             self.project_id, self.program_id, delete_jobs=delete_jobs
         )
+
+    def delete_job(self, job_id: str) -> None:
+        """Deletes the job and result, if any."""
+        self.context.client.delete_job(self.project_id, self.program_id, job_id)
 
     def __str__(self) -> str:
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'
