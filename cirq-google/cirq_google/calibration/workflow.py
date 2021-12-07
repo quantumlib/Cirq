@@ -850,7 +850,7 @@ def run_calibrations(
             raise ValueError('gate_set must be provided.')
 
         if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
-            sampler = engine.sampler(processor_id=processor_id, gate_set=gate_set)
+            sampler = engine.get_sampler(processor_id=processor_id, gate_set=gate_set)
             return _run_local_calibrations_via_sampler(calibrations, sampler)
 
         return _run_calibrations_via_engine(

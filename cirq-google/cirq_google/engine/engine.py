@@ -33,8 +33,9 @@ from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union
 from google.protobuf import any_pb2
 
 import cirq
+from cirq._compat import deprecated
 from cirq_google.api import v2
-from cirq_google.engine import engine_client
+from cirq_google.engine import engine_client, abstract_engine, abstract_program
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.serialization import SerializableGateSet, Serializer
@@ -122,7 +123,7 @@ class EngineContext:
         return self.proto_version, self.client
 
 
-class Engine:
+class Engine(abstract_engine.AbstractEngine):
     """Runs programs via the Quantum Engine API.
 
     This class has methods for creating programs and jobs that execute on
@@ -664,7 +665,7 @@ class Engine:
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
-    ) -> List[engine_program.EngineProgram]:
+    ) -> List[abstract_program.AbstractProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:
@@ -780,6 +781,7 @@ class Engine:
         """
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
 
+    @deprecated(deadline="v1.0", fix="Use get_sampler instead.")
     def sampler(
         self, processor_id: Union[str, List[str]], gate_set: Serializer
     ) -> engine_sampler.QuantumEngineSampler:
@@ -788,8 +790,31 @@ class Engine:
         Args:
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
+            gate_set: A `Serializer` that determines how to serialize
+                 circuits when requesting samples.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
+        """
+        return self.get_sampler(processor_id, gate_set)
+
+    def get_sampler(
+        self, processor_id: Union[str, List[str]], gate_set: Serializer
+    ) -> engine_sampler.QuantumEngineSampler:
+        """Returns a sampler backed by the engine.
+
+        Args:
+            processor_id: String identifier, or list of string identifiers,
+                determining which processors may be used when sampling.
+            gate_set: A `Serializer` that determines how to serialize
+                 circuits when requesting samples.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
         """
         return engine_sampler.QuantumEngineSampler(
             engine=self, processor_id=processor_id, gate_set=gate_set
