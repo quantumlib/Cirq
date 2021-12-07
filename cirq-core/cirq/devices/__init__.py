@@ -62,6 +62,7 @@ from cirq.devices.thermal_noise_model import (
 )
 
 from cirq.devices.noise_utils import (
+    OpIdentifier,
     decay_constant_to_xeb_fidelity,
     decay_constant_to_pauli_error,
     pauli_error_to_decay_constant,

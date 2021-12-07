@@ -15,7 +15,9 @@
 import numpy as np
 import pytest
 
+import cirq
 from cirq.devices.noise_utils import (
+    OpIdentifier,
     decay_constant_to_xeb_fidelity,
     decay_constant_to_pauli_error,
     pauli_error_to_decay_constant,
@@ -25,6 +27,12 @@ from cirq.devices.noise_utils import (
     average_error,
     decoherence_pauli_error,
 )
+
+
+def test_op_id():
+    op_id = OpIdentifier(cirq.XPowGate)
+    assert cirq.X(cirq.LineQubit(1)) in op_id
+    assert cirq.Rx(rads=1) in op_id
 
 
 @pytest.mark.parametrize(

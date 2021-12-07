@@ -14,6 +14,7 @@
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Set
+from cirq import protocols
 import numpy as np
 
 import cirq, cirq_google
@@ -21,9 +22,7 @@ from cirq import devices
 from cirq.devices.noise_utils import (
     OpIdentifier,
 )
-from cirq_google.optimizers.two_qubit_gates.math_utils import (
-    unitary_entanglement_fidelity
-)
+from cirq_google.optimizers.two_qubit_gates.math_utils import unitary_entanglement_fidelity
 
 
 @dataclass
@@ -67,13 +66,6 @@ class GoogleNoiseProperties(cirq.NoiseProperties):
     @classmethod
     def two_qubit_gates(cls) -> Set[type]:
         return super().two_qubit_gates() | {cirq_google.SycamoreGate}
-
-    @classmethod
-    def canonical_gates(cls) -> Dict[type, 'cirq.Gate']:
-        return {
-            **super().canonical_gates(),
-            cirq_google.SycamoreGate: cirq_google.SycamoreGate(),
-        }
 
     def get_depolarizing_error(self) -> Dict[OpIdentifier, float]:
         if self._depolarizing_error:
@@ -125,12 +117,7 @@ class GoogleNoiseProperties(cirq.NoiseProperties):
 
     def _json_dict_(self):
         json_dict = super()._json_dict_()
-        json_dict['cirq_type'] = 'GoogleNoiseProperties'
-        storage_fsim_errors = {
-            self.get_canonical_gate(op_id.gate_type).on(*op_id.qubits): val
-            for op_id, val in self.fsim_errors.items()
-        }
-        json_dict['fsim_errors'] = sorted(storage_fsim_errors.items(), key=str)
+        json_dict['fsim_errors'] = sorted(self.fsim_errors.items(), key=str)
         return json_dict
 
     @classmethod
@@ -146,25 +133,15 @@ class GoogleNoiseProperties(cirq.NoiseProperties):
         **kwargs,
     ):
         # TODO: overlaps op_ids with same qubits in different order
-        gate_type_times = {type(gate): val for gate, val in gate_times_ns}
-        op_id_pauli_errors = {}
-        for op, val in gate_pauli_errors:
-            op_id = cls._op_to_identifier(op)
-            op_id_pauli_errors[op_id] = val
-            op_id_pauli_errors[op_id.swapped()] = val
-        op_id_fsim_errors = {}
-        for op, val in fsim_errors:
-            op_id = cls._op_to_identifier(op)
-            op_id_fsim_errors[op_id] = val
-            op_id_fsim_errors[op_id.swapped()] = val
+        gate_type_times = {protocols.cirq_type_from_json(gate): val for gate, val in gate_times_ns}
         return GoogleNoiseProperties(
             gate_times_ns=gate_type_times,
-            T1_ns={k: v for k, v in T1_ns},
-            Tphi_ns={k: v for k, v in Tphi_ns},
-            ro_fidelities={k: v for k, v in ro_fidelities},
-            gate_pauli_errors=op_id_pauli_errors,
+            T1_ns=dict(T1_ns),
+            Tphi_ns=dict(Tphi_ns),
+            ro_fidelities=dict(ro_fidelities),
+            gate_pauli_errors=dict(gate_pauli_errors),
             validate=validate,
-            fsim_errors=op_id_fsim_errors,
+            fsim_errors=dict(fsim_errors),
         )
 
 

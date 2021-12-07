@@ -77,6 +77,7 @@ def test_json_serialization():
     q0 = cirq.LineQubit(0)
     props = sample_noise_properties([q0], [])
     props_json = cirq.to_json(props)
+    print(props_json)
     props_from_json = cirq.read_json(json_text=props_json)
     assert props_from_json == props
 

@@ -126,31 +126,6 @@ class NoiseProperties:
     def expected_gates(cls) -> Set[type]:
         return cls.single_qubit_gates() | cls.two_qubit_gates()
 
-    @classmethod
-    def canonical_gates(cls) -> Dict[type, 'cirq.Gate']:
-        return {
-            ops.ZPowGate: ops.ZPowGate(),
-            ops.PhasedXZGate: ops.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=0),
-            ops.MeasurementGate: ops.MeasurementGate(num_qubits=1),
-            ops.ResetChannel: ops.ResetChannel(),
-            ops.FSimGate: ops.FSimGate(theta=0, phi=0),
-            ops.PhasedFSimGate: ops.PhasedFSimGate(theta=0),
-            ops.ISwapPowGate: ops.ISwapPowGate(),
-            ops.CZPowGate: ops.CZPowGate(),
-        }
-
-    @classmethod
-    def get_canonical_gate(cls, gate_type: type) -> 'cirq.Gate':
-        return cls.canonical_gates()[gate_type]
-
-    @classmethod
-    def _identifier_to_op(cls, op_id: OpIdentifier) -> 'cirq.Operation':
-        return cls.get_canonical_gate(op_id.gate_type).on(*op_id.qubits)
-
-    @classmethod
-    def _op_to_identifier(cls, op: 'cirq.Operation'):
-        return OpIdentifier(type(op.gate), *op.qubits)
-
     def get_depolarizing_error(self) -> Dict[OpIdentifier, float]:
         """Returns the portion of Pauli error from depolarization.
 
@@ -268,20 +243,16 @@ class NoiseProperties:
 
     def _json_dict_(self):
         storage_gate_times = {
-            self.get_canonical_gate(key): val for key, val in self.gate_times_ns.items()
-        }
-        storage_pauli_errors = {
-            self._identifier_to_op(op_id): val for op_id, val in self.gate_pauli_errors.items()
+            protocols.json_cirq_type(key): val for key, val in self.gate_times_ns.items()
         }
         return {
-            'cirq_type': 'NoiseProperties',
             # JSON requires mappings to have keys of basic types.
             # Pairs must be sorted to ensure consistent serialization.
             'gate_times_ns': sorted(storage_gate_times.items(), key=str),
             'T1_ns': sorted(self.T1_ns.items()),
             'Tphi_ns': sorted(self.Tphi_ns.items()),
             'ro_fidelities': sorted(self.ro_fidelities.items()),
-            'gate_pauli_errors': sorted(storage_pauli_errors.items(), key=str),
+            'gate_pauli_errors': sorted(self.gate_pauli_errors.items(), key=str),
             'validate': self.validate,
         }
 
@@ -289,14 +260,13 @@ class NoiseProperties:
     def _from_json_dict_(
         cls, gate_times_ns, T1_ns, Tphi_ns, ro_fidelities, gate_pauli_errors, validate, **kwargs
     ):
-        gate_type_times = {type(gate): val for gate, val in gate_times_ns}
-        op_id_pauli_errors = {cls._op_to_identifier(op): val for op, val in gate_pauli_errors}
+        gate_type_times = {protocols.cirq_type_from_json(gate): val for gate, val in gate_times_ns}
         return NoiseProperties(
             gate_times_ns=gate_type_times,
-            T1_ns={k: v for k, v in T1_ns},
-            Tphi_ns={k: v for k, v in Tphi_ns},
-            ro_fidelities={k: v for k, v in ro_fidelities},
-            gate_pauli_errors=op_id_pauli_errors,
+            T1_ns=dict(T1_ns),
+            Tphi_ns=dict(Tphi_ns),
+            ro_fidelities=dict(ro_fidelities),
+            gate_pauli_errors=dict(gate_pauli_errors),
             validate=validate,
         )
 

@@ -90,6 +90,7 @@ from cirq.devices import (
     NoiseModel,
     NoiseProperties,
     NoiseModelFromNoiseProperties,
+    OpIdentifier,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
     NamedTopology,
