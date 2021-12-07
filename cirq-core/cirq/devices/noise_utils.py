@@ -62,11 +62,12 @@ class OpIdentifier:
         more_specific_gate = self.gate_type != op_id.gate_type and issubclass(
             self.gate_type, op_id.gate_type
         )
-        return (
-            (more_specific_qubits or more_specific_gate)
-            and (more_specific_qubits or self.qubits == op_id.qubits)
-            and (more_specific_gate or self.gate_type == op_id.gate_type)
-        )
+        if more_specific_qubits:
+            return more_specific_gate or self.gate_type == op_id.gate_type
+        elif more_specific_gate:
+            return more_specific_qubits or self.qubits == op_id.qubits
+        else:
+            return False
 
     def __contains__(self, item: Union[ops.Gate, ops.Operation]) -> bool:
         if isinstance(item, ops.Gate):
