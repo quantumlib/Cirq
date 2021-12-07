@@ -27,12 +27,11 @@ def test_run_circuit(circuit):
     sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp', gate_set=cg.XMON)
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(circuit, params, 5)
-    assert type(engine.run_sweep.call_args[1]['program']) == cirq.Circuit
     engine.run_sweep.assert_called_with(
         gate_set=cg.XMON,
         params=params,
         processor_ids=['tmp'],
-        program=circuit.unfreeze(),
+        program=circuit,
         repetitions=5,
     )
 
