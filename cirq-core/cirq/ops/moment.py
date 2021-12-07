@@ -362,7 +362,7 @@ class Moment:
         Returns:
             A Kraus representation of self.
         Raises:
-            ValueError if self uses more than ten qubits as the length of the resulting sequence
+            ValueError: If self uses more than ten qubits as the length of the resulting sequence
             is the product of the lengths of the Kraus representations returned by _kraus_ for
             each constituent operation.
         """
