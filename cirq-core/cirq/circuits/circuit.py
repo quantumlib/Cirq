@@ -2422,9 +2422,7 @@ def _draw_moment_in_diagram(
     max_x = x0
     for op in non_global_ops:
         qubits = tuple(op.qubits)
-        cbits = tuple(
-            (protocols.measurement_key_objs(op) | protocols.control_keys(op)) & label_map.keys()
-        )
+        cbits = tuple(protocols.measurement_keys_touched(op) & label_map.keys())
         labels = qubits + cbits
         indices = [label_map[label] for label in labels]
         y1 = min(indices)

@@ -86,28 +86,6 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
-class ControlOp(cirq.Operation):
-    def __init__(self, keys, qubits=None):
-        self._keys = [cirq.MeasurementKey(k) if isinstance(k, str) else k for k in keys]
-        self._qubits = qubits or []
-
-    def with_qubits(self, *new_qids):
-        pass  # coverage: ignore
-
-    @property
-    def qubits(self):
-        return self._qubits
-
-    def _control_keys_(self):
-        return self._keys
-
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
-        symbols = ['X'] * len(self._qubits) + ['^'] * len(self._keys)
-        return cirq.CircuitDiagramInfo(symbols)
-
-
 def test_alignment():
     assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
     assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
@@ -250,188 +228,17 @@ def test_append_single():
 
 
 def test_append_control_key():
-    q = cirq.LineQubit(0)
+    q0, q1, q2 = cirq.LineQubit.range(3)
     c = cirq.Circuit()
-    c.append(cirq.measure(q, key='a'))
-    c.append(ControlOp(['a']))
+    c.append(cirq.measure(q0, key='a'))
+    c.append(cirq.X(q1).with_classical_controls('a'))
     assert len(c) == 2
 
     c = cirq.Circuit()
-    c.append(cirq.measure(q, key='a'))
-    c.append(ControlOp(['b']))
-    c.append(ControlOp(['b']))
+    c.append(cirq.measure(q0, key='a'))
+    c.append(cirq.X(q1).with_classical_controls('b'))
+    c.append(cirq.X(q2).with_classical_controls('b'))
     assert len(c) == 1
-
-
-def test_control_key_diagram():
-    q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q1], keys=['a']))
-
-    cirq.testing.assert_has_diagram(
-        c,
-        """
-0: ───M───────
-      ║
-1: ───╫───X───
-      ║   ║
-a: ═══@═══^═══
-""",
-        use_unicode_characters=True,
-    )
-
-
-def test_control_key_diagram_pauli():
-    q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
-        cirq.measure_single_paulistring(cirq.X(q0), key='a'), ControlOp(qubits=[q1], keys=['a'])
-    )
-
-    cirq.testing.assert_has_diagram(
-        c,
-        """
-0: ───M(X)───────
-      ║
-1: ───╫──────X───
-      ║      ║
-a: ═══@══════^═══
-""",
-        use_unicode_characters=True,
-    )
-
-
-def test_control_key_diagram_extra_measurements():
-    q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
-        cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), ControlOp(qubits=[q1], keys=['a'])
-    )
-
-    cirq.testing.assert_has_diagram(
-        c,
-        """
-0: ───M───M('b')───
-      ║
-1: ───╫───X────────
-      ║   ║
-a: ═══@═══^════════
-""",
-        use_unicode_characters=True,
-    )
-
-
-def test_control_key_diagram_extra_controlled_bits():
-    q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q0, q1], keys=['a']))
-
-    cirq.testing.assert_has_diagram(
-        c,
-        """
-0: ───M───X───
-      ║   ║
-1: ───╫───X───
-      ║   ║
-a: ═══@═══^═══
-""",
-        use_unicode_characters=True,
-    )
-
-
-def test_control_key_diagram_extra_control_bits():
-    q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
-        cirq.measure(q0, key='a'),
-        cirq.measure(q0, key='b'),
-        ControlOp(qubits=[q1], keys=['a', 'b']),
-    )
-
-    cirq.testing.assert_has_diagram(
-        c,
-        """
-0: ───M───M───────
-      ║   ║
-1: ───╫───╫───X───
-      ║   ║   ║
-a: ═══@═══╬═══^═══
-          ║   ║
-b: ═══════@═══^═══
-""",
-        use_unicode_characters=True,
-    )
-
-
-def test_control_key_diagram_multiple_ops_single_moment():
-    q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
-        cirq.measure(q0, key='a'),
-        cirq.measure(q1, key='b'),
-        ControlOp(qubits=[q0], keys=['a']),
-        ControlOp(qubits=[q1], keys=['b']),
-    )
-
-    cirq.testing.assert_has_diagram(
-        c,
-        """
-      ┌──┐   ┌──┐
-0: ────M──────X─────
-       ║      ║
-1: ────╫M─────╫X────
-       ║║     ║║
-a: ════@╬═════^╬════
-        ║      ║
-b: ═════@══════^════
-      └──┘   └──┘
-""",
-        use_unicode_characters=True,
-    )
-
-
-def test_control_key_diagram_subcircuit():
-    q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
-        cirq.CircuitOperation(
-            cirq.FrozenCircuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q1], keys=['a']))
-        )
-    )
-
-    cirq.testing.assert_has_diagram(
-        c,
-        """
-      [ 0: ───M─────── ]
-      [       ║        ]
-0: ───[ 1: ───╫───X─── ]───
-      [       ║   ║    ]
-      [ a: ═══@═══^═══ ]
-      │
-1: ───#2───────────────────
-""",
-        use_unicode_characters=True,
-    )
-
-
-def test_control_key_diagram_subcircuit_layered():
-    q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
-        cirq.measure(q0, key='a'),
-        cirq.CircuitOperation(
-            cirq.FrozenCircuit(cirq.measure(q0, key='a'), ControlOp(qubits=[q1], keys=['a'])),
-        ),
-        ControlOp(qubits=[q1], keys=['a']),
-    )
-
-    cirq.testing.assert_has_diagram(
-        c,
-        """
-          [ 0: ───M─────── ]
-          [       ║        ]
-0: ───M───[ 1: ───╫───X─── ]───────
-      ║   [       ║   ║    ]
-      ║   [ a: ═══@═══^═══ ]
-      ║   ║
-1: ───╫───#2───────────────────X───
-      ║   ║                    ║
-a: ═══@═══╩════════════════════^═══
-""",
-        use_unicode_characters=True,
-    )
 
 
 def test_append_multiple():

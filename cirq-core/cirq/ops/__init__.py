@@ -82,6 +82,10 @@ from cirq.ops.common_gate_families import (
     ParallelGateFamily,
 )
 
+from cirq.ops.classically_controlled_operation import (
+    ClassicallyControlledOperation,
+)
+
 from cirq.ops.controlled_gate import (
     ControlledGate,
 )
