@@ -342,6 +342,10 @@ class Moment:
             operations.append(ops.I(q))
         return Moment(*operations)
 
+    def _has_kraus_(self) -> bool:
+        """Returns True if self has a Kraus representation."""
+        return all(protocols.has_kraus(op) for op in self.operations) and len(self.qubits) <= 10
+
     def _kraus_(self) -> Sequence[np.ndarray]:
         r"""Returns Kraus representation of self.
 
@@ -401,6 +405,10 @@ class Moment:
             k = np.einsum(transpose, *ks)
             r.append(np.reshape(k, (d, d)))
         return r
+
+    def _has_superoperator_(self) -> bool:
+        """Returns True if self has superoperator representation."""
+        return self._has_kraus_()
 
     def _superoperator_(self) -> np.ndarray:
         """Returns superoperator representation of self."""
