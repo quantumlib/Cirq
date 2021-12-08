@@ -645,16 +645,19 @@ def test_kraus():
     a, b = cirq.LineQubit.range(2)
 
     m = cirq.Moment()
+    assert cirq.has_kraus(m)
     k = cirq.kraus(m)
     assert len(k) == 1
     assert np.allclose(k[0], np.array([[1.0]]))
 
     m = cirq.Moment(cirq.S(a))
+    assert cirq.has_kraus(m)
     k = cirq.kraus(m)
     assert len(k) == 1
     assert np.allclose(k[0], np.diag([1, 1j]))
 
     m = cirq.Moment(cirq.CNOT(a, b))
+    assert cirq.has_kraus(m)
     k = cirq.kraus(m)
     print(k[0])
     assert len(k) == 1
@@ -662,6 +665,7 @@ def test_kraus():
 
     p = 0.1
     m = cirq.Moment(cirq.depolarize(p).on(a))
+    assert cirq.has_kraus(m)
     k = cirq.kraus(m)
     assert len(k) == 4
     assert np.allclose(k[0], np.sqrt(1 - p) * I)
@@ -672,6 +676,7 @@ def test_kraus():
     p = 0.2
     q = 0.3
     m = cirq.Moment(cirq.bit_flip(p).on(a), cirq.phase_flip(q).on(b))
+    assert cirq.has_kraus(m)
     k = cirq.kraus(m)
     assert len(k) == 4
     assert np.allclose(k[0], np.sqrt((1 - p) * (1 - q)) * np.kron(I, I))
@@ -681,8 +686,11 @@ def test_kraus():
 
 
 def test_kraus_too_big():
+    m = cirq.Moment(cirq.IdentityGate(11).on(*cirq.LineQubit.range(11)))
+    assert not cirq.has_kraus(m)
+    assert not m._has_superoperator_()
     with pytest.raises(ValueError, match='11 > 10 qubits'):
-        _ = cirq.kraus(cirq.Moment(cirq.IdentityGate(11).on(*cirq.LineQubit.range(11))))
+        _ = cirq.kraus(m)
 
 
 def test_superoperator():
@@ -691,25 +699,31 @@ def test_superoperator():
     a, b = cirq.LineQubit.range(2)
 
     m = cirq.Moment()
+    assert m._has_superoperator_()
     s = m._superoperator_()
     assert np.allclose(s, np.array([[1.0]]))
 
     m = cirq.Moment(cirq.I(a))
+    assert m._has_superoperator_()
     s = m._superoperator_()
     assert np.allclose(s, np.eye(4))
 
     m = cirq.Moment(cirq.IdentityGate(2).on(a, b))
+    assert m._has_superoperator_()
     s = m._superoperator_()
     assert np.allclose(s, np.eye(16))
 
     m = cirq.Moment(cirq.S(a))
+    assert m._has_superoperator_()
     s = m._superoperator_()
     assert np.allclose(s, np.diag([1, -1j, 1j, 1]))
 
     m = cirq.Moment(cirq.CNOT(a, b))
+    assert m._has_superoperator_()
     s = m._superoperator_()
     assert np.allclose(s, np.kron(cnot, cnot))
 
     m = cirq.Moment(cirq.depolarize(0.75).on(a))
+    assert m._has_superoperator_()
     s = m._superoperator_()
     assert np.allclose(s, np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2)

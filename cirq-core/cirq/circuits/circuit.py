@@ -999,6 +999,10 @@ class AbstractCircuit(abc.ABC):
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
 
+    def _has_superoperator_(self) -> bool:
+        """Returns True if self has superoperator representation."""
+        return all(m._has_superoperator_() for m in self)
+
     def _superoperator_(self) -> np.ndarray:
         """Compute superoperator matrix for quantum channel specified by this circuit."""
         all_qubits = self.all_qubits()

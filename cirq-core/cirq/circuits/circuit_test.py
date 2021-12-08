@@ -2856,6 +2856,7 @@ def test_composite_gate_to_unitary_matrix(circuit_cls):
 
 def test_circuit_superoperator_too_many_qubits():
     circuit = cirq.Circuit(cirq.IdentityGate(num_qubits=11).on(*cirq.LineQubit.range(11)))
+    assert not circuit._has_superoperator_()
     with pytest.raises(ValueError, match="too many"):
         _ = circuit._superoperator_()
 
@@ -2896,6 +2897,7 @@ def test_circuit_superoperator_too_many_qubits():
 )
 def test_circuit_superoperator_fixed_values(circuit, expected_superoperator):
     """Tests Circuit._superoperator_() on a few simple circuits."""
+    assert circuit._has_superoperator_()
     assert np.allclose(circuit._superoperator_(), expected_superoperator)
 
 
@@ -2931,6 +2933,9 @@ def test_circuit_superoperator_depolarizing_channel_compositions(rs, n_qubits):
     qubits = cirq.LineQubit.range(n_qubits)
     circuit1 = cirq.Circuit(depolarize(r, n_qubits).on(*qubits) for r in rs)
     circuit2 = cirq.Circuit(depolarize(np.prod(rs), n_qubits).on(*qubits))
+
+    assert circuit1._has_superoperator_()
+    assert circuit2._has_superoperator_()
 
     cm1 = circuit1._superoperator_()
     cm2 = circuit2._superoperator_()
@@ -2996,6 +3001,7 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
 )
 def test_compare_circuits_superoperator_to_simulation(circuit, initial_state):
     """Compares action of circuit superoperator and circuit simulation."""
+    assert circuit._has_superoperator_()
     superoperator = circuit._superoperator_()
     vectorized_initial_state = np.reshape(initial_state, np.prod(initial_state.shape))
     vectorized_final_state = superoperator @ vectorized_initial_state
