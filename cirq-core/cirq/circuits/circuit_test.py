@@ -228,13 +228,13 @@ def test_append_control_key():
     q0, q1, q2 = cirq.LineQubit.range(3)
     c = cirq.Circuit()
     c.append(cirq.measure(q0, key='a'))
-    c.append(cirq.ConditionalOperation(cirq.X(q1), ['a']))
+    c.append(cirq.ClassicallyControlledOperation(cirq.X(q1), ['a']))
     assert len(c) == 2
 
     c = cirq.Circuit()
     c.append(cirq.measure(q0, key='a'))
-    c.append(cirq.ConditionalOperation(cirq.X(q1), ['b']))
-    c.append(cirq.ConditionalOperation(cirq.X(q2), ['b']))
+    c.append(cirq.ClassicallyControlledOperation(cirq.X(q1), ['b']))
+    c.append(cirq.ClassicallyControlledOperation(cirq.X(q2), ['b']))
     assert len(c) == 1
 
 
@@ -270,14 +270,14 @@ def test_append_control_key_subcircuit():
     c = cirq.Circuit()
     c.append(cirq.measure(q0, key='a'))
     c.append(
-        cirq.CircuitOperation(cirq.Circuit(cirq.ConditionalOperation(cirq.X(q1), 'a')).freeze())
+        cirq.CircuitOperation(cirq.Circuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'a')).freeze())
     )
     assert len(c) == 2
 
     c = cirq.Circuit()
     c.append(cirq.measure(q0, key='a'))
     c.append(
-        cirq.CircuitOperation(cirq.Circuit(cirq.ConditionalOperation(cirq.X(q1), 'b')).freeze())
+        cirq.CircuitOperation(cirq.Circuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b')).freeze())
     )
     assert len(c) == 1
 
@@ -285,7 +285,7 @@ def test_append_control_key_subcircuit():
     c.append(cirq.measure(q0, key='a'))
     c.append(
         cirq.CircuitOperation(
-            cirq.Circuit(cirq.ConditionalOperation(cirq.X(q1), 'b')).freeze()
+            cirq.Circuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b')).freeze()
         ).with_measurement_key_mapping({'b': 'a'})
     )
     assert len(c) == 2
@@ -294,7 +294,7 @@ def test_append_control_key_subcircuit():
     c.append(cirq.CircuitOperation(cirq.Circuit(cirq.measure(q0, key='a')).freeze()))
     c.append(
         cirq.CircuitOperation(
-            cirq.Circuit(cirq.ConditionalOperation(cirq.X(q1), 'b')).freeze()
+            cirq.Circuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b')).freeze()
         ).with_measurement_key_mapping({'b': 'a'})
     )
     assert len(c) == 2
@@ -307,7 +307,7 @@ def test_append_control_key_subcircuit():
     )
     c.append(
         cirq.CircuitOperation(
-            cirq.Circuit(cirq.ConditionalOperation(cirq.X(q1), 'b')).freeze()
+            cirq.Circuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b')).freeze()
         ).with_measurement_key_mapping({'b': 'c'})
     )
     assert len(c) == 2
@@ -320,7 +320,7 @@ def test_append_control_key_subcircuit():
     )
     c.append(
         cirq.CircuitOperation(
-            cirq.Circuit(cirq.ConditionalOperation(cirq.X(q1), 'b')).freeze()
+            cirq.Circuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b')).freeze()
         ).with_measurement_key_mapping({'b': 'a'})
     )
     assert len(c) == 1

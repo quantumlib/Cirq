@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class ConditionalOperation(raw_types.Operation):
+class ClassicallyControlledOperation(raw_types.Operation):
     """Augments existing operations to be conditionally executed."""
 
     def __init__(
@@ -49,15 +49,15 @@ class ConditionalOperation(raw_types.Operation):
     def conditions(self) -> FrozenSet['cirq.MeasurementKey']:
         return frozenset(self._control_keys).union(self._sub_operation.conditions)
 
-    def unconditionally(self) -> 'cirq.Operation':
-        return self._sub_operation.unconditionally()
+    def without_classical_controls(self) -> 'cirq.Operation':
+        return self._sub_operation.without_classical_controls()
 
     @property
     def qubits(self):
         return self._sub_operation.qubits
 
     def with_qubits(self, *new_qubits):
-        return ConditionalOperation(
+        return ClassicallyControlledOperation(
             self._sub_operation.with_qubits(*new_qubits), self._control_keys
         )
 
@@ -66,7 +66,7 @@ class ConditionalOperation(raw_types.Operation):
         if result is NotImplemented:
             return NotImplemented
 
-        return [ConditionalOperation(op, self._control_keys) for op in result]
+        return [ClassicallyControlledOperation(op, self._control_keys) for op in result]
 
     def _value_equality_values_(self):
         return (frozenset(self._control_keys), self._sub_operation)
@@ -75,7 +75,7 @@ class ConditionalOperation(raw_types.Operation):
         return repr(self)
 
     def __repr__(self):
-        return f'ConditionalOperation({self._sub_operation!r}, {list(self._control_keys)!r})'
+        return f'ClassicallyControlledOperation({self._sub_operation!r}, {list(self._control_keys)!r})'
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._sub_operation)
@@ -85,9 +85,9 @@ class ConditionalOperation(raw_types.Operation):
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'ConditionalOperation':
+    ) -> 'ClassicallyControlledOperation':
         new_sub_op = protocols.resolve_parameters(self._sub_operation, resolver, recursive)
-        return ConditionalOperation(new_sub_op, self._control_keys)
+        return ClassicallyControlledOperation(new_sub_op, self._control_keys)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -131,8 +131,8 @@ class ConditionalOperation(raw_types.Operation):
             protocols.act_on(self._sub_operation, args)
         return True
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'ConditionalOperation':
-        return ConditionalOperation(
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'ClassicallyControlledOperation':
+        return ClassicallyControlledOperation(
             self._sub_operation,
             [protocols.with_measurement_key_mapping(k, key_map) for k in self._control_keys],
         )
@@ -142,7 +142,7 @@ class ConditionalOperation(raw_types.Operation):
         path: Tuple[str, ...],
         local_keys: FrozenSet[value.MeasurementKey],
         extern_keys: FrozenSet[value.MeasurementKey],
-    ) -> 'ConditionalOperation':
+    ) -> 'ClassicallyControlledOperation':
         def map_key(key: value.MeasurementKey) -> value.MeasurementKey:
             if key in local_keys:
                 return protocols.with_key_path_prefix(key, path)
@@ -153,7 +153,7 @@ class ConditionalOperation(raw_types.Operation):
                     return new_key
             return key
 
-        return ConditionalOperation(
+        return ClassicallyControlledOperation(
             self._sub_operation,
             [map_key(k) for k in self._control_keys],
         )

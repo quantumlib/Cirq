@@ -607,14 +607,14 @@ class Operation(metaclass=abc.ABCMeta):
     def conditions(self) -> FrozenSet[value.MeasurementKey]:
         return frozenset()
 
-    def with_conditions(
+    def with_classical_controls(
         self, keys: Union[str, value.MeasurementKey, Sequence[Union[str, value.MeasurementKey]]]
-    ) -> 'cirq.ConditionalOperation':
-        from cirq.ops.conditional_operation import ConditionalOperation
+    ) -> 'cirq.ClassicallyControlledOperation':
+        from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
 
-        return ConditionalOperation(self, keys)
+        return ClassicallyControlledOperation(self, keys)
 
-    def unconditionally(self) -> 'Operation':
+    def without_classical_controls(self) -> 'Operation':
         return self
 
 
@@ -808,8 +808,8 @@ class TaggedOperation(Operation):
     def conditions(self) -> FrozenSet[value.MeasurementKey]:
         return self.sub_operation.conditions
 
-    def unconditionally(self) -> Operation:
-        return TaggedOperation(self.sub_operation.unconditionally(), *self.tags)
+    def without_classical_controls(self) -> Operation:
+        return TaggedOperation(self.sub_operation.without_classical_controls(), *self.tags)
 
 
 @value.value_equality

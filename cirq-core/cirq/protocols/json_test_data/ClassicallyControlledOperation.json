@@ -1,5 +1,5 @@
 {
-  "cirq_type": "ConditionalOperation",
+  "cirq_type": "ClassicallyControlledOperation",
   "keys": [
     {
       "cirq_type": "LineQubit",

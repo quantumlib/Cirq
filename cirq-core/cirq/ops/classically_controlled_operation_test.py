@@ -15,7 +15,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq.ops.conditional_operation import ConditionalOperation
+from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
 
 ALL_SIMULATORS = (
     cirq.Simulator(),
@@ -26,7 +26,7 @@ ALL_SIMULATORS = (
 
 def test_diagram():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.X(q1).with_conditions('a'))
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
 
     cirq.testing.assert_has_diagram(
         circuit,
@@ -45,7 +45,7 @@ def test_diagram_pauli():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure_single_paulistring(cirq.X(q0), key='a'),
-        cirq.X(q1).with_conditions('a'),
+        cirq.X(q1).with_classical_controls('a'),
     )
 
     cirq.testing.assert_has_diagram(
@@ -66,7 +66,7 @@ def test_diagram_extra_measurements():
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.measure(q0, key='b'),
-        cirq.X(q1).with_conditions('a'),
+        cirq.X(q1).with_classical_controls('a'),
     )
 
     cirq.testing.assert_has_diagram(
@@ -86,7 +86,7 @@ def test_diagram_extra_controlled_bits():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
-        cirq.CX(q0, q1).with_conditions('a'),
+        cirq.CX(q0, q1).with_classical_controls('a'),
     )
 
     cirq.testing.assert_has_diagram(
@@ -107,7 +107,7 @@ def test_diagram_extra_control_bits():
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.measure(q0, key='b'),
-        cirq.X(q1).with_conditions(['a', 'b']),
+        cirq.X(q1).with_classical_controls(['a', 'b']),
     )
 
     cirq.testing.assert_has_diagram(
@@ -130,8 +130,8 @@ def test_diagram_multiple_ops_single_moment():
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.measure(q1, key='b'),
-        cirq.X(q0).with_conditions('a'),
-        cirq.X(q1).with_conditions('b'),
+        cirq.X(q0).with_classical_controls('a'),
+        cirq.X(q1).with_classical_controls('b'),
     )
 
     cirq.testing.assert_has_diagram(
@@ -157,7 +157,7 @@ def test_diagram_subcircuit():
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
                 cirq.measure(q0, key='a'),
-                cirq.X(q1).with_conditions('a'),
+                cirq.X(q1).with_classical_controls('a'),
             )
         )
     )
@@ -185,10 +185,10 @@ def test_diagram_subcircuit_layered():
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
                 cirq.measure(q0, key='a'),
-                cirq.X(q1).with_conditions('a'),
+                cirq.X(q1).with_classical_controls('a'),
             ),
         ),
-        ConditionalOperation(cirq.X(q1), ['a']),
+        ClassicallyControlledOperation(cirq.X(q1), ['a']),
     )
 
     cirq.testing.assert_has_diagram(
@@ -211,7 +211,7 @@ a: ═══@═══╩══════════════════�
 
 def test_qasm():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.X(q1).with_conditions('a'))
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
     qasm = cirq.qasm(circuit)
     assert (
         qasm
@@ -237,7 +237,7 @@ def test_key_unset(sim):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
-        cirq.X(q1).with_conditions('a'),
+        cirq.X(q1).with_classical_controls('a'),
         cirq.measure(q1, key='b'),
     )
     result = sim.run(circuit)
@@ -251,7 +251,7 @@ def test_key_set(sim):
     circuit = cirq.Circuit(
         cirq.X(q0),
         cirq.measure(q0, key='a'),
-        cirq.X(q1).with_conditions('a'),
+        cirq.X(q1).with_classical_controls('a'),
         cirq.measure(q1, key='b'),
     )
     result = sim.run(circuit)
@@ -264,7 +264,7 @@ def test_subcircuit_key_unset(sim):
     q0, q1 = cirq.LineQubit.range(2)
     inner = cirq.Circuit(
         cirq.measure(q0, key='c'),
-        cirq.X(q1).with_conditions('c'),
+        cirq.X(q1).with_classical_controls('c'),
         cirq.measure(q1, key='b'),
     )
     circuit = cirq.Circuit(
@@ -283,7 +283,7 @@ def test_subcircuit_key_set(sim):
     inner = cirq.Circuit(
         cirq.X(q0),
         cirq.measure(q0, key='c'),
-        cirq.X(q1).with_conditions('c'),
+        cirq.X(q1).with_classical_controls('c'),
         cirq.measure(q1, key='b'),
     )
     circuit = cirq.Circuit(
@@ -302,30 +302,30 @@ def test_subcircuit_key_set(sim):
 
 def test_key_stacking():
     q0 = cirq.LineQubit(0)
-    op = cirq.X(q0).with_conditions('a').with_tags('t').with_conditions('b')
+    op = cirq.X(q0).with_classical_controls('a').with_tags('t').with_classical_controls('b')
     assert set(map(str, op.conditions)) == {'a', 'b'}
     assert not op.tags
 
 
 def test_key_removal():
     q0 = cirq.LineQubit(0)
-    op = cirq.X(q0).with_conditions('a').with_tags('t').with_conditions('b')
-    op = op.unconditionally()
+    op = cirq.X(q0).with_classical_controls('a').with_tags('t').with_classical_controls('b')
+    op = op.without_classical_controls()
     assert not op.conditions
     assert set(map(str, op.tags)) == {'t'}
 
 
 def test_qubit_mapping():
     q0, q1 = cirq.LineQubit.range(2)
-    op = cirq.X(q0).with_conditions('a')
+    op = cirq.X(q0).with_classical_controls('a')
     assert op.with_qubits(q1).qubits == (q1,)
 
 
 def test_parameterizable():
     s = sympy.Symbol('s')
     q0 = cirq.LineQubit(0)
-    op = cirq.X(q0).with_conditions('a')
-    opa = ConditionalOperation(cirq.XPowGate(exponent=s).on(q0), ['a'])
+    op = cirq.X(q0).with_classical_controls('a')
+    opa = ClassicallyControlledOperation(cirq.XPowGate(exponent=s).on(q0), ['a'])
     assert cirq.is_parameterized(opa)
     assert not cirq.is_parameterized(op)
     assert cirq.resolve_parameters(opa, cirq.ParamResolver({'s': 1})) == op
@@ -333,19 +333,19 @@ def test_parameterizable():
 
 def test_decompose():
     q0 = cirq.LineQubit(0)
-    op = cirq.H(q0).with_conditions('a')
+    op = cirq.H(q0).with_classical_controls('a')
     assert cirq.decompose(op) == [
         (cirq.Y(q0) ** 0.5).with_conditions('a'),
-        cirq.XPowGate(exponent=1.0, global_shift=-0.25).on(q0).with_conditions('a'),
+        cirq.XPowGate(exponent=1.0, global_shift=-0.25).on(q0).with_classical_controls('a'),
     ]
 
 
 def test_str():
     q0 = cirq.LineQubit(0)
-    op = cirq.X(q0).with_conditions('a')
+    op = cirq.X(q0).with_classical_controls('a')
     assert (
         str(op)
-        == "ConditionalOperation(cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')])"
+        == "ClassicallyControlledOperation(cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')])"
     )
 
 
@@ -353,7 +353,7 @@ def test_scope_local():
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(
         cirq.measure(q, key='a'),
-        cirq.X(q).with_conditions('a'),
+        cirq.X(q).with_classical_controls('a'),
     )
     middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
     outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
@@ -398,7 +398,7 @@ def test_scope_extern():
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(
         cirq.measure(q, key='a'),
-        cirq.X(q).with_conditions('b'),
+        cirq.X(q).with_classical_controls('b'),
     )
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('b')),
@@ -448,7 +448,7 @@ def test_scope_root():
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(
         cirq.measure(q, key='a'),
-        cirq.X(q).with_conditions('b'),
+        cirq.X(q).with_classical_controls('b'),
     )
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('c')),
@@ -500,7 +500,7 @@ def test_scope_extern_mismatch():
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(
         cirq.measure(q, key='a'),
-        cirq.X(q).with_conditions('b'),
+        cirq.X(q).with_classical_controls('b'),
     )
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('b', ('0',))),
@@ -552,7 +552,7 @@ def test_scope_conflict():
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(
         cirq.measure(q, key='a'),
-        cirq.X(q).with_conditions('a'),
+        cirq.X(q).with_classical_controls('a'),
     )
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('a', ('0',))),
