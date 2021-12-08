@@ -120,9 +120,7 @@ def test_kron_bases_consistency(basis1, basis2):
         assert np.all(basis1[name] == basis2[name])
 
 
-@pytest.mark.parametrize(
-    'basis,repeat', itertools.product((PAULI_BASIS, STANDARD_BASIS), range(1, 5))
-)
+@pytest.mark.parametrize('basis,repeat', itertools.product((PAULI_BASIS, STANDARD_BASIS), range(5)))
 def test_kron_bases_repeat_sanity_checks(basis, repeat):
     product_basis = cirq.kron_bases(basis, repeat=repeat)
     assert len(product_basis) == 4 ** repeat

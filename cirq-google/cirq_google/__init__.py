@@ -136,6 +136,8 @@ from cirq_google.workflow import (
     ExecutableGroupResultFilesystemRecord,
     QuantumRuntimeConfiguration,
     execute,
+    QubitPlacer,
+    NaiveQubitPlacer,
 )
 
 from cirq_google import experimental

@@ -51,7 +51,9 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import sympy
 
     return {
+        'AnyIntegerPowerGateFamily': cirq.AnyIntegerPowerGateFamily,
         'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
+        'AnyUnitaryGateFamily': cirq.AnyUnitaryGateFamily,
         'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
         'BitFlipChannel': cirq.BitFlipChannel,
         'BitstringAccumulator': cirq.work.BitstringAccumulator,
@@ -82,7 +84,9 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'MutableDensePauliString': cirq.MutableDensePauliString,
         'MutablePauliString': cirq.MutablePauliString,
         'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
+        'GateFamily': cirq.GateFamily,
         'GateOperation': cirq.GateOperation,
+        'Gateset': cirq.Gateset,
         'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
         'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
         'GridInteractionLayer': GridInteractionLayer,
@@ -116,6 +120,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,
         'ParamResolver': cirq.ParamResolver,
         'ParallelGate': cirq.ParallelGate,
+        'ParallelGateFamily': cirq.ParallelGateFamily,
         'PauliMeasurementGate': cirq.PauliMeasurementGate,
         'PauliString': cirq.PauliString,
         'PhaseDampingChannel': cirq.PhaseDampingChannel,
