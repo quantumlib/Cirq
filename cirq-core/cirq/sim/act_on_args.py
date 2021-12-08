@@ -73,8 +73,6 @@ class ActOnArgs(OperationTarget[TSelf]):
         self._qubits = tuple(qubits)
         self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Adds a measurement result to the log.
 
@@ -84,6 +82,9 @@ class ActOnArgs(OperationTarget[TSelf]):
                 that operations should only store results under keys they have
                 declared in a `_measurement_key_names_` method.
             invert_mask: The invert mask for the measurement.
+
+        Raises:
+            ValueError: If a measurement key has already been logged to a key.
         """
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
@@ -91,7 +92,6 @@ class ActOnArgs(OperationTarget[TSelf]):
             raise ValueError(f"Measurement already logged to key {key!r}")
         self._log_of_measurement_results[key] = corrected
 
-    # pylint: enable=missing-raises-doc
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]
 

@@ -29,7 +29,7 @@ no_precision = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=None,
-    qubit_map=None,
+    label_map=None,
 )
 
 round_to_6_prec = cirq.CircuitDiagramInfoArgs(
@@ -37,7 +37,7 @@ round_to_6_prec = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=6,
-    qubit_map=None,
+    label_map=None,
 )
 
 round_to_2_prec = cirq.CircuitDiagramInfoArgs(
@@ -45,7 +45,7 @@ round_to_2_prec = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=2,
-    qubit_map=None,
+    label_map=None,
 )
 
 

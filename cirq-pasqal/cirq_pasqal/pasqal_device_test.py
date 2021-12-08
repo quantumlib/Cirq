@@ -271,11 +271,10 @@ def test_repr():
 def test_to_json():
     dev = PasqalDevice(qubits=[cirq.NamedQubit('q4')])
     d = dev._json_dict_()
-    assert d == {"cirq_type": "PasqalDevice", "qubits": [cirq.NamedQubit('q4')]}
+    assert d == {"qubits": [cirq.NamedQubit('q4')]}
     vdev = PasqalVirtualDevice(control_radius=2, qubits=[TwoDQubit(0, 0)])
     d = vdev._json_dict_()
     assert d == {
-        "cirq_type": "PasqalVirtualDevice",
         "control_radius": 2,
         "qubits": [cirq_pasqal.TwoDQubit(0, 0)],
     }

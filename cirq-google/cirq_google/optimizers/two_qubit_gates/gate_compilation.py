@@ -113,7 +113,6 @@ class GateTabulation:
 
     def _json_dict_(self):
         return {
-            'cirq_type': self.__class__.__name__,
             'base_gate': self.base_gate.tolist(),
             'kak_vecs': self.kak_vecs.tolist(),
             'single_qubit_gates': self.single_qubit_gates,
@@ -298,8 +297,6 @@ def _tabulate_kak_vectors(
     return _TabulationStepResult(kept_kaks, kept_cycles)
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def gate_product_tabulation(
     base_gate: np.ndarray,
     max_infidelity: float,
@@ -328,6 +325,10 @@ def gate_product_tabulation(
     Returns:
         A GateTabulation object used to compile new two-qubit gates from
         products of the base gate with 1-local unitaries.
+
+    Raises:
+        ValueError: If `allow_missed_points` is False and not all points
+            in the Weyl chamber were compilable using 2 or 3 base gates.
     """
     rng = value.parse_random_state(random_state)
 
@@ -478,6 +479,3 @@ def gate_product_tabulation(
     return GateTabulation(
         base_gate, kak_vecs, sq_cycles, max_infidelity, summary, tuple(missed_points)
     )
-
-
-# pylint: enable=missing-raises-doc

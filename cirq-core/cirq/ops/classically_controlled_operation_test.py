@@ -11,11 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import re
 import pytest
 import sympy
 
 import cirq
-from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
 
 ALL_SIMULATORS = (
     cirq.Simulator(),
@@ -107,7 +107,7 @@ def test_diagram_extra_control_bits():
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.measure(q0, key='b'),
-        cirq.X(q1).with_classical_controls(['a', 'b']),
+        cirq.X(q1).with_classical_controls('a', 'b'),
     )
 
     cirq.testing.assert_has_diagram(
@@ -165,14 +165,13 @@ def test_diagram_subcircuit():
     cirq.testing.assert_has_diagram(
         circuit,
         """
-      Circuit_0x0000000000000000:
-      [ 0: ───M───────          ]
-0: ───[       ║                 ]───
-      [ 1: ───╫───X───          ]
-      [       ║   ║             ]
-      [ a: ═══@═══^═══          ]
+      [ 0: ───M─────── ]
+      [       ║        ]
+0: ───[ 1: ───╫───X─── ]───
+      [       ║   ║    ]
+      [ a: ═══@═══^═══ ]
       │
-1: ───#2────────────────────────────
+1: ───#2───────────────────
 """,
         use_unicode_characters=True,
     )
@@ -188,22 +187,21 @@ def test_diagram_subcircuit_layered():
                 cirq.X(q1).with_classical_controls('a'),
             ),
         ),
-        ClassicallyControlledOperation(cirq.X(q1), ['a']),
+        cirq.X(q1).with_classical_controls('a'),
     )
 
     cirq.testing.assert_has_diagram(
         circuit,
         """
-          Circuit_0x0000000000000000:
-          [ 0: ───M───────          ]
-0: ───M───[       ║                 ]───────
-      ║   [ 1: ───╫───X───          ]
-      ║   [       ║   ║             ]
-      ║   [ a: ═══@═══^═══          ]
+          [ 0: ───M─────── ]
+          [       ║        ]
+0: ───M───[ 1: ───╫───X─── ]───────
+      ║   [       ║   ║    ]
+      ║   [ a: ═══@═══^═══ ]
       ║   ║
-1: ───╫───#2────────────────────────────X───
-      ║   ║                             ║
-a: ═══@═══╩═════════════════════════════^═══
+1: ───╫───#2───────────────────X───
+      ║   ║                    ║
+a: ═══@═══╩════════════════════^═══
 """,
         use_unicode_characters=True,
     )
@@ -300,19 +298,65 @@ def test_subcircuit_key_set(sim):
     assert result.measurements['3:b'] == 0
 
 
-def test_key_stacking():
+def test_key_unset_in_subcircuit_outer_scope():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+    )
+    # TODO (daxfohl): This will not need an InsertStrategy after scope PR.
+    circuit.append(
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q1).with_classical_controls('a'))),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    circuit.append(cirq.measure(q1, key='b'))
+    result = cirq.Simulator().run(circuit)
+    assert result.measurements['a'] == 0
+    assert result.measurements['b'] == 0
+
+
+def test_key_set_in_subcircuit_outer_scope():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+    )
+    # TODO (daxfohl): This will not need an InsertStrategy after scope PR.
+    circuit.append(
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q1).with_classical_controls('a'))),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    circuit.append(cirq.measure(q1, key='b'))
+    result = cirq.Simulator().run(circuit)
+    assert result.measurements['a'] == 1
+    assert result.measurements['b'] == 1
+
+
+def test_condition_flattening():
+    q0 = cirq.LineQubit(0)
+    op = cirq.X(q0).with_classical_controls('a').with_classical_controls('b')
+    assert set(map(str, op._control_keys)) == {'a', 'b'}
+    assert isinstance(op._sub_operation, cirq.GateOperation)
+
+
+def test_condition_stacking():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a').with_tags('t').with_classical_controls('b')
-    assert set(map(str, op.conditions)) == {'a', 'b'}
+    assert set(map(str, cirq.control_keys(op))) == {'a', 'b'}
     assert not op.tags
 
 
-def test_key_removal():
+def test_condition_removal():
     q0 = cirq.LineQubit(0)
-    op = cirq.X(q0).with_classical_controls('a').with_tags('t').with_classical_controls('b')
+    op = (
+        cirq.X(q0)
+        .with_tags('t1')
+        .with_classical_controls('a')
+        .with_tags('t2')
+        .with_classical_controls('b')
+    )
     op = op.without_classical_controls()
-    assert not op.conditions
-    assert set(map(str, op.tags)) == {'t'}
+    assert not cirq.control_keys(op)
+    assert set(map(str, op.tags)) == {'t1'}
 
 
 def test_qubit_mapping():
@@ -325,7 +369,7 @@ def test_parameterizable():
     s = sympy.Symbol('s')
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a')
-    opa = ClassicallyControlledOperation(cirq.XPowGate(exponent=s).on(q0), ['a'])
+    opa = cirq.XPowGate(exponent=s).on(q0).with_classical_controls('a')
     assert cirq.is_parameterized(opa)
     assert not cirq.is_parameterized(op)
     assert cirq.resolve_parameters(opa, cirq.ParamResolver({'s': 1})) == op
@@ -335,7 +379,7 @@ def test_decompose():
     q0 = cirq.LineQubit(0)
     op = cirq.H(q0).with_classical_controls('a')
     assert cirq.decompose(op) == [
-        (cirq.Y(q0) ** 0.5).with_conditions('a'),
+        (cirq.Y(q0) ** 0.5).with_classical_controls('a'),
         cirq.XPowGate(exponent=1.0, global_shift=-0.25).on(q0).with_classical_controls('a'),
     ]
 
@@ -343,10 +387,7 @@ def test_decompose():
 def test_str():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a')
-    assert (
-        str(op)
-        == "ClassicallyControlledOperation(cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')])"
-    )
+    assert str(op) == 'X(0).with_classical_controls(a)'
 
 
 def test_scope_local():
@@ -369,11 +410,9 @@ def test_scope_local():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      Circuit_0x0000000000000000:
-      [       Circuit_0x0000000000000000:             ]
-0: ───[ 0: ───[ 0: ───M───X───          ]──────────── ]────────────
-      [       [       ║   ║             ]             ]
-      [       [ a: ═══@═══^═══          ](loops=2)    ](loops=2)
+      [       [ 0: ───M───X─── ]             ]
+0: ───[ 0: ───[       ║   ║    ]──────────── ]────────────
+      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2)
 """,
         use_unicode_characters=True,
     )
@@ -417,13 +456,11 @@ def test_scope_extern():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      Circuit_0x0000000000000000:
-      [           Circuit_0x0000000000000000:             ]
-      [ 0: ───M───[ 0: ───M('a')───X───     ]──────────── ]
-0: ───[       ║   [                ║        ]             ]────────────
-      [       ║   [ b: ════════════^═══     ](loops=2)    ]
-      [       ║   ║                                       ]
-      [ b: ═══@═══╩══════════════════════════════════════ ](loops=2)
+      [           [ 0: ───M('a')───X─── ]             ]
+      [ 0: ───M───[                ║    ]──────────── ]
+0: ───[       ║   [ b: ════════════^═══ ](loops=2)    ]────────────
+      [       ║   ║                                   ]
+      [ b: ═══@═══╩══════════════════════════════════ ](loops=2)
 """,
         use_unicode_characters=True,
     )
@@ -467,15 +504,13 @@ def test_scope_root():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      Circuit_0x0000000000000000:
-      [                Circuit_0x0000000000000000:             ]
-      [ 0: ───M('c')───[ 0: ───M('a')───X───     ]──────────── ]
-0: ───[                [                ║        ]             ]────────────
-      [                [ b: ════════════^═══     ](loops=2)    ]
-      [                ║                                       ]
-      [ b: ════════════╩══════════════════════════════════════ ](loops=2)
+      [                [ 0: ───M('a')───X─── ]             ]
+      [ 0: ───M('c')───[                ║    ]──────────── ]
+0: ───[                [ b: ════════════^═══ ](loops=2)    ]────────────
+      [                ║                                   ]
+      [ b: ════════════╩══════════════════════════════════ ](loops=2)
       ║
-b: ═══╩═════════════════════════════════════════════════════════════════════
+b: ═══╩═════════════════════════════════════════════════════════════════
 """,
         use_unicode_characters=True,
     )
@@ -519,15 +554,13 @@ def test_scope_extern_mismatch():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      Circuit_0x0000000000000000:
-      [                  Circuit_0x0000000000000000:             ]
-      [ 0: ───M('0:b')───[ 0: ───M('a')───X───     ]──────────── ]
-0: ───[                  [                ║        ]             ]────────────
-      [                  [ b: ════════════^═══     ](loops=2)    ]
-      [                  ║                                       ]
-      [ b: ══════════════╩══════════════════════════════════════ ](loops=2)
+      [                  [ 0: ───M('a')───X─── ]             ]
+      [ 0: ───M('0:b')───[                ║    ]──────────── ]
+0: ───[                  [ b: ════════════^═══ ](loops=2)    ]────────────
+      [                  ║                                   ]
+      [ b: ══════════════╩══════════════════════════════════ ](loops=2)
       ║
-b: ═══╩═══════════════════════════════════════════════════════════════════════
+b: ═══╩═══════════════════════════════════════════════════════════════════
 """,
         use_unicode_characters=True,
     )
@@ -563,13 +596,39 @@ def test_scope_conflict():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(op),
         """
-      Circuit_0x0000000000000000:
-      [                  Circuit_0x0000000000000000:             ]
-0: ───[ 0: ───M('0:a')───[ 0: ───M───X───          ]──────────── ]────────────
-      [                  [       ║   ║             ]             ]
-      [                  [ a: ═══@═══^═══          ](loops=2)    ](loops=2)
+      [                  [ 0: ───M───X─── ]             ]
+0: ───[ 0: ───M('0:a')───[       ║   ║    ]──────────── ]────────────
+      [                  [ a: ═══@═══^═══ ](loops=2)    ](loops=2)
 """,
         use_unicode_characters=True,
     )
     with pytest.raises(ValueError, match='Key conflicts externally'):
         _ = op.mapped_circuit(deep=True)
+
+
+def test_repr():
+    q0 = cirq.LineQubit(0)
+    op = cirq.X(q0).with_classical_controls('a')
+    assert repr(op) == (
+        "cirq.ClassicallyControlledOperation("
+        "cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')]"
+        ")"
+    )
+
+
+def test_no_measurement_gates():
+    q0 = cirq.LineQubit(0)
+    with pytest.raises(ValueError, match='with measurements'):
+        _ = cirq.measure(q0).with_classical_controls('a')
+
+
+def test_unmeasured_condition():
+    q0 = cirq.LineQubit(0)
+    bad_circuit = cirq.Circuit(cirq.X(q0).with_classical_controls('a'))
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Measurement keys ['a'] missing when performing X(0).with_classical_controls(a)"
+        ),
+    ):
+        _ = cirq.Simulator().simulate(bad_circuit)

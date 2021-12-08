@@ -165,11 +165,11 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
-        qubit_map = args.qubit_map or {}
+        label_map = args.label_map or {}
         if not args.known_qubits or self.key != _default_measurement_key(args.known_qubits):
-            if self.key not in qubit_map:
+            if self.key not in label_map:
                 symbols[0] += f"('{self.key}')"
-        if self.key in qubit_map:
+        if self.key in label_map:
             symbols += '@'
 
         return protocols.CircuitDiagramInfo(symbols)
@@ -234,7 +234,6 @@ class MeasurementGate(raw_types.Gate):
         if not all(d == 2 for d in self._qid_shape):
             other['qid_shape'] = self._qid_shape
         return {
-            'cirq_type': self.__class__.__name__,
             'num_qubits': len(self._qid_shape),
             'key': self.key,
             'invert_mask': self.invert_mask,

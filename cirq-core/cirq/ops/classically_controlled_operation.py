@@ -14,7 +14,6 @@
 from typing import (
     AbstractSet,
     Any,
-    cast,
     Dict,
     FrozenSet,
     Optional,
@@ -33,17 +32,48 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class ClassicallyControlledOperation(raw_types.Operation):
-    """Augments existing operations to be conditionally executed."""
+    """Augments existing operations to be conditionally executed.
+
+    An operation that is classically controlled is executed iff all conditions
+    evaluate to True. Currently the only condition type is a measurement key.
+    A measurement key evaluates to True iff any qubit in the corresponding
+    measurement operation evaluated to a non-zero value.
+
+    This object is typically created via
+     `operation.with_classical_controls(*conditions)`.
+    """
 
     def __init__(
         self,
         sub_operation: 'cirq.Operation',
-        keys: Union[str, 'cirq.MeasurementKey', Sequence[Union[str, 'cirq.MeasurementKey']]],
+        conditions: Sequence[Union[str, 'cirq.MeasurementKey']],
     ):
-        keys = [keys] if isinstance(keys, (str, value.MeasurementKey)) else keys
-        keys = tuple(value.MeasurementKey(k) if isinstance(k, str) else k for k in keys)
-        self._control_keys = cast(Tuple['cirq.MeasurementKey', ...], keys)
-        self._sub_operation = sub_operation
+        """Initializes a `ClassicallyControlledOperation`.
+
+        Multiple consecutive `ClassicallyControlledOperation` layers are
+        squashed when possible, so one should not depend on a specific number
+        of layers.
+
+        Args:
+            sub_operation: The operation to gate with a classical control
+                condition.
+            conditions: A sequence of measurement keys, or strings that can be
+                parsed into measurement keys.
+
+        Raises:
+            ValueError: If an unsupported gate is being classically
+                controlled.
+        """
+        if protocols.measurement_key_objs(sub_operation):
+            raise ValueError(
+                f'Cannot conditionally run operations with measurements: {sub_operation}'
+            )
+        keys = tuple(value.MeasurementKey(c) if isinstance(c, str) else c for c in conditions)
+        if isinstance(sub_operation, ClassicallyControlledOperation):
+            keys += sub_operation._control_keys
+            sub_operation = sub_operation._sub_operation
+        self._control_keys: Tuple['cirq.MeasurementKey', ...] = keys
+        self._sub_operation: 'cirq.Operation' = sub_operation
 
     @property
     def conditions(self) -> FrozenSet['cirq.MeasurementKey']:
@@ -57,8 +87,8 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return self._sub_operation.qubits
 
     def with_qubits(self, *new_qubits):
-        return ClassicallyControlledOperation(
-            self._sub_operation.with_qubits(*new_qubits), self._control_keys
+        return self._sub_operation.with_qubits(*new_qubits).with_classical_controls(
+            *self._control_keys
         )
 
     def _decompose_(self):
@@ -72,10 +102,14 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return (frozenset(self._control_keys), self._sub_operation)
 
     def __str__(self) -> str:
-        return repr(self)
+        keys = ', '.join(map(str, self._control_keys))
+        return f'{self._sub_operation}.with_classical_controls({keys})'
 
     def __repr__(self):
-        return f'ClassicallyControlledOperation({self._sub_operation!r}, {list(self._control_keys)!r})'
+        return (
+            f'cirq.ClassicallyControlledOperation('
+            f'{self._sub_operation!r}, {list(self._control_keys)!r})'
+        )
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._sub_operation)
@@ -87,7 +121,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'ClassicallyControlledOperation':
         new_sub_op = protocols.resolve_parameters(self._sub_operation, resolver, recursive)
-        return ClassicallyControlledOperation(new_sub_op, self._control_keys)
+        return new_sub_op.with_classical_controls(*self._control_keys)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -97,7 +131,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
             known_qubits=args.known_qubits,
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
-            qubit_map=args.qubit_map,
+            label_map=args.label_map,
         )
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
         if sub_info is None:
@@ -118,7 +152,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
-            'keys': self._control_keys,
+            'conditions': self._control_keys,
             'sub_operation': self._sub_operation,
         }
 
@@ -126,7 +160,12 @@ class ClassicallyControlledOperation(raw_types.Operation):
         def not_zero(measurement):
             return any(i != 0 for i in measurement)
 
-        measurements = [args.log_of_measurement_results[str(key)] for key in self._control_keys]
+        measurements = [
+            args.log_of_measurement_results.get(str(key), str(key)) for key in self._control_keys
+        ]
+        missing = [m for m in measurements if isinstance(m, str)]
+        if missing:
+            raise ValueError(f'Measurement keys {missing} missing when performing {self}')
         if all(not_zero(measurement) for measurement in measurements):
             protocols.act_on(self._sub_operation, args)
         return True

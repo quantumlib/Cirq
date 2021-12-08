@@ -174,9 +174,6 @@ class SimulatorBase(
             `_run` prefix."""
         return protocols.has_unitary(val)
 
-    # TODO(#3388) Add documentation for Args.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-param-doc,missing-raises-doc
     def _core_iterator(
         self,
         circuit: circuits.AbstractCircuit,
@@ -190,9 +187,14 @@ class SimulatorBase(
             sim_state: The initial args for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
+            all_measurements_are_terminal: Whether all measurements in the
+                given circuit are terminal.
 
         Yields:
             StepResults from simulating a Moment of the Circuit.
+
+        Raises:
+            TypeError: The simulator encounters an op it does not support.
         """
 
         if len(circuit) == 0:
@@ -226,7 +228,6 @@ class SimulatorBase(
             yield step_result
             sim_state = step_result._sim_state
 
-    # pylint: enable=missing-param-doc,missing-raises-doc
     def _run(
         self,
         circuit: circuits.AbstractCircuit,
