@@ -273,14 +273,18 @@ def test_append_control_key_subcircuit():
     c = cirq.Circuit()
     c.append(cirq.measure(q0, key='a'))
     c.append(
-        cirq.CircuitOperation(cirq.Circuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'a')).freeze())
+        cirq.CircuitOperation(
+            cirq.Circuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'a')).freeze()
+        )
     )
     assert len(c) == 2
 
     c = cirq.Circuit()
     c.append(cirq.measure(q0, key='a'))
     c.append(
-        cirq.CircuitOperation(cirq.Circuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b')).freeze())
+        cirq.CircuitOperation(
+            cirq.Circuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b')).freeze()
+        )
     )
     assert len(c) == 1
 

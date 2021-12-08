@@ -170,7 +170,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
             protocols.act_on(self._sub_operation, args)
         return True
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'ClassicallyControlledOperation':
+    def _with_measurement_key_mapping_(
+        self, key_map: Dict[str, str]
+    ) -> 'ClassicallyControlledOperation':
         return ClassicallyControlledOperation(
             self._sub_operation,
             [protocols.with_measurement_key_mapping(k, key_map) for k in self._control_keys],
