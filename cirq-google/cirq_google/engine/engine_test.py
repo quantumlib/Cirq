@@ -34,7 +34,7 @@ _CIRCUIT = cirq.Circuit(
 )
 
 
-_CIRCUIT2 = cirq.Circuit(
+_CIRCUIT2 = cirq.FrozenCircuit(
     cirq.Y(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
 )
 

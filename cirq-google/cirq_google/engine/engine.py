@@ -189,7 +189,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     def run(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
@@ -253,7 +253,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     def run_sweep(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
@@ -475,7 +475,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     def create_program(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         gate_set: Optional[Serializer] = None,
         description: Optional[str] = None,
@@ -629,8 +629,10 @@ class Engine(abstract_engine.AbstractEngine):
             result_type=ResultType.Calibration,
         )
 
-    def _serialize_program(self, program: cirq.Circuit, gate_set: Serializer) -> any_pb2.Any:
-        if not isinstance(program, cirq.Circuit):
+    def _serialize_program(
+        self, program: cirq.AbstractCircuit, gate_set: Serializer
+    ) -> any_pb2.Any:
+        if not isinstance(program, cirq.AbstractCircuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
         program.device.validate_circuit(program)
 
