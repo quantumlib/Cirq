@@ -193,7 +193,6 @@ from cirq.ops import (
     ClassicallyControlledOperation,
     CNOT,
     CNotPowGate,
-    ClassicallyControlledOperation,
     ControlledGate,
     ControlledOperation,
     cphase,

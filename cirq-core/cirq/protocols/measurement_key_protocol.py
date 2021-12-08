@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import AbstractSet, Any, Dict, Optional, Tuple, FrozenSet
+from typing import AbstractSet, Any, Dict, FrozenSet, Optional, Tuple
 
 from typing_extensions import Protocol
 

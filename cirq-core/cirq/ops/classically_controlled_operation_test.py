@@ -400,7 +400,7 @@ def test_scope_local():
     outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
-        str(condition) for op in circuit.all_operations() for condition in op.conditions
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
     ]
     assert internal_control_keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
     assert not cirq.control_keys(outer_subcircuit)
@@ -444,7 +444,7 @@ def test_scope_extern():
     outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
-        str(condition) for op in circuit.all_operations() for condition in op.conditions
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
     ]
     assert internal_control_keys == ['0:b', '0:b', '1:b', '1:b']
     assert not cirq.control_keys(outer_subcircuit)
@@ -490,7 +490,7 @@ def test_scope_root():
     outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
-        str(condition) for op in circuit.all_operations() for condition in op.conditions
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
     ]
     assert internal_control_keys == ['b', 'b', 'b', 'b']
     assert cirq.control_keys(outer_subcircuit) == {cirq.MeasurementKey('b')}
@@ -538,7 +538,7 @@ def test_scope_extern_mismatch():
     outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
-        str(condition) for op in circuit.all_operations() for condition in op.conditions
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
     ]
     assert internal_control_keys == ['b', 'b', 'b', 'b']
     assert cirq.control_keys(outer_subcircuit) == {cirq.MeasurementKey('b')}
@@ -594,7 +594,7 @@ def test_scope_conflict():
 """,
         use_unicode_characters=True,
     )
-    with pytest.raises(ValueError, match='Key conflicts externally'):
+    with pytest.raises(ValueError, match='Conflicting measurement keys found: 0:0:a'):
         _ = op.mapped_circuit(deep=True)
 
 

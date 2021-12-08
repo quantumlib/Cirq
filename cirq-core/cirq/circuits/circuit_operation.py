@@ -22,12 +22,12 @@ from typing import (
     AbstractSet,
     Callable,
     Dict,
+    FrozenSet,
+    Iterator,
     List,
     Optional,
     Tuple,
     Union,
-    Iterator,
-    FrozenSet,
 )
 
 import dataclasses
@@ -205,7 +205,6 @@ class CircuitOperation(ops.Operation):
         return {str(key) for key in self._measurement_key_objs_()}
 
     def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:
-        # Check if there are any control keys, to work around infinite recursion test.
         if not protocols.control_keys(self.circuit):
             return set()
         return protocols.control_keys(self.mapped_circuit())
@@ -544,16 +543,19 @@ class CircuitOperation(ops.Operation):
                 keys than this operation.
         """
         new_map = {}
-        for k_obj in self.circuit.all_measurement_key_objs() | protocols.control_keys(self.circuit):
+        for k_obj in protocols.measurement_keys_touched(self.circuit):
             k = k_obj.name
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
             if k_new != k:
                 new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
-        if len(new_op._measurement_key_objs_()) != len(self._measurement_key_objs_()) or len(
-            new_op._control_keys_()
-        ) != len(self._control_keys_()):
+        if (
+            len(protocols.measurement_key_objs(new_op)) != len(protocols.measurement_key_objs(self))
+            or len(protocols.control_keys(new_op)) != len(protocols.control_keys(self))
+            or len(protocols.measurement_keys_touched(new_op))
+            != len(protocols.measurement_keys_touched(self))
+        ):
             raise ValueError(
                 f'Collision in measurement key map composition. Original map:\n'
                 f'{self.measurement_key_map}\nApplied changes: {key_map}'

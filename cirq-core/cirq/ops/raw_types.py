@@ -591,10 +591,6 @@ class Operation(metaclass=abc.ABCMeta):
 
         return np.allclose(m12, m21, atol=atol)
 
-    @property
-    def conditions(self) -> FrozenSet[value.MeasurementKey]:
-        return frozenset()
-
     def with_classical_controls(
         self, *conditions: Union[str, 'cirq.MeasurementKey']
     ) -> 'cirq.ClassicallyControlledOperation':
@@ -825,10 +821,6 @@ class TaggedOperation(Operation):
         self, other: Any, atol: Union[int, float] = 1e-8
     ) -> Union[NotImplementedType, bool]:
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
-
-    @property
-    def conditions(self) -> FrozenSet[value.MeasurementKey]:
-        return self.sub_operation.conditions
 
     def without_classical_controls(self) -> 'cirq.Operation':
         new_sub_operation = self.sub_operation.without_classical_controls()

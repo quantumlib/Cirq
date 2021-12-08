@@ -840,7 +840,7 @@ def test_keys_conflict_no_repetitions():
         )
     )
     op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
-    with pytest.raises(ValueError, match='Key conflicts externally: A'):
+    with pytest.raises(ValueError, match='Conflicting measurement keys found: A'):
         _ = op2.mapped_circuit(deep=True)
 
 
@@ -853,7 +853,7 @@ def test_keys_conflict_with_repetitions():
         repetitions=2,
     )
     op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1), repetitions=2)
-    with pytest.raises(ValueError, match='Key conflicts externally: 0:0:A'):
+    with pytest.raises(ValueError, match='Conflicting measurement keys found: 0:0:A'):
         _ = op2.mapped_circuit(deep=True)
 
 
@@ -861,5 +861,8 @@ def test_keys_conflict_locally():
     q = cirq.LineQubit(0)
     op1 = cirq.measure(q, key='A')
     op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
-    with pytest.raises(ValueError, match='Key conflicts locally: A'):
+    with pytest.raises(ValueError, match='Conflicting measurement keys found: A'):
         _ = op2.mapped_circuit()
+
+
+# TODO: Operation has a "gate" property. What is this for a CircuitOperation?

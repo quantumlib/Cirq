@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Optional, Tuple, FrozenSet
+from typing import Dict, FrozenSet, Optional, Tuple
 
 import dataclasses
 
@@ -111,10 +111,10 @@ class MeasurementKey:
         extern_keys: FrozenSet['MeasurementKey'],
     ):
         if self in local_keys:
-            raise ValueError(f'Key conflicts locally: {self}')
+            raise ValueError(f'Conflicting measurement keys found: {self}')
         new_key = self.replace(path=path + self.path)
         if new_key in extern_keys:
-            raise ValueError(f'Key conflicts externally: {new_key}')
+            raise ValueError(f'Conflicting measurement keys found: {new_key}')
         return new_key
 
     def with_key_path_prefix(self, path_component: str):

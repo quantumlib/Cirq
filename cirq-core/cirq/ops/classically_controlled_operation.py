@@ -75,10 +75,6 @@ class ClassicallyControlledOperation(raw_types.Operation):
         self._control_keys: Tuple['cirq.MeasurementKey', ...] = keys
         self._sub_operation: 'cirq.Operation' = sub_operation
 
-    @property
-    def conditions(self) -> FrozenSet['cirq.MeasurementKey']:
-        return frozenset(self._control_keys).union(self._sub_operation.conditions)
-
     def without_classical_controls(self) -> 'cirq.Operation':
         return self._sub_operation.without_classical_controls()
 

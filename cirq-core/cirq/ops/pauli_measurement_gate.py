@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Tuple, Sequence, TYPE_CHECKING, Union, FrozenSet
+from typing import Any, Dict, FrozenSet, Iterable, Tuple, Sequence, TYPE_CHECKING, Union
 
 from cirq import protocols, value
 from cirq.ops import (
