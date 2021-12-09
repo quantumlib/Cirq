@@ -24,6 +24,7 @@ import abc
 import dataclasses
 import sympy
 
+from cirq.protocols import json_serialization
 from cirq.value import measurement_key
 
 if TYPE_CHECKING:
@@ -66,6 +67,9 @@ class KeyCondition(Condition):
             raise ValueError(f'Measurement key {key} missing when testing classical control')
         return any(measurements[key])
 
+    def _json_dict_(self):
+        return json_serialization.dataclass_json_dict(self)
+
 
 @dataclasses.dataclass(frozen=True)
 class SympyCondition(Condition):
@@ -93,6 +97,9 @@ class SympyCondition(Condition):
 
         replacements = {f'x{i}': value(k) for i, k in enumerate(self.keys)}
         return bool(self.expr.subs(replacements))
+
+    def _json_dict_(self):
+        return json_serialization.dataclass_json_dict(self)
 
 
 def parse_sympy_condition(s: str) -> Optional['cirq.SympyCondition']:
