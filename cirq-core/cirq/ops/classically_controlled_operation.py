@@ -195,6 +195,5 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
         args.validate_version('2.0')
-        keys = [f'm_{key}!=0' for key in self._conditions]
-        all_keys = " && ".join(keys)
+        all_keys = " && ".join(c.qasm for c in self._conditions)
         return args.format('if ({0}) {1}', all_keys, protocols.qasm(self._sub_operation, args=args))

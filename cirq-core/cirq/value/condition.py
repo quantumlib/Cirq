@@ -45,6 +45,11 @@ class Condition(abc.ABC):
     def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
         """Resolves the condition based on the measurements."""
 
+    @property
+    def qasm(self):
+        """Returns the qasm of this condition."""
+        raise NotImplementedError()
+
 
 @dataclasses.dataclass(frozen=True)
 class KeyCondition(Condition):
@@ -69,6 +74,10 @@ class KeyCondition(Condition):
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
+
+    @property
+    def qasm(self):
+        return f'm_{self.key}!=0'
 
 
 @dataclasses.dataclass(frozen=True)
