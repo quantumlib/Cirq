@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A no-qubit global phase operation."""
-from typing import Any, Dict, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import value, protocols
-from cirq._compat import deprecated, deprecated_class
+from cirq._compat import deprecated_class
 from cirq.ops import gate_operation, raw_types
 
 if TYPE_CHECKING:
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality(approximate=True)
-@deprecated_class(deadline='v0.15', fix='Use global_phase_operation')
+@deprecated_class(deadline='v0.16', fix='Use cirq.global_phase_operation')
 class GlobalPhaseOperation(gate_operation.GateOperation):
     def __init__(self, coefficient: value.Scalar, atol: float = 1e-8) -> None:
         gate = GlobalPhaseGate(coefficient, atol)
@@ -37,17 +37,12 @@ class GlobalPhaseOperation(gate_operation.GateOperation):
         return self
 
     @property
-    def coefficient(self):
-        return self.gate.coefficient
+    def coefficient(self) -> value.Scalar:
+        return self.gate.coefficient  # type: ignore
 
-    @coefficient.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def coefficient(self, coefficient):
-        # coverage: ignore
-        self.gate._coefficient = coefficient
+    @coefficient.setter
+    def coefficient(self, coefficient: value.Scalar):
+        self.gate._coefficient = coefficient  # type: ignore
 
     def __str__(self) -> str:
         return str(self.coefficient)
@@ -67,7 +62,7 @@ class GlobalPhaseGate(raw_types.Gate):
         self._coefficient = coefficient
 
     @property
-    def coefficient(self):
+    def coefficient(self) -> value.Scalar:
         return self._coefficient
 
     def _value_equality_values_(self) -> Any:
@@ -76,7 +71,7 @@ class GlobalPhaseGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return True
 
-    def __pow__(self, power):
+    def __pow__(self, power) -> 'cirq.GlobalPhaseGate':
         if isinstance(power, (int, float)):
             return GlobalPhaseGate(self.coefficient ** power)
         return NotImplemented
@@ -111,6 +106,9 @@ class GlobalPhaseGate(raw_types.Gate):
     def __repr__(self) -> str:
         return f'cirq.GlobalPhaseGate({self.coefficient!r})'
 
+    def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
+        return f'cirq.global_phase_operation({self.coefficient!r})'
+
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['coefficient'])
 
@@ -118,5 +116,5 @@ class GlobalPhaseGate(raw_types.Gate):
         return tuple()
 
 
-def global_phase_operation(coefficient: value.Scalar, atol: float = 1e-8):
+def global_phase_operation(coefficient: value.Scalar, atol: float = 1e-8) -> 'cirq.GateOperation':
     return GlobalPhaseGate(coefficient, atol)()

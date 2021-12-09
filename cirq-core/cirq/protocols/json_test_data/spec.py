@@ -180,7 +180,7 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={'GlobalPhaseOperation': 'v0.15'},
+    deprecated={'GlobalPhaseOperation': 'v0.16'},
     tested_elsewhere=[
         # SerializableByKey does not follow common serialization rules.
         # It is tested separately in test_context_serialization.
