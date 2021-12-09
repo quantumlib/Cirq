@@ -22,6 +22,7 @@ from typing import (
     Callable,
     Collection,
     Dict,
+    FrozenSet,
     Hashable,
     Iterable,
     List,
@@ -34,6 +35,7 @@ from typing import (
 )
 
 import numpy as np
+import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
@@ -421,6 +423,35 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return protocols.obj_to_dict_helper(self, attribute_names=[])
 
 
+class Condition:
+    def __init__(self, expr: sympy.Expr, keys: Tuple[value.MeasurementKey, ...]):
+        self._expr = expr
+        self._keys = keys
+
+    @property
+    def keys(self):
+        return self._keys
+
+    @property
+    def expr(self):
+        return self._expr
+
+    def with_keys(self, keys: Tuple[value.MeasurementKey, ...]):
+        assert len(keys) == len(self._keys)
+        return Condition(self._expr, keys)
+
+    def __eq__(self, other):
+        return isinstance(other, Condition) and self._keys == other._keys and self._expr == other._expr
+
+    def __hash__(self):
+        return hash(self._keys) ^ hash(self._expr)
+
+    def __str__(self):
+        if self._expr == sympy.symbols('x0') and len(self._keys) == 1:
+            return str(self._keys[0])
+        return f'({self._expr}, {self._keys})'
+
+
 TSelf = TypeVar('TSelf', bound='Operation')
 
 
@@ -590,8 +621,12 @@ class Operation(metaclass=abc.ABCMeta):
 
         return np.allclose(m12, m21, atol=atol)
 
+    @property
+    def classical_controls(self) -> FrozenSet[Condition]:
+        return frozenset()
+
     def with_classical_controls(
-        self, *conditions: Union[str, 'cirq.MeasurementKey']
+        self, *conditions: Union[str, 'cirq.MeasurementKey', Condition]
     ) -> 'cirq.ClassicallyControlledOperation':
         """Returns a classically controlled version of this operation.
 
@@ -820,6 +855,10 @@ class TaggedOperation(Operation):
         self, other: Any, atol: Union[int, float] = 1e-8
     ) -> Union[NotImplementedType, bool]:
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
+
+    @property
+    def classical_controls(self) -> FrozenSet[Condition]:
+        return self.sub_operation.classical_controls
 
     def without_classical_controls(self) -> 'cirq.Operation':
         new_sub_operation = self.sub_operation.without_classical_controls()
