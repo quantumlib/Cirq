@@ -46,9 +46,9 @@ class Condition(abc.ABC):
         """Resolves the condition based on the measurements."""
 
     @property
+    @abc.abstractmethod
     def qasm(self):
         """Returns the qasm of this condition."""
-        raise NotImplementedError()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -109,6 +109,10 @@ class SympyCondition(Condition):
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
+
+    @property
+    def qasm(self):
+        raise NotImplementedError()
 
 
 def parse_sympy_condition(s: str) -> Optional['cirq.SympyCondition']:

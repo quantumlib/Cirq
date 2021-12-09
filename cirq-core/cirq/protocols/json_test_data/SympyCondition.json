@@ -1,0 +1,11 @@
+{
+  "cirq_type": "SympyCondition",
+  "expr": "x > 5",
+  "control_keys": [
+    {
+      "cirq_type": "MeasurementKey",
+      "name": "a",
+      "path": []
+    }
+  ]
+}

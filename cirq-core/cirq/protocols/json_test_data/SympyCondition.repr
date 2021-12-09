@@ -1,0 +1,1 @@
+cirq.SympyCondition(control_keys=[cirq.MeasurementKey('a')], expr='x > 5')
