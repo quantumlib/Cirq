@@ -42,9 +42,13 @@ def test_key_condition_resolve():
     assert not init_key_condition.resolve({'a': [0, 0]})
     assert not init_key_condition.resolve({'a': []})
     assert not init_key_condition.resolve({'a': [0], 'b': [1]})
-    with pytest.raises(ValueError, match='Measurement key a missing when testing classical control'):
+    with pytest.raises(
+        ValueError, match='Measurement key a missing when testing classical control'
+    ):
         _ = init_key_condition.resolve({})
-    with pytest.raises(ValueError, match='Measurement key a missing when testing classical control'):
+    with pytest.raises(
+        ValueError, match='Measurement key a missing when testing classical control'
+    ):
         _ = init_key_condition.resolve({'b': [1]})
 
 
@@ -70,9 +74,13 @@ def test_sympy_condition_resolve():
     assert not init_sympy_condition.resolve({'a': [0, 0]})
     assert not init_sympy_condition.resolve({'a': []})
     assert not init_sympy_condition.resolve({'a': [0], 'b': [1]})
-    with pytest.raises(ValueError, match=re.escape("Measurement keys ['a'] missing when testing classical control")):
+    with pytest.raises(
+        ValueError, match=re.escape("Measurement keys ['a'] missing when testing classical control")
+    ):
         _ = init_sympy_condition.resolve({})
-    with pytest.raises(ValueError, match=re.escape("Measurement keys ['a'] missing when testing classical control")):
+    with pytest.raises(
+        ValueError, match=re.escape("Measurement keys ['a'] missing when testing classical control")
+    ):
         _ = init_sympy_condition.resolve({'b': [1]})
 
 
