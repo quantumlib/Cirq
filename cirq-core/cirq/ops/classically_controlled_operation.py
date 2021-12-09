@@ -18,6 +18,7 @@ from typing import (
     FrozenSet,
     List,
     Optional,
+    Sequence,
     TYPE_CHECKING,
     Tuple,
     Union,
@@ -48,7 +49,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def __init__(
         self,
         sub_operation: 'cirq.Operation',
-        conditions: Tuple[Union[str, 'cirq.MeasurementKey', raw_types.Condition], ...],
+        conditions: Sequence[Union[str, 'cirq.MeasurementKey', raw_types.Condition]],
     ):
         """Initializes a `ClassicallyControlledOperation`.
 
@@ -70,6 +71,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
             raise ValueError(
                 f'Cannot conditionally run operations with measurements: {sub_operation}'
             )
+        conditions = tuple(conditions)
         if isinstance(sub_operation, ClassicallyControlledOperation):
             conditions += sub_operation._conditions
             sub_operation = sub_operation._sub_operation
@@ -83,7 +85,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
             if isinstance(c, value.MeasurementKey):
                 c = raw_types.Condition(sympy.sympify('x0'), (c,))
             conds.append(c)
-        self._conditions = tuple(conds)
+        self._conditions: Tuple[raw_types.Condition, ...] = tuple(conds)
         self._sub_operation: 'cirq.Operation' = sub_operation
 
     @property
@@ -188,6 +190,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         def map_condition(condition: raw_types.Condition) -> raw_types.Condition:
             keys = [protocols.with_measurement_key_mapping(k, key_map) for k in condition.keys]
             return condition.with_keys(tuple(keys))
+
         conditions = [map_condition(c) for c in self._conditions]
         return self._sub_operation.with_classical_controls(*conditions)
 
@@ -195,13 +198,14 @@ class ClassicallyControlledOperation(raw_types.Operation):
         def map_condition(condition: raw_types.Condition) -> raw_types.Condition:
             keys = tuple(protocols.with_key_path_prefix(k, path) for k in condition.keys)
             return condition.with_keys(keys)
+
         conditions = [map_condition(c) for c in self._conditions]
         return self._sub_operation.with_classical_controls(*conditions)
 
     def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
-        local_keys = frozenset()
-        for condition in self._conditions:
-            local_keys = local_keys.union(condition.keys)
+        local_keys: FrozenSet[value.MeasurementKey] = frozenset(
+            k for condition in self._conditions for k in condition.keys
+        )
         return local_keys.union(protocols.control_keys(self._sub_operation))
 
     def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:

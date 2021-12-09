@@ -440,8 +440,8 @@ class Condition:
         assert len(keys) == len(self._keys)
         return Condition(self._expr, keys)
 
-    def __eq__(self, other):
-        return isinstance(other, Condition) and self._keys == other._keys and self._expr == other._expr
+    def __eq__(self, x):
+        return isinstance(x, Condition) and self._keys == x._keys and self._expr == x._expr
 
     def __hash__(self):
         return hash(self._keys) ^ hash(self._expr)
