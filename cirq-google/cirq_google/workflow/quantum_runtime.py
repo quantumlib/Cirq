@@ -19,15 +19,18 @@ import uuid
 from typing import Any, Dict, Optional, List
 
 import cirq
+import numpy as np
 from cirq import _compat
-from cirq.protocols import dataclass_json_dict
+from cirq.protocols import dataclass_json_dict, obj_to_dict_helper
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
 from cirq_google.workflow.io import _FilesystemSaver
 from cirq_google.workflow.progress import _PrintLogger
 from cirq_google.workflow.quantum_executable import (
+    QuantumExecutable,
     ExecutableSpec,
     QuantumExecutableGroup,
 )
+from cirq_google.workflow.qubit_placement import QubitPlacer, NaiveQubitPlacer
 
 
 @dataclasses.dataclass
@@ -39,19 +42,29 @@ class SharedRuntimeInfo:
 
     Args:
         run_id: A unique `str` identifier for this run.
+        device: The actual device used during execution, not just its processor_id
     """
 
     run_id: str
+    device: Optional[cirq.Device] = None
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self)
+        # TODO (gh-4699): serialize `device` as well once SerializableDevice is serializable.
+        return obj_to_dict_helper(self, attribute_names=['run_id'])
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
+
+
+def _try_tuple(k: Any) -> Any:
+    """If we serialize a dictionary that had tuple keys, they get turned to json lists."""
+    if isinstance(k, list):
+        return tuple(k)
+    return k  # coverage: ignore
 
 
 @dataclasses.dataclass
@@ -63,16 +76,29 @@ class RuntimeInfo:
     Args:
         execution_index: What order (in its `cg.QuantumExecutableGroup`) this
             `cg.QuantumExecutable` was executed.
+        qubit_placement: If a QubitPlacer was used, a record of the mapping
+            from problem-qubits to device-qubits.
     """
 
     execution_index: int
+    qubit_placement: Optional[Dict[Any, cirq.Qid]] = None
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self)
+        d = dataclass_json_dict(self)
+        if d['qubit_placement']:
+            d['qubit_placement'] = list(d['qubit_placement'].items())
+        return d
+
+    @classmethod
+    def _from_json_dict_(cls, **kwargs) -> 'RuntimeInfo':
+        kwargs.pop('cirq_type')
+        if kwargs.get('qubit_placement', None):
+            kwargs['qubit_placement'] = {_try_tuple(k): v for k, v in kwargs['qubit_placement']}
+        return cls(**kwargs)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -143,10 +169,16 @@ class QuantumRuntimeConfiguration:
         run_id: A unique `str` identifier for a run. If data already exists for the specified
             `run_id`, an exception will be raised. If not specified, we will generate a UUID4
             run identifier.
+        random_seed: An initial seed to make the run deterministic. Otherwise, the default numpy
+            seed will be used.
+        qubit_placer: A `cg.QubitPlacer` implementation to map executable qubits to device qubits.
+            The placer is only called if a given `cg.QuantumExecutable` has a `problem_topology`.
     """
 
     processor: AbstractEngineProcessorShim
     run_id: Optional[str] = None
+    random_seed: Optional[int] = None
+    qubit_placer: QubitPlacer = NaiveQubitPlacer()
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -200,25 +232,37 @@ def execute(
         # coverage: ignore
         raise ValueError("Please provide a non-empty `base_data_dir`.")
 
-    shared_rt_info = SharedRuntimeInfo(run_id=run_id)
+    sampler = rt_config.processor.get_sampler()
+    device = rt_config.processor.get_device()
+
+    shared_rt_info = SharedRuntimeInfo(
+        run_id=run_id,
+        device=device,
+    )
     executable_results = []
 
     saver = _FilesystemSaver(base_data_dir=base_data_dir, run_id=run_id)
     saver.initialize(rt_config, shared_rt_info)
 
-    sampler = rt_config.processor.get_sampler()
     logger = _PrintLogger(n_total=len(executable_group))
     logger.initialize()
+
+    rs = np.random.RandomState(rt_config.random_seed)
+    exe: QuantumExecutable
     for i, exe in enumerate(executable_group):
         runtime_info = RuntimeInfo(execution_index=i)
 
         if exe.params != tuple():
             raise NotImplementedError("Circuit params are not yet supported.")
-
-        circuit = exe.circuit
-
         if not hasattr(exe.measurement, 'n_repetitions'):
             raise NotImplementedError("Only `BitstringsMeasurement` are supported.")
+
+        circuit = exe.circuit
+        if exe.problem_topology is not None:
+            circuit, mapping = rt_config.qubit_placer.place_circuit(
+                circuit, problem_topology=exe.problem_topology, shared_rt_info=shared_rt_info, rs=rs
+            )
+            runtime_info.qubit_placement = mapping
 
         sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
 

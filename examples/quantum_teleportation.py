@@ -20,18 +20,23 @@ https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.70.1895
 
 === EXAMPLE OUTPUT ===
 Circuit:
-0: -----------X^0.25---Y^0.125---@---H---M-------@---
-                                 |       |       |
-1: ---H---@----------------------X-------M---@---|---
-          |                                  |   |
-2: -------X----------------------------------X---@---
+                                      ┌──┐
+0: ───────X^0.559───Y^0.647───@───H────M─────────
+                              │        ║
+1: ───────H─────────@─────────X───M────╫─────────
+                    │             ║    ║
+2: ─────────────────X─────────────╫────╫X────Z───
+                                  ║    ║║    ║
+alice: ═══════════════════════════@════╬^════╬═══
+                                       ║     ║
+msg: ══════════════════════════════════@═════^═══
+                                      └──┘
 
 Bloch Sphere of Message After Random X and Y Gates:
-x:  0.2706 y:  -0.7071 z:  0.6533
+x:  -0.1647 y:  -0.9829 z:  0.082
 
 Bloch Sphere of Qubit 2 at Final State:
-x:  0.2706 y:  -0.7071 z:  0.6533
-
+x:  -0.1647 y:  -0.9829 z:  0.082
 """
 
 import random
@@ -49,10 +54,12 @@ def make_quantum_teleportation_circuit(ranX, ranY):
     circuit.append([cirq.X(msg) ** ranX, cirq.Y(msg) ** ranY])
     # Bell measurement of the Message and Alice's entangled qubit.
     circuit.append([cirq.CNOT(msg, alice), cirq.H(msg)])
-    circuit.append(cirq.measure(msg, alice))
+    circuit.append(cirq.measure(msg, key='msg'))
+    circuit.append(cirq.measure(alice, key='alice'))
     # Uses the two classical bits from the Bell measurement to recover the
     # original quantum Message on Bob's entangled qubit.
-    circuit.append([cirq.CNOT(alice, bob), cirq.CZ(msg, bob)])
+    circuit.append(cirq.X(bob).with_classical_controls('alice'))
+    circuit.append(cirq.Z(bob).with_classical_controls('msg'))
 
     return circuit
 
