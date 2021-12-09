@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
 import pytest
 import sympy
 
@@ -395,7 +394,7 @@ def test_repr():
     op = cirq.X(q0).with_classical_controls('a')
     assert repr(op) == (
         "cirq.ClassicallyControlledOperation("
-        "cirq.X(cirq.LineQubit(0)), [cirq.MeasurementKey(name='a')]"
+        "cirq.X(cirq.LineQubit(0)), [KeyCondition(key=cirq.MeasurementKey(name='a'))]"
         ")"
     )
 

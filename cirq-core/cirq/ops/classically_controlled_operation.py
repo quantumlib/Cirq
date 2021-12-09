@@ -24,8 +24,6 @@ from typing import (
     Union,
 )
 
-import sympy
-
 from cirq import protocols, value
 from cirq.ops import raw_types
 

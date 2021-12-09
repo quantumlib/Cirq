@@ -35,7 +35,6 @@ from typing import (
 )
 
 import numpy as np
-import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
