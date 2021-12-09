@@ -42,6 +42,7 @@ class GlobalPhaseOperation(gate_operation.GateOperation):
 
     @coefficient.setter
     def coefficient(self, coefficient: value.Scalar):
+        # coverage: ignore
         self.gate._coefficient = coefficient  # type: ignore
 
     def __str__(self) -> str:
