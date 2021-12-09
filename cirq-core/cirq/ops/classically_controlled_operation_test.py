@@ -419,13 +419,17 @@ def test_unmeasured_condition():
 def test_sympy():
     for i in range(9):
         for j in range(8):
+            # Add X gates to put the circuit into a state representing bitstring(j), and measure
             bitstring = cirq.big_endian_int_to_bits(j, bit_count=3)
             circuit = cirq.Circuit()
             for k in range(3):
                 circuit.append(cirq.X(cirq.LineQubit(k)) ** bitstring[k])
-            circuit.append(cirq.measure(*cirq.LineQubit.range(3), key='m'))
-            circuit.append(cirq.X(cirq.LineQubit(3)).with_classical_controls(f'{{m}} > {i}'))
-            circuit.append(cirq.measure(cirq.LineQubit(3), key='a'))
+            circuit.append(cirq.measure(*cirq.LineQubit.range(3), key='m_j'))
+
+            # Add a X(q3) conditional on the above measurement (which should be == `j`) being > `i`
+            circuit.append(cirq.X(cirq.LineQubit(3)).with_classical_controls(f'{{m_j}} > {i}'))
+            circuit.append(cirq.measure(cirq.LineQubit(3), key='q3'))
             result = cirq.Simulator().run(circuit)
-            expected = 1 if j > i else 0
-            assert result.measurements['a'][0][0] == expected
+
+            # q3 should now be set iff j > i.
+            assert result.measurements['q3'][0][0] == (j > i)

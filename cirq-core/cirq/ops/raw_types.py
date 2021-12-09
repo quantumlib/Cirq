@@ -593,6 +593,7 @@ class Operation(metaclass=abc.ABCMeta):
 
     @property
     def classical_controls(self) -> FrozenSet['cirq.Condition']:
+        """The classical controls gating this operation."""
         return frozenset()
 
     def with_classical_controls(

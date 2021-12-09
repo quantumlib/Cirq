@@ -32,6 +32,8 @@ if TYPE_CHECKING:
 
 
 class Condition(abc.ABC):
+    """A classical control condition that can gate an operation."""
+
     @property
     @abc.abstractmethod
     def keys(self) -> Tuple['cirq.MeasurementKey', ...]:
@@ -53,6 +55,12 @@ class Condition(abc.ABC):
 
 @dataclasses.dataclass(frozen=True)
 class KeyCondition(Condition):
+    """A classical control condition based on a single measurement key.
+
+    This condition resolves to True iff the measurement key is non-zero at the
+    time of resolution.
+    """
+
     key: 'cirq.MeasurementKey'
 
     @property
@@ -82,6 +90,23 @@ class KeyCondition(Condition):
 
 @dataclasses.dataclass(frozen=True)
 class SympyCondition(Condition):
+    """A classical control condition based on a sympy expression.
+
+    This condition resolves to True iff the sympy expression resolves to a
+    Truthy value when the measurement keys are substituted in as the free
+    variables.
+
+    To account for the fact that measurement key strings can contain characters
+    not allowed in sympy variables, we use x0..xN for the free variables and
+    substitute the measurement keys in by order. For instance a condition with
+    `expr='x0 > x1', keys=['0:A', '0:B']` would resolve to True iff key `0:A`
+    is greater than key `0:B`.
+
+    The `cirq.parse_sympy_condition` function automates setting this up
+    correctly. To create the above expression, one would call
+    `cirq.parse_sympy_condition('{0:A}, {0:B}')`.
+    """
+
     expr: sympy.Expr
     control_keys: Tuple['cirq.MeasurementKey', ...]
 
@@ -117,6 +142,12 @@ class SympyCondition(Condition):
 
 
 def parse_sympy_condition(s: str) -> 'cirq.SympyCondition':
+    """Parses a string into a `cirq.SympyCondition`.
+
+    The measurement keys in a sympy condition string must be wrapped in curly
+    braces to denote them. For example, to create an expression that checks if
+    measurement A was greater than measurement B, the proper syntax is
+    `cirq.parse_sympy_condition('{A} > {B}')`."""
     in_key = False
     key_count = 0
     s_out = ''
@@ -145,6 +176,7 @@ def parse_sympy_condition(s: str) -> 'cirq.SympyCondition':
 
 
 def parse_condition(s: str) -> 'cirq.Condition':
+    """Parses a string into a `Condition`."""
     try:
         return parse_sympy_condition(s)
     except ValueError:
