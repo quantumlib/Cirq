@@ -38,7 +38,7 @@ class Condition(abc.ABC):
         """Gets the control keys."""
 
     @abc.abstractmethod
-    def with_keys(self, keys: Tuple['cirq.MeasurementKey', ...]):
+    def with_keys(self, *keys: 'cirq.MeasurementKey'):
         """Replaces the control keys."""
 
     @abc.abstractmethod
@@ -59,7 +59,7 @@ class KeyCondition(Condition):
     def keys(self):
         return (self.key,)
 
-    def with_keys(self, keys: Tuple['cirq.MeasurementKey', ...]):
+    def with_keys(self, *keys: 'cirq.MeasurementKey'):
         assert len(keys) == 1
         return KeyCondition(keys[0])
 
@@ -89,12 +89,13 @@ class SympyCondition(Condition):
     def keys(self):
         return self.control_keys
 
-    def with_keys(self, keys: Tuple['cirq.MeasurementKey', ...]):
+    def with_keys(self, *keys: 'cirq.MeasurementKey'):
         assert len(keys) == len(self.control_keys)
         return dataclasses.replace(self, control_keys=keys)
 
     def __str__(self):
-        return f'({self.expr}, {self.control_keys})'
+        replacements = {f'x{i}': str(key) for i, key in enumerate(self.control_keys)}
+        return f"{self.expr.subs(replacements)}"
 
     def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
         missing = [str(k) for k in self.keys if str(k) not in measurements]
@@ -115,7 +116,7 @@ class SympyCondition(Condition):
         raise NotImplementedError()
 
 
-def parse_sympy_condition(s: str) -> Optional['cirq.SympyCondition']:
+def parse_sympy_condition(s: str) -> 'cirq.SympyCondition':
     in_key = False
     key_count = 0
     s_out = ''
@@ -139,12 +140,13 @@ def parse_sympy_condition(s: str) -> Optional['cirq.SympyCondition']:
                 key_name += c
     expr = sympy.sympify(s_out)
     if len(expr.free_symbols) != len(keys):
-        return None
+        raise ValueError(f"'{s}' is not a valid sympy condition")
     return SympyCondition(expr, tuple(keys))
 
 
 def parse_condition(s: str) -> 'cirq.Condition':
-    c = parse_sympy_condition(s) or measurement_key.MeasurementKey.parse_serialized(s)
-    if c is None:
-        raise ValueError(f"'{s}' is not a valid condition")
-    return c
+    try:
+        return parse_sympy_condition(s)
+    except ValueError:
+        pass
+    return measurement_key.MeasurementKey.parse_serialized(s)

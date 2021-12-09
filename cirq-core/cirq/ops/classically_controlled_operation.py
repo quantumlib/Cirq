@@ -174,15 +174,15 @@ class ClassicallyControlledOperation(raw_types.Operation):
     ) -> 'ClassicallyControlledOperation':
         def map_condition(condition: 'cirq.Condition') -> 'cirq.Condition':
             keys = [protocols.with_measurement_key_mapping(k, key_map) for k in condition.keys]
-            return condition.with_keys(tuple(keys))
+            return condition.with_keys(*keys)
 
         conditions = [map_condition(c) for c in self._conditions]
         return self._sub_operation.with_classical_controls(*conditions)
 
     def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'ClassicallyControlledOperation':
         def map_condition(condition: 'cirq.Condition') -> 'cirq.Condition':
-            keys = tuple(protocols.with_key_path_prefix(k, path) for k in condition.keys)
-            return condition.with_keys(keys)
+            keys = [protocols.with_key_path_prefix(k, path) for k in condition.keys]
+            return condition.with_keys(*keys)
 
         conditions = [map_condition(c) for c in self._conditions]
         return self._sub_operation.with_classical_controls(*conditions)
