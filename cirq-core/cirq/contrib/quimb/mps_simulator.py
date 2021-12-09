@@ -19,7 +19,7 @@ https://arxiv.org/abs/2002.07730
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import quimb.tensor as qtn
@@ -92,6 +92,7 @@ class MPSSimulator(
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
+        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]],
     ) -> 'MPSState':
         """Creates MPSState args for simulating the Circuit.
 
@@ -116,6 +117,7 @@ class MPSSimulator(
             grouping=self.grouping,
             initial_state=initial_state,
             log_of_measurement_results=logs,
+            measured_qubits=measured_qubits,
         )
 
     def _create_step_result(
@@ -229,6 +231,7 @@ class MPSState(ActOnArgs):
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
         log_of_measurement_results: Dict[str, Any] = None,
+        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = None,
     ):
         """Creates and MPSState
 
@@ -246,7 +249,7 @@ class MPSState(ActOnArgs):
         Raises:
             ValueError: If the grouping does not cover the qubits.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results, measured_qubits)
         qubit_map = self.qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():

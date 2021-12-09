@@ -112,6 +112,7 @@ class CountingSimulator(
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
+        measured_qubits,
     ) -> CountingActOnArgs:
         return CountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
 
@@ -142,6 +143,7 @@ class SplittableCountingSimulator(CountingSimulator):
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
+        measured_qubits,
     ) -> CountingActOnArgs:
         return SplittableCountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
 

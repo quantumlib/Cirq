@@ -23,6 +23,7 @@ from typing import (
     TYPE_CHECKING,
     Union,
     Sequence,
+    Tuple,
     Optional,
 )
 
@@ -175,6 +176,7 @@ class Simulator(
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
+        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]],
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 
@@ -203,6 +205,7 @@ class Simulator(
             qubits=qubits,
             prng=self._prng,
             log_of_measurement_results=logs,
+            measured_qubits=measured_qubits,
         )
 
     def _create_step_result(

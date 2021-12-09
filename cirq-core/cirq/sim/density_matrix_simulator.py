@@ -176,6 +176,7 @@ class DensityMatrixSimulator(
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
+        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]],
     ) -> 'cirq.ActOnDensityMatrixArgs':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 
@@ -208,6 +209,7 @@ class DensityMatrixSimulator(
             qid_shape=qid_shape,
             prng=self._prng,
             log_of_measurement_results=logs,
+            measured_qubits=measured_qubits,
         )
 
     def _can_be_in_run_prefix(self, val: Any):

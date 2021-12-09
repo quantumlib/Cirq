@@ -124,6 +124,7 @@ class SimulatorBase(
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
+        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]],
     ) -> TActOnArgs:
         """Creates an instance of the TActOnArgs class for the simulator.
 
@@ -340,6 +341,7 @@ class SimulatorBase(
             return initial_state
 
         log: Dict[str, Any] = {}
+        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = {}
         if self._split_untangled_states:
             args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
             if isinstance(initial_state, int):
@@ -348,6 +350,7 @@ class SimulatorBase(
                         initial_state=initial_state % q.dimension,
                         qubits=[q],
                         logs=log,
+                        measured_qubits=measured_qubits,
                     )
                     initial_state = int(initial_state / q.dimension)
             else:
@@ -355,16 +358,20 @@ class SimulatorBase(
                     initial_state=initial_state,
                     qubits=qubits,
                     logs=log,
+                    measured_qubits=measured_qubits,
                 )
                 for q in qubits:
                     args_map[q] = args
-            args_map[None] = self._create_partial_act_on_args(0, (), log)
-            return ActOnArgsContainer(args_map, qubits, self._split_untangled_states, log)
+            args_map[None] = self._create_partial_act_on_args(0, (), log, measured_qubits)
+            return ActOnArgsContainer(
+                args_map, qubits, self._split_untangled_states, log, measured_qubits
+            )
         else:
             return self._create_partial_act_on_args(
                 initial_state=initial_state,
                 qubits=qubits,
                 logs=log,
+                measured_qubits=measured_qubits,
             )
 
 

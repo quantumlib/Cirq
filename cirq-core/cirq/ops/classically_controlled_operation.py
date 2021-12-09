@@ -165,7 +165,8 @@ class ClassicallyControlledOperation(raw_types.Operation):
         }
 
     def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
-        if all(c.resolve(args.log_of_measurement_results) for c in self._conditions):
+        measurements, qubits = args.log_of_measurement_results, args.measured_qubits
+        if all(c.resolve(measurements, qubits) for c in self._conditions):
             protocols.act_on(self._sub_operation, args)
         return True
 

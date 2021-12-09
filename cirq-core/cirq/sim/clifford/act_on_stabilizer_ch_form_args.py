@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -42,6 +42,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
+        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = None,
     ):
         """Initializes with the given state and the axes for the operation.
         Args:
@@ -55,7 +56,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results, measured_qubits)
         self.state = state
 
     def _act_on_fallback_(

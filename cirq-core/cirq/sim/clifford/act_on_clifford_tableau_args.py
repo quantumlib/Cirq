@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -43,6 +43,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
+        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = None,
     ):
         """Inits ActOnCliffordTableauArgs.
 
@@ -57,7 +58,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results, measured_qubits)
         self.tableau = tableau
 
     def _act_on_fallback_(

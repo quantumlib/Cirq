@@ -14,15 +14,16 @@
 
 from collections import abc
 from typing import (
-    Dict,
-    TYPE_CHECKING,
-    Generic,
-    Sequence,
-    Optional,
-    Iterator,
     Any,
-    Tuple,
+    Dict,
+    Generic,
+    Iterator,
     List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
     Union,
 )
 
@@ -51,6 +52,7 @@ class ActOnArgsContainer(
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
         log_of_measurement_results: Dict[str, Any],
+        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = None,
     ):
         """Initializes the class.
 
@@ -68,6 +70,7 @@ class ActOnArgsContainer(
         self._qubits = tuple(qubits)
         self.split_untangled_states = split_untangled_states
         self._log_of_measurement_results = log_of_measurement_results
+        self._measured_qubits = measured_qubits or {}
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
@@ -132,9 +135,11 @@ class ActOnArgsContainer(
 
     def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()
+        measured_qubits = self._measured_qubits.copy()
         copies = {a: a.copy() for a in set(self.args.values())}
         for copy in copies.values():
             copy._log_of_measurement_results = logs
+            copy._measured_qubits = measured_qubits
         args = {q: copies[a] for q, a in self.args.items()}
         return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, logs)
 
@@ -145,6 +150,10 @@ class ActOnArgsContainer(
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
         return self._log_of_measurement_results
+
+    @property
+    def measured_qubits(self) -> Mapping[str, Tuple['cirq.Qid', ...]]:
+        return self._measured_qubits
 
     def sample(
         self,

@@ -43,6 +43,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
+        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = None,
     ):
         """Inits ActOnStateVectorArgs.
 
@@ -63,7 +64,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results, measured_qubits)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
 
