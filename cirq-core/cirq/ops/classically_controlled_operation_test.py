@@ -333,7 +333,7 @@ def test_key_set_in_subcircuit_outer_scope():
 def test_condition_flattening():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a').with_classical_controls('b')
-    assert set(map(str, op.classical_controls)) == {'a', 'b'}
+    assert set(map(str, op._conditions)) == {'a', 'b'}
     assert isinstance(op._sub_operation, cirq.GateOperation)
 
 
@@ -341,6 +341,7 @@ def test_condition_stacking():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a').with_tags('t').with_classical_controls('b')
     assert set(map(str, cirq.control_keys(op))) == {'a', 'b'}
+    assert set(map(str, op.classical_controls)) == {'a', 'b'}
     assert not op.tags
 
 
@@ -355,6 +356,7 @@ def test_condition_removal():
     )
     op = op.without_classical_controls()
     assert not cirq.control_keys(op)
+    assert not op.classical_controls
     assert set(map(str, op.tags)) == {'t1'}
 
 
