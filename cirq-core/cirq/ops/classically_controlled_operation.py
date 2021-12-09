@@ -78,12 +78,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
         conds: List['cirq.Condition'] = []
         for c in conditions:
             if isinstance(c, str):
-                c1 = parse_condition(c) or value.MeasurementKey.parse_serialized(c)
-                if c1 is None:
-                    raise ValueError(f"'{c}' is not a valid condition")
-                c = c1
+                c = value.parse_condition(c)
             if isinstance(c, value.MeasurementKey):
-                c = value.Condition(sympy.sympify('x0'), (c,))
+                c = value.KeyCondition(c)
             conds.append(c)
         self._conditions: Tuple['cirq.Condition', ...] = tuple(conds)
         self._sub_operation: 'cirq.Operation' = sub_operation
@@ -170,18 +167,8 @@ class ClassicallyControlledOperation(raw_types.Operation):
         }
 
     def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
-        for condition in self._conditions:
-            keys, expr = condition.keys, condition.expr
-            missing = [str(k) for k in keys if str(k) not in args.log_of_measurement_results]
-            if missing:
-                raise ValueError(f'Measurement keys {missing} missing when performing {self}')
-            replacements = {
-                f'x{i}': args.log_of_measurement_results[str(k)][0] for i, k in enumerate(keys)
-            }
-            result = expr.subs(replacements)
-            if not result:
-                return True
-        protocols.act_on(self._sub_operation, args)
+        if all(c.resolve(args.log_of_measurement_results) for c in self._conditions):
+            protocols.act_on(self._sub_operation, args)
         return True
 
     def _with_measurement_key_mapping_(
@@ -213,31 +200,3 @@ class ClassicallyControlledOperation(raw_types.Operation):
         keys = [f'm_{key}!=0' for key in self._conditions]
         all_keys = " && ".join(keys)
         return args.format('if ({0}) {1}', all_keys, protocols.qasm(self._sub_operation, args=args))
-
-
-def parse_condition(s: str) -> Optional['cirq.Condition']:
-    in_key = False
-    key_count = 0
-    s_out = ''
-    key_name = ''
-    keys = []
-    for c in s:
-        if not in_key:
-            if c == '{':
-                in_key = True
-            else:
-                s_out += c
-        else:
-            if c == '}':
-                symbol_name = f'x{key_count}'
-                s_out += symbol_name
-                keys.append(value.MeasurementKey.parse_serialized(key_name))
-                key_name = ''
-                key_count += 1
-                in_key = False
-            else:
-                key_name += c
-    expr = sympy.sympify(s_out)
-    if len(expr.free_symbols) != len(keys):
-        return None
-    return value.Condition(expr, tuple(keys))

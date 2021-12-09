@@ -410,9 +410,6 @@ def test_unmeasured_condition():
     q0 = cirq.LineQubit(0)
     bad_circuit = cirq.Circuit(cirq.X(q0).with_classical_controls('a'))
     with pytest.raises(
-        ValueError,
-        match=re.escape(
-            "Measurement keys ['a'] missing when performing X(0).with_classical_controls(a)"
-        ),
+        ValueError, match='Measurement key a missing when testing classical control'
     ):
         _ = cirq.Simulator().simulate(bad_circuit)
