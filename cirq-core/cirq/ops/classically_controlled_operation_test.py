@@ -412,3 +412,18 @@ def test_unmeasured_condition():
         ValueError, match='Measurement key a missing when testing classical control'
     ):
         _ = cirq.Simulator().simulate(bad_circuit)
+
+
+def test_sympy():
+    for i in range(9):
+        for j in range(8):
+            bitstring = cirq.big_endian_int_to_bits(j, bit_count=3)
+            circuit = cirq.Circuit()
+            for k in range(3):
+                circuit.append(cirq.X(cirq.LineQubit(k)) ** bitstring[k])
+            circuit.append(cirq.measure(*cirq.LineQubit.range(3), key='m'))
+            circuit.append(cirq.X(cirq.LineQubit(3)).with_classical_controls(f'{{m}} > {i}'))
+            circuit.append(cirq.measure(cirq.LineQubit(3), key='a'))
+            result = cirq.Simulator().run(circuit)
+            expected = 1 if j > i else 0
+            assert result.measurements['a'][0][0] == expected

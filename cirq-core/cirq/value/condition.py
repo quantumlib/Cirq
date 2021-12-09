@@ -25,7 +25,7 @@ import dataclasses
 import sympy
 
 from cirq.protocols import json_serialization
-from cirq.value import measurement_key
+from cirq.value import digits, measurement_key
 
 if TYPE_CHECKING:
     import cirq
@@ -102,7 +102,7 @@ class SympyCondition(Condition):
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
 
         def value(k):
-            return sum(v * 2 ** i for i, v in enumerate(measurements[str(k)]))
+            return digits.big_endian_bits_to_int(measurements[str(k)])
 
         replacements = {f'x{i}': value(k) for i, k in enumerate(self.keys)}
         return bool(self.expr.subs(replacements))
