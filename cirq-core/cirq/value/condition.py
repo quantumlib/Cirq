@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from typing import (
-    Dict,
-    List,
+    Mapping,
     Optional,
+    Sequence,
     Tuple,
     TYPE_CHECKING,
 )
@@ -41,7 +41,7 @@ class Condition(abc.ABC):
         """Replaces the control keys."""
 
     @abc.abstractmethod
-    def resolve(self, measurements: Dict[str, List[int]]) -> bool:
+    def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
         """Resolves the condition based on the measurements."""
 
 
@@ -60,7 +60,7 @@ class KeyCondition(Condition):
     def __str__(self):
         return str(self.key)
 
-    def resolve(self, measurements: Dict[str, List[int]]) -> bool:
+    def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
         key = str(self.key)
         if key not in measurements:
             raise ValueError(f'Measurement key {key} missing when testing classical control')
@@ -83,11 +83,15 @@ class SympyCondition(Condition):
     def __str__(self):
         return f'({self.expr}, {self.control_keys})'
 
-    def resolve(self, measurements: Dict[str, List[int]]) -> bool:
+    def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
         missing = [str(k) for k in self.keys if str(k) not in measurements]
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
-        replacements = {f'x{i}': measurements[str(k)][0] for i, k in enumerate(self.keys)}
+
+        def value(k):
+            return sum(v * 2 ** i for i, v in enumerate(measurements[str(k)]))
+
+        replacements = {f'x{i}': value(k) for i, k in enumerate(self.keys)}
         return bool(self.expr.subs(replacements))
 
 
