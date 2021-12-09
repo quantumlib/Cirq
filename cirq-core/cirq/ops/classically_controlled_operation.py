@@ -49,7 +49,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def __init__(
         self,
         sub_operation: 'cirq.Operation',
-        conditions: Sequence[Union[str, 'cirq.MeasurementKey', raw_types.Condition]],
+        conditions: Sequence[Union[str, 'cirq.MeasurementKey', 'cirq.Condition']],
     ):
         """Initializes a `ClassicallyControlledOperation`.
 
@@ -75,7 +75,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         if isinstance(sub_operation, ClassicallyControlledOperation):
             conditions += sub_operation._conditions
             sub_operation = sub_operation._sub_operation
-        conds: List[raw_types.Condition] = []
+        conds: List['cirq.Condition'] = []
         for c in conditions:
             if isinstance(c, str):
                 c1 = parse_condition(c) or value.MeasurementKey.parse_serialized(c)
@@ -83,13 +83,13 @@ class ClassicallyControlledOperation(raw_types.Operation):
                     raise ValueError(f"'{c}' is not a valid condition")
                 c = c1
             if isinstance(c, value.MeasurementKey):
-                c = raw_types.Condition(sympy.sympify('x0'), (c,))
+                c = value.Condition(sympy.sympify('x0'), (c,))
             conds.append(c)
-        self._conditions: Tuple[raw_types.Condition, ...] = tuple(conds)
+        self._conditions: Tuple['cirq.Condition', ...] = tuple(conds)
         self._sub_operation: 'cirq.Operation' = sub_operation
 
     @property
-    def classical_controls(self) -> FrozenSet[raw_types.Condition]:
+    def classical_controls(self) -> FrozenSet['cirq.Condition']:
         return frozenset(self._conditions).union(self._sub_operation.classical_controls)
 
     def without_classical_controls(self) -> 'cirq.Operation':
@@ -187,7 +187,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _with_measurement_key_mapping_(
         self, key_map: Dict[str, str]
     ) -> 'ClassicallyControlledOperation':
-        def map_condition(condition: raw_types.Condition) -> raw_types.Condition:
+        def map_condition(condition: 'cirq.Condition') -> 'cirq.Condition':
             keys = [protocols.with_measurement_key_mapping(k, key_map) for k in condition.keys]
             return condition.with_keys(tuple(keys))
 
@@ -195,7 +195,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return self._sub_operation.with_classical_controls(*conditions)
 
     def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'ClassicallyControlledOperation':
-        def map_condition(condition: raw_types.Condition) -> raw_types.Condition:
+        def map_condition(condition: 'cirq.Condition') -> 'cirq.Condition':
             keys = tuple(protocols.with_key_path_prefix(k, path) for k in condition.keys)
             return condition.with_keys(keys)
 
@@ -215,7 +215,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return args.format('if ({0}) {1}', all_keys, protocols.qasm(self._sub_operation, args=args))
 
 
-def parse_condition(s: str) -> Optional[raw_types.Condition]:
+def parse_condition(s: str) -> Optional['cirq.Condition']:
     in_key = False
     key_count = 0
     s_out = ''
@@ -240,4 +240,4 @@ def parse_condition(s: str) -> Optional[raw_types.Condition]:
     expr = sympy.sympify(s_out)
     if len(expr.free_symbols) != len(keys):
         return None
-    return raw_types.Condition(expr, tuple(keys))
+    return value.Condition(expr, tuple(keys))

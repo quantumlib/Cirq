@@ -473,6 +473,7 @@ from cirq.value import (
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
+    Condition,
     Duration,
     DURATION_LIKE,
     GenericMetaImplementAnyOneOf,
