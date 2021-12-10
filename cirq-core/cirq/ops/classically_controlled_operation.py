@@ -169,9 +169,10 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _with_measurement_key_mapping_(
         self, key_map: Dict[str, str]
     ) -> 'ClassicallyControlledOperation':
-        return ClassicallyControlledOperation(
-            self._sub_operation,
-            [protocols.with_measurement_key_mapping(k, key_map) for k in self._control_keys],
+        sub_operation = protocols.with_measurement_key_mapping(self._sub_operation, key_map)
+        sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
+        return sub_operation.with_classical_controls(
+            *[protocols.with_measurement_key_mapping(k, key_map) for k in self._control_keys]
         )
 
     def _with_key_path_prefix_(
@@ -190,9 +191,12 @@ class ClassicallyControlledOperation(raw_types.Operation):
                     return new_key
             return key
 
-        return ClassicallyControlledOperation(
-            self._sub_operation,
-            [map_key(k) for k in self._control_keys],
+        sub_operation = protocols.with_key_path_prefix(
+            self._sub_operation, path, local_keys, extern_keys
+        )
+        sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
+        return sub_operation.with_classical_controls(
+            *[map_key(k) for k in self._control_keys],
         )
 
     def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:

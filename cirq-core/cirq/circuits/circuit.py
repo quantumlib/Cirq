@@ -1534,10 +1534,8 @@ class AbstractCircuit(abc.ABC):
         )
 
     def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
-        all_keys: FrozenSet[value.MeasurementKey] = frozenset()
-        for op in self.all_operations():
-            all_keys = all_keys.union(protocols.control_keys(op))
-        return all_keys.difference(protocols.measurement_key_objs(self))
+        controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
+        return controls - protocols.measurement_key_objs(self)
 
 
 def _overlap_collision_time(
