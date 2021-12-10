@@ -98,7 +98,7 @@ class SympyCondition(Condition):
 
     The `cirq.parse_sympy_condition` function automates setting this up
     correctly. To create the above expression, one would call
-    `cirq.parse_sympy_condition('{0:A}, {0:B}')`.
+    `cirq.parse_sympy_condition('{0:A} > {0:B}')`.
     """
 
     expr: sympy.Expr
