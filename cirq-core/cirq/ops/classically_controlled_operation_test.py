@@ -429,6 +429,7 @@ def test_scope_local():
 """,
         use_unicode_characters=True,
     )
+    assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
 
 
 def test_scope_extern():
@@ -471,6 +472,7 @@ def test_scope_extern():
 """,
         use_unicode_characters=True,
     )
+    assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
 
 
 def test_scope_root():
@@ -513,6 +515,7 @@ b: ═════════════════════════�
 """,
         use_unicode_characters=True,
     )
+    assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
 
 
 def test_scope_extern_mismatch():
@@ -555,6 +558,7 @@ b: ═════════════════════════�
 """,
         use_unicode_characters=True,
     )
+    assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
 
 
 def test_scope_conflict():
@@ -580,6 +584,8 @@ def test_scope_conflict():
     )
     with pytest.raises(ValueError, match='Conflicting measurement keys found: 0:0:a'):
         _ = op.mapped_circuit(deep=True)
+    with pytest.raises(ValueError, match='Conflicting measurement keys found: 0:0:a'):
+        _ = cirq.decompose(op)
 
 
 def test_repr():
