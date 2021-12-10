@@ -11,17 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import (
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-)
-
 import abc
 import dataclasses
+import re
+from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING
+
 import sympy
 
 from cirq.protocols import json_serialization
@@ -148,37 +142,22 @@ def parse_sympy_condition(s: str) -> 'cirq.SympyCondition':
     braces to denote them. For example, to create an expression that checks if
     measurement A was greater than measurement B, the proper syntax is
     `cirq.parse_sympy_condition('{A} > {B}')`."""
-    in_key = False
-    key_count = 0
-    s_out = ''
-    key_name = ''
-    keys = []
-    for c in s:
-        if not in_key:
-            if c == '{':
-                in_key = True
-            else:
-                s_out += c
-        else:
-            if c == '}':
-                symbol_name = f'x{key_count}'
-                s_out += symbol_name
-                keys.append(measurement_key.MeasurementKey.parse_serialized(key_name))
-                key_name = ''
-                key_count += 1
-                in_key = False
-            else:
-                key_name += c
-    expr = sympy.sympify(s_out)
-    if len(expr.free_symbols) != len(keys):
-        raise ValueError(f"'{s}' is not a valid sympy condition")
+    keys_to_indexes: Dict[str, str] = {}
+
+    def replace(m):
+        g1 = m.group(1)
+        if g1 not in keys_to_indexes:
+            keys_to_indexes[g1] = f'x{len(keys_to_indexes)}'
+        return keys_to_indexes[g1]
+
+    result = re.sub(r'{([^}]+)}', replace, s)
+    expr = sympy.sympify(result)
+    keys = [measurement_key.MeasurementKey.parse_serialized(key) for key in keys_to_indexes.keys()]
     return SympyCondition(expr, tuple(keys))
 
 
 def parse_condition(s: str) -> 'cirq.Condition':
     """Parses a string into a `Condition`."""
-    try:
-        return parse_sympy_condition(s)
-    except ValueError:
-        pass
-    return measurement_key.MeasurementKey.parse_serialized(s)
+    return (
+        parse_sympy_condition(s) if '{' in s else measurement_key.MeasurementKey.parse_serialized(s)
+    )
