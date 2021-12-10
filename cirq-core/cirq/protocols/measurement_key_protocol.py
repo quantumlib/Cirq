@@ -305,8 +305,9 @@ def with_key_path_prefix(
     differentiate the actual measurement keys.
     """
     getter = getattr(val, '_with_key_path_prefix_', None)
-    return (
+    x = (
         NotImplemented
         if getter is None
         else getter(path, local_keys or frozenset(), extern_keys or frozenset())
     )
+    return x if x is not NotImplemented else val
