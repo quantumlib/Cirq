@@ -417,19 +417,27 @@ def test_unmeasured_condition():
 
 
 def test_sympy():
-    for i in range(9):
+    q0, q1, q2, q3, q4, q5, q6 = cirq.LineQubit.range(7)
+    for i in range(8):
         for j in range(8):
-            # Add X gates to put the circuit into a state representing bitstring(j), and measure
-            bitstring = cirq.big_endian_int_to_bits(j, bit_count=3)
-            circuit = cirq.Circuit()
-            for k in range(3):
-                circuit.append(cirq.X(cirq.LineQubit(k)) ** bitstring[k])
-            circuit.append(cirq.measure(*cirq.LineQubit.range(3), key='m_j'))
+            # Put first three qubits into a state representing bitstring(i), next three qubits
+            # into a state representing bitstring(j) and measure those into m_i and m_j
+            # respectively. Then add a conditional X(q6) based on m_i > m_j and measure that.
+            bitstring_i = cirq.big_endian_int_to_bits(i, bit_count=3)
+            bitstring_j = cirq.big_endian_int_to_bits(j, bit_count=3)
+            circuit = cirq.Circuit(
+                cirq.X(q0) ** bitstring_i[0],
+                cirq.X(q1) ** bitstring_i[1],
+                cirq.X(q2) ** bitstring_i[2],
+                cirq.X(q3) ** bitstring_j[0],
+                cirq.X(q4) ** bitstring_j[1],
+                cirq.X(q5) ** bitstring_j[2],
+                cirq.measure(q0, q1, q2, key='m_i'),
+                cirq.measure(q3, q4, q5, key='m_j'),
+                cirq.X(q6).with_classical_controls('{m_j} > {m_i}'),
+                cirq.measure(q6, key='m_q6'),
+            )
 
-            # Add a X(q3) conditional on the above measurement (which should be == `j`) being > `i`
-            circuit.append(cirq.X(cirq.LineQubit(3)).with_classical_controls(f'{{m_j}} > {i}'))
-            circuit.append(cirq.measure(cirq.LineQubit(3), key='q3'))
+            # m_q6 should now be set iff j > i.
             result = cirq.Simulator().run(circuit)
-
-            # q3 should now be set iff j > i.
-            assert result.measurements['q3'][0][0] == (j > i)
+            assert result.measurements['m_q6'][0][0] == (j > i)
