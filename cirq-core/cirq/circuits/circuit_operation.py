@@ -444,9 +444,9 @@ class CircuitOperation(ops.Operation):
         path: Tuple[str, ...],
         bindable_keys: FrozenSet['cirq.MeasurementKey'],
     ):
-        path += self.parent_path
         bindable_keys = frozenset(k for k in bindable_keys if len(k.path) <= len(path))
         bindable_keys |= self.extern_keys
+        path += self.parent_path
         return dataclasses.replace(self, parent_path=path, extern_keys=bindable_keys)
 
     def with_key_path(self, path: Tuple[str, ...]):
