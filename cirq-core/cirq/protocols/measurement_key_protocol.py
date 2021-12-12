@@ -294,9 +294,11 @@ def with_key_path(val: Any, path: Tuple[str, ...]):
 
 def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
     """Prefixes the path to the target's measurement keys.
+
     The path usually refers to an identifier or a list of identifiers from a subcircuit that
     used to contain the target. Since a subcircuit can be repeated and reused, these paths help
     differentiate the actual measurement keys.
+
     Args:
         val: The value whose path to prefix.
         prefix: The prefix to apply to the value's path.
