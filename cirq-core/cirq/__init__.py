@@ -340,6 +340,8 @@ from cirq.optimizers import (
     map_moments,
     map_operations,
     map_operations_and_unroll,
+    merge_moments,
+    merge_operations,
     merge_single_qubit_gates_into_phased_x_z,
     merge_single_qubit_gates_into_phxz,
     MergeInteractions,

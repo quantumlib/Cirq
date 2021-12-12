@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
 import pytest
+
 import cirq
 from cirq.optimizers.transformer_primitives import MAPPED_CIRCUIT_OP_TAG
 
@@ -198,3 +200,147 @@ def test_map_moments_drop_empty_moments():
     c = cirq.Circuit(cirq.Moment(op), cirq.Moment(), cirq.Moment(op))
     c_mapped = cirq.map_moments(c, lambda m, i: [] if len(m) == 0 else [m])
     cirq.testing.assert_same_circuits(c_mapped, cirq.Circuit(c[0], c[0]))
+
+
+def test_merge_moments():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.Z.on_each(q[0], q[1]),
+        cirq.Z.on_each(q[1], q[2]),
+        cirq.Z.on_each(q[1], q[0]),
+        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
+    )
+    c_orig = cirq.Circuit(c_orig, cirq.CCX(*q), c_orig)
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───Z───────Z───@───Z───────Z───
+                  │
+1: ───Z───Z───Z───@───Z───Z───Z───
+                  │
+2: ───────Z───────X───────Z───────
+''',
+    )
+
+    def merge_func(m1: cirq.Moment, m2: cirq.Moment) -> Optional[cirq.Moment]:
+        def is_z_moment(m):
+            return all(op.gate == cirq.Z for op in m)
+
+        if not (is_z_moment(m1) and is_z_moment(m2)):
+            return None
+        qubits = m1.qubits | m2.qubits
+
+        def mul(op1, op2):
+            return (op1 or op2) if not (op1 and op2) else cirq.decompose_once(op1 * op2)
+
+        return cirq.Moment(mul(m1.operation_at(q), m2.operation_at(q)) for q in qubits)
+
+    cirq.testing.assert_has_diagram(
+        cirq.merge_moments(c_orig, merge_func),
+        '''
+0: ───────@───────
+          │
+1: ───Z───@───Z───
+          │
+2: ───Z───X───Z───
+''',
+    )
+
+
+def test_merge_moments_empty_circuit():
+    def fail_if_called_func(*_):
+        assert False
+
+    c = cirq.Circuit()
+    assert cirq.merge_moments(c, fail_if_called_func) is c
+
+
+def test_merge_operations_raises():
+    q = cirq.LineQubit.range(3)
+    c = cirq.Circuit(cirq.CZ(*q[:2]), cirq.X(q[0]))
+    with pytest.raises(ValueError, match='must act on a subset of qubits'):
+        cirq.merge_operations(c, lambda *_: cirq.X(q[2]))
+
+
+def test_merge_operations_nothing_to_merge():
+    def fail_if_called_func(*_):
+        assert False
+
+    # Empty Circuit.
+    c = cirq.Circuit()
+    assert cirq.merge_operations(c, fail_if_called_func) == c
+    # Single moment
+    q = cirq.LineQubit.range(3)
+    c += cirq.Moment(cirq.CZ(*q[:2]))
+    assert cirq.merge_operations(c, fail_if_called_func) == c
+    # Multi moment with disjoint operations + global phase operation.
+    c += cirq.Moment(cirq.X(q[2]), cirq.GlobalPhaseOperation(1j))
+    assert cirq.merge_operations(c, fail_if_called_func) == c
+
+
+def test_merge_operations_merges_connected_component():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.Moment(cirq.H.on_each(*q)),
+        cirq.CNOT(q[0], q[2]),
+        cirq.CNOT(*q[0:2]),
+        cirq.H(q[0]),
+        cirq.CZ(*q[:2]),
+        cirq.X(q[0]),
+        cirq.Y(q[1]),
+        cirq.CNOT(*q[0:2]),
+        cirq.CNOT(*q[1:3]),
+        cirq.X(q[0]),
+        cirq.Y(q[1]),
+        cirq.CNOT(*q[:2]),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───H───@───@───H───@───X───────@───────X───────@───
+          │   │       │           │               │
+1: ───H───┼───X───────@───────Y───X───@───────Y───X───
+          │                           │
+2: ───H───X───────────────────────────X───────────────
+''',
+    )
+
+    def merge_func(op1, op2):
+        """Artificial example where a CZ will absorb any merge-able operation."""
+        for op in [op1, op2]:
+            if op.gate == cirq.CZ:
+                return op
+        return None
+
+    c_new = cirq.merge_operations(c_orig, merge_func)
+    cirq.testing.assert_has_diagram(
+        c_new,
+        '''
+0: ───H───@───────────@───────────────────────────@───
+          │           │                           │
+1: ───────┼───────────@───────────────@───────Y───X───
+          │                           │
+2: ───H───X───────────────────────────X───────────────''',
+    )
+
+
+@pytest.mark.parametrize("op_density", [0.1, 0.5, 0.9])
+def test_merge_operations_complexity(op_density):
+    prng = cirq.value.parse_random_state(11011)
+    circuit = cirq.testing.random_circuit(20, 500, op_density, random_state=prng)
+    for merge_func in [
+        lambda _, __: None,
+        lambda op1, _: op1,
+        lambda _, op2: op2,
+        lambda op1, op2: prng.choice([op1, op2, None]),
+    ]:
+
+        def wrapped_merge_func(op1, op2):
+            wrapped_merge_func.num_function_calls += 1
+            return merge_func(op1, op2)
+
+        wrapped_merge_func.num_function_calls = 0
+        _ = cirq.merge_operations(circuit, wrapped_merge_func)
+        total_operations = len([*circuit.all_operations()])
+        assert wrapped_merge_func.num_function_calls <= 2 * total_operations
