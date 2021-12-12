@@ -311,16 +311,24 @@ def with_rescoped_keys(
     local_keys: FrozenSet[value.MeasurementKey] = None,
     extern_keys: FrozenSet[value.MeasurementKey] = None,
 ):
-    """Prefixes the path to the target's measurement keys.
+    """Rescopes any measurement and control keys to the provided path, given the existing keys.
 
     The path usually refers to an identifier or a list of identifiers from a subcircuit that
     used to contain the target. Since a subcircuit can be repeated and reused, these paths help
     differentiate the actual measurement keys.
+
+    This function is generally for internal use in decomposing or iterating subcircuits.
+
+    Args:
+        val: The value to rescope.
+        path: The prefix to apply to the value's path.
+        local_keys: The local (in the subcircuit) keys to account for when binding.
+        extern_keys: The external (to the subcircuit) keys to account for when binding.
     """
     getter = getattr(val, '_with_rescoped_keys_', None)
-    x = (
+    result = (
         NotImplemented
         if getter is None
         else getter(path, local_keys or frozenset(), extern_keys or frozenset())
     )
-    return x if x is not NotImplemented else val
+    return result if result is not NotImplemented else val
