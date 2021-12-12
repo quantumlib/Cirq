@@ -113,7 +113,7 @@ class MeasurementKey:
         Useful when constructing the path from inside to out (in case of nested subcircuits),
         recursively.
         """
-        return self.replace(path=tuple(path_component) + self.path)
+        return self.replace(path=path_component + self.path)
 
     def _with_rescoped_keys_(
         self,
