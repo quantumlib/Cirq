@@ -115,8 +115,6 @@ class GateOperation(raw_types.Operation):
         extern_keys: FrozenSet[value.MeasurementKey],
     ):
         new_gate = protocols.with_rescoped_keys(self.gate, path, local_keys, extern_keys)
-        if new_gate is NotImplemented:
-            return NotImplemented
         if new_gate is self.gate:
             # As GateOperation is immutable, this can return the original.
             return self
