@@ -326,9 +326,5 @@ def with_rescoped_keys(
         bindable_keys: The keys that can be bound to at the current scope.
     """
     getter = getattr(val, '_with_rescoped_keys_', None)
-    result = (
-        NotImplemented
-        if getter is None
-        else getter(path, bindable_keys or frozenset())
-    )
+    result = NotImplemented if getter is None else getter(path, bindable_keys or frozenset())
     return result if result is not NotImplemented else val

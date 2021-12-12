@@ -115,7 +115,6 @@ class GateOperation(raw_types.Operation):
     ):
         new_gate = protocols.with_rescoped_keys(self.gate, path, bindable_keys)
         if new_gate is self.gate:
-            # As GateOperation is immutable, this can return the original.
             return self
         return new_gate.on(*self.qubits)
 

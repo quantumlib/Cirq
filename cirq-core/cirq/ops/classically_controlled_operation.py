@@ -161,7 +161,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         ]
         missing = [m for m in measurements if isinstance(m, str)]
         if missing:
-            raise ValueError(f'Measurement keys {missing} missing when performing {self}. Keys: {args.log_of_measurement_results.keys()}')
+            raise ValueError(f'Measurement keys {missing} missing when performing {self}')
         if all(not_zero(measurement) for measurement in measurements):
             protocols.act_on(self._sub_operation, args)
         return True
@@ -185,21 +185,15 @@ class ClassicallyControlledOperation(raw_types.Operation):
         bindable_keys: FrozenSet['cirq.MeasurementKey'],
     ) -> 'ClassicallyControlledOperation':
         def map_key(key: value.MeasurementKey) -> value.MeasurementKey:
-            if key in bindable_keys:
-                return key.with_key_path_prefix(*path)
-            for i in range(len(path)):
-                back_path = path[0 : len(path) - i]
+            for i in range(len(path) + 1):
+                back_path = path[: len(path) - i]
                 new_key = key.with_key_path_prefix(*back_path)
                 if new_key in bindable_keys:
                     return new_key
             return key
 
-        sub_operation = protocols.with_rescoped_keys(
-            self._sub_operation, path, bindable_keys
-        )
-        return sub_operation.with_classical_controls(
-            *[map_key(k) for k in self._control_keys],
-        )
+        sub_operation = protocols.with_rescoped_keys(self._sub_operation, path, bindable_keys)
+        return sub_operation.with_classical_controls(*[map_key(k) for k in self._control_keys])
 
     def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
         return frozenset(self._control_keys).union(protocols.control_keys(self._sub_operation))

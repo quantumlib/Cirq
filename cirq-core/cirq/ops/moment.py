@@ -260,8 +260,7 @@ class Moment:
         bindable_keys: FrozenSet['cirq.MeasurementKey'],
     ):
         return Moment(
-            protocols.with_rescoped_keys(op, path, bindable_keys)
-            for op in self.operations
+            protocols.with_rescoped_keys(op, path, bindable_keys) for op in self.operations
         )
 
     def __copy__(self):
