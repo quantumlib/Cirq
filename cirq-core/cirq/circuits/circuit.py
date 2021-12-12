@@ -908,7 +908,12 @@ class AbstractCircuit(abc.ABC):
             [protocols.with_key_path(moment, path) for moment in self.moments]
         )
 
-    def _with_key_path_prefix_(
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return self._with_sliced_moments(
+            [protocols.with_key_path_prefix(moment, prefix) for moment in self.moments]
+        )
+
+    def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
         local_keys: FrozenSet[value.MeasurementKey],
@@ -917,7 +922,7 @@ class AbstractCircuit(abc.ABC):
         moments = []
         for moment in self.moments:
             moment_keys = protocols.measurement_key_objs(moment)
-            moments.append(protocols.with_key_path_prefix(moment, path, local_keys, extern_keys))
+            moments.append(protocols.with_rescoped_keys(moment, path, local_keys, extern_keys))
             local_keys = local_keys.union(moment_keys)
         return self._with_sliced_moments(moments)
 

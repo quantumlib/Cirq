@@ -244,9 +244,9 @@ class CircuitOperation(ops.Operation):
                 circuit = circuit * abs(self.repetitions)
             else:
                 circuit = circuits.Circuit(
-                    protocols.with_key_path_prefix(circuit, (rep,)) for rep in self.repetition_ids
+                    protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
                 )
-        circuit = protocols.with_key_path_prefix(
+        circuit = protocols.with_rescoped_keys(
             circuit, self.parent_path, extern_keys=self.extern_keys
         )
         if deep:
@@ -438,7 +438,10 @@ class CircuitOperation(ops.Operation):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return dataclasses.replace(self, parent_path=path)
 
-    def _with_key_path_prefix_(
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return dataclasses.replace(self, parent_path=prefix + self.parent_path)
+
+    def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
         local_keys: FrozenSet[value.MeasurementKey],

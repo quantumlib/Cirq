@@ -292,7 +292,20 @@ def with_key_path(val: Any, path: Tuple[str, ...]):
     return NotImplemented if getter is None else getter(path)
 
 
-def with_key_path_prefix(
+def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
+    """Prefixes the path to the target's measurement keys.
+    The path usually refers to an identifier or a list of identifiers from a subcircuit that
+    used to contain the target. Since a subcircuit can be repeated and reused, these paths help
+    differentiate the actual measurement keys.
+    Args:
+        val: The value whose path to prefix.
+        prefix: The prefix to apply to the value's path.
+    """
+    getter = getattr(val, '_with_key_path_prefix_', None)
+    return NotImplemented if getter is None else getter(prefix)
+
+
+def with_rescoped_keys(
     val: Any,
     path: Tuple[str, ...],
     local_keys: FrozenSet[value.MeasurementKey] = None,
@@ -304,7 +317,7 @@ def with_key_path_prefix(
     used to contain the target. Since a subcircuit can be repeated and reused, these paths help
     differentiate the actual measurement keys.
     """
-    getter = getattr(val, '_with_key_path_prefix_', None)
+    getter = getattr(val, '_with_rescoped_keys_', None)
     x = (
         NotImplemented
         if getter is None

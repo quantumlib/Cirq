@@ -104,7 +104,10 @@ class MeasurementKey:
     def _with_key_path_(self, path: Tuple[str, ...]):
         return self.replace(path=path)
 
-    def _with_key_path_prefix_(
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return self._with_key_path_(path=prefix + self.path)
+
+    def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
         local_keys: FrozenSet['MeasurementKey'],

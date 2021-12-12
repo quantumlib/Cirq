@@ -101,11 +101,23 @@ class GateOperation(raw_types.Operation):
 
     def _with_key_path_prefix_(
         self,
+        prefix: Tuple[str, ...],
+    ):
+        new_gate = protocols.with_key_path_prefix(self.gate, prefix)
+        if new_gate is NotImplemented:
+            return NotImplemented
+        if new_gate is self.gate:
+            # As GateOperation is immutable, this can return the original.
+            return self
+        return new_gate.on(*self.qubits)
+
+    def _with_rescoped_keys_(
+        self,
         path: Tuple[str, ...],
         local_keys: FrozenSet[value.MeasurementKey],
         extern_keys: FrozenSet[value.MeasurementKey],
     ):
-        new_gate = protocols.with_key_path_prefix(self.gate, path, local_keys, extern_keys)
+        new_gate = protocols.with_rescoped_keys(self.gate, path, local_keys, extern_keys)
         if new_gate is NotImplemented:
             return NotImplemented
         if new_gate is self.gate:

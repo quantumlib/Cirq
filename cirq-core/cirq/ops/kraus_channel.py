@@ -91,7 +91,12 @@ class KrausChannel(raw_types.Gate):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return KrausChannel(kraus_ops=self._kraus_ops, key=protocols.with_key_path(self._key, path))
 
-    def _with_key_path_prefix_(
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return KrausChannel(
+            kraus_ops=self._kraus_ops, key=protocols.with_key_path_prefix(self._key, prefix)
+        )
+
+    def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
         local_keys: FrozenSet[value.MeasurementKey],
@@ -99,7 +104,7 @@ class KrausChannel(raw_types.Gate):
     ):
         return KrausChannel(
             kraus_ops=self._kraus_ops,
-            key=protocols.with_key_path_prefix(self._key, path, local_keys, extern_keys),
+            key=protocols.with_rescoped_keys(self._key, path, local_keys, extern_keys),
         )
 
     def __str__(self):

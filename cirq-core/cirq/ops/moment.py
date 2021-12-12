@@ -246,14 +246,22 @@ class Moment:
             for op in self.operations
         )
 
-    def _with_key_path_prefix_(
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return Moment(
+            protocols.with_key_path_prefix(op, prefix)
+            if protocols.measurement_keys_touched(op)
+            else op
+            for op in self.operations
+        )
+
+    def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
         local_keys: FrozenSet[value.MeasurementKey],
         extern_keys: FrozenSet[value.MeasurementKey],
     ):
         return Moment(
-            protocols.with_key_path_prefix(op, path, local_keys, extern_keys)
+            protocols.with_rescoped_keys(op, path, local_keys, extern_keys)
             if protocols.measurement_keys_touched(op)
             else op
             for op in self.operations
