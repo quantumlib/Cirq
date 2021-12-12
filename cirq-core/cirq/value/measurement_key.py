@@ -118,13 +118,12 @@ class MeasurementKey:
     def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
-        local_keys: FrozenSet['MeasurementKey'],
-        extern_keys: FrozenSet['MeasurementKey'],
+        bindable_keys: FrozenSet['MeasurementKey'],
     ):
-        if self in local_keys:
+        if self in bindable_keys:
             raise ValueError(f'Conflicting measurement keys found: {self}')
         new_key = self.replace(path=path + self.path)
-        if new_key in extern_keys:
+        if new_key in bindable_keys:
             raise ValueError(f'Conflicting measurement keys found: {new_key}')
         return new_key
 

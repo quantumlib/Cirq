@@ -111,10 +111,9 @@ class GateOperation(raw_types.Operation):
     def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
-        local_keys: FrozenSet[value.MeasurementKey],
-        extern_keys: FrozenSet[value.MeasurementKey],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
     ):
-        new_gate = protocols.with_rescoped_keys(self.gate, path, local_keys, extern_keys)
+        new_gate = protocols.with_rescoped_keys(self.gate, path, bindable_keys)
         if new_gate is self.gate:
             # As GateOperation is immutable, this can return the original.
             return self

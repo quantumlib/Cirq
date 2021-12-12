@@ -310,8 +310,7 @@ def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
 def with_rescoped_keys(
     val: Any,
     path: Tuple[str, ...],
-    local_keys: FrozenSet[value.MeasurementKey] = None,
-    extern_keys: FrozenSet[value.MeasurementKey] = None,
+    bindable_keys: FrozenSet[value.MeasurementKey] = None,
 ):
     """Rescopes any measurement and control keys to the provided path, given the existing keys.
 
@@ -324,13 +323,12 @@ def with_rescoped_keys(
     Args:
         val: The value to rescope.
         path: The prefix to apply to the value's path.
-        local_keys: The local (in the subcircuit) keys to account for when binding.
-        extern_keys: The external (to the subcircuit) keys to account for when binding.
+        bindable_keys: The keys that can be bound to at the current scope.
     """
     getter = getattr(val, '_with_rescoped_keys_', None)
     result = (
         NotImplemented
         if getter is None
-        else getter(path, local_keys or frozenset(), extern_keys or frozenset())
+        else getter(path, bindable_keys or frozenset())
     )
     return result if result is not NotImplemented else val

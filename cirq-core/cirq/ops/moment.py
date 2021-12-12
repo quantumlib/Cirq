@@ -257,11 +257,10 @@ class Moment:
     def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
-        local_keys: FrozenSet[value.MeasurementKey],
-        extern_keys: FrozenSet[value.MeasurementKey],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
     ):
         return Moment(
-            protocols.with_rescoped_keys(op, path, local_keys, extern_keys)
+            protocols.with_rescoped_keys(op, path, bindable_keys)
             for op in self.operations
         )
 

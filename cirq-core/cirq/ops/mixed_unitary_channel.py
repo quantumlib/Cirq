@@ -110,12 +110,11 @@ class MixedUnitaryChannel(raw_types.Gate):
     def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
-        local_keys: FrozenSet[value.MeasurementKey],
-        extern_keys: FrozenSet[value.MeasurementKey],
+        bindable_keys: FrozenSet[value.MeasurementKey],
     ):
         return MixedUnitaryChannel(
             mixture=self._mixture,
-            key=protocols.with_rescoped_keys(self._key, path, local_keys, extern_keys),
+            key=protocols.with_rescoped_keys(self._key, path, bindable_keys),
         )
 
     def __str__(self):

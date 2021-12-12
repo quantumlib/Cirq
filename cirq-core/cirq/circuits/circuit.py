@@ -916,14 +916,13 @@ class AbstractCircuit(abc.ABC):
     def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
-        local_keys: FrozenSet[value.MeasurementKey],
-        extern_keys: FrozenSet[value.MeasurementKey],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
     ):
         moments = []
         for moment in self.moments:
             moment_keys = protocols.measurement_key_objs(moment)
-            moments.append(protocols.with_rescoped_keys(moment, path, local_keys, extern_keys))
-            local_keys = local_keys.union(moment_keys)
+            moments.append(protocols.with_rescoped_keys(moment, path, bindable_keys))
+            bindable_keys |= moment_keys
         return self._with_sliced_moments(moments)
 
     def _qid_shape_(self) -> Tuple[int, ...]:

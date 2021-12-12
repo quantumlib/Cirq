@@ -245,7 +245,7 @@ class CircuitOperation(ops.Operation):
                     protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
                 )
         circuit = protocols.with_rescoped_keys(
-            circuit, self.parent_path, extern_keys=self.extern_keys
+            circuit, self.parent_path, bindable_keys=self.extern_keys
         )
         if deep:
             circuit = circuit.map_operations(
@@ -442,12 +442,9 @@ class CircuitOperation(ops.Operation):
     def _with_rescoped_keys_(
         self,
         path: Tuple[str, ...],
-        local_keys: FrozenSet[value.MeasurementKey],
-        extern_keys: FrozenSet[value.MeasurementKey],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
     ):
-        new_keys = set(extern_keys)
-        for key in local_keys:
-            new_keys.add(key.with_key_path_prefix(*path))
+        new_keys = set(bindable_keys)
         for key in self.extern_keys:
             new_keys.add(key.with_key_path_prefix(*path))
         return dataclasses.replace(
