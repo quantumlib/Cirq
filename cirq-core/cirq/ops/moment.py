@@ -262,8 +262,6 @@ class Moment:
     ):
         return Moment(
             protocols.with_rescoped_keys(op, path, local_keys, extern_keys)
-            if protocols.measurement_keys_touched(op)
-            else op
             for op in self.operations
         )
 

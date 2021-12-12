@@ -204,7 +204,7 @@ class CircuitOperation(ops.Operation):
 
     def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:
         if not protocols.control_keys(self.circuit):
-            return set()
+            return frozenset()
         return protocols.control_keys(self.mapped_circuit())
 
     def _parameter_names_(self) -> AbstractSet[str]:
