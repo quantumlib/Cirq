@@ -87,12 +87,30 @@ def test_prepare_floquet_characterization_for_moment_fails_for_non_gate_operatio
         )
 
 
+def test_prepare_floquet_characterization_for_moment_fails_for_global_phase():
+    moment = cirq.Moment(cirq.global_phase_operation(coefficient=1.0))
+    with pytest.raises(workflow.IncompatibleMomentError):
+        workflow.prepare_floquet_characterization_for_moment(
+            moment, WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
+        )
+
+
 @pytest.mark.parametrize(
     'options',
     [WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION, ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION],
 )
 def test_prepare_characterization_for_moment_fails_for_non_gate_operation(options):
     moment = cirq.Moment(cirq.CircuitOperation(cirq.FrozenCircuit()))
+    with pytest.raises(workflow.IncompatibleMomentError):
+        workflow.prepare_characterization_for_moment(moment, options)
+
+
+@pytest.mark.parametrize(
+    'options',
+    [WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION, ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION],
+)
+def test_prepare_characterization_for_moment_fails_for_global_phase(options):
+    moment = cirq.Moment(cirq.global_phase_operation(coefficient=1.0))
     with pytest.raises(workflow.IncompatibleMomentError):
         workflow.prepare_characterization_for_moment(moment, options)
 
@@ -175,32 +193,6 @@ def test_prepare_floquet_characterization_for_moment_fails_for_mixed_moment():
 def test_prepare_characterization_for_moment_fails_for_mixed_moment(options):
     a, b, c = cirq.LineQubit.range(3)
     moment = cirq.Moment([cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b), cirq.Z.on(c)])
-    with pytest.raises(workflow.IncompatibleMomentError):
-        workflow.prepare_characterization_for_moment(
-            moment, WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
-        )
-
-
-def test_prepare_floquet_characterization_for_moment_fails_for_global_phase():
-    a, b, c = cirq.LineQubit.range(3)
-    moment = cirq.Moment(
-        cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b), cirq.global_phase_operation(1j)
-    )
-    with pytest.raises(workflow.IncompatibleMomentError):
-        workflow.prepare_floquet_characterization_for_moment(
-            moment, WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
-        )
-
-
-@pytest.mark.parametrize(
-    'options',
-    [WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION, ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION],
-)
-def test_prepare_characterization_for_moment_fails_for_mixed_global_phase(options):
-    a, b, c = cirq.LineQubit.range(3)
-    moment = cirq.Moment(
-        cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b), cirq.global_phase_operation(1j)
-    )
     with pytest.raises(workflow.IncompatibleMomentError):
         workflow.prepare_characterization_for_moment(
             moment, WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
@@ -1463,34 +1455,6 @@ def test_make_zeta_chi_gamma_compensation_for_moments_circuit():
         assert calibrated_circuit.moment_to_calibration == expected_moment_to_calibration
 
 
-def test_make_zeta_chi_gamma_compensation_for_moments_circuit_with_global_phase():
-    a, b = cirq.LineQubit.range(2)
-
-    characterizations = [
-        PhasedFSimCalibrationResult(
-            parameters={(a, b): SQRT_ISWAP_INV_PARAMETERS},
-            gate=SQRT_ISWAP_INV_GATE,
-            options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-        )
-    ]
-
-    for circuit, expected_moment_to_calibration in [
-        (cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b)), [None, 0, None]),
-        (
-            cirq.Circuit(
-                cirq.Moment(cirq.global_phase_operation(1j)),
-                cirq.Moment(cirq.FSimGate(theta=-np.pi / 4, phi=0.0).on(a, b)),
-            ),
-            [None, None, 0, None],
-        ),
-    ]:
-        calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_moments(
-            circuit, characterizations
-        )
-        assert np.allclose(cirq.unitary(circuit), cirq.unitary(calibrated_circuit.circuit))
-        assert calibrated_circuit.moment_to_calibration == expected_moment_to_calibration
-
-
 def test_zmake_zeta_chi_gamma_compensation_for_moments_invalid_argument_fails() -> None:
     a, b, c = cirq.LineQubit.range(3)
 
@@ -1526,22 +1490,9 @@ def test_zmake_zeta_chi_gamma_compensation_for_moments_invalid_argument_fails() 
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
-            cirq.Circuit(SQRT_ISWAP_INV_GATE.on(a, b), cirq.global_phase_operation(1j)), [0]
+            cirq.Circuit(cirq.global_phase_operation(coefficient=1.0)), [None]
         )
-        characterizations = [
-            PhasedFSimCalibrationResult(
-                parameters={
-                    (a, b): PhasedFSimCharacterization(
-                        theta=0.1, zeta=0.2, chi=0.3, gamma=0.4, phi=0.5
-                    )
-                },
-                gate=SQRT_ISWAP_INV_GATE,
-                options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-            )
-        ]
-        workflow.make_zeta_chi_gamma_compensation_for_moments(
-            circuit_with_calibration, characterizations
-        )
+        workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(

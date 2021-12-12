@@ -50,12 +50,7 @@ from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
 from cirq_google.engine import Engine, QuantumEngineSampler
 from cirq_google.serialization.serializer import Serializer
 
-_CALIBRATION_IRRELEVANT_GATES = (
-    cirq.MeasurementGate,
-    cirq.SingleQubitGate,
-    cirq.WaitGate,
-    cirq.GlobalPhaseGate,
-)
+_CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.SingleQubitGate, cirq.WaitGate
 
 
 @dataclasses.dataclass(frozen=True)
@@ -196,6 +191,9 @@ def _list_moment_pairs_to_characterize(
     for op in moment:
         if not isinstance(op, cirq.GateOperation):
             raise IncompatibleMomentError('Moment contains operation different than GateOperation')
+
+        if isinstance(op.gate, cirq.GlobalPhaseGate):
+            raise IncompatibleMomentError('Moment contains global phase gate')
 
         if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
             other_operation = True
@@ -855,7 +853,7 @@ def run_calibrations(
             raise ValueError('gate_set must be provided.')
 
         if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
-            sampler = engine.sampler(processor_id=processor_id, gate_set=gate_set)
+            sampler = engine.get_sampler(processor_id=processor_id, gate_set=gate_set)
             return _run_local_calibrations_via_sampler(calibrations, sampler)
 
         return _run_calibrations_via_engine(
@@ -1098,6 +1096,9 @@ def _find_moment_zeta_chi_gamma_corrections(
     for op in moment:
         if not isinstance(op, cirq.GateOperation):
             raise IncompatibleMomentError('Moment contains operation different than GateOperation')
+
+        if isinstance(op.gate, cirq.GlobalPhaseGate):
+            raise IncompatibleMomentError('Moment contains global phase gate')
 
         if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
             other.append(op)
