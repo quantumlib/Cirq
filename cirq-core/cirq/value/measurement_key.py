@@ -120,8 +120,6 @@ class MeasurementKey:
         path: Tuple[str, ...],
         bindable_keys: FrozenSet['MeasurementKey'],
     ):
-        if self in bindable_keys:
-            raise ValueError(f'Conflicting measurement keys found: {self}')
         new_key = self.replace(path=path + self.path)
         if new_key in bindable_keys:
             raise ValueError(f'Conflicting measurement keys found: {new_key}')

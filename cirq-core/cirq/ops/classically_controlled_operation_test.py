@@ -599,33 +599,6 @@ b: ═════════════════════════�
     assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
 
 
-def test_scope_conflict():
-    q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls('a'),
-    )
-    middle = cirq.Circuit(
-        cirq.measure(q, key=cirq.MeasurementKey('a', ('0',))),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2),
-    )
-    op = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    assert not cirq.control_keys(op)
-    cirq.testing.assert_has_diagram(
-        cirq.Circuit(op),
-        """
-      [                  [ 0: ───M───X─── ]             ]
-0: ───[ 0: ───M('0:a')───[       ║   ║    ]──────────── ]────────────
-      [                  [ a: ═══@═══^═══ ](loops=2)    ](loops=2)
-""",
-        use_unicode_characters=True,
-    )
-    with pytest.raises(ValueError, match='Conflicting measurement keys found: 0:0:a'):
-        _ = op.mapped_circuit(deep=True)
-    with pytest.raises(ValueError, match='Conflicting measurement keys found: 0:0:a'):
-        _ = cirq.decompose(op)
-
-
 def test_repr():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a')

@@ -920,9 +920,9 @@ class AbstractCircuit(abc.ABC):
     ):
         moments = []
         for moment in self.moments:
-            moment_keys = protocols.measurement_key_objs(moment)
-            moments.append(protocols.with_rescoped_keys(moment, path, bindable_keys))
-            bindable_keys |= moment_keys
+            new_moment = protocols.with_rescoped_keys(moment, path, bindable_keys)
+            moments.append(new_moment)
+            bindable_keys |= protocols.measurement_key_objs(new_moment)
         return self._with_sliced_moments(moments)
 
     def _qid_shape_(self) -> Tuple[int, ...]:

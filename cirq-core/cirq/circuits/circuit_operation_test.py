@@ -844,19 +844,6 @@ def test_keys_conflict_no_repetitions():
         _ = op2.mapped_circuit(deep=True)
 
 
-def test_keys_conflict_with_repetitions():
-    q = cirq.LineQubit(0)
-    op1 = cirq.CircuitOperation(
-        cirq.FrozenCircuit(
-            cirq.measure(q, key='A'),
-        ),
-        repetitions=2,
-    )
-    op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1), repetitions=2)
-    with pytest.raises(ValueError, match='Conflicting measurement keys found: 0:0:A'):
-        _ = op2.mapped_circuit(deep=True)
-
-
 def test_keys_conflict_locally():
     q = cirq.LineQubit(0)
     op1 = cirq.measure(q, key='A')
