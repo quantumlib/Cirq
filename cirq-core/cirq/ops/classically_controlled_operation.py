@@ -176,7 +176,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         )
 
     def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'ClassicallyControlledOperation':
-        keys = [k.with_key_path_prefix(*path) for k in self._control_keys]
+        keys = [protocols.with_key_path_prefix(k, path) for k in self._control_keys]
         return self._sub_operation.with_classical_controls(*keys)
 
     def _with_rescoped_keys_(
