@@ -37,7 +37,6 @@ TestSpec = ModuleJsonTestSpec(
         'DensityMatrixStepResult',
         'DensityMatrixTrialResult',
         'ExpressionMap',
-        'Gateset',
         'InsertStrategy',
         'IonDevice',
         'KakDecomposition',
