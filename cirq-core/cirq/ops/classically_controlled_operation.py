@@ -176,7 +176,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         )
 
     def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'ClassicallyControlledOperation':
-        keys = [protocols.with_key_path_prefix(k, path) for k in self._control_keys]
+        keys = [k.with_key_path_prefix(*path) for k in self._control_keys]
         return self._sub_operation.with_classical_controls(*keys)
 
     def _with_rescoped_keys_(
@@ -187,10 +187,10 @@ class ClassicallyControlledOperation(raw_types.Operation):
     ) -> 'ClassicallyControlledOperation':
         def map_key(key: value.MeasurementKey) -> value.MeasurementKey:
             if key in local_keys:
-                return protocols.with_key_path_prefix(key, path)
+                return key.with_key_path_prefix(*path)
             for i in range(len(path)):
                 back_path = path[0 : len(path) - i]
-                new_key = protocols.with_key_path_prefix(key, back_path)
+                new_key = key.with_key_path_prefix(*back_path)
                 if new_key in extern_keys:
                     return new_key
             return key

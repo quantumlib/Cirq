@@ -189,7 +189,7 @@ class CircuitOperation(ops.Operation):
                     for key in circuit_keys
                 }
             circuit_keys = {
-                protocols.with_key_path_prefix(key, self.parent_path) for key in circuit_keys
+                key.with_key_path_prefix(*self.parent_path) for key in circuit_keys
             }
             object.__setattr__(
                 self,
@@ -449,9 +449,9 @@ class CircuitOperation(ops.Operation):
     ):
         new_keys = set(extern_keys)
         for key in local_keys:
-            new_keys.add(protocols.with_key_path_prefix(key, path))
+            new_keys.add(key.with_key_path_prefix(*path))
         for key in self.extern_keys:
-            new_keys.add(protocols.with_key_path_prefix(key, path))
+            new_keys.add(key.with_key_path_prefix(*path))
         return dataclasses.replace(
             self,
             parent_path=path + self.parent_path,

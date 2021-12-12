@@ -120,13 +120,13 @@ class MeasurementKey:
             raise ValueError(f'Conflicting measurement keys found: {new_key}')
         return new_key
 
-    def with_key_path_prefix(self, path_component: str):
+    def with_key_path_prefix(self, *path_component: str):
         """Adds the input path component to the start of the path.
 
         Useful when constructing the path from inside to out (in case of nested subcircuits),
         recursively.
         """
-        return self.replace(path=(path_component,) + self.path)
+        return self.replace(path=tuple(path_component) + self.path)
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         if self.name not in key_map:
