@@ -551,11 +551,8 @@ class CircuitOperation(ops.Operation):
             if k_new != k:
                 new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
-        if (
-            len(protocols.measurement_key_objs(new_op)) != len(protocols.measurement_key_objs(self))
-            or len(protocols.control_keys(new_op)) != len(protocols.control_keys(self))
-            or len(protocols.measurement_keys_touched(new_op))
-            != len(protocols.measurement_keys_touched(self))
+        if len(protocols.measurement_keys_touched(new_op)) != len(
+            protocols.measurement_keys_touched(self)
         ):
             raise ValueError(
                 f'Collision in measurement key map composition. Original map:\n'
