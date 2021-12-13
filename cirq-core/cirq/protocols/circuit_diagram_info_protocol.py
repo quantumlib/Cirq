@@ -331,8 +331,7 @@ def _op_info_with_fallback(
     info = protocols.circuit_diagram_info(op, args, None)
     rows: List[LabelEntity] = list(op.qubits)
     if args.label_map is not None:
-        rows += protocols.measurement_key_objs(op) & args.label_map.keys()
-        rows += protocols.control_keys(op) & args.label_map.keys()
+        rows += protocols.measurement_keys_touched(op) & args.label_map.keys()
     if info is not None:
         if max(1, len(rows)) != len(info.wire_symbols):
             raise ValueError(f'Wanted diagram info from {op!r} for {rows!r}) but got {info!r}')
