@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, List, Sequence
+from typing import TYPE_CHECKING, Dict, List, Optional, Sequence
 
 from cirq import devices, ops
 from cirq.devices.noise_utils import (
@@ -53,21 +53,17 @@ class InsertionNoiseModel(devices.NoiseModel):
             if self.require_physical_tag and PHYSICAL_GATE_TAG not in op.tags:
                 # Only non-virtual gates get noise applied.
                 continue
-            op_id = OpIdentifier(type(op.gate), *op.qubits)
-            if op_id in self.ops_added:
-                noise_ops.append(self.ops_added[op_id])
-                continue
-            # Find the closest match, if one exists.
-            parent_id = OpIdentifier(object, *op.qubits)
-            for added_id in self.ops_added:
-                if added_id.qubits != parent_id.qubits:
+            match_id: Optional[OpIdentifier] = None
+            for op_id in self.ops_added:
+                if op not in op_id:
                     continue
-                if not issubclass(op_id.gate_type, added_id.gate_type):
+                elif match_id is None:
+                    match_id = op_id
                     continue
-                if issubclass(added_id.gate_type, parent_id.gate_type):
-                    parent_id = added_id
-            if parent_id.gate_type != object:
-                noise_ops.append(self.ops_added[parent_id])
+                elif op_id.is_proper_subtype_of(match_id):
+                    match_id = op_id
+            if match_id is not None:
+                noise_ops.append(self.ops_added[match_id])
         if not noise_ops:
             return [moment]
         if self.prepend:

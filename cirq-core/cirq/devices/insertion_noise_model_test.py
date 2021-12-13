@@ -23,32 +23,31 @@ from cirq.devices.noise_utils import (
 def test_insertion_noise():
     q0, q1 = cirq.LineQubit.range(2)
     op_id0 = OpIdentifier(cirq.XPowGate, q0)
-    op_id1 = OpIdentifier(cirq.PhasedXZGate, q1)
+    op_id1 = OpIdentifier(cirq.ZPowGate, q1)
     model = InsertionNoiseModel(
         {op_id0: cirq.T(q0), op_id1: cirq.H(q1)}, require_physical_tag=False
     )
     assert not model.prepend
 
-    phased_xz = cirq.PhasedXZGate(x_exponent=1.0, z_exponent=0.5, axis_phase_exponent=0.25)
     moment_0 = cirq.Moment(cirq.X(q0), cirq.X(q1))
     assert model.noisy_moment(moment_0, system_qubits=[q0, q1]) == [
         moment_0,
         cirq.Moment(cirq.T(q0)),
     ]
 
-    moment_1 = cirq.Moment(phased_xz.on(q0), phased_xz.on(q1))
+    moment_1 = cirq.Moment(cirq.Z(q0), cirq.Z(q1))
     assert model.noisy_moment(moment_1, system_qubits=[q0, q1]) == [
         moment_1,
         cirq.Moment(cirq.H(q1)),
     ]
 
-    moment_2 = cirq.Moment(cirq.X(q0), phased_xz.on(q1))
+    moment_2 = cirq.Moment(cirq.X(q0), cirq.Z(q1))
     assert model.noisy_moment(moment_2, system_qubits=[q0, q1]) == [
         moment_2,
         cirq.Moment(cirq.T(q0), cirq.H(q1)),
     ]
 
-    moment_3 = cirq.Moment(phased_xz.on(q0), cirq.X(q1))
+    moment_3 = cirq.Moment(cirq.Z(q0), cirq.X(q1))
     assert model.noisy_moment(moment_3, system_qubits=[q0, q1]) == [moment_3]
 
 
