@@ -84,7 +84,12 @@ class CircuitOperation(ops.Operation):
             initialized to strings for numbers in `range(repetitions)`.
         parent_path: A tuple of identifiers for any parent CircuitOperations
             containing this one.
-        extern_keys: The set of measurement keys defined at extern scope.
+        extern_keys: The set of measurement keys defined at extern scope. The
+            values here are used by decomposition and simulation routines to
+            cache which external measurement keys exist as possible binding
+            targets for unbound `ClassicallyControlledOperation` keys. This
+            field is not intended to be set or changed manually, and should be
+            empty in circuits that aren't in the middle of decomposition.
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
@@ -99,7 +104,7 @@ class CircuitOperation(ops.Operation):
     param_resolver: study.ParamResolver = study.ParamResolver()
     repetition_ids: Optional[List[str]] = dataclasses.field(default=None)
     parent_path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
-    extern_keys: FrozenSet[value.MeasurementKey] = dataclasses.field(default_factory=frozenset)
+    extern_keys: FrozenSet['cirq.MeasurementKey'] = dataclasses.field(default_factory=frozenset)
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -444,6 +449,11 @@ class CircuitOperation(ops.Operation):
         path: Tuple[str, ...],
         bindable_keys: FrozenSet['cirq.MeasurementKey'],
     ):
+        # The following line prevents binding to measurement keys in previous repeated subcircuits
+        # "just because their repetition ids matched". If we eventually decide to change that
+        # requirement and allow binding across subcircuits (possibly conditionally upon the key or
+        # the subcircuit having some 'allow_cross_circuit_binding' field set), this is the line to
+        # change or remove.
         bindable_keys = frozenset(k for k in bindable_keys if len(k.path) <= len(path))
         bindable_keys |= {k.with_key_path_prefix(*path) for k in self.extern_keys}
         path += self.parent_path
