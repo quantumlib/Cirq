@@ -154,6 +154,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
+        'QasmUGate': cirq.circuits.qasm_output.QasmUGate,
         '_QubitAsQid': raw_types._QubitAsQid,
         # The formatter keeps putting this back
         # pylint: disable=line-too-long

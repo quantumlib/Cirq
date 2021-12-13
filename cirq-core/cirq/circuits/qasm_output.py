@@ -14,7 +14,7 @@
 
 """Utility classes for representing QASM."""
 
-from typing import Callable, Dict, Optional, Sequence, Set, Tuple, Union, TYPE_CHECKING
+from typing import Any, Callable, Dict, Optional, Sequence, Set, Tuple, Union, TYPE_CHECKING
 
 import re
 import numpy as np
@@ -82,6 +82,17 @@ class QasmUGate(ops.SingleQubitGate):
 
     def _value_equality_values_(self):
         return self.lmda, self.theta, self.phi
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'theta': self.theta,
+            'phi': self.phi,
+            'lmda': self.lmda,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, theta, phi, lmda, **kwargs) -> 'QasmUGate':
+        return cls(theta, phi, lmda)
 
 
 @value.value_equality
