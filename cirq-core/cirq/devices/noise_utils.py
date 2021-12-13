@@ -223,10 +223,10 @@ def decoherence_pauli_error(t1_ns: float, tphi_ns: float, gate_time_ns: float) -
     Returns:
         Calculated Pauli error resulting from decoherence.
     """
-    Gamma2 = (1 / (2 * t1_ns)) + 1 / tphi_ns
+    gamma_2 = (1 / (2 * t1_ns)) + 1 / tphi_ns
 
     exp1 = np.exp(-gate_time_ns / t1_ns)
-    exp2 = np.exp(-gate_time_ns * Gamma2)
+    exp2 = np.exp(-gate_time_ns * gamma_2)
     px = 0.25 * (1 - exp1)
     py = px
     pz = 0.5 * (1 - exp2) - px
