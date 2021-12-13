@@ -106,7 +106,7 @@ class CircuitOperation(ops.Operation):
             try:
                 protocols.inverse(self.circuit.unfreeze())
             except TypeError:
-                raise ValueError(f'repetitions are negative but the circuit is not invertible')
+                raise ValueError('repetitions are negative but the circuit is not invertible')
 
         # Initialize repetition_ids to default, if unspecified. Else, validate their length.
         loop_size = abs(self.repetitions)
@@ -184,6 +184,9 @@ class CircuitOperation(ops.Operation):
                     for repetition_id in self.repetition_ids
                     for key in circuit_keys
                 }
+            circuit_keys = {
+                protocols.with_key_path_prefix(key, self.parent_path) for key in circuit_keys
+            }
             object.__setattr__(
                 self,
                 '_cached_measurement_key_objs',
@@ -275,9 +278,8 @@ class CircuitOperation(ops.Operation):
 
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
-        header = self.circuit.diagram_name() + ':'
         msg_lines = str(self.circuit).split('\n')
-        msg_width = max([len(header) - 4] + [len(line) for line in msg_lines])
+        msg_width = max([len(line) for line in msg_lines])
         circuit_msg = '\n'.join(
             '[ {line:<{width}} ]'.format(line=line, width=msg_width) for line in msg_lines
         )
@@ -302,8 +304,8 @@ class CircuitOperation(ops.Operation):
             # Only add loops if we haven't added repetition_ids.
             args.append(f'loops={self.repetitions}')
         if not args:
-            return f'{header}\n{circuit_msg}'
-        return f'{header}\n{circuit_msg}({", ".join(args)})'
+            return circuit_msg
+        return f'{circuit_msg}({", ".join(args)})'
 
     def __hash__(self):
         if self._hash is None:
@@ -326,7 +328,6 @@ class CircuitOperation(ops.Operation):
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'CircuitOperation',
             'circuit': self.circuit,
             'repetitions': self.repetitions,
             # JSON requires mappings to have keys of basic types.

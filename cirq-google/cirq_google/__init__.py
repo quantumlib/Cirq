@@ -89,6 +89,7 @@ from cirq_google.line import (
 
 from cirq_google.ops import (
     CalibrationTag,
+    FSimGateFamily,
     PhysicalZTag,
     SycamoreGate,
     SYC,
@@ -135,6 +136,8 @@ from cirq_google.workflow import (
     ExecutableGroupResultFilesystemRecord,
     QuantumRuntimeConfiguration,
     execute,
+    QubitPlacer,
+    NaiveQubitPlacer,
 )
 
 from cirq_google import experimental

@@ -64,8 +64,6 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
@@ -80,6 +78,7 @@ class CliffordSimulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
+            logs: A log of the results of measurement that is added to.
 
         Returns:
             ActOnStabilizerChFormArgs for the circuit.
@@ -97,7 +96,6 @@ class CliffordSimulator(
             qubits=qubits,
         )
 
-    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[clifford.ActOnStabilizerCHFormArgs]',
@@ -136,6 +134,10 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         final = self._final_simulator_state
         return f'measurements: {samples}\noutput state: {final}'
 
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.CliffordTrialResult(...)" if cycle else self.__str__())
+
 
 class CliffordSimulatorStepResult(
     simulator_base.StepResultBase['clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs']
@@ -167,6 +169,10 @@ class CliffordSimulatorStepResult(
         final = self.state
 
         return f'{measurements}{final}'
+
+    def _repr_pretty_(self, p, cycle):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.CliffordSimulatorStateResult(...)" if cycle else self.__str__())
 
     @property
     def state(self):
@@ -202,7 +208,6 @@ class CliffordState:
 
     def _json_dict_(self):
         return {
-            'cirq_type': self.__class__.__name__,
             'qubit_map': [(k, v) for k, v in self.qubit_map.items()],
             'ch_form': self.ch_form,
         }

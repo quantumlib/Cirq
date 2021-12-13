@@ -45,8 +45,6 @@ class ActOnArgsContainer(
 ):
     """A container for a `Qid`-to-`ActOnArgs` dictionary."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         args: Dict[Optional['cirq.Qid'], TActOnArgs],
@@ -71,7 +69,6 @@ class ActOnArgsContainer(
         self.split_untangled_states = split_untangled_states
         self._log_of_measurement_results = log_of_measurement_results
 
-    # pylint: enable=missing-raises-doc
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
             return self.args[None]

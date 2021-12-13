@@ -202,7 +202,7 @@ def assert_valid_decomp(
 ):
     # Check expected gates
     for op in operations:
-        if len(op.qubits) == 0 and isinstance(op, cirq.GlobalPhaseOperation):
+        if len(op.qubits) == 0 and isinstance(op.gate, cirq.GlobalPhaseGate):
             assert False, 'Global phase operation was output when it should not.'
         elif len(op.qubits) == 1 and isinstance(op.gate, single_qubit_gate_types):
             pass
@@ -395,7 +395,7 @@ def test_valid_check_raises():
     with pytest.raises(
         AssertionError, match='Global phase operation was output when it should not'
     ):
-        assert_valid_decomp(np.eye(4), [cirq.GlobalPhaseOperation(np.exp(1j * 0.01))])
+        assert_valid_decomp(np.eye(4), [cirq.global_phase_operation(np.exp(1j * 0.01))])
     with pytest.raises(AssertionError, match='Disallowed operation was output'):
         assert_valid_decomp(
             np.eye(4),

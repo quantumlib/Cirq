@@ -53,7 +53,7 @@ class StabilizerSampler(sampler.Sampler):
 
     def _run(self, circuit: circuits.AbstractCircuit, repetitions: int) -> Dict[str, np.ndarray]:
 
-        measurements: Dict[str, List[int]] = {
+        measurements: Dict[str, List[np.ndarray]] = {
             key: [] for key in protocols.measurement_key_names(circuit)
         }
         qubits = circuit.all_qubits()
@@ -69,6 +69,6 @@ class StabilizerSampler(sampler.Sampler):
                 protocols.act_on(op, state)
 
             for k, v in state.log_of_measurement_results.items():
-                measurements[k].append(v)
+                measurements[k].append(np.array(v, dtype=np.uint8))
 
         return {k: np.array(v) for k, v in measurements.items()}

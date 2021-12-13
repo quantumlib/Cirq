@@ -206,6 +206,8 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return args.format('x {0};\n', qubits[0])
         elif self._exponent == 0.5:
             return args.format('sx {0};\n', qubits[0])
+        elif self._exponent == -0.5:
+            return args.format('sxdg {0};\n', qubits[0])
         return args.format('rx({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     def _quil_(
@@ -281,7 +283,6 @@ class Rx(XPowGate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'rads': self._rads,
         }
 
@@ -457,7 +458,6 @@ class Ry(YPowGate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'rads': self._rads,
         }
 
@@ -707,7 +707,6 @@ class Rz(ZPowGate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'rads': self._rads,
         }
 

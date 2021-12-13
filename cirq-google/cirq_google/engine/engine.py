@@ -33,8 +33,9 @@ from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union
 from google.protobuf import any_pb2
 
 import cirq
+from cirq._compat import deprecated
 from cirq_google.api import v2
-from cirq_google.engine import engine_client
+from cirq_google.engine import engine_client, abstract_engine, abstract_program
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.serialization import SerializableGateSet, Serializer
@@ -77,9 +78,6 @@ class EngineContext:
     simply create an Engine object instead of working with one of these
     directly."""
 
-    # TODO(#3388) Add documentation for Args.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(
         self,
         proto_version: Optional[ProtoVersion] = None,
@@ -97,8 +95,14 @@ class EngineContext:
                 configure options on the underlying client.
             verbose: Suppresses stderr messages when set to False. Default is
                 true.
+            client: The engine client to use, if not supplied one will be
+                created.
             timeout: Timeout for polling for results, in seconds.  Default is
                 to never timeout.
+
+        Raises:
+            ValueError: If either `service_args` and `verbose` were supplied
+                or `client` was supplied, or if proto version 1 is specified.
         """
         if (service_args or verbose) and client:
             raise ValueError('either specify service_args and verbose or client')
@@ -119,7 +123,7 @@ class EngineContext:
         return self.proto_version, self.client
 
 
-class Engine:
+class Engine(abstract_engine.AbstractEngine):
     """Runs programs via the Quantum Engine API.
 
     This class has methods for creating programs and jobs that execute on
@@ -185,7 +189,7 @@ class Engine:
 
     def run(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
@@ -249,7 +253,7 @@ class Engine:
 
     def run_sweep(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
@@ -471,7 +475,7 @@ class Engine:
 
     def create_program(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         gate_set: Optional[Serializer] = None,
         description: Optional[str] = None,
@@ -625,8 +629,10 @@ class Engine:
             result_type=ResultType.Calibration,
         )
 
-    def _serialize_program(self, program: cirq.Circuit, gate_set: Serializer) -> any_pb2.Any:
-        if not isinstance(program, cirq.Circuit):
+    def _serialize_program(
+        self, program: cirq.AbstractCircuit, gate_set: Serializer
+    ) -> any_pb2.Any:
+        if not isinstance(program, cirq.AbstractCircuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
         program.device.validate_circuit(program)
 
@@ -661,7 +667,7 @@ class Engine:
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
-    ) -> List[engine_program.EngineProgram]:
+    ) -> List[abstract_program.AbstractProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:
@@ -777,6 +783,7 @@ class Engine:
         """
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
 
+    @deprecated(deadline="v1.0", fix="Use get_sampler instead.")
     def sampler(
         self, processor_id: Union[str, List[str]], gate_set: Serializer
     ) -> engine_sampler.QuantumEngineSampler:
@@ -785,8 +792,31 @@ class Engine:
         Args:
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
+            gate_set: A `Serializer` that determines how to serialize
+                 circuits when requesting samples.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
+        """
+        return self.get_sampler(processor_id, gate_set)
+
+    def get_sampler(
+        self, processor_id: Union[str, List[str]], gate_set: Serializer
+    ) -> engine_sampler.QuantumEngineSampler:
+        """Returns a sampler backed by the engine.
+
+        Args:
+            processor_id: String identifier, or list of string identifiers,
+                determining which processors may be used when sampling.
+            gate_set: A `Serializer` that determines how to serialize
+                 circuits when requesting samples.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
         """
         return engine_sampler.QuantumEngineSampler(
             engine=self, processor_id=processor_id, gate_set=gate_set
