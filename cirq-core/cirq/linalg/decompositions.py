@@ -535,7 +535,7 @@ class KakDecomposition:
 
         a, b = qubits
         return [
-            ops.GlobalPhaseOperation(self.global_phase),
+            ops.global_phase_operation(self.global_phase),
             ops.MatrixGate(self.single_qubit_operations_before[0]).on(a),
             ops.MatrixGate(self.single_qubit_operations_before[1]).on(b),
             np.exp(1j * ops.X(a) * ops.X(b) * self.interaction_coefficients[0]),

@@ -127,7 +127,9 @@ from cirq.ops.identity import (
 )
 
 from cirq.ops.global_phase_op import (
+    GlobalPhaseGate,
     GlobalPhaseOperation,
+    global_phase_operation,
 )
 
 from cirq.ops.kraus_channel import (

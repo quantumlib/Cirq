@@ -187,7 +187,7 @@ class DiagonalGate(raw_types.Gate):
         # diagonal gate for sub-system like controlled gate, it is no longer equivalent. Hence,
         # we add global phase.
         decomposed_circ: List[Any] = [
-            global_phase_op.GlobalPhaseOperation(np.exp(1j * hat_angles[0]))
+            global_phase_op.global_phase_operation(np.exp(1j * hat_angles[0]))
         ]
         for i, bit_flip in _gen_gray_code(n):
             decomposed_circ.extend(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))
