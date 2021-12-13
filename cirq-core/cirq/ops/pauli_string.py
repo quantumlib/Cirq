@@ -314,7 +314,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             *(
                 []
                 if self.coefficient == 1
-                else [global_phase_op.GlobalPhaseOperation(self.coefficient)]
+                else [global_phase_op.global_phase_operation(self.coefficient)]
             ),
             *[self[q].on(q) for q in self.qubits],
         ]
@@ -1397,7 +1397,7 @@ class MutablePauliString(Generic[TKey]):
 
 def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
     # An operation that can be ignored?
-    if isinstance(op, global_phase_op.GlobalPhaseOperation):
+    if isinstance(op.gate, global_phase_op.GlobalPhaseGate):
         return []
 
     # Already a known Clifford?

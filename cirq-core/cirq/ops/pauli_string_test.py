@@ -856,7 +856,7 @@ def test_decompose():
     a, b = cirq.LineQubit.range(2)
     assert cirq.decompose_once(2 * cirq.X(a) * cirq.Z(b), default=None) is None
     assert cirq.decompose_once(1j * cirq.X(a) * cirq.Z(b)) == [
-        cirq.GlobalPhaseOperation(1j),
+        cirq.global_phase_operation(1j),
         cirq.X(a),
         cirq.Z(b),
     ]
@@ -1395,15 +1395,15 @@ def test_conjugated_by_incorrectly_powered_cliffords():
 
 def test_conjugated_by_global_phase():
     a = cirq.LineQubit(0)
-    assert cirq.X(a).conjugated_by(cirq.GlobalPhaseOperation(1j)) == cirq.X(a)
-    assert cirq.Z(a).conjugated_by(cirq.GlobalPhaseOperation(np.exp(1.1j))) == cirq.Z(a)
+    assert cirq.X(a).conjugated_by(cirq.global_phase_operation(1j)) == cirq.X(a)
+    assert cirq.Z(a).conjugated_by(cirq.global_phase_operation(np.exp(1.1j))) == cirq.Z(a)
 
     class DecomposeGlobal(cirq.Gate):
         def num_qubits(self):
             return 1
 
         def _decompose_(self, qubits):
-            yield cirq.GlobalPhaseOperation(1j)
+            yield cirq.global_phase_operation(1j)
 
     assert cirq.X(a).conjugated_by(DecomposeGlobal().on(a)) == cirq.X(a)
 
@@ -1772,7 +1772,7 @@ def test_mutable_pauli_string_inplace_conjugate_by():
             return []
 
     # No-ops
-    p2 = p.inplace_after(cirq.GlobalPhaseOperation(1j))
+    p2 = p.inplace_after(cirq.global_phase_operation(1j))
     assert p2 is p and p == cirq.X(a)
     p2 = p.inplace_after(NoOp(a, b))
     assert p2 is p and p == cirq.X(a)
