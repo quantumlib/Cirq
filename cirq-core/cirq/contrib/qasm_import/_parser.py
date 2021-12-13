@@ -290,15 +290,17 @@ class QasmParser:
     # circuit : new_reg circuit
     #         | gate_op circuit
     #         | measurement circuit
+    #         | if circuit
     #         | empty
 
     def p_circuit_reg(self, p):
         """circuit : new_reg circuit"""
         p[0] = self.circuit
 
-    def p_circuit_gate_or_measurement(self, p):
+    def p_circuit_gate_or_measurement_or_if(self, p):
         """circuit :  circuit gate_op
-        |  circuit measurement"""
+        |  circuit measurement
+        |  circuit if"""
         self.circuit.append(p[2])
         p[0] = self.circuit
 
@@ -496,6 +498,13 @@ class QasmParser:
         p[0] = [
             ops.MeasurementGate(num_qubits=1, key=creg[i]).on(qreg[i]) for i in range(len(qreg))
         ]
+
+    # if operations
+    # if : IF '(' carg NE NATURAL_NUMBER ')' ID qargs
+
+    def p_if(self, p):
+        """if : IF '(' carg NE NATURAL_NUMBER ')' gate_op"""
+        p[0] = [ops.ClassicallyControlledOperation(conditions=p[3], sub_operation=tuple(p[7])[0])]
 
     def p_error(self, p):
         if p is None:
