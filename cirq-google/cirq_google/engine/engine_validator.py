@@ -24,7 +24,7 @@ MAX_MOMENTS = 10000
 MAX_TOTAL_REPETITIONS = 5_000_000
 
 GATE_SET_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], List[cirq.Sweepable], int, 'Serializer'],
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'],
     None,
 ]
 
@@ -69,7 +69,7 @@ def _verify_measurements(circuits):
 
 def validate_gate_set(
     circuits: Sequence[cirq.AbstractCircuit],
-    sweeps: List[cirq.Sweepable],
+    sweeps: Sequence[cirq.Sweepable],
     repetitions: int,
     gate_set: Serializer,
     max_size: int = MAX_MESSAGE_SIZE,

@@ -38,7 +38,7 @@ VALID_LANGUAGES = [
 ]
 
 GATE_SET_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], List[cirq.Sweepable], int, 'Serializer'],
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'],
     None,
 ]
 
