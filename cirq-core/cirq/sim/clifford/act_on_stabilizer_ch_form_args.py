@@ -17,7 +17,7 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
 import numpy as np
 
 from cirq import value, ops, protocols, linalg
-from cirq.ops import common_gates, pauli_gates, matrix_gates
+from cirq.ops import common_gates, pauli_gates, matrix_gates, global_phase_op
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.act_on_args import ActOnArgs
@@ -185,6 +185,9 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             state.M[axis1, :] ^= state.M[axis2, :]
         state.omega *= _phase(g)
 
+    def _global_phase(self, g: global_phase_op.GlobalPhaseGate):
+        self.state.omega *= g.coefficient
+
     def _strat_apply_to_ch_form(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         if not protocols.has_stabilizer_effect(val):
             return NotImplemented
@@ -202,6 +205,8 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             self._cx(gate, axes[0], axes[1])
         elif isinstance(gate, common_gates.CZPowGate):
             self._cz(gate, axes[0], axes[1])
+        elif isinstance(gate, global_phase_op.GlobalPhaseGate):
+            self._global_phase(gate)
         else:
             return NotImplemented
         return True
