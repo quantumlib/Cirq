@@ -61,9 +61,9 @@ def test_serialize_implicit_num_qubits():
 
 def test_serialize_non_gate_op_invalid():
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.GlobalPhaseOperation(1j))
+    circuit = cirq.Circuit(cirq.X(q0), cirq.CircuitOperation(cirq.FrozenCircuit()))
     serializer = ionq.Serializer()
-    with pytest.raises(ValueError, match='GlobalPhaseOperation'):
+    with pytest.raises(ValueError, match='CircuitOperation'):
         _ = serializer.serialize(circuit)
 
 
