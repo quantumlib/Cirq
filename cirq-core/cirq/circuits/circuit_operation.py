@@ -445,7 +445,7 @@ class CircuitOperation(ops.Operation):
         bindable_keys: FrozenSet['cirq.MeasurementKey'],
     ):
         bindable_keys = frozenset(k for k in bindable_keys if len(k.path) <= len(path))
-        bindable_keys |= self.extern_keys
+        bindable_keys |= {k.with_key_path_prefix(*path) for k in self.extern_keys}
         path += self.parent_path
         return dataclasses.replace(self, parent_path=path, extern_keys=bindable_keys)
 
