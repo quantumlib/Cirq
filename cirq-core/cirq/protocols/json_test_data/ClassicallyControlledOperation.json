@@ -1,0 +1,27 @@
+{
+  "cirq_type": "ClassicallyControlledOperation",
+  "conditions": [
+    {
+      "cirq_type": "MeasurementKey",
+      "name": "a",
+      "path": []
+    },
+    {
+      "cirq_type": "MeasurementKey",
+      "name": "b",
+      "path": []
+    }
+  ],
+  "sub_operation": {
+    "cirq_type": "SingleQubitPauliStringGateOperation",
+    "pauli": {
+      "cirq_type": "_PauliY",
+      "exponent": 1,
+      "global_shift": 0.0
+    },
+    "qubit": {
+      "cirq_type": "NamedQubit",
+      "name": "target"
+    }
+  }
+}

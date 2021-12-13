@@ -132,7 +132,7 @@ def test_gate_family_eq():
                 (cirq.SingleQubitGate(), False),
                 (cirq.X ** 0.5, False),
                 (None, False),
-                (cirq.GlobalPhaseOperation(1j), False),
+                (cirq.global_phase_operation(1j), False),
             ],
         ),
         (
@@ -144,7 +144,7 @@ def test_gate_family_eq():
                 (CustomX ** 3, True),
                 (CustomX ** sympy.Symbol('theta'), False),
                 (None, False),
-                (cirq.GlobalPhaseOperation(1j), False),
+                (cirq.global_phase_operation(1j), False),
             ],
         ),
         (
@@ -255,7 +255,7 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
             )
             yield [circuit_op, recursive_circuit_op]
         if use_global_phase:
-            yield cirq.GlobalPhaseOperation(1j)
+            yield cirq.global_phase_operation(1j)
 
     def assert_validate_and_contains_consistent(gateset, op_tree, result):
         assert all(op in gateset for op in cirq.flatten_to_ops(op_tree)) is result

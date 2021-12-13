@@ -1,0 +1,10 @@
+{
+  "cirq_type": "OpIdentifier",
+  "gate_type": "XPowGate",
+  "qubits": [
+    {
+      "cirq_type": "LineQubit",
+      "x": 1
+    }
+  ]
+}

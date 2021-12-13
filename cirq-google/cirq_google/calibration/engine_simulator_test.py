@@ -163,7 +163,7 @@ def test_ideal_sqrt_iswap_simulates_correctly_invalid_circuit_fails():
         engine_simulator.simulate(circuit)
 
     with pytest.raises(IncompatibleMomentError):
-        circuit = cirq.Circuit(cirq.GlobalPhaseOperation(coefficient=1.0))
+        circuit = cirq.Circuit(cirq.global_phase_operation(coefficient=1.0))
         engine_simulator.simulate(circuit)
 
 
