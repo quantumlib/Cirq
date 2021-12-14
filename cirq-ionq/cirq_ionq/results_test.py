@@ -146,6 +146,11 @@ def test_qpu_result_to_cirq_result_no_keys():
     with pytest.raises(ValueError, match='cirq results'):
         _ = result.to_cirq_result()
 
+def test_ordered_results_invalid_key():
+    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [1]})
+    with pytest.raises(ValueError, match='is not a key for'):
+        _ = result.ordered_results('y')
+
 
 def test_simulator_result_fields():
     result = ionq.SimulatorResult(
