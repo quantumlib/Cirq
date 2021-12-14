@@ -1193,7 +1193,7 @@ class AbstractCircuit(abc.ABC):
             diagram.write(0, i, name)
         first_annotation_row = max(label_map.values(), default=0) + 1
 
-        if any(isinstance(op.untagged, cirq.GlobalPhaseOperation) for op in self.all_operations()):
+        if any(isinstance(op.gate, cirq.GlobalPhaseGate) for op in self.all_operations()):
             diagram.write(0, max(label_map.values(), default=0) + 1, 'global phase:')
             first_annotation_row += 1
 
@@ -2359,7 +2359,7 @@ def _get_moment_annotations(
         if op.qubits:
             continue
         op = op.untagged
-        if isinstance(op, ops.GlobalPhaseOperation):
+        if isinstance(op.gate, ops.GlobalPhaseGate):
             continue
         if isinstance(op, CircuitOperation):
             for m in op.circuit:
@@ -2491,8 +2491,8 @@ def _draw_moment_in_diagram(
 
 
 def _get_global_phase_and_tags_for_op(op: 'cirq.Operation') -> Tuple[Optional[complex], List[Any]]:
-    if isinstance(op.untagged, ops.GlobalPhaseOperation):
-        return complex(op.untagged.coefficient), list(op.tags)
+    if isinstance(op.gate, ops.GlobalPhaseGate):
+        return complex(op.gate.coefficient), list(op.tags)
     elif isinstance(op.untagged, CircuitOperation):
         op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
         return op_phase, list(op.tags) + op_tags

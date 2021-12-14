@@ -47,3 +47,15 @@ from cirq.devices.named_topologies import (
     get_placements,
     draw_placements,
 )
+
+from cirq.devices.noise_utils import (
+    OpIdentifier,
+    decay_constant_to_xeb_fidelity,
+    decay_constant_to_pauli_error,
+    pauli_error_to_decay_constant,
+    xeb_fidelity_to_decay_constant,
+    pauli_error_from_t1,
+    pauli_error_from_depolarization,
+    average_error,
+    decoherence_pauli_error,
+)
