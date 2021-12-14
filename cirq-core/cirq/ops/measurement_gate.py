@@ -181,6 +181,8 @@ class MeasurementGate(raw_types.Gate):
             if inv:
                 lines.append(args.format('x {0};  // Invert the following measurement\n', qubit))
             lines.append(args.format('measure {0} -> {1:meas}[{2}];\n', qubit, self.key, i))
+            if inv:
+                lines.append(args.format('x {0};  // Undo the inversion\n', qubit))
         return ''.join(lines)
 
     def _quil_(
