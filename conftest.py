@@ -13,6 +13,21 @@
 # limitations under the License.
 
 
+def pytest_configure(config):
+    # Ignore deprecation warnings in python code generated from our protobuf definitions.
+    # Eventually, the warnings will be removed by upgrading protoc compiler. However, at
+    # the moment upgrading breaks TensorFlow Quantum and therefore is deferred.
+    for f in (
+        "FieldDescriptor",
+        "Descriptor",
+        "EnumDescriptor",
+        "EnumValueDescriptor",
+        "FileDescriptor",
+        "OneofDescriptor"
+    ):
+        config.addinivalue_line("filterwarnings", f"ignore:Call to deprecated create function {f}")
+
+
 def pytest_addoption(parser):
     parser.addoption(
         "--rigetti-integration",
