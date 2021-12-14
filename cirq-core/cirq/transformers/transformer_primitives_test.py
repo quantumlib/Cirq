@@ -274,7 +274,7 @@ def test_merge_operations_nothing_to_merge():
     c += cirq.Moment(cirq.CZ(*q[:2]))
     assert cirq.merge_operations(c, fail_if_called_func) == c
     # Multi moment with disjoint operations + global phase operation.
-    c += cirq.Moment(cirq.X(q[2]), cirq.GlobalPhaseOperation(1j))
+    c += cirq.Moment(cirq.X(q[2]), cirq.global_phase_operation(1j))
     assert cirq.merge_operations(c, fail_if_called_func) == c
 
 

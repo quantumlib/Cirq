@@ -440,7 +440,7 @@ def test_with_tags_returns_same_instance_if_possible():
 
 
 def test_tagged_measurement():
-    assert not cirq.is_measurement(cirq.GlobalPhaseOperation(coefficient=-1.0).with_tags('tag0'))
+    assert not cirq.is_measurement(cirq.global_phase_operation(coefficient=-1.0).with_tags('tag0'))
 
     a = cirq.LineQubit(0)
     op = cirq.measure(a, key='m').with_tags('tag')
@@ -498,7 +498,7 @@ def test_circuit_diagram():
 def test_circuit_diagram_tagged_global_phase():
     # Tests global phase operation
     q = cirq.NamedQubit('a')
-    global_phase = cirq.GlobalPhaseOperation(coefficient=-1.0).with_tags('tag0')
+    global_phase = cirq.global_phase_operation(coefficient=-1.0).with_tags('tag0')
 
     # Just global phase in a circuit
     assert cirq.circuit_diagram_info(global_phase, default='default') == 'default'
@@ -521,13 +521,13 @@ def test_circuit_diagram_tagged_global_phase():
     )
 
     # Operation with no qubits and returns diagram info with no wire symbols
-    class NoWireSymbols(cirq.GlobalPhaseOperation):
+    class NoWireSymbols(cirq.GlobalPhaseGate):
         def _circuit_diagram_info_(
             self, args: 'cirq.CircuitDiagramInfoArgs'
         ) -> 'cirq.CircuitDiagramInfo':
             return expected
 
-    no_wire_symbol_op = NoWireSymbols(coefficient=-1.0).with_tags('tag0')
+    no_wire_symbol_op = NoWireSymbols(coefficient=-1.0)().with_tags('tag0')
     assert cirq.circuit_diagram_info(no_wire_symbol_op, default='default') == expected
     cirq.testing.assert_has_diagram(
         cirq.Circuit(no_wire_symbol_op),
@@ -536,8 +536,8 @@ def test_circuit_diagram_tagged_global_phase():
     )
 
     # Two global phases in one moment
-    tag1 = cirq.GlobalPhaseOperation(coefficient=1j).with_tags('tag1')
-    tag2 = cirq.GlobalPhaseOperation(coefficient=1j).with_tags('tag2')
+    tag1 = cirq.global_phase_operation(coefficient=1j).with_tags('tag1')
+    tag2 = cirq.global_phase_operation(coefficient=1j).with_tags('tag2')
     c = cirq.Circuit([cirq.X(q), tag1, tag2])
     cirq.testing.assert_has_diagram(
         c,

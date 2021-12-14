@@ -14,8 +14,8 @@
 
 import numpy as np
 import pytest
-import scipy
 import sympy
+from scipy import linalg
 
 import cirq
 
@@ -207,7 +207,7 @@ def test_riswap_hamiltonian(angle_rads):
     y = np.array([[0, -1j], [1j, 0]])
     xx = np.kron(x, x)
     yy = np.kron(y, y)
-    expected = scipy.linalg.expm(+0.5j * angle_rads * (xx + yy))
+    expected = linalg.expm(+0.5j * angle_rads * (xx + yy))
     assert np.allclose(actual, expected)
 
 

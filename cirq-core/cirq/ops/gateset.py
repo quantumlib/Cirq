@@ -326,6 +326,9 @@ class Gateset:
         g = item if isinstance(item, raw_types.Gate) else item.gate
         assert g is not None, f'`item`: {item} must be a gate or have a valid `item.gate`'
 
+        if isinstance(g, global_phase_op.GlobalPhaseGate):
+            return self._accept_global_phase_op
+
         if g in self._instance_gate_families:
             assert item in self._instance_gate_families[g], (
                 f"{item} instance matches {self._instance_gate_families[g]} but "
@@ -396,8 +399,6 @@ class Gateset:
                 lambda q: cast(circuit_operation.CircuitOperation, op).qubit_map.get(q, q)
             )
             return self.validate(op_circuit)
-        elif isinstance(op, global_phase_op.GlobalPhaseOperation):
-            return self._accept_global_phase_op
         else:
             return False
 

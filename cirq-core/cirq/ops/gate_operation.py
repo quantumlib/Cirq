@@ -128,7 +128,7 @@ class GateOperation(raw_types.Operation):
 
     def __str__(self) -> str:
         qubits = ', '.join(str(e) for e in self.qubits)
-        return f'{self.gate}({qubits})'
+        return f'{self.gate}({qubits})' if qubits else str(self.gate)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
