@@ -46,7 +46,7 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
     """
 
     def __init__(
-        self, tabulation: Optional['cirq.TwoQubitGateTabulation'] = None, ignore_failures=False
+        self, tabulation: Optional[cirq.TwoQubitGateTabulation] = None, ignore_failures=False
     ) -> None:
         """Inits ConvertToSycamoreGates.
 
@@ -177,7 +177,7 @@ def known_two_q_operations_to_sycamore_operations(
     qubit_a: cirq.Qid,
     qubit_b: cirq.Qid,
     op: cirq.Operation,
-    tabulation: Optional['cirq.TwoQubitGateTabulation'] = None,
+    tabulation: Optional[cirq.TwoQubitGateTabulation] = None,
 ) -> cirq.OP_TREE:
     """Synthesizes a known gate operation to a Sycamore operation.
 

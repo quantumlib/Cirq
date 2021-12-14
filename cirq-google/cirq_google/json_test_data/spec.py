@@ -79,6 +79,6 @@ TestSpec = ModuleJsonTestSpec(
     ],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={
-        'GateTabulation': 'v0.14',
+        'GateTabulation': 'v0.16',
     },
 )

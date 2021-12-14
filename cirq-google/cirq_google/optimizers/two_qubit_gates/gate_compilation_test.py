@@ -9,7 +9,7 @@ from cirq_google.optimizers.two_qubit_gates.gate_compilation import (
     gate_product_tabulation,
     GateTabulation,
 )
-from cirq.optimizers.two_qubit_gate_math_utils import unitary_entanglement_fidelity
+from cirq.optimizers.gate_tabulation_math_utils import unitary_entanglement_fidelity
 from cirq.testing import random_special_unitary
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
@@ -26,7 +26,7 @@ def _gate_product_tabulation(
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ):
     with cirq.testing.assert_deprecated(
-        deadline='v0.14',
+        deadline='v0.16',
         count=None,
     ):
         return gate_product_tabulation(

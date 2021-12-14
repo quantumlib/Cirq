@@ -24,7 +24,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 import cirq
-from cirq.optimizers.two_qubit_gate_math_utils import unitary_entanglement_fidelity
+from cirq.optimizers.gate_tabulation_math_utils import unitary_entanglement_fidelity
 from cirq.testing import random_special_unitary
 
 
