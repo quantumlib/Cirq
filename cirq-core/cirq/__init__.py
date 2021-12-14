@@ -622,6 +622,8 @@ from cirq.vis import (
     Heatmap,
     TwoQubitInteractionHeatmap,
     get_state_histogram,
+    plot_state_histogram,
+    plot_density_matrix,
     integrated_histogram,
 )
 
