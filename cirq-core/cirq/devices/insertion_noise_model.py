@@ -12,20 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass, field
+import dataclasses
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence
 
 from cirq import devices, ops
-from cirq.devices.noise_utils import (
-    OpIdentifier,
-    PHYSICAL_GATE_TAG,
-)
+from cirq.devices import noise_utils
 
 if TYPE_CHECKING:
     import cirq
 
 
-@dataclass
+@dataclasses.dataclass
 class InsertionNoiseModel(devices.NoiseModel):
     """Simple base noise model for inserting operations.
 
@@ -41,7 +38,9 @@ class InsertionNoiseModel(devices.NoiseModel):
             with PHYSICAL_GATE_TAG.
     """
 
-    ops_added: Dict[OpIdentifier, 'cirq.Operation'] = field(default_factory=dict)
+    ops_added: Dict[noise_utils.OpIdentifier, 'cirq.Operation'] = dataclasses.field(
+        default_factory=dict
+    )
     prepend: bool = False
     require_physical_tag: bool = True
 
@@ -49,18 +48,16 @@ class InsertionNoiseModel(devices.NoiseModel):
         self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
     ) -> 'cirq.OP_TREE':
         noise_ops: List['cirq.Operation'] = []
-        for op in moment:
-            if self.require_physical_tag and PHYSICAL_GATE_TAG not in op.tags:
-                # Only non-virtual gates get noise applied.
-                continue
-            match_id: Optional[OpIdentifier] = None
-            for op_id in self.ops_added:
-                if op not in op_id:
-                    continue
-                elif match_id is None:
-                    match_id = op_id
-                    continue
-                elif op_id.is_proper_subtype_of(match_id):
+        candidate_ops = [
+            op
+            for op in moment
+            if (not self.require_physical_tag) or noise_utils.PHYSICAL_GATE_TAG in op.tags
+        ]
+        for op in candidate_ops:
+            match_id: Optional[noise_utils.OpIdentifier] = None
+            candidate_ids = [op_id for op_id in self.ops_added if op in op_id]
+            for op_id in candidate_ids:
+                if match_id is None or op_id.is_proper_subtype_of(match_id):
                     match_id = op_id
             if match_id is not None:
                 noise_ops.append(self.ops_added[match_id])
