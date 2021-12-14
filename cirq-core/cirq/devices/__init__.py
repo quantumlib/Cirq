@@ -48,6 +48,10 @@ from cirq.devices.named_topologies import (
     draw_placements,
 )
 
+from cirq.devices.insertion_noise_model import (
+    InsertionNoiseModel,
+)
+
 from cirq.devices.noise_utils import (
     OpIdentifier,
     decay_constant_to_xeb_fidelity,
