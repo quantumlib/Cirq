@@ -229,6 +229,8 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         mixture = protocols.mixture(val, None)
         if mixture is None:
             return NotImplemented
+        if not all(linalg.is_unitary(m) for _, m in mixture):
+            return NotImplemented
         probabilities, unitaries = zip(*mixture)
         index = self.prng.choice(len(unitaries), p=probabilities)
         return self._strat_act_on_clifford_tableau_from_single_qubit_decompose(
