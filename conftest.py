@@ -24,7 +24,7 @@ def pytest_configure(config):
         "EnumDescriptor",
         "EnumValueDescriptor",
         "FileDescriptor",
-        "OneofDescriptor"
+        "OneofDescriptor",
     ):
         config.addinivalue_line("filterwarnings", f"ignore:Call to deprecated create function {f}")
 
