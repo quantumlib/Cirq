@@ -62,7 +62,7 @@ def test_sympy_condition_with_keys():
 
 
 def test_sympy_condition_str():
-    assert str(init_sympy_condition) == "a >= 1"
+    assert str(init_sympy_condition) == '{a} >= 1'
 
 
 def test_sympy_condition_resolve():

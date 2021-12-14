@@ -113,8 +113,13 @@ class SympyCondition(Condition):
         return dataclasses.replace(self, control_keys=keys)
 
     def __str__(self):
-        replacements = {f'x{i}': str(key) for i, key in enumerate(self.control_keys)}
-        return f"{self.expr.subs(replacements)}"
+        replacements = {f'x{i}': f'{{{str(key)}}}' for i, key in enumerate(self.control_keys)}
+
+        class CustomCodePrinter(sympy.printing.StrPrinter):
+            def _print_Symbol(self, expr):
+                return replacements[expr.name]
+
+        return CustomCodePrinter().doprint(self.expr)
 
     def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
         missing = [str(k) for k in self.keys if str(k) not in measurements]
