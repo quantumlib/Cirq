@@ -16,7 +16,8 @@
 def pytest_configure(config):
     # Ignore deprecation warnings in python code generated from our protobuf definitions.
     # Eventually, the warnings will be removed by upgrading protoc compiler. However, at
-    # the moment upgrading breaks TensorFlow Quantum and therefore is deferred.
+    # the moment upgrading breaks TensorFlow Quantum and therefore is deferred. See issues
+    # #4161 and #4737.
     for f in (
         "FieldDescriptor",
         "Descriptor",
