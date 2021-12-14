@@ -155,8 +155,7 @@ def test_is_supported_operation_can_serialize_predicate():
 def test_serialize_deserialize_circuit():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
-
+    circuit_base = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
@@ -174,8 +173,9 @@ def test_serialize_deserialize_circuit():
             ],
         ),
     )
-    assert proto == MY_GATE_SET.serialize(circuit)
-    assert MY_GATE_SET.deserialize(proto) == circuit
+    for circuit in [circuit_base, circuit_base.freeze()]:
+        assert proto == MY_GATE_SET.serialize(circuit)
+        assert MY_GATE_SET.deserialize(proto) == circuit
 
 
 def test_serialize_deserialize_circuit_with_tokens():

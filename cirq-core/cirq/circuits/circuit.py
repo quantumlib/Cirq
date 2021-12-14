@@ -22,9 +22,9 @@ Moment the Operations must all act on distinct Qubits.
 import abc
 import enum
 import html
+import itertools
 import math
 from collections import defaultdict
-from itertools import groupby
 from typing import (
     AbstractSet,
     Any,
@@ -999,6 +999,24 @@ class AbstractCircuit(abc.ABC):
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
 
+    def _has_superoperator_(self) -> bool:
+        """Returns True if self has superoperator representation."""
+        return all(m._has_superoperator_() for m in self)
+
+    def _superoperator_(self) -> np.ndarray:
+        """Compute superoperator matrix for quantum channel specified by this circuit."""
+        all_qubits = self.all_qubits()
+        n = len(all_qubits)
+        if n > 10:
+            raise ValueError(f"{n} > 10 qubits is too many to compute superoperator")
+
+        circuit_superoperator = np.eye(4 ** n)
+        for moment in self:
+            full_moment = moment.expand_to(all_qubits)
+            moment_superoperator = full_moment._superoperator_()
+            circuit_superoperator = moment_superoperator @ circuit_superoperator
+        return circuit_superoperator
+
     def final_state_vector(
         self,
         initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
@@ -1151,18 +1169,32 @@ class AbstractCircuit(abc.ABC):
             The TextDiagramDrawer instance.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
-        qubit_map = {qubits[i]: i for i in range(len(qubits))}
+        cbits = tuple(
+            sorted(
+                (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
+            )
+        )
+        labels = qubits + cbits
+        label_map = {labels[i]: i for i in range(len(labels))}
+
+        def default_namer(label_entity):
+            return str(label_entity) + ('' if transpose else ': ')
 
         if qubit_namer is None:
-            qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
+            qubit_namer = default_namer
         diagram = TextDiagramDrawer()
         diagram.write(0, 0, '')
-        for q, i in qubit_map.items():
-            diagram.write(0, i, qubit_namer(q))
-        first_annotation_row = max(qubit_map.values(), default=0) + 1
+        for label_entity, i in label_map.items():
+            name = (
+                qubit_namer(label_entity)
+                if isinstance(label_entity, ops.Qid)
+                else default_namer(label_entity)
+            )
+            diagram.write(0, i, name)
+        first_annotation_row = max(label_map.values(), default=0) + 1
 
-        if any(isinstance(op.untagged, cirq.GlobalPhaseOperation) for op in self.all_operations()):
-            diagram.write(0, max(qubit_map.values(), default=0) + 1, 'global phase:')
+        if any(isinstance(op.gate, cirq.GlobalPhaseGate) for op in self.all_operations()):
+            diagram.write(0, max(label_map.values(), default=0) + 1, 'global phase:')
             first_annotation_row += 1
 
         moment_groups = []  # type: List[Tuple[int, int]]
@@ -1170,7 +1202,7 @@ class AbstractCircuit(abc.ABC):
             _draw_moment_in_diagram(
                 moment=moment,
                 use_unicode_characters=use_unicode_characters,
-                qubit_map=qubit_map,
+                label_map=label_map,
                 out_diagram=diagram,
                 precision=precision,
                 moment_groups=moment_groups,
@@ -1180,8 +1212,8 @@ class AbstractCircuit(abc.ABC):
             )
 
         w = diagram.width()
-        for i in qubit_map.values():
-            diagram.horizontal_line(i, 0, w)
+        for i in label_map.values():
+            diagram.horizontal_line(i, 0, w, doubled=not isinstance(labels[i], ops.Qid))
 
         if moment_groups and draw_moment_groups:
             _draw_moment_groups_in_diagram(moment_groups, use_unicode_characters, diagram)
@@ -2327,7 +2359,7 @@ def _get_moment_annotations(
         if op.qubits:
             continue
         op = op.untagged
-        if isinstance(op, ops.GlobalPhaseOperation):
+        if isinstance(op.gate, ops.GlobalPhaseGate):
             continue
         if isinstance(op, CircuitOperation):
             for m in op.circuit:
@@ -2341,7 +2373,7 @@ def _draw_moment_annotations(
     moment: 'cirq.Moment',
     col: int,
     use_unicode_characters: bool,
-    qubit_map: Dict['cirq.Qid', int],
+    label_map: Dict['cirq.LabelEntity', int],
     out_diagram: TextDiagramDrawer,
     precision: Optional[int],
     get_circuit_diagram_info: Callable[
@@ -2356,7 +2388,7 @@ def _draw_moment_annotations(
             known_qubits=(),
             known_qubit_count=0,
             use_unicode_characters=use_unicode_characters,
-            qubit_map=qubit_map,
+            label_map=label_map,
             precision=precision,
             include_tags=include_tags,
         )
@@ -2371,7 +2403,7 @@ def _draw_moment_in_diagram(
     *,
     moment: 'cirq.Moment',
     use_unicode_characters: bool,
-    qubit_map: Dict['cirq.Qid', int],
+    label_map: Dict['cirq.LabelEntity', int],
     out_diagram: TextDiagramDrawer,
     precision: Optional[int],
     moment_groups: List[Tuple[int, int]],
@@ -2389,7 +2421,10 @@ def _draw_moment_in_diagram(
 
     max_x = x0
     for op in non_global_ops:
-        indices = [qubit_map[q] for q in op.qubits]
+        qubits = tuple(op.qubits)
+        cbits = tuple(protocols.measurement_keys_touched(op) & label_map.keys())
+        labels = qubits + cbits
+        indices = [label_map[label] for label in labels]
         y1 = min(indices)
         y2 = max(indices)
 
@@ -2403,7 +2438,7 @@ def _draw_moment_in_diagram(
             known_qubits=op.qubits,
             known_qubit_count=len(op.qubits),
             use_unicode_characters=use_unicode_characters,
-            qubit_map=qubit_map,
+            label_map=label_map,
             precision=precision,
             include_tags=include_tags,
         )
@@ -2411,17 +2446,15 @@ def _draw_moment_in_diagram(
 
         # Draw vertical line linking the gate's qubits.
         if y2 > y1 and info.connected:
-            out_diagram.vertical_line(x, y1, y2)
+            out_diagram.vertical_line(x, y1, y2, doubled=len(cbits) != 0)
 
         # Print gate qubit labels.
         symbols = info._wire_symbols_including_formatted_exponent(
             args,
-            preferred_exponent_index=max(
-                range(len(op.qubits)), key=lambda i: qubit_map[op.qubits[i]]
-            ),
+            preferred_exponent_index=max(range(len(labels)), key=lambda i: label_map[labels[i]]),
         )
-        for s, q in zip(symbols, op.qubits):
-            out_diagram.write(x, qubit_map[q], s)
+        for s, q in zip(symbols, labels):
+            out_diagram.write(x, label_map[q], s)
 
         if x > max_x:
             max_x = x
@@ -2430,7 +2463,7 @@ def _draw_moment_in_diagram(
         moment=moment,
         use_unicode_characters=use_unicode_characters,
         col=x0,
-        qubit_map=qubit_map,
+        label_map=label_map,
         out_diagram=out_diagram,
         precision=precision,
         get_circuit_diagram_info=get_circuit_diagram_info,
@@ -2444,7 +2477,7 @@ def _draw_moment_in_diagram(
     if global_phase and (global_phase != 1 or not non_global_ops):
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
-            y = max(qubit_map.values(), default=0) + 1
+            y = max(label_map.values(), default=0) + 1
             if tags and include_tags:
                 desc = desc + str(tags)
             out_diagram.write(x0, y, desc)
@@ -2458,8 +2491,8 @@ def _draw_moment_in_diagram(
 
 
 def _get_global_phase_and_tags_for_op(op: 'cirq.Operation') -> Tuple[Optional[complex], List[Any]]:
-    if isinstance(op.untagged, ops.GlobalPhaseOperation):
-        return complex(op.untagged.coefficient), list(op.tags)
+    if isinstance(op.gate, ops.GlobalPhaseGate):
+        return complex(op.gate.coefficient), list(op.tags)
     elif isinstance(op.untagged, CircuitOperation):
         op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
         return op_phase, list(op.tags) + op_tags
@@ -2621,4 +2654,4 @@ def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], val
     Yields:
         Tuples containing the group key and item values.
     """
-    return ((k, [val(i) for i in v]) for (k, v) in groupby(items, key))
+    return ((k, [val(i) for i in v]) for (k, v) in itertools.groupby(items, key))
