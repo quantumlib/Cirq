@@ -39,11 +39,6 @@ def test_u_gate_eq():
     cirq.approx_eq(gate4, gate3, atol=1e-16)
 
 
-def test_u_gate_json():
-    gate = QasmUGate(0.1, 0.2, 0.3)
-    assert cirq.read_json(json_text=cirq.to_json(gate)) == gate
-
-
 def test_qasm_two_qubit_gate_repr():
     cirq.testing.assert_equivalent_repr(
         QasmTwoQubitGate.from_matrix(cirq.testing.random_unitary(4))
