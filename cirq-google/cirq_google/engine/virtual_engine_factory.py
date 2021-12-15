@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Functions to instantiate SimulatedLocalEngines to simulate various Google Devices."""
-from typing import cast, Iterable, Optional
+from typing import cast, Iterable, List, Optional, Union
 import pathlib
 import time
 
@@ -83,8 +83,30 @@ def _create_perfect_calibration(device: cirq.Device):
     return calibration.Calibration(calibration=snapshot, metrics=all_metrics)
 
 
+def _create_virtual_processor_from_device(processor_id: str, device: cirq.Device):
+    """Creates a Processor object that is backed by a noiseless simulator.
+
+    Creates a noiseless `AbstractProcessor` object based on the cirq simulator,
+    a default validator, and a provided device.
+
+    Args:
+         processor_id: name of the processor to simulate.  This is an arbitrary
+             string identifier and does not have to match the processor's name
+             in QCS.
+         device: A `cirq.Device` to validate circuits against.
+    """
+    calibration = _create_perfect_calibration(device)
+    return simulated_local_processor.SimulatedLocalProcessor(
+        processor_id=processor_id,
+        device=device,
+        validator=engine_validator.create_engine_validator(),
+        gate_set_validator=engine_validator.create_gate_set_validator(),
+        calibrations={calibration.timestamp // 1000: calibration},
+    )
+
+
 def create_noiseless_virtual_engine_from_device(processor_id: str, device: cirq.Device):
-    """Creates an Engine object that is backed by a noiseless simulator.
+    """Creates an Engine object with a single processor backed by a noiseless simulator.
 
     Creates a noiseless engine object based on the cirq simulator,
     a default validator, and a provided device.
@@ -95,20 +117,16 @@ def create_noiseless_virtual_engine_from_device(processor_id: str, device: cirq.
              in QCS.
          device: A `cirq.Device` to validate circuits against.
     """
-    calibration = _create_perfect_calibration(device)
-    processor = simulated_local_processor.SimulatedLocalProcessor(
-        processor_id=processor_id,
-        device=device,
-        validator=engine_validator.create_engine_validator(),
-        gate_set_validator=engine_validator.create_gate_set_validator(),
-        calibrations={calibration.timestamp // 1000: calibration},
+    return simulated_local_engine.SimulatedLocalEngine(
+        [_create_virtual_processor_from_device(processor_id, device)]
     )
-    return simulated_local_engine.SimulatedLocalEngine([processor])
 
 
 def create_noiseless_virtual_engine_from_proto(
-    processor_id: str,
-    device_specification: v2.device_pb2.DeviceSpecification,
+    processor_ids: Union[str, List[str]],
+    device_specifications: Union[
+        v2.device_pb2.DeviceSpecification, List[v2.device_pb2.DeviceSpecification]
+    ],
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ):
     """Creates a noiseless virtual engine object from a device specification proto.a
@@ -117,40 +135,92 @@ def create_noiseless_virtual_engine_from_proto(
     and can be retrieved from a stored "proto.txt" file or from the QCS API.
 
     Args:
-         processor_id: name of the processor to simulate.  This is an arbitrary
+         processor_ids: name of the processor to simulate.  This is an arbitrary
              string identifier and does not have to match the processor's name
-             in QCS.
-         device_specification:  `v2.device_pb2.DeviceSpecification` proto to create
-             a validating device from.
+             in QCS.  This can be a single string or list of strings.
+         device_specifications:  `v2.device_pb2.DeviceSpecification` proto to create
+             a validating device from.  This can be a single DeviceSpecification
+             or a list of them.  There should be one DeviceSpecification for each
+             processor_id.
          gate_sets: Iterable of serializers to use in the processor.  Defaults
              to the FSIM_GATESET.
+
+    Raises:
+        ValueError: if processor_ids and device_specifications are not the same length.
     """
     if gate_sets is None:
         gate_sets = [FSIM_GATESET]
-    device = serializable_device.SerializableDevice.from_proto(device_specification, gate_sets)
-    return create_noiseless_virtual_engine_from_device(processor_id, device)
+    if isinstance(processor_ids, str):
+        processor_ids = [processor_ids]
+    if isinstance(device_specifications, v2.device_pb2.DeviceSpecification):
+        device_specifications = [device_specifications]
+    if len(processor_ids) != len(device_specifications):
+        raise ValueError('Must provide equal numbers of processor ids and device specifications.')
+
+    processors = []
+    for idx in range(len(processor_ids)):
+        device = serializable_device.SerializableDevice.from_proto(
+            device_specifications[idx], gate_sets
+        )
+        processors.append(_create_virtual_processor_from_device(processor_ids[idx], device))
+    return simulated_local_engine.SimulatedLocalEngine(processors)
 
 
-def create_noiseless_virtual_engine_from_template(
-    processor_id: str,
-    template_name: str,
+def create_noiseless_virtual_engine_from_templates(
+    processor_ids: Union[str, List[str]],
+    template_names: Union[str, List[str]],
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ):
     """Creates a noiseless virtual engine object from a device specification template.
 
     Args:
-         processor_id: name of the processor to simulate.  This is an arbitrary
+         processor_ids: name of the processor to simulate.  This is an arbitrary
              string identifier and does not have to match the processor's name
-             in QCS.
-         template_name: File name of the device specification template, see
-             cirq_google/devices/specifications for valid templates.
+             in QCS.  There can be a single string or a list of strings for multiple
+             processors.
+         template_names: File name of the device specification template, see
+             cirq_google/devices/specifications for valid templates.  There can
+             be a single str for a template name or a list of strings.  Each
+             template name should be matched to a single processor id.
          gate_sets: Iterable of serializers to use in the processor.  Defaults
              to the FSIM_GATESET.
+
+    Raises:
+        ValueError: if processor_ids and template_names are not the same length.
     """
-    path = pathlib.Path(__file__).parent.parent.resolve()
-    f = open(path.joinpath('devices', 'specifications', template_name))
-    proto_txt = f.read()
-    f.close()
-    device_spec = v2.device_pb2.DeviceSpecification()
-    text_format.Parse(proto_txt, device_spec)
-    return create_noiseless_virtual_engine_from_proto(processor_id, device_spec, gate_sets)
+    if isinstance(processor_ids, str):
+        processor_ids = [processor_ids]
+    if isinstance(template_names, str):
+        template_names = [template_names]
+    if len(processor_ids) != len(template_names):
+        raise ValueError('Must provide equal numbers of processor ids and template names.')
+
+    specifications = []
+    for idx in range(len(processor_ids)):
+        path = pathlib.Path(__file__).parent.parent.resolve()
+        f = open(path.joinpath('devices', 'specifications', template_names[idx]))
+        proto_txt = f.read()
+        f.close()
+        device_spec = v2.device_pb2.DeviceSpecification()
+        text_format.Parse(proto_txt, device_spec)
+        specifications.append(device_spec)
+    return create_noiseless_virtual_engine_from_proto(processor_ids, specifications, gate_sets)
+
+
+def create_noiseless_virtual_engine_from_latest_templates():
+    """Creates a noiseless virtual engine based on current templates.
+
+    This uses the most recent templates to create a reasonable facsimile of
+    a simulated Quantum Computing Service (QCS).
+
+    Note:  this will use the most recent templates to match the service.
+    While not expected to change frequently, this function may change the
+    templates (processors) that are included in the "service" as the actual
+    hardware evolves.  The processors returned from this function should not
+    be considered stable from version to version and are not guaranteed to be
+    backwards compatible.
+    """
+    return create_noiseless_virtual_engine_from_templates(
+        ['rainbow', 'weber'],
+        ['rainbow_12_10_2021_device_spec.proto.txt', 'weber_12_10_2021_device_spec.proto.txt'],
+    )
