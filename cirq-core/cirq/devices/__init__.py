@@ -63,7 +63,6 @@ from cirq.devices.noise_utils import (
     pauli_error_to_decay_constant,
     xeb_fidelity_to_decay_constant,
     pauli_error_from_t1,
-    pauli_error_from_depolarization,
     average_error,
     decoherence_pauli_error,
 )

@@ -15,7 +15,7 @@
 import dataclasses
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence
 
-from cirq import devices, ops
+from cirq import devices
 from cirq.devices import noise_utils
 
 if TYPE_CHECKING:
@@ -63,6 +63,10 @@ class InsertionNoiseModel(devices.NoiseModel):
                 noise_ops.append(self.ops_added[match_id])
         if not noise_ops:
             return [moment]
+
+        from cirq import circuits
+
+        noise_steps = circuits.Circuit(noise_ops)
         if self.prepend:
-            return [ops.Moment(noise_ops), moment]
-        return [moment, ops.Moment(noise_ops)]
+            return [*noise_steps.moments, moment]
+        return [moment, *noise_steps.moments]
