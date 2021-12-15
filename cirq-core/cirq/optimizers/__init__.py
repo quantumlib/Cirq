@@ -97,18 +97,6 @@ from cirq.optimizers.three_qubit_decomposition import (
     three_qubit_matrix_to_operations,
 )
 
-from cirq.optimizers.transformer_primitives import (
-    map_moments,
-    map_operations,
-    map_operations_and_unroll,
-    merge_moments,
-    merge_operations,
-    unroll_circuit_op,
-    unroll_circuit_op_greedy_earliest,
-    unroll_circuit_op_greedy_frontier,
-)
-
-
 from cirq.optimizers.two_qubit_decompositions import (
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
