@@ -102,7 +102,7 @@ from cirq.optimizers.two_qubit_decompositions import (
     two_qubit_matrix_to_diagonal_and_operations,
 )
 
-from cirq.optimizers.two_qubit_gate_compilation import (
+from cirq.optimizers.two_qubit_gate_tabulation import (
     two_qubit_gate_product_tabulation,
     TwoQubitGateTabulation,
 )
