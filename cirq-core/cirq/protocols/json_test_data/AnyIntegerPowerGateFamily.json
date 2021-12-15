@@ -1,0 +1,4 @@
+{
+  "cirq_type": "AnyIntegerPowerGateFamily",
+  "gate": "XPowGate"
+}

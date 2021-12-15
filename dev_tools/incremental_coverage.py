@@ -124,15 +124,13 @@ def fix_line_from_coverage_file(line):
     return line
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def get_incremental_uncovered_lines(
     abs_path: str, base_commit: str, actual_commit: Optional[str]
 ) -> List[Tuple[int, str, str]]:
-    """
-    Uses git diff and the annotation files created by
-    `pytest --cov-report annotate` to find touched but uncovered lines in the
-    given file.
+    """Find touched but uncovered lines in the given file.
+
+    Uses git diff and the annotation files created by `pytest --cov-report annotate` to find
+    these lines in the given file.
 
     Args:
         abs_path: The path of a file to look for uncovered lines in.
@@ -170,9 +168,9 @@ def get_incremental_uncovered_lines(
         ]
 
 
-# TODO(#3388) Add summary line to docstring.
 def line_content_counts_as_uncovered_manual(content: str) -> bool:
-    """
+    """Whether the given content counts as uncovered.
+
     Args:
         content: A line with indentation and tail comments/space removed.
 
@@ -193,7 +191,6 @@ def line_content_counts_as_uncovered_manual(content: str) -> bool:
     return True
 
 
-# pylint: enable=docstring-first-line-empty
 def determine_ignored_lines(content: str) -> Set[int]:
     lines = content.split('\n')
     result = []  # type: List[int]
@@ -236,16 +233,15 @@ def naive_find_end_of_scope(lines: List[str], i: int) -> int:
     return i
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def line_counts_as_uncovered(line: str, is_from_cover_annotation_file: bool) -> bool:
-    """
+    """Whether the line should count as covered or not.
+
     Args:
         line: The line of code (including coverage annotation).
         is_from_cover_annotation_file: Whether this line has been annotated.
 
     Returns:
-        Does the line count as uncovered?
+        True if the line is counted as uncovered.
     """
 
     # Ignore this line?
@@ -274,7 +270,6 @@ def line_counts_as_uncovered(line: str, is_from_cover_annotation_file: bool) -> 
     return is_from_cover_annotation_file or line_content_counts_as_uncovered_manual(content)
 
 
-# pylint: enable=docstring-first-line-empty
 def is_applicable_python_file(rel_path: str) -> bool:
     """Determines if a file should be included in incremental coverage analysis.
 

@@ -114,7 +114,6 @@ class ProductState:
 
     def _json_dict_(self):
         return {
-            'cirq_type': self.__class__.__name__,
             'states': list(self.states.items()),
         }
 

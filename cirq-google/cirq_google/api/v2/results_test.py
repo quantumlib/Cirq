@@ -140,13 +140,13 @@ def test_results_to_proto():
     measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False], tags=[])]
     trial_results = [
         [
-            cirq.Result.from_single_parameter_set(
+            cirq.Result(
                 params=cirq.ParamResolver({'i': 0}),
                 measurements={
                     'foo': np.array([[0], [1], [0], [1]], dtype=bool),
                 },
             ),
-            cirq.Result.from_single_parameter_set(
+            cirq.Result(
                 params=cirq.ParamResolver({'i': 1}),
                 measurements={
                     'foo': np.array([[0], [1], [1], [0]], dtype=bool),
@@ -154,13 +154,13 @@ def test_results_to_proto():
             ),
         ],
         [
-            cirq.Result.from_single_parameter_set(
+            cirq.Result(
                 params=cirq.ParamResolver({'i': 0}),
                 measurements={
                     'foo': np.array([[0], [1], [0], [1]], dtype=bool),
                 },
             ),
-            cirq.Result.from_single_parameter_set(
+            cirq.Result(
                 params=cirq.ParamResolver({'i': 1}),
                 measurements={
                     'foo': np.array([[0], [1], [1], [0]], dtype=bool),
@@ -187,13 +187,13 @@ def test_results_to_proto_sweep_repetitions():
     measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False], tags=[])]
     trial_results = [
         [
-            cirq.Result.from_single_parameter_set(
+            cirq.Result(
                 params=cirq.ParamResolver({'i': 0}),
                 measurements={
                     'foo': np.array([[0]], dtype=bool),
                 },
             ),
-            cirq.Result.from_single_parameter_set(
+            cirq.Result(
                 params=cirq.ParamResolver({'i': 1}),
                 measurements={
                     'foo': np.array([[0], [1]], dtype=bool),
@@ -201,7 +201,7 @@ def test_results_to_proto_sweep_repetitions():
             ),
         ]
     ]
-    with pytest.raises(ValueError, match='different numbers of repetitions'):
+    with pytest.raises(ValueError, match='Different numbers of repetitions'):
         v2.results_to_proto(trial_results, measurements)
 
 
@@ -270,7 +270,7 @@ def test_results_from_proto_duplicate_qubit():
         qmr = mr.qubit_measurement_results.add()
         qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])
-    with pytest.raises(ValueError, match='qubit already exists'):
+    with pytest.raises(ValueError, match='Qubit already exists'):
         v2.results_from_proto(proto, measurements)
 
 

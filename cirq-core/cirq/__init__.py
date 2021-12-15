@@ -88,6 +88,7 @@ from cirq.devices import (
     NO_NOISE,
     NOISE_MODEL_LIKE,
     NoiseModel,
+    OpIdentifier,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
     NamedTopology,
@@ -190,6 +191,7 @@ from cirq.ops import (
     CCZPowGate,
     CCNOT,
     CCNotPowGate,
+    ClassicallyControlledOperation,
     CNOT,
     CNotPowGate,
     ControlledGate,
@@ -219,7 +221,9 @@ from cirq.ops import (
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
     givens,
+    GlobalPhaseGate,
     GlobalPhaseOperation,
+    global_phase_operation,
     H,
     HPowGate,
     I,
@@ -341,6 +345,8 @@ from cirq.optimizers import (
     MergeInteractions,
     MergeInteractionsToSqrtIswap,
     MergeSingleQubitGates,
+    prepare_two_qubit_state_using_cz,
+    prepare_two_qubit_state_using_sqrt_iswap,
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
@@ -352,6 +358,17 @@ from cirq.optimizers import (
     two_qubit_matrix_to_diagonal_and_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
     three_qubit_matrix_to_operations,
+)
+
+from cirq.transformers import (
+    map_moments,
+    map_operations,
+    map_operations_and_unroll,
+    merge_moments,
+    merge_operations,
+    unroll_circuit_op,
+    unroll_circuit_op_greedy_earliest,
+    unroll_circuit_op_greedy_frontier,
 )
 
 from cirq.qis import (
@@ -502,6 +519,7 @@ from cirq.protocols import (
     circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
+    cirq_type_from_json,
     commutes,
     control_keys,
     decompose,
@@ -514,17 +532,22 @@ from cirq.protocols import (
     has_mixture,
     has_stabilizer_effect,
     has_unitary,
+    HasJSONNamespace,
     inverse,
     is_measurement,
     is_parameterized,
     JsonResolver,
+    json_cirq_type,
+    json_namespace,
     json_serializable_dataclass,
     dataclass_json_dict,
     kraus,
+    LabelEntity,
     measurement_key_name,
     measurement_key_obj,
     measurement_key_names,
     measurement_key_objs,
+    measurement_keys_touched,
     mixture,
     mul,
     num_qubits,
@@ -578,6 +601,7 @@ from cirq.protocols import (
     unitary,
     validate_mixture,
     with_key_path,
+    with_key_path_prefix,
     with_measurement_key_mapping,
 )
 
@@ -599,6 +623,8 @@ from cirq.vis import (
     TwoQubitInteractionHeatmap,
     get_state_histogram,
     integrated_histogram,
+    plot_density_matrix,
+    plot_state_histogram,
 )
 
 from cirq.work import (

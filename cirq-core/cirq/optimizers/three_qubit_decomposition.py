@@ -21,8 +21,6 @@ from cirq import ops
 from cirq import optimizers as opt
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def three_qubit_matrix_to_operations(
     q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, u: np.ndarray, atol: float = 1e-8
 ) -> Sequence[ops.Operation]:
@@ -46,6 +44,8 @@ def three_qubit_matrix_to_operations(
 
     Raises:
         ValueError: If the u matrix is non-unitary or not of shape (8,8).
+        ImportError: If the decomposition cannot be done because the SciPy version is less than
+            1.5.0 and so does not contain the required `cossin` method.
     """
     if np.shape(u) != (8, 8):
         raise ValueError(f"Expected unitary matrix with shape (8,8) got {np.shape(u)}")
@@ -85,7 +85,6 @@ def three_qubit_matrix_to_operations(
     return list(cirq.Circuit(vdh_ops + cs_ops + ud_ops).all_operations())
 
 
-# pylint: enable=missing-raises-doc
 def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List[ops.Operation]:
     """Converts theta angles based Cosine Sine matrix to operations.
 
@@ -118,8 +117,6 @@ def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List
     return _optimize_multiplexed_angles_circuit(ops)
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 def _two_qubit_multiplexor_to_ops(
     q0: ops.Qid,
     q1: ops.Qid,
@@ -167,6 +164,8 @@ def _two_qubit_multiplexor_to_ops(
         u2: two-qubit operation on b,c for a = |1>
         shift_left: return the extracted diagonal or not
         diagonal: an incoming diagonal to be merged with
+        atol: the absolute tolerance for the two-qubit sub-decompositions.
+
     Returns:
         The circuit implementing the two qubit multiplexor consisting only of
         known two-qubit and single qubit gates
@@ -199,7 +198,6 @@ def _two_qubit_multiplexor_to_ops(
     return d_w, circuit_u1u2_l + circuit_u1u2_mid + circuit_u1u2_r
 
 
-# pylint: enable=missing-param-doc
 def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
     """Removes two qubit gates that amount to identity.
     Exploiting the specific multiplexed structure, this methods looks ahead

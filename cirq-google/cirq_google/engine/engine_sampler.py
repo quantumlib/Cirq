@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, TYPE_CHECKING, Union, Optional, cast, Sequence, Tuple
+from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_google import engine
@@ -60,7 +60,7 @@ class QuantumEngineSampler(cirq.Sampler):
             )
         else:
             job = self._engine.run_sweep(
-                program=cast(cirq.Circuit, program),
+                program=program,
                 params=params,
                 repetitions=repetitions,
                 processor_ids=self._processor_ids,
@@ -140,4 +140,4 @@ def get_engine_sampler(
             f"{sorted(gate_sets.NAMED_GATESETS.keys())}."
         )
     gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
-    return engine.get_engine(project_id).sampler(processor_id=processor_id, gate_set=gate_set)
+    return engine.get_engine(project_id).get_sampler(processor_id=processor_id, gate_set=gate_set)

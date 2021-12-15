@@ -12,17 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
-"""
-Utility methods related to optimizing quantum circuits
-using native iontrap operations.
+"""Utility methods related to optimizing quantum circuits using native iontrap operations.
 
 Gate compilation methods implemented here are following the paper below:
     'Basic circuit compilation techniques for an ion-trap quantum machine'
     arXiv:1603.07678
 """
-# pylint: enable=docstring-first-line-empty
 
 from typing import Iterable, List, Optional, cast, Tuple, TYPE_CHECKING
 

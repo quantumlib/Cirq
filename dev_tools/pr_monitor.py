@@ -54,14 +54,19 @@ class PullRequestDetails:
         self.payload = payload
         self.repo = repo
 
-    # TODO(#3388) Add summary line to docstring.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=docstring-first-line-empty,missing-raises-doc
     @staticmethod
     def from_github(repo: GithubRepository, pull_id: int) -> 'PullRequestDetails':
-        """
+        """Retrieves a single pull request.
+
         References:
             https://developer.github.com/v3/pulls/#get-a-single-pull-request
+
+        Args:
+            repo: The github repo to get the pull request from.
+            pull_id: The id of the pull request.
+
+        Raises:
+            RuntimeError: If the request does not return status 200 (success).
         """
         url = "https://api.github.com/repos/{}/{}/pulls/{}".format(
             repo.organization, repo.name, pull_id
@@ -79,9 +84,9 @@ class PullRequestDetails:
         payload = json.JSONDecoder().decode(response.content.decode())
         return PullRequestDetails(payload, repo)
 
-    # pylint: enable=docstring-first-line-empty,missing-raises-doc
     @property
     def remote_repo(self) -> GithubRepository:
+        """Return the GithubRepository corresponding to this pull request."""
         return GithubRepository(
             organization=self.payload['head']['repo']['owner']['login'],
             name=self.payload['head']['repo']['name'],
@@ -149,15 +154,24 @@ class PullRequestDetails:
         return self.deletions + self.additions
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def check_collaborator_has_write(
     repo: GithubRepository, username: str
 ) -> Optional[CannotAutomergeError]:
-    """
+    """Checks whether the given user is a collaborator (admin and write access).
+
     References:
         https://developer.github.com/v3/issues/events/#list-events-for-an-issue
+
+    Args:
+        repo: The github repo to check.
+        username: The github username to check whether the user is a collaborator.
+
+    Returns:
+        CannotAutomergeError if the user does not have admin and write permissions and so
+            cannot use automerge, None otherwise.
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = "https://api.github.com/repos/{}/{}/collaborators/{}/permission" "".format(
         repo.organization, repo.name, username
@@ -179,8 +193,19 @@ def check_collaborator_has_write(
     return None
 
 
-# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def get_all(repo: GithubRepository, url_func: Callable[[int], str]) -> List[Any]:
+    """Get all results, accounting for pagination.
+
+    Args:
+        repo: The github repo to call GET on.
+        url_func: A function from an integer page number to the url to get the result for that page.
+
+    Returns:
+        A list of the results by page.
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
+    """
     results: List[Any] = []
     page = 0
     has_next = True
@@ -201,14 +226,20 @@ def get_all(repo: GithubRepository, url_func: Callable[[int], str]) -> List[Any]
     return results
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def check_auto_merge_labeler(
     repo: GithubRepository, pull_id: int
 ) -> Optional[CannotAutomergeError]:
-    """
+    """Checks whether the given pull request had an automerge id and user who added it was admin.
+
     References:
         https://developer.github.com/v3/issues/events/#list-events-for-an-issue
+
+    Args:
+        repo: The github repo to check.
+        pull_id: The github pull id to check.
+
+    Returns:
+        CannotAutomergeError if the automerge iid is missing or the user who added is not an admin.
     """
     events = get_all(
         repo,
@@ -229,13 +260,19 @@ def check_auto_merge_labeler(
     return check_collaborator_has_write(repo, relevant[-1]['actor']['login'])
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
-    """
+    """Add a comment to a pull request.
+
     References:
         https://developer.github.com/v3/issues/comments/#create-a-comment
+
+    Arg:
+        rep: The github repo whose pull request should have a comment added to.
+        pull_id: The id of the pull request to comment on.
+        text: The text of the comment.
+
+    Raises:
+        RuntimeError: If the request does not return status 201 (created).
     """
     url = "https://api.github.com/repos/{}/{}/issues/{}/comments".format(
         repo.organization, repo.name, pull_id
@@ -251,12 +288,19 @@ def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
         )
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
 def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
-    """
+    """Edits an existing github comment.
+
     References:
         https://developer.github.com/v3/issues/comments/#edit-a-comment
+
+    Args:
+        repo: The github repo that contains the comment.
+        text: The new comment text.
+        comment_id: The id of the comment to edit.
+
+    Raises:
+            RuntimeError: If the request does not return status 200 (success).
     """
     url = "https://api.github.com/repos/{}/{}/issues/comments/{}".format(
         repo.organization, repo.name, comment_id
@@ -272,12 +316,21 @@ def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
         )
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
 def get_branch_details(repo: GithubRepository, branch: str) -> Any:
-    """
+    """Get details about a github branch.
+
     References:
         https://developer.github.com/v3/repos/branches/#get-branch
+
+    Args:
+        repo: The github repo that has the branch.
+        branch: The name of the branch.
+
+    Returns:
+        The raw response to the query to get details.
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = "https://api.github.com/repos/{}/{}/branches/{}".format(
         repo.organization, repo.name, branch
@@ -294,12 +347,20 @@ def get_branch_details(repo: GithubRepository, branch: str) -> Any:
     return json.JSONDecoder().decode(response.content.decode())
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
 def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
-    """
+    """List the commit statuses of a specific pull request.
+
     References:
         https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
+
+    Args:
+        pr: The pull request details.
+
+    Returns:
+        The raw response to the request.
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
     """
 
     url = "https://api.github.com/repos/{}/{}/commits/{}/statuses".format(
@@ -317,12 +378,20 @@ def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
     return json.JSONDecoder().decode(response.content.decode())
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
 def get_pr_check_status(pr: PullRequestDetails) -> Any:
-    """
+    """Get the combined status for a pull request.
+
     References:
         https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
+
+    Args:
+        pr: The pull request details.
+
+    Returns:
+        The raw response to the request.
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
     """
 
     url = "https://api.github.com/repos/{}/{}/commits/{}/status".format(
@@ -340,8 +409,19 @@ def get_pr_check_status(pr: PullRequestDetails) -> Any:
     return json.JSONDecoder().decode(response.content.decode())
 
 
-# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def classify_pr_status_check_state(pr: PullRequestDetails) -> Optional[bool]:
+    """Classify the pull request status.
+
+    Args:
+        pr: The pull request whose status should be checked.
+
+    Returns:
+        True if the status is successful, False if the status has failed, and None if the
+        status is pending.
+
+    Raises:
+        RuntimeError: If the status state is of an unknown type.
+    """
     has_failed = False
     has_pending = False
 
@@ -368,13 +448,18 @@ def classify_pr_status_check_state(pr: PullRequestDetails) -> Optional[bool]:
     return True
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def classify_pr_synced_state(pr: PullRequestDetails) -> Optional[bool]:
-    """
+    """Get the mergeable state of the pull request.
+
     References:
         https://developer.github.com/v3/pulls/#get-a-single-pull-request
         https://developer.github.com/v4/enum/mergestatestatus/
+
+    Args:
+        pr: The pull request to query for mergable state.
+
+    Returns:
+        True if the classification is clean, False if it is behind, and None otherwise.
     """
     state = pr.payload['mergeable_state'].lower()
     classification = {
@@ -384,13 +469,21 @@ def classify_pr_synced_state(pr: PullRequestDetails) -> Optional[bool]:
     return classification.get(state, None)
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
-    """
+    """Gets the review status of the pull request.
+
     References:
         https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request
+
+    Args:
+        pr: The pull reuqest whose review status will be checked.
+        per_page: The number of results to return per page.
+
+    Returns:
+        The full response from the review query.
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = (
         f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
@@ -409,12 +502,20 @@ def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
     return json.JSONDecoder().decode(response.content.decode())
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
 def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
-    """
+    """List checks for a pull request.
+
     References:
         https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
+
+    Args:
+        pr: The pull request to get checks for.
+
+    Returns:
+        The raw response of the request.
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = (
         f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
@@ -432,7 +533,6 @@ def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
     return json.JSONDecoder().decode(response.content.decode())
 
 
-# pylint: enable=docstring-first-line-empty,missing-raises-doc
 _last_print_was_tick = False
 _tick_count = 0
 
@@ -471,13 +571,21 @@ def absent_status_checks(pr: PullRequestDetails, master_data: Optional[Any] = No
     return set(reqs) - statuses_present - checks_present
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
-    """
+    """Get a given github reference.
+
     References:
         https://developer.github.com/v3/git/refs/#get-a-reference
+
+    Args:
+        repo: The github repo to get the reference from.
+        ref: The id of the reference.
+
+    Returns:
+        The raw response of the request for the reference..
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
     """
 
     url = f"https://api.github.com/repos/{repo.organization}/{repo.name}/git/refs/{ref}"
@@ -492,19 +600,27 @@ def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
     return payload
 
 
-# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def get_master_sha(repo: GithubRepository) -> str:
+    """Get the sha hash for the given repo."""
     ref = get_repo_ref(repo, 'heads/master')
     return ref['object']['sha']
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def list_pr_comments(repo: GithubRepository, pull_id: int) -> List[Dict[str, Any]]:
-    """
+    """List comments for a given pull request.
+
     References:
         https://developer.github.com/v3/issues/comments/#list-comments-on-an-issue
+
+    Args:
+        repo: The github repo for the pull request.
+        pull_id: The id of the pull request.
+
+    Returns:
+        A list of the raw responses for the pull requests.
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
     """
     url = "https://api.github.com/repos/{}/{}/issues/{}/comments".format(
         repo.organization, repo.name, pull_id
@@ -520,12 +636,18 @@ def list_pr_comments(repo: GithubRepository, pull_id: int) -> List[Dict[str, Any
     return payload
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
 def delete_comment(repo: GithubRepository, comment_id: int) -> None:
-    """
+    """Delete a comment.
+
     References:
         https://developer.github.com/v3/issues/comments/#delete-a-comment
+
+    Args:
+        repo: The github repo where the comment lives.
+        comment_id: The id of the comment to delete.
+
+    Raises:
+        RuntimeError: If the request does not return status 204 (no content).
     """
     url = "https://api.github.com/repos/{}/{}/issues/comments/{}".format(
         repo.organization, repo.name, comment_id
@@ -539,7 +661,6 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
         )
 
 
-# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     """Equivalent to hitting the 'update branch' button on a PR.
 
@@ -549,6 +670,13 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
 
     References:
         https://developer.github.com/v3/pulls/#update-a-pull-request-branch
+
+    Args:
+        pr: The pull request to update.
+
+    Returns:
+        True if the update was successful and CannotAutomergeError if it is not possible to
+        perform the update.
     """
     url = (
         f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
@@ -577,13 +705,20 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     return True
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
-    """
+    """Sync a pull request with the master branch.
+
     References:
         https://developer.github.com/v3/repos/merging/#perform-a-merge
+
+    Args:
+        pr: The pull request to sync.
+
+    Returns:
+        True if the sync was successful and CannotAutomergeError if it was not possible to sync.
+
+    Raises:
+        RuntimeError: If the merge request returned a failed response.
     """
     master_sha = get_master_sha(pr.repo)
     remote = pr.remote_repo
@@ -622,12 +757,21 @@ def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutome
     )
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
 def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
-    """
+    """Perform a squash merge on a pull request.
+
     References:
         https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
+
+    Args:
+        pr: The pull request to squash merge.
+
+    Returns:
+        True if the squash merge was successful and CannotAutomergeError if the square merge
+        was not possible
+
+    Raises:
+        RuntimeError: If the request to merge returned a failed merge response.
     """
     url = "https://api.github.com/repos/{}/{}/pulls/{}/merge".format(
         pr.repo.organization, pr.repo.name, pr.pull_id
@@ -657,12 +801,20 @@ def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeE
     )
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: enable=missing-raises-doc
 def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
-    """
+    """Delete a branch.
+
     References:
         https://developer.github.com/v3/git/refs/#delete-a-reference
+
+    Args:
+        pr: The pull request to delete.
+
+    Returns:
+        True of the delete was successful, False otherwise.
+
+    Raises:
+        RuntimeError: If the request does not return status 204 (no content).
     """
 
     open_pulls = list_open_pull_requests(pr.repo, base_branch=pr.branch_name)
@@ -693,20 +845,27 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
     return False
 
 
-# pylint: enable=docstring-first-line-empty
 def branch_data_modified_recently(payload: Any) -> bool:
+    """Whether the branch was modified recently."""
     modified_date = datetime.datetime.strptime(
         payload['commit']['commit']['committer']['date'], '%Y-%m-%dT%H:%M:%SZ'
     )
     return is_recent_date(modified_date)
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty,missing-raises-doc
 def add_labels_to_pr(repo: GithubRepository, pull_id: int, *labels: str) -> None:
-    """
+    """Add lables to a pull request.
+
     References:
         https://developer.github.com/v3/issues/labels/#add-labels-to-an-issue
+
+    Args:
+        repo: The github repo where the pull request lives.
+        pull_id: The id of the pull request.
+        *labels: The labels to add to the pull request.
+
+    Raises:
+        RuntimeError: If the request to add labels returned anything other than success.
     """
     url = "https://api.github.com/repos/{}/{}/issues/{}/labels".format(
         repo.organization, repo.name, pull_id
@@ -721,12 +880,22 @@ def add_labels_to_pr(repo: GithubRepository, pull_id: int, *labels: str) -> None
         )
 
 
-# TODO(#3388) Add summary line to docstring.
-# TODO(#3388) Add documentation for Raises.
 def remove_label_from_pr(repo: GithubRepository, pull_id: int, label: str) -> bool:
-    """
+    """Removes a label from a pull request.
+
     References:
         https://developer.github.com/v3/issues/labels/#remove-a-label-from-an-issue
+
+    Args:
+        repo: The github repo for the pull request.
+        pull_id: The id for the pull request.
+        label: The label to remove.
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
+
+    Returns:
+        True if the label existed and was deleted. False if the label did not exist.
     """
     url = "https://api.github.com/repos/{}/{}/issues/{}/labels/{}".format(
         repo.organization, repo.name, pull_id, label
@@ -749,10 +918,22 @@ def remove_label_from_pr(repo: GithubRepository, pull_id: int, label: str) -> bo
     )
 
 
-# pylint: enable=docstring-first-line-empty,missing-raises-doc
 def list_open_pull_requests(
     repo: GithubRepository, base_branch: Optional[str] = None, per_page: int = 100
 ) -> List[PullRequestDetails]:
+    """List open pull requests.
+
+    Args:
+        repo: The github repo for the pull requests.
+        base_branch: The branch for which to request pull requests.
+        per_page: The number of results to obtain per page.
+
+    Returns:
+        A list of the pull requests.
+
+    Raises:
+        RuntimeError: If the request does not return status 200 (success).
+    """
     url = (
         f"https://api.github.com/repos/{repo.organization}/{repo.name}/pulls"
         f"?per_page={per_page}"

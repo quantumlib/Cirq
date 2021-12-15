@@ -106,7 +106,7 @@ class CircuitOperation(ops.Operation):
             try:
                 protocols.inverse(self.circuit.unfreeze())
             except TypeError:
-                raise ValueError(f'repetitions are negative but the circuit is not invertible')
+                raise ValueError('repetitions are negative but the circuit is not invertible')
 
         # Initialize repetition_ids to default, if unspecified. Else, validate their length.
         loop_size = abs(self.repetitions)
@@ -184,6 +184,9 @@ class CircuitOperation(ops.Operation):
                     for repetition_id in self.repetition_ids
                     for key in circuit_keys
                 }
+            circuit_keys = {
+                protocols.with_key_path_prefix(key, self.parent_path) for key in circuit_keys
+            }
             object.__setattr__(
                 self,
                 '_cached_measurement_key_objs',
@@ -227,37 +230,19 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if deep:
-
-            def map_deep(op: 'cirq.Operation') -> 'cirq.OP_TREE':
-                return op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
-
-            if self.repetition_ids is None:
-                return circuit.map_operations(map_deep)
-            if not has_measurements:
-                return circuit.map_operations(map_deep) * abs(self.repetitions)
-
-            # Path must be constructed from the top down.
-            rekeyed_circuit = circuits.Circuit(
-                protocols.with_key_path(circuit, self.parent_path + (rep,))
-                for rep in self.repetition_ids
+            circuit = circuit.map_operations(
+                lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
             )
-            return rekeyed_circuit.map_operations(map_deep)
-
-        if self.repetition_ids is None:
-            return circuit
-        if not has_measurements:
-            return circuit * abs(self.repetitions)
-
-        def rekey_op(op: 'cirq.Operation', rep: str):
-            """Update measurement keys in `op` to include repetition ID `rep`."""
-            rekeyed_op = protocols.with_key_path(op, self.parent_path + (rep,))
-            if rekeyed_op is NotImplemented:
-                return op
-            return rekeyed_op
-
-        return circuits.Circuit(
-            circuit.map_operations(lambda op: rekey_op(op, rep)) for rep in self.repetition_ids
-        )
+        if self.repetition_ids:
+            if not has_measurements:
+                circuit = circuit * abs(self.repetitions)
+            else:
+                circuit = circuits.Circuit(
+                    protocols.with_key_path_prefix(circuit, (rep,)) for rep in self.repetition_ids
+                )
+        if self.parent_path:
+            circuit = protocols.with_key_path_prefix(circuit, self.parent_path)
+        return circuit
 
     def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
         """As `mapped_circuit`, but wraps the result in a CircuitOperation."""
@@ -293,9 +278,8 @@ class CircuitOperation(ops.Operation):
 
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
-        header = self.circuit.diagram_name() + ':'
         msg_lines = str(self.circuit).split('\n')
-        msg_width = max([len(header) - 4] + [len(line) for line in msg_lines])
+        msg_width = max([len(line) for line in msg_lines])
         circuit_msg = '\n'.join(
             '[ {line:<{width}} ]'.format(line=line, width=msg_width) for line in msg_lines
         )
@@ -320,8 +304,8 @@ class CircuitOperation(ops.Operation):
             # Only add loops if we haven't added repetition_ids.
             args.append(f'loops={self.repetitions}')
         if not args:
-            return f'{header}\n{circuit_msg}'
-        return f'{header}\n{circuit_msg}({", ".join(args)})'
+            return circuit_msg
+        return f'{circuit_msg}({", ".join(args)})'
 
     def __hash__(self):
         if self._hash is None:
@@ -344,7 +328,6 @@ class CircuitOperation(ops.Operation):
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'CircuitOperation',
             'circuit': self.circuit,
             'repetitions': self.repetitions,
             # JSON requires mappings to have keys of basic types.
@@ -443,6 +426,9 @@ class CircuitOperation(ops.Operation):
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         return dataclasses.replace(self, parent_path=path)
+
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return dataclasses.replace(self, parent_path=prefix + self.parent_path)
 
     def with_key_path(self, path: Tuple[str, ...]):
         return self._with_key_path_(path)

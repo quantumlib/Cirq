@@ -58,7 +58,9 @@ else
 fi
 
 # Find involved files.
-cov_changed_python_file_dirs=$(git diff --name-only "${rev}" -- \
+typeset -a cov_changed_python_file_dirs
+IFS=$'\n' read -r -d '' -a cov_changed_python_file_dirs < \
+    <(git diff --name-only "${rev}" -- \
     | grep "\.py$" \
     | grep -v "_pb2\.py$" \
     | xargs -I {} dirname {} \
@@ -66,7 +68,9 @@ cov_changed_python_file_dirs=$(git diff --name-only "${rev}" -- \
     | sort \
     | uniq \
 )
-changed_python_tests=$(git diff --name-only "${rev}" -- \
+typeset -a changed_python_tests
+IFS=$'\n' read -r -d '' -a changed_python_tests < \
+    <(git diff --name-only "${rev}" -- \
     | grep "\.py$" \
     | sed -e "s/\.py$/_test.py/" \
     | sed -e "s/_test_test\.py$/_test.py/" \
