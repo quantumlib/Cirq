@@ -34,7 +34,7 @@ from cirq.optimizers.gate_tabulation_math_utils import (
 _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
 
 
-class TwoQubitGateCompilation(NamedTuple):
+class TwoQubitGateTabulationResult(NamedTuple):
     r"""Represents a compilation of a target 2-qubit with respect to a base
     gate.
 
@@ -80,7 +80,7 @@ class TwoQubitGateTabulation:
     # max_expected_infidelity) using 2 or 3 base gates.
     missed_points: Tuple[np.ndarray, ...]
 
-    def compile_two_qubit_gate(self, unitary: np.ndarray) -> TwoQubitGateCompilation:
+    def compile_two_qubit_gate(self, unitary: np.ndarray) -> TwoQubitGateTabulationResult:
         r"""Compute single qubit gates required to compile a desired unitary.
 
         Given a desired unitary U, this computes the sequence of 1-local gates
@@ -94,7 +94,7 @@ class TwoQubitGateTabulation:
             unitary: Unitary (U above) to compile.
 
         Returns:
-            A TwoQubitGateCompilation object encoding the required local
+            A TwoQubitGateTabulationResult object encoding the required local
             unitaries and resulting product above.
         """
         unitary = np.asarray(unitary)
@@ -109,7 +109,7 @@ class TwoQubitGateTabulation:
 
         if inner_gates.size == 0:  # Only need base gate
             kR, kL, actual = _outer_locals_for_unitary(unitary, self.base_gate)
-            return TwoQubitGateCompilation(self.base_gate, unitary, (kR, kL), actual, success)
+            return TwoQubitGateTabulationResult(self.base_gate, unitary, (kR, kL), actual, success)
 
         # reshape to operators on 2 qubits, (n,4,4)
         inner_gates = vector_kron(inner_gates[..., 0, :, :], inner_gates[..., 1, :, :])
@@ -122,7 +122,7 @@ class TwoQubitGateTabulation:
         out.extend(self.single_qubit_gates[nearest_ind])
         out.append(kL)
 
-        return TwoQubitGateCompilation(self.base_gate, unitary, tuple(out), actual, success)
+        return TwoQubitGateTabulationResult(self.base_gate, unitary, tuple(out), actual, success)
 
     def _json_dict_(self):
         return {
