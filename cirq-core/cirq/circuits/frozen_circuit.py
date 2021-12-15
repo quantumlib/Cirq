@@ -27,10 +27,14 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, protocols, value
+from cirq import _import, _compat, devices, ops, protocols, value
+
+circuit = _import.LazyLoader("circuit", globals(), "cirq.circuits.circuit")
+
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
+
 
 if TYPE_CHECKING:
     import cirq
@@ -44,6 +48,12 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     the `freeze` and `unfreeze` methods from AbstractCircuit.
     """
 
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
+        fix=circuit._DEVICE_DEP_MESSAGE,
+        parameter_desc='device',
+        match=lambda args, kwargs: 'device' in kwargs,
+    )
     def __init__(
         self,
         *contents: 'cirq.OP_TREE',
@@ -63,9 +73,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
                 together.
             device: Hardware that the circuit should be able to run on.
         """
-        base = Circuit(contents, strategy=strategy, device=device)
+        if device == devices.UNCONSTRAINED_DEVICE:
+            base = Circuit(contents, strategy=strategy)
+        else:
+            with circuit._block_overlapping_dep():
+                base = Circuit(contents, strategy=strategy, device=device)
+
         self._moments = tuple(base.moments)
-        self._device = base.device
+        self._device = base._device
 
         # These variables are memoized when first requested.
         self._num_qubits: Optional[int] = None
@@ -82,11 +97,15 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self._moments
 
     @property
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix=circuit._DEVICE_DEP_MESSAGE,
+    )
     def device(self) -> devices.Device:
         return self._device
 
     def __hash__(self):
-        return hash((self.moments, self.device))
+        return hash((self.moments, self._device))
 
     # Memoized methods for commonly-retrieved properties.
 
@@ -169,16 +188,24 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             return NotImplemented
 
     def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'FrozenCircuit':
-        new_circuit = FrozenCircuit(device=self.device)
+        if self._device == devices.UNCONSTRAINED_DEVICE:
+            new_circuit = FrozenCircuit()
+        else:
+            new_circuit = FrozenCircuit(device=self._device)
         new_circuit._moments = tuple(moments)
         return new_circuit
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix=circuit._DEVICE_DEP_MESSAGE,
+    )
     def with_device(
         self,
         new_device: 'cirq.Device',
         qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
     ) -> 'FrozenCircuit':
-        return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
+        with circuit._block_overlapping_dep():
+            return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool

@@ -37,5 +37,5 @@ def test_get_acquaintance_size():
     with pytest.raises(TypeError):
         cca.get_acquaintance_size(3)
 
-    circuit = cirq.Circuit(device=cca.UnconstrainedAcquaintanceDevice)
+    circuit = cirq.Circuit()
     cca.get_acquaintance_size(circuit)

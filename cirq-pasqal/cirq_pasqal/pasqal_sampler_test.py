@@ -36,9 +36,11 @@ class MockGet:
             return self.json
 
 
-def _make_sampler() -> cirq_pasqal.PasqalSampler:
+def _make_sampler(device) -> cirq_pasqal.PasqalSampler:
 
-    sampler = cirq_pasqal.PasqalSampler(remote_host='http://00.00.00/', access_token='N/A')
+    sampler = cirq_pasqal.PasqalSampler(
+        remote_host='http://00.00.00/', access_token='N/A',
+        device=device)
     return sampler
 
 
@@ -47,7 +49,7 @@ def test_pasqal_circuit_init():
     ex_circuit = cirq.Circuit()
     ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
     device = cirq_pasqal.PasqalDevice(qubits=qs)
-    test_circuit = cirq.Circuit(device=device)
+    test_circuit = cirq.Circuit()
     test_circuit.append(
         [[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])] for i in range(len(qs) - 1)]
     )
@@ -74,22 +76,22 @@ def test_run_sweep(mock_post, mock_get):
     binary = bin(num)[2:].zfill(9)
 
     device = cirq_pasqal.PasqalVirtualDevice(control_radius=1, qubits=qs)
-    ex_circuit = cirq.Circuit(device=device)
+    ex_circuit = cirq.Circuit()
 
     for i, b in enumerate(binary[:-1]):
         if b == '1':
             ex_circuit.append(cirq.X(qs[-i - 1]), strategy=cirq.InsertStrategy.NEW)
 
     ex_circuit_odd = copy.deepcopy(ex_circuit)
-    ex_circuit_odd.append(cirq.X(qs[0]))
-    ex_circuit_odd.append(cirq.measure(*qs))
+    ex_circuit_odd.append(cirq.X(qs[0]), strategy=cirq.InsertStrategy.NEW)
+    ex_circuit_odd.append(cirq.measure(*qs), strategy=cirq.InsertStrategy.NEW)
 
     xpow = cirq.XPowGate(exponent=par)
-    ex_circuit.append([xpow(qs[0])])
-    ex_circuit.append(cirq.measure(*qs))
+    ex_circuit.append([xpow(qs[0])], strategy=cirq.InsertStrategy.NEW)
+    ex_circuit.append(cirq.measure(*qs), strategy=cirq.InsertStrategy.NEW)
 
     mock_get.return_value = MockGet(cirq.to_json(ex_circuit_odd))
-    sampler = _make_sampler()
+    sampler = _make_sampler(device)
 
     with pytest.raises(ValueError, match="Non-empty moment after measurement"):
         wrong_circuit = copy.deepcopy(ex_circuit)

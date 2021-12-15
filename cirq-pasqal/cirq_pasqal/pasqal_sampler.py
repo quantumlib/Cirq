@@ -21,7 +21,10 @@ import cirq_pasqal
 
 
 class PasqalSampler(cirq.work.Sampler):
-    def __init__(self, remote_host: str, access_token: str = '') -> None:
+    def __init__(self,
+        remote_host: str,
+        access_token: str = '',
+        device: cirq_pasqal.PasqalDevice = None) -> None:
         """Inits PasqalSampler.
 
         Args:
@@ -30,6 +33,7 @@ class PasqalSampler(cirq.work.Sampler):
         """
         self.remote_host = remote_host
         self._authorization_header = {"Authorization": access_token}
+        self._device = device
 
     def _serialize_circuit(
         self,
@@ -114,8 +118,11 @@ class PasqalSampler(cirq.work.Sampler):
             Result list for this run; one for each possible parameter
             resolver.
         """
-        assert isinstance(program.device, cirq_pasqal.PasqalDevice)
-        program.device.validate_circuit(program)
+        if self._device is None:
+            assert isinstance(program._device, cirq_pasqal.PasqalDevice)
+            program._device.validate_circuit(program)
+        else:
+            self._device.validate_circuit(program)
         trial_results = []
 
         for param_resolver in cirq.study.to_resolvers(params):

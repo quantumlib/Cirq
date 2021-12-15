@@ -66,6 +66,21 @@ def test_init():
     assert list(dag.edges()) == []
 
 
+def test_init_device_deprecated():
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        dag = cirq.CircuitDag(device=cirq.UNCONSTRAINED_DEVICE)
+
+
+def test_device_deprecated():
+    dag = cirq.CircuitDag()
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        dev = dag.device
+
+
 def test_append():
     q0 = cirq.LineQubit(0)
     dag = cirq.CircuitDag()
@@ -99,22 +114,19 @@ def test_from_ops():
     assert [(n1.val, n2.val) for n1, n2 in dag.edges()] == [(cirq.X(q0), cirq.Y(q0))]
 
 
+def test_from_ops_device_deprecated():
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        q0 = cirq.LineQubit(0)
+        dag = cirq.CircuitDag.from_ops(cirq.X(q0), cirq.Y(q0), device=cirq.UNCONSTRAINED_DEVICE)
+
+
 def test_from_circuit():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
     dag = cirq.CircuitDag.from_circuit(circuit)
     assert networkx.dag.is_directed_acyclic_graph(dag)
-    assert len(dag.nodes()) == 2
-    assert [(n1.val, n2.val) for n1, n2 in dag.edges()] == [(cirq.X(q0), cirq.Y(q0))]
-    assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
-
-
-def test_from_circuit_with_device():
-    q0 = cirq.GridQubit(5, 5)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0), device=cirq.UNCONSTRAINED_DEVICE)
-    dag = cirq.CircuitDag.from_circuit(circuit)
-    assert networkx.dag.is_directed_acyclic_graph(dag)
-    assert dag.device == circuit.device
     assert len(dag.nodes()) == 2
     assert [(n1.val, n2.val) for n1, n2 in dag.edges()] == [(cirq.X(q0), cirq.Y(q0))]
     assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
@@ -213,13 +225,11 @@ def test_larger_circuit():
         cirq.CZ(q0, q1),
         cirq.T(q3),
         strategy=cirq.InsertStrategy.EARLIEST,
-        device=cirq.UNCONSTRAINED_DEVICE,
     )
 
     dag = cirq.CircuitDag.from_circuit(circuit)
 
     assert networkx.dag.is_directed_acyclic_graph(dag)
-    assert circuit.device == dag.to_circuit().device
     # Operation order within a moment is non-deterministic
     # but text diagrams still look the same.
     desired = """

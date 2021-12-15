@@ -23,6 +23,7 @@ import sympy
 
 import cirq
 import cirq.testing
+from unittest import mock
 from cirq import circuits
 from cirq import ops
 from cirq.testing.devices import ValidatingTestDevice
@@ -91,6 +92,7 @@ def test_alignment():
     assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_insert_moment_types():
     x = cirq.NamedQubit('x')
 
@@ -139,12 +141,10 @@ def test_equality(circuit_cls):
     # Default is empty. Iterables get listed.
     eq.add_equality_group(
         circuit_cls(),
-        circuit_cls(device=cirq.UNCONSTRAINED_DEVICE),
         circuit_cls([]),
         circuit_cls(()),
     )
     eq.add_equality_group(circuit_cls([cirq.Moment()]), circuit_cls((cirq.Moment(),)))
-    eq.add_equality_group(circuit_cls(device=FOXY))
 
     # Equality depends on structure and contents.
     eq.add_equality_group(circuit_cls([cirq.Moment([cirq.X(a)])]))
@@ -174,10 +174,6 @@ def test_equality(circuit_cls):
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_approx_eq(circuit_cls):
-    class TestDevice(cirq.Device):
-        def validate_operation(self, operation: cirq.Operation) -> None:
-            pass
-
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -205,6 +201,15 @@ def test_approx_eq(circuit_cls):
         atol=1e-6,
     )
 
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_approx_eq_device_deprecated(circuit_cls):
+    class TestDevice(cirq.Device):
+        def validate_operation(self, operation: cirq.Operation) -> None:
+            pass
+
+    a = cirq.NamedQubit('a')
     assert not cirq.approx_eq(
         circuit_cls([cirq.Moment([cirq.X(a)])]),
         circuit_cls([cirq.Moment([cirq.X(a)])], device=TestDevice()),
@@ -346,6 +351,10 @@ def test_radd_op_tree(circuit_cls):
         [cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.Y(b)])]
     )
 
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_radd_op_tree_device_deprecated(circuit_cls):
     # Preserves device.
     c = circuit_cls(device=FOXY)
     c2 = [] + c
@@ -401,6 +410,10 @@ def test_repr(circuit_cls):
 ])"""
     )
 
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_repr_device_deprecated(circuit_cls):
     c = circuit_cls(device=FOXY)
     cirq.testing.assert_equivalent_repr(c)
     assert repr(c) == f'cirq.{circuit_cls.__name__}(device={repr(FOXY)})'
@@ -626,7 +639,8 @@ def test_concatenate():
         _ = c + 'a'
 
 
-def test_concatenate_with_device():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_concatenate_with_device_deprecated():
     fox = cirq.Circuit(device=FOXY)
     cone = cirq.Circuit(device=BCONE)
     unr = cirq.Circuit()
@@ -646,8 +660,9 @@ def test_concatenate_with_device():
     assert len(cone) == 0
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_with_device(circuit_cls):
+def test_with_device_logic_deprecated(circuit_cls):
 
     c = circuit_cls(cirq.X(cirq.LineQubit(0)))
     c2 = c.with_device(FOXY, lambda e: cirq.GridQubit(e.x, 0))
@@ -673,7 +688,17 @@ def test_with_device(circuit_cls):
     _ = c.with_device(BCONE)
 
 
-def test_set_device():
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_with_device_deprecated(circuit_cls):
+    c = circuit_cls()
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        _ = c.with_device(FOXY)
+
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_set_device_deprecated():
     c = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
     assert c.device is cirq.UNCONSTRAINED_DEVICE
 
@@ -905,7 +930,8 @@ def test_insert_moment():
         assert c.operation_at(qubit, actual_index) == operation[0]
 
 
-def test_insert_validates_all_operations_before_inserting():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_insert_validates_all_operations_before_inserting_deprecated():
     a, b = cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)
     c = cirq.Circuit(device=FOXY)
     operations = [cirq.Z(a), cirq.CZ(a, b)]
@@ -3622,6 +3648,7 @@ def test_insert_operations_errors():
         circuit._insert_operations(operations, insertion_indices)
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_validates_while_editing():
     c = cirq.Circuit(device=FOXY)
 
@@ -3640,7 +3667,8 @@ def test_validates_while_editing():
     c.insert(0, cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)))
 
 
-def test_respects_additional_adjacency_constraints():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_respects_additional_adjacency_constraints_deprecated():
     c = cirq.Circuit(device=FOXY)
     c.append(cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)))
     c.append(
@@ -3658,7 +3686,8 @@ def test_respects_additional_adjacency_constraints():
     )
 
 
-def test_commutes_past_adjacency_constraints():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_commutes_past_adjacency_constraints_deprecated():
     c = cirq.Circuit(
         [
             cirq.Moment(),
@@ -3683,7 +3712,8 @@ def test_commutes_past_adjacency_constraints():
     )
 
 
-def test_decomposes_while_appending():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_decomposes_while_appending_deprecated():
     c = cirq.Circuit(device=FOXY)
     c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)))
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -4109,7 +4139,6 @@ def test_pow_valid_only_for_minus_1(circuit_cls):
     forward = circuit_cls((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b), cirq.CZ(a, b))
 
     backward = circuit_cls((cirq.CZ ** (-1.0))(a, b), (cirq.X ** (-0.5))(a), (cirq.Y ** (0.2))(b))
-
     cirq.testing.assert_same_circuits(cirq.pow(forward, -1), backward)
     with pytest.raises(TypeError, match='__pow__'):
         cirq.pow(forward, 1)
@@ -4119,10 +4148,24 @@ def test_pow_valid_only_for_minus_1(circuit_cls):
         cirq.pow(forward, -2.5)
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_device_propagates(circuit_cls):
+def test_device_propagates_deprecated(circuit_cls):
     c = circuit_cls(device=moment_and_op_type_validating_device)
     assert c[:].device is moment_and_op_type_validating_device
+
+
+def test_device_get_set_deprecated():
+    c = cirq.Circuit()
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        c.device = FOXY
+
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        assert c.device is FOXY
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -4171,6 +4214,7 @@ def test_moments_property(circuit_cls):
     assert c.moments[1] == cirq.Moment([cirq.Y(q)])
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_json_dict(circuit_cls):
     q0, q1 = cirq.LineQubit.range(2)
@@ -4180,7 +4224,6 @@ def test_json_dict(circuit_cls):
         moments = tuple(moments)
     assert c._json_dict_() == {
         'moments': moments,
-        'device': cirq.UNCONSTRAINED_DEVICE,
     }
 
 
@@ -4278,6 +4321,21 @@ def test_init_contents(circuit_cls):
     circuit_cls()
 
 
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_init_deprecated(circuit_cls):
+    a, b = cirq.GridQubit.rect(1, 2)
+
+    # Moments are not subject to insertion rules.
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        c = circuit_cls(
+            cirq.Moment([cirq.X(a)]),
+            cirq.Moment([cirq.X(b)]),
+            device=FOXY,
+        )
+
+
 def test_transform_qubits():
     a, b, c = cirq.LineQubit.range(3)
     original = cirq.Circuit(
@@ -4301,10 +4359,21 @@ def test_transform_qubits():
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
 
-    # Device
-    original = cirq.Circuit(device=FOXY)
-    assert original.transform_qubits(lambda q: q).device is FOXY
-    assert original.transform_qubits(lambda q: q, new_device=BCONE).device is BCONE
+
+def test_transform_qubits_deprecated_device():
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        original = cirq.Circuit(device=FOXY)
+
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        assert original.transform_qubits(lambda q: q).device is FOXY
+
+    with cirq.testing.assert_deprecated('new_device', deadline='v0.15', count=2):
+        # count one for new_device and count one for accessing .device.
+        assert original.transform_qubits(lambda q: q, new_device=BCONE).device is BCONE
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
