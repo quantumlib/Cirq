@@ -74,7 +74,21 @@ def validate_gate_set(
     gate_set: Serializer,
     max_size: int = MAX_MESSAGE_SIZE,
 ) -> None:
-    """Validate that the message size is below the maximum size limit."""
+    """Validate that the message size is below the maximum size limit.
+
+    Args:
+        circuits:  A sequence of  `cirq.Circuit` objects to validate.  For
+          sweeps and runs, this will be a single circuit.  For batches,
+          this will be a list of circuits.
+        sweeps:  Parameters to run with each circuit.  The length of the
+          sweeps sequence should be the same as the circuits argument.
+        repetitions:  Number of repetitions to run with each sweep.
+        gate_set:  Serializer to use to serialize the circuits and sweeps.
+        max_size:  proto size limit to check against.
+
+    Raises:
+        RuntimeError: if compiled proto is above the maximum size.
+    """
     batch = v2.batch_pb2.BatchProgram()
     packed = any_pb2.Any()
     for circuit in circuits:
@@ -86,8 +100,23 @@ def validate_gate_set(
 
 
 def create_gate_set_validator(max_size: int = MAX_MESSAGE_SIZE) -> GATE_SET_VALIDATOR_TYPE:
-    """Creates a Callanle gate set validator with a set message size."""
-    return lambda c, s, r, g: validate_gate_set(c, s, r, g, max_size)
+    """Creates a Callable gate set validator with a set message size.
+
+    Args:
+        max_size:  proto size limit to check against.
+
+    Returns: Callable to use in validation with the max_size already set.
+    """
+
+    def _validator(
+        circuits: Sequence[cirq.AbstractCircuit],
+        sweeps: Sequence[cirq.Sweepable],
+        repetitions: int,
+        gate_set: Serializer,
+    ):
+        return validate_gate_set(circuits, sweeps, repetitions, gate_set)
+
+    return _validator
 
 
 def validate_for_engine(
@@ -98,7 +127,20 @@ def validate_for_engine(
     max_repetitions: int = MAX_TOTAL_REPETITIONS,
     max_duration_ns: int = 55000,
 ) -> None:
-    """Validate a circuit and sweeps for sending to the Quantum Engine API."""
+    """Validate a circuit and sweeps for sending to the Quantum Engine API.
+
+    Args:
+       circuits:  A sequence of  `cirq.Circuit` objects to validate.  For
+          sweeps and runs, this will be a single circuit.  For batches,
+          this will be a list of circuits.
+       sweeps:  Parameters to run with each circuit.  The length of the
+          sweeps sequence should be the same as the circuits argument.
+       repetitions:  Number of repetitions to run with each sweep.
+       max_moments: Maximum number of moments to allow.
+       max_repetitions: Maximum number of parameter sweep values allowed
+           when summed across all sweeps and all batches.
+       max_duration_ns:  Maximum duration of the circuit, in nanoseconds.
+    """
     _verify_reps(sweeps, repetitions, max_repetitions)
     _validate_depth(circuits, max_moments)
     _verify_measurements(circuits)
@@ -109,7 +151,22 @@ def create_engine_validator(
     max_repetitions: int = MAX_TOTAL_REPETITIONS,
     max_duration_ns: int = 55000,
 ) -> VALIDATOR_TYPE:
-    """Creates a Callanle gate set validator with a set message size."""
-    return lambda c, s, r: validate_for_engine(
-        c, s, r, max_moments, max_repetitions, max_duration_ns
-    )
+    """Creates a Callanle gate set validator with a set message size.
+
+    Args:
+        max_moments: Maximum number of moments to allow.
+        max_repetitions: Maximum number of parameter sweep values allowed
+            when summed across all sweeps and all batches.
+        max_duration_ns:  Maximum duration of the circuit, in nanoseconds.
+    """
+
+    def _validator(
+        circuits: Sequence[cirq.AbstractCircuit],
+        sweeps: Sequence[cirq.Sweepable],
+        repetitions: Union[int, List[int]],
+    ):
+        return validate_for_engine(
+            circuits, sweeps, repetitions, max_moments, max_repetitions, max_duration_ns
+        )
+
+    return _validator

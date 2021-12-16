@@ -21,14 +21,15 @@ import google.protobuf.text_format as text_format
 import cirq
 from cirq_google.api import v2
 from cirq_google.engine import (
+    abstract_local_processor,
     calibration,
     engine_validator,
-    simulated_local_engine,
     simulated_local_processor,
 )
 from cirq_google.devices import serializable_device
 from cirq_google.serialization.gate_sets import FSIM_GATESET
 from cirq_google.serialization import serializable_gate_set
+from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
 
 METRICS_1Q = [
     'single_qubit_p00_error',
@@ -61,7 +62,7 @@ PERFECT_T1_VALUE = 1_000_000
 T1_METRIC_NAME = 'single_qubit_idle_t1_micros'
 
 
-def _create_perfect_calibration(device: cirq.Device):
+def _create_perfect_calibration(device: cirq.Device) -> calibration.Calibration:
     all_metrics: calibration.ALL_METRICS = {}
     qubit_set = device.qubit_set()
     if qubit_set is None:
@@ -83,7 +84,9 @@ def _create_perfect_calibration(device: cirq.Device):
     return calibration.Calibration(calibration=snapshot, metrics=all_metrics)
 
 
-def _create_virtual_processor_from_device(processor_id: str, device: cirq.Device):
+def _create_virtual_processor_from_device(
+    processor_id: str, device: cirq.Device
+) -> simulated_local_processor.SimulatedLocalProcessor:
     """Creates a Processor object that is backed by a noiseless simulator.
 
     Creates a noiseless `AbstractProcessor` object based on the cirq simulator,
@@ -105,7 +108,9 @@ def _create_virtual_processor_from_device(processor_id: str, device: cirq.Device
     )
 
 
-def create_noiseless_virtual_engine_from_device(processor_id: str, device: cirq.Device):
+def create_noiseless_virtual_engine_from_device(
+    processor_id: str, device: cirq.Device
+) -> SimulatedLocalEngine:
     """Creates an Engine object with a single processor backed by a noiseless simulator.
 
     Creates a noiseless engine object based on the cirq simulator,
@@ -117,9 +122,7 @@ def create_noiseless_virtual_engine_from_device(processor_id: str, device: cirq.
              in QCS.
          device: A `cirq.Device` to validate circuits against.
     """
-    return simulated_local_engine.SimulatedLocalEngine(
-        [_create_virtual_processor_from_device(processor_id, device)]
-    )
+    return SimulatedLocalEngine([_create_virtual_processor_from_device(processor_id, device)])
 
 
 def create_noiseless_virtual_engine_from_proto(
@@ -128,7 +131,7 @@ def create_noiseless_virtual_engine_from_proto(
         v2.device_pb2.DeviceSpecification, List[v2.device_pb2.DeviceSpecification]
     ],
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
-):
+) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification proto.a
 
     The device specification protocol buffer specifies qubits and gates on the device
@@ -157,20 +160,20 @@ def create_noiseless_virtual_engine_from_proto(
     if len(processor_ids) != len(device_specifications):
         raise ValueError('Must provide equal numbers of processor ids and device specifications.')
 
-    processors = []
+    processors: List[abstract_local_processor.AbstractLocalProcessor] = []
     for idx in range(len(processor_ids)):
         device = serializable_device.SerializableDevice.from_proto(
             device_specifications[idx], gate_sets
         )
         processors.append(_create_virtual_processor_from_device(processor_ids[idx], device))
-    return simulated_local_engine.SimulatedLocalEngine(processors)
+    return SimulatedLocalEngine(processors)
 
 
 def create_noiseless_virtual_engine_from_templates(
     processor_ids: Union[str, List[str]],
     template_names: Union[str, List[str]],
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
-):
+) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification template.
 
     Args:
@@ -207,7 +210,7 @@ def create_noiseless_virtual_engine_from_templates(
     return create_noiseless_virtual_engine_from_proto(processor_ids, specifications, gate_sets)
 
 
-def create_noiseless_virtual_engine_from_latest_templates():
+def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine based on current templates.
 
     This uses the most recent templates to create a reasonable facsimile of
