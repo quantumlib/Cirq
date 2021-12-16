@@ -83,7 +83,7 @@ class QasmUGate(ops.SingleQubitGate):
     def _value_equality_values_(self):
         return self.lmda, self.theta, self.phi
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> Dict[str, float]:
         return {
             'theta': self.theta,
             'phi': self.phi,
@@ -91,7 +91,7 @@ class QasmUGate(ops.SingleQubitGate):
         }
 
     @classmethod
-    def _from_json_dict_(cls, theta, phi, lmda, **kwargs) -> 'QasmUGate':
+    def _from_json_dict_(cls, theta: float, phi: float, lmda: float, **kwargs) -> 'QasmUGate':
         return cls(theta, phi, lmda)
 
 
