@@ -27,6 +27,8 @@ init_sympy_condition = cirq.parse_sympy_condition('{a} >= 1')
 def test_key_condition_with_keys():
     c = init_key_condition.with_keys(key_b)
     assert c.key is key_b
+    with pytest.raises(ValueError, match='Cannot apply multiple keys to a KeyCondition'):
+        _ = c.with_keys(key_b, key_a)
 
 
 def test_key_condition_str():
@@ -59,6 +61,8 @@ def test_key_condition_qasm():
 def test_sympy_condition_with_keys():
     c = init_sympy_condition.with_keys(key_b)
     assert c.keys == (key_b,)
+    with pytest.raises(ValueError, match='Wrong number of keys applied to this condition'):
+        _ = c.with_keys(key_b, key_a)
 
 
 def test_sympy_condition_str():
@@ -108,7 +112,9 @@ def test_parse_sympy_condition_errors():
     with pytest.raises(ValueError):
         _ = cirq.parse_sympy_condition('{a} > {b}}')
     with pytest.raises(ValueError):
-        _ = cirq.parse_sympy_condition('[]]23[42][][@#{$}')
+        _ = cirq.parse_sympy_condition('a + {b}')
+    with pytest.raises(ValueError):
+        _ = cirq.parse_sympy_condition('{a\\')
 
 
 def test_parse_condition():

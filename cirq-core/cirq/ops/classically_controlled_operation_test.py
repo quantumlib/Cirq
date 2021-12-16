@@ -330,10 +330,17 @@ def test_key_set_in_subcircuit_outer_scope():
     assert result.measurements['b'] == 1
 
 
+def test_condition_types():
+    q0 = cirq.LineQubit(0)
+    sympy_cond = cirq.parse_sympy_condition('{a} >= 2')
+    op = cirq.X(q0).with_classical_controls(cirq.MeasurementKey('a'), 'b', '{a} > {b}', sympy_cond)
+    assert set(map(str, op.classical_controls)) == {'a', 'b', '{a} > {b}', '{a} >= 2'}
+
+
 def test_condition_flattening():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a').with_classical_controls('b')
-    assert set(map(str, op._conditions)) == {'a', 'b'}
+    assert set(map(str, op.classical_controls)) == {'a', 'b'}
     assert isinstance(op._sub_operation, cirq.GateOperation)
 
 

@@ -191,7 +191,7 @@ def parse_sympy_condition(s: str) -> 'cirq.SympyCondition':
             else:
                 if c == '\\':
                     i += 1
-                    if i == len(c):
+                    if i == len(s):
                         raise ValueError(f"'{s}' is not a valid sympy condition")
                     c = s[i]
                 key_name += c
