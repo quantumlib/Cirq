@@ -35,6 +35,10 @@ def test_key_condition_str():
     assert str(init_key_condition) == 'a'
 
 
+def test_key_condition_repr():
+    assert repr(init_key_condition) == "cirq.KeyCondition(cirq.MeasurementKey(name='a'))"
+
+
 def test_key_condition_resolve():
     assert init_key_condition.resolve({'a': [1]})
     assert init_key_condition.resolve({'a': [2]})
@@ -67,6 +71,14 @@ def test_sympy_condition_with_keys():
 
 def test_sympy_condition_str():
     assert str(init_sympy_condition) == '{a} >= 1'
+
+
+def test_sympy_condition_repr():
+    assert (
+        repr(cirq.parse_sympy_condition('{a} * {b}')) == "cirq.SympyCondition("
+        "sympy.Mul(sympy.Symbol('x0'), sympy.Symbol('x1')), "
+        "(cirq.MeasurementKey(name='a'), cirq.MeasurementKey(name='b')))"
+    )
 
 
 def test_sympy_condition_resolve():
