@@ -14,7 +14,7 @@
 
 """Utility classes for representing QASM."""
 
-from typing import Any, Callable, Dict, Optional, Sequence, Set, Tuple, Union, TYPE_CHECKING
+from typing import Callable, Dict, Optional, Sequence, Set, Tuple, Union, TYPE_CHECKING
 
 import re
 import numpy as np
