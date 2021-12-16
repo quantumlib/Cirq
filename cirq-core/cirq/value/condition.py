@@ -18,7 +18,7 @@ from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING
 
 import sympy
 
-from cirq.protocols import json_serialization
+from cirq.protocols import json_serialization, measurement_key_protocol as mkp
 from cirq.value import digits, measurement_key
 
 if TYPE_CHECKING:
@@ -46,6 +46,14 @@ class Condition(abc.ABC):
     def qasm(self):
         """Returns the qasm of this condition."""
 
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'Condition':
+        keys = [mkp.with_measurement_key_mapping(k, key_map) for k in self.keys]
+        return self.with_keys(*keys)
+
+    def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'Condition':
+        keys = [mkp.with_key_path_prefix(k, path) for k in self.keys]
+        return self.with_keys(*keys)
+
 
 @dataclasses.dataclass(frozen=True)
 class KeyCondition(Condition):
@@ -62,7 +70,8 @@ class KeyCondition(Condition):
         return (self.key,)
 
     def with_keys(self, *keys: 'cirq.MeasurementKey'):
-        assert len(keys) == 1
+        if len(keys) != 1:
+            raise ValueError(f'Cannot apply multiple keys to a KeyCondition')
         return KeyCondition(keys[0])
 
     def __str__(self):
@@ -87,8 +96,8 @@ class SympyCondition(Condition):
     """A classical control condition based on a sympy expression.
 
     This condition resolves to True iff the sympy expression resolves to a
-    Truthy value when the measurement keys are substituted in as the free
-    variables.
+    truthy value (i.e. `bool(x) == True`) when the measurement keys are
+    substituted in as the free variables.
 
     To account for the fact that measurement key strings can contain characters
     not allowed in sympy variables, we use x0..xN for the free variables and
@@ -109,7 +118,8 @@ class SympyCondition(Condition):
         return self.control_keys
 
     def with_keys(self, *keys: 'cirq.MeasurementKey'):
-        assert len(keys) == len(self.control_keys)
+        if len(keys) != len(self.control_keys):
+            raise ValueError(f'Wrong number of keys applied to this condition.')
         return dataclasses.replace(self, control_keys=keys)
 
     def __str__(self):
@@ -164,5 +174,7 @@ def parse_sympy_condition(s: str) -> 'cirq.SympyCondition':
 def parse_condition(s: str) -> 'cirq.Condition':
     """Parses a string into a `Condition`."""
     return (
-        parse_sympy_condition(s) if '{' in s else measurement_key.MeasurementKey.parse_serialized(s)
+        parse_sympy_condition(s)
+        if '{' in s
+        else KeyCondition(measurement_key.MeasurementKey.parse_serialized(s))
     )

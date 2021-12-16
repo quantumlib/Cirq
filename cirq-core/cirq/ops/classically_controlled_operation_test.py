@@ -417,27 +417,25 @@ def test_unmeasured_condition():
 
 
 def test_sympy():
-    q0, q1, q2, q3, q4, q5, q6 = cirq.LineQubit.range(7)
-    for i in range(8):
-        for j in range(8):
-            # Put first three qubits into a state representing bitstring(i), next three qubits
-            # into a state representing bitstring(j) and measure those into m_i and m_j
-            # respectively. Then add a conditional X(q6) based on m_i > m_j and measure that.
-            bitstring_i = cirq.big_endian_int_to_bits(i, bit_count=3)
-            bitstring_j = cirq.big_endian_int_to_bits(j, bit_count=3)
+    q0, q1, q2, q3, q_result = cirq.LineQubit.range(5)
+    for i in range(4):
+        for j in range(4):
+            # Put first two qubits into a state representing bitstring(i), next two qubits into a
+            # state representing bitstring(j) and measure those into m_i and m_j respectively. Then
+            # add a conditional X(q_result) based on m_i > m_j and measure that.
+            bitstring_i = cirq.big_endian_int_to_bits(i, bit_count=2)
+            bitstring_j = cirq.big_endian_int_to_bits(j, bit_count=2)
             circuit = cirq.Circuit(
                 cirq.X(q0) ** bitstring_i[0],
                 cirq.X(q1) ** bitstring_i[1],
-                cirq.X(q2) ** bitstring_i[2],
-                cirq.X(q3) ** bitstring_j[0],
-                cirq.X(q4) ** bitstring_j[1],
-                cirq.X(q5) ** bitstring_j[2],
-                cirq.measure(q0, q1, q2, key='m_i'),
-                cirq.measure(q3, q4, q5, key='m_j'),
-                cirq.X(q6).with_classical_controls('{m_j} > {m_i}'),
-                cirq.measure(q6, key='m_q6'),
+                cirq.X(q2) ** bitstring_j[0],
+                cirq.X(q3) ** bitstring_j[1],
+                cirq.measure(q0, q1, key='m_i'),
+                cirq.measure(q2, q3, key='m_j'),
+                cirq.X(q_result).with_classical_controls('{m_j} > {m_i}'),
+                cirq.measure(q_result, key='result'),
             )
 
-            # m_q6 should now be set iff j > i.
+            # m_q4 should now be set iff j > i.
             result = cirq.Simulator().run(circuit)
-            assert result.measurements['m_q6'][0][0] == (j > i)
+            assert result.measurements['result'][0][0] == (j > i)
