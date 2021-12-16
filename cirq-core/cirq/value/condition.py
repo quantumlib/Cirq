@@ -13,11 +13,11 @@
 # limitations under the License.
 import abc
 import dataclasses
-import re
 from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING
 
 import sympy
 
+from cirq._compat import proper_repr
 from cirq.protocols import json_serialization, measurement_key_protocol as mkp
 from cirq.value import digits, measurement_key
 
@@ -77,6 +77,9 @@ class KeyCondition(Condition):
     def __str__(self):
         return str(self.key)
 
+    def __repr__(self):
+        return f'cirq.KeyCondition({self.key!r})'
+
     def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
         key = str(self.key)
         if key not in measurements:
@@ -130,6 +133,9 @@ class SympyCondition(Condition):
                 return replacements[expr.name]
 
         return CustomCodePrinter().doprint(self.expr)
+
+    def __repr__(self):
+        return f'cirq.SympyCondition({proper_repr(self.expr)}, {self.keys!r})'
 
     def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
         missing = [str(k) for k in self.keys if str(k) not in measurements]
