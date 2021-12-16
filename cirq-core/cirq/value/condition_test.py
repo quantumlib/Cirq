@@ -87,3 +87,42 @@ def test_sympy_condition_resolve():
 def test_sympy_condition_qasm():
     with pytest.raises(NotImplementedError):
         _ = init_sympy_condition.qasm
+
+
+def test_parse_sympy_condition():
+    c = cirq.parse_sympy_condition('{a} > {b}')
+    assert len(c.keys) == 2
+    assert c.keys[0].name == 'a'
+    assert c.keys[1].name == 'b'
+
+
+def test_parse_sympy_condition_escaping():
+    c = cirq.parse_sympy_condition('{a\\{\\}\\\\} + 2')
+    assert len(c.keys) == 1
+    assert c.keys[0].name == 'a{}\\'
+
+
+def test_parse_sympy_condition_errors():
+    with pytest.raises(ValueError):
+        _ = cirq.parse_sympy_condition('{a} > {b')
+    with pytest.raises(ValueError):
+        _ = cirq.parse_sympy_condition('{a} > {b}}')
+    with pytest.raises(ValueError):
+        _ = cirq.parse_sympy_condition('[]]23[42][][@#{$}')
+
+
+def test_parse_condition():
+    c = cirq.parse_condition('{a} > {b}')
+    assert isinstance(c, cirq.SympyCondition)
+    assert len(c.keys) == 2
+    assert c.keys[0].name == 'a'
+    assert c.keys[1].name == 'b'
+    c = cirq.parse_condition('a')
+    assert isinstance(c, cirq.KeyCondition)
+    assert len(c.keys) == 1
+    assert c.keys[0].name == 'a'
+    c = cirq.parse_condition('0:a')
+    assert isinstance(c, cirq.KeyCondition)
+    assert len(c.keys) == 1
+    assert c.keys[0].name == 'a'
+    assert c.keys[0].path == ('0',)

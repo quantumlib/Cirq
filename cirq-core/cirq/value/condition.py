@@ -156,18 +156,45 @@ def parse_sympy_condition(s: str) -> 'cirq.SympyCondition':
     The measurement keys in a sympy condition string must be wrapped in curly
     braces to denote them. For example, to create an expression that checks if
     measurement A was greater than measurement B, the proper syntax is
-    `cirq.parse_sympy_condition('{A} > {B}')`."""
-    keys_to_indexes: Dict[str, str] = {}
+    `cirq.parse_sympy_condition('{A} > {B}')`.
 
-    def replace(m):
-        g1 = m.group(1)
-        if g1 not in keys_to_indexes:
-            keys_to_indexes[g1] = f'x{len(keys_to_indexes)}'
-        return keys_to_indexes[g1]
-
-    result = re.sub(r'{([^}]+)}', replace, s)
-    expr = sympy.sympify(result)
-    keys = [measurement_key.MeasurementKey.parse_serialized(key) for key in keys_to_indexes.keys()]
+    A backslash can be used to treat the subsequent character as a literal
+    within the key name, in case braces or backslashes appear in the key name.
+    """
+    in_key = False
+    key_count = 0
+    s_out = ''
+    key_name = ''
+    keys = []
+    i = 0
+    while i < len(s):
+        c = s[i]
+        if not in_key:
+            if c == '{':
+                in_key = True
+            else:
+                s_out += c
+        else:
+            if c == '}':
+                symbol_name = f'x{key_count}'
+                s_out += symbol_name
+                keys.append(measurement_key.MeasurementKey.parse_serialized(key_name))
+                key_name = ''
+                key_count += 1
+                in_key = False
+            else:
+                if c == '\\':
+                    i += 1
+                    if i == len(c):
+                        raise ValueError(f"'{s}' is not a valid sympy condition")
+                    c = s[i]
+                key_name += c
+        i += 1
+    if in_key:
+        raise ValueError(f"'{s}' is not a valid sympy condition")
+    expr = sympy.sympify(s_out)
+    if len(expr.free_symbols) != len(keys):
+        raise ValueError(f"'{s}' is not a valid sympy condition")
     return SympyCondition(expr, tuple(keys))
 
 
