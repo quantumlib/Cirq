@@ -88,8 +88,6 @@ class SupportsActOnQubits(Protocol):
         """
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def act_on(
     action: Union['cirq.Operation', 'cirq.Gate'],
     args: 'cirq.OperationTarget',
@@ -125,6 +123,10 @@ def act_on(
         Nothing. Results are communicated by editing `args`.
 
     Raises:
+        ValueError: If called on an operation and supplied qubits, if not called
+            on an operation and no qubits are supplied, or if `_act_on_` or
+             `_act_on_fallback_` returned something other than `True` or
+             `NotImplemented`.
         TypeError: Failed to act `action` on `args`.
     """
     is_op = isinstance(action, ops.Operation)
@@ -132,12 +134,8 @@ def act_on(
     if is_op and qubits is not None:
         raise ValueError('Calls to act_on should not supply qubits if the action is an Operation.')
 
-    # todo: change to an exception after `args.axes` is deprecated.
     if not is_op and qubits is None:
-        from cirq.sim import ActOnArgs
-
-        if isinstance(args, ActOnArgs):
-            qubits = [args.qubits[i] for i in args.axes]
+        raise ValueError('Calls to act_on should supply qubits if the action is not an Operation.')
 
     action_act_on = getattr(action, '_act_on_', None)
     if action_act_on is not None:
@@ -170,6 +168,3 @@ def act_on(
         f"Action type: {type(action)}\n"
         f"Action repr: {action!r}\n"
     )
-
-
-# pylint: enable=missing-raises-doc

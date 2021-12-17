@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Test module for deprecation testing.
 See cirq/_compat_test.py for the tests.
 This module contains example deprecations for modules.

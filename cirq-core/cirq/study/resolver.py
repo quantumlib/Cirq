@@ -39,6 +39,10 @@ document(
 _RecursionFlag = object()
 
 
+def _is_param_resolver_or_similar_type(obj: Any):
+    return obj is None or isinstance(obj, (ParamResolver, dict))
+
+
 class ParamResolver:
     """Resolves parameters to actual values.
 
@@ -143,9 +147,11 @@ class ParamResolver:
                 product *= self.value_of(factor, recursive)
             return product
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
-            return np.power(
-                self.value_of(value.args[0], recursive), self.value_of(value.args[1], recursive)
-            )
+            base = self.value_of(value.args[0], recursive)
+            exponent = self.value_of(value.args[1], recursive)
+            if isinstance(base, numbers.Number):
+                return np.float_power(base, exponent)
+            return np.power(base, exponent)
 
         if not isinstance(value, sympy.Basic):
             # No known way to resolve this variable, return unchanged.
@@ -227,7 +233,6 @@ class ParamResolver:
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have keys of basic types.
             'param_dict': list(self.param_dict.items()),
         }

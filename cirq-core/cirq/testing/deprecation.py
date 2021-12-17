@@ -15,8 +15,6 @@ import logging
 import os
 from typing import Optional
 
-from cirq.testing import assert_logs
-
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
 
@@ -42,6 +40,9 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
                 os.environ.get(ALLOW_DEPRECATION_IN_TEST, None),
             )
             os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
+            # Avoid circular import.
+            from cirq.testing import assert_logs
+
             self.assert_logs = assert_logs(
                 *(msgs + (deadline,)),
                 min_level=logging.WARNING,

@@ -18,6 +18,7 @@ from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
+from cirq.neutral_atoms import neutral_atom_devices
 from cirq import optimizers
 
 if TYPE_CHECKING:
@@ -50,6 +51,7 @@ class ConvertToNeutralAtomGates(PointOptimizer):
         """
         super().__init__()
         self.ignore_failures = ignore_failures
+        self.gateset = neutral_atom_devices.neutral_atom_gateset()
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Known matrix?
@@ -75,7 +77,7 @@ class ConvertToNeutralAtomGates(PointOptimizer):
 
         return protocols.decompose(
             op,
-            keep=is_native_neutral_atom_op,
+            keep=self.gateset._validate_operation,
             intercepting_decomposer=self._convert_one,
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise,
         )
@@ -92,32 +94,8 @@ class ConvertToNeutralAtomGates(PointOptimizer):
 
 
 def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
-    if isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
-        gate = operation.gate
-        if isinstance(gate, ops.ParallelGate):
-            gate = gate.sub_gate
-        return is_native_neutral_atom_gate(gate)
-    return False
+    return operation in neutral_atom_devices.neutral_atom_gateset()
 
 
 def is_native_neutral_atom_gate(gate: ops.Gate) -> bool:
-    if not isinstance(
-        gate,
-        (
-            ops.CCXPowGate,
-            ops.CCZPowGate,
-            ops.CZPowGate,
-            ops.CNotPowGate,
-            ops.XPowGate,
-            ops.YPowGate,
-            ops.PhasedXPowGate,
-            ops.MeasurementGate,
-            ops.ZPowGate,
-            ops.IdentityGate,
-        ),
-    ):
-        return False
-    if isinstance(gate, (ops.CNotPowGate, ops.CZPowGate, ops.CCXPowGate, ops.CCZPowGate)):
-        if not gate.exponent.is_integer():
-            return False
-    return True
+    return gate in neutral_atom_devices.neutral_atom_gateset()

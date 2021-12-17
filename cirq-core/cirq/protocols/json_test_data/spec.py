@@ -37,8 +37,6 @@ TestSpec = ModuleJsonTestSpec(
         'DensityMatrixStepResult',
         'DensityMatrixTrialResult',
         'ExpressionMap',
-        'GateFamily',
-        'Gateset',
         'InsertStrategy',
         'IonDevice',
         'KakDecomposition',
@@ -121,8 +119,6 @@ TestSpec = ModuleJsonTestSpec(
         'InterchangeableQubitsGate',
         'Pauli',
         'SingleQubitGate',
-        'ThreeQubitGate',
-        'TwoQubitGate',
         'ABCMetaImplementAnyOneOf',
         'GenericMetaImplementAnyOneOf',
         'SimulatesAmplitudes',
@@ -130,15 +126,16 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesFinalState',
         'NamedTopology',
         # protocols:
+        'HasJSONNamespace',
         'SupportsActOn',
         'SupportsActOnQubits',
         'SupportsApplyChannel',
         'SupportsApplyMixture',
         'SupportsApproximateEquality',
-        'SupportsChannel',
         'SupportsCircuitDiagramInfo',
         'SupportsCommutes',
         'SupportsConsistentApplyUnitary',
+        'SupportsControlKey',
         'SupportsDecompose',
         'SupportsDecomposeWithQubits',
         'SupportsEqualUpToGlobalPhase',
@@ -161,6 +158,7 @@ TestSpec = ModuleJsonTestSpec(
         'CIRCUIT_LIKE',
         'DURATION_LIKE',
         'JsonResolver',
+        'LabelEntity',
         'NOISE_MODEL_LIKE',
         'OP_TREE',
         'PAULI_GATE_LIKE',
@@ -182,7 +180,10 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={
-        'ParallelGateOperation': 'v0.14',
-    },
+    deprecated={'GlobalPhaseOperation': 'v0.16'},
+    tested_elsewhere=[
+        # SerializableByKey does not follow common serialization rules.
+        # It is tested separately in test_context_serialization.
+        'SerializableByKey',
+    ],
 )

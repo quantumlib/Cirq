@@ -225,7 +225,7 @@ class ControlledOperation(raw_types.Operation):
             known_qubits=(args.known_qubits[n:] if args.known_qubits is not None else None),
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
-            qubit_map=args.qubit_map,
+            label_map=args.label_map,
         )
         sub_info = protocols.circuit_diagram_info(self.sub_operation, sub_args, None)
         if sub_info is None:
@@ -237,17 +237,23 @@ class ControlledOperation(raw_types.Operation):
             return f"({','.join(map(str, vals))})"
 
         wire_symbols = (*(get_symbol(vals) for vals in self.control_values), *sub_info.wire_symbols)
+        exponent_qubit_index = None
+        if sub_info.exponent_qubit_index is not None:
+            exponent_qubit_index = sub_info.exponent_qubit_index + len(self.control_values)
+        elif sub_info.exponent is not None:
+            # For a multi-qubit `sub_operation`, if the `exponent_qubit_index` is None, the qubit
+            # on which the exponent gets drawn in the controlled case (smallest ordered qubit of
+            # sub_operation) can be different from the uncontrolled case (lexicographically largest
+            # qubit of sub_operation). See tests for example.
+            exponent_qubit_index = len(self.control_values)
         return protocols.CircuitDiagramInfo(
             wire_symbols=wire_symbols,
             exponent=sub_info.exponent,
-            exponent_qubit_index=None
-            if sub_info.exponent_qubit_index is None
-            else sub_info.exponent_qubit_index + 1,
+            exponent_qubit_index=exponent_qubit_index,
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'controls': self.controls,
             'control_values': self.control_values,
             'sub_operation': self.sub_operation,

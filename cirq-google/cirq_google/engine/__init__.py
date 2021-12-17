@@ -45,15 +45,21 @@ from cirq_google.engine.engine_processor import (
     EngineProcessor,
 )
 
-from cirq_google.engine.engine_timeslot import (
-    EngineTimeSlot,
-)
-
 from cirq_google.engine.engine_program import (
     EngineProgram,
+)
+
+from cirq_google.engine.runtime_estimator import (
+    estimate_run_time,
+    estimate_run_batch_time,
+    estimate_run_sweep_time,
 )
 
 from cirq_google.engine.engine_sampler import (
     get_engine_sampler,
     QuantumEngineSampler,
+)
+
+from cirq_google.engine.validating_sampler import (
+    ValidatingSampler,
 )

@@ -26,23 +26,25 @@ from typing import (
 
 import numpy as np
 import pandas as pd
-import scipy.optimize
-import scipy.stats
 import sympy
-from cirq import ops, protocols
+from cirq import ops, protocols, _import
 from cirq.circuits import Circuit
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
 if TYPE_CHECKING:
     import cirq
     import multiprocessing
+    import scipy.optimize
+
+# We initialize these lazily, otherwise they slow global import speed.
+optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")
+stats = _import.LazyLoader("stats", globals(), "scipy.stats")
 
 THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
     'theta zeta chi gamma phi'
 )
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
+
 def benchmark_2q_xeb_fidelities(
     sampled_df: pd.DataFrame,
     circuits: Sequence['cirq.Circuit'],
@@ -69,6 +71,10 @@ def benchmark_2q_xeb_fidelities(
 
     Returns:
         A DataFrame with columns 'cycle_depth' and 'fidelity'.
+
+    Raises:
+        ValueError: If `cycle_depths` is not a non-empty array or if the `cycle_depths` provided
+            includes some values not available in `sampled_df`.
     """
     sampled_cycle_depths = (
         sampled_df.index.get_level_values('cycle_depth').drop_duplicates().sort_values()
@@ -133,7 +139,6 @@ def benchmark_2q_xeb_fidelities(
     return df.groupby(groupby_names).apply(per_cycle_depth).reset_index()
 
 
-# pylint: enable=missing-raises-doc
 class XEBCharacterizationOptions(ABC):
     @staticmethod
     @abstractmethod
@@ -354,7 +359,7 @@ class XEBCharacterizationResult:
             fitting the characterization.
     """
 
-    optimization_results: Dict[QPair_T, scipy.optimize.OptimizeResult]
+    optimization_results: Dict[QPair_T, 'scipy.optimize.OptimizeResult']
     final_params: Dict[QPair_T, Dict[str, float]]
     fidelities_df: pd.DataFrame
 
@@ -411,7 +416,7 @@ def characterize_phased_fsim_parameters_with_xeb(
             print(f"Loss: {loss:7.3g}", flush=True)
         return loss
 
-    optimization_result = scipy.optimize.minimize(
+    optimization_result = optimize.minimize(
         _mean_infidelity,
         x0=x0,
         options={
@@ -571,12 +576,13 @@ def _fit_exponential_decay(
         return 0, 0, np.inf, np.inf
     cycle_depths_pos = cycle_depths[positives]
     log_fidelities = np.log(fidelities[positives])
-    slope, intercept, _, _, _ = scipy.stats.linregress(cycle_depths_pos, log_fidelities)
+
+    slope, intercept, _, _, _ = stats.linregress(cycle_depths_pos, log_fidelities)
     layer_fid_0 = np.clip(np.exp(slope), 0, 1)
     a_0 = np.clip(np.exp(intercept), 0, 1)
 
     try:
-        (a, layer_fid), pcov = scipy.optimize.curve_fit(
+        (a, layer_fid), pcov = optimize.curve_fit(
             exponential_decay,
             cycle_depths,
             fidelities,

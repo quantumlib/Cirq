@@ -82,6 +82,9 @@ class PauliMeasurementGate(raw_types.Gate):
     def _with_key_path_(self, path: Tuple[str, ...]) -> 'PauliMeasurementGate':
         return self.with_key(self.mkey._with_key_path_(path))
 
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> 'PauliMeasurementGate':
+        return self.with_key(self.mkey._with_key_path_prefix_(prefix))
+
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'PauliMeasurementGate':
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
@@ -96,6 +99,9 @@ class PauliMeasurementGate(raw_types.Gate):
 
     def _measurement_key_name_(self) -> str:
         return self.key
+
+    def _measurement_key_obj_(self) -> value.MeasurementKey:
+        return self.mkey
 
     def observable(self) -> 'cirq.DensePauliString':
         """Pauli observable which should be measured by the gate."""
@@ -119,8 +125,12 @@ class PauliMeasurementGate(raw_types.Gate):
         symbols = [f'M({g})' for g in self._observable]
 
         # Mention the measurement key.
+        label_map = args.label_map or {}
         if not args.known_qubits or self.key != _default_measurement_key(args.known_qubits):
-            symbols[0] += f"('{self.key}')"
+            if self.key not in label_map:
+                symbols[0] += f"('{self.key}')"
+        if self.key in label_map:
+            symbols += '@'
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
 
@@ -139,7 +149,6 @@ class PauliMeasurementGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'observable': self._observable,
             'key': self.key,
         }

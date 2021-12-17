@@ -56,12 +56,11 @@ def test_pasqal_circuit_init():
         assert moment1 == moment2
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 @patch('cirq_pasqal.pasqal_sampler.requests.get')
 @patch('cirq_pasqal.pasqal_sampler.requests.post')
 def test_run_sweep(mock_post, mock_get):
-    """
+    """Test running a sweep.
+
     Encodes a random binary number in the qubits, sweeps between odd and even
     without noise and checks if the results match.
     """
@@ -103,6 +102,3 @@ def test_run_sweep(mock_post, mock_get):
     assert cirq.read_json(json_text=submitted_json) == ex_circuit_odd
     assert mock_post.call_count == 2
     assert data[1] == ex_circuit_odd
-
-
-# pylint: enable=docstring-first-line-empty

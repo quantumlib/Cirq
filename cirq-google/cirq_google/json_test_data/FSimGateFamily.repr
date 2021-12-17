@@ -1,0 +1,34 @@
+[
+    cirq_google.FSimGateFamily(
+        gates_to_accept=[cirq.ops.swap_gates.ISwapPowGate],
+        gate_types_to_check=[
+            cirq.ops.fsim_gate.FSimGate,
+            cirq.ops.fsim_gate.PhasedFSimGate,
+            cirq.ops.swap_gates.ISwapPowGate,
+            cirq.ops.phased_iswap_gate.PhasedISwapPowGate,
+            cirq.ops.common_gates.CZPowGate,
+            cirq.ops.identity.IdentityGate
+        ],
+        allow_symbols=False,
+        atol=1e-06
+    ),
+    cirq_google.FSimGateFamily(
+        gates_to_accept=[cirq.ISWAP,cirq.CZ],
+        gate_types_to_check=[
+            cirq.ops.fsim_gate.FSimGate,
+            cirq.ops.fsim_gate.PhasedFSimGate,
+            cirq.ops.swap_gates.ISwapPowGate,
+            cirq.ops.phased_iswap_gate.PhasedISwapPowGate,
+            cirq.ops.common_gates.CZPowGate,
+            cirq.ops.identity.IdentityGate
+        ],
+        allow_symbols=False,
+        atol=1e-06
+    ),
+    cirq_google.FSimGateFamily(
+        gates_to_accept=[],
+        gate_types_to_check=[cirq.ops.identity.IdentityGate],
+        allow_symbols=True,
+        atol=0.0001
+    )
+]

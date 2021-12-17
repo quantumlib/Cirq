@@ -1,4 +1,4 @@
-cirq.google.Calibration(
+cirq_google.Calibration(
     metrics={
         'xeb': {
             (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): [0.9999],

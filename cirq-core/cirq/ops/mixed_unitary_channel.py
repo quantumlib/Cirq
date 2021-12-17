@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import Any, Dict, Iterable, Tuple, Union
 import numpy as np
 
@@ -79,7 +80,12 @@ class MixedUnitaryChannel(raw_types.Gate):
     def _mixture_(self):
         return self._mixture
 
-    def _measurement_key_name_(self):
+    def _measurement_key_name_(self) -> str:
+        if self._key is None:
+            return NotImplemented
+        return str(self._key)
+
+    def _measurement_key_obj_(self) -> value.MeasurementKey:
         if self._key is None:
             return NotImplemented
         return self._key
@@ -94,6 +100,11 @@ class MixedUnitaryChannel(raw_types.Gate):
     def _with_key_path_(self, path: Tuple[str, ...]):
         return MixedUnitaryChannel(
             mixture=self._mixture, key=protocols.with_key_path(self._key, path)
+        )
+
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return MixedUnitaryChannel(
+            mixture=self._mixture, key=protocols.with_key_path_prefix(self._key, prefix)
         )
 
     def __str__(self):

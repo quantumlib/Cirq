@@ -97,6 +97,11 @@ See the previous section for instructions.
     ```bash
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
+    
+    This installs docker and docker-compose among other things. You may need to restart
+    docker or configure permissions, see 
+    [docker install instructions](https://docs.docker.com/engine/install/ubuntu/).
+    Note that docker is necessary only for cirq_rigetti.
 
     There are some extra steps if protocol buffers are changed; see the next section.
 
@@ -120,17 +125,22 @@ See the previous section for instructions.
     pytest .
     ```
 
-4. (**OPTIONAL**) include your development copy of cirq in your python path.
+4. (**OPTIONAL**) include your development copy of cirq and its subpackages in your python path.
 
     ```bash
-    PYTHONPATH="$(pwd)":"${PYTHONPATH}"
+    ./dev_tools/pypath
     ```
     
-    or add it to the python path, but only in the virtualenv.
+    or add it to the python path, but only in the virtualenv by first listing the modules
     
     ```bash
-    add2virtualenv ./
+    python dev_tools/modules.py list 
     ```
+    and then adding these to the virtualenv:
+    ```bash
+    add2virtualenv <paste modules from last command>
+    ```
+    (Typically `add2virtualenv` is not executable using xargs, so this two step process is necessary.)
 
 ## Editable installs 
 
@@ -274,7 +284,7 @@ def some_method(a: int, b: str) -> float:
     Notice that this docstring is an r-string, since the latex has backslashes.
     We can also include example code:
 
-        print(cirq.google.Foxtail)
+        print(cirq_google.Foxtail)
 
     You can also do inline latex like $y = x^2$ and inline code like
     `cirq.unitary(cirq.X)`.
@@ -411,6 +421,6 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 
     ```bash
     python -m pip install cirq
-    python -c "import cirq; print(cirq.google.Foxtail)"
+    python -c "import cirq; print(cirq_google.Foxtail)"
     python -c "import cirq; print(cirq.__version__)"
     ```

@@ -154,7 +154,7 @@ class Calibration(abc.Mapping):
 
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
-        return {'cirq_type': 'Calibration', 'metrics': json_format.MessageToDict(self.to_proto())}
+        return {'metrics': json_format.MessageToDict(self.to_proto())}
 
     def timestamp_str(self, tz: Optional[datetime.tzinfo] = None, timespec: str = 'auto') -> str:
         """Return a string for the calibration timestamp.
@@ -253,8 +253,6 @@ class Calibration(abc.Mapping):
             + f'{key} has target qubits {value_map.keys()}'
         )
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def plot_histograms(
         self,
         keys: Sequence[str],
@@ -267,6 +265,7 @@ class Calibration(abc.Mapping):
         Args:
             keys: List of metric keys for which an integrated histogram should be plot
             ax: The axis to plot on. If None, we generate one.
+            labels: Optional label that will be used in the legend.
 
         Returns:
             The axis that was plotted on.
@@ -303,7 +302,6 @@ class Calibration(abc.Mapping):
 
         return ax
 
-    # pylint: enable=missing-param-doc
     def plot(
         self, key: str, fig: Optional[mpl.figure.Figure] = None
     ) -> Tuple[mpl.figure.Figure, List[plt.Axes]]:

@@ -45,10 +45,15 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
             matrix = np.array(matrix, dtype=np.complex128)
         return cirq.MatrixGate(matrix, qid_shape=(2, 2))
 
+    def _parallel_gate_op(gate, qubits):
+        return cirq.parallel_gate_op(gate, *qubits)
+
     import sympy
 
     return {
+        'AnyIntegerPowerGateFamily': cirq.AnyIntegerPowerGateFamily,
         'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
+        'AnyUnitaryGateFamily': cirq.AnyUnitaryGateFamily,
         'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
         'BitFlipChannel': cirq.BitFlipChannel,
         'BitstringAccumulator': cirq.work.BitstringAccumulator,
@@ -58,6 +63,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CCXPowGate': cirq.CCXPowGate,
         'CCZPowGate': cirq.CCZPowGate,
         'CNotPowGate': cirq.CNotPowGate,
+        'ClassicallyControlledOperation': cirq.ClassicallyControlledOperation,
         'ControlledGate': cirq.ControlledGate,
         'ControlledOperation': cirq.ControlledOperation,
         'CSwapGate': cirq.CSwapGate,
@@ -78,8 +84,11 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'MutableDensePauliString': cirq.MutableDensePauliString,
         'MutablePauliString': cirq.MutablePauliString,
         'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
+        'GateFamily': cirq.GateFamily,
         'GateOperation': cirq.GateOperation,
+        'Gateset': cirq.Gateset,
         'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
+        'GlobalPhaseGate': cirq.GlobalPhaseGate,
         'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
         'GridInteractionLayer': GridInteractionLayer,
         'GridParallelXEBMetadata': GridParallelXEBMetadata,
@@ -88,7 +97,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'HPowGate': cirq.HPowGate,
         'ISwapPowGate': cirq.ISwapPowGate,
         'IdentityGate': cirq.IdentityGate,
-        'IdentityOperation': _identity_operation_from_dict,
         'InitObsSetting': cirq.work.InitObsSetting,
         'KrausChannel': cirq.KrausChannel,
         'LinearDict': cirq.LinearDict,
@@ -108,12 +116,13 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'NamedQubit': cirq.NamedQubit,
         'NamedQid': cirq.NamedQid,
         'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
+        'OpIdentifier': cirq.OpIdentifier,
         '_PauliX': cirq.ops.pauli_gates._PauliX,
         '_PauliY': cirq.ops.pauli_gates._PauliY,
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,
         'ParamResolver': cirq.ParamResolver,
-        'ParallelGateOperation': cirq.ParallelGateOperation,
         'ParallelGate': cirq.ParallelGate,
+        'ParallelGateFamily': cirq.ParallelGateFamily,
         'PauliMeasurementGate': cirq.PauliMeasurementGate,
         'PauliString': cirq.PauliString,
         'PhaseDampingChannel': cirq.PhaseDampingChannel,
@@ -131,7 +140,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
         'SingleQubitCliffordGate': cirq.SingleQubitCliffordGate,
-        'SingleQubitMatrixGate': single_qubit_matrix_gate,
         'SingleQubitPauliStringGateOperation': cirq.SingleQubitPauliStringGateOperation,
         'SingleQubitReadoutCalibrationResult': cirq.experiments.SingleQubitReadoutCalibrationResult,
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
@@ -144,7 +152,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,
         'Rz': cirq.Rz,
-        'TwoQubitMatrixGate': two_qubit_matrix_gate,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,
@@ -160,6 +167,11 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'YYPowGate': cirq.YYPowGate,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
+        # Old types, only supported for backwards-compatibility
+        'IdentityOperation': _identity_operation_from_dict,
+        'ParallelGateOperation': _parallel_gate_op,  # Removed in v0.14
+        'SingleQubitMatrixGate': single_qubit_matrix_gate,
+        'TwoQubitMatrixGate': two_qubit_matrix_gate,
         # not a cirq class, but treated as one:
         'pandas.DataFrame': pd.DataFrame,
         'pandas.Index': pd.Index,

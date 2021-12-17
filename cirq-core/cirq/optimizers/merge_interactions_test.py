@@ -173,6 +173,15 @@ def test_optimizes_tagged_partial_cz():
     ), 'It should take 2 CZ gates to decompose a CZ**0.5 gate'
 
 
+def test_not_decompose_czs():
+    circuit = cirq.Circuit(
+        cirq.CZPowGate(exponent=1, global_shift=-0.5).on(*cirq.LineQubit.range(2))
+    )
+    circ_orig = circuit.copy()
+    cirq.MergeInteractions(allow_partial_czs=False).optimize_circuit(circuit)
+    assert circ_orig == circuit
+
+
 @pytest.mark.parametrize(
     'circuit',
     (
@@ -181,7 +190,7 @@ def test_optimizes_tagged_partial_cz():
         ),
         cirq.Circuit(
             cirq.CZPowGate(exponent=0.2)(*cirq.LineQubit.range(2)),
-            cirq.CZPowGate(exponent=0.3)(*cirq.LineQubit.range(2)),
+            cirq.CZPowGate(exponent=0.3, global_shift=-0.5)(*cirq.LineQubit.range(2)),
         ),
     ),
 )
@@ -202,7 +211,7 @@ def test_decompose_partial_czs(circuit):
 
 def test_not_decompose_partial_czs():
     circuit = cirq.Circuit(
-        cirq.CZPowGate(exponent=0.1)(*cirq.LineQubit.range(2)),
+        cirq.CZPowGate(exponent=0.1, global_shift=-0.5)(*cirq.LineQubit.range(2)),
     )
 
     optimizer = cirq.MergeInteractions(allow_partial_czs=True)

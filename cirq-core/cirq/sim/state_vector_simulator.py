@@ -227,8 +227,8 @@ class StateVectorTrialResult(
             ret += f'\n\n{label}\noutput vector: {state_vector}'
         return ret
 
-    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
-        """Text output in Jupyter."""
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
         if cycle:
             # There should never be a cycle.  This is just in case.
             p.text('StateVectorTrialResult(...)')

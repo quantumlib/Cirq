@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,9 +64,9 @@ def test_input_rotation_cells():
     assert_url_to_circuit_returns(
         '{"cols":[["•","Z^(A/2^n)","inputA2"]]}',
         diagram="""
-0: ───@───────────
+0: ───@^(A/2^2)───
       │
-1: ───Z^(A/2^2)───
+1: ───@───────────
       │
 2: ───A0──────────
       │

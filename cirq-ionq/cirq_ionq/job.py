@@ -169,8 +169,6 @@ class Job:
                 measurement_dict[key] = [int(t) for t in value.split(',')]
         return measurement_dict
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def results(
         self, timeout_seconds: int = 7200, polling_seconds: int = 1
     ) -> Union[results.QPUResult, results.SimulatorResult]:
@@ -187,6 +185,9 @@ class Job:
         Raises:
             IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
             IonQException: If unable to get the results from the API.
+            RuntimeError: If the job reported that it had failed on the server, or
+                the job had an unknown status.
+            TimeoutError: If the job timed out at the server.
         """
         time_waited_seconds = 0
         while time_waited_seconds < timeout_seconds:
@@ -228,7 +229,6 @@ class Job:
                 repetitions=self.repetitions(),
             )
 
-    # pylint: enable=missing-raises-doc
     def cancel(self):
         """Cancel the given job.
 

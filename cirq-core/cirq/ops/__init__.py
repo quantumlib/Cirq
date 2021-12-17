@@ -18,10 +18,6 @@ from cirq.ops.arithmetic_operation import (
     ArithmeticOperation,
 )
 
-from cirq.ops.boolean_hamiltonian import (
-    BooleanHamiltonian,
-)
-
 from cirq.ops.clifford_gate import (
     PauliTransform,
     SingleQubitCliffordGate,
@@ -31,6 +27,10 @@ from cirq.ops.dense_pauli_string import (
     BaseDensePauliString,
     DensePauliString,
     MutableDensePauliString,
+)
+
+from cirq.ops.boolean_hamiltonian import (
+    BooleanHamiltonian,
 )
 
 from cirq.ops.common_channels import (
@@ -76,6 +76,16 @@ from cirq.ops.common_gates import (
     ZPowGate,
 )
 
+from cirq.ops.common_gate_families import (
+    AnyUnitaryGateFamily,
+    AnyIntegerPowerGateFamily,
+    ParallelGateFamily,
+)
+
+from cirq.ops.classically_controlled_operation import (
+    ClassicallyControlledOperation,
+)
+
 from cirq.ops.controlled_gate import (
     ControlledGate,
 )
@@ -102,8 +112,6 @@ from cirq.ops.fsim_gate import (
 from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
     SingleQubitGate,
-    ThreeQubitGate,
-    TwoQubitGate,
 )
 
 from cirq.ops.gate_operation import (
@@ -119,7 +127,9 @@ from cirq.ops.identity import (
 )
 
 from cirq.ops.global_phase_op import (
+    GlobalPhaseGate,
     GlobalPhaseOperation,
+    global_phase_operation,
 )
 
 from cirq.ops.kraus_channel import (
@@ -147,10 +157,6 @@ from cirq.ops.pauli_measurement_gate import (
 )
 
 from cirq.ops.parallel_gate import ParallelGate, parallel_gate_op
-
-from cirq.ops.parallel_gate_operation import (
-    ParallelGateOperation,
-)
 
 from cirq.ops.projector import (
     ProjectorString,

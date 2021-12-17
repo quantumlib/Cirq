@@ -1,0 +1,52 @@
+[
+  {
+    "cirq_type": "FSimGateFamily",
+    "gates_to_accept": [
+      "ISwapPowGate"
+    ],
+    "gate_types_to_check": [
+      "FSimGate",
+      "PhasedFSimGate",
+      "ISwapPowGate",
+      "PhasedISwapPowGate",
+      "CZPowGate",
+      "IdentityGate"
+    ],
+    "allow_symbols": false,
+    "atol": 1e-06
+  },
+  {
+    "cirq_type": "FSimGateFamily",
+    "gates_to_accept": [
+      {
+        "cirq_type": "ISwapPowGate",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      {
+        "cirq_type": "CZPowGate",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      }
+    ],
+    "gate_types_to_check": [
+      "FSimGate",
+      "PhasedFSimGate",
+      "ISwapPowGate",
+      "PhasedISwapPowGate",
+      "CZPowGate",
+      "IdentityGate"
+    ],
+    "allow_symbols": false,
+    "atol": 1e-06
+  },
+  {
+    "cirq_type": "FSimGateFamily",
+    "gates_to_accept": [],
+    "gate_types_to_check": [
+      "IdentityGate"
+    ],
+    "allow_symbols": true,
+    "atol": 0.0001
+  }
+]

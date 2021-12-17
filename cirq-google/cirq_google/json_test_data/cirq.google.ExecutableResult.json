@@ -1,0 +1,59 @@
+{
+  "cirq_type": "cirq.google.ExecutableResult",
+  "spec": {
+    "cirq_type": "cirq.google.KeyValueExecutableSpec",
+    "executable_family": "cirq_google.algo_benchmarks.example",
+    "key_value_pairs": [
+      [
+        "name",
+        "test-spec"
+      ]
+    ]
+  },
+  "runtime_info": {
+    "cirq_type": "cirq.google.RuntimeInfo",
+    "execution_index": 5,
+    "qubit_placement": [
+      [
+        [
+          0,
+          0
+        ],
+        {
+          "cirq_type": "GridQubit",
+          "row": 5,
+          "col": 5
+        }
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        {
+          "cirq_type": "GridQubit",
+          "row": 6,
+          "col": 6
+        }
+      ]
+    ]
+  },
+  "raw_data": {
+    "cirq_type": "Result",
+    "params": {
+      "cirq_type": "ParamResolver",
+      "param_dict": []
+    },
+    "measurements": {
+      "z": {
+        "packed_digits": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "binary": true,
+        "dtype": "float64",
+        "shape": [
+          1000,
+          4
+        ]
+      }
+    }
+  }
+}

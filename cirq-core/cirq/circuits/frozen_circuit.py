@@ -27,7 +27,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, protocols
+from cirq import devices, ops, protocols, value
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
@@ -74,7 +74,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._all_qubits: Optional[FrozenSet['cirq.Qid']] = None
         self._all_operations: Optional[Tuple[ops.Operation, ...]] = None
         self._has_measurements: Optional[bool] = None
-        self._all_measurement_key_names: Optional[AbstractSet[str]] = None
+        self._all_measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = None
         self._are_all_measurements_terminal: Optional[bool] = None
 
     @property
@@ -87,11 +87,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     def __hash__(self):
         return hash((self.moments, self.device))
-
-    def diagram_name(self):
-        """Name used to represent this in circuit diagrams."""
-        key = hash(self) & 0xFFFF_FFFF_FFFF_FFFF
-        return f'Circuit_0x{key:016x}'
 
     # Memoized methods for commonly-retrieved properties.
 
@@ -130,10 +125,13 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             self._has_measurements = super().has_measurements()
         return self._has_measurements
 
-    def all_measurement_key_names(self) -> AbstractSet[str]:
-        if self._all_measurement_key_names is None:
-            self._all_measurement_key_names = super().all_measurement_key_names()
-        return self._all_measurement_key_names
+    def all_measurement_key_objs(self) -> AbstractSet[value.MeasurementKey]:
+        if self._all_measurement_key_objs is None:
+            self._all_measurement_key_objs = super().all_measurement_key_objs()
+        return self._all_measurement_key_objs
+
+    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+        return self.all_measurement_key_objs()
 
     def are_all_measurements_terminal(self) -> bool:
         if self._are_all_measurements_terminal is None:
@@ -141,6 +139,12 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self._are_all_measurements_terminal
 
     # End of memoized methods.
+
+    def all_measurement_key_names(self) -> AbstractSet[str]:
+        return {str(key) for key in self.all_measurement_key_objs()}
+
+    def _measurement_key_names_(self) -> AbstractSet[str]:
+        return self.all_measurement_key_names()
 
     def __add__(self, other) -> 'FrozenCircuit':
         return (self.unfreeze() + other).freeze()

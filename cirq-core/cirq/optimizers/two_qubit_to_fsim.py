@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import (
     Sequence,
     Union,
@@ -17,8 +18,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def decompose_two_qubit_interaction_into_four_fsim_gates(
     interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
     *,
@@ -51,6 +50,10 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
         A list of operations implementing the desired two qubit unitary. The
         list will include four operations of the given fsim gate, various single
         qubit operations, and a global phase operation.
+
+    Raises:
+        ValueError: If the `fsim_gate` has invalid angles (as specified in arg above),
+            or if the gate acts on more than two qubits.
     """
     if isinstance(fsim_gate, ops.ISwapPowGate):
         mapped_gate = ops.FSimGate(-fsim_gate.exponent * np.pi / 2, 0)
@@ -85,7 +88,6 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
     return result
 
 
-# pylint: enable=missing-raises-doc
 def _sticky_0_to_1(v: float, *, atol: float) -> Optional[float]:
     if 0 <= v <= 1:
         return v
@@ -200,12 +202,11 @@ def _decompose_b_gate_into_two_fsims(
     )
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
     qubits: Sequence['cirq.Qid'], kak_interaction_coefficients: Iterable[float]
 ) -> List['cirq.Operation']:
-    """
+    """Decompose using a minimal construction of two-qubit operations.
+
     References:
         Minimum construction of two-qubit quantum operations
         https://arxiv.org/abs/quant-ph/0312193
@@ -237,7 +238,6 @@ def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
     ]
 
 
-# pylint: enable=docstring-first-line-empty
 def _fix_single_qubit_gates_around_kak_interaction(
     *,
     desired: 'cirq.KakDecomposition',
@@ -274,4 +274,4 @@ def _fix_single_qubit_gates_around_kak_interaction(
             desired.single_qubit_operations_after[k] @ dag(actual.single_qubit_operations_after[k])
         )
         yield g(qubits[k])
-    yield ops.GlobalPhaseOperation(desired.global_phase / actual.global_phase)
+    yield ops.global_phase_operation(desired.global_phase / actual.global_phase)
