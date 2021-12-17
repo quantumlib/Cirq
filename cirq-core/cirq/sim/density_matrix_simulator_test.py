@@ -514,6 +514,31 @@ def test_simulate(dtype: Type[np.number], split: bool):
     assert len(result.measurements) == 0
 
 
+@pytest.mark.parametrize('split', [True, False])
+def test_simulate_ignore_measurements(split: bool):
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.DensityMatrixSimulator(
+        split_untangled_states=split, ignore_measurement_results=True
+    )
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+    result = simulator.simulate(circuit)
+    np.testing.assert_almost_equal(result.final_density_matrix, np.eye(2) * 0.5)
+    assert len(result.measurements) == 0
+
+
+@pytest.mark.parametrize('split', [True, False])
+def test_simulate_ignore_measurements_subcircuits(split: bool):
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.DensityMatrixSimulator(
+        split_untangled_states=split, ignore_measurement_results=True
+    )
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+    circuit = cirq.Circuit(cirq.CircuitOperation(circuit.freeze()))
+    result = simulator.simulate(circuit)
+    np.testing.assert_almost_equal(result.final_density_matrix, np.eye(2) * 0.5)
+    assert len(result.measurements) == 0
+
+
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
 def test_simulate_qudits(dtype: Type[np.number], split: bool):
