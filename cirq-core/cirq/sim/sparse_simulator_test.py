@@ -1328,7 +1328,8 @@ def test_noise_model():
     noise_model = cirq.NoiseModel.from_noise_model_like(cirq.depolarize(p=0.01))
     simulator = cirq.Simulator(noise=noise_model)
     result = simulator.run(circuit, repetitions=100)
-    assert 40 <= sum(result.measurements['0'])[0] < 60
+
+    assert 20 <= sum(result.measurements['0'])[0] < 80
 
 
 def test_separated_states_str_does_not_merge():
