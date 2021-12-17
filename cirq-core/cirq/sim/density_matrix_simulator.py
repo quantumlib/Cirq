@@ -478,16 +478,10 @@ class DensityMatrixTrialResult(
         return ret
 
     def __repr__(self) -> str:
-        if self._final_step_result:
-            return (
-                'cirq.DensityMatrixTrialResult('
-                f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
-                f'final_step_result={self._final_step_result!r})'
-            )
         return (
             'cirq.DensityMatrixTrialResult('
             f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
-            f'final_simulator_state={self._final_simulator_state!r})'
+            f'final_step_result={self._final_step_result!r})'
         )
 
     def _repr_pretty_(self, p: Any, cycle: bool):

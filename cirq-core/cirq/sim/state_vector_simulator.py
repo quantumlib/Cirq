@@ -234,14 +234,8 @@ class StateVectorTrialResult(
             p.text(str(self))
 
     def __repr__(self) -> str:
-        if self._final_step_result:
-            return (
-                'cirq.StateVectorTrialResult('
-                f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
-                f'final_step_result={self._final_step_result!r})'
-            )
         return (
-            f'cirq.StateVectorTrialResult(params={self.params!r}, '
+            'cirq.StateVectorTrialResult('
             f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
-            f'final_simulator_state={self._final_simulator_state!r})'
+            f'final_step_result={self._final_step_result!r})'
         )
