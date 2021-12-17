@@ -212,7 +212,7 @@ class StateVectorTrialResult(
     def __str__(self) -> str:
         samples = super().__str__()
         ret = f'measurements: {samples}'
-        for substate in self._substates:
+        for substate in self._get_substates():
             final = substate.target_tensor
             shape = final.shape
             size = np.prod(shape, dtype=np.int64)

@@ -442,8 +442,7 @@ class SimulationTrialResultBase(
             The state space containing the qubit."""
         return self._final_step_result_typed._sim_state[qubit]
 
-    @property
-    def _substates(self) -> Sequence[TActOnArgs]:
+    def _get_substates(self) -> Sequence[TActOnArgs]:
         state = self._final_step_result_typed._sim_state
         if isinstance(state, ActOnArgsContainer):
             substates = dict()  # type: Dict[TActOnArgs, int]
