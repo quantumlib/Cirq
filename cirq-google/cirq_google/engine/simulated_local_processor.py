@@ -18,15 +18,13 @@ from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Unio
 import cirq
 
 from cirq_google.api import v2
-from cirq_google.engine import calibration
+from cirq_google.engine import calibration, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.abstract_program import AbstractProgram
 from cirq_google.engine.local_simulation_type import LocalSimulationType
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
-
-import cirq_google.engine.validating_sampler as validating_sampler
 
 if TYPE_CHECKING:
     from cirq_google.serialization.serializer import Serializer
