@@ -35,15 +35,20 @@ def test_state_vector_trial_result_repr():
         measurements={'m': np.array([[1]])},
         final_step_result=final_step_result,
     )
-    assert repr(trial_result) == (
+    expected_repr = (
         "cirq.StateVectorTrialResult("
-        "measurements={'m': array([[1]])}, "
-        "final_step_result=cirq.StateVectorStepResult("
+        "params=cirq.ParamResolver({'s': 1}), "
+        "measurements={'m': np.array([[1]], dtype=np.int64)}, "
+        "final_step_result=cirq.SparseSimulatorStep("
         "sim_state=cirq.ActOnStateVectorArgs("
-        "target_tensor=array([0, 1]), "
+        "target_tensor=np.array([0, 1], dtype=np.int64), "
+        "available_buffer=np.array([0, 1], dtype=np.int64), "
         "qubits=(cirq.NamedQubit('a'),), "
-        "log_of_measurement_results={})"
+        "log_of_measurement_results={}), "
+        "dtype=np.complex64))"
     )
+    assert repr(trial_result) == expected_repr
+    assert eval(expected_repr) == trial_result
 
 
 def test_state_vector_simulator_state_repr():

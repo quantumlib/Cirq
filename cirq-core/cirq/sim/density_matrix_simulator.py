@@ -17,6 +17,7 @@ from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, L
 import numpy as np
 
 from cirq import ops, protocols, qis, study, value
+from cirq._compat import proper_repr
 from cirq.sim import (
     simulator,
     act_on_density_matrix_args,
@@ -283,7 +284,7 @@ class DensityMatrixStepResult(
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
-        simulator: DensityMatrixSimulator,
+        simulator: DensityMatrixSimulator = None,
         dtype: 'DTypeLike' = np.complex64,
     ):
         """DensityMatrixStepResult.
@@ -315,7 +316,8 @@ class DensityMatrixStepResult(
             mixed state it must be correctly sized and positive semidefinite
             with trace one.
         """
-        self._sim_state = self._simulator._create_act_on_args(density_matrix_repr, self._qubits)
+        if self._simulator:
+            self._sim_state = self._simulator._create_act_on_args(density_matrix_repr, self._qubits)
 
     def density_matrix(self, copy=True):
         """Returns the density matrix at this step in the simulation.
@@ -362,7 +364,10 @@ class DensityMatrixStepResult(
         return self._density_matrix.copy() if copy else self._density_matrix
 
     def __repr__(self) -> str:
-        return f'cirq.DensityMatrixStepResult(sim_state={self._sim_state!r}, dtype={self._dtype!r}'
+        return (
+            f'cirq.DensityMatrixStepResult(sim_state={self._sim_state!r},'
+            f' dtype=np.{self._dtype.__name__})'
+        )
 
 
 @value.value_equality(unhashable=True)
@@ -476,12 +481,12 @@ class DensityMatrixTrialResult(
         if self._final_step_result:
             return (
                 'cirq.DensityMatrixTrialResult('
-                f'params={self.params!r}, measurements={self.measurements!r}, '
+                f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
                 f'final_step_result={self._final_step_result!r})'
             )
         return (
             'cirq.DensityMatrixTrialResult('
-            f'params={self.params!r}, measurements={self.measurements!r}, '
+            f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )
 

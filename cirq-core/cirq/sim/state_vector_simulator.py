@@ -30,6 +30,7 @@ from typing import (
 import numpy as np
 
 from cirq import ops, study, value, qis
+from cirq._compat import proper_repr
 from cirq.sim import simulator, state_vector, simulator_base
 from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 
@@ -120,9 +121,6 @@ class StateVectorStepResult(
         details.
         """
         raise NotImplementedError()
-
-    def __repr__(self) -> str:
-        return f'cirq.StateVectorStepResult(sim_state={self._sim_state!r}'
 
 
 @value.value_equality(unhashable=True)
@@ -239,11 +237,11 @@ class StateVectorTrialResult(
         if self._final_step_result:
             return (
                 'cirq.StateVectorTrialResult('
-                f'measurements={self.measurements!r}, '
+                f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
                 f'final_step_result={self._final_step_result!r})'
             )
         return (
             f'cirq.StateVectorTrialResult(params={self.params!r}, '
-            f'measurements={self.measurements!r}, '
+            f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )

@@ -18,6 +18,7 @@ from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
 import numpy as np
 
 from cirq import linalg, protocols, sim
+from cirq._compat import proper_repr
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
 
@@ -40,8 +41,8 @@ class ActOnStateVectorArgs(ActOnArgs):
         self,
         target_tensor: np.ndarray,
         available_buffer: np.ndarray,
-        prng: np.random.RandomState,
-        log_of_measurement_results: Dict[str, Any],
+        prng: np.random.RandomState = None,
+        log_of_measurement_results: Dict[str, Any] = None,
         qubits: Sequence['cirq.Qid'] = None,
     ):
         """Inits ActOnStateVectorArgs.
@@ -227,9 +228,10 @@ class ActOnStateVectorArgs(ActOnArgs):
     def __repr__(self) -> str:
         return (
             'cirq.ActOnStateVectorArgs('
-            f'target_tensor={self.target_tensor!r},'
+            f'target_tensor={proper_repr(self.target_tensor)},'
+            f' available_buffer={proper_repr(self.available_buffer)},'
             f' qubits={self.qubits!r},'
-            f' log_of_measurement_results={self.log_of_measurement_results!r}'
+            f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
         )
 
 

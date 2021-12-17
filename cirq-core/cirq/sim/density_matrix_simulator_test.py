@@ -1095,25 +1095,26 @@ def test_density_matrix_trial_result_repr():
         qubits=[q0],
     )
     final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
-    assert (
-        repr(
-            cirq.DensityMatrixTrialResult(
-                params=cirq.ParamResolver({'s': 1}),
-                measurements={'m': np.array([[1]])},
-                final_step_result=final_step_result,
-            )
-        )
-        == "cirq.DensityMatrixTrialResult("
+    trial_result = cirq.DensityMatrixTrialResult(
+        params=cirq.ParamResolver({'s': 1}),
+        measurements={'m': np.array([[1]])},
+        final_step_result=final_step_result,
+    )
+    expected_repr = (
+        "cirq.DensityMatrixTrialResult("
         "params=cirq.ParamResolver({'s': 1}), "
-        "measurements={'m': array([[1]])}, "
+        "measurements={'m': np.array([[1]], dtype=np.int64)}, "
         "final_step_result=cirq.DensityMatrixStepResult("
         "sim_state=cirq.ActOnDensityMatrixArgs("
-        "target_tensor=array([[0.5, 0.5],\n       [0.5, 0.5]]), "
+        "target_tensor=np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float64), "
+        "available_buffer=[], "
         "qid_shape=(2,), "
         "qubits=(cirq.LineQubit(0),), "
-        "log_of_measurement_results={}, "
-        "dtype=<class 'numpy.complex64'>)"
+        "log_of_measurement_results={}), "
+        "dtype=np.complex64))"
     )
+    assert repr(trial_result) == expected_repr
+    assert eval(expected_repr) == trial_result
 
 
 class XAsOp(cirq.Operation):
