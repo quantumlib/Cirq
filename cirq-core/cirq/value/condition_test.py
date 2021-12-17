@@ -15,20 +15,22 @@
 import re
 
 import pytest
+import sympy.parsing.sympy_parser
 
 import cirq
 
 key_a = cirq.MeasurementKey('a')
 key_b = cirq.MeasurementKey('b')
+key_c = cirq.MeasurementKey('c')
 init_key_condition = cirq.KeyCondition(key_a)
-init_sympy_condition = cirq.parse_sympy_condition('{a} >= 1')
+init_sympy_condition = cirq.SympyCondition(sympy.parsing.sympy_parser.parse_expr('a >= 1'))
 
 
 def test_key_condition_with_keys():
-    c = init_key_condition.with_keys(key_b)
+    c = init_key_condition.replace_key(key_a, key_b)
     assert c.key is key_b
-    with pytest.raises(ValueError, match='Cannot apply multiple keys to a KeyCondition'):
-        _ = c.with_keys(key_b, key_a)
+    c = init_key_condition.replace_key(key_b, key_c)
+    assert c.key is key_a
 
 
 def test_key_condition_str():
@@ -63,21 +65,20 @@ def test_key_condition_qasm():
 
 
 def test_sympy_condition_with_keys():
-    c = init_sympy_condition.with_keys(key_b)
+    c = init_sympy_condition.replace_key(key_a, key_b)
     assert c.keys == (key_b,)
-    with pytest.raises(ValueError, match='Wrong number of keys applied to this condition'):
-        _ = c.with_keys(key_b, key_a)
+    c = init_sympy_condition.replace_key(key_b, key_c)
+    assert c.keys == (key_a,)
 
 
 def test_sympy_condition_str():
-    assert str(init_sympy_condition) == '{a} >= 1'
+    assert str(init_sympy_condition) == 'a >= 1'
 
 
 def test_sympy_condition_repr():
     assert (
-        repr(cirq.parse_sympy_condition('{a} * {b}')) == "cirq.SympyCondition("
-        "sympy.Mul(sympy.Symbol('x0'), sympy.Symbol('x1')), "
-        "(cirq.MeasurementKey(name='a'), cirq.MeasurementKey(name='b')))"
+        repr(init_sympy_condition)
+        == "cirq.SympyCondition(GreaterThan(sympy.Symbol('a'), sympy.Integer(1)))"
     )
 
 
@@ -103,44 +104,3 @@ def test_sympy_condition_resolve():
 def test_sympy_condition_qasm():
     with pytest.raises(NotImplementedError):
         _ = init_sympy_condition.qasm
-
-
-def test_parse_sympy_condition():
-    c = cirq.parse_sympy_condition('{a} > {b}')
-    assert len(c.keys) == 2
-    assert c.keys[0].name == 'a'
-    assert c.keys[1].name == 'b'
-
-
-def test_parse_sympy_condition_escaping():
-    c = cirq.parse_sympy_condition('{a\\{\\}\\\\} + 2')
-    assert len(c.keys) == 1
-    assert c.keys[0].name == 'a{}\\'
-
-
-def test_parse_sympy_condition_errors():
-    with pytest.raises(ValueError):
-        _ = cirq.parse_sympy_condition('{a} > {b')
-    with pytest.raises(ValueError):
-        _ = cirq.parse_sympy_condition('{a} > {b}}')
-    with pytest.raises(ValueError):
-        _ = cirq.parse_sympy_condition('a + {b}')
-    with pytest.raises(ValueError):
-        _ = cirq.parse_sympy_condition('{a\\')
-
-
-def test_parse_condition():
-    c = cirq.parse_condition('{a} > {b}')
-    assert isinstance(c, cirq.SympyCondition)
-    assert len(c.keys) == 2
-    assert c.keys[0].name == 'a'
-    assert c.keys[1].name == 'b'
-    c = cirq.parse_condition('a')
-    assert isinstance(c, cirq.KeyCondition)
-    assert len(c.keys) == 1
-    assert c.keys[0].name == 'a'
-    c = cirq.parse_condition('0:a')
-    assert isinstance(c, cirq.KeyCondition)
-    assert len(c.keys) == 1
-    assert c.keys[0].name == 'a'
-    assert c.keys[0].path == ('0',)

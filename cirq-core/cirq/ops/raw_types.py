@@ -35,6 +35,7 @@ from typing import (
 )
 
 import numpy as np
+import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
@@ -597,7 +598,7 @@ class Operation(metaclass=abc.ABCMeta):
         return frozenset()
 
     def with_classical_controls(
-        self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition']
+        self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
     ) -> 'cirq.ClassicallyControlledOperation':
         """Returns a classically controlled version of this operation.
 
@@ -610,8 +611,9 @@ class Operation(metaclass=abc.ABCMeta):
         since tags are considered a local attribute.
 
         Args:
-            conditions: A list of measurement keys, or strings that can be
-                parsed into measurement keys.
+            conditions: A list of measurement keys, strings that can be parsed
+                into measurement keys, or sympy expressions where the free
+                symbols are measurement key strings.
 
         Returns:
             A `ClassicallyControlledOperation` wrapping the operation.

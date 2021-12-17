@@ -13,6 +13,7 @@
 # limitations under the License.
 import pytest
 import sympy
+from sympy.parsing import sympy_parser
 
 import cirq
 
@@ -332,9 +333,9 @@ def test_key_set_in_subcircuit_outer_scope():
 
 def test_condition_types():
     q0 = cirq.LineQubit(0)
-    sympy_cond = cirq.parse_sympy_condition('{a} >= 2')
-    op = cirq.X(q0).with_classical_controls(cirq.MeasurementKey('a'), 'b', '{a} > {b}', sympy_cond)
-    assert set(map(str, op.classical_controls)) == {'a', 'b', '{a} > {b}', '{a} >= 2'}
+    sympy_cond = sympy_parser.parse_expr('a >= 2')
+    op = cirq.X(q0).with_classical_controls(cirq.MeasurementKey('a'), 'b', 'a > b', sympy_cond)
+    assert set(map(str, op.classical_controls)) == {'a', 'b', 'a > b', 'a >= 2'}
 
 
 def test_condition_flattening():
@@ -439,7 +440,7 @@ def test_sympy():
                 cirq.X(q3) ** bitstring_j[1],
                 cirq.measure(q0, q1, key='m_i'),
                 cirq.measure(q2, q3, key='m_j'),
-                cirq.X(q_result).with_classical_controls('{m_j} > {m_i}'),
+                cirq.X(q_result).with_classical_controls(sympy_parser.parse_expr('m_j > m_i')),
                 cirq.measure(q_result, key='result'),
             )
 

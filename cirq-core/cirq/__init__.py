@@ -481,8 +481,6 @@ from cirq.value import (
     LinearDict,
     MEASUREMENT_KEY_SEPARATOR,
     MeasurementKey,
-    parse_condition,
-    parse_sympy_condition,
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
     state_vector_to_probabilities,

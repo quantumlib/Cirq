@@ -34,7 +34,7 @@ class Condition(abc.ABC):
         """Gets the control keys."""
 
     @abc.abstractmethod
-    def with_keys(self, *keys: 'cirq.MeasurementKey'):
+    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
         """Replaces the control keys."""
 
     @abc.abstractmethod
@@ -47,12 +47,16 @@ class Condition(abc.ABC):
         """Returns the qasm of this condition."""
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'Condition':
-        keys = [mkp.with_measurement_key_mapping(k, key_map) for k in self.keys]
-        return self.with_keys(*keys)
+        condition = self
+        for k in self.keys:
+            condition = condition.replace_key(k, mkp.with_measurement_key_mapping(k, key_map))
+        return condition
 
     def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'Condition':
-        keys = [mkp.with_key_path_prefix(k, path) for k in self.keys]
-        return self.with_keys(*keys)
+        condition = self
+        for k in self.keys:
+            condition = condition.replace_key(k, mkp.with_key_path_prefix(k, path))
+        return condition
 
 
 @dataclasses.dataclass(frozen=True)
@@ -69,10 +73,8 @@ class KeyCondition(Condition):
     def keys(self):
         return (self.key,)
 
-    def with_keys(self, *keys: 'cirq.MeasurementKey'):
-        if len(keys) != 1:
-            raise ValueError(f'Cannot apply multiple keys to a KeyCondition')
-        return KeyCondition(keys[0])
+    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
+        return KeyCondition(replacement) if self.key == current else self
 
     def __str__(self):
         return str(self.key)
@@ -101,41 +103,25 @@ class SympyCondition(Condition):
     This condition resolves to True iff the sympy expression resolves to a
     truthy value (i.e. `bool(x) == True`) when the measurement keys are
     substituted in as the free variables.
-
-    To account for the fact that measurement key strings can contain characters
-    not allowed in sympy variables, we use x0..xN for the free variables and
-    substitute the measurement keys in by order. For instance a condition with
-    `expr='x0 > x1', keys=['0:A', '0:B']` would resolve to True iff key `0:A`
-    is greater than key `0:B`.
-
-    The `cirq.parse_sympy_condition` function automates setting this up
-    correctly. To create the above expression, one would call
-    `cirq.parse_sympy_condition('{0:A} > {0:B}')`.
     """
 
     expr: sympy.Expr
-    control_keys: Tuple['cirq.MeasurementKey', ...]
 
     @property
     def keys(self):
-        return self.control_keys
+        return tuple(
+            measurement_key.MeasurementKey.parse_serialized(symbol.name)
+            for symbol in self.expr.free_symbols
+        )
 
-    def with_keys(self, *keys: 'cirq.MeasurementKey'):
-        if len(keys) != len(self.control_keys):
-            raise ValueError(f'Wrong number of keys applied to this condition.')
-        return dataclasses.replace(self, control_keys=keys)
+    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
+        return dataclasses.replace(self, expr=self.expr.subs({str(current): str(replacement)}))
 
     def __str__(self):
-        replacements = {f'x{i}': f'{{{str(key)}}}' for i, key in enumerate(self.control_keys)}
-
-        class CustomCodePrinter(sympy.printing.StrPrinter):
-            def _print_Symbol(self, expr):
-                return replacements[expr.name]
-
-        return CustomCodePrinter().doprint(self.expr)
+        return str(self.expr)
 
     def __repr__(self):
-        return f'cirq.SympyCondition({proper_repr(self.expr)}, {self.keys!r})'
+        return f'cirq.SympyCondition({proper_repr(self.expr)})'
 
     def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
         missing = [str(k) for k in self.keys if str(k) not in measurements]
@@ -145,7 +131,7 @@ class SympyCondition(Condition):
         def value(k):
             return digits.big_endian_bits_to_int(measurements[str(k)])
 
-        replacements = {f'x{i}': value(k) for i, k in enumerate(self.keys)}
+        replacements = {str(k): value(k) for k in self.keys}
         return bool(self.expr.subs(replacements))
 
     def _json_dict_(self):
@@ -154,60 +140,3 @@ class SympyCondition(Condition):
     @property
     def qasm(self):
         raise NotImplementedError()
-
-
-def parse_sympy_condition(s: str) -> 'cirq.SympyCondition':
-    """Parses a string into a `cirq.SympyCondition`.
-
-    The measurement keys in a sympy condition string must be wrapped in curly
-    braces to denote them. For example, to create an expression that checks if
-    measurement A was greater than measurement B, the proper syntax is
-    `cirq.parse_sympy_condition('{A} > {B}')`.
-
-    A backslash can be used to treat the subsequent character as a literal
-    within the key name, in case braces or backslashes appear in the key name.
-    """
-    in_key = False
-    key_count = 0
-    s_out = ''
-    key_name = ''
-    keys = []
-    i = 0
-    while i < len(s):
-        c = s[i]
-        if not in_key:
-            if c == '{':
-                in_key = True
-            else:
-                s_out += c
-        else:
-            if c == '}':
-                symbol_name = f'x{key_count}'
-                s_out += symbol_name
-                keys.append(measurement_key.MeasurementKey.parse_serialized(key_name))
-                key_name = ''
-                key_count += 1
-                in_key = False
-            else:
-                if c == '\\':
-                    i += 1
-                    if i == len(s):
-                        raise ValueError(f"'{s}' is not a valid sympy condition")
-                    c = s[i]
-                key_name += c
-        i += 1
-    if in_key:
-        raise ValueError(f"'{s}' is not a valid sympy condition")
-    expr = sympy.sympify(s_out)
-    if len(expr.free_symbols) != len(keys):
-        raise ValueError(f"'{s}' is not a valid sympy condition")
-    return SympyCondition(expr, tuple(keys))
-
-
-def parse_condition(s: str) -> 'cirq.Condition':
-    """Parses a string into a `Condition`."""
-    return (
-        parse_sympy_condition(s)
-        if '{' in s
-        else KeyCondition(measurement_key.MeasurementKey.parse_serialized(s))
-    )

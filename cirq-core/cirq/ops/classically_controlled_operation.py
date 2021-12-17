@@ -24,6 +24,8 @@ from typing import (
     Union,
 )
 
+import sympy
+
 from cirq import protocols, value
 from cirq.ops import raw_types
 
@@ -47,7 +49,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def __init__(
         self,
         sub_operation: 'cirq.Operation',
-        conditions: Sequence[Union[str, 'cirq.MeasurementKey', 'cirq.Condition']],
+        conditions: Sequence[Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]],
     ):
         """Initializes a `ClassicallyControlledOperation`.
 
@@ -76,9 +78,11 @@ class ClassicallyControlledOperation(raw_types.Operation):
         conds: List['cirq.Condition'] = []
         for c in conditions:
             if isinstance(c, str):
-                c = value.parse_condition(c)
+                c = value.MeasurementKey.parse_serialized(c)
             if isinstance(c, value.MeasurementKey):
                 c = value.KeyCondition(c)
+            if isinstance(c, sympy.Expr):
+                c = value.SympyCondition(c)
             conds.append(c)
         self._conditions: Tuple['cirq.Condition', ...] = tuple(conds)
         self._sub_operation: 'cirq.Operation' = sub_operation
