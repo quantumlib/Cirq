@@ -115,7 +115,7 @@ class SympyCondition(Condition):
         )
 
     def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
-        return dataclasses.replace(self, expr=self.expr.subs({str(current): str(replacement)}))
+        return SympyCondition(self.expr.subs({str(current): sympy.Symbol(str(replacement))}))
 
     def __str__(self):
         return str(self.expr)

@@ -15,15 +15,16 @@
 import re
 
 import pytest
-import sympy.parsing.sympy_parser
+import sympy
 
 import cirq
 
-key_a = cirq.MeasurementKey('a')
-key_b = cirq.MeasurementKey('b')
-key_c = cirq.MeasurementKey('c')
+key_a = cirq.MeasurementKey.parse_serialized('0:a')
+key_b = cirq.MeasurementKey.parse_serialized('0:b')
+key_c = cirq.MeasurementKey.parse_serialized('0:c')
+key_x = cirq.MeasurementKey.parse_serialized('0:c')
 init_key_condition = cirq.KeyCondition(key_a)
-init_sympy_condition = cirq.SympyCondition(sympy.parsing.sympy_parser.parse_expr('a >= 1'))
+init_sympy_condition = cirq.SympyCondition(sympy.Symbol('0:a') >= 1)
 
 
 def test_key_condition_with_keys():
@@ -34,34 +35,36 @@ def test_key_condition_with_keys():
 
 
 def test_key_condition_str():
-    assert str(init_key_condition) == 'a'
+    assert str(init_key_condition) == '0:a'
 
 
 def test_key_condition_repr():
-    assert repr(init_key_condition) == "cirq.KeyCondition(cirq.MeasurementKey(name='a'))"
+    assert (
+        repr(init_key_condition) == "cirq.KeyCondition(cirq.MeasurementKey(path=('0',), name='a'))"
+    )
 
 
 def test_key_condition_resolve():
-    assert init_key_condition.resolve({'a': [1]})
-    assert init_key_condition.resolve({'a': [2]})
-    assert init_key_condition.resolve({'a': [0, 1]})
-    assert init_key_condition.resolve({'a': [1, 0]})
-    assert not init_key_condition.resolve({'a': [0]})
-    assert not init_key_condition.resolve({'a': [0, 0]})
-    assert not init_key_condition.resolve({'a': []})
-    assert not init_key_condition.resolve({'a': [0], 'b': [1]})
+    assert init_key_condition.resolve({'0:a': [1]})
+    assert init_key_condition.resolve({'0:a': [2]})
+    assert init_key_condition.resolve({'0:a': [0, 1]})
+    assert init_key_condition.resolve({'0:a': [1, 0]})
+    assert not init_key_condition.resolve({'0:a': [0]})
+    assert not init_key_condition.resolve({'0:a': [0, 0]})
+    assert not init_key_condition.resolve({'0:a': []})
+    assert not init_key_condition.resolve({'0:a': [0], 'b': [1]})
     with pytest.raises(
-        ValueError, match='Measurement key a missing when testing classical control'
+        ValueError, match='Measurement key 0:a missing when testing classical control'
     ):
         _ = init_key_condition.resolve({})
     with pytest.raises(
-        ValueError, match='Measurement key a missing when testing classical control'
+        ValueError, match='Measurement key 0:a missing when testing classical control'
     ):
-        _ = init_key_condition.resolve({'b': [1]})
+        _ = init_key_condition.resolve({'0:b': [1]})
 
 
 def test_key_condition_qasm():
-    assert init_key_condition.qasm == 'm_a!=0'
+    assert cirq.KeyCondition(cirq.MeasurementKey('a')).qasm == 'm_a!=0'
 
 
 def test_sympy_condition_with_keys():
@@ -72,33 +75,35 @@ def test_sympy_condition_with_keys():
 
 
 def test_sympy_condition_str():
-    assert str(init_sympy_condition) == 'a >= 1'
+    assert str(init_sympy_condition) == '0:a >= 1'
 
 
 def test_sympy_condition_repr():
     assert (
         repr(init_sympy_condition)
-        == "cirq.SympyCondition(GreaterThan(sympy.Symbol('a'), sympy.Integer(1)))"
+        == "cirq.SympyCondition(sympy.GreaterThan(sympy.Symbol('0:a'), sympy.Integer(1)))"
     )
 
 
 def test_sympy_condition_resolve():
-    assert init_sympy_condition.resolve({'a': [1]})
-    assert init_sympy_condition.resolve({'a': [2]})
-    assert init_sympy_condition.resolve({'a': [0, 1]})
-    assert init_sympy_condition.resolve({'a': [1, 0]})
-    assert not init_sympy_condition.resolve({'a': [0]})
-    assert not init_sympy_condition.resolve({'a': [0, 0]})
-    assert not init_sympy_condition.resolve({'a': []})
-    assert not init_sympy_condition.resolve({'a': [0], 'b': [1]})
+    assert init_sympy_condition.resolve({'0:a': [1]})
+    assert init_sympy_condition.resolve({'0:a': [2]})
+    assert init_sympy_condition.resolve({'0:a': [0, 1]})
+    assert init_sympy_condition.resolve({'0:a': [1, 0]})
+    assert not init_sympy_condition.resolve({'0:a': [0]})
+    assert not init_sympy_condition.resolve({'0:a': [0, 0]})
+    assert not init_sympy_condition.resolve({'0:a': []})
+    assert not init_sympy_condition.resolve({'0:a': [0], 'b': [1]})
     with pytest.raises(
-        ValueError, match=re.escape("Measurement keys ['a'] missing when testing classical control")
+        ValueError,
+        match=re.escape("Measurement keys ['0:a'] missing when testing classical control"),
     ):
         _ = init_sympy_condition.resolve({})
     with pytest.raises(
-        ValueError, match=re.escape("Measurement keys ['a'] missing when testing classical control")
+        ValueError,
+        match=re.escape("Measurement keys ['0:a'] missing when testing classical control"),
     ):
-        _ = init_sympy_condition.resolve({'b': [1]})
+        _ = init_sympy_condition.resolve({'0:b': [1]})
 
 
 def test_sympy_condition_qasm():

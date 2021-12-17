@@ -441,9 +441,9 @@ def test_sympy():
                 cirq.measure(q0, q1, key='m_i'),
                 cirq.measure(q2, q3, key='m_j'),
                 cirq.X(q_result).with_classical_controls(sympy_parser.parse_expr('m_j > m_i')),
-                cirq.measure(q_result, key='result'),
+                cirq.measure(q_result, key='m_result'),
             )
 
-            # m_q4 should now be set iff j > i.
+            # m_result should now be set iff j > i.
             result = cirq.Simulator().run(circuit)
-            assert result.measurements['result'][0][0] == (j > i)
+            assert result.measurements['m_result'][0][0] == (j > i)

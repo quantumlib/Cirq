@@ -1,1 +1,1 @@
-cirq.SympyCondition(control_keys=[cirq.MeasurementKey('a')], expr='x > 5')
+cirq.SympyCondition(sympy.Mul(sympy.Symbol('a'), sympy.Symbol('b')))
