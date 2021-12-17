@@ -280,9 +280,7 @@ class CircuitOperation(ops.Operation):
         # TODO: support out-of-line subcircuit definition in string format.
         msg_lines = str(self.circuit).split('\n')
         msg_width = max([len(line) for line in msg_lines])
-        circuit_msg = '\n'.join(
-            '[ {line:<{width}} ]'.format(line=line, width=msg_width) for line in msg_lines
-        )
+        circuit_lines = ['{line:<{width}}'.format(line=line, width=msg_width) for line in msg_lines]
         args = []
 
         def dict_str(d: Dict) -> str:
@@ -303,9 +301,7 @@ class CircuitOperation(ops.Operation):
         elif self.repetitions != 1:
             # Only add loops if we haven't added repetition_ids.
             args.append(f'loops={self.repetitions}')
-        if not args:
-            return circuit_msg
-        return f'{circuit_msg}({", ".join(args)})'
+        return _put_in_box(circuit_lines if len(args) == 0 else circuit_lines + [", ".join(args)])
 
     def __hash__(self):
         if self._hash is None:
@@ -568,3 +564,13 @@ class CircuitOperation(ops.Operation):
                 'Use "recursive=False" to prevent this error.'
             )
         return self.with_params(resolver.param_dict)
+
+
+def _put_in_box(lines: List[str]):
+    width = max(len(line) for line in lines)
+    in_box = (
+        ['┌' + '─' * width + '┐']
+        + ['│' + line.ljust(width) + '│' for line in lines]
+        + ['└' + '─' * width + '┘']
+    )
+    return '\n'.join(in_box)

@@ -321,7 +321,13 @@ def test_string_format():
 
     fc0 = cirq.FrozenCircuit()
     op0 = cirq.CircuitOperation(fc0)
-    assert str(op0) == f"[  ]"
+    assert (
+        str(op0)
+        == """\
+┌┐
+││
+└┘"""
+    )
 
     fc0_global_phase_inner = cirq.FrozenCircuit(
         cirq.global_phase_operation(1j), cirq.global_phase_operation(1j)
@@ -333,22 +339,26 @@ def test_string_format():
     op0_global_phase_outer = cirq.CircuitOperation(fc0_global_phase_outer)
     assert (
         str(op0_global_phase_outer)
-        == f"""\
-[                       ]
-[                       ]
-[ global phase:   -0.5π ]"""
+        == """\
+┌─────────────────────┐
+│                     │
+│                     │
+│global phase:   -0.5π│
+└─────────────────────┘"""
     )
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))
     op1 = cirq.CircuitOperation(fc1)
     assert (
         str(op1)
-        == f"""\
-[ 0: ───X───────M('m')─── ]
-[               │         ]
-[ 1: ───H───@───M──────── ]
-[           │   │         ]
-[ 2: ───────X───M──────── ]"""
+        == """\
+┌───────────────────────┐
+│0: ───X───────M('m')───│
+│              │        │
+│1: ───H───@───M────────│
+│          │   │        │
+│2: ───────X───M────────│
+└───────────────────────┘"""
     )
     assert (
         repr(op1)
@@ -379,11 +389,13 @@ cirq.CircuitOperation(
     )
     assert (
         str(op2)
-        == f"""\
-[ 0: ───X───X─── ]
-[           │    ]
-[ 1: ───H───@─── ](qubit_map={{1: 2}}, parent_path=('outer', 'inner'),\
- repetition_ids=['a', 'b', 'c'])"""
+        == """\
+┌────────────────────────────────────────────────────────────────────────────────┐
+│0: ───X───X───                                                                  │
+│          │                                                                     │
+│1: ───H───@───                                                                  │
+│qubit_map={1: 2}, parent_path=('outer', 'inner'), repetition_ids=['a', 'b', 'c']│
+└────────────────────────────────────────────────────────────────────────────────┘"""
     )
     assert (
         repr(op2)
@@ -418,9 +430,11 @@ cirq.CircuitOperation(
     indented_fc3_repr = repr(fc3).replace('\n', '\n    ')
     assert (
         str(op3)
-        == f"""\
-[ 0: ───X^b───M('m')─── ](qubit_map={{0: 1}}, \
-key_map={{m: p}}, params={{b: 2}})"""
+        == """\
+┌───────────────────────────────────────────────┐
+│0: ───X^b───M('m')───                          │
+│qubit_map={0: 1}, key_map={m: p}, params={b: 2}│
+└───────────────────────────────────────────────┘"""
     )
     assert (
         repr(op3)
