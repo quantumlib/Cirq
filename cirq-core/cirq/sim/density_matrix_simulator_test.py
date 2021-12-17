@@ -1097,13 +1097,13 @@ def test_density_matrix_trial_result_repr():
     final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
     trial_result = cirq.DensityMatrixTrialResult(
         params=cirq.ParamResolver({'s': 1}),
-        measurements={'m': np.array([[1]])},
+        measurements={'m': np.array([[1]], dtype=np.int32)},
         final_step_result=final_step_result,
     )
     expected_repr = (
         "cirq.DensityMatrixTrialResult("
         "params=cirq.ParamResolver({'s': 1}), "
-        "measurements={'m': np.array([[1]], dtype=np.int64)}, "
+        "measurements={'m': np.array([[1]], dtype=np.int32)}, "
         "final_step_result=cirq.DensityMatrixStepResult("
         "sim_state=cirq.ActOnDensityMatrixArgs("
         "target_tensor=np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float64), "

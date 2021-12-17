@@ -23,8 +23,8 @@ import cirq.testing
 def test_state_vector_trial_result_repr():
     q0 = cirq.NamedQubit('a')
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=np.array([0, 1]),
-        available_buffer=np.array([0, 1]),
+        target_tensor=np.array([0, 1], dtype=np.int32),
+        available_buffer=np.array([0, 1], dtype=np.int32),
         prng=np.random.RandomState(0),
         log_of_measurement_results={},
         qubits=[q0],
@@ -32,17 +32,17 @@ def test_state_vector_trial_result_repr():
     final_step_result = cirq.SparseSimulatorStep(args, cirq.Simulator())
     trial_result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({'s': 1}),
-        measurements={'m': np.array([[1]])},
+        measurements={'m': np.array([[1]], dtype=np.int32)},
         final_step_result=final_step_result,
     )
     expected_repr = (
         "cirq.StateVectorTrialResult("
         "params=cirq.ParamResolver({'s': 1}), "
-        "measurements={'m': np.array([[1]], dtype=np.int64)}, "
+        "measurements={'m': np.array([[1]], dtype=np.int32)}, "
         "final_step_result=cirq.SparseSimulatorStep("
         "sim_state=cirq.ActOnStateVectorArgs("
-        "target_tensor=np.array([0, 1], dtype=np.int64), "
-        "available_buffer=np.array([0, 1], dtype=np.int64), "
+        "target_tensor=np.array([0, 1], dtype=np.int32), "
+        "available_buffer=np.array([0, 1], dtype=np.int32), "
         "qubits=(cirq.NamedQubit('a'),), "
         "log_of_measurement_results={}), "
         "dtype=np.complex64))"
