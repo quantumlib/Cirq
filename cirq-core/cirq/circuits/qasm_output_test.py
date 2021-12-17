@@ -494,6 +494,7 @@ measure q[2] -> m_x_a[0];
 measure q[1] -> m_multi[0];
 x q[2];  // Invert the following measurement
 measure q[2] -> m_multi[1];
+x q[2];  // Undo the inversion
 measure q[3] -> m_multi[2];
 
 // Dummy operation
