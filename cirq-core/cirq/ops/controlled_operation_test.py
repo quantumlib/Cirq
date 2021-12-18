@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -397,3 +397,15 @@ def test_controlled_mixture():
             (0.25, cirq.unitary(cirq.CZ)),
         ],
     )
+
+
+def test_json_dict():
+    op = cirq.X.controlled(control_values=[0, 1], control_qid_shape=[2, 3]).on(
+        cirq.LineQubit(0), cirq.LineQid(1, 3), cirq.LineQubit(2)
+    )
+    want = {
+        'controls': (cirq.LineQubit(0), cirq.LineQid(1, dimension=3)),
+        'control_values': [(0,), (1,)],
+        'sub_operation': cirq.X(cirq.LineQubit(2)),
+    }
+    assert want == op._json_dict_()

@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -555,3 +555,13 @@ def test_controlled_mixture():
             (0.25, cirq.unitary(cirq.CZ)),
         ],
     )
+
+
+def test_json_dict():
+    tests = [
+        (CY, {'control_values': [(1,)], 'control_qid_shape': (2,), 'sub_gate': cirq.Y}),
+        (CCH, {'control_values': [(1,), (1,)], 'control_qid_shape': (2, 2), 'sub_gate': cirq.H}),
+        (C0Y, {'control_values': [(0,)], 'control_qid_shape': (2,), 'sub_gate': cirq.Y}),
+    ]
+    for gate, want in tests:
+        assert want == gate._json_dict_()
