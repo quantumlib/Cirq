@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Dict, Iterable, Union, TYPE_CHECKING, Sequence, Iterator
+from typing import AbstractSet, cast, Dict, Iterable, Union, TYPE_CHECKING, Sequence, Iterator
 
 import sympy
 
@@ -63,17 +63,16 @@ class PauliStringPhasor(gate_operation.GateOperation):
             ValueError: If coefficient is not 1 or -1.
         """
         gate = PauliStringPhasorGate(
-            dps.DensePauliString(pauli_string.values(), coefficient=pauli_string.coefficient),
+            pauli_string.dense(pauli_string.qubits),
             exponent_neg=exponent_neg,
             exponent_pos=exponent_pos,
         )
         super().__init__(gate, pauli_string.qubits)
-        self._pauli_gate = gate
         self._pauli_string = gate.dense_pauli_string.on(*self.qubits)
 
     @property
     def exponent_neg(self):
-        return self._pauli_gate.exponent_neg
+        return cast(PauliStringPhasorGate, self.gate).exponent_neg
 
     @exponent_neg.setter  # type: ignore
     @deprecated(
@@ -82,11 +81,11 @@ class PauliStringPhasor(gate_operation.GateOperation):
     )
     def exponent_neg(self, exponent_neg):
         # coverage: ignore
-        self._pauli_gate._exponent_neg = exponent_neg
+        cast(PauliStringPhasorGate, self.gate)._exponent_neg = exponent_neg
 
     @property
     def exponent_pos(self):
-        return self._pauli_gate.exponent_pos
+        return cast(PauliStringPhasorGate, self.gate).exponent_pos
 
     @exponent_pos.setter  # type: ignore
     @deprecated(
@@ -95,7 +94,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     )
     def exponent_pos(self, exponent_pos):
         # coverage: ignore
-        self._pauli_gate._exponent_pos = exponent_pos
+        cast(PauliStringPhasorGate, self.gate)._exponent_pos = exponent_pos
 
     @property
     def pauli_string(self):
@@ -109,13 +108,14 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def pauli_string(self, pauli_string):
         # coverage: ignore
         self._pauli_string = pauli_string
-        self._pauli_gate._dense_pauli_string = dps.DensePauliString(
-            pauli_string.values(), coefficient=pauli_string.coefficient
+        cast(PauliStringPhasorGate, self.gate)._dense_pauli_string = pauli_string.dense(
+            pauli_string.qubits
         )
+        super()._qubits = pauli_string.qubits
 
     @property
     def exponent_relative(self) -> Union[int, float, sympy.Basic]:
-        return self._pauli_gate.exponent_relative
+        return cast(PauliStringPhasorGate, self.gate).exponent_relative
 
     def _value_equality_values_(self):
         return (
@@ -126,7 +126,9 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
     def equal_up_to_global_phase(self, other):
         if isinstance(other, PauliStringPhasor):
-            return self._pauli_gate.equal_up_to_global_phase(other.gate)
+            rel1 = self.exponent_relative
+            rel2 = other.exponent_relative
+            return rel1 == rel2 and self.pauli_string == other.pauli_string
         return False
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]):
@@ -211,7 +213,7 @@ class PauliStringPhasorGate(raw_types.Gate):
 
         if dense_pauli_string.coefficient != 1:
             raise ValueError(
-                "Given PauliString doesn't have +1 and -1 eigenvalues. "
+                "Given DensePauliString doesn't have +1 and -1 eigenvalues. "
                 "pauli_string.coefficient must be 1 or -1."
             )
 
@@ -261,10 +263,7 @@ class PauliStringPhasorGate(raw_types.Gate):
 
     def _to_z_basis_ops(self, qubits: Sequence['cirq.Qid']) -> Iterator[raw_types.Operation]:
         """Returns operations to convert the qubits to the computational basis."""
-        for i in range(len(self.dense_pauli_string)):
-            yield clifford_gate.SingleQubitCliffordGate.from_single_map(
-                {self.dense_pauli_string[i]: (pauli_gates.Z, False)}
-            )(qubits[i])
+        return self.dense_pauli_string.on(*qubits).to_z_basis_ops()
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         if len(self.dense_pauli_string) <= 0:
