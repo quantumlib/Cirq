@@ -214,7 +214,7 @@ class PauliStringPhasorGate(raw_types.Gate):
         if dense_pauli_string.coefficient != 1:
             raise ValueError(
                 "Given DensePauliString doesn't have +1 and -1 eigenvalues. "
-                "pauli_string.coefficient must be 1 or -1."
+                "dense_pauli_string.coefficient must be 1 or -1."
             )
 
         self._dense_pauli_string = dense_pauli_string
