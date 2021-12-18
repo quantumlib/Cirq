@@ -168,6 +168,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             seed=seed,
         )
 
+    @property
+    def can_represent_mixed_states(self) -> bool:
+        return True
+
 
 def _strat_apply_channel_to_state(
     action: Any, args: ActOnDensityMatrixArgs, qubits: Sequence['cirq.Qid']
