@@ -26,7 +26,6 @@ from cirq.ops import (
     pauli_string as ps,
     pauli_gates,
     op_tree,
-    clifford_gate,
 )
 
 if TYPE_CHECKING:
