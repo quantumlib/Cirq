@@ -203,6 +203,33 @@ class FSimGateFamily(cirq.GateFamily):
             self.atol,
         )
 
+    def _json_dict_(self):
+        accept_gates_json = [
+            gate if not isinstance(gate, type) else cirq.json_cirq_type(gate)
+            for gate in self.gates_to_accept
+        ]
+        check_gates_json = [cirq.json_cirq_type(gate) for gate in self.gate_types_to_check]
+        return {
+            'gates_to_accept': accept_gates_json,
+            'gate_types_to_check': check_gates_json,
+            'allow_symbols': self.allow_symbols,
+            'atol': self.atol,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, gates_to_accept, gate_types_to_check, allow_symbols, atol, **kwargs):
+        accept_gates = [
+            gate if not isinstance(gate, str) else cirq.cirq_type_from_json(gate)
+            for gate in gates_to_accept
+        ]
+        check_gates = [cirq.cirq_type_from_json(gate) for gate in gate_types_to_check]
+        return cls(
+            gates_to_accept=accept_gates,
+            gate_types_to_check=check_gates,
+            allow_symbols=allow_symbols,
+            atol=atol,
+        )
+
     def _approx_eq_or_symbol(self, lhs: Any, rhs: Any) -> bool:
         lhs = lhs if isinstance(lhs, tuple) else (lhs,)
         rhs = rhs if isinstance(rhs, tuple) else (rhs,)

@@ -51,6 +51,7 @@ from cirq.protocols.commutes_protocol import (
 )
 from cirq.protocols.control_key_protocol import (
     control_keys,
+    measurement_keys_touched,
     SupportsControlKey,
 )
 from cirq.protocols.circuit_diagram_info_protocol import (

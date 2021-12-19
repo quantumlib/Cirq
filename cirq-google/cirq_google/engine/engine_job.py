@@ -18,7 +18,7 @@ import time
 from typing import Dict, Iterator, List, Optional, overload, Tuple, TYPE_CHECKING
 
 import cirq
-from cirq_google.engine import calibration, engine_client
+from cirq_google.engine import abstract_job, calibration, engine_client
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
@@ -37,7 +37,7 @@ TERMINAL_STATES = [
 ]
 
 
-class EngineJob:
+class EngineJob(abstract_job.AbstractJob):
     """A job created via the Quantum Engine API.
 
     This job may be in a variety of states. It may be scheduling, it may be
@@ -83,6 +83,10 @@ class EngineJob:
         self._calibration_results: Optional[CalibrationResult] = None
         self._batched_results: Optional[List[List[cirq.Result]]] = None
         self.result_type = result_type
+
+    def id(self) -> str:
+        """Returns the job id."""
+        return self.job_id
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object."""
@@ -192,6 +196,10 @@ class EngineJob:
             engine_client._ids_from_processor_name(p)[1]
             for p in self._inner_job().scheduling_config.processor_selector.processor_names
         ]
+
+    def execution_status(self) -> quantum.enums.ExecutionStatus.State:
+        """Return the execution status of the job."""
+        return self._refresh_job().execution_status.state
 
     def status(self) -> str:
         """Return the execution status of the job."""

@@ -56,7 +56,7 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
 
         Let Cirq decompose one-qubit gates, intercept on 2-qubit gates if they are known gates.
         """
-        if isinstance(op, cirq.GlobalPhaseOperation):
+        if isinstance(op.gate, cirq.GlobalPhaseGate):
             return []
 
         gate = op.gate
@@ -207,7 +207,7 @@ def cphase_to_sqrt_iswap(a, b, turns):
     yield cirq.rx(xi).on(a)
     yield cirq.X(b) ** (sign * 0.5)
     # Corrects global phase
-    yield cirq.GlobalPhaseOperation(np.exp(sign * theta_prime * 0.25j))
+    yield cirq.global_phase_operation(np.exp(sign * theta_prime * 0.25j))
 
 
 def cphase_symbols_to_sqrt_iswap(a, b, turns):

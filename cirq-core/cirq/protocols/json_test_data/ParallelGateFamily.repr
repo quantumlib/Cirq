@@ -1,0 +1,9 @@
+[
+    cirq.ParallelGateFamily(gate=cirq.ops.common_gates.XPowGate, max_parallel_allowed=None),
+    cirq.ParallelGateFamily(
+        gate=cirq.X,
+        name="ParallelXFamily",
+        description=r'''Up to 4 parallel X gates''',
+        max_parallel_allowed=4
+    )
+]
