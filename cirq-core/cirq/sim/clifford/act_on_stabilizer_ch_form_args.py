@@ -11,24 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""A protocol for implementing high performance clifford CH-Form evolutions
+ for Clifford Simulator."""
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 
-from cirq import value, ops, protocols, linalg
-from cirq.ops import common_gates, pauli_gates, matrix_gates, global_phase_op
-from cirq.ops.clifford_gate import SingleQubitCliffordGate
-from cirq.protocols import has_unitary, num_qubits, unitary
-from cirq.sim.act_on_args import ActOnArgs
+from cirq import value, ops, protocols
+from cirq.ops import common_gates, pauli_gates, global_phase_op
+from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnStabilizerCHFormArgs(ActOnArgs):
+class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
     """Wrapper around a stabilizer state in CH form for the act_on protocol.
 
     To act on this object, directly edit the `state` property, which is
@@ -43,6 +42,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'] = None,
     ):
         """Initializes with the given state and the axes for the operation.
+
         Args:
             state: The StabilizerStateChForm to act on. Operations are expected
                 to perform inplace edits of this object.
@@ -54,29 +54,8 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(prng, log_of_measurement_results, qubits)
         self.state = state
-
-    def _act_on_fallback_(
-        self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
-    ) -> Union[bool, NotImplementedType]:
-        strats = [
-            self._strat_apply_to_ch_form,
-            self._strat_apply_mixture_to_ch_form,
-            self._strat_decompose,
-        ]
-        if allow_decompose:
-            strats.append(self._strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
-        for strat in strats:
-            result = strat(action, qubits)
-            if result is True:
-                return True
-            assert result is NotImplemented, str(result)
-
-        return NotImplemented
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Returns the measurement from the stabilizer state form."""
@@ -187,77 +166,6 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
 
     def _global_phase(self, g: global_phase_op.GlobalPhaseGate):
         self.state.omega *= g.coefficient
-
-    def _strat_apply_to_ch_form(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
-        if not protocols.has_stabilizer_effect(val):
-            return NotImplemented
-        gate = val.gate if isinstance(val, ops.Operation) else val
-        axes = self.get_axes(qubits)
-        if isinstance(gate, common_gates.XPowGate):
-            self._x(gate, axes[0])
-        elif isinstance(gate, common_gates.YPowGate):
-            self._y(gate, axes[0])
-        elif isinstance(gate, common_gates.ZPowGate):
-            self._z(gate, axes[0])
-        elif isinstance(gate, common_gates.HPowGate):
-            self._h(gate, axes[0])
-        elif isinstance(gate, common_gates.CXPowGate):
-            self._cx(gate, axes[0], axes[1])
-        elif isinstance(gate, common_gates.CZPowGate):
-            self._cz(gate, axes[0], axes[1])
-        elif isinstance(gate, global_phase_op.GlobalPhaseGate):
-            self._global_phase(gate)
-        else:
-            return NotImplemented
-        return True
-
-    def _strat_apply_mixture_to_ch_form(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
-        mixture = protocols.mixture(val, None)
-        if mixture is None:
-            return NotImplemented
-        if not all(linalg.is_unitary(m) for _, m in mixture):
-            return NotImplemented
-        probabilities, unitaries = zip(*mixture)
-        index = self.prng.choice(len(unitaries), p=probabilities)
-        return self._strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
-            matrix_gates.MatrixGate(unitaries[index]), qubits
-        )
-
-    def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
-        self, val: Any, qubits: Sequence['cirq.Qid']
-    ) -> bool:
-        if num_qubits(val) == 1:
-            if not has_unitary(val):
-                return NotImplemented
-            u = unitary(val)
-            clifford_gate = SingleQubitCliffordGate.from_unitary(u)
-            if clifford_gate is not None:
-                # Gather the effective unitary applied so as to correct for the
-                # global phase later.
-                final_unitary = np.eye(2)
-                for axis, quarter_turns in clifford_gate.decompose_rotation():
-                    gate = axis ** (quarter_turns / 2)
-                    self._strat_apply_to_ch_form(gate, qubits)
-
-                    final_unitary = np.matmul(unitary(gate), final_unitary)
-
-                # Find the entry with the largest magnitude in the input unitary.
-                k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
-                # Correct the global phase that wasn't conserved in the above
-                # decomposition.
-                self.state.omega *= u[k] / final_unitary[k]
-                return True
-
-        return NotImplemented
-
-    def _strat_decompose(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
-        gate = val.gate if isinstance(val, ops.Operation) else val
-        operations = protocols.decompose_once_with_qubits(gate, qubits, None)
-        if operations is None or not all(protocols.has_stabilizer_effect(op) for op in operations):
-            return NotImplemented
-        for op in operations:
-            protocols.act_on(op, self)
-        return True
 
 
 def _phase(gate):
