@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import abc
 import dataclasses
 from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING
 
 import sympy
+import sympy.parsing.sympy_parser as sympy_parser
 
 from cirq._compat import proper_repr
 from cirq.protocols import json_serialization, measurement_key_protocol as mkp
@@ -91,6 +93,10 @@ class KeyCondition(Condition):
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
 
+    @classmethod
+    def _from_json_dict_(cls, key, **kwargs):
+        return cls(key=key)
+
     @property
     def qasm(self):
         return f'm_{self.key}!=0'
@@ -136,6 +142,10 @@ class SympyCondition(Condition):
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
+
+    @classmethod
+    def _from_json_dict_(cls, expr, **kwargs):
+        return cls(expr=expr)
 
     @property
     def qasm(self):
