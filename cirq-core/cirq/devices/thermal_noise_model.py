@@ -228,6 +228,20 @@ class ThermalNoiseModel(devices.NoiseModel):
     def noisy_moment(
         self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
     ) -> 'cirq.OP_TREE':
+        if not moment.operations:
+            return [moment]
+        if self.require_physical_tag:
+            physical_ops = [PHYSICAL_GATE_TAG in op.tags for op in moment]
+            if any(physical_ops):
+                if not all(physical_ops):
+                    raise ValueError(
+                        "Moments are expected to be all physical or all virtual ops, "
+                        f"but found {moment.operations}"
+                    )
+            else:
+                # Only moments with physical operations should have noise.
+                return [moment]
+
         noise_ops: List['cirq.Operation'] = []
         # Some devices (including Google hardware) require that all gates have
         # the same duration, but this does not. Instead, each moment is assumed
@@ -244,19 +258,15 @@ class ThermalNoiseModel(devices.NoiseModel):
             if op_duration is None and isinstance(op.gate, ops.WaitGate):
                 # special case for wait gates if not predefined
                 op_duration = op.gate.duration.total_nanos()
-            moment_ns = max(moment_ns, op_duration)
+            if op_duration is not None:
+                moment_ns = max(moment_ns, op_duration)
 
         if moment_ns == 0:
             return [moment]
 
         for qubit in system_qubits:
             qubit_op = moment.operation_at(qubit)
-            if qubit_op is None:
-                continue
             if self.skip_measurements and protocols.is_measurement(qubit_op):
-                continue
-            if self.require_physical_tag and PHYSICAL_GATE_TAG not in qubit_op.tags:
-                # Only non-virtual gates get noise applied.
                 continue
             rates = self.rate_matrix_GHz[qubit] * moment_ns
             kraus_ops = _kraus_ops_from_rates(tuple(rates.reshape(-1)), rates.shape)

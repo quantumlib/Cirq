@@ -107,6 +107,25 @@ def test_incomplete_rates():
     assert np.allclose(model.rate_matrix_GHz[q1], np.array([[0, 0], [1e-5, 0]]))
 
 
+def test_noise_from_empty_moment():
+    # Verify that a moment with no duration has no noise.
+    q0, q1 = cirq.LineQubit.range(2)
+    gate_durations = {}
+    heat_rate_GHz = {q1: 1e-5}
+    cool_rate_GHz = {q0: 1e-4}
+    model = ThermalNoiseModel(
+        qubits={q0, q1},
+        gate_durations_ns=gate_durations,
+        heat_rate_GHz=heat_rate_GHz,
+        cool_rate_GHz=cool_rate_GHz,
+        dephase_rate_GHz=None,
+        require_physical_tag=False,
+        skip_measurements=False,
+    )
+    moment = cirq.Moment()
+    assert model.noisy_moment(moment, system_qubits=[q0, q1]) == [moment]
+
+
 def test_noise_from_zero_duration():
     # Verify that a moment with no duration has no noise.
     q0, q1 = cirq.LineQubit.range(2)
@@ -146,7 +165,8 @@ def test_noise_from_virtual_gates():
     assert model.noisy_moment(moment, system_qubits=[q0, q1]) == [moment]
 
     part_virtual_moment = cirq.Moment(cirq.Z(q0), cirq.Z(q1).with_tags(PHYSICAL_GATE_TAG))
-    assert len(model.noisy_moment(part_virtual_moment, system_qubits=[q0, q1])) == 2
+    with pytest.raises(ValueError, match="all physical or all virtual"):
+        _ = model.noisy_moment(part_virtual_moment, system_qubits=[q0, q1])
 
     model.require_physical_tag = False
     assert len(model.noisy_moment(moment, system_qubits=[q0, q1])) == 2
@@ -198,7 +218,8 @@ def test_noisy_moment_one_qubit():
     moment = cirq.Moment(gate.on(q0))
     noisy_moment = model.noisy_moment(moment, system_qubits=[q0, q1])
     assert noisy_moment[0] == moment
-    assert len(noisy_moment[1]) == 1
+    # Noise applies to both qubits, even if only one is acted upon.
+    assert len(noisy_moment[1]) == 2
     noisy_choi = cirq.kraus_to_choi(cirq.kraus(noisy_moment[1].operations[0]))
     assert np.allclose(
         noisy_choi,
