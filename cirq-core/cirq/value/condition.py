@@ -105,7 +105,7 @@ class SympyCondition(Condition):
     substituted in as the free variables.
     """
 
-    expr: sympy.Expr
+    expr: sympy.Basic
 
     @property
     def keys(self):

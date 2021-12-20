@@ -49,7 +49,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def __init__(
         self,
         sub_operation: 'cirq.Operation',
-        conditions: Sequence[Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]],
+        conditions: Sequence[Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Basic]],
     ):
         """Initializes a `ClassicallyControlledOperation`.
 
@@ -81,7 +81,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 c = value.MeasurementKey.parse_serialized(c)
             if isinstance(c, value.MeasurementKey):
                 c = value.KeyCondition(c)
-            if isinstance(c, sympy.Expr):
+            if isinstance(c, sympy.Basic):
                 c = value.SympyCondition(c)
             conds.append(c)
         self._conditions: Tuple['cirq.Condition', ...] = tuple(conds)
