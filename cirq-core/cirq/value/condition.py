@@ -17,7 +17,6 @@ import dataclasses
 from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING
 
 import sympy
-import sympy.parsing.sympy_parser as sympy_parser
 
 from cirq._compat import proper_repr
 from cirq.protocols import json_serialization, measurement_key_protocol as mkp
