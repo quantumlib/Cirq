@@ -70,8 +70,13 @@ class PauliStringPhasor(gate_operation.GateOperation):
         self._pauli_string = gate.dense_pauli_string.on(*self.qubits)
 
     @property
+    def gate(self) -> 'cirq.PauliStringPhasorGate':
+        """The gate applied by the operation."""
+        return cast(PauliStringPhasorGate, self._gate)
+
+    @property
     def exponent_neg(self):
-        return cast(PauliStringPhasorGate, self.gate).exponent_neg
+        return self.gate.exponent_neg
 
     @exponent_neg.setter  # type: ignore
     @deprecated(
@@ -80,11 +85,11 @@ class PauliStringPhasor(gate_operation.GateOperation):
     )
     def exponent_neg(self, exponent_neg):
         # coverage: ignore
-        cast(PauliStringPhasorGate, self.gate)._exponent_neg = exponent_neg
+        self.gate._exponent_neg = value.canonicalize_half_turns(exponent_neg)
 
     @property
     def exponent_pos(self):
-        return cast(PauliStringPhasorGate, self.gate).exponent_pos
+        return self.gate.exponent_pos
 
     @exponent_pos.setter  # type: ignore
     @deprecated(
@@ -93,7 +98,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     )
     def exponent_pos(self, exponent_pos):
         # coverage: ignore
-        cast(PauliStringPhasorGate, self.gate)._exponent_pos = exponent_pos
+        self.gate._exponent_pos = value.canonicalize_half_turns(exponent_pos)
 
     @property
     def pauli_string(self):
@@ -107,14 +112,12 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def pauli_string(self, pauli_string):
         # coverage: ignore
         self._pauli_string = pauli_string
-        cast(PauliStringPhasorGate, self.gate)._dense_pauli_string = pauli_string.dense(
-            pauli_string.qubits
-        )
+        self.gate._dense_pauli_string = pauli_string.dense(pauli_string.qubits)
         super()._qubits = pauli_string.qubits
 
     @property
     def exponent_relative(self) -> Union[int, float, sympy.Basic]:
-        return cast(PauliStringPhasorGate, self.gate).exponent_relative
+        return self.gate.exponent_relative
 
     def _value_equality_values_(self):
         return (
