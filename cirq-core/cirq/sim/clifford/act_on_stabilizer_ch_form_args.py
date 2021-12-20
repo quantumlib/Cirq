@@ -28,11 +28,7 @@ if TYPE_CHECKING:
 
 
 class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
-    """Wrapper around a stabilizer state in CH form for the act_on protocol.
-
-    To act on this object, directly edit the `state` property, which is
-    storing the stabilizer state of the quantum system with one axis per qubit.
-    """
+    """Wrapper around a stabilizer state in CH form for the act_on protocol."""
 
     def __init__(
         self,
@@ -54,7 +50,7 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
-        super().__init__(prng, log_of_measurement_results, qubits)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.state = state
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:

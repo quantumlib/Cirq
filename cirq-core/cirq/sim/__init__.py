@@ -89,6 +89,7 @@ from cirq.sim.state_vector import (
 from cirq.sim.clifford import (
     ActOnCliffordTableauArgs,
     ActOnStabilizerCHFormArgs,
+    ActOnStabilizerArgs,
     StabilizerSampler,
     StabilizerStateChForm,
     CliffordSimulator,

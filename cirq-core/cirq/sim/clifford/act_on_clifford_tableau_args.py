@@ -27,11 +27,7 @@ if TYPE_CHECKING:
 
 
 class ActOnCliffordTableauArgs(ActOnStabilizerArgs):
-    """State and context for an operation acting on a clifford tableau.
-
-    To act on this object, directly edit the `tableau` property, which is
-    storing the density matrix of the quantum system with one axis per qubit.
-    """
+    """State and context for an operation acting on a clifford tableau."""
 
     def __init__(
         self,
@@ -53,7 +49,7 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
-        super().__init__(prng, log_of_measurement_results, qubits)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.tableau = tableau
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:

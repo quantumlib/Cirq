@@ -11,11 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A protocol for implementing high performance clifford CH-Form evolutions
- for Clifford Simulator."""
 
 import abc
-from typing import Any, Dict, TYPE_CHECKING, Sequence, Union
+from typing import Any, Callable, List, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -30,31 +28,8 @@ if TYPE_CHECKING:
     import cirq
 
 
-class ActOnStabilizerArgs(ActOnArgs):
-    """Wrapper around a stabilizer state in CH form for the act_on protocol.
-
-    To act on this object, directly edit the `state` property, which is
-    storing the stabilizer state of the quantum system with one axis per qubit.
-    """
-
-    def __init__(
-        self,
-        prng: np.random.RandomState,
-        log_of_measurement_results: Dict[str, Any],
-        qubits: Sequence['cirq.Qid'] = None,
-    ):
-        """Initializes with the given state and the axes for the operation.
-
-        Args:
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
-        """
-        super().__init__(prng, qubits, log_of_measurement_results)
+class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
+    """Abstract wrapper around a stabilizer state for the act_on protocol."""
 
     def _act_on_fallback_(
         self,
@@ -70,9 +45,7 @@ class ActOnStabilizerArgs(ActOnArgs):
         if allow_decompose:
             strats.append(self._strat_act_from_single_qubit_decompose)
         for strat in strats:
-            result = strat(action, qubits)
-            if result is False:
-                break  # coverage: ignore
+            result = strat(action, qubits)  # type: ignore
             if result is True:
                 return True
             assert result is NotImplemented, str(result)
@@ -176,7 +149,3 @@ class ActOnStabilizerArgs(ActOnArgs):
         for op in operations:
             protocols.act_on(op, self)
         return True
-
-
-def _phase(gate):
-    return np.exp(1j * np.pi * gate.global_shift * gate.exponent)
