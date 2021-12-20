@@ -74,7 +74,7 @@ def _lindbladian(left_op: np.ndarray) -> np.ndarray:
     return out
 
 
-@functools.lru_cache
+@functools.lru_cache(maxsize=256)
 def _kraus_ops_from_rates(
     flat_rates: Tuple[float, ...], shape: Tuple[int, int]
 ) -> Sequence[np.ndarray]:
@@ -129,8 +129,10 @@ def _as_rate_dict(
     rate_or_dict: Optional[Union[float, Dict['cirq.Qid', float]]],
     qubits: Set['cirq.Qid'],
 ) -> Dict['cirq.Qid', float]:
-    # Convert float or None input into dictionary form. Make sure no
-    # qubits are missing from dictionary input.
+    """Convert float or None input into dictionary form.
+
+    This method also ensures that no qubits are missing from dictionary keys.
+    """
     if rate_or_dict is None:
         return {q: 0.0 for q in qubits}
     elif isinstance(rate_or_dict, dict):
@@ -176,8 +178,10 @@ class ThermalNoiseModel(devices.NoiseModel):
         """Construct a ThermalNoiseModel data object.
 
         Required Args:
-            qubit_dims: Dimension for all qubits in the system.
-                        Currently only supports dimension=2 (qubits, not qudits)
+            qubits: Set of all qubits in the system.
+            gate_durations_ns: Map of gate types to their duration in
+                nanoseconds. These values will override default values for
+                gate duration, if any (e.g. WaitGate).
         Optional Args:
             heat_rate_GHz: single number (units GHz) specifying heating rate,
                 either per qubit, or global value for all.
@@ -225,6 +229,9 @@ class ThermalNoiseModel(devices.NoiseModel):
         self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
     ) -> 'cirq.OP_TREE':
         noise_ops: List['cirq.Operation'] = []
+        # Some devices (including Google hardware) require that all gates have
+        # the same duration, but this does not. Instead, each moment is assumed
+        # to be as long as the longest gate it contains.
         moment_ns: float = 0
         for op in moment:
             op_duration: Optional[float] = None
@@ -232,13 +239,9 @@ class ThermalNoiseModel(devices.NoiseModel):
                 if not issubclass(type(op.gate), key):
                     continue  # gate type doesn't match
                 # TODO: remove assumption of same time across qubits
-                # if len(key) > 1 and op_data[:1] != key[:1]:
-                #     continue  # qubits don't match
                 op_duration = duration
                 break
-            if op_duration is None:
-                if not isinstance(op.gate, ops.WaitGate):
-                    continue
+            if op_duration is None and isinstance(op.gate, ops.WaitGate):
                 # special case for wait gates if not predefined
                 op_duration = op.gate.duration.total_nanos()
             moment_ns = max(moment_ns, op_duration)
