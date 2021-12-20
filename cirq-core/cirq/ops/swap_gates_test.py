@@ -14,8 +14,8 @@
 
 import numpy as np
 import pytest
-from scipy import linalg
 import sympy
+from scipy import linalg
 
 import cirq
 
