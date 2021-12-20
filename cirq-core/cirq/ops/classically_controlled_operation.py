@@ -169,12 +169,31 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _with_measurement_key_mapping_(
         self, key_map: Dict[str, str]
     ) -> 'ClassicallyControlledOperation':
-        keys = [protocols.with_measurement_key_mapping(k, key_map) for k in self._control_keys]
-        return self._sub_operation.with_classical_controls(*keys)
+        sub_operation = protocols.with_measurement_key_mapping(self._sub_operation, key_map)
+        sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
+        return sub_operation.with_classical_controls(
+            *[protocols.with_measurement_key_mapping(k, key_map) for k in self._control_keys]
+        )
 
     def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'ClassicallyControlledOperation':
         keys = [protocols.with_key_path_prefix(k, path) for k in self._control_keys]
         return self._sub_operation.with_classical_controls(*keys)
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ) -> 'ClassicallyControlledOperation':
+        def map_key(key: value.MeasurementKey) -> value.MeasurementKey:
+            for i in range(len(path) + 1):
+                back_path = path[: len(path) - i]
+                new_key = key.with_key_path_prefix(*back_path)
+                if new_key in bindable_keys:
+                    return new_key
+            return key
+
+        sub_operation = protocols.with_rescoped_keys(self._sub_operation, path, bindable_keys)
+        return sub_operation.with_classical_controls(*[map_key(k) for k in self._control_keys])
 
     def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
         return frozenset(self._control_keys).union(protocols.control_keys(self._sub_operation))

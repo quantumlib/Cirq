@@ -15,6 +15,53 @@
 """Client for running on Google's Quantum Engine.
 """
 
+from cirq_google.engine.abstract_engine import (
+    AbstractEngine,
+)
+
+from cirq_google.engine.abstract_job import (
+    AbstractJob,
+)
+
+from cirq_google.engine.abstract_processor import (
+    AbstractProcessor,
+)
+
+from cirq_google.engine.abstract_program import (
+    AbstractProgram,
+)
+
+from cirq_google.engine.abstract_local_engine import (
+    AbstractLocalEngine,
+)
+
+from cirq_google.engine.abstract_local_job import (
+    AbstractLocalJob,
+)
+
+from cirq_google.engine.abstract_local_processor import (
+    AbstractLocalProcessor,
+)
+
+from cirq_google.engine.abstract_local_program import (
+    AbstractLocalProgram,
+)
+
+from cirq_google.engine.simulated_local_engine import (
+    SimulatedLocalEngine,
+)
+
+from cirq_google.engine.simulated_local_job import (
+    SimulatedLocalJob,
+)
+
+from cirq_google.engine.simulated_local_processor import (
+    SimulatedLocalProcessor,
+)
+
+from cirq_google.engine.simulated_local_program import (
+    SimulatedLocalProgram,
+)
 from cirq_google.engine.calibration import (
     Calibration,
 )

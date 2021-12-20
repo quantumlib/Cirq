@@ -76,6 +76,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._has_measurements: Optional[bool] = None
         self._all_measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = None
         self._are_all_measurements_terminal: Optional[bool] = None
+        self._control_keys: Optional[FrozenSet[value.MeasurementKey]] = None
 
     @property
     def moments(self) -> Sequence['cirq.Moment']:
@@ -132,6 +133,11 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
         return self.all_measurement_key_objs()
+
+    def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
+        if self._control_keys is None:
+            self._control_keys = super()._control_keys_()
+        return self._control_keys
 
     def are_all_measurements_terminal(self) -> bool:
         if self._are_all_measurements_terminal is None:
