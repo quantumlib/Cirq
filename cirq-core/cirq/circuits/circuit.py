@@ -913,6 +913,18 @@ class AbstractCircuit(abc.ABC):
             [protocols.with_key_path_prefix(moment, prefix) for moment in self.moments]
         )
 
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        moments = []
+        for moment in self.moments:
+            new_moment = protocols.with_rescoped_keys(moment, path, bindable_keys)
+            moments.append(new_moment)
+            bindable_keys |= protocols.measurement_key_objs(new_moment)
+        return self._with_sliced_moments(moments)
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
 
@@ -1171,7 +1183,8 @@ class AbstractCircuit(abc.ABC):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
-                (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
+                set(key for op in self.all_operations() for key in protocols.control_keys(op)),
+                key=str,
             )
         )
         labels = qubits + cbits
@@ -1193,7 +1206,7 @@ class AbstractCircuit(abc.ABC):
             diagram.write(0, i, name)
         first_annotation_row = max(label_map.values(), default=0) + 1
 
-        if any(isinstance(op.untagged, cirq.GlobalPhaseOperation) for op in self.all_operations()):
+        if any(isinstance(op.gate, cirq.GlobalPhaseGate) for op in self.all_operations()):
             diagram.write(0, max(label_map.values(), default=0) + 1, 'global phase:')
             first_annotation_row += 1
 
@@ -1523,6 +1536,10 @@ class AbstractCircuit(abc.ABC):
         return (
             self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
         )
+
+    def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
+        controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
+        return controls - protocols.measurement_key_objs(self)
 
 
 def _overlap_collision_time(
@@ -2359,7 +2376,7 @@ def _get_moment_annotations(
         if op.qubits:
             continue
         op = op.untagged
-        if isinstance(op, ops.GlobalPhaseOperation):
+        if isinstance(op.gate, ops.GlobalPhaseGate):
             continue
         if isinstance(op, CircuitOperation):
             for m in op.circuit:
@@ -2491,8 +2508,8 @@ def _draw_moment_in_diagram(
 
 
 def _get_global_phase_and_tags_for_op(op: 'cirq.Operation') -> Tuple[Optional[complex], List[Any]]:
-    if isinstance(op.untagged, ops.GlobalPhaseOperation):
-        return complex(op.untagged.coefficient), list(op.tags)
+    if isinstance(op.gate, ops.GlobalPhaseGate):
+        return complex(op.gate.coefficient), list(op.tags)
     elif isinstance(op.untagged, CircuitOperation):
         op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
         return op_phase, list(op.tags) + op_tags

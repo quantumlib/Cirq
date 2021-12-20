@@ -108,6 +108,16 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        new_gate = protocols.with_rescoped_keys(self.gate, path, bindable_keys)
+        if new_gate is self.gate:
+            return self
+        return new_gate.on(*self.qubits)
+
     def __repr__(self):
         if hasattr(self.gate, '_op_repr_'):
             result = self.gate._op_repr_(self.qubits)
@@ -128,7 +138,7 @@ class GateOperation(raw_types.Operation):
 
     def __str__(self) -> str:
         qubits = ', '.join(str(e) for e in self.qubits)
-        return f'{self.gate}({qubits})'
+        return f'{self.gate}({qubits})' if qubits else str(self.gate)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])

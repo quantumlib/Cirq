@@ -192,6 +192,9 @@ def _list_moment_pairs_to_characterize(
         if not isinstance(op, cirq.GateOperation):
             raise IncompatibleMomentError('Moment contains operation different than GateOperation')
 
+        if isinstance(op.gate, cirq.GlobalPhaseGate):
+            raise IncompatibleMomentError('Moment contains global phase gate')
+
         if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
             other_operation = True
         else:
@@ -1093,6 +1096,9 @@ def _find_moment_zeta_chi_gamma_corrections(
     for op in moment:
         if not isinstance(op, cirq.GateOperation):
             raise IncompatibleMomentError('Moment contains operation different than GateOperation')
+
+        if isinstance(op.gate, cirq.GlobalPhaseGate):
+            raise IncompatibleMomentError('Moment contains global phase gate')
 
         if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
             other.append(op)

@@ -14,7 +14,7 @@
 
 import abc
 import dataclasses
-from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING
+from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING, FrozenSet
 
 import sympy
 
@@ -47,16 +47,31 @@ class Condition(abc.ABC):
     def qasm(self):
         """Returns the qasm of this condition."""
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'Condition':
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'cirq.Condition':
         condition = self
         for k in self.keys:
             condition = condition.replace_key(k, mkp.with_measurement_key_mapping(k, key_map))
         return condition
 
-    def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'Condition':
+    def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'cirq.Condition':
         condition = self
         for k in self.keys:
             condition = condition.replace_key(k, mkp.with_key_path_prefix(k, path))
+        return condition
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ) -> 'cirq.Condition':
+        condition = self
+        for key in self.keys:
+            for i in range(len(path) + 1):
+                back_path = path[: len(path) - i]
+                new_key = key.with_key_path_prefix(*back_path)
+                if new_key in bindable_keys:
+                    condition = condition.replace_key(key, new_key)
+                    break
         return condition
 
 

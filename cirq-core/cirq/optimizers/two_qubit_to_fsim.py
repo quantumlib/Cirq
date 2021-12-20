@@ -274,4 +274,4 @@ def _fix_single_qubit_gates_around_kak_interaction(
             desired.single_qubit_operations_after[k] @ dag(actual.single_qubit_operations_after[k])
         )
         yield g(qubits[k])
-    yield ops.GlobalPhaseOperation(desired.global_phase / actual.global_phase)
+    yield ops.global_phase_operation(desired.global_phase / actual.global_phase)
