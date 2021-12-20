@@ -22,11 +22,12 @@ from typing import (
     AbstractSet,
     Callable,
     Dict,
+    FrozenSet,
+    Iterator,
     List,
     Optional,
     Tuple,
     Union,
-    Iterator,
 )
 
 import dataclasses
@@ -77,11 +78,18 @@ class CircuitOperation(ops.Operation):
             The keys and values should be unindexed (i.e. without repetition_ids).
             The values cannot contain the `MEASUREMENT_KEY_SEPARATOR`.
         param_resolver: Resolved values for parameters in the circuit.
-        parent_path: A tuple of identifiers for any parent CircuitOperations containing this one.
         repetition_ids: List of identifiers for each repetition of the
             CircuitOperation. If populated, the length should be equal to the
             repetitions. If not populated and abs(`repetitions`) > 1, it is
             initialized to strings for numbers in `range(repetitions)`.
+        parent_path: A tuple of identifiers for any parent CircuitOperations
+            containing this one.
+        extern_keys: The set of measurement keys defined at extern scope. The
+            values here are used by decomposition and simulation routines to
+            cache which external measurement keys exist as possible binding
+            targets for unbound `ClassicallyControlledOperation` keys. This
+            field is not intended to be set or changed manually, and should be
+            empty in circuits that aren't in the middle of decomposition.
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
@@ -96,6 +104,7 @@ class CircuitOperation(ops.Operation):
     param_resolver: study.ParamResolver = study.ParamResolver()
     repetition_ids: Optional[List[str]] = dataclasses.field(default=None)
     parent_path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
+    extern_keys: FrozenSet['cirq.MeasurementKey'] = dataclasses.field(default_factory=frozenset)
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -184,9 +193,7 @@ class CircuitOperation(ops.Operation):
                     for repetition_id in self.repetition_ids
                     for key in circuit_keys
                 }
-            circuit_keys = {
-                protocols.with_key_path_prefix(key, self.parent_path) for key in circuit_keys
-            }
+            circuit_keys = {key.with_key_path_prefix(*self.parent_path) for key in circuit_keys}
             object.__setattr__(
                 self,
                 '_cached_measurement_key_objs',
@@ -199,6 +206,11 @@ class CircuitOperation(ops.Operation):
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return {str(key) for key in self._measurement_key_objs_()}
+
+    def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:
+        if not protocols.control_keys(self.circuit):
+            return frozenset()
+        return protocols.control_keys(self.mapped_circuit())
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return {
@@ -222,26 +234,28 @@ class CircuitOperation(ops.Operation):
             like `cirq.decompose(self)`, but preserving moment structure.
         """
         circuit = self.circuit.unfreeze()
-        circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
+        if self.qubit_map:
+            circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
         if self.repetitions < 0:
             circuit = circuit ** -1
-        has_measurements = protocols.is_measurement(circuit)
-        if has_measurements:
+        if self.measurement_key_map:
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
-        circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
+        if self.param_resolver:
+            circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
+        if self.repetition_ids:
+            if not protocols.is_measurement(circuit):
+                circuit = circuit * abs(self.repetitions)
+            else:
+                circuit = circuits.Circuit(
+                    protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
+                )
+        circuit = protocols.with_rescoped_keys(
+            circuit, self.parent_path, bindable_keys=self.extern_keys
+        )
         if deep:
             circuit = circuit.map_operations(
                 lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
             )
-        if self.repetition_ids:
-            if not has_measurements:
-                circuit = circuit * abs(self.repetitions)
-            else:
-                circuit = circuits.Circuit(
-                    protocols.with_key_path_prefix(circuit, (rep,)) for rep in self.repetition_ids
-                )
-        if self.parent_path:
-            circuit = protocols.with_key_path_prefix(circuit, self.parent_path)
         return circuit
 
     def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
@@ -430,6 +444,21 @@ class CircuitOperation(ops.Operation):
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
         return dataclasses.replace(self, parent_path=prefix + self.parent_path)
 
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        # The following line prevents binding to measurement keys in previous repeated subcircuits
+        # "just because their repetition ids matched". If we eventually decide to change that
+        # requirement and allow binding across subcircuits (possibly conditionally upon the key or
+        # the subcircuit having some 'allow_cross_circuit_binding' field set), this is the line to
+        # change or remove.
+        bindable_keys = frozenset(k for k in bindable_keys if len(k.path) <= len(path))
+        bindable_keys |= {k.with_key_path_prefix(*path) for k in self.extern_keys}
+        path += self.parent_path
+        return dataclasses.replace(self, parent_path=path, extern_keys=bindable_keys)
+
     def with_key_path(self, path: Tuple[str, ...]):
         return self._with_key_path_(path)
 
@@ -518,14 +547,16 @@ class CircuitOperation(ops.Operation):
                 keys than this operation.
         """
         new_map = {}
-        for k_obj in self.circuit.all_measurement_key_objs():
+        for k_obj in protocols.measurement_keys_touched(self.circuit):
             k = k_obj.name
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
             if k_new != k:
                 new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
-        if len(new_op._measurement_key_objs_()) != len(self._measurement_key_objs_()):
+        if len(protocols.measurement_keys_touched(new_op)) != len(
+            protocols.measurement_keys_touched(self)
+        ):
             raise ValueError(
                 f'Collision in measurement key map composition. Original map:\n'
                 f'{self.measurement_key_map}\nApplied changes: {key_map}'

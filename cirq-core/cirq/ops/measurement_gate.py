@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING, Union
+from typing import Any, Dict, FrozenSet, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -97,6 +97,13 @@ class MeasurementGate(raw_types.Gate):
 
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))

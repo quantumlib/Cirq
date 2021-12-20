@@ -913,6 +913,18 @@ class AbstractCircuit(abc.ABC):
             [protocols.with_key_path_prefix(moment, prefix) for moment in self.moments]
         )
 
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        moments = []
+        for moment in self.moments:
+            new_moment = protocols.with_rescoped_keys(moment, path, bindable_keys)
+            moments.append(new_moment)
+            bindable_keys |= protocols.measurement_key_objs(new_moment)
+        return self._with_sliced_moments(moments)
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
 
@@ -1171,7 +1183,8 @@ class AbstractCircuit(abc.ABC):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
-                (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
+                set(key for op in self.all_operations() for key in protocols.control_keys(op)),
+                key=str,
             )
         )
         labels = qubits + cbits
@@ -1523,6 +1536,10 @@ class AbstractCircuit(abc.ABC):
         return (
             self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
         )
+
+    def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
+        controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
+        return controls - protocols.measurement_key_objs(self)
 
 
 def _overlap_collision_time(

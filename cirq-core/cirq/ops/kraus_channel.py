@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Any, Dict, Iterable, Tuple, Union
+from typing import Any, Dict, FrozenSet, Iterable, Tuple, Union
 import numpy as np
 
 from cirq import linalg, protocols, value
@@ -94,6 +94,16 @@ class KrausChannel(raw_types.Gate):
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
         return KrausChannel(
             kraus_ops=self._kraus_ops, key=protocols.with_key_path_prefix(self._key, prefix)
+        )
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet[value.MeasurementKey],
+    ):
+        return KrausChannel(
+            kraus_ops=self._kraus_ops,
+            key=protocols.with_rescoped_keys(self._key, path, bindable_keys),
         )
 
     def __str__(self):
