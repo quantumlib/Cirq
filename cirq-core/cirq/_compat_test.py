@@ -673,6 +673,26 @@ def _test_metadata_search_path_inner():
     assert m.metadata('flynt')
 
 
+@pytest.mark.xfail(reason='bug in deprecated_submodule')
+def test_metadata_distributions_after_deprecated_submodule():
+    subprocess_context(_test_metadata_distributions_after_deprecated_submodule)()
+
+
+def _test_metadata_distributions_after_deprecated_submodule():
+    # verify deprecated_submodule does not break importlib_metadata.distributions()
+    # See https://github.com/quantumlib/Cirq/issues/4729
+    deprecated_submodule(
+        new_module_name='cirq.neutral_atoms',
+        old_parent='cirq',
+        old_child='swiss_atoms',
+        deadline="v0.14",
+        create_attribute=True,
+    )
+    m = pytest.importorskip("importlib_metadata")
+    distlist = list(m.distributions())
+    assert all(isinstance(d.name, str) for d in distlist)
+
+
 def test_type_repr_in_new_module():
     # to cater for metadata path finders
     # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
