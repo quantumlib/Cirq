@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A protocol for implementing high performance clifford CH-Form evolutions
- for Clifford Simulator."""
 
 from typing import Any, Dict, TYPE_CHECKING, List, Sequence
 

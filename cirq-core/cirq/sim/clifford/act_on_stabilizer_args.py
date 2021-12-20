@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Callable, List, Sequence, TYPE_CHECKING, Union
+from typing import Any, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
