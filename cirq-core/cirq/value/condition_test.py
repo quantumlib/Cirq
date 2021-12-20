@@ -38,9 +38,7 @@ def test_key_condition_str():
 
 
 def test_key_condition_repr():
-    assert (
-        repr(init_key_condition) == "cirq.KeyCondition(cirq.MeasurementKey(path=('0',), name='a'))"
-    )
+    cirq.testing.assert_equivalent_repr(init_key_condition)
 
 
 def test_key_condition_resolve():
@@ -78,10 +76,7 @@ def test_sympy_condition_str():
 
 
 def test_sympy_condition_repr():
-    assert (
-        repr(init_sympy_condition)
-        == "cirq.SympyCondition(sympy.GreaterThan(sympy.Symbol('0:a'), sympy.Integer(1)))"
-    )
+    cirq.testing.assert_equivalent_repr(init_sympy_condition)
 
 
 def test_sympy_condition_resolve():

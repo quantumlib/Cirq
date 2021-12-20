@@ -1,1 +1,1 @@
-cirq.SympyCondition(sympy.Mul(sympy.Symbol('a'), sympy.Symbol('b')))
+cirq.SympyCondition(sympy.GreaterThan(sympy.Symbol('a'), sympy.Symbol('b')))

@@ -2,7 +2,7 @@
   "cirq_type": "SympyCondition",
   "expr":
   {
-    "cirq_type": "sympy.Mul",
+    "cirq_type": "sympy.GreaterThan",
     "args": [
       {
         "cirq_type": "sympy.Symbol",
