@@ -1,0 +1,20 @@
+[
+  {
+    "cirq_type": "GateFamily",
+    "gate": "XPowGate",
+    "name": "Type GateFamily: cirq.ops.common_gates.XPowGate",
+    "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.XPowGate)`",
+    "ignore_global_phase": true
+  },
+  {
+    "cirq_type": "GateFamily",
+    "gate": {
+      "cirq_type": "_PauliX",
+      "exponent": 1.0,
+      "global_shift": 0.0
+    },
+    "name": "XFamily",
+    "description": "Just the X gate.",
+    "ignore_global_phase": false
+  }
+]
