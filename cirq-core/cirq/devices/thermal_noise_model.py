@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Set, Union
 from scipy.linalg import expm
 import numpy as np
 
@@ -101,17 +101,17 @@ def _decoherence_matrix(
     return rate_matrix
 
 
-def _validate_rates(qubit_dims: Dict['cirq.Qid', int], rates: Dict['cirq.Qid', np.ndarray]) -> None:
+def _validate_rates(qubits: Set['cirq.Qid'], rates: Dict['cirq.Qid', np.ndarray]) -> None:
     """Check all rate matrices are square and of appropriate dimension.
 
     We check rates are positive in the class validator.
     """
-    if set(qubit_dims) != set(rates):
+    if qubits != set(rates):
         raise ValueError('qubits for rates inconsistent with those through qubit_dims')
     for q in rates:
-        if rates[q].shape != (qubit_dims[q], qubit_dims[q]):
+        if rates[q].shape != (q.dimension, q.dimension):
             raise ValueError(
-                f'Invalid shape for rate matrix: should be ({qubit_dims[q]}, {qubit_dims[q]}), '
+                f'Invalid shape for rate matrix: should be ({q.dimension}, {q.dimension}), '
                 f'but got {rates[q].shape}'
             )
 
@@ -127,7 +127,7 @@ class ThermalNoiseModel(devices.NoiseModel):
 
     def __init__(
         self,
-        qubit_dims: Dict['cirq.Qid', int],
+        qubits: Set['cirq.Qid'],
         gate_durations_ns: Dict[type, float],
         heat_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
         cool_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
@@ -166,7 +166,6 @@ class ThermalNoiseModel(devices.NoiseModel):
         Returns:
             The ThermalNoiseModel with specified parameters.
         """
-        qubits = set(qubit_dims)
         rate_dict = {}
 
         def _as_rate_dict(
@@ -189,14 +188,14 @@ class ThermalNoiseModel(devices.NoiseModel):
         cool_rate_GHz = _as_rate_dict(cool_rate_GHz)
         dephase_rate_GHz = _as_rate_dict(dephase_rate_GHz)
 
-        for q, dim in qubit_dims.items():
+        for q in qubits:
             gamma_h = heat_rate_GHz[q]
             gamma_c = cool_rate_GHz[q]
             gamma_phi = dephase_rate_GHz[q]
 
-            rate_dict[q] = _decoherence_matrix(gamma_c, gamma_phi, gamma_h, dim)
+            rate_dict[q] = _decoherence_matrix(gamma_c, gamma_phi, gamma_h, q.dimension)
 
-        _validate_rates(qubit_dims, rate_dict)
+        _validate_rates(qubits, rate_dict)
         self.gate_durations_ns: Dict[type, float] = gate_durations_ns
         self.rate_matrix_GHz: Dict['cirq.Qid', np.ndarray] = rate_dict
         self.require_physical_tag: bool = require_physical_tag

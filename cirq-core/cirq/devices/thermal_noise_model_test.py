@@ -36,16 +36,16 @@ def test_helper_method_errors():
 
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='qubits for rates inconsistent'):
-        _validate_rates({q0: 2, q1: 2}, {q0: np.array([[0.01, 0.1], [0.02, 0.2]])})
+        _validate_rates({q0, q1}, {q0: np.array([[0.01, 0.1], [0.02, 0.2]])})
 
     with pytest.raises(ValueError, match='qubits for rates inconsistent'):
         _validate_rates(
-            {q0: 2},
+            {q0},
             {q0: np.array([[0.01, 0.1], [0.02, 0.2]]), q1: np.array([[0.03, 0.3], [0.04, 0.4]])},
         )
 
     with pytest.raises(ValueError, match='Invalid shape for rate matrix'):
-        _validate_rates({q0: 2}, {q0: np.array([[0.001, 0.01, 0.1], [0.002, 0.02, 0.2]])})
+        _validate_rates({q0}, {q0: np.array([[0.001, 0.01, 0.1], [0.002, 0.02, 0.2]])})
 
 
 def test_create_thermal_noise_per_qubit():
@@ -55,7 +55,7 @@ def test_create_thermal_noise_per_qubit():
     cool_rate_GHz = {q0: 1e-4, q1: 2e-4}
     dephase_rate_GHz = {q0: 3e-4, q1: 4e-4}
     model = ThermalNoiseModel(
-        qubit_dims={q0: 2, q1: 2},
+        qubits={q0, q1},
         gate_durations_ns=gate_durations,
         heat_rate_GHz=heat_rate_GHz,
         cool_rate_GHz=cool_rate_GHz,
@@ -75,7 +75,7 @@ def test_create_thermal_noise_mixed_type():
     cool_rate_GHz = {q0: 1e-4, q1: 2e-4}
     dephase_rate_GHz = 3e-4
     model = ThermalNoiseModel(
-        qubit_dims={q0: 2, q1: 2},
+        qubits={q0, q1},
         gate_durations_ns=gate_durations,
         heat_rate_GHz=heat_rate_GHz,
         cool_rate_GHz=cool_rate_GHz,
@@ -94,7 +94,7 @@ def test_incomplete_rates():
     heat_rate_GHz = {q1: 1e-5}
     cool_rate_GHz = {q0: 1e-4}
     model = ThermalNoiseModel(
-        qubit_dims={q0: 2, q1: 2},
+        qubits={q0, q1},
         gate_durations_ns=gate_durations,
         heat_rate_GHz=heat_rate_GHz,
         cool_rate_GHz=cool_rate_GHz,
@@ -114,7 +114,7 @@ def test_noise_from_zero_duration():
     heat_rate_GHz = {q1: 1e-5}
     cool_rate_GHz = {q0: 1e-4}
     model = ThermalNoiseModel(
-        qubit_dims={q0: 2, q1: 2},
+        qubits={q0, q1},
         gate_durations_ns=gate_durations,
         heat_rate_GHz=heat_rate_GHz,
         cool_rate_GHz=cool_rate_GHz,
@@ -134,7 +134,7 @@ def test_noise_from_virtual_gates():
     heat_rate_GHz = {q1: 1e-5}
     cool_rate_GHz = {q0: 1e-4}
     model = ThermalNoiseModel(
-        qubit_dims={q0: 2, q1: 2},
+        qubits={q0, q1},
         gate_durations_ns=gate_durations,
         heat_rate_GHz=heat_rate_GHz,
         cool_rate_GHz=cool_rate_GHz,
@@ -163,7 +163,7 @@ def test_noise_from_measurement():
     heat_rate_GHz = {q1: 1e-5}
     cool_rate_GHz = {q0: 1e-4}
     model = ThermalNoiseModel(
-        qubit_dims={q0: 2, q1: 2},
+        qubits={q0, q1},
         gate_durations_ns=gate_durations,
         heat_rate_GHz=heat_rate_GHz,
         cool_rate_GHz=cool_rate_GHz,
@@ -184,7 +184,7 @@ def test_noise_from_measurement():
 def test_noisy_moment_one_qubit():
     q0, q1 = cirq.LineQubit.range(2)
     model = ThermalNoiseModel(
-        qubit_dims={q0: 2, q1: 2},
+        qubits={q0, q1},
         gate_durations_ns={
             cirq.PhasedXZGate: 25.0,
             cirq.CZPowGate: 25.0,
@@ -218,7 +218,7 @@ def test_noise_from_wait():
     heat_rate_GHz = {q0: 1e-5}
     cool_rate_GHz = {q0: 1e-4}
     model = ThermalNoiseModel(
-        qubit_dims={q0: 2},
+        qubits={q0},
         gate_durations_ns=gate_durations,
         heat_rate_GHz=heat_rate_GHz,
         cool_rate_GHz=cool_rate_GHz,
@@ -246,7 +246,7 @@ def test_noise_from_wait():
 def test_noisy_moment_two_qubit():
     q0, q1 = cirq.LineQubit.range(2)
     model = ThermalNoiseModel(
-        qubit_dims={q0: 2, q1: 2},
+        qubits={q0, q1},
         gate_durations_ns={
             cirq.PhasedXZGate: 25.0,
             cirq.CZPowGate: 25.0,
