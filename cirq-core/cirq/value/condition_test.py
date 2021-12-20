@@ -22,7 +22,6 @@ import cirq
 key_a = cirq.MeasurementKey.parse_serialized('0:a')
 key_b = cirq.MeasurementKey.parse_serialized('0:b')
 key_c = cirq.MeasurementKey.parse_serialized('0:c')
-key_x = cirq.MeasurementKey.parse_serialized('0:c')
 init_key_condition = cirq.KeyCondition(key_a)
 init_sympy_condition = cirq.SympyCondition(sympy.Symbol('0:a') >= 1)
 
