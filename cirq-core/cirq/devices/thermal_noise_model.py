@@ -73,6 +73,17 @@ def _lindbladian(left_op: np.ndarray) -> np.ndarray:
     return out
 
 
+def _kraus_ops_from_rates(rates: np.ndarray) -> Sequence[np.ndarray]:
+    num_op = np.diag(np.sqrt(np.diag(rates)))
+    annihilation = np.sqrt(np.triu(rates, 1))
+    creation = np.sqrt(np.triu(rates.T, 1)).T
+    # Lindbladian with three Lindblad ops for the three processes
+    # Note: 'time' parameter already specified implicitly through rates
+    L = _lindbladian(annihilation) + _lindbladian(creation) + 2 * _lindbladian(num_op)
+    superop = expm(L.real)
+    return qis.superoperator_to_kraus(superop)
+
+
 def _decoherence_matrix(
     cool_rate: float, dephase_rate: float, heat_rate: float = 0.0, dim: int = 2
 ) -> np.ndarray:
@@ -99,6 +110,20 @@ def _decoherence_matrix(
     # We specify i^2 since we take square root to get the Lindblad op later.
     rate_matrix += np.diag(dephase_rate * np.arange(dim) ** 2)
     return rate_matrix
+
+
+def _as_rate_dict(
+    rate_or_dict: Optional[Union[float, Dict['cirq.Qid', float]]],
+    qubits: Set['cirq.Qid'],
+) -> Dict['cirq.Qid', float]:
+    # Convert float or None input into dictionary form. Make sure no
+    # qubits are missing from dictionary input.
+    if rate_or_dict is None:
+        return {q: 0.0 for q in qubits}
+    elif isinstance(rate_or_dict, dict):
+        return {**{q: 0.0 for q in qubits}, **rate_or_dict}
+    else:
+        return {q: rate_or_dict for q in qubits}
 
 
 def _validate_rates(qubits: Set['cirq.Qid'], rates: Dict['cirq.Qid', np.ndarray]) -> None:
@@ -142,25 +167,23 @@ class ThermalNoiseModel(devices.NoiseModel):
                         Currently only supports dimension=2 (qubits, not qudits)
         Optional Args:
             heat_rate_GHz: single number (units GHz) specifying heating rate,
-                        either per qubit, or global value for all.
-                        Given a rate gh, the Lindblad op will be sqrt(gh)*a^dag
-                        (where a is annihilation),
-                        so that the heating Lindbldian is
-                        gh(a^dag • a - 0.5{a*a^dag, •}).
+                either per qubit, or global value for all.
+                Given a rate gh, the Lindblad op will be sqrt(gh)*a^dag
+                (where a is annihilation), so that the heating Lindbldian is
+                gh(a^dag • a - 0.5{a*a^dag, •}).
             cool_rate_GHz: single number (units GHz) specifying cooling rate,
-                        either per qubit, or global value for all.
-                        Given a rate gc, the Lindblad op will be sqrt(gc)*a
-                        so that the cooling Lindbldian is
-                        gc(a • a^dag - 0.5{n, •})
-                        This number is equivalent to 1/T1.
+                either per qubit, or global value for all.
+                Given a rate gc, the Lindblad op will be sqrt(gc)*a
+                so that the cooling Lindbldian is gc(a • a^dag - 0.5{n, •})
+                This number is equivalent to 1/T1.
             dephase_rate_GHz: single number (units GHz) specifying dephasing
-                        rate, either per qubit, or global value for all.
-                        Given a rate gd, Lindblad op will be sqrt(2*gd)*n where
-                        n = a^dag * a, so that the dephasing Lindbldian is
-                        2 * gd * (n • n - 0.5{n^2, •}).
-                        This number is equivalent to 1/Tphi.
+                rate, either per qubit, or global value for all.
+                Given a rate gd, Lindblad op will be sqrt(2*gd)*n where
+                n = a^dag * a, so that the dephasing Lindbldian is
+                2 * gd * (n • n - 0.5{n^2, •}).
+                This number is equivalent to 1/Tphi.
             require_physical_tag: whether to only apply noise to operations
-                        tagged with PHYSICAL_GATE_TAG.
+                tagged with PHYSICAL_GATE_TAG.
             skip_measurements: whether to skip applying noise to measurements.
 
         Returns:
@@ -168,25 +191,9 @@ class ThermalNoiseModel(devices.NoiseModel):
         """
         rate_dict = {}
 
-        def _as_rate_dict(
-            rate_or_dict: Optional[Union[float, Dict['cirq.Qid', float]]]
-        ) -> Dict['cirq.Qid', float]:
-            # Convert float or None input into dictionary form. Make sure no
-            # qubits are missing from dictionary input.
-            if rate_or_dict is None:
-                return {qb: 0.0 for qb in qubits}
-            elif isinstance(rate_or_dict, dict):
-                out = rate_or_dict.copy()
-                for qb in qubits:
-                    if qb not in rate_or_dict:
-                        out[qb] = 0.0
-                return out
-            else:
-                return {qb: rate_or_dict for qb in qubits}
-
-        heat_rate_GHz = _as_rate_dict(heat_rate_GHz)
-        cool_rate_GHz = _as_rate_dict(cool_rate_GHz)
-        dephase_rate_GHz = _as_rate_dict(dephase_rate_GHz)
+        heat_rate_GHz = _as_rate_dict(heat_rate_GHz, qubits)
+        cool_rate_GHz = _as_rate_dict(cool_rate_GHz, qubits)
+        dephase_rate_GHz = _as_rate_dict(dephase_rate_GHz, qubits)
 
         for q in qubits:
             gamma_h = heat_rate_GHz[q]
@@ -236,14 +243,7 @@ class ThermalNoiseModel(devices.NoiseModel):
                 # Only non-virtual gates get noise applied.
                 continue
             rates = self.rate_matrix_GHz[qubit] * moment_ns
-            num_op = np.diag(np.sqrt(np.diag(rates)))
-            annihilation = np.sqrt(np.triu(rates, 1))
-            creation = np.sqrt(np.triu(rates.T, 1)).T
-            # Lindbladian with three Lindblad ops for the three processes
-            # Note: 'time' parameter already specified implicitly through rates
-            L = _lindbladian(annihilation) + _lindbladian(creation) + 2 * _lindbladian(num_op)
-            superop = expm(L.real)
-            kraus_ops = qis.superoperator_to_kraus(superop)
+            kraus_ops = _kraus_ops_from_rates(rates)
             noise_ops.append(ops.KrausChannel(kraus_ops).on(qubit))
         if not noise_ops:
             return [moment]
