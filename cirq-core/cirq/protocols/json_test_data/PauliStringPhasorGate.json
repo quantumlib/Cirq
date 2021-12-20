@@ -1,0 +1,20 @@
+{
+  "cirq_type": "PauliStringPhasorGate",
+  "exponent_neg": 0.2,
+  "exponent_pos": 0.1,
+  "dense_pauli_string":
+  {
+    "cirq_type": "DensePauliString",
+    "pauli_mask": [
+      1,
+      2,
+      3,
+      0
+    ],
+    "coefficient": {
+      "cirq_type": "complex",
+      "real": 1.0,
+      "imag": 0.0
+    }
+  }
+}

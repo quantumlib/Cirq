@@ -216,6 +216,9 @@ class PauliStringPhasor(gate_operation.GateOperation):
             return f'exp({sign}iπ{exponent}*{self.pauli_string})'
         return f'({self.pauli_string})**{self.exponent_relative}'
 
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['pauli_string', 'exponent_neg', 'exponent_pos'])
+
 
 @value.value_equality(approximate=True)
 class PauliStringPhasorGate(raw_types.Gate):
@@ -376,6 +379,11 @@ class PauliStringPhasorGate(raw_types.Gate):
             self.dense_pauli_string.on(*qubits),
             exponent_pos=self.exponent_pos,
             exponent_neg=self.exponent_neg,
+        )
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(
+            self, ['dense_pauli_string', 'exponent_neg', 'exponent_pos']
         )
 
 
