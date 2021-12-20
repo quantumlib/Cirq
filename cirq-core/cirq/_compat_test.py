@@ -673,7 +673,6 @@ def _test_metadata_search_path_inner():
     assert m.metadata('flynt')
 
 
-@pytest.mark.xfail(reason='bug in deprecated_submodule')
 def test_metadata_distributions_after_deprecated_submodule():
     subprocess_context(_test_metadata_distributions_after_deprecated_submodule)()
 

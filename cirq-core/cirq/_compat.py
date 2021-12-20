@@ -543,8 +543,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
                 to the wrapped finder.
         """
         if fullname != self.old_module_name and not fullname.startswith(self.old_module_name + "."):
-            # if we are not interested in it, then just pass through to the wrapped finder
-            return self.finder.find_spec(fullname, path, target)
+            return None
 
         if self.broken_module_exception is not None:
             raise self.broken_module_exception
@@ -553,33 +552,8 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
 
         new_fullname = self.new_module_name + fullname[len(self.old_module_name) :]
 
-        # find the corresponding spec in the new structure
-        if fullname == self.old_module_name:
-            # this is the first time the deprecated module is being found
-            # which means that the new parent needs to be found first and under
-            # the new parent's path, we should be able to find the new name of
-            # the deprecated module
-            # this code is heavily inspired by importlib.util.find_spec
-            parent_name = new_fullname.rpartition('.')[0]
-            if parent_name:
-                parent = __import__(parent_name, fromlist=['__path__'])
-                # note that compared to importlib.util.find_spec we don't handle
-                # AttributeError here because it is not expected to happen in case
-                # of a DeprecatedModuleLoader - the new parent should exist and be
-                # a proper package
-                parent_path = parent.__path__
-            else:
-                parent_path = None
-            spec = self.finder.find_spec(new_fullname, parent_path, None)
-        else:
-            # we are finding a submodule of the parent of the deprecated module,
-            # which means that the parent was already found, and thus, `path` is
-            # correctly pointing to the module's parent in the new hierarchy
-            spec = self.finder.find_spec(
-                new_fullname,
-                path=path,
-                target=target,
-            )
+        # use normal import mechanism for the new module specs
+        spec = importlib.util.find_spec(new_fullname)
 
         # if the spec exists, return the DeprecatedModuleLoader that will do the loading as well
         # as set the alias(es) in sys.modules as necessary
@@ -676,7 +650,10 @@ def deprecated_submodule(
             finder, new_module_name, old_module_name, deadline, broken_module_exception
         )
 
-    sys.meta_path = [wrap(finder) for finder in sys.meta_path]
+    finder = DeprecatedModuleFinder(
+        None, new_module_name, old_module_name, deadline, broken_module_exception
+    )
+    sys.meta_path.append(finder)
 
 
 def _setup_deprecated_submodule_attribute(
