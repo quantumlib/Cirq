@@ -260,6 +260,7 @@ from cirq.ops import (
     PauliString,
     PauliStringGateOperation,
     PauliStringPhasor,
+    PauliStringPhasorGate,
     PauliSum,
     PauliSumExponential,
     PauliSumLike,
