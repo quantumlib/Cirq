@@ -35,7 +35,23 @@ def proper_repr(value: Any) -> str:
 
     if isinstance(value, sympy.Basic):
         # HACK: work around https://github.com/sympy/sympy/issues/16074
-        fixed_tokens = dir(sympy)
+        fixed_tokens = [
+            'Symbol',
+            'pi',
+            'Mul',
+            'Pow',
+            'Add',
+            'Mod',
+            'Integer',
+            'Float',
+            'Rational',
+            'GreaterThan',
+            'StrictGreaterThan',
+            'LessThan',
+            'StrictLessThan',
+            'Equality',
+            'Unequality',
+        ]
 
         class Printer(sympy.printing.repr.ReprPrinter):
             def _print(self, expr, **kwargs):
