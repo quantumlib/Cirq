@@ -324,11 +324,11 @@ def test_string_format():
     assert str(op0) == f"[  ]"
 
     fc0_global_phase_inner = cirq.FrozenCircuit(
-        cirq.GlobalPhaseOperation(1j), cirq.GlobalPhaseOperation(1j)
+        cirq.global_phase_operation(1j), cirq.global_phase_operation(1j)
     )
     op0_global_phase_inner = cirq.CircuitOperation(fc0_global_phase_inner)
     fc0_global_phase_outer = cirq.FrozenCircuit(
-        op0_global_phase_inner, cirq.GlobalPhaseOperation(1j)
+        op0_global_phase_inner, cirq.global_phase_operation(1j)
     )
     op0_global_phase_outer = cirq.CircuitOperation(fc0_global_phase_outer)
     assert (

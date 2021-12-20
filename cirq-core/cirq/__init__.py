@@ -88,6 +88,7 @@ from cirq.devices import (
     NO_NOISE,
     NOISE_MODEL_LIKE,
     NoiseModel,
+    OpIdentifier,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
     NamedTopology,
@@ -220,7 +221,9 @@ from cirq.ops import (
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
     givens,
+    GlobalPhaseGate,
     GlobalPhaseOperation,
+    global_phase_operation,
     H,
     HPowGate,
     I,
@@ -257,6 +260,7 @@ from cirq.ops import (
     PauliString,
     PauliStringGateOperation,
     PauliStringPhasor,
+    PauliStringPhasorGate,
     PauliSum,
     PauliSumExponential,
     PauliSumLike,
@@ -337,11 +341,6 @@ from cirq.optimizers import (
     EjectZ,
     ExpandComposite,
     is_negligible_turn,
-    map_moments,
-    map_operations,
-    map_operations_and_unroll,
-    merge_moments,
-    merge_operations,
     merge_single_qubit_gates_into_phased_x_z,
     merge_single_qubit_gates_into_phxz,
     MergeInteractions,
@@ -360,6 +359,14 @@ from cirq.optimizers import (
     two_qubit_matrix_to_diagonal_and_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
     three_qubit_matrix_to_operations,
+)
+
+from cirq.transformers import (
+    map_moments,
+    map_operations,
+    map_operations_and_unroll,
+    merge_moments,
+    merge_operations,
     unroll_circuit_op,
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,
@@ -618,6 +625,8 @@ from cirq.vis import (
     TwoQubitInteractionHeatmap,
     get_state_histogram,
     integrated_histogram,
+    plot_density_matrix,
+    plot_state_histogram,
 )
 
 from cirq.work import (

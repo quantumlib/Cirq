@@ -1,0 +1,13 @@
+{
+  "cirq_type": "sympy.GreaterThan",
+  "args": [
+    {
+      "cirq_type": "sympy.Symbol",
+      "name": "s"
+    },
+    {
+      "cirq_type": "sympy.Symbol",
+      "name": "t"
+    }
+  ]
+}
