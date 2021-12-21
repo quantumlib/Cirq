@@ -702,89 +702,29 @@ def test_sympy():
             assert result.measurements['m_result'][0][0] == (j > i)
 
 
-def test_scope_local_sympy():
-    q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls(sympy.Symbol('a')),
-    )
-    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    circuit = outer_subcircuit.mapped_circuit(deep=True)
-    internal_control_keys = [
-        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
-    ]
-    assert internal_control_keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
-    assert not cirq.control_keys(outer_subcircuit)
-    assert not cirq.control_keys(circuit)
-    assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
-
-
-def test_extern_scope_sympy():
-    q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls(sympy.Symbol('b')),
-    )
-    middle = cirq.Circuit(
-        cirq.measure(q, key=cirq.MeasurementKey('b')),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2),
-    )
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    circuit = outer_subcircuit.mapped_circuit(deep=True)
-    internal_control_keys = [
-        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
-    ]
-    assert internal_control_keys == ['0:b', '0:b', '1:b', '1:b']
-    assert not cirq.control_keys(outer_subcircuit)
-    assert not cirq.control_keys(circuit)
-    assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
-
-
-def test_scope_extern_mismatch_sympy():
-    q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls(sympy.Symbol('b')),
-    )
-    middle = cirq.Circuit(
-        cirq.measure(q, key=cirq.MeasurementKey('b', ('0',))),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2),
-    )
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    circuit = outer_subcircuit.mapped_circuit(deep=True)
-    internal_control_keys = [
-        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
-    ]
-    assert internal_control_keys == ['b', 'b', 'b', 'b']
-    assert cirq.control_keys(outer_subcircuit) == {cirq.MeasurementKey('b')}
-    assert cirq.control_keys(circuit) == {cirq.MeasurementKey('b')}
-    assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
-
-
-def test_scope_root_sympy():
-    q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls(sympy.Symbol('b')),
-    )
-    middle = cirq.Circuit(
-        cirq.measure(q, key=cirq.MeasurementKey('c')),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2),
-    )
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    circuit = outer_subcircuit.mapped_circuit(deep=True)
-    internal_control_keys = [
-        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
-    ]
-    assert internal_control_keys == ['b', 'b', 'b', 'b']
-    assert cirq.control_keys(outer_subcircuit) == {cirq.MeasurementKey('b')}
-    assert cirq.control_keys(circuit) == {cirq.MeasurementKey('b')}
-    assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
-
-
-def test_sympy_with_path_prefix():
+def test_sympy_path_prefix():
     q = cirq.LineQubit(0)
     op = cirq.X(q).with_classical_controls(sympy.Symbol('b'))
     prefixed = cirq.with_key_path_prefix(op, ('0',))
     assert cirq.control_keys(prefixed) == {'0:b'}
+
+
+def test_sympy_scope():
+    q = cirq.LineQubit(0)
+    a, b, c, d = sympy.symbols('a b c d')
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        cirq.X(q).with_classical_controls(a + b + c + d),
+    )
+    middle = cirq.Circuit(
+        cirq.measure(q, key='b'),
+        cirq.measure(q, key=cirq.MeasurementKey('c', ('0',))),
+        cirq.CircuitOperation(inner.freeze(), repetitions=2),
+    )
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_controls = [str(k) for op in circuit.all_operations() for k in cirq.control_keys(op)]
+    assert set(internal_controls) == {'0:0:a', '0:1:a', '1:0:a', '1:1:a', '0:b', '1:b', 'c', 'd'}
+    assert cirq.control_keys(outer_subcircuit) == {'c', 'd'}
+    assert cirq.control_keys(circuit) == {'c', 'd'}
+    assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
