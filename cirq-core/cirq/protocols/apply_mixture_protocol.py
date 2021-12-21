@@ -267,7 +267,6 @@ def apply_mixture(
     # Don't know how to apply mixture. Fallback to specified default behavior.
     # (STEP D)
     if default is not RaiseTypeErrorIfNotProvided:
-        print('HERE!')
         return default
     raise TypeError(
         "object of type '{}' has no _apply_mixture_, _apply_unitary_, "

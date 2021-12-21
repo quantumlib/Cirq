@@ -14,16 +14,17 @@
 """An interface for quantum states as targets for operations."""
 import abc
 from typing import (
-    TypeVar,
-    TYPE_CHECKING,
-    Generic,
-    Dict,
     Any,
-    Tuple,
-    Optional,
+    Dict,
+    Generic,
     Iterator,
     List,
+    Mapping,
+    Optional,
     Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    TypeVar,
     Union,
 )
 
@@ -80,6 +81,11 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def log_of_measurement_results(self) -> Dict[str, Any]:
         """Gets the log of measurement results."""
+
+    @property
+    @abc.abstractmethod
+    def measured_qubits(self) -> Mapping[str, Tuple['cirq.Qid', ...]]:
+        """Gets the qubits that were in each measurement."""
 
     @abc.abstractmethod
     def sample(

@@ -28,8 +28,6 @@ from cirq.value.angle import (
 from cirq.value.condition import (
     Condition,
     KeyCondition,
-    parse_condition,
-    parse_sympy_condition,
     SympyCondition,
 )
 

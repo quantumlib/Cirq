@@ -70,7 +70,7 @@ class ActOnArgsContainer(
         self._qubits = tuple(qubits)
         self.split_untangled_states = split_untangled_states
         self._log_of_measurement_results = log_of_measurement_results
-        self._measured_qubits = measured_qubits or {}
+        self._measured_qubits = measured_qubits if measured_qubits is not None else {}
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:

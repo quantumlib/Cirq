@@ -1,11 +1,17 @@
 {
   "cirq_type": "SympyCondition",
-  "expr": "x > 5",
-  "control_keys": [
-    {
-      "cirq_type": "MeasurementKey",
-      "name": "a",
-      "path": []
-    }
-  ]
+  "expr":
+  {
+    "cirq_type": "sympy.GreaterThan",
+    "args": [
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "a"
+      },
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "b"
+      }
+    ]
+  }
 }

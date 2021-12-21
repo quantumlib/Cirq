@@ -24,6 +24,8 @@ from typing import (
     Union,
 )
 
+import sympy
+
 from cirq import protocols, value
 from cirq.ops import raw_types
 
@@ -47,7 +49,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def __init__(
         self,
         sub_operation: 'cirq.Operation',
-        conditions: Sequence[Union[str, 'cirq.MeasurementKey', 'cirq.Condition']],
+        conditions: Sequence[Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Basic]],
     ):
         """Initializes a `ClassicallyControlledOperation`.
 
@@ -76,9 +78,11 @@ class ClassicallyControlledOperation(raw_types.Operation):
         conds: List['cirq.Condition'] = []
         for c in conditions:
             if isinstance(c, str):
-                c = value.parse_condition(c)
+                c = value.MeasurementKey.parse_serialized(c)
             if isinstance(c, value.MeasurementKey):
                 c = value.KeyCondition(c)
+            if isinstance(c, sympy.Basic):
+                c = value.SympyCondition(c)
             conds.append(c)
         self._conditions: Tuple['cirq.Condition', ...] = tuple(conds)
         self._sub_operation: 'cirq.Operation' = sub_operation
@@ -164,7 +168,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
             'sub_operation': self._sub_operation,
         }
 
-    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
+    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
         measurements, qubits = args.log_of_measurement_results, args.measured_qubits
         if all(c.resolve(measurements, qubits) for c in self._conditions):
             protocols.act_on(self._sub_operation, args)
@@ -173,23 +177,28 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _with_measurement_key_mapping_(
         self, key_map: Dict[str, str]
     ) -> 'ClassicallyControlledOperation':
-        def map_condition(condition: 'cirq.Condition') -> 'cirq.Condition':
-            keys = [protocols.with_measurement_key_mapping(k, key_map) for k in condition.keys]
-            return condition.with_keys(tuple(keys))
+        conditions = [protocols.with_measurement_key_mapping(c, key_map) for c in self._conditions]
+        sub_operation = protocols.with_measurement_key_mapping(self._sub_operation, key_map)
+        sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
+        return sub_operation.with_classical_controls(*conditions)
 
-        conditions = [map_condition(c) for c in self._conditions]
-        return self._sub_operation.with_classical_controls(*conditions)
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> 'ClassicallyControlledOperation':
+        conditions = [protocols.with_key_path_prefix(c, prefix) for c in self._conditions]
+        sub_operation = protocols.with_key_path_prefix(self._sub_operation, prefix)
+        sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
+        return sub_operation.with_classical_controls(*conditions)
 
-    def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'ClassicallyControlledOperation':
-        def map_condition(condition: 'cirq.Condition') -> 'cirq.Condition':
-            keys = tuple(protocols.with_key_path_prefix(k, path) for k in condition.keys)
-            return condition.with_keys(keys)
-
-        conditions = [map_condition(c) for c in self._conditions]
-        return self._sub_operation.with_classical_controls(*conditions)
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ) -> 'ClassicallyControlledOperation':
+        conds = [protocols.with_rescoped_keys(c, path, bindable_keys) for c in self._conditions]
+        sub_operation = protocols.with_rescoped_keys(self._sub_operation, path, bindable_keys)
+        return sub_operation.with_classical_controls(*conds)
 
     def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
-        local_keys: FrozenSet[value.MeasurementKey] = frozenset(
+        local_keys: FrozenSet['cirq.MeasurementKey'] = frozenset(
             k for condition in self._conditions for k in condition.keys
         )
         return local_keys.union(protocols.control_keys(self._sub_operation))

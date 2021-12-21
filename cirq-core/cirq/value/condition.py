@@ -12,40 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-)
-
 import abc
 import dataclasses
+from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING, FrozenSet
+
 import sympy
 
-from cirq.protocols import json_serialization
-from cirq.value import measurement_key
+from cirq._compat import proper_repr
+from cirq.protocols import json_serialization, measurement_key_protocol as mkp
+from cirq.value import digits, measurement_key
 
 if TYPE_CHECKING:
     import cirq
 
 
 class Condition(abc.ABC):
+    """A classical control condition that can gate an operation."""
+
     @property
     @abc.abstractmethod
     def keys(self) -> Tuple['cirq.MeasurementKey', ...]:
         """Gets the control keys."""
 
     @abc.abstractmethod
-    def with_keys(self, keys: Tuple['cirq.MeasurementKey', ...]):
+    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
         """Replaces the control keys."""
 
     @abc.abstractmethod
     def resolve(
         self,
         measurements: Mapping[str, Sequence[int]],
-        measured_qubits: Mapping[str, Sequence['cirq.Qid']],
+        measured_qubits: Mapping[str, Sequence['cirq.Qid']] = None,
     ) -> bool:
         """Resolves the condition based on the measurements."""
 
@@ -54,26 +51,61 @@ class Condition(abc.ABC):
     def qasm(self):
         """Returns the qasm of this condition."""
 
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'cirq.Condition':
+        condition = self
+        for k in self.keys:
+            condition = condition.replace_key(k, mkp.with_measurement_key_mapping(k, key_map))
+        return condition
+
+    def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'cirq.Condition':
+        condition = self
+        for k in self.keys:
+            condition = condition.replace_key(k, mkp.with_key_path_prefix(k, path))
+        return condition
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ) -> 'cirq.Condition':
+        condition = self
+        for key in self.keys:
+            for i in range(len(path) + 1):
+                back_path = path[: len(path) - i]
+                new_key = key.with_key_path_prefix(*back_path)
+                if new_key in bindable_keys:
+                    condition = condition.replace_key(key, new_key)
+                    break
+        return condition
+
 
 @dataclasses.dataclass(frozen=True)
 class KeyCondition(Condition):
+    """A classical control condition based on a single measurement key.
+
+    This condition resolves to True iff the measurement key is non-zero at the
+    time of resolution.
+    """
+
     key: 'cirq.MeasurementKey'
 
     @property
     def keys(self):
         return (self.key,)
 
-    def with_keys(self, keys: Tuple['cirq.MeasurementKey', ...]):
-        assert len(keys) == 1
-        return KeyCondition(keys[0])
+    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
+        return KeyCondition(replacement) if self.key == current else self
 
     def __str__(self):
         return str(self.key)
 
+    def __repr__(self):
+        return f'cirq.KeyCondition({self.key!r})'
+
     def resolve(
         self,
         measurements: Mapping[str, Sequence[int]],
-        measured_qubits: Mapping[str, Sequence['cirq.Qid']],
+        measured_qubits: Mapping[str, Sequence['cirq.Qid']] = None,
     ) -> bool:
         key = str(self.key)
         if key not in measurements:
@@ -83,6 +115,10 @@ class KeyCondition(Condition):
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
 
+    @classmethod
+    def _from_json_dict_(cls, key, **kwargs):
+        return cls(key=key)
+
     @property
     def qasm(self):
         return f'm_{self.key}!=0'
@@ -90,74 +126,59 @@ class KeyCondition(Condition):
 
 @dataclasses.dataclass(frozen=True)
 class SympyCondition(Condition):
-    expr: sympy.Expr
-    control_keys: Tuple['cirq.MeasurementKey', ...]
+    """A classical control condition based on a sympy expression.
+
+    This condition resolves to True iff the sympy expression resolves to a
+    truthy value (i.e. `bool(x) == True`) when the measurement keys are
+    substituted in as the free variables.
+    """
+
+    expr: sympy.Basic
 
     @property
     def keys(self):
-        return self.control_keys
+        return tuple(
+            measurement_key.MeasurementKey.parse_serialized(symbol.name)
+            for symbol in self.expr.free_symbols
+        )
 
-    def with_keys(self, keys: Tuple['cirq.MeasurementKey', ...]):
-        assert len(keys) == len(self.control_keys)
-        return dataclasses.replace(self, control_keys=keys)
+    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
+        return SympyCondition(self.expr.subs({str(current): sympy.Symbol(str(replacement))}))
 
     def __str__(self):
-        return f'({self.expr}, {self.control_keys})'
+        return str(self.expr)
+
+    def __repr__(self):
+        return f'cirq.SympyCondition({proper_repr(self.expr)})'
 
     def resolve(
         self,
         measurements: Mapping[str, Sequence[int]],
-        measured_qubits: Mapping[str, Sequence['cirq.Qid']],
+        measured_qubits: Mapping[str, Sequence['cirq.Qid']] = None,
     ) -> bool:
         missing = [str(k) for k in self.keys if str(k) not in measurements]
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
 
         def value(k):
-            zipped = zip(measurements[str(k)], measured_qubits[str(k)])
-            return sum(v * q.dimension ** i for i, (v, q) in enumerate(zipped))
+            return (
+                digits.big_endian_bits_to_int(measurements[k])
+                if measured_qubits is None
+                else digits.big_endian_digits_to_int(
+                    measurements[k], base=[q.dimension for q in measured_qubits[k]]
+                )
+            )
 
-        replacements = {f'x{i}': value(k) for i, k in enumerate(self.keys)}
+        replacements = {str(k): value(str(k)) for k in self.keys}
         return bool(self.expr.subs(replacements))
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
 
+    @classmethod
+    def _from_json_dict_(cls, expr, **kwargs):
+        return cls(expr=expr)
+
     @property
     def qasm(self):
         raise NotImplementedError()
-
-
-def parse_sympy_condition(s: str) -> Optional['cirq.SympyCondition']:
-    in_key = False
-    key_count = 0
-    s_out = ''
-    key_name = ''
-    keys = []
-    for c in s:
-        if not in_key:
-            if c == '{':
-                in_key = True
-            else:
-                s_out += c
-        else:
-            if c == '}':
-                symbol_name = f'x{key_count}'
-                s_out += symbol_name
-                keys.append(measurement_key.MeasurementKey.parse_serialized(key_name))
-                key_name = ''
-                key_count += 1
-                in_key = False
-            else:
-                key_name += c
-    expr = sympy.sympify(s_out)
-    if len(expr.free_symbols) != len(keys):
-        return None
-    return SympyCondition(expr, tuple(keys))
-
-
-def parse_condition(s: str) -> 'cirq.Condition':
-    c = parse_sympy_condition(s) or measurement_key.MeasurementKey.parse_serialized(s)
-    if c is None:
-        raise ValueError(f"'{s}' is not a valid condition")
-    return c
