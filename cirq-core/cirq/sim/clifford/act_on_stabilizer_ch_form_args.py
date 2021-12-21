@@ -17,9 +17,9 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence
 import numpy as np
 
 from cirq import value, ops, protocols
-from cirq.ops import common_gates, pauli_gates, global_phase_op
+from cirq.ops import common_gates, pauli_gates
+from cirq.ops import global_phase_op
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
-from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
 
 if TYPE_CHECKING:
     import cirq
@@ -30,7 +30,7 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
 
     def __init__(
         self,
-        state: StabilizerStateChForm,
+        state: 'cirq.StabilizerStateChForm',
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,

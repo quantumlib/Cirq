@@ -647,8 +647,16 @@ def test_decompose_nested():
     op2 = cirq.CircuitOperation(circuit2)
     circuit3 = cirq.FrozenCircuit(
         op2.with_params({exp1: exp_half}),
-        op2.with_params({exp1: exp_one}),
-        op2.with_params({exp1: exp_two}),
+        op2.with_params({exp1: exp_one})
+        .with_measurement_key_mapping({'ma': 'ma1'})
+        .with_measurement_key_mapping({'mb': 'mb1'})
+        .with_measurement_key_mapping({'mc': 'mc1'})
+        .with_measurement_key_mapping({'md': 'md1'}),
+        op2.with_params({exp1: exp_two})
+        .with_measurement_key_mapping({'ma': 'ma2'})
+        .with_measurement_key_mapping({'mb': 'mb2'})
+        .with_measurement_key_mapping({'mc': 'mc2'})
+        .with_measurement_key_mapping({'md': 'md2'}),
     )
     op3 = cirq.CircuitOperation(circuit3)
 
@@ -656,8 +664,16 @@ def test_decompose_nested():
 
     expected_circuit1 = cirq.Circuit(
         op2.with_params({exp1: 0.5, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0}),
-        op2.with_params({exp1: 1.0, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0}),
-        op2.with_params({exp1: 2.0, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0}),
+        op2.with_params({exp1: 1.0, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0})
+        .with_measurement_key_mapping({'ma': 'ma1'})
+        .with_measurement_key_mapping({'mb': 'mb1'})
+        .with_measurement_key_mapping({'mc': 'mc1'})
+        .with_measurement_key_mapping({'md': 'md1'}),
+        op2.with_params({exp1: 2.0, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0})
+        .with_measurement_key_mapping({'ma': 'ma2'})
+        .with_measurement_key_mapping({'mb': 'mb2'})
+        .with_measurement_key_mapping({'mc': 'mc2'})
+        .with_measurement_key_mapping({'md': 'md2'}),
     )
 
     result_ops1 = cirq.decompose_once(final_op)
@@ -673,21 +689,21 @@ def test_decompose_nested():
         cirq.X(d) ** 0.5,
         cirq.measure(d, key='md'),
         cirq.X(a) ** 1.0,
-        cirq.measure(a, key='ma'),
+        cirq.measure(a, key='ma1'),
         cirq.X(b) ** 1.0,
-        cirq.measure(b, key='mb'),
+        cirq.measure(b, key='mb1'),
         cirq.X(c) ** 1.0,
-        cirq.measure(c, key='mc'),
+        cirq.measure(c, key='mc1'),
         cirq.X(d) ** 1.0,
-        cirq.measure(d, key='md'),
+        cirq.measure(d, key='md1'),
         cirq.X(a) ** 2.0,
-        cirq.measure(a, key='ma'),
+        cirq.measure(a, key='ma2'),
         cirq.X(b) ** 2.0,
-        cirq.measure(b, key='mb'),
+        cirq.measure(b, key='mb2'),
         cirq.X(c) ** 2.0,
-        cirq.measure(c, key='mc'),
+        cirq.measure(c, key='mc2'),
         cirq.X(d) ** 2.0,
-        cirq.measure(d, key='md'),
+        cirq.measure(d, key='md2'),
     )
     assert cirq.Circuit(cirq.decompose(final_op)) == expected_circuit
     # Verify that mapped_circuit gives the same operations.
@@ -814,6 +830,26 @@ def test_mapped_circuit_keeps_keys_under_parent_path():
     )
     op2 = op1.with_key_path(('X',))
     assert cirq.measurement_key_names(op2.mapped_circuit()) == {'X:A', 'X:B', 'X:C', 'X:D'}
+
+
+def test_keys_conflict_no_repetitions():
+    q = cirq.LineQubit(0)
+    op1 = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.measure(q, key='A'),
+        )
+    )
+    op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
+    with pytest.raises(ValueError, match='Conflicting measurement keys found: A'):
+        _ = op2.mapped_circuit(deep=True)
+
+
+def test_keys_conflict_locally():
+    q = cirq.LineQubit(0)
+    op1 = cirq.measure(q, key='A')
+    op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
+    with pytest.raises(ValueError, match='Conflicting measurement keys found: A'):
+        _ = op2.mapped_circuit()
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?

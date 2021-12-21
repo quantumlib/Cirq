@@ -1086,26 +1086,35 @@ def test_density_matrix_trial_result_qid_shape():
 
 def test_density_matrix_trial_result_repr():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.StepResult)
-    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
-        density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
+    args = cirq.ActOnDensityMatrixArgs(
+        target_tensor=np.ones((2, 2)) * 0.5,
+        available_buffer=[],
+        qid_shape=(2,),
+        prng=np.random.RandomState(0),
+        log_of_measurement_results={},
+        qubits=[q0],
     )
-    assert (
-        repr(
-            cirq.DensityMatrixTrialResult(
-                params=cirq.ParamResolver({'s': 1}),
-                measurements={'m': np.array([[1]])},
-                final_step_result=final_step_result,
-            )
-        )
-        == "cirq.DensityMatrixTrialResult("
+    final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
+    trial_result = cirq.DensityMatrixTrialResult(
+        params=cirq.ParamResolver({'s': 1}),
+        measurements={'m': np.array([[1]], dtype=np.int32)},
+        final_step_result=final_step_result,
+    )
+    expected_repr = (
+        "cirq.DensityMatrixTrialResult("
         "params=cirq.ParamResolver({'s': 1}), "
-        "measurements={'m': array([[1]])}, "
-        "final_simulator_state=cirq.DensityMatrixSimulatorState("
-        "density_matrix=np.array([[0.5, 0.5], [0.5, 0.5]]), "
-        "qubit_map={cirq.LineQubit(0): 0}))"
-        ""
+        "measurements={'m': np.array([[1]], dtype=np.int32)}, "
+        "final_step_result=cirq.DensityMatrixStepResult("
+        "sim_state=cirq.ActOnDensityMatrixArgs("
+        "target_tensor=np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float64), "
+        "available_buffer=[], "
+        "qid_shape=(2,), "
+        "qubits=(cirq.LineQubit(0),), "
+        "log_of_measurement_results={}), "
+        "dtype=np.complex64))"
     )
+    assert repr(trial_result) == expected_repr
+    assert eval(expected_repr) == trial_result
 
 
 class XAsOp(cirq.Operation):
@@ -1192,10 +1201,15 @@ def test_works_on_pauli_string():
 
 def test_density_matrix_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.StepResult)
-    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
-        density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
+    args = cirq.ActOnDensityMatrixArgs(
+        target_tensor=np.ones((2, 2)) * 0.5,
+        available_buffer=[],
+        qid_shape=(2,),
+        prng=np.random.RandomState(0),
+        log_of_measurement_results={},
+        qubits=[q0],
     )
+    final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
     result = cirq.DensityMatrixTrialResult(
         params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
     )
@@ -1204,14 +1218,24 @@ def test_density_matrix_trial_result_str():
     # Eliminate whitespace to harden tests against this variation
     result_no_whitespace = str(result).replace('\n', '').replace(' ', '')
     assert result_no_whitespace == (
-        'measurements:(nomeasurements)finaldensitymatrix:[[0.50.5][0.50.5]]'
+        'measurements:(nomeasurements)'
+        'qubits:(cirq.LineQubit(0),)'
+        'finaldensitymatrix:[[0.50.5][0.50.5]]'
     )
 
 
 def test_density_matrix_trial_result_repr_pretty():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.StepResult)
-    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
+    args = cirq.ActOnDensityMatrixArgs(
+        target_tensor=np.ones((2, 2)) * 0.5,
+        available_buffer=[],
+        qid_shape=(2,),
+        prng=np.random.RandomState(0),
+        log_of_measurement_results={},
+        qubits=[q0],
+    )
+    final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
+    final_step_result._simulator_state = cirq.DensityMatrixSimulatorState(
         density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
     )
     result = cirq.DensityMatrixTrialResult(
@@ -1224,7 +1248,9 @@ def test_density_matrix_trial_result_repr_pretty():
     # Eliminate whitespace to harden tests against this variation
     result_no_whitespace = fake_printer.text_pretty.replace('\n', '').replace(' ', '')
     assert result_no_whitespace == (
-        'measurements:(nomeasurements)finaldensitymatrix:[[0.50.5][0.50.5]]'
+        'measurements:(nomeasurements)'
+        'qubits:(cirq.LineQubit(0),)'
+        'finaldensitymatrix:[[0.50.5][0.50.5]]'
     )
 
     cirq.testing.assert_repr_pretty(result, "cirq.DensityMatrixTrialResult(...)", cycle=True)
@@ -1573,7 +1599,7 @@ def test_density_matrices_same_with_or_without_split_untangled_states():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CX.on(q0, q1), cirq.reset(q1))
     result1 = sim.simulate(circuit).final_density_matrix
-    sim = cirq.DensityMatrixSimulator(split_untangled_states=True)
+    sim = cirq.DensityMatrixSimulator()
     result2 = sim.simulate(circuit).final_density_matrix
     assert np.allclose(result1, result2)
 
@@ -1590,15 +1616,66 @@ def test_large_untangled_okay():
         _ = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
 
     # Validate a simulation run
-    result = cirq.DensityMatrixSimulator(split_untangled_states=True).simulate(circuit)
+    result = cirq.DensityMatrixSimulator().simulate(circuit)
     assert set(result._final_step_result._qubits) == set(cirq.LineQubit.range(59))
     # _ = result.final_density_matrix hangs (as expected)
 
     # Validate a trial run and sampling
-    result = cirq.DensityMatrixSimulator(split_untangled_states=True).run(circuit, repetitions=1000)
+    result = cirq.DensityMatrixSimulator().run(circuit, repetitions=1000)
     assert len(result.measurements) == 59
     assert len(result.measurements['0']) == 1000
     assert (result.measurements['0'] == np.full(1000, 1)).all()
+
+
+def test_separated_states_str_does_not_merge():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0),
+        cirq.measure(q1),
+        cirq.X(q0),
+    )
+
+    result = cirq.DensityMatrixSimulator().simulate(circuit)
+    assert (
+        str(result)
+        == """measurements: 0=0 1=0
+
+qubits: (cirq.LineQubit(0),)
+final density matrix:
+[[0.+0.j 0.+0.j]
+ [0.+0.j 1.+0.j]]
+
+qubits: (cirq.LineQubit(1),)
+final density matrix:
+[[1.+0.j 0.+0.j]
+ [0.+0.j 0.+0.j]]
+
+phase:
+final density matrix:
+[[1.+0.j]]"""
+    )
+
+
+def test_unseparated_states_str():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0),
+        cirq.measure(q1),
+        cirq.X(q0),
+    )
+
+    result = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
+    assert (
+        str(result)
+        == """measurements: 0=0 1=0
+
+qubits: (cirq.LineQubit(0), cirq.LineQubit(1))
+final density matrix:
+[[0.+0.j 0.+0.j 0.+0.j 0.+0.j]
+ [0.+0.j 0.+0.j 0.+0.j 0.+0.j]
+ [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
+ [0.+0.j 0.+0.j 0.+0.j 0.+0.j]]"""
+    )
 
 
 def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries():

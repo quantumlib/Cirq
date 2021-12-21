@@ -18,8 +18,8 @@ from typing import Any, Dict, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 
-from cirq.ops import common_gates, global_phase_op
-from cirq.qis.clifford_tableau import CliffordTableau
+from cirq.ops import common_gates
+from cirq.ops import global_phase_op
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs):
 
     def __init__(
         self,
-        tableau: CliffordTableau,
+        tableau: 'cirq.CliffordTableau',
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
