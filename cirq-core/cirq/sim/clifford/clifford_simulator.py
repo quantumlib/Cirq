@@ -34,17 +34,17 @@ from typing import Any, Dict, List, Sequence, Union
 import numpy as np
 
 import cirq
-from cirq import study, protocols, value
+from cirq import protocols, value
 from cirq.protocols import act_on
 from cirq.sim import clifford, simulator_base
 
 
 class CliffordSimulator(
     simulator_base.SimulatorBase[
-        'CliffordSimulatorStepResult',
-        'CliffordTrialResult',
-        'CliffordState',
-        clifford.ActOnStabilizerCHFormArgs,
+        'cirq.CliffordSimulatorStepResult',
+        'cirq.CliffordTrialResult',
+        'cirq.CliffordState',
+        'cirq.ActOnStabilizerCHFormArgs',
     ],
 ):
     """An efficient simulator for Clifford circuits."""
@@ -66,10 +66,10 @@ class CliffordSimulator(
 
     def _create_partial_act_on_args(
         self,
-        initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
+        initial_state: Union[int, 'cirq.ActOnStabilizerCHFormArgs'],
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
-    ) -> clifford.ActOnStabilizerCHFormArgs:
+    ) -> 'cirq.ActOnStabilizerCHFormArgs':
         """Creates the ActOnStabilizerChFormArgs for a circuit.
 
         Args:
@@ -104,7 +104,7 @@ class CliffordSimulator(
 
     def _create_simulator_trial_result(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_step_result: 'CliffordSimulatorStepResult',
     ):
@@ -121,9 +121,9 @@ class CliffordTrialResult(
 ):
     def __init__(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'CliffordSimulatorStepResult',
+        final_step_result: 'cirq.CliffordSimulatorStepResult',
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_step_result=final_step_result
@@ -144,7 +144,7 @@ class CliffordTrialResult(
 
 
 class CliffordSimulatorStepResult(
-    simulator_base.StepResultBase['clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs']
+    simulator_base.StepResultBase['cirq.CliffordState', 'cirq.ActOnStabilizerCHFormArgs']
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
@@ -200,7 +200,7 @@ class CliffordState:
     Gates and measurements are applied to each representation in O(n^2) time.
     """
 
-    def __init__(self, qubit_map, initial_state: Union[int, clifford.StabilizerStateChForm] = 0):
+    def __init__(self, qubit_map, initial_state: Union[int, 'cirq.StabilizerStateChForm'] = 0):
         self.qubit_map = qubit_map
         self.n = len(qubit_map)
 
@@ -226,7 +226,7 @@ class CliffordState:
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.ch_form
 
-    def copy(self) -> 'CliffordState':
+    def copy(self) -> 'cirq.CliffordState':
         state = CliffordState(self.qubit_map)
         state.ch_form = self.ch_form.copy()
 

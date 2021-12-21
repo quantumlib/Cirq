@@ -22,7 +22,6 @@ from cirq.ops import common_gates
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
-from cirq.qis.clifford_tableau import CliffordTableau
 from cirq.sim.act_on_args import ActOnArgs
 from cirq.type_workarounds import NotImplementedType
 
@@ -39,7 +38,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
 
     def __init__(
         self,
-        tableau: CliffordTableau,
+        tableau: 'cirq.CliffordTableau',
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,

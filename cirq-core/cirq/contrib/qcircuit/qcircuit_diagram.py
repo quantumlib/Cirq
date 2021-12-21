@@ -64,7 +64,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
 
 def circuit_to_latex_using_qcircuit(
-    circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
+    circuit: 'cirq.Circuit', qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
 ) -> str:
     """Returns a QCircuit-based latex diagram of the given circuit.
 

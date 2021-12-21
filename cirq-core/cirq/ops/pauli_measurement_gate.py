@@ -39,7 +39,7 @@ class PauliMeasurementGate(raw_types.Gate):
     def __init__(
         self,
         observable: Iterable['cirq.Pauli'],
-        key: Union[str, value.MeasurementKey] = '',
+        key: Union[str, 'cirq.MeasurementKey'] = '',
     ) -> None:
         """Inits PauliMeasurementGate.
 
@@ -64,7 +64,7 @@ class PauliMeasurementGate(raw_types.Gate):
         return str(self.mkey)
 
     @key.setter
-    def key(self, key: Union[str, value.MeasurementKey]) -> None:
+    def key(self, key: Union[str, 'cirq.MeasurementKey']) -> None:
         if isinstance(key, str):
             key = value.MeasurementKey(name=key)
         self.mkey = key
@@ -72,7 +72,7 @@ class PauliMeasurementGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return (2,) * len(self._observable)
 
-    def with_key(self, key: Union[str, value.MeasurementKey]) -> 'PauliMeasurementGate':
+    def with_key(self, key: Union[str, 'cirq.MeasurementKey']) -> 'PauliMeasurementGate':
         """Creates a pauli measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
@@ -106,7 +106,7 @@ class PauliMeasurementGate(raw_types.Gate):
     def _measurement_key_name_(self) -> str:
         return self.key
 
-    def _measurement_key_obj_(self) -> value.MeasurementKey:
+    def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
         return self.mkey
 
     def observable(self) -> 'cirq.DensePauliString':

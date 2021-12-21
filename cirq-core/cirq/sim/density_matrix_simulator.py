@@ -31,10 +31,10 @@ if TYPE_CHECKING:
 
 class DensityMatrixSimulator(
     simulator_base.SimulatorBase[
-        'DensityMatrixStepResult',
-        'DensityMatrixTrialResult',
-        'DensityMatrixSimulatorState',
-        act_on_density_matrix_args.ActOnDensityMatrixArgs,
+        'cirq.DensityMatrixStepResult',
+        'cirq.DensityMatrixTrialResult',
+        'cirq.DensityMatrixSimulatorState',
+        'cirq.ActOnDensityMatrixArgs',
     ],
     simulator.SimulatesExpectationValues,
 ):
@@ -226,10 +226,10 @@ class DensityMatrixSimulator(
 
     def _create_simulator_trial_result(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'DensityMatrixStepResult',
-    ) -> 'DensityMatrixTrialResult':
+        final_step_result: 'cirq.DensityMatrixStepResult',
+    ) -> 'cirq.DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
             params=params, measurements=measurements, final_step_result=final_step_result
         )
@@ -239,8 +239,8 @@ class DensityMatrixSimulator(
         self,
         program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
-        params: 'study.Sweepable',
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        params: 'cirq.Sweepable',
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
     ) -> List[List[float]]:
@@ -270,9 +270,7 @@ class DensityMatrixSimulator(
 
 
 class DensityMatrixStepResult(
-    simulator_base.StepResultBase[
-        'DensityMatrixSimulatorState', act_on_density_matrix_args.ActOnDensityMatrixArgs
-    ]
+    simulator_base.StepResultBase['cirq.DensityMatrixSimulatorState', 'cirq.ActOnDensityMatrixArgs']
 ):
     """A single step in the simulation of the DensityMatrixSimulator.
 
@@ -284,7 +282,7 @@ class DensityMatrixStepResult(
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
-        simulator: DensityMatrixSimulator = None,
+        simulator: 'cirq.DensityMatrixSimulator' = None,
         dtype: 'DTypeLike' = np.complex64,
     ):
         """DensityMatrixStepResult.
@@ -300,7 +298,7 @@ class DensityMatrixStepResult(
         self._density_matrix: Optional[np.ndarray] = None
         self._simulator = simulator
 
-    def _simulator_state(self) -> 'DensityMatrixSimulatorState':
+    def _simulator_state(self) -> 'cirq.DensityMatrixSimulatorState':
         return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_mapping)
 
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
@@ -380,7 +378,7 @@ class DensityMatrixSimulatorState:
             ordering of the basis in density_matrix.
     """
 
-    def __init__(self, density_matrix: np.ndarray, qubit_map: Dict[ops.Qid, int]) -> None:
+    def __init__(self, density_matrix: np.ndarray, qubit_map: Dict['cirq.Qid', int]) -> None:
         self.density_matrix = density_matrix
         self.qubit_map = qubit_map
         self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
@@ -444,9 +442,9 @@ class DensityMatrixTrialResult(
 
     def __init__(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: DensityMatrixStepResult,
+        final_step_result: 'cirq.DensityMatrixStepResult',
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_step_result=final_step_result

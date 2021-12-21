@@ -174,11 +174,13 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return bits
 
-    def _on_copy(self, target: 'ActOnStateVectorArgs'):
+    def _on_copy(self, target: 'cirq.ActOnStateVectorArgs'):
         target.target_tensor = self.target_tensor.copy()
         target.available_buffer = self.available_buffer.copy()
 
-    def _on_kronecker_product(self, other: 'ActOnStateVectorArgs', target: 'ActOnStateVectorArgs'):
+    def _on_kronecker_product(
+        self, other: 'cirq.ActOnStateVectorArgs', target: 'cirq.ActOnStateVectorArgs'
+    ):
         target_tensor = transformations.state_vector_kronecker_product(
             self.target_tensor, other.target_tensor
         )
@@ -188,8 +190,8 @@ class ActOnStateVectorArgs(ActOnArgs):
     def _on_factor(
         self,
         qubits: Sequence['cirq.Qid'],
-        extracted: 'ActOnStateVectorArgs',
-        remainder: 'ActOnStateVectorArgs',
+        extracted: 'cirq.ActOnStateVectorArgs',
+        remainder: 'cirq.ActOnStateVectorArgs',
         validate=True,
         atol=1e-07,
     ):
@@ -203,7 +205,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         remainder.available_buffer = np.empty_like(remainder_tensor)
 
     def _on_transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid'], target: 'ActOnStateVectorArgs'
+        self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStateVectorArgs'
     ):
         axes = self.get_axes(qubits)
         new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)

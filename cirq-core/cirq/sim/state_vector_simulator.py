@@ -29,10 +29,9 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, study, value, qis
+from cirq import ops, value, qis
 from cirq._compat import proper_repr
 from cirq.sim import simulator, state_vector, simulator_base
-from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 
 if TYPE_CHECKING:
     import cirq
@@ -45,9 +44,9 @@ class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
     simulator_base.SimulatorBase[
         TStateVectorStepResult,
-        'StateVectorTrialResult',
-        'StateVectorSimulatorState',
-        ActOnStateVectorArgs,
+        'cirq.StateVectorTrialResult',
+        'cirq.StateVectorSimulatorState',
+        'cirq.ActOnStateVectorArgs',
     ],
     simulator.SimulatesAmplitudes,
     metaclass=abc.ABCMeta,
@@ -74,10 +73,10 @@ class SimulatesIntermediateStateVector(
 
     def _create_simulator_trial_result(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'StateVectorStepResult',
-    ) -> 'StateVectorTrialResult':
+        final_step_result: 'cirq.StateVectorStepResult',
+    ) -> 'cirq.StateVectorTrialResult':
         return StateVectorTrialResult(
             params=params, measurements=measurements, final_step_result=final_step_result
         )
@@ -86,8 +85,8 @@ class SimulatesIntermediateStateVector(
         self,
         program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
-        params: study.Sweepable,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        params: 'cirq.Sweepable',
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
     ) -> Iterator[Sequence[complex]]:
         if isinstance(bitstrings, np.ndarray) and len(bitstrings.shape) > 1:
             raise ValueError(
@@ -159,9 +158,9 @@ class StateVectorTrialResult(
 
     def __init__(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: StateVectorStepResult,
+        final_step_result: 'cirq.StateVectorStepResult',
     ) -> None:
         super().__init__(
             params=params,
