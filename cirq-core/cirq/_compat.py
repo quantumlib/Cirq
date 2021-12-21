@@ -489,7 +489,6 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     It is meant to be used as a wrapper around existing MetaPathFinder instances.
 
     Args:
-        finder: The finder to wrap.
         new_module_name: The new module's fully qualified name.
         old_module_name: The deprecated module's fully qualified name.
         deadline: The deprecation deadline.
@@ -499,16 +498,14 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
 
     def __init__(
         self,
-        finder: Any,
         new_module_name: str,
         old_module_name: str,
         deadline: str,
         broken_module_exception: Optional[BaseException],
     ):
-        """An aliasing module finder that uses an existing module finder to find a python
+        """An aliasing module finder that uses existing module finders to find a python
         module spec and intercept the execution of matching modules.
         """
-        self.finder = finder
         self.new_module_name = new_module_name
         self.old_module_name = old_module_name
         self.deadline = deadline
@@ -622,7 +619,7 @@ def deprecated_submodule(
             )
 
     finder = DeprecatedModuleFinder(
-        None, new_module_name, old_module_name, deadline, broken_module_exception
+        new_module_name, old_module_name, deadline, broken_module_exception
     )
     sys.meta_path.append(finder)
 
