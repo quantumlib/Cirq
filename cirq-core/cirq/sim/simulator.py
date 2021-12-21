@@ -889,7 +889,7 @@ class SimulationTrialResult:
 
     def _value_equality_values_(self) -> Any:
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
-        return (self.params, measurements, self._final_simulator_state)
+        return self.params, measurements, self._final_simulator_state
 
     @property
     def qubit_map(self) -> Dict[ops.Qid, int]:

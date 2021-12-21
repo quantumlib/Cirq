@@ -36,7 +36,7 @@ import numpy as np
 import cirq
 from cirq import study, protocols, value
 from cirq.protocols import act_on
-from cirq.sim import clifford, simulator, simulator_base
+from cirq.sim import clifford, simulator_base
 
 
 class CliffordSimulator(
@@ -114,7 +114,11 @@ class CliffordSimulator(
         )
 
 
-class CliffordTrialResult(simulator.SimulationTrialResult):
+class CliffordTrialResult(
+    simulator_base.SimulationTrialResultBase[
+        'clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs'
+    ]
+):
     def __init__(
         self,
         params: study.ParamResolver,

@@ -29,7 +29,8 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, study, value
+from cirq import ops, study, value, qis
+from cirq._compat import proper_repr
 from cirq.sim import simulator, state_vector, simulator_base
 from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 
@@ -140,11 +141,16 @@ class StateVectorSimulatorState:
         )
 
     def _value_equality_values_(self) -> Any:
-        return (self.state_vector.tolist(), self.qubit_map)
+        return self.state_vector.tolist(), self.qubit_map
 
 
 @value.value_equality(unhashable=True)
-class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.SimulationTrialResult):
+class StateVectorTrialResult(
+    state_vector.StateVectorMixin,
+    simulator_base.SimulationTrialResultBase[
+        StateVectorSimulatorState, 'cirq.ActOnStateVectorArgs'
+    ],
+):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
 
     Attributes:
@@ -201,16 +207,23 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
-        return (self.params, measurements, self._final_simulator_state)
+        return self.params, measurements, self._final_simulator_state
 
     def __str__(self) -> str:
         samples = super().__str__()
-        final = self.state_vector()
-        if len([1 for e in final if abs(e) > 0.001]) < 16:
-            state_vector = self.dirac_notation(3)
-        else:
-            state_vector = str(final)
-        return f'measurements: {samples}\noutput vector: {state_vector}'
+        ret = f'measurements: {samples}'
+        for substate in self._get_substates():
+            final = substate.target_tensor
+            shape = final.shape
+            size = np.prod(shape, dtype=np.int64)
+            final = final.reshape(size)
+            if len([1 for e in final if abs(e) > 0.001]) < 16:
+                state_vector = qis.dirac_notation(final, 3)
+            else:
+                state_vector = str(final)
+            label = f'qubits: {substate.qubits}' if substate.qubits else 'phase:'
+            ret += f'\n\n{label}\noutput vector: {state_vector}'
+        return ret
 
     def _repr_pretty_(self, p: Any, cycle: bool):
         """iPython (Jupyter) pretty print."""
@@ -222,7 +235,7 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
 
     def __repr__(self) -> str:
         return (
-            f'cirq.StateVectorTrialResult(params={self.params!r}, '
-            f'measurements={self.measurements!r}, '
-            f'final_simulator_state={self._final_simulator_state!r})'
+            'cirq.StateVectorTrialResult('
+            f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
+            f'final_step_result={self._final_step_result!r})'
         )
