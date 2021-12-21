@@ -56,11 +56,13 @@ def test_filesystem_saver(tmpdir, patch_cirq_default_resolvers):
     shared_rt_info = cg.SharedRuntimeInfo(run_id=run_id)
     fs_saver.initialize(rt_config, shared_rt_info=shared_rt_info)
 
+    # Test 1: assert fs_saver.initialize() has worked.
     rt_config2 = cirq.read_json_gzip(f'{tmpdir}/{run_id}/QuantumRuntimeConfiguration.json.gz')
     shared_rt_info2 = cirq.read_json_gzip(f'{tmpdir}/{run_id}/SharedRuntimeInfo.json.gz')
     assert rt_config == rt_config2
     assert shared_rt_info == shared_rt_info2
 
+    # Test 2: assert `consume_result()` works.
     # you shouldn't actually mutate run_id in the shared runtime info, but we want to test
     # updating the shared rt info object:
     shared_rt_info.run_id = 'updated_run_id'
@@ -76,6 +78,7 @@ def test_filesystem_saver(tmpdir, patch_cirq_default_resolvers):
     assert shared_rt_info == shared_rt_info3
     assert exe_result == exe_result3
 
+    # Test 3: assert loading egr_record works.
     egr_record: cg.ExecutableGroupResultFilesystemRecord = cirq.read_json_gzip(
         f'{fs_saver.data_dir}/ExecutableGroupResultFilesystemRecord.json.gz'
     )

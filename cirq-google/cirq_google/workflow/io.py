@@ -46,7 +46,7 @@ class ExecutableGroupResultFilesystemRecord:
 
     @classmethod
     def from_json(
-        cls, *, run_id: str,  base_data_dir: str = "."
+        cls, *, run_id: str, base_data_dir: str = "."
     ) -> 'ExecutableGroupResultFilesystemRecord':
         fn = f'{base_data_dir}/{run_id}/ExecutableGroupResultFilesystemRecord.json.gz'
         egr_record = cirq.read_json_gzip(fn)
