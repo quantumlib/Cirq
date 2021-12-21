@@ -13,11 +13,13 @@
 # limitations under the License.
 
 from math import exp
-from typing import Dict, Sequence
+from typing import Dict, Sequence, TYPE_CHECKING
 
 import cirq
 from cirq.devices.noise_model import validate_all_measurements
-from cirq_google import engine
+
+if TYPE_CHECKING:
+    from cirq_google.engine import calibration
 
 
 class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
@@ -94,7 +96,7 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
 
 
 def simple_noise_from_calibration_metrics(
-    calibration: engine.Calibration,
+    calibration: 'calibration.Calibration',
     depol_noise: bool = False,
     damping_noise: bool = False,
     readout_decay_noise: bool = False,

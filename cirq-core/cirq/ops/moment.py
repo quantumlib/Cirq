@@ -24,13 +24,18 @@ from typing import (
     Iterator,
     overload,
     Optional,
+    Sequence,
     Tuple,
     TYPE_CHECKING,
     TypeVar,
     Union,
 )
 
-from cirq import protocols, ops, value
+import itertools
+
+import numpy as np
+
+from cirq import protocols, ops, qis, value
 from cirq._import import LazyLoader
 from cirq.ops import raw_types
 from cirq.protocols import circuit_diagram_info_protocol
@@ -220,7 +225,7 @@ class Moment:
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return Moment(
             protocols.with_measurement_key_mapping(op, key_map)
-            if protocols.is_measurement(op)
+            if protocols.measurement_keys_touched(op)
             else op
             for op in self.operations
         )
@@ -243,8 +248,19 @@ class Moment:
 
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
         return Moment(
-            protocols.with_key_path_prefix(op, prefix) if protocols.is_measurement(op) else op
+            protocols.with_key_path_prefix(op, prefix)
+            if protocols.measurement_keys_touched(op)
+            else op
             for op in self.operations
+        )
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        return Moment(
+            protocols.with_rescoped_keys(op, path, bindable_keys) for op in self.operations
         )
 
     def __copy__(self):
@@ -326,6 +342,88 @@ class Moment:
                 function.
         """
         return self.__class__(op.transform_qubits(qubit_map) for op in self.operations)
+
+    def expand_to(self, qubits: Iterable['cirq.Qid']) -> 'cirq.Moment':
+        """Returns self expanded to given superset of qubits by making identities explicit."""
+        if not self.qubits.issubset(qubits):
+            raise ValueError(f'{qubits} is not a superset of {self.qubits}')
+
+        operations = list(self.operations)
+        for q in set(qubits) - self.qubits:
+            operations.append(ops.I(q))
+        return Moment(*operations)
+
+    def _has_kraus_(self) -> bool:
+        """Returns True if self has a Kraus representation."""
+        return all(protocols.has_kraus(op) for op in self.operations) and len(self.qubits) <= 10
+
+    def _kraus_(self) -> Sequence[np.ndarray]:
+        r"""Returns Kraus representation of self.
+
+        The method computes a Kraus representation of self from Kraus representations of its
+        constituent operations by taking the tensor product of Kraus operators along all paths
+        corresponding to the possible choices of the Kraus operators of the operations. More
+        precisely, it computes all terms in the expression
+
+        $$
+        \sum_{i_1} \sum_{i_2} \dots \sum_{i_m} \bigotimes_{k=1}^m K_{k,i_k}
+        $$
+
+        where $K_{k,j}$ is the jth Kraus operator of the kth operation in self. Each term becomes
+        an element in the sequence returned by this method.
+
+        Args:
+            self: This Moment.
+        Returns:
+            A Kraus representation of self.
+        Raises:
+            ValueError: If self uses more than ten qubits as the length of the resulting sequence
+            is the product of the lengths of the Kraus representations returned by _kraus_ for
+            each constituent operation.
+        """
+        qubits = sorted(self.qubits)
+        n = len(qubits)
+        if n < 1:
+            return (np.array([[1 + 0j]]),)
+        if n > 10:
+            raise ValueError(f'Cannot compute Kraus representation of moment with {n} > 10 qubits')
+
+        qubit_to_row_subscript = dict(zip(qubits, 'abcdefghij'))
+        qubit_to_col_subscript = dict(zip(qubits, 'ABCDEFGHIJ'))
+
+        def row_subscripts(qs: Sequence['cirq.Qid']) -> str:
+            return ''.join(qubit_to_row_subscript[q] for q in qs)
+
+        def col_subscripts(qs: Sequence['cirq.Qid']) -> str:
+            return ''.join(qubit_to_col_subscript[q] for q in qs)
+
+        def kraus_tensors(op: 'cirq.Operation') -> Sequence[np.ndarray]:
+            return tuple(np.reshape(k, (2, 2) * len(op.qubits)) for k in protocols.kraus(op))
+
+        input_subscripts = ','.join(
+            row_subscripts(op.qubits) + col_subscripts(op.qubits) for op in self.operations
+        )
+        output_subscripts = row_subscripts(qubits) + col_subscripts(qubits)
+        assert len(input_subscripts) == 2 * n + len(self.operations) - 1
+        assert len(output_subscripts) == 2 * n
+
+        transpose = input_subscripts + '->' + output_subscripts
+
+        r = []
+        d = 2 ** n
+        kss = [kraus_tensors(op) for op in self.operations]
+        for ks in itertools.product(*kss):
+            k = np.einsum(transpose, *ks)
+            r.append(np.reshape(k, (d, d)))
+        return r
+
+    def _has_superoperator_(self) -> bool:
+        """Returns True if self has superoperator representation."""
+        return self._has_kraus_()
+
+    def _superoperator_(self) -> np.ndarray:
+        """Returns superoperator representation of self."""
+        return qis.kraus_to_superoperator(self._kraus_())
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['operations'])

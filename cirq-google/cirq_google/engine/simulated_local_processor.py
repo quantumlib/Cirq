@@ -18,15 +18,13 @@ from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Unio
 import cirq
 
 from cirq_google.api import v2
-from cirq_google.engine import calibration
+from cirq_google.engine import calibration, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.abstract_program import AbstractProgram
 from cirq_google.engine.local_simulation_type import LocalSimulationType
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
-
-import cirq_google.engine.validating_sampler as validating_sampler
 
 if TYPE_CHECKING:
     from cirq_google.serialization.serializer import Serializer
@@ -128,6 +126,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self,
         earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
         latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
+        **kwargs,
     ) -> List[calibration.Calibration]:
         earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp) or 0
         latest_timestamp_seconds = (
@@ -188,7 +187,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        params_list: List[cirq.Sweepable] = None,
+        params_list: Sequence[cirq.Sweepable] = None,
         repetitions: int = 1,
         gate_set: Optional['Serializer'] = None,
         program_description: Optional[str] = None,
@@ -212,7 +211,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             processor_id=self.processor_id,
             parent_program=self._programs[program_id],
             repetitions=repetitions,
-            sweeps=params_list,
+            sweeps=list(params_list) if params_list is not None else None,
             sampler=self._sampler,
             simulation_type=self._simulation_type,
         )

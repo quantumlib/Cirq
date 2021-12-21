@@ -17,8 +17,7 @@ import abc
 from typing import Dict, Iterator, List, Optional, overload, Tuple, TYPE_CHECKING
 
 import cirq
-import cirq_google.engine.client.quantum as quantum
-
+from cirq_google.engine.client import quantum
 
 if TYPE_CHECKING:
     import datetime
