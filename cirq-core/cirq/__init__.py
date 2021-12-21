@@ -436,6 +436,7 @@ from cirq.sim import (
     SimulatesIntermediateStateVector,
     SimulatesSamples,
     SimulationTrialResult,
+    SimulationTrialResultBase,
     Simulator,
     SimulatorBase,
     SparseSimulatorStep,
@@ -604,6 +605,7 @@ from cirq.protocols import (
     with_key_path,
     with_key_path_prefix,
     with_measurement_key_mapping,
+    with_rescoped_keys,
 )
 
 from cirq.ion import (

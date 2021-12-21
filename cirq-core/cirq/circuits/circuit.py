@@ -50,7 +50,7 @@ import networkx
 import numpy as np
 
 import cirq._version
-from cirq import devices, ops, protocols, value, qis
+from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -886,10 +886,10 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_key_objs(self) -> AbstractSet[value.MeasurementKey]:
+    def all_measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
         return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         return self.all_measurement_key_objs()
 
     def all_measurement_key_names(self) -> AbstractSet[str]:
@@ -912,6 +912,18 @@ class AbstractCircuit(abc.ABC):
         return self._with_sliced_moments(
             [protocols.with_key_path_prefix(moment, prefix) for moment in self.moments]
         )
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        moments = []
+        for moment in self.moments:
+            new_moment = protocols.with_rescoped_keys(moment, path, bindable_keys)
+            moments.append(new_moment)
+            bindable_keys |= protocols.measurement_key_objs(new_moment)
+        return self._with_sliced_moments(moments)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
@@ -1171,7 +1183,8 @@ class AbstractCircuit(abc.ABC):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
-                (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
+                set(key for op in self.all_operations() for key in protocols.control_keys(op)),
+                key=str,
             )
         )
         labels = qubits + cbits
@@ -1523,6 +1536,10 @@ class AbstractCircuit(abc.ABC):
         return (
             self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
         )
+
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
+        controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
+        return controls - protocols.measurement_key_objs(self)
 
 
 def _overlap_collision_time(
