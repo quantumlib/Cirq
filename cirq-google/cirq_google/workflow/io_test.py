@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
+
+import pytest
 
 import cirq
 import cirq_google as cg
@@ -45,6 +48,46 @@ def test_egr_filesystem_record_repr():
         run_id='my-run-id',
     )
     cg_assert_equivalent_repr(egr_fs_record)
+
+
+def test_egr_filesystem_record_from_json(tmpdir):
+    run_id = 'my-run-id'
+    egr_fs_record = cg.ExecutableGroupResultFilesystemRecord(
+        runtime_configuration_path='RuntimeConfiguration.json.gz',
+        shared_runtime_info_path='SharedRuntimeInfo.jzon.gz',
+        executable_result_paths=[
+            'ExecutableResult.1.json.gz',
+            'ExecutableResult.2.json.gz',
+        ],
+        run_id=run_id,
+    )
+
+    # Test 1: normal
+    os.makedirs(f'{tmpdir}/{run_id}')
+    cirq.to_json_gzip(
+        egr_fs_record, f'{tmpdir}/{run_id}/ExecutableGroupResultFilesystemRecord.json.gz'
+    )
+    egr_fs_record2 = cg.ExecutableGroupResultFilesystemRecord.from_json(
+        run_id=run_id, base_data_dir=tmpdir
+    )
+    assert egr_fs_record == egr_fs_record2
+
+    # Test 2: bad object type
+    cirq.to_json_gzip(
+        cirq.Circuit(), f'{tmpdir}/{run_id}/ExecutableGroupResultFilesystemRecord.json.gz'
+    )
+    with pytest.raises(ValueError, match=r'.*not an `ExecutableGroupFilesystemRecord`.'):
+        cg.ExecutableGroupResultFilesystemRecord.from_json(run_id=run_id, base_data_dir=tmpdir)
+
+    # Test 3: Mismatched run id
+    os.makedirs(f'{tmpdir}/questionable_run_id')
+    cirq.to_json_gzip(
+        egr_fs_record, f'{tmpdir}/questionable_run_id/ExecutableGroupResultFilesystemRecord.json.gz'
+    )
+    with pytest.raises(ValueError, match=r'.*does not match the provided run_id'):
+        cg.ExecutableGroupResultFilesystemRecord.from_json(
+            run_id='questionable_run_id', base_data_dir=tmpdir
+        )
 
 
 def test_filesystem_saver(tmpdir, patch_cirq_default_resolvers):
