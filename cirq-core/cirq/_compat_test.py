@@ -21,10 +21,9 @@ import traceback
 import types
 import warnings
 from types import ModuleType
-from typing import Any, Callable, List, Optional, Sequence, Union
+from typing import Any, Callable, Optional
 from importlib.machinery import ModuleSpec
 from unittest import mock
-from importlib.abc import MetaPathFinder
 
 
 import numpy as np
@@ -44,7 +43,6 @@ from cirq._compat import (
     deprecated_class,
     deprecated_submodule,
     DeprecatedModuleLoader,
-    DeprecatedModuleFinder,
     DeprecatedModuleImportError,
 )
 
