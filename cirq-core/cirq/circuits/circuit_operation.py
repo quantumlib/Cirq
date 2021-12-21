@@ -93,7 +93,7 @@ class CircuitOperation(ops.Operation):
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
-    _cached_measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = dataclasses.field(
+    _cached_measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = dataclasses.field(
         default=None, init=False
     )
 
@@ -184,7 +184,7 @@ class CircuitOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return self.circuit._is_measurement_()
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._cached_measurement_key_objs is None:
             circuit_keys = protocols.measurement_key_objs(self.circuit)
             if self.repetition_ids is not None:
@@ -207,7 +207,7 @@ class CircuitOperation(ops.Operation):
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return {str(key) for key in self._measurement_key_objs_()}
 
-    def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:
+    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
         if not protocols.control_keys(self.circuit):
             return frozenset()
         return protocols.control_keys(self.mapped_circuit())

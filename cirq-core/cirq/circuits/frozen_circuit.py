@@ -27,7 +27,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, protocols, value
+from cirq import devices, ops, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
@@ -74,9 +74,9 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._all_qubits: Optional[FrozenSet['cirq.Qid']] = None
         self._all_operations: Optional[Tuple[ops.Operation, ...]] = None
         self._has_measurements: Optional[bool] = None
-        self._all_measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = None
+        self._all_measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = None
         self._are_all_measurements_terminal: Optional[bool] = None
-        self._control_keys: Optional[FrozenSet[value.MeasurementKey]] = None
+        self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
 
     @property
     def moments(self) -> Sequence['cirq.Moment']:
@@ -126,15 +126,15 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             self._has_measurements = super().has_measurements()
         return self._has_measurements
 
-    def all_measurement_key_objs(self) -> AbstractSet[value.MeasurementKey]:
+    def all_measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._all_measurement_key_objs is None:
             self._all_measurement_key_objs = super().all_measurement_key_objs()
         return self._all_measurement_key_objs
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         return self.all_measurement_key_objs()
 
-    def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         if self._control_keys is None:
             self._control_keys = super()._control_keys_()
         return self._control_keys

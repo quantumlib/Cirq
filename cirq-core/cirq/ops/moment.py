@@ -14,6 +14,7 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
+import itertools
 from typing import (
     AbstractSet,
     Any,
@@ -31,11 +32,9 @@ from typing import (
     Union,
 )
 
-import itertools
-
 import numpy as np
 
-from cirq import protocols, ops, qis, value
+from cirq import protocols, ops, qis
 from cirq._import import LazyLoader
 from cirq.ops import raw_types
 from cirq.protocols import circuit_diagram_info_protocol
@@ -103,7 +102,7 @@ class Moment:
                 self._qubit_to_op[q] = op
 
         self._qubits = frozenset(self._qubit_to_op.keys())
-        self._measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = None
+        self._measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = None
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
@@ -233,7 +232,7 @@ class Moment:
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return {str(key) for key in self._measurement_key_objs_()}
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._measurement_key_objs is None:
             self._measurement_key_objs = {
                 key for op in self.operations for key in protocols.measurement_key_objs(op)
