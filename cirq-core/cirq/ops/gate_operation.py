@@ -108,6 +108,16 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        new_gate = protocols.with_rescoped_keys(self.gate, path, bindable_keys)
+        if new_gate is self.gate:
+            return self
+        return new_gate.on(*self.qubits)
+
     def __repr__(self):
         if hasattr(self.gate, '_op_repr_'):
             result = self.gate._op_repr_(self.qubits)
@@ -238,13 +248,13 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _measurement_key_obj_(self) -> Optional[value.MeasurementKey]:
+    def _measurement_key_obj_(self) -> Optional['cirq.MeasurementKey']:
         getter = getattr(self.gate, '_measurement_key_obj_', None)
         if getter is not None:
             return getter()
         return NotImplemented
 
-    def _measurement_key_objs_(self) -> Optional[AbstractSet[value.MeasurementKey]]:
+    def _measurement_key_objs_(self) -> Optional[AbstractSet['cirq.MeasurementKey']]:
         getter = getattr(self.gate, '_measurement_key_objs_', None)
         if getter is not None:
             return getter()
