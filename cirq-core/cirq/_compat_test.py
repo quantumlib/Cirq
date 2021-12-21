@@ -869,18 +869,6 @@ def test_deprecated_module_loader_repr():
     )
 
 
-def test_invalidate_caches():
-    called = False
-
-    class FakeFinder(importlib.abc.MetaPathFinder):
-        def invalidate_caches(self) -> None:
-            nonlocal called
-            called = True
-
-    DeprecatedModuleFinder(FakeFinder(), 'new', 'old', 'v0.1', None).invalidate_caches()
-    assert called
-
-
 def test_subprocess_test_failure():
     with pytest.raises(Failed, match='ValueError.*this fails'):
         subprocess_context(_test_subprocess_test_failure_inner)()

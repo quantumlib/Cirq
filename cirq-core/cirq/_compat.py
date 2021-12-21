@@ -513,21 +513,6 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         self.old_module_name = old_module_name
         self.deadline = deadline
         self.broken_module_exception = broken_module_exception
-        # to cater for metadata path finders
-        # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
-        if hasattr(finder, "find_distributions"):
-
-            def find_distributions(context):
-                return self.finder.find_distributions(context)
-
-            self.find_distributions = find_distributions
-        if hasattr(finder, "invalidate_caches"):
-
-            def invalidate_caches() -> None:
-                return self.finder.invalidate_caches()
-
-            # mypy#2427
-            self.invalidate_caches = invalidate_caches  # type: ignore
 
     def find_spec(self, fullname: str, path: Any = None, target: Any = None) -> Any:
         """Finds the specification of a module.
