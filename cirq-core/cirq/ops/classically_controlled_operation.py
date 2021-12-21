@@ -149,12 +149,13 @@ class ClassicallyControlledOperation(raw_types.Operation):
         if sub_info is None:
             return NotImplemented  # coverage: ignore
 
-        wire_symbols = sub_info.wire_symbols + ('^',) * len(self._conditions)
+        control_count = len({k for c in self._conditions for k in c.keys})
+        wire_symbols = sub_info.wire_symbols + ('^',) * control_count
         exponent_qubit_index = None
         if sub_info.exponent_qubit_index is not None:
-            exponent_qubit_index = sub_info.exponent_qubit_index + len(self._conditions)
+            exponent_qubit_index = sub_info.exponent_qubit_index + control_count
         elif sub_info.exponent is not None:
-            exponent_qubit_index = len(self._conditions)
+            exponent_qubit_index = control_count
         return protocols.CircuitDiagramInfo(
             wire_symbols=wire_symbols,
             exponent=sub_info.exponent,
