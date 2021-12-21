@@ -19,6 +19,7 @@ enable=
     docstyle,
     duplicate-argument-name,
     expression-not-assigned,
+    f-string-without-interpolation
     function-redefined,
     inconsistent-mro,
     init-is-generator,

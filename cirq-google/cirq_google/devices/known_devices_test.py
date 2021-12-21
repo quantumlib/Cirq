@@ -464,12 +464,10 @@ valid_targets {
 
 def test_json_dict():
     assert cirq_google.Foxtail._json_dict_() == {
-        'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq_google.Foxtail',
     }
 
     assert cirq_google.Bristlecone._json_dict_() == {
-        'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq_google.Bristlecone',
     }
 

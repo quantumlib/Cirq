@@ -162,7 +162,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             return NotImplemented
         result = [PAULI_GATES[p].on(q) for p, q in zip(self.pauli_mask, qubits) if p]
         if self.coefficient != 1:
-            result.append(global_phase_op.GlobalPhaseOperation(self.coefficient))
+            result.append(global_phase_op.global_phase_operation(self.coefficient))
         return result
 
     def _is_parameterized_(self) -> bool:

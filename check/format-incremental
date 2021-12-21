@@ -57,6 +57,7 @@ for arg in "$@"; do
     fi
 done
 
+typeset -a format_files
 if (( only_changed == 1 )); then
     # Figure out which branch to compare against.
     if [ -z "${rev}" ]; then
@@ -79,28 +80,16 @@ if (( only_changed == 1 )); then
         rev="${base}"
     fi
 
-    # Get the modified and added python files. Lines in git diff --name-status look like this:
-    # M       cirq/__init__.py
-    # A       cirq/added.py
-    modified_files=$(git diff --name-status ${rev} -- | grep '\.py$' | grep -v '_pb2\.py$' | grep '^[MA].*$' | awk '{print $2}')
-
-    # Get the moved python files. Lines in git diff --name-status look like this:
-    # R100    cirq/_doc.py    cirq/_doc2.py
-    moved_files=$(git diff --name-status ${rev} -- | grep '\.py$' | grep -v '_pb2\.py$' | grep '^R.*$' | awk '{print $3}')
-
-    format_files="$modified_files $moved_files"
-
+    # Get the modified, added and moved python files.
+    IFS=$'\n' read -r -d '' -a format_files < \
+        <(git diff --name-only --diff-filter=MAR ${rev} -- '*.py' ':(exclude)*_pb2.py')
 else
     echo -e "Formatting all python files." >&2
-    format_files=$(find . -name "*.py" | grep -v "_pb2\.py$")
+    IFS=$'\n' read -r -d '' -a format_files < \
+        <(git ls-files '*.py' ':(exclude)*_pb2.py')
 fi
 
-any_files=0
-for format_file in ${format_files}; do
-  any_files=1
-done
-
-if (( any_files == 0 )); then
+if (( ${#format_files[@]} == 0 )); then
     echo -e "\033[32mNo files to format\033[0m."
     exit 0
 fi
@@ -110,7 +99,7 @@ if (( only_print == 1 )); then
     flynt_args+=("--dry-run")
 fi
 
-flynt ${format_files} "${flynt_args[@]}"
+flynt "${format_files[@]}" "${flynt_args[@]}"
 FLYNTSTATUS=$?
 
 echo "Running the black formatter..."
@@ -122,9 +111,9 @@ fi
 
 # Warn users about bug in black: https://github.com/psf/black/issues/1629
 # Once that is fixed upstream, we can just do:
-# black "${args[@]}" ${format_files}
+# black "${args[@]}" "${format_files[@]}"
 # exit $?
-LOGS="$(black "${args[@]}" ${format_files} 2>&1)"
+LOGS="$(black "${args[@]}" "${format_files[@]}" 2>&1)"
 BLACKSTATUS=$?
 echo "${LOGS}"
 if [[ "$BLACKSTATUS" == "123" && "$LOGS" =~ ^.*"INTERNAL ERROR: Black produced different code on the second pass of the formatter.".*$ ]]; then

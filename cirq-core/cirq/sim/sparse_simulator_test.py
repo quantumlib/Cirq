@@ -1330,3 +1330,57 @@ def test_noise_model():
     result = simulator.run(circuit, repetitions=100)
 
     assert 20 <= sum(result.measurements['0'])[0] < 80
+
+
+def test_separated_states_str_does_not_merge():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0),
+        cirq.measure(q1),
+        cirq.H(q0),
+        cirq.global_phase_operation(0 + 1j),
+    )
+
+    result = cirq.Simulator().simulate(circuit)
+    assert (
+        str(result)
+        == """measurements: 0=0 1=0
+
+qubits: (cirq.LineQubit(0),)
+output vector: 0.707|0⟩ + 0.707|1⟩
+
+qubits: (cirq.LineQubit(1),)
+output vector: |0⟩
+
+phase:
+output vector: 1j|⟩"""
+    )
+
+
+def test_separable_non_dirac_str():
+    circuit = cirq.Circuit()
+    for i in range(4):
+        circuit.append(cirq.H(cirq.LineQubit(i)))
+        circuit.append(cirq.CX(cirq.LineQubit(0), cirq.LineQubit(i + 1)))
+
+    result = cirq.Simulator().simulate(circuit)
+    assert '+0.j' in str(result)
+
+
+def test_unseparated_states_str():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0),
+        cirq.measure(q1),
+        cirq.H(q0),
+        cirq.global_phase_operation(0 + 1j),
+    )
+
+    result = cirq.Simulator(split_untangled_states=False).simulate(circuit)
+    assert (
+        str(result)
+        == """measurements: 0=0 1=0
+
+qubits: (cirq.LineQubit(0), cirq.LineQubit(1))
+output vector: 0.707j|00⟩ + 0.707j|10⟩"""
+    )

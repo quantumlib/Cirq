@@ -148,7 +148,6 @@ class ProjectorString:
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'projector_dict': list(self._projector_dict.items()),
             'coefficient': self._coefficient,
         }

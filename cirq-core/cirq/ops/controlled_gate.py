@@ -260,7 +260,6 @@ class ControlledGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'control_values': self.control_values,
             'control_qid_shape': self.control_qid_shape,
             'sub_gate': self.sub_gate,

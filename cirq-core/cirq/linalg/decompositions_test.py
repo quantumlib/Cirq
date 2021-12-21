@@ -564,7 +564,7 @@ def test_scatter_plot_normalized_kak_interaction_coefficients():
     ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(data)
     assert ax is not None
     ax2 = cirq.scatter_plot_normalized_kak_interaction_coefficients(
-        data, s=1, c='blue', ax=ax, include_frame=False, label=f'test'
+        data, s=1, c='blue', ax=ax, include_frame=False, label='test'
     )
     assert ax2 is ax
 

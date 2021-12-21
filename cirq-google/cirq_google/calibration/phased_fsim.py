@@ -331,7 +331,6 @@ class PhasedFSimCalibrationResult:
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         return {
-            'cirq_type': 'PhasedFSimCalibrationResult',
             'gate': self.gate,
             'parameters': [(q_a, q_b, params) for (q_a, q_b), params in self.parameters.items()],
             'options': self.options,
@@ -379,7 +378,7 @@ def merge_matching_results(
             )
 
         if not all_parameters.keys().isdisjoint(result.parameters):
-            raise ValueError(f'Only results with disjoint parameters sets can be merged')
+            raise ValueError('Only results with disjoint parameters sets can be merged')
 
         all_parameters.update(result.parameters)
 
@@ -747,7 +746,6 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         return {
-            'cirq_type': 'FloquetPhasedFSimCalibrationRequest',
             'pairs': [(pair[0], pair[1]) for pair in self.pairs],
             'gate': self.gate,
             'options': self.options,
