@@ -197,7 +197,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return sub_operation.with_classical_controls(*conds)
 
     def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
-        local_keys: FrozenSet[value.MeasurementKey] = frozenset(
+        local_keys: FrozenSet['cirq.MeasurementKey'] = frozenset(
             k for condition in self._conditions for k in condition.keys
         )
         return local_keys.union(protocols.control_keys(self._sub_operation))
