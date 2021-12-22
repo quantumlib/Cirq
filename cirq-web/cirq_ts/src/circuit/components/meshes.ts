@@ -239,7 +239,7 @@ export class BoxGate3DSymbol extends Mesh {
       textWidth = context.measureText(label).width;
     } while (textWidth > canvas.width);
 
-    const hsl = new Color(color).getHSL({h: 0, s: 0, l: 0})
+    const hsl = new Color(color).getHSL({h: 0, s: 0, l: 0});
     context.fillStyle = hsl.l < 0.5 ? 'white' : 'black';
     context.fillText(
       label,
