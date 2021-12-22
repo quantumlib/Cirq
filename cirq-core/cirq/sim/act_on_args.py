@@ -262,7 +262,7 @@ class ActOnArgs(OperationTarget[TSelf]):
 
 def strat_act_on_from_apply_decompose(
     val: Any,
-    args: ActOnArgs,
+    args: 'cirq.ActOnArgs',
     qubits: Sequence['cirq.Qid'],
 ) -> bool:
     operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)

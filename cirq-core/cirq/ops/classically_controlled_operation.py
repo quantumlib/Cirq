@@ -201,7 +201,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         sub_operation = protocols.with_rescoped_keys(self._sub_operation, path, bindable_keys)
         return sub_operation.with_classical_controls(*conds)
 
-    def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         local_keys: FrozenSet['cirq.MeasurementKey'] = frozenset(
             k for condition in self._conditions for k in condition.keys
         )

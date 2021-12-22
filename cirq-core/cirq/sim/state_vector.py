@@ -13,12 +13,12 @@
 # limitations under the License.
 """Helpers for handling quantum state vectors."""
 
+import abc
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence
 
-import abc
 import numpy as np
 
-from cirq import linalg, ops, qis, value
+from cirq import linalg, qis, value
 from cirq.sim import simulator
 
 if TYPE_CHECKING:
@@ -26,13 +26,12 @@ if TYPE_CHECKING:
 
 
 # For backwards compatibility and to make mypy happy:
-from cirq.qis import STATE_VECTOR_LIKE  # pylint: disable=unused-import,wrong-import-position
 
 
 class StateVectorMixin:
     """A mixin that provide methods for objects that have a state vector."""
 
-    def __init__(self, qubit_map: Optional[Dict[ops.Qid, int]] = None, *args, **kwargs):
+    def __init__(self, qubit_map: Optional[Dict['cirq.Qid', int]] = None, *args, **kwargs):
         """Inits StateVectorMixin.
 
         Args:
@@ -49,7 +48,7 @@ class StateVectorMixin:
         self._qid_shape = None if qubit_map is None else qid_shape
 
     @property
-    def qubit_map(self) -> Dict[ops.Qid, int]:
+    def qubit_map(self) -> Dict['cirq.Qid', int]:
         return self._qubit_map
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -98,7 +97,7 @@ class StateVectorMixin:
             and non-zero floats of the specified accuracy."""
         return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
-    def density_matrix_of(self, qubits: List[ops.Qid] = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: List['cirq.Qid'] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the list, qubits.
