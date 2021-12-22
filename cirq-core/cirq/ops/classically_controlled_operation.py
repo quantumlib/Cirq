@@ -151,6 +151,10 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
         control_count = len({k for c in self._conditions for k in c.keys})
         wire_symbols = sub_info.wire_symbols + ('^',) * control_count
+        if any(not isinstance(c, value.KeyCondition) for c in self._conditions):
+            wire_symbols = (
+                wire_symbols[0] + ' (' + ', '.join(str(c) for c in self._conditions) + ')',
+            ) + wire_symbols[1:]
         exponent_qubit_index = None
         if sub_info.exponent_qubit_index is not None:
             exponent_qubit_index = sub_info.exponent_qubit_index + control_count
