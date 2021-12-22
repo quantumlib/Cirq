@@ -392,13 +392,7 @@ class Gateset:
         if isinstance(op, raw_types.TaggedOperation):
             return self._validate_operation(op.sub_operation)
         elif isinstance(op, circuit_operation.CircuitOperation) and self._unroll_circuit_op:
-            op_circuit = protocols.resolve_parameters(
-                op.circuit.unfreeze(), op.param_resolver, recursive=False
-            )
-            op_circuit = op_circuit.transform_qubits(
-                lambda q: cast(circuit_operation.CircuitOperation, op).qubit_map.get(q, q)
-            )
-            return self.validate(op_circuit)
+            return self.validate(op.mapped_circuit(deep=True))
         else:
             return False
 

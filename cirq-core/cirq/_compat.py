@@ -87,6 +87,9 @@ def proper_repr(value: Any) -> str:
             f'\n)'
         )
 
+    if isinstance(value, Dict):
+        return '{' + ','.join(f"{proper_repr(k)}: {proper_repr(v)}" for k, v in value.items()) + '}'
+
     return repr(value)
 
 

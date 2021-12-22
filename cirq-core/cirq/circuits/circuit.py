@@ -50,7 +50,7 @@ import networkx
 import numpy as np
 
 import cirq._version
-from cirq import devices, ops, protocols, value, qis
+from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -886,10 +886,10 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_key_objs(self) -> AbstractSet[value.MeasurementKey]:
+    def all_measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
         return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         return self.all_measurement_key_objs()
 
     def all_measurement_key_names(self) -> AbstractSet[str]:
@@ -1537,7 +1537,7 @@ class AbstractCircuit(abc.ABC):
             self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
         )
 
-    def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
         return controls - protocols.measurement_key_objs(self)
 
