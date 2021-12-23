@@ -61,8 +61,8 @@ class ActOnArgs(OperationTarget[TSelf]):
                 being recorded into.
             ignore_measurement_results: If True, then the simulation
                 will treat measurement as dephasing instead of collapsing
-                process. This is only applicable to simulators that can
-                model dephasing.
+                process, and not log the result. This is only applicable to
+                simulators that can represent mixed states.
         """
         if prng is None:
             prng = cast(np.random.RandomState, np.random)
@@ -84,7 +84,7 @@ class ActOnArgs(OperationTarget[TSelf]):
 
         Any bitmasks will be applied to the measurement record. If
         `self._ignore_measurement_results` is set, it dephases instead of
-        measuring.
+        measuring, and no measurement result will be logged.
 
         Args:
             qubits: The qubits to measure.
