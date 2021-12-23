@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import random
+
+import numpy
+
 
 def pytest_configure(config):
     # Ignore deprecation warnings in python code generated from our protobuf definitions.
@@ -35,3 +40,10 @@ def pytest_addoption(parser):
         default=False,
         help="run Rigetti integration tests",
     )
+
+
+# skip seeding for unset or empty CIRQ_TESTING_RANDOM_SEED
+if os.environ.get('CIRQ_TESTING_RANDOM_SEED'):
+    rngseed = int(os.environ['CIRQ_TESTING_RANDOM_SEED'])
+    random.seed(rngseed)
+    numpy.random.seed(rngseed)
