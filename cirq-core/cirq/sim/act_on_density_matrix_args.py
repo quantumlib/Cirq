@@ -42,6 +42,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         log_of_measurement_results: Dict[str, Any] = None,
         qubits: Sequence['cirq.Qid'] = None,
         measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = None,
+        ignore_measurement_results: bool = False,
     ):
         """Inits ActOnDensityMatrixArgs.
 
@@ -63,8 +64,18 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 being recorded into.
             measured_qubits: A dictionary that contains the qubits that were
                 measured in each measurement.
+            ignore_measurement_results: If True, then the simulation
+                will treat measurement as dephasing instead of collapsing
+                process. This is only applicable to simulators that can
+                model dephasing.
         """
-        super().__init__(prng, qubits, log_of_measurement_results, measured_qubits)
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            measured_qubits=measured_qubits,
+            ignore_measurement_results=ignore_measurement_results,
+        )
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape

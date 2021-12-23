@@ -213,6 +213,7 @@ class DensityMatrixSimulator(
             prng=self._prng,
             log_of_measurement_results=logs,
             measured_qubits=measured_qubits,
+            ignore_measurement_results=self._ignore_measurement_results,
         )
 
     def _can_be_in_run_prefix(self, val: Any):
