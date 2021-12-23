@@ -101,7 +101,7 @@ def naive_order_finder(x: int, n: int) -> Optional[int]:
     return r
 
 
-class ModularExp(cirq.ArithmeticOperation):
+class ModularExp(cirq.ArithmeticGate):
     """Quantum modular exponentiation.
 
     This class represents the unitary which multiplies base raised to exponent
@@ -130,8 +130,8 @@ class ModularExp(cirq.ArithmeticOperation):
 
     def __init__(
         self,
-        target: Sequence[cirq.Qid],
-        exponent: Union[int, Sequence[cirq.Qid]],
+        target: Sequence[int],
+        exponent: Union[int, Sequence[int]],
         base: int,
         modulus: int,
     ) -> None:
@@ -144,12 +144,12 @@ class ModularExp(cirq.ArithmeticOperation):
         self.base = base
         self.modulus = modulus
 
-    def registers(self) -> Sequence[Union[int, Sequence[cirq.Qid]]]:
+    def registers(self) -> Sequence[Union[int, Sequence[int]]]:
         return self.target, self.exponent, self.base, self.modulus
 
     def with_registers(
         self,
-        *new_registers: Union[int, Sequence['cirq.Qid']],
+        *new_registers: Union[int, Sequence[int]],
     ) -> 'ModularExp':
         if len(new_registers) != 4:
             raise ValueError(
@@ -177,22 +177,12 @@ class ModularExp(cirq.ArithmeticOperation):
         args: cirq.CircuitDiagramInfoArgs,
     ) -> cirq.CircuitDiagramInfo:
         assert args.known_qubits is not None
-        wire_symbols: List[str] = []
-        t, e = 0, 0
-        for qubit in args.known_qubits:
-            if qubit in self.target:
-                if t == 0:
-                    if isinstance(self.exponent, Sequence):
-                        e_str = 'e'
-                    else:
-                        e_str = str(self.exponent)
-                    wire_symbols.append(f'ModularExp(t*{self.base}**{e_str} % {self.modulus})')
-                else:
-                    wire_symbols.append('t' + str(t))
-                t += 1
-            if isinstance(self.exponent, Sequence) and qubit in self.exponent:
-                wire_symbols.append('e' + str(e))
-                e += 1
+        wire_symbols = [f't{i}' for i in range(len(self.target))]
+        e_str = str(self.exponent)
+        if isinstance(self.exponent, Sequence):
+            e_str = 'e'
+            wire_symbols += [f'e{i}' for i in range(len(self.exponent))]
+        wire_symbols[0] = f'ModularExp(t*{self.base}**{e_str} % {self.modulus})'
         return cirq.CircuitDiagramInfo(wire_symbols=tuple(wire_symbols))
 
 
@@ -225,14 +215,16 @@ def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
         Quantum circuit for finding the order of x modulo n
     """
     L = n.bit_length()
-    target = cirq.LineQubit.range(L)
-    exponent = cirq.LineQubit.range(L, 3 * L + 3)
+    target = (2,) * L
+    target_q = cirq.LineQubit.range(L)
+    exponent = (2,) * (2 * L + 3)
+    exponent_q = cirq.LineQubit.range(L, 3 * L + 3)
     return cirq.Circuit(
-        cirq.X(target[L - 1]),
-        cirq.H.on_each(*exponent),
-        ModularExp(target, exponent, x, n),
-        cirq.qft(*exponent, inverse=True),
-        cirq.measure(*exponent, key='exponent'),
+        cirq.X(target_q[L - 1]),
+        cirq.H.on_each(*exponent_q),
+        ModularExp(target, exponent, x, n).on(*(target_q + exponent_q)),
+        cirq.qft(*exponent_q, inverse=True),
+        cirq.measure(*exponent_q, key='exponent'),
     )
 
 
