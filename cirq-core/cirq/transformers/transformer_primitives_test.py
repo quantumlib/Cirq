@@ -16,7 +16,7 @@ from typing import Optional
 import pytest
 
 import cirq
-from cirq.optimizers.transformer_primitives import MAPPED_CIRCUIT_OP_TAG
+from cirq.transformers.transformer_primitives import MAPPED_CIRCUIT_OP_TAG
 
 
 def test_map_operations_can_write_new_gates_inline():

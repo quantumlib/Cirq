@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING, Union
+from typing import Any, Dict, FrozenSet, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -34,7 +34,7 @@ class MeasurementGate(raw_types.Gate):
     def __init__(
         self,
         num_qubits: Optional[int] = None,
-        key: Union[str, value.MeasurementKey] = '',
+        key: Union[str, 'cirq.MeasurementKey'] = '',
         invert_mask: Tuple[bool, ...] = (),
         qid_shape: Tuple[int, ...] = None,
     ) -> None:
@@ -75,7 +75,7 @@ class MeasurementGate(raw_types.Gate):
         return str(self.mkey)
 
     @key.setter
-    def key(self, key: Union[str, value.MeasurementKey]):
+    def key(self, key: Union[str, 'cirq.MeasurementKey']):
         if isinstance(key, value.MeasurementKey):
             self.mkey = key
         else:
@@ -84,7 +84,7 @@ class MeasurementGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def with_key(self, key: Union[str, value.MeasurementKey]) -> 'MeasurementGate':
+    def with_key(self, key: Union[str, 'cirq.MeasurementKey']) -> 'MeasurementGate':
         """Creates a measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
@@ -97,6 +97,13 @@ class MeasurementGate(raw_types.Gate):
 
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
@@ -132,7 +139,7 @@ class MeasurementGate(raw_types.Gate):
     def _measurement_key_name_(self) -> str:
         return self.key
 
-    def _measurement_key_obj_(self) -> value.MeasurementKey:
+    def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
         return self.mkey
 
     def _kraus_(self):
@@ -181,6 +188,8 @@ class MeasurementGate(raw_types.Gate):
             if inv:
                 lines.append(args.format('x {0};  // Invert the following measurement\n', qubit))
             lines.append(args.format('measure {0} -> {1:meas}[{2}];\n', qubit, self.key, i))
+            if inv:
+                lines.append(args.format('x {0};  // Undo the inversion\n', qubit))
         return ''.join(lines)
 
     def _quil_(
