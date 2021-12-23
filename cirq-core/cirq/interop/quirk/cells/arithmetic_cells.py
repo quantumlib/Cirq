@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class QuirkArithmeticOperation(ops.ArithmeticOperation):
+class QuirkArithmeticOperation(ops.ArithmeticGate):
     """Applies arithmetic to a target and some inputs.
 
     Implements Quirk-specific implicit effects like assuming that the presence
@@ -51,8 +51,8 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
     def __init__(
         self,
         identifier: str,
-        target: Sequence['cirq.Qid'],
-        inputs: Sequence[Union[Sequence['cirq.Qid'], int]],
+        target: Sequence[int],
+        inputs: Sequence[Union[Sequence[int], int]],
     ):
         """Inits QuirkArithmeticOperation.
 
@@ -63,20 +63,14 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
                 determine what happens to the target.
 
         Raises:
-            ValueError: If given overlapping registers, or the target is too
-                small for a modular operation with too small modulus.
+            ValueError: If the target is too small for a modular operation with
+                too small modulus.
         """
         self.identifier = identifier
-        self.target: Tuple['cirq.Qid', ...] = tuple(target)
-        self.inputs: Tuple[Union[Sequence['cirq.Qid'], int], ...] = tuple(
+        self.target: Tuple[int, ...] = tuple(target)
+        self.inputs: Tuple[Union[Sequence[int], int], ...] = tuple(
             e if isinstance(e, int) else tuple(e) for e in inputs
         )
-
-        for input_register in self.inputs:
-            if isinstance(input_register, int):
-                continue
-            if set(self.target) & set(input_register):
-                raise ValueError(f'Overlapping registers: {self.target} {self.inputs}')
 
         if self.operation.is_modular:
             r = inputs[-1]
@@ -94,11 +88,11 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
     def _value_equality_values_(self) -> Any:
         return self.identifier, self.target, self.inputs
 
-    def registers(self) -> Sequence[Union[int, Sequence['cirq.Qid']]]:
+    def registers(self) -> Sequence[Union[int, Sequence[int]]]:
         return [self.target, *self.inputs]
 
     def with_registers(
-        self, *new_registers: Union[int, Sequence['cirq.Qid']]
+        self, *new_registers: Union[int, Sequence[int]]
     ) -> 'QuirkArithmeticOperation':
         if len(new_registers) != len(self.inputs) + 1:
             raise ValueError(
@@ -244,11 +238,13 @@ class ArithmeticCell(Cell):
         if missing_inputs:
             raise ValueError(f'Missing input: {sorted(missing_inputs)}')
 
+        inputs = [i if isinstance(i, int) else [q.dimension for q in i] for i in self.inputs]
+        qubits = self.target + tuple(q for i in self.inputs if isinstance(i, Sequence) for q in i)
         return QuirkArithmeticOperation(
             self.identifier,
-            self.target,
-            cast(Sequence[Union[Sequence['cirq.Qid'], int]], self.inputs),
-        )
+            [q.dimension for q in self.target],
+            inputs,
+        ).on(*qubits)
 
 
 def _indented_list_lines_repr(items: Sequence[Any]) -> str:
