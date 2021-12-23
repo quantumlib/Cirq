@@ -29,7 +29,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, ops
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -47,6 +47,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         prng: np.random.RandomState = None,
         qubits: Sequence['cirq.Qid'] = None,
         log_of_measurement_results: Dict[str, List[int]] = None,
+        ignore_measurement_results: bool = False,
     ):
         """Inits ActOnArgs.
 
@@ -58,6 +59,10 @@ class ActOnArgs(OperationTarget[TSelf]):
                 ordering of the computational basis states.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            ignore_measurement_results: If True, then the simulation
+                will treat measurement as dephasing instead of collapsing
+                process, and not log the result. This is only applicable to
+                simulators that can represent mixed states.
         """
         if prng is None:
             prng = cast(np.random.RandomState, np.random)
@@ -68,13 +73,18 @@ class ActOnArgs(OperationTarget[TSelf]):
         self._set_qubits(qubits)
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
+        self._ignore_measurement_results = ignore_measurement_results
 
     def _set_qubits(self, qubits: Sequence['cirq.Qid']):
         self._qubits = tuple(qubits)
         self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
 
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
-        """Adds a measurement result to the log.
+        """Measures the qubits and records to `log_of_measurement_results`.
+
+        Any bitmasks will be applied to the measurement record. If
+        `self._ignore_measurement_results` is set, it dephases instead of
+        measuring, and no measurement result will be logged.
 
         Args:
             qubits: The qubits to measure.
@@ -86,6 +96,9 @@ class ActOnArgs(OperationTarget[TSelf]):
         Raises:
             ValueError: If a measurement key has already been logged to a key.
         """
+        if self.ignore_measurement_results:
+            self._act_on_fallback_(ops.phase_damp(1), qubits)
+            return
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
         if key in self._log_of_measurement_results:
@@ -183,6 +196,10 @@ class ActOnArgs(OperationTarget[TSelf]):
     @property
     def log_of_measurement_results(self) -> Dict[str, List[int]]:
         return self._log_of_measurement_results
+
+    @property
+    def ignore_measurement_results(self) -> bool:
+        return self._ignore_measurement_results
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
