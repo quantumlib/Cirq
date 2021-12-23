@@ -61,6 +61,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            measured_qubits: A dictionary that contains the qubits that were
+                measured in each measurement.
         """
         super().__init__(prng, qubits, log_of_measurement_results, measured_qubits)
         self.target_tensor = target_tensor

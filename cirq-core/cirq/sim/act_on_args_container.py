@@ -65,6 +65,8 @@ class ActOnArgsContainer(
                 at the end.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            measured_qubits: A dictionary that contains the qubits that were
+                measured in each measurement.
         """
         self.args = args
         self._qubits = tuple(qubits)

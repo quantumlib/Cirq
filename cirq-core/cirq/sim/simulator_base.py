@@ -138,6 +138,8 @@ class SimulatorBase(
             qubits: The sequence of qubits to represent.
             logs: The structure to hold measurement logs. A single instance
                 should be shared among all ActOnArgs within the simulation.
+            measured_qubits: A dictionary that contains the qubits that were
+                measured in each measurement.
         """
 
     @abc.abstractmethod

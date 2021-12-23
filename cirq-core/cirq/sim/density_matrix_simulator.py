@@ -188,6 +188,8 @@ class DensityMatrixSimulator(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             logs: The log of measurement results that is added into.
+            measured_qubits: A dictionary that contains the qubits that were
+                measured in each measurement.
 
         Returns:
             ActOnDensityMatrixArgs for the circuit.

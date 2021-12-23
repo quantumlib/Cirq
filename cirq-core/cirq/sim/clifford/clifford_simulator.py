@@ -80,6 +80,8 @@ class CliffordSimulator(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             logs: A log of the results of measurement that is added to.
+            measured_qubits: A dictionary that contains the qubits that were
+                measured in each measurement.
 
         Returns:
             ActOnStabilizerChFormArgs for the circuit.

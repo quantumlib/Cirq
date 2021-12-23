@@ -187,6 +187,8 @@ class Simulator(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             logs: Log of the measurement results.
+            measured_qubits: A dictionary that contains the qubits that were
+                measured in each measurement.
 
         Returns:
             ActOnStateVectorArgs for the circuit.
