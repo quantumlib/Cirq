@@ -143,14 +143,14 @@ class CircuitOperation(ops.Operation):
         # Ensure that param_resolver is converted to an actual ParamResolver.
         object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
 
-    def base_operation(self) -> 'CircuitOperation':
+    def base_operation(self) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with only the wrapped circuit.
 
         Key and qubit mappings, parameter values, and repetitions are not copied.
         """
         return CircuitOperation(self.circuit)
 
-    def replace(self, **changes) -> 'CircuitOperation':
+    def replace(self, **changes) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with the specified changes."""
         return dataclasses.replace(self, **changes)
 
@@ -435,7 +435,7 @@ class CircuitOperation(ops.Operation):
 
         return self.replace(repetitions=final_repetitions, repetition_ids=repetition_ids)
 
-    def __pow__(self, power: int) -> 'CircuitOperation':
+    def __pow__(self, power: int) -> 'cirq.CircuitOperation':
         return self.repeat(power)
 
     def _with_key_path_(self, path: Tuple[str, ...]):
@@ -462,13 +462,13 @@ class CircuitOperation(ops.Operation):
     def with_key_path(self, path: Tuple[str, ...]):
         return self._with_key_path_(path)
 
-    def with_repetition_ids(self, repetition_ids: List[str]) -> 'CircuitOperation':
+    def with_repetition_ids(self, repetition_ids: List[str]) -> 'cirq.CircuitOperation':
         return self.replace(repetition_ids=repetition_ids)
 
     def with_qubit_mapping(
         self,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
-    ) -> 'CircuitOperation':
+    ) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with an updated qubit mapping.
 
         Users should pass either 'qubit_map' or 'transform' to this method.
@@ -509,7 +509,7 @@ class CircuitOperation(ops.Operation):
             )
         return new_op
 
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'CircuitOperation':
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with an updated qubit mapping.
 
         Args:
@@ -529,7 +529,7 @@ class CircuitOperation(ops.Operation):
             raise ValueError(f'Expected {expected} qubits, got {len(new_qubits)}.')
         return self.with_qubit_mapping(dict(zip(self.qubits, new_qubits)))
 
-    def with_measurement_key_mapping(self, key_map: Dict[str, str]) -> 'CircuitOperation':
+    def with_measurement_key_mapping(self, key_map: Dict[str, str]) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with an updated key mapping.
 
         Args:
@@ -563,10 +563,12 @@ class CircuitOperation(ops.Operation):
             )
         return new_op
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'CircuitOperation':
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'cirq.CircuitOperation':
         return self.with_measurement_key_mapping(key_map)
 
-    def with_params(self, param_values: study.ParamResolverOrSimilarType) -> 'CircuitOperation':
+    def with_params(
+        self, param_values: 'cirq.ParamResolverOrSimilarType'
+    ) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with an updated ParamResolver.
 
         Note that any resulting parameter mappings with no corresponding
@@ -592,7 +594,7 @@ class CircuitOperation(ops.Operation):
     # TODO: handle recursive parameter resolution gracefully
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'CircuitOperation':
+    ) -> 'cirq.CircuitOperation':
         if recursive:
             raise ValueError(
                 'Recursive resolution of CircuitOperation parameters is prohibited. '
