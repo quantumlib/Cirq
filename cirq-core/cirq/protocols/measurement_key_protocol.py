@@ -13,12 +13,18 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import AbstractSet, Any, Dict, Optional, Tuple
+from typing import AbstractSet, Any, Dict, FrozenSet, Optional, Tuple, TYPE_CHECKING
 
 from typing_extensions import Protocol
 
-from cirq._doc import doc_private
 from cirq import value
+from cirq._doc import doc_private
+
+if TYPE_CHECKING:
+    import cirq
+
+if TYPE_CHECKING:
+    import cirq
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -56,7 +62,7 @@ class SupportsMeasurementKey(Protocol):
         """Return if this object is (or contains) a measurement."""
 
     @doc_private
-    def _measurement_key_obj_(self) -> value.MeasurementKey:
+    def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
         """Return the key object that will be used to identify this measurement.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -65,7 +71,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         """Return the key objects for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -169,7 +175,7 @@ def measurement_key_name(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
 
 def _measurement_key_objs_from_magic_methods(
     val: Any,
-) -> Optional[AbstractSet[value.MeasurementKey]]:
+) -> Optional[AbstractSet['cirq.MeasurementKey']]:
     """Uses the measurement key related magic methods to get the `MeasurementKey`s for this
     object."""
 
@@ -201,7 +207,7 @@ def _measurement_key_names_from_magic_methods(val: Any) -> Optional[AbstractSet[
     return result
 
 
-def measurement_key_objs(val: Any) -> AbstractSet[value.MeasurementKey]:
+def measurement_key_objs(val: Any) -> AbstractSet['cirq.MeasurementKey']:
     """Gets the measurement key objects of measurements within the given value.
 
     Args:
@@ -305,3 +311,26 @@ def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
     """
     getter = getattr(val, '_with_key_path_prefix_', None)
     return NotImplemented if getter is None else getter(prefix)
+
+
+def with_rescoped_keys(
+    val: Any,
+    path: Tuple[str, ...],
+    bindable_keys: FrozenSet['cirq.MeasurementKey'] = None,
+):
+    """Rescopes any measurement and control keys to the provided path, given the existing keys.
+
+    The path usually refers to an identifier or a list of identifiers from a subcircuit that
+    used to contain the target. Since a subcircuit can be repeated and reused, these paths help
+    differentiate the actual measurement keys.
+
+    This function is generally for internal use in decomposing or iterating subcircuits.
+
+    Args:
+        val: The value to rescope.
+        path: The prefix to apply to the value's path.
+        bindable_keys: The keys that can be bound to at the current scope.
+    """
+    getter = getattr(val, '_with_rescoped_keys_', None)
+    result = NotImplemented if getter is None else getter(path, bindable_keys or frozenset())
+    return result if result is not NotImplemented else val
