@@ -148,13 +148,20 @@ class ClassicallyControlledOperation(raw_types.Operation):
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
         if sub_info is None:
             return NotImplemented  # coverage: ignore
-
-        wire_symbols = sub_info.wire_symbols + ('^',) * len(self._conditions)
+        control_count = len({k for c in self._conditions for k in c.keys})
+        wire_symbols = sub_info.wire_symbols + ('^',) * control_count
+        if any(not isinstance(c, value.KeyCondition) for c in self._conditions):
+            wire_symbols = (
+                wire_symbols[0]
+                + '(conditions=['
+                + ', '.join(str(c) for c in self._conditions)
+                + '])',
+            ) + wire_symbols[1:]
         exponent_qubit_index = None
         if sub_info.exponent_qubit_index is not None:
-            exponent_qubit_index = sub_info.exponent_qubit_index + len(self._conditions)
+            exponent_qubit_index = sub_info.exponent_qubit_index + control_count
         elif sub_info.exponent is not None:
-            exponent_qubit_index = len(self._conditions)
+            exponent_qubit_index = control_count
         return protocols.CircuitDiagramInfo(
             wire_symbols=wire_symbols,
             exponent=sub_info.exponent,
@@ -197,7 +204,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         sub_operation = protocols.with_rescoped_keys(self._sub_operation, path, bindable_keys)
         return sub_operation.with_classical_controls(*conds)
 
-    def _control_keys_(self) -> FrozenSet[value.MeasurementKey]:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         local_keys: FrozenSet['cirq.MeasurementKey'] = frozenset(
             k for condition in self._conditions for k in condition.keys
         )

@@ -17,8 +17,14 @@ from typing import AbstractSet, Any, Dict, FrozenSet, Optional, Tuple, TYPE_CHEC
 
 from typing_extensions import Protocol
 
-from cirq._doc import doc_private
 from cirq import value
+from cirq._doc import doc_private
+
+if TYPE_CHECKING:
+    import cirq
+
+if TYPE_CHECKING:
+    import cirq
 
 if TYPE_CHECKING:
     import cirq

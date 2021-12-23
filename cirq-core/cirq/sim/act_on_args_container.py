@@ -133,7 +133,7 @@ class ActOnArgsContainer(
                 self.args[q] = op_args
         return True
 
-    def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
+    def copy(self) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()
         measured_qubits = self._measured_qubits.copy()
         copies = {a: a.copy() for a in set(self.args.values())}
@@ -157,7 +157,7 @@ class ActOnArgsContainer(
 
     def sample(
         self,
-        qubits: List[ops.Qid],
+        qubits: List['cirq.Qid'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:

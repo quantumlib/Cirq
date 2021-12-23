@@ -21,7 +21,6 @@ from cirq.ops import common_gates, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.act_on_args import ActOnArgs
-from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -38,7 +37,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
 
     def __init__(
         self,
-        state: StabilizerStateChForm,
+        state: 'cirq.StabilizerStateChForm',
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,

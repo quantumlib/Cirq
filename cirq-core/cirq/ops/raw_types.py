@@ -762,7 +762,7 @@ class TaggedOperation(Operation):
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return protocols.measurement_key_names(self.sub_operation)
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         return protocols.measurement_key_objs(self.sub_operation)
 
     def _is_measurement_(self) -> bool:
@@ -837,7 +837,7 @@ class TaggedOperation(Operation):
         new_sub_operation = self.sub_operation.without_classical_controls()
         return self if new_sub_operation is self.sub_operation else new_sub_operation
 
-    def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:
+    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
         return protocols.control_keys(self.sub_operation)
 
 

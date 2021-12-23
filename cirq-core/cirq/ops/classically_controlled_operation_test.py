@@ -750,7 +750,7 @@ def test_sympy_scope():
     a, b, c, d = sympy.symbols('a b c d')
     inner = cirq.Circuit(
         cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls(a + b + c + d),
+        cirq.X(q).with_classical_controls(a & b).with_classical_controls(c | d),
     )
     middle = cirq.Circuit(
         cirq.measure(q, key='b'),
@@ -764,3 +764,88 @@ def test_sympy_scope():
     assert cirq.control_keys(outer_subcircuit) == {'c', 'd'}
     assert cirq.control_keys(circuit) == {'c', 'd'}
     assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      [                      [ 0: ───M───X(conditions=[c | d, a & b])─── ]             ]
+      [                      [       ║   ║                               ]             ]
+      [                      [ a: ═══@═══^══════════════════════════════ ]             ]
+      [                      [           ║                               ]             ]
+      [ 0: ───M───M('0:c')───[ b: ═══════^══════════════════════════════ ]──────────── ]
+      [       ║              [           ║                               ]             ]
+      [       ║              [ c: ═══════^══════════════════════════════ ]             ]
+0: ───[       ║              [           ║                               ]             ]────────────
+      [       ║              [ d: ═══════^══════════════════════════════ ](loops=2)    ]
+      [       ║              ║                                                         ]
+      [ b: ═══@══════════════╬════════════════════════════════════════════════════════ ]
+      [                      ║                                                         ]
+      [ c: ══════════════════╬════════════════════════════════════════════════════════ ]
+      [                      ║                                                         ]
+      [ d: ══════════════════╩════════════════════════════════════════════════════════ ](loops=2)
+      ║
+c: ═══╬═════════════════════════════════════════════════════════════════════════════════════════════
+      ║
+d: ═══╩═════════════════════════════════════════════════════════════════════════════════════════════
+""",
+        use_unicode_characters=True,
+    )
+
+    # pylint: disable=line-too-long
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───────M───M('0:0:c')───M───X(conditions=[c | d, 0:0:a & 0:b])───M───X(conditions=[c | d, 0:1:a & 0:b])───M───M('1:0:c')───M───X(conditions=[c | d, 1:0:a & 1:b])───M───X(conditions=[c | d, 1:1:a & 1:b])───
+          ║                ║   ║                                    ║   ║                                    ║                ║   ║                                    ║   ║
+0:0:a: ═══╬════════════════@═══^════════════════════════════════════╬═══╬════════════════════════════════════╬════════════════╬═══╬════════════════════════════════════╬═══╬════════════════════════════════════
+          ║                    ║                                    ║   ║                                    ║                ║   ║                                    ║   ║
+0:1:a: ═══╬════════════════════╬════════════════════════════════════@═══^════════════════════════════════════╬════════════════╬═══╬════════════════════════════════════╬═══╬════════════════════════════════════
+          ║                    ║                                        ║                                    ║                ║   ║                                    ║   ║
+0:b: ═════@════════════════════^════════════════════════════════════════^════════════════════════════════════╬════════════════╬═══╬════════════════════════════════════╬═══╬════════════════════════════════════
+                               ║                                        ║                                    ║                ║   ║                                    ║   ║
+1:0:a: ════════════════════════╬════════════════════════════════════════╬════════════════════════════════════╬════════════════@═══^════════════════════════════════════╬═══╬════════════════════════════════════
+                               ║                                        ║                                    ║                    ║                                    ║   ║
+1:1:a: ════════════════════════╬════════════════════════════════════════╬════════════════════════════════════╬════════════════════╬════════════════════════════════════@═══^════════════════════════════════════
+                               ║                                        ║                                    ║                    ║                                        ║
+1:b: ══════════════════════════╬════════════════════════════════════════╬════════════════════════════════════@════════════════════^════════════════════════════════════════^════════════════════════════════════
+                               ║                                        ║                                                         ║                                        ║
+c: ════════════════════════════^════════════════════════════════════════^═════════════════════════════════════════════════════════^════════════════════════════════════════^════════════════════════════════════
+                               ║                                        ║                                                         ║                                        ║
+d: ════════════════════════════^════════════════════════════════════════^═════════════════════════════════════════════════════════^════════════════════════════════════════^════════════════════════════════════
+""",
+        use_unicode_characters=True,
+    )
+    # pylint: enable=line-too-long
+
+
+def test_sympy_scope_simulation():
+    q0, q1, q2, q3, q_ignored, q_result = cirq.LineQubit.range(6)
+    condition = sympy_parser.parse_expr('a & b | c & d')
+    # We set up condition (a & b | c & d) plus an ignored measurement key, and run through the
+    # combinations of possible values of those (by doing X(q_i)**bits[i] on each), then verify
+    # that the final measurement into m_result is True iff that condition was met.
+    for i in range(32):
+        bits = cirq.big_endian_int_to_bits(i, bit_count=5)
+        inner = cirq.Circuit(
+            cirq.X(q0) ** bits[0],
+            cirq.measure(q0, key='a'),
+            cirq.X(q_result).with_classical_controls(condition),
+            cirq.measure(q_result, key='m_result'),
+        )
+        middle = cirq.Circuit(
+            cirq.X(q1) ** bits[1],
+            cirq.measure(q1, key='b'),
+            cirq.X(q_ignored) ** bits[4],
+            cirq.measure(q_ignored, key=cirq.MeasurementKey('c', ('0',))),
+            cirq.CircuitOperation(inner.freeze(), repetition_ids=['0']),
+        )
+        circuit = cirq.Circuit(
+            cirq.X(q2) ** bits[2],
+            cirq.measure(q2, key='c'),
+            cirq.X(q3) ** bits[3],
+            cirq.measure(q3, key='d'),
+            cirq.CircuitOperation(middle.freeze(), repetition_ids=['0']),
+        )
+        result = cirq.CliffordSimulator().run(circuit)
+        assert result.measurements['0:0:m_result'][0][0] == (
+            bits[0] and bits[1] or bits[2] and bits[3]  # bits[4] irrelevant
+        )
