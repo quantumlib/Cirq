@@ -154,7 +154,7 @@ def create_engine_validator(
     max_repetitions: int = MAX_TOTAL_REPETITIONS,
     max_duration_ns: int = 55000,
 ) -> VALIDATOR_TYPE:
-    """Creates a Callanle gate set validator with a set message size.
+    """Creates a Callable gate set validator with a set message size.
 
     This validator can be used for a validator in `cg.ValidatingSampler`
     and can also be useful in generating 'engine emulators' by using
