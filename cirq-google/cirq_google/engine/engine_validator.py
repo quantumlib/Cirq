@@ -102,6 +102,10 @@ def validate_gate_set(
 def create_gate_set_validator(max_size: int = MAX_MESSAGE_SIZE) -> GATE_SET_VALIDATOR_TYPE:
     """Creates a Callable gate set validator with a set message size.
 
+    This validator can be used for a validator in `cg.ValidatingSampler`
+    and can also be useful in generating 'engine emulators' by using
+    `cg.SimulatedLocalProcessor` with this callable as a gate_set_validator.
+
     Args:
         max_size:  proto size limit to check against.
 
@@ -114,7 +118,7 @@ def create_gate_set_validator(max_size: int = MAX_MESSAGE_SIZE) -> GATE_SET_VALI
         repetitions: int,
         gate_set: Serializer,
     ):
-        return validate_gate_set(circuits, sweeps, repetitions, gate_set)
+        return validate_gate_set(circuits, sweeps, repetitions, gate_set, max_size)
 
     return _validator
 
@@ -125,7 +129,6 @@ def validate_for_engine(
     repetitions: Union[int, List[int]],
     max_moments: int = MAX_MOMENTS,
     max_repetitions: int = MAX_TOTAL_REPETITIONS,
-    max_duration_ns: int = 55000,
 ) -> None:
     """Validate a circuit and sweeps for sending to the Quantum Engine API.
 
@@ -153,6 +156,10 @@ def create_engine_validator(
 ) -> VALIDATOR_TYPE:
     """Creates a Callanle gate set validator with a set message size.
 
+    This validator can be used for a validator in `cg.ValidatingSampler`
+    and can also be useful in generating 'engine emulators' by using
+    `cg.SimulatedLocalProcessor` with this callable as a validator.
+
     Args:
         max_moments: Maximum number of moments to allow.
         max_repetitions: Maximum number of parameter sweep values allowed
@@ -165,8 +172,6 @@ def create_engine_validator(
         sweeps: Sequence[cirq.Sweepable],
         repetitions: Union[int, List[int]],
     ):
-        return validate_for_engine(
-            circuits, sweeps, repetitions, max_moments, max_repetitions, max_duration_ns
-        )
+        return validate_for_engine(circuits, sweeps, repetitions, max_moments, max_repetitions)
 
     return _validator

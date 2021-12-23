@@ -44,6 +44,27 @@ def test_validate_gate_set():
             [circuit] * 10, [{}] * 10, 1000, cg.FSIM_GATESET, max_size=100000
         )
 
+    with pytest.raises(RuntimeError, match='Program too long'):
+        engine_validator.validate_gate_set(
+            [circuit] * 5, [{}] * 5, 1000, cg.FSIM_GATESET, max_size=10000
+        )
+
+
+def test_create_gate_set_validator():
+    circuit = cirq.testing.random_circuit(
+        cirq.GridQubit.rect(4, 4),
+        n_moments=10,
+        op_density=1.0,
+        gate_domain=SERIALIZABLE_GATE_DOMAIN,
+    )
+
+    smaller_size_validator = engine_validator.create_gate_set_validator(max_size=20000)
+    smaller_size_validator([circuit] * 2, [{}] * 2, 1000, cg.FSIM_GATESET)
+    with pytest.raises(RuntimeError, match='Program too long'):
+        smaller_size_validator([circuit] * 5, [{}] * 5, 1000, cg.FSIM_GATESET)
+    larger_size_validator = engine_validator.create_gate_set_validator(max_size=50000)
+    larger_size_validator([circuit] * 5, [{}] * 5, 1000, cg.FSIM_GATESET)
+
 
 def test_validate_for_engine():
     circuit = cirq.testing.random_circuit(
