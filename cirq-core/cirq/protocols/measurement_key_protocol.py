@@ -23,6 +23,9 @@ from cirq._doc import doc_private
 if TYPE_CHECKING:
     import cirq
 
+if TYPE_CHECKING:
+    import cirq
+
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
 RaiseTypeErrorIfNotProvided = ([],)  # type: Any
