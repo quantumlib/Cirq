@@ -17,7 +17,7 @@ from random import randint
 from string import ascii_lowercase as alphabet
 from typing import Optional, Sequence, Tuple
 
-import numpy as np
+import numpy
 import pytest
 
 import cirq
@@ -232,9 +232,8 @@ def test_swap_network_init_error():
         cca.SwapNetworkGate((3,))
 
 
-rng = np.random.default_rng()
 part_lens_and_acquaintance_sizes = [
-    [[l + 1 for l in rng.poisson(size=n_parts, lam=lam)], rng.poisson(4)]
+    [[l + 1 for l in numpy.random.poisson(size=n_parts, lam=lam)], numpy.random.poisson(4)]
     for n_parts, lam in product(range(2, 20, 3), range(1, 4))
 ]
 
