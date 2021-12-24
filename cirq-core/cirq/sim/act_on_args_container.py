@@ -70,7 +70,9 @@ class ActOnArgsContainer(
         self.args = args
         self._qubits = tuple(qubits)
         self.split_untangled_states = split_untangled_states
+        # pylint: disable=line-too-long
         self._classical_data = classical_data or value.ClassicalData(log_of_measurement_results)  # type: ignore
+        # pylint: enable=line-too-long
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
