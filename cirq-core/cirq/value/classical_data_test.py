@@ -50,7 +50,7 @@ def test_record_measurement_errors():
     with pytest.raises(ValueError, match='3 measurements but 2 qubits'):
         cd.record_measurement(mkey_m, (0, 1, 2), two_qubits)
     cd.record_measurement(mkey_m, (0, 1), two_qubits)
-    with pytest.raises(KeyError, match='Measurement already logged to key m'):
+    with pytest.raises(ValueError, match='Measurement already logged to key m'):
         cd.record_measurement(mkey_m, (0, 1), two_qubits)
 
 
@@ -65,7 +65,7 @@ def test_record_channel_measurement():
 def test_record_channel_measurement_errors():
     cd = cirq.ClassicalData()
     cd.record_channel_measurement(mkey_m, 1, two_qubits)
-    with pytest.raises(KeyError, match='Measurement already logged to key m'):
+    with pytest.raises(ValueError, match='Measurement already logged to key m'):
         cd.record_channel_measurement(mkey_m, 1, two_qubits)
 
 
