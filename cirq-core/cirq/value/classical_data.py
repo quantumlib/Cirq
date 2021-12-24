@@ -12,15 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
-import dataclasses
-from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING, FrozenSet, List
+from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING
 
-import sympy
-
-from cirq._compat import proper_repr
-from cirq.protocols import json_serialization, measurement_key_protocol as mkp
-from cirq.value import digits, measurement_key
+from cirq.value import digits
 
 if TYPE_CHECKING:
     import cirq
@@ -34,6 +28,7 @@ class ClassicalData:
         measurements: Dict['cirq.MeasurementKey', Tuple[int, ...]] = None,
         measured_qubits: Dict['cirq.MeasurementKey', Tuple['cirq.Qid', ...]] = None,
     ):
+        # TODO: Uncomment this after log_of_measurement_results is deprecated and removed
         # if (measurements is None) != (measured_qubits is None):
         #     raise ValueError(
         #         'measurements and measured_qubits must both either be provided or left default.'
@@ -61,12 +56,22 @@ class ClassicalData:
     def record_measurement(
         self, key: 'cirq.MeasurementKey', measurement: Sequence[int], qubits: Sequence['cirq.Qid']
     ):
-        if len(measurement) != len(qubits):
+        if len(measurement) != len(qubits) and len(measurement) != 1:
+            # the latter condition is allowed for keyed channel measurements
             raise ValueError(f'{len(measurement)} measurements but {len(qubits)} qubits.')
         if key in self._measurements:
             raise ValueError(f"Measurement already logged to key {key!r}")
         self._measurements[key] = tuple(measurement)
         self._measured_qubits[key] = tuple(qubits)
+
+    def get_int(self, key: 'cirq.MeasurementKey') -> int:
+        measurement = self._measurements[key]
+        # keyed channels
+        if len(measurement) == 1:
+            return measurement[0]
+        return digits.big_endian_digits_to_int(
+            measurement, base=[q.dimension for q in self._measured_qubits[key]]
+        )
 
     def copy(self):
         return ClassicalData(self._measurements.copy(), self._measured_qubits.copy())

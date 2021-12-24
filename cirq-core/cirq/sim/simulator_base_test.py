@@ -137,12 +137,11 @@ class SplittableCountingSimulator(CountingSimulator):
             split_untangled_states=split_untangled_states,
         )
 
-    def _create_partial_act_on_args(
+    def _create_partial_act_on_args_ex(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
-        classical_data,
+        classical_data: cirq.ClassicalData,
     ) -> CountingActOnArgs:
         return SplittableCountingActOnArgs(qubits=qubits, state=initial_state, classical_data=classical_data)
 

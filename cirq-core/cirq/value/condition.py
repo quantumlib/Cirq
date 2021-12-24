@@ -107,7 +107,7 @@ class KeyCondition(Condition):
     ) -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
-        return any(classical_data.measurements[self.key])
+        return classical_data.get_int(self.key) != 0
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
@@ -156,14 +156,7 @@ class SympyCondition(Condition):
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
 
-        def value(k):
-            return (
-                digits.big_endian_digits_to_int(
-                    classical_data.measurements[k], base=[q.dimension for q in classical_data.measured_qubits[k]]
-                )
-            )
-
-        replacements = {str(k): value(k) for k in self.keys}
+        replacements = {str(k): classical_data.get_int(k) for k in self.keys}
         return bool(self.expr.subs(replacements))
 
     def _json_dict_(self):

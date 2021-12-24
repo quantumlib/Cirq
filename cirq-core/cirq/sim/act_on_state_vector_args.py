@@ -278,7 +278,7 @@ def _strat_act_on_state_vector_from_mixture(
     args.swap_target_tensor_for(args.available_buffer)
     if protocols.is_measurement(action):
         key = protocols.measurement_key_name(action)
-        args.log_of_measurement_results[key] = [index]
+        args.classical_data.record_measurement(key, [index], qubits)
     return True
 
 
@@ -327,5 +327,5 @@ def _strat_act_on_state_vector_from_channel(
     args.swap_target_tensor_for(args.available_buffer)
     if protocols.is_measurement(action):
         key = protocols.measurement_key_name(action)
-        args.log_of_measurement_results[key] = [index]
+        args.classical_data.record_measurement(key, [index], qubits)
     return True

@@ -149,10 +149,6 @@ class ActOnArgsContainer(
         return self._qubits
 
     @property
-    def log_of_measurement_results(self) -> Dict[str, Any]:
-        return {k: list(v) for k, v in self._classical_data.measurements.items()}
-
-    @property
     def classical_data(self) -> 'cirq.ClassicalData':
         return self._classical_data
 
