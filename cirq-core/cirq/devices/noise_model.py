@@ -38,21 +38,21 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     dynamically rewrite the program they are simulating.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     @classmethod
     def from_noise_model_like(cls, noise: 'cirq.NOISE_MODEL_LIKE') -> 'cirq.NoiseModel':
         """Transforms an object into a noise model if umambiguously possible.
 
         Args:
-            noise: ``None``, a ``cirq.NoiseModel``, or a single qubit operation.
+            noise: `None`, a `cirq.NoiseModel`, or a single qubit operation.
 
         Returns:
-            ``cirq.NO_NOISE`` when given ``None``,
-            ``cirq.ConstantQubitNoiseModel(gate)`` when given a single qubit
-            gate, or the given value if it is already a ``cirq.NoiseModel``.
+            `cirq.NO_NOISE` when given `None`,
+            `cirq.ConstantQubitNoiseModel(gate)` when given a single qubit
+            gate, or the given value if it is already a `cirq.NoiseModel`.
 
         Raises:
+            ValueError: If noise is a `cirq.Gate` that acts on more than one
+                qubit.
             TypeError: The input is not a ``cirq.NOISE_MODE_LIKE``.
         """
         if noise is None:
@@ -74,7 +74,6 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             'or a single qubit gate). Got {!r}'.format(noise)
         )
 
-    # pylint: enable=missing-raises-doc
     def is_virtual_moment(self, moment: 'cirq.Moment') -> bool:
         """Returns true iff the given moment is non-empty and all of its
         operations are virtual.

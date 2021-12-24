@@ -214,8 +214,6 @@ def in_weyl_chamber(kak_vec: np.ndarray) -> np.ndarray:
     return np.logical_and.reduce((x_inside, y_inside, z_inside))
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def weyl_chamber_mesh(spacing: float) -> np.ndarray:
     """Cubic mesh of points in the Weyl chamber.
 
@@ -225,6 +223,10 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
     Returns:
         np.ndarray of shape (N,3) corresponding to the points in the Weyl
         chamber.
+
+    Raises:
+        ValueError: If the spacing is so small (less than 1e-3) that this
+            would build a mesh of size about 1GB.
     """
     if spacing < 1e-3:  # memory required ~ 1 GB
         raise ValueError(f'Generating a mesh with spacing {spacing} may cause system to crash.')
@@ -238,7 +240,6 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
     return mesh_points[in_weyl_chamber(mesh_points)]
 
 
-# pylint: enable=missing-raises-doc
 _XX = np.zeros((4, 4))
 _XX[(0, 1, 2, 3), (3, 2, 1, 0)] = 1
 _ZZ = np.diag([1, -1, -1, 1])

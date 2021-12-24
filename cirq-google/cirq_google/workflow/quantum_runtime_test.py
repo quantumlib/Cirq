@@ -33,8 +33,12 @@ class _MockEngineProcessor(AbstractEngineProcessorShim):
     def get_sampler(self) -> cirq.Sampler:
         return cirq.ZerosSampler()
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google.testing'
+
     def _json_dict_(self):
-        return cirq.obj_to_dict_helper(self, attribute_names=[], namespace='cirq.google.testing')
+        return cirq.obj_to_dict_helper(self, attribute_names=[])
 
 
 def cg_assert_equivalent_repr(value):
@@ -136,19 +140,6 @@ def test_executable_group_result(tmpdir):
     _assert_json_roundtrip(egr, tmpdir)
 
 
-def test_egr_filesystem_record_repr():
-    egr_fs_record = cg.ExecutableGroupResultFilesystemRecord(
-        runtime_configuration_path='RuntimeConfiguration.json.gz',
-        shared_runtime_info_path='SharedRuntimeInfo.jzon.gz',
-        executable_result_paths=[
-            'ExecutableResult.1.json.gz',
-            'ExecutableResult.2.json.gz',
-        ],
-        run_id='my-run-id',
-    )
-    cg_assert_equivalent_repr(egr_fs_record)
-
-
 def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
     """Load `ExecutableGroupResult` "by hand" without using
     `ExecutableGroupResultFilesystemRecord`."""
@@ -171,7 +162,11 @@ def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
 @pytest.mark.parametrize('run_id_in', ['unit_test_runid', None])
 def test_execute(tmpdir, run_id_in, patch_cirq_default_resolvers):
     assert patch_cirq_default_resolvers
-    rt_config = cg.QuantumRuntimeConfiguration(processor=_MockEngineProcessor(), run_id=run_id_in)
+    rt_config = cg.QuantumRuntimeConfiguration(
+        processor=_MockEngineProcessor(),
+        run_id=run_id_in,
+        qubit_placer=cg.NaiveQubitPlacer(),
+    )
     executable_group = cg.QuantumExecutableGroup(_get_quantum_executables())
     returned_exegroup_result = cg.execute(
         rt_config=rt_config, executable_group=executable_group, base_data_dir=tmpdir
@@ -187,6 +182,14 @@ def test_execute(tmpdir, run_id_in, patch_cirq_default_resolvers):
         f'{tmpdir}/{run_id}/ExecutableGroupResultFilesystemRecord.json.gz'
     )
     exegroup_result: cg.ExecutableGroupResult = egr_record.load(base_data_dir=tmpdir)
+    helper_loaded_result = cg.ExecutableGroupResultFilesystemRecord.from_json(
+        run_id=run_id, base_data_dir=tmpdir
+    ).load(base_data_dir=tmpdir)
+
+    # TODO(gh-4699): Don't null-out device once it's serializable.
+    assert isinstance(returned_exegroup_result.shared_runtime_info.device, cg.SerializableDevice)
+    returned_exegroup_result.shared_runtime_info.device = None
 
     assert returned_exegroup_result == exegroup_result
     assert manual_exegroup_result == exegroup_result
+    assert helper_loaded_result == exegroup_result

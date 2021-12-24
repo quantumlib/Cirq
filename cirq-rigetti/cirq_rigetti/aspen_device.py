@@ -169,14 +169,12 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
                     )
                 if not ((index % 10) <= 7):
                     raise UnsupportedQubit(
-                        f'this Aspen device only supports qubit indices mod 10 <= 7'
+                        'this Aspen device only supports qubit indices mod 10 <= 7'
                     )
                 return
 
             except ValueError:
-                raise UnsupportedQubit(
-                    f'Aspen devices only support named qubits by octagonal index'
-                )
+                raise UnsupportedQubit('Aspen devices only support named qubits by octagonal index')
 
         if isinstance(qubit, (OctagonalQubit, AspenQubit)):
             if not (qubit.index < self._maximum_qubit_number):
@@ -231,7 +229,6 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'RigettiQCSAspenDevice',
             'isa': self.isa.to_dict(),
         }
 
@@ -275,8 +272,6 @@ def get_rigetti_qcs_aspen_device(
 class OctagonalQubit(cirq.ops.Qid):
     """A cirq.Qid supporting Octagonal indexing."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(self, octagon_position: int):
         r"""Initializes an `OctagonalQubit` using indices 0-7.
               4  - 3
@@ -292,6 +287,9 @@ class OctagonalQubit(cirq.ops.Qid):
 
         Returns:
             The initialized `OctagonalQubit`.
+
+        Raises:
+            ValueError: If the position specified is greater than 7.
         """
         if octagon_position >= 8:
             raise ValueError(f'OctagonQubit must be less than 8, received {octagon_position}')
@@ -299,7 +297,6 @@ class OctagonalQubit(cirq.ops.Qid):
         self._octagon_position = octagon_position
         self.index = octagon_position
 
-    # pylint: enable=missing-raises-doc
     @property
     def octagon_position(self):
         return self._octagon_position
@@ -386,7 +383,6 @@ class OctagonalQubit(cirq.ops.Qid):
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'OctagonalQubit',
             'octagon_position': self.octagon_position,
         }
 
@@ -479,8 +475,6 @@ class AspenQubit(OctagonalQubit):
             return AspenQubit.from_aspen_index(_grid_qubit_mapping[grid_qubit])
         raise ValueError(f'{grid_qubit} is not convertible to Aspen qubit')
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     @staticmethod
     def from_named_qubit(qubit: cirq.NamedQubit) -> 'AspenQubit':
         """Converts `cirq.NamedQubit` to `AspenQubit`.
@@ -490,14 +484,15 @@ class AspenQubit(OctagonalQubit):
 
         Raises:
             ValueError: NamedQubit cannot be converted to AspenQubit.
+            UnsupportedQubit: If the supplied qubit is not a named qubit with an octagonal
+                index.
         """
         try:
             index = int(qubit.name)
             return AspenQubit.from_aspen_index(index)
         except ValueError:
-            raise UnsupportedQubit(f'Aspen devices only support named qubits by octagonal index')
+            raise UnsupportedQubit('Aspen devices only support named qubits by octagonal index')
 
-    # pylint: enable=missing-raises-doc
     @staticmethod
     def from_aspen_index(index: int) -> 'AspenQubit':
         """Initializes an `AspenQubit` at the given index. See `OctagonalQubit` to understand
@@ -527,7 +522,6 @@ class AspenQubit(OctagonalQubit):
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'AspenQubit',
             'octagon': self.octagon,
             'octagon_position': self.octagon_position,
         }

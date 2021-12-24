@@ -50,7 +50,7 @@ such complicated expressions.
 
 ## Notebooks with external dependencies
 
-Unfortunately we have no easy way to test notebooks with external API dependencies, e.g. cirq.google's Engine API.
+Unfortunately we have no easy way to test notebooks with external API dependencies, e.g. cirq_google's Engine API.
 These notebooks should be excluded from both tests.
 
 The site that generates the outputs for notebooks also can't handle external dependencies.

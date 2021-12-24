@@ -15,18 +15,22 @@
 """Runtime information dataclasses and execution of executables."""
 
 import dataclasses
-import os
 import uuid
 from typing import Any, Dict, Optional, List
 
 import cirq
+import numpy as np
 from cirq import _compat
-from cirq.protocols import dataclass_json_dict
+from cirq.protocols import dataclass_json_dict, obj_to_dict_helper
 from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
+from cirq_google.workflow.io import _FilesystemSaver
+from cirq_google.workflow.progress import _PrintLogger
 from cirq_google.workflow.quantum_executable import (
+    QuantumExecutable,
     ExecutableSpec,
     QuantumExecutableGroup,
 )
+from cirq_google.workflow.qubit_placement import QubitPlacer, NaiveQubitPlacer
 
 
 @dataclasses.dataclass
@@ -38,15 +42,29 @@ class SharedRuntimeInfo:
 
     Args:
         run_id: A unique `str` identifier for this run.
+        device: The actual device used during execution, not just its processor_id
     """
 
     run_id: str
+    device: Optional[cirq.Device] = None
+
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        # TODO (gh-4699): serialize `device` as well once SerializableDevice is serializable.
+        return obj_to_dict_helper(self, attribute_names=['run_id'])
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
+
+
+def _try_tuple(k: Any) -> Any:
+    """If we serialize a dictionary that had tuple keys, they get turned to json lists."""
+    if isinstance(k, list):
+        return tuple(k)
+    return k  # coverage: ignore
 
 
 @dataclasses.dataclass
@@ -58,12 +76,29 @@ class RuntimeInfo:
     Args:
         execution_index: What order (in its `cg.QuantumExecutableGroup`) this
             `cg.QuantumExecutable` was executed.
+        qubit_placement: If a QubitPlacer was used, a record of the mapping
+            from problem-qubits to device-qubits.
     """
 
     execution_index: int
+    qubit_placement: Optional[Dict[Any, cirq.Qid]] = None
+
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        d = dataclass_json_dict(self)
+        if d['qubit_placement']:
+            d['qubit_placement'] = list(d['qubit_placement'].items())
+        return d
+
+    @classmethod
+    def _from_json_dict_(cls, **kwargs) -> 'RuntimeInfo':
+        kwargs.pop('cirq_type')
+        if kwargs.get('qubit_placement', None):
+            kwargs['qubit_placement'] = {_try_tuple(k): v for k, v in kwargs['qubit_placement']}
+        return cls(**kwargs)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -84,8 +119,12 @@ class ExecutableResult:
     runtime_info: RuntimeInfo
     raw_data: cirq.Result
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -109,53 +148,12 @@ class ExecutableGroupResult:
     shared_runtime_info: SharedRuntimeInfo
     executable_results: List[ExecutableResult]
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
-
-    def __repr__(self) -> str:
-        return _compat.dataclass_repr(self, namespace='cirq_google')
-
-
-@dataclasses.dataclass
-class ExecutableGroupResultFilesystemRecord:
-    """Filename references to the constituent parts of a `cg.ExecutableGroupResult`.
-
-    Args:
-        runtime_configuration_path: A filename pointing to the `runtime_configuration` value.
-        shared_runtime_info_path: A filename pointing to the `shared_runtime_info` value.
-        executable_result_paths: A list of filenames pointing to the `executable_results` values.
-        run_id: The unique `str` identifier from this run. This is used to locate the other
-            values on disk.
-    """
-
-    runtime_configuration_path: str
-    shared_runtime_info_path: str
-    executable_result_paths: List[str]
-
-    run_id: str
-
-    def load(self, *, base_data_dir: str = ".") -> ExecutableGroupResult:
-        """Using the filename references in this dataclass, load a `cg.ExecutableGroupResult`
-        from its constituent parts.
-
-        Args:
-            base_data_dir: The base data directory. Files should be found at
-                {base_data_dir}/{run_id}/{this class's paths}
-        """
-        data_dir = f"{base_data_dir}/{self.run_id}"
-        return ExecutableGroupResult(
-            runtime_configuration=cirq.read_json_gzip(
-                f'{data_dir}/{self.runtime_configuration_path}'
-            ),
-            shared_runtime_info=cirq.read_json_gzip(f'{data_dir}/{self.shared_runtime_info_path}'),
-            executable_results=[
-                cirq.read_json_gzip(f'{data_dir}/{exe_path}')
-                for exe_path in self.executable_result_paths
-            ],
-        )
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -171,52 +169,26 @@ class QuantumRuntimeConfiguration:
         run_id: A unique `str` identifier for a run. If data already exists for the specified
             `run_id`, an exception will be raised. If not specified, we will generate a UUID4
             run identifier.
+        random_seed: An initial seed to make the run deterministic. Otherwise, the default numpy
+            seed will be used.
+        qubit_placer: A `cg.QubitPlacer` implementation to map executable qubits to device qubits.
+            The placer is only called if a given `cg.QuantumExecutable` has a `problem_topology`.
     """
 
     processor: AbstractEngineProcessorShim
     run_id: Optional[str] = None
+    random_seed: Optional[int] = None
+    qubit_placer: QubitPlacer = NaiveQubitPlacer()
+
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return dataclass_json_dict(self, namespace='cirq.google')
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
-
-
-def _safe_to_json(obj: Any, *, part_path: str, nominal_path: str, bak_path: str):
-    """Safely update a json file.
-
-    1. The new value is written to a "part" file
-    2. The previous file atomically replaces the previous backup file, thereby becoming the
-       current backup file.
-    3. The part file is atomically renamed to the desired filename.
-    """
-    cirq.to_json_gzip(obj, part_path)
-    if os.path.exists(nominal_path):
-        os.replace(nominal_path, bak_path)
-    os.replace(part_path, nominal_path)
-
-
-def _update_updatable_files(
-    egr_record: ExecutableGroupResultFilesystemRecord,
-    shared_rt_info: SharedRuntimeInfo,
-    data_dir: str,
-):
-    """Safely update ExecutableGroupResultFilesystemRecord.json.gz and SharedRuntimeInfo.json.gz
-    during an execution run.
-    """
-    _safe_to_json(
-        shared_rt_info,
-        part_path=f'{data_dir}/SharedRuntimeInfo.json.gz.part',
-        nominal_path=f'{data_dir}/SharedRuntimeInfo.json.gz',
-        bak_path=f'{data_dir}/SharedRuntimeInfo.json.gz.bak',
-    )
-    _safe_to_json(
-        egr_record,
-        part_path=f'{data_dir}/ExecutableGroupResultFilesystemRecord.json.gz.part',
-        nominal_path=f'{data_dir}/ExecutableGroupResultFilesystemRecord.json.gz',
-        bak_path=f'{data_dir}/ExecutableGroupResultFilesystemRecord.json.gz.bak',
-    )
 
 
 def execute(
@@ -260,36 +232,37 @@ def execute(
         # coverage: ignore
         raise ValueError("Please provide a non-empty `base_data_dir`.")
 
-    # Set up data saving, save runtime configuration.
-    data_dir = f'{base_data_dir}/{run_id}'
-    os.makedirs(data_dir, exist_ok=False)
-    egr_record = ExecutableGroupResultFilesystemRecord(
-        runtime_configuration_path='QuantumRuntimeConfiguration.json.gz',
-        shared_runtime_info_path='SharedRuntimeInfo.json.gz',
-        executable_result_paths=[],
-        run_id=run_id,
-    )
-    cirq.to_json_gzip(rt_config, f'{data_dir}/{egr_record.runtime_configuration_path}')
+    sampler = rt_config.processor.get_sampler()
+    device = rt_config.processor.get_device()
 
-    # Set up to-be-updated objects.
-    shared_rt_info = SharedRuntimeInfo(run_id=run_id)
-    _update_updatable_files(egr_record, shared_rt_info, data_dir)
+    shared_rt_info = SharedRuntimeInfo(
+        run_id=run_id,
+        device=device,
+    )
     executable_results = []
 
-    # Loop over executables.
-    sampler = rt_config.processor.get_sampler()
-    n_executables = len(executable_group)
-    print()
+    saver = _FilesystemSaver(base_data_dir=base_data_dir, run_id=run_id)
+    saver.initialize(rt_config, shared_rt_info)
+
+    logger = _PrintLogger(n_total=len(executable_group))
+    logger.initialize()
+
+    rs = np.random.RandomState(rt_config.random_seed)
+    exe: QuantumExecutable
     for i, exe in enumerate(executable_group):
         runtime_info = RuntimeInfo(execution_index=i)
 
         if exe.params != tuple():
             raise NotImplementedError("Circuit params are not yet supported.")
-
-        circuit = exe.circuit
-
         if not hasattr(exe.measurement, 'n_repetitions'):
             raise NotImplementedError("Only `BitstringsMeasurement` are supported.")
+
+        circuit = exe.circuit
+        if exe.problem_topology is not None:
+            circuit, mapping = rt_config.qubit_placer.place_circuit(
+                circuit, problem_topology=exe.problem_topology, shared_rt_info=shared_rt_info, rs=rs
+            )
+            runtime_info.qubit_placement = mapping
 
         sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
 
@@ -299,14 +272,12 @@ def execute(
             raw_data=sampler_run_result,
         )
         # Do bookkeeping for finished ExecutableResult
-        exe_result_path = f'ExecutableResult.{i}.json.gz'
-        cirq.to_json_gzip(exe_result, f"{data_dir}/{exe_result_path}")
         executable_results.append(exe_result)
-        egr_record.executable_result_paths.append(exe_result_path)
+        saver.consume_result(exe_result, shared_rt_info)
+        logger.consume_result(exe_result, shared_rt_info)
 
-        _update_updatable_files(egr_record, shared_rt_info, data_dir)
-        print(f'\r{i + 1} / {n_executables}', end='', flush=True)
-    print()
+    saver.finalize()
+    logger.finalize()
 
     return ExecutableGroupResult(
         runtime_configuration=rt_config,

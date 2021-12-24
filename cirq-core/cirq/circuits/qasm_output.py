@@ -83,10 +83,21 @@ class QasmUGate(ops.SingleQubitGate):
     def _value_equality_values_(self):
         return self.lmda, self.theta, self.phi
 
+    def _json_dict_(self) -> Dict[str, float]:
+        return {
+            'theta': self.theta,
+            'phi': self.phi,
+            'lmda': self.lmda,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, theta: float, phi: float, lmda: float, **kwargs) -> 'QasmUGate':
+        return cls(theta, phi, lmda)
+
 
 @value.value_equality
 class QasmTwoQubitGate(ops.Gate):
-    def __init__(self, kak: linalg.KakDecomposition) -> None:
+    def __init__(self, kak: 'cirq.KakDecomposition') -> None:
         """A two qubit gate represented in QASM by the KAK decomposition.
 
         All angles are in half turns.  Assumes a canonicalized KAK
@@ -222,7 +233,7 @@ class QasmOutput:
 
     def is_valid_qasm_id(self, id_str: str) -> bool:
         """Test if id_str is a valid id in QASM grammar."""
-        return self.valid_id_re.match(id_str) != None
+        return self.valid_id_re.match(id_str) is not None
 
     def save(self, path: Union[str, bytes, int]) -> None:
         """Write QASM output to a file specified by path."""

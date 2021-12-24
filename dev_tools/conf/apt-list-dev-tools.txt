@@ -1,2 +1,4 @@
 virtualenvwrapper
 pandoc
+docker-ce
+docker-compose

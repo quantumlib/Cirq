@@ -30,8 +30,6 @@ class QuantumEngineServiceGrpcTransport(object):
     # in this service.
     _OAUTH_SCOPES = ('https://www.googleapis.com/auth/cloud-platform',)
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(self, channel=None, credentials=None, address='quantum.googleapis.com:443'):
         """Instantiate the transport class.
 
@@ -45,6 +43,9 @@ class QuantumEngineServiceGrpcTransport(object):
                 are specified, the client will attempt to ascertain the
                 credentials from the environment.
             address (str): The address where the service is hosted.
+
+        Raises:
+            ValueError: If both `channel` and `credentials` are given.
         """
         # If both `channel` and `credentials` are specified, raise an
         # exception (channels come with credentials baked in already).
@@ -72,7 +73,6 @@ class QuantumEngineServiceGrpcTransport(object):
             'quantum_engine_service_stub': engine_pb2_grpc.QuantumEngineServiceStub(channel),
         }
 
-    # pylint: enable=missing-raises-doc
     @classmethod
     def create_channel(cls, address='quantum.googleapis.com:443', credentials=None, **kwargs):
         """Create and return a gRPC channel object.

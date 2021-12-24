@@ -45,7 +45,6 @@ class SingleQubitReadoutCalibrationResult:
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'zero_state_errors': list(self.zero_state_errors.items()),
             'one_state_errors': list(self.one_state_errors.items()),
             'repetitions': self.repetitions,
@@ -105,8 +104,6 @@ def estimate_single_qubit_readout_errors(
     )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def estimate_parallel_single_qubit_readout_errors(
     sampler: 'cirq.Sampler',
     *,
@@ -147,6 +144,11 @@ def estimate_parallel_single_qubit_readout_errors(
         if there did not exist a trial where a given qubit was set to |0〉,
         the zero-state error will be set to `nan` (not a number).  Likewise
         for qubits with no |1〉trial and one-state error.
+
+    Raises:
+        ValueError: If the number of trials, repetitions, or trials_per batch is
+            negative, or if bit_strings is not a numpy array or of the wrong
+            shape.
     """
     qubits = list(qubits)
 
@@ -237,6 +239,3 @@ def estimate_parallel_single_qubit_readout_errors(
         repetitions=repetitions,
         timestamp=timestamp,
     )
-
-
-# pylint: enable=missing-raises-doc

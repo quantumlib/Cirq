@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
-
 import pytest, sympy
 
 import cirq
@@ -323,28 +321,22 @@ def test_string_format():
 
     fc0 = cirq.FrozenCircuit()
     op0 = cirq.CircuitOperation(fc0)
-    assert (
-        str(op0)
-        == f"""\
-{op0.circuit.diagram_name()}:
-[                         ]"""
-    )
+    assert str(op0) == f"[  ]"
 
     fc0_global_phase_inner = cirq.FrozenCircuit(
-        cirq.GlobalPhaseOperation(1j), cirq.GlobalPhaseOperation(1j)
+        cirq.global_phase_operation(1j), cirq.global_phase_operation(1j)
     )
     op0_global_phase_inner = cirq.CircuitOperation(fc0_global_phase_inner)
     fc0_global_phase_outer = cirq.FrozenCircuit(
-        op0_global_phase_inner, cirq.GlobalPhaseOperation(1j)
+        op0_global_phase_inner, cirq.global_phase_operation(1j)
     )
     op0_global_phase_outer = cirq.CircuitOperation(fc0_global_phase_outer)
     assert (
         str(op0_global_phase_outer)
         == f"""\
-{op0_global_phase_outer.circuit.diagram_name()}:
-[                         ]
-[                         ]
-[ global phase:   -0.5π   ]"""
+[                       ]
+[                       ]
+[ global phase:   -0.5π ]"""
     )
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))
@@ -352,7 +344,6 @@ def test_string_format():
     assert (
         str(op1)
         == f"""\
-{op1.circuit.diagram_name()}:
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
@@ -361,7 +352,7 @@ def test_string_format():
     )
     assert (
         repr(op1)
-        == f"""\
+        == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -389,10 +380,9 @@ cirq.CircuitOperation(
     assert (
         str(op2)
         == f"""\
-{op2.circuit.diagram_name()}:
-[ 0: ───X───X───          ]
-[           │             ]
-[ 1: ───H───@───          ](qubit_map={{1: 2}}, parent_path=('outer', 'inner'),\
+[ 0: ───X───X─── ]
+[           │    ]
+[ 1: ───H───@─── ](qubit_map={{1: 2}}, parent_path=('outer', 'inner'),\
  repetition_ids=['a', 'b', 'c'])"""
     )
     assert (
@@ -429,8 +419,7 @@ cirq.CircuitOperation(
     assert (
         str(op3)
         == f"""\
-{op3.circuit.diagram_name()}:
-[ 0: ───X^b───M('m')───   ](qubit_map={{0: 1}}, \
+[ 0: ───X^b───M('m')─── ](qubit_map={{0: 1}}, \
 key_map={{m: p}}, params={{b: 2}})"""
     )
     assert (
@@ -450,7 +439,7 @@ cirq.CircuitOperation(
     op5 = cirq.CircuitOperation(fc5)
     assert (
         repr(op5)
-        == f"""\
+        == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -486,7 +475,6 @@ def test_json_dict():
     )
 
     assert op._json_dict_() == {
-        'cirq_type': 'CircuitOperation',
         'circuit': circuit,
         'repetitions': 1,
         'qubit_map': sorted([(k, v) for k, v in op.qubit_map.items()]),
@@ -659,8 +647,16 @@ def test_decompose_nested():
     op2 = cirq.CircuitOperation(circuit2)
     circuit3 = cirq.FrozenCircuit(
         op2.with_params({exp1: exp_half}),
-        op2.with_params({exp1: exp_one}),
-        op2.with_params({exp1: exp_two}),
+        op2.with_params({exp1: exp_one})
+        .with_measurement_key_mapping({'ma': 'ma1'})
+        .with_measurement_key_mapping({'mb': 'mb1'})
+        .with_measurement_key_mapping({'mc': 'mc1'})
+        .with_measurement_key_mapping({'md': 'md1'}),
+        op2.with_params({exp1: exp_two})
+        .with_measurement_key_mapping({'ma': 'ma2'})
+        .with_measurement_key_mapping({'mb': 'mb2'})
+        .with_measurement_key_mapping({'mc': 'mc2'})
+        .with_measurement_key_mapping({'md': 'md2'}),
     )
     op3 = cirq.CircuitOperation(circuit3)
 
@@ -668,8 +664,16 @@ def test_decompose_nested():
 
     expected_circuit1 = cirq.Circuit(
         op2.with_params({exp1: 0.5, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0}),
-        op2.with_params({exp1: 1.0, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0}),
-        op2.with_params({exp1: 2.0, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0}),
+        op2.with_params({exp1: 1.0, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0})
+        .with_measurement_key_mapping({'ma': 'ma1'})
+        .with_measurement_key_mapping({'mb': 'mb1'})
+        .with_measurement_key_mapping({'mc': 'mc1'})
+        .with_measurement_key_mapping({'md': 'md1'}),
+        op2.with_params({exp1: 2.0, exp_half: 0.5, exp_one: 1.0, exp_two: 2.0})
+        .with_measurement_key_mapping({'ma': 'ma2'})
+        .with_measurement_key_mapping({'mb': 'mb2'})
+        .with_measurement_key_mapping({'mc': 'mc2'})
+        .with_measurement_key_mapping({'md': 'md2'}),
     )
 
     result_ops1 = cirq.decompose_once(final_op)
@@ -685,21 +689,21 @@ def test_decompose_nested():
         cirq.X(d) ** 0.5,
         cirq.measure(d, key='md'),
         cirq.X(a) ** 1.0,
-        cirq.measure(a, key='ma'),
+        cirq.measure(a, key='ma1'),
         cirq.X(b) ** 1.0,
-        cirq.measure(b, key='mb'),
+        cirq.measure(b, key='mb1'),
         cirq.X(c) ** 1.0,
-        cirq.measure(c, key='mc'),
+        cirq.measure(c, key='mc1'),
         cirq.X(d) ** 1.0,
-        cirq.measure(d, key='md'),
+        cirq.measure(d, key='md1'),
         cirq.X(a) ** 2.0,
-        cirq.measure(a, key='ma'),
+        cirq.measure(a, key='ma2'),
         cirq.X(b) ** 2.0,
-        cirq.measure(b, key='mb'),
+        cirq.measure(b, key='mb2'),
         cirq.X(c) ** 2.0,
-        cirq.measure(c, key='mc'),
+        cirq.measure(c, key='mc2'),
         cirq.X(d) ** 2.0,
-        cirq.measure(d, key='md'),
+        cirq.measure(d, key='md2'),
     )
     assert cirq.Circuit(cirq.decompose(final_op)) == expected_circuit
     # Verify that mapped_circuit gives the same operations.
@@ -758,6 +762,16 @@ def test_decompose_repeated_nested_measurements():
     assert op3.mapped_circuit(deep=True) == expected_circuit
 
 
+def test_keys_under_parent_path():
+    a = cirq.LineQubit(0)
+    op1 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='A')))
+    assert cirq.measurement_key_names(op1) == {'A'}
+    op2 = op1.with_key_path(('B',))
+    assert cirq.measurement_key_names(op2) == {'B:A'}
+    op3 = op2.repeat(2)
+    assert cirq.measurement_key_names(op3) == {'B:0:A', 'B:1:A'}
+
+
 def test_mapped_circuit_preserves_moments():
     q0, q1 = cirq.LineQubit.range(2)
     fc = cirq.FrozenCircuit(cirq.Moment(cirq.X(q0)), cirq.Moment(cirq.X(q1)))
@@ -802,6 +816,40 @@ def test_tag_propagation():
     sub_ops = cirq.decompose(op)
     for op in sub_ops:
         assert test_tag not in op.tags
+
+
+def test_mapped_circuit_keeps_keys_under_parent_path():
+    q = cirq.LineQubit(0)
+    op1 = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.measure(q, key='A'),
+            cirq.measure_single_paulistring(cirq.X(q), key='B'),
+            cirq.MixedUnitaryChannel.from_mixture(cirq.bit_flip(0.5), key='C').on(q),
+            cirq.KrausChannel.from_channel(cirq.phase_damp(0.5), key='D').on(q),
+        )
+    )
+    op2 = op1.with_key_path(('X',))
+    assert cirq.measurement_key_names(op2.mapped_circuit()) == {'X:A', 'X:B', 'X:C', 'X:D'}
+
+
+def test_keys_conflict_no_repetitions():
+    q = cirq.LineQubit(0)
+    op1 = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.measure(q, key='A'),
+        )
+    )
+    op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
+    with pytest.raises(ValueError, match='Conflicting measurement keys found: A'):
+        _ = op2.mapped_circuit(deep=True)
+
+
+def test_keys_conflict_locally():
+    q = cirq.LineQubit(0)
+    op1 = cirq.measure(q, key='A')
+    op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
+    with pytest.raises(ValueError, match='Conflicting measurement keys found: A'):
+        _ = op2.mapped_circuit()
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?

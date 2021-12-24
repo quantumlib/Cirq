@@ -30,9 +30,6 @@ class WaitGate(raw_types.Gate):
     simulators and noise models may insert more error for longer waits.
     """
 
-    # TODO(#3388) Add documentation for Args.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(
         self,
         duration: 'cirq.DURATION_LIKE',
@@ -44,6 +41,14 @@ class WaitGate(raw_types.Gate):
         Args:
             duration: A constant or parameterized wait duration. This can be
                 an instance of `datetime.timedelta` or `cirq.Duration`.
+            num_qubits: The number of qubits the gate operates on. If None and `qid_shape` is None,
+                this defaults to one qubit.
+            qid_shape: Can be specified instead of `num_qubits` for the case that the gate should
+                act on qudits.
+
+        Raises:
+            ValueError: If the `qid_shape` provided is empty or `num_qubits` contradicts
+                `qid_shape`.
         """
         self.duration = value.Duration(duration)
         if not protocols.is_parameterized(self.duration) and self.duration < 0:
@@ -62,7 +67,6 @@ class WaitGate(raw_types.Gate):
             raise ValueError('len(qid_shape) != num_qubits')
         self._qid_shape = qid_shape
 
-    # pylint: enable=missing-param-doc,missing-raises-doc
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.duration)
 

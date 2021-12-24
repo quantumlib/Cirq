@@ -19,20 +19,20 @@ from cirq import ops, circuits
 from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 def convert_and_separate_circuit(
     circuit: circuits.Circuit,
     leave_cliffords: bool = True,
     atol: float = 1e-8,
 ) -> Tuple[circuits.Circuit, circuits.Circuit]:
-    """Converts any circuit into two circuits where (circuit_left+circuit_right)
-    is equivalent to the given circuit.
+    """Converts a circuit into two, one made of PauliStringPhasor and the other Clifford gates.
 
     Args:
         circuit: Any Circuit that cirq.google.optimized_for_xmon() supports.
             All gates should either provide a decomposition or have a known one
             or two qubit unitary matrix.
+        leave_cliffords: If set, single qubit rotations in the Clifford group
+                are not converted to SingleQubitCliffordGates.
+        atol: The absolute tolerance for the conversion.
 
     Returns:
         (circuit_left, circuit_right)
@@ -43,12 +43,12 @@ def convert_and_separate_circuit(
         SingleQubitCliffordGate and PauliInteractionGate gates.
         It also contains MeasurementGates if the
         given circuit contains measurements.
+
     """
     circuit = converted_gate_set(circuit, no_clifford_gates=not leave_cliffords, atol=atol)
     return pauli_string_half(circuit), regular_half(circuit)
 
 
-# pylint: enable=missing-param-doc
 def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
     """Return only the Clifford part of a circuit.  See
     convert_and_separate_circuit().

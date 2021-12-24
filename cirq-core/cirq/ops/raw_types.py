@@ -22,6 +22,7 @@ from typing import (
     Callable,
     Collection,
     Dict,
+    FrozenSet,
     Hashable,
     Iterable,
     List,
@@ -34,9 +35,16 @@ from typing import (
 )
 
 import numpy as np
+import sympy
 
 from cirq import protocols, value
+from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
+
+# Lazy imports to break circular dependencies.
+ops = LazyLoader("ops", globals(), "cirq.ops")
+line_qubit = LazyLoader("line_qubit", globals(), "cirq.devices.line_qubit")
+
 
 if TYPE_CHECKING:
     import cirq
@@ -208,22 +216,17 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
         """
-        # Avoids circular import.
-        from cirq.ops import gate_operation
+        return ops.gate_operation.GateOperation(self, list(qubits))
 
-        return gate_operation.GateOperation(self, list(qubits))
-
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def on_each(self, *targets: Union[Qid, Iterable[Any]]) -> List['cirq.Operation']:
         """Returns a list of operations applying the gate to all targets.
 
         Args:
             *targets: The qubits to apply this gate to. For single-qubit gates
-            this can be provided as varargs or a combination of nested
-            iterables. For multi-qubit gates this must be provided as an
-            `Iterable[Sequence[Qid]]`, where each sequence has `num_qubits`
-            qubits.
+                this can be provided as varargs or a combination of nested
+                iterables. For multi-qubit gates this must be provided as an
+                `Iterable[Sequence[Qid]]`, where each sequence has `num_qubits`
+                qubits.
 
         Returns:
             Operations applying this gate to the target qubits.
@@ -231,6 +234,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Raises:
             ValueError: If targets are not instances of Qid or Iterable[Qid].
                 If the gate qubit number is incompatible.
+            TypeError: If a single target is supplied and it is not iterable.
         """
         operations: List['cirq.Operation'] = []
         if self._num_qubits_() > 1:
@@ -264,13 +268,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                 )
         return operations
 
-    # pylint: enable=missing-raises-doc
     def wrap_in_linear_combination(
         self, coefficient: Union[complex, float, int] = 1
     ) -> 'cirq.LinearCombinationOfGates':
-        from cirq.ops import linear_combinations
-
-        return linear_combinations.LinearCombinationOfGates({self: coefficient})
+        return ops.linear_combinations.LinearCombinationOfGates({self: coefficient})
 
     def __add__(
         self, other: Union['Gate', 'cirq.LinearCombinationOfGates']
@@ -303,9 +304,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             return self
 
         if power == -1:
-            # HACK: break cycle
-            from cirq.devices import line_qubit
-
             decomposed = protocols.decompose_once_with_qubits(
                 self, qubits=line_qubit.LineQid.for_gate(self), default=None
             )
@@ -324,11 +322,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return self.on(*args, **kwargs)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
-        from cirq.ops.random_gate_channel import RandomGateChannel
 
         if probability == 1:
             return self
-        return RandomGateChannel(sub_gate=self, probability=probability)
+        return ops.random_gate_channel.RandomGateChannel(sub_gate=self, probability=probability)
 
     def controlled(
         self,
@@ -350,12 +347,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
              expected dimension of each control qid.  Defaults to
              `(2,) * num_controls`.  Specify this argument when using qudits.
         """
-        # Avoids circular import.
-        from cirq.ops import ControlledGate
 
         if num_controls == 0:
             return self
-        return ControlledGate(
+        return ops.controlled_gate.ControlledGate(
             self,
             num_controls=num_controls,
             control_values=control_values,
@@ -412,8 +407,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             return NotImplemented
         if protocols.qid_shape(self) != protocols.qid_shape(other):
             return None
-        # HACK: break cycle
-        from cirq.devices import line_qubit
 
         qs = line_qubit.LineQid.for_qid_shape(protocols.qid_shape(self))
         return protocols.commutes(self(*qs), other(*qs))
@@ -544,22 +537,19 @@ class Operation(metaclass=abc.ABCMeta):
                 the operation is applied.  If unspecified, control values
                 default to 1.
         """
-        # Avoids circular import.
-        from cirq.ops.controlled_operation import ControlledOperation
-
         if len(control_qubits) == 0:
             return self
-        return ControlledOperation(control_qubits, self, control_values)
+        return ops.controlled_operation.ControlledOperation(control_qubits, self, control_values)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Operation':
-        from cirq.ops.random_gate_channel import RandomGateChannel
-
         gate = self.gate
         if gate is None:
             raise NotImplementedError("with_probability on gateless operation.")
         if probability == 1:
             return self
-        return RandomGateChannel(sub_gate=gate, probability=probability).on(*self.qubits)
+        return ops.random_gate_channel.RandomGateChannel(sub_gate=gate, probability=probability).on(
+            *self.qubits
+        )
 
     def validate_args(self, qubits: Sequence['cirq.Qid']):
         """Raises an exception if the `qubits` don't match this operation's qid
@@ -601,6 +591,56 @@ class Operation(metaclass=abc.ABCMeta):
             return NotImplemented
 
         return np.allclose(m12, m21, atol=atol)
+
+    @property
+    def classical_controls(self) -> FrozenSet['cirq.Condition']:
+        """The classical controls gating this operation."""
+        return frozenset()
+
+    def with_classical_controls(
+        self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
+    ) -> 'cirq.ClassicallyControlledOperation':
+        """Returns a classically controlled version of this operation.
+
+        An operation that is classically controlled is executed iff all
+        conditions evaluate to True. Currently the only condition type is a
+        measurement key. A measurement key evaluates to True iff any qubit in
+        the corresponding measurement operation evaluated to a non-zero value.
+
+        The classical control will hide any tags on the existing operation,
+        since tags are considered a local attribute.
+
+        Args:
+            conditions: A list of measurement keys, strings that can be parsed
+                into measurement keys, or sympy expressions where the free
+                symbols are measurement key strings.
+
+        Returns:
+            A `ClassicallyControlledOperation` wrapping the operation.
+        """
+        from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
+
+        return ClassicallyControlledOperation(self, conditions)
+
+    def without_classical_controls(self) -> 'cirq.Operation':
+        """Removes all classical controls from the operation.
+
+        This function removes all classical controls gating the operation. It
+        acts recursively, so that all classical control wrappers are always
+        removed from the current operation.
+
+        If there are no classical controls on the operation, it will return
+        `self`.
+
+        Since tags are considered local, this will also remove any tags from
+        the operation (unless there are no classical controls on it). If a
+        `TaggedOperation` is under all the classical control layers, that
+        `TaggedOperation` will be returned from this function.
+
+        Returns:
+            The operation with all classical controls removed.
+        """
+        return self
 
 
 @value.value_equality
@@ -722,7 +762,7 @@ class TaggedOperation(Operation):
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return protocols.measurement_key_names(self.sub_operation)
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         return protocols.measurement_key_objs(self.sub_operation)
 
     def _is_measurement_(self) -> bool:
@@ -789,6 +829,17 @@ class TaggedOperation(Operation):
     ) -> Union[NotImplementedType, bool]:
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
 
+    @property
+    def classical_controls(self) -> FrozenSet['cirq.Condition']:
+        return self.sub_operation.classical_controls
+
+    def without_classical_controls(self) -> 'cirq.Operation':
+        new_sub_operation = self.sub_operation.without_classical_controls()
+        return self if new_sub_operation is self.sub_operation else new_sub_operation
+
+    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
+        return protocols.control_keys(self.sub_operation)
+
 
 @value.value_equality
 class _InverseCompositeGate(Gate):
@@ -817,6 +868,19 @@ class _InverseCompositeGate(Gate):
         return all(
             protocols.has_unitary(op)
             for op in protocols.decompose_once_with_qubits(self._original, qubits)
+        )
+
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self._original)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self._original)
+
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> '_InverseCompositeGate':
+        return _InverseCompositeGate(
+            protocols.resolve_parameters(self._original, resolver, recursive)
         )
 
     def _value_equality_values_(self):

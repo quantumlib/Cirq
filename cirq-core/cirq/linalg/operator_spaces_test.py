@@ -120,9 +120,7 @@ def test_kron_bases_consistency(basis1, basis2):
         assert np.all(basis1[name] == basis2[name])
 
 
-@pytest.mark.parametrize(
-    'basis,repeat', itertools.product((PAULI_BASIS, STANDARD_BASIS), range(1, 5))
-)
+@pytest.mark.parametrize('basis,repeat', itertools.product((PAULI_BASIS, STANDARD_BASIS), range(5)))
 def test_kron_bases_repeat_sanity_checks(basis, repeat):
     product_basis = cirq.kron_bases(basis, repeat=repeat)
     assert len(product_basis) == 4 ** repeat
@@ -175,7 +173,9 @@ def test_hilbert_schmidt_inner_product_is_linear(a, m1, b, m2):
 @pytest.mark.parametrize('m', (I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z))
 def test_hilbert_schmidt_inner_product_is_positive_definite(m):
     v = cirq.hilbert_schmidt_inner_product(m, m)
-    assert np.isreal(v)
+    # Cannot check using np.is_real due to bug in aarch64.
+    # See https://github.com/quantumlib/Cirq/issues/4379
+    assert np.isclose(np.imag(v), 1e-16)
     assert v.real > 0
 
 

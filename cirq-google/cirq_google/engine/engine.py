@@ -33,8 +33,9 @@ from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union
 from google.protobuf import any_pb2
 
 import cirq
+from cirq._compat import deprecated
 from cirq_google.api import v2
-from cirq_google.engine import engine_client
+from cirq_google.engine import engine_client, abstract_engine, abstract_program
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.serialization import SerializableGateSet, Serializer
@@ -77,9 +78,6 @@ class EngineContext:
     simply create an Engine object instead of working with one of these
     directly."""
 
-    # TODO(#3388) Add documentation for Args.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(
         self,
         proto_version: Optional[ProtoVersion] = None,
@@ -97,8 +95,14 @@ class EngineContext:
                 configure options on the underlying client.
             verbose: Suppresses stderr messages when set to False. Default is
                 true.
+            client: The engine client to use, if not supplied one will be
+                created.
             timeout: Timeout for polling for results, in seconds.  Default is
                 to never timeout.
+
+        Raises:
+            ValueError: If either `service_args` and `verbose` were supplied
+                or `client` was supplied, or if proto version 1 is specified.
         """
         if (service_args or verbose) and client:
             raise ValueError('either specify service_args and verbose or client')
@@ -112,7 +116,6 @@ class EngineContext:
         self.client = client
         self.timeout = timeout
 
-    # pylint: enable=missing-param-doc,missing-raises-doc
     def copy(self) -> 'EngineContext':
         return EngineContext(proto_version=self.proto_version, client=self.client)
 
@@ -120,7 +123,7 @@ class EngineContext:
         return self.proto_version, self.client
 
 
-class Engine:
+class Engine(abstract_engine.AbstractEngine):
     """Runs programs via the Quantum Engine API.
 
     This class has methods for creating programs and jobs that execute on
@@ -138,8 +141,6 @@ class Engine:
         get_processor
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         project_id: str,
@@ -166,6 +167,9 @@ class Engine:
                 to never timeout.
             context: Engine configuration and context to use. For most users
                 this should never be specified.
+
+        Raises:
+            ValueError: If context is provided and one of proto_version, service_args, or verbose.
         """
         if context and (proto_version or service_args or verbose):
             raise ValueError('Either provide context or proto_version, service_args and verbose.')
@@ -180,15 +184,12 @@ class Engine:
             )
         self.context = context
 
-    # pylint: enable=missing-raises-doc
     def __str__(self) -> str:
         return f'Engine(project_id={self.project_id!r})'
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def run(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
@@ -228,6 +229,9 @@ class Engine:
 
         Returns:
             A single Result for this run.
+
+        Raises:
+            ValueError: If no gate set is provided.
         """
         if not gate_set:
             raise ValueError('No gate set provided')
@@ -247,10 +251,9 @@ class Engine:
             )
         )[0]
 
-    # TODO(#3388) Add documentation for Raises.
     def run_sweep(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
@@ -294,6 +297,9 @@ class Engine:
         Returns:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
+
+        Raises:
+            ValueError: If no gate set is provided.
         """
         if not gate_set:
             raise ValueError('No gate set provided')
@@ -309,7 +315,6 @@ class Engine:
             labels=job_labels,
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -368,6 +373,10 @@ class Engine:
             first, then the TrialResults for the second, etc. The TrialResults
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
+
+        Raises:
+            ValueError: If the length of programs mismatches that of params_list, or
+                `processor_ids` is not supplied.
         """
         if params_list is None:
             params_list = [None] * len(programs)
@@ -387,7 +396,6 @@ class Engine:
             labels=job_labels,
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def run_calibration(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -442,6 +450,10 @@ class Engine:
         Returns:
             An EngineJob whose results can be retrieved by calling
             calibration_results().
+
+        Raises:
+            ValueError: If `processor_id` and `processor_ids` are both specified, or neither is
+                supplied.
         """
         if processor_id and processor_ids:
             raise ValueError('Only one of processor_id and processor_ids can be specified.')
@@ -461,10 +473,9 @@ class Engine:
             labels=job_labels,
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def create_program(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         gate_set: Optional[Serializer] = None,
         description: Optional[str] = None,
@@ -486,6 +497,9 @@ class Engine:
 
         Returns:
             A EngineProgram for the newly created program.
+
+        Raises:
+            ValueError: If no gate set is provided.
         """
         if not gate_set:
             raise ValueError('No gate set provided')
@@ -505,7 +519,6 @@ class Engine:
             self.project_id, new_program_id, self.context, new_program
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def create_batch_program(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -530,6 +543,9 @@ class Engine:
 
         Returns:
             A EngineProgram for the newly created program.
+
+        Raises:
+            ValueError: If no gate set is provided.
         """
         if not gate_set:
             raise ValueError('Gate set must be specified.')
@@ -552,7 +568,6 @@ class Engine:
             self.project_id, new_program_id, self.context, new_program, result_type=ResultType.Batch
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def create_calibration_program(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -581,6 +596,9 @@ class Engine:
 
         Returns:
             A EngineProgram for the newly created program.
+
+        Raises:
+            ValueError: If not gate set is given.
         """
         if not gate_set:
             raise ValueError('Gate set must be specified.')
@@ -611,9 +629,10 @@ class Engine:
             result_type=ResultType.Calibration,
         )
 
-    # pylint: enable=missing-raises-doc
-    def _serialize_program(self, program: cirq.Circuit, gate_set: Serializer) -> any_pb2.Any:
-        if not isinstance(program, cirq.Circuit):
+    def _serialize_program(
+        self, program: cirq.AbstractCircuit, gate_set: Serializer
+    ) -> any_pb2.Any:
+        if not isinstance(program, cirq.AbstractCircuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
         program.device.validate_circuit(program)
 
@@ -648,7 +667,7 @@ class Engine:
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
-    ) -> List[engine_program.EngineProgram]:
+    ) -> List[abstract_program.AbstractProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:
@@ -764,6 +783,7 @@ class Engine:
         """
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
 
+    @deprecated(deadline="v1.0", fix="Use get_sampler instead.")
     def sampler(
         self, processor_id: Union[str, List[str]], gate_set: Serializer
     ) -> engine_sampler.QuantumEngineSampler:
@@ -772,16 +792,37 @@ class Engine:
         Args:
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
+            gate_set: A `Serializer` that determines how to serialize
+                 circuits when requesting samples.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
+        """
+        return self.get_sampler(processor_id, gate_set)
+
+    def get_sampler(
+        self, processor_id: Union[str, List[str]], gate_set: Serializer
+    ) -> engine_sampler.QuantumEngineSampler:
+        """Returns a sampler backed by the engine.
+
+        Args:
+            processor_id: String identifier, or list of string identifiers,
+                determining which processors may be used when sampling.
+            gate_set: A `Serializer` that determines how to serialize
+                 circuits when requesting samples.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
         """
         return engine_sampler.QuantumEngineSampler(
             engine=self, processor_id=processor_id, gate_set=gate_set
         )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def get_engine(project_id: Optional[str] = None) -> Engine:
     """Get an Engine instance assuming some sensible defaults.
 
@@ -800,8 +841,8 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
         The Engine instance.
 
     Raises:
-        EnvironmentError: If the environment variable GOOGLE_CLOUD_PROJECT is
-            not set.
+        OSError: If the environment variable GOOGLE_CLOUD_PROJECT is not set. This is actually
+            an `EnvironmentError`, which by definition is an `OsError`.
     """
     env_project_id = 'GOOGLE_CLOUD_PROJECT'
     if not project_id:
@@ -812,7 +853,6 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     return Engine(project_id=project_id)
 
 
-# pylint: enable=missing-raises-doc
 def get_engine_device(
     processor_id: str,
     project_id: Optional[str] = None,

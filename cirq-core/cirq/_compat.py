@@ -27,21 +27,40 @@ from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
 import numpy as np
 import pandas as pd
 import sympy
+import sympy.printing.repr
 
 
 def proper_repr(value: Any) -> str:
     """Overrides sympy and numpy returning repr strings that don't parse."""
 
     if isinstance(value, sympy.Basic):
-        result = sympy.srepr(value)
-
         # HACK: work around https://github.com/sympy/sympy/issues/16074
-        # (only handles a few cases)
-        fixed_tokens = ['Symbol', 'pi', 'Mul', 'Pow', 'Add', 'Mod', 'Integer', 'Float', 'Rational']
-        for token in fixed_tokens:
-            result = result.replace(token, 'sympy.' + token)
+        fixed_tokens = [
+            'Symbol',
+            'pi',
+            'Mul',
+            'Pow',
+            'Add',
+            'Mod',
+            'Integer',
+            'Float',
+            'Rational',
+            'GreaterThan',
+            'StrictGreaterThan',
+            'LessThan',
+            'StrictLessThan',
+            'Equality',
+            'Unequality',
+        ]
 
-        return result
+        class Printer(sympy.printing.repr.ReprPrinter):
+            def _print(self, expr, **kwargs):
+                s = super()._print(expr, **kwargs)
+                if any(s.startswith(t) for t in fixed_tokens):
+                    return 'sympy.' + s
+                return s
+
+        return Printer().doprint(value)
 
     if isinstance(value, np.ndarray):
         if np.issubdtype(value.dtype, np.datetime64):
@@ -68,6 +87,9 @@ def proper_repr(value: Any) -> str:
             f'\n    data={repr(rows)}'
             f'\n)'
         )
+
+    if isinstance(value, Dict):
+        return '{' + ','.join(f"{proper_repr(k)}: {proper_repr(v)}" for k, v in value.items()) + '}'
 
     return repr(value)
 
@@ -464,8 +486,6 @@ def _deduped_module_warn_or_error(old_module_name: str, new_module_name: str, de
     )
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     """A module finder to handle deprecated module references.
 
@@ -473,10 +493,12 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     It is meant to be used as a wrapper around existing MetaPathFinder instances.
 
     Args:
-        finder: the finder to wrap.
-        new_module_name: the new module's fully qualified name
-        old_module_name: the deprecated module's fully qualified name
-        deadline: the deprecation deadline
+        finder: The finder to wrap.
+        new_module_name: The new module's fully qualified name.
+        old_module_name: The deprecated module's fully qualified name.
+        deadline: The deprecation deadline.
+        broken_module_exception: If specified, an exception to throw if
+            the module is found.
     """
 
     def __init__(
@@ -576,7 +598,6 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         return spec
 
 
-# pylint: enable=missing-param-doc
 class _BrokenModule(ModuleType):
     def __init__(self, name, exc):
         self.exc = exc
@@ -590,8 +611,6 @@ class DeprecatedModuleImportError(ImportError):
     pass
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 def deprecated_submodule(
     *, new_module_name: str, old_parent: str, old_child: str, deadline: str, create_attribute: bool
 ):
@@ -607,11 +626,12 @@ def deprecated_submodule(
     cache.
 
     Args:
-        new_module_name: absolute module name for the new module
-        old_parent: the current module that had the original submodule
-        old_child: the submodule that is being relocated
-        create_attribute: if True, the submodule will be added as a deprecated attribute to the
-            old_parent module
+        new_module_name: Absolute module name for the new module.
+        old_parent: The current module that had the original submodule.
+        old_child: The submodule that is being relocated.
+        deadline: The version of Cirq where the module will be removed.
+        create_attribute: If True, the submodule will be added as a deprecated attribute to the
+            old_parent module.
 
     Returns:
         None
@@ -663,7 +683,6 @@ def deprecated_submodule(
     sys.meta_path = [wrap(finder) for finder in sys.meta_path]
 
 
-# pylint: enable=missing-param-doc
 def _setup_deprecated_submodule_attribute(
     new_module_name: str,
     old_parent: str,

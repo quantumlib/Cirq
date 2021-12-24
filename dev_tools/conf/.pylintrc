@@ -19,6 +19,7 @@ enable=
     docstyle,
     duplicate-argument-name,
     expression-not-assigned,
+    f-string-without-interpolation
     function-redefined,
     inconsistent-mro,
     init-is-generator,
@@ -40,6 +41,7 @@ enable=
     return-in-init,
     return-outside-function,
     simplifiable-if-statement,
+    singleton-comparison,
     syntax-error,
     too-many-function-args,
     trailing-whitespace,

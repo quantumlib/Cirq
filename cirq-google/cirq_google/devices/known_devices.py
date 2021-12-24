@@ -206,7 +206,6 @@ class _NamedConstantXmonDevice(XmonDevice):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'constant': self._repr,
         }
 

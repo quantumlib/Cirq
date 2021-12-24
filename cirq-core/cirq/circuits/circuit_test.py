@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Iterator, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pytest
@@ -68,6 +69,8 @@ BCONE = ValidatingTestDevice(
 
 if TYPE_CHECKING:
     import cirq
+
+q0, q1, q2, q3 = cirq.LineQubit.range(4)
 
 
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
@@ -224,6 +227,20 @@ def test_append_single():
     assert c == cirq.Circuit([cirq.Moment([cirq.X(a)])])
 
 
+def test_append_control_key():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    c = cirq.Circuit()
+    c.append(cirq.measure(q0, key='a'))
+    c.append(cirq.X(q1).with_classical_controls('a'))
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q0, key='a'))
+    c.append(cirq.X(q1).with_classical_controls('b'))
+    c.append(cirq.X(q2).with_classical_controls('b'))
+    assert len(c) == 1
+
+
 def test_append_multiple():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -248,6 +265,72 @@ def test_append_multiple():
             cirq.Moment([cirq.X(a), cirq.X(b)]),
         ]
     )
+
+
+def test_append_control_key_subcircuit():
+    q0, q1 = cirq.LineQubit.range(2)
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q0, key='a'))
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'a'))
+        )
+    )
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q0, key='a'))
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b'))
+        )
+    )
+    assert len(c) == 1
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q0, key='a'))
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b'))
+        ).with_measurement_key_mapping({'b': 'a'})
+    )
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(q0, key='a'))))
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b'))
+        ).with_measurement_key_mapping({'b': 'a'})
+    )
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q0, key='a'))
+        ).with_measurement_key_mapping({'a': 'c'})
+    )
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b'))
+        ).with_measurement_key_mapping({'b': 'c'})
+    )
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q0, key='a'))
+        ).with_measurement_key_mapping({'a': 'b'})
+    )
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b'))
+        ).with_measurement_key_mapping({'b': 'a'})
+    )
+    assert len(c) == 1
 
 
 def test_append_moments():
@@ -2358,7 +2441,7 @@ a: ---PhX(0.43214321)^0.12341234---
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_diagram_global_phase(circuit_cls):
     qa = cirq.NamedQubit('a')
-    global_phase = cirq.GlobalPhaseOperation(coefficient=1j)
+    global_phase = cirq.global_phase_operation(coefficient=1j)
     c = circuit_cls([global_phase])
     cirq.testing.assert_has_diagram(
         c, "\n\nglobal phase:   0.5pi", use_unicode_characters=False, precision=2
@@ -2391,7 +2474,9 @@ global phase:   0.5π   0.5π
 
     c = circuit_cls(
         cirq.X(cirq.LineQubit(2)),
-        cirq.CircuitOperation(circuit_cls(cirq.GlobalPhaseOperation(-1).with_tags("tag")).freeze()),
+        cirq.CircuitOperation(
+            circuit_cls(cirq.global_phase_operation(-1).with_tags("tag")).freeze()
+        ),
     )
     cirq.testing.assert_has_diagram(
         c,
@@ -2642,6 +2727,165 @@ def test_composite_gate_to_unitary_matrix(circuit_cls):
     mat_expected = cirq.unitary(cirq.CNOT)
 
     cirq.testing.assert_allclose_up_to_global_phase(mat, mat_expected, atol=1e-8)
+
+
+def test_circuit_superoperator_too_many_qubits():
+    circuit = cirq.Circuit(cirq.IdentityGate(num_qubits=11).on(*cirq.LineQubit.range(11)))
+    assert not circuit._has_superoperator_()
+    with pytest.raises(ValueError, match="too many"):
+        _ = circuit._superoperator_()
+
+
+@pytest.mark.parametrize(
+    'circuit, expected_superoperator',
+    (
+        (cirq.Circuit(cirq.I(q0)), np.eye(4)),
+        (cirq.Circuit(cirq.IdentityGate(2).on(q0, q1)), np.eye(16)),
+        (
+            cirq.Circuit(cirq.H(q0)),
+            np.array([[1, 1, 1, 1], [1, -1, 1, -1], [1, 1, -1, -1], [1, -1, -1, 1]]) / 2,
+        ),
+        (cirq.Circuit(cirq.S(q0)), np.diag([1, -1j, 1j, 1])),
+        (cirq.Circuit(cirq.depolarize(0.75).on(q0)), np.outer([1, 0, 0, 1], [1, 0, 0, 1]) / 2),
+        (
+            cirq.Circuit(cirq.X(q0), cirq.depolarize(0.75).on(q0)),
+            np.outer([1, 0, 0, 1], [1, 0, 0, 1]) / 2,
+        ),
+        (
+            cirq.Circuit(cirq.Y(q0), cirq.depolarize(0.75).on(q0)),
+            np.outer([1, 0, 0, 1], [1, 0, 0, 1]) / 2,
+        ),
+        (
+            cirq.Circuit(cirq.Z(q0), cirq.depolarize(0.75).on(q0)),
+            np.outer([1, 0, 0, 1], [1, 0, 0, 1]) / 2,
+        ),
+        (
+            cirq.Circuit(cirq.H(q0), cirq.depolarize(0.75).on(q0)),
+            np.outer([1, 0, 0, 1], [1, 0, 0, 1]) / 2,
+        ),
+        (cirq.Circuit(cirq.H(q0), cirq.H(q0)), np.eye(4)),
+        (
+            cirq.Circuit(cirq.H(q0), cirq.CNOT(q1, q0), cirq.H(q0)),
+            np.diag([1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1, -1, -1, -1, -1, 1]),
+        ),
+    ),
+)
+def test_circuit_superoperator_fixed_values(circuit, expected_superoperator):
+    """Tests Circuit._superoperator_() on a few simple circuits."""
+    assert circuit._has_superoperator_()
+    assert np.allclose(circuit._superoperator_(), expected_superoperator)
+
+
+@pytest.mark.parametrize(
+    'rs, n_qubits',
+    (
+        ([0.1, 0.2], 1),
+        ([0.1, 0.2], 2),
+        ([0.8, 0.9], 1),
+        ([0.8, 0.9], 2),
+        ([0.1, 0.2, 0.3], 1),
+        ([0.1, 0.2, 0.3], 2),
+        ([0.1, 0.2, 0.3], 3),
+    ),
+)
+def test_circuit_superoperator_depolarizing_channel_compositions(rs, n_qubits):
+    """Tests Circuit._superoperator_() on compositions of depolarizing channels."""
+
+    def pauli_error_probability(r: float, n_qubits: int) -> float:
+        """Computes Pauli error probability for given depolarization parameter.
+
+        Pauli error is what cirq.depolarize takes as argument. Depolarization parameter
+        makes it simple to compute the serial composition of depolarizing channels. It
+        is multiplicative under channel composition.
+        """
+        d2 = 4 ** n_qubits
+        return (1 - r) * (d2 - 1) / d2
+
+    def depolarize(r: float, n_qubits: int) -> cirq.DepolarizingChannel:
+        """Returns depolarization channel with given depolarization parameter."""
+        return cirq.depolarize(pauli_error_probability(r, n_qubits=n_qubits), n_qubits=n_qubits)
+
+    qubits = cirq.LineQubit.range(n_qubits)
+    circuit1 = cirq.Circuit(depolarize(r, n_qubits).on(*qubits) for r in rs)
+    circuit2 = cirq.Circuit(depolarize(np.prod(rs), n_qubits).on(*qubits))
+
+    assert circuit1._has_superoperator_()
+    assert circuit2._has_superoperator_()
+
+    cm1 = circuit1._superoperator_()
+    cm2 = circuit2._superoperator_()
+    assert np.allclose(cm1, cm2)
+
+
+def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
+    """Yields operator basis consisting of density operators."""
+    RHO_0 = np.array([[1, 0], [0, 0]], dtype=np.complex64)
+    RHO_1 = np.array([[0, 0], [0, 1]], dtype=np.complex64)
+    RHO_2 = np.array([[1, 1], [1, 1]], dtype=np.complex64) / 2
+    RHO_3 = np.array([[1, -1j], [1j, 1]], dtype=np.complex64) / 2
+    RHO_BASIS = (RHO_0, RHO_1, RHO_2, RHO_3)
+
+    if n_qubits < 1:
+        yield np.array(1)
+        return
+    for rho1 in RHO_BASIS:
+        for rho2 in density_operator_basis(n_qubits - 1):
+            yield np.kron(rho1, rho2)
+
+
+@pytest.mark.parametrize(
+    'circuit, initial_state',
+    itertools.chain(
+        itertools.product(
+            [
+                cirq.Circuit(cirq.I(q0)),
+                cirq.Circuit(cirq.X(q0)),
+                cirq.Circuit(cirq.Y(q0)),
+                cirq.Circuit(cirq.Z(q0)),
+                cirq.Circuit(cirq.S(q0)),
+                cirq.Circuit(cirq.T(q0)),
+            ],
+            density_operator_basis(n_qubits=1),
+        ),
+        itertools.product(
+            [
+                cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1)),
+                cirq.Circuit(cirq.depolarize(0.2).on(q0), cirq.CNOT(q0, q1)),
+                cirq.Circuit(
+                    cirq.X(q0),
+                    cirq.amplitude_damp(0.2).on(q0),
+                    cirq.depolarize(0.1).on(q1),
+                    cirq.CNOT(q0, q1),
+                ),
+            ],
+            density_operator_basis(n_qubits=2),
+        ),
+        itertools.product(
+            [
+                cirq.Circuit(
+                    cirq.depolarize(0.1, n_qubits=2).on(q0, q1),
+                    cirq.H(q2),
+                    cirq.CNOT(q1, q2),
+                    cirq.phase_damp(0.1).on(q0),
+                ),
+                cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.TOFFOLI(q0, q1, q2)),
+            ],
+            density_operator_basis(n_qubits=3),
+        ),
+    ),
+)
+def test_compare_circuits_superoperator_to_simulation(circuit, initial_state):
+    """Compares action of circuit superoperator and circuit simulation."""
+    assert circuit._has_superoperator_()
+    superoperator = circuit._superoperator_()
+    vectorized_initial_state = np.reshape(initial_state, np.prod(initial_state.shape))
+    vectorized_final_state = superoperator @ vectorized_initial_state
+    actual_state = np.reshape(vectorized_final_state, initial_state.shape)
+
+    sim = cirq.DensityMatrixSimulator()
+    expected_state = sim.simulate(circuit, initial_state=initial_state).final_density_matrix
+
+    assert np.allclose(actual_state, expected_state)
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -3996,37 +4240,6 @@ def test_moments_property(circuit_cls):
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_operation_shape_validation(circuit_cls):
-    class BadOperation1(cirq.Operation):
-        def _qid_shape_(self):
-            return (1,)
-
-        @property
-        def qubits(self):
-            return cirq.LineQid.for_qid_shape((1, 2, 3))
-
-        def with_qubits(self, *qubits):
-            raise NotImplementedError
-
-    class BadOperation2(cirq.Operation):
-        def _qid_shape_(self):
-            return (1, 2, 3, 9)
-
-        @property
-        def qubits(self):
-            return cirq.LineQid.for_qid_shape((1, 2, 3))
-
-        def with_qubits(self, *qubits):
-            raise NotImplementedError
-
-    _ = circuit_cls(cirq.X(cirq.LineQid(0, 2)))  # Valid
-    with pytest.raises(ValueError, match='Invalid operation'):
-        _ = circuit_cls(BadOperation1())
-    with pytest.raises(ValueError, match='Invalid operation'):
-        _ = circuit_cls(BadOperation2())
-
-
-@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_json_dict(circuit_cls):
     q0, q1 = cirq.LineQubit.range(2)
     c = circuit_cls(cirq.CNOT(q0, q1))
@@ -4034,7 +4247,6 @@ def test_json_dict(circuit_cls):
     if circuit_cls == cirq.FrozenCircuit:
         moments = tuple(moments)
     assert c._json_dict_() == {
-        'cirq_type': circuit_cls.__name__,
         'moments': moments,
         'device': cirq.UNCONSTRAINED_DEVICE,
     }
@@ -4794,7 +5006,7 @@ def test_zero_target_operations_go_below_diagram():
             cirq.Moment(
                 cirq.H(cirq.LineQubit(0)),
                 CustomOperationAnnotation("a"),
-                cirq.GlobalPhaseOperation(1j),
+                cirq.global_phase_operation(1j),
             ),
         ),
         """

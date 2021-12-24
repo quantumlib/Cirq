@@ -99,6 +99,25 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        new_gate = protocols.with_key_path_prefix(self.gate, prefix)
+        if new_gate is NotImplemented:
+            return NotImplemented
+        if new_gate is self.gate:
+            # As GateOperation is immutable, this can return the original.
+            return self
+        return new_gate.on(*self.qubits)
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        new_gate = protocols.with_rescoped_keys(self.gate, path, bindable_keys)
+        if new_gate is self.gate:
+            return self
+        return new_gate.on(*self.qubits)
+
     def __repr__(self):
         if hasattr(self.gate, '_op_repr_'):
             result = self.gate._op_repr_(self.qubits)
@@ -119,7 +138,7 @@ class GateOperation(raw_types.Operation):
 
     def __str__(self) -> str:
         qubits = ', '.join(str(e) for e in self.qubits)
-        return f'{self.gate}({qubits})'
+        return f'{self.gate}({qubits})' if qubits else str(self.gate)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
@@ -229,13 +248,13 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _measurement_key_obj_(self) -> Optional[value.MeasurementKey]:
+    def _measurement_key_obj_(self) -> Optional['cirq.MeasurementKey']:
         getter = getattr(self.gate, '_measurement_key_obj_', None)
         if getter is not None:
             return getter()
         return NotImplemented
 
-    def _measurement_key_objs_(self) -> Optional[AbstractSet[value.MeasurementKey]]:
+    def _measurement_key_objs_(self) -> Optional[AbstractSet['cirq.MeasurementKey']]:
         getter = getattr(self.gate, '_measurement_key_objs_', None)
         if getter is not None:
             return getter()

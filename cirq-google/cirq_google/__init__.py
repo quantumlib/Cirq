@@ -73,6 +73,7 @@ from cirq_google.engine import (
     EngineProcessor,
     ProtoVersion,
     QuantumEngineSampler,
+    ValidatingSampler,
     get_engine,
     get_engine_calibration,
     get_engine_device,
@@ -88,6 +89,7 @@ from cirq_google.line import (
 
 from cirq_google.ops import (
     CalibrationTag,
+    FSimGateFamily,
     PhysicalZTag,
     SycamoreGate,
     SYC,
@@ -134,6 +136,8 @@ from cirq_google.workflow import (
     ExecutableGroupResultFilesystemRecord,
     QuantumRuntimeConfiguration,
     execute,
+    QubitPlacer,
+    NaiveQubitPlacer,
 )
 
 from cirq_google import experimental

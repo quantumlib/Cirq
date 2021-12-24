@@ -45,8 +45,6 @@ class ActOnArgsContainer(
 ):
     """A container for a `Qid`-to-`ActOnArgs` dictionary."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         args: Dict[Optional['cirq.Qid'], TActOnArgs],
@@ -71,7 +69,6 @@ class ActOnArgsContainer(
         self.split_untangled_states = split_untangled_states
         self._log_of_measurement_results = log_of_measurement_results
 
-    # pylint: enable=missing-raises-doc
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
             return self.args[None]
@@ -133,7 +130,7 @@ class ActOnArgsContainer(
                 self.args[q] = op_args
         return True
 
-    def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
+    def copy(self) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()
         copies = {a: a.copy() for a in set(self.args.values())}
         for copy in copies.values():
@@ -151,7 +148,7 @@ class ActOnArgsContainer(
 
     def sample(
         self,
-        qubits: List[ops.Qid],
+        qubits: List['cirq.Qid'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:

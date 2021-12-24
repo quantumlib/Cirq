@@ -37,18 +37,15 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
 
     First, checks if the given operation is already a native sycamore operation.
 
-    Second, checks if the operation has a known unitary. If so, and the gate
-        is a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
-        operation.
+    Second, checks if the operation has a known unitary. If so, and the gate is a 1-qubit or
+    2-qubit gate, then performs circuit synthesis of the operation.
 
     Third, attempts to `cirq.decompose` to the operation.
 
-    Fourth, if ignore_failures is set, gives up and returns the gate unchanged.
-        Otherwise raises a TypeError.
+    Fourth, if ignore_failures is set, gives up and returns the gate unchanged. Otherwise raises
+    a TypeError.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(self, tabulation: Optional[GateTabulation] = None, ignore_failures=False) -> None:
         """Inits ConvertToSycamoreGates.
 
@@ -60,14 +57,16 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
                 usually cirq_google.SYC) and a maximum infidelity.
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
+
+        Raises:
+            ValueError: If the tabulation is not a `GateTabulation`.
         """
         super().__init__()
         self.ignore_failures = ignore_failures
         if tabulation is not None and not isinstance(tabulation, GateTabulation):
-            raise ValueError("provided tabulation must be of type GateTabulation")
+            raise ValueError("Provided tabulation must be of type GateTabulation.")
         self.tabulation = tabulation
 
-    # pylint: enable=missing-raises-doc
     def _is_native_sycamore_op(self, op: cirq.Operation) -> bool:
         """Check if the given operation is native to a Sycamore device.
 
@@ -106,15 +105,8 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
 
         return False
 
-    # TODO(#3388) Add summary line to docstring.
-    # pylint: disable=docstring-first-line-empty
     def _convert_one(self, op: cirq.Operation) -> cirq.OP_TREE:
-        """
-        Decomposer intercept:  Upon cirq.protocols.decompose catch and
-        return new OP_Tree
-
-        This should decompose based on number of qubits.
-        """
+        """The main conversion step for the PointOptimizer."""
         if len(op.qubits) == 1:
             return _phased_x_z_ops(cirq.unitary(op, None), op.qubits[0])
         elif len(op.qubits) == 2:
@@ -123,7 +115,6 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
             )
         return NotImplemented
 
-    # pylint: enable=docstring-first-line-empty
     def convert(self, op: cirq.Operation) -> List[cirq.Operation]:
         def on_stuck_raise(bad):
             return TypeError(
@@ -181,26 +172,27 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
         )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def known_two_q_operations_to_sycamore_operations(
     qubit_a: cirq.Qid,
     qubit_b: cirq.Qid,
     op: cirq.Operation,
     tabulation: Optional[GateTabulation] = None,
 ) -> cirq.OP_TREE:
-    """Synthesizes a known gate operation to a sycamore operation.
+    """Synthesizes a known gate operation to a Sycamore operation.
 
-    This function dispatches based on gate type
+    This function dispatches based on gate type.
 
     Args:
-        qubit_a: first qubit of GateOperation
-        qubit_b: second qubit of GateOperation
-        op: operation to decompose
-        tabulation: A tabulation for the Sycamore gate to use for
-            decomposing gates.
+        qubit_a: First qubit of GateOperation.
+        qubit_b: Second qubit of GateOperation.
+        op: Operation to decompose.
+        tabulation: A tabulation for the Sycamore gate to use for decomposing gates.
     Returns:
-        New operations iterable object
+        The operations that yield the gate using Sycamores.
+
+    Raises:
+        ValueError: If the gate is a `PhasedISwapPowGate` with an exponent of 0.25 or 1.0,
+            or the gate is not recognized.
     """
     gate = op.gate
     if isinstance(gate, cirq.PhasedISwapPowGate):
@@ -242,24 +234,21 @@ def known_two_q_operations_to_sycamore_operations(
         raise ValueError(f"Unrecognized gate: {op!r}")
 
 
-# pylint: enable=missing-raises-doc
 def decompose_phased_iswap_into_syc(
     phase_exponent: float, a: cirq.Qid, b: cirq.Qid
 ) -> cirq.OP_TREE:
     """Decompose PhasedISwap with an exponent of 1.
 
     This should only be called if the Gate has an exponent of 1 - otherwise,
-    decompose_phased_iswap_into_syc_precomputed should be used instead. The
-    advantage of using this function is that the resulting circuit will be
-    smaller.
+    `decompose_phased_iswap_into_syc_precomputed` should be used instead. The advantage of using
+    this function is that the resulting circuit will be smaller.
 
     Args:
         phase_exponent: The exponent on the Z gates.
-        a: First qubit id to operate on
-        b: Second qubit id to operate on
-    Returns:
-        a Cirq program implementing the Phased ISWAP gate
-
+        a: First qubit id to operate on.
+        b: Second qubit id to operate on.
+    Yields:
+        A `cirq.OP_TREE` implementing the Phased ISWAP gate.
     """
 
     yield cirq.Z(a) ** phase_exponent,
@@ -274,23 +263,20 @@ def decompose_phased_iswap_into_syc_precomputed(
 ) -> cirq.OP_TREE:
     """Decompose PhasedISwap into sycamore gates using precomputed coefficients.
 
-    This should only be called if the Gate has a phase_exponent of .25. If the
-    gate has an exponent of 1, decompose_phased_iswap_into_syc should be used
-    instead. Converting PhasedISwap gates to Sycamore is not supported if
-    neither of these constraints are satisfied.
+    This should only be called if the Gate has a phase_exponent of .25. If the gate has an
+    exponent of 1, decompose_phased_iswap_into_syc should be used instead. Converting PhasedISwap
+    gates to Sycamore is not supported if neither of these constraints are satisfied.
 
-    This synthesize a PhasedISwap in terms of four sycamore gates.  This
-    compilation converts the gate into a circuit involving two CZ gates, which
-    themselves are each represented as two Sycamore gates and single-qubit
-    rotations
+    This synthesize a PhasedISwap in terms of four sycamore gates.  This compilation converts the
+    gate into a circuit involving two CZ gates, which themselves are each represented as two
+    Sycamore gates and single-qubit rotations
 
     Args:
-        theta: rotation parameter
-        a: First qubit id to operate on
-        b: Second qubit id to operate on
-    Returns:
-        a Cirq program implementing the Phased ISWAP gate
-
+        theta: Rotation parameter for the phased ISWAP.
+        a: First qubit id to operate on.
+        b: Second qubit id to operate on.
+    Yields:
+        A `cirq.OP_TREE` that implements Phased ISWAP gate
     """
 
     yield cirq.PhasedXPowGate(phase_exponent=0.41175161497166024, exponent=0.5653807577895922).on(a)
@@ -322,16 +308,15 @@ def decompose_phased_iswap_into_syc_precomputed(
 def decompose_arbitrary_into_syc_tabulation(
     qubit_a: cirq.Qid, qubit_b: cirq.Qid, op: cirq.Operation, tabulation: GateTabulation
 ) -> cirq.OP_TREE:
-    """Synthesize an arbitrary 2 qubit operation to a sycamore operation using
-    the given Tabulation.
+    """Synthesize an arbitrary 2 qubit operation to a Sycamore operation using the given Tabulation.
 
     Args:
-        qubit_a: first qubit of the operation
-        qubit_b: second qubit of the operation
-        op: operation to decompose
+        qubit_a: First qubit of the operation.
+        qubit_b: second qubit of the operation.
+        op: Operation to decompose.
         tabulation: A tabulation for the Sycamore gate.
-    Returns:
-        New operations iterable object
+    Yields:
+        A `cirq.OP_TREE` that perform the given operation using Sycamore operations.
     """
     result = tabulation.compile_two_qubit_gate(cirq.unitary(op))
     local_gates = result.local_unitaries
@@ -345,16 +330,15 @@ def decompose_arbitrary_into_syc_tabulation(
 def decompose_arbitrary_into_syc_analytic(
     qubit_a: cirq.Qid, qubit_b: cirq.Qid, op: cirq.Operation
 ) -> cirq.OP_TREE:
-    """Synthesize an arbitrary 2 qubit operation to a sycamore operation using
-    the given Tabulation.
+    """Synthesize an arbitrary 2 qubit operation to a Sycamore operation using the given Tabulation.
 
-     Args:
-            qubit_a: first qubit of the operation
-            qubit_b: second qubit of the operation
-            op: operation to decompose
-            tabulation: A tabulation for the Sycamore gate.
-        Returns:
-            New operations iterable object
+    Args:
+        qubit_a: First qubit of the operation.
+        qubit_b: Second qubit of the operation.
+        op: Operation to decompose.
+        tabulation: A tabulation for the Sycamore gate.
+    Yields:
+        A `cirq.OP_TREE` which produces the given operation using Sycamores.
     """
     new_ops = cirq.two_qubit_matrix_to_operations(qubit_a, qubit_b, op, allow_partial_czs=True)
     for new_op in new_ops:
@@ -370,7 +354,7 @@ def decompose_arbitrary_into_syc_analytic(
 
 
 def decompose_cz_into_syc(a: cirq.Qid, b: cirq.Qid):
-    """Decompose CZ into sycamore gates using precomputed coefficients"""
+    """Decompose CZ into sycamore gates using precomputed coefficients."""
     yield cirq.PhasedXPowGate(phase_exponent=0.5678998743900456, exponent=0.5863459345743176).on(a)
     yield cirq.PhasedXPowGate(phase_exponent=0.3549946157441739).on(b)
     yield google.SYC.on(a, b)
@@ -385,7 +369,7 @@ def decompose_cz_into_syc(a: cirq.Qid, b: cirq.Qid):
 
 
 def decompose_iswap_into_syc(a: cirq.Qid, b: cirq.Qid):
-    """Decompose ISWAP into sycamore gates using precomputed coefficients"""
+    """Decompose ISWAP into sycamore gates using precomputed coefficients."""
     yield cirq.PhasedXPowGate(phase_exponent=-0.27250925776964596, exponent=0.2893438375555899).on(
         a
     )
@@ -421,24 +405,22 @@ def decompose_swap_into_syc(a: cirq.Qid, b: cirq.Qid):
     yield (cirq.Z ** -0.7034535141382525).on(a)
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def find_local_equivalents(unitary1: np.ndarray, unitary2: np.ndarray):
-    """
-    Given two unitaries with the same interaction coefficients but different
-    local unitary rotations determine the local unitaries that turns
-    one type of gate into another.
+    """Determine the local unitaries that turn one unitary into the other.
+
+    Given two unitaries with the same interaction coefficients but different local unitary
+    rotations determine the local unitaries that turns one type of gate into another.
 
     1) perform the kak decomp on each unitary and confirm interaction terms
        are equivalent
     2) identify the elements of SU(2) to transform unitary2 into unitary1
 
     Args:
-        unitary1: unitary that we target
-        unitary2: unitary that we transform the local gates to the target
+        unitary1: The unitary that we target.
+        unitary2: The unitary that we transform the local gates to the target.
+
     Returns:
-        four 2x2 unitaries.  first two are pre-rotations last two are post
-        rotations.
+        Four 2x2 unitaries. The first two are pre-rotations last two are post rotations.
     """
     kak_u1 = cirq.kak_decomposition(unitary1)
     kak_u2 = cirq.kak_decomposition(unitary2)
@@ -456,7 +438,6 @@ def find_local_equivalents(unitary1: np.ndarray, unitary2: np.ndarray):
     return v_0, v_1, u_0, u_1
 
 
-# pylint: enable=docstring-first-line-empty
 def create_corrected_circuit(
     target_unitary: np.ndarray, program: cirq.Circuit, q0: cirq.Qid, q1: cirq.Qid
 ) -> cirq.OP_TREE:
@@ -490,10 +471,8 @@ def rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
         theta: rotation parameter
         q0: First qubit id to operate on
         q1: Second qubit id to operate on
-    Returns:
-        a Cirq program implementing the Ising gate
-    rtype:
-        cirq.OP_Tree
+    Yields:
+        The `cirq.OP_TREE` that produce the Ising gate with Sycamore gates.
     """
     phi = -np.pi / 24
     c_phi = np.cos(2 * phi)
@@ -515,16 +494,15 @@ def rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
 def cphase(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
     """Implements a cphase using the Ising gate generated from 2 Sycamore gates.
 
-    A CPHASE gate has the matrix diag([1, 1, 1, exp(1j * theta)]) and can
-    be mapped to the Ising gate by prep and post rotations of Z-pi/4.
-    We drop the global phase shift of theta/4.
+    A CPHASE gate has the matrix diag([1, 1, 1, exp(1j * theta)]) and can be mapped to the Ising
+    gate by prep and post rotations of Z - pi/4. We drop the global phase shift of theta / 4.
 
     Args:
-        theta: exp(1j * theta )
-        q0: First qubit id to operate on
-        q1: Second qubit id to operate on
-    returns:
-        a cirq program implementing cphase
+        theta: The phase to apply, exp(1j * theta).
+        q0: First qubit id to operate on.
+        q1: Second qubit id to operate on.
+    Yields:
+        The gates the perform the cphase using Sycamore gates.
     """
     yield rzz(-theta / 4, q0, q1)
     yield cirq.rz(theta / 2).on(q0)
@@ -534,15 +512,15 @@ def cphase(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
 def swap_rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
     """An implementation of SWAP * EXP(1j theta ZZ) using three sycamore gates.
 
-    This builds off of the zztheta method.  A sycamore gate following the
+    This builds off of the zztheta method.  A Sycamore gate following the
     zz-gate is a SWAP EXP(1j (THETA - pi/24) ZZ).
 
     Args:
-        theta: exp(1j * theta )
-        q0: First qubit id to operate on
-        q1: Second qubit id to operate on
-    Returns:
-        The circuit that implements ZZ followed by a swap
+        theta: The phase in the cphase gate, exp(1j * theta )
+        q0: First qubit id to operate on.
+        q1: Second qubit id to operate on.
+    Yields:
+        The `cirq.OP_TREE`` that implements ZZ followed by a swap.
     """
 
     # Set interaction part.

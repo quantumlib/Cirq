@@ -27,7 +27,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, protocols, value
+from cirq import devices, ops, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
@@ -74,24 +74,20 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._all_qubits: Optional[FrozenSet['cirq.Qid']] = None
         self._all_operations: Optional[Tuple[ops.Operation, ...]] = None
         self._has_measurements: Optional[bool] = None
-        self._all_measurement_key_objs: Optional[AbstractSet[value.MeasurementKey]] = None
+        self._all_measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = None
         self._are_all_measurements_terminal: Optional[bool] = None
+        self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
 
     @property
     def moments(self) -> Sequence['cirq.Moment']:
         return self._moments
 
     @property
-    def device(self) -> devices.Device:
+    def device(self) -> 'cirq.Device':
         return self._device
 
     def __hash__(self):
         return hash((self.moments, self.device))
-
-    def diagram_name(self):
-        """Name used to represent this in circuit diagrams."""
-        key = hash(self) & 0xFFFF_FFFF_FFFF_FFFF
-        return f'Circuit_0x{key:016x}'
 
     # Memoized methods for commonly-retrieved properties.
 
@@ -120,7 +116,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             self._all_qubits = super().all_qubits()
         return self._all_qubits
 
-    def all_operations(self) -> Iterator[ops.Operation]:
+    def all_operations(self) -> Iterator['cirq.Operation']:
         if self._all_operations is None:
             self._all_operations = tuple(super().all_operations())
         return iter(self._all_operations)
@@ -130,13 +126,18 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             self._has_measurements = super().has_measurements()
         return self._has_measurements
 
-    def all_measurement_key_objs(self) -> AbstractSet[value.MeasurementKey]:
+    def all_measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._all_measurement_key_objs is None:
             self._all_measurement_key_objs = super().all_measurement_key_objs()
         return self._all_measurement_key_objs
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         return self.all_measurement_key_objs()
+
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
+        if self._control_keys is None:
+            self._control_keys = super()._control_keys_()
+        return self._control_keys
 
     def are_all_measurements_terminal(self) -> bool:
         if self._are_all_measurements_terminal is None:
@@ -151,29 +152,29 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return self.all_measurement_key_names()
 
-    def __add__(self, other) -> 'FrozenCircuit':
+    def __add__(self, other) -> 'cirq.FrozenCircuit':
         return (self.unfreeze() + other).freeze()
 
-    def __radd__(self, other) -> 'FrozenCircuit':
+    def __radd__(self, other) -> 'cirq.FrozenCircuit':
         return (other + self.unfreeze()).freeze()
 
     # Needed for numpy to handle multiplication by np.int64 correctly.
     __array_priority__ = 10000
 
     # TODO: handle multiplication / powers differently?
-    def __mul__(self, other) -> 'FrozenCircuit':
+    def __mul__(self, other) -> 'cirq.FrozenCircuit':
         return (self.unfreeze() * other).freeze()
 
-    def __rmul__(self, other) -> 'FrozenCircuit':
+    def __rmul__(self, other) -> 'cirq.FrozenCircuit':
         return (other * self.unfreeze()).freeze()
 
-    def __pow__(self, other) -> 'FrozenCircuit':
+    def __pow__(self, other) -> 'cirq.FrozenCircuit':
         try:
             return (self.unfreeze() ** other).freeze()
         except:
             return NotImplemented
 
-    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'FrozenCircuit':
+    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'cirq.FrozenCircuit':
         new_circuit = FrozenCircuit(device=self.device)
         new_circuit._moments = tuple(moments)
         return new_circuit
@@ -182,12 +183,12 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self,
         new_device: 'cirq.Device',
         qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
-    ) -> 'FrozenCircuit':
+    ) -> 'cirq.FrozenCircuit':
         return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'FrozenCircuit':
+    ) -> 'cirq.FrozenCircuit':
         return self.unfreeze()._resolve_parameters_(resolver, recursive).freeze()
 
     def tetris_concat(
