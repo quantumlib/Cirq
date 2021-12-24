@@ -81,12 +81,13 @@ class ClassicalData:
 
         Raises:
             ValueError: If the measurement shape does not match the qubits
-                measured, or if the measurement key was already used.
+                measured.
+            KeyError: If the measurement key was already used.
         """
         if len(measurement) != len(qubits):
             raise ValueError(f'{len(measurement)} measurements but {len(qubits)} qubits.')
         if key in self._measurements:
-            raise ValueError(f"Measurement already logged to key {key!r}")
+            raise KeyError(f"Measurement already logged to key {key}")
         self._measurements[key] = tuple(measurement)
         self._measured_qubits[key] = tuple(qubits)
 
@@ -101,10 +102,10 @@ class ClassicalData:
             qubits: The qubits that were measured.
 
         Raises:
-            ValueError: If the measurement key was already used.
+            KeyError: If the measurement key was already used.
         """
         if key in self._measurements:
-            raise ValueError(f"Measurement already logged to key {key!r}")
+            raise KeyError(f"Measurement already logged to key {key}")
         self._measurements[key] = (measurement,)
         self._measured_qubits[key] = tuple(qubits)
 
@@ -115,7 +116,7 @@ class ClassicalData:
             key: The measurement key.
 
         Raises:
-            ValueError: If the key has not been used.
+            KeyError: If the key has not been used.
         """
         if key not in self._measurements:
             raise KeyError(f'The measurement key {key} is not in {self._measurements}')
