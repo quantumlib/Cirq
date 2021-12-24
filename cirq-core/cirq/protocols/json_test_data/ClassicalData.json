@@ -1,0 +1,18 @@
+{
+  "cirq_type": "ClassicalData",
+  "measurements": {
+    "m": [0, 1]
+  },
+  "measured_qubits": {
+    "m": [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      {
+        "cirq_type": "LineQubit",
+        "x": 1
+      }
+    ]
+  }
+}

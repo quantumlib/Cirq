@@ -12,16 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import dataclasses
 from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING
 
+from cirq.protocols import json_serialization
 from cirq.value import digits
 
 if TYPE_CHECKING:
     import cirq
 
 
+@dataclasses.dataclass
 class ClassicalData:
     """Classical data representing measurements and metadata."""
+
+    _measurements: Dict['cirq.MeasurementKey', Tuple[int, ...]]
+    _measured_qubits: Dict['cirq.MeasurementKey', Tuple['cirq.Qid', ...]]
 
     def __init__(
         self,
@@ -39,8 +45,8 @@ class ClassicalData:
             measured_qubits = {}
         # if set(measurements.keys()) != set(measured_qubits.keys()):
         #     raise ValueError('measurements and measured_qubits must contain same keys.')
-        self._measurements: Dict['cirq.MeasurementKey', Tuple[int, ...]] = measurements
-        self._measured_qubits: Dict['cirq.MeasurementKey', Tuple['cirq.Qid', ...]] = measured_qubits
+        self._measurements = measurements
+        self._measured_qubits = measured_qubits
 
     def keys(self) -> Tuple['cirq.MeasurementKey', ...]:
         return tuple(self._measurements.keys())
@@ -75,3 +81,16 @@ class ClassicalData:
 
     def copy(self):
         return ClassicalData(self._measurements.copy(), self._measured_qubits.copy())
+
+    def _json_dict_(self):
+        return json_serialization.obj_to_dict_helper(self, ['measurements', 'measured_qubits'])
+
+    @classmethod
+    def _from_json_dict_(cls, measurements, measured_qubits, **kwargs):
+        return cls(measurements=measurements, measured_qubits=measured_qubits)
+
+    def __repr__(self):
+        return (
+            f'cirq.ClassicalData(measurements={self.measurements!r},'
+            f' measured_qubits={self.measured_qubits!r})'
+        )
