@@ -27,6 +27,10 @@ from cirq.testing.circuit_compare import (
 from cirq.testing.consistent_decomposition import (
     assert_decompose_is_consistent_with_unitary,
 )
+from cirq.testing.consistent_kraus import (
+    assert_kraus_is_consistent_with_unitary,
+    assert_kraus_is_consistent_with_mixture,
+)
 from cirq.testing.consistent_phase_by import (
     assert_phase_by_is_consistent_with_unitary,
 )
@@ -154,6 +158,8 @@ def _assert_meets_standards_helper(
     assert_qasm_is_consistent_with_unitary(val)
     assert_has_consistent_trace_distance_bound(val)
     assert_decompose_is_consistent_with_unitary(val, ignoring_global_phase=ignoring_global_phase)
+    assert_kraus_is_consistent_with_unitary(val, ignoring_global_phase=ignoring_global_phase)
+    assert_kraus_is_consistent_with_mixture(val, ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)
     assert_pauli_expansion_is_consistent_with_unitary(val)
     assert_equivalent_repr(

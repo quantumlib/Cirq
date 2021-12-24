@@ -137,6 +137,78 @@ def test_kraus_fallback_to_unitary():
     assert cirq.has_kraus(ReturnsUnitary())
 
 
+def test_serial_concatenation_default():
+    q1 = cirq.GridQubit(1, 1)
+
+    class defaultGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _kraus_(self):
+            return NotImplemented
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return NotImplemented
+
+    class onlyDecompose:
+        def _decompose_(self):
+            return [cirq.Y.on(q1), defaultGate().on(q1)]
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return None
+
+    with pytest.raises(TypeError, match="returned NotImplemented"):
+        _ = cirq.kraus(onlyDecompose())
+    assert cirq.kraus(onlyDecompose(), 0) == 0
+    assert not cirq.has_kraus(onlyDecompose())
+
+
+def test_serial_concatenation_circuit():
+    q1 = cirq.GridQubit(1, 1)
+    q2 = cirq.GridQubit(1, 2)
+
+    class defaultGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _kraus_(self):
+            return cirq.kraus(cirq.X)
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return NotImplemented
+
+    class onlyDecompose:
+        def _decompose_(self):
+            circ = cirq.Circuit([cirq.Y.on(q1), defaultGate().on(q2)])
+            return cirq.decompose(circ)
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return None
+
+    g = onlyDecompose()
+    c = cirq.kraus_to_superoperator((cirq.unitary(cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)])),))
+
+    np.testing.assert_almost_equal(cirq.kraus_to_superoperator(cirq.kraus(g)), c)
+    np.testing.assert_almost_equal(cirq.kraus_to_superoperator(cirq.kraus(g, None)), c)
+    np.testing.assert_almost_equal(cirq.kraus_to_superoperator(cirq.kraus(g, NotImplemented)), c)
+    np.testing.assert_almost_equal(cirq.kraus_to_superoperator(cirq.kraus(g, (1,))), c)
+    np.testing.assert_almost_equal(cirq.kraus_to_superoperator(cirq.kraus(g, LOCAL_DEFAULT)), c)
+
+    assert cirq.has_kraus(g)
+
+
 class HasKraus(cirq.SingleQubitGate):
     def _has_kraus_(self) -> bool:
         return True

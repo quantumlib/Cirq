@@ -40,6 +40,11 @@ from cirq.testing.consistent_decomposition import (
     assert_decompose_is_consistent_with_unitary,
 )
 
+from cirq.testing.consistent_kraus import (
+    assert_kraus_is_consistent_with_unitary,
+    assert_kraus_is_consistent_with_mixture,
+)
+
 from cirq.testing.consistent_pauli_expansion import (
     assert_pauli_expansion_is_consistent_with_unitary,
 )
