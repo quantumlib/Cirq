@@ -135,14 +135,12 @@ class ActOnArgsContainer(
         return True
 
     def copy(self) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
-        logs = self.log_of_measurement_results.copy()
-        classical_data = self._classical_data.copy()
+        classical_data = self.classical_data.copy()
         copies = {a: a.copy() for a in set(self.args.values())}
         for copy in copies.values():
-            copy._log_of_measurement_results = logs
             copy._classical_data = classical_data
         args = {q: copies[a] for q, a in self.args.items()}
-        return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, logs)
+        return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, classical_data=classical_data)
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:

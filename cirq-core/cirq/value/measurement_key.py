@@ -77,6 +77,11 @@ class MeasurementKey:
             object.__setattr__(self, '_hash', hash(str(self)))
         return self._hash
 
+    def __lt__(self, other):
+        if isinstance(other, MeasurementKey):
+            return str(self) < str(other)
+        return NotImplemented
+
     def _json_dict_(self):
         return {
             'name': self.name,

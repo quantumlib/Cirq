@@ -162,7 +162,7 @@ class SimulatorBase(
         return self._create_partial_act_on_args(
             initial_state,
             qubits,
-            classical_data.measurements()  # type: ignore
+            classical_data.measurements  # type: ignore
         )
 
     @abc.abstractmethod
