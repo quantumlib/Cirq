@@ -79,7 +79,9 @@ class MeasurementKey:
 
     def __lt__(self, other):
         if isinstance(other, MeasurementKey):
-            return str(self) < str(other)
+            if self.path != other.path:
+                return self.path < other.path
+            return self.name < other.name
         return NotImplemented
 
     def _json_dict_(self):
