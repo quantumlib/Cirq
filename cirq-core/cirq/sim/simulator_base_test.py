@@ -143,7 +143,9 @@ class SplittableCountingSimulator(CountingSimulator):
         qubits: Sequence['cirq.Qid'],
         classical_data: cirq.ClassicalData,
     ) -> CountingActOnArgs:
-        return SplittableCountingActOnArgs(qubits=qubits, state=initial_state, classical_data=classical_data)
+        return SplittableCountingActOnArgs(
+            qubits=qubits, state=initial_state, classical_data=classical_data
+        )
 
 
 q0, q1 = cirq.LineQubit.range(2)

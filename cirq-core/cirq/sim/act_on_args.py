@@ -102,7 +102,9 @@ class ActOnArgs(OperationTarget[TSelf]):
             return
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
-        self._classical_data.record_measurement(value.MeasurementKey.parse_serialized(key), corrected, qubits)
+        self._classical_data.record_measurement(
+            value.MeasurementKey.parse_serialized(key), corrected, qubits
+        )
 
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]

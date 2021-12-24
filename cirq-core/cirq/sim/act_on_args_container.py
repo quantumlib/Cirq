@@ -140,7 +140,9 @@ class ActOnArgsContainer(
         for copy in copies.values():
             copy._classical_data = classical_data
         args = {q: copies[a] for q, a in self.args.items()}
-        return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, classical_data=classical_data)
+        return ActOnArgsContainer(
+            args, self.qubits, self.split_untangled_states, classical_data=classical_data
+        )
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:

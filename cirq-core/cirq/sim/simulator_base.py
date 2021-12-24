@@ -160,9 +160,7 @@ class SimulatorBase(
         # Child classes should override this behavior. We call the old one here by default for
         # backwards compatibility, until deprecation cycle is complete.
         return self._create_partial_act_on_args(
-            initial_state,
-            qubits,
-            classical_data.measurements  # type: ignore
+            initial_state, qubits, classical_data.measurements  # type: ignore
         )
 
     @abc.abstractmethod
