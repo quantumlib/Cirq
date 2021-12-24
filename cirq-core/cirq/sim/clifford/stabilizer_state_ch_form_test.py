@@ -73,5 +73,5 @@ def test_run():
                 log_of_measurement_results=measurements,
             )
             cirq.act_on(op, args)
-        assert measurements['1'] == [1]
+        assert measurements['1'] == (1,)
         assert measurements['0'] != measurements['2']

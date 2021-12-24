@@ -34,13 +34,13 @@ class ClassicalData:
         #         'measurements and measured_qubits must both either be provided or left default.'
         #     )
         if measurements is None:
-            measurements: Dict['cirq.MeasurementKey', Tuple[int, ...]] = {}
+            measurements = {}
         if measured_qubits is None:
-            measured_qubits: Dict['cirq.MeasurementKey', Tuple['cirq.Qid', ...]] = {}
+            measured_qubits = {}
         # if set(measurements.keys()) != set(measured_qubits.keys()):
         #     raise ValueError('measurements and measured_qubits must contain same keys.')
-        self._measurements = measurements
-        self._measured_qubits = measured_qubits
+        self._measurements: Dict['cirq.MeasurementKey', Tuple[int, ...]] = measurements
+        self._measured_qubits: Dict['cirq.MeasurementKey', Tuple['cirq.Qid', ...]] = measured_qubits
 
     def keys(self) -> Tuple['cirq.MeasurementKey', ...]:
         return tuple(self._measurements.keys())

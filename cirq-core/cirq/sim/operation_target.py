@@ -19,7 +19,6 @@ from typing import (
     Generic,
     Iterator,
     List,
-    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -80,7 +79,7 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
         """Gets the log of measurement results."""
-        return {k: list(v) for k, v in self.classical_data.measurements.items()}
+        return {str(k): list(v) for k, v in self.classical_data.measurements.items()}
 
     @property
     @abc.abstractmethod

@@ -19,7 +19,6 @@ from typing import (
     Generic,
     Iterator,
     List,
-    Mapping,
     Optional,
     Sequence,
     Tuple,

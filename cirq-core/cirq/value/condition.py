@@ -14,13 +14,13 @@
 
 import abc
 import dataclasses
-from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING, FrozenSet
+from typing import Dict, Tuple, TYPE_CHECKING, FrozenSet
 
 import sympy
 
 from cirq._compat import proper_repr
 from cirq.protocols import json_serialization, measurement_key_protocol as mkp
-from cirq.value import digits, measurement_key
+from cirq.value import measurement_key
 
 if TYPE_CHECKING:
     import cirq
