@@ -706,7 +706,7 @@ def test_sympy():
 
 def test_sympy_qudits():
     q0 = cirq.LineQid(0, 3)
-    q1 = cirq.LineQid(1, 3)
+    q1 = cirq.LineQid(1, 5)
     q_result = cirq.LineQubit(2)
 
     class PlusGate(cirq.Gate):
@@ -724,18 +724,18 @@ def test_sympy_qudits():
             u[:inc] = np.eye(self.dimension)[-inc:]
             return u
 
-    for i in range(9):
-        digits = cirq.big_endian_int_to_digits(i, digit_count=2, base=3)
+    for i in range(15):
+        digits = cirq.big_endian_int_to_digits(i, digit_count=2, base=(3, 5))
         circuit = cirq.Circuit(
             PlusGate(3, digits[0]).on(q0),
-            PlusGate(3, digits[1]).on(q1),
+            PlusGate(5, digits[1]).on(q1),
             cirq.measure(q0, q1, key='m'),
-            cirq.X(q_result).with_classical_controls(sympy_parser.parse_expr('m > 4')),
+            cirq.X(q_result).with_classical_controls(sympy_parser.parse_expr('m % 4 <= 1')),
             cirq.measure(q_result, key='m_result'),
         )
 
         result = cirq.Simulator().run(circuit)
-        assert result.measurements['m_result'][0][0] == (i > 4)
+        assert result.measurements['m_result'][0][0] == (i % 4 <= 1)
 
 
 def test_sympy_path_prefix():

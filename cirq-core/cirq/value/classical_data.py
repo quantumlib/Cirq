@@ -34,6 +34,12 @@ class ClassicalData:
         measurements: Dict['cirq.MeasurementKey', Tuple[int, ...]] = None,
         measured_qubits: Dict['cirq.MeasurementKey', Tuple['cirq.Qid', ...]] = None,
     ):
+        """Initializes a `ClassicalData` object.
+
+        Args:
+            measurements: The measurements to seed with, if any.
+            measured_qubits: The qubits corresponding to the measurements.
+        """
         # TODO: Uncomment this after log_of_measurement_results is deprecated and removed
         # if (measurements is None) != (measured_qubits is None):
         #     raise ValueError(
@@ -43,43 +49,86 @@ class ClassicalData:
             measurements = {}
         if measured_qubits is None:
             measured_qubits = {}
+        # TODO: Uncomment this after log_of_measurement_results is deprecated and removed
         # if set(measurements.keys()) != set(measured_qubits.keys()):
         #     raise ValueError('measurements and measured_qubits must contain same keys.')
         self._measurements = measurements
         self._measured_qubits = measured_qubits
 
     def keys(self) -> Tuple['cirq.MeasurementKey', ...]:
+        """Gets the measurement keys in the order they were stored."""
         return tuple(self._measurements.keys())
 
     @property
     def measurements(self) -> Mapping['cirq.MeasurementKey', Tuple[int, ...]]:
+        """Gets the a mapping from measurement key to measurement."""
         return self._measurements
 
     @property
     def measured_qubits(self) -> Mapping['cirq.MeasurementKey', Tuple['cirq.Qid', ...]]:
+        """Gets the a mapping from measurement key to the qubits measured."""
         return self._measured_qubits
 
     def record_measurement(
         self, key: 'cirq.MeasurementKey', measurement: Sequence[int], qubits: Sequence['cirq.Qid']
     ):
-        if len(measurement) != len(qubits) and len(measurement) != 1:
-            # the latter condition is allowed for keyed channel measurements
+        """Records a measurement.
+
+        Args:
+            key: The measurement key to hold the measurement.
+            measurement: The measurement result.
+            qubits: The qubits that were measured.
+
+        Raises:
+            ValueError: If the measurement shape does not match the qubits
+                measured, or if the measurement key was already used.
+        """
+        if len(measurement) != len(qubits):
             raise ValueError(f'{len(measurement)} measurements but {len(qubits)} qubits.')
         if key in self._measurements:
             raise ValueError(f"Measurement already logged to key {key!r}")
         self._measurements[key] = tuple(measurement)
         self._measured_qubits[key] = tuple(qubits)
 
+    def record_channel_measurement(
+        self, key: 'cirq.MeasurementKey', measurement: int, qubits: Sequence['cirq.Qid']
+    ):
+        """Records a channel measurement.
+
+        Args:
+            key: The measurement key to hold the measurement.
+            measurement: The measurement result.
+            qubits: The qubits that were measured.
+
+        Raises:
+            ValueError: If the measurement key was already used.
+        """
+        if key in self._measurements:
+            raise ValueError(f"Measurement already logged to key {key!r}")
+        self._measurements[key] = (measurement,)
+        self._measured_qubits[key] = tuple(qubits)
+
     def get_int(self, key: 'cirq.MeasurementKey') -> int:
+        """Gets the integer corresponding to the measurement.
+
+        Args:
+            key: The measurement key.
+
+        Raises:
+            ValueError: If the key has not been used.
+        """
+        if key not in self._measurements:
+            raise KeyError(f'The measurement key {key} is not in {self._measurements}')
         measurement = self._measurements[key]
-        # keyed channels
         if len(measurement) == 1:
+            # Needed to support keyed channels
             return measurement[0]
         return digits.big_endian_digits_to_int(
             measurement, base=[q.dimension for q in self._measured_qubits[key]]
         )
 
     def copy(self):
+        """Creates a copy of the object."""
         return ClassicalData(self._measurements.copy(), self._measured_qubits.copy())
 
     def _json_dict_(self):
