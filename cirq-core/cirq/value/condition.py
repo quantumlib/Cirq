@@ -41,8 +41,7 @@ class Condition(abc.ABC):
     @abc.abstractmethod
     def resolve(
         self,
-        measurements: Mapping[str, Sequence[int]],
-        measured_qubits: Mapping[str, Sequence['cirq.Qid']] = None,
+        classical_data: 'cirq.ClassicalData',
     ) -> bool:
         """Resolves the condition based on the measurements."""
 
@@ -104,13 +103,11 @@ class KeyCondition(Condition):
 
     def resolve(
         self,
-        measurements: Mapping[str, Sequence[int]],
-        measured_qubits: Mapping[str, Sequence['cirq.Qid']] = None,
+        classical_data: 'cirq.ClassicalData',
     ) -> bool:
-        key = str(self.key)
-        if key not in measurements:
-            raise ValueError(f'Measurement key {key} missing when testing classical control')
-        return any(measurements[key])
+        if self.key not in classical_data.keys():
+            raise ValueError(f'Measurement key {self.key} missing when testing classical control')
+        return any(classical_data.measurements[self.key])
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
@@ -153,23 +150,20 @@ class SympyCondition(Condition):
 
     def resolve(
         self,
-        measurements: Mapping[str, Sequence[int]],
-        measured_qubits: Mapping[str, Sequence['cirq.Qid']] = None,
+        classical_data: 'cirq.ClassicalData',
     ) -> bool:
-        missing = [str(k) for k in self.keys if str(k) not in measurements]
+        missing = [str(k) for k in self.keys if k not in classical_data.keys()]
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
 
         def value(k):
             return (
-                digits.big_endian_bits_to_int(measurements[k])
-                if measured_qubits is None
-                else digits.big_endian_digits_to_int(
-                    measurements[k], base=[q.dimension for q in measured_qubits[k]]
+                digits.big_endian_digits_to_int(
+                    classical_data.measurements[k], base=[q.dimension for q in classical_data.measured_qubits[k]]
                 )
             )
 
-        replacements = {str(k): value(str(k)) for k in self.keys}
+        replacements = {str(k): value(k) for k in self.keys}
         return bool(self.expr.subs(replacements))
 
     def _json_dict_(self):

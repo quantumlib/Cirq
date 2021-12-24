@@ -25,6 +25,10 @@ from cirq.value.angle import (
     chosen_angle_to_half_turns,
 )
 
+from cirq.value.classical_data import (
+    ClassicalData,
+)
+
 from cirq.value.condition import (
     Condition,
     KeyCondition,

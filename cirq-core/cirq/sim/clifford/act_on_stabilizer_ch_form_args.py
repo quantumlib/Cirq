@@ -39,9 +39,9 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         self,
         state: 'cirq.StabilizerStateChForm',
         prng: np.random.RandomState,
-        log_of_measurement_results: Dict[str, Any],
+        log_of_measurement_results: Dict[str, Any] = None,
         qubits: Sequence['cirq.Qid'] = None,
-        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = None,
+        classical_data: 'cirq.ClassicalData' = None,
     ):
         """Initializes with the given state and the axes for the operation.
         Args:
@@ -54,10 +54,10 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            measured_qubits: A dictionary that contains the qubits that were
-                measured in each measurement.
+            classical_data: The shared classical data container for this
+                simulation.
         """
-        super().__init__(prng, qubits, log_of_measurement_results, measured_qubits)
+        super().__init__(prng, qubits, log_of_measurement_results, classical_data)
         self.state = state
 
     def _act_on_fallback_(

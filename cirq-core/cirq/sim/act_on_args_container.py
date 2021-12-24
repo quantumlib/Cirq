@@ -29,7 +29,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, protocols
+from cirq import ops, protocols, value
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TActOnArgs,
@@ -51,8 +51,8 @@ class ActOnArgsContainer(
         args: Dict[Optional['cirq.Qid'], TActOnArgs],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
-        log_of_measurement_results: Dict[str, Any],
-        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = None,
+        log_of_measurement_results: Dict[str, Any] = None,
+        classical_data: 'cirq.ClassicalData' = None,
     ):
         """Initializes the class.
 
@@ -65,14 +65,13 @@ class ActOnArgsContainer(
                 at the end.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            measured_qubits: A dictionary that contains the qubits that were
-                measured in each measurement.
+            classical_data: The shared classical data container for this
+                simulation.
         """
         self.args = args
         self._qubits = tuple(qubits)
         self.split_untangled_states = split_untangled_states
-        self._log_of_measurement_results = log_of_measurement_results
-        self._measured_qubits = measured_qubits if measured_qubits is not None else {}
+        self._classical_data = classical_data or value.ClassicalData(log_of_measurement_results)  # type: ignore
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
@@ -137,11 +136,11 @@ class ActOnArgsContainer(
 
     def copy(self) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()
-        measured_qubits = self._measured_qubits.copy()
+        classical_data = self._classical_data.copy()
         copies = {a: a.copy() for a in set(self.args.values())}
         for copy in copies.values():
             copy._log_of_measurement_results = logs
-            copy._measured_qubits = measured_qubits
+            copy._classical_data = classical_data
         args = {q: copies[a] for q, a in self.args.items()}
         return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, logs)
 
@@ -151,11 +150,11 @@ class ActOnArgsContainer(
 
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
-        return self._log_of_measurement_results
+        return {k: list(v) for k, v in self._classical_data.measurements.items()}
 
     @property
-    def measured_qubits(self) -> Mapping[str, Tuple['cirq.Qid', ...]]:
-        return self._measured_qubits
+    def classical_data(self) -> 'cirq.ClassicalData':
+        return self._classical_data
 
     def sample(
         self,

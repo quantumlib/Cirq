@@ -119,13 +119,11 @@ class SimulatorBase(
         self._ignore_measurement_results = ignore_measurement_results
         self._split_untangled_states = split_untangled_states
 
-    @abc.abstractmethod
     def _create_partial_act_on_args(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
-        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]],
     ) -> TActOnArgs:
         """Creates an instance of the TActOnArgs class for the simulator.
 
@@ -138,9 +136,34 @@ class SimulatorBase(
             qubits: The sequence of qubits to represent.
             logs: The structure to hold measurement logs. A single instance
                 should be shared among all ActOnArgs within the simulation.
-            measured_qubits: A dictionary that contains the qubits that were
-                measured in each measurement.
         """
+        raise NotImplementedError()
+
+    def _create_partial_act_on_args_ex(
+        self,
+        initial_state: Any,
+        qubits: Sequence['cirq.Qid'],
+        classical_data: 'cirq.ClassicalData',
+    ) -> TActOnArgs:
+        """Creates an instance of the TActOnArgs class for the simulator.
+
+        It represents the supplied qubits initialized to the provided state.
+
+        Args:
+            initial_state: The initial state to represent. An integer state is
+                understood to be a pure state. Other state representations are
+                simulator-dependent.
+            qubits: The sequence of qubits to represent.
+            classical_data: The shared classical data container for this
+                simulation.
+        """
+        # Child classes should override this behavior. We call the old one here by default for
+        # backwards compatibility, until deprecation cycle is complete.
+        return self._create_partial_act_on_args(
+            initial_state,
+            qubits,
+            classical_data.measurements()  # type: ignore
+        )
 
     @abc.abstractmethod
     def _create_step_result(
@@ -338,38 +361,34 @@ class SimulatorBase(
         if isinstance(initial_state, OperationTarget):
             return initial_state
 
-        log: Dict[str, Any] = {}
-        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = {}
+        classical_data = value.ClassicalData()
         if self._split_untangled_states:
             args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
             if isinstance(initial_state, int):
                 for q in reversed(qubits):
-                    args_map[q] = self._create_partial_act_on_args(
+                    args_map[q] = self._create_partial_act_on_args_ex(
                         initial_state=initial_state % q.dimension,
                         qubits=[q],
-                        logs=log,
-                        measured_qubits=measured_qubits,
+                        classical_data=classical_data,
                     )
                     initial_state = int(initial_state / q.dimension)
             else:
-                args = self._create_partial_act_on_args(
+                args = self._create_partial_act_on_args_ex(
                     initial_state=initial_state,
                     qubits=qubits,
-                    logs=log,
-                    measured_qubits=measured_qubits,
+                    classical_data=classical_data,
                 )
                 for q in qubits:
                     args_map[q] = args
-            args_map[None] = self._create_partial_act_on_args(0, (), log, measured_qubits)
+            args_map[None] = self._create_partial_act_on_args_ex(0, (), classical_data)
             return ActOnArgsContainer(
-                args_map, qubits, self._split_untangled_states, log, measured_qubits
+                args_map, qubits, self._split_untangled_states, classical_data=classical_data
             )
         else:
-            return self._create_partial_act_on_args(
+            return self._create_partial_act_on_args_ex(
                 initial_state=initial_state,
                 qubits=qubits,
-                logs=log,
-                measured_qubits=measured_qubits,
+                classical_data=classical_data,
             )
 
 

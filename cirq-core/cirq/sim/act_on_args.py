@@ -29,7 +29,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import protocols, ops
+from cirq import protocols, ops, value
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -47,7 +47,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         prng: np.random.RandomState = None,
         qubits: Sequence['cirq.Qid'] = None,
         log_of_measurement_results: Dict[str, List[int]] = None,
-        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]] = None,
+        classical_data: 'cirq.ClassicalData' = None,
         ignore_measurement_results: bool = False,
     ):
         """Inits ActOnArgs.
@@ -60,8 +60,8 @@ class ActOnArgs(OperationTarget[TSelf]):
                 ordering of the computational basis states.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            measured_qubits: A dictionary that contains the qubits that were
-                measured in each measurement.
+            classical_data: The shared classical data container for this
+                simulation.
             ignore_measurement_results: If True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process, and not log the result. This is only applicable to
@@ -71,14 +71,9 @@ class ActOnArgs(OperationTarget[TSelf]):
             prng = cast(np.random.RandomState, np.random)
         if qubits is None:
             qubits = ()
-        if log_of_measurement_results is None:
-            log_of_measurement_results = {}
-        if measured_qubits is None:
-            measured_qubits = {}
         self._set_qubits(qubits)
         self.prng = prng
-        self._log_of_measurement_results = log_of_measurement_results
-        self._measured_qubits = measured_qubits
+        self._classical_data = classical_data or value.ClassicalData(log_of_measurement_results)
         self._ignore_measurement_results = ignore_measurement_results
 
     def _set_qubits(self, qubits: Sequence['cirq.Qid']):
@@ -107,10 +102,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             return
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
-        if key in self._log_of_measurement_results:
-            raise ValueError(f"Measurement already logged to key {key!r}")
-        self._log_of_measurement_results[key] = corrected
-        self._measured_qubits[key] = tuple(qubits)
+        self._classical_data.record_measurement(value.MeasurementKey.parse_serialized(key), corrected, qubits)
 
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]
@@ -124,8 +116,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Creates a copy of the object."""
         args = copy.copy(self)
         self._on_copy(args)
-        args._log_of_measurement_results = self.log_of_measurement_results.copy()
-        args._measured_qubits = self.measured_qubits.copy()
+        args._classical_data = self._classical_data.copy()
         return args
 
     def _on_copy(self: TSelf, args: TSelf):
@@ -203,11 +194,11 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     @property
     def log_of_measurement_results(self) -> Dict[str, List[int]]:
-        return self._log_of_measurement_results
+        return {k: list(v) for k, v in self._classical_data.measurements.items()}
 
     @property
-    def measured_qubits(self) -> Dict[str, Tuple['cirq.Qid', ...]]:
-        return self._measured_qubits
+    def classical_data(self) -> 'cirq.ClassicalData':
+        return self._classical_data
 
     @property
     def ignore_measurement_results(self) -> bool:

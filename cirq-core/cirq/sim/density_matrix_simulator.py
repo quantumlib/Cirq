@@ -172,12 +172,11 @@ class DensityMatrixSimulator(
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
-    def _create_partial_act_on_args(
+    def _create_partial_act_on_args_ex(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
-        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]],
+        classical_data: 'cirq.ClassicalData' = None,
     ) -> 'cirq.ActOnDensityMatrixArgs':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 
@@ -187,9 +186,8 @@ class DensityMatrixSimulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            logs: The log of measurement results that is added into.
-            measured_qubits: A dictionary that contains the qubits that were
-                measured in each measurement.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Returns:
             ActOnDensityMatrixArgs for the circuit.
@@ -211,8 +209,7 @@ class DensityMatrixSimulator(
             qubits=qubits,
             qid_shape=qid_shape,
             prng=self._prng,
-            log_of_measurement_results=logs,
-            measured_qubits=measured_qubits,
+            classical_data=classical_data,
             ignore_measurement_results=self._ignore_measurement_results,
         )
 

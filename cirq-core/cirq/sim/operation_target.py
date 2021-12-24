@@ -84,8 +84,8 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def measured_qubits(self) -> Mapping[str, Tuple['cirq.Qid', ...]]:
-        """Gets the qubits that were in each measurement."""
+    def classical_data(self) -> 'cirq.ClassicalData':
+        """The shared classical data container for this simulation.."""
 
     @abc.abstractmethod
     def sample(

@@ -171,12 +171,11 @@ class Simulator(
             split_untangled_states=split_untangled_states,
         )
 
-    def _create_partial_act_on_args(
+    def _create_partial_act_on_args_ex(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
-        measured_qubits: Dict[str, Tuple['cirq.Qid', ...]],
+        classical_data: 'cirq.ClassicalData',
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 
@@ -186,9 +185,8 @@ class Simulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            logs: Log of the measurement results.
-            measured_qubits: A dictionary that contains the qubits that were
-                measured in each measurement.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Returns:
             ActOnStateVectorArgs for the circuit.
@@ -206,8 +204,7 @@ class Simulator(
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
             qubits=qubits,
             prng=self._prng,
-            log_of_measurement_results=logs,
-            measured_qubits=measured_qubits,
+            classical_data=classical_data,
         )
 
     def _create_step_result(
