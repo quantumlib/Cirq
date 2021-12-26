@@ -15,7 +15,7 @@
 import abc
 import enum
 from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING, TypeVar
-from cirq.protocols import json_serialization
+
 from cirq.value import digits, value_equality_attr
 
 if TYPE_CHECKING:
@@ -113,24 +113,25 @@ class ClassicalData(ClassicalDataBase):
         _measurement_types: Dict['cirq.MeasurementKey', 'cirq.MeasurementType'] = None,
     ):
         """Initializes a `ClassicalData` object."""
+        _measurement_types_was_none = _measurement_types is None
+        if _measurement_types is None:
+            _measurement_types = {}
         if _measurements is not None:
-            if _measurement_types is None:
-                _measurement_types = {
-                    k: MeasurementType.MEASUREMENT for k, v in _measurements.items()
-                }
+            if _measurement_types_was_none:
+                _measurement_types.update(
+                    {k: MeasurementType.MEASUREMENT for k, v in _measurements.items()}
+                )
         if _channel_measurements is not None:
-            if _measurement_types is None:
-                _measurement_types = {
-                    k: MeasurementType.CHANNEL for k, v in _channel_measurements.items()
-                }
+            if _measurement_types_was_none:
+                _measurement_types.update(
+                    {k: MeasurementType.CHANNEL for k, v in _channel_measurements.items()}
+                )
         if _measurements is None:
             _measurements = {}
         if _measured_qubits is None:
             _measured_qubits = {}
         if _channel_measurements is None:
             _channel_measurements = {}
-        if _measurement_types is None:
-            _measurement_types = {}
         self._measurements = _measurements
         self._measured_qubits = _measured_qubits
         self._channel_measurements = _channel_measurements

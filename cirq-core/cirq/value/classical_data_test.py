@@ -26,6 +26,21 @@ def test_init():
     assert cd.measurements == {}
     assert cd.keys() == ()
     assert cd.measured_qubits == {}
+    assert cd.channel_measurements == {}
+    assert cd.measurement_types == {}
+    cd = cirq.ClassicalData(
+        _measurements={mkey_m: (0, 1)},
+        _measured_qubits={mkey_m: two_qubits},
+        _channel_measurements={mkey_c: 3},
+    )
+    assert cd.measurements == {mkey_m: (0, 1)}
+    assert cd.keys() == (mkey_m, mkey_c)
+    assert cd.measured_qubits == {mkey_m: two_qubits}
+    assert cd.channel_measurements == {mkey_c: 3}
+    assert cd.measurement_types == {
+        mkey_m: cirq.MeasurementType.MEASUREMENT,
+        mkey_c: cirq.MeasurementType.CHANNEL,
+    }
 
 
 def test_record_measurement():
