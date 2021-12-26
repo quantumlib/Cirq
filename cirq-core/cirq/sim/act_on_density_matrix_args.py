@@ -41,7 +41,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         prng: np.random.RandomState = None,
         log_of_measurement_results: Dict[str, Any] = None,
         qubits: Sequence['cirq.Qid'] = None,
-        classical_data: 'cirq.ClassicalDataBase' = None,
+        classical_data: 'cirq.ClassicalDataStore' = None,
         ignore_measurement_results: bool = False,
     ):
         """Inits ActOnDensityMatrixArgs.

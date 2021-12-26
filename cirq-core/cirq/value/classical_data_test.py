@@ -22,13 +22,13 @@ two_qubits = tuple(cirq.LineQubit.range(2))
 
 
 def test_init():
-    cd = cirq.ClassicalData()
+    cd = cirq.ClassicalDataDictionaryStore()
     assert cd.measurements == {}
     assert cd.keys() == ()
     assert cd.measured_qubits == {}
     assert cd.channel_measurements == {}
     assert cd.measurement_types == {}
-    cd = cirq.ClassicalData(
+    cd = cirq.ClassicalDataDictionaryStore(
         _measurements={mkey_m: (0, 1)},
         _measured_qubits={mkey_m: two_qubits},
         _channel_measurements={mkey_c: 3},
@@ -44,7 +44,7 @@ def test_init():
 
 
 def test_record_measurement():
-    cd = cirq.ClassicalData()
+    cd = cirq.ClassicalDataDictionaryStore()
     cd.record_measurement(mkey_m, (0, 1), two_qubits)
     assert cd.measurements == {mkey_m: (0, 1)}
     assert cd.keys() == (mkey_m,)
@@ -52,7 +52,7 @@ def test_record_measurement():
 
 
 def test_record_measurement_errors():
-    cd = cirq.ClassicalData()
+    cd = cirq.ClassicalDataDictionaryStore()
     with pytest.raises(ValueError, match='3 measurements but 2 qubits'):
         cd.record_measurement(mkey_m, (0, 1, 2), two_qubits)
     cd.record_measurement(mkey_m, (0, 1), two_qubits)
@@ -61,39 +61,39 @@ def test_record_measurement_errors():
 
 
 def test_record_channel_measurement():
-    cd = cirq.ClassicalData()
+    cd = cirq.ClassicalDataDictionaryStore()
     cd.record_channel_measurement(mkey_m, 1)
     assert cd.channel_measurements == {mkey_m: 1}
     assert cd.keys() == (mkey_m,)
 
 
 def test_record_channel_measurement_errors():
-    cd = cirq.ClassicalData()
+    cd = cirq.ClassicalDataDictionaryStore()
     cd.record_channel_measurement(mkey_m, 1)
     with pytest.raises(ValueError, match='Measurement already logged to key m'):
         cd.record_channel_measurement(mkey_m, 1)
 
 
 def test_get_int():
-    cd = cirq.ClassicalData()
+    cd = cirq.ClassicalDataDictionaryStore()
     cd.record_measurement(mkey_m, (0, 1), two_qubits)
     assert cd.get_int(mkey_m) == 1
-    cd = cirq.ClassicalData()
+    cd = cirq.ClassicalDataDictionaryStore()
     cd.record_measurement(mkey_m, (1, 1), two_qubits)
     assert cd.get_int(mkey_m) == 3
-    cd = cirq.ClassicalData()
+    cd = cirq.ClassicalDataDictionaryStore()
     cd.record_channel_measurement(mkey_m, 1)
     assert cd.get_int(mkey_m) == 1
-    cd = cirq.ClassicalData()
+    cd = cirq.ClassicalDataDictionaryStore()
     cd.record_measurement(mkey_m, (1, 1), (cirq.LineQid.range(2, dimension=3)))
     assert cd.get_int(mkey_m) == 4
-    cd = cirq.ClassicalData()
+    cd = cirq.ClassicalDataDictionaryStore()
     with pytest.raises(KeyError, match='The measurement key m is not in {}'):
         cd.get_int(mkey_m)
 
 
 def test_copy():
-    cd = cirq.ClassicalData(
+    cd = cirq.ClassicalDataDictionaryStore(
         _measurements={mkey_m: (0, 1)},
         _measured_qubits={mkey_m: two_qubits},
         _channel_measurements={mkey_c: 3},
@@ -116,7 +116,7 @@ def test_copy():
 
 
 def test_repr():
-    cd = cirq.ClassicalData(
+    cd = cirq.ClassicalDataDictionaryStore(
         _measurements={mkey_m: (0, 1)},
         _measured_qubits={mkey_m: two_qubits},
         _channel_measurements={mkey_c: 3},

@@ -176,7 +176,7 @@ class DensityMatrixSimulator(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataBase' = None,
+        classical_data: 'cirq.ClassicalDataStore' = None,
     ) -> 'cirq.ActOnDensityMatrixArgs':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 

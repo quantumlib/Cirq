@@ -30,10 +30,10 @@ class MeasurementType(enum.IntEnum):
         return f'cirq.{str(self)}'
 
 
-TSelf = TypeVar('TSelf', bound='ClassicalDataReader')
+TSelf = TypeVar('TSelf', bound='ClassicalDataStoreReader')
 
 
-class ClassicalDataReader(abc.ABC):
+class ClassicalDataStoreReader(abc.ABC):
     @abc.abstractmethod
     def keys(self) -> Tuple['cirq.MeasurementKey', ...]:
         """Gets the measurement keys in the order they were stored."""
@@ -65,7 +65,7 @@ class ClassicalDataReader(abc.ABC):
         """Creates a copy of the object."""
 
 
-class ClassicalDataBase(ClassicalDataReader, abc.ABC):
+class ClassicalDataStore(ClassicalDataStoreReader, abc.ABC):
     @abc.abstractmethod
     def record_measurement(
         self, key: 'cirq.MeasurementKey', measurement: Sequence[int], qubits: Sequence['cirq.Qid']
@@ -96,7 +96,7 @@ class ClassicalDataBase(ClassicalDataReader, abc.ABC):
 
 
 @value_equality_attr.value_equality(unhashable=True)
-class ClassicalData(ClassicalDataBase):
+class ClassicalDataDictionaryStore(ClassicalDataStore):
     """Classical data representing measurements and metadata."""
 
     _measurements: Dict['cirq.MeasurementKey', Tuple[int, ...]]
@@ -112,7 +112,7 @@ class ClassicalData(ClassicalDataBase):
         _channel_measurements: Dict['cirq.MeasurementKey', int] = None,
         _measurement_types: Dict['cirq.MeasurementKey', 'cirq.MeasurementType'] = None,
     ):
-        """Initializes a `ClassicalData` object."""
+        """Initializes a `ClassicalDataDictionaryStore` object."""
         _measurement_types_was_none = _measurement_types is None
         if _measurement_types is None:
             _measurement_types = {}
@@ -235,7 +235,7 @@ class ClassicalData(ClassicalDataBase):
 
     def copy(self):
         """Creates a copy of the object."""
-        return ClassicalData(
+        return ClassicalDataDictionaryStore(
             _measurements=self._measurements.copy(),
             _measured_qubits=self._measured_qubits.copy(),
             _channel_measurements=self._channel_measurements.copy(),
@@ -263,7 +263,7 @@ class ClassicalData(ClassicalDataBase):
 
     def __repr__(self):
         return (
-            f'cirq.ClassicalData(_measurements={self.measurements!r},'
+            f'cirq.ClassicalDataDictionaryStore(_measurements={self.measurements!r},'
             f' _measured_qubits={self.measured_qubits!r},'
             f' _channel_measurements={self.channel_measurements!r},'
             f' _measurement_types={self.measurement_types!r})'

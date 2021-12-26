@@ -83,7 +83,7 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def classical_data(self) -> 'cirq.ClassicalDataReader':
+    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
         """The shared classical data container for this simulation.."""
 
     @abc.abstractmethod

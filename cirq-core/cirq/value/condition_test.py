@@ -43,7 +43,7 @@ def test_key_condition_repr():
 
 def test_key_condition_resolve():
     def resolve(measurements):
-        classical_data = cirq.ClassicalData(_measurements=measurements)
+        classical_data = cirq.ClassicalDataDictionaryStore(_measurements=measurements)
         return init_key_condition.resolve(classical_data)
 
     assert resolve({'0:a': [1]})
@@ -85,7 +85,7 @@ def test_sympy_condition_repr():
 
 def test_sympy_condition_resolve():
     def resolve(measurements):
-        classical_data = cirq.ClassicalData(_measurements=measurements)
+        classical_data = cirq.ClassicalDataDictionaryStore(_measurements=measurements)
         return init_sympy_condition.resolve(classical_data)
 
     assert resolve({'0:a': [1]})

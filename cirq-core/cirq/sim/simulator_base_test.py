@@ -111,7 +111,7 @@ class CountingSimulator(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        classical_data: cirq.ClassicalDataBase,
+        classical_data: cirq.ClassicalDataStore,
     ) -> CountingActOnArgs:
         return CountingActOnArgs(qubits=qubits, state=initial_state, classical_data=classical_data)
 
@@ -141,7 +141,7 @@ class SplittableCountingSimulator(CountingSimulator):
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        classical_data: cirq.ClassicalDataBase,
+        classical_data: cirq.ClassicalDataStore,
     ) -> CountingActOnArgs:
         return SplittableCountingActOnArgs(
             qubits=qubits, state=initial_state, classical_data=classical_data

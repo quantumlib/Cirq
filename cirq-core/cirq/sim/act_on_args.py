@@ -47,7 +47,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         prng: np.random.RandomState = None,
         qubits: Sequence['cirq.Qid'] = None,
         log_of_measurement_results: Dict[str, List[int]] = None,
-        classical_data: 'cirq.ClassicalDataBase' = None,
+        classical_data: 'cirq.ClassicalDataStore' = None,
         ignore_measurement_results: bool = False,
     ):
         """Inits ActOnArgs.
@@ -74,7 +74,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         self._set_qubits(qubits)
         self.prng = prng
         # pylint: disable=line-too-long
-        self._classical_data = classical_data or value.ClassicalData(_measurements=log_of_measurement_results)  # type: ignore
+        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(_measurements=log_of_measurement_results)  # type: ignore
         # pylint: enable=line-too-long
         self._ignore_measurement_results = ignore_measurement_results
 
@@ -197,7 +197,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         functionality, if supported."""
 
     @property
-    def classical_data(self) -> 'cirq.ClassicalDataReader':
+    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
         return self._classical_data
 
     @property

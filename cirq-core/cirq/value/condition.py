@@ -41,7 +41,7 @@ class Condition(abc.ABC):
     @abc.abstractmethod
     def resolve(
         self,
-        classical_data: 'cirq.ClassicalDataReader',
+        classical_data: 'cirq.ClassicalDataStoreReader',
     ) -> bool:
         """Resolves the condition based on the measurements."""
 
@@ -103,7 +103,7 @@ class KeyCondition(Condition):
 
     def resolve(
         self,
-        classical_data: 'cirq.ClassicalDataReader',
+        classical_data: 'cirq.ClassicalDataStoreReader',
     ) -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
@@ -150,7 +150,7 @@ class SympyCondition(Condition):
 
     def resolve(
         self,
-        classical_data: 'cirq.ClassicalDataReader',
+        classical_data: 'cirq.ClassicalDataStoreReader',
     ) -> bool:
         missing = [str(k) for k in self.keys if k not in classical_data.keys()]
         if missing:

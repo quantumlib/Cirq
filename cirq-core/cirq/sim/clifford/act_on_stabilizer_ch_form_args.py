@@ -41,7 +41,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any] = None,
         qubits: Sequence['cirq.Qid'] = None,
-        classical_data: 'cirq.ClassicalDataBase' = None,
+        classical_data: 'cirq.ClassicalDataStore' = None,
     ):
         """Initializes with the given state and the axes for the operation.
         Args:

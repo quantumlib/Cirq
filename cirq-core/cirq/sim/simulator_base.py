@@ -143,7 +143,7 @@ class SimulatorBase(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataBase',
+        classical_data: 'cirq.ClassicalDataStore',
     ) -> TActOnArgs:
         """Creates an instance of the TActOnArgs class for the simulator.
 
@@ -360,7 +360,7 @@ class SimulatorBase(
         if isinstance(initial_state, OperationTarget):
             return initial_state
 
-        classical_data = value.ClassicalData()
+        classical_data = value.ClassicalDataDictionaryStore()
         if self._split_untangled_states:
             args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
             if isinstance(initial_state, int):
