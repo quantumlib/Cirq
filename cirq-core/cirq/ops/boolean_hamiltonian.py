@@ -124,14 +124,6 @@ class BooleanHamiltonian(raw_types.Operation):
     def _has_unitary_(self):
         return True
 
-    def __repr__(self):
-        return (
-            f'cirq.BooleanHamiltonian('
-            f'qubit_map={self._qubit_map!r}, '
-            f'boolean_strs={self._boolean_strs!r}, '
-            f'theta={self._theta!r})'
-        )
-
     @property
     def gate(self) -> 'cirq.Gate':
         return BooleanHamiltonianGate(
