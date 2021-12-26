@@ -134,7 +134,9 @@ class BooleanHamiltonian(raw_types.Operation):
 
     @property
     def gate(self) -> 'cirq.Gate':
-        return BooleanHamiltonianGate(self._qubit_map.keys(), self._boolean_strs, self._theta)
+        return BooleanHamiltonianGate(
+            tuple(self._qubit_map.keys()), self._boolean_strs, self._theta
+        )
 
 
 @value.value_equality
