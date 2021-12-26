@@ -131,7 +131,9 @@ def test_gate_with_custom_names():
 
 def test_consistent():
     q0, q1 = cirq.LineQubit.range(2)
-    with cirq.testing.assert_deprecated('Use cirq.BooleanHamiltonianGate', deadline='v0.15', count=6):
+    with cirq.testing.assert_deprecated(
+        'Use cirq.BooleanHamiltonianGate', deadline='v0.15', count=6
+    ):
         op = cirq.BooleanHamiltonian(
             {'a': q0, 'b': q1},
             ['a'],
