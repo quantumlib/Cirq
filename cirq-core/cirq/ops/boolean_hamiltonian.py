@@ -31,10 +31,12 @@ import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 from cirq import value
+from cirq._compat import deprecated_class
 from cirq.ops import gate_operation, raw_types
 from cirq.ops.linear_combinations import PauliSum, PauliString
 
 
+@deprecated_class(deadline='v0.15', fix='Use cirq.BooleanHamiltonianGate')
 @value.value_equality
 class BooleanHamiltonian(raw_types.Operation):
     """An operation that represents a Hamiltonian from a set of Boolean functions."""
@@ -129,6 +131,10 @@ class BooleanHamiltonian(raw_types.Operation):
             f'boolean_strs={self._boolean_strs!r}, '
             f'theta={self._theta!r})'
         )
+
+    @property
+    def gate(self) -> 'cirq.Gate':
+        return BooleanHamiltonianGate(self._qubit_map.keys(), self._boolean_strs, self._theta)
 
 
 @value.value_equality
