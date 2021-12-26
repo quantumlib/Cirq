@@ -175,7 +175,7 @@ class Simulator(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalData',
+        classical_data: 'cirq.ClassicalDataBase',
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 

@@ -105,6 +105,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'MixedUnitaryChannel': cirq.MixedUnitaryChannel,
         'MeasurementKey': cirq.MeasurementKey,
         'MeasurementGate': cirq.MeasurementGate,
+        'MeasurementType': cirq.MeasurementType,
         '_MeasurementSpec': cirq.work._MeasurementSpec,
         'Moment': cirq.Moment,
         'MutableDensePauliString': cirq.MutableDensePauliString,

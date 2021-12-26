@@ -27,6 +27,9 @@ from cirq.value.angle import (
 
 from cirq.value.classical_data import (
     ClassicalData,
+    ClassicalDataBase,
+    ClassicalDataReader,
+    MeasurementType,
 )
 
 from cirq.value.condition import (

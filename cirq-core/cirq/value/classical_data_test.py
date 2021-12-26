@@ -17,24 +17,30 @@ import pytest
 import cirq
 
 mkey_m = cirq.MeasurementKey('m')
+mkey_c = cirq.MeasurementKey('c')
 two_qubits = tuple(cirq.LineQubit.range(2))
 
 
-def test_init_empty():
+def test_init():
     cd = cirq.ClassicalData()
-    assert cd.measurements is not None
-    assert not cd.measurements
-    assert cd.keys() is not None
-    assert not cd.keys()
-    assert cd.measured_qubits is not None
-    assert not cd.measured_qubits
-
-
-def test_init_properties():
-    cd = cirq.ClassicalData({mkey_m: (0, 1)}, {mkey_m: two_qubits})
+    assert cd.measurements == {}
+    assert cd.keys() == ()
+    assert cd.measured_qubits == {}
+    assert cd.channel_measurements == {}
+    assert cd.measurement_types == {}
+    cd = cirq.ClassicalData(
+        _measurements={mkey_m: (0, 1)},
+        _measured_qubits={mkey_m: two_qubits},
+        _channel_measurements={mkey_c: 3},
+    )
     assert cd.measurements == {mkey_m: (0, 1)}
-    assert cd.keys() == (mkey_m,)
+    assert cd.keys() == (mkey_m, mkey_c)
     assert cd.measured_qubits == {mkey_m: two_qubits}
+    assert cd.channel_measurements == {mkey_c: 3}
+    assert cd.measurement_types == {
+        mkey_m: cirq.MeasurementType.MEASUREMENT,
+        mkey_c: cirq.MeasurementType.CHANNEL,
+    }
 
 
 def test_record_measurement():
@@ -56,17 +62,16 @@ def test_record_measurement_errors():
 
 def test_record_channel_measurement():
     cd = cirq.ClassicalData()
-    cd.record_channel_measurement(mkey_m, 1, two_qubits)
-    assert cd.measurements == {mkey_m: (1,)}
+    cd.record_channel_measurement(mkey_m, 1)
+    assert cd.channel_measurements == {mkey_m: 1}
     assert cd.keys() == (mkey_m,)
-    assert cd.measured_qubits == {mkey_m: two_qubits}
 
 
 def test_record_channel_measurement_errors():
     cd = cirq.ClassicalData()
-    cd.record_channel_measurement(mkey_m, 1, two_qubits)
+    cd.record_channel_measurement(mkey_m, 1)
     with pytest.raises(ValueError, match='Measurement already logged to key m'):
-        cd.record_channel_measurement(mkey_m, 1, two_qubits)
+        cd.record_channel_measurement(mkey_m, 1)
 
 
 def test_get_int():
@@ -77,7 +82,7 @@ def test_get_int():
     cd.record_measurement(mkey_m, (1, 1), two_qubits)
     assert cd.get_int(mkey_m) == 3
     cd = cirq.ClassicalData()
-    cd.record_channel_measurement(mkey_m, 1, two_qubits)
+    cd.record_channel_measurement(mkey_m, 1)
     assert cd.get_int(mkey_m) == 1
     cd = cirq.ClassicalData()
     cd.record_measurement(mkey_m, (1, 1), (cirq.LineQid.range(2, dimension=3)))
@@ -88,7 +93,15 @@ def test_get_int():
 
 
 def test_copy():
-    cd = cirq.ClassicalData({mkey_m: (0, 1)}, {mkey_m: two_qubits})
+    cd = cirq.ClassicalData(
+        _measurements={mkey_m: (0, 1)},
+        _measured_qubits={mkey_m: two_qubits},
+        _channel_measurements={mkey_c: 3},
+        _measurement_types={
+            mkey_m: cirq.MeasurementType.MEASUREMENT,
+            mkey_c: cirq.MeasurementType.CHANNEL,
+        },
+    )
     cd1 = cd.copy()
     assert cd1 is not cd
     assert cd1 == cd
@@ -96,12 +109,20 @@ def test_copy():
     assert cd1.measurements == cd.measurements
     assert cd1.measured_qubits is not cd.measured_qubits
     assert cd1.measured_qubits == cd.measured_qubits
+    assert cd1.channel_measurements is not cd.channel_measurements
+    assert cd1.channel_measurements == cd.channel_measurements
+    assert cd1.measurement_types is not cd.measurement_types
+    assert cd1.measurement_types == cd.measurement_types
 
 
 def test_repr():
-    cd = cirq.ClassicalData({mkey_m: (0, 1)}, {mkey_m: two_qubits})
-    assert repr(cd) == (
-        "cirq.ClassicalData("
-        "measurements={cirq.MeasurementKey(name='m'): (0, 1)}, "
-        "measured_qubits={cirq.MeasurementKey(name='m'): (cirq.LineQubit(0), cirq.LineQubit(1))})"
+    cd = cirq.ClassicalData(
+        _measurements={mkey_m: (0, 1)},
+        _measured_qubits={mkey_m: two_qubits},
+        _channel_measurements={mkey_c: 3},
+        _measurement_types={
+            mkey_m: cirq.MeasurementType.MEASUREMENT,
+            mkey_c: cirq.MeasurementType.CHANNEL,
+        },
     )
+    cirq.testing.assert_equivalent_repr(cd)

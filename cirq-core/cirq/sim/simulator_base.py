@@ -143,7 +143,7 @@ class SimulatorBase(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalData',
+        classical_data: 'cirq.ClassicalDataBase',
     ) -> TActOnArgs:
         """Creates an instance of the TActOnArgs class for the simulator.
 

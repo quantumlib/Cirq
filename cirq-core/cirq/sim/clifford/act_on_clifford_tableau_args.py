@@ -42,7 +42,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        classical_data: 'cirq.ClassicalData' = None,
+        classical_data: 'cirq.ClassicalDataBase' = None,
     ):
         """Inits ActOnCliffordTableauArgs.
 

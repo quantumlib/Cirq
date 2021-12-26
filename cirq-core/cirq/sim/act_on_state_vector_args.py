@@ -44,7 +44,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         prng: np.random.RandomState = None,
         log_of_measurement_results: Dict[str, Any] = None,
         qubits: Sequence['cirq.Qid'] = None,
-        classical_data: 'cirq.ClassicalData' = None,
+        classical_data: 'cirq.ClassicalDataBase' = None,
     ):
         """Inits ActOnStateVectorArgs.
 
@@ -278,7 +278,7 @@ def _strat_act_on_state_vector_from_mixture(
     args.swap_target_tensor_for(args.available_buffer)
     if protocols.is_measurement(action):
         key = protocols.measurement_key_name(action)
-        args.classical_data.record_channel_measurement(key, index, qubits)
+        args._classical_data.record_channel_measurement(key, index)
     return True
 
 
@@ -327,5 +327,5 @@ def _strat_act_on_state_vector_from_channel(
     args.swap_target_tensor_for(args.available_buffer)
     if protocols.is_measurement(action):
         key = protocols.measurement_key_name(action)
-        args.classical_data.record_channel_measurement(key, index, qubits)
+        args._classical_data.record_channel_measurement(key, index)
     return True
