@@ -136,7 +136,7 @@ class ActOnArgsContainer(
         return True
 
     def copy(self) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
-        classical_data = self.classical_data.copy()
+        classical_data = self._classical_data.copy()
         copies = {a: a.copy() for a in set(self.args.values())}
         for copy in copies.values():
             copy._classical_data = classical_data
