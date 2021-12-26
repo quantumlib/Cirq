@@ -111,4 +111,3 @@ def test_repr():
         },
     )
     cirq.testing.assert_equivalent_repr(cd)
-

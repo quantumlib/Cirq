@@ -242,19 +242,22 @@ class ClassicalData(ClassicalDataBase):
         )
 
     def _json_dict_(self):
-        return json_serialization.obj_to_dict_helper(
-            self, ['measurements', 'measured_qubits', 'channel_measurements', 'measurement_types']
-        )
+        return {
+            'measurements': list(self.measurements.items()),
+            'measured_qubits': list(self.measured_qubits.items()),
+            'channel_measurements': list(self.channel_measurements.items()),
+            'measurement_types': list(self.measurement_types.items()),
+        }
 
     @classmethod
     def _from_json_dict_(
         cls, measurements, measured_qubits, channel_measurements, measurement_types, **kwargs
     ):
         return cls(
-            _measurements=measurements,
-            _measured_qubits=measured_qubits,
-            _channel_measurements=channel_measurements,
-            _measurement_types=measurement_types,
+            _measurements=dict(measurements),
+            _measured_qubits=dict(measured_qubits),
+            _channel_measurements=dict(channel_measurements),
+            _measurement_types=dict(measurement_types),
         )
 
     def __repr__(self):
