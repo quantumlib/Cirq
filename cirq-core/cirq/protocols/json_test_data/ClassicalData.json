@@ -14,5 +14,12 @@
         "x": 1
       }
     ]
+  },
+  "channel_measurements": {
+    "c": 3
+  },
+  "measurement_types": {
+    "c": 2,
+    "m": 1
   }
 }

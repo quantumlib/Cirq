@@ -51,7 +51,7 @@ class ActOnArgsContainer(
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
         log_of_measurement_results: Dict[str, Any] = None,
-        classical_data: 'cirq.ClassicalData' = None,
+        classical_data: 'cirq.ClassicalDataBase' = None,
     ):
         """Initializes the class.
 
@@ -71,7 +71,7 @@ class ActOnArgsContainer(
         self._qubits = tuple(qubits)
         self.split_untangled_states = split_untangled_states
         # pylint: disable=line-too-long
-        self._classical_data = classical_data or value.ClassicalData(log_of_measurement_results)  # type: ignore
+        self._classical_data = classical_data or value.ClassicalData(_measurements=log_of_measurement_results)  # type: ignore
         # pylint: enable=line-too-long
 
     def create_merged_state(self) -> TActOnArgs:
@@ -150,7 +150,7 @@ class ActOnArgsContainer(
         return self._qubits
 
     @property
-    def classical_data(self) -> 'cirq.ClassicalData':
+    def classical_data(self) -> 'cirq.ClassicalDataReader':
         return self._classical_data
 
     def sample(

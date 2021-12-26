@@ -91,7 +91,7 @@ class MPSSimulator(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalData',
+        classical_data: 'cirq.ClassicalDataBase',
     ) -> 'MPSState':
         """Creates MPSState args for simulating the Circuit.
 
@@ -230,7 +230,7 @@ class MPSState(ActOnArgs):
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
         log_of_measurement_results: Dict[str, Any] = None,
-        classical_data: 'cirq.ClassicalData' = None,
+        classical_data: 'cirq.ClassicalDataBase' = None,
     ):
         """Creates and MPSState
 

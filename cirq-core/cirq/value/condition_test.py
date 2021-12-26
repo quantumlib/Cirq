@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import dataclasses
 import re
 
 import pytest
@@ -43,9 +43,7 @@ def test_key_condition_repr():
 
 def test_key_condition_resolve():
     def resolve(measurements):
-        classical_data = cirq.ClassicalData(
-            measurements, {k: tuple(cirq.LineQubit(i) for i in v) for k, v in measurements.items()}
-        )
+        classical_data = cirq.ClassicalData(_measurements=measurements)
         return init_key_condition.resolve(classical_data)
 
     assert resolve({'0:a': [1]})
@@ -87,9 +85,7 @@ def test_sympy_condition_repr():
 
 def test_sympy_condition_resolve():
     def resolve(measurements):
-        classical_data = cirq.ClassicalData(
-            measurements, {k: tuple(cirq.LineQubit(i) for i in v) for k, v in measurements.items()}
-        )
+        classical_data = cirq.ClassicalData(_measurements=measurements)
         return init_sympy_condition.resolve(classical_data)
 
     assert resolve({'0:a': [1]})

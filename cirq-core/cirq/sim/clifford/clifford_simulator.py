@@ -68,7 +68,7 @@ class CliffordSimulator(
         self,
         initial_state: Union[int, 'cirq.ActOnStabilizerCHFormArgs'],
         qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalData' = None,
+        classical_data: 'cirq.ClassicalDataBase' = None,
     ) -> 'cirq.ActOnStabilizerCHFormArgs':
         """Creates the ActOnStabilizerChFormArgs for a circuit.
 

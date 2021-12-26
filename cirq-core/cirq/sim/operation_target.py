@@ -79,11 +79,11 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
         """Gets the log of measurement results."""
-        return {str(k): list(v) for k, v in self.classical_data.measurements.items()}
+        return {str(k): list(self.classical_data.get_digits(k)) for k in self.classical_data.keys()}
 
     @property
     @abc.abstractmethod
-    def classical_data(self) -> 'cirq.ClassicalData':
+    def classical_data(self) -> 'cirq.ClassicalDataReader':
         """The shared classical data container for this simulation.."""
 
     @abc.abstractmethod

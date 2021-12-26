@@ -1,1 +1,1 @@
-cirq.ClassicalData(measurements={'m': [0, 1]}, measured_qubits={'m': [cirq.LineQubit(0), cirq.LineQubit(1)]})
+cirq.ClassicalData(_measurements={'m': [0, 1]}, _measured_qubits={'m': [cirq.LineQubit(0), cirq.LineQubit(1)]}, _channel_measurements={'c': 3}, _measurement_types={'m': cirq.MeasurementType.MEASUREMENT, 'c': cirq.MeasurementType.CHANNEL})
