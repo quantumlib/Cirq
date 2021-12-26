@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Unio
 import numpy as np
 import quimb.tensor as qtn
 
-from cirq import devices, study, ops, protocols, value
+from cirq import devices, ops, protocols, value
 from cirq.sim import simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -126,7 +126,7 @@ class MPSSimulator(
 
     def _create_simulator_trial_result(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_step_result: 'MPSSimulatorStepResult',
     ) -> 'MPSTrialResult':
@@ -151,7 +151,7 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState', 'MPSSt
 
     def __init__(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_step_result: 'MPSSimulatorStepResult',
     ) -> None:
@@ -321,7 +321,7 @@ class MPSState(ActOnArgs):
         sorted_ind = tuple(sorted(state_vector.inds))
         return state_vector.fuse({'i': sorted_ind}).data
 
-    def partial_trace(self, keep_qubits: Set[ops.Qid]) -> np.ndarray:
+    def partial_trace(self, keep_qubits: Set['cirq.Qid']) -> np.ndarray:
         """Traces out all qubits except keep_qubits.
 
         Args:
@@ -475,7 +475,7 @@ class MPSState(ActOnArgs):
         }
 
     def perform_measurement(
-        self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
+        self, qubits: Sequence['cirq.Qid'], prng: np.random.RandomState, collapse_state_vector=True
     ) -> List[int]:
         """Performs a measurement over one or more qubits.
 
@@ -533,7 +533,7 @@ class MPSState(ActOnArgs):
 
     def sample(
         self,
-        qubits: Sequence[ops.Qid],
+        qubits: Sequence['cirq.Qid'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:

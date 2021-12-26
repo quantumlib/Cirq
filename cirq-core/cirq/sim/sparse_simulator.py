@@ -220,7 +220,7 @@ class Simulator(
         program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'cirq.Sweepable',
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
     ) -> Iterator[List[float]]:
@@ -252,7 +252,7 @@ class SparseSimulatorStep(
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
-        simulator: Simulator = None,
+        simulator: 'cirq.Simulator' = None,
         dtype: 'DTypeLike' = np.complex64,
     ):
         """Results of a step of the simulator.
@@ -269,7 +269,7 @@ class SparseSimulatorStep(
         self._state_vector: Optional[np.ndarray] = None
         self._simulator = simulator
 
-    def _simulator_state(self) -> state_vector_simulator.StateVectorSimulatorState:
+    def _simulator_state(self) -> 'cirq.StateVectorSimulatorState':
         return state_vector_simulator.StateVectorSimulatorState(
             qubit_map=self.qubit_map, state_vector=self.state_vector(copy=False)
         )

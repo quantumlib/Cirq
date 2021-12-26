@@ -33,7 +33,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, study, value, devices
+from cirq import ops, protocols, study, value, devices
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
@@ -177,7 +177,7 @@ class SimulatorBase(
 
     def _core_iterator(
         self,
-        circuit: circuits.AbstractCircuit,
+        circuit: 'cirq.AbstractCircuit',
         sim_state: OperationTarget[TActOnArgs],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResultBase]:
@@ -207,9 +207,6 @@ class SimulatorBase(
         for moment in noisy_moments:
             for op in ops.flatten_to_ops(moment):
                 try:
-                    # TODO: support more general measurements.
-                    # Github issue: https://github.com/quantumlib/Cirq/issues/3566
-
                     # Preprocess measurements
                     if all_measurements_are_terminal and measured[op.qubits]:
                         continue
@@ -217,8 +214,6 @@ class SimulatorBase(
                         measured[op.qubits] = True
                         if all_measurements_are_terminal:
                             continue
-                        if self._ignore_measurement_results:
-                            op = ops.phase_damp(1).on(*op.qubits)
 
                     # Simulate the operation
                     protocols.act_on(op, sim_state)
@@ -231,8 +226,8 @@ class SimulatorBase(
 
     def _run(
         self,
-        circuit: circuits.AbstractCircuit,
-        param_resolver: study.ParamResolver,
+        circuit: 'cirq.AbstractCircuit',
+        param_resolver: 'cirq.ParamResolver',
         repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
@@ -286,8 +281,8 @@ class SimulatorBase(
     def simulate_sweep_iter(
         self,
         program: 'cirq.AbstractCircuit',
-        params: study.Sweepable,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        params: 'cirq.Sweepable',
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
     ) -> Iterator[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
@@ -400,7 +395,7 @@ class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulator
 
     def sample(
         self,
-        qubits: List[ops.Qid],
+        qubits: List['cirq.Qid'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:

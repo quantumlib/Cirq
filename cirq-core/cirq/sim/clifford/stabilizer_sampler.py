@@ -17,7 +17,7 @@ from typing import Dict, List
 import numpy as np
 
 import cirq
-from cirq import circuits, protocols, value
+from cirq import protocols, value
 from cirq.qis.clifford_tableau import CliffordTableau
 from cirq.sim.clifford.act_on_clifford_tableau_args import ActOnCliffordTableauArgs
 from cirq.work import sampler
@@ -51,7 +51,7 @@ class StabilizerSampler(sampler.Sampler):
             results.append(cirq.Result(params=param_resolver, measurements=measurements))
         return results
 
-    def _run(self, circuit: circuits.AbstractCircuit, repetitions: int) -> Dict[str, np.ndarray]:
+    def _run(self, circuit: 'cirq.AbstractCircuit', repetitions: int) -> Dict[str, np.ndarray]:
 
         measurements: Dict[str, List[np.ndarray]] = {
             key: [] for key in protocols.measurement_key_names(circuit)

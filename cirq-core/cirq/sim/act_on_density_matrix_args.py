@@ -41,6 +41,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         prng: np.random.RandomState = None,
         log_of_measurement_results: Dict[str, Any] = None,
         qubits: Sequence['cirq.Qid'] = None,
+        ignore_measurement_results: bool = False,
     ):
         """Inits ActOnDensityMatrixArgs.
 
@@ -60,8 +61,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            ignore_measurement_results: If True, then the simulation
+                will treat measurement as dephasing instead of collapsing
+                process. This is only applicable to simulators that can
+                model dephasing.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results, ignore_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape
@@ -103,12 +108,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
         return bits
 
-    def _on_copy(self, target: 'ActOnDensityMatrixArgs'):
+    def _on_copy(self, target: 'cirq.ActOnDensityMatrixArgs'):
         target.target_tensor = self.target_tensor.copy()
         target.available_buffer = [b.copy() for b in self.available_buffer]
 
     def _on_kronecker_product(
-        self, other: 'ActOnDensityMatrixArgs', target: 'ActOnDensityMatrixArgs'
+        self, other: 'cirq.ActOnDensityMatrixArgs', target: 'cirq.ActOnDensityMatrixArgs'
     ):
         target_tensor = transformations.density_matrix_kronecker_product(
             self.target_tensor, other.target_tensor
@@ -122,8 +127,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     def _on_factor(
         self,
         qubits: Sequence['cirq.Qid'],
-        extracted: 'ActOnDensityMatrixArgs',
-        remainder: 'ActOnDensityMatrixArgs',
+        extracted: 'cirq.ActOnDensityMatrixArgs',
+        remainder: 'cirq.ActOnDensityMatrixArgs',
         validate=True,
         atol=1e-07,
     ):
@@ -143,7 +148,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         remainder.qid_shape = remainder_tensor.shape[: int(remainder_tensor.ndim / 2)]
 
     def _on_transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid'], target: 'ActOnDensityMatrixArgs'
+        self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnDensityMatrixArgs'
     ):
         axes = self.get_axes(qubits)
         new_tensor = transformations.transpose_density_matrix_to_axis_order(
@@ -181,7 +186,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
 
 def _strat_apply_channel_to_state(
-    action: Any, args: ActOnDensityMatrixArgs, qubits: Sequence['cirq.Qid']
+    action: Any, args: 'cirq.ActOnDensityMatrixArgs', qubits: Sequence['cirq.Qid']
 ) -> bool:
     """Apply channel to state."""
     axes = args.get_axes(qubits)

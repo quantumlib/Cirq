@@ -96,6 +96,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ISwapPowGate': cirq.ISwapPowGate,
         'IdentityGate': cirq.IdentityGate,
         'InitObsSetting': cirq.work.InitObsSetting,
+        'KeyCondition': cirq.KeyCondition,
         'KrausChannel': cirq.KrausChannel,
         'LinearDict': cirq.LinearDict,
         'LineQubit': cirq.LineQubit,
@@ -152,6 +153,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'StatePreparationChannel': cirq.StatePreparationChannel,
         'SwapPowGate': cirq.SwapPowGate,
         'SymmetricalQidPair': cirq.SymmetricalQidPair,
+        'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
         'TrialResult': cirq.Result,  # keep support for Cirq < 0.11.
