@@ -33,7 +33,7 @@ from cirq.interop.quirk.cells.qubit_permutation_cells import (
 )
 
 from cirq.interop.quirk.cells.arithmetic_cells import (
-    QuirkArithmeticOperation,
+    QuirkArithmeticGate,
 )
 
 from cirq.interop.quirk.cells.input_rotation_cells import (

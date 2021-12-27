@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class QuirkArithmeticOperation(ops.ArithmeticGate):
+class QuirkArithmeticGate(ops.ArithmeticGate):
     """Applies arithmetic to a target and some inputs.
 
     Implements Quirk-specific implicit effects like assuming that the presence
@@ -54,7 +54,7 @@ class QuirkArithmeticOperation(ops.ArithmeticGate):
         target: Sequence[int],
         inputs: Sequence[Union[Sequence[int], int]],
     ):
-        """Inits QuirkArithmeticOperation.
+        """Inits QuirkArithmeticGate.
 
         Args:
             identifier: The quirk identifier string for this operation.
@@ -93,7 +93,7 @@ class QuirkArithmeticOperation(ops.ArithmeticGate):
 
     def with_registers(
         self, *new_registers: Union[int, Sequence[int]]
-    ) -> 'QuirkArithmeticOperation':
+    ) -> 'QuirkArithmeticGate':
         if len(new_registers) != len(self.inputs) + 1:
             raise ValueError(
                 'Wrong number of registers.\n'
@@ -108,7 +108,7 @@ class QuirkArithmeticOperation(ops.ArithmeticGate):
                 f'{new_registers[0]}.'
             )
 
-        return QuirkArithmeticOperation(self.identifier, new_registers[0], new_registers[1:])
+        return QuirkArithmeticGate(self.identifier, new_registers[0], new_registers[1:])
 
     def apply(self, *registers: int) -> Union[int, Iterable[int]]:
         return self.operation(*registers)
@@ -134,7 +134,7 @@ class QuirkArithmeticOperation(ops.ArithmeticGate):
 
     def __repr__(self) -> str:
         return (
-            'cirq.interop.quirk.QuirkArithmeticOperation(\n'
+            'cirq.interop.quirk.QuirkArithmeticGate(\n'
             f'    {repr(self.identifier)},\n'
             f'    target={repr(self.target)},\n'
             f'    inputs={_indented_list_lines_repr(self.inputs)},\n'
@@ -240,7 +240,7 @@ class ArithmeticCell(Cell):
 
         inputs = [i if isinstance(i, int) else [q.dimension for q in i] for i in self.inputs]
         qubits = self.target + tuple(q for i in self.inputs if isinstance(i, Sequence) for q in i)
-        return QuirkArithmeticOperation(
+        return QuirkArithmeticGate(
             self.identifier,
             [q.dimension for q in self.target],
             inputs,

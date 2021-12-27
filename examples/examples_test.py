@@ -136,27 +136,19 @@ def test_example_noisy_simulation():
 
 def test_example_shor_modular_exp_register_size():
     with pytest.raises(ValueError):
-        _ = examples.shor.ModularExp(
-            target=[2, 2], exponent=[2, 2, 2], base=4, modulus=5
-        )
+        _ = examples.shor.ModularExp(target=[2, 2], exponent=[2, 2, 2], base=4, modulus=5)
 
 
 def test_example_shor_modular_exp_register_type():
-    operation = examples.shor.ModularExp(
-        target=[2, 2, 2], exponent=[2, 2], base=4, modulus=5
-    )
+    operation = examples.shor.ModularExp(target=[2, 2, 2], exponent=[2, 2], base=4, modulus=5)
     with pytest.raises(ValueError):
         _ = operation.with_registers([2, 2, 2])
     with pytest.raises(ValueError):
         _ = operation.with_registers(1, [2, 2, 2], 4, 5)
     with pytest.raises(ValueError):
-        _ = operation.with_registers(
-            [2, 2, 2], [2, 2, 2], [2, 2, 2], 5
-        )
+        _ = operation.with_registers([2, 2, 2], [2, 2, 2], [2, 2, 2], 5)
     with pytest.raises(ValueError):
-        _ = operation.with_registers(
-            [2, 2, 2], [2, 2, 2], 4, [2, 2, 2]
-        )
+        _ = operation.with_registers([2, 2, 2], [2, 2, 2], 4, [2, 2, 2])
 
 
 def test_example_shor_modular_exp_registers():
