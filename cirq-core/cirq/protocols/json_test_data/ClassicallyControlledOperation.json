@@ -2,14 +2,20 @@
   "cirq_type": "ClassicallyControlledOperation",
   "conditions": [
     {
-      "cirq_type": "MeasurementKey",
-      "name": "a",
-      "path": []
+      "cirq_type": "KeyCondition",
+      "key": {
+        "cirq_type": "MeasurementKey",
+        "name": "a",
+        "path": []
+      }
     },
     {
-      "cirq_type": "MeasurementKey",
-      "name": "b",
-      "path": []
+      "cirq_type": "KeyCondition",
+      "key": {
+        "cirq_type": "MeasurementKey",
+        "name": "b",
+        "path": []
+      }
     }
   ],
   "sub_operation": {
