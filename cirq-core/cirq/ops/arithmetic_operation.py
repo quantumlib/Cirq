@@ -19,6 +19,7 @@ from typing import Union, Iterable, List, Sequence, cast, TypeVar, TYPE_CHECKING
 
 import numpy as np
 
+from cirq._compat import deprecated_class
 from cirq.ops.raw_types import Operation, Gate
 from cirq.ops.gate_operation import GateOperation
 
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
 TSelf = TypeVar('TSelf', bound='ArithmeticOperation')
 
 
+@deprecated_class(deadline='v0.16', fix='Use cirq.ArithmeticGate')
 class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
     """A helper class for implementing reversible classical arithmetic.
 
