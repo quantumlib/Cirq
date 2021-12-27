@@ -91,9 +91,7 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
     def registers(self) -> Sequence[Union[int, Sequence[int]]]:
         return [self.target, *self.inputs]
 
-    def with_registers(
-        self, *new_registers: Union[int, Sequence[int]]
-    ) -> 'QuirkArithmeticGate':
+    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> 'QuirkArithmeticGate':
         if len(new_registers) != len(self.inputs) + 1:
             raise ValueError(
                 'Wrong number of registers.\n'
@@ -238,12 +236,12 @@ class ArithmeticCell(Cell):
         if missing_inputs:
             raise ValueError(f'Missing input: {sorted(missing_inputs)}')
 
-        inputs = [i if isinstance(i, int) else [q.dimension for q in i] for i in self.inputs]
+        inputs = cast(Sequence[Union[Sequence['cirq.Qid'], int]], self.inputs)
         qubits = self.target + tuple(q for i in self.inputs if isinstance(i, Sequence) for q in i)
         return QuirkArithmeticGate(
             self.identifier,
             [q.dimension for q in self.target],
-            inputs,
+            [i if isinstance(i, int) else [q.dimension for q in i] for i in inputs],
         ).on(*qubits)
 
 
