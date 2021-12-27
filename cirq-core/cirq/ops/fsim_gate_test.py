@@ -278,7 +278,6 @@ def test_fsim_repr():
 
 def test_fsim_json_dict():
     assert cirq.FSimGate(theta=0.123, phi=0.456)._json_dict_() == {
-        'cirq_type': 'FSimGate',
         'theta': 0.123,
         'phi': 0.456,
     }
@@ -799,7 +798,6 @@ def test_phased_fsim_json_dict():
     assert cirq.PhasedFSimGate(
         theta=0.12, zeta=0.34, chi=0.56, gamma=0.78, phi=0.9
     )._json_dict_() == {
-        'cirq_type': 'PhasedFSimGate',
         'theta': 0.12,
         'zeta': 0.34,
         'chi': 0.56,

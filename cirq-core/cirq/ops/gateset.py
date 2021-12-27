@@ -97,6 +97,9 @@ class GateFamily:
     def _gate_str(self, gettr: Callable[[Any], str] = str) -> str:
         return _gate_str(self.gate, gettr)
 
+    def _gate_json(self) -> Union[raw_types.Gate, str]:
+        return self.gate if not isinstance(self.gate, type) else protocols.json_cirq_type(self.gate)
+
     def _default_name(self) -> str:
         family_type = 'Instance' if isinstance(self.gate, raw_types.Gate) else 'Type'
         return f'{family_type} GateFamily: {self._gate_str()}'
@@ -167,6 +170,24 @@ class GateFamily:
             self._ignore_global_phase,
         )
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'gate': self._gate_json(),
+            'name': self.name,
+            'description': self.description,
+            'ignore_global_phase': self._ignore_global_phase,
+        }
+
+    @classmethod
+    def _from_json_dict_(
+        cls, gate, name, description, ignore_global_phase, **kwargs
+    ) -> 'GateFamily':
+        if isinstance(gate, str):
+            gate = protocols.cirq_type_from_json(gate)
+        return cls(
+            gate, name=name, description=description, ignore_global_phase=ignore_global_phase
+        )
+
 
 @value.value_equality()
 class Gateset:
@@ -221,7 +242,7 @@ class Gateset:
                     self._instance_gate_families[g.gate] = g
                 else:
                     self._type_gate_families[g.gate] = g
-        self._gates_str_str = "\n\n".join([str(g) for g in unique_gate_list])
+        self._unique_gate_list = unique_gate_list
         self._gates = frozenset(unique_gate_list)
 
     @property
@@ -305,6 +326,9 @@ class Gateset:
         g = item if isinstance(item, raw_types.Gate) else item.gate
         assert g is not None, f'`item`: {item} must be a gate or have a valid `item.gate`'
 
+        if isinstance(g, global_phase_op.GlobalPhaseGate):
+            return self._accept_global_phase_op
+
         if g in self._instance_gate_families:
             assert item in self._instance_gate_families[g], (
                 f"{item} instance matches {self._instance_gate_families[g]} but "
@@ -368,15 +392,7 @@ class Gateset:
         if isinstance(op, raw_types.TaggedOperation):
             return self._validate_operation(op.sub_operation)
         elif isinstance(op, circuit_operation.CircuitOperation) and self._unroll_circuit_op:
-            op_circuit = protocols.resolve_parameters(
-                op.circuit.unfreeze(), op.param_resolver, recursive=False
-            )
-            op_circuit = op_circuit.transform_qubits(
-                lambda q: cast(circuit_operation.CircuitOperation, op).qubit_map.get(q, q)
-            )
-            return self.validate(op_circuit)
-        elif isinstance(op, global_phase_op.GlobalPhaseOperation):
-            return self._accept_global_phase_op
+            return self.validate(op.mapped_circuit(deep=True))
         else:
             return False
 
@@ -402,4 +418,23 @@ class Gateset:
         header = 'Gateset: '
         if self.name:
             header += self.name
-        return f'{header}\n' + self._gates_str_str
+        return f'{header}\n' + "\n\n".join([str(g) for g in self._unique_gate_list])
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'gates': self._unique_gate_list,
+            'name': self.name,
+            'unroll_circuit_op': self._unroll_circuit_op,
+            'accept_global_phase_op': self._accept_global_phase_op,
+        }
+
+    @classmethod
+    def _from_json_dict_(
+        cls, gates, name, unroll_circuit_op, accept_global_phase_op, **kwargs
+    ) -> 'Gateset':
+        return cls(
+            *gates,
+            name=name,
+            unroll_circuit_op=unroll_circuit_op,
+            accept_global_phase_op=accept_global_phase_op,
+        )

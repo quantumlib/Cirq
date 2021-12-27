@@ -238,10 +238,7 @@ def assert_has_diagram(
     actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
 
-    def remove_subcircuit_labels(s: str):
-        return ''.join(line for line in s.splitlines() if 'Circuit_0x' not in line)
-
-    assert remove_subcircuit_labels(actual_diagram) == remove_subcircuit_labels(desired_diagram), (
+    assert actual_diagram == desired_diagram, (
         "Circuit's text diagram differs from the desired diagram.\n"
         '\n'
         'Diagram of actual circuit:\n'

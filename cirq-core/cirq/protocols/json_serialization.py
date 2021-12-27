@@ -16,6 +16,7 @@ import gzip
 import json
 import numbers
 import pathlib
+import warnings
 from typing import (
     Any,
     Callable,
@@ -38,6 +39,7 @@ import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
+from cirq._compat import deprecated_parameter
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -128,6 +130,37 @@ class SupportsJSON(Protocol):
         pass
 
 
+class HasJSONNamespace(Protocol):
+    """An object which prepends a namespace to its JSON cirq_type.
+
+    Classes which implement this method have the following cirq_type format:
+
+        f"{obj._json_namespace_()}.{obj.__class__.__name__}
+
+    Classes outside of Cirq or its submodules MUST implement this method to be
+    used in type serialization.
+    """
+
+    @doc_private
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        pass
+
+
+# TODO: remove once deprecated parameter goes away.
+def _obj_to_dict_helper_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, Any]:
+    d = {}
+    for attr_name in attribute_names:
+        d[attr_name] = getattr(obj, attr_name)
+    return d
+
+
+@deprecated_parameter(
+    deadline='v0.15',
+    fix='Define obj._json_namespace_ to return namespace instead.',
+    parameter_desc='namespace',
+    match=lambda args, kwargs: 'namespace' in kwargs,
+)
 def obj_to_dict_helper(
     obj: Any, attribute_names: Iterable[str], namespace: Optional[str] = None
 ) -> Dict[str, Any]:
@@ -148,14 +181,10 @@ def obj_to_dict_helper(
             key "cirq_type". The namespace name will be joined with the
             class name via a dot (.)
     """
+    d = {}
     if namespace is not None:
-        prefix = f'{namespace}.'
-    else:
-        prefix = ''
-
-    d = {'cirq_type': prefix + obj.__class__.__name__}
-    for attr_name in attribute_names:
-        d[attr_name] = getattr(obj, attr_name)
+        d['cirq_type'] = f'{namespace}.' + obj.__class__.__name__
+    d.update(_obj_to_dict_helper_helper(obj, attribute_names))
     return d
 
 
@@ -203,8 +232,10 @@ def json_serializable_dataclass(
             cls, init=init, repr=repr, eq=eq, order=order, unsafe_hash=unsafe_hash, frozen=frozen
         )
 
+        cls._json_namespace_ = lambda: namespace
+
         cls._json_dict_ = lambda obj: obj_to_dict_helper(
-            obj, [f.name for f in dataclasses.fields(cls)], namespace=namespace
+            obj, [f.name for f in dataclasses.fields(cls)]
         )
 
         return cls
@@ -220,6 +251,12 @@ def json_serializable_dataclass(
 
 
 # pylint: enable=redefined-builtin
+@deprecated_parameter(
+    deadline='v0.15',
+    fix='Define obj._json_namespace_ to return namespace instead.',
+    parameter_desc='namespace',
+    match=lambda args, kwargs: 'namespace' in kwargs,
+)
 def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
     """Return a dictionary suitable for _json_dict_ from a dataclass.
 
@@ -232,7 +269,25 @@ def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
     Although not as elegant, you may want to consider explicitly defining `_json_dict_` on your
     dataclasses which simply `return dataclass_json_dict(self)`.
     """
-    return obj_to_dict_helper(obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace)
+    attribute_names = [f.name for f in dataclasses.fields(obj)]
+    if namespace is not None:
+        return obj_to_dict_helper(obj, attribute_names, namespace=namespace)
+    else:
+        return _obj_to_dict_helper_helper(obj, attribute_names)
+
+
+def _json_dict_with_cirq_type(obj: Any):
+    base_dict = obj._json_dict_()
+    if 'cirq_type' in base_dict:
+        # TODO: upgrade to ValueError in v0.15
+        warnings.warn(
+            f"Found 'cirq_type': '{base_dict['cirq_type']}' in _json_dict_. "
+            f"Custom values of this field are not permitted, and will produce "
+            "an error starting in Cirq v0.15.",
+            DeprecationWarning,
+        )
+        return base_dict
+    return {'cirq_type': json_cirq_type(type(obj)), **base_dict}
 
 
 class CirqEncoder(json.JSONEncoder):
@@ -255,17 +310,30 @@ class CirqEncoder(json.JSONEncoder):
     def default(self, o):
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
-            return o._json_dict_()
+            return _json_dict_with_cirq_type(o)
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
         # Github issue: https://github.com/quantumlib/Cirq/issues/2014
 
         if isinstance(o, sympy.Symbol):
-            return obj_to_dict_helper(o, ['name'], namespace='sympy')
+            return {'cirq_type': 'sympy.Symbol', 'name': o.name}
 
-        if isinstance(o, (sympy.Add, sympy.Mul, sympy.Pow)):
-            return obj_to_dict_helper(o, ['args'], namespace='sympy')
+        if isinstance(
+            o,
+            (
+                sympy.Add,
+                sympy.Mul,
+                sympy.Pow,
+                sympy.GreaterThan,
+                sympy.StrictGreaterThan,
+                sympy.LessThan,
+                sympy.StrictLessThan,
+                sympy.Equality,
+                sympy.Unequality,
+            ),
+        ):
+            return {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args}
 
         if isinstance(o, sympy.Integer):
             return {'cirq_type': 'sympy.Integer', 'i': o.p}
@@ -350,13 +418,7 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
     if d['cirq_type'] == '_ContextualSerialization':
         return _ContextualSerialization.deserialize_with_context(**d)
 
-    for resolver in resolvers:
-        cls = resolver(d['cirq_type'])
-        if cls is not None:
-            break
-    else:
-        raise ValueError(f"Could not resolve type '{d['cirq_type']}' during deserialization")
-
+    cls = factory_from_json(d['cirq_type'], resolvers=resolvers)
     from_json_dict = getattr(cls, '_from_json_dict_', None)
     if from_json_dict is not None:
         return from_json_dict(**d)
@@ -505,6 +567,97 @@ def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
     return []
 
 
+def json_namespace(type_obj: Type) -> str:
+    """Returns a namespace for JSON serialization of `type_obj`.
+
+    Types can provide custom namespaces with `_json_namespace_`; otherwise, a
+    Cirq type will not include a namespace in its cirq_type. Non-Cirq types
+    must provide a namespace for serialization in Cirq.
+
+    Args:
+        type_obj: Type to retrieve the namespace from.
+
+    Returns:
+        The namespace to prepend `type_obj` with in its JSON cirq_type.
+
+    Raises:
+        ValueError: if `type_obj` is not a Cirq type and does not explicitly
+            define its namespace with _json_namespace_.
+    """
+    if hasattr(type_obj, '_json_namespace_'):
+        return type_obj._json_namespace_()
+    if type_obj.__module__.startswith('cirq'):
+        return ''
+    raise ValueError(f'{type_obj} is not a Cirq type, and does not define _json_namespace_.')
+
+
+def json_cirq_type(type_obj: Type) -> str:
+    """Returns a string type for JSON serialization of `type_obj`.
+
+    This method is not part of the base serialization path. Together with
+    `cirq_type_from_json`, it can be used to provide type-object serialization
+    for classes that need it.
+    """
+    namespace = json_namespace(type_obj)
+    if namespace:
+        return f'{namespace}.{type_obj.__name__}'
+    return type_obj.__name__
+
+
+def factory_from_json(
+    type_str: str, resolvers: Optional[Sequence[JsonResolver]] = None
+) -> ObjectFactory:
+    """Returns a factory for constructing objects of type `type_str`.
+
+    DEFAULT_RESOLVERS is updated dynamically as cirq submodules are imported.
+
+    Args:
+        type_str: string representation of the type to deserialize.
+        resolvers: list of JsonResolvers to use in type resolution. If this is
+            left blank, DEFAULT_RESOLVERS will be used.
+
+    Returns:
+        An ObjectFactory that can be called to construct an object whose type
+        matches the name `type_str`.
+
+    Raises:
+        ValueError: if type_str does not have a match in `resolvers`.
+    """
+    resolvers = resolvers if resolvers is not None else DEFAULT_RESOLVERS
+    for resolver in resolvers:
+        cirq_type = resolver(type_str)
+        if cirq_type is not None:
+            return cirq_type
+    raise ValueError(f"Could not resolve type '{type_str}' during deserialization")
+
+
+def cirq_type_from_json(type_str: str, resolvers: Optional[Sequence[JsonResolver]] = None) -> Type:
+    """Returns a type object for JSON deserialization of `type_str`.
+
+    This method is not part of the base deserialization path. Together with
+    `json_cirq_type`, it can be used to provide type-object deserialization
+    for classes that need it.
+
+    Args:
+        type_str: string representation of the type to deserialize.
+        resolvers: list of JsonResolvers to use in type resolution. If this is
+            left blank, DEFAULT_RESOLVERS will be used.
+
+    Returns:
+        The type object T for which json_cirq_type(T) matches `type_str`.
+
+    Raises:
+        ValueError: if type_str does not have a match in `resolvers`, or if the
+            match found is a factory method instead of a type.
+    """
+    cirq_type = factory_from_json(type_str, resolvers)
+    if isinstance(cirq_type, type):
+        return cirq_type
+    # We assume that if factory_from_json returns a factory, there is not
+    # another resolver which resolves `type_str` to a type object.
+    raise ValueError(f"Type {type_str} maps to a factory method instead of a type.")
+
+
 # pylint: disable=function-redefined
 @overload
 def to_json(
@@ -573,9 +726,9 @@ def to_json(
                     if candidate.obj == o:
                         if not candidate.key in ContextualEncoder.seen:
                             ContextualEncoder.seen.add(candidate.key)
-                            return candidate.obj._json_dict_()
+                            return _json_dict_with_cirq_type(candidate.obj)
                         else:
-                            return _SerializedKey(candidate.key)._json_dict_()
+                            return _json_dict_with_cirq_type(_SerializedKey(candidate.key))
                 raise ValueError("Object mutated during serialization.")  # coverage: ignore
 
         cls = ContextualEncoder

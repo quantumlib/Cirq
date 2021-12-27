@@ -225,7 +225,7 @@ class ControlledOperation(raw_types.Operation):
             known_qubits=(args.known_qubits[n:] if args.known_qubits is not None else None),
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
-            qubit_map=args.qubit_map,
+            label_map=args.label_map,
         )
         sub_info = protocols.circuit_diagram_info(self.sub_operation, sub_args, None)
         if sub_info is None:
@@ -254,7 +254,6 @@ class ControlledOperation(raw_types.Operation):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'controls': self.controls,
             'control_values': self.control_values,
             'sub_operation': self.sub_operation,

@@ -324,7 +324,6 @@ class Result:
                 'shape': digits.shape,
             }
         return {
-            'cirq_type': self.__class__.__name__,
             'params': self.params,
             'measurements': packed_measurements,
         }

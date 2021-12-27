@@ -36,6 +36,8 @@ def test_tilted_square_lattice(width, height):
     assert nx.is_connected(topo.graph)
     assert nx.algorithms.planarity.check_planarity(topo.graph)
 
+    cirq.testing.assert_equivalent_repr(topo)
+
 
 def test_bad_tilted_square_lattice():
     with pytest.raises(ValueError):
@@ -81,6 +83,8 @@ def test_line_topology():
         _ = LineTopology(1)
     assert LineTopology(2).n_nodes == 2
     assert LineTopology(2).graph.number_of_nodes() == 2
+
+    cirq.testing.assert_equivalent_repr(topo)
 
 
 def test_line_topology_nodes_as_qubits():

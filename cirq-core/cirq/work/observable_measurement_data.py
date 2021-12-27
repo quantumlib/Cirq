@@ -316,7 +316,6 @@ class BitstringAccumulator:
             return _pack_digits(a, pack_bits='never')[0]
 
         return {
-            'cirq_type': self.__class__.__name__,
             'meas_spec': self.meas_spec,
             'simul_settings': self.simul_settings,
             'qubit_to_index': list(self.qubit_to_index.items()),

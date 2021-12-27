@@ -242,7 +242,7 @@ class Duration:
         return f'cirq.Duration({unit}={proper_repr(amount)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'cirq_type': self.__class__.__name__, 'picos': self.total_picos()}
+        return {'picos': self.total_picos()}
 
 
 def _attempt_duration_like_to_duration(value: Any) -> Optional[Duration]:

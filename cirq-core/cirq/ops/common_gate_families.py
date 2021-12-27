@@ -53,6 +53,13 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
     def _value_equality_values_(self) -> Any:
         return self._num_qubits
 
+    def _json_dict_(self):
+        return {'num_qubits': self._num_qubits}
+
+    @classmethod
+    def _from_json_dict_(cls, num_qubits, **kwargs):
+        return cls(num_qubits)
+
 
 class AnyIntegerPowerGateFamily(gateset.GateFamily):
     """GateFamily which accepts instances of a given `cirq.EigenGate`, raised to integer power."""
@@ -86,6 +93,15 @@ class AnyIntegerPowerGateFamily(gateset.GateFamily):
 
     def _value_equality_values_(self) -> Any:
         return self.gate
+
+    def _json_dict_(self):
+        return {'gate': self._gate_json()}
+
+    @classmethod
+    def _from_json_dict_(cls, gate, **kwargs):
+        if isinstance(gate, str):
+            gate = protocols.cirq_type_from_json(gate)
+        return cls(gate)
 
 
 class ParallelGateFamily(gateset.GateFamily):
@@ -175,3 +191,19 @@ class ParallelGateFamily(gateset.GateFamily):
     def _value_equality_values_(self) -> Any:
         # `isinstance` is used to ensure the a gate type and gate instance is not compared.
         return super()._value_equality_values_() + (self._max_parallel_allowed,)
+
+    def _json_dict_(self):
+        return {
+            'gate': self._gate_json(),
+            'name': self.name,
+            'description': self.description,
+            'max_parallel_allowed': self._max_parallel_allowed,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, gate, name, description, max_parallel_allowed, **kwargs):
+        if isinstance(gate, str):
+            gate = protocols.cirq_type_from_json(gate)
+        return cls(
+            gate, name=name, description=description, max_parallel_allowed=max_parallel_allowed
+        )

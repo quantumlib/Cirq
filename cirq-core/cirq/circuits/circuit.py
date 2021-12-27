@@ -22,9 +22,9 @@ Moment the Operations must all act on distinct Qubits.
 import abc
 import enum
 import html
+import itertools
 import math
 from collections import defaultdict
-from itertools import groupby
 from typing import (
     AbstractSet,
     Any,
@@ -50,7 +50,7 @@ import networkx
 import numpy as np
 
 import cirq._version
-from cirq import devices, ops, protocols, value, qis
+from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -122,7 +122,7 @@ class AbstractCircuit(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def device(self) -> devices.Device:
+    def device(self) -> 'cirq.Device':
         pass
 
     def freeze(self) -> 'cirq.FrozenCircuit':
@@ -589,7 +589,7 @@ class AbstractCircuit(abc.ABC):
         self,
         start_frontier: Dict['cirq.Qid', int],
         is_blocker: Callable[['cirq.Operation'], bool] = lambda op: False,
-    ) -> List[Tuple[int, ops.Operation]]:
+    ) -> List[Tuple[int, 'cirq.Operation']]:
         """Finds all operations until a blocking operation is hit.
 
         An operation is considered blocking if
@@ -740,7 +740,7 @@ class AbstractCircuit(abc.ABC):
 
     def findall_operations_with_gate_type(
         self, gate_type: Type[T_DESIRED_GATE_TYPE]
-    ) -> Iterable[Tuple[int, ops.GateOperation, T_DESIRED_GATE_TYPE]]:
+    ) -> Iterable[Tuple[int, 'cirq.GateOperation', T_DESIRED_GATE_TYPE]]:
         """Find the locations of all gate operations of a given type.
 
         Args:
@@ -852,7 +852,7 @@ class AbstractCircuit(abc.ABC):
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
 
-    def all_operations(self) -> Iterator[ops.Operation]:
+    def all_operations(self) -> Iterator['cirq.Operation']:
         """Iterates over the operations applied by this circuit.
 
         Operations from earlier moments will be iterated over first. Operations
@@ -886,10 +886,10 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_key_objs(self) -> AbstractSet[value.MeasurementKey]:
+    def all_measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
         return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         return self.all_measurement_key_objs()
 
     def all_measurement_key_names(self) -> AbstractSet[str]:
@@ -912,6 +912,18 @@ class AbstractCircuit(abc.ABC):
         return self._with_sliced_moments(
             [protocols.with_key_path_prefix(moment, prefix) for moment in self.moments]
         )
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ):
+        moments = []
+        for moment in self.moments:
+            new_moment = protocols.with_rescoped_keys(moment, path, bindable_keys)
+            moments.append(new_moment)
+            bindable_keys |= protocols.measurement_key_objs(new_moment)
+        return self._with_sliced_moments(moments)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
@@ -998,6 +1010,24 @@ class AbstractCircuit(abc.ABC):
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
+
+    def _has_superoperator_(self) -> bool:
+        """Returns True if self has superoperator representation."""
+        return all(m._has_superoperator_() for m in self)
+
+    def _superoperator_(self) -> np.ndarray:
+        """Compute superoperator matrix for quantum channel specified by this circuit."""
+        all_qubits = self.all_qubits()
+        n = len(all_qubits)
+        if n > 10:
+            raise ValueError(f"{n} > 10 qubits is too many to compute superoperator")
+
+        circuit_superoperator = np.eye(4 ** n)
+        for moment in self:
+            full_moment = moment.expand_to(all_qubits)
+            moment_superoperator = full_moment._superoperator_()
+            circuit_superoperator = moment_superoperator @ circuit_superoperator
+        return circuit_superoperator
 
     def final_state_vector(
         self,
@@ -1132,7 +1162,7 @@ class AbstractCircuit(abc.ABC):
         get_circuit_diagram_info: Optional[
             Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'], 'cirq.CircuitDiagramInfo']
         ] = None,
-    ) -> TextDiagramDrawer:
+    ) -> 'cirq.TextDiagramDrawer':
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
         Args:
@@ -1150,27 +1180,34 @@ class AbstractCircuit(abc.ABC):
         Returns:
             The TextDiagramDrawer instance.
         """
-        qubits: Tuple[Any, ...] = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits()
-        )
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
-                (key for op in self.all_operations() for key in protocols.control_keys(op)), key=str
+                set(key for op in self.all_operations() for key in protocols.control_keys(op)),
+                key=str,
             )
         )
-        qubits = qubits + cbits
-        qubit_map = {qubits[i]: i for i in range(len(qubits))}
+        labels = qubits + cbits
+        label_map = {labels[i]: i for i in range(len(labels))}
+
+        def default_namer(label_entity):
+            return str(label_entity) + ('' if transpose else ': ')
 
         if qubit_namer is None:
-            qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
+            qubit_namer = default_namer
         diagram = TextDiagramDrawer()
         diagram.write(0, 0, '')
-        for q, i in qubit_map.items():
-            diagram.write(0, i, qubit_namer(q))
-        first_annotation_row = max(qubit_map.values(), default=0) + 1
+        for label_entity, i in label_map.items():
+            name = (
+                qubit_namer(label_entity)
+                if isinstance(label_entity, ops.Qid)
+                else default_namer(label_entity)
+            )
+            diagram.write(0, i, name)
+        first_annotation_row = max(label_map.values(), default=0) + 1
 
-        if any(isinstance(op.untagged, cirq.GlobalPhaseOperation) for op in self.all_operations()):
-            diagram.write(0, max(qubit_map.values(), default=0) + 1, 'global phase:')
+        if any(isinstance(op.gate, cirq.GlobalPhaseGate) for op in self.all_operations()):
+            diagram.write(0, max(label_map.values(), default=0) + 1, 'global phase:')
             first_annotation_row += 1
 
         moment_groups = []  # type: List[Tuple[int, int]]
@@ -1178,7 +1215,7 @@ class AbstractCircuit(abc.ABC):
             _draw_moment_in_diagram(
                 moment=moment,
                 use_unicode_characters=use_unicode_characters,
-                qubit_map=qubit_map,
+                label_map=label_map,
                 out_diagram=diagram,
                 precision=precision,
                 moment_groups=moment_groups,
@@ -1188,8 +1225,8 @@ class AbstractCircuit(abc.ABC):
             )
 
         w = diagram.width()
-        for i in qubit_map.values():
-            diagram.horizontal_line(i, 0, w, doubled=not isinstance(qubits[i], ops.Qid))
+        for i in label_map.values():
+            diagram.horizontal_line(i, 0, w, doubled=not isinstance(labels[i], ops.Qid))
 
         if moment_groups and draw_moment_groups:
             _draw_moment_groups_in_diagram(moment_groups, use_unicode_characters, diagram)
@@ -1213,7 +1250,7 @@ class AbstractCircuit(abc.ABC):
         header: Optional[str] = None,
         precision: int = 10,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    ) -> QasmOutput:
+    ) -> 'cirq.QasmOutput':
         """Returns a QASM object equivalent to the circuit.
 
         Args:
@@ -1236,7 +1273,7 @@ class AbstractCircuit(abc.ABC):
 
     def _to_quil_output(
         self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
-    ) -> QuilOutput:
+    ) -> 'cirq.QuilOutput':
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return QuilOutput(operations=self.all_operations(), qubits=qubits)
 
@@ -1500,6 +1537,10 @@ class AbstractCircuit(abc.ABC):
             self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
         )
 
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
+        controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
+        return controls - protocols.measurement_key_objs(self)
+
 
 def _overlap_collision_time(
     c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
@@ -1656,7 +1697,7 @@ class Circuit(AbstractCircuit):
         self.append(contents, strategy=strategy)
 
     @property
-    def device(self) -> devices.Device:
+    def device(self) -> 'cirq.Device':
         return self._device
 
     @device.setter
@@ -1664,15 +1705,15 @@ class Circuit(AbstractCircuit):
         new_device.validate_circuit(self)
         self._device = new_device
 
-    def __copy__(self) -> 'Circuit':
+    def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
 
-    def copy(self) -> 'Circuit':
+    def copy(self) -> 'cirq.Circuit':
         copied_circuit = Circuit(device=self._device)
         copied_circuit._moments = self._moments[:]
         return copied_circuit
 
-    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'Circuit':
+    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'cirq.Circuit':
         new_circuit = Circuit(device=self.device)
         new_circuit._moments = list(moments)
         return new_circuit
@@ -1752,7 +1793,7 @@ class Circuit(AbstractCircuit):
             return NotImplemented
         return self * int(repetitions)
 
-    def __pow__(self, exponent: int) -> 'Circuit':
+    def __pow__(self, exponent: int) -> 'cirq.Circuit':
         """A circuit raised to a power, only valid for exponent -1, the inverse.
 
         This will fail if anything other than -1 is passed to the Circuit by
@@ -1778,7 +1819,7 @@ class Circuit(AbstractCircuit):
         self,
         new_device: 'cirq.Device',
         qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
-    ) -> 'Circuit':
+    ) -> 'cirq.Circuit':
         """Maps the current circuit onto a new device, and validates.
 
         Args:
@@ -2255,7 +2296,9 @@ class Circuit(AbstractCircuit):
             if 0 <= k < len(self._moments):
                 self._moments[k] = self._moments[k].without_operations_touching(qubits)
 
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'Circuit':
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'cirq.Circuit':
         resolved_moments = []
         for moment in self:
             resolved_operations = _resolve_operations(moment.operations, resolver, recursive)
@@ -2335,7 +2378,7 @@ def _get_moment_annotations(
         if op.qubits:
             continue
         op = op.untagged
-        if isinstance(op, ops.GlobalPhaseOperation):
+        if isinstance(op.gate, ops.GlobalPhaseGate):
             continue
         if isinstance(op, CircuitOperation):
             for m in op.circuit:
@@ -2349,8 +2392,8 @@ def _draw_moment_annotations(
     moment: 'cirq.Moment',
     col: int,
     use_unicode_characters: bool,
-    qubit_map: Dict['cirq.Qid', int],
-    out_diagram: TextDiagramDrawer,
+    label_map: Dict['cirq.LabelEntity', int],
+    out_diagram: 'cirq.TextDiagramDrawer',
     precision: Optional[int],
     get_circuit_diagram_info: Callable[
         ['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'], 'cirq.CircuitDiagramInfo'
@@ -2364,7 +2407,7 @@ def _draw_moment_annotations(
             known_qubits=(),
             known_qubit_count=0,
             use_unicode_characters=use_unicode_characters,
-            qubit_map=qubit_map,
+            label_map=label_map,
             precision=precision,
             include_tags=include_tags,
         )
@@ -2379,8 +2422,8 @@ def _draw_moment_in_diagram(
     *,
     moment: 'cirq.Moment',
     use_unicode_characters: bool,
-    qubit_map: Dict['cirq.Qid', int],
-    out_diagram: TextDiagramDrawer,
+    label_map: Dict['cirq.LabelEntity', int],
+    out_diagram: 'cirq.TextDiagramDrawer',
     precision: Optional[int],
     moment_groups: List[Tuple[int, int]],
     get_circuit_diagram_info: Optional[
@@ -2397,12 +2440,10 @@ def _draw_moment_in_diagram(
 
     max_x = x0
     for op in non_global_ops:
-        qubits: Tuple[Any, ...] = tuple(op.qubits)
-        cbits = tuple(
-            (protocols.measurement_key_objs(op) | protocols.control_keys(op)) & qubit_map.keys()
-        )
-        qubits += cbits
-        indices = [qubit_map[q] for q in qubits]
+        qubits = tuple(op.qubits)
+        cbits = tuple(protocols.measurement_keys_touched(op) & label_map.keys())
+        labels = qubits + cbits
+        indices = [label_map[label] for label in labels]
         y1 = min(indices)
         y2 = max(indices)
 
@@ -2416,7 +2457,7 @@ def _draw_moment_in_diagram(
             known_qubits=op.qubits,
             known_qubit_count=len(op.qubits),
             use_unicode_characters=use_unicode_characters,
-            qubit_map=qubit_map,
+            label_map=label_map,
             precision=precision,
             include_tags=include_tags,
         )
@@ -2429,10 +2470,10 @@ def _draw_moment_in_diagram(
         # Print gate qubit labels.
         symbols = info._wire_symbols_including_formatted_exponent(
             args,
-            preferred_exponent_index=max(range(len(qubits)), key=lambda i: qubit_map[qubits[i]]),
+            preferred_exponent_index=max(range(len(labels)), key=lambda i: label_map[labels[i]]),
         )
-        for s, q in zip(symbols, qubits):
-            out_diagram.write(x, qubit_map[q], s)
+        for s, q in zip(symbols, labels):
+            out_diagram.write(x, label_map[q], s)
 
         if x > max_x:
             max_x = x
@@ -2441,7 +2482,7 @@ def _draw_moment_in_diagram(
         moment=moment,
         use_unicode_characters=use_unicode_characters,
         col=x0,
-        qubit_map=qubit_map,
+        label_map=label_map,
         out_diagram=out_diagram,
         precision=precision,
         get_circuit_diagram_info=get_circuit_diagram_info,
@@ -2455,7 +2496,7 @@ def _draw_moment_in_diagram(
     if global_phase and (global_phase != 1 or not non_global_ops):
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
-            y = max(qubit_map.values(), default=0) + 1
+            y = max(label_map.values(), default=0) + 1
             if tags and include_tags:
                 desc = desc + str(tags)
             out_diagram.write(x0, y, desc)
@@ -2469,8 +2510,8 @@ def _draw_moment_in_diagram(
 
 
 def _get_global_phase_and_tags_for_op(op: 'cirq.Operation') -> Tuple[Optional[complex], List[Any]]:
-    if isinstance(op.untagged, ops.GlobalPhaseOperation):
-        return complex(op.untagged.coefficient), list(op.tags)
+    if isinstance(op.gate, ops.GlobalPhaseGate):
+        return complex(op.gate.coefficient), list(op.tags)
     elif isinstance(op.untagged, CircuitOperation):
         op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
         return op_phase, list(op.tags) + op_tags
@@ -2503,7 +2544,7 @@ def _formatted_phase(coefficient: complex, unicode: bool, precision: Optional[in
 def _draw_moment_groups_in_diagram(
     moment_groups: List[Tuple[int, int]],
     use_unicode_characters: bool,
-    out_diagram: TextDiagramDrawer,
+    out_diagram: 'cirq.TextDiagramDrawer',
 ):
     out_diagram.insert_empty_rows(0)
     h = out_diagram.height()
@@ -2533,7 +2574,7 @@ def _draw_moment_groups_in_diagram(
 
 
 def _apply_unitary_circuit(
-    circuit: AbstractCircuit,
+    circuit: 'cirq.AbstractCircuit',
     state: np.ndarray,
     qubits: Tuple['cirq.Qid', ...],
     dtype: Type[np.number],
@@ -2632,4 +2673,4 @@ def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], val
     Yields:
         Tuples containing the group key and item values.
     """
-    return ((k, [val(i) for i in v]) for (k, v) in groupby(items, key))
+    return ((k, [val(i) for i in v]) for (k, v) in itertools.groupby(items, key))
