@@ -256,13 +256,12 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
     This class handles the details of ensuring that the scaling of implementing
     the operation is O(2^n) instead of O(4^n) where n is the number of qubits
     being acted on, by implementing an `_apply_unitary_` function in terms of
-    the registers and the apply function of the child class. It also handles the
-    boilerplate of implementing the `qubits` and `with_qubits` methods.
+    the registers and the apply function of the child class.
 
     Examples:
     ```
 
-        >>> class Add(cirq.ArithmeticOperation):
+        >>> class Add(cirq.ArithmeticGate):
         ...     def __init__(self, target_register, input_register):
         ...         self.target_register = target_register
         ...         self.input_register = input_register
@@ -276,8 +275,8 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         ...     def apply(self, target_value, input_value):
         ...         return target_value + input_value
         >>> cirq.unitary(
-        ...     Add(target_register=cirq.LineQubit.range(2),
-        ...         input_register=1)
+        ...     Add(target_register=[2, 2],
+        ...         input_register=1).on(*cirq.LineQubit.range(2))
         ... ).astype(np.int32)
         array([[0, 0, 0, 1],
                [1, 0, 0, 0],
@@ -290,8 +289,8 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         ...    cirq.measure(*cirq.LineQubit.range(4, 8), key='before:in'),
         ...    cirq.measure(*cirq.LineQubit.range(4), key='before:out'),
         ...
-        ...    Add(target_register=cirq.LineQubit.range(4),
-        ...        input_register=cirq.LineQubit.range(4, 8)),
+        ...    Add(target_register=[2] * 4,
+        ...        input_register=[2] * 4).on(*cirq.LineQubit.range(8)),
         ...
         ...    cirq.measure(*cirq.LineQubit.range(4, 8), key='after:in'),
         ...    cirq.measure(*cirq.LineQubit.range(4), key='after:out'),

@@ -39,8 +39,10 @@ if TYPE_CHECKING:
 @value.value_equality
 class QuirkArithmeticOperation(ops.ArithmeticOperation):
     """Applies arithmetic to a target and some inputs.
+
     Implements Quirk-specific implicit effects like assuming that the presence
     of an 'r' input implies modular arithmetic.
+
     In Quirk, modular operations have no effect on values larger than the
     modulus. This convention is used because unitarity forces *some* convention
     on out-of-range values (they cannot simply disappear or raise exceptions),
@@ -55,11 +57,13 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
         inputs: Sequence[Union[Sequence['cirq.Qid'], int]],
     ):
         """Inits QuirkArithmeticOperation.
+
         Args:
             identifier: The quirk identifier string for this operation.
             target: The target qubit register.
             inputs: Qubit registers (or classical constants) that
                 determine what happens to the target.
+
         Raises:
             ValueError: If given overlapping registers, or the target is too
                 small for a modular operation with too small modulus.
