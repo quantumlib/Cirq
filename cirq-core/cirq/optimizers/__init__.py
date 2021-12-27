@@ -72,11 +72,6 @@ from cirq.optimizers.merge_single_qubit_gates import (
     MergeSingleQubitGates,
 )
 
-from cirq.optimizers.two_qubit_state_preparation import (
-    prepare_two_qubit_state_using_cz,
-    prepare_two_qubit_state_using_sqrt_iswap,
-)
-
 from cirq.optimizers.decompositions import (
     is_negligible_turn,
     single_qubit_matrix_to_gates,
@@ -96,18 +91,6 @@ from cirq.optimizers.synchronize_terminal_measurements import (
 from cirq.optimizers.three_qubit_decomposition import (
     three_qubit_matrix_to_operations,
 )
-
-from cirq.optimizers.transformer_primitives import (
-    map_moments,
-    map_operations,
-    map_operations_and_unroll,
-    merge_moments,
-    merge_operations,
-    unroll_circuit_op,
-    unroll_circuit_op_greedy_earliest,
-    unroll_circuit_op_greedy_frontier,
-)
-
 
 from cirq.optimizers.two_qubit_decompositions import (
     two_qubit_matrix_to_operations,
