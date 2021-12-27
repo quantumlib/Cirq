@@ -215,16 +215,14 @@ def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
         Quantum circuit for finding the order of x modulo n
     """
     L = n.bit_length()
-    target = (2,) * L
-    target_q = cirq.LineQubit.range(L)
-    exponent = (2,) * (2 * L + 3)
-    exponent_q = cirq.LineQubit.range(L, 3 * L + 3)
+    target = cirq.LineQubit.range(L)
+    exponent = cirq.LineQubit.range(L, 3 * L + 3)
     return cirq.Circuit(
-        cirq.X(target_q[L - 1]),
-        cirq.H.on_each(*exponent_q),
-        ModularExp(target, exponent, x, n).on(*(target_q + exponent_q)),
-        cirq.qft(*exponent_q, inverse=True),
-        cirq.measure(*exponent_q, key='exponent'),
+        cirq.X(target[L - 1]),
+        cirq.H.on_each(*exponent),
+        ModularExp([2] * len(target), [2] * len(exponent), x, n).on(*target + exponent),
+        cirq.qft(*exponent, inverse=True),
+        cirq.measure(*exponent, key='exponent'),
     )
 
 
