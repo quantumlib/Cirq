@@ -182,6 +182,9 @@ def test_execute(tmpdir, run_id_in, patch_cirq_default_resolvers):
         f'{tmpdir}/{run_id}/ExecutableGroupResultFilesystemRecord.json.gz'
     )
     exegroup_result: cg.ExecutableGroupResult = egr_record.load(base_data_dir=tmpdir)
+    helper_loaded_result = cg.ExecutableGroupResultFilesystemRecord.from_json(
+        run_id=run_id, base_data_dir=tmpdir
+    ).load(base_data_dir=tmpdir)
 
     # TODO(gh-4699): Don't null-out device once it's serializable.
     assert isinstance(returned_exegroup_result.shared_runtime_info.device, cg.SerializableDevice)
@@ -189,3 +192,4 @@ def test_execute(tmpdir, run_id_in, patch_cirq_default_resolvers):
 
     assert returned_exegroup_result == exegroup_result
     assert manual_exegroup_result == exegroup_result
+    assert helper_loaded_result == exegroup_result

@@ -83,7 +83,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self._moments
 
     @property
-    def device(self) -> devices.Device:
+    def device(self) -> 'cirq.Device':
         return self._device
 
     def __hash__(self):
@@ -116,7 +116,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             self._all_qubits = super().all_qubits()
         return self._all_qubits
 
-    def all_operations(self) -> Iterator[ops.Operation]:
+    def all_operations(self) -> Iterator['cirq.Operation']:
         if self._all_operations is None:
             self._all_operations = tuple(super().all_operations())
         return iter(self._all_operations)
@@ -152,29 +152,29 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return self.all_measurement_key_names()
 
-    def __add__(self, other) -> 'FrozenCircuit':
+    def __add__(self, other) -> 'cirq.FrozenCircuit':
         return (self.unfreeze() + other).freeze()
 
-    def __radd__(self, other) -> 'FrozenCircuit':
+    def __radd__(self, other) -> 'cirq.FrozenCircuit':
         return (other + self.unfreeze()).freeze()
 
     # Needed for numpy to handle multiplication by np.int64 correctly.
     __array_priority__ = 10000
 
     # TODO: handle multiplication / powers differently?
-    def __mul__(self, other) -> 'FrozenCircuit':
+    def __mul__(self, other) -> 'cirq.FrozenCircuit':
         return (self.unfreeze() * other).freeze()
 
-    def __rmul__(self, other) -> 'FrozenCircuit':
+    def __rmul__(self, other) -> 'cirq.FrozenCircuit':
         return (other * self.unfreeze()).freeze()
 
-    def __pow__(self, other) -> 'FrozenCircuit':
+    def __pow__(self, other) -> 'cirq.FrozenCircuit':
         try:
             return (self.unfreeze() ** other).freeze()
         except:
             return NotImplemented
 
-    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'FrozenCircuit':
+    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'cirq.FrozenCircuit':
         new_circuit = FrozenCircuit(device=self.device)
         new_circuit._moments = tuple(moments)
         return new_circuit
@@ -183,12 +183,12 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self,
         new_device: 'cirq.Device',
         qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
-    ) -> 'FrozenCircuit':
+    ) -> 'cirq.FrozenCircuit':
         return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'FrozenCircuit':
+    ) -> 'cirq.FrozenCircuit':
         return self.unfreeze()._resolve_parameters_(resolver, recursive).freeze()
 
     def tetris_concat(

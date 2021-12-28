@@ -27,6 +27,7 @@ from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
 import numpy as np
 import pandas as pd
 import sympy
+import sympy.printing.repr
 
 
 def proper_repr(value: Any) -> str:
