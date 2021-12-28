@@ -24,7 +24,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
         )
 
     def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
-        return []
+        return [0] * len(qubits)
 
     def copy(self) -> 'EmptyActOnArgs':
         return EmptyActOnArgs(

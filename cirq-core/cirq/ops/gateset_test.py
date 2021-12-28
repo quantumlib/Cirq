@@ -282,6 +282,13 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
         )
 
 
+def test_gateset_validate_circuit_op_negative_reps():
+    gate = CustomXPowGate(exponent=0.5)
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(gate.on(cirq.LineQubit(0))), repetitions=-1)
+    assert op not in cirq.Gateset(gate)
+    assert op ** -1 in cirq.Gateset(gate)
+
+
 def test_with_params():
     assert gateset.with_params() is gateset
     assert (
