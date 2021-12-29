@@ -93,6 +93,8 @@ class ApplyUnitaryArgs:
                 dtype as the target tensor.
             axes: Which axes the unitary effect is being applied to (e.g. the
                 qubits that the gate is operating on).
+            slices: Which slices the unitary effect is being applied to (e.g.
+                the qudit subdimensions that the gate is operating on).
 
         """
         self.target_tensor = target_tensor
