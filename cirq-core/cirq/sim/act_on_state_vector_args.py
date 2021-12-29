@@ -248,6 +248,7 @@ def _strat_act_on_state_vector_from_apply_unitary(
             target_tensor=args.target_tensor,
             available_buffer=args.available_buffer,
             axes=args.get_axes(qubits),
+            slices=[q.get_slice() for q in qubits],
         ),
         allow_decompose=False,
         default=NotImplemented,

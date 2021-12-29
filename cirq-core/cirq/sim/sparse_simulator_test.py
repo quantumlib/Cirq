@@ -399,6 +399,23 @@ def test_simulate_qudits(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
+def test_simulate_qudits_slices(dtype: Type[np.number], split: bool):
+    q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
+    simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
+    circuit = cirq.Circuit(
+        cirq.X(q0.subdimension(0, 1)),
+        cirq.X(q1.subdimension(0, 3)),
+    )
+    result = simulator.simulate(circuit, qubit_order=[q0, q1])
+    expected = np.zeros(12)
+    expected[4 * 1 + 3] = 1
+
+    np.testing.assert_almost_equal(result.final_state_vector, expected)
+    assert len(result.measurements) == 0
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+@pytest.mark.parametrize('split', [True, False])
 def test_simulate_mixtures(dtype: Type[np.number], split: bool):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)

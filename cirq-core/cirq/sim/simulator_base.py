@@ -310,7 +310,9 @@ class SimulatorBase(
         def sweep_prefixable(op: 'cirq.Operation'):
             return self._can_be_in_run_prefix(op) and not protocols.is_parameterized(op)
 
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(program.all_qubits())
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            frozenset(q.qubit for q in program.all_qubits())
+        )
         initial_state = 0 if initial_state is None else initial_state
         sim_state = self._create_act_on_args(initial_state, qubits)
         prefix, suffix = (

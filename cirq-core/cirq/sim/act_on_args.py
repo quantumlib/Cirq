@@ -106,6 +106,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         self._log_of_measurement_results[key] = corrected
 
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
+        qubits = [q.qubit for q in qubits]
         return [self.qubit_map[q] for q in qubits]
 
     @abc.abstractmethod

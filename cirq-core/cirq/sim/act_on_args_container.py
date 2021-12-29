@@ -88,8 +88,9 @@ class ActOnArgsContainer(
         if isinstance(gate, ops.IdentityGate):
             return True
 
+        raw_qubits = [q.qubit for q in qubits]
         if isinstance(gate, ops.SwapPowGate) and gate.exponent % 2 == 1 and gate.global_shift == 0:
-            q0, q1 = qubits
+            q0, q1 = raw_qubits
             args0 = self.args[q0]
             args1 = self.args[q1]
             if args0 is args1:
@@ -102,7 +103,7 @@ class ActOnArgsContainer(
         # Go through the op's qubits and join any disparate ActOnArgs states
         # into a new combined state.
         op_args_opt: Optional[TActOnArgs] = None
-        for q in qubits:
+        for q in raw_qubits:
             if op_args_opt is None:
                 op_args_opt = self.args[q]
             elif q not in op_args_opt.qubits:
@@ -121,7 +122,7 @@ class ActOnArgsContainer(
         if self.split_untangled_states and isinstance(
             gate, (ops.MeasurementGate, ops.ResetChannel)
         ):
-            for q in qubits:
+            for q in raw_qubits:
                 q_args, op_args = op_args.factor((q,), validate=False)
                 self.args[q] = q_args
 
