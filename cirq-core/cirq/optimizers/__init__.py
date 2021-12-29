@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Circuit transformation utilities."""
+from logging import warning
 from cirq import _compat
 
 from cirq.optimizers.align_left import (
@@ -23,13 +24,21 @@ from cirq.optimizers.align_right import (
     AlignRight,
 )
 
-_compat.deprecated_submodule(
-    new_module_name="cirq.transformers.analytical_decompositions.clifford_decomposition",
-    old_parent="cirq.optimizers",
-    old_child="clifford_decomposition",
-    deadline="v0.16",
-    create_attribute=True,
-)
+try:
+    _compat.deprecated_submodule(
+        new_module_name="cirq.transformers.analytical_decompositions.clifford_decomposition",
+        old_parent="cirq.optimizers",
+        old_child="clifford_decomposition",
+        deadline="v0.16",
+        create_attribute=True,
+    )
+except ImportError as ex:
+    # coverage: ignore
+    warning(
+        "Can't import cirq.transformers.analytical_decompositions.clifford_decomposition: ",
+        exc_info=ex,
+    )
+
 
 _compat.deprecated_submodule(
     new_module_name="cirq.transformers.analytical_decompositions.cphase_to_fsim",
