@@ -13,47 +13,12 @@
 # limitations under the License.
 
 """Circuit transformation utilities."""
-from logging import warning
-from cirq import _compat
-
 from cirq.optimizers.align_left import (
     AlignLeft,
 )
 
 from cirq.optimizers.align_right import (
     AlignRight,
-)
-
-try:
-    _compat.deprecated_submodule(
-        new_module_name="cirq.transformers.analytical_decompositions.clifford_decomposition",
-        old_parent="cirq.optimizers",
-        old_child="clifford_decomposition",
-        deadline="v0.16",
-        create_attribute=True,
-    )
-except ImportError as ex:
-    # coverage: ignore
-    warning(
-        "Can't import cirq.transformers.analytical_decompositions.clifford_decomposition: ",
-        exc_info=ex,
-    )
-
-
-_compat.deprecated_submodule(
-    new_module_name="cirq.transformers.analytical_decompositions.cphase_to_fsim",
-    old_parent="cirq.optimizers",
-    old_child="cphase_to_fsim",
-    deadline="v0.16",
-    create_attribute=True,
-)
-
-_compat.deprecated_submodule(
-    new_module_name="cirq.transformers.analytical_decompositions.controlled_gate_decomposition",
-    old_parent="cirq.optimizers",
-    old_child="controlled_gate_decomposition",
-    deadline="v0.16",
-    create_attribute=True,
 )
 
 from cirq.optimizers.drop_empty_moments import (
@@ -126,4 +91,30 @@ from cirq.optimizers.two_qubit_to_sqrt_iswap import (
 
 from cirq.optimizers.two_qubit_to_fsim import (
     decompose_two_qubit_interaction_into_four_fsim_gates,
+)
+
+from cirq import _compat
+
+_compat.deprecated_submodule(
+    new_module_name="cirq.transformers.analytical_decompositions.clifford_decomposition",
+    old_parent="cirq.optimizers",
+    old_child="clifford_decomposition",
+    deadline="v0.16",
+    create_attribute=True,
+)
+
+_compat.deprecated_submodule(
+    new_module_name="cirq.transformers.analytical_decompositions.cphase_to_fsim",
+    old_parent="cirq.optimizers",
+    old_child="cphase_to_fsim",
+    deadline="v0.16",
+    create_attribute=True,
+)
+
+_compat.deprecated_submodule(
+    new_module_name="cirq.transformers.analytical_decompositions.controlled_gate_decomposition",
+    old_parent="cirq.optimizers",
+    old_child="controlled_gate_decomposition",
+    deadline="v0.16",
+    create_attribute=True,
 )
