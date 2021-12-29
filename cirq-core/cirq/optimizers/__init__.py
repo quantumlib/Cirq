@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Circuit transformation utilities."""
+
 from cirq.optimizers.align_left import (
     AlignLeft,
 )
