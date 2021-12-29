@@ -13,13 +13,11 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
-from typing import Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, cast
-
 import abc
 from collections import defaultdict
+from typing import Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, cast
 
 from cirq import ops
-from cirq.circuits.circuit import Circuit
 
 if TYPE_CHECKING:
     import cirq
@@ -90,7 +88,7 @@ class PointOptimizer:
     def __init__(
         self,
         post_clean_up: Callable[
-            [Sequence['cirq.Operation']], ops.OP_TREE
+            [Sequence['cirq.Operation']], 'cirq.OP_TREE'
         ] = lambda op_list: op_list,
     ) -> None:
         """Inits PointOptimizer.
@@ -102,13 +100,13 @@ class PointOptimizer:
         """
         self.post_clean_up = post_clean_up
 
-    def __call__(self, circuit: Circuit):
+    def __call__(self, circuit: 'cirq.Circuit'):
         return self.optimize_circuit(circuit)
 
     @abc.abstractmethod
     def optimization_at(
-        self, circuit: Circuit, index: int, op: 'cirq.Operation'
-    ) -> Optional[PointOptimizationSummary]:
+        self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
+    ) -> Optional['cirq.PointOptimizationSummary']:
         """Describes how to change operations near the given location.
 
         For example, this method could realize that the given operation is an
@@ -128,7 +126,7 @@ class PointOptimizer:
             change should be made.
         """
 
-    def optimize_circuit(self, circuit: Circuit):
+    def optimize_circuit(self, circuit: 'cirq.Circuit'):
         frontier: Dict['Qid', int] = defaultdict(lambda: 0)
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
