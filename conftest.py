@@ -15,7 +15,11 @@
 import os
 import random
 
-import numpy
+# allow CI execution of isolated_packages_test.py without numpy
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 
 def pytest_configure(config):
@@ -43,7 +47,7 @@ def pytest_addoption(parser):
 
 
 # skip seeding for unset or empty CIRQ_TESTING_RANDOM_SEED
-if os.environ.get('CIRQ_TESTING_RANDOM_SEED'):
+if numpy is not None and os.environ.get('CIRQ_TESTING_RANDOM_SEED'):
     rngseed = int(os.environ['CIRQ_TESTING_RANDOM_SEED'])
     random.seed(rngseed)
     numpy.random.seed(rngseed)
