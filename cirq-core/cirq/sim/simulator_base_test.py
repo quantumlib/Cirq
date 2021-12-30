@@ -36,7 +36,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
         self.measurement_count += 1
         return [self.gate_count]
 
-    def copy(self) -> 'CountingActOnArgs':
+    def copy(self, with_buffer: bool = True) -> 'CountingActOnArgs':
         args = CountingActOnArgs(
             qubits=self.qubits,
             logs=self.log_of_measurement_results.copy(),

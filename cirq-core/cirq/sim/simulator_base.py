@@ -268,7 +268,7 @@ class SimulatorBase(
         for i in range(repetitions):
             all_step_results = self._core_iterator(
                 general_suffix,
-                sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
+                sim_state=act_on_args.copy(False) if i < repetitions - 1 else act_on_args,
             )
             for step_result in all_step_results:
                 pass

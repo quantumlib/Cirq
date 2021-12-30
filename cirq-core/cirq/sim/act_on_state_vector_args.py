@@ -174,9 +174,10 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return bits
 
-    def _on_copy(self, target: 'cirq.ActOnStateVectorArgs'):
+    def _on_copy(self, target: 'cirq.ActOnStateVectorArgs', with_buffer: bool = True):
         target.target_tensor = self.target_tensor.copy()
-        target.available_buffer = self.available_buffer.copy()
+        if with_buffer:
+            target.available_buffer = self.available_buffer.copy()
 
     def _on_kronecker_product(
         self, other: 'cirq.ActOnStateVectorArgs', target: 'cirq.ActOnStateVectorArgs'
