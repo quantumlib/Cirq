@@ -34,6 +34,7 @@ from typing import (
 import numpy as np
 
 from cirq import ops, protocols, study, value, devices
+from cirq._compat import deprecated
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
@@ -119,6 +120,10 @@ class SimulatorBase(
         self._ignore_measurement_results = ignore_measurement_results
         self._split_untangled_states = split_untangled_states
 
+    @deprecated(
+        deadline="v0.15",
+        fix="Override _create_partial_act_on_args_ex instead",
+    )
     def _create_partial_act_on_args(
         self,
         initial_state: Any,
@@ -158,7 +163,8 @@ class SimulatorBase(
                 simulation.
         """
         # Child classes should override this behavior. We call the old one here by default for
-        # backwards compatibility, until deprecation cycle is complete.
+        # backwards compatibility, until deprecation cycle is complete. This method should be
+        # marked abstract once the deprecation is finished.
         # coverage: ignore
         return self._create_partial_act_on_args(
             initial_state, qubits, classical_data.measurements  # type: ignore
