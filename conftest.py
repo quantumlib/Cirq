@@ -19,6 +19,7 @@ import random
 try:
     import numpy
 except ImportError:
+    # coverage: ignore
     numpy = None
 
 
