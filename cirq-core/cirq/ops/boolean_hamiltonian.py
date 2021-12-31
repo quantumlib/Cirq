@@ -177,7 +177,7 @@ def _simplify_commuting_cnots(
 
     target, control = (0, 1) if flip_control_and_target else (1, 0)
 
-    to_remove = [False] * len(cnots)
+    to_remove = set()
     qubit_to_index: List[Tuple[int, Dict[int, int]]] = []
     for j in range(len(cnots)):
         if not qubit_to_index or cnots[j][target] != qubit_to_index[-1][0]:
@@ -188,14 +188,14 @@ def _simplify_commuting_cnots(
         if cnots[j][control] in qubit_to_index[-1][1]:
             k = qubit_to_index[-1][1].pop(cnots[j][control])
             # The controls (resp. targets) are the same, so we can simplify away.
-            to_remove[k] = to_remove[j] = True
+            to_remove.update([k, j])
             if not qubit_to_index[-1][1]:
                 qubit_to_index.pop()
         else:
             qubit_to_index[-1][1][cnots[j][control]] = j
 
-    cnots = [cnots[n] for n in range(len(cnots)) if not to_remove[n]]
-    return len(cnots) < len(to_remove), cnots
+    cnots = [cnot for i, cnot in enumerate(cnots) if i not in to_remove]
+    return bool(to_remove), cnots
 
 
 def _simplify_cnots_triplets(
