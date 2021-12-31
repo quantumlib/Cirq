@@ -717,33 +717,33 @@ class ResetChannel(gate_features.SingleQubitGate):
     def _qid_shape_(self):
         return (self._dimension,)
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq import sim, ops
+    def _act_on_(self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']):
+        if len(qubits) != 1:
+            return NotImplemented
 
-        if isinstance(args, sim.ActOnStabilizerCHFormArgs):
-            axe = args.qubit_map[qubits[0]]
-            if args.state._measure(axe, args.prng):
-                ops.X._act_on_(args, qubits)
-            return True
+        class PlusGate(raw_types.Gate):
+            """A qudit gate that increments a qudit state mod its dimension."""
 
-        if isinstance(args, sim.ActOnStateVectorArgs):
-            # Do a silent measurement.
-            axes = args.get_axes(qubits)
-            measurements, _ = sim.measure_state_vector(
-                args.target_tensor,
-                axes,
-                out=args.target_tensor,
-                qid_shape=args.target_tensor.shape,
-            )
-            result = measurements[0]
+            def __init__(self, dimension, increment=1):
+                self.dimension = dimension
+                self.increment = increment % dimension
 
-            # Use measurement result to zero the qid.
-            if result:
-                zero = args.subspace_index(axes, 0)
-                other = args.subspace_index(axes, result)
-                args.target_tensor[zero] = args.target_tensor[other]
-                args.target_tensor[other] = 0
+            def _qid_shape_(self):
+                return (self.dimension,)
 
+            def _unitary_(self):
+                inc = (self.increment - 1) % self.dimension + 1
+                u = np.empty((self.dimension, self.dimension))
+                u[inc:] = np.eye(self.dimension)[:-inc]
+                u[:inc] = np.eye(self.dimension)[-inc:]
+                return u
+
+        from cirq.sim import act_on_args
+
+        if isinstance(args, act_on_args.ActOnArgs) and not args.can_represent_mixed_states:
+            result = args._perform_measurement(qubits)[0]
+            gate = PlusGate(self.dimension, self.dimension - result)
+            protocols.act_on(gate, args, qubits)
             return True
 
         return NotImplemented

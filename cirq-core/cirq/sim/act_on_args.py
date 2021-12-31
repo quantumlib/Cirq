@@ -276,6 +276,10 @@ class ActOnArgs(OperationTarget[TSelf]):
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
         return iter(self.qubits)
 
+    @property
+    def can_represent_mixed_states(self) -> bool:
+        return False
+
 
 def strat_act_on_from_apply_decompose(
     val: Any,

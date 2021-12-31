@@ -175,6 +175,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             seed=seed,
         )
 
+    @property
+    def can_represent_mixed_states(self) -> bool:
+        return True
+
     def __repr__(self) -> str:
         return (
             'cirq.ActOnDensityMatrixArgs('
