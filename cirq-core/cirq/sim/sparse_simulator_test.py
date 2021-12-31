@@ -413,6 +413,16 @@ def test_simulate_qudits_slices(dtype: Type[np.number], split: bool):
     np.testing.assert_almost_equal(result.final_state_vector, expected)
     assert len(result.measurements) == 0
 
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0 (d=3): ───X(subdim: slice(0, 2, 1)───
+
+1 (d=4): ───X(subdim: slice(0, 6, 3)───
+""",
+        use_unicode_characters=True,
+    )
+
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])

@@ -1180,7 +1180,7 @@ class AbstractCircuit(abc.ABC):
         Returns:
             The TextDiagramDrawer instance.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for({q.qubit: 0 for q in self.all_qubits()}.keys())
         cbits = tuple(
             sorted(
                 set(key for op in self.all_operations() for key in protocols.control_keys(op)),
@@ -2440,7 +2440,7 @@ def _draw_moment_in_diagram(
 
     max_x = x0
     for op in non_global_ops:
-        qubits = tuple(op.qubits)
+        qubits = tuple({q.qubit: 0 for q in op.qubits}.keys())
         cbits = tuple(protocols.measurement_keys_touched(op) & label_map.keys())
         labels = qubits + cbits
         indices = [label_map[label] for label in labels]
@@ -2472,7 +2472,9 @@ def _draw_moment_in_diagram(
             args,
             preferred_exponent_index=max(range(len(labels)), key=lambda i: label_map[labels[i]]),
         )
-        for s, q in zip(symbols, labels):
+        for s, q, qq in zip(symbols, labels, tuple(op.qubits) + cbits):
+            if qq is not q:
+                s += f'(subdim: {qq.get_slice()}'
             out_diagram.write(x, label_map[q], s)
 
         if x > max_x:
