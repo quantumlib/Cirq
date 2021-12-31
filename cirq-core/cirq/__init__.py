@@ -189,6 +189,7 @@ from cirq.ops import (
     CCXPowGate,
     CCZ,
     CCZPowGate,
+    CliffordGate,
     CCNOT,
     CCNotPowGate,
     ClassicallyControlledOperation,

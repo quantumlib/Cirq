@@ -584,3 +584,31 @@ def test_from_xz_to_clifford_tableau():
 
     # Should not have any duplication.
     assert len(set(seen_tableau)) == 24
+
+
+def _generate_clifford_from_known_gate(cls, num_qubits, gate) -> 'CliffordGate':
+
+    t = cirq.CliffordTableau(num_qubits=num_qubits)
+    args = sim.ActOnCliffordTableauArgs(
+        tableau=t, prng=np.random.RandomState(), log_of_measurement_results={}
+    )
+
+    cirq.act_on(gate, args, allow_decompose=False)
+    return CliffordGate.from_clifford_tableau(args.tableau)
+    
+def test_common_clifford_gate():
+    qubits = cirq.LineQubit.range(2)
+    print('\n', cirq.unitary(cirq.CliffordGate.X(qubits[0])))
+    print('\n', cirq.unitary(cirq.CliffordGate.X(qubits[0])))
+    print('\n', cirq.unitary(cirq.CliffordGate.Y(qubits[0])))
+    print('\n', cirq.unitary(cirq.CliffordGate.Z(qubits[0])))
+    print('\n', cirq.unitary(cirq.CliffordGate.CNOT(*qubits)))
+    # print('\n', cirq.unitary(cirq.CliffordGate.CZ(*qubits)))
+    
+    print('\n', cirq.unitary(cirq.Y(qubits[0])))
+    
+    print('\n', cirq.decompose_once(cirq.CliffordGate.CZ(*qubits)))
+    
+    clifford_gate = cirq.CliffordGate.CNOT(*qubits)
+    
+test_common_clifford_gate()
