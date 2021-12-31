@@ -21,14 +21,18 @@ import cirq_google as cg
 import cirq_google.engine.client.quantum
 
 
-def test_run_circuit():
+@pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
+def test_run_circuit(circuit):
     engine = mock.Mock()
     sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp', gate_set=cg.XMON)
-    circuit = cirq.Circuit()
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(circuit, params, 5)
     engine.run_sweep.assert_called_with(
-        gate_set=cg.XMON, params=params, processor_ids=['tmp'], program=circuit, repetitions=5
+        gate_set=cg.XMON,
+        params=params,
+        processor_ids=['tmp'],
+        program=circuit,
+        repetitions=5,
     )
 
 

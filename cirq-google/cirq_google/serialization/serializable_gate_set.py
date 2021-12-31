@@ -129,7 +129,7 @@ class SerializableGateSet(serializer.Serializer):
         if msg is None:
             msg = v2.program_pb2.Program()
         msg.language.gate_set = self.name
-        if isinstance(program, cirq.Circuit):
+        if isinstance(program, cirq.AbstractCircuit):
             constants: Optional[List[v2.program_pb2.Constant]] = [] if use_constants else None
             raw_constants: Optional[Dict[Any, int]] = {} if use_constants else None
             self._serialize_circuit(
