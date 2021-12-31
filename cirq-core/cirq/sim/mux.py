@@ -49,11 +49,11 @@ def sample(
     program: 'cirq.Circuit',
     *,
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
-    param_resolver: Optional[study.ParamResolver] = None,
+    param_resolver: Optional['cirq.ParamResolver'] = None,
     repetitions: int = 1,
     dtype: Type[np.number] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> study.Result:
+) -> 'cirq.Result':
     """Simulates sampling from the given circuit.
 
     Args:
@@ -103,8 +103,8 @@ def final_state_vector(
     program: 'cirq.CIRCUIT_LIKE',
     *,
     initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
-    param_resolver: study.ParamResolverOrSimilarType = None,
-    qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+    qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
     dtype: Type[np.number] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'np.ndarray':
@@ -163,13 +163,13 @@ def final_state_vector(
 
 def sample_sweep(
     program: 'cirq.Circuit',
-    params: study.Sweepable,
+    params: 'cirq.Sweepable',
     *,
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
     repetitions: int = 1,
     dtype: Type[np.number] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> List[study.Result]:
+) -> List['cirq.Result']:
     """Runs the supplied Circuit, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
@@ -211,8 +211,8 @@ def final_density_matrix(
     *,
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
     initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
-    param_resolver: study.ParamResolverOrSimilarType = None,
-    qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+    qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
     dtype: Type[np.number] = np.complex64,
     seed: Optional[Union[int, np.random.RandomState]] = None,
     ignore_measurement_results: bool = True,

@@ -89,10 +89,8 @@ There are several steps needed to support an object's serialization and deserial
 and pass `cirq-core/cirq/protocols/json_serialization_test.py`:
 
 1. The object should have a `_json_dict_` method that returns a dictionary
-containing a `"cirq_type"` key as well as keys for each of the value's
-attributes. If these keys do not match the names of the class' initializer 
-arguments, a `_from_json_dict_` class method must also be defined.
-Typically the `"cirq_type"` will be the name of your class.
+containing keys for each of the value's attributes. If these keys do not match the names of
+the class' initializer arguments, a `_from_json_dict_` class method must also be defined.
 
 2. In `class_resolver_dictionary` within the packages's `json_resolver_cache.py` file,
 for each serializable class, the `cirq_type` of the class should be mapped to the imported class 

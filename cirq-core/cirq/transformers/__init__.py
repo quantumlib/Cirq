@@ -14,6 +14,11 @@
 
 """Circuit transformation utilities."""
 
+from cirq.transformers.analytical_decompositions import (
+    prepare_two_qubit_state_using_cz,
+    prepare_two_qubit_state_using_sqrt_iswap,
+)
+
 from cirq.transformers.transformer_primitives import (
     map_moments,
     map_operations,
