@@ -94,6 +94,10 @@ from cirq.ops.diagonal_gate import (
     DiagonalGate,
 )
 
+from cirq.ops.dimension_adapter_gate import (
+    DimensionAdapterGate,
+)
+
 from cirq.ops.eigen_gate import (
     EigenGate,
 )

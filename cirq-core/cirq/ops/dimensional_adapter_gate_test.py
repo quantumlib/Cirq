@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Tuple, cast
-
 import numpy as np
 import pytest
 import sympy
 
 import cirq
-from cirq.type_workarounds import NotImplementedType
-
-from cirq.ops.dimension_adapter_gate import DimensionAdapterGate
 
 
 @pytest.mark.parametrize('split', [True, False])
@@ -30,8 +25,8 @@ def test_simulate_qudits_slices(split: bool):
     simulator = cirq.Simulator(split_untangled_states=split)
 
     circuit = cirq.Circuit(
-        DimensionAdapterGate(cirq.X, [(3, slice(0, 2, 1))])(q0),
-        DimensionAdapterGate(cirq.X, [(4, slice(0, 6, 3))])(q1),
+        cirq.DimensionAdapterGate(cirq.X, [(3, (0, 1))])(q0),
+        cirq.DimensionAdapterGate(cirq.X, [(4, (0, 3))])(q1),
     )
     result = simulator.simulate(circuit, qubit_order=[q0, q1])
     expected = np.zeros(12)
@@ -43,12 +38,22 @@ def test_simulate_qudits_slices(split: bool):
     cirq.testing.assert_has_diagram(
         circuit,
         """
-0 (d=3): ───X(subdim: slice(0, 2, 1)───
+0 (d=3): ───X(subspace [0, 1])───
 
-1 (d=4): ───X(subdim: slice(0, 6, 3)───
+1 (d=4): ───X(subspace [0, 3])───
 """,
         use_unicode_characters=True,
     )
+
+
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterizable(resolve_fn):
+    a = sympy.Symbol('a')
+    cy = cirq.DimensionAdapterGate(cirq.Y, [(3, slice(0, 2, 1))])
+    cya = cirq.DimensionAdapterGate(cirq.YPowGate(exponent=a), [(3, slice(0, 2, 1))])
+    assert cirq.is_parameterized(cya)
+    assert not cirq.is_parameterized(cy)
+    assert resolve_fn(cya, cirq.ParamResolver({'a': 1})) == cy
 
 
 @pytest.mark.parametrize(
@@ -60,16 +65,8 @@ def test_simulate_qudits_slices(split: bool):
         cirq.rx(np.pi / 2),
         cirq.Z,
         cirq.H,
-        cirq.CNOT,
-        cirq.SWAP,
-        cirq.CCZ,
-        cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)),
-        cirq.IdentityGate(qid_shape=(3, 4)),
-        # Single qudit gate with dimension 4.
-        cirq.MatrixGate(np.kron(*(cirq.unitary(cirq.H),) * 2)),
     ],
 )
 def test_controlled_gate_is_consistent(gate: cirq.Gate):
-    q = cirq.LineQid(0, 4)
-    cgate = DimensionAdapterGate(gate, [(4, slice(0, 6, 3))])(q)
+    cgate = cirq.DimensionAdapterGate(cirq.X, [(3, (0, 2))])
     cirq.testing.assert_implements_consistent_protocols(cgate)

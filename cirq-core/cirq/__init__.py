@@ -207,6 +207,7 @@ from cirq.ops import (
     depolarize,
     DepolarizingChannel,
     DiagonalGate,
+    DimensionAdapterGate,
     EigenGate,
     flatten_op_tree,
     flatten_to_ops,

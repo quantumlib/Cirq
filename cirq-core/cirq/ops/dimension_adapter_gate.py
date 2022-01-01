@@ -92,7 +92,7 @@ class DimensionAdapterGate(raw_types.Gate):
             slices=self._slices,
             axes=args.axes,
         )
-        return protocols.apply_unitary(self._gate, args=my_args)
+        return protocols.apply_unitary(self._gate, args=my_args, default=NotImplemented)
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         # TODO
@@ -129,11 +129,14 @@ class DimensionAdapterGate(raw_types.Gate):
         if sub_info is None:
             return NotImplemented
 
-        # TODO
-        return sub_info
+        wires = list(sub_info.wire_symbols)
+        for i in range(len(wires)):
+            subspace = list(range(self._shape[i]))[self._slices[i]]
+            wires[i] += f'(subspace {subspace})'
+        return sub_info.with_wire_symbols(wires)
 
     def __str__(self) -> str:
-        return repr(self)
+        return f'{str(self._gate)}(subspaces={list(zip(self._shape, self._slices))})'
 
     def __repr__(self) -> str:
         return (
