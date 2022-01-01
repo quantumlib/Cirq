@@ -84,7 +84,7 @@ def test_simulation_result_is_unitary(split: bool, seed: int, dimensions: int, q
     prng = np.random.RandomState(seed)
     qubits = cirq.LineQubit.range(qubit_count)
     circuit = cirq.testing.random_circuit(
-        qubits=qubits, n_moments=10, op_density=1, random_state=prng
+        qubits=qubits, n_moments=200, op_density=1, random_state=prng
     )
     qubit_map = {q: i for i, q in enumerate(qubits)}
     qudits = cirq.LineQid.range(qubit_count, dimension=dimensions)
