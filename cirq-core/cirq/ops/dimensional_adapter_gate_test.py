@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import re
+from typing import Mapping
 
 import numpy as np
 import pytest
@@ -86,15 +87,17 @@ def test_simulation_result_is_unitary(split: bool, seed: int, dimensions: int, q
     circuit = cirq.testing.random_circuit(
         qubits=qubits, n_moments=200, op_density=1, random_state=prng
     )
-    qubit_map = {q: i for i, q in enumerate(qubits)}
+    qubit_map: Mapping[cirq.Qid, int] = {q: i for i, q in enumerate(qubits)}
     qudits = cirq.LineQid.range(qubit_count, dimension=dimensions)
 
     def adapt(op: cirq.Operation) -> cirq.Operation:
+        gate = op.gate
+        assert gate is not None
         subspaces = [
             (dimensions, tuple(prng.choice(range(dimensions), 2, replace=False))) for _ in op.qubits
         ]
         op_qubits = [qudits[qubit_map[q]] for q in op.qubits]
-        return cirq.DimensionAdapterGate(op.gate, subspaces).on(*op_qubits)
+        return cirq.DimensionAdapterGate(gate, subspaces).on(*op_qubits)
 
     circuit = circuit.map_operations(adapt)
     simulator = cirq.Simulator(split_untangled_states=split)
