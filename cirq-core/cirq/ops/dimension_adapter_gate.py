@@ -16,7 +16,6 @@ from typing import AbstractSet, Any, Dict, Optional, Sequence, Tuple, TYPE_CHECK
 
 import numpy as np
 
-import cirq
 from cirq import protocols, value
 from cirq.ops import raw_types
 
