@@ -76,25 +76,6 @@ def test_simulate_qudits_slices(split: bool):
     )
 
 
-@pytest.mark.parametrize(
-    'gate',
-    [
-        cirq.X,
-        cirq.X ** 0.5,
-        cirq.rx(np.pi),
-        cirq.rx(np.pi / 2),
-        cirq.Z,
-        cirq.H,
-    ],
-)
-def test_decompose(gate):
-    dgate = cirq.DimensionAdapterGate(gate, [(3, (0, 2))])
-    tree = cirq.decompose_once(gate, qubits=[cirq.LineQubit(0)], default=NotImplemented)
-    print(tree)
-    tree = cirq.decompose_once(dgate, qubits=[cirq.LineQid(0, 3)], default=NotImplemented)
-    print(tree)
-
-
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_parameterizable(resolve_fn):
     a = sympy.Symbol('a')
