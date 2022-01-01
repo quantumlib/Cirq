@@ -171,7 +171,6 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'conditions': self._conditions,
             'sub_operation': self._sub_operation,
         }
