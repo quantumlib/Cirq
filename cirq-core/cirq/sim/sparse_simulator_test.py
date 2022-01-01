@@ -402,9 +402,10 @@ def test_simulate_qudits(dtype: Type[np.number], split: bool):
 def test_simulate_qudits_slices(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
+    from cirq.ops.dimension_adapter import DimensionAdapter
     circuit = cirq.Circuit(
-        cirq.X(q0.subdimension(0, 1)),
-        cirq.X(q1.subdimension(0, 3)),
+        DimensionAdapter(cirq.X, [(3, slice(0, 2, 1))])(q0),
+        DimensionAdapter(cirq.X, [(4, slice(0, 6, 3))])(q1),
     )
     result = simulator.simulate(circuit, qubit_order=[q0, q1])
     expected = np.zeros(12)

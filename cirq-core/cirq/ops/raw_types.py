@@ -80,16 +80,6 @@ class Qid(metaclass=abc.ABCMeta):
         E.g. 2 for a qubit, 3 for a qutrit, etc.
         """
 
-    def get_slice(self):
-        return slice(0, self.dimension, 1)
-
-    @property
-    def qubit(self) -> 'Qid':
-        return self
-
-    def subdimension(self, s1: int, s2: int):
-        return _SliceAsQid(self, slice(s1, s2 + s2 - s1, s2 - s1))
-
     @staticmethod
     def validate_dimension(dimension: int) -> None:
         """Raises an exception if `dimension` is not positive.
@@ -182,33 +172,6 @@ class _QubitAsQid(Qid):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['qubit', 'dimension'])
-
-
-@functools.total_ordering
-class _SliceAsQid(Qid):
-    def __init__(self, qubit: Qid, s: slice):
-        self._qubit = qubit
-        self._slice = s
-        self._dimension = (s.stop - s.start) // s.step
-
-    @property
-    def qubit(self) -> Qid:
-        return self._qubit.qubit
-
-    def get_slice(self):
-        print('hi!')
-        return self._slice
-
-    @property
-    def dimension(self) -> int:
-        return self._dimension
-
-    def with_dimension(self, dimension: int) -> Qid:
-        raise NotImplementedError()
-
-    def _comparison_key(self) -> Any:
-        # Don't include self._qubit.dimension
-        return self._qubit._cmp_tuple()[:-1]
 
 
 class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
