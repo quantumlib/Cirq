@@ -29,7 +29,7 @@ class DimensionAdapterGate(raw_types.Gate):
     """Adapts a 2-qubit gate to apply to qudits."""
 
     def __init__(
-        self, gate: 'cirq.Gate', subspaces: Sequence[Tuple[int, Union[Tuple[int, int], slice]]]
+        self, gate: 'cirq.Gate', subspaces: Sequence[Tuple[int, Union[Tuple[int, ...], slice]]]
     ):
         """Initializes the adapter gate.
 
@@ -47,33 +47,26 @@ class DimensionAdapterGate(raw_types.Gate):
                 outside the range of the input qudit dimensions.
         """
         if gate.num_qubits() != len(subspaces):
-            raise ValueError('gate qubit count and subspace count must match')
-
-        def to_slice(subspace: Union[Tuple[int, int], slice]):
-            if isinstance(subspace, slice):
-                return subspace
-            subspace0, subspace1 = subspace
-            step = subspace1 - subspace0
-            stop = subspace1 + step
-            return slice(subspace0, stop if stop >= 0 else None, step)
+            raise ValueError('Gate qubit count and subspace count must match.')
 
         gate_shape = protocols.qid_shape(gate)
         slices = []
         shape = []
         for i in range(len(subspaces)):
-            qubit_dimension, slice_def = subspaces[i]
-            sleis = to_slice(slice_def)
-            subspace = list(range(qubit_dimension))[sleis]
-            if max(subspace) >= qubit_dimension:
-                raise ValueError(
-                    f'dimension {qubit_dimension}'
-                    f' not large enough for subspace {subspace} on qubit {i}'
-                )
+            qubit_dimension, subspace_def = subspaces[i]
+            if not isinstance(subspace_def, slice):
+                if max(subspace_def) >= qubit_dimension:
+                    raise ValueError(
+                        f'Dimension {qubit_dimension}'
+                        f' not large enough for subspace {subspace_def} on qubit {i}.'
+                    )
+            sleis = _to_slice(subspace_def)
+            subspace = tuple(range(qubit_dimension))[sleis]
             gate_dimension = gate_shape[i]
             if len(subspace) != gate_dimension:
                 raise ValueError(
-                    f'subspace {subspace}'
-                    f' does not match gate dimension {gate_dimension} on qubit {i}'
+                    f'Subspace {subspace}'
+                    f' does not match gate dimension {gate_dimension} on qubit {i}.'
                 )
             shape.append(qubit_dimension)
             slices.append(sleis)
@@ -136,16 +129,43 @@ class DimensionAdapterGate(raw_types.Gate):
         return sub_info.with_wire_symbols(wires)
 
     def __str__(self) -> str:
-        return f'{str(self._gate)}(subspaces={list(zip(self._shape, self._slices))})'
+        return f'{str(self._gate)}(subspaces={self.subspaces})'
 
     def __repr__(self) -> str:
         return (
             f'cirq.DimensionAdapterGate(gate={self._gate!r}, '
-            f'subspaces={list(zip(self._shape, self._slices))!r})'
+            f'subspaces={list(zip(self._shape, self.subspaces))!r})'
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'subspaces': list(zip(self._shape, self._slices)),
+            'subspaces': list(zip(self._shape, self.subspaces)),
             'gate': self._gate,
         }
+
+    def subspace(self, i: int) -> Tuple[int, ...]:
+        """Returns the subspace at qubit index i."""
+        return _get_subspace(self._shape[i], self._slices[i])
+
+    @property
+    def subspaces(self):
+        """Returns the list of subspaces by qubit index."""
+        return [self.subspace(i) for i in range(self.num_qubits())]
+
+
+def _to_slice(subspace_def: Union[Tuple[int, ...], slice]):
+    if isinstance(subspace_def, slice):
+        return subspace_def
+    if len(subspace_def) < 2:
+        raise ValueError(f'Subspace {subspace_def} is less than 2 dimensions.')
+
+    step = subspace_def[1] - subspace_def[0]
+    for i in range(len(subspace_def) - 1):
+        if subspace_def[i + 1] - subspace_def[i] != step:
+            raise ValueError(f'Subspace {subspace_def} does not have consistent step size.')
+    stop = subspace_def[-1] + step
+    return slice(subspace_def[0], stop if stop >= 0 else None, step)
+
+
+def _get_subspace(qubit_dimension: int, sleis: slice) -> Tuple[int, ...]:
+    return tuple(range(qubit_dimension))[sleis]

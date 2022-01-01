@@ -1,0 +1,1 @@
+cirq.DimensionAdapterGate(gate=cirq.X, subspaces=[(3, slice(0, 4, 2))])

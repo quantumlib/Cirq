@@ -12,11 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+
 import numpy as np
 import pytest
 import sympy
 
 import cirq
+
+
+def test_init():
+    gate = cirq.DimensionAdapterGate(cirq.X, [(3, (0, 1))])
+    assert gate._gate == cirq.X
+    assert cirq.qid_shape(gate) == (3,)
+    assert gate.subspaces == [(0, 1)]
+
+    with pytest.raises(ValueError, match='Gate qubit count and subspace count must match.'):
+        _ = cirq.DimensionAdapterGate(cirq.CX, [(3, (0, 1))])
+
+    with pytest.raises(
+        ValueError, match=re.escape('Dimension 3 not large enough for subspace (0, 3) on qubit 0.')
+    ):
+        _ = cirq.DimensionAdapterGate(cirq.X, [(3, (0, 3))])
+
+    with pytest.raises(
+        ValueError, match=re.escape('Subspace (0, 1, 3) does not have consistent step size.')
+    ):
+        _ = cirq.DimensionAdapterGate(cirq.X, [(5, (0, 1, 3))])
+
+    with pytest.raises(ValueError, match=re.escape('Subspace (0,) is less than 2 dimensions.')):
+        _ = cirq.DimensionAdapterGate(cirq.X, [(3, (0,))])
+
+    with pytest.raises(
+        ValueError, match=re.escape('Subspace (0, 2) does not match gate dimension 3 on qubit 0.')
+    ):
+        _ = cirq.DimensionAdapterGate(cirq.IdentityGate(qid_shape=(3,)), [(3, (0, 2))])
 
 
 @pytest.mark.parametrize('split', [True, False])
@@ -68,5 +98,46 @@ def test_parameterizable(resolve_fn):
     ],
 )
 def test_controlled_gate_is_consistent(gate: cirq.Gate):
-    cgate = cirq.DimensionAdapterGate(cirq.X, [(3, (0, 2))])
+    dgate = cirq.DimensionAdapterGate(gate, [(3, (0, 2))])
+    cirq.testing.assert_implements_consistent_protocols(dgate)
+
+
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.CX,
+        cirq.CX ** 0.5,
+        cirq.CZ,
+        cirq.SWAP,
+    ],
+)
+def test_controlled_gate_is_consistent_two_qubits(gate: cirq.Gate):
+    cgate = cirq.DimensionAdapterGate(gate, [(3, (0, 2)), (4, (0, 3))])
     cirq.testing.assert_implements_consistent_protocols(cgate)
+
+
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.X,
+        cirq.X ** 0.5,
+        cirq.rx(np.pi),
+        cirq.rx(np.pi / 2),
+        cirq.Z,
+        cirq.H,
+    ],
+)
+def test_repr(gate: cirq.Gate):
+    dgate = cirq.DimensionAdapterGate(gate, [(3, (0, 2))])
+    cirq.testing.assert_equivalent_repr(dgate)
+
+
+def test_str():
+    assert str(cirq.DimensionAdapterGate(cirq.X, [(3, (0, 2))])) == 'X(subspaces=[(0, 2)])'
+    assert str(cirq.DimensionAdapterGate(cirq.Z, [(3, (0, 2))])) == 'Z(subspaces=[(0, 2)])'
+    assert (
+        str(cirq.DimensionAdapterGate(cirq.X ** 0.5, [(3, (0, 2))])) == 'X**0.5(subspaces=[(0, 2)])'
+    )
+    assert (
+        str(cirq.DimensionAdapterGate(cirq.X, [(3, (0, 2))]) ** 0.5) == 'X**0.5(subspaces=[(0, 2)])'
+    )

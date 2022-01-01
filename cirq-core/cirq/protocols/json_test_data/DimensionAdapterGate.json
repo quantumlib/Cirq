@@ -1,0 +1,11 @@
+{
+  "cirq_type": "DimensionAdapterGate",
+  "subspaces": [
+      [3, [0, 2]]
+  ],
+  "gate": {
+    "cirq_type": "_PauliX",
+    "exponent": 1,
+    "global_shift": 0.0
+  }
+}
