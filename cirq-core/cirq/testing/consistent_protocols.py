@@ -144,8 +144,6 @@ def _assert_meets_standards_helper(
     global_vals: Optional[Dict[str, Any]],
     local_vals: Optional[Dict[str, Any]],
 ) -> None:
-    __tracebackhide__ = True  # pylint: disable=unused-variable
-
     assert_consistent_resolve_parameters(val)
     assert_specifies_has_unitary_if_unitary(val)
     assert_has_consistent_qid_shape(val)

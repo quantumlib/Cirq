@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -88,8 +88,22 @@ class DimensionAdapterGate(raw_types.Gate):
         return protocols.apply_unitary(self._gate, args=my_args, default=NotImplemented)
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        # TODO
-        return NotImplemented
+        gate_shape = protocols.qid_shape(self._gate)
+        subqubits = [q.with_dimension(gate_shape[i]) for i, q in enumerate(qubits)]
+        subops = protocols.decompose_once_with_qubits(self._gate, subqubits, NotImplemented)
+        if subops is NotImplemented or not all(op.gate for op in subops):
+            return NotImplemented
+        subspaces = tuple(zip(self._shape, self._slices))
+        subqubit_map = {q: i for i, q in enumerate(subqubits)}
+
+        def adapt(op: 'cirq.Operation') -> 'cirq.Operation':
+            gate = op.gate
+            assert gate is not None
+            op_subspaces = [subspaces[subqubit_map[q]] for q in op.qubits]
+            full_qubits = [qubits[subqubit_map[q]] for q in op.qubits]
+            return DimensionAdapterGate(gate, op_subspaces).on(*full_qubits)
+
+        return [adapt(op) for op in subops]
 
     def _value_equality_values_(self):
         return (self._gate, self._slices, self._shape)
