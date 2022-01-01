@@ -399,34 +399,6 @@ def test_simulate_qudits(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_qudits_slices(dtype: Type[np.number], split: bool):
-    q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
-    simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
-    from cirq.ops.dimension_adapter import DimensionAdapter
-    circuit = cirq.Circuit(
-        DimensionAdapter(cirq.X, [(3, slice(0, 2, 1))])(q0),
-        DimensionAdapter(cirq.X, [(4, slice(0, 6, 3))])(q1),
-    )
-    result = simulator.simulate(circuit, qubit_order=[q0, q1])
-    expected = np.zeros(12)
-    expected[4 * 1 + 3] = 1
-
-    np.testing.assert_almost_equal(result.final_state_vector, expected)
-    assert len(result.measurements) == 0
-
-    cirq.testing.assert_has_diagram(
-        circuit,
-        """
-0 (d=3): ───X(subdim: slice(0, 2, 1)───
-
-1 (d=4): ───X(subdim: slice(0, 6, 3)───
-""",
-        use_unicode_characters=True,
-    )
-
-
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-@pytest.mark.parametrize('split', [True, False])
 def test_simulate_mixtures(dtype: Type[np.number], split: bool):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
