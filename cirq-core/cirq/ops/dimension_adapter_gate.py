@@ -111,9 +111,7 @@ class DimensionAdapterGate(raw_types.Gate):
         return protocols.has_unitary(self._gate)
 
     def __pow__(self, exponent: Any) -> 'DimensionAdapterGate':
-        new_gate = protocols.pow(self._gate, exponent, NotImplemented)
-        if new_gate is NotImplemented:
-            return NotImplemented
+        new_gate = protocols.pow(self._gate, exponent)
         return DimensionAdapterGate(new_gate, tuple(zip(self._shape, self._slices)))
 
     def _is_parameterized_(self) -> bool:
@@ -131,10 +129,7 @@ class DimensionAdapterGate(raw_types.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        sub_info = protocols.circuit_diagram_info(self._gate, args, None)
-        if sub_info is None:
-            return NotImplemented
-
+        sub_info = protocols.circuit_diagram_info(self._gate, args)
         wires = list(sub_info.wire_symbols)
         for i in range(len(wires)):
             subspace = list(range(self._shape[i]))[self._slices[i]]

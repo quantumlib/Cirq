@@ -76,6 +76,34 @@ def test_simulate_qudits_slices(split: bool):
     )
 
 
+@pytest.mark.parametrize('split', [True, False])
+@pytest.mark.parametrize('seed', [0, 1, 2])
+@pytest.mark.parametrize('dimensions', [3, 4])
+@pytest.mark.parametrize('qubit_count', [3, 4])
+def test_simulation_result_is_unitary(split: bool, seed: int, dimensions: int, qubit_count: int):
+    prng = np.random.RandomState(seed)
+    qubits = cirq.LineQubit.range(qubit_count)
+    circuit = cirq.testing.random_circuit(
+        qubits=qubits, n_moments=10, op_density=1, random_state=prng
+    )
+    qubit_map = {q: i for i, q in enumerate(qubits)}
+    qudits = cirq.LineQid.range(qubit_count, dimension=dimensions)
+
+    def adapt(op: cirq.Operation) -> cirq.Operation:
+        subspaces = [
+            (dimensions, tuple(prng.choice(range(dimensions), 2, replace=False))) for _ in op.qubits
+        ]
+        op_qubits = [qudits[qubit_map[q]] for q in op.qubits]
+        return cirq.DimensionAdapterGate(op.gate, subspaces).on(*op_qubits)
+
+    circuit = circuit.map_operations(adapt)
+    simulator = cirq.Simulator(split_untangled_states=split)
+    result = simulator.simulate(circuit, qubit_order=qudits)
+    cirq.validate_normalized_state_vector(
+        result.final_state_vector, qid_shape=(dimensions,) * qubit_count
+    )
+
+
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_parameterizable(resolve_fn):
     a = sympy.Symbol('a')
