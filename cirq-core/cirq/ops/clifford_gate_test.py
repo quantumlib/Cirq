@@ -787,16 +787,15 @@ def test_pad_tableau():
 def test_clifford_gate_act_on_small_case():
     # Note this is also covered by the `from_op_list` one, etc.
 
-    n, num_ops = 5, 20
-    qubits = cirq.LineQubit.range(n)
+    qubits = cirq.LineQubit.range(5)
     args = cirq.ActOnCliffordTableauArgs(
-        tableau=cirq.CliffordTableau(num_qubits=n),
+        tableau=cirq.CliffordTableau(num_qubits=5),
         qubits=qubits,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
     expected_args = cirq.ActOnCliffordTableauArgs(
-        tableau=cirq.CliffordTableau(num_qubits=n),
+        tableau=cirq.CliffordTableau(num_qubits=5),
         qubits=qubits,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
