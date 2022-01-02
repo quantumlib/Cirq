@@ -415,6 +415,10 @@ def test_commutes_notimplemented_type():
         cirq.commutes(cirq.SingleQubitCliffordGate.X, 'X')
     assert cirq.commutes(cirq.SingleQubitCliffordGate.X, 'X', default='default') == 'default'
 
+    with pytest.raises(TypeError):
+        cirq.commutes(cirq.CliffordGate.X, 'X')
+    assert cirq.commutes(cirq.CliffordGate.X, 'X', default='default') == 'default'
+
 
 @pytest.mark.parametrize(
     'gate,other', itertools.product(_all_clifford_gates(), _all_clifford_gates())
@@ -586,29 +590,109 @@ def test_from_xz_to_clifford_tableau():
     assert len(set(seen_tableau)) == 24
 
 
-def _generate_clifford_from_known_gate(cls, num_qubits, gate) -> 'CliffordGate':
+######################## Start the tests for multi-qubits clifford gate ########################
+@pytest.mark.parametrize(
+    'clifford_gate,standard_gate',
+    [
+        (cirq.CliffordGate.X, cirq.X),
+        (cirq.CliffordGate.Y, cirq.Y),
+        (cirq.CliffordGate.Z, cirq.Z),
+        (cirq.CliffordGate.H, cirq.H),
+        (cirq.CliffordGate.S, cirq.S),
+        (cirq.CliffordGate.CNOT, cirq.CNOT),
+        (cirq.CliffordGate.CZ, cirq.CZ),
+        (cirq.CliffordGate.SWAP, cirq.SWAP),
+    ],
+)
+def test_common_clifford_gate(clifford_gate, standard_gate):
+    # cirq.unitary is relied on the _decompose_ methods.
+    u_c = cirq.unitary(clifford_gate)
+    u_s = cirq.unitary(standard_gate)
+    cirq.testing.assert_allclose_up_to_global_phase(u_c, u_s, atol=1e-8)
 
-    t = cirq.CliffordTableau(num_qubits=num_qubits)
-    args = sim.ActOnCliffordTableauArgs(
-        tableau=t, prng=np.random.RandomState(), log_of_measurement_results={}
-    )
 
-    cirq.act_on(gate, args, allow_decompose=False)
-    return CliffordGate.from_clifford_tableau(args.tableau)
-    
-def test_common_clifford_gate():
+def test_multi_qubit_clifford_pow():
+    assert cirq.CliffordGate.X ** -1 == cirq.CliffordGate.X
+    assert cirq.CliffordGate.H ** -1 == cirq.CliffordGate.H
+    assert cirq.CliffordGate.S ** 2 == cirq.CliffordGate.Z
+    assert cirq.CliffordGate.S ** -1 == cirq.CliffordGate.S ** 3
+    assert cirq.CliffordGate.S ** -3 == cirq.CliffordGate.S
+    assert cirq.CliffordGate.CNOT ** 3 == cirq.CliffordGate.CNOT
+    assert cirq.CliffordGate.CNOT ** -3 == cirq.CliffordGate.CNOT
+    with pytest.raises(TypeError):
+        _ = cirq.SingleQubitCliffordGate.Z ** 0.25
+
+
+def test_clifford_gate_from_op_list():
+    # Since from_op_list() ==> _act_on_() ==> tableau.then() and then() has already covered
+    # lots of random circuit cases, here we just test a few well-known relationships.
+    qubit = cirq.NamedQubit('test')
+    gate = cirq.CliffordGate.from_op_list([cirq.X(qubit), cirq.Z(qubit)], [qubit])
+    assert gate == cirq.CliffordGate.Y  # The tableau ignores the global phase
+
+    gate = cirq.CliffordGate.from_op_list([cirq.Z(qubit), cirq.X(qubit)], [qubit])
+    assert gate == cirq.CliffordGate.Y  # The tableau ignores the global phase
+
+    gate = cirq.CliffordGate.from_op_list([cirq.X(qubit), cirq.Y(qubit)], [qubit])
+    assert gate == cirq.CliffordGate.Z  # The tableau ignores the global phase
+
+    gate = cirq.CliffordGate.from_op_list([cirq.Z(qubit), cirq.X(qubit)], [qubit])
+    assert gate == cirq.CliffordGate.Y  # The tableau ignores the global phase
+
+    # Two qubits gates
     qubits = cirq.LineQubit.range(2)
-    print('\n', cirq.unitary(cirq.CliffordGate.X(qubits[0])))
-    print('\n', cirq.unitary(cirq.CliffordGate.X(qubits[0])))
-    print('\n', cirq.unitary(cirq.CliffordGate.Y(qubits[0])))
-    print('\n', cirq.unitary(cirq.CliffordGate.Z(qubits[0])))
-    print('\n', cirq.unitary(cirq.CliffordGate.CNOT(*qubits)))
-    # print('\n', cirq.unitary(cirq.CliffordGate.CZ(*qubits)))
-    
-    print('\n', cirq.unitary(cirq.Y(qubits[0])))
-    
-    print('\n', cirq.decompose_once(cirq.CliffordGate.CZ(*qubits)))
-    
-    clifford_gate = cirq.CliffordGate.CNOT(*qubits)
-    
-test_common_clifford_gate()
+    gate = cirq.CliffordGate.from_op_list(
+        [cirq.H(qubits[1]), cirq.CZ(*qubits), cirq.H(qubits[1])], qubits
+    )
+    assert gate == cirq.CliffordGate.CNOT
+
+    gate = cirq.CliffordGate.from_op_list(
+        [cirq.H(qubits[1]), cirq.CNOT(*qubits), cirq.H(qubits[1])], qubits
+    )
+    assert gate == cirq.CliffordGate.CZ
+
+    # Note the order of qubits matters
+    gate = cirq.CliffordGate.from_op_list(
+        [cirq.H(qubits[0]), cirq.CZ(qubits[1], qubits[0]), cirq.H(qubits[0])], qubits
+    )
+    assert gate != cirq.CliffordGate.CNOT
+    # But if we reverse the qubit_order again, it will equal again.
+    gate = cirq.CliffordGate.from_op_list(
+        [cirq.H(qubits[0]), cirq.CZ(qubits[1], qubits[0]), cirq.H(qubits[0])], qubits[::-1]
+    )
+    assert gate == cirq.CliffordGate.CNOT
+
+
+def test_multi_clifford_decompose_by_unitary():
+    # Construct a random clifford gate:
+    n, num_ops = 5, 20  # because we relied on unitary cannot test large-scale qubits
+    gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
+    for seed in range(100):
+        prng = np.random.RandomState(seed)
+        qubits = cirq.LineQubit.range(n)
+        ops = []
+        for _ in range(num_ops):
+            g = prng.randint(len(gate_candidate))
+            indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
+            ops.append(gate_candidate[g].on(*[qubits[i] for i in indices]))
+        gate = cirq.CliffordGate.from_op_list(ops, qubits)
+        decomposed_ops = cirq.decompose(gate.on(*qubits))
+        circ = cirq.Circuit(decomposed_ops)
+        circ.append(cirq.I.on_each(qubits))  # make sure the dimension aligned.
+        cirq.testing.assert_allclose_up_to_global_phase(
+            cirq.unitary(gate), cirq.unitary(circ), atol=1e-7
+        )
+
+
+def test_pad_clifford_gate_bad_input():
+    with pytest.raises(ValueError):
+        tableau = cirq.CliffordTableau(num_qubits=3)
+        cirq.ops.clifford_gate._pad_tableau(
+            tableau, num_qubits_after_padding=4, qubits=cirq.LineQubit.range(2)
+        )
+
+    with pytest.raises(ValueError):
+        tableau = cirq.CliffordTableau(num_qubits=3)
+        cirq.ops.clifford_gate._pad_tableau(
+            tableau, num_qubits_after_padding=2, qubits=cirq.LineQubit.range(3)
+        )
