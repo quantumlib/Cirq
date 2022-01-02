@@ -866,4 +866,4 @@ def test_clifford_gate_act_on_ch_form():
 
 def test_clifford_gate_act_on_fail():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.X, DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.CliffordGate.X, DummyActOnArgs(), qubits=())
