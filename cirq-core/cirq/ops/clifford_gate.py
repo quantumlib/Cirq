@@ -833,6 +833,8 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
 
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             # Do we know how to apply CliffordTableau on ActOnStabilizerCHFormArgs?
+            # It should be unlike because CliffordTableau ignores the global phase but CHForm
+            # is aimed to fix that.
             return NotImplemented
 
         return NotImplemented
