@@ -757,11 +757,29 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
 
         return CliffordGate.from_clifford_tableau(args.tableau)
 
+    @classmethod
+    def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
+            n,
+            rs,
+            xs,
+            zs,
+        )
+        return cls(_clifford_tableau=_clifford_tableau)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        json_dict = self._clifford_tableau._json_dict_()
+        return json_dict
+
     def _value_equality_values_(self):
         return self.clifford_tableau
 
     def _num_qubits_(self):
         return self.clifford_tableau.n
+
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        # By definition, Clifford Gate should always return True.
+        return True
 
     def __pow__(self, exponent) -> 'CliffordGate':
         if exponent == -1:

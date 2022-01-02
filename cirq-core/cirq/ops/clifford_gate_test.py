@@ -685,14 +685,27 @@ def test_multi_clifford_decompose_by_unitary():
 
 
 def test_pad_clifford_gate_bad_input():
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match="Input axes of padding should match with the number of qubits"
+    ):
         tableau = cirq.CliffordTableau(num_qubits=3)
-        cirq.ops.clifford_gate._pad_tableau(
-            tableau, num_qubits_after_padding=4, qubits=cirq.LineQubit.range(2)
-        )
+        cirq.ops.clifford_gate._pad_tableau(tableau, num_qubits_after_padding=4, axes=[1, 2])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match='The number of qubits in the input tableau should not be larger than'
+    ):
         tableau = cirq.CliffordTableau(num_qubits=3)
-        cirq.ops.clifford_gate._pad_tableau(
-            tableau, num_qubits_after_padding=2, qubits=cirq.LineQubit.range(3)
-        )
+        cirq.ops.clifford_gate._pad_tableau(tableau, num_qubits_after_padding=2, axes=[0, 1, 2])
+
+
+def test_stabilizer_effec():
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.X)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.H)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.S)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.CNOT)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.CZ)
+    qubits = cirq.LineQubit.range(2)
+    gate = cirq.CliffordGate.from_op_list(
+        [cirq.H(qubits[1]), cirq.CZ(*qubits), cirq.H(qubits[1])], qubits
+    )
+    assert cirq.has_stabilizer_effect(gate)
