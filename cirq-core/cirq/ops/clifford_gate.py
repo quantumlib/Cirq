@@ -696,8 +696,6 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         *,
         _clifford_tableau: qis.CliffordTableau,
     ) -> None:
-        if not _clifford_tableau._validate():
-            raise ValueError('Input is not a valid Clifford tableau.')
         # We use the Clifford tableau to represent a Clifford gate.
         # It is crucial to note that the meaning of tableau here is different
         # from the one used to represent a Clifford state (Of course, they are related).
@@ -738,7 +736,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         from cirq.sim import clifford
 
         for op in operations:
-            if op.gate and op.gate._has_stabilizer_effect_:
+            if op.gate and op.gate._has_stabilizer_effect_():
                 continue
             raise ValueError(
                 "Clifford Gate can only be constructed from the "

@@ -620,7 +620,20 @@ def test_multi_qubit_clifford_pow():
     assert cirq.CliffordGate.CNOT ** 3 == cirq.CliffordGate.CNOT
     assert cirq.CliffordGate.CNOT ** -3 == cirq.CliffordGate.CNOT
     with pytest.raises(TypeError):
-        _ = cirq.SingleQubitCliffordGate.Z ** 0.25
+        _ = cirq.CliffordGate.Z ** 0.25
+
+
+def test_stabilizer_effec():
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.X)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.H)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.S)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.CNOT)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.CZ)
+    qubits = cirq.LineQubit.range(2)
+    gate = cirq.CliffordGate.from_op_list(
+        [cirq.H(qubits[1]), cirq.CZ(*qubits), cirq.H(qubits[1])], qubits
+    )
+    assert cirq.has_stabilizer_effect(gate)
 
 
 def test_clifford_gate_from_op_list():
@@ -662,6 +675,28 @@ def test_clifford_gate_from_op_list():
     )
     assert gate == cirq.CliffordGate.CNOT
 
+    with pytest.raises(
+        ValueError, match="only be constructed from the operations that has stabilizer effect"
+    ):
+        cirq.CliffordGate.from_op_list([cirq.T(qubit)], [qubit])
+
+
+def test_clifford_gate_from_tableau():
+    t = cirq.CliffordGate.X.clifford_tableau
+    assert cirq.CliffordGate.from_clifford_tableau(t) == cirq.CliffordGate.X
+
+    t = cirq.CliffordGate.H.clifford_tableau
+    assert cirq.CliffordGate.from_clifford_tableau(t) == cirq.CliffordGate.H
+
+    t = cirq.CliffordGate.CNOT.clifford_tableau
+    assert cirq.CliffordGate.from_clifford_tableau(t) == cirq.CliffordGate.CNOT
+
+    with pytest.raises(ValueError):
+        t = cirq.CliffordTableau(num_qubits=1)
+        t.xs = np.array([1, 1]).reshape(2, 1)
+        t.zs = np.array([1, 1]).reshape(2, 1)  # This violates the sympletic property.
+        cirq.CliffordGate.from_clifford_tableau(t)
+
 
 def test_multi_clifford_decompose_by_unitary():
     # Construct a random clifford gate:
@@ -684,7 +719,7 @@ def test_multi_clifford_decompose_by_unitary():
         )
 
 
-def test_pad_clifford_gate_bad_input():
+def test_pad_tableau_bad_input():
     with pytest.raises(
         ValueError, match="Input axes of padding should match with the number of qubits"
     ):
@@ -698,14 +733,132 @@ def test_pad_clifford_gate_bad_input():
         cirq.ops.clifford_gate._pad_tableau(tableau, num_qubits_after_padding=2, axes=[0, 1, 2])
 
 
-def test_stabilizer_effec():
-    assert cirq.has_stabilizer_effect(cirq.CliffordGate.X)
-    assert cirq.has_stabilizer_effect(cirq.CliffordGate.H)
-    assert cirq.has_stabilizer_effect(cirq.CliffordGate.S)
-    assert cirq.has_stabilizer_effect(cirq.CliffordGate.CNOT)
-    assert cirq.has_stabilizer_effect(cirq.CliffordGate.CZ)
-    qubits = cirq.LineQubit.range(2)
-    gate = cirq.CliffordGate.from_op_list(
-        [cirq.H(qubits[1]), cirq.CZ(*qubits), cirq.H(qubits[1])], qubits
+def test_pad_tableau():
+    tableau = cirq.CliffordTableau(num_qubits=1)
+    padded_tableau = cirq.ops.clifford_gate._pad_tableau(
+        tableau, num_qubits_after_padding=2, axes=[0]
     )
-    assert cirq.has_stabilizer_effect(gate)
+    assert padded_tableau == cirq.CliffordTableau(num_qubits=2)
+
+    tableau = cirq.CliffordTableau(num_qubits=1, initial_state=1)
+    padded_tableau = cirq.ops.clifford_gate._pad_tableau(
+        tableau, num_qubits_after_padding=1, axes=[0]
+    )
+    assert padded_tableau == cirq.CliffordGate.X.clifford_tableau
+
+    # Tableau for H
+    # [0 1 0]
+    # [1 0 0]
+    tableau = cirq.CliffordGate.H.clifford_tableau
+    padded_tableau = cirq.ops.clifford_gate._pad_tableau(
+        tableau, num_qubits_after_padding=2, axes=[0]
+    )
+    np.testing.assert_equal(
+        padded_tableau.matrix().astype(np.int64),
+        np.array(
+            [
+                [0, 0, 1, 0],
+                [0, 1, 0, 0],
+                [1, 0, 0, 0],
+                [0, 0, 0, 1],
+            ]
+        ),
+    )
+    np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
+    # The tableau of H again but pad for another ax
+    tableau = cirq.CliffordGate.H.clifford_tableau
+    padded_tableau = cirq.ops.clifford_gate._pad_tableau(
+        tableau, num_qubits_after_padding=2, axes=[1]
+    )
+    np.testing.assert_equal(
+        padded_tableau.matrix().astype(np.int64),
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 0, 0, 1],
+                [0, 0, 1, 0],
+                [0, 1, 0, 0],
+            ]
+        ),
+    )
+    np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
+
+
+def test_clifford_gate_act_on_small_case():
+    # Note this is also covered by the `from_op_list` one, etc.
+
+    n, num_ops = 5, 20
+    qubits = cirq.LineQubit.range(n)
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=n),
+        qubits=qubits,
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    expected_args = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=n),
+        qubits=qubits,
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.CNOT, expected_args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.CNOT, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.S, expected_args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.S, args, qubits=[qubits[0]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.X, expected_args, qubits=[qubits[2]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.X, args, qubits=[qubits[2]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+
+def test_clifford_gate_act_on_large_case():
+    n, num_ops = 50, 1000  # because we don't need unitary, it is fast.
+    gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
+    for seed in range(10):
+        prng = np.random.RandomState(seed)
+        t1 = cirq.CliffordTableau(num_qubits=n)
+        t2 = cirq.CliffordTableau(num_qubits=n)
+        qubits = cirq.LineQubit.range(n)
+        args1 = cirq.ActOnCliffordTableauArgs(
+            tableau=t1, qubits=qubits, prng=prng, log_of_measurement_results={}
+        )
+        args2 = cirq.ActOnCliffordTableauArgs(
+            tableau=t2, qubits=qubits, prng=prng, log_of_measurement_results={}
+        )
+        ops = []
+        for _ in range(num_ops):
+            g = prng.randint(len(gate_candidate))
+            indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
+            cirq.act_on(
+                gate_candidate[g], args1, qubits=[qubits[i] for i in indices], allow_decompose=False
+            )
+            ops.append(gate_candidate[g].on(*[qubits[i] for i in indices]))
+        compiled_gate = cirq.CliffordGate.from_op_list(ops, qubits)
+        cirq.act_on(compiled_gate, args2, qubits)
+
+        assert args1.tableau == args2.tableau
+
+
+def test_clifford_gate_act_on_ch_form():
+    # Although we don't support CH_form from the _act_on_, it will fall back
+    # to the decomposititon method and apply it through decomposed ops.
+    # Here we run it for the coverage only.
+    args = cirq.ActOnStabilizerCHFormArgs(
+        state=cirq.StabilizerStateChForm(num_qubits=2, initial_state=1),
+        qubits=cirq.LineQubit.range(2),
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(cirq.CliffordGate.X, args, qubits=cirq.LineQubit.range(1))
+    np.testing.assert_allclose(args.state.state_vector(), np.array([0, 0, 0, 1]))
