@@ -113,14 +113,14 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Child classes that perform measurements should implement this with
         the implementation."""
 
-    def copy(self: TSelf, with_buffer: bool = True) -> TSelf:
+    def copy(self: TSelf, reuse_buffer: bool = False) -> TSelf:
         """Creates a copy of the object."""
         args = copy.copy(self)
-        self._on_copy(args, with_buffer)
+        self._on_copy(args, reuse_buffer)
         args._log_of_measurement_results = self.log_of_measurement_results.copy()
         return args
 
-    def _on_copy(self: TSelf, args: TSelf, with_buffer: bool = True):
+    def _on_copy(self: TSelf, args: TSelf, reuse_buffer: bool = False):
         """Subclasses should implement this with any additional state copy
         functionality."""
 

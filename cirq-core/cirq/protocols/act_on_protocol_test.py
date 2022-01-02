@@ -31,7 +31,7 @@ class DummyActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self, qubits):
         return self.measurements  # coverage: ignore
 
-    def copy(self, with_buffer: bool = True):
+    def copy(self, reuse_buffer: bool = False):
         return DummyActOnArgs(self.fallback_result, self.measurements.copy())  # coverage: ignore
 
     def _act_on_fallback_(

@@ -82,7 +82,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         """Returns the measurement from the tableau."""
         return [self.tableau._measure(self.qubit_map[q], self.prng) for q in qubits]
 
-    def _on_copy(self, target: 'ActOnCliffordTableauArgs', with_buffer: bool = True):
+    def _on_copy(self, target: 'ActOnCliffordTableauArgs', reuse_buffer: bool = False):
         target.tableau = self.tableau.copy()
 
     def sample(

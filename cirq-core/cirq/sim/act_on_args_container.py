@@ -130,9 +130,9 @@ class ActOnArgsContainer(
                 self.args[q] = op_args
         return True
 
-    def copy(self, with_buffer: bool = True) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
+    def copy(self, reuse_buffer: bool = False) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()
-        copies = {a: a.copy(with_buffer) for a in set(self.args.values())}
+        copies = {a: a.copy(reuse_buffer) for a in set(self.args.values())}
         for copy in copies.values():
             copy._log_of_measurement_results = logs
         args = {q: copies[a] for q, a in self.args.items()}
