@@ -72,11 +72,6 @@ from cirq.optimizers.merge_single_qubit_gates import (
     MergeSingleQubitGates,
 )
 
-from cirq.optimizers.two_qubit_state_preparation import (
-    prepare_two_qubit_state_using_cz,
-    prepare_two_qubit_state_using_sqrt_iswap,
-)
-
 from cirq.optimizers.decompositions import (
     is_negligible_turn,
     single_qubit_matrix_to_gates,
