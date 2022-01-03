@@ -108,7 +108,7 @@ class _BaseLineQid(ops.Qid):
         return int(self.x)
 
     def __hash__(self) -> int:
-        return int(self._x)
+        return self._x
 
 
 class LineQid(_BaseLineQid):
