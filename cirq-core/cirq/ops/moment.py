@@ -100,7 +100,7 @@ class Moment:
         )
 
         # An internal dictionary to support efficient operation access by qubit.
-        self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
+        self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = dict()
         for op in self._operations:
             for q in op.qubits:
                 # Check that operations don't overlap.
