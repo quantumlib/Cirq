@@ -176,7 +176,7 @@ class ActOnStateVectorArgs(ActOnArgs):
 
     def _on_copy(self, target: 'cirq.ActOnStateVectorArgs', reuse_buffer: bool = False):
         target.target_tensor = self.target_tensor.copy()
-        if reuse_buffer:
+        if not reuse_buffer:
             target.available_buffer = self.available_buffer.copy()
 
     def _on_kronecker_product(
