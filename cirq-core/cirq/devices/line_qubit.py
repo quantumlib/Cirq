@@ -34,7 +34,7 @@ class _BaseLineQid(ops.Qid):
         self._x = x
 
     def _comparison_key(self):
-        return self.x
+        return self._x
 
     @property
     def x(self) -> int:

@@ -58,7 +58,7 @@ def control_keys(val: Any) -> AbstractSet['cirq.MeasurementKey']:
     if result is not NotImplemented and result is not None:
         return set(result)
 
-    return set()
+    return frozenset()
 
 
 def measurement_keys_touched(val: Any) -> AbstractSet['cirq.MeasurementKey']:

@@ -2010,7 +2010,8 @@ class Circuit(AbstractCircuit):
                 else:
                     self._moments[p] = self._moments[p].with_operation(op)
                 self._device.validate_moment(self._moments[p])
-                k = max(k, p + 1)
+                if k < p + 1:
+                    k = p + 1
                 if strategy is InsertStrategy.NEW_THEN_INLINE:
                     strategy = InsertStrategy.INLINE
         return k
