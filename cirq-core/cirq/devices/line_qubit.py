@@ -107,6 +107,9 @@ class _BaseLineQid(ops.Qid):
     def __int__(self) -> int:
         return int(self.x)
 
+    def __hash__(self) -> int:
+        return int(self._x)
+
 
 class LineQid(_BaseLineQid):
     """A qid on a 1d lattice with nearest-neighbor connectivity.

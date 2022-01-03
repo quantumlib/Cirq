@@ -90,8 +90,8 @@ class Moment:
         Raises:
             ValueError: A qubit appears more than once.
         """
-        self._operations = (
-            contents
+        self._operations: Tuple['cirq.Operation', ...] = (
+            contents  # type: ignore
             if not contents
             or len(contents) == 1
             and isinstance(contents[0], ops.Operation)
