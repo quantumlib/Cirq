@@ -90,7 +90,7 @@ class Moment:
         Raises:
             ValueError: A qubit appears more than once.
         """
-        self._operations = tuple(op_tree.flatten_to_ops(contents))
+        self._operations = contents if contents == () else tuple(op_tree.flatten_to_ops(contents))
 
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
@@ -101,7 +101,7 @@ class Moment:
                     raise ValueError(f'Overlapping operations: {self.operations}')
                 self._qubit_to_op[q] = op
 
-        self._qubits = frozenset(self._qubit_to_op.keys())
+        self._qubits = frozenset(self._qubit_to_op)
         self._measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = None
 
     @property
@@ -159,17 +159,18 @@ class Moment:
         Raises:
             ValueError: If the operation given overlaps a current operation in the moment.
         """
-        if any(q in self._qubits for q in operation.qubits):
-            raise ValueError(f'Overlapping operations: {operation}')
 
         # Use private variables to facilitate a quick copy.
         m = Moment()
         m._operations = self._operations + (operation,)
-        m._qubits = frozenset(self._qubits.union(set(operation.qubits)))
+        qubits = set(self._qubits)
         m._qubit_to_op = self._qubit_to_op.copy()
         for q in operation.qubits:
+            if q in self._qubits:
+                raise ValueError(f'Overlapping operations: {operation}')
+            qubits.add(q)
             m._qubit_to_op[q] = operation
-
+        m._qubits = frozenset(qubits)
         return m
 
     def with_operations(self, *contents: 'cirq.OP_TREE') -> 'cirq.Moment':
