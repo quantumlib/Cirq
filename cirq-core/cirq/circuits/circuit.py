@@ -2003,9 +2003,12 @@ class Circuit(AbstractCircuit):
             else:
                 op = cast(ops.Operation, moment_or_op)
                 p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
-                while p >= len(self._moments):
+                while p > len(self._moments):
                     self._moments.append(ops.Moment())
-                self._moments[p] = self._moments[p].with_operation(op)
+                if p == len(self._moments):
+                    self._moments.append(ops.Moment(op))
+                else:
+                    self._moments[p] = self._moments[p].with_operation(op)
                 self._device.validate_moment(self._moments[p])
                 k = max(k, p + 1)
                 if strategy is InsertStrategy.NEW_THEN_INLINE:

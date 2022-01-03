@@ -90,11 +90,18 @@ class Moment:
         Raises:
             ValueError: A qubit appears more than once.
         """
-        self._operations = contents if contents == () else tuple(op_tree.flatten_to_ops(contents))
+        self._operations = (
+            contents
+            if not contents
+            or len(contents) == 1
+            and isinstance(contents[0], ops.Operation)
+            or all(isinstance(c, raw_types.Operation) for c in contents)
+            else tuple(op_tree.flatten_to_ops(contents))
+        )
 
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
-        for op in self.operations:
+        for op in self._operations:
             for q in op.qubits:
                 # Check that operations don't overlap.
                 if q in self._qubit_to_op:
