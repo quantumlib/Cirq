@@ -31,7 +31,7 @@ class _BaseLineQid(ops.Qid):
 
     def __init__(self, x: int) -> None:
         """Initializes a line qubit at the given x coordinate."""
-        self._x = x
+        self._x = int(x)
 
     def _comparison_key(self):
         return self._x
