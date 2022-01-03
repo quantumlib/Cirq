@@ -44,7 +44,7 @@ class TwoQubitGateCompilation(NamedTuple):
 
 
 @dataclass
-@deprecated_class(deadline='v0.16', fix='Stop using.', name='GateTabulation')
+@deprecated_class(deadline='v0.16', fix='Use cirq.TwoQubitGateTabulation instead.', name='GateTabulation')
 class GateTabulation:
     """A 2-qubit gate compiler based on precomputing/tabulating gate products."""
 
@@ -97,7 +97,7 @@ class GateTabulation:
         )
 
 
-@deprecated(deadline='v0.16', fix='Stop using.', name='gate_product_tabulation')
+@deprecated(deadline='v0.16', fix='Use cirq.two_qubit_gate_product_tabulation instead.', name='gate_product_tabulation')
 def gate_product_tabulation(
     base_gate: np.ndarray,
     max_infidelity: float,

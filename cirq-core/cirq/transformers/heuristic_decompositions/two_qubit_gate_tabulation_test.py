@@ -17,7 +17,7 @@ import pytest
 
 import cirq
 from cirq import value
-from cirq.optimizers.two_qubit_gate_tabulation import (
+from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
     two_qubit_gate_product_tabulation,
     TwoQubitGateTabulation,
 )

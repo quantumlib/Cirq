@@ -353,11 +353,9 @@ from cirq.optimizers import (
     single_qubit_op_to_framed_phase_form,
     stratified_circuit,
     SynchronizeTerminalMeasurements,
-    two_qubit_gate_product_tabulation,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
-    TwoQubitGateTabulation,
     three_qubit_matrix_to_operations,
 )
 
@@ -369,6 +367,8 @@ from cirq.transformers import (
     merge_operations,
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
+    two_qubit_gate_product_tabulation,
+    TwoQubitGateTabulation,
     unroll_circuit_op,
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,
