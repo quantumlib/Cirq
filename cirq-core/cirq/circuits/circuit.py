@@ -2001,14 +2001,13 @@ class Circuit(AbstractCircuit):
                 self._moments.insert(k, moment_or_op)
                 k += 1
             else:
-                op = cast(ops.Operation, moment_or_op)
-                p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
+                p = self._pick_or_create_inserted_op_moment_index(k, moment_or_op, strategy)
                 while p > len(self._moments):
                     self._moments.append(ops.Moment())
                 if p == len(self._moments):
-                    self._moments.append(ops.Moment(op))
+                    self._moments.append(ops.Moment(moment_or_op))
                 else:
-                    self._moments[p] = self._moments[p].with_operation(op)
+                    self._moments[p] = self._moments[p].with_operation(moment_or_op)
                 self._device.validate_moment(self._moments[p])
                 if k < p + 1:
                     k = p + 1
