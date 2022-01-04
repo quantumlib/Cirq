@@ -28,8 +28,37 @@ def test_init():
     assert cirq.qid_shape(gate) == (3,)
     assert gate.subspaces == [(0, 1)]
 
+    gate = cirq.DimensionAdapterGate(cirq.X, [(4, slice(2, None, -2))])
+    assert gate._gate == cirq.X
+    assert cirq.qid_shape(gate) == (4,)
+    assert gate.subspaces == [(2, 0)]
+
+    gate = cirq.DimensionAdapterGate(cirq.CX, [(3, (0, 1)), (3, (0, 1))])
+    assert gate._gate == cirq.CX
+    assert cirq.qid_shape(gate) == (3, 3)
+    assert gate.subspaces == [(0, 1), (0, 1)]
+
+    gate = cirq.DimensionAdapterGate(cirq.CX, [(3, (0, 1)), (4, slice(2, None, -2))])
+    assert gate._gate == cirq.CX
+    assert cirq.qid_shape(gate) == (3, 4)
+    assert gate.subspaces == [(0, 1), (2, 0)]
+
+    id_gate = cirq.IdentityGate(2, (3, 4))
+    gate = cirq.DimensionAdapterGate(id_gate, [(5, (0, 1, 2)), (5, (0, 1, 2, 3))])
+    assert gate._gate == id_gate
+    assert cirq.qid_shape(gate) == (5, 5)
+    assert gate.subspaces == [(0, 1, 2), (0, 1, 2, 3)]
+
+    gate = cirq.DimensionAdapterGate(id_gate, [(5, slice(4, None, -2)), (6, slice(1, 5))])
+    assert gate._gate == id_gate
+    assert cirq.qid_shape(gate) == (5, 6)
+    assert gate.subspaces == [(4, 2, 0), (1, 2, 3, 4)]
+
     with pytest.raises(ValueError, match='Gate qubit count and subspace count must match.'):
         _ = cirq.DimensionAdapterGate(cirq.CX, [(3, (0, 1))])
+
+    with pytest.raises(ValueError, match=re.escape('slice step cannot be zero')):
+        _ = cirq.DimensionAdapterGate(cirq.X, [(3, (1, 1))])
 
     with pytest.raises(
         ValueError, match=re.escape('Dimension 3 not large enough for subspace (0, 3) on qubit 0.')
@@ -51,21 +80,41 @@ def test_init():
 
 
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_qudits_slices(split: bool):
-    q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
-    simulator = cirq.Simulator(split_untangled_states=split)
+@pytest.mark.parametrize('q0_dim', [3, 4])
+@pytest.mark.parametrize('q1_dim', [3, 4])
+def test_simulate(split: bool, q0_dim: int, q1_dim: int):
+    # We put a pair of zero qudits into a target state by applying X's on the (0, target) subspaces
+    q0, q1 = cirq.LineQid.for_qid_shape((q0_dim, q1_dim))
+    for q0_target in range(1, q0_dim):
+        for q1_target in range(1, q1_dim):
+            simulator = cirq.Simulator(split_untangled_states=split)
+            circuit = cirq.Circuit(
+                cirq.DimensionAdapterGate(cirq.X, [(q0_dim, (0, q0_target))])(q0),
+                cirq.DimensionAdapterGate(cirq.X, [(q1_dim, (0, q1_target))])(q1),
+            )
+            result = simulator.simulate(circuit, qubit_order=[q0, q1]).final_state_vector
+            expected = np.zeros((q0_dim, q1_dim))
+            expected[q0_target, q1_target] = 1
+            np.testing.assert_allclose(result.reshape((q0_dim, q1_dim)), expected)
 
+
+def test_simulate_inverted_condition():
+    # CX(q0, q1) on a flipped subspace should be equivalent to X(q0) CX(q0, q1) X(q0)
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.Simulator()
+    circuit = cirq.Circuit(cirq.DimensionAdapterGate(cirq.CX, [(2, (1, 0)), (2, (0, 1))])(q0, q1))
+    reference_circuit = cirq.Circuit(cirq.X(q0), cirq.CX(q0, q1), cirq.X(q0))
+    result = simulator.simulate(circuit)
+    reference_result = simulator.simulate(reference_circuit)
+    np.testing.assert_allclose(result.final_state_vector, reference_result.final_state_vector)
+
+
+def test_diagram():
+    q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     circuit = cirq.Circuit(
         cirq.DimensionAdapterGate(cirq.X, [(3, (0, 1))])(q0),
         cirq.DimensionAdapterGate(cirq.X, [(4, (0, 3))])(q1),
     )
-    result = simulator.simulate(circuit, qubit_order=[q0, q1])
-    expected = np.zeros(12)
-    expected[4 * 1 + 3] = 1
-
-    np.testing.assert_almost_equal(result.final_state_vector, expected)
-    assert len(result.measurements) == 0
-
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -77,11 +126,25 @@ def test_simulate_qudits_slices(split: bool):
     )
 
 
+def test_diagram_complete_subspace_not_annotated():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.DimensionAdapterGate(cirq.CX, [(2, (1, 0)), (2, (0, 1))])(q0, q1))
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───@(subspace [1, 0])───
+      │
+1: ───X────────────────────
+""",
+        use_unicode_characters=True,
+    )
+
+
 @pytest.mark.parametrize('split', [True, False])
 @pytest.mark.parametrize('seed', [0, 1, 2])
 @pytest.mark.parametrize('dimensions', [3, 4])
 @pytest.mark.parametrize('qubit_count', [3, 4])
-def test_simulation_result_is_unitary(split: bool, seed: int, dimensions: int, qubit_count: int):
+def test_simulation_result_is_valid(split: bool, seed: int, dimensions: int, qubit_count: int):
     prng = np.random.RandomState(seed)
     qubits = cirq.LineQubit.range(qubit_count)
     circuit = cirq.testing.random_circuit(
@@ -105,6 +168,32 @@ def test_simulation_result_is_unitary(split: bool, seed: int, dimensions: int, q
     cirq.validate_normalized_state_vector(
         result.final_state_vector, qid_shape=(dimensions,) * qubit_count
     )
+
+
+@pytest.mark.parametrize('seed', [0, 1, 2])
+@pytest.mark.parametrize('dimensions', [3, 4])
+@pytest.mark.parametrize('qubit_count', [3, 4])
+def test_unitary(seed: int, dimensions: int, qubit_count: int):
+    prng = np.random.RandomState(seed)
+    qubits = cirq.LineQubit.range(qubit_count)
+    circuit = cirq.testing.random_circuit(
+        qubits=qubits, n_moments=50, op_density=1, random_state=prng
+    )
+    qubit_map: Mapping[cirq.Qid, int] = {q: i for i, q in enumerate(qubits)}
+    qudits = cirq.LineQid.range(qubit_count, dimension=dimensions)
+
+    def adapt(op: cirq.Operation) -> cirq.Operation:
+        gate = op.gate
+        assert gate is not None
+        subspaces = [
+            (dimensions, tuple(prng.choice(range(dimensions), 2, replace=False))) for _ in op.qubits
+        ]
+        op_qubits = [qudits[qubit_map[q]] for q in op.qubits]
+        return cirq.DimensionAdapterGate(gate, subspaces).on(*op_qubits)
+
+    circuit = circuit.map_operations(adapt)
+    result = cirq.unitary(circuit)
+    assert cirq.is_unitary(result)
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])

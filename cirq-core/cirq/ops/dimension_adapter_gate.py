@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class DimensionAdapterGate(raw_types.Gate):
-    """Adapts a 2-qubit gate to apply to qudits."""
+    """Adapts lower-dimension gate to subspace of higher-dimensional qudits."""
 
     def __init__(
         self, gate: 'cirq.Gate', subspaces: Sequence[Tuple[int, Union[Tuple[int, ...], slice]]]
@@ -132,8 +132,10 @@ class DimensionAdapterGate(raw_types.Gate):
         sub_info = protocols.circuit_diagram_info(self._gate, args)
         wires = list(sub_info.wire_symbols)
         for i in range(len(wires)):
-            subspace = list(range(self._shape[i]))[self._slices[i]]
-            wires[i] += f'(subspace {subspace})'
+            shape_range = list(range(self._shape[i]))
+            subspace = shape_range[self._slices[i]]
+            if subspace != shape_range:
+                wires[i] += f'(subspace {subspace})'
         return sub_info.with_wire_symbols(wires)
 
     def __str__(self) -> str:
