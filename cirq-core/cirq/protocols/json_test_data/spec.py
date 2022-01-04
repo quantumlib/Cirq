@@ -109,6 +109,9 @@ TestSpec = ModuleJsonTestSpec(
         'MergeSingleQubitGates',
         'PointOptimizer',
         'SynchronizeTerminalMeasurements',
+        # Transformers
+        'TransformerStatsLoggerBase',
+        'TransformerContext',
         # global objects
         'CONTROL_TAG',
         'PAULI_BASIS',
@@ -172,6 +175,7 @@ TestSpec = ModuleJsonTestSpec(
         'TParamKey',
         'TParamVal',
         'ParamDictType',
+        'TRANSFORMER_TYPE',
         # utility:
         'CliffordSimulator',
         'Simulator',
