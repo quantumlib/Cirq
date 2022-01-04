@@ -9,7 +9,9 @@ from cirq_google.optimizers.two_qubit_gates.gate_compilation import (
     gate_product_tabulation,
     GateTabulation,
 )
-from cirq.optimizers.gate_tabulation_math_utils import unitary_entanglement_fidelity
+from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils import (
+    unitary_entanglement_fidelity,
+)
 from cirq.testing import random_special_unitary
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'

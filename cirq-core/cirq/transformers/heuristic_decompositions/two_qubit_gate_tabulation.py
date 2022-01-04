@@ -23,7 +23,7 @@ import numpy as np
 import cirq
 from cirq import value
 from cirq._compat import proper_repr, proper_eq
-from cirq.optimizers.gate_tabulation_math_utils import (
+from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils import (
     kak_vector_infidelity,
     vector_kron,
     weyl_chamber_mesh,

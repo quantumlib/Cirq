@@ -21,7 +21,9 @@ from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import
     two_qubit_gate_product_tabulation,
     TwoQubitGateTabulation,
 )
-from cirq.optimizers.gate_tabulation_math_utils import unitary_entanglement_fidelity
+from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils import (
+    unitary_entanglement_fidelity,
+)
 from cirq.testing import random_special_unitary, assert_equivalent_repr
 
 _rng = value.parse_random_state(11)  # for determinism
