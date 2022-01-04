@@ -14,6 +14,20 @@
 
 """Utilities for analytical decomposition of cirq gates."""
 
+from cirq.transformers.analytical_decompositions.clifford_decomposition import (
+    decompose_clifford_tableau_to_operations,
+)
+
+from cirq.transformers.analytical_decompositions.controlled_gate_decomposition import (
+    decompose_multi_controlled_x,
+    decompose_multi_controlled_rotation,
+)
+
+from cirq.transformers.analytical_decompositions.cphase_to_fsim import (
+    compute_cphase_exponents_for_fsim_decomposition,
+    decompose_cphase_into_two_fsim,
+)
+
 from cirq.transformers.analytical_decompositions.two_qubit_state_preparation import (
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
