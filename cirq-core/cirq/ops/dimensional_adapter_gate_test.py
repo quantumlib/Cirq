@@ -130,6 +130,45 @@ def test_adapted_condition_depends_only_on_true_subspace():
     np.testing.assert_allclose(zero_result.final_state_vector, one_result.final_state_vector)
 
 
+def test_simulate_plus_gate():
+    class PlusGate(cirq.Gate):
+        """A qudit gate that increments a qudit state mod its dimension."""
+
+        def __init__(self, dimension, increment=1):
+            self.dimension = dimension
+            self.increment = increment % dimension
+
+        def _qid_shape_(self):
+            return (self.dimension,)
+
+        def _unitary_(self):
+            inc = (self.increment - 1) % self.dimension + 1
+            u = np.empty((self.dimension, self.dimension))
+            u[inc:] = np.eye(self.dimension)[:-inc]
+            u[:inc] = np.eye(self.dimension)[-inc:]
+            return u
+
+    q0 = cirq.LineQid(0, 6)
+    circuit = cirq.Circuit(
+        # Go from |0> to |2>
+        cirq.DimensionAdapterGate(PlusGate(3), [(6, (0, 2, 4))])(q0),
+        # Goes from |2> to |1>
+        cirq.DimensionAdapterGate(PlusGate(3, 2), [(6, (1, 2, 3))])(q0),
+        # Goes from |1> to |2>
+        cirq.DimensionAdapterGate(PlusGate(3), [(6, (1, 2, 3))])(q0),
+        # Goes from |2> to |3>
+        cirq.DimensionAdapterGate(PlusGate(5, 4), [(6, (5, 4, 3, 2, 1))])(q0),
+        # Goes from |3> to |4>
+        cirq.DimensionAdapterGate(PlusGate(5, 4), [(6, (4, 3, 2, 1, 0))])(q0),
+        # Stays at |4>
+        cirq.DimensionAdapterGate(PlusGate(3, 2), [(6, (1, 2, 3))])(q0),
+    )
+    expected = cirq.to_valid_state_vector(4, qid_shape=[6])
+    simulator = cirq.Simulator()
+    result = simulator.simulate(circuit)
+    np.testing.assert_allclose(result.final_state_vector, expected)
+
+
 def test_diagram():
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     circuit = cirq.Circuit(

@@ -421,7 +421,9 @@ def _strat_apply_unitary_from_unitary(
         slices = tuple(slice(0, size) for size in val_qid_shape)
     else:
         slices = args.slices
-        val_qid_shape = tuple((s.stop - s.start) // s.step for s in slices)
+        val_qid_shape = tuple(
+            ((s.step if s.stop is None else s.stop) - s.start) // s.step for s in slices
+        )
     sub_args = args._for_operation_with_qid_shape(range(len(slices)), slices)
     matrix = matrix.astype(sub_args.target_tensor.dtype)
     if len(val_qid_shape) == 1 and val_qid_shape[0] <= 2:
