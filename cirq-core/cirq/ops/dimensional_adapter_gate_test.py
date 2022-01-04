@@ -33,10 +33,10 @@ def test_init():
     assert cirq.qid_shape(gate) == (4,)
     assert gate.subspaces == [(2, 0)]
 
-    gate = cirq.DimensionAdapterGate(cirq.CX, [(3, (0, 1)), (3, (0, 1))])
+    gate = cirq.DimensionAdapterGate(cirq.CX, [(3, (0, 1)), (4, (2, 0))])
     assert gate._gate == cirq.CX
-    assert cirq.qid_shape(gate) == (3, 3)
-    assert gate.subspaces == [(0, 1), (0, 1)]
+    assert cirq.qid_shape(gate) == (3, 4)
+    assert gate.subspaces == [(0, 1), (2, 0)]
 
     gate = cirq.DimensionAdapterGate(cirq.CX, [(3, (0, 1)), (4, slice(2, None, -2))])
     assert gate._gate == cirq.CX
@@ -44,10 +44,10 @@ def test_init():
     assert gate.subspaces == [(0, 1), (2, 0)]
 
     id_gate = cirq.IdentityGate(2, (3, 4))
-    gate = cirq.DimensionAdapterGate(id_gate, [(5, (0, 1, 2)), (5, (0, 1, 2, 3))])
+    gate = cirq.DimensionAdapterGate(id_gate, [(5, (4, 2, 0)), (5, (1, 2, 3, 4))])
     assert gate._gate == id_gate
     assert cirq.qid_shape(gate) == (5, 5)
-    assert gate.subspaces == [(0, 1, 2), (0, 1, 2, 3)]
+    assert gate.subspaces == [(4, 2, 0), (1, 2, 3, 4)]
 
     gate = cirq.DimensionAdapterGate(id_gate, [(5, slice(4, None, -2)), (6, slice(1, 5))])
     assert gate._gate == id_gate
@@ -87,11 +87,11 @@ def test_simulate(split: bool, q0_dim: int, q1_dim: int):
     q0, q1 = cirq.LineQid.for_qid_shape((q0_dim, q1_dim))
     for q0_target in range(1, q0_dim):
         for q1_target in range(1, q1_dim):
-            simulator = cirq.Simulator(split_untangled_states=split)
             circuit = cirq.Circuit(
                 cirq.DimensionAdapterGate(cirq.X, [(q0_dim, (0, q0_target))])(q0),
                 cirq.DimensionAdapterGate(cirq.X, [(q1_dim, (0, q1_target))])(q1),
             )
+            simulator = cirq.Simulator(split_untangled_states=split)
             result = simulator.simulate(circuit, qubit_order=[q0, q1]).final_state_vector
             expected = np.zeros((q0_dim, q1_dim))
             expected[q0_target, q1_target] = 1
@@ -101,12 +101,33 @@ def test_simulate(split: bool, q0_dim: int, q1_dim: int):
 def test_simulate_inverted_condition():
     # CX(q0, q1) on a flipped subspace should be equivalent to X(q0) CX(q0, q1) X(q0)
     q0, q1 = cirq.LineQubit.range(2)
-    simulator = cirq.Simulator()
     circuit = cirq.Circuit(cirq.DimensionAdapterGate(cirq.CX, [(2, (1, 0)), (2, (0, 1))])(q0, q1))
     reference_circuit = cirq.Circuit(cirq.X(q0), cirq.CX(q0, q1), cirq.X(q0))
+    simulator = cirq.Simulator()
     result = simulator.simulate(circuit)
     reference_result = simulator.simulate(reference_circuit)
     np.testing.assert_allclose(result.final_state_vector, reference_result.final_state_vector)
+
+
+def test_adapted_condition_depends_only_on_true_subspace():
+    # We put q0 into superposition of |0> and |2>
+    q0 = cirq.LineQid(0, 3)
+    q1 = cirq.LineQubit(1)
+    h_02 = cirq.DimensionAdapterGate(cirq.H, [(3, (0, 2))])
+
+    # Then for the CX gate, the control bit can be on (0, 2) or (1, 2) subspace and it should
+    # produce the same result. The fact that the 0 subspace and the 1 subspace differ doesn't
+    # matter because they're the "zero" of the control.
+    zero_circuit = cirq.Circuit(
+        h_02(q0), cirq.DimensionAdapterGate(cirq.CX, [(3, (0, 2)), (2, (0, 1))])(q0, q1)
+    )
+    one_circuit = cirq.Circuit(
+        h_02(q0), cirq.DimensionAdapterGate(cirq.CX, [(3, (1, 2)), (2, (0, 1))])(q0, q1)
+    )
+    simulator = cirq.Simulator()
+    zero_result = simulator.simulate(zero_circuit)
+    one_result = simulator.simulate(one_circuit)
+    np.testing.assert_allclose(zero_result.final_state_vector, one_result.final_state_vector)
 
 
 def test_diagram():
