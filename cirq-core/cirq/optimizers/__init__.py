@@ -60,15 +60,6 @@ from cirq.optimizers.merge_single_qubit_gates import (
     MergeSingleQubitGates,
 )
 
-from cirq.optimizers.decompositions import (
-    is_negligible_turn,
-    single_qubit_matrix_to_gates,
-    single_qubit_matrix_to_pauli_rotations,
-    single_qubit_matrix_to_phased_x_z,
-    single_qubit_matrix_to_phxz,
-    single_qubit_op_to_framed_phase_form,
-)
-
 from cirq.optimizers.stratify import (
     stratified_circuit,
 )
@@ -116,6 +107,14 @@ _compat.deprecated_submodule(
     new_module_name="cirq.transformers.analytical_decompositions.controlled_gate_decomposition",
     old_parent="cirq.optimizers",
     old_child="controlled_gate_decomposition",
+    deadline="v0.16",
+    create_attribute=True,
+)
+
+_compat.deprecated_submodule(
+    new_module_name="cirq.transformers.analytical_decompositions.single_qubit_decompositions",
+    old_parent="cirq.optimizers",
+    old_child="decompositions",
     deadline="v0.16",
     create_attribute=True,
 )

@@ -20,8 +20,14 @@ from cirq.transformers.analytical_decompositions import (
     decompose_clifford_tableau_to_operations,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
+    is_negligible_turn,
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
+    single_qubit_matrix_to_gates,
+    single_qubit_matrix_to_pauli_rotations,
+    single_qubit_matrix_to_phased_x_z,
+    single_qubit_matrix_to_phxz,
+    single_qubit_op_to_framed_phase_form,
 )
 
 from cirq.transformers.transformer_primitives import (

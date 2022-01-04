@@ -12,7 +12,7 @@ from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops, linalg, protocols
-from cirq.optimizers import decompositions
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 if TYPE_CHECKING:
     import cirq
@@ -144,7 +144,7 @@ def _decomp_to_operations(
         nonlocal prev_commute
         # Commute previous Z(q0)**a, Z(q1)**a through earlier sqrt-iSWAP
         rots1 = list(
-            decompositions.single_qubit_matrix_to_pauli_rotations(
+            single_qubit_decompositions.single_qubit_matrix_to_pauli_rotations(
                 np.dot(matrix1, prev_commute), atol=atol
             )
         )
@@ -163,7 +163,7 @@ def _decomp_to_operations(
                 new_commute = new_commute @ p_unitary
                 matrix0 = p_unitary.T.conj() @ matrix0
         rots0 = list(
-            decompositions.single_qubit_matrix_to_pauli_rotations(
+            single_qubit_decompositions.single_qubit_matrix_to_pauli_rotations(
                 np.dot(matrix0, prev_commute), atol=atol
             )
         )

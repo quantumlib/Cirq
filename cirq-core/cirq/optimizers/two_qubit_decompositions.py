@@ -22,8 +22,8 @@ from cirq.linalg import predicates
 from cirq.linalg.decompositions import num_cnots_required, extract_right_diag
 
 from cirq import ops, linalg, protocols, circuits
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 from cirq.optimizers import (
-    decompositions,
     eject_z,
     eject_phased_paulis,
     merge_single_qubit_gates,
@@ -236,7 +236,7 @@ def _parity_interaction(
 
 
 def _do_single_on(u: np.ndarray, q: 'cirq.Qid', atol: float = 1e-8):
-    for gate in decompositions.single_qubit_matrix_to_gates(u, atol):
+    for gate in single_qubit_decompositions.single_qubit_matrix_to_gates(u, atol):
         yield gate(q)
 
 
