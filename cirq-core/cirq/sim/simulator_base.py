@@ -207,9 +207,6 @@ class SimulatorBase(
         for moment in noisy_moments:
             for op in ops.flatten_to_ops(moment):
                 try:
-                    # TODO: support more general measurements.
-                    # Github issue: https://github.com/quantumlib/Cirq/issues/3566
-
                     # Preprocess measurements
                     if all_measurements_are_terminal and measured[op.qubits]:
                         continue
@@ -217,8 +214,6 @@ class SimulatorBase(
                         measured[op.qubits] = True
                         if all_measurements_are_terminal:
                             continue
-                        if self._ignore_measurement_results:
-                            op = ops.phase_damp(1).on(*op.qubits)
 
                     # Simulate the operation
                     protocols.act_on(op, sim_state)
