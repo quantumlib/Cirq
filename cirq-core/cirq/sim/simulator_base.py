@@ -217,7 +217,7 @@ class SimulatorBase(
 
                     # Simulate the operation
                     protocols.act_on(op, sim_state)
-                except NotADirectoryError:
+                except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
             step_result = self._create_step_result(sim_state)
