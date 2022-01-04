@@ -740,7 +740,7 @@ class TaggedOperation(Operation):
         return protocols.has_unitary(self.sub_operation)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        return protocols.unitary(self.sub_operation, default=None)
+        return protocols.unitary(self.sub_operation, NotImplemented)
 
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
