@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Tuple, Sequence, TYPE_CHECKING, Union
-
+from typing import Any, Dict, FrozenSet, Iterable, Tuple, Sequence, TYPE_CHECKING, Union
 
 from cirq import protocols, value
 from cirq.ops import (
@@ -40,7 +39,7 @@ class PauliMeasurementGate(raw_types.Gate):
     def __init__(
         self,
         observable: Iterable['cirq.Pauli'],
-        key: Union[str, value.MeasurementKey] = '',
+        key: Union[str, 'cirq.MeasurementKey'] = '',
     ) -> None:
         """Inits PauliMeasurementGate.
 
@@ -65,7 +64,7 @@ class PauliMeasurementGate(raw_types.Gate):
         return str(self.mkey)
 
     @key.setter
-    def key(self, key: Union[str, value.MeasurementKey]) -> None:
+    def key(self, key: Union[str, 'cirq.MeasurementKey']) -> None:
         if isinstance(key, str):
             key = value.MeasurementKey(name=key)
         self.mkey = key
@@ -73,7 +72,7 @@ class PauliMeasurementGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return (2,) * len(self._observable)
 
-    def with_key(self, key: Union[str, value.MeasurementKey]) -> 'PauliMeasurementGate':
+    def with_key(self, key: Union[str, 'cirq.MeasurementKey']) -> 'PauliMeasurementGate':
         """Creates a pauli measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
@@ -84,6 +83,13 @@ class PauliMeasurementGate(raw_types.Gate):
 
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> 'PauliMeasurementGate':
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ) -> 'PauliMeasurementGate':
+        return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'PauliMeasurementGate':
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
@@ -100,7 +106,7 @@ class PauliMeasurementGate(raw_types.Gate):
     def _measurement_key_name_(self) -> str:
         return self.key
 
-    def _measurement_key_obj_(self) -> value.MeasurementKey:
+    def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
         return self.mkey
 
     def observable(self) -> 'cirq.DensePauliString':

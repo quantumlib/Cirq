@@ -74,7 +74,7 @@ class CircuitDag(networkx.DiGraph):
         self,
         can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
         incoming_graph_data: Any = None,
-        device: devices.Device = devices.UNCONSTRAINED_DEVICE,
+        device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE,
     ) -> None:
         """Initializes a CircuitDag.
 
@@ -100,7 +100,7 @@ class CircuitDag(networkx.DiGraph):
 
     @staticmethod
     def from_circuit(
-        circuit: circuit.Circuit,
+        circuit: 'cirq.Circuit',
         can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
     ) -> 'CircuitDag':
         return CircuitDag.from_ops(
@@ -111,7 +111,7 @@ class CircuitDag(networkx.DiGraph):
     def from_ops(
         *operations: 'cirq.OP_TREE',
         can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
-        device: devices.Device = devices.UNCONSTRAINED_DEVICE,
+        device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE,
     ) -> 'CircuitDag':
         dag = CircuitDag(can_reorder=can_reorder, device=device)
         for op in ops.flatten_op_tree(operations):
@@ -147,21 +147,21 @@ class CircuitDag(networkx.DiGraph):
 
     __hash__ = None  # type: ignore
 
-    def ordered_nodes(self) -> Iterator[Unique[ops.Operation]]:
+    def ordered_nodes(self) -> Iterator[Unique['cirq.Operation']]:
         if not self.nodes():
             return
         g = self.copy()
 
-        def get_root_node(some_node: Unique[ops.Operation]) -> Unique[ops.Operation]:
+        def get_root_node(some_node: Unique['cirq.Operation']) -> Unique['cirq.Operation']:
             pred = g.pred
             while pred[some_node]:
                 some_node = next(iter(pred[some_node]))
             return some_node
 
-        def get_first_node() -> Unique[ops.Operation]:
+        def get_first_node() -> Unique['cirq.Operation']:
             return get_root_node(next(iter(g.nodes())))
 
-        def get_next_node(succ: networkx.classes.coreviews.AtlasView) -> Unique[ops.Operation]:
+        def get_next_node(succ: networkx.classes.coreviews.AtlasView) -> Unique['cirq.Operation']:
             if succ:
                 return get_root_node(next(iter(succ)))
 
@@ -178,20 +178,20 @@ class CircuitDag(networkx.DiGraph):
 
             node = get_next_node(succ)
 
-    def all_operations(self) -> Iterator[ops.Operation]:
+    def all_operations(self) -> Iterator['cirq.Operation']:
         return (node.val for node in self.ordered_nodes())
 
     def all_qubits(self):
         return frozenset(q for node in self.nodes for q in node.val.qubits)
 
-    def to_circuit(self) -> circuit.Circuit:
+    def to_circuit(self) -> 'cirq.Circuit':
         return circuit.Circuit(
             self.all_operations(), strategy=circuit.InsertStrategy.EARLIEST, device=self.device
         )
 
     def findall_nodes_until_blocked(
-        self, is_blocker: Callable[[ops.Operation], bool]
-    ) -> Iterator[Unique[ops.Operation]]:
+        self, is_blocker: Callable[['cirq.Operation'], bool]
+    ) -> Iterator[Unique['cirq.Operation']]:
         """Finds all nodes before blocking ones.
 
         Args:
