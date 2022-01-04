@@ -353,7 +353,7 @@ class Moment:
         return Moment(*operations)
 
     def _has_kraus_(self) -> bool:
-        """Returns True if self has a Kraus representation."""
+        """Returns True if self has a Kraus representation and self uses <= 10 qubits."""
         return all(protocols.has_kraus(op) for op in self.operations) and len(self.qubits) <= 10
 
     def _kraus_(self) -> Sequence[np.ndarray]:
@@ -374,18 +374,15 @@ class Moment:
         Args:
             self: This Moment.
         Returns:
-            A Kraus representation of self.
-        Raises:
-            ValueError: If self uses more than ten qubits as the length of the resulting sequence
-            is the product of the lengths of the Kraus representations returned by _kraus_ for
-            each constituent operation.
+            A Kraus representation of self if `self._has_kraus_()` is True else `NotImplemented`.
         """
+        if not self._has_kraus_():
+            return NotImplemented
+
         qubits = sorted(self.qubits)
         n = len(qubits)
         if n < 1:
             return (np.array([[1 + 0j]]),)
-        if n > 10:
-            raise ValueError(f'Cannot compute Kraus representation of moment with {n} > 10 qubits')
 
         qubit_to_row_subscript = dict(zip(qubits, 'abcdefghij'))
         qubit_to_col_subscript = dict(zip(qubits, 'ABCDEFGHIJ'))
@@ -421,7 +418,9 @@ class Moment:
         return self._has_kraus_()
 
     def _superoperator_(self) -> np.ndarray:
-        """Returns superoperator representation of self."""
+        """Returns superoperator representation of self if possible, else `NotImplemented`."""
+        if not self._has_superoperator_():
+            return NotImplemented
         return qis.kraus_to_superoperator(self._kraus_())
 
     def _json_dict_(self) -> Dict[str, Any]:
