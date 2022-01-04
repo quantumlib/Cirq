@@ -1,0 +1,856 @@
+valid_gate_sets {
+  name: "sycamore"
+  valid_gates {
+    id: "syc"
+    number_of_qubits: 2
+    valid_args {
+      name: "phase_match"
+      type: STRING
+    }
+    gate_duration_picos: 12000
+    valid_targets: "2_qubit_targets"
+  }
+  valid_gates {
+    id: "xy"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "xy_pi"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "xy_half_pi"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "z"
+    number_of_qubits: 1
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "type"
+      type: STRING
+    }
+  }
+  valid_gates {
+    id: "xyz"
+    number_of_qubits: 1
+    valid_args {
+      name: "x_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "z_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "axis_phase_exponent"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "meas"
+    valid_args {
+      name: "key"
+      type: STRING
+    }
+    valid_args {
+      name: "invert_mask"
+      type: REPEATED_BOOLEAN
+    }
+    gate_duration_picos: 4000000
+    valid_targets: "meas_targets"
+  }
+  valid_gates {
+    id: "wait"
+    number_of_qubits: 1
+    valid_args {
+      name: "nanos"
+      type: FLOAT
+    }
+  }
+  valid_gates {
+    id: "circuit"
+  }
+}
+valid_gate_sets {
+  name: "sqrt_iswap"
+  valid_gates {
+    id: "fsim_pi_4"
+    number_of_qubits: 2
+    valid_args {
+      name: "phase_match"
+      type: STRING
+    }
+    gate_duration_picos: 32000
+    valid_targets: "2_qubit_targets"
+  }
+  valid_gates {
+    id: "inv_fsim_pi_4"
+    number_of_qubits: 2
+    valid_args {
+      name: "phase_match"
+      type: STRING
+    }
+    gate_duration_picos: 32000
+    valid_targets: "2_qubit_targets"
+  }
+  valid_gates {
+    id: "xy"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "z"
+    number_of_qubits: 1
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "type"
+      type: STRING
+    }
+  }
+  valid_gates {
+    id: "xyz"
+    number_of_qubits: 1
+    valid_args {
+      name: "x_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "z_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "axis_phase_exponent"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "meas"
+    valid_args {
+      name: "key"
+      type: STRING
+    }
+    valid_args {
+      name: "invert_mask"
+      type: REPEATED_BOOLEAN
+    }
+    gate_duration_picos: 4000000
+    valid_targets: "meas_targets"
+  }
+  valid_gates {
+    id: "wait"
+    number_of_qubits: 1
+    valid_args {
+      name: "nanos"
+      type: FLOAT
+    }
+  }
+  valid_gates {
+    id: "circuit"
+  }
+}
+valid_gate_sets {
+  name: "fsim"
+  valid_gates {
+    id: "fsim"
+    number_of_qubits: 2
+    valid_args {
+      name: "theta"
+      type: FLOAT
+    }
+    valid_args {
+      name: "phi"
+      type: FLOAT
+    }
+    valid_args {
+      name: "phase_match"
+      type: STRING
+    }
+    valid_targets: "2_qubit_targets"
+  }
+  valid_gates {
+    id: "xy"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "z"
+    number_of_qubits: 1
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "type"
+      type: STRING
+    }
+  }
+  valid_gates {
+    id: "xyz"
+    number_of_qubits: 1
+    valid_args {
+      name: "x_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "z_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "axis_phase_exponent"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "meas"
+    valid_args {
+      name: "key"
+      type: STRING
+    }
+    valid_args {
+      name: "invert_mask"
+      type: REPEATED_BOOLEAN
+    }
+    gate_duration_picos: 4000000
+    valid_targets: "meas_targets"
+  }
+  valid_gates {
+    id: "wait"
+    number_of_qubits: 1
+    valid_args {
+      name: "nanos"
+      type: FLOAT
+    }
+  }
+  valid_gates {
+    id: "circuit"
+  }
+}
+valid_gate_sets {
+  name: "xmon"
+  valid_gates {
+    id: "xy"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "z"
+    number_of_qubits: 1
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "type"
+      type: STRING
+    }
+  }
+  valid_gates {
+    id: "xyz"
+    number_of_qubits: 1
+    valid_args {
+      name: "x_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "z_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "axis_phase_exponent"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "cz"
+    number_of_qubits: 2
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "phase_match"
+      type: STRING
+    }
+    valid_targets: "2_qubit_targets"
+  }
+  valid_gates {
+    id: "meas"
+    valid_args {
+      name: "key"
+      type: STRING
+    }
+    valid_args {
+      name: "invert_mask"
+      type: REPEATED_BOOLEAN
+    }
+    gate_duration_picos: 4000000
+    valid_targets: "meas_targets"
+  }
+}
+valid_gate_sets {
+  name: "pulse"
+  valid_gates {
+    id: "coupler_pulse"
+    number_of_qubits: 2
+    valid_args {
+      name: "coupling_mhz"
+      type: FLOAT
+    }
+    valid_args {
+      name: "hold_time_ns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "rise_time_ns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "padding_time_ns"
+      type: FLOAT
+    }
+    valid_targets: "2_qubit_targets"
+  }
+  valid_gates {
+    id: "fsim"
+    number_of_qubits: 2
+    valid_args {
+      name: "theta"
+      type: FLOAT
+    }
+    valid_args {
+      name: "phi"
+      type: FLOAT
+    }
+    valid_args {
+      name: "phase_match"
+      type: STRING
+    }
+    valid_targets: "2_qubit_targets"
+  }
+  valid_gates {
+    id: "xy"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "z"
+    number_of_qubits: 1
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "type"
+      type: STRING
+    }
+  }
+  valid_gates {
+    id: "xyz"
+    number_of_qubits: 1
+    valid_args {
+      name: "x_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "z_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "axis_phase_exponent"
+      type: FLOAT
+    }
+    gate_duration_picos: 25000
+  }
+  valid_gates {
+    id: "meas"
+    valid_args {
+      name: "key"
+      type: STRING
+    }
+    valid_args {
+      name: "invert_mask"
+      type: REPEATED_BOOLEAN
+    }
+    gate_duration_picos: 4000000
+    valid_targets: "meas_targets"
+  }
+  valid_gates {
+    id: "wait"
+    number_of_qubits: 1
+    valid_args {
+      name: "nanos"
+      type: FLOAT
+    }
+  }
+  valid_gates {
+    id: "circuit"
+  }
+}
+valid_qubits: "0_5"
+valid_qubits: "0_6"
+valid_qubits: "1_4"
+valid_qubits: "1_5"
+valid_qubits: "1_6"
+valid_qubits: "1_7"
+valid_qubits: "2_4"
+valid_qubits: "2_5"
+valid_qubits: "2_6"
+valid_qubits: "2_7"
+valid_qubits: "2_8"
+valid_qubits: "3_2"
+valid_qubits: "3_3"
+valid_qubits: "3_4"
+valid_qubits: "3_5"
+valid_qubits: "3_6"
+valid_qubits: "3_7"
+valid_qubits: "3_8"
+valid_qubits: "3_9"
+valid_qubits: "4_1"
+valid_qubits: "4_2"
+valid_qubits: "4_3"
+valid_qubits: "4_4"
+valid_qubits: "4_5"
+valid_qubits: "4_6"
+valid_qubits: "4_7"
+valid_qubits: "4_8"
+valid_qubits: "4_9"
+valid_qubits: "5_0"
+valid_qubits: "5_1"
+valid_qubits: "5_2"
+valid_qubits: "5_3"
+valid_qubits: "5_4"
+valid_qubits: "5_5"
+valid_qubits: "5_6"
+valid_qubits: "5_7"
+valid_qubits: "5_8"
+valid_qubits: "6_1"
+valid_qubits: "6_2"
+valid_qubits: "6_3"
+valid_qubits: "6_4"
+valid_qubits: "6_5"
+valid_qubits: "6_6"
+valid_qubits: "6_7"
+valid_qubits: "7_2"
+valid_qubits: "7_3"
+valid_qubits: "7_4"
+valid_qubits: "7_5"
+valid_qubits: "7_6"
+valid_qubits: "8_3"
+valid_qubits: "8_4"
+valid_qubits: "8_5"
+valid_qubits: "9_4"
+valid_targets {
+  name: "meas_targets"
+  target_ordering: SUBSET_PERMUTATION
+}
+valid_targets {
+  name: "2_qubit_targets"
+  target_ordering: SYMMETRIC
+  targets {
+    ids: "0_5"
+    ids: "0_6"
+  }
+  targets {
+    ids: "0_5"
+    ids: "1_5"
+  }
+  targets {
+    ids: "0_6"
+    ids: "1_6"
+  }
+  targets {
+    ids: "1_4"
+    ids: "1_5"
+  }
+  targets {
+    ids: "1_4"
+    ids: "2_4"
+  }
+  targets {
+    ids: "1_5"
+    ids: "1_6"
+  }
+  targets {
+    ids: "1_5"
+    ids: "2_5"
+  }
+  targets {
+    ids: "1_6"
+    ids: "1_7"
+  }
+  targets {
+    ids: "1_6"
+    ids: "2_6"
+  }
+  targets {
+    ids: "1_7"
+    ids: "2_7"
+  }
+  targets {
+    ids: "2_4"
+    ids: "2_5"
+  }
+  targets {
+    ids: "2_4"
+    ids: "3_4"
+  }
+  targets {
+    ids: "2_5"
+    ids: "2_6"
+  }
+  targets {
+    ids: "2_5"
+    ids: "3_5"
+  }
+  targets {
+    ids: "2_6"
+    ids: "2_7"
+  }
+  targets {
+    ids: "2_6"
+    ids: "3_6"
+  }
+  targets {
+    ids: "2_7"
+    ids: "2_8"
+  }
+  targets {
+    ids: "2_7"
+    ids: "3_7"
+  }
+  targets {
+    ids: "2_8"
+    ids: "3_8"
+  }
+  targets {
+    ids: "3_2"
+    ids: "3_3"
+  }
+  targets {
+    ids: "3_2"
+    ids: "4_2"
+  }
+  targets {
+    ids: "3_3"
+    ids: "3_4"
+  }
+  targets {
+    ids: "3_3"
+    ids: "4_3"
+  }
+  targets {
+    ids: "3_4"
+    ids: "3_5"
+  }
+  targets {
+    ids: "3_4"
+    ids: "4_4"
+  }
+  targets {
+    ids: "3_5"
+    ids: "3_6"
+  }
+  targets {
+    ids: "3_5"
+    ids: "4_5"
+  }
+  targets {
+    ids: "3_6"
+    ids: "3_7"
+  }
+  targets {
+    ids: "3_6"
+    ids: "4_6"
+  }
+  targets {
+    ids: "3_7"
+    ids: "3_8"
+  }
+  targets {
+    ids: "3_7"
+    ids: "4_7"
+  }
+  targets {
+    ids: "3_8"
+    ids: "3_9"
+  }
+  targets {
+    ids: "3_8"
+    ids: "4_8"
+  }
+  targets {
+    ids: "3_9"
+    ids: "4_9"
+  }
+  targets {
+    ids: "4_1"
+    ids: "4_2"
+  }
+  targets {
+    ids: "4_1"
+    ids: "5_1"
+  }
+  targets {
+    ids: "4_2"
+    ids: "4_3"
+  }
+  targets {
+    ids: "4_2"
+    ids: "5_2"
+  }
+  targets {
+    ids: "4_3"
+    ids: "4_4"
+  }
+  targets {
+    ids: "4_3"
+    ids: "5_3"
+  }
+  targets {
+    ids: "4_4"
+    ids: "4_5"
+  }
+  targets {
+    ids: "4_4"
+    ids: "5_4"
+  }
+  targets {
+    ids: "4_5"
+    ids: "4_6"
+  }
+  targets {
+    ids: "4_5"
+    ids: "5_5"
+  }
+  targets {
+    ids: "4_6"
+    ids: "4_7"
+  }
+  targets {
+    ids: "4_6"
+    ids: "5_6"
+  }
+  targets {
+    ids: "4_7"
+    ids: "4_8"
+  }
+  targets {
+    ids: "4_7"
+    ids: "5_7"
+  }
+  targets {
+    ids: "4_8"
+    ids: "4_9"
+  }
+  targets {
+    ids: "4_8"
+    ids: "5_8"
+  }
+  targets {
+    ids: "5_0"
+    ids: "5_1"
+  }
+  targets {
+    ids: "5_1"
+    ids: "5_2"
+  }
+  targets {
+    ids: "5_1"
+    ids: "6_1"
+  }
+  targets {
+    ids: "5_2"
+    ids: "5_3"
+  }
+  targets {
+    ids: "5_2"
+    ids: "6_2"
+  }
+  targets {
+    ids: "5_3"
+    ids: "5_4"
+  }
+  targets {
+    ids: "5_3"
+    ids: "6_3"
+  }
+  targets {
+    ids: "5_4"
+    ids: "5_5"
+  }
+  targets {
+    ids: "5_4"
+    ids: "6_4"
+  }
+  targets {
+    ids: "5_5"
+    ids: "5_6"
+  }
+  targets {
+    ids: "5_5"
+    ids: "6_5"
+  }
+  targets {
+    ids: "5_6"
+    ids: "5_7"
+  }
+  targets {
+    ids: "5_6"
+    ids: "6_6"
+  }
+  targets {
+    ids: "5_7"
+    ids: "5_8"
+  }
+  targets {
+    ids: "5_7"
+    ids: "6_7"
+  }
+  targets {
+    ids: "6_1"
+    ids: "6_2"
+  }
+  targets {
+    ids: "6_2"
+    ids: "6_3"
+  }
+  targets {
+    ids: "6_2"
+    ids: "7_2"
+  }
+  targets {
+    ids: "6_3"
+    ids: "6_4"
+  }
+  targets {
+    ids: "6_3"
+    ids: "7_3"
+  }
+  targets {
+    ids: "6_4"
+    ids: "6_5"
+  }
+  targets {
+    ids: "6_4"
+    ids: "7_4"
+  }
+  targets {
+    ids: "6_5"
+    ids: "6_6"
+  }
+  targets {
+    ids: "6_5"
+    ids: "7_5"
+  }
+  targets {
+    ids: "6_6"
+    ids: "6_7"
+  }
+  targets {
+    ids: "6_6"
+    ids: "7_6"
+  }
+  targets {
+    ids: "7_2"
+    ids: "7_3"
+  }
+  targets {
+    ids: "7_3"
+    ids: "7_4"
+  }
+  targets {
+    ids: "7_3"
+    ids: "8_3"
+  }
+  targets {
+    ids: "7_4"
+    ids: "7_5"
+  }
+  targets {
+    ids: "7_4"
+    ids: "8_4"
+  }
+  targets {
+    ids: "7_5"
+    ids: "7_6"
+  }
+  targets {
+    ids: "7_5"
+    ids: "8_5"
+  }
+  targets {
+    ids: "8_3"
+    ids: "8_4"
+  }
+  targets {
+    ids: "8_4"
+    ids: "8_5"
+  }
+  targets {
+    ids: "8_4"
+    ids: "9_4"
+  }
+}
+

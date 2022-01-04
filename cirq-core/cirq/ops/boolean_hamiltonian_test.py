@@ -155,7 +155,7 @@ def test_gray_code_comparison(seq_a, seq_b, expected):
         # Single CNOTs don't get simplified.
         ([(0, 1)], False, False, [(0, 1)]),
         ([(0, 1)], True, False, [(0, 1)]),
-        # Simplify away two CNOTs that are identical:
+        # Simplify away two CNOTs that are identical.
         ([(0, 1), (0, 1)], False, True, []),
         ([(0, 1), (0, 1)], True, True, []),
         # Also simplify away if there's another CNOT in between.
@@ -164,8 +164,11 @@ def test_gray_code_comparison(seq_a, seq_b, expected):
         # However, the in-between has to share the same target/control.
         ([(0, 1), (0, 2), (0, 1)], False, False, [(0, 1), (0, 2), (0, 1)]),
         ([(0, 1), (2, 1), (0, 1)], True, False, [(0, 1), (2, 1), (0, 1)]),
-        # Can simplify, but violates CNOT ordering assumption
+        # Can simplify, but violates CNOT ordering assumption.
         ([(0, 1), (2, 3), (0, 1)], False, False, [(0, 1), (2, 3), (0, 1)]),
+        # Simplify away CNOTs cascadingly.
+        ([(0, 1), (2, 3), (2, 3), (0, 1)], False, True, []),
+        ([(0, 1), (2, 1), (2, 3), (2, 3), (0, 1)], False, True, [(2, 1)]),
     ],
 )
 def test_simplify_commuting_cnots(
