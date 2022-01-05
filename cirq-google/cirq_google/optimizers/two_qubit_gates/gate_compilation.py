@@ -3,7 +3,7 @@
 with a product A k A.
 
 Attention: this module is now deprecated! Use the classes from cirq-core instead."""
-from typing import Tuple, Sequence, NamedTuple
+from typing import Tuple, NamedTuple
 
 from dataclasses import dataclass
 import numpy as np
@@ -47,56 +47,8 @@ class TwoQubitGateCompilation(NamedTuple):
 @deprecated_class(
     deadline='v0.16', fix='Use cirq.TwoQubitGateTabulation instead.', name='GateTabulation'
 )
-class GateTabulation:
-    """A 2-qubit gate compiler based on precomputing/tabulating gate products."""
-
-    base_gate: np.ndarray  # Base two qubit gate. (4x4 unitary)
-    # Sequence of KAK vectors, ideally "dense" in the Weyl chamber. Shape (N,3).
-    kak_vecs: np.ndarray
-    # Sequence of 1-local operations required to achieve a given KAK vector.
-    # Index j corresponds to KAK_vecs[j], and is of the form
-    # ( (u0[0],u1[0]), (u0[1],u1[1]), ...) where u0[k] is the kth single qubit
-    # unitary acting on qubit 0 (similarly for u1)
-    single_qubit_gates: Sequence[Sequence[_SingleQubitGatePair]]
-    max_expected_infidelity: float  # Defined using entanglement fidelity.
-    summary: str  # Text summarizing the results of the tabulation procedure.
-    # Any KAK vectors which are expected to be compilable (within infidelity
-    # max_expected_infidelity) using 2 or 3 base gates.
-    missed_points: Tuple[np.ndarray, ...]
-
-    def compile_two_qubit_gate(self, unitary: np.ndarray) -> TwoQubitGateCompilation:
-        r"""Compute single qubit gates required to compile a desired unitary.
-
-        Given a desired unitary U, this computes the sequence of 1-local gates
-        $k_j$ such that the product
-
-        $k_{n-1} A k_{n-2} A ... k_1 A k_0$
-
-        is close to U. Here A is the base_gate of the tabulation.
-
-        Args:
-            unitary: Unitary (U above) to compile.
-
-        Returns:
-            A TwoQubitGateCompilation object encoding the required local
-            unitaries and resulting product above.
-        """
-        gate_tabulation = TwoQubitGateTabulation(
-            self.base_gate,
-            self.kak_vecs,
-            self.single_qubit_gates,
-            self.max_expected_infidelity,
-            self.summary,
-            self.missed_points,
-        )
-        result = gate_tabulation.compile_two_qubit_gate(unitary)
-        return TwoQubitGateCompilation(
-            result.base_gate_unitary,
-            result.target_gate,
-            result.local_unitaries,
-            result.actual_gate,
-            result.success,
-        )
+class GateTabulation(TwoQubitGateTabulation):
+    pass
 
 
 @deprecated(
