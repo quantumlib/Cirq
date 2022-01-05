@@ -14,6 +14,7 @@
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
 import copy
+import inspect
 from typing import (
     Any,
     Dict,
@@ -26,6 +27,7 @@ from typing import (
     Optional,
     Iterator,
 )
+import warnings
 
 import numpy as np
 
@@ -114,9 +116,29 @@ class ActOnArgs(OperationTarget[TSelf]):
         the implementation."""
 
     def copy(self: TSelf, reuse_buffer: bool = False) -> TSelf:
-        """Creates a copy of the object."""
+        """Creates a copy of the object.
+
+        Args:
+            reuse_buffer: If True, any buffers will be reused by the copy. This
+                will save time by avoiding a deep copy of the buffers, but
+                should only be used when there is no chance that the two
+                objects will be writing to the buffers simultaneously.
+
+        Returns:
+            A copy of the object.
+        """
         args = copy.copy(self)
-        self._on_copy(args, reuse_buffer)
+        if 'reuse_buffer' in inspect.signature(self._on_copy):
+            self._on_copy(args, reuse_buffer)
+        else:
+            warnings.warn(
+                (
+                    'A new parameter reuse_buffer is added to ActOnArgs._on_copy(). '
+                    'The classes that inherit from ActOnArgs should support it before Cirq 0.25.'
+                ),
+                DeprecationWarning,
+            )
+            self._on_copy(args)
         args._log_of_measurement_results = self.log_of_measurement_results.copy()
         return args
 
