@@ -9,9 +9,6 @@ from cirq_google.optimizers.two_qubit_gates.gate_compilation import (
     gate_product_tabulation,
     GateTabulation,
 )
-from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils import (
-    unitary_entanglement_fidelity,
-)
 import cirq_google.optimizers.two_qubit_gates as cgot
 
 _rng = value.parse_random_state(11)  # for determinism
