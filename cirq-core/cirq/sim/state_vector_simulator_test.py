@@ -42,7 +42,6 @@ def test_state_vector_trial_result_repr():
         "final_step_result=cirq.SparseSimulatorStep("
         "sim_state=cirq.ActOnStateVectorArgs("
         "target_tensor=np.array([0, 1], dtype=np.int32), "
-        "available_buffer=np.array([0, 1], dtype=np.int32), "
         "qubits=(cirq.NamedQubit('a'),), "
         "log_of_measurement_results={}), "
         "dtype=np.complex64))"
