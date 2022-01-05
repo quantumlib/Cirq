@@ -27,7 +27,8 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
         return [0] * len(qubits)
 
-    def copy(self) -> 'EmptyActOnArgs':
+    def copy(self) -> 'EmptyActOnArgs':  # type: ignore
+        """The reuse_buffer parameter is omitted to trigger a deprecation warning test."""
         return EmptyActOnArgs(
             qubits=self.qubits,
             logs=self.log_of_measurement_results.copy(),

@@ -40,6 +40,7 @@ class DummyArgs(cirq.ActOnArgs):
     def _on_copy(self, args):
         return super()._on_copy(args)
 
+
 def test_measurements():
     args = DummyArgs()
     args.measure([cirq.LineQubit(0)], "test", [False])
