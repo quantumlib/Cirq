@@ -10,8 +10,6 @@ from cirq_google.optimizers.two_qubit_gates.gate_compilation import (
 )
 import cirq_google.optimizers.two_qubit_gates as cgot
 
-_rng = value.parse_random_state(11)  # for determinism
-
 
 def test_deprecated_gate_product_tabulation():
     with cirq.testing.assert_deprecated(

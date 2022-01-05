@@ -15,7 +15,7 @@
 """Utilities for heuristic decomposition of cirq gates."""
 
 from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
-    two_qubit_gate_product_tabulation,
     TwoQubitGateTabulation,
     TwoQubitGateTabulationResult,
+    two_qubit_gate_product_tabulation,
 )

@@ -3,8 +3,6 @@
 with a product A k A.
 
 Attention: this module is now deprecated! Use the classes from cirq-core instead."""
-from typing import Tuple
-
 from dataclasses import dataclass
 import numpy as np
 
@@ -16,9 +14,6 @@ from cirq import (
 )
 from cirq._compat import deprecated, deprecated_class
 
-_SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
-
-
 @deprecated_class(
     deadline='v0.16',
     fix='Use cirq.TwoQubitGateTabulationResult instead.',
@@ -28,7 +23,6 @@ class TwoQubitGateCompilation(TwoQubitGateTabulationResult):
     pass
 
 
-@dataclass
 @deprecated_class(
     deadline='v0.16', fix='Use cirq.TwoQubitGateTabulation instead.', name='GateTabulation'
 )
