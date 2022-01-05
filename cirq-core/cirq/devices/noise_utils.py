@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import TYPE_CHECKING, Any, Dict, Tuple, Type, Union
-import warnings
 import numpy as np
 
 from cirq import ops, protocols, value
@@ -46,9 +45,6 @@ class OpIdentifier:
 
     def _predicate(self, *args, **kwargs):
         return self._gate_family._predicate(*args, **kwargs)
-
-    def swapped(self):
-        return OpIdentifier(self.gate_type, *self.qubits[::-1])
 
     def is_proper_subtype_of(self, op_id: 'OpIdentifier'):
         """Returns true if this is contained within op_id, but not equal to it.
@@ -175,29 +171,6 @@ def pauli_error_from_t1(t_ns: float, t1_ns: float) -> float:
     return (1 - np.exp(-t_ns / t2)) / 2 + (1 - np.exp(-t_ns / t1_ns)) / 4
 
 
-def pauli_error_from_depolarization(t_ns: float, t1_ns: float, pauli_error: float = 0) -> float:
-    """Calculates the amount of pauli error from depolarization.
-
-    This computes non-T1 error for a specific duration, `t`. If pauli error
-    from T1 decay is more than total pauli error, this returns zero; otherwise,
-    it returns the portion of pauli error not attributable to T1 error.
-
-    Args:
-        t_ns: The duration of the gate in ns.
-        t1_ns: The T1 decay constant in ns.
-        pauli_error: The total pauli error.
-
-    Returns:
-        Calculated Pauli error resulting from depolarization.
-    """
-    t1_pauli_error = pauli_error_from_t1(t_ns, t1_ns)
-    if pauli_error >= t1_pauli_error:
-        return pauli_error - t1_pauli_error
-
-    warnings.warn("Pauli error from T1 decay is greater than total Pauli error", RuntimeWarning)
-    return 0
-
-
 def average_error(decay_constant: float, num_qubits: int = 1) -> float:
     """Calculates the average error from the depolarization decay constant.
 
@@ -213,7 +186,7 @@ def average_error(decay_constant: float, num_qubits: int = 1) -> float:
 
 
 def decoherence_pauli_error(t1_ns: float, tphi_ns: float, gate_time_ns: float) -> float:
-    """The component of Pauli error caused by decoherence.
+    """The component of Pauli error caused by decoherence on a single qubit.
 
     Args:
         t1_ns: T1 time in nanoseconds.

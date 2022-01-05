@@ -27,6 +27,7 @@ import {
   DoubleSide,
   BoxGeometry,
   Group,
+  Color,
 } from 'three';
 
 /**
@@ -238,7 +239,8 @@ export class BoxGate3DSymbol extends Mesh {
       textWidth = context.measureText(label).width;
     } while (textWidth > canvas.width);
 
-    context.fillStyle = 'black';
+    const hsl = new Color(color).getHSL({h: 0, s: 0, l: 0});
+    context.fillStyle = hsl.l < 0.5 ? 'white' : 'black';
     context.fillText(
       label,
       canvas.width / 2 - textWidth / 2,
@@ -249,7 +251,7 @@ export class BoxGate3DSymbol extends Mesh {
     map.needsUpdate = true;
 
     const geometry = new BoxGeometry(0.5, 0.5, 0.5);
-    const material = new MeshBasicMaterial({map: map, color: color});
+    const material = new MeshBasicMaterial({map: map, color: 'white'});
 
     super(geometry, material);
     return this;

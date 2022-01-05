@@ -328,12 +328,7 @@ from cirq.ops import (
 from cirq.optimizers import (
     AlignLeft,
     AlignRight,
-    compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
-    decompose_clifford_tableau_to_operations,
-    decompose_cphase_into_two_fsim,
-    decompose_multi_controlled_x,
-    decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates,
     DropEmptyMoments,
     DropNegligible,
@@ -360,6 +355,11 @@ from cirq.optimizers import (
 )
 
 from cirq.transformers import (
+    compute_cphase_exponents_for_fsim_decomposition,
+    decompose_clifford_tableau_to_operations,
+    decompose_cphase_into_two_fsim,
+    decompose_multi_controlled_x,
+    decompose_multi_controlled_rotation,
     map_moments,
     map_operations,
     map_operations_and_unroll,
