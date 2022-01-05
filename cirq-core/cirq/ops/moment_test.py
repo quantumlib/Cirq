@@ -689,8 +689,22 @@ def test_kraus_too_big():
     m = cirq.Moment(cirq.IdentityGate(11).on(*cirq.LineQubit.range(11)))
     assert not cirq.has_kraus(m)
     assert not m._has_superoperator_()
-    with pytest.raises(ValueError, match='11 > 10 qubits'):
-        _ = cirq.kraus(m)
+    assert m._kraus_() is NotImplemented
+    assert m._superoperator_() is NotImplemented
+    assert cirq.kraus(m, default=None) is None
+
+
+def test_op_has_no_kraus():
+    class EmptyGate(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
+
+    m = cirq.Moment(EmptyGate().on(cirq.NamedQubit("a")))
+    assert not cirq.has_kraus(m)
+    assert not m._has_superoperator_()
+    assert m._kraus_() is NotImplemented
+    assert m._superoperator_() is NotImplemented
+    assert cirq.kraus(m, default=None) is None
 
 
 def test_superoperator():
