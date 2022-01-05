@@ -44,3 +44,11 @@ def test_deprecated_gate_tabulation_repr():
             'Sample string',
             (),
         )
+
+
+def test_deprecated_math_utils_submodule():
+    with cirq.testing.assert_deprecated(
+        "Use cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils instead",
+        deadline="v0.16",
+    ):
+        _ = cirq_google.optimizers.two_qubit_gates.math_utils.weyl_chamber_mesh
