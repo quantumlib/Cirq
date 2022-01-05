@@ -14,6 +14,7 @@ from cirq import (
 )
 from cirq._compat import deprecated, deprecated_class
 
+
 @deprecated_class(
     deadline='v0.16',
     fix='Use cirq.TwoQubitGateTabulationResult instead.',
