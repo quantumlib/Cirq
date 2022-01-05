@@ -1,5 +1,4 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Sequence, Optional
 import numpy as np
 import pytest
 

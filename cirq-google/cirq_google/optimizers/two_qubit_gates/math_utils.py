@@ -225,6 +225,10 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
     Returns:
         np.ndarray of shape (N,3) corresponding to the points in the Weyl
         chamber.
+
+    Raises:
+        ValueError: If the spacing is so small (less than 1e-3) that this
+            would build a mesh of size about 1GB.
     """
     if spacing < 1e-3:  # memory required ~ 1 GB
         raise ValueError(f'Generating a mesh with spacing {spacing} may cause system to crash.')
