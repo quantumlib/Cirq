@@ -369,6 +369,7 @@ from cirq.transformers import (
     prepare_two_qubit_state_using_sqrt_iswap,
     two_qubit_gate_product_tabulation,
     TwoQubitGateTabulation,
+    TwoQubitGateTabulationResult,
     unroll_circuit_op,
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,

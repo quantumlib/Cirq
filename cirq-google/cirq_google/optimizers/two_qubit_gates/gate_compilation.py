@@ -9,13 +9,13 @@ from dataclasses import dataclass
 import numpy as np
 
 import cirq
-from cirq import TwoQubitGateTabulation, two_qubit_gate_product_tabulation
+from cirq import TwoQubitGateTabulation, TwoQubitGateTabulationResult, two_qubit_gate_product_tabulation
 from cirq._compat import deprecated, deprecated_class
 
 _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
 
 
-class TwoQubitGateCompilation(NamedTuple):
+class TwoQubitGateCompilation(TwoQubitGateTabulationResult):
     r"""Represents a compilation of a target 2-qubit with respect to a base
     gate.
 

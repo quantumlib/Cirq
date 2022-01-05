@@ -27,6 +27,7 @@ from cirq.transformers.analytical_decompositions import (
 from cirq.transformers.heuristic_decompositions import (
     two_qubit_gate_product_tabulation,
     TwoQubitGateTabulation,
+    TwoQubitGateTabulationResult,
 )
 
 from cirq.transformers.transformer_primitives import (

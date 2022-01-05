@@ -17,4 +17,5 @@
 from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
     two_qubit_gate_product_tabulation,
     TwoQubitGateTabulation,
+    TwoQubitGateTabulationResult,
 )
