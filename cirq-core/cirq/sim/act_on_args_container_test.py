@@ -14,6 +14,7 @@
 from typing import Any, Dict, List, Optional, Sequence, Union
 
 import cirq
+import pytest
 
 
 class EmptyActOnArgs(cirq.ActOnArgs):
@@ -26,7 +27,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
         return [0] * len(qubits)
 
-    def copy(self, reuse_buffer: bool = False) -> 'EmptyActOnArgs':
+    def copy(self) -> 'EmptyActOnArgs':
         return EmptyActOnArgs(
             qubits=self.qubits,
             logs=self.log_of_measurement_results.copy(),
@@ -224,6 +225,12 @@ def test_copy_succeeds():
     args = create_container(qs2, False)
     copied = args[q0].copy()
     assert copied.qubits == (q0, q1)
+
+
+def test_copy_deprecation_warning():
+    args = create_container(qs2, False)
+    with pytest.warns(DeprecationWarning, match='reuse_buffer'):
+        args.copy(True)
 
 
 def test_merge_succeeds():
