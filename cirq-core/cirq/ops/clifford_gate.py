@@ -809,9 +809,9 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         return NotImplemented
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> List[raw_types.Operation]:
-        from cirq.optimizers import clifford_decomposition
+        from cirq.transformers import analytical_decompositions
 
-        return clifford_decomposition.decompose_clifford_tableau_to_operations(
+        return analytical_decompositions.decompose_clifford_tableau_to_operations(
             list(qubits), self.clifford_tableau
         )
 
