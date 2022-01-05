@@ -3,7 +3,6 @@
 with a product A k A.
 
 Attention: this module is now deprecated! Use the classes from cirq-core instead."""
-from dataclasses import dataclass
 import numpy as np
 
 import cirq
