@@ -34,7 +34,7 @@ class MeasurementGate(raw_types.Gate):
     def __init__(
         self,
         num_qubits: Optional[int] = None,
-        key: Union[str, value.MeasurementKey] = '',
+        key: Union[str, 'cirq.MeasurementKey'] = '',
         invert_mask: Tuple[bool, ...] = (),
         qid_shape: Tuple[int, ...] = None,
     ) -> None:
@@ -75,7 +75,7 @@ class MeasurementGate(raw_types.Gate):
         return str(self.mkey)
 
     @key.setter
-    def key(self, key: Union[str, value.MeasurementKey]):
+    def key(self, key: Union[str, 'cirq.MeasurementKey']):
         if isinstance(key, value.MeasurementKey):
             self.mkey = key
         else:
@@ -84,7 +84,7 @@ class MeasurementGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def with_key(self, key: Union[str, value.MeasurementKey]) -> 'MeasurementGate':
+    def with_key(self, key: Union[str, 'cirq.MeasurementKey']) -> 'MeasurementGate':
         """Creates a measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
@@ -139,7 +139,7 @@ class MeasurementGate(raw_types.Gate):
     def _measurement_key_name_(self) -> str:
         return self.key
 
-    def _measurement_key_obj_(self) -> value.MeasurementKey:
+    def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
         return self.mkey
 
     def _kraus_(self):

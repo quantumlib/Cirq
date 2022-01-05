@@ -27,6 +27,7 @@ from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
 import numpy as np
 import pandas as pd
 import sympy
+import sympy.printing.repr
 
 
 def proper_repr(value: Any) -> str:
@@ -86,6 +87,9 @@ def proper_repr(value: Any) -> str:
             f'\n    data={repr(rows)}'
             f'\n)'
         )
+
+    if isinstance(value, Dict):
+        return '{' + ','.join(f"{proper_repr(k)}: {proper_repr(v)}" for k, v in value.items()) + '}'
 
     return repr(value)
 
