@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utilities for analytical decomposition of cirq gates."""
+"""Utilities for heuristic decomposition of cirq gates."""
 
 from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
     two_qubit_gate_product_tabulation,
