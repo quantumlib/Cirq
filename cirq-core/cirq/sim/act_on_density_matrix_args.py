@@ -75,7 +75,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         if qid_shape is None:
             target_shape = target_tensor.shape
             assert len(target_shape) % 2 == 0
-            self.qid_shape = target_shape[:len(target_shape) // 2]
+            self.qid_shape = target_shape[: len(target_shape) // 2]
         else:
             self.qid_shape = qid_shape
 

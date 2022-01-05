@@ -1132,7 +1132,6 @@ def test_density_matrix_trial_result_repr():
         "final_step_result=cirq.DensityMatrixStepResult("
         "sim_state=cirq.ActOnDensityMatrixArgs("
         "target_tensor=np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float64), "
-        "available_buffer=[], "
         "qid_shape=(2,), "
         "qubits=(cirq.LineQubit(0),), "
         "log_of_measurement_results={}), "
