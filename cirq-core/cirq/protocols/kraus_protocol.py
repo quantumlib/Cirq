@@ -17,15 +17,15 @@
 from typing import Any, Sequence, Tuple, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
+from functools import reduce
 
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,
-)
-from cirq.protocols import mixture_protocol
+
+from cirq.protocols import mixture_protocol, decompose_protocol
 from cirq.type_workarounds import NotImplementedType
 
-from cirq.qis.channels import kraus_to_superoperator, superoperator_to_kraus
+from cirq import qis
+from cirq.ops import Moment
 
 
 # This is a special indicator value used by the channel method to determine
@@ -133,6 +133,7 @@ def kraus(
             method returned NotImplemented) and also no default value was
             specified.
     """
+
     result = _gettr_helper(val, ['_kraus_'])
     if result is not None and result is not NotImplemented:
         return result
@@ -141,16 +142,17 @@ def kraus(
     if mixture_result is not None and mixture_result is not NotImplemented:
         return tuple(np.sqrt(p) * u for p, u in mixture_result)
 
-    decomposed, qubits, _ = _try_decompose_into_operations_and_qubits(val)
+    decomposed, qubits, _ = decompose_protocol._try_decompose_into_operations_and_qubits(val)
 
     if decomposed is not None and decomposed != [val]:
 
-        kraus_list = list(map(lambda x: _kraus_to_superoperator(x, qubits, default), decomposed))
-        if not any([_check_equality(x, default) for x in kraus_list]):
-            kraus_result = kraus_list[0]
-            for i in range(1, len(kraus_list)):
-                kraus_result = kraus_result @ kraus_list[i]
-            return tuple(superoperator_to_kraus(kraus_result))
+        superoperator_list = list(map(lambda x: _moment_superoperator(x, qubits, None), decomposed))
+        if not any([x is None for x in superoperator_list]):
+            superoperator_result = reduce(lambda x, y: x @ y, superoperator_list)
+            # superoperator_result = superoperator_list[0]
+            # for i in range(1, len(superoperator_list)):
+            #     superoperator_result = superoperator_result @ superoperator_list[i]
+            return tuple(qis.superoperator_to_kraus(superoperator_result))
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
@@ -217,7 +219,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
         return True
 
     if allow_decompose:
-        operations, _, _ = _try_decompose_into_operations_and_qubits(val)
+        operations, _, _ = decompose_protocol._try_decompose_into_operations_and_qubits(val)
         if operations is not None:
             return all(has_kraus(val) for val in operations)
 
@@ -225,39 +227,9 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     return False
 
 
-def _check_equality(x, y):
-    if type(x) != type(y):
-        return False
-    if type(x) not in [list, tuple, np.ndarray]:
-        return x == y
-    if type(x) == np.ndarray:
-        return x.shape == y.shape and np.all(x == y)
-    return False if len(x) != len(y) else all([_check_equality(a, b) for a, b in zip(x, y)])
-
-
-def _kraus_to_superoperator(op, qubits, default):
-    kraus_list = kraus(op, default)
-    if _check_equality(kraus_list, default):
-        return default
-
-    val = None
-    op_q = op.qubits
-    found = False
-    for i in range(len(qubits)):
-        if qubits[i] in op_q:
-            if not found:
-                found = True
-                if val is None:
-                    val = kraus_list
-                else:
-                    val = tuple([np.kron(x, y) for x in val for y in kraus_list])
-
-        elif val is None:
-            val = (np.identity(2),)
-        else:
-            val = tuple([np.kron(x, np.identity(2)) for x in val])
-
-    return kraus_to_superoperator(val)
+def _moment_superoperator(op, qubits, default):
+    superoperator_result = Moment(op).expand_to(qubits)._superoperator_()
+    return superoperator_result if superoperator_result is not NotImplemented else default
 
 
 def _gettr_helper(val: Any, gett_str_list: Sequence[str]):

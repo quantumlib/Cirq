@@ -18,10 +18,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,
-)
-from cirq.protocols import has_unitary_protocol, unitary_protocol
+from cirq.protocols import has_unitary_protocol, unitary_protocol, decompose_protocol
 from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the inverse method to determine
@@ -96,7 +93,7 @@ def mixture(
     if unitary_result is not None and unitary_result is not NotImplemented:
         return ((1.0, unitary_result),)
 
-    decomposed, qubits, _ = _try_decompose_into_operations_and_qubits(val)
+    decomposed, qubits, _ = decompose_protocol._try_decompose_into_operations_and_qubits(val)
 
     # serial concatenation
     if decomposed is not None and decomposed != [val]:
@@ -156,7 +153,7 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
         return True
 
     if allow_decompose:
-        operations, _, _ = _try_decompose_into_operations_and_qubits(val)
+        operations, _, _ = decompose_protocol._try_decompose_into_operations_and_qubits(val)
         if operations is not None:
             return all(has_mixture(val) for val in operations)
 
