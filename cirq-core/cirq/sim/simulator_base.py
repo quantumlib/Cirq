@@ -268,7 +268,7 @@ class SimulatorBase(
 
         measurements: Dict[str, List[np.ndarray]] = {}
         for i in range(repetitions):
-            if 'reuse_buffer' in inspect.signature(act_on_args.copy):
+            if 'reuse_buffer' in inspect.signature(act_on_args.copy).parameters:
                 all_step_results = self._core_iterator(
                     general_suffix,
                     sim_state=act_on_args.copy(reuse_buffer=True)
@@ -278,7 +278,7 @@ class SimulatorBase(
             else:
                 warnings.warn(
                     (
-                        'A new parameter reuse_buffer is added to ActOnArgs.copy(). The '
+                        'A new parameter reuse_buffer has been added to ActOnArgs.copy(). The '
                         'classes that inherit from ActOnArgs should support it before Cirq 0.25.'
                     ),
                     DeprecationWarning,

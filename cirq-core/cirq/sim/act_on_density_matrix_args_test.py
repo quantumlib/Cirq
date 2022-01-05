@@ -18,6 +18,19 @@ import pytest
 import cirq
 
 
+def test_default_parameter():
+    qid_shape = (2,)
+    tensor = cirq.to_valid_density_matrix(
+        0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
+    )
+    args = cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
+    assert len(args.available_buffer) == 3
+    for buffer in args.available_buffer:
+        assert buffer.shape == tensor.shape
+        assert buffer.dtype == tensor.dtype
+    assert args.qid_shape == qid_shape
+
+
 def test_decomposed_fallback():
     class Composite(cirq.Gate):
         def num_qubits(self) -> int:

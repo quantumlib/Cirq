@@ -128,12 +128,12 @@ class ActOnArgs(OperationTarget[TSelf]):
             A copy of the object.
         """
         args = copy.copy(self)
-        if 'reuse_buffer' in inspect.signature(self._on_copy):
+        if 'reuse_buffer' in inspect.signature(self._on_copy).parameters:
             self._on_copy(args, reuse_buffer)
         else:
             warnings.warn(
                 (
-                    'A new parameter reuse_buffer is added to ActOnArgs._on_copy(). '
+                    'A new parameter reuse_buffer has been added to ActOnArgs._on_copy(). '
                     'The classes that inherit from ActOnArgs should support it before Cirq 0.25.'
                 ),
                 DeprecationWarning,

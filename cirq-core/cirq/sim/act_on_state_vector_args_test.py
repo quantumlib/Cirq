@@ -20,6 +20,13 @@ import pytest
 import cirq
 
 
+def test_default_parameter():
+    target_tensor = cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64)
+    args = cirq.ActOnStateVectorArgs(target_tensor)
+    assert args.available_buffer.shape == target_tensor.shape
+    assert args.available_buffer.dtype == target_tensor.dtype
+
+
 def test_decomposed_fallback():
     class Composite(cirq.Gate):
         def num_qubits(self) -> int:

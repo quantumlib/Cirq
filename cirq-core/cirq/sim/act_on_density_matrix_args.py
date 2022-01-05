@@ -36,8 +36,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     def __init__(
         self,
         target_tensor: np.ndarray,
-        available_buffer: List[np.ndarray],
-        qid_shape: Tuple[int, ...],
+        available_buffer: List[np.ndarray] = None,
+        qid_shape: Tuple[int, ...] = None,
         prng: np.random.RandomState = None,
         log_of_measurement_results: Dict[str, Any] = None,
         qubits: Sequence['cirq.Qid'] = None,
@@ -68,8 +68,16 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         """
         super().__init__(prng, qubits, log_of_measurement_results, ignore_measurement_results)
         self.target_tensor = target_tensor
-        self.available_buffer = available_buffer
-        self.qid_shape = qid_shape
+        if available_buffer is None:
+            self.available_buffer = [np.empty_like(target_tensor) for _ in range(3)]
+        else:
+            self.available_buffer = available_buffer
+        if qid_shape is None:
+            target_shape = target_tensor.shape
+            assert len(target_shape) % 2 == 0
+            self.qid_shape = target_shape[:len(target_shape) // 2]
+        else:
+            self.qid_shape = qid_shape
 
     def _act_on_fallback_(
         self,
@@ -183,7 +191,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         return (
             'cirq.ActOnDensityMatrixArgs('
             f'target_tensor={proper_repr(self.target_tensor)},'
-            f' available_buffer={proper_repr(self.available_buffer)},'
             f' qid_shape={self.qid_shape!r},'
             f' qubits={self.qubits!r},'
             f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'

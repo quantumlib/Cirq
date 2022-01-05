@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from collections import abc
+import inspect
 from typing import (
     Dict,
     TYPE_CHECKING,
@@ -25,6 +26,7 @@ from typing import (
     List,
     Union,
 )
+import warnings
 
 import numpy as np
 
@@ -132,7 +134,19 @@ class ActOnArgsContainer(
 
     def copy(self, reuse_buffer: bool = False) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()
-        copies = {a: a.copy(reuse_buffer) for a in set(self.args.values())}
+        copies = {}
+        for act_on_args in set(self.args.values()):
+            if 'reuse_buffer' in inspect.signature(act_on_args.copy).parameters:
+                copies[act_on_args] = act_on_args.copy(reuse_buffer)
+            else:
+                warnings.warn(
+                    (
+                        'A new parameter reuse_buffer has been added to ActOnArgs.copy(). The '
+                        'classes that inherit from ActOnArgs should support it before Cirq 0.25.'
+                    ),
+                    DeprecationWarning,
+                )
+                copies[act_on_args] = act_on_args.copy()
         for copy in copies.values():
             copy._log_of_measurement_results = logs
         args = {q: copies[a] for q, a in self.args.items()}

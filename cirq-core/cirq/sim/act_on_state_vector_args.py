@@ -40,7 +40,7 @@ class ActOnStateVectorArgs(ActOnArgs):
     def __init__(
         self,
         target_tensor: np.ndarray,
-        available_buffer: np.ndarray,
+        available_buffer: np.ndarray = None,
         prng: np.random.RandomState = None,
         log_of_measurement_results: Dict[str, Any] = None,
         qubits: Sequence['cirq.Qid'] = None,
@@ -66,7 +66,10 @@ class ActOnStateVectorArgs(ActOnArgs):
         """
         super().__init__(prng, qubits, log_of_measurement_results)
         self.target_tensor = target_tensor
-        self.available_buffer = available_buffer
+        if available_buffer is None:
+            self.available_buffer = np.empty_like(target_tensor)
+        else:
+            self.available_buffer = available_buffer
 
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.
@@ -232,7 +235,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         return (
             'cirq.ActOnStateVectorArgs('
             f'target_tensor={proper_repr(self.target_tensor)},'
-            f' available_buffer={proper_repr(self.available_buffer)},'
             f' qubits={self.qubits!r},'
             f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
         )
