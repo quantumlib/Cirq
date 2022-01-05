@@ -12,6 +12,7 @@ from cirq_google.optimizers.two_qubit_gates.gate_compilation import (
 from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils import (
     unitary_entanglement_fidelity,
 )
+import cirq_google.optimizers.two_qubit_gates as cgot
 
 _rng = value.parse_random_state(11)  # for determinism
 
@@ -21,20 +22,13 @@ def test_deprecated_gate_product_tabulation():
         deadline='v0.16',
         count=None,
     ):
-        tabulation = gate_product_tabulation(np.eye(4), 0.25)
-        base_gate = tabulation.base_gate
-
-        result = tabulation.compile_two_qubit_gate(base_gate)
-
-        assert len(result.local_unitaries) == 2
-        assert result.success
-        fidelity = unitary_entanglement_fidelity(result.actual_gate, base_gate)
-        assert fidelity > 0.99999
+        _ = gate_product_tabulation(np.eye(4), 0.25)
 
 
 def test_deprecated_gate_tabulation_repr():
-    with pytest.raises(
-        ValueError, match='During testing using Cirq deprecated functionality is not allowed'
+    with cirq.testing.assert_deprecated(
+        deadline='v0.16',
+        count=None,
     ):
         GateTabulation(
             np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
@@ -51,4 +45,4 @@ def test_deprecated_math_utils_submodule():
         "Use cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils instead",
         deadline="v0.16",
     ):
-        _ = cirq_google.optimizers.two_qubit_gates.math_utils.weyl_chamber_mesh
+        _ = cgot.math_utils.weyl_chamber_mesh(spacing=0.1)
