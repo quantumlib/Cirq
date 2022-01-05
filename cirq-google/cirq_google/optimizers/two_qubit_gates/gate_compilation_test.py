@@ -1,7 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 """Tests for gate_compilation.py"""
 import numpy as np
-import pytest
 
 import cirq
 from cirq import value
