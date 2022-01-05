@@ -21,6 +21,16 @@ import sympy
 
 import cirq
 
+ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+
+
+def test_deprecated_submodule():
+    with cirq.testing.assert_deprecated(
+        "Use cirq.transformers.analytical_decompositions.single_qubit_decompositions instead",
+        deadline="v0.16",
+    ):
+        _ = cirq.optimizers.decompositions.single_qubit_matrix_to_phxz
+
 
 def assert_gates_implement_unitary(
     gates: Sequence[cirq.SingleQubitGate], intended_effect: np.ndarray, atol: float
