@@ -50,8 +50,8 @@ def sample_noise_properties(
 ):
     return NoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        T1_ns={q: 1e5 for q in system_qubits},
-        Tphi_ns={q: 2e5 for q in system_qubits},
+        t1_ns={q: 1e5 for q in system_qubits},
+        tphi_ns={q: 2e5 for q in system_qubits},
         ro_fidelities={q: [0.001, 0.01] for q in system_qubits},
         gate_pauli_errors={
             **{OpIdentifier(g, q): 0.001 for g in SINGLE_QUBIT_GATES for q in system_qubits},
@@ -86,8 +86,8 @@ def test_init_validation():
     with pytest.raises(ValueError, match='Keys specified for T1 and Tphi are not identical.'):
         _ = NoiseProperties(
             gate_times_ns=DEFAULT_GATE_NS,
-            T1_ns={},
-            Tphi_ns={q0: 1},
+            t1_ns={},
+            tphi_ns={q0: 1},
             ro_fidelities={q0: [0.1, 0.2]},
             gate_pauli_errors={},
         )
@@ -95,8 +95,8 @@ def test_init_validation():
     with pytest.raises(ValueError, match='Symmetric errors can only apply to 2-qubit gates.'):
         _ = NoiseProperties(
             gate_times_ns=DEFAULT_GATE_NS,
-            T1_ns={q0: 1},
-            Tphi_ns={q0: 1},
+            t1_ns={q0: 1},
+            tphi_ns={q0: 1},
             ro_fidelities={q0: [0.1, 0.2]},
             gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
         )
@@ -104,8 +104,8 @@ def test_init_validation():
     with pytest.raises(ValueError, match='does not appear in the symmetric or asymmetric'):
         _ = NoiseProperties(
             gate_times_ns=DEFAULT_GATE_NS,
-            T1_ns={q0: 1},
-            Tphi_ns={q0: 1},
+            t1_ns={q0: 1},
+            tphi_ns={q0: 1},
             ro_fidelities={q0: [0.1, 0.2]},
             gate_pauli_errors={
                 OpIdentifier(cirq.CNOT, q0, q1): 0.1,
@@ -116,8 +116,8 @@ def test_init_validation():
     with pytest.raises(ValueError, match='has errors but its symmetric id'):
         _ = NoiseProperties(
             gate_times_ns=DEFAULT_GATE_NS,
-            T1_ns={q0: 1},
-            Tphi_ns={q0: 1},
+            t1_ns={q0: 1},
+            tphi_ns={q0: 1},
             ro_fidelities={q0: [0.1, 0.2]},
             gate_pauli_errors={OpIdentifier(cirq.CZPowGate, q0, q1): 0.1},
         )
@@ -125,8 +125,8 @@ def test_init_validation():
     # Single-qubit gates are ignored in symmetric-gate validation.
     _ = NoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        T1_ns={q0: 1},
-        Tphi_ns={q0: 1},
+        t1_ns={q0: 1},
+        tphi_ns={q0: 1},
         ro_fidelities={q0: [0.1, 0.2]},
         gate_pauli_errors={
             OpIdentifier(cirq.ZPowGate, q0): 0.1,
@@ -138,8 +138,8 @@ def test_init_validation():
     # All errors are ignored if validation is disabled.
     _ = NoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        T1_ns={},
-        Tphi_ns={q0: 1},
+        t1_ns={},
+        tphi_ns={q0: 1},
         ro_fidelities={q0: [0.1, 0.2]},
         gate_pauli_errors={
             OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1,
@@ -172,8 +172,8 @@ def test_depol_validation():
     # Create unvalidated properties with too many qubits on a Z gate.
     z_2q_props = NoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        T1_ns={q0: 1},
-        Tphi_ns={q0: 1},
+        t1_ns={q0: 1},
+        tphi_ns={q0: 1},
         ro_fidelities={q0: [0.1, 0.2]},
         gate_pauli_errors={OpIdentifier(cirq.ZPowGate, q0, q1): 0.1},
         validate=False,
@@ -184,8 +184,8 @@ def test_depol_validation():
     # Create unvalidated properties with an unsupported gate.
     toffoli_props = NoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        T1_ns={q0: 1},
-        Tphi_ns={q0: 1},
+        t1_ns={q0: 1},
+        tphi_ns={q0: 1},
         ro_fidelities={q0: [0.1, 0.2]},
         gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
         validate=False,
@@ -196,8 +196,8 @@ def test_depol_validation():
     # Create unvalidated properties with too many qubits on a CZ gate.
     cz_3q_props = NoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        T1_ns={q0: 1},
-        Tphi_ns={q0: 1},
+        t1_ns={q0: 1},
+        tphi_ns={q0: 1},
         ro_fidelities={q0: [0.1, 0.2]},
         gate_pauli_errors={OpIdentifier(cirq.CZPowGate, q0, q1, q2): 0.1},
         validate=False,
@@ -205,7 +205,7 @@ def test_depol_validation():
     with pytest.raises(ValueError, match='takes two qubits'):
         _ = cz_3q_props.get_depolarizing_error()
 
-    # If T1_ns is missing, values are filled in as needed.
+    # If t1_ns is missing, values are filled in as needed.
 
 
 def test_build_noise_model_validation():
@@ -213,8 +213,8 @@ def test_build_noise_model_validation():
     # Create unvalidated properties with mismatched T1 and Tphi qubits.
     t1_tphi_props = NoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        T1_ns={},
-        Tphi_ns={q0: 1},
+        t1_ns={},
+        tphi_ns={q0: 1},
         ro_fidelities={q0: [0.1, 0.2]},
         gate_pauli_errors={},
         validate=False,
@@ -225,8 +225,8 @@ def test_build_noise_model_validation():
     # Create unvalidated properties with unsupported gates.
     toffoli_props = NoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        T1_ns={q0: 1},
-        Tphi_ns={q0: 1},
+        t1_ns={q0: 1},
+        tphi_ns={q0: 1},
         ro_fidelities={q0: [0.1, 0.2]},
         gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
         validate=False,
@@ -306,7 +306,6 @@ def test_two_qubit_gates(op):
     assert isinstance(thermal_op_0.gate, cirq.KrausChannel)
     assert isinstance(thermal_op_1.gate, cirq.KrausChannel)
     thermal_choi_0 = cirq.kraus_to_choi(cirq.kraus(thermal_op_0))
-    print(thermal_choi_0)
     thermal_choi_1 = cirq.kraus_to_choi(cirq.kraus(thermal_op_1))
     # TODO: check iswap noise
     expected_thermal_choi = np.array(
@@ -341,7 +340,6 @@ def test_measure_gates():
     op = cirq.measure(*qubits, key='m')
     circuit = cirq.Circuit(cirq.measure(*qubits, key='m'))
     noisy_circuit = circuit.with_noise(model)
-    print(noisy_circuit.moments)
     assert len(noisy_circuit.moments) == 2
 
     # Amplitude damping before measurement

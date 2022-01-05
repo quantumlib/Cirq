@@ -112,6 +112,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'NamedQubit': cirq.NamedQubit,
         'NamedQid': cirq.NamedQid,
         'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
+        'NoiseProperties': cirq.NoiseProperties,
         'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
         'OpIdentifier': cirq.OpIdentifier,
         'ParamResolver': cirq.ParamResolver,

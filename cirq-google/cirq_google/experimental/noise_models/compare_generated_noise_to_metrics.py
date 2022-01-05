@@ -33,7 +33,7 @@ def compare_generated_noise_to_metrics(calibration: cirq_google.Calibration):
     p00 = noise_prop.ro_fidelities[q0][0]
     p11 = noise_prop.ro_fidelities[q0][1]
     pauli_error = noise_prop.gate_pauli_errors[OpIdentifier(cirq.PhasedXZGate, q0)]
-    t1_ns = noise_prop.T1_ns[q0]
+    t1_ns = noise_prop.t1_ns[q0]
 
     # # Create simulator for experiments with noise model
     simulator = cirq.sim.DensityMatrixSimulator(noise=noise_model)

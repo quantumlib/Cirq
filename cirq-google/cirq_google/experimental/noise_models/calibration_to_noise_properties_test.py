@@ -140,15 +140,15 @@ def test_noise_properties_from_calibration():
             prop.gate_pauli_errors[OpIdentifier(cirq.PhasedXZGate, q)], pauli_error[i]
         )
         assert np.allclose(prop.ro_fidelities[q], np.array([p00_error[i], p11_error[i]]))
-        assert np.isclose(prop.T1_ns[q], t1_micros[i] * 1000)
+        assert np.isclose(prop.t1_ns[q], t1_micros[i] * 1000)
         # TODO: test Tphi
         microwave_time_ns = 25.0
-        tphi_err = incoherent_error[i] - microwave_time_ns / (3 * prop.T1_ns[q])
+        tphi_err = incoherent_error[i] - microwave_time_ns / (3 * prop.t1_ns[q])
         if tphi_err > 0:
             tphi_ns = microwave_time_ns / (3 * tphi_err)
         else:
             tphi_ns = 1e10
-        assert prop.Tphi_ns[q] == tphi_ns
+        assert prop.tphi_ns[q] == tphi_ns
 
 
 def test_incomplete_calibration():

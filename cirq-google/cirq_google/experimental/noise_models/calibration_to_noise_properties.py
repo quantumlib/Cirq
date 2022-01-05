@@ -68,22 +68,22 @@ def noise_properties_from_calibration(calibration: cirq_google.Calibration) -> N
     # Unpack all values from Calibration object
     # 1. Extract T1 for all qubits
     T1_micros = _unpack_from_calibration('single_qubit_idle_t1_micros', calibration)
-    T1_ns = {q: T1_micro * 1000 for q, T1_micro in T1_micros.items()}
+    t1_ns = {q: T1_micro * 1000 for q, T1_micro in T1_micros.items()}
 
     # 2. Extract Tphi for all qubits
     rb_incoherent_errors = _unpack_from_calibration(
         'single_qubit_rb_incoherent_error_per_gate', calibration
     )
-    Tphi_ns = {}
+    tphi_ns = {}
     if rb_incoherent_errors:
         microwave_time_ns = DEFAULT_GATE_NS[cirq.PhasedXZGate]
-        for qubit, t1_ns in T1_ns.items():
-            tphi_err = rb_incoherent_errors[qubit] - microwave_time_ns / (3 * t1_ns)
+        for qubit, q_t1_ns in t1_ns.items():
+            tphi_err = rb_incoherent_errors[qubit] - microwave_time_ns / (3 * q_t1_ns)
             if tphi_err > 0:
-                tphi_ns = microwave_time_ns / (3 * tphi_err)
+                q_tphi_ns = microwave_time_ns / (3 * tphi_err)
             else:
-                tphi_ns = 1e10
-            Tphi_ns[qubit] = tphi_ns
+                q_tphi_ns = 1e10
+            tphi_ns[qubit] = q_tphi_ns
 
     # 3a. Extract Pauli error for single-qubit gates.
     rb_pauli_errors = _unpack_from_calibration('single_qubit_rb_pauli_error_per_gate', calibration)
@@ -106,8 +106,8 @@ def noise_properties_from_calibration(calibration: cirq_google.Calibration) -> N
 
     return NoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        T1_ns=T1_ns,
-        Tphi_ns=Tphi_ns,
+        t1_ns=t1_ns,
+        tphi_ns=tphi_ns,
         ro_fidelities=ro_fidelities,
         gate_pauli_errors=gate_pauli_errors,
     )

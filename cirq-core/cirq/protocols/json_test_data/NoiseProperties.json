@@ -2,75 +2,39 @@
   "cirq_type": "NoiseProperties",
   "gate_times_ns": [
     [
-      {
-        "cirq_type": "CZPowGate",
-        "exponent": 1.0,
-        "global_shift": 0.0
-      },
+      "CZPowGate",
       32.0
     ],
     [
-      {
-        "cirq_type": "FSimGate",
-        "theta": 0.0,
-        "phi": 0.0
-      },
+      "FSimGate",
       32.0
     ],
     [
-      {
-        "cirq_type": "ISwapPowGate",
-        "exponent": 1.0,
-        "global_shift": 0.0
-      },
+      "ISwapPowGate",
       32.0
     ],
     [
-      {
-        "cirq_type": "MeasurementGate",
-        "num_qubits": 1,
-        "key": "",
-        "invert_mask": []
-      },
+      "MeasurementGate",
       4000.0
     ],
     [
-      {
-        "cirq_type": "PhasedFSimGate",
-        "theta": 0.0,
-        "zeta": 0.0,
-        "chi": 0.0,
-        "gamma": 0.0,
-        "phi": 0.0
-      },
+      "PhasedFSimGate",
       32.0
     ],
     [
-      {
-        "cirq_type": "PhasedXZGate",
-        "axis_phase_exponent": 0,
-        "x_exponent": 0,
-        "z_exponent": 0
-      },
+      "PhasedXZGate",
       25.0
     ],
     [
-      {
-        "cirq_type": "ResetChannel",
-        "dimension": 2
-      },
+      "ResetChannel",
       250.0
     ],
     [
-      {
-        "cirq_type": "ZPowGate",
-        "exponent": 1.0,
-        "global_shift": 0.0
-      },
+      "ZPowGate",
       25.0
     ]
   ],
-  "T1_ns": [
+  "t1_ns": [
     [
       {
         "cirq_type": "LineQubit",
@@ -79,7 +43,7 @@
       100000.0
     ]
   ],
-  "Tphi_ns": [
+  "tphi_ns": [
     [
       {
         "cirq_type": "LineQubit",
@@ -103,13 +67,8 @@
   "gate_pauli_errors": [
     [
       {
-        "cirq_type": "GateOperation",
-        "gate": {
-          "cirq_type": "PhasedXZGate",
-          "axis_phase_exponent": 0,
-          "x_exponent": 0,
-          "z_exponent": 0
-        },
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ResetChannel",
         "qubits": [
           {
             "cirq_type": "LineQubit",
@@ -121,11 +80,8 @@
     ],
     [
       {
-        "cirq_type": "GateOperation",
-        "gate": {
-          "cirq_type": "ResetChannel",
-          "dimension": 2
-        },
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ZPowGate",
         "qubits": [
           {
             "cirq_type": "LineQubit",
@@ -137,12 +93,8 @@
     ],
     [
       {
-        "cirq_type": "GateOperation",
-        "gate": {
-          "cirq_type": "ZPowGate",
-          "exponent": 1.0,
-          "global_shift": 0.0
-        },
+        "cirq_type": "OpIdentifier",
+        "gate_type": "MeasurementGate",
         "qubits": [
           {
             "cirq_type": "LineQubit",
@@ -154,13 +106,8 @@
     ],
     [
       {
-        "cirq_type": "GateOperation",
-        "gate": {
-          "cirq_type": "MeasurementGate",
-          "num_qubits": 1,
-          "key": "",
-          "invert_mask": []
-        },
+        "cirq_type": "OpIdentifier",
+        "gate_type": "PhasedXZGate",
         "qubits": [
           {
             "cirq_type": "LineQubit",
