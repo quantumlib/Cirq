@@ -118,4 +118,3 @@ _compat.deprecated_submodule(
     deadline="v0.16",
     create_attribute=True,
 )
-
