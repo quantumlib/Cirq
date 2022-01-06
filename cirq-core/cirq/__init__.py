@@ -469,6 +469,7 @@ from cirq.study import (
     to_sweep,
     to_sweeps,
     Result,
+    ResultImpl,
     UnitSweep,
     Zip,
 )

@@ -24,12 +24,12 @@ from cirq.study.result import _pack_digits
 
 
 def test_result_init():
-    assert cirq.Result(params=cirq.ParamResolver({}), measurements=None).repetitions == 0
-    assert cirq.Result(params=cirq.ParamResolver({}), measurements={}).repetitions == 0
+    assert cirq.ResultImpl(params=cirq.ParamResolver({}), measurements=None).repetitions == 0
+    assert cirq.ResultImpl(params=cirq.ParamResolver({}), measurements={}).repetitions == 0
 
 
 def test_repr():
-    v = cirq.Result(
+    v = cirq.ResultImpl(
         params=cirq.ParamResolver({'a': 2}), measurements={'xy': np.array([[1, 0], [0, 1]])}
     )
     cirq.testing.assert_equivalent_repr(v)
@@ -41,7 +41,7 @@ def test_from_single_parameter_set_deprecation():
 
 
 def test_str():
-    result = cirq.Result(
+    result = cirq.ResultImpl(
         params=cirq.ParamResolver({}),
         measurements={
             'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]]),
@@ -50,7 +50,7 @@ def test_str():
     )
     assert str(result) == 'ab=00010, 11101\nc=00101'
 
-    result = cirq.Result(
+    result = cirq.ResultImpl(
         params=cirq.ParamResolver({}),
         measurements={
             'ab': np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]),
@@ -61,7 +61,7 @@ def test_str():
 
 
 def test_df():
-    result = cirq.Result(
+    result = cirq.ResultImpl(
         params=cirq.ParamResolver({}),
         measurements={
             'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=bool),
@@ -79,7 +79,7 @@ def test_df():
 
 
 def test_histogram():
-    result = cirq.Result(
+    result = cirq.ResultImpl(
         params=cirq.ParamResolver({}),
         measurements={
             'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=bool),
@@ -100,7 +100,7 @@ def test_histogram():
 
 
 def test_multi_measurement_histogram():
-    result = cirq.Result(
+    result = cirq.ResultImpl(
         params=cirq.ParamResolver({}),
         measurements={
             'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=bool),
@@ -173,25 +173,25 @@ def test_multi_measurement_histogram():
 def test_trial_result_equality():
     et = cirq.testing.EqualsTester()
     et.add_equality_group(
-        cirq.Result(params=cirq.ParamResolver({}), measurements={'a': np.array([[0]] * 5)})
+        cirq.ResultImpl(params=cirq.ParamResolver({}), measurements={'a': np.array([[0]] * 5)})
     )
     et.add_equality_group(
-        cirq.Result(params=cirq.ParamResolver({}), measurements={'a': np.array([[0]] * 6)})
+        cirq.ResultImpl(params=cirq.ParamResolver({}), measurements={'a': np.array([[0]] * 6)})
     )
     et.add_equality_group(
-        cirq.Result(params=cirq.ParamResolver({}), measurements={'a': np.array([[1]] * 5)})
+        cirq.ResultImpl(params=cirq.ParamResolver({}), measurements={'a': np.array([[1]] * 5)})
     )
 
 
 def test_trial_result_addition_valid():
-    a = cirq.Result(
+    a = cirq.ResultImpl(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
             'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
             'q1': np.array([[0], [0], [1]], dtype=bool),
         },
     )
-    b = cirq.Result(
+    b = cirq.ResultImpl(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
             'q0': np.array([[0, 1]], dtype=bool),
@@ -205,28 +205,28 @@ def test_trial_result_addition_valid():
 
 
 def test_trial_result_addition_invalid():
-    a = cirq.Result(
+    a = cirq.ResultImpl(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
             'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
             'q1': np.array([[0], [0], [1]], dtype=bool),
         },
     )
-    b = cirq.Result(
+    b = cirq.ResultImpl(
         params=cirq.ParamResolver({'bad': 1}),
         measurements={
             'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
             'q1': np.array([[0], [0], [1]], dtype=bool),
         },
     )
-    c = cirq.Result(
+    c = cirq.ResultImpl(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
             'bad': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
             'q1': np.array([[0], [0], [1]], dtype=bool),
         },
     )
-    d = cirq.Result(
+    d = cirq.ResultImpl(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
             'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
@@ -261,7 +261,7 @@ def test_qubit_keys_for_histogram():
 
 
 def test_text_diagram_jupyter():
-    result = cirq.Result(
+    result = cirq.ResultImpl(
         params=cirq.ParamResolver({}),
         measurements={
             'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=bool),
@@ -284,7 +284,7 @@ def test_text_diagram_jupyter():
     # Test cycle handling
     p = FakePrinter()
     result._repr_pretty_(p, True)
-    assert p.text_pretty == 'Result(...)'
+    assert p.text_pretty == 'ResultImpl(...)'
 
 
 def test_json_bit_packing_and_dtype():
@@ -292,8 +292,8 @@ def test_json_bit_packing_and_dtype():
     bits = prng.randint(2, size=(256, 256)).astype(np.uint8)
     digits = prng.randint(256, size=(256, 256)).astype(np.uint8)
 
-    bits_result = cirq.Result(params=cirq.ParamResolver({}), measurements={'m': bits})
-    digits_result = cirq.Result(params=cirq.ParamResolver({}), measurements={'m': digits})
+    bits_result = cirq.ResultImpl(params=cirq.ParamResolver({}), measurements={'m': bits})
+    digits_result = cirq.ResultImpl(params=cirq.ParamResolver({}), measurements={'m': digits})
 
     bits_json = cirq.to_json(bits_result)
     digits_json = cirq.to_json(digits_result)

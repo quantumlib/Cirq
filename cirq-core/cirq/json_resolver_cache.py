@@ -140,7 +140,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'RandomGateChannel': cirq.RandomGateChannel,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
-        'Result': cirq.Result,
+        'Result': cirq.ResultImpl,  # Keep support for Cirq < 0.14.
+        'ResultImpl': cirq.ResultImpl,
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,
         'Rz': cirq.Rz,
@@ -154,7 +155,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
-        'TrialResult': cirq.Result,  # keep support for Cirq < 0.11.
+        'TrialResult': cirq.ResultImpl,  # keep support for Cirq < 0.11.
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,
