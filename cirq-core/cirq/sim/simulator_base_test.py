@@ -227,6 +227,7 @@ def test_run_non_unitary_circuit():
 
 
 def test_run_no_reuse_buffer_warning():
+    # coverage: ignore
     class MockCountingActOnArgs(CountingActOnArgs):
         def copy(self) -> 'MockCountingActOnArgs':  # type: ignore
             return super().copy()  # type: ignore
