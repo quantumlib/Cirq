@@ -19,7 +19,7 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer,
 )
 from cirq.neutral_atoms import neutral_atom_devices
-from cirq import optimizers
+from cirq import optimizers, transformers
 
 if TYPE_CHECKING:
     import cirq
@@ -57,7 +57,7 @@ class ConvertToNeutralAtomGates(PointOptimizer):
         # Known matrix?
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
-            gates = optimizers.single_qubit_matrix_to_phased_x_z(mat)
+            gates = transformers.single_qubit_matrix_to_phased_x_z(mat)
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
             return optimizers.two_qubit_matrix_to_operations(

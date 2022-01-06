@@ -28,6 +28,15 @@ from cirq.transformers.analytical_decompositions.cphase_to_fsim import (
     decompose_cphase_into_two_fsim,
 )
 
+from cirq.transformers.analytical_decompositions.single_qubit_decompositions import (
+    is_negligible_turn,
+    single_qubit_matrix_to_gates,
+    single_qubit_matrix_to_pauli_rotations,
+    single_qubit_matrix_to_phased_x_z,
+    single_qubit_matrix_to_phxz,
+    single_qubit_op_to_framed_phase_form,
+)
+
 from cirq.transformers.analytical_decompositions.two_qubit_state_preparation import (
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,

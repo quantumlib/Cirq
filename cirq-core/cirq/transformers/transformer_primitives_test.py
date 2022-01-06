@@ -333,7 +333,7 @@ def test_merge_operations_complexity(op_density):
         lambda _, __: None,
         lambda op1, _: op1,
         lambda _, op2: op2,
-        lambda op1, op2: prng.choice([op1, op2, None]),
+        lambda op1, op2: (op1, op2, None)[prng.choice(3)],
     ]:
 
         def wrapped_merge_func(op1, op2):
