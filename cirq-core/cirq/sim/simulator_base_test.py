@@ -228,12 +228,37 @@ def test_run_non_unitary_circuit():
 
 def test_run_no_reuse_buffer_warning():
     class MockCountingActOnArgs(CountingActOnArgs):
-        def copy(self) -> 'MockCountingActOnArgs':
-            return super().copy()
+        def copy(self) -> 'MockCountingActOnArgs':  # type: ignore
+            return super().copy()  # type: ignore
 
+    # coverage: ignore
+    class MockCountingStepResult(cirq.StepResultBase[MockCountingActOnArgs, MockCountingActOnArgs]):
+        def sample(
+            self,
+            qubits: List[cirq.Qid],
+            repetitions: int = 1,
+            seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        ) -> np.ndarray:
+            measurements: List[List[int]] = []
+            for _ in range(repetitions):
+                measurements.append(self._merged_sim_state._perform_measurement(qubits))
+            return np.array(measurements, dtype=int)
+
+        def _simulator_state(self) -> MockCountingActOnArgs:
+            return self._merged_sim_state
+
+    class MockCountingTrialResult(
+        cirq.SimulationTrialResultBase[MockCountingActOnArgs, MockCountingActOnArgs]
+    ):
+        pass
+
+    # coverage: ignore
     class MockCountingSimulator(
         cirq.SimulatorBase[
-            CountingStepResult, CountingTrialResult, MockCountingActOnArgs, MockCountingActOnArgs
+            MockCountingStepResult,
+            MockCountingTrialResult,
+            MockCountingActOnArgs,
+            MockCountingActOnArgs,
         ]
     ):
         def _create_partial_act_on_args(
@@ -248,15 +273,17 @@ def test_run_no_reuse_buffer_warning():
             self,
             params: cirq.ParamResolver,
             measurements: Dict[str, np.ndarray],
-            final_step_result: CountingStepResult,
-        ) -> CountingTrialResult:
-            return CountingTrialResult(params, measurements, final_step_result=final_step_result)
+            final_step_result: MockCountingStepResult,
+        ) -> MockCountingTrialResult:
+            return MockCountingTrialResult(
+                params, measurements, final_step_result=final_step_result
+            )
 
         def _create_step_result(
             self,
-            sim_state: cirq.OperationTarget[CountingActOnArgs],
-        ) -> CountingStepResult:
-            return CountingStepResult(sim_state)
+            sim_state: cirq.OperationTarget[MockCountingActOnArgs],
+        ) -> MockCountingStepResult:
+            return MockCountingStepResult(sim_state)
 
     sim = MockCountingSimulator()
     with cirq.testing.assert_deprecated('reuse_buffer', deadline='0.25'):
