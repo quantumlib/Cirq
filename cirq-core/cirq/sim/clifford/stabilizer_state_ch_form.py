@@ -53,7 +53,7 @@ class StabilizerStateChForm:
         self.v = np.zeros(self.n, dtype=bool)
         self.s = np.zeros(self.n, dtype=bool)
 
-        self.omega = complex(1)
+        self.omega: complex = 1
 
         # Apply X for every non-zero element of initial_state
         qubits = cirq.LineQubit.range(num_qubits)
