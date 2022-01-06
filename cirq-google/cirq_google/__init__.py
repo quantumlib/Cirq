@@ -137,6 +137,7 @@ from cirq_google.workflow import (
     QuantumRuntimeConfiguration,
     execute,
     QubitPlacer,
+    CouldNotPlaceError,
     NaiveQubitPlacer,
     RandomDevicePlacer,
 )
