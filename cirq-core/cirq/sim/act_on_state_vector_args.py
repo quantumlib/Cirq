@@ -235,6 +235,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         return (
             'cirq.ActOnStateVectorArgs('
             f'target_tensor={proper_repr(self.target_tensor)},'
+            f' available_buffer={proper_repr(self.available_buffer)},'
             f' qubits={self.qubits!r},'
             f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
         )

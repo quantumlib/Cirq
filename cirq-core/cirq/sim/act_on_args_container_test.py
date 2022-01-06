@@ -230,7 +230,7 @@ def test_copy_succeeds():
 
 def test_copy_deprecation_warning():
     args = create_container(qs2, False)
-    with pytest.warns(DeprecationWarning, match='reuse_buffer'):
+    with cirq.testing.assert_deprecated('reuse_buffer', deadline='0.25'):
         args.copy(True)
 
 
