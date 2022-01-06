@@ -14,7 +14,6 @@
 from typing import Any, Dict, List, Optional, Sequence, Union
 
 import cirq
-import pytest
 
 
 class EmptyActOnArgs(cirq.ActOnArgs):

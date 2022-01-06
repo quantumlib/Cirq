@@ -226,6 +226,43 @@ def test_run_non_unitary_circuit():
     assert np.allclose(r.measurements['0'], [[1], [1]])
 
 
+def test_run_no_reuse_buffer_warning():
+    class MockCountingActOnArgs(CountingActOnArgs):
+        def copy(self) -> 'MockCountingActOnArgs':
+            return super().copy()
+
+    class MockCountingSimulator(
+        cirq.SimulatorBase[
+            CountingStepResult, CountingTrialResult, MockCountingActOnArgs, MockCountingActOnArgs
+        ]
+    ):
+        def _create_partial_act_on_args(
+            self,
+            initial_state: Any,
+            qubits: Sequence['cirq.Qid'],
+            logs: Dict[str, Any],
+        ) -> MockCountingActOnArgs:
+            return MockCountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
+
+        def _create_simulator_trial_result(
+            self,
+            params: cirq.ParamResolver,
+            measurements: Dict[str, np.ndarray],
+            final_step_result: CountingStepResult,
+        ) -> CountingTrialResult:
+            return CountingTrialResult(params, measurements, final_step_result=final_step_result)
+
+        def _create_step_result(
+            self,
+            sim_state: cirq.OperationTarget[CountingActOnArgs],
+        ) -> CountingStepResult:
+            return CountingStepResult(sim_state)
+
+    sim = MockCountingSimulator()
+    with cirq.testing.assert_deprecated('reuse_buffer', deadline='0.25'):
+        sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)))
+
+
 def test_run_non_unitary_circuit_non_unitary_state():
     class DensityCountingSimulator(CountingSimulator):
         def _can_be_in_run_prefix(self, val):
