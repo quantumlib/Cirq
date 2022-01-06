@@ -36,6 +36,7 @@ def test_deprecated_submodule():
     ):
         _ = cirq.optimizers.two_qubit_decompositions.two_qubit_matrix_to_operations
 
+
 @pytest.mark.parametrize(
     'rad,expected',
     (
