@@ -20,7 +20,7 @@ import numpy as np
 import sympy
 
 from cirq import circuits, ops, protocols
-from cirq.optimizers import decompositions
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 
 def _is_integer(n):
@@ -74,7 +74,7 @@ class EjectZ:
             for q in qubits:
                 p = qubit_phase[q]
                 qubit_phase[q] = 0
-                if decompositions.is_negligible_turn(p, self.tolerance):
+                if single_qubit_decompositions.is_negligible_turn(p, self.tolerance):
                     continue
                 dumped = False
                 moment_index = circuit.prev_moment_operating_on([q], index)
@@ -111,7 +111,8 @@ class EjectZ:
                 # If there's no tracked phase, we can move on.
                 phases = [qubit_phase[q] for q in op.qubits]
                 if not isinstance(op.gate, ops.PhasedXZGate) and all(
-                    decompositions.is_negligible_turn(p, self.tolerance) for p in phases
+                    single_qubit_decompositions.is_negligible_turn(p, self.tolerance)
+                    for p in phases
                 ):
                     continue
 
@@ -123,7 +124,7 @@ class EjectZ:
                 # Try to move the tracked phasing over the operation.
                 phased_op = op
                 for i, p in enumerate(phases):
-                    if not decompositions.is_negligible_turn(p, self.tolerance):
+                    if not single_qubit_decompositions.is_negligible_turn(p, self.tolerance):
                         phased_op = protocols.phase_by(phased_op, -p, i, default=None)
                 if phased_op is not None:
                     gate = phased_op.gate
