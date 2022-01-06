@@ -342,7 +342,9 @@ class EngineJob(abstract_job.AbstractJob):
         return self._calibration_results
 
     @classmethod
-    def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult) -> Sequence[Sequence[cirq.Result]]:
+    def _get_batch_results_v2(
+        cls, results: v2.batch_pb2.BatchResult
+    ) -> Sequence[Sequence[cirq.Result]]:
         trial_results = []
         for result in results.results:
             # Add a new list for the result
