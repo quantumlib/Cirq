@@ -31,19 +31,19 @@ import abc
 import collections
 from typing import (
     Any,
+    Callable,
+    cast,
     Dict,
+    Generic,
     Iterator,
     List,
-    Sequence,
-    Tuple,
-    Union,
     Optional,
-    TYPE_CHECKING,
+    Sequence,
     Set,
-    cast,
-    Callable,
+    Tuple,
+    TYPE_CHECKING,
     TypeVar,
-    Generic,
+    Union,
 )
 
 import numpy as np
@@ -73,7 +73,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> Sequence['cirq.Result']:
         return list(self.run_sweep_iter(program, params, repetitions))
 
     def run_sweep_iter(
