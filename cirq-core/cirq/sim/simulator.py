@@ -545,7 +545,7 @@ class SimulatesIntermediateState(
             all_step_results = self.simulate_moment_steps(
                 program, param_resolver, qubit_order, state
             )
-            measurements = {}  # type: Dict[str, np.ndarray]
+            measurements: Dict[str, np.ndarray] = {}
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=np.uint8)

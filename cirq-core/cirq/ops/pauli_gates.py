@@ -36,7 +36,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     of private subclasses are the X, Y, or Z Pauli gates defined below.
     """
 
-    _XYZ = None  # type: Tuple[Pauli, Pauli, Pauli]
+    _XYZ: Tuple['Pauli', 'Pauli', 'Pauli']
 
     @staticmethod
     def by_index(index: int) -> 'Pauli':

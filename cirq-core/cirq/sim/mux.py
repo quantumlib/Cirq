@@ -192,7 +192,7 @@ def sample_sweep(
     """
     prng = value.parse_random_state(seed)
 
-    trial_results = []  # type: List[study.Result]
+    trial_results: List[study.Result] = []
     for param_resolver in study.to_resolvers(params):
         measurements = sample(
             program,
