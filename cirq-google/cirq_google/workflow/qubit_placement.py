@@ -23,7 +23,6 @@ from typing import List, Callable
 import numpy as np
 
 import cirq
-import cirq_google as cg
 from cirq import _compat
 from cirq.devices.named_topologies import get_placements
 from cirq_google.workflow._device_shim import _Device_dot_get_nx_graph
@@ -181,6 +180,9 @@ class RandomDevicePlacer(QubitPlacer):
         Returns:
             A tuple of a new frozen circuit with the qubits placed and a mapping from input
             qubits or nodes to output qubits.
+
+        Raises:
+            ValueError: If `shared_rt_info` does not have a device field.
         """
         device = shared_rt_info.device
         if device is None:

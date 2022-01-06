@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
-import networkx as nx
 import itertools
 from typing import Iterable, cast
+
+import networkx as nx
+
+import cirq
 
 
 def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
