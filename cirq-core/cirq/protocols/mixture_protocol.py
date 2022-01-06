@@ -158,7 +158,7 @@ def validate_mixture(supports_mixture: SupportsMixture):
 
     total = 0.0
     for p, val in mixture_tuple:
-        validate_probability(p, '{}\'s probability'.format(str(val)))
+        validate_probability(p, f"{val}'s probability")
         total += p
     if not np.isclose(total, 1.0):
         raise ValueError('Sum of probabilities of a mixture was not 1.0')
