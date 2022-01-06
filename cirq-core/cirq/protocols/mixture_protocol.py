@@ -24,7 +24,7 @@ from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = ((0.0, []),)  # type: Sequence[Tuple[float, Any]]
+RaiseTypeErrorIfNotProvided: Sequence[Tuple[float, Any]] = ((0.0, []),)
 
 
 class SupportsMixture(Protocol):

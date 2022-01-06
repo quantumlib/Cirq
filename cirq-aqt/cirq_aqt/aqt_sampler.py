@@ -199,7 +199,7 @@ class AQTSampler(cirq.Sampler):
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         meas_name = 'm'
         assert isinstance(program.device, cirq.IonDevice)
-        trial_results = []  # type: List[cirq.Result]
+        trial_results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             id_str = uuid.uuid1()
             num_qubits = len(program.device.qubits)

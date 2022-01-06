@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional
 
-import pytest, sympy
+import pytest
+import sympy
 
 import cirq
 from cirq.circuits.circuit_operation import _full_join_string_lists
@@ -262,7 +264,7 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
             _ = op_base.repeat(initial_repetitions)
         initial_repetitions = abs(initial_repetitions)
 
-    op_with_reps = None  # type: cirq.CircuitOperation
+    op_with_reps: Optional[cirq.CircuitOperation] = None
     rep_ids = []
     if use_default_ids_for_initial_rep:
         op_with_reps = op_base.repeat(initial_repetitions)
