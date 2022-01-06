@@ -67,6 +67,7 @@ TestSpec = ModuleJsonTestSpec(
             'SharedRuntimeInfo',
             'ExecutableGroupResultFilesystemRecord',
             'NaiveQubitPlacer',
+            'RandomDevicePlacer',
         ]
     },
     tested_elsewhere=[
