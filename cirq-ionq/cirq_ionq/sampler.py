@@ -13,7 +13,7 @@
 # limitations under the License.
 """A `cirq.Sampler` implementation for the IonQ API."""
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import Optional, Sequence, TYPE_CHECKING
 
 from cirq_ionq import results
 import cirq
@@ -67,7 +67,7 @@ class Sampler(cirq.Sampler):
         program: cirq.AbstractCircuit,
         params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> Sequence[cirq.Result]:
         """Runs a sweep for the given Circuit.
 
         Note that this creates jobs for each of the sweeps in the given sweepable, and then
