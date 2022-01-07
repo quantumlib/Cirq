@@ -20,6 +20,7 @@ from cirq.transformers.analytical_decompositions import (
     decompose_clifford_tableau_to_operations,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
+    decompose_two_qubit_interaction_into_four_fsim_gates,
     is_negligible_turn,
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
@@ -28,6 +29,10 @@ from cirq.transformers.analytical_decompositions import (
     single_qubit_matrix_to_phased_x_z,
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
+    three_qubit_matrix_to_operations,
+    two_qubit_matrix_to_diagonal_and_operations,
+    two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_sqrt_iswap_operations,
 )
 
 from cirq.transformers.transformer_primitives import (
