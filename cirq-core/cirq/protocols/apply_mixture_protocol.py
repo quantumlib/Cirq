@@ -35,7 +35,7 @@ from cirq.type_workarounds import NotImplementedType
 # that case. It is checked for using `is`, so it won't have a false positive if
 # the user provides a different np.array([]) value.
 
-RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
+RaiseTypeErrorIfNotProvided: np.ndarray = np.array([])
 
 TDefault = TypeVar('TDefault')
 
@@ -267,7 +267,6 @@ def apply_mixture(
     # Don't know how to apply mixture. Fallback to specified default behavior.
     # (STEP D)
     if default is not RaiseTypeErrorIfNotProvided:
-        print('HERE!')
         return default
     raise TypeError(
         "object of type '{}' has no _apply_mixture_, _apply_unitary_, "

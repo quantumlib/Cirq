@@ -47,3 +47,22 @@ from cirq.devices.named_topologies import (
     get_placements,
     draw_placements,
 )
+
+from cirq.devices.insertion_noise_model import (
+    InsertionNoiseModel,
+)
+
+from cirq.devices.thermal_noise_model import (
+    ThermalNoiseModel,
+)
+
+from cirq.devices.noise_utils import (
+    OpIdentifier,
+    decay_constant_to_xeb_fidelity,
+    decay_constant_to_pauli_error,
+    pauli_error_to_decay_constant,
+    xeb_fidelity_to_decay_constant,
+    pauli_error_from_t1,
+    average_error,
+    decoherence_pauli_error,
+)

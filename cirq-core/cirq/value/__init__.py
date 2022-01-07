@@ -25,6 +25,12 @@ from cirq.value.angle import (
     chosen_angle_to_half_turns,
 )
 
+from cirq.value.condition import (
+    Condition,
+    KeyCondition,
+    SympyCondition,
+)
+
 from cirq.value.digits import (
     big_endian_bits_to_int,
     big_endian_digits_to_int,

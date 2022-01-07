@@ -326,6 +326,9 @@ class Gateset:
         g = item if isinstance(item, raw_types.Gate) else item.gate
         assert g is not None, f'`item`: {item} must be a gate or have a valid `item.gate`'
 
+        if isinstance(g, global_phase_op.GlobalPhaseGate):
+            return self._accept_global_phase_op
+
         if g in self._instance_gate_families:
             assert item in self._instance_gate_families[g], (
                 f"{item} instance matches {self._instance_gate_families[g]} but "
@@ -389,15 +392,7 @@ class Gateset:
         if isinstance(op, raw_types.TaggedOperation):
             return self._validate_operation(op.sub_operation)
         elif isinstance(op, circuit_operation.CircuitOperation) and self._unroll_circuit_op:
-            op_circuit = protocols.resolve_parameters(
-                op.circuit.unfreeze(), op.param_resolver, recursive=False
-            )
-            op_circuit = op_circuit.transform_qubits(
-                lambda q: cast(circuit_operation.CircuitOperation, op).qubit_map.get(q, q)
-            )
-            return self.validate(op_circuit)
-        elif isinstance(op, global_phase_op.GlobalPhaseOperation):
-            return self._accept_global_phase_op
+            return self.validate(op.mapped_circuit(deep=True))
         else:
             return False
 
