@@ -41,7 +41,7 @@ class QubitOrder:
     ) -> None:
         self._explicit_func = explicit_func
 
-    DEFAULT = None  # type: QubitOrder
+    DEFAULT: 'QubitOrder'
     """A basis that orders qubits in the same way that calling `sorted` does.
 
     Specifically, qubits are ordered first by their type name and then by
