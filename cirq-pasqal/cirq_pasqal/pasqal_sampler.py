@@ -133,13 +133,11 @@ class PasqalSampler(cirq.work.Sampler):
             Result list for this run; one for each possible parameter
             resolver.
         """
-        if program._device != cirq.UNCONSTRAINED_DEVICE:
-            assert isinstance(
-                program._device, cirq_pasqal.PasqalDevice
-            ), "Device must inherit from cirq.PasqalDevice."
-            program._device.validate_circuit(program)
-        elif self._device:
-            self._device.validate_circuit(program)
+        device = program._device if program._device != cirq.UNCONSTRAINED_DEVICE else self._device
+        assert isinstance(
+            device, cirq_pasqal.PasqalDevice
+        ), "Device must inherit from cirq.PasqalDevice."
+        device.validate_circuit(program)
         trial_results = []
 
         for param_resolver in cirq.study.to_resolvers(params):
