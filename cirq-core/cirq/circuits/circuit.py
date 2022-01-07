@@ -125,6 +125,9 @@ class AbstractCircuit(abc.ABC):
     def device(self) -> 'cirq.Device':
         pass
 
+    # This is going away once device deprecation is finished.
+    _device = None  # type: devices.Device
+
     def freeze(self) -> 'cirq.FrozenCircuit':
         """Creates a FrozenCircuit from this circuit.
 
