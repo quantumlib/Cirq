@@ -20,7 +20,7 @@ import abc
 import numpy as np
 
 from cirq import circuits, ops, protocols
-from cirq.optimizers import two_qubit_decompositions
+from cirq.transformers.analytical_decompositions import two_qubit_to_cz
 
 if TYPE_CHECKING:
     import cirq
@@ -257,6 +257,6 @@ class MergeInteractions(MergeInteractionsAbc):
         Returns:
             A list of operations implementing the matrix.
         """
-        return two_qubit_decompositions.two_qubit_matrix_to_operations(
+        return two_qubit_to_cz.two_qubit_matrix_to_operations(
             q0, q1, mat, self.allow_partial_czs, self.tolerance, False
         )

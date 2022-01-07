@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 TDefault = TypeVar('TDefault')
 
-RaiseTypeErrorIfNotProvided = ([],)  # type: Any
+RaiseTypeErrorIfNotProvided: Any = ([],)
 
 
 class QasmArgs(string.Formatter):
@@ -154,7 +154,7 @@ def qasm(
     method = getattr(val, '_qasm_', None)
     result = NotImplemented
     if method is not None:
-        kwargs = {}  # type: Dict[str, Any]
+        kwargs: Dict[str, Any] = {}
         if args is not None:
             kwargs['args'] = args
         if qubits is not None:
