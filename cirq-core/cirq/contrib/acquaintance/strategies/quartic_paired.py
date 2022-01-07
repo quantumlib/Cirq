@@ -34,7 +34,7 @@ def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence['cirq.Qid']]) -> L
     if set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,)):
         raise ValueError('set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,))')
     n_pairs = len(qubit_pairs)
-    qubits = []  # type: List['cirq.Qid']
+    qubits: List['cirq.Qid'] = []
     for i in range(0, 2 * (n_pairs // 2), 2):
         qubits += [
             qubit_pairs[i][0],
