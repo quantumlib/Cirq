@@ -27,13 +27,13 @@ from typing import (
     overload,
 )
 import dataclasses
-from enum import Enum
+import enum
 
 from cirq.circuits.circuit import CIRCUIT_TYPE
 from cirq.circuits import circuit, frozen_circuit
 
 
-class LogLevel(Enum):
+class LogLevel(enum.Enum):
     """Different logging resolution options for `TransformerStatsLogger`."""
 
     INFO = 1
@@ -132,11 +132,9 @@ def transformer_method(func: TRANSFORMER_TYPE[CIRCUIT_TYPE]) -> TRANSFORMER_TYPE
     """Decorator to verify API and append logging functionality to callable transformer methods.
 
     For example:
-    ```
-    @transformer_method
-    def convert_to_fsim(circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
-        ...
-    ```
+    >>> @transformer_method
+    >>> def convert_to_cz(circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
+    >>>    ...
 
     Args:
         func: Transformer implemented as a method from (CIRCUIT_TYPE, Context) --> CIRCUIT_TYPE.
@@ -160,14 +158,12 @@ def transformer_class(cls: TRANSFORMER_CLS_TYPE) -> TRANSFORMER_CLS_TYPE:
     The decorated class must implement the `__call__` method satisfying the `TRANSFORMER_TYPE` API.
 
     For example:
-    ```
-    @transformer_class
-    class ConvertToSqrtISwaps:
-        def __init__(self):
-            ...
-        def __call__(circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
-            ...
-    ```
+    >>> @transformer_class
+    >>> class ConvertToSqrtISwaps:
+    >>>    def __init__(self):
+    >>>        ...
+    >>>    def __call__(circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
+    >>>        ...
 
     Args:
         cls: Transformer implemented as a class overriding the `__call__` method, which satisfies
@@ -227,8 +223,7 @@ def transformer(
     """
     if isinstance(cls_or_func, type):
         return transformer_class(cls_or_func)
-    else:
-        assert callable(
-            cls_or_func
-        ), f"The decorated object {cls_or_func} must be a callable class or a method."
-        return transformer_method(cls_or_func)
+    assert callable(
+        cls_or_func
+    ), f"The decorated object {cls_or_func} must be a callable class or a method."
+    return transformer_method(cls_or_func)
