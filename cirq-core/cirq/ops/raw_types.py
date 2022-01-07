@@ -22,6 +22,7 @@ from typing import (
     Callable,
     Collection,
     Dict,
+    FrozenSet,
     Hashable,
     Iterable,
     List,
@@ -34,6 +35,7 @@ from typing import (
 )
 
 import numpy as np
+import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
@@ -590,8 +592,13 @@ class Operation(metaclass=abc.ABCMeta):
 
         return np.allclose(m12, m21, atol=atol)
 
+    @property
+    def classical_controls(self) -> FrozenSet['cirq.Condition']:
+        """The classical controls gating this operation."""
+        return frozenset()
+
     def with_classical_controls(
-        self, *conditions: Union[str, 'cirq.MeasurementKey']
+        self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
     ) -> 'cirq.ClassicallyControlledOperation':
         """Returns a classically controlled version of this operation.
 
@@ -604,8 +611,9 @@ class Operation(metaclass=abc.ABCMeta):
         since tags are considered a local attribute.
 
         Args:
-            conditions: A list of measurement keys, or strings that can be
-                parsed into measurement keys.
+            conditions: A list of measurement keys, strings that can be parsed
+                into measurement keys, or sympy expressions where the free
+                symbols are measurement key strings.
 
         Returns:
             A `ClassicallyControlledOperation` wrapping the operation.
@@ -732,7 +740,7 @@ class TaggedOperation(Operation):
         return protocols.has_unitary(self.sub_operation)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        return protocols.unitary(self.sub_operation, default=None)
+        return protocols.unitary(self.sub_operation, NotImplemented)
 
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
@@ -754,7 +762,7 @@ class TaggedOperation(Operation):
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return protocols.measurement_key_names(self.sub_operation)
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         return protocols.measurement_key_objs(self.sub_operation)
 
     def _is_measurement_(self) -> bool:
@@ -821,11 +829,15 @@ class TaggedOperation(Operation):
     ) -> Union[NotImplementedType, bool]:
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
 
+    @property
+    def classical_controls(self) -> FrozenSet['cirq.Condition']:
+        return self.sub_operation.classical_controls
+
     def without_classical_controls(self) -> 'cirq.Operation':
         new_sub_operation = self.sub_operation.without_classical_controls()
         return self if new_sub_operation is self.sub_operation else new_sub_operation
 
-    def _control_keys_(self) -> AbstractSet[value.MeasurementKey]:
+    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
         return protocols.control_keys(self.sub_operation)
 
 

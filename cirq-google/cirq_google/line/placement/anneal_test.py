@@ -88,7 +88,7 @@ def test_quadratic_sum_cost_calculates_quadratic_cost():
     q03 = GridQubit(0, 3)
 
     def calculate_cost(seqs: List[List[GridQubit]]):
-        qubits = []  # type: List[GridQubit]
+        qubits: List[GridQubit] = []
         for seq in seqs:
             qubits += seq
         return AnnealSequenceSearch(_create_device(qubits), seed=0xF00D0003)._quadratic_sum_cost(
