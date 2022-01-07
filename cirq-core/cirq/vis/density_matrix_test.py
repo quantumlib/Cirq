@@ -49,9 +49,8 @@ def test_density_matrix_plotter(size, show_text):
 
 @pytest.mark.parametrize('show_text', [True, False])
 @pytest.mark.parametrize('size', [2, 4, 8, 16])
-def test_density_matrix_circle_sizes(size, show_text):
+def test_density_matrix_circle_rectangle_sizes(size, show_text):
     matrix = cirq.testing.random_density_matrix(size)
-    # Check that the correct title is being shown
     ax = plot_density_matrix(matrix, show_text=show_text, title='Test Density Matrix Plot')
     # Check that the radius of all the circles in the matrix is correct
     circles = list(filter(lambda x: isinstance(x, patches.Circle), ax.get_children()))
@@ -88,6 +87,29 @@ def test_density_matrix_circle_sizes(size, show_text):
             np.abs((rect_points[0, 1] + rect_points[1, 1]) / 2 - circles[1, i, i].center[1])
             <= circles[0, i, i].radius * 1.5
         )
+
+
+@pytest.mark.parametrize('show_text', [True, False])
+@pytest.mark.parametrize('size', [2, 4, 8, 16])
+def test_density_matrix_sizes_upper_bounds(size, show_text):
+    matrix = cirq.testing.random_density_matrix(size)
+    ax = plot_density_matrix(matrix, show_text=show_text, title='Test Density Matrix Plot')
+
+    circles = list(filter(lambda x: isinstance(x, patches.Circle), ax.get_children()))
+    max_radius = np.max([c.radius for c in circles if c.fill])
+
+    rects = list(
+        filter(
+            lambda x: isinstance(x, patches.Rectangle) and x.get_alpha() is not None,
+            ax.get_children(),
+        )
+    )
+    max_height = np.max([r.get_height() for r in rects])
+    max_width = np.max([r.get_width() for r in rects])
+
+    assert max_height <= 1.0, "Some rectangle is exceeding out of it's cell size"
+    assert max_width <= 1.0, "Some rectangle is exceeding out of it's cell size"
+    assert max_radius * 2 <= 1.0, "Some circle is exceeding out of it's cell size"
 
 
 @pytest.mark.parametrize('show_rect', [True, False])
