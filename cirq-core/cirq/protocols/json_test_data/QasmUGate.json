@@ -1,0 +1,6 @@
+{
+    "cirq_type": "QasmUGate",
+    "theta": 0.1,
+    "phi": 0.2,
+    "lmda": 0.3
+  }

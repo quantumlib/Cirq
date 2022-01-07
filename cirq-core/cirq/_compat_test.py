@@ -21,10 +21,9 @@ import traceback
 import types
 import warnings
 from types import ModuleType
-from typing import Any, Callable, List, Optional, Sequence, Union
+from typing import Any, Callable, Optional
 from importlib.machinery import ModuleSpec
 from unittest import mock
-from importlib.abc import MetaPathFinder
 
 
 import numpy as np
@@ -44,7 +43,6 @@ from cirq._compat import (
     deprecated_class,
     deprecated_submodule,
     DeprecatedModuleLoader,
-    DeprecatedModuleFinder,
     DeprecatedModuleImportError,
 )
 
@@ -673,6 +671,25 @@ def _test_metadata_search_path_inner():
     assert m.metadata('flynt')
 
 
+def test_metadata_distributions_after_deprecated_submodule():
+    subprocess_context(_test_metadata_distributions_after_deprecated_submodule)()
+
+
+def _test_metadata_distributions_after_deprecated_submodule():
+    # verify deprecated_submodule does not break importlib_metadata.distributions()
+    # See https://github.com/quantumlib/Cirq/issues/4729
+    deprecated_submodule(
+        new_module_name='cirq.neutral_atoms',
+        old_parent='cirq',
+        old_child='swiss_atoms',
+        deadline="v0.14",
+        create_attribute=True,
+    )
+    m = pytest.importorskip("importlib_metadata")
+    distlist = list(m.distributions())
+    assert all(isinstance(d.name, str) for d in distlist)
+
+
 def test_type_repr_in_new_module():
     # to cater for metadata path finders
     # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
@@ -850,18 +867,6 @@ def test_deprecated_module_loader_repr():
     )
 
 
-def test_invalidate_caches():
-    called = False
-
-    class FakeFinder(importlib.abc.MetaPathFinder):
-        def invalidate_caches(self) -> None:
-            nonlocal called
-            called = True
-
-    DeprecatedModuleFinder(FakeFinder(), 'new', 'old', 'v0.1', None).invalidate_caches()
-    assert called
-
-
 def test_subprocess_test_failure():
     with pytest.raises(Failed, match='ValueError.*this fails'):
         subprocess_context(_test_subprocess_test_failure_inner)()
@@ -882,68 +887,3 @@ def _dir_is_still_valid_inner():
 
     for m in ['fake_a', 'info', 'module_a', 'sys']:
         assert m in dir(mod)
-
-
-class MockModule(ModuleType):
-    def __init__(self, module_name: str):
-        ModuleType.__init__(self, module_name)
-        if '.' in module_name:
-            package, module = module_name.rsplit('.', 1)
-            setattr(get_mock_module(package), module, self)
-
-    def _initialize_(self, module_code: types.FunctionType):
-        self.__dict__.update(module_code(self.__name__))
-
-
-def get_mock_module(module_name: str) -> ModuleType:
-    if module_name not in sys.modules:
-        sys.modules[module_name] = MockModule(module_name)
-    return sys.modules[module_name]
-
-
-def modulize(module_name: str) -> Callable[[types.FunctionType], Any]:
-    """Converts a function into a module:
-    https://stackoverflow.com/a/45421428/5716192
-    """
-    return get_mock_module(
-        module_name
-    )._initialize_  # type: ignore # mypy can't detect the _initialize_ method
-    # from the MockModule in sys.modules[module_name]
-
-
-def test_deprecated_module_does_not_wrap_mockfinder():
-    @modulize('sphinx.ext.autodoc.mock')
-    def module_code(  # pylint: disable=unused-variable # https://github.com/PyCQA/pylint/issues/2842
-        __name__,
-    ):  # pylint: disable=redefined-builtin
-
-        # put module code here
-        class MockFinder(MetaPathFinder):
-            def __init__(self, modnames: List[str]) -> None:
-                super().__init__()
-
-            def find_spec(
-                self,
-                fullname: Optional[str] = None,
-                path: Optional[Sequence[Union[bytes, str]]] = None,
-                target: Optional[ModuleType] = None,
-            ) -> None:
-                pass
-
-        # the function must return locals()
-        return locals()
-
-    from sphinx.ext.autodoc.mock import MockFinder
-
-    fake_mockfinder = MockFinder([])
-    sys.meta_path.insert(0, fake_mockfinder)
-    deprecated_submodule(
-        new_module_name='sphinx_1',
-        old_parent='sphinx_2',
-        old_child='old_ch',
-        deadline='v1.2',
-        create_attribute=False,
-    )
-    assert fake_mockfinder in sys.meta_path
-    # Cleanup sys.metapath after test
-    sys.meta_path.remove(fake_mockfinder)

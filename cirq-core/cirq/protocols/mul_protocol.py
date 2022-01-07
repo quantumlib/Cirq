@@ -18,7 +18,7 @@ from cirq.protocols.resolve_parameters import is_parameterized
 
 # This is a special indicator value used to determine whether or not the caller
 # provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = ([],)  # type: Any
+RaiseTypeErrorIfNotProvided: Any = ([],)
 
 
 def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
