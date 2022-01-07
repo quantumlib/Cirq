@@ -63,26 +63,9 @@ from cirq.optimizers.merge_single_qubit_gates import (
 from cirq.optimizers.stratify import (
     stratified_circuit,
 )
+
 from cirq.optimizers.synchronize_terminal_measurements import (
     SynchronizeTerminalMeasurements,
-)
-
-from cirq.optimizers.three_qubit_decomposition import (
-    three_qubit_matrix_to_operations,
-)
-
-from cirq.optimizers.two_qubit_decompositions import (
-    two_qubit_matrix_to_operations,
-    two_qubit_matrix_to_diagonal_and_operations,
-)
-
-
-from cirq.optimizers.two_qubit_to_sqrt_iswap import (
-    two_qubit_matrix_to_sqrt_iswap_operations,
-)
-
-from cirq.optimizers.two_qubit_to_fsim import (
-    decompose_two_qubit_interaction_into_four_fsim_gates,
 )
 
 from cirq import _compat
@@ -115,6 +98,40 @@ _compat.deprecated_submodule(
     new_module_name="cirq.transformers.analytical_decompositions.single_qubit_decompositions",
     old_parent="cirq.optimizers",
     old_child="decompositions",
+    deadline="v0.16",
+    create_attribute=True,
+)
+
+_compat.deprecated_submodule(
+    new_module_name="cirq.transformers.analytical_decompositions.three_qubit_decomposition",
+    old_parent="cirq.optimizers",
+    old_child="three_qubit_decomposition",
+    deadline="v0.16",
+    create_attribute=True,
+)
+
+_compat.deprecated_submodule(
+    new_module_name="cirq.transformers.analytical_decompositions.two_qubit_to_cz",
+    old_parent="cirq.optimizers",
+    old_child="two_qubit_decompositions",
+    deadline="v0.16",
+    create_attribute=True,
+)
+
+
+_compat.deprecated_submodule(
+    new_module_name="cirq.transformers.analytical_decompositions.two_qubit_to_fsim",
+    old_parent="cirq.optimizers",
+    old_child="two_qubit_to_fsim",
+    deadline="v0.16",
+    create_attribute=True,
+)
+
+
+_compat.deprecated_submodule(
+    new_module_name="cirq.transformers.analytical_decompositions.two_qubit_to_sqrt_iswap",
+    old_parent="cirq.optimizers",
+    old_child="two_qubit_to_sqrt_iswap",
     deadline="v0.16",
     create_attribute=True,
 )

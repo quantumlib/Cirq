@@ -19,6 +19,7 @@ from typing import (
     Iterator,
     List,
     Optional,
+    Sequence,
     Set,
 )
 from collections import OrderedDict
@@ -162,7 +163,7 @@ def results_to_proto(
 def results_from_proto(
     msg: result_pb2.Result,
     measurements: List[MeasureInfo] = None,
-) -> List[List[cirq.Result]]:
+) -> Sequence[Sequence[cirq.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
     Args:
@@ -185,7 +186,7 @@ def results_from_proto(
 def _trial_sweep_from_proto(
     msg: result_pb2.SweepResult,
     measure_map: Dict[str, MeasureInfo] = None,
-) -> List[cirq.Result]:
+) -> Sequence[cirq.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 
     Args:

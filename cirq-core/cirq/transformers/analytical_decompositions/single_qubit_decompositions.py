@@ -70,7 +70,7 @@ def single_qubit_matrix_to_pauli_rotations(
     z_rad_before, y_rad, z_rad_after = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
     z_ht_before = z_rad_before / np.pi - 0.5
     m_ht = y_rad / np.pi
-    m_pauli = ops.X  # type: ops.Pauli
+    m_pauli: ops.Pauli = ops.X
     z_ht_after = z_rad_after / np.pi + 0.5
 
     # Clean up angles

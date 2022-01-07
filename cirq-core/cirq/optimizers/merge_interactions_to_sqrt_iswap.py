@@ -20,7 +20,8 @@ from typing import Callable, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops
-from cirq.optimizers import two_qubit_to_sqrt_iswap, merge_interactions
+from cirq.optimizers import merge_interactions
+from cirq.transformers.analytical_decompositions import two_qubit_to_sqrt_iswap
 
 if TYPE_CHECKING:
     import cirq

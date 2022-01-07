@@ -21,12 +21,22 @@ from numpy.testing import assert_almost_equal
 from scipy.linalg import block_diag
 
 import cirq
-from cirq.optimizers.three_qubit_decomposition import (
+from cirq.transformers.analytical_decompositions.three_qubit_decomposition import (
     _multiplexed_angles,
     _cs_to_ops,
     _middle_multiplexor_to_ops,
     _two_qubit_multiplexor_to_ops,
 )
+
+ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+
+
+def test_deprecated_submodule():
+    with cirq.testing.assert_deprecated(
+        "Use cirq.transformers.analytical_decompositions.three_qubit_decomposition instead",
+        deadline="v0.16",
+    ):
+        _ = cirq.optimizers.three_qubit_decomposition.three_qubit_matrix_to_operations
 
 
 def _skip_if_scipy(*, version_is_greater_than_1_5_0: bool) -> Callable[[Callable], Callable]:

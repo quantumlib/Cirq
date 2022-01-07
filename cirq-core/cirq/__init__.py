@@ -329,7 +329,6 @@ from cirq.optimizers import (
     AlignLeft,
     AlignRight,
     ConvertToCzAndSingleGates,
-    decompose_two_qubit_interaction_into_four_fsim_gates,
     DropEmptyMoments,
     DropNegligible,
     EjectPhasedPaulis,
@@ -342,10 +341,6 @@ from cirq.optimizers import (
     MergeSingleQubitGates,
     stratified_circuit,
     SynchronizeTerminalMeasurements,
-    two_qubit_matrix_to_operations,
-    two_qubit_matrix_to_diagonal_and_operations,
-    two_qubit_matrix_to_sqrt_iswap_operations,
-    three_qubit_matrix_to_operations,
 )
 
 from cirq.transformers import (
@@ -354,6 +349,7 @@ from cirq.transformers import (
     decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
+    decompose_two_qubit_interaction_into_four_fsim_gates,
     is_negligible_turn,
     map_moments,
     map_operations,
@@ -367,6 +363,10 @@ from cirq.transformers import (
     single_qubit_matrix_to_phased_x_z,
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
+    three_qubit_matrix_to_operations,
+    two_qubit_matrix_to_diagonal_and_operations,
+    two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_sqrt_iswap_operations,
     unroll_circuit_op,
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,
