@@ -165,9 +165,12 @@ def test_aqt_sampler_sim():
     sampler.simulate_ideal = True
     circuit = cirq.Circuit(
         cirq.X(qubits[3]) ** theta,
-        cirq.X(qubits[0]),cirq.X(qubits[0]),
-        cirq.X(qubits[1]),cirq.X(qubits[1]),
-        cirq.X(qubits[2]),cirq.X(qubits[2]),
+        cirq.X(qubits[0]),
+        cirq.X(qubits[0]),
+        cirq.X(qubits[1]),
+        cirq.X(qubits[1]),
+        cirq.X(qubits[2]),
+        cirq.X(qubits[2]),
     )
     circuit.append(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=-0.5).on(qubits[0]))
     circuit.append(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.5).on(qubits[0]))
@@ -189,9 +192,11 @@ def test_aqt_sampler_sim_xtalk():
     sampler.simulate_ideal = False
     circuit = cirq.Circuit(
         cirq.X(qubits[0]),
-        cirq.X(qubits[1]), cirq.X(qubits[1]),
+        cirq.X(qubits[1]),
+        cirq.X(qubits[1]),
         cirq.X(qubits[3]),
-        cirq.X(qubits[2]))
+        cirq.X(qubits[2]),
+    )
     sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
     _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
 
@@ -201,10 +206,7 @@ def test_aqt_sampler_ms():
     num_qubits = 4
     _, qubits = get_aqt_device(num_qubits)
     sampler = AQTSamplerLocalSimulator()
-    circuit = cirq.Circuit(
-        cirq.Z.on_each(*qubits),
-        cirq.Z.on_each(*qubits)
-    )
+    circuit = cirq.Circuit(cirq.Z.on_each(*qubits), cirq.Z.on_each(*qubits))
     for _dummy in range(9):
         circuit.append(cirq.XX(qubits[0], qubits[1]) ** 0.5)
     circuit.append(cirq.Z(qubits[0]) ** 0.5)
