@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 # that case. It is checked for using `is`, so it won't have a false positive if
 # the user provides a different np.array([]) value.
 
-RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
+RaiseTypeErrorIfNotProvided: np.ndarray = np.array([])
 
 TDefault = TypeVar('TDefault')
 

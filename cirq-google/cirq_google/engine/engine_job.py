@@ -15,7 +15,7 @@
 import datetime
 import time
 
-from typing import Dict, Iterator, List, Optional, overload, Tuple, TYPE_CHECKING
+from typing import Dict, Iterator, List, Optional, overload, Sequence, Tuple, TYPE_CHECKING
 
 import cirq
 from cirq_google.engine import abstract_job, calibration, engine_client
@@ -79,9 +79,9 @@ class EngineJob(abstract_job.AbstractJob):
         self.job_id = job_id
         self.context = context
         self._job = _job
-        self._results: Optional[List[cirq.Result]] = None
-        self._calibration_results: Optional[CalibrationResult] = None
-        self._batched_results: Optional[List[List[cirq.Result]]] = None
+        self._results: Optional[Sequence[cirq.Result]] = None
+        self._calibration_results: Optional[Sequence[CalibrationResult]] = None
+        self._batched_results: Optional[Sequence[Sequence[cirq.Result]]] = None
         self.result_type = result_type
 
     def id(self) -> str:
@@ -258,11 +258,11 @@ class EngineJob(abstract_job.AbstractJob):
         """Deletes the job and result, if any."""
         self.context.client.delete_job(self.project_id, self.program_id, self.job_id)
 
-    def batched_results(self) -> List[List[cirq.Result]]:
+    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a List[Result]
+        results into a single list, this will return a Sequence[Result]
         for each circuit in the batch.
         """
         self.results()
@@ -288,7 +288,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return response.result
 
-    def results(self) -> List[cirq.Result]:
+    def results(self) -> Sequence[cirq.Result]:
         """Returns the job results, blocking until the job is complete."""
         import cirq_google.engine.engine as engine_base
 
@@ -315,7 +315,7 @@ class EngineJob(abstract_job.AbstractJob):
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
 
-    def calibration_results(self):
+    def calibration_results(self) -> Sequence[CalibrationResult]:
         """Returns the results of a run_calibration() call.
 
         This function will fail if any other type of results were returned
@@ -334,16 +334,17 @@ class EngineJob(abstract_job.AbstractJob):
                 metrics = calibration.Calibration(layer.metrics)
                 message = layer.error_message or None
                 token = layer.token or None
+                ts: Optional[datetime.datetime] = None
                 if layer.valid_until_ms > 0:
                     ts = datetime.datetime.fromtimestamp(layer.valid_until_ms / 1000)
-                else:
-                    ts = None
                 cal_results.append(CalibrationResult(layer.code, message, token, ts, metrics))
             self._calibration_results = cal_results
         return self._calibration_results
 
     @classmethod
-    def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult) -> List[List[cirq.Result]]:
+    def _get_batch_results_v2(
+        cls, results: v2.batch_pb2.BatchResult
+    ) -> Sequence[Sequence[cirq.Result]]:
         trial_results = []
         for result in results.results:
             # Add a new list for the result
@@ -351,7 +352,7 @@ class EngineJob(abstract_job.AbstractJob):
         return trial_results
 
     @classmethod
-    def _flatten(cls, result) -> List[cirq.Result]:
+    def _flatten(cls, result) -> Sequence[cirq.Result]:
         return [res for result_list in result for res in result_list]
 
     def __iter__(self) -> Iterator[cirq.Result]:
@@ -363,7 +364,7 @@ class EngineJob(abstract_job.AbstractJob):
         pass
 
     @overload
-    def __getitem__(self, item: slice) -> List[cirq.Result]:
+    def __getitem__(self, item: slice) -> Sequence[cirq.Result]:
         pass
 
     def __getitem__(self, item):
@@ -403,7 +404,7 @@ def _deserialize_run_context(
     raise ValueError(f'unsupported run_context type: {run_context_type}')
 
 
-def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
+def _get_job_results_v1(result: v1.program_pb2.Result) -> Sequence[cirq.Result]:
     trial_results = []
     for sweep_result in result.sweep_results:
         sweep_repetitions = sweep_result.repetitions
@@ -421,7 +422,7 @@ def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
     return trial_results
 
 
-def _get_job_results_v2(result: v2.result_pb2.Result) -> List[cirq.Result]:
+def _get_job_results_v2(result: v2.result_pb2.Result) -> Sequence[cirq.Result]:
     sweep_results = v2.results_from_proto(result)
     # Flatten to single list to match to sampler api.
     return [trial_result for sweep_result in sweep_results for trial_result in sweep_result]

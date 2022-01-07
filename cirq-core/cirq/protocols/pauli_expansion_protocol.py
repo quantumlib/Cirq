@@ -23,7 +23,7 @@ from cirq.protocols import qid_shape_protocol, unitary_protocol
 
 TDefault = TypeVar('TDefault')
 
-RaiseTypeErrorIfNotProvided = value.LinearDict({})  # type: value.LinearDict[str]
+RaiseTypeErrorIfNotProvided: value.LinearDict[str] = value.LinearDict({})
 
 
 class SupportsPauliExpansion(Protocol):

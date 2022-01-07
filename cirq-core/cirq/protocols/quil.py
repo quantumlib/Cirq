@@ -68,7 +68,7 @@ def quil(
     method = getattr(val, '_quil_', None)
     result = NotImplemented
     if method is not None:
-        kwargs = {}  # type: Dict[str, Any]
+        kwargs: Dict[str, Any] = {}
         if qubits is not None:
             kwargs['qubits'] = tuple(qubits)
         if formatter is not None:

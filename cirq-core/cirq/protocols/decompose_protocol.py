@@ -355,7 +355,7 @@ def _try_decompose_into_operations_and_qubits(
     if isinstance(val, ops.Gate):
         # Gates don't specify qubits, and so must be handled specially.
         qid_shape = qid_shape_protocol.qid_shape(val)
-        qubits = devices.LineQid.for_qid_shape(qid_shape)  # type: Sequence[cirq.Qid]
+        qubits: Sequence[cirq.Qid] = devices.LineQid.for_qid_shape(qid_shape)
         return decompose_once_with_qubits(val, qubits, None), qubits, qid_shape
 
     if isinstance(val, ops.Operation):

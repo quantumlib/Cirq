@@ -213,12 +213,10 @@ class Result:
             results.
         """
         fixed_keys = tuple(_key_to_str(key) for key in keys)
-        samples = zip(
-            *(self.measurements[sub_key] for sub_key in fixed_keys)
-        )  # type: Iterable[Any]
+        samples: Iterable[Any] = zip(*(self.measurements[sub_key] for sub_key in fixed_keys))
         if len(fixed_keys) == 0:
             samples = [()] * self.repetitions
-        c = collections.Counter()  # type: collections.Counter
+        c: collections.Counter = collections.Counter()
         for sample in samples:
             c[fold_func(sample)] += 1
         return c

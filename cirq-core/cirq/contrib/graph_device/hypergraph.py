@@ -35,8 +35,8 @@ class UndirectedHypergraph:
                 automatically added.
         """
 
-        self._adjacency_lists = {}  # type: Dict[Hashable, AdjacencyList]
-        self._labelled_edges = {}  # type: Dict[FrozenSet[Hashable], Any]
+        self._adjacency_lists: Dict[Hashable, AdjacencyList] = {}
+        self._labelled_edges: Dict[FrozenSet[Hashable], Any] = {}
         if vertices is not None:
             self.add_vertices(vertices)
         if labelled_edges is not None:
@@ -129,5 +129,5 @@ class UndirectedHypergraph:
             for potential_edge in itertools.combinations(vertices, edge_size):
                 if random.random() < edge_prob:
                     edges.append(potential_edge)
-        labelled_edges = {edge: None for edge in edges}  # type: Dict[Iterable[Hashable], Any]
+        labelled_edges: Dict[Iterable[Hashable], Any] = {edge: None for edge in edges}
         return cls(vertices=vertices, labelled_edges=labelled_edges)
