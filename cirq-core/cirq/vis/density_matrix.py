@@ -128,7 +128,7 @@ def plot_density_matrix(
         f"{'0'*(num_qubits - len(f'{i:b}'))}{i:b}" for i in range(matrix.shape[0])
     ]
     ax.set_xticks(ticks)
-    ax.set_xticklabels(labels)
+    ax.set_xticklabels(labels, rotation=90)
     ax.set_yticks(ticks)
     ax.set_yticklabels(reversed(labels))
     ax.set_facecolor('#eeeeee')
