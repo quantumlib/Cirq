@@ -15,6 +15,8 @@
 and a provided sampler to execute circuits."""
 from typing import cast, List, Optional, Tuple
 
+import concurrent.futures
+
 import cirq
 from cirq_google.engine.client import quantum
 from cirq_google.engine.calibration_result import CalibrationResult
@@ -55,6 +57,10 @@ class SimulatedLocalJob(AbstractLocalJob):
         self._type = simulation_type
         self._failure_code = ''
         self._failure_message = ''
+        if self._type == LocalSimulationType.ASYNCHRONOUS:
+            # If asynchronous mode, just kick off a new task and move on.
+            self._thread = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+            self._future = self._thread.submit(self.spawn_results)
 
     def execution_status(self) -> quantum.enums.ExecutionStatus.State:
         """Return the execution status of the job."""
@@ -98,22 +104,31 @@ class SimulatedLocalJob(AbstractLocalJob):
                 raise e
         raise ValueError('Unsupported simulation type {self._type}')
 
+    def spawn_results(self):
+        reps, sweeps = self.get_repetitions_and_sweeps()
+        program = self.program().get_circuit()
+        try:
+            self._state = quantum.enums.ExecutionStatus.State.RUNNING
+            results = self._sampler.run_sweep(
+                program=program, params=sweeps[0] if sweeps else None, repetitions=reps
+            )
+            self._state = quantum.enums.ExecutionStatus.State.SUCCESS
+            return results
+        except Exception as e:
+            self._failure_code = '500'
+            self._failure_message = str(e)
+            self._state = quantum.enums.ExecutionStatus.State.FAILURE
+            raise e
+
     def results(self) -> List[cirq.Result]:
         """Returns the job results, blocking until the job is complete."""
         if self._type == LocalSimulationType.SYNCHRONOUS:
-            reps, sweeps = self.get_repetitions_and_sweeps()
-            program = self.program().get_circuit()
-            try:
-                self._state = quantum.enums.ExecutionStatus.State.SUCCESS
-                return self._sampler.run_sweep(
-                    program=program, params=sweeps[0] if sweeps else None, repetitions=reps
-                )
-            except Exception as e:
-                self._failure_code = '500'
-                self._failure_message = str(e)
-                self._state = quantum.enums.ExecutionStatus.State.FAILURE
-                raise e
-        raise ValueError('Unsupported simulation type {self._type}')
+            return self.spawn_results()
+        elif self._type == LocalSimulationType.ASYNCHRONOUS:
+            return self._future.result()
+
+        else:
+            raise ValueError('Unsupported simulation type {self._type}')
 
     def calibration_results(self) -> List[CalibrationResult]:
         """Returns the results of a run_calibration() call.
