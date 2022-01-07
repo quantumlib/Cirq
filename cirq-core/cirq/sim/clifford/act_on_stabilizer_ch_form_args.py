@@ -110,7 +110,7 @@ def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
             # global phase later.
             final_unitary = np.eye(2)
             for axis, quarter_turns in clifford_gate.decompose_rotation():
-                gate = None  # type: Optional[cirq.Gate]
+                gate: Optional[cirq.Gate] = None
                 if axis == pauli_gates.X:
                     gate = common_gates.XPowGate(exponent=quarter_turns / 2)
                     assert gate._act_on_(args, qubits)

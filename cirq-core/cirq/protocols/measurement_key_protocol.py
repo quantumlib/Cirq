@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = ([],)  # type: Any
+RaiseTypeErrorIfNotProvided: Any = ([],)
 
 
 class SupportsMeasurementKey(Protocol):
