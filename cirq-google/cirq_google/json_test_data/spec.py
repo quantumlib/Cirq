@@ -76,7 +76,6 @@ TestSpec = ModuleJsonTestSpec(
         # Therefore, we test json roundtrippability for these two classes in quantum_runtime_test.py
         'cirq.google.QuantumRuntimeConfiguration',
         'cirq.google.ExecutableGroupResult',
-        'GateTabulation',
     ],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={
