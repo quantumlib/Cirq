@@ -24,6 +24,7 @@ from cirq.vis.density_matrix import plot_density_matrix
 from cirq.vis.density_matrix import _plot_element_of_density_matrix
 
 
+@pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize('show_text', [True, False])
 @pytest.mark.parametrize('size', [2, 4, 8, 16])
 def test_density_matrix_plotter(size, show_text):
@@ -47,6 +48,7 @@ def test_density_matrix_plotter(size, show_text):
         )
 
 
+@pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize('show_text', [True, False])
 @pytest.mark.parametrize('size', [2, 4, 8, 16])
 def test_density_matrix_circle_rectangle_sizes(size, show_text):
@@ -89,6 +91,7 @@ def test_density_matrix_circle_rectangle_sizes(size, show_text):
         )
 
 
+@pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize('show_text', [True, False])
 @pytest.mark.parametrize('size', [2, 4, 8, 16])
 def test_density_matrix_sizes_upper_bounds(size, show_text):
@@ -112,6 +115,7 @@ def test_density_matrix_sizes_upper_bounds(size, show_text):
     assert max_radius * 2 <= 1.0, "Some circle is exceeding out of it's cell size"
 
 
+@pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize('show_rect', [True, False])
 @pytest.mark.parametrize('value', [0.0, 1.0, 0.5 + 0.3j, 0.2 + 0.1j, 0.5 + 0.5j])
 def test_density_element_plot(value, show_rect):
