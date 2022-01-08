@@ -60,7 +60,13 @@ class SimulatedLocalJob(AbstractLocalJob):
         if self._type == LocalSimulationType.ASYNCHRONOUS:
             # If asynchronous mode, just kick off a new task and move on.
             self._thread = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-            self._future = self._thread.submit(self.spawn_results)
+            try:
+                self._future = self._thread.submit(self._execute_results)
+            finally:
+                # We only expect the one future to run in this thread,
+                # So we can call shutdown immediately, which will
+                # close the thread pool once the future is complete.
+                self._thread.shutdown(wait=False)
 
     def execution_status(self) -> quantum.enums.ExecutionStatus.State:
         """Return the execution status of the job."""
@@ -104,7 +110,16 @@ class SimulatedLocalJob(AbstractLocalJob):
                 raise e
         raise ValueError('Unsupported simulation type {self._type}')
 
-    def spawn_results(self):
+    def _execute_results(self) -> Sequence[cirq.Result]:
+        """Executes the circuit and sweeps on the sampler.
+
+        For synchronous execution, this is called when the results()
+        function is called.  For asynchronous execution, this function
+        is run in a thread pool that begins when the object is
+        instantiated.
+
+        Returns: a List of results from the sweep's execution.
+        """
         reps, sweeps = self.get_repetitions_and_sweeps()
         program = self.program().get_circuit()
         try:
@@ -123,7 +138,7 @@ class SimulatedLocalJob(AbstractLocalJob):
     def results(self) -> Sequence[cirq.Result]:
         """Returns the job results, blocking until the job is complete."""
         if self._type == LocalSimulationType.SYNCHRONOUS:
-            return self.spawn_results()
+            return self._execute_results()
         elif self._type == LocalSimulationType.ASYNCHRONOUS:
             return self._future.result()
 
