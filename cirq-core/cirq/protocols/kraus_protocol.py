@@ -14,7 +14,7 @@
 
 """Protocol and methods for obtaining Kraus representation of quantum channels."""
 
-from typing import Any, Sequence, Tuple, TypeVar, Union
+from typing import Any, Sequence, Tuple, TypeVar, Union, Optional, List
 import numpy as np
 from typing_extensions import Protocol
 from functools import reduce
@@ -129,9 +129,9 @@ def kraus(
         value is returned.
 
     Raises:
-        TypeError: `val` doesn't have a _kraus_ or _unitary_ method (or that
-            method returned NotImplemented) and also no default value was
-            specified.
+        TypeError: `val` doesn't have a _kraus_, _unitary_, _mixture_ method
+            (or that method returned NotImplemented) and also no default value
+            was specified.
     """
 
     result = _gettr_helper(val, ['_kraus_'])
@@ -146,12 +146,9 @@ def kraus(
 
     if decomposed is not None and decomposed != [val]:
 
-        superoperator_list = list(map(lambda x: _moment_superoperator(x, qubits, None), decomposed))
+        superoperator_list = [_moment_superoperator(x, qubits, None) for x in decomposed]
         if not any([x is None for x in superoperator_list]):
             superoperator_result = reduce(lambda x, y: x @ y, superoperator_list)
-            # superoperator_result = superoperator_list[0]
-            # for i in range(1, len(superoperator_list)):
-            #     superoperator_result = superoperator_result @ superoperator_list[i]
             return tuple(qis.superoperator_to_kraus(superoperator_result))
 
     if default is not RaiseTypeErrorIfNotProvided:
@@ -223,11 +220,12 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
         if operations is not None:
             return all(has_kraus(val) for val in operations)
 
-    # No has methods
     return False
 
 
-def _moment_superoperator(op, qubits, default):
+def _moment_superoperator(
+    op: Tuple[Optional[List['cirq.Operation']]], qubits: Sequence['cirq.Qid'], default: Any
+) -> Union[np.ndarray, TDefault]:
     superoperator_result = Moment(op).expand_to(qubits)._superoperator_()
     return superoperator_result if superoperator_result is not NotImplemented else default
 
@@ -244,6 +242,4 @@ def _gettr_helper(val: Any, gett_str_list: Sequence[str]):
         elif result is not None:
             return result
 
-    if notImplementedFlag:
-        return NotImplemented
-    return None
+    return NotImplemented if notImplementedFlag else None

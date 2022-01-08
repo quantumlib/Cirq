@@ -163,12 +163,10 @@ def test_serial_concatenation_default():
         def _mixture_(self):
             return None
 
-    # with pytest.raises(TypeError, match="returned NotImplemented."):
-    #     _ = cirq.kraus(onlyDecompose())
-    # x = cirq.kraus(onlyDecompose(), None)
-    # print(x)
-    assert not cirq.kraus(onlyDecompose(), 1) == 1
-    # assert not cirq.has_kraus(onlyDecompose())
+    with pytest.raises(TypeError, match="_unitary_ method."):
+        _ = cirq.kraus(onlyDecompose())
+    assert cirq.kraus(onlyDecompose(), 1) == 1
+    assert not cirq.has_kraus(onlyDecompose())
 
 
 def test_serial_concatenation_circuit():
