@@ -37,6 +37,23 @@ from cirq.transformers.analytical_decompositions.single_qubit_decompositions imp
     single_qubit_op_to_framed_phase_form,
 )
 
+from cirq.transformers.analytical_decompositions.three_qubit_decomposition import (
+    three_qubit_matrix_to_operations,
+)
+
+from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
+    two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_diagonal_and_operations,
+)
+
+from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
+    decompose_two_qubit_interaction_into_four_fsim_gates,
+)
+
+from cirq.transformers.analytical_decompositions.two_qubit_to_sqrt_iswap import (
+    two_qubit_matrix_to_sqrt_iswap_operations,
+)
+
 from cirq.transformers.analytical_decompositions.two_qubit_state_preparation import (
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,

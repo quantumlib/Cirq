@@ -1042,10 +1042,10 @@ q: ───Z───Z───Z───S───S───
 @pytest.mark.parametrize(
     'theta,exp',
     [
-        {sympy.Symbol("theta"), 1 / 2},
-        {np.pi / 2, 1 / 2},
-        {np.pi / 2, sympy.Symbol("exp")},
-        {sympy.Symbol("theta"), sympy.Symbol("exp")},
+        (sympy.Symbol("theta"), 1 / 2),
+        (np.pi / 2, 1 / 2),
+        (np.pi / 2, sympy.Symbol("exp")),
+        (sympy.Symbol("theta"), sympy.Symbol("exp")),
     ],
 )
 def test_rxyz_exponent(theta, exp):

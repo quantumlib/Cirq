@@ -14,10 +14,10 @@
 """Abstract base class for things sampling quantum circuits."""
 
 import abc
-from typing import List, Optional, TYPE_CHECKING, Union, Dict, FrozenSet, Tuple
-from typing import Sequence
+from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import pandas as pd
+
 from cirq import study, ops
 from cirq.work.observable_measurement import (
     measure_observables,
@@ -148,7 +148,7 @@ class Sampler(metaclass=abc.ABCMeta):
         program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> Sequence['cirq.Result']:
         """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -187,7 +187,7 @@ class Sampler(metaclass=abc.ABCMeta):
         program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> Sequence['cirq.Result']:
         """Asynchronously sweeps and samples from the given Circuit.
 
         By default, this method invokes `run_sweep` synchronously and simply
@@ -211,7 +211,7 @@ class Sampler(metaclass=abc.ABCMeta):
         programs: Sequence['cirq.AbstractCircuit'],
         params_list: Optional[List['cirq.Sweepable']] = None,
         repetitions: Union[int, List[int]] = 1,
-    ) -> List[List['cirq.Result']]:
+    ) -> Sequence[Sequence['cirq.Result']]:
         """Runs the supplied circuits.
 
         Each circuit provided in `programs` will pair with the optional
@@ -277,7 +277,7 @@ class Sampler(metaclass=abc.ABCMeta):
         num_samples: int,
         params: 'cirq.Sweepable' = None,
         permit_terminal_measurements: bool = False,
-    ) -> List[List[float]]:
+    ) -> Sequence[Sequence[float]]:
         """Calculates estimated expectation values from samples of a circuit.
 
         Please see also `cirq.work.measure_observables` for more control over how to measure

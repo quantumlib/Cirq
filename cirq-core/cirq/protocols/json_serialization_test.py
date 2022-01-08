@@ -537,11 +537,14 @@ def _list_public_classes_for_tested_modules():
     # to remove DeprecationWarning noise during test collection
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        return [
-            (mod_spec, o, n)
-            for mod_spec in MODULE_TEST_SPECS
-            for (o, n) in mod_spec.find_classes_that_should_serialize()
-        ]
+        return sorted(
+            (
+                (mod_spec, n, o)
+                for mod_spec in MODULE_TEST_SPECS
+                for (n, o) in mod_spec.find_classes_that_should_serialize()
+            ),
+            key=lambda mno: (str(mno[0]), mno[1]),
+        )
 
 
 @pytest.mark.parametrize(

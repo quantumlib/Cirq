@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class StabilizerSampler(sampler.Sampler):
         program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> Sequence['cirq.Result']:
         results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             resolved_circuit = cirq.resolve_parameters(program, param_resolver)

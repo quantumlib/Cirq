@@ -324,9 +324,7 @@ def collect_grid_parallel_two_qubit_xeb_data(
 
     # Generate and save all circuits
     max_cycles = max(cycles)
-    circuits_ = collections.defaultdict(
-        list
-    )  # type: Dict[GridInteractionLayer, List[cirq.Circuit]]
+    circuits_: Dict[GridInteractionLayer, List[cirq.Circuit]] = collections.defaultdict(list)
     for layer in layers:
         for i in range(num_circuits):
             circuit = random_rotations_between_grid_interaction_layers_circuit(
@@ -411,15 +409,15 @@ def compute_grid_parallel_two_qubit_xeb_results(
     layers = metadata.layers
 
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
-    all_active_qubit_pairs = []  # type: List[GridQubitPair]
+    all_active_qubit_pairs: List[GridQubitPair] = []
     qubit_indices = {q: i for i, q in enumerate(qubits)}
-    xeb_results = {}  # type: Dict[GridQubitPair, CrossEntropyResult]
+    xeb_results: Dict[GridQubitPair, CrossEntropyResult] = {}
 
     # Load data into a dictionary mapping qubit pair to list of
     # (circuit, measurement_results) tuples
-    data = collections.defaultdict(
-        list
-    )  # type: Dict[GridQubitPair, List[Tuple[cirq.Circuit, List[np.ndarray]]]]
+    data: Dict[
+        GridQubitPair, List[Tuple[cirq.Circuit, List[np.ndarray]]]
+    ] = collections.defaultdict(list)
     for layer in layers:
         active_qubit_pairs = [pair for pair in coupled_qubit_pairs if pair in layer]
         all_active_qubit_pairs.extend(active_qubit_pairs)
@@ -485,10 +483,10 @@ def _get_xeb_result(
     # coverage: ignore
     simulator = sim.Simulator()
     # Simulate circuits to get bitstring probabilities
-    all_and_observed_probabilities = collections.defaultdict(
-        list
-    )  # type: Dict[int, List[Tuple[np.ndarray, np.ndarray]]]
-    empirical_probabilities = collections.defaultdict(list)  # type: Dict[int, List[np.ndarray]]
+    all_and_observed_probabilities: Dict[
+        int, List[Tuple[np.ndarray, np.ndarray]]
+    ] = collections.defaultdict(list)
+    empirical_probabilities: Dict[int, List[np.ndarray]] = collections.defaultdict(list)
     for i, circuit in enumerate(circuits):
         step_results = simulator.simulate_moment_steps(circuit, qubit_order=qubit_pair)
         moment_index = 0
