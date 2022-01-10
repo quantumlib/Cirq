@@ -491,6 +491,3 @@ def two_qubit_gate_product_tabulation(
     return TwoQubitGateTabulation(
         base_gate, kak_vecs, sq_cycles, max_infidelity, summary, tuple(missed_points)
     )
-
-
-# pylint: enable=missing-raises-doc

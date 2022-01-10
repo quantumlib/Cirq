@@ -4,6 +4,7 @@ with a product A k A.
 
 Attention: this module is now deprecated! Use the classes from cirq-core instead."""
 import numpy as np
+from typing import cast
 
 import cirq
 from cirq import (
@@ -68,18 +69,13 @@ def gate_product_tabulation(
         ValueError: If `allow_missed_points` is False and not all points
             in the Weyl chamber were compilable using 2 or 3 base gates.
     """
-    result = two_qubit_gate_product_tabulation(
-        base_gate,
-        max_infidelity,
-        sample_scaling=sample_scaling,
-        allow_missed_points=allow_missed_points,
-        random_state=random_state,
-    )
-    return GateTabulation(
-        result.base_gate,
-        result.kak_vecs,
-        result.single_qubit_gates,
-        result.max_expected_infidelity,
-        result.summary,
-        tuple(result.missed_points),
+    return cast(
+        GateTabulation,
+        two_qubit_gate_product_tabulation(
+            base_gate,
+            max_infidelity,
+            sample_scaling=sample_scaling,
+            allow_missed_points=allow_missed_points,
+            random_state=random_state,
+        ),
     )
