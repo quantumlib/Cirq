@@ -47,7 +47,6 @@ TestSpec = ModuleJsonTestSpec(
         'DiagonalGate',
         'NeutralAtomDevice',
         'PauliInteractionGate',
-        'PauliStringPhasor',
         'PauliSum',
         'PauliSumCollector',
         'PauliSumExponential',
@@ -64,12 +63,14 @@ TestSpec = ModuleJsonTestSpec(
         'QuilFormatter',
         'QuilOutput',
         'SimulationTrialResult',
+        'SimulationTrialResultBase',
         'SparseSimulatorStep',
         'StateVectorMixin',
         'TextDiagramDrawer',
         'ThreeQubitDiagonalGate',
         'Timestamp',
         'TwoQubitDiagonalGate',
+        'TwoQubitGateTabulationResult',
         'UnitSweep',
         'StateVectorSimulatorState',
         'StateVectorTrialResult',
@@ -179,7 +180,7 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={},
+    deprecated={'GlobalPhaseOperation': 'v0.16'},
     tested_elsewhere=[
         # SerializableByKey does not follow common serialization rules.
         # It is tested separately in test_context_serialization.
