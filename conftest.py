@@ -15,6 +15,8 @@
 import os
 import random
 
+import pytest
+
 # allow CI execution of isolated_packages_test.py without numpy
 try:
     import numpy
@@ -45,6 +47,14 @@ def pytest_addoption(parser):
         default=False,
         help="run Rigetti integration tests",
     )
+
+
+@pytest.fixture
+def closefigures():
+    import matplotlib.pyplot as plt
+
+    yield
+    plt.close('all')
 
 
 # skip seeding for unset or empty CIRQ_TESTING_RANDOM_SEED
