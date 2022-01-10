@@ -3,8 +3,8 @@
 with a product A k A.
 
 Attention: this module is now deprecated! Use the classes from cirq-core instead."""
-import numpy as np
 from typing import cast
+import numpy as np
 
 import cirq
 from cirq import (
