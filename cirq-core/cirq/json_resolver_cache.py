@@ -155,6 +155,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'TaggedOperation': cirq.TaggedOperation,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
         'TrialResult': cirq.Result,  # keep support for Cirq < 0.11.
+        'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,

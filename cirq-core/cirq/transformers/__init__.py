@@ -35,6 +35,12 @@ from cirq.transformers.analytical_decompositions import (
     two_qubit_matrix_to_sqrt_iswap_operations,
 )
 
+from cirq.transformers.heuristic_decompositions import (
+    TwoQubitGateTabulation,
+    TwoQubitGateTabulationResult,
+    two_qubit_gate_product_tabulation,
+)
+
 from cirq.transformers.transformer_primitives import (
     map_moments,
     map_operations,
