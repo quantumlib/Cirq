@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os
 import numpy as np
 import pytest
 import sympy
+
+from unittest import mock
 
 import cirq
 import cirq_google as cg
@@ -32,12 +34,25 @@ def test_protobuf_round_trip():
     circuit = cirq.Circuit(
         [cirq.X(q) ** 0.5 for q in device.qubits],
         [cirq.CZ(q, q2) for q in [cirq.GridQubit(0, 0)] for q2 in device.neighbors_of(q)],
-        device=device,
     )
 
     protos = list(programs.circuit_as_schedule_to_protos(circuit))
-    s2 = programs.circuit_from_schedule_from_protos(device, protos)
+    s2 = programs.circuit_from_schedule_from_protos(protos)
     assert s2 == circuit
+
+
+def test_protobuf_round_trip_device_deprecated():
+    device = cg.Foxtail
+    circuit = cirq.Circuit(
+        [cirq.X(q) ** 0.5 for q in device.qubits],
+        [cirq.CZ(q, q2) for q in [cirq.GridQubit(0, 0)] for q2 in device.neighbors_of(q)],
+    )
+    circuit._device = device
+
+    protos = list(programs.circuit_as_schedule_to_protos(circuit))
+    with cirq.testing.assert_deprecated('no longer include a device', deadline='v0.15'):
+        s2 = programs.circuit_from_schedule_from_protos(device, protos)
+        assert s2 == circuit
 
 
 def make_bytes(s: str) -> bytes:

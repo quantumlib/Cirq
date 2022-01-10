@@ -839,7 +839,10 @@
               }
             ]
           }
-        ]
+        ],
+        "device": {
+          "cirq_type": "_UnconstrainedDevice"
+        }
       }
     },
     {

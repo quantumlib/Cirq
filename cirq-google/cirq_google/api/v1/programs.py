@@ -166,16 +166,28 @@ def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_
         yield op_proto
 
 
+@cirq._compat.deprecated_parameter(
+    deadline='v0.15',
+    fix='The returned circuit will no longer include a device object.',
+    parameter_desc='device',
+    match=lambda args, kwargs: 'device' in kwargs or len(args) > 1,
+)
 def circuit_from_schedule_from_protos(
-    device: 'cirq_google.XmonDevice',
-    ops: Iterable[operations_pb2.Operation],
+    *args
 ) -> cirq.Circuit:
-    """Convert protos into a Circuit for the given device."""
+    """Convert protos into a Circuit."""
+    if len(args) == 2:
+        device, ops = args[0], args[1]
+    else:
+        ops = args[0]
     result = []
     for op in ops:
         xmon_op = xmon_op_from_proto(op)
         result.append(xmon_op)
-    return cirq.Circuit(result, device=device)
+    ret = cirq.Circuit(result)
+    if len(args) == 2:
+        ret._device = device
+    return ret
 
 
 def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
