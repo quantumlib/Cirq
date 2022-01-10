@@ -168,7 +168,7 @@ def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_
 
 @cirq._compat.deprecated_parameter(
     deadline='v0.15',
-    fix='The returned circuit will no longer include a device object.',
+    fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,
     parameter_desc='device',
     match=lambda args, kwargs: 'device' in kwargs or len(args) > 1,
 )
