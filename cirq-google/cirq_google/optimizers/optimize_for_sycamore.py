@@ -111,6 +111,7 @@ def _gate_product_tabulation_cached(
     else:
         raise NotImplementedError(f"Gate tabulation not supported for {optimizer_type}")
 
+
 @cirq._compat.deprecated_parameter(
     deadline='v0.15',
     fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,

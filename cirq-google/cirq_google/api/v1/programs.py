@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import Any, cast, Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
+from typing import Any, cast, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
 import numpy as np
 import sympy
 
@@ -172,9 +172,7 @@ def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_
     parameter_desc='device',
     match=lambda args, kwargs: 'device' in kwargs or len(args) > 1,
 )
-def circuit_from_schedule_from_protos(
-    *args
-) -> cirq.Circuit:
+def circuit_from_schedule_from_protos(*args) -> cirq.Circuit:
     """Convert protos into a Circuit."""
     if len(args) == 2:
         device, ops = args[0], args[1]
