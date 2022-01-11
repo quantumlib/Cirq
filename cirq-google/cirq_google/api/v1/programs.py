@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import Any, cast, Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
+from typing import Any, cast, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
 import numpy as np
 import sympy
 
@@ -166,16 +166,26 @@ def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_
         yield op_proto
 
 
-def circuit_from_schedule_from_protos(
-    device: 'cirq_google.XmonDevice',
-    ops: Iterable[operations_pb2.Operation],
-) -> cirq.Circuit:
-    """Convert protos into a Circuit for the given device."""
+@cirq._compat.deprecated_parameter(
+    deadline='v0.15',
+    fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,
+    parameter_desc='device',
+    match=lambda args, kwargs: 'device' in kwargs or len(args) > 1,
+)
+def circuit_from_schedule_from_protos(*args) -> cirq.Circuit:
+    """Convert protos into a Circuit."""
+    if len(args) == 2:
+        device, ops = args[0], args[1]
+    else:
+        ops = args[0]
     result = []
     for op in ops:
         xmon_op = xmon_op_from_proto(op)
         result.append(xmon_op)
-    return cirq.Circuit(result, device=device)
+    ret = cirq.Circuit(result)
+    if len(args) == 2:
+        ret._device = device
+    return ret
 
 
 def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
