@@ -329,7 +329,7 @@ class SerializableGateSet(serializer.Serializer):
                 deserialized_constants=deserialized_constants,
             )
             if device is not None:
-                circuit._device = device
+                circuit._device = device # coverage: ignore
             return circuit
         if which == 'schedule':
             return self._deserialize_schedule(
@@ -503,7 +503,7 @@ class SerializableGateSet(serializer.Serializer):
     def _deserialize_schedule(
         self,
         schedule_proto: v2.program_pb2.Schedule,
-        device: cirq.Device,
+        device: Optional[cirq.Device],
         *,
         arg_function_language: str,
     ) -> cirq.Circuit:
