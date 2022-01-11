@@ -91,6 +91,7 @@ from cirq.devices import (
     NoiseModelFromNoiseProperties,
     NoiseProperties,
     OpIdentifier,
+    SuperconductingQubitsNoiseProperties,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
     NamedTopology,

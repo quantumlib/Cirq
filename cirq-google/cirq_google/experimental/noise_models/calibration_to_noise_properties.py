@@ -15,8 +15,8 @@
 from typing import Dict, Optional
 import cirq, cirq_google
 import numpy as np
-from cirq.devices.noise_properties import (
-    NoiseProperties,
+from cirq.devices.superconducting_qubits_noise_properties import (
+    SuperconductingQubitsNoiseProperties,
     SINGLE_QUBIT_GATES,
 )
 from cirq.devices.noise_utils import (
@@ -43,7 +43,9 @@ def _unpack_from_calibration(
     }
 
 
-def noise_properties_from_calibration(calibration: cirq_google.Calibration) -> NoiseProperties:
+def noise_properties_from_calibration(
+    calibration: cirq_google.Calibration,
+) -> SuperconductingQubitsNoiseProperties:
     """Translates between a Calibration object and a NoiseProperties object.
     The NoiseProperties object can then be used as input to the NoiseModelFromNoiseProperties
     class (cirq.devices.noise_properties) to create a NoiseModel that can be used with a simulator.
@@ -93,7 +95,7 @@ def noise_properties_from_calibration(calibration: cirq_google.Calibration) -> N
         for gate in SINGLE_QUBIT_GATES
     }
 
-    # TODO: 3a. Extract Pauli error for two-qubit gates.
+    # 3b. Extract Pauli error for two-qubit gates.
 
     # 4. Extract readout fidelity for all qubits.
     p00 = _unpack_from_calibration('single_qubit_p00_error', calibration)
@@ -104,7 +106,7 @@ def noise_properties_from_calibration(calibration: cirq_google.Calibration) -> N
 
     # TODO: include entangling errors.
 
-    return NoiseProperties(
+    return SuperconductingQubitsNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns=t1_ns,
         tphi_ns=tphi_ns,

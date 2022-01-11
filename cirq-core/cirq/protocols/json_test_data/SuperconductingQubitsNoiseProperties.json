@@ -1,5 +1,5 @@
 {
-  "cirq_type": "NoiseProperties",
+  "cirq_type": "SuperconductingQubitsNoiseProperties",
   "gate_times_ns": [
     [
       "CZPowGate",

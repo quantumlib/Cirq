@@ -1,4 +1,4 @@
-cirq.NoiseProperties(
+cirq.SuperconductingQubitsNoiseProperties(
     gate_times_ns={
         cirq.ops.common_gates.ZPowGate: 25.0,
         cirq.ops.measurement_gate.MeasurementGate: 4000.0,
