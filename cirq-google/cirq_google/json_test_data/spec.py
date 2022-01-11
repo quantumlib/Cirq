@@ -78,5 +78,7 @@ TestSpec = ModuleJsonTestSpec(
         'cirq.google.ExecutableGroupResult',
     ],
     resolver_cache=_class_resolver_dictionary(),
-    deprecated={},
+    deprecated={
+        'GateTabulation': 'v0.16',
+    },
 )
