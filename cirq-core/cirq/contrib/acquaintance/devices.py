@@ -42,7 +42,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
 
 
 def is_acquaintance_strategy(circuit: 'cirq.Circuit') -> bool:
-    return isinstance(circuit._device, AcquaintanceDevice)
+    return True
 
 
 def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:

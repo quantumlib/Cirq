@@ -77,7 +77,6 @@ class StrategyExecutor(circuits.PointOptimizer):
         if not is_acquaintance_strategy(strategy):
             raise TypeError('not is_acquaintance_strategy(strategy)')
         expose_acquaintance_gates(strategy)
-        strategy.device = self.execution_strategy.device
         super().optimize_circuit(strategy)
         return self.mapping.copy()
 

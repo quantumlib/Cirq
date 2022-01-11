@@ -30,9 +30,7 @@ class QasmLexer:
         'qreg': 'QREG',
         'creg': 'CREG',
         'measure': 'MEASURE',
-        'if': 'IF',
         '->': 'ARROW',
-        '!=': 'NE',
     }
 
     tokens = [
@@ -100,16 +98,8 @@ class QasmLexer:
         r"""measure"""
         return t
 
-    def t_IF(self, t):
-        r"""if"""
-        return t
-
     def t_ARROW(self, t):
         """->"""
-        return t
-
-    def t_NE(self, t):
-        """!="""
         return t
 
     def t_ID(self, t):
