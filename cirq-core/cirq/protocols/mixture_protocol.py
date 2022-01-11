@@ -18,7 +18,8 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.protocols import has_unitary_protocol, unitary_protocol, decompose_protocol
+from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+from cirq.protocols.has_unitary_protocol import has_unitary
 from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the inverse method to determine
@@ -85,39 +86,20 @@ def mixture(
             does and this method returned `NotImplemented`.
     """
 
-    mixture_result = _gettr_helper(val, ['_mixture_'])
-    if mixture_result is not None and mixture_result is not NotImplemented:
-        return mixture_result
+    mixture_getter = getattr(val, '_mixture_', None)
+    result = NotImplemented if mixture_getter is None else mixture_getter()
+    if result is not NotImplemented:
+        return result
 
-    unitary_result = unitary_protocol.unitary(val, None)
-    if unitary_result is not None and unitary_result is not NotImplemented:
-        return ((1.0, unitary_result),)
-
-    decomposed, qubits, _ = decompose_protocol._try_decompose_into_operations_and_qubits(val)
-
-    # serial concatenation
-    if decomposed is not None and decomposed != [val]:
-        limit = (4 ** np.prod(len(qubits))) ** 2
-
-        mixture_list = list(map(lambda x: _mixture_tensor(x, qubits, default), decomposed))
-        if not any([_check_equality(x, default) for x in mixture_list]):
-            mixture_result = mixture_list[0]
-            for i in range(1, len(mixture_list)):
-                mixture_result = [
-                    _product_mixture_pair(op_1, op_2)
-                    for op_1 in mixture_result
-                    for op_2 in mixture_list[i]
-                ]
-                assert (
-                    len(mixture_result) < limit
-                ), f"{val} mixture decomposition had combinatorial explosion."
-            else:
-                return tuple(mixture_result)
+    unitary_getter = getattr(val, '_unitary_', None)
+    result = NotImplemented if unitary_getter is None else unitary_getter()
+    if result is not NotImplemented:
+        return ((1.0, result),)
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if _gettr_helper(val, ['_unitary_', '_mixture_']) is None:
+    if mixture_getter is None and unitary_getter is None:
         raise TypeError(f"object of type '{type(val)}' has no _mixture_ or _unitary_ method.")
 
     raise TypeError(
@@ -145,19 +127,21 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
         has a `_mixture_` method return True if that has a non-default value.
         Returns False if neither function exists.
     """
-    result = _gettr_helper(val, ['_has_mixture_', '_mixture_'])
-    if result is not None and result is not NotImplemented and result:
-        return True
+    mixture_getter = getattr(val, '_has_mixture_', None)
+    result = NotImplemented if mixture_getter is None else mixture_getter()
+    if result is not NotImplemented:
+        return result
 
-    if has_unitary_protocol.has_unitary(val, allow_decompose=False):
+    if has_unitary(val, allow_decompose=False):
         return True
 
     if allow_decompose:
-        operations, _, _ = decompose_protocol._try_decompose_into_operations_and_qubits(val)
+        operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
             return all(has_mixture(val) for val in operations)
 
-    return False
+    # No _has_mixture_ or _has_unitary_ function, use _mixture_ instead.
+    return mixture(val, None) is not None
 
 
 def validate_mixture(supports_mixture: SupportsMixture):
@@ -177,68 +161,4 @@ def validate_mixture(supports_mixture: SupportsMixture):
         validate_probability(p, f"{val}'s probability")
         total += p
     if not np.isclose(total, 1.0):
-        raise ValueError("Sum of probabilities of a mixture was not 1.0")
-
-
-def _check_equality(x, y):
-    if type(x) != type(y):
-        return False
-    if type(x) not in [list, tuple, np.ndarray]:
-        return x == y
-    if type(x) == np.ndarray:
-        return x.shape == y.shape and np.all(x == y)
-    return False if len(x) != len(y) else all([_check_equality(a, b) for a, b in zip(x, y)])
-
-
-def _tensor_mixture_pair(x, y):
-    p_new = x[0] * y[0]
-    mat_new = np.kron(x[1], y[1])
-    return (p_new, mat_new)
-
-
-def _product_mixture_pair(x, y):
-    p_new = x[0] * y[0]
-    mat_new = y[1].dot(x[1])
-    return (p_new, mat_new)
-
-
-def _mixture_tensor(op, qubits, default):
-    mixture_list = mixture(op, default)
-    if _check_equality(mixture_list, default):
-        return default
-
-    val = None
-    op_q = op.qubits
-    found = False
-    for i in range(len(qubits)):
-        if qubits[i] in op_q:
-            if not found:
-                found = True
-                if val is None:
-                    val = mixture_list
-                else:
-                    val = tuple([_tensor_mixture_pair(x, y) for x in val for y in mixture_list])
-
-        elif val is None:
-            val = ((1, np.identity(2)),)
-        else:
-            val = tuple([_tensor_mixture_pair(x, (1, np.identity(2))) for x in val])
-
-    return val
-
-
-def _gettr_helper(val: Any, gett_str_list: Sequence[str]):
-    notImplementedFlag = False
-    for gettr_str in gett_str_list:
-        gettr = getattr(val, gettr_str, None)
-        if gettr is None:
-            continue
-        result = gettr()
-        if result is NotImplemented:
-            notImplementedFlag = True
-        elif result is not None:
-            return result
-
-    if notImplementedFlag:
-        return NotImplemented
-    return None
+        raise ValueError('Sum of probabilities of a mixture was not 1.0')

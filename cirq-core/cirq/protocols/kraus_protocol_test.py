@@ -148,7 +148,7 @@ def test_serial_concatenation_default():
             return NotImplemented
 
         def _unitary_(self):
-            return None
+            return NotImplemented
 
         def _mixture_(self):
             return NotImplemented
@@ -158,10 +158,10 @@ def test_serial_concatenation_default():
             return [cirq.Y.on(q1), defaultGate().on(q1)]
 
         def _unitary_(self):
-            return None
+            return NotImplemented
 
         def _mixture_(self):
-            return None
+            return NotImplemented
 
     with pytest.raises(TypeError, match="_unitary_ method."):
         _ = cirq.kraus(onlyDecompose())
@@ -180,22 +180,16 @@ def test_serial_concatenation_circuit():
         def _kraus_(self):
             return cirq.kraus(cirq.X)
 
-        def _unitary_(self):
-            return None
-
-        def _mixture_(self):
-            return NotImplemented
-
     class onlyDecompose:
         def _decompose_(self):
             circ = cirq.Circuit([cirq.Y.on(q1), defaultGate().on(q2)])
             return cirq.decompose(circ)
 
         def _unitary_(self):
-            return None
+            return NotImplemented
 
         def _mixture_(self):
-            return None
+            return NotImplemented
 
     g = onlyDecompose()
     c = cirq.kraus_to_superoperator((cirq.unitary(cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)])),))
