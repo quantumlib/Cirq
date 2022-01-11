@@ -14,7 +14,7 @@
 
 """Protocol and methods for obtaining Kraus representation of quantum channels."""
 
-from typing import Any, Sequence, Tuple, TypeVar, Union, Optional, List
+from typing import Any, Sequence, Tuple, TypeVar, Union, TYPE_CHECKING
 import numpy as np
 from typing_extensions import Protocol
 from functools import reduce
@@ -26,6 +26,9 @@ from cirq.type_workarounds import NotImplementedType
 
 from cirq import qis
 from cirq.ops import Moment
+
+if TYPE_CHECKING:
+    import cirq
 
 
 # This is a special indicator value used by the channel method to determine
@@ -224,7 +227,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
 
 
 def _moment_superoperator(
-    op: Tuple[Optional[List['cirq.Operation']]], qubits: Sequence['cirq.Qid'], default: Any
+    op: Union['cirq.Operation'], qubits: Sequence['cirq.Qid'], default: Any
 ) -> Union[np.ndarray, TDefault]:
     superoperator_result = Moment(op).expand_to(qubits)._superoperator_()
     return superoperator_result if superoperator_result is not NotImplemented else default
