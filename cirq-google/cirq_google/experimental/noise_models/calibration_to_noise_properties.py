@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 import cirq, cirq_google
 import numpy as np
 from cirq.devices.superconducting_qubits_noise_properties import (
@@ -31,7 +31,7 @@ def _within_tolerance(val_1: Optional[float], val_2: Optional[float], tolerance:
     return abs(val_1 - val_2) <= tolerance
 
 
-def _unpack_from_calibration(
+def _unpack_1q_from_calibration(
     metric_name: str, calibration: cirq_google.Calibration
 ) -> Dict[cirq.Qid, float]:
     """Converts a single-qubit metric from Calibration to dict format."""
@@ -39,6 +39,18 @@ def _unpack_from_calibration(
         return {}
     return {
         cirq_google.Calibration.key_to_qubit(key): cirq_google.Calibration.value_to_float(val)
+        for key, val in calibration[metric_name].items()
+    }
+
+
+def _unpack_2q_from_calibration(
+    metric_name: str, calibration: cirq_google.Calibration
+) -> Dict[Tuple[cirq.Qid, ...], float]:
+    """Converts a two-qubit metric from Calibration to dict format."""
+    if metric_name not in calibration:
+        return {}
+    return {
+        cirq_google.Calibration.key_to_qubits(key): cirq_google.Calibration.value_to_float(val)
         for key, val in calibration[metric_name].items()
     }
 
@@ -69,11 +81,11 @@ def noise_properties_from_calibration(
 
     # Unpack all values from Calibration object
     # 1. Extract T1 for all qubits
-    T1_micros = _unpack_from_calibration('single_qubit_idle_t1_micros', calibration)
+    T1_micros = _unpack_1q_from_calibration('single_qubit_idle_t1_micros', calibration)
     t1_ns = {q: T1_micro * 1000 for q, T1_micro in T1_micros.items()}
 
     # 2. Extract Tphi for all qubits
-    rb_incoherent_errors = _unpack_from_calibration(
+    rb_incoherent_errors = _unpack_1q_from_calibration(
         'single_qubit_rb_incoherent_error_per_gate', calibration
     )
     tphi_ns = {}
@@ -88,7 +100,7 @@ def noise_properties_from_calibration(
             tphi_ns[qubit] = q_tphi_ns
 
     # 3a. Extract Pauli error for single-qubit gates.
-    rb_pauli_errors = _unpack_from_calibration('single_qubit_rb_pauli_error_per_gate', calibration)
+    rb_pauli_errors = _unpack_1q_from_calibration('single_qubit_rb_pauli_error_per_gate', calibration)
     gate_pauli_errors = {
         OpIdentifier(gate, q): pauli_err
         for q, pauli_err in rb_pauli_errors.items()
@@ -96,15 +108,28 @@ def noise_properties_from_calibration(
     }
 
     # 3b. Extract Pauli error for two-qubit gates.
+    tq_iswap_pauli_error = _unpack_2q_from_calibration(
+        'two_qubit_parallel_sqrt_iswap_gate_xeb_pauli_error_per_cycle', calibration
+    )
+    gate_pauli_errors.update(
+        {
+            k: v
+            for qs, pauli_err in tq_iswap_pauli_error.items()
+            for k, v in {
+                OpIdentifier(cirq.ISwapPowGate, *qs): pauli_err,
+                OpIdentifier(cirq.ISwapPowGate, *qs[::-1]): pauli_err,
+            }.items()
+        }
+    )
 
     # 4. Extract readout fidelity for all qubits.
-    p00 = _unpack_from_calibration('single_qubit_p00_error', calibration)
-    p11 = _unpack_from_calibration('single_qubit_p11_error', calibration)
+    p00 = _unpack_1q_from_calibration('single_qubit_p00_error', calibration)
+    p11 = _unpack_1q_from_calibration('single_qubit_p11_error', calibration)
     ro_fidelities = {
         q: np.array([p00.get(q, 0), p11.get(q, 0)]) for q in set(p00.keys()) | set(p11.keys())
     }
 
-    # TODO: include entangling errors.
+    # TODO: include entangling errors, and account for them in Pauli error.
 
     return SuperconductingQubitsNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,

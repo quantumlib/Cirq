@@ -32,6 +32,8 @@ def test_noise_properties_from_calibration():
     p00_error = [0.004, 0.005, 0.006]
     p11_error = [0.007, 0.008, 0.009]
     t1_micros = [10, 20, 30]
+    syc_pauli = [0.01, 0.02]
+    iswap_pauli = [0.03, 0.04]
 
     _CALIBRATION_DATA = Merge(
         f"""
@@ -126,6 +128,30 @@ def test_noise_properties_from_calibration():
         values: [{{
             double_val: {t1_micros[2]}
         }}]
+    }}, {{
+        name: 'two_qubit_parallel_sycamore_gate_xeb_pauli_error_per_cycle',
+        targets: ['0_0', '0_1'],
+        values: [{{
+            double_val: {syc_pauli[0]}
+        }}]
+    }}, {{
+        name: 'two_qubit_parallel_sycamore_gate_xeb_pauli_error_per_cycle',
+        targets: ['0_0', '1_0'],
+        values: [{{
+            double_val: {syc_pauli[1]}
+        }}]
+    }}, {{
+        name: 'two_qubit_parallel_sqrt_iswap_gate_xeb_pauli_error_per_cycle',
+        targets: ['0_0', '0_1'],
+        values: [{{
+            double_val: {iswap_pauli[0]}
+        }}]
+    }}, {{
+        name: 'two_qubit_parallel_sqrt_iswap_gate_xeb_pauli_error_per_cycle',
+        targets: ['0_0', '1_0'],
+        values: [{{
+            double_val: {iswap_pauli[1]}
+        }}]
     }}]
 """,
         v2.metrics_pb2.MetricsSnapshot(),
@@ -149,6 +175,15 @@ def test_noise_properties_from_calibration():
         else:
             tphi_ns = 1e10
         assert prop.tphi_ns[q] == tphi_ns
+
+    qubit_pairs = [(qubits[0], qubits[1]), (qubits[0], qubits[2])]
+    for i, qs in enumerate(qubit_pairs):
+        assert np.isclose(
+            prop.gate_pauli_errors[OpIdentifier(cirq.ISwapPowGate, *qs)], iswap_pauli[i]
+        )
+        assert np.isclose(
+            prop.gate_pauli_errors[OpIdentifier(cirq.ISwapPowGate, *qs[::-1])], iswap_pauli[i]
+        )
 
 
 def test_incomplete_calibration():
