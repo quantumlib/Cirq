@@ -440,7 +440,7 @@ class SimulationTrialResultBase(
     def _get_substates(self) -> Sequence[TActOnArgs]:
         state = self._final_step_result_typed._sim_state
         if isinstance(state, ActOnArgsContainer):
-            substates = dict()  # type: Dict[TActOnArgs, int]
+            substates: Dict[TActOnArgs, int] = {}
             for q in state.qubits:
                 substates[self.get_state_containing_qubit(q)] = 0
             substates[state[None]] = 0

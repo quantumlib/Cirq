@@ -42,8 +42,8 @@ def _parse_device(s: str) -> Tuple[List[cirq.GridQubit], Dict[str, Set[cirq.Grid
         on that measurement line.
     """
     lines = s.strip().split('\n')
-    qubits = []  # type: List[cirq.GridQubit]
-    measurement_lines = {}  # type: Dict[str, Set[cirq.GridQubit]]
+    qubits: List[cirq.GridQubit] = []
+    measurement_lines: Dict[str, Set[cirq.GridQubit]] = {}
     for row, line in enumerate(lines):
         for col, c in enumerate(line.strip()):
             if c != '-':

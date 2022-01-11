@@ -18,10 +18,10 @@
 class InsertStrategy:
     """Indicates preferences on how to add multiple operations to a circuit."""
 
-    NEW = None  # type: InsertStrategy
-    NEW_THEN_INLINE = None  # type: InsertStrategy
-    INLINE = None  # type: InsertStrategy
-    EARLIEST = None  # type: InsertStrategy
+    NEW: 'InsertStrategy'
+    NEW_THEN_INLINE: 'InsertStrategy'
+    INLINE: 'InsertStrategy'
+    EARLIEST: 'InsertStrategy'
 
     def __init__(self, name: str, doc: str):
         self.name = name
