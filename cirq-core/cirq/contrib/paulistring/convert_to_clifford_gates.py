@@ -16,7 +16,7 @@ from typing import Optional, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, protocols, optimizers, linalg
+from cirq import ops, protocols, transformers, linalg
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -67,7 +67,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         return ops.SingleQubitCliffordGate.I
 
     def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: 'cirq.Qid') -> Optional[ops.Operation]:
-        rotations = optimizers.single_qubit_matrix_to_pauli_rotations(mat, self.atol)
+        rotations = transformers.single_qubit_matrix_to_pauli_rotations(mat, self.atol)
         clifford_gate = ops.SingleQubitCliffordGate.I
         for pauli, half_turns in rotations:
             if linalg.all_near_zero_mod(half_turns, 0.5):
