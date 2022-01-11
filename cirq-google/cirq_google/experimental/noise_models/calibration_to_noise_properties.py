@@ -100,7 +100,9 @@ def noise_properties_from_calibration(
             tphi_ns[qubit] = q_tphi_ns
 
     # 3a. Extract Pauli error for single-qubit gates.
-    rb_pauli_errors = _unpack_1q_from_calibration('single_qubit_rb_pauli_error_per_gate', calibration)
+    rb_pauli_errors = _unpack_1q_from_calibration(
+        'single_qubit_rb_pauli_error_per_gate', calibration
+    )
     gate_pauli_errors = {
         OpIdentifier(gate, q): pauli_err
         for q, pauli_err in rb_pauli_errors.items()
