@@ -329,7 +329,7 @@ class SerializableGateSet(serializer.Serializer):
                 deserialized_constants=deserialized_constants,
             )
             if device is not None:
-                circuit._device = device # coverage: ignore
+                circuit._device = device  # coverage: ignore
             return circuit
         if which == 'schedule':
             return self._deserialize_schedule(
