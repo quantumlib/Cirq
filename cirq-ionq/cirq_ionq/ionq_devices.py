@@ -118,7 +118,7 @@ class IonQAPIDevice(cirq.Device):
         for op in temp.all_operations():
             if op.gate is None:
                 raise ValueError(
-                        f'Operation {op} is not representable as a gate.'
+                    f'Operation {op} is not representable as a gate.'
                 )  # coverage: ignore
             if type(op.gate) == cirq.ops.phased_x_gate.PhasedXPowGate:
                 gate = cast(cirq.ops.phased_x_gate.PhasedXPowGate, op.gate)
