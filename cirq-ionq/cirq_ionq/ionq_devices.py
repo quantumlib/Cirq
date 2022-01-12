@@ -15,8 +15,6 @@
 
 from typing import AbstractSet, cast, Sequence, Union
 
-import numpy as np
-
 import cirq
 
 
