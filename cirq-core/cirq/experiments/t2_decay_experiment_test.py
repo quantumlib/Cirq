@@ -55,6 +55,7 @@ def test_init_t2_decay_result():
         cirq.experiments.T2DecayResult(x_data, bad_data)
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_plot_does_not_raise_error():
     class _TimeDependentDecay(cirq.NoiseModel):
         def noisy_moment(self, moment, system_qubits):
