@@ -45,7 +45,7 @@ from cirq.transformers.transformer_api import (
     LogLevel,
     TRANSFORMER_TYPE,
     TransformerContext,
-    TransformerStatsLoggerBase,
+    TransformerStatsLogger,
     transformer,
 )
 

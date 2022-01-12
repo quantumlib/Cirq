@@ -111,7 +111,7 @@ TestSpec = ModuleJsonTestSpec(
         'PointOptimizer',
         'SynchronizeTerminalMeasurements',
         # Transformers
-        'TransformerStatsLoggerBase',
+        'TransformerStatsLogger',
         'TransformerContext',
         # global objects
         'CONTROL_TAG',

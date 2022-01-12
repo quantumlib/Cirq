@@ -25,23 +25,35 @@ from typing import (
     cast,
     Type,
     overload,
+    TYPE_CHECKING,
 )
 import dataclasses
 import enum
 
 from cirq.circuits.circuit import CIRCUIT_TYPE
-from cirq.circuits import circuit, frozen_circuit
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class LogLevel(enum.Enum):
-    """Different logging resolution options for `TransformerStatsLogger`."""
+    """Different logging resolution options for `TransformerStatsLogger`.
 
-    INFO = 1
-    VERBOSE = 2
+    Args:
+        ALL:     All levels.
+        WARNING: Designates unwanted or potentially harmful situations.
+        INFO:    Designates informational messages that highlight the actions of a transformer.
+        VERBOSE: Designates fine-grained informational events that are most useful to debug /
+                 understand in-depth any unexpected behavior of the transformer.
+    """
+
+    ALL = 0
+    VERBOSE = 1
+    INFO = 2
     WARNING = 3
 
 
-class TransformerStatsLoggerBase:
+class TransformerStatsLogger:
     """Abstract Base Class for transformer logging infrastructure.
 
     The logger implementation should be stateful, s.t.:
@@ -92,23 +104,31 @@ class TransformerStatsLoggerBase:
 
 @dataclasses.dataclass()
 class TransformerContext:
-    """Stores common configurable options for transformers."""
+    """Stores common configurable options for transformers.
+    Args:
+        logger: `TransformerStatsLogger` instance, which is a stateful logger used for logging the
+                actions of individual transformer stages. The same logger instance should be shared
+                across different transformer calls.
+        ignore_tags: Tuple of tags which should be ignored while applying transformations on a
+                circuit. Transformers should not transform any operation marked with a tag that
+                belongs to this tuple. Note that any instance of a Hashable type (like `str`,
+                `cirq.VirtualTag` etc.) is a valid tag.
+    """
 
-    logger: Optional[TransformerStatsLoggerBase] = None
+    logger: Optional[TransformerStatsLogger] = None
     ignore_tags: Tuple[Hashable, ...] = ()
-    max_parallelism: int = 1
 
 
 TRANSFORMER_TYPE = Callable[[CIRCUIT_TYPE, TransformerContext], CIRCUIT_TYPE]
 TRANSFORMER_TYPE_T = TypeVar(
     'TRANSFORMER_TYPE_T',
-    TRANSFORMER_TYPE[circuit.Circuit],
-    TRANSFORMER_TYPE[frozen_circuit.FrozenCircuit],
+    TRANSFORMER_TYPE['cirq.Circuit'],
+    TRANSFORMER_TYPE['cirq.FrozenCircuit'],
 )
 TRANSFORMER_CLS_TYPE = TypeVar(
     'TRANSFORMER_CLS_TYPE',
-    Type[TRANSFORMER_TYPE[frozen_circuit.FrozenCircuit]],
-    Type[TRANSFORMER_TYPE[circuit.Circuit]],
+    Type[TRANSFORMER_TYPE['cirq.FrozenCircuit']],
+    Type[TRANSFORMER_TYPE['cirq.Circuit']],
 )
 
 
@@ -162,7 +182,9 @@ def transformer_class(cls: TRANSFORMER_CLS_TYPE) -> TRANSFORMER_CLS_TYPE:
     >>> class ConvertToSqrtISwaps:
     >>>    def __init__(self):
     >>>        ...
-    >>>    def __call__(circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
+    >>>    def __call__(
+    >>>        self, circuit: cirq.Circuit, context: cirq.TransformerContext
+    >>>    ) -> cirq.Circuit:
     >>>        ...
 
     Args:
@@ -189,10 +211,10 @@ def transformer_class(cls: TRANSFORMER_CLS_TYPE) -> TRANSFORMER_CLS_TYPE:
 
 TRANSFORMER_UNION_TYPE = TypeVar(
     'TRANSFORMER_UNION_TYPE',
-    TRANSFORMER_TYPE[frozen_circuit.FrozenCircuit],
-    TRANSFORMER_TYPE[circuit.Circuit],
-    Type[TRANSFORMER_TYPE[frozen_circuit.FrozenCircuit]],
-    Type[TRANSFORMER_TYPE[circuit.Circuit]],
+    TRANSFORMER_TYPE['cirq.FrozenCircuit'],
+    TRANSFORMER_TYPE['cirq.Circuit'],
+    Type[TRANSFORMER_TYPE['cirq.FrozenCircuit']],
+    Type[TRANSFORMER_TYPE['cirq.Circuit']],
 )
 
 

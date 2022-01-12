@@ -365,7 +365,7 @@ from cirq.transformers import (
     single_qubit_op_to_framed_phase_form,
     TRANSFORMER_TYPE,
     TransformerContext,
-    TransformerStatsLoggerBase,
+    TransformerStatsLogger,
     three_qubit_matrix_to_operations,
     transformer,
     two_qubit_matrix_to_diagonal_and_operations,

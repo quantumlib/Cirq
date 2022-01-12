@@ -85,7 +85,7 @@ def mock_transformer_method_generic(
     'context',
     [
         cirq.TransformerContext(),
-        cirq.TransformerContext(logger=mock.Mock(), ignore_tags=('tag',), max_parallelism=5),
+        cirq.TransformerContext(logger=mock.Mock(), ignore_tags=('tag',)),
     ],
 )
 @pytest.mark.parametrize(
