@@ -14,7 +14,7 @@
 """A helper for jobs that have been created on the Quantum Engine."""
 
 import abc
-from typing import Dict, Iterator, List, Optional, overload, Tuple, TYPE_CHECKING
+from typing import Dict, Iterator, List, Optional, overload, Sequence, Tuple, TYPE_CHECKING
 
 import cirq
 from cirq_google.engine.client import quantum
@@ -161,7 +161,7 @@ class AbstractJob(abc.ABC):
         """Deletes the job and result, if any."""
 
     @abc.abstractmethod
-    def batched_results(self) -> List[List[cirq.Result]]:
+    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
@@ -170,11 +170,11 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def results(self) -> List[cirq.Result]:
+    def results(self) -> Sequence[cirq.Result]:
         """Returns the job results, blocking until the job is complete."""
 
     @abc.abstractmethod
-    def calibration_results(self) -> List['calibration_result.CalibrationResult']:
+    def calibration_results(self) -> Sequence['calibration_result.CalibrationResult']:
         """Returns the results of a run_calibration() call.
 
         This function will fail if any other type of results were returned.
@@ -189,7 +189,7 @@ class AbstractJob(abc.ABC):
         pass
 
     @overload
-    def __getitem__(self, item: slice) -> List[cirq.Result]:
+    def __getitem__(self, item: slice) -> Sequence[cirq.Result]:
         pass
 
     def __getitem__(self, item):

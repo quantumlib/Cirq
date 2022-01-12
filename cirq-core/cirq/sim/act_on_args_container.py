@@ -118,8 +118,9 @@ class ActOnArgsContainer(
         protocols.act_on(action, op_args, act_on_qubits, allow_decompose=allow_decompose)
 
         # Decouple any measurements or resets
-        if self.split_untangled_states and isinstance(
-            gate, (ops.MeasurementGate, ops.ResetChannel)
+        if self.split_untangled_states and (
+            isinstance(gate, ops.ResetChannel)
+            or (isinstance(gate, ops.MeasurementGate) and not op_args.ignore_measurement_results)
         ):
             for q in qubits:
                 q_args, op_args = op_args.factor((q,), validate=False)
