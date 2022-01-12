@@ -134,7 +134,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             warnings.warn(
                 (
                     'A new parameter reuse_buffer has been added to ActOnArgs._on_copy(). '
-                    'The classes that inherit from ActOnArgs should support it before Cirq 0.25.'
+                    'The classes that inherit from ActOnArgs should support it before Cirq 0.15.'
                 ),
                 DeprecationWarning,
             )

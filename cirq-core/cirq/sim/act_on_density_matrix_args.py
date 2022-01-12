@@ -65,6 +65,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 will treat measurement as dephasing instead of collapsing
                 process. This is only applicable to simulators that can
                 model dephasing.
+
+        Raises:
+            ValueError: The dimension of `target_tensor` is not divisible by 2
+                and `qid_shape` is not provided.
         """
         super().__init__(prng, qubits, log_of_measurement_results, ignore_measurement_results)
         self.target_tensor = target_tensor
@@ -74,7 +78,11 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             self.available_buffer = available_buffer
         if qid_shape is None:
             target_shape = target_tensor.shape
-            assert len(target_shape) % 2 == 0
+            if len(target_shape) % 2 != 0:
+                raise ValueError(
+                    'The dimension of target_tensor is not divisible by 2.'
+                    ' Require explicit qid_shape.'
+                )
             self.qid_shape = target_shape[: len(target_shape) // 2]
         else:
             self.qid_shape = qid_shape

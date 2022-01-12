@@ -31,6 +31,12 @@ def test_default_parameter():
     assert args.qid_shape == qid_shape
 
 
+def test_default_parameter_error():
+    tensor = np.ndarray(shape=(2,))
+    with pytest.raises(ValueError, match='The dimension of target_tensor is not divisible by 2'):
+        cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
+
+
 def test_decomposed_fallback():
     class Composite(cirq.Gate):
         def num_qubits(self) -> int:

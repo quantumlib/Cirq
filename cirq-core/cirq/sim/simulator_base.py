@@ -279,7 +279,7 @@ class SimulatorBase(
                 warnings.warn(
                     (
                         'A new parameter reuse_buffer has been added to ActOnArgs.copy(). The '
-                        'classes that inherit from ActOnArgs should support it before Cirq 0.25.'
+                        'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
                     ),
                     DeprecationWarning,
                 )
