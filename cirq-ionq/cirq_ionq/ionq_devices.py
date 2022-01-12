@@ -13,7 +13,7 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
-from typing import AbstractSet, Sequence, Union
+from typing import AbstractSet, cast, Sequence, Union
 
 import numpy as np
 
@@ -116,10 +116,14 @@ class IonQAPIDevice(cirq.Device):
             else:
                 temp.append(op)
         cirq.optimizers.merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(temp)
+        # A final pass breaks up PhasedXPow into Rz, Rx.
         for op in temp.all_operations():
+            if op.gate is None:
+                raise ValueError(f'Operation {op} is not representable as a gate.')
             if type(op.gate) == cirq.ops.phased_x_gate.PhasedXPowGate:
-                yield cirq.ZPowGate(exponent=-op.gate.phase_exponent).on(op.qubits[0])
-                yield cirq.XPowGate(exponent=op.gate.exponent).on(op.qubits[0])
-                yield cirq.ZPowGate(exponent=op.gate.phase_exponent).on(op.qubits[0])
+                gate = cast(cirq.ops.phased_x_gate.PhasedXPowGate, op.gate)
+                yield cirq.ZPowGate(exponent=-gate.phase_exponent).on(op.qubits[0])
+                yield cirq.XPowGate(exponent=gate.exponent).on(op.qubits[0])
+                yield cirq.ZPowGate(exponent=gate.phase_exponent).on(op.qubits[0])
             else:
                 yield op
