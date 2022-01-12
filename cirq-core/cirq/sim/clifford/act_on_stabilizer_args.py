@@ -18,7 +18,7 @@ from typing import Any, Sequence, TYPE_CHECKING, Union
 import numpy as np
 
 from cirq import ops, protocols, linalg
-from cirq.ops import common_gates, matrix_gates, global_phase_op
+from cirq.ops import common_gates, global_phase_op, matrix_gates, swap_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.act_on_args import ActOnArgs
@@ -40,9 +40,9 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
         strats = [
             self._strat_apply_gate,
             self._strat_apply_mixture,
-            self._strat_decompose,
         ]
         if allow_decompose:
+            strats.append(self._strat_decompose)
             strats.append(self._strat_act_from_single_qubit_decompose)
         for strat in strats:
             result = strat(action, qubits)  # type: ignore
@@ -80,6 +80,15 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
     def _global_phase(self, g: global_phase_op.GlobalPhaseGate):
         """Apply global phase"""
 
+    def _swap(self, g: swap_gates.SwapPowGate, axis1: int, axis2: int):
+        """Apply a SWAP"""
+        assert g.exponent % 1 == 0
+        self._cx(common_gates.CX, axis1, axis2)
+        self._cx(
+            common_gates.CXPowGate(exponent=g.exponent, global_shift=g.global_shift), axis2, axis1
+        )
+        self._cx(common_gates.CX, axis1, axis2)
+
     def _strat_apply_gate(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         if not protocols.has_stabilizer_effect(val):
             return NotImplemented
@@ -99,6 +108,8 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
             self._cz(gate, axes[0], axes[1])
         elif isinstance(gate, global_phase_op.GlobalPhaseGate):
             self._global_phase(gate)
+        elif isinstance(gate, swap_gates.SwapPowGate):
+            self._swap(gate, axes[0], axes[1])
         else:
             return NotImplemented
         return True
