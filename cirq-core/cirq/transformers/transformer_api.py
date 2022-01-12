@@ -132,13 +132,13 @@ TRANSFORMER_CLS_TYPE = TypeVar(
 )
 
 
-def _transformer_with_logging(
+def _transform_and_log(
     func: TRANSFORMER_TYPE[CIRCUIT_TYPE],
     transformer_name: str,
     circuit: CIRCUIT_TYPE,
     context: TransformerContext,
 ) -> CIRCUIT_TYPE:
-    """Helper to append logging functionality to transformers."""
+    """Helper to log initial and final circuits before and after calling the transformer."""
 
     if context.logger is not None:
         context.logger.register_initial(circuit, transformer_name)
@@ -167,7 +167,7 @@ def transformer_method(func: TRANSFORMER_TYPE[CIRCUIT_TYPE]) -> TRANSFORMER_TYPE
     def transformer_with_logging_func(
         circuit: CIRCUIT_TYPE, context: TransformerContext
     ) -> CIRCUIT_TYPE:
-        return _transformer_with_logging(func, func.__name__, circuit, context)
+        return _transform_and_log(func, func.__name__, circuit, context)
 
     return cast(TRANSFORMER_TYPE[CIRCUIT_TYPE], transformer_with_logging_func)
 
@@ -203,7 +203,7 @@ def transformer_class(cls: TRANSFORMER_CLS_TYPE) -> TRANSFORMER_CLS_TYPE:
         def call_old_func(c: CIRCUIT_TYPE, ct: TransformerContext) -> CIRCUIT_TYPE:
             return old_func(self, c, ct)
 
-        return _transformer_with_logging(call_old_func, cls.__name__, circuit, context)
+        return _transform_and_log(call_old_func, cls.__name__, circuit, context)
 
     setattr(cls, '__call__', transformer_with_logging_cls)
     return cls
