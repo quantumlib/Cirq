@@ -103,19 +103,23 @@ class IonQAPIDevice(cirq.Device):
             yield gate(qubit)
 
     def _decompose_two_qubit(self, operation: cirq.Operation) -> cirq.OP_TREE:
-        """Decomposes a two qubit gate into XXPow, YYPow, and ZZPow plus single qubit gates."""
+        """Decomposes a two qubit unitary Rz,Rx,and CNOT."""
         mat = cirq.unitary(operation)
-        kak = cirq.kak_decomposition(mat, check_preconditions=False)
-
-        for qubit, mat in zip(operation.qubits, kak.single_qubit_operations_before):
-            gates = cirq.single_qubit_matrix_to_gates(mat, self.atol)
-            for gate in gates:
-                yield gate(qubit)
-
-        two_qubit_gates = [cirq.XX, cirq.YY, cirq.ZZ]
-        for two_qubit_gate, coefficient in zip(two_qubit_gates, kak.interaction_coefficients):
-            yield (two_qubit_gate ** (-coefficient * 2 / np.pi))(*operation.qubits)
-
-        for qubit, mat in zip(operation.qubits, kak.single_qubit_operations_after):
-            for gate in cirq.single_qubit_matrix_to_gates(mat, self.atol):
-                yield gate(qubit)
+        q0, q1 = operation.qubits
+        naive = cirq.two_qubit_matrix_to_operations(q0, q1, mat, allow_partial_czs=False)
+        temp = cirq.Circuit()
+        for op in naive:
+            if type(op.gate) == cirq.ops.common_gates.CZPowGate:
+                temp.append(cirq.H.on(op.qubits[1]))
+                temp.append(cirq.CNOT.on(op.qubits[0], op.qubits[1]))
+                temp.append(cirq.H.on(op.qubits[1]))
+            else:
+                temp.append(op)
+        cirq.optimizers.merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(temp)
+        for op in temp.all_operations():
+            if type(op.gate) == cirq.ops.phased_x_gate.PhasedXPowGate:
+                yield cirq.ZPowGate(exponent=-op.gate.phase_exponent).on(op.qubits[0])
+                yield cirq.XPowGate(exponent=op.gate.exponent).on(op.qubits[0])
+                yield cirq.ZPowGate(exponent=op.gate.phase_exponent).on(op.qubits[0])
+            else:
+                yield op
