@@ -4,7 +4,7 @@ import pytest
 
 import cirq
 from cirq import value
-from cirq_google.optimizers.two_qubit_gates.math_utils import (
+from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils import (
     weyl_chamber_mesh,
     kak_vector_infidelity,
     random_qubit_unitary,

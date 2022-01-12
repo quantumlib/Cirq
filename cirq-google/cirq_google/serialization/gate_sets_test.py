@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os
 from typing import Dict
+from unittest import mock
 import numpy as np
 import pytest
 import sympy
@@ -355,7 +356,8 @@ def test_deserialize_circuit():
     assert cg.XMON.deserialize(serialized) == circuit
 
 
-def test_deserialize_schedule():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_deserialize_schedule_device_deprecated():
     q0 = cirq.GridQubit(4, 4)
     q1 = cirq.GridQubit(4, 5)
     circuit = cirq.Circuit(
@@ -382,6 +384,33 @@ def test_deserialize_schedule():
         ),
     )
     assert cg.XMON.deserialize(serialized, cg.Bristlecone) == circuit
+
+
+def test_deserialize_schedule():
+    q0 = cirq.GridQubit(4, 4)
+    q1 = cirq.GridQubit(4, 5)
+    circuit = cirq.Circuit(cirq.CZ(q0, q1), cirq.X(q0), cirq.Z(q1), cirq.measure(q0, key='a'))
+    serialized = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(gate_set='xmon'),
+        schedule=v2.program_pb2.Schedule(
+            scheduled_operations=[
+                v2.program_pb2.ScheduledOperation(
+                    operation=cg.XMON.serialize_op(cirq.CZ(q0, q1)), start_time_picos=0
+                ),
+                v2.program_pb2.ScheduledOperation(
+                    operation=cg.XMON.serialize_op(cirq.X(q0)), start_time_picos=200000
+                ),
+                v2.program_pb2.ScheduledOperation(
+                    operation=cg.XMON.serialize_op(cirq.Z(q1)), start_time_picos=200000
+                ),
+                v2.program_pb2.ScheduledOperation(
+                    operation=cg.XMON.serialize_op(cirq.measure(q0, key='a')),
+                    start_time_picos=400000,
+                ),
+            ]
+        ),
+    )
+    assert cg.XMON.deserialize(serialized) == circuit
 
 
 def test_serialize_deserialize_syc():

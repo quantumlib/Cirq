@@ -67,6 +67,8 @@ T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
 INT_TYPE = Union[int, np.integer]
 
+_DEVICE_DEP_MESSAGE = 'Attaching devices to circuits will no longer be supported.'
+
 
 class Alignment(enum.Enum):
     # Stop when left ends are lined up.
@@ -124,6 +126,9 @@ class AbstractCircuit(abc.ABC):
     @abc.abstractmethod
     def device(self) -> 'cirq.Device':
         pass
+
+    # This is going away once device deprecation is finished.
+    _device = None  # type: devices.Device
 
     def freeze(self) -> 'cirq.FrozenCircuit':
         """Creates a FrozenCircuit from this circuit.

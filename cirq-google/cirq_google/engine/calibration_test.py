@@ -191,6 +191,7 @@ def test_calibration_heatmap():
         cg.Calibration(multi_qubit_data).heatmap('multi_value')
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_calibration_plot_histograms():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     _, ax = mpl.pyplot.subplots(1, 1)
@@ -208,6 +209,7 @@ def test_calibration_plot_histograms():
         cg.Calibration(multi_qubit_data).plot_histograms('multi_value')
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_calibration_plot():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     _, axs = calibration.plot('two_qubit_xeb')
