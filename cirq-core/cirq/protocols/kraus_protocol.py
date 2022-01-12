@@ -115,21 +115,34 @@ def kraus(
     where $I$ is the identity matrix. The matrices $A_k$ are sometimes called
     Kraus or noise operators.
 
+    Determines the Kraus representation of `val` by the following strategies:
+
+    1. Try to use `val._has_kraus_()`.
+        Case a) Method not present or returns `None`.
+            Continue to next strategy.
+        Case b) Returns the Kraus operator.
+            Method returns the result.
+
+    2. Try to use `mixture_protocol.mixture()`.
+        Case a) Method not present or returns `None`.
+            Continue to next strategy.
+        Case b) Method returns a valid mixture.
+            Method converts mixture into kraus and returns.
+
+    3. Try to use serial concatenation recursively.
+        Case a) One or more decomposed operators doesn't have Kraus.
+            `val` does not have a kraus representation.
+        Case b) All decomposed operators have Kraus representation.
+            Serially concatenate and return the result.
+
     Args:
-        val: The value to describe by a channel.
+        val: The value to describe by Kraus representation.
         default: Determines the fallback behavior when `val` doesn't have
-            a channel. If `default` is not set, a TypeError is raised. If
-            default is set to a value, that value is returned.
+            a representation. If `default` is not set, a TypeError is raised.
+            If default is set to a value, that value is returned.
 
     Returns:
-        If `val` has a `_kraus_` method and its result is not NotImplemented,
-        that result is returned. Otherwise, if `val` has a `_mixture_` method
-        and its results is not NotImplement a tuple made up of channel
-        corresponding to that mixture being a probabilistic mixture of unitaries
-        is returned.  Otherwise, if `val` has a `_unitary_` method and
-        its result is not NotImplemented a tuple made up of that result is
-        returned. Otherwise, if a default value was specified, the default
-        value is returned.
+        The kraus representation of `val`.
 
     Raises:
         TypeError: `val` doesn't have a _kraus_, _unitary_, _mixture_ method
@@ -175,23 +188,29 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     Determines whether `val` has a Kraus representation by attempting
     the following strategies:
 
-    1. Try to use `val.has_channel_()`.
-        Case a) Method not present or returns `None`.
+    1. Try to use `val._has_kraus_()`.
+        Case a) Method not present or returns `None` or returns `False`.
             Continue to next strategy.
         Case b) Method returns `True`.
-            Kraus.
+            return True.
+
+    1. Try to use `val._has_channel_()`.
+        Case a) Method not present or returns `None` or returns `False`.
+            Continue to next strategy.
+        Case b) Method returns `True`.
+            return True.
 
     2. Try to use `val._kraus_()`.
         Case a) Method not present or returns `NotImplemented`.
             Continue to next strategy.
         Case b) Method returns a 3D array.
-            Kraus.
+            return True.
 
-    3. Try to use `cirq.mixture()`.
-        Case a) Method not present or returns `NotImplemented`.
+    3. Try to use `cirq.has_mixture()`.
+        Case a) Method not present or returns `None` or returns `False`.
             Continue to next strategy.
-        Case b) Method returns a 3D array.
-            Kraus.
+        Case b) Method returns `True`.
+            return True.
 
     4. If decomposition is allowed apply recursion and check.
 
@@ -220,7 +239,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
 
     if allow_decompose:
         operations, _, _ = decompose_protocol._try_decompose_into_operations_and_qubits(val)
-        if operations is not None:
+        if operations is not None and operations != [val]:
             return all(has_kraus(val) for val in operations)
 
     return False
