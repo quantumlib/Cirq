@@ -52,8 +52,9 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties):
         tphi_ns: Dict[cirq.Qid, float] of qubits to their T_phi time, in ns.
         ro_fidelities: Dict[cirq.Qid, np.ndarray] of qubits to their readout
             fidelity matrix.
-        gate_pauli_errors: Dict[OpIdentifier, float] of gate types
-            (potentially on specific qubits) to the Pauli error for that gate.
+        gate_pauli_errors: dict of OpIdentifiers (a gate and the qubits it
+            targets) to the Pauli error for that operation. Keys in this dict
+            must have defined qubits.
         validate: If True, performs validation on input arguments. Defaults
             to True.
     """
@@ -197,7 +198,6 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties):
 
         depolarizing_error = self.get_depolarizing_error()
         added_pauli_errors = {
-            # TODO: handle op_id not having qubits.
             op_id: ops.depolarize(p_error, len(op_id.qubits)).on(*op_id.qubits)
             for op_id, p_error in depolarizing_error.items()
             if p_error > 0

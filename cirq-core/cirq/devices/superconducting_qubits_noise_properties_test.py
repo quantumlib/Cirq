@@ -308,7 +308,6 @@ def test_two_qubit_gates(op):
     assert isinstance(thermal_op_1.gate, cirq.KrausChannel)
     thermal_choi_0 = cirq.kraus_to_choi(cirq.kraus(thermal_op_0))
     thermal_choi_1 = cirq.kraus_to_choi(cirq.kraus(thermal_op_1))
-    # TODO: check iswap noise
     expected_thermal_choi = np.array(
         [
             [1, 0, 0, 9.99680051e-01],

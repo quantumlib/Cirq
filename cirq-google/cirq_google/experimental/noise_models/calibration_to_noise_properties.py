@@ -131,7 +131,8 @@ def noise_properties_from_calibration(
         q: np.array([p00.get(q, 0), p11.get(q, 0)]) for q in set(p00.keys()) | set(p11.keys())
     }
 
-    # TODO: include entangling errors, and account for them in Pauli error.
+    # TODO: include entangling errors once provided by QCS.
+    # These must also be accounted for in Pauli error.
 
     return SuperconductingQubitsNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
