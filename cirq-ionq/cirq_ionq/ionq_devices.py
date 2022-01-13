@@ -13,7 +13,7 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
-from typing import AbstractSet, cast, Sequence, Union
+from typing import AbstractSet, Sequence, Union
 
 import cirq
 
