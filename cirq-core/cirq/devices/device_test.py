@@ -105,4 +105,6 @@ def test_metadata_json_load_logic():
     other_arg = 5
     metadata = cirq.DeviceMetaData(qubits, graph, other_arg=other_arg)
     str_rep = cirq.to_json(metadata)
-    assert metadata == cirq.read_json(json_text=str_rep)
+    output = cirq.read_json(json_text=str_rep)
+    assert output.other_arg == 5
+    assert metadata == output

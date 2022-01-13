@@ -50,5 +50,6 @@
         "target": 3
       }
     ]
-  }
+  },
+  "obj_kwargs": {}
 }

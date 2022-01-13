@@ -210,7 +210,9 @@ class DeviceMetaData:
         if self._qubits_set is not None:
             qubit_equality = sorted(list(self._qubits_set))
 
-        return qubit_equality, graph_equality
+        kwarg_equality = [(k, v) for k, v in vars(self).items() if k in self._kwargs_names]
+        kwarg_equality = sorted(kwarg_equality)
+        return qubit_equality, graph_equality, kwarg_equality
 
     def _json_dict_(self):
         graph_payload = ''
@@ -220,16 +222,19 @@ class DeviceMetaData:
         qubits_payload = ''
         if self._qubits_set is not None:
             qubits_payload = sorted(list(self._qubits_set))
-        return {'qubits': qubits_payload, 'nx_graph': graph_payload}
+
+        kwargs_payload = {k: v for k, v in vars(self).items() if k in self._kwargs_names}
+
+        return {'qubits': qubits_payload, 'nx_graph': graph_payload, 'obj_kwargs': kwargs_payload}
 
     @classmethod
-    def _from_json_dict_(cls, qubits, nx_graph, **kwargs):
+    def _from_json_dict_(cls, qubits, nx_graph, obj_kwargs, **kwargs):
         if qubits == '':
             qubits = None
         graph_obj = None
         if nx_graph != '':
             graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
-        return cls(qubits, graph_obj, **kwargs)
+        return cls(qubits, graph_obj, **obj_kwargs)
 
     def __init__(
         self,
@@ -252,4 +257,5 @@ class DeviceMetaData:
             self._qubits_set = frozenset(self._qubits_set)
 
         self._nx_graph = nx_graph
+        self._kwargs_names = kwargs.keys()
         self.__dict__.update(kwargs)
