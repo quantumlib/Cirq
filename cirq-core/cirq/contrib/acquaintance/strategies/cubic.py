@@ -16,7 +16,6 @@ import itertools
 from typing import Iterable, Sequence, Tuple, TypeVar, TYPE_CHECKING
 
 from cirq import circuits, ops
-from cirq.contrib.acquaintance.devices import UnconstrainedAcquaintanceDevice
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import LinearPermutationGate, SwapPermutationGate
 
@@ -77,4 +76,4 @@ def cubic_acquaintance_strategy(
                 )
                 moments.append(moment)
         index_order = new_index_order[::-1]
-    return circuits.Circuit(moments, device=UnconstrainedAcquaintanceDevice)
+    return circuits.Circuit(moments)

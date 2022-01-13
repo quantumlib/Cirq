@@ -159,7 +159,9 @@ def qasm(
             kwargs['args'] = args
         if qubits is not None:
             kwargs['qubits'] = tuple(qubits)
+        # pylint: disable=not-callable
         result = method(**kwargs)
+        # pylint: enable=not-callable
     if result is not None and result is not NotImplemented:
         return result
 

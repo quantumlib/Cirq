@@ -41,15 +41,9 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
             )
 
 
-def is_acquaintance_strategy(circuit: 'cirq.Circuit') -> bool:
-    return isinstance(circuit._device, AcquaintanceDevice)
-
-
 def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
     """The maximum number of qubits to be acquainted with each other."""
     if isinstance(obj, circuits.Circuit):
-        if not is_acquaintance_strategy(obj):
-            raise TypeError('not is_acquaintance_strategy(circuit)')
         return max(tuple(get_acquaintance_size(op) for op in obj.all_operations()) or (0,))
     if not isinstance(obj, ops.Operation):
         raise TypeError('not isinstance(obj, (Circuit, Operation))')
