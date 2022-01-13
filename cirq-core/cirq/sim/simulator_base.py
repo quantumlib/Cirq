@@ -268,17 +268,17 @@ class SimulatorBase(
 
         measurements: Dict[str, List[np.ndarray]] = {}
         for i in range(repetitions):
-            if 'reuse_buffer' in inspect.signature(act_on_args.copy).parameters:
+            if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
                 all_step_results = self._core_iterator(
                     general_suffix,
-                    sim_state=act_on_args.copy(reuse_buffer=True)
+                    sim_state=act_on_args.copy(deep_copy_buffers=False)
                     if i < repetitions - 1
                     else act_on_args,
                 )
             else:
                 warnings.warn(
                     (
-                        'A new parameter reuse_buffer has been added to ActOnArgs.copy(). The '
+                        'A new parameter deep_copy_buffers has been added to ActOnArgs.copy(). The '
                         'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
                     ),
                     DeprecationWarning,

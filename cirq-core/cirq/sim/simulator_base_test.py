@@ -36,7 +36,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
         self.measurement_count += 1
         return [self.gate_count]
 
-    def copy(self, reuse_buffer: bool = True) -> 'CountingActOnArgs':
+    def copy(self, deep_copy_buffers: bool = True) -> 'CountingActOnArgs':
         args = CountingActOnArgs(
             qubits=self.qubits,
             logs=self.log_of_measurement_results.copy(),
@@ -287,7 +287,7 @@ def test_run_no_reuse_buffer_warning():
             return MockCountingStepResult(sim_state)
 
     sim = MockCountingSimulator()
-    with cirq.testing.assert_deprecated('reuse_buffer', deadline='0.15'):
+    with cirq.testing.assert_deprecated('deep_copy_buffers', deadline='0.15'):
         sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)))
 
 

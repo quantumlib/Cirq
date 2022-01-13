@@ -115,25 +115,22 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Child classes that perform measurements should implement this with
         the implementation."""
 
-    def copy(self: TSelf, reuse_buffer: bool = False) -> TSelf:
+    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
         """Creates a copy of the object.
 
         Args:
-            reuse_buffer: If True, any buffers will be reused by the copy. This
-                will save time by avoiding a deep copy of the buffers, but
-                should only be used when there is no chance that the two
-                objects will be writing to the buffers simultaneously.
+            deep_copy_buffers: If True, buffers will also be copied.
 
         Returns:
-            A copy of the object.
+            A copied instance.
         """
         args = copy.copy(self)
-        if 'reuse_buffer' in inspect.signature(self._on_copy).parameters:
-            self._on_copy(args, reuse_buffer)
+        if 'deep_copy_buffers' in inspect.signature(self._on_copy).parameters:
+            self._on_copy(args, deep_copy_buffers)
         else:
             warnings.warn(
                 (
-                    'A new parameter reuse_buffer has been added to ActOnArgs._on_copy(). '
+                    'A new parameter deep_copy_buffers has been added to ActOnArgs._on_copy(). '
                     'The classes that inherit from ActOnArgs should support it before Cirq 0.15.'
                 ),
                 DeprecationWarning,
@@ -142,7 +139,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         args._log_of_measurement_results = self.log_of_measurement_results.copy()
         return args
 
-    def _on_copy(self: TSelf, args: TSelf, reuse_buffer: bool = False):
+    def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
         """Subclasses should implement this with any additional state copy
         functionality."""
 

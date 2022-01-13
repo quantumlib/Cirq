@@ -124,9 +124,9 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
         return bits
 
-    def _on_copy(self, target: 'cirq.ActOnDensityMatrixArgs', reuse_buffer: bool = False):
+    def _on_copy(self, target: 'cirq.ActOnDensityMatrixArgs', deep_copy_buffers: bool = True):
         target.target_tensor = self.target_tensor.copy()
-        if not reuse_buffer:
+        if deep_copy_buffers:
             target.available_buffer = [b.copy() for b in self.available_buffer]
 
     def _on_kronecker_product(

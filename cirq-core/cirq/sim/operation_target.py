@@ -68,7 +68,7 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
         protocols.act_on(op, self)
 
     @abc.abstractmethod
-    def copy(self: TSelfTarget, reuse_buffer: bool = False) -> TSelfTarget:
+    def copy(self: TSelfTarget, deep_copy_buffers: bool = True) -> TSelfTarget:
         """Copies the object."""
 
     @property

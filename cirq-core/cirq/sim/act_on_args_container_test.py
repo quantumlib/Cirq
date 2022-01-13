@@ -27,7 +27,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
         return [0] * len(qubits)
 
     def copy(self) -> 'EmptyActOnArgs':  # type: ignore
-        """The reuse_buffer parameter is omitted to trigger a deprecation warning test."""
+        """The deep_copy_buffers parameter is omitted to trigger a deprecation warning test."""
         return EmptyActOnArgs(
             qubits=self.qubits,
             logs=self.log_of_measurement_results.copy(),
@@ -229,8 +229,8 @@ def test_copy_succeeds():
 
 def test_copy_deprecation_warning():
     args = create_container(qs2, False)
-    with cirq.testing.assert_deprecated('reuse_buffer', deadline='0.15'):
-        args.copy(True)
+    with cirq.testing.assert_deprecated('deep_copy_buffers', deadline='0.15'):
+        args.copy(False)
 
 
 def test_merge_succeeds():

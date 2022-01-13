@@ -133,16 +133,16 @@ class ActOnArgsContainer(
                 self.args[q] = op_args
         return True
 
-    def copy(self, reuse_buffer: bool = False) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
+    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()
         copies = {}
         for act_on_args in set(self.args.values()):
-            if 'reuse_buffer' in inspect.signature(act_on_args.copy).parameters:
-                copies[act_on_args] = act_on_args.copy(reuse_buffer)
+            if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
+                copies[act_on_args] = act_on_args.copy(deep_copy_buffers)
             else:
                 warnings.warn(
                     (
-                        'A new parameter reuse_buffer has been added to ActOnArgs.copy(). The '
+                        'A new parameter deep_copy_buffers has been added to ActOnArgs.copy(). The '
                         'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
                     ),
                     DeprecationWarning,
