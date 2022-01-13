@@ -201,8 +201,8 @@ class DeviceMetadata:
         """
         if qubits is not None:
             qubits = frozenset(qubits)
-        self._qubits_set: Optional[FrozenSet['cirq.Qid']] = cast(
-            Optional[FrozenSet['cirq.Qid']], qubits
+        self._qubits_set: Optional[FrozenSet['cirq.Qid']] = (
+            None if qubits is None else frozenset(qubits)
         )
 
         self._nx_graph = nx_graph
