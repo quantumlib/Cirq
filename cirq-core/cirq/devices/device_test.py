@@ -81,30 +81,25 @@ def test_qid_pair():
 def test_metadata():
     qubits = cirq.LineQubit.range(4)
     graph = nx.star_graph(3)
-    metadata = cirq.DeviceMetaData(qubits, graph)
+    metadata = cirq.DeviceMetadata(qubits, graph)
     assert metadata.qubit_set() == frozenset(qubits)
     assert metadata.nx_graph() == graph
 
-    metadata = cirq.DeviceMetaData()
+    metadata = cirq.DeviceMetadata()
     assert metadata.qubit_set() is None
     assert metadata.nx_graph() is None
-
-    metadata = cirq.DeviceMetaData(None, None, additional_property=5)
-    assert metadata.additional_property == 5
 
 
 def test_metadata_json_load_logic():
     qubits = cirq.LineQubit.range(4)
     graph = nx.star_graph(3)
-    metadata = cirq.DeviceMetaData(qubits, graph)
+    metadata = cirq.DeviceMetadata(qubits, graph)
     str_rep = cirq.to_json(metadata)
     assert metadata == cirq.read_json(json_text=str_rep)
 
     qubits = None
     graph = None
-    other_arg = 5
-    metadata = cirq.DeviceMetaData(qubits, graph, other_arg=other_arg)
+    metadata = cirq.DeviceMetadata(qubits, graph)
     str_rep = cirq.to_json(metadata)
     output = cirq.read_json(json_text=str_rep)
-    assert output.other_arg == 5
     assert metadata == output

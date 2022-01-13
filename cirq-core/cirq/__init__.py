@@ -81,7 +81,7 @@ from cirq.circuits import (
 from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
-    DeviceMetaData,
+    DeviceMetadata,
     GridQid,
     GridQubit,
     LineQid,

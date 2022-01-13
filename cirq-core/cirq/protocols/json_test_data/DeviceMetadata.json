@@ -1,5 +1,5 @@
 {
-  "cirq_type": "DeviceMetaData",
+  "cirq_type": "DeviceMetadata",
   "qubits": [
     {
       "cirq_type": "LineQubit",
@@ -50,6 +50,5 @@
         "target": 3
       }
     ]
-  },
-  "obj_kwargs": {}
+  }
 }

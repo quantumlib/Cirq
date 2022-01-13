@@ -182,8 +182,30 @@ class SymmetricalQidPair:
 
 
 @value.value_equality
-class DeviceMetaData:
+class DeviceMetadata:
     """Parent type for all device specific metadata classes."""
+
+    def __init__(
+        self,
+        qubits: Optional[Iterable['cirq.Qid']] = None,
+        nx_graph: Optional['nx.graph'] = None,
+    ):
+        """Construct a DeviceMetadata object.
+
+        Args:
+            qubits: Optional iterable of `cirq.Qid`s that exist on the device.
+            nx_graph: Optional `nx.Graph` describing qubit connectivity
+                on a device. Nodes represent qubits, directed edges indicate
+                directional coupling, undirected edges indicate bi-directional
+                coupling.
+        """
+        if qubits is not None:
+            qubits = frozenset(qubits)
+        self._qubits_set: Optional[FrozenSet['cirq.Qid']] = cast(
+            Optional[FrozenSet['cirq.Qid']], qubits
+        )
+
+        self._nx_graph = nx_graph
 
     def qubit_set(self) -> Optional[FrozenSet['cirq.Qid']]:
         """Returns a set of qubits on the device, if possible.
@@ -191,10 +213,10 @@ class DeviceMetaData:
         Returns:
             Frozenset of qubits on device if specified, otherwise None.
         """
-        return cast(Optional[FrozenSet['cirq.Qid']], self._qubits_set)
+        return self._qubits_set
 
     def nx_graph(self) -> Optional['nx.Graph']:
-        """Returns a nx.Graph where nodes are qubits are couple-able qubits.
+        """Returns a nx.Graph where nodes are qubits and edges are couple-able qubits.
 
         Returns:
             `nx.Graph` of device connectivity if specified, otherwise None.
@@ -210,9 +232,7 @@ class DeviceMetaData:
         if self._qubits_set is not None:
             qubit_equality = sorted(list(self._qubits_set))
 
-        kwarg_equality = [(k, v) for k, v in vars(self).items() if k in self._kwargs_names]
-        kwarg_equality = sorted(kwarg_equality)
-        return qubit_equality, graph_equality, kwarg_equality
+        return qubit_equality, graph_equality
 
     def _json_dict_(self):
         graph_payload = ''
@@ -223,39 +243,13 @@ class DeviceMetaData:
         if self._qubits_set is not None:
             qubits_payload = sorted(list(self._qubits_set))
 
-        kwargs_payload = {k: v for k, v in vars(self).items() if k in self._kwargs_names}
-
-        return {'qubits': qubits_payload, 'nx_graph': graph_payload, 'obj_kwargs': kwargs_payload}
+        return {'qubits': qubits_payload, 'nx_graph': graph_payload}
 
     @classmethod
-    def _from_json_dict_(cls, qubits, nx_graph, obj_kwargs, **kwargs):
+    def _from_json_dict_(cls, qubits, nx_graph, **kwargs):
         if qubits == '':
             qubits = None
         graph_obj = None
         if nx_graph != '':
             graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
-        return cls(qubits, graph_obj, **obj_kwargs)
-
-    def __init__(
-        self,
-        qubits: Optional[Iterable['cirq.Qid']] = None,
-        nx_graph: Optional['nx.graph'] = None,
-        **kwargs,
-    ):
-        """Construct a DeviceMetaData object.
-
-        Args:
-            qubits: Optional iterable of `cirq.Qid`s that exist on the device.
-            nx_graph: Optional `nx.Graph` describing qubit connectivity
-                on a device. Nodes represent qubits, directed edges indicate
-                directional coupling, undirected edges indicate bi-directional
-                coupling.
-            **kwargs: Additional miscellanous properties to attach to metadata.
-        """
-        self._qubits_set = qubits
-        if self._qubits_set is not None:
-            self._qubits_set = frozenset(self._qubits_set)
-
-        self._nx_graph = nx_graph
-        self._kwargs_names = kwargs.keys()
-        self.__dict__.update(kwargs)
+        return cls(qubits, graph_obj)
