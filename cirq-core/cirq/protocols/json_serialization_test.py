@@ -24,6 +24,7 @@ import warnings
 from typing import ClassVar, Dict, List, Optional, Tuple, Type
 from unittest import mock
 
+import networkx as nx
 import numpy as np
 import pandas as pd
 import pytest
@@ -726,13 +727,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         if deprecation is not None and deprecation.old_name in content:
             ctx_managers.append(deprecation.deprecation_assertion)
 
-    imports = {
-        'cirq': cirq,
-        'pd': pd,
-        'sympy': sympy,
-        'np': np,
-        'datetime': datetime,
-    }
+    imports = {'cirq': cirq, 'pd': pd, 'sympy': sympy, 'np': np, 'datetime': datetime, 'nx': nx}
 
     for m in TESTED_MODULES.keys():
         try:
