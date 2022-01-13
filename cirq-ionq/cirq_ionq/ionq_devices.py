@@ -105,25 +105,15 @@ class IonQAPIDevice(cirq.Device):
         mat = cirq.unitary(operation)
         q0, q1 = operation.qubits
         naive = cirq.two_qubit_matrix_to_operations(q0, q1, mat, allow_partial_czs=False)
-        temp = cirq.Circuit()
-        for op in naive:
-            if type(op.gate) == cirq.ops.common_gates.CZPowGate:
-                temp.append(cirq.H.on(op.qubits[1]))
-                temp.append(cirq.CNOT.on(op.qubits[0], op.qubits[1]))
-                temp.append(cirq.H.on(op.qubits[1]))
-            else:
-                temp.append(op)
+        temp = cirq.map_operations_and_unroll(
+            cirq.Circuit(naive),
+            lambda op, _: [cirq.H(op.qubits[1]), cirq.CNOT(*op.qubits), cirq.H(op.qubits[1])] if 
+            type(op.gate) == cirq.CZPowGate else
+            op,
+        )
         cirq.optimizers.merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(temp)
         # A final pass breaks up PhasedXPow into Rz, Rx.
-        for op in temp.all_operations():
-            if op.gate is None:
-                raise ValueError(
-                    f'Operation {op} is not representable as a gate.'
-                )  # coverage: ignore
-            if type(op.gate) == cirq.ops.phased_x_gate.PhasedXPowGate:
-                gate = cast(cirq.ops.phased_x_gate.PhasedXPowGate, op.gate)
-                yield cirq.ZPowGate(exponent=-gate.phase_exponent).on(op.qubits[0])
-                yield cirq.XPowGate(exponent=gate.exponent).on(op.qubits[0])
-                yield cirq.ZPowGate(exponent=gate.phase_exponent).on(op.qubits[0])
-            else:
-                yield op
+        yield cirq.map_operations_and_unroll(
+            temp,
+            lambda op, _: cirq.decompose_once(op) if type(op.gate) == cirq.PhasedXPowGate else op,
+        ).all_operations()
