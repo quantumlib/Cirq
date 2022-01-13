@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence, Union
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence, Union
 
 import numpy as np
 
@@ -36,11 +36,11 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     def __init__(
         self,
         target_tensor: np.ndarray,
-        available_buffer: List[np.ndarray] = None,
-        qid_shape: Tuple[int, ...] = None,
-        prng: np.random.RandomState = None,
-        log_of_measurement_results: Dict[str, Any] = None,
-        qubits: Sequence['cirq.Qid'] = None,
+        available_buffer: Optional[List[np.ndarray]] = None,
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        prng: Optional[np.random.RandomState] = None,
+        log_of_measurement_results: Optional[Dict[str, Any]] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
         ignore_measurement_results: bool = False,
     ):
         """Inits ActOnDensityMatrixArgs.

@@ -287,7 +287,7 @@ def test_run_no_reuse_buffer_warning():
             return MockCountingStepResult(sim_state)
 
     sim = MockCountingSimulator()
-    with cirq.testing.assert_deprecated('reuse_buffer', deadline='0.25'):
+    with cirq.testing.assert_deprecated('reuse_buffer', deadline='0.15'):
         sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)))
 
 

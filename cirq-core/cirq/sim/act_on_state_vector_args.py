@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
+from typing import Any, Optional, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
 
 import numpy as np
 
@@ -40,10 +40,10 @@ class ActOnStateVectorArgs(ActOnArgs):
     def __init__(
         self,
         target_tensor: np.ndarray,
-        available_buffer: np.ndarray = None,
-        prng: np.random.RandomState = None,
-        log_of_measurement_results: Dict[str, Any] = None,
-        qubits: Sequence['cirq.Qid'] = None,
+        available_buffer: Optional[np.ndarray] = None,
+        prng: Optional[np.random.RandomState] = None,
+        log_of_measurement_results: Optional[Dict[str, Any]] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
     ):
         """Inits ActOnStateVectorArgs.
 

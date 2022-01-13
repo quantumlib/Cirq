@@ -96,5 +96,5 @@ def test_transpose_qubits():
 
 def test_on_copy_has_no_param():
     args = DummyArgs()
-    with cirq.testing.assert_deprecated('reuse_buffer', deadline='0.25'):
+    with cirq.testing.assert_deprecated('reuse_buffer', deadline='0.15'):
         args.copy(True)
