@@ -402,7 +402,7 @@ def cross_entropy_benchmarking(
         # Simulate each circuit with the Cirq simulator to obtain the
         # state vector at the end of each circuit, from which the
         # theoretically expected bit-string probabilities are obtained.
-        probs_exp_k = []  # type: List[np.ndarray]
+        probs_exp_k: List[np.ndarray] = []
         for circ_k in circuits_k:
             res = simulator.simulate(circ_k, qubit_order=qubits)
             state_probs = value.state_vector_to_probabilities(np.asarray(res.final_state_vector))
@@ -494,7 +494,7 @@ def _build_xeb_circuits(
         single_rots = _random_half_rotations(qubits, max_cycles)
     else:
         single_rots = _random_any_gates(qubits, single_qubit_gates, max_cycles)
-    all_circuits = []  # type: List[circuits.Circuit]
+    all_circuits: List[circuits.Circuit] = []
     for num_cycles in cycles:
         circuit_exp = circuits.Circuit()
         for i in range(num_cycles):
@@ -512,7 +512,7 @@ def _measure_prob_distribution(
     qubits: Sequence[ops.Qid],
     circuit_list: List[circuits.Circuit],
 ) -> List[np.ndarray]:
-    all_probs = []  # type: List[np.ndarray]
+    all_probs: List[np.ndarray] = []
     num_states = 2 ** len(qubits)
     for circuit in circuit_list:
         trial_circuit = circuit.copy()
@@ -546,7 +546,7 @@ def _random_half_rotations(qubits: Sequence[ops.Qid], num_layers: int) -> List[L
     rot_ops = [ops.X ** 0.5, ops.Y ** 0.5, ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)]
     num_qubits = len(qubits)
     rand_nums = np.random.choice(3, (num_qubits, num_layers))
-    single_q_layers = []  # type: List[List[ops.OP_TREE]]
+    single_q_layers: List[List[ops.OP_TREE]] = []
     for i in range(num_layers):
         single_q_layers.append([rot_ops[rand_nums[j, i]](qubits[j]) for j in range(num_qubits)])
     return single_q_layers
@@ -558,9 +558,9 @@ def _random_any_gates(
     num_ops = len(op_list)
     num_qubits = len(qubits)
     rand_nums = np.random.choice(num_ops, (num_qubits, num_layers))
-    single_q_layers = []  # type: List[List[ops.OP_TREE]]
+    single_q_layers: List[List[ops.OP_TREE]] = []
     for i in range(num_layers):
-        rots_i = []  # type: List[ops.OP_TREE]
+        rots_i: List[ops.OP_TREE] = []
         for j in range(num_qubits):
             rots_i.extend([rot(qubits[j]) for rot in op_list[rand_nums[j, i]]])
         single_q_layers.append(rots_i)
@@ -575,7 +575,7 @@ def _default_interaction_sequence(
     num_rows = max([q.row for q in qubits]) + 1
     num_cols = max([q.col for q in qubits]) + 1
 
-    l_s = [set() for _ in range(4)]  # type: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]]
+    l_s: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]] = [set() for _ in range(4)]
     for i in range(num_rows):
         for j in range(num_cols - 1):
             if (i, j) in qubit_locs and (i, j + 1) in qubit_locs:
@@ -586,7 +586,7 @@ def _default_interaction_sequence(
             if (i, j) in qubit_locs and (i + 1, j) in qubit_locs:
                 l_s[i % 2 * 2 + 1].add((qubit_dict[(i, j)], qubit_dict[(i + 1, j)]))
 
-    l_final = []  # type: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]]
+    l_final: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]] = []
     for gate_set in l_s:
         if len(gate_set) != 0:
             l_final.append(gate_set)

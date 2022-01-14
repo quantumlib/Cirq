@@ -487,7 +487,7 @@ def assert_code_snippet_runs_and_prints_expected(
     snippet: str, state: Dict, line_number: int = None
 ):
     """Executes a snippet and compares captured output to annotated output."""
-    output_lines = []  # type: List[str]
+    output_lines: List[str] = []
     expected_outputs = find_expected_outputs(snippet)
 
     def print_capture(*values, sep=' '):

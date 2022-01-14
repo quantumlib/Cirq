@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterator
+from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterator, Iterable
 
+import networkx as nx
 from cirq import value
 from cirq.devices.grid_qubit import _BaseGridQid
 from cirq.devices.line_qubit import _BaseLineQid
@@ -178,3 +179,77 @@ class SymmetricalQidPair:
 
     def __contains__(self, item: 'cirq.Qid') -> bool:
         return item in self.qids
+
+
+@value.value_equality
+class DeviceMetadata:
+    """Parent type for all device specific metadata classes."""
+
+    def __init__(
+        self,
+        qubits: Optional[Iterable['cirq.Qid']] = None,
+        nx_graph: Optional['nx.graph'] = None,
+    ):
+        """Construct a DeviceMetadata object.
+
+        Args:
+            qubits: Optional iterable of `cirq.Qid`s that exist on the device.
+            nx_graph: Optional `nx.Graph` describing qubit connectivity
+                on a device. Nodes represent qubits, directed edges indicate
+                directional coupling, undirected edges indicate bi-directional
+                coupling.
+        """
+        if qubits is not None:
+            qubits = frozenset(qubits)
+        self._qubits_set: Optional[FrozenSet['cirq.Qid']] = (
+            None if qubits is None else frozenset(qubits)
+        )
+
+        self._nx_graph = nx_graph
+
+    def qubit_set(self) -> Optional[FrozenSet['cirq.Qid']]:
+        """Returns a set of qubits on the device, if possible.
+
+        Returns:
+            Frozenset of qubits on device if specified, otherwise None.
+        """
+        return self._qubits_set
+
+    def nx_graph(self) -> Optional['nx.Graph']:
+        """Returns a nx.Graph where nodes are qubits and edges are couple-able qubits.
+
+        Returns:
+            `nx.Graph` of device connectivity if specified, otherwise None.
+        """
+        return self._nx_graph
+
+    def _value_equality_values_(self):
+        graph_equality = None
+        if self._nx_graph is not None:
+            graph_equality = (sorted(self._nx_graph.nodes()), sorted(self._nx_graph.edges()))
+
+        qubit_equality = None
+        if self._qubits_set is not None:
+            qubit_equality = sorted(list(self._qubits_set))
+
+        return qubit_equality, graph_equality
+
+    def _json_dict_(self):
+        graph_payload = ''
+        if self._nx_graph is not None:
+            graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph)
+
+        qubits_payload = ''
+        if self._qubits_set is not None:
+            qubits_payload = sorted(list(self._qubits_set))
+
+        return {'qubits': qubits_payload, 'nx_graph': graph_payload}
+
+    @classmethod
+    def _from_json_dict_(cls, qubits, nx_graph, **kwargs):
+        if qubits == '':
+            qubits = None
+        graph_obj = None
+        if nx_graph != '':
+            graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
+        return cls(qubits, graph_obj)

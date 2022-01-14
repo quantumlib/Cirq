@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Utility methods for decomposing three-qubit unitaries."""
+
 from typing import Union, Tuple, Sequence, List, Optional
 
 import numpy as np
 
 import cirq
 from cirq import ops
-from cirq import optimizers as opt
+from cirq import transformers as opt
 
 
 def three_qubit_matrix_to_operations(

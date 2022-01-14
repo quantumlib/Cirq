@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utility methods related to optimizing quantum circuits."""
+"""Utility methods for decomposing two-qubit unitaries into CZ gates."""
 
 from typing import Iterable, List, Sequence, Tuple, Optional, cast, TYPE_CHECKING
 

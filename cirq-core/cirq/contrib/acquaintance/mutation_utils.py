@@ -19,7 +19,7 @@ from typing import cast, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 from cirq import circuits, ops, optimizers
 
 from cirq.contrib.acquaintance.gates import SwapNetworkGate, AcquaintanceOpportunityGate
-from cirq.contrib.acquaintance.devices import is_acquaintance_strategy, get_acquaintance_size
+from cirq.contrib.acquaintance.devices import get_acquaintance_size
 from cirq.contrib.acquaintance.permutation import PermutationGate
 
 if TYPE_CHECKING:
@@ -41,10 +41,6 @@ def rectify_acquaintance_strategy(circuit: 'cirq.Circuit', acquaint_first: bool 
     Raises:
         TypeError: If the circuit is not an acquaintance strategy.
     """
-
-    if not is_acquaintance_strategy(circuit):
-        raise TypeError('not is_acquaintance_strategy(circuit)')
-
     rectified_moments = []
     for moment in circuit:
         gate_type_to_ops: Dict[bool, List[ops.GateOperation]] = collections.defaultdict(list)
@@ -85,10 +81,6 @@ def replace_acquaintance_with_swap_network(
     Raises:
         TypeError: circuit is not an acquaintance strategy.
     """
-
-    if not is_acquaintance_strategy(circuit):
-        raise TypeError('not is_acquaintance_strategy(circuit)')
-
     rectify_acquaintance_strategy(circuit)
     reflected = False
     reverse_map = {q: r for q, r in zip(qubit_order, reversed(qubit_order))}

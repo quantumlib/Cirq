@@ -17,6 +17,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib as mpl
+import pytest
 
 import cirq
 from cirq.devices import GridQubit
@@ -64,6 +65,7 @@ def test_get_state_histogram_multi_2():
     np.testing.assert_equal(values_to_plot, expected_values)
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_plot_state_histogram_result():
     qubits = cirq.LineQubit.range(4)
     c = cirq.Circuit(
@@ -80,6 +82,7 @@ def test_plot_state_histogram_result():
             assert str(r1) == str(r2)
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_plot_state_histogram_collection():
     qubits = cirq.LineQubit.range(4)
     c = cirq.Circuit(

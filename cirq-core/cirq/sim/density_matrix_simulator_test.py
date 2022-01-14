@@ -571,6 +571,28 @@ def test_reset_one_qubit_does_not_affect_partial_trace_of_other_qubits(
     np.testing.assert_almost_equal(result.final_density_matrix, expected)
 
 
+def test_ignore_measurements_remains_entangled():
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator1 = cirq.DensityMatrixSimulator(
+        ignore_measurement_results=True, split_untangled_states=False
+    )
+    simulator2 = cirq.DensityMatrixSimulator(
+        ignore_measurement_results=True, split_untangled_states=True
+    )
+    circuit = cirq.Circuit(
+        cirq.H(q0),
+        cirq.CX(q0, q1),
+        cirq.measure(q0),
+    )
+    result1 = simulator1.simulate(circuit)
+    result2 = simulator2.simulate(circuit)
+    np.testing.assert_almost_equal(result2.final_density_matrix, result1.final_density_matrix)
+    expected = np.zeros((4, 4))
+    expected[0, 0] = 0.5
+    expected[3, 3] = 0.5
+    np.testing.assert_almost_equal(result2.final_density_matrix, expected)
+
+
 @pytest.mark.parametrize(
     'dtype,circuit',
     itertools.product(

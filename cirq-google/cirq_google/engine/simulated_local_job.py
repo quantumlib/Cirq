@@ -13,7 +13,7 @@
 # limitations under the License.
 """An implementation of AbstractJob that uses in-memory constructs
 and a provided sampler to execute circuits."""
-from typing import cast, List, Optional, Tuple
+from typing import cast, List, Optional, Sequence, Tuple
 
 import cirq
 from cirq_google.engine.client import quantum
@@ -73,11 +73,11 @@ class SimulatedLocalJob(AbstractLocalJob):
         self.program().delete_job(self.id())
         self._state = quantum.enums.ExecutionStatus.State.STATE_UNSPECIFIED
 
-    def batched_results(self) -> List[List[cirq.Result]]:
+    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a List[Result]
+        results into a single list, this will return a Sequence[Result]
         for each circuit in the batch.
         """
         if self._type == LocalSimulationType.SYNCHRONOUS:
@@ -98,7 +98,7 @@ class SimulatedLocalJob(AbstractLocalJob):
                 raise e
         raise ValueError('Unsupported simulation type {self._type}')
 
-    def results(self) -> List[cirq.Result]:
+    def results(self) -> Sequence[cirq.Result]:
         """Returns the job results, blocking until the job is complete."""
         if self._type == LocalSimulationType.SYNCHRONOUS:
             reps, sweeps = self.get_repetitions_and_sweeps()
@@ -115,7 +115,7 @@ class SimulatedLocalJob(AbstractLocalJob):
                 raise e
         raise ValueError('Unsupported simulation type {self._type}')
 
-    def calibration_results(self) -> List[CalibrationResult]:
+    def calibration_results(self) -> Sequence[CalibrationResult]:
         """Returns the results of a run_calibration() call.
 
         This function will fail if any other type of results were returned.

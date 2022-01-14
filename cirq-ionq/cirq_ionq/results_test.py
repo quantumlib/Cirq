@@ -117,6 +117,15 @@ def test_qpu_result_to_cirq_result():
     # cirq.Result only compares pandas data frame, so possible to have supplied an list of
     # list instead of a numpy multidimensional array. Check this here.
     assert type(result.to_cirq_result().measurements['x']) == np.ndarray
+    # Results bitstreams need to be consistent betwween measurement keys
+    # Ordering is by bitvector, so 0b01 0b01 0b10 should be the ordering for all measurement dicts.
+    result = ionq.QPUResult(
+        {0b10: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [0, 1], 'y': [0], 'z': [1]}
+    )
+    assert result.to_cirq_result() == cirq.Result(
+        params=cirq.ParamResolver({}),
+        measurements={'x': [[0, 1], [0, 1], [1, 0]], 'y': [[0], [0], [1]], 'z': [[1], [1], [0]]},
+    )
 
 
 def test_qpu_result_to_cirq_result_multiple_keys():
@@ -136,6 +145,12 @@ def test_qpu_result_to_cirq_result_no_keys():
     result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={})
     with pytest.raises(ValueError, match='cirq results'):
         _ = result.to_cirq_result()
+
+
+def test_ordered_results_invalid_key():
+    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [1]})
+    with pytest.raises(ValueError, match='is not a key for'):
+        _ = result.ordered_results('y')
 
 
 def test_simulator_result_fields():
