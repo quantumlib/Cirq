@@ -131,7 +131,7 @@ def _get_random_placement(
     placements = _cached_get_placements(problem_topology, device)
     if len(placements) == 0:
         raise CouldNotPlaceError
-    random_i = int(rs.random_integers(0, len(placements) - 1, size=1))
+    random_i = rs.randint(len(placements))
     placement = placements[random_i]
     placement_gq = {topo_node_to_qubit_func(k): v for k, v in placement.items()}
     return placement_gq
