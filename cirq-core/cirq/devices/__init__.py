@@ -19,6 +19,10 @@ from cirq.devices.device import (
     SymmetricalQidPair,
 )
 
+from cirq.devices.grid_device_metadata import (
+    GridDeviceMetadata,
+)
+
 from cirq.devices.grid_qubit import (
     GridQid,
     GridQubit,

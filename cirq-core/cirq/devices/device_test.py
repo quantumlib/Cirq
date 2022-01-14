@@ -82,12 +82,12 @@ def test_metadata():
     qubits = cirq.LineQubit.range(4)
     graph = nx.star_graph(3)
     metadata = cirq.DeviceMetadata(qubits, graph)
-    assert metadata.qubit_set() == frozenset(qubits)
-    assert metadata.nx_graph() == graph
+    assert metadata.qubit_set == frozenset(qubits)
+    assert metadata.nx_graph == graph
 
     metadata = cirq.DeviceMetadata()
-    assert metadata.qubit_set() is None
-    assert metadata.nx_graph() is None
+    assert metadata.qubit_set is None
+    assert metadata.nx_graph is None
 
 
 def test_metadata_json_load_logic():
@@ -103,3 +103,19 @@ def test_metadata_json_load_logic():
     str_rep = cirq.to_json(metadata)
     output = cirq.read_json(json_text=str_rep)
     assert metadata == output
+
+
+def test_metadata_equality():
+    qubits = cirq.LineQubit.range(4)
+    graph = nx.star_graph(3)
+    graph2 = nx.star_graph(3)
+    graph.add_edge(1, 2, directed=False)
+    graph2.add_edge(1, 2, directed=True)
+
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(cirq.DeviceMetadata(qubits, graph))
+    eq.add_equality_group(cirq.DeviceMetadata(None, graph))
+    eq.add_equality_group(cirq.DeviceMetadata(qubits, None))
+    eq.add_equality_group(cirq.DeviceMetadata(None, None))
+
+    assert cirq.DeviceMetadata(None, graph) != cirq.DeviceMetadata(None, graph2)
