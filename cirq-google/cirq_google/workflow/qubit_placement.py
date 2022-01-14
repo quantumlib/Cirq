@@ -17,8 +17,7 @@
 import abc
 import dataclasses
 from functools import lru_cache
-from typing import Dict, Any, Tuple, TYPE_CHECKING
-from typing import List, Callable
+from typing import Dict, Any, Tuple, List, Callable, TYPE_CHECKING
 
 import numpy as np
 
