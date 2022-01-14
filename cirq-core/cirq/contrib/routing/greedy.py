@@ -89,9 +89,7 @@ def route_circuit_greedily(
     router.route()
 
     swap_network = router.swap_network
-    swap_network.circuit = circuits.Circuit(
-        swap_network.circuit.all_operations(), device=swap_network.device
-    )
+    swap_network.circuit = circuits.Circuit(swap_network.circuit.all_operations())
     return swap_network
 
 
