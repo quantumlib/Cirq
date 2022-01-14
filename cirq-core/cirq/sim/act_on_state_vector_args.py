@@ -181,6 +181,8 @@ class ActOnStateVectorArgs(ActOnArgs):
         target.target_tensor = self.target_tensor.copy()
         if deep_copy_buffers:
             target.available_buffer = self.available_buffer.copy()
+        else:
+            target.available_buffer = self.available_buffer
 
     def _on_kronecker_product(
         self, other: 'cirq.ActOnStateVectorArgs', target: 'cirq.ActOnStateVectorArgs'

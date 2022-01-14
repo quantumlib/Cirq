@@ -128,6 +128,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         target.target_tensor = self.target_tensor.copy()
         if deep_copy_buffers:
             target.available_buffer = [b.copy() for b in self.available_buffer]
+        else:
+            target.available_buffer = self.available_buffer
 
     def _on_kronecker_product(
         self, other: 'cirq.ActOnDensityMatrixArgs', target: 'cirq.ActOnDensityMatrixArgs'

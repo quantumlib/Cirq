@@ -119,7 +119,9 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Creates a copy of the object.
 
         Args:
-            deep_copy_buffers: If True, buffers will also be copied.
+            deep_copy_buffers: If True, buffers will also be deep-copied.
+            Otherwise the copy will share a reference to the original object's
+            buffers.
 
         Returns:
             A copied instance.

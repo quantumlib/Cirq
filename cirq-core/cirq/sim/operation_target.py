@@ -69,7 +69,16 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def copy(self: TSelfTarget, deep_copy_buffers: bool = True) -> TSelfTarget:
-        """Copies the object."""
+        """Creates a copy of the object.
+
+        Args:
+            deep_copy_buffers: If True, buffers will also be deep-copied.
+            Otherwise the copy will share a reference to the original object's
+            buffers.
+
+        Returns:
+            A copied instance.
+        """
 
     @property
     @abc.abstractmethod
