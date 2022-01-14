@@ -142,9 +142,6 @@ a      b      c      d
 def test_rectification():
     qubits = cirq.LineQubit.range(4)
 
-    with pytest.raises(TypeError):
-        cca.rectify_acquaintance_strategy(cirq.Circuit())
-
     perm_gate = cca.SwapPermutationGate()
     operations = [
         perm_gate(*qubits[:2]),
@@ -153,7 +150,7 @@ def test_rectification():
         perm_gate(*qubits[2:]),
     ]
 
-    strategy = cirq.Circuit(operations, device=cca.UnconstrainedAcquaintanceDevice)
+    strategy = cirq.Circuit(operations)
     cca.rectify_acquaintance_strategy(strategy)
     actual_text_diagram = strategy.to_text_diagram().strip()
     expected_text_diagram = """
@@ -167,7 +164,7 @@ def test_rectification():
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
-    strategy = cirq.Circuit(operations, device=cca.UnconstrainedAcquaintanceDevice)
+    strategy = cirq.Circuit(operations)
     cca.rectify_acquaintance_strategy(strategy, False)
     actual_text_diagram = strategy.to_text_diagram()
     expected_text_diagram = """
@@ -180,9 +177,3 @@ def test_rectification():
 3: ─────────█───────1↦0───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
-
-
-def test_replace_acquaintance_with_swap_network():
-    with pytest.raises(TypeError):
-        qubits = cirq.LineQubit.range(3)
-        cca.replace_acquaintance_with_swap_network(cirq.Circuit(), qubits)
