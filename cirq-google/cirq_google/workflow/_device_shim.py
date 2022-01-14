@@ -15,18 +15,13 @@
 import itertools
 from typing import Iterable, cast
 
-import networkx as nx
-
 import cirq
+import networkx as nx
 
 
 def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
-    # cirq contrib: routing.gridqubits_to_graph_device
-    def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
-        return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
-
     return nx.Graph(
-        pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
+        pair for pair in itertools.combinations(qubits, 2) if pair[0].is_adjacent(pair[1])
     )
 
 
