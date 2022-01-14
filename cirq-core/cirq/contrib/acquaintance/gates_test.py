@@ -135,7 +135,7 @@ def test_acquaint_part_pairs(part_lens):
         n_qubits += part_len
     qubits = cirq.LineQubit.range(n_qubits)
     swap_network_op = cca.SwapNetworkGate(part_lens, acquaintance_size=None)(*qubits)
-    swap_network = cirq.Circuit(swap_network_op, device=cca.UnconstrainedAcquaintanceDevice)
+    swap_network = cirq.Circuit(swap_network_op)
     initial_mapping = {q: i for i, q in enumerate(qubits)}
 
     actual_opps = cca.get_logical_acquaintance_opportunities(swap_network, initial_mapping)

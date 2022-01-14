@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+"""Utilities for heuristic decomposition of cirq gates."""
 
-import cirq
-
-import cirq.contrib.acquaintance as cca
-
-
-def test_acquaintance_device():
-    with pytest.raises(ValueError):
-        op = cirq.X(cirq.NamedQubit('q'))
-        cca.UnconstrainedAcquaintanceDevice.validate_operation(op)
-
-    qubits = cirq.LineQubit.range(4)
-    swap_network = cca.SwapNetworkGate((1, 2, 1))
-    cca.UnconstrainedAcquaintanceDevice.validate_operation(cca.acquaint(*qubits[:2]))
-    cca.UnconstrainedAcquaintanceDevice.validate_operation(swap_network(*qubits))
+from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
+    TwoQubitGateTabulation,
+    TwoQubitGateTabulationResult,
+    two_qubit_gate_product_tabulation,
+)

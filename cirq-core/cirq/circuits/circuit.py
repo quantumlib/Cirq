@@ -67,6 +67,8 @@ T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
 INT_TYPE = Union[int, np.integer]
 
+_DEVICE_DEP_MESSAGE = 'Attaching devices to circuits will no longer be supported.'
+
 
 class Alignment(enum.Enum):
     # Stop when left ends are lined up.

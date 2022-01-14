@@ -20,7 +20,6 @@ from collections import defaultdict
 from cirq import circuits, devices, ops, protocols
 
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
-from cirq.contrib.acquaintance.devices import is_acquaintance_strategy
 from cirq.contrib.acquaintance.permutation import (
     PermutationGate,
     LogicalIndex,
@@ -74,10 +73,7 @@ class StrategyExecutor(circuits.PointOptimizer):
         self.mapping = execution_strategy.initial_mapping.copy()
 
     def __call__(self, strategy: 'cirq.Circuit'):
-        if not is_acquaintance_strategy(strategy):
-            raise TypeError('not is_acquaintance_strategy(strategy)')
         expose_acquaintance_gates(strategy)
-        strategy.device = self.execution_strategy.device
         super().optimize_circuit(strategy)
         return self.mapping.copy()
 
