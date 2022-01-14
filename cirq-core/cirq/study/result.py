@@ -83,14 +83,7 @@ def _key_to_str(key: TMeasurementKey) -> str:
 
 
 class Result(abc.ABC):
-    """The results of multiple executions of a circuit with fixed parameters.
-    Stored as a Pandas DataFrame that can be accessed through the "data"
-    attribute. The repetition number is the row index and measurement keys
-    are the columns of the DataFrame. Each element is a big endian integer
-    representation of measurement outcomes for the measurement key in that
-    repetition.  See `cirq.big_endian_int_to_bits` and similar functions
-    for how to convert this integer into bits.
-    """
+    """The results of multiple executions of a circuit with fixed parameters."""
 
     @property
     @abc.abstractmethod
@@ -110,7 +103,14 @@ class Result(abc.ABC):
     @property
     @abc.abstractmethod
     def data(self) -> pd.DataFrame:
-        """Measurements converted to a pandas dataframe."""
+        """Measurements converted to a pandas dataframe.
+
+        The rows in the returned data frame correspond to repetitions of the
+        circuit, and the columns correspond to measurement keys, where each
+        element is a big-endian integer representation of measurement outcomes
+        for the measurement key in that repetition. To convert these ints to
+        bits see `cirq.big_endian_int_to_bits` and similar functions.
+        """
 
     @staticmethod
     @deprecated(
@@ -273,7 +273,10 @@ class Result(abc.ABC):
 
 class ResultImpl(Result):
     """The results of multiple executions of a circuit with fixed parameters.
-    Stored as a Pandas DataFrame that can be accessed through the "data"
+
+    Stored as a dict mapping measurement key to 2D array of measurement results.
+    The first index in each array is the repetition number, and the second index
+    is the qubitPandas DataFrame that can be accessed through the "data"
     attribute. The repetition number is the row index and measurement keys
     are the columns of the DataFrame. Each element is a big endian integer
     representation of measurement outcomes for the measurement key in that
