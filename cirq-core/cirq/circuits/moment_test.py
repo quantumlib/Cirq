@@ -18,6 +18,16 @@ import pytest
 import cirq
 import cirq.testing
 
+# ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+#
+#
+# def test_deprecated_submodule():
+#     with cirq.testing.assert_deprecated(
+#         "Use cirq.circuits.moment.Moment instead",
+#         deadline="v0.16",
+#     ):
+#         _ = cirq.ops.moment.Moment
+
 
 def test_validation():
     a = cirq.NamedQubit('a')

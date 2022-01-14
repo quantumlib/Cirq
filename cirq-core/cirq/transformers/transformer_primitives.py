@@ -57,7 +57,7 @@ def _create_target_circuit_type(ops: ops.OP_TREE, target_circuit: CIRCUIT_TYPE) 
 
 def map_moments(
     circuit: CIRCUIT_TYPE,
-    map_func: Callable[[ops.Moment, int], Sequence[ops.Moment]],
+    map_func: Callable[[circuits.Moment, int], Sequence[circuits.Moment]],
 ) -> CIRCUIT_TYPE:
     """Applies local transformation on moments, by calling `map_func(moment)` for each moment.
 
@@ -109,7 +109,9 @@ def map_operations(
         circuit_op = circuits.CircuitOperation(c).with_tags(MAPPED_CIRCUIT_OP_TAG)
         return circuit_op
 
-    return map_moments(circuit, lambda m, i: [ops.Moment(apply_map(op, i) for op in m.operations)])
+    return map_moments(
+        circuit, lambda m, i: [circuits.Moment(apply_map(op, i) for op in m.operations)]
+    )
 
 
 def map_operations_and_unroll(
@@ -187,7 +189,7 @@ def merge_operations(
 
     ret_circuit = circuits.Circuit()
     for current_moment in circuit:
-        new_moment = ops.Moment()
+        new_moment = circuits.Moment()
         for op in current_moment:
             op_qs = set(op.qubits)
             idx = ret_circuit.prev_moment_operating_on(tuple(op_qs))
@@ -221,7 +223,7 @@ def merge_operations(
 
 def merge_moments(
     circuit: CIRCUIT_TYPE,
-    merge_func: Callable[[ops.Moment, ops.Moment], Optional[ops.Moment]],
+    merge_func: Callable[[circuits.Moment, circuits.Moment], Optional[circuits.Moment]],
 ) -> CIRCUIT_TYPE:
     """Merges adjacent moments, one by one from left to right, by calling `merge_func(m1, m2)`.
 
@@ -236,7 +238,7 @@ def merge_moments(
     """
     if not circuit:
         return circuit
-    merged_moments: List[ops.Moment] = [circuit[0]]
+    merged_moments: List[circuits.Moment] = [circuit[0]]
     for current_moment in circuit[1:]:
         merged_moment = merge_func(merged_moments[-1], current_moment)
         if not merged_moment:
@@ -269,7 +271,7 @@ def unroll_circuit_op(
         Copy of input circuit with (Tagged) CircuitOperation's expanded in a moment preserving way.
     """
 
-    def map_func(m: ops.Moment, _: int):
+    def map_func(m: circuits.Moment, _: int):
         to_zip = [
             cast(circuits.CircuitOperation, op.untagged).mapped_circuit()
             if _check_circuit_op(op, tags_to_check)

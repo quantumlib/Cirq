@@ -189,10 +189,6 @@ from cirq.ops.measurement_gate import (
     MeasurementGate,
 )
 
-from cirq.ops.moment import (
-    Moment,
-)
-
 from cirq.ops.named_qubit import (
     NamedQubit,
     NamedQid,

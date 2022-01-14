@@ -63,6 +63,8 @@ def quartic_paired_acquaintance_strategy(
     strategy = circuits.Circuit(swap_network)
     expose_acquaintance_gates(strategy)
     for i in reversed(range(0, n_qubits, 2)):
-        moment = ops.Moment([acquaint(*qubits[j : j + 4]) for j in range(i % 4, n_qubits - 3, 4)])
+        moment = circuits.Moment(
+            [acquaint(*qubits[j : j + 4]) for j in range(i % 4, n_qubits - 3, 4)]
+        )
         strategy.insert(2 * i, moment)
     return strategy, qubits

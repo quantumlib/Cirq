@@ -34,7 +34,7 @@ class PasqalDevice(cirq.devices.Device):
     execution on the specified device are handled internally by Pasqal.
     """
 
-    def __init__(self, qubits: Sequence[cirq.ops.Qid]) -> None:
+    def __init__(self, qubits: Sequence[cirq.Qid]) -> None:
         """Initializes a device with some qubits.
 
         Args:
@@ -95,11 +95,11 @@ class PasqalDevice(cirq.devices.Device):
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
-    def decompose_operation(self, operation: cirq.ops.Operation) -> 'cirq.OP_TREE':
+    def decompose_operation(self, operation: cirq.Operation) -> 'cirq.OP_TREE':
 
         decomposition = [operation]
 
-        if not isinstance(operation, cirq.ops.GateOperation):
+        if not isinstance(operation, cirq.GateOperation):
             raise TypeError(f"{operation!r} is not a gate operation.")
 
         # Try to decompose the operation into elementary device operations
@@ -110,12 +110,12 @@ class PasqalDevice(cirq.devices.Device):
 
         return decomposition
 
-    def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
-        if not isinstance(op, cirq.ops.Operation):
+    def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
+        if not isinstance(op, cirq.Operation):
             raise ValueError('Got unknown operation:', op)
         return op in self.gateset
 
-    def validate_operation(self, operation: cirq.ops.Operation):
+    def validate_operation(self, operation: cirq.Operation):
         """Raises an error if the given operation is invalid on this device.
 
         Args:
@@ -143,7 +143,7 @@ class PasqalDevice(cirq.devices.Device):
             if qub not in self.qubit_set():
                 raise ValueError(f'{qub} is not part of the device.')
 
-        if isinstance(operation.gate, cirq.ops.MeasurementGate):
+        if isinstance(operation.gate, cirq.MeasurementGate):
             if operation.gate.invert_mask != ():
                 raise NotImplementedError(
                     "Measurements on Pasqal devices don't support invert_mask."
@@ -170,12 +170,10 @@ class PasqalDevice(cirq.devices.Device):
                 if len(moment.operations) > 0:
                     raise ValueError("Non-empty moment after measurement")
             for operation in moment.operations:
-                if isinstance(operation.gate, cirq.ops.MeasurementGate):
+                if isinstance(operation.gate, cirq.MeasurementGate):
                     has_measurement_occurred = True
 
-    def can_add_operation_into_moment(
-        self, operation: cirq.ops.Operation, moment: cirq.ops.Moment
-    ) -> bool:
+    def can_add_operation_into_moment(self, operation: cirq.Operation, moment: cirq.Moment) -> bool:
         """Determines if it's possible to add an operation into a moment.
 
         An operation can be added if the moment with the operation added is
@@ -266,10 +264,10 @@ class PasqalVirtualDevice(PasqalDevice):
             LineQubit,
         )
 
-    def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
+    def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
         return super().is_pasqal_device_op(op) and op not in self.exclude_gateset
 
-    def validate_operation(self, operation: cirq.ops.Operation):
+    def validate_operation(self, operation: cirq.Operation):
         """Raises an error if the given operation is invalid on this device.
 
         Args:
@@ -286,7 +284,7 @@ class PasqalVirtualDevice(PasqalDevice):
                     if self.distance(p, q) > self.control_radius:
                         raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
 
-    def validate_moment(self, moment: cirq.ops.Moment):
+    def validate_moment(self, moment: cirq.Moment):
         """Raises an error if the given moment is invalid on this device.
 
         Args:
@@ -298,7 +296,7 @@ class PasqalVirtualDevice(PasqalDevice):
         super().validate_moment(moment)
         if len(moment) > 1:
             for operation in moment:
-                if not isinstance(operation.gate, cirq.ops.MeasurementGate):
+                if not isinstance(operation.gate, cirq.MeasurementGate):
                     raise ValueError("Cannot do simultaneous gates. Use cirq.InsertStrategy.NEW.")
 
     def minimal_distance(self) -> float:
@@ -379,8 +377,8 @@ class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
     """
 
     def pasqal_convert(
-        self, op: cirq.ops.Operation, keep: Callable[[cirq.ops.Operation], bool]
-    ) -> List[cirq.ops.Operation]:
+        self, op: cirq.Operation, keep: Callable[[cirq.Operation], bool]
+    ) -> List[cirq.Operation]:
         def on_stuck_raise(bad):
             return TypeError(
                 "Don't know how to work with {!r}. "

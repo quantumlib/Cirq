@@ -279,7 +279,7 @@ def cross_entropy_benchmarking(
     sampler: work.Sampler,
     qubits: Sequence[ops.Qid],
     *,
-    benchmark_ops: Sequence[ops.Moment] = None,
+    benchmark_ops: Sequence[circuits.Moment] = None,
     num_circuits: int = 20,
     repetitions: int = 1000,
     cycles: Union[int, Iterable[int]] = range(2, 103, 10),
@@ -341,10 +341,10 @@ def cross_entropy_benchmarking(
     Args:
         sampler: The quantum engine or simulator to run the circuits.
         qubits: The qubits included in the XEB experiment.
-        benchmark_ops: A sequence of ops.Moment containing gate operations
+        benchmark_ops: A sequence of circuits.Moment containing gate operations
             between specific qubits which are to be benchmarked for fidelity.
-            If more than one ops.Moment is specified, the random circuits
-            will rotate between the ops.Moment's. As an example,
+            If more than one circuits.Moment is specified, the random circuits
+            will rotate between the circuits.Moment's. As an example,
             if benchmark_ops = [Moment([ops.CZ(q0, q1), ops.CZ(q2, q3)]),
             Moment([ops.CZ(q1, q2)]) where q0, q1, q2 and q3 are instances of
             Qid (such as GridQubits), each random circuit will apply CZ gate
@@ -419,7 +419,7 @@ def cross_entropy_benchmarking(
 
 def build_entangling_layers(
     qubits: Sequence[devices.GridQubit], two_qubit_gate: ops.Gate
-) -> List[ops.Moment]:
+) -> List[circuits.Moment]:
     """Builds a sequence of gates that entangle all pairs of qubits on a grid.
 
     The qubits are restricted to be physically on a square grid with distinct
@@ -463,7 +463,7 @@ def build_entangling_layers(
             neighboring pairs of qubits.
 
     Returns:
-        A list of ops.Moment, with a maximum length of 4. Each ops.Moment
+        A list of circuits.Moment, with a maximum length of 4. Each circuits.Moment
         includes two-qubit gates which can be performed at the same time.
 
     Raises:
@@ -473,7 +473,7 @@ def build_entangling_layers(
         raise ValueError('Input must be a two-qubit gate')
     interaction_sequence = _default_interaction_sequence(qubits)
     return [
-        ops.Moment([two_qubit_gate(q_a, q_b) for (q_a, q_b) in pairs])
+        circuits.Moment([two_qubit_gate(q_a, q_b) for (q_a, q_b) in pairs])
         for pairs in interaction_sequence
     ]
 
@@ -482,7 +482,7 @@ def _build_xeb_circuits(
     qubits: Sequence[ops.Qid],
     cycles: Sequence[int],
     single_qubit_gates: List[List[ops.SingleQubitGate]] = None,
-    benchmark_ops: Sequence[ops.Moment] = None,
+    benchmark_ops: Sequence[circuits.Moment] = None,
 ) -> List[circuits.Circuit]:
     if benchmark_ops is not None:
         num_d = len(benchmark_ops)
