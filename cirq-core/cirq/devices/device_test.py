@@ -131,7 +131,6 @@ def test_griddevice_metadata():
     expected_pairings = frozenset(
         {
             (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
-            (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
             (cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)),
             (cirq.GridQubit(0, 1), cirq.GridQubit(1, 1)),
             (cirq.GridQubit(0, 2), cirq.GridQubit(1, 2)),
@@ -203,3 +202,16 @@ def test_griddevice_metadata_equality():
     eq.add_equality_group(metadata4)
 
     assert metadata == metadata5
+
+
+def test_repr():
+    qubits = cirq.GridQubit.rect(2, 3)
+    qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
+    gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate)
+    duration = {
+        cirq.Gateset(cirq.XPowGate): cirq.Duration(nanos=1),
+        cirq.Gateset(cirq.YPowGate): cirq.Duration(picos=3),
+        cirq.Gateset(cirq.ZPowGate): cirq.Duration(picos=2),
+    }
+    metadata = cirq.GridDeviceMetadata(qubit_pairs, gateset, gate_durations=duration)
+    cirq.testing.assert_equivalent_repr(metadata)

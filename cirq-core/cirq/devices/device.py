@@ -300,15 +300,15 @@ class GridDeviceMetadata(DeviceMetadata):
         flat_pairs = [q for pair in qubit_pairs for q in pair]
         # Keep lexigraphically smaller tuples for undirected edges.
         sorted_pairs = sorted(qubit_pairs)
-        qubit_set = set()
+        pair_set = set()
         for a, b in sorted_pairs:
-            if (b, a) not in qubit_set:
-                qubit_set.add((a, b))
+            if (b, a) not in pair_set:
+                pair_set.add((a, b))
 
         connectivity = nx.Graph()
-        connectivity.add_edges_from(sorted(list(qubit_set)), directed=False)
+        connectivity.add_edges_from(sorted(pair_set), directed=False)
         super().__init__(flat_pairs, connectivity)
-        self._qubit_pairs = frozenset(qubit_set)
+        self._qubit_pairs = frozenset(pair_set)
         self._supported_gates = supported_gates
 
         if gate_durations is not None:
@@ -316,10 +316,10 @@ class GridDeviceMetadata(DeviceMetadata):
                 g for gset in gate_durations.keys() for g in gset.gates
             )
             if working_gatefamilies != supported_gates.gates:
-                overlap = working_gatefamilies.difference(supported_gates.gates)
+                missing_items = working_gatefamilies.difference(supported_gates.gates)
                 raise ValueError(
                     "Supplied gate_durations contains gates not present"
-                    f" in supported_gates. {overlap} in supported_gates"
+                    f" in supported_gates. {missing_items} in supported_gates"
                     " is False."
                 )
 
@@ -343,20 +343,24 @@ class GridDeviceMetadata(DeviceMetadata):
     def _value_equality_values_(self):
         duration_equality = ''
         if self._gate_durations is not None:
-            duration_equality = list(self._gate_durations.items())
-            duration_equality = sorted(duration_equality, key=lambda x: repr(x[0]))
+            duration_equality = sorted(self._gate_durations.items(), key=lambda x: repr(x[0]))
 
         return (
-            tuple(sorted(list(self._qubit_pairs))),
+            tuple(sorted(self._qubit_pairs)),
             self._supported_gates,
             tuple(duration_equality),
         )
 
+    def __repr__(self) -> str:
+        return (
+            f'cirq.GridDeviceMetadata({repr(self._qubit_pairs)},'
+            f' {repr(self._supported_gates)}, {repr(self._gate_durations)})'
+        )
+
     def _json_dict_(self):
-        duration_payload = ''
+        duration_payload = None
         if self._gate_durations is not None:
-            duration_payload = list(self._gate_durations.items())
-            duration_payload = sorted(duration_payload, key=lambda x: repr(x[0]))
+            duration_payload = sorted(self._gate_durations.items(), key=lambda x: repr(x[0]))
 
         return {
             'qubit_pairs': sorted(list(self._qubit_pairs)),
@@ -366,6 +370,4 @@ class GridDeviceMetadata(DeviceMetadata):
 
     @classmethod
     def _from_json_dict_(cls, qubit_pairs, supported_gates, gate_durations, **kwargs):
-        if gate_durations == '':
-            gate_durations = None
         return cls(qubit_pairs, supported_gates, dict(gate_durations))
