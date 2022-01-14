@@ -230,14 +230,10 @@ class DeviceMetadata:
         if self._nx_graph is not None:
             graph_equality = (
                 tuple(sorted(self._nx_graph.nodes())),
-                tuple(sorted(self._nx_graph.edges())),
+                tuple(sorted(self._nx_graph.edges(data='directed'))),
             )
 
-        qubit_equality = None
-        if self._qubits_set is not None:
-            qubit_equality = tuple(sorted(list(self._qubits_set)))
-
-        return qubit_equality, graph_equality
+        return self._qubits_set, graph_equality
 
     def _json_dict_(self):
         graph_payload = ''
