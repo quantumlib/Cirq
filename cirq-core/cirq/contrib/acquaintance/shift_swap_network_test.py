@@ -34,7 +34,7 @@ def test_shift_swap_network_gate_acquaintance_opps(left_part_lens, right_part_le
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
     qubits = cirq.LineQubit.range(n_qubits)
-    strategy = cirq.Circuit(gate(*qubits), device=cca.UnconstrainedAcquaintanceDevice)
+    strategy = cirq.Circuit(gate(*qubits))
 
     # actual_opps
     initial_mapping = {q: i for i, q in enumerate(qubits)}

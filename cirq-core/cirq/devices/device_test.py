@@ -1,5 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import pytest
+import networkx as nx
 import cirq
 
 
@@ -75,3 +76,30 @@ def test_qid_pair():
 
     with pytest.raises(ValueError, match='A QidPair cannot have identical qids.'):
         cirq.SymmetricalQidPair(q0, q0)
+
+
+def test_metadata():
+    qubits = cirq.LineQubit.range(4)
+    graph = nx.star_graph(3)
+    metadata = cirq.DeviceMetadata(qubits, graph)
+    assert metadata.qubit_set() == frozenset(qubits)
+    assert metadata.nx_graph() == graph
+
+    metadata = cirq.DeviceMetadata()
+    assert metadata.qubit_set() is None
+    assert metadata.nx_graph() is None
+
+
+def test_metadata_json_load_logic():
+    qubits = cirq.LineQubit.range(4)
+    graph = nx.star_graph(3)
+    metadata = cirq.DeviceMetadata(qubits, graph)
+    str_rep = cirq.to_json(metadata)
+    assert metadata == cirq.read_json(json_text=str_rep)
+
+    qubits = None
+    graph = None
+    metadata = cirq.DeviceMetadata(qubits, graph)
+    str_rep = cirq.to_json(metadata)
+    output = cirq.read_json(json_text=str_rep)
+    assert metadata == output

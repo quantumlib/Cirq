@@ -15,6 +15,7 @@
 """Types for devices, device-specific qubits, and noise models."""
 from cirq.devices.device import (
     Device,
+    DeviceMetadata,
     SymmetricalQidPair,
 )
 
