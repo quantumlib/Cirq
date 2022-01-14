@@ -319,7 +319,20 @@ class CirqEncoder(json.JSONEncoder):
         if isinstance(o, sympy.Symbol):
             return {'cirq_type': 'sympy.Symbol', 'name': o.name}
 
-        if isinstance(o, (sympy.Add, sympy.Mul, sympy.Pow)):
+        if isinstance(
+            o,
+            (
+                sympy.Add,
+                sympy.Mul,
+                sympy.Pow,
+                sympy.GreaterThan,
+                sympy.StrictGreaterThan,
+                sympy.LessThan,
+                sympy.StrictLessThan,
+                sympy.Equality,
+                sympy.Unequality,
+            ),
+        ):
             return {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args}
 
         if isinstance(o, sympy.Integer):

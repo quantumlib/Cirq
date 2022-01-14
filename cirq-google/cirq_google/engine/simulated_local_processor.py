@@ -13,20 +13,19 @@
 # limitations under the License.
 import datetime
 
-from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 
 from cirq_google.api import v2
-from cirq_google.engine import calibration
+from cirq_google.engine import calibration, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.abstract_program import AbstractProgram
 from cirq_google.engine.local_simulation_type import LocalSimulationType
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
-
-import cirq_google.engine.validating_sampler as validating_sampler
+from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
 
 if TYPE_CHECKING:
     from cirq_google.serialization.serializer import Serializer
@@ -34,6 +33,11 @@ if TYPE_CHECKING:
 VALID_LANGUAGES = [
     'type.googleapis.com/cirq.google.api.v2.Program',
     'type.googleapis.com/cirq.google.api.v2.BatchProgram',
+]
+
+GATE_SET_VALIDATOR_TYPE = Callable[
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'],
+    None,
 ]
 
 
@@ -69,6 +73,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         device: An optional device, for validation of qubit connectivity.
         validator: A Callable that can validate additional characteristics
             beyond the device, such as serialization, repetition limits, etc.
+        gate_set_validator:  A callable that can validate a circuit and sweeps
+            based on the given serializer.
         calibrations: A dictionary of calibration metrics keyed by epoch seconds
             that can be returned by the processor.
     """
@@ -79,6 +85,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         sampler: cirq.Sampler = cirq.Simulator(),
         device: cirq.Device = cirq.UNCONSTRAINED_DEVICE,
         validator: validating_sampler.VALIDATOR_TYPE = None,
+        gate_set_validator: GATE_SET_VALIDATOR_TYPE = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
         calibrations: Optional[Dict[int, calibration.Calibration]] = None,
         **kwargs,
@@ -87,6 +94,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._calibrations = calibrations or {}
         self._device = device
         self._simulation_type = simulation_type
+        self._gate_set_validator = gate_set_validator or (lambda a, b, c, d: None)
         self._validator = validator
         self._sampler = validating_sampler.ValidatingSampler(
             device=self._device, validator=self._validator, sampler=sampler
@@ -201,6 +209,9 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program_id = self._create_id(id_type='program')
         if job_id is None:
             job_id = self._create_id(id_type='job')
+        if gate_set is None:
+            gate_set = CIRCUIT_SERIALIZER
+        self._gate_set_validator(programs, params_list or [{}], repetitions, gate_set)
         self._programs[program_id] = SimulatedLocalProgram(
             program_id=program_id,
             simulation_type=self._simulation_type,
@@ -288,6 +299,9 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program_id = self._create_id(id_type='program')
         if job_id is None:
             job_id = self._create_id(id_type='job')
+        if gate_set is None:
+            gate_set = CIRCUIT_SERIALIZER
+        self._gate_set_validator([program], [params], repetitions, gate_set)
         self._programs[program_id] = SimulatedLocalProgram(
             program_id=program_id,
             simulation_type=self._simulation_type,

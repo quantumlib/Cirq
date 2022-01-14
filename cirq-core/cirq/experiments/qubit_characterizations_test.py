@@ -188,6 +188,7 @@ def test_two_qubit_state_tomography():
     np.testing.assert_almost_equal(act_rho_yx, tar_rho_yx, decimal=1)
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_tomography_plot_raises_for_incorrect_number_of_axes():
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)

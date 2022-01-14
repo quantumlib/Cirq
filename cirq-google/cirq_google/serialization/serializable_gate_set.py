@@ -275,7 +275,7 @@ class SerializableGateSet(serializer.Serializer):
 
     @cirq._compat.deprecated_parameter(
         deadline='v0.15',
-        fix='The returned circuit will no longer include a device object.',
+        fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,
         parameter_desc='device',
         match=lambda args, kwargs: 'device' in kwargs or len(args) > 2,
     )
@@ -329,11 +329,17 @@ class SerializableGateSet(serializer.Serializer):
                 deserialized_constants=deserialized_constants,
             )
             if device is not None:
+<<<<<<< HEAD
                 circuit._device = device
             return circuit
         if which == 'schedule':
             # if device is None:
             #     raise ValueError('Deserializing schedule requires a device but None was given.')
+=======
+                circuit._device = device  # coverage: ignore
+            return circuit
+        if which == 'schedule':
+>>>>>>> master
             return self._deserialize_schedule(
                 proto.schedule, device, arg_function_language=proto.language.arg_function_language
             )
@@ -505,7 +511,7 @@ class SerializableGateSet(serializer.Serializer):
     def _deserialize_schedule(
         self,
         schedule_proto: v2.program_pb2.Schedule,
-        device: cirq.Device,
+        device: Optional[cirq.Device],
         *,
         arg_function_language: str,
     ) -> cirq.Circuit:

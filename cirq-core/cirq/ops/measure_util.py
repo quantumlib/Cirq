@@ -16,7 +16,7 @@ from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING, Uni
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import protocols
 from cirq.ops import raw_types, pauli_string
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.pauli_measurement_gate import PauliMeasurementGate
@@ -31,7 +31,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 def measure_single_paulistring(
     pauli_observable: pauli_string.PauliString,
-    key: Optional[Union[str, value.MeasurementKey]] = None,
+    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
 ) -> raw_types.Operation:
     """Returns a single PauliMeasurementGate which measures the pauli observable
 
@@ -83,7 +83,7 @@ def measure_paulistring_terms(
 
 def measure(
     *target: 'cirq.Qid',
-    key: Optional[Union[str, value.MeasurementKey]] = None,
+    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.

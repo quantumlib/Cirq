@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 import numpy as np
 import pytest
 import sympy
@@ -50,7 +49,9 @@ def test_protobuf_round_trip_device_deprecated():
     circuit._device = device
 
     protos = list(programs.circuit_as_schedule_to_protos(circuit))
-    with cirq.testing.assert_deprecated('no longer include a device', deadline='v0.15'):
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
         s2 = programs.circuit_from_schedule_from_protos(device, protos)
         assert s2 == circuit
 

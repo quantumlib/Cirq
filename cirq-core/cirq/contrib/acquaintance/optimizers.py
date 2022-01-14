@@ -16,7 +16,6 @@ from typing import cast, FrozenSet, List, Sequence, Set, TYPE_CHECKING
 
 from cirq import ops
 
-from cirq.contrib.acquaintance.devices import is_acquaintance_strategy
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.executor import AcquaintanceOperation
 from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
@@ -28,8 +27,6 @@ if TYPE_CHECKING:
 
 def remove_redundant_acquaintance_opportunities(strategy: 'cirq.Circuit') -> int:
     """Removes redundant acquaintance opportunities."""
-    if not is_acquaintance_strategy(strategy):
-        raise TypeError('not is_acquaintance_strategy(circuit)')
 
     qubits = sorted(strategy.all_qubits())
     mapping = {q: i for i, q in enumerate(qubits)}

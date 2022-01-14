@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 import pytest
 
 import cirq
@@ -61,9 +60,7 @@ def test_ccz():
 def test_remap_qubits():
     before = cirq.Circuit([cirq.Moment([cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))])])
 
-    after = cg.optimized_for_xmon(
-        before, qubit_map=lambda q: cirq.GridQubit(q.x, 0)
-    )
+    after = cg.optimized_for_xmon(before, qubit_map=lambda q: cirq.GridQubit(q.x, 0))
 
     assert after == cirq.Circuit(
         [cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))])]

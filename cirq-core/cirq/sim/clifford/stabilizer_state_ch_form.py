@@ -53,7 +53,7 @@ class StabilizerStateChForm:
         self.v = np.zeros(self.n, dtype=bool)
         self.s = np.zeros(self.n, dtype=bool)
 
-        self.omega = 1  # type: complex
+        self.omega: complex = 1
 
         # Apply X for every non-zero element of initial_state
         qubits = cirq.LineQubit.range(num_qubits)
@@ -106,7 +106,7 @@ class StabilizerStateChForm:
         return cirq.dirac_notation(self.to_state_vector())
 
     def __repr__(self) -> str:
-        """Return the CH form representation of the state. """
+        """Return the CH form representation of the state."""
         return f'StabilizerStateChForm(num_qubits={self.n!r})'
 
     def inner_product_of_state_and_x(self, x: int) -> Union[float, complex]:

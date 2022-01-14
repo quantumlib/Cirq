@@ -167,7 +167,6 @@ def test_pasqal_converter():
 
 def test_validate_operation_errors():
     d = generic_device(3)
-    circuit = cirq.Circuit()
 
     with pytest.raises(ValueError, match="Unsupported operation"):
         d.validate_operation(cirq.NamedQubit('q0'))
@@ -181,10 +180,19 @@ def test_validate_operation_errors():
     with pytest.raises(ValueError, match="is not part of the device."):
         d.validate_operation(cirq.X.on(cirq.NamedQubit('q6')))
 
-
     d = square_virtual_device(control_r=1.0, num_qubits=3)
     with pytest.raises(ValueError, match="are too far away"):
         d.validate_operation(cirq.CZ.on(TwoDQubit(0, 0), TwoDQubit(2, 2)))
+
+
+def test_validate_operation_errors_deprecated():
+    d = generic_device(3)
+    circuit = cirq.Circuit()
+    circuit._device = d
+    with pytest.raises(
+        NotImplementedError, match="Measurements on Pasqal devices don't support invert_mask."
+    ):
+        circuit.append(cirq.measure(*d.qubits, invert_mask=(True, False, False)))
 
 
 def test_validate_operation_errors_deprecated():

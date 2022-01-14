@@ -118,8 +118,9 @@ class ActOnArgsContainer(
         protocols.act_on(action, op_args, act_on_qubits, allow_decompose=allow_decompose)
 
         # Decouple any measurements or resets
-        if self.split_untangled_states and isinstance(
-            gate, (ops.MeasurementGate, ops.ResetChannel)
+        if self.split_untangled_states and (
+            isinstance(gate, ops.ResetChannel)
+            or (isinstance(gate, ops.MeasurementGate) and not op_args.ignore_measurement_results)
         ):
             for q in qubits:
                 q_args, op_args = op_args.factor((q,), validate=False)
@@ -130,7 +131,7 @@ class ActOnArgsContainer(
                 self.args[q] = op_args
         return True
 
-    def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
+    def copy(self) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()
         copies = {a: a.copy() for a in set(self.args.values())}
         for copy in copies.values():
@@ -148,7 +149,7 @@ class ActOnArgsContainer(
 
     def sample(
         self,
-        qubits: List[ops.Qid],
+        qubits: List['cirq.Qid'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:

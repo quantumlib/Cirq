@@ -34,8 +34,6 @@ def optimized_for_xmon(
     allow_partial_czs: bool = False,
 ) -> cirq.Circuit:
     optimizer_type = 'xmon_partial_cz' if allow_partial_czs else 'xmon'
-    ret = optimized_for_sycamore(
-        circuit, qubit_map=qubit_map, optimizer_type=optimizer_type
-    )
+    ret = optimized_for_sycamore(circuit, qubit_map=qubit_map, optimizer_type=optimizer_type)
     ret._device = new_device or circuit._device
     return ret

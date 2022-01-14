@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 from typing import Dict
+from unittest import mock
 import numpy as np
 import pytest
 import sympy
@@ -389,9 +390,7 @@ def test_deserialize_schedule_device_deprecated():
 def test_deserialize_schedule():
     q0 = cirq.GridQubit(4, 4)
     q1 = cirq.GridQubit(4, 5)
-    circuit = cirq.Circuit(
-        cirq.CZ(q0, q1), cirq.X(q0), cirq.Z(q1), cirq.measure(q0, key='a')
-    )
+    circuit = cirq.Circuit(cirq.CZ(q0, q1), cirq.X(q0), cirq.Z(q1), cirq.measure(q0, key='a'))
     serialized = v2.program_pb2.Program(
         language=v2.program_pb2.Language(gate_set='xmon'),
         schedule=v2.program_pb2.Schedule(

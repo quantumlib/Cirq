@@ -272,6 +272,72 @@ def test_append_multiple():
     )
 
 
+def test_append_control_key_subcircuit():
+    q0, q1 = cirq.LineQubit.range(2)
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q0, key='a'))
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'a'))
+        )
+    )
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q0, key='a'))
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b'))
+        )
+    )
+    assert len(c) == 1
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(q0, key='a'))
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b'))
+        ).with_measurement_key_mapping({'b': 'a'})
+    )
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(q0, key='a'))))
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b'))
+        ).with_measurement_key_mapping({'b': 'a'})
+    )
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q0, key='a'))
+        ).with_measurement_key_mapping({'a': 'c'})
+    )
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b'))
+        ).with_measurement_key_mapping({'b': 'c'})
+    )
+    assert len(c) == 2
+
+    c = cirq.Circuit()
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q0, key='a'))
+        ).with_measurement_key_mapping({'a': 'b'})
+    )
+    c.append(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.ClassicallyControlledOperation(cirq.X(q1), 'b'))
+        ).with_measurement_key_mapping({'b': 'a'})
+    )
+    assert len(c) == 1
+
+
 def test_append_moments():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -2401,7 +2467,7 @@ a: ---PhX(0.43214321)^0.12341234---
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_diagram_global_phase(circuit_cls):
     qa = cirq.NamedQubit('a')
-    global_phase = cirq.GlobalPhaseOperation(coefficient=1j)
+    global_phase = cirq.global_phase_operation(coefficient=1j)
     c = circuit_cls([global_phase])
     cirq.testing.assert_has_diagram(
         c, "\n\nglobal phase:   0.5pi", use_unicode_characters=False, precision=2
@@ -2434,7 +2500,9 @@ global phase:   0.5π   0.5π
 
     c = circuit_cls(
         cirq.X(cirq.LineQubit(2)),
-        cirq.CircuitOperation(circuit_cls(cirq.GlobalPhaseOperation(-1).with_tags("tag")).freeze()),
+        cirq.CircuitOperation(
+            circuit_cls(cirq.global_phase_operation(-1).with_tags("tag")).freeze()
+        ),
     )
     cirq.testing.assert_has_diagram(
         c,
@@ -5007,7 +5075,7 @@ def test_zero_target_operations_go_below_diagram():
             cirq.Moment(
                 cirq.H(cirq.LineQubit(0)),
                 CustomOperationAnnotation("a"),
-                cirq.GlobalPhaseOperation(1j),
+                cirq.global_phase_operation(1j),
             ),
         ),
         """

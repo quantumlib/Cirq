@@ -1,1 +1,1 @@
-cirq.ClassicallyControlledOperation(cirq.Y.on(cirq.NamedQubit('target')), [cirq.MeasurementKey('a'), cirq.MeasurementKey('b')])
+cirq.ClassicallyControlledOperation(cirq.Y.on(cirq.NamedQubit('target')), [cirq.KeyCondition(key=cirq.MeasurementKey('a')), cirq.KeyCondition(key=cirq.MeasurementKey('b'))])

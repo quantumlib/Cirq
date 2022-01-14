@@ -24,7 +24,7 @@ from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = ((0.0, []),)  # type: Sequence[Tuple[float, Any]]
+RaiseTypeErrorIfNotProvided: Sequence[Tuple[float, Any]] = ((0.0, []),)
 
 
 class SupportsMixture(Protocol):
@@ -158,7 +158,7 @@ def validate_mixture(supports_mixture: SupportsMixture):
 
     total = 0.0
     for p, val in mixture_tuple:
-        validate_probability(p, '{}\'s probability'.format(str(val)))
+        validate_probability(p, f"{val}'s probability")
         total += p
     if not np.isclose(total, 1.0):
         raise ValueError('Sum of probabilities of a mixture was not 1.0')

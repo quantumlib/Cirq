@@ -25,7 +25,7 @@ https://gateway-portal.aqt.eu/
 import json
 import time
 import uuid
-from typing import List, Union, Tuple, Dict, cast
+from typing import cast, Dict, List, Sequence, Tuple, Union
 
 import numpy as np
 from requests import put
@@ -179,7 +179,7 @@ class AQTSampler(cirq.Sampler):
 
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
-    ) -> List[cirq.Result]:
+    ) -> Sequence[cirq.Result]:
         """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -198,7 +198,7 @@ class AQTSampler(cirq.Sampler):
         # TODO: Use measurement name from circuit.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         meas_name = 'm'
-        trial_results = []  # type: List[cirq.Result]
+        trial_results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             id_str = uuid.uuid1()
             num_qubits = len(program.all_qubits())

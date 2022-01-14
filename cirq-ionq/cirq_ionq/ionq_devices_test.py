@@ -77,7 +77,7 @@ def test_validate_operation_invalid(gate):
 def test_validate_operation_no_gate():
     device = ionq.IonQAPIDevice(qubits=[])
     with pytest.raises(ValueError, match='no gates'):
-        device.validate_operation(cirq.GlobalPhaseOperation(1j))
+        device.validate_operation(cirq.CircuitOperation(cirq.FrozenCircuit()))
 
 
 def test_validate_operation_qubit_not_on_device():
