@@ -17,21 +17,22 @@ import uuid
 from dataclasses import dataclass
 from typing import List, cast, Any
 
-import cirq
-import cirq_google as cg
 import numpy as np
 import pytest
-from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
+
+import cirq
+import cirq_google as cg
 from cirq_google.workflow.quantum_executable_test import _get_quantum_executables, _get_example_spec
 
 
 @dataclass
-class _MockEngineProcessor(AbstractEngineProcessorShim):
-    def get_device(self) -> cirq.Device:
-        return cg.Sycamore23
-
-    def get_sampler(self) -> cirq.Sampler:
-        return cirq.ZerosSampler()
+class _MockEngineProcessor(cg.engine.SimulatedLocalProcessor):
+    def __init__(self):
+        super().__init__(
+            processor_id='testing_processor',
+            sampler=cirq.ZerosSampler(),
+            device=cirq.UNCONSTRAINED_DEVICE,
+        )
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -187,7 +188,7 @@ def test_execute(tmpdir, run_id_in, patch_cirq_default_resolvers):
     ).load(base_data_dir=tmpdir)
 
     # TODO(gh-4699): Don't null-out device once it's serializable.
-    assert isinstance(returned_exegroup_result.shared_runtime_info.device, cg.SerializableDevice)
+    assert isinstance(returned_exegroup_result.shared_runtime_info.device, cirq.Device)
     returned_exegroup_result.shared_runtime_info.device = None
 
     assert returned_exegroup_result == exegroup_result
