@@ -16,6 +16,7 @@
 
 import abc
 import collections
+import inspect
 from typing import (
     Any,
     Dict,
@@ -30,6 +31,7 @@ from typing import (
     Optional,
     TypeVar,
 )
+import warnings
 
 import numpy as np
 
@@ -266,10 +268,25 @@ class SimulatorBase(
 
         measurements: Dict[str, List[np.ndarray]] = {}
         for i in range(repetitions):
-            all_step_results = self._core_iterator(
-                general_suffix,
-                sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
-            )
+            if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
+                all_step_results = self._core_iterator(
+                    general_suffix,
+                    sim_state=act_on_args.copy(deep_copy_buffers=False)
+                    if i < repetitions - 1
+                    else act_on_args,
+                )
+            else:
+                warnings.warn(
+                    (
+                        'A new parameter deep_copy_buffers has been added to ActOnArgs.copy(). The '
+                        'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
+                    ),
+                    DeprecationWarning,
+                )
+                all_step_results = self._core_iterator(
+                    general_suffix,
+                    sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
+                )
             for step_result in all_step_results:
                 pass
             for k, v in step_result.measurements.items():
