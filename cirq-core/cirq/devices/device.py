@@ -13,7 +13,17 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterator, Iterable
+from typing import (
+    TYPE_CHECKING,
+    Optional,
+    AbstractSet,
+    cast,
+    FrozenSet,
+    Iterator,
+    Iterable,
+    Tuple,
+    Dict,
+)
 
 import networkx as nx
 from cirq import value
@@ -253,3 +263,108 @@ class DeviceMetadata:
         if nx_graph != '':
             graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
         return cls(qubits, graph_obj)
+
+
+@value.value_equality
+class GridDeviceMetadata(DeviceMetadata):
+    """Hardware metadata for homogenous 2d symmetric grid devices."""
+
+    def __init__(
+        self,
+        qubit_pairs: Iterable[Tuple['cirq.Qid', 'cirq.Qid']],
+        supported_gates: 'cirq.Gateset',
+        gate_durations: Optional[Dict['cirq.Gateset', 'cirq.Duration']] = None,
+    ):
+        """Create a GridDeviceMetadata object.
+
+        Create a GridDevice which has a well defined set of couplable
+        qubit pairs that have the same two qubit gates available in
+        both coupling directions.
+
+        Args:
+            qubit_pairs: Iterable of pairs of `cirq.Qid`s representing
+                bi-directional couplings.
+            supported_gates: `cirq.Gateset` indicating gates supported
+                everywhere on the device.
+            gate_durations: Optional dictionary of `cirq.Gateset`
+                instances mapping to `cirq.Duration` instances for
+                gate timing metadata information. If provided,
+                must match all entries in supported_gates.
+
+        Raises:
+            ValueError: if the union of gateset keys in gate_durations,
+                do not represent an identical gateset to supported_gates.
+        """
+        qubit_pairs = list(qubit_pairs)
+        flat_pairs = [q for pair in qubit_pairs for q in pair]
+        # Keep lexigraphically smaller tuples for undirected edges.
+        sorted_pairs = sorted(qubit_pairs)
+        qubit_set = set()
+        for a, b in sorted_pairs:
+            if (b, a) not in qubit_set:
+                qubit_set.add((a, b))
+
+        connectivity = nx.Graph()
+        connectivity.add_edges_from(sorted(list(qubit_set)), directed=False)
+        super().__init__(flat_pairs, connectivity)
+        self._qubit_pairs = frozenset(qubit_set)
+        self._supported_gates = supported_gates
+
+        if gate_durations is not None:
+            working_gatefamilies = frozenset(
+                g for gset in gate_durations.keys() for g in gset.gates
+            )
+            if working_gatefamilies != supported_gates.gates:
+                overlap = working_gatefamilies.difference(supported_gates.gates)
+                raise ValueError(
+                    "Supplied gate_durations contains gates not present"
+                    f" in supported_gates. {overlap} in supported_gates"
+                    " is False."
+                )
+
+        self._gate_durations = gate_durations
+
+    @property
+    def qubit_pairs(self) -> FrozenSet[Tuple['cirq.Qid', 'cirq.Qid']]:
+        """Returns the set of all couple-able qubits on the device."""
+        return self._qubit_pairs
+
+    @property
+    def gateset(self) -> 'cirq.Gateset':
+        """Returns the `cirq.Gateset` of supported gates on this device."""
+        return self._supported_gates
+
+    @property
+    def gate_durations(self) -> Optional[Dict['cirq.Gateset', 'cirq.Duration']]:
+        """Get a dictionary mapping from gateset to duration for gates."""
+        return self._gate_durations
+
+    def _value_equality_values_(self):
+        duration_equality = ''
+        if self._gate_durations is not None:
+            duration_equality = list(self._gate_durations.items())
+            duration_equality = sorted(duration_equality, key=lambda x: repr(x[0]))
+
+        return (
+            tuple(sorted(list(self._qubit_pairs))),
+            self._supported_gates,
+            tuple(duration_equality),
+        )
+
+    def _json_dict_(self):
+        duration_payload = ''
+        if self._gate_durations is not None:
+            duration_payload = list(self._gate_durations.items())
+            duration_payload = sorted(duration_payload, key=lambda x: repr(x[0]))
+
+        return {
+            'qubit_pairs': sorted(list(self._qubit_pairs)),
+            'supported_gates': self._supported_gates,
+            'gate_durations': duration_payload,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qubit_pairs, supported_gates, gate_durations, **kwargs):
+        if gate_durations == '':
+            gate_durations = None
+        return cls(qubit_pairs, supported_gates, dict(gate_durations))

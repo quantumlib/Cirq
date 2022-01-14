@@ -16,6 +16,7 @@
 from cirq.devices.device import (
     Device,
     DeviceMetadata,
+    GridDeviceMetadata,
     SymmetricalQidPair,
 )
 

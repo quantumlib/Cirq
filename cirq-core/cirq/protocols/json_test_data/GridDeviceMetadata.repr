@@ -1,0 +1,1 @@
+cirq.GridDeviceMetadata([(a, b) for a in cirq.GridQubit.rect(2 , 3) for b in cirq.GridQubit.rect(2 ,3) if a != b and a.is_adjacent(b)], cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate), gate_durations={cirq.Gateset(cirq.XPowGate): cirq.Duration(nanos=1),cirq.Gateset(cirq.YPowGate): cirq.Duration(picos=1),cirq.Gateset(cirq.ZPowGate): cirq.Duration(picos=1),})
