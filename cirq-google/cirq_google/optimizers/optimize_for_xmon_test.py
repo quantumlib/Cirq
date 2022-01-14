@@ -20,7 +20,6 @@ from cirq.testing import (
     assert_circuits_with_terminal_measurements_are_equivalent,
 )
 
-from unittest import mock
 
 @pytest.mark.parametrize(
     'n,d',

@@ -21,7 +21,6 @@ import cirq_pasqal
 
 
 class PasqalSampler(cirq.work.Sampler):
-
     def __init__(
         self, remote_host: str, access_token: str = '', device: cirq_pasqal.PasqalDevice = None
     ) -> None:

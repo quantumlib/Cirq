@@ -16,6 +16,7 @@ import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
 from typing import Iterator, Optional, Tuple, TYPE_CHECKING
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -23,7 +24,6 @@ import sympy
 
 import cirq
 import cirq.testing
-from unittest import mock
 from cirq import circuits
 from cirq import ops
 from cirq.testing.devices import ValidatingTestDevice
@@ -4397,7 +4397,7 @@ def test_init_deprecated(circuit_cls):
     with cirq.testing.assert_deprecated(
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
-        c = circuit_cls(
+        _ = circuit_cls(
             cirq.Moment([cirq.X(a)]),
             cirq.Moment([cirq.X(b)]),
             device=FOXY,

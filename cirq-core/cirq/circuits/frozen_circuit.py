@@ -25,15 +25,15 @@ from typing import (
     Union,
 )
 
-import numpy as np
-
-from cirq import _import, _compat, devices, ops, protocols, value
-
-circuit = _import.LazyLoader("circuit", globals(), "cirq.circuits.circuit")
-
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
+
+import numpy as np
+
+from cirq import _import, _compat, devices, ops, protocols
+
+circuit = _import.LazyLoader("circuit", globals(), "cirq.circuits.circuit")
 
 
 if TYPE_CHECKING:
@@ -97,7 +97,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def moments(self) -> Sequence['cirq.Moment']:
         return self._moments
 
-    @property
+    @property  # type: ignore
     @_compat.deprecated(
         deadline='v0.15',
         fix=circuit._DEVICE_DEP_MESSAGE,

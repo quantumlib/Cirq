@@ -18,9 +18,6 @@ import numpy as np
 import cirq
 import cirq_pasqal
 
-
-from unittest import mock
-
 from cirq_pasqal import PasqalDevice, PasqalVirtualDevice
 from cirq_pasqal import TwoDQubit, ThreeDQubit
 
@@ -183,16 +180,6 @@ def test_validate_operation_errors():
     d = square_virtual_device(control_r=1.0, num_qubits=3)
     with pytest.raises(ValueError, match="are too far away"):
         d.validate_operation(cirq.CZ.on(TwoDQubit(0, 0), TwoDQubit(2, 2)))
-
-
-def test_validate_operation_errors_deprecated():
-    d = generic_device(3)
-    circuit = cirq.Circuit()
-    circuit._device = d
-    with pytest.raises(
-        NotImplementedError, match="Measurements on Pasqal devices don't support invert_mask."
-    ):
-        circuit.append(cirq.measure(*d.qubits, invert_mask=(True, False, False)))
 
 
 def test_validate_operation_errors_deprecated():

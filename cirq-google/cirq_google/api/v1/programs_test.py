@@ -15,8 +15,6 @@ import numpy as np
 import pytest
 import sympy
 
-from unittest import mock
-
 import cirq
 import cirq_google as cg
 import cirq_google.api.v1.programs as programs

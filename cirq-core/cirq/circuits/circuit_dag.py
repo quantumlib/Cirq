@@ -100,7 +100,7 @@ class CircuitDag(networkx.DiGraph):
         self.can_reorder = can_reorder
         self._device = device
 
-    @property
+    @property  # type: ignore
     @_compat.deprecated(
         deadline='v0.15',
         fix=circuit._DEVICE_DEP_MESSAGE,

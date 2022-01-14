@@ -70,7 +70,7 @@ def test_init_device_deprecated():
     with cirq.testing.assert_deprecated(
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
-        dag = cirq.CircuitDag(device=cirq.UNCONSTRAINED_DEVICE)
+        _ = cirq.CircuitDag(device=cirq.UNCONSTRAINED_DEVICE)
 
 
 def test_device_deprecated():
@@ -78,7 +78,7 @@ def test_device_deprecated():
     with cirq.testing.assert_deprecated(
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
-        dev = dag.device
+        _ = dag.device
 
 
 def test_append():
@@ -119,7 +119,7 @@ def test_from_ops_device_deprecated():
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
         q0 = cirq.LineQubit(0)
-        dag = cirq.CircuitDag.from_ops(cirq.X(q0), cirq.Y(q0), device=cirq.UNCONSTRAINED_DEVICE)
+        _ = cirq.CircuitDag.from_ops(cirq.X(q0), cirq.Y(q0), device=cirq.UNCONSTRAINED_DEVICE)
 
 
 def test_from_circuit():

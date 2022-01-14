@@ -329,17 +329,9 @@ class SerializableGateSet(serializer.Serializer):
                 deserialized_constants=deserialized_constants,
             )
             if device is not None:
-<<<<<<< HEAD
-                circuit._device = device
-            return circuit
-        if which == 'schedule':
-            # if device is None:
-            #     raise ValueError('Deserializing schedule requires a device but None was given.')
-=======
                 circuit._device = device  # coverage: ignore
             return circuit
         if which == 'schedule':
->>>>>>> master
             return self._deserialize_schedule(
                 proto.schedule, device, arg_function_language=proto.language.arg_function_language
             )

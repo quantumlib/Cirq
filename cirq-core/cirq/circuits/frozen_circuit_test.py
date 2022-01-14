@@ -52,7 +52,7 @@ def test_init_device_deprecated():
     with cirq.testing.assert_deprecated(
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
-        a = cirq.FrozenCircuit(cirq.X(q), device=cirq.UNCONSTRAINED_DEVICE)
+        _ = cirq.FrozenCircuit(cirq.X(q), device=cirq.UNCONSTRAINED_DEVICE)
 
 
 def test_device_deprecated():
@@ -61,7 +61,7 @@ def test_device_deprecated():
     with cirq.testing.assert_deprecated(
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
-        b = a.device
+        _ = a.device
 
 
 def test_with_device_deprecated():
@@ -71,7 +71,7 @@ def test_with_device_deprecated():
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
         # one for frozencircuit.with_device and one for circuit.with_device.
-        b = a.with_device(cirq.UNCONSTRAINED_DEVICE)
+        _ = a.with_device(cirq.UNCONSTRAINED_DEVICE)
 
 
 def test_immutable():

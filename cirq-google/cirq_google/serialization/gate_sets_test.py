@@ -23,7 +23,7 @@ from google.protobuf import json_format
 import cirq
 import cirq_google as cg
 from cirq_google.api import v2
-from unittest import mock
+
 
 def op_proto(json_dict: Dict) -> v2.program_pb2.Operation:
     op = v2.program_pb2.Operation()

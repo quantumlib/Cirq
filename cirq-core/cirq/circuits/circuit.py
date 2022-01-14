@@ -53,7 +53,7 @@ import networkx
 import numpy as np
 
 import cirq._version
-from cirq import _compat, devices, ops, protocols, value, qis
+from cirq import _compat, devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -1727,7 +1727,7 @@ class Circuit(AbstractCircuit):
         self._device = device
         self.append(contents, strategy=strategy)
 
-    @property
+    @property  # type: ignore
     @_compat.deprecated(
         deadline='v0.15',
         fix=_DEVICE_DEP_MESSAGE,
@@ -1735,7 +1735,7 @@ class Circuit(AbstractCircuit):
     def device(self) -> devices.Device:
         return self._device
 
-    @device.setter
+    @device.setter  # type: ignore
     @_compat.deprecated(
         deadline='v0.15',
         fix=_DEVICE_DEP_MESSAGE,
