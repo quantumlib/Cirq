@@ -35,7 +35,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import deprecated, proper_repr, _warn_or_error
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -85,6 +85,15 @@ def _key_to_str(key: TMeasurementKey) -> str:
 class Result(abc.ABC):
     """The results of multiple executions of a circuit with fixed parameters."""
 
+    def __new__(cls, *args, **kwargs):
+        if cls is Result:
+            _warn_or_error(
+                "Result constructor is deprecated and will be removed in cirq v0.15. "
+                "Use the ResultImpl constructor instead, or another concrete subclass."
+            )
+            return ResultImpl(*args, **kwargs)
+        return super().__new__(cls)
+
     @property
     @abc.abstractmethod
     def params(self) -> 'cirq.ParamResolver':
@@ -115,8 +124,8 @@ class Result(abc.ABC):
     @staticmethod
     @deprecated(
         deadline="v0.15",
-        fix="The static method from_single_parameter_set is deprecated, "
-        "use the Result constructor instead.",
+        fix="The static method from_single_parameter_set is deprecated. "
+        "Use the ResultImpl constructor instead.",
     )
     def from_single_parameter_set(
         *,  # Forces keyword args.
