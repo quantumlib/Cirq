@@ -52,6 +52,10 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
         pass
 
+    @property
+    def can_factor(self):
+        return True
+
     def sample(self, qubits, repetitions=1, seed=None):
         pass
 

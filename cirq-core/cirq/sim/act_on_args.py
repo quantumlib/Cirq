@@ -155,6 +155,11 @@ class ActOnArgs(OperationTarget[TSelf]):
         remainder._set_qubits([q for q in self.qubits if q not in qubits])
         return extracted, remainder
 
+    @property
+    def can_factor(self):
+        """Subclasses that allow factorization should override this."""
+        return False
+
     def _on_factor(
         self: TSelf,
         qubits: Sequence['cirq.Qid'],
