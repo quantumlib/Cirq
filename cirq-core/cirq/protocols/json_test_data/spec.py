@@ -176,7 +176,6 @@ TestSpec = ModuleJsonTestSpec(
         'TParamKey',
         'TParamVal',
         'ParamDictType',
-        'TRANSFORMER_TYPE',
         # utility:
         'CliffordSimulator',
         'Simulator',

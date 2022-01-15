@@ -43,7 +43,7 @@ from cirq.transformers.heuristic_decompositions import (
 
 from cirq.transformers.transformer_api import (
     LogLevel,
-    TRANSFORMER_TYPE,
+    TRANSFORMER,
     TransformerContext,
     TransformerStatsLogger,
     transformer,

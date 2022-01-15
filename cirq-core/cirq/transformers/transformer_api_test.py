@@ -11,11 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from unittest import mock
 
 import cirq
-from cirq.circuits.circuit import CIRCUIT_TYPE
-from cirq.transformers import LogLevel
+from cirq.transformers.transformer_api import LogLevel, TRANSFORMER_TO_DECORATE
 
 import pytest
 
@@ -30,56 +30,16 @@ class MockTransformerClassCircuit:
         return circuit
 
 
-@cirq.transformer
-class MockTransformerClassFrozenCircuit:
-    def __init__(self):
-        self.mock = mock.Mock()
+def make_circuit_transformer_func() -> TRANSFORMER_TO_DECORATE:
+    my_mock = mock.Mock()
 
-    def __call__(
-        self, circuit: cirq.FrozenCircuit, context: cirq.TransformerContext
-    ) -> cirq.FrozenCircuit:
-        self.mock(circuit, context)
+    @cirq.transformer
+    def func(circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
+        my_mock(circuit, context)
         return circuit
 
-
-@cirq.transformer
-class MockTransformerClassGeneric:
-    def __init__(self):
-        self.mock = mock.Mock()
-
-    def __call__(self, circuit: CIRCUIT_TYPE, context: cirq.TransformerContext) -> CIRCUIT_TYPE:
-        self.mock(circuit, context)
-        return circuit
-
-
-@cirq.transformer
-def mock_transformer_method_circuit(
-    circuit: cirq.Circuit, context: cirq.TransformerContext
-) -> cirq.Circuit:
-    if not hasattr(mock_transformer_method_circuit, 'mock'):
-        mock_transformer_method_circuit.mock = mock.Mock()  # type: ignore
-    mock_transformer_method_circuit.mock(circuit, context)  # type: ignore
-    return circuit
-
-
-@cirq.transformer
-def mock_transformer_method_frozen_circuit(
-    circuit: cirq.Circuit, context: cirq.TransformerContext
-) -> cirq.Circuit:
-    if not hasattr(mock_transformer_method_frozen_circuit, 'mock'):
-        mock_transformer_method_frozen_circuit.mock = mock.Mock()  # type: ignore
-    mock_transformer_method_frozen_circuit.mock(circuit, context)  # type: ignore
-    return circuit
-
-
-@cirq.transformer
-def mock_transformer_method_generic(
-    circuit: CIRCUIT_TYPE, context: cirq.TransformerContext
-) -> CIRCUIT_TYPE:
-    if not hasattr(mock_transformer_method_generic, 'mock'):
-        mock_transformer_method_generic.mock = mock.Mock()  # type: ignore
-    mock_transformer_method_generic.mock(circuit, context)  # type: ignore
-    return circuit
+    func.mock = my_mock  # type: ignore
+    return func
 
 
 @pytest.mark.parametrize(
@@ -93,11 +53,7 @@ def mock_transformer_method_generic(
     'transformer',
     [
         MockTransformerClassCircuit(),
-        MockTransformerClassFrozenCircuit(),
-        MockTransformerClassGeneric(),
-        mock_transformer_method_circuit,
-        mock_transformer_method_frozen_circuit,
-        mock_transformer_method_generic,
+        make_circuit_transformer_func(),
     ],
 )
 def test_transformer_decorator(context, transformer):
