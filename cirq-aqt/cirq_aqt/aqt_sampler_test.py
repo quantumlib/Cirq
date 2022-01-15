@@ -105,8 +105,8 @@ def test_aqt_sampler_error_handling():
             max_angle = np.pi
             repetitions = 10
             sampler = AQTSampler(remote_host="http://localhost:5000", access_token='testkey')
-            device, qubits = get_aqt_device(1)
-            circuit = cirq.Circuit(cirq.X(qubits[0]) ** theta, device=device)
+            _, qubits = get_aqt_device(1)
+            circuit = cirq.Circuit(cirq.X(qubits[0]) ** theta)
             sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
             with pytest.raises(RuntimeError):
                 _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
@@ -117,10 +117,10 @@ def test_aqt_sampler_empty_circuit():
     max_angle = np.pi
     repetitions = 1000
     num_qubits = 4
-    device, _qubits = get_aqt_device(num_qubits)
+    _, _qubits = get_aqt_device(num_qubits)
     sampler = AQTSamplerLocalSimulator()
     sampler.simulate_ideal = True
-    circuit = cirq.Circuit(device=device)
+    circuit = cirq.Circuit()
     sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
     with pytest.raises(RuntimeError):
         _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
@@ -141,8 +141,8 @@ def test_aqt_sampler():
         max_angle = np.pi
         repetitions = 10
         sampler = AQTSampler(remote_host="http://localhost:5000", access_token='testkey')
-        device, qubits = get_aqt_device(1)
-        circuit = cirq.Circuit(cirq.X(qubits[0]) ** theta, device=device)
+        _, qubits = get_aqt_device(1)
+        circuit = cirq.Circuit(cirq.X(qubits[0]) ** theta)
         sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
         results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
         excited_state_probs = np.zeros(num_points)
@@ -160,10 +160,18 @@ def test_aqt_sampler_sim():
     max_angle = np.pi
     repetitions = 1000
     num_qubits = 4
-    device, qubits = get_aqt_device(num_qubits)
+    _, qubits = get_aqt_device(num_qubits)
     sampler = AQTSamplerLocalSimulator()
     sampler.simulate_ideal = True
-    circuit = cirq.Circuit(cirq.X(qubits[3]) ** theta, device=device)
+    circuit = cirq.Circuit(
+        cirq.X(qubits[3]) ** theta,
+        cirq.X(qubits[0]),
+        cirq.X(qubits[0]),
+        cirq.X(qubits[1]),
+        cirq.X(qubits[1]),
+        cirq.X(qubits[2]),
+        cirq.X(qubits[2]),
+    )
     circuit.append(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=-0.5).on(qubits[0]))
     circuit.append(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.5).on(qubits[0]))
     sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
@@ -179,10 +187,16 @@ def test_aqt_sampler_sim_xtalk():
     max_angle = np.pi
     repetitions = 100
     num_qubits = 4
-    device, qubits = get_aqt_device(num_qubits)
+    _, qubits = get_aqt_device(num_qubits)
     sampler = AQTSamplerLocalSimulator()
     sampler.simulate_ideal = False
-    circuit = cirq.Circuit(cirq.X(qubits[0]), cirq.X(qubits[3]), cirq.X(qubits[2]), device=device)
+    circuit = cirq.Circuit(
+        cirq.X(qubits[0]),
+        cirq.X(qubits[1]),
+        cirq.X(qubits[1]),
+        cirq.X(qubits[3]),
+        cirq.X(qubits[2]),
+    )
     sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
     _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
 
@@ -190,9 +204,9 @@ def test_aqt_sampler_sim_xtalk():
 def test_aqt_sampler_ms():
     repetitions = 1000
     num_qubits = 4
-    device, qubits = get_aqt_device(num_qubits)
+    _, qubits = get_aqt_device(num_qubits)
     sampler = AQTSamplerLocalSimulator()
-    circuit = cirq.Circuit(device=device)
+    circuit = cirq.Circuit(cirq.Z.on_each(*qubits), cirq.Z.on_each(*qubits))
     for _dummy in range(9):
         circuit.append(cirq.XX(qubits[0], qubits[1]) ** 0.5)
     circuit.append(cirq.Z(qubits[0]) ** 0.5)

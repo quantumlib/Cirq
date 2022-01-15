@@ -55,9 +55,6 @@ def test_executor_explicit():
         cca.GreedyExecutionStrategy(bad_gates, initial_mapping)
 
     with pytest.raises(TypeError):
-        executor(cirq.Circuit())
-
-    with pytest.raises(TypeError):
         bad_strategy = cirq.Circuit(cirq.X(qubits[0]))
         executor(bad_strategy)
 
