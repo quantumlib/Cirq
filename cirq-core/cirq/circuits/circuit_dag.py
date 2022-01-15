@@ -138,7 +138,8 @@ class CircuitDag(networkx.DiGraph):
         if device == devices.UNCONSTRAINED_DEVICE:
             dag = CircuitDag(can_reorder=can_reorder)
         else:
-            dag = CircuitDag(can_reorder=can_reorder, device=device)
+            with circuit._block_overlapping_dep():
+                dag = CircuitDag(can_reorder=can_reorder, device=device)
 
         for op in ops.flatten_op_tree(operations):
             dag.append(cast(ops.Operation, op))

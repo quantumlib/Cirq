@@ -92,8 +92,7 @@ def test_alignment():
     assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
-def test_insert_moment_types():
+def test_insert_moment_types_deprecated():
     x = cirq.NamedQubit('x')
 
     with pytest.raises(ValueError):
@@ -102,7 +101,10 @@ def test_insert_moment_types():
     with pytest.raises(ValueError):
         moment_and_op_type_validating_device.validate_moment(cirq.X(x))
 
-    circuit = cirq.Circuit(device=moment_and_op_type_validating_device)
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        circuit = cirq.Circuit(device=moment_and_op_type_validating_device)
 
     moment_or_operation_tree = [cirq.X(x), cirq.Moment([cirq.Y(x)])]
     circuit.insert(0, moment_or_operation_tree)
@@ -202,7 +204,6 @@ def test_approx_eq(circuit_cls):
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_approx_eq_device_deprecated(circuit_cls):
     class TestDevice(cirq.Device):
@@ -210,9 +211,13 @@ def test_approx_eq_device_deprecated(circuit_cls):
             pass
 
     a = cirq.NamedQubit('a')
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        other_device = circuit_cls([cirq.Moment([cirq.X(a)])], device=TestDevice())
     assert not cirq.approx_eq(
         circuit_cls([cirq.Moment([cirq.X(a)])]),
-        circuit_cls([cirq.Moment([cirq.X(a)])], device=TestDevice()),
+        other_device,
     )
 
 
@@ -3717,7 +3722,7 @@ def test_insert_operations_errors():
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
-def test_validates_while_editing():
+def test_validates_while_editing_deprecated():
     c = cirq.Circuit(device=FOXY)
 
     with pytest.raises(ValueError, match='Unsupported qubit type'):
@@ -4282,7 +4287,6 @@ def test_moments_property(circuit_cls):
     assert c.moments[1] == cirq.Moment([cirq.Y(q)])
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_json_dict(circuit_cls):
     q0, q1 = cirq.LineQubit.range(2)

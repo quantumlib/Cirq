@@ -383,7 +383,6 @@ def test_deserialize_schedule_device_deprecated():
             ]
         ),
     )
-    print('WTF', cg.XMON.deserialize(serialized, cg.Bristlecone))
     assert cg.XMON.deserialize(serialized, cg.Bristlecone) == circuit
 
 

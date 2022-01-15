@@ -2372,7 +2372,8 @@ class Circuit(AbstractCircuit):
             resolved_moments.append(new_moment)
         if self._device == devices.UNCONSTRAINED_DEVICE:
             return Circuit(resolved_moments)
-        return Circuit(resolved_moments, device=self._device)
+        with _block_overlapping_dep():
+            return Circuit(resolved_moments, device=self._device)
 
     @property
     def moments(self):
