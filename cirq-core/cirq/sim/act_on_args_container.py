@@ -123,7 +123,7 @@ class ActOnArgsContainer(
             or (isinstance(gate, ops.MeasurementGate) and not op_args.ignore_measurement_results)
         ):
             for q in qubits:
-                if op_args.can_factor:
+                if op_args.allows_factoring:
                     q_args, op_args = op_args.factor((q,), validate=False)
                     self.args[q] = q_args
 

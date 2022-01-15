@@ -156,7 +156,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         return extracted, remainder
 
     @property
-    def can_factor(self):
+    def allows_factoring(self):
         """Subclasses that allow factorization should override this."""
         return False
 

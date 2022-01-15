@@ -71,7 +71,7 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         remainder.measurement_count = 0
 
     @property
-    def can_factor(self):
+    def allows_factoring(self):
         return True
 
     def _on_transpose_to_qubit_order(

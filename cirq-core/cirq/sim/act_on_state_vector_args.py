@@ -205,7 +205,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         remainder.available_buffer = np.empty_like(remainder_tensor)
 
     @property
-    def can_factor(self):
+    def allows_factoring(self):
         return True
 
     def _on_transpose_to_qubit_order(

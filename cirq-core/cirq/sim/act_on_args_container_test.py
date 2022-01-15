@@ -53,7 +53,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
         pass
 
     @property
-    def can_factor(self):
+    def allows_factoring(self):
         return True
 
     def sample(self, qubits, repetitions=1, seed=None):
