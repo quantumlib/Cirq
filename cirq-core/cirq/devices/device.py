@@ -13,7 +13,15 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterator, Iterable
+from typing import (
+    TYPE_CHECKING,
+    Optional,
+    AbstractSet,
+    cast,
+    FrozenSet,
+    Iterator,
+    Iterable,
+)
 
 import networkx as nx
 from cirq import value

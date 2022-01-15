@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence, Union
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence, Union
 
 import numpy as np
 
@@ -36,11 +36,11 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     def __init__(
         self,
         target_tensor: np.ndarray,
-        available_buffer: List[np.ndarray],
-        qid_shape: Tuple[int, ...],
-        prng: np.random.RandomState = None,
-        log_of_measurement_results: Dict[str, Any] = None,
-        qubits: Sequence['cirq.Qid'] = None,
+        available_buffer: Optional[List[np.ndarray]] = None,
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        prng: Optional[np.random.RandomState] = None,
+        log_of_measurement_results: Optional[Dict[str, Any]] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
         ignore_measurement_results: bool = False,
     ):
         """Inits ActOnDensityMatrixArgs.
@@ -65,11 +65,27 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 will treat measurement as dephasing instead of collapsing
                 process. This is only applicable to simulators that can
                 model dephasing.
+
+        Raises:
+            ValueError: The dimension of `target_tensor` is not divisible by 2
+                and `qid_shape` is not provided.
         """
         super().__init__(prng, qubits, log_of_measurement_results, ignore_measurement_results)
         self.target_tensor = target_tensor
-        self.available_buffer = available_buffer
-        self.qid_shape = qid_shape
+        if available_buffer is None:
+            self.available_buffer = [np.empty_like(target_tensor) for _ in range(3)]
+        else:
+            self.available_buffer = available_buffer
+        if qid_shape is None:
+            target_shape = target_tensor.shape
+            if len(target_shape) % 2 != 0:
+                raise ValueError(
+                    'The dimension of target_tensor is not divisible by 2.'
+                    ' Require explicit qid_shape.'
+                )
+            self.qid_shape = target_shape[: len(target_shape) // 2]
+        else:
+            self.qid_shape = qid_shape
 
     def _act_on_fallback_(
         self,
@@ -108,9 +124,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
         return bits
 
-    def _on_copy(self, target: 'cirq.ActOnDensityMatrixArgs'):
+    def _on_copy(self, target: 'cirq.ActOnDensityMatrixArgs', deep_copy_buffers: bool = True):
         target.target_tensor = self.target_tensor.copy()
-        target.available_buffer = [b.copy() for b in self.available_buffer]
+        if deep_copy_buffers:
+            target.available_buffer = [b.copy() for b in self.available_buffer]
+        else:
+            target.available_buffer = self.available_buffer
 
     def _on_kronecker_product(
         self, other: 'cirq.ActOnDensityMatrixArgs', target: 'cirq.ActOnDensityMatrixArgs'
