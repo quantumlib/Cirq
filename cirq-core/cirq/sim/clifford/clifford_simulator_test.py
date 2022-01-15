@@ -186,10 +186,11 @@ def test_simulate_moment_steps_sample():
                 )
 
 
-def test_simulate_moment_steps_intermediate_measurement():
+@pytest.mark.parametrize('split', [True, False])
+def test_simulate_moment_steps_intermediate_measurement(split):
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0), cirq.H(q0))
-    simulator = cirq.CliffordSimulator()
+    simulator = cirq.CliffordSimulator(split_untangled_states=split)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 1:
             result = int(step.measurements['0'][0])
@@ -552,14 +553,16 @@ def test_valid_apply_measurement():
     assert measurements == {'0': [1]}
 
 
-def test_reset():
+@pytest.mark.parametrize('split', [True, False])
+def test_reset(split):
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q, key="out"))
-    assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
+    sim = cirq.CliffordSimulator(split_untangled_states=split)
+    assert sim.sample(c)["out"][0] == 0
     c = cirq.Circuit(cirq.H(q), cirq.reset(q), cirq.measure(q, key="out"))
-    assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
+    assert sim.sample(c)["out"][0] == 0
     c = cirq.Circuit(cirq.reset(q), cirq.measure(q, key="out"))
-    assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
+    assert sim.sample(c)["out"][0] == 0
 
 
 def test_state_copy():
