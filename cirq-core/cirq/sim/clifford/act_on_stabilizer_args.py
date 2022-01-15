@@ -54,40 +54,43 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _x(self, g: common_gates.XPowGate, axis: int):
-        """Apply an X"""
+        """Apply an X gate"""
 
     @abc.abstractmethod
     def _y(self, g: common_gates.YPowGate, axis: int):
-        """Apply a Y"""
+        """Apply a Y gate"""
 
     @abc.abstractmethod
     def _z(self, g: common_gates.ZPowGate, axis: int):
-        """Apply a Z"""
+        """Apply a Z gate"""
 
     @abc.abstractmethod
     def _h(self, g: common_gates.HPowGate, axis: int):
-        """Apply an H"""
+        """Apply an H gate"""
 
     @abc.abstractmethod
-    def _cz(self, g: common_gates.CZPowGate, axis1: int, axis2: int):
-        """Apply a CZ"""
+    def _cz(self, g: common_gates.CZPowGate, control_axis: int, target_axis: int):
+        """Apply a CZ gate"""
 
     @abc.abstractmethod
-    def _cx(self, g: common_gates.CXPowGate, axis1: int, axis2: int):
-        """Apply a CX"""
+    def _cx(self, g: common_gates.CXPowGate, control_axis: int, target_axis: int):
+        """Apply a CX gate"""
 
     @abc.abstractmethod
     def _global_phase(self, g: global_phase_op.GlobalPhaseGate):
         """Apply global phase"""
 
-    def _swap(self, g: swap_gates.SwapPowGate, axis1: int, axis2: int):
-        """Apply a SWAP"""
-        assert g.exponent % 1 == 0
-        self._cx(common_gates.CX, axis1, axis2)
+    def _swap(self, g: swap_gates.SwapPowGate, control_axis: int, target_axis: int):
+        """Apply a SWAP gate"""
+        if g.exponent % 1 != 0:
+            raise ValueError('Swap exponent must be integer')  # coverage: ignore
+        self._cx(common_gates.CX, control_axis, target_axis)
         self._cx(
-            common_gates.CXPowGate(exponent=g.exponent, global_shift=g.global_shift), axis2, axis1
+            common_gates.CXPowGate(exponent=g.exponent, global_shift=g.global_shift),
+            target_axis,
+            control_axis,
         )
-        self._cx(common_gates.CX, axis1, axis2)
+        self._cx(common_gates.CX, control_axis, target_axis)
 
     def _strat_apply_gate(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         if not protocols.has_stabilizer_effect(val):

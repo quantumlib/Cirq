@@ -76,6 +76,8 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
     def _x(self, g: common_gates.XPowGate, axis: int):
         exponent = g.exponent
         if exponent % 2 != 0:
+            if exponent % 0.5 != 0.0:
+                raise ValueError('Y exponent must be half integer')  # coverage: ignore
             self._h(common_gates.H, axis)
             self._z(common_gates.ZPowGate(exponent=exponent), axis)
             self._h(common_gates.H, axis)
@@ -83,6 +85,8 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
 
     def _y(self, g: common_gates.YPowGate, axis: int):
         exponent = g.exponent
+        if exponent % 0.5 != 0.0:
+            raise ValueError('Y exponent must be half integer')  # coverage: ignore
         if exponent % 2 == 0:
             self.state.omega *= _phase(g)
         elif exponent % 2 == 0.5:
@@ -104,6 +108,8 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
         exponent = g.exponent
         state = self.state
         if exponent % 2 != 0:
+            if exponent % 0.5 != 0.0:
+                raise ValueError('Z exponent must be half integer')  # coverage: ignore
             effective_exponent = exponent % 2
             for _ in range(int(effective_exponent * 2)):
                 # Prescription for S left multiplication.
@@ -116,6 +122,8 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
         exponent = g.exponent
         state = self.state
         if exponent % 2 != 0:
+            if exponent % 1 != 0:
+                raise ValueError('H exponent must be integer')  # coverage: ignore
             # Prescription for H left multiplication
             # Reference: https://arxiv.org/abs/1808.00128
             # Equations 48, 49 and Proposition 4
@@ -130,32 +138,34 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
             state.update_sum(t, u, delta=delta, alpha=alpha)
         state.omega *= _phase(g)
 
-    def _cz(self, g: common_gates.CZPowGate, axis1: int, axis2: int):
+    def _cz(self, g: common_gates.CZPowGate, control_axis: int, target_axis: int):
         exponent = g.exponent
         state = self.state
         if exponent % 2 != 0:
-            assert exponent % 2 == 1
+            if exponent % 1 != 0:
+                raise ValueError('CZ exponent must be integer')  # coverage: ignore
             # Prescription for CZ left multiplication.
             # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-            state.M[axis1, :] ^= state.G[axis2, :]
-            state.M[axis2, :] ^= state.G[axis1, :]
+            state.M[control_axis, :] ^= state.G[target_axis, :]
+            state.M[target_axis, :] ^= state.G[control_axis, :]
         state.omega *= _phase(g)
 
-    def _cx(self, g: common_gates.CXPowGate, axis1: int, axis2: int):
+    def _cx(self, g: common_gates.CXPowGate, control_axis: int, target_axis: int):
         exponent = g.exponent
         state = self.state
         if exponent % 2 != 0:
-            assert exponent % 2 == 1
+            if exponent % 1 != 0:
+                raise ValueError('CX exponent must be integer')  # coverage: ignore
             # Prescription for CX left multiplication.
             # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-            state.gamma[axis1] = (
-                state.gamma[axis1]
-                + state.gamma[axis2]
-                + 2 * (sum(state.M[axis1, :] & state.F[axis2, :]) % 2)
+            state.gamma[control_axis] = (
+                state.gamma[control_axis]
+                + state.gamma[target_axis]
+                + 2 * (sum(state.M[control_axis, :] & state.F[target_axis, :]) % 2)
             ) % 4
-            state.G[axis2, :] ^= state.G[axis1, :]
-            state.F[axis1, :] ^= state.F[axis2, :]
-            state.M[axis1, :] ^= state.M[axis2, :]
+            state.G[target_axis, :] ^= state.G[control_axis, :]
+            state.F[control_axis, :] ^= state.F[target_axis, :]
+            state.M[control_axis, :] ^= state.M[target_axis, :]
         state.omega *= _phase(g)
 
     def _global_phase(self, g: global_phase_op.GlobalPhaseGate):

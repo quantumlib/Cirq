@@ -72,7 +72,8 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs):
         exponent = g.exponent
         if exponent % 2 == 0:
             return
-        assert exponent % 0.5 == 0.0
+        if exponent % 0.5 != 0.0:
+            raise ValueError('X exponent must be half integer')  # coverage: ignore
         tableau = self.tableau
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
@@ -88,7 +89,8 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs):
         exponent = g.exponent
         if exponent % 2 == 0:
             return
-        assert exponent % 0.5 == 0.0
+        if exponent % 0.5 != 0.0:
+            raise ValueError('Y exponent must be half integer')  # coverage: ignore
         tableau = self.tableau
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
@@ -110,7 +112,8 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs):
         exponent = g.exponent
         if exponent % 2 == 0:
             return
-        assert exponent % 0.5 == 0.0
+        if exponent % 0.5 != 0.0:
+            raise ValueError('Z exponent must be half integer')  # coverage: ignore
         tableau = self.tableau
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
@@ -126,47 +129,50 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs):
         exponent = g.exponent
         if exponent % 2 == 0:
             return
-        assert exponent % 2 == 1
+        if exponent % 1 != 0:
+            raise ValueError('H exponent must be integer')  # coverage: ignore
         self._y(common_gates.YPowGate(exponent=0.5), axis)
         self._x(common_gates.XPowGate(), axis)
 
-    def _cz(self, g: common_gates.CZPowGate, axis1: int, axis2: int):
+    def _cz(self, g: common_gates.CZPowGate, control_axis: int, target_axis: int):
         exponent = g.exponent
         if exponent % 2 == 0:
             return
-        assert exponent % 2 == 1
+        if exponent % 1 != 0:
+            raise ValueError('CZ exponent must be integer')  # coverage: ignore
         tableau = self.tableau
-        (tableau.xs[:, axis2], tableau.zs[:, axis2]) = (
-            tableau.zs[:, axis2].copy(),
-            tableau.xs[:, axis2].copy(),
+        (tableau.xs[:, target_axis], tableau.zs[:, target_axis]) = (
+            tableau.zs[:, target_axis].copy(),
+            tableau.xs[:, target_axis].copy(),
         )
-        tableau.rs[:] ^= tableau.xs[:, axis2] & tableau.zs[:, axis2]
+        tableau.rs[:] ^= tableau.xs[:, target_axis] & tableau.zs[:, target_axis]
         tableau.rs[:] ^= (
-            tableau.xs[:, axis1]
-            & tableau.zs[:, axis2]
-            & (~(tableau.xs[:, axis2] ^ tableau.zs[:, axis1]))
+            tableau.xs[:, control_axis]
+            & tableau.zs[:, target_axis]
+            & (~(tableau.xs[:, target_axis] ^ tableau.zs[:, control_axis]))
         )
-        tableau.xs[:, axis2] ^= tableau.xs[:, axis1]
-        tableau.zs[:, axis1] ^= tableau.zs[:, axis2]
-        (tableau.xs[:, axis2], tableau.zs[:, axis2]) = (
-            tableau.zs[:, axis2].copy(),
-            tableau.xs[:, axis2].copy(),
+        tableau.xs[:, target_axis] ^= tableau.xs[:, control_axis]
+        tableau.zs[:, control_axis] ^= tableau.zs[:, target_axis]
+        (tableau.xs[:, target_axis], tableau.zs[:, target_axis]) = (
+            tableau.zs[:, target_axis].copy(),
+            tableau.xs[:, target_axis].copy(),
         )
-        tableau.rs[:] ^= tableau.xs[:, axis2] & tableau.zs[:, axis2]
+        tableau.rs[:] ^= tableau.xs[:, target_axis] & tableau.zs[:, target_axis]
 
-    def _cx(self, g: common_gates.CXPowGate, axis1: int, axis2: int):
+    def _cx(self, g: common_gates.CXPowGate, control_axis: int, target_axis: int):
         exponent = g.exponent
         if exponent % 2 == 0:
             return
-        assert exponent % 2 == 1
+        if exponent % 1 != 0:
+            raise ValueError('CX exponent must be integer')  # coverage: ignore
         tableau = self.tableau
         tableau.rs[:] ^= (
-            tableau.xs[:, axis1]
-            & tableau.zs[:, axis2]
-            & (~(tableau.xs[:, axis2] ^ tableau.zs[:, axis1]))
+            tableau.xs[:, control_axis]
+            & tableau.zs[:, target_axis]
+            & (~(tableau.xs[:, target_axis] ^ tableau.zs[:, control_axis]))
         )
-        tableau.xs[:, axis2] ^= tableau.xs[:, axis1]
-        tableau.zs[:, axis1] ^= tableau.zs[:, axis2]
+        tableau.xs[:, target_axis] ^= tableau.xs[:, control_axis]
+        tableau.zs[:, control_axis] ^= tableau.zs[:, target_axis]
 
     def _global_phase(self, g: global_phase_op.GlobalPhaseGate):
         pass
