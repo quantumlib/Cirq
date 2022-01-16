@@ -160,6 +160,22 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Subclasses should implement this with any additional state product
         functionality, if supported."""
 
+    def with_qubits(self: TSelf, qubits) -> TSelf:
+        """Extend current state space with added qubits.
+
+        The state of the added qubits is the default value set in the
+        subclasses. A new state space is created as the Kronecker product of
+        the original one and the added one.
+
+        Args:
+            qubits: The qubits to be added to the state space.
+
+        Regurns:
+            A new subclass object containing the extended state space.
+        """
+        new_space = type(self)(qubits=qubits)
+        return self.kronecker_product(new_space)
+
     def factor(
         self: TSelf,
         qubits: Sequence['cirq.Qid'],

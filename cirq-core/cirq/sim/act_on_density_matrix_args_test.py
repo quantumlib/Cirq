@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq.linalg import transformations
 import numpy as np
 import pytest
 
@@ -112,3 +113,18 @@ def test_cannot_act():
     )
     with pytest.raises(TypeError, match="Can't simulate operations"):
         cirq.act_on(NoDetails(), args, qubits=())
+
+
+def test_with_qubits():
+    original = cirq.ActOnDensityMatrixArgs(
+        initial_state=1,
+        qubits=cirq.LineQubit.range(1),
+    )
+    extened = original.with_qubits(cirq.LineQubit.range(1, 2))
+    np.testing.assert_almost_equal(
+        extened.target_tensor,
+        transformations.density_matrix_kronecker_product(
+            np.array([[0, 0], [0, 1]], dtype=np.complex64),
+            np.array([[1, 0], [0, 0]], dtype=np.complex64),
+        )
+    )
