@@ -27,6 +27,26 @@ def test_default_parameter():
     assert args.available_buffer.dtype == target_tensor.dtype
 
 
+def test_infer_target_tensor():
+    args = cirq.ActOnStateVectorArgs(
+        initial_state=np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64),
+        qubits=cirq.LineQubit.range(2),
+    )
+    np.testing.assert_almost_equal(
+        args.target_tensor,
+        np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64),
+    )
+
+    args = cirq.ActOnStateVectorArgs(
+        initial_state=0,
+        qubits=cirq.LineQubit.range(2),
+    )
+    np.testing.assert_almost_equal(
+        args.target_tensor,
+        np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64),
+    )
+
+
 def test_shallow_copy_buffers():
     target_tensor = cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64)
     args = cirq.ActOnStateVectorArgs(target_tensor)

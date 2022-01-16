@@ -13,11 +13,11 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Optional, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
+from typing import Any, Optional, Tuple, TYPE_CHECKING, Type, Union, Dict, List, Sequence
 
 import numpy as np
 
-from cirq import linalg, protocols, sim
+from cirq import linalg, protocols, qis, sim
 from cirq._compat import proper_repr
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
@@ -39,7 +39,9 @@ class ActOnStateVectorArgs(ActOnArgs):
 
     def __init__(
         self,
-        target_tensor: np.ndarray,
+        target_tensor: Optional[np.ndarray] = None,
+        initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
+        dtype: Type[np.number] = np.complex64,
         available_buffer: Optional[np.ndarray] = None,
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, Any]] = None,
@@ -51,6 +53,11 @@ class ActOnStateVectorArgs(ActOnArgs):
             target_tensor: The state vector to act on, stored as a numpy array
                 with one dimension for each qubit in the system. Operations are
                 expected to perform inplace edits of this object.
+            initial_state: The initial state for the simulation in the
+                computational basis. Only used when `target_tenson` is None.
+            dtype: The `numpy.dtype` of the inferred state vector. One of
+                `numpy.complex64` or `numpy.complex128`. Only used when
+                `target_tenson` is None.
             available_buffer: A workspace with the same shape and dtype as
                 `target_tensor`. Used by operations that cannot be applied to
                 `target_tensor` inline, in order to avoid unnecessary
@@ -65,7 +72,14 @@ class ActOnStateVectorArgs(ActOnArgs):
                 being recorded into.
         """
         super().__init__(prng, qubits, log_of_measurement_results)
-        self.target_tensor = target_tensor
+        if target_tensor is None:
+            qid_shape = protocols.qid_shape(self.qubits)
+            self.target_tensor = qis.to_valid_state_vector(
+                initial_state, len(self.qubits), qid_shape=qid_shape, dtype=dtype
+            )
+        else:
+            self.target_tensor = target_tensor
+
         if available_buffer is None:
             self.available_buffer = np.empty_like(target_tensor)
         else:

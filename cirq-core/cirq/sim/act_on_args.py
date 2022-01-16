@@ -46,9 +46,9 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def __init__(
         self,
-        prng: np.random.RandomState = None,
-        qubits: Sequence['cirq.Qid'] = None,
-        log_of_measurement_results: Dict[str, List[int]] = None,
+        prng: Optional[np.random.RandomState] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         ignore_measurement_results: bool = False,
     ):
         """Inits ActOnArgs.

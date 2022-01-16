@@ -18,6 +18,13 @@ import pytest
 import cirq
 
 
+def test_init_state():
+    args = cirq.ActOnStabilizerCHFormArgs(
+        initial_state=1,
+        qubits=cirq.LineQubit.range(1),
+    )
+    np.testing.assert_allclose(args.state.state_vector(), [0, 1])
+
 def test_cannot_act():
     class NoDetails(cirq.SingleQubitGate):
         pass

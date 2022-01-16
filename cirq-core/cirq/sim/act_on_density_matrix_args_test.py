@@ -47,6 +47,26 @@ def test_default_parameter_error():
         cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
 
 
+def test_infer_target_tensor():
+    args = cirq.ActOnDensityMatrixArgs(
+        initial_state=np.array([[1, 0], [0, 0]], dtype=np.complex64),
+        qubits=cirq.LineQubit.range(1),
+    )
+    np.testing.assert_almost_equal(
+        args.target_tensor,
+        np.array([[1, 0], [0, 0]], dtype=np.complex64),
+    )
+
+    args = cirq.ActOnDensityMatrixArgs(
+        initial_state=1,
+        qubits=cirq.LineQubit.range(1),
+    )
+    np.testing.assert_almost_equal(
+        args.target_tensor,
+        np.array([[0, 0], [0, 1]], dtype=np.complex64),
+    )
+
+
 def test_decomposed_fallback():
     class Composite(cirq.Gate):
         def num_qubits(self) -> int:

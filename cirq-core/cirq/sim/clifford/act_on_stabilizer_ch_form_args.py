@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
+from cirq.sim.clifford.clifford_simulator import CliffordState
 
 import numpy as np
 
+import cirq
 from cirq import value, ops, protocols
 from cirq.ops import common_gates, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.act_on_args import ActOnArgs
 from cirq.type_workarounds import NotImplementedType
-
-if TYPE_CHECKING:
-    import cirq
-    from typing import Optional
 
 
 class ActOnStabilizerCHFormArgs(ActOnArgs):
@@ -37,15 +35,18 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
 
     def __init__(
         self,
-        state: 'cirq.StabilizerStateChForm',
-        prng: np.random.RandomState,
-        log_of_measurement_results: Dict[str, Any],
+        state: Optional['cirq.StabilizerStateChForm'] = None,
+        initial_state: int = 0,
+        prng: Optional[np.random.RandomState] = None,
+        log_of_measurement_results: Optional[Dict[str, Any]] = None,
         qubits: Sequence['cirq.Qid'] = None,
     ):
         """Initializes with the given state and the axes for the operation.
         Args:
             state: The StabilizerStateChForm to act on. Operations are expected
                 to perform inplace edits of this object.
+            initial_state: The initial state for the simulation in the
+                computational basis. Only used when `state` is None.
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
@@ -55,7 +56,11 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
                 being recorded into.
         """
         super().__init__(prng, qubits, log_of_measurement_results)
-        self.state = state
+        if state is None:
+            qubit_map = {q: i for i, q in enumerate(self.qubits)}
+            self.state = CliffordState(qubit_map, initial_state=initial_state).ch_form
+        else:
+            self.state = state
 
     def _act_on_fallback_(
         self,
@@ -92,7 +97,9 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         for i in range(repetitions):
             op = ops.measure(*qubits, key=str(i))
             state = self.state.copy()
-            ch_form_args = ActOnStabilizerCHFormArgs(state, prng, measurements, self.qubits)
+            ch_form_args = ActOnStabilizerCHFormArgs(
+                state=state, prng=prng, log_of_measurement_results=measurements, qubits=self.qubits
+            )
             protocols.act_on(op, ch_form_args)
         return np.array(list(measurements.values()), dtype=bool)
 
