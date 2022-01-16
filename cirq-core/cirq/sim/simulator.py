@@ -29,6 +29,7 @@ Simulator types include:
 
 import abc
 import collections
+import random
 from typing import (
     Any,
     Callable,
@@ -234,6 +235,64 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             the circuit parameters and the inner dimension indexes bitstrings.
         """
         raise NotImplementedError()
+
+    def sample_from_amplitudes(
+        self,
+        circuit: 'cirq.AbstractCircuit',
+        param_resolver: 'cirq.ParamResolver',
+        repetitions: int = 1,
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    ) -> Dict[int, int]:
+        """Uses amplitude simulation to sample from the given circuit.
+
+        This implements the algorithm outlined by Bravyi, Gosset, and Liu in
+        https://arxiv.org/abs/2112.08499 to more efficiently calculate samples
+        given an amplitude-based simulator.
+
+        Simulators which also implement SimulatesSamples or SimulatesFullState
+        should prefer `run()` or `simulate()`, respectively, as this method
+        only accelerates sampling for amplitude-based simulators.
+
+        Args:
+            circuit: The circuit to simulate.
+            param_resolver: Parameters to run with the program.
+            repetitions: The number of repetitions to simulate.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            A dict of bitstrings sampled from the final state of `circuit` to
+            the number of occurrences of that bitstring.
+        """
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        qmap = {q: i for i, q in enumerate(qubits)}
+        op_list = [
+            protocols.resolve_parameters(op, param_resolver) for moment in circuit for op in moment
+        ]
+        current_samples = {(0,) * len(qubits): repetitions}
+        for t, op in enumerate(op_list):
+            new_samples: Dict[Tuple[int, ...], int] = collections.defaultdict(int)
+            for current_sample, count in current_samples.items():
+                qubit_indices = {qmap[q] for q in op.qubits}
+                sample_set = [current_sample]
+                for idx in qubit_indices:
+                    sample_set = [
+                        target[:idx] + (result,) + target[idx + 1 :]
+                        for target in sample_set
+                        for result in [0, 1]
+                    ]
+                bitstrings = [int(''.join(map(str, sample)), base=2) for sample in sample_set]
+                subcircuit = circuits.Circuit(op_list[: t + 1])
+                missed_qubits = [q for q in qubits if q not in subcircuit.all_qubits()]
+                subcircuit.append([ops.I(q) for q in missed_qubits])
+                amps = self.compute_amplitudes(subcircuit, bitstrings, qubit_order=qubit_order)
+                subsample = random.choices(sample_set, weights=[abs(a) for a in amps], k=count)
+                for sample in subsample:
+                    new_samples[sample] += 1
+            current_samples = new_samples
+
+        return {int(''.join(map(str, k)), base=2): v for k, v in current_samples.items()}
 
 
 class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
