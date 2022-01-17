@@ -95,7 +95,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_sampler(
-        self, gate_set: Optional[serializer.Serializer]
+        self, gate_set: Optional[serializer.Serializer] = circuit_serializer.CIRCUIT_SERIALIZER
     ) -> engine_sampler.QuantumEngineSampler:
         """Returns a sampler backed by the engine.
 
@@ -335,7 +335,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
-    def get_device(self, gate_sets: Iterable[serializer.Serializer]) -> cirq.Device:
+    def get_device(
+        self, gate_sets: Iterable[serializer.Serializer] = (circuit_serializer.CIRCUIT_SERIALIZER,)
+    ) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
