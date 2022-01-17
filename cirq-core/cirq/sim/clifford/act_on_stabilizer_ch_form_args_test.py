@@ -25,6 +25,7 @@ def test_init_state():
     )
     np.testing.assert_allclose(args.state.state_vector(), [0, 1])
 
+
 def test_cannot_act():
     class NoDetails(cirq.SingleQubitGate):
         pass

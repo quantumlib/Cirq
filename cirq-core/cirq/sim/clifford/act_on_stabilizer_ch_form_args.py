@@ -39,7 +39,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         initial_state: int = 0,
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, Any]] = None,
-        qubits: Sequence['cirq.Qid'] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
     ):
         """Initializes with the given state and the axes for the operation.
         Args:

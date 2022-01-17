@@ -126,5 +126,5 @@ def test_with_qubits():
         transformations.density_matrix_kronecker_product(
             np.array([[0, 0], [0, 1]], dtype=np.complex64),
             np.array([[1, 0], [0, 0]], dtype=np.complex64),
-        )
+        ),
     )
