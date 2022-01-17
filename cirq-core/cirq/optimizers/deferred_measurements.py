@@ -14,27 +14,75 @@
 
 """An optimization pass that aligns gates to the left of the circuit."""
 
-from typing import Dict, List, TYPE_CHECKING
-from cirq import ops, value
+from typing import Dict, List, TYPE_CHECKING, Any
+from cirq import circuits, ops, value
+
 if TYPE_CHECKING:
     import cirq
 
 
-def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
-    measurement_qubits: Dict[str, List['cirq.Qid']] = {}
+class MeasurementQid(ops.Qid):
+    def __init__(self, key: 'cirq.MeasurementKey', qid: 'cirq.Qid'):
+        self._key = key
+        self._qid = qid
+
+    @property
+    def dimension(self) -> int:
+        return self._qid.dimension
+
+    def _comparison_key(self) -> Any:
+        return (str(self._key), self._qid._comparison_key())
+
+    def __str__(self) -> str:
+        return f'{self._key} {self._qid}'
+
+
+def defer_measurements(
+    circuit: 'cirq.AbstractCircuit', dephase_measurements=False
+) -> 'cirq.Circuit':
+    circuit = circuits.CircuitOperation(circuit.freeze()).mapped_circuit(deep=True)
+    qubits_found = set()
+    terminal_measurements = set()
+    control_keys = set()
+    for op in reversed(list(circuit.all_operations())):
+        gate = op.gate
+        if isinstance(gate, ops.MeasurementGate):
+            key = value.MeasurementKey.parse_serialized(gate.key)
+            if key not in control_keys and not any(q in qubits_found for q in op.qubits):
+                terminal_measurements.add(key)
+        elif isinstance(op, ops.ClassicallyControlledOperation):
+            for c in op.classical_controls:
+                control_keys.update(c.keys)
+        qubits_found.update(op.qubits)
+    measurement_qubits: Dict['cirq.MeasurementKey', List['cirq.Qid']] = {}
+
+    def dephase_if_needed(op: 'cirq.Operation'):
+        gate = op.gate
+        assert isinstance(gate, ops.MeasurementGate)
+        return (
+            op
+            if not dephase_measurements
+            else ops.KrausChannel.from_channel(ops.phase_damp(1), key=gate.key).on(*op.qubits)
+        )
 
     def defer(op: 'cirq.Operation') -> 'cirq.OP_TREE':
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
-            targets = [ops.NamedQid(f'{gate.key}-{q}', q.dimension) for q in op.qubits]
-            measurement_qubits[gate.key] = targets
+            key = value.MeasurementKey.parse_serialized(gate.key)
+            print(key)
+            if key in terminal_measurements:
+                return dephase_if_needed(op)
+            print(key)
+            print(key)
+            targets = [MeasurementQid(key, q) for q in op.qubits]
+            measurement_qubits[key] = targets
             cxs = [ops.CX(q, target) for q, target in zip(op.qubits, targets)]
             return cxs + [ops.X(targets[i]) for i, b in enumerate(gate.invert_mask) if b]
         elif isinstance(op, ops.ClassicallyControlledOperation):
             controls = []
             for c in op.classical_controls:
                 if isinstance(c, value.KeyCondition):
-                    controls.extend(measurement_qubits[str(c.key)])
+                    controls.extend(measurement_qubits[c.key])
                 else:
                     raise ValueError('Only KeyConditions are allowed.')
             return ops.ControlledOperation(
@@ -44,5 +92,5 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
 
     circuit = circuit.map_operations(defer).unfreeze()
     for k, qubits in measurement_qubits.items():
-        circuit.append(ops.measure(*qubits, key=k))
+        circuit.append(dephase_if_needed(ops.measure(*qubits, key=k)))
     return circuit

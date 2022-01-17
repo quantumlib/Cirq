@@ -55,7 +55,7 @@ class KrausChannel(raw_types.Gate):
         self._key = key
 
     @staticmethod
-    def from_channel(channel: 'KrausChannel', key: Union[str, 'cirq.MeasurementKey', None] = None):
+    def from_channel(channel: 'cirq.Gate', key: Union[str, 'cirq.MeasurementKey', None] = None):
         """Creates a copy of a channel with the given measurement key."""
         return KrausChannel(kraus_ops=list(protocols.kraus(channel)), key=key)
 
