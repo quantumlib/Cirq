@@ -85,6 +85,8 @@ def defer_measurements(
                     controls.extend(measurement_qubits[c.key])
                 else:
                     raise ValueError('Only KeyConditions are allowed.')
+            # Depends on issue #4512, as we need some way of defining the condition "at least one
+            # qubit is not zero" to match the classical interpretation of a multi-qubit measurement
             return ops.ControlledOperation(
                 controls=controls, sub_operation=op.without_classical_controls()
             )
