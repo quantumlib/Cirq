@@ -147,3 +147,46 @@ def test_diagram_subcircuit():
 """,
         use_unicode_characters=True,
     )
+
+
+def test_scope_local():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        cirq.X(q).with_classical_controls('a'),
+    )
+    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
+    ]
+    assert internal_control_keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
+    assert not cirq.control_keys(outer_subcircuit)
+    assert not cirq.control_keys(circuit)
+    cirq.testing.assert_has_diagram(
+        defer_measurements(cirq.Circuit(outer_subcircuit))
+        ,
+        """
+      [       [ 0: ───M───X─── ]             ]
+0: ───[ 0: ───[       ║   ║    ]──────────── ]────────────
+      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2)
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.CircuitOperation(defer_measurements(cirq.Circuit(outer_subcircuit)).freeze()).mapped_circuit(deep=True),
+        """
+0: ───────M───X───M───X───M───X───M───X───
+          ║   ║   ║   ║   ║   ║   ║   ║
+0:0:a: ═══@═══^═══╬═══╬═══╬═══╬═══╬═══╬═══
+                  ║   ║   ║   ║   ║   ║
+0:1:a: ═══════════@═══^═══╬═══╬═══╬═══╬═══
+                          ║   ║   ║   ║
+1:0:a: ═══════════════════@═══^═══╬═══╬═══
+                                  ║   ║
+1:1:a: ═══════════════════════════@═══^═══
+""",
+        use_unicode_characters=True,
+    )
+    assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))

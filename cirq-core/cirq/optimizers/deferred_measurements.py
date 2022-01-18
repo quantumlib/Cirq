@@ -73,8 +73,9 @@ def _defer_measurements(
                 controls=controls, sub_operation=op.without_classical_controls()
             )
         elif isinstance(op, circuits.CircuitOperation):
-            circuit, qubits = _defer_measurements(op.circuit)
+            circuit, qubits = _defer_measurements(op.mapped_circuit())
             measurement_qubits.update(qubits)
+            circuit, qubits = _defer_measurements(op.circuit)
             return op.replace(circuit=circuit.freeze())
         return op
 
