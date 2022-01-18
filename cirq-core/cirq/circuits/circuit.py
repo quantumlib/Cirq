@@ -74,7 +74,7 @@ _DEVICE_DEP_MESSAGE = 'Attaching devices to circuits will no longer be supported
 
 
 @contextlib.contextmanager
-def _block_overlapping_dep():
+def _block_overlapping_deprecation():
     with warnings.catch_warnings():
         warnings.filterwarnings(
             action='ignore',
@@ -1885,7 +1885,7 @@ class Circuit(AbstractCircuit):
         Returns:
             The translated circuit.
         """
-        with _block_overlapping_dep():
+        with _block_overlapping_deprecation():
             return Circuit(
                 [
                     ops.Moment(
@@ -1953,7 +1953,7 @@ class Circuit(AbstractCircuit):
         if new_device is None and self._device == devices.UNCONSTRAINED_DEVICE:
             return Circuit(op_list)
 
-        with _block_overlapping_dep():
+        with _block_overlapping_deprecation():
             return Circuit(op_list, device=self._device if new_device is None else new_device)
 
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
@@ -2372,7 +2372,7 @@ class Circuit(AbstractCircuit):
             resolved_moments.append(new_moment)
         if self._device == devices.UNCONSTRAINED_DEVICE:
             return Circuit(resolved_moments)
-        with _block_overlapping_dep():
+        with _block_overlapping_deprecation():
             return Circuit(resolved_moments, device=self._device)
 
     @property

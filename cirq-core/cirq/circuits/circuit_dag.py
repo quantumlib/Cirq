@@ -114,13 +114,13 @@ class CircuitDag(networkx.DiGraph):
 
     @staticmethod
     def from_circuit(
-        qcircuit: circuit.Circuit,
+        circuit: circuit.Circuit,
         can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
     ) -> 'CircuitDag':
-        if qcircuit._device == devices.UNCONSTRAINED_DEVICE:
-            return CircuitDag.from_ops(qcircuit.all_operations(), can_reorder=can_reorder)
+        if circuit._device == devices.UNCONSTRAINED_DEVICE:
+            return CircuitDag.from_ops(circuit.all_operations(), can_reorder=can_reorder)
         return CircuitDag.from_ops(
-            qcircuit.all_operations(), can_reorder=can_reorder, device=qcircuit._device
+            circuit.all_operations(), can_reorder=can_reorder, device=circuit._device
         )
 
     @staticmethod
@@ -138,7 +138,7 @@ class CircuitDag(networkx.DiGraph):
         if device == devices.UNCONSTRAINED_DEVICE:
             dag = CircuitDag(can_reorder=can_reorder)
         else:
-            with circuit._block_overlapping_dep():
+            with circuit._block_overlapping_deprecation():
                 dag = CircuitDag(can_reorder=can_reorder, device=device)
 
         for op in ops.flatten_op_tree(operations):

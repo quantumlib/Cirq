@@ -24,6 +24,9 @@ from typing import (
     Tuple,
     Union,
 )
+import contextlib
+import warnings
+import re
 
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -31,13 +34,25 @@ from cirq.type_workarounds import NotImplementedType
 
 import numpy as np
 
-from cirq import _import, _compat, devices, ops, protocols
-
-circuit = _import.LazyLoader("circuit", globals(), "cirq.circuits.circuit")
+from cirq import _compat, devices, ops, protocols
 
 
 if TYPE_CHECKING:
     import cirq
+
+
+_DEVICE_DEP_MESSAGE = 'Attaching devices to circuits will no longer be supported.'
+
+
+@contextlib.contextmanager
+def _block_overlapping_deprecation():
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            action='ignore',
+            category=DeprecationWarning,
+            message=f'(.|\n)*{re.escape(_DEVICE_DEP_MESSAGE)}(.|\n)*',
+        )
+        yield
 
 
 class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
@@ -50,7 +65,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     @_compat.deprecated_parameter(
         deadline='v0.15',
-        fix=circuit._DEVICE_DEP_MESSAGE,
+        fix=_DEVICE_DEP_MESSAGE,
         parameter_desc='device',
         match=lambda args, kwargs: 'device' in kwargs,
     )
@@ -76,7 +91,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         if device == devices.UNCONSTRAINED_DEVICE:
             base = Circuit(contents, strategy=strategy)
         else:
-            with circuit._block_overlapping_dep():
+            with _block_overlapping_deprecation():
                 base = Circuit(contents, strategy=strategy, device=device)
 
         self._moments = tuple(base.moments)
@@ -100,7 +115,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     @property  # type: ignore
     @_compat.deprecated(
         deadline='v0.15',
-        fix=circuit._DEVICE_DEP_MESSAGE,
+        fix=_DEVICE_DEP_MESSAGE,
     )
     def device(self) -> devices.Device:
         return self._device
@@ -203,14 +218,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     @_compat.deprecated(
         deadline='v0.15',
-        fix=circuit._DEVICE_DEP_MESSAGE,
+        fix=_DEVICE_DEP_MESSAGE,
     )
     def with_device(
         self,
         new_device: 'cirq.Device',
         qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
     ) -> 'FrozenCircuit':
-        with circuit._block_overlapping_dep():
+        with _block_overlapping_deprecation():
             return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
     def _resolve_parameters_(
