@@ -28,6 +28,7 @@ from cirq_google.engine import (
     engine_sampler,
 )
 from cirq_google.serialization import circuit_serializer, serializable_gate_set, serializer
+from cirq_google.serialization import gate_sets as gs
 
 if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
@@ -95,7 +96,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_sampler(
-        self, gate_set: Optional[serializer.Serializer] = None,
+        self,
+        gate_set: Optional[serializer.Serializer] = None,
     ) -> engine_sampler.QuantumEngineSampler:
         """Returns a sampler backed by the engine.
 
@@ -336,7 +338,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             return None
 
     def get_device(
-        self, gate_sets: Iterable[serializer.Serializer] = (),
+        self,
+        gate_sets: Iterable[serializer.Serializer] = (),
     ) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
@@ -344,8 +347,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         which is then use to create a `serializable_gate_set.SerializableDevice` that will validate
         that operations are supported and use the correct qubits.
         """
-        if not gate_sets:
-          gate_sets = (circuit_serializer.CIRCUIT_SERIALIZER,)
         spec = self.get_device_specification()
         if not spec:
             raise ValueError('Processor does not have a device specification')

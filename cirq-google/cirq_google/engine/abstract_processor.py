@@ -238,7 +238,8 @@ class AbstractProcessor(abc.ABC):
 
     @abc.abstractmethod
     def get_sampler(
-        self, gate_set: Optional['serializer.Serializer'] = None,
+        self,
+        gate_set: Optional['serializer.Serializer'] = None,
     ) -> cirq.Sampler:
         """Returns a sampler backed by the processor.
 

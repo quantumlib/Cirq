@@ -334,6 +334,13 @@ def test_get_device():
         processor.get_device(gate_sets=[cg.serialization.circuit_serializer.CIRCUIT_SERIALIZER])
 
 
+def test_default_gate_sets():
+    processor = cg.EngineProcessor(
+        'a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC)
+    )
+    device = processor.get_device()
+    assert device.qubits == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)]
+
 def test_get_missing_device():
     processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
     with pytest.raises(ValueError, match='device specification'):
