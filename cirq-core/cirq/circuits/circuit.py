@@ -1343,11 +1343,16 @@ class AbstractCircuit(abc.ABC):
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['moments'])
+        ret = protocols.obj_to_dict_helper(self, ['moments', '_device'])
+        ret['device'] = ret['_device']
+        del ret['_device']
+        return ret
 
     @classmethod
-    def _from_json_dict_(cls, moments, **kwargs):
-        return cls(moments, strategy=InsertStrategy.EARLIEST)
+    def _from_json_dict_(cls, moments, device, **kwargs):
+        if device == cirq.UNCONSTRAINED_DEVICE:
+            return cls(moments, strategy=InsertStrategy.EARLIEST)
+        return cls(moments, device=device, strategy=InsertStrategy.EARLIEST)
 
     def zip(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT

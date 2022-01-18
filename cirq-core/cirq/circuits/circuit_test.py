@@ -4296,7 +4296,16 @@ def test_json_dict(circuit_cls):
         moments = tuple(moments)
     assert c._json_dict_() == {
         'moments': moments,
+        'device': cirq.UNCONSTRAINED_DEVICE,
     }
+
+
+def test_from_json_device_deprecated():
+    q0, q1 = cirq.GridQubit.rect(1, 2)
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        _ = cirq.Circuit._from_json_dict_([cirq.CZ(q0, q1)], FOXY)
 
 
 def test_with_noise():
