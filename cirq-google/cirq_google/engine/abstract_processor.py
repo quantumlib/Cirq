@@ -28,7 +28,6 @@ import cirq
 from cirq_google.api import v2
 from cirq_google.engine import calibration
 from cirq_google.engine.client import quantum
-from cirq_google.serialization import circuit_serializer
 
 if TYPE_CHECKING:
     import cirq_google
@@ -239,7 +238,7 @@ class AbstractProcessor(abc.ABC):
 
     @abc.abstractmethod
     def get_sampler(
-        self, gate_set: Optional['serializer.Serializer'] = circuit_serializer.CIRCUIT_SERIALIZER
+        self, gate_set: Optional['serializer.Serializer'] = None,
     ) -> cirq.Sampler:
         """Returns a sampler backed by the processor.
 
@@ -284,7 +283,7 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     def get_device(
         self,
-        gate_sets: Iterable['serializer.Serializer'] = (circuit_serializer.CIRCUIT_SERIALIZER,),
+        gate_sets: Iterable['serializer.Serializer'] = (),
     ) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
