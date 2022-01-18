@@ -350,6 +350,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         spec = self.get_device_specification()
         if not spec:
             raise ValueError('Processor does not have a device specification')
+        if not gate_sets:
+            # Default is to use all named gatesets in the device spec
+            gate_sets = []
+            for valid_gate_set in spec.valid_gate_sets:
+                if valid_gate_set.name in gs.NAMED_GATESETS:
+                    gate_sets.append(gs.NAMED_GATESETS[valid_gate_set.name])
         if not all(isinstance(gs, serializable_gate_set.SerializableGateSet) for gs in gate_sets):
             raise ValueError('All gate_sets must be SerializableGateSet currently.')
         return serializable_device.SerializableDevice.from_proto(
