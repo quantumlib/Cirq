@@ -31,8 +31,12 @@ class EngineBackend(cg.engine.EngineProcessor):
             context=engine.context,
         )
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self):
-        return cirq.obj_to_dict_helper(self, ['processor_id'], namespace='recirq.google')
+        return cirq.obj_to_dict_helper(self, ['processor_id'])
 
 
 class SimulatedBackend(cg.engine.SimulatedLocalProcessor):
@@ -66,10 +70,12 @@ class SimulatedBackend(cg.engine.SimulatedLocalProcessor):
 
         return cirq.DensityMatrixSimulator(noise=cirq.depolarize(p=noise_strength))
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self):
-        return cirq.obj_to_dict_helper(
-            self, ['processor_id', 'noise_strength'], namespace='recirq.google'
-        )
+        return cirq.obj_to_dict_helper(self, ['processor_id', 'noise_strength'])
 
     def descriptive_name(self):
         if self.noise_strength == 0:
@@ -79,3 +85,14 @@ class SimulatedBackend(cg.engine.SimulatedLocalProcessor):
         else:
             suffix = f'p={self.noise_strength:.3e}'
         return f'{self.processor_id}-{suffix}'
+
+
+_DEVICES_BY_ID = {
+    'rainbow': cg.Sycamore23,
+    'weber': cg.Sycamore,
+}
+
+
+class SimulatedBackendWithLocalDevice(SimulatedBackend):
+    def _init_device(self, processor_id: str) -> cirq.Device:
+        return _DEVICES_BY_ID[processor_id]

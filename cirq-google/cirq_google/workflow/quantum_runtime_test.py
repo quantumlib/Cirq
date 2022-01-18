@@ -22,24 +22,8 @@ import pytest
 
 import cirq
 import cirq_google as cg
+from cirq_google.workflow.quantum_backend import SimulatedBackendWithLocalDevice
 from cirq_google.workflow.quantum_executable_test import _get_quantum_executables, _get_example_spec
-
-
-@dataclass
-class _MockEngineProcessor(cg.engine.SimulatedLocalProcessor):
-    def __init__(self):
-        super().__init__(
-            processor_id='testing_processor',
-            sampler=cirq.ZerosSampler(),
-            device=cirq.UNCONSTRAINED_DEVICE,
-        )
-
-    @classmethod
-    def _json_namespace_(cls) -> str:
-        return 'cirq.google.testing'
-
-    def _json_dict_(self):
-        return cirq.obj_to_dict_helper(self, attribute_names=[])
 
 
 def cg_assert_equivalent_repr(value):
@@ -48,7 +32,6 @@ def cg_assert_equivalent_repr(value):
         value,
         global_vals={
             'cirq_google': cg,
-            '_MockEngineProcessor': _MockEngineProcessor,
         },
     )
 
@@ -73,37 +56,20 @@ def test_executable_result():
     cg_assert_equivalent_repr(er)
 
 
-def _testing_resolver(cirq_type: str):
-    if cirq_type == 'cirq.google.testing._MockEngineProcessor':
-        return _MockEngineProcessor
-
-
-def _cg_read_json_gzip(fn):
-    return cirq.read_json_gzip(fn, resolvers=[_testing_resolver] + cirq.DEFAULT_RESOLVERS)
-
-
-@pytest.fixture
-def patch_cirq_default_resolvers():
-    backup = cirq.DEFAULT_RESOLVERS.copy()
-    cirq.DEFAULT_RESOLVERS.insert(0, _testing_resolver)
-    yield True
-    cirq.DEFAULT_RESOLVERS = backup
-
-
 def _assert_json_roundtrip(o, tmpdir):
     cirq.to_json_gzip(o, f'{tmpdir}/o.json')
-    o2 = _cg_read_json_gzip(f'{tmpdir}/o.json')
+    o2 = cirq.read_json_gzip(f'{tmpdir}/o.json')
     assert o == o2
 
 
 def test_quantum_runtime_configuration():
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor=_MockEngineProcessor(),
+        processor=SimulatedBackendWithLocalDevice('rainbow'),
         run_id='unit-test',
     )
 
     sampler = rt_config.processor.get_sampler()
-    result = sampler.run(cirq.Circuit(cirq.measure(cirq.LineQubit(0), key='z')))
+    result = sampler.run(cirq.Circuit(cirq.measure(cirq.GridQubit(5, 3), key='z')))
     assert isinstance(result, cirq.Result)
 
     assert isinstance(rt_config.processor.get_device(), cirq.Device)
@@ -111,7 +77,7 @@ def test_quantum_runtime_configuration():
 
 def test_quantum_runtime_configuration_serialization(tmpdir):
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor=_MockEngineProcessor(),
+        processor=SimulatedBackendWithLocalDevice('rainbow'),
         run_id='unit-test',
     )
     cg_assert_equivalent_repr(rt_config)
@@ -121,7 +87,7 @@ def test_quantum_runtime_configuration_serialization(tmpdir):
 def test_executable_group_result(tmpdir):
     egr = cg.ExecutableGroupResult(
         runtime_configuration=cg.QuantumRuntimeConfiguration(
-            processor=_MockEngineProcessor(),
+            processor=SimulatedBackendWithLocalDevice('rainbow'),
             run_id='unit-test',
         ),
         shared_runtime_info=cg.SharedRuntimeInfo(run_id='my run'),
@@ -161,10 +127,9 @@ def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
 
 
 @pytest.mark.parametrize('run_id_in', ['unit_test_runid', None])
-def test_execute(tmpdir, run_id_in, patch_cirq_default_resolvers):
-    assert patch_cirq_default_resolvers
+def test_execute(tmpdir, run_id_in):
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor=_MockEngineProcessor(),
+        processor=SimulatedBackendWithLocalDevice('rainbow'),
         run_id=run_id_in,
         qubit_placer=cg.NaiveQubitPlacer(),
     )
