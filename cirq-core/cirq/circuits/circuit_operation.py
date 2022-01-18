@@ -172,8 +172,7 @@ class CircuitOperation(ops.Operation):
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         """Returns the qubits operated on by this object."""
-        ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
-        return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
+        return ops.QubitOrder.DEFAULT.order_for(self.mapped_circuit(True).all_qubits())
 
     def _default_repetition_ids(self) -> Optional[List[str]]:
         return default_repetition_ids(self.repetitions)
