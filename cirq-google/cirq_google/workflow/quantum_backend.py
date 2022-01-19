@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional, Iterable
 
 import cirq
 import cirq_google as cg
@@ -30,6 +31,15 @@ class EngineBackend(cg.engine.EngineProcessor):
             processor_id=processor_id,
             context=engine.context,
         )
+
+    def get_sampler(self, gate_set: Optional['cg.Serializer'] = None) -> 'cg.QuantumEngineSampler':
+        assert gate_set is None
+        return super().get_sampler(cg.SQRT_ISWAP_GATESET)
+
+    def get_device(self, gate_sets: Iterable['cg.Serializer'] = ()) -> 'cirq.Device':
+
+        assert gate_sets is ()
+        return super().get_device(cg.SQRT_ISWAP_GATESET)
 
     @classmethod
     def _json_namespace_(cls) -> str:

@@ -138,6 +138,9 @@ from cirq_google.workflow import (
     execute,
     QubitPlacer,
     NaiveQubitPlacer,
+    EngineBackend,
+    SimulatedBackend,
+    SimulatedBackendWithLocalDevice,
 )
 
 from cirq_google import experimental

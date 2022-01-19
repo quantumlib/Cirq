@@ -24,3 +24,9 @@ from cirq_google.workflow.qubit_placement import (
     QubitPlacer,
     NaiveQubitPlacer,
 )
+
+from cirq_google.workflow.quantum_backend import (
+    EngineBackend,
+    SimulatedBackend,
+    SimulatedBackendWithLocalDevice,
+)

@@ -11,3 +11,42 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import os
+from unittest import mock
+
+import cirq
+import cirq_google as cg
+
+
+def test_engine_backend():
+
+    with mock.patch.dict(
+        os.environ,
+        {
+            'GOOGLE_CLOUD_PROJECT': 'project!',
+        },
+        clear=True,
+    ):
+        processor = cg.EngineBackend('rainbow')
+    assert processor.processor_id == 'rainbow'
+    assert isinstance(processor.get_sampler(), cirq.Sampler)
+
+
+def test_simulated_backend():
+    with mock.patch.dict(
+        os.environ,
+        {
+            'GOOGLE_CLOUD_PROJECT': 'project',
+        },
+        clear=True,
+    ):
+        processor = cg.SimulatedBackend('rainbow')
+    assert processor.processor_id == 'rainbow'
+    assert processor.descriptive_name() == 'rainbow-simulator'
+
+
+def test_simulated_backend_with_local_device():
+    processor = cg.SimulatedBackendWithLocalDevice('rainbow')
+    assert processor.processor_id == 'rainbow'
+    assert processor.descriptive_name() == 'rainbow-simulator'
