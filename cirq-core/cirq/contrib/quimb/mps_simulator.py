@@ -301,7 +301,7 @@ class MPSState(ActOnArgs):
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.M, self.simulation_options, self.grouping
 
-    def _on_copy(self, target: 'MPSState'):
+    def _on_copy(self, target: 'MPSState', deep_copy_buffers: bool = True):
         target.simulation_options = self.simulation_options
         target.grouping = self.grouping
         target.M = [x.copy() for x in self.M]
