@@ -91,6 +91,7 @@ def test_example_runs_phase_estimator():
     examples.phase_estimator.main(qnums=(2,), repetitions=2)
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_example_heatmaps():
     pytest.importorskip("cirq_google")
     plt.switch_backend('agg')
@@ -114,6 +115,7 @@ def test_example_runs_hhl():
     examples.hhl.main()
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_example_runs_qubit_characterizations():
     examples.qubit_characterizations_example.main(
         minimum_cliffords=2, maximum_cliffords=6, cliffords_step=2
@@ -124,6 +126,7 @@ def test_example_swap_networks():
     examples.swap_networks.main()
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_example_cross_entropy_benchmarking():
     examples.cross_entropy_benchmarking_example.main(
         repetitions=10, num_circuits=2, cycles=[2, 3, 4]

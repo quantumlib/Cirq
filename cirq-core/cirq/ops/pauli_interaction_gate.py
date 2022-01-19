@@ -41,8 +41,8 @@ pauli_eigen_map = cast(
 class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A CZ conjugated by arbitrary single qubit Cliffords."""
 
-    CZ = None  # type: PauliInteractionGate
-    CNOT = None  # type: PauliInteractionGate
+    CZ: 'PauliInteractionGate'
+    CNOT: 'PauliInteractionGate'
 
     def __init__(
         self,

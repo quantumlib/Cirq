@@ -1,4 +1,17 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
+# Copyright 2022 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Utility methods for decomposing two-qubit unitaries into sqrt-iSWAP gates.
 
 References:
@@ -12,7 +25,7 @@ from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops, linalg, protocols
-from cirq.optimizers import decompositions
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 if TYPE_CHECKING:
     import cirq
@@ -144,7 +157,7 @@ def _decomp_to_operations(
         nonlocal prev_commute
         # Commute previous Z(q0)**a, Z(q1)**a through earlier sqrt-iSWAP
         rots1 = list(
-            decompositions.single_qubit_matrix_to_pauli_rotations(
+            single_qubit_decompositions.single_qubit_matrix_to_pauli_rotations(
                 np.dot(matrix1, prev_commute), atol=atol
             )
         )
@@ -163,7 +176,7 @@ def _decomp_to_operations(
                 new_commute = new_commute @ p_unitary
                 matrix0 = p_unitary.T.conj() @ matrix0
         rots0 = list(
-            decompositions.single_qubit_matrix_to_pauli_rotations(
+            single_qubit_decompositions.single_qubit_matrix_to_pauli_rotations(
                 np.dot(matrix0, prev_commute), atol=atol
             )
         )

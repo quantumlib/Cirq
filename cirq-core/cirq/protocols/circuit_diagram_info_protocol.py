@@ -195,7 +195,7 @@ class CircuitDiagramInfoArgs:
         include_tags: Whether to print tags from TaggedOperations
     """
 
-    UNINFORMED_DEFAULT = None  # type: CircuitDiagramInfoArgs
+    UNINFORMED_DEFAULT: 'CircuitDiagramInfoArgs'
 
     def __init__(
         self,

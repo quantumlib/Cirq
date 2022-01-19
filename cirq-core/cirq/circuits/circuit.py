@@ -67,6 +67,8 @@ T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
 INT_TYPE = Union[int, np.integer]
 
+_DEVICE_DEP_MESSAGE = 'Attaching devices to circuits will no longer be supported.'
+
 
 class Alignment(enum.Enum):
     # Stop when left ends are lined up.
@@ -124,6 +126,9 @@ class AbstractCircuit(abc.ABC):
     @abc.abstractmethod
     def device(self) -> 'cirq.Device':
         pass
+
+    # This is going away once device deprecation is finished.
+    _device = None  # type: devices.Device
 
     def freeze(self) -> 'cirq.FrozenCircuit':
         """Creates a FrozenCircuit from this circuit.
@@ -685,11 +690,11 @@ class AbstractCircuit(abc.ABC):
             and the second item is the operation itself.
 
         """
-        op_list = []  # type: List[Tuple[int, ops.Operation]]
+        op_list: List[Tuple[int, ops.Operation]] = []
         if not start_frontier:
             return op_list
         start_index = min(start_frontier.values())
-        blocked_qubits = set()  # type: Set[cirq.Qid]
+        blocked_qubits: Set[cirq.Qid] = set()
         for index, moment in enumerate(self[start_index:], start_index):
             active_qubits = set(q for q, s in start_frontier.items() if s <= index)
             for op in moment.operations:
@@ -1210,7 +1215,7 @@ class AbstractCircuit(abc.ABC):
             diagram.write(0, max(label_map.values(), default=0) + 1, 'global phase:')
             first_annotation_row += 1
 
-        moment_groups = []  # type: List[Tuple[int, int]]
+        moment_groups: List[Tuple[int, int]] = []
         for moment in self.moments:
             _draw_moment_in_diagram(
                 moment=moment,
@@ -2118,7 +2123,7 @@ class Circuit(AbstractCircuit):
         if len(operations) != len(insertion_indices):
             raise ValueError('operations and insertion_indices must have the same length.')
         self._moments += [ops.Moment() for _ in range(1 + max(insertion_indices) - len(self))]
-        moment_to_ops = defaultdict(list)  # type: Dict[int, List['cirq.Operation']]
+        moment_to_ops: Dict[int, List['cirq.Operation']] = defaultdict(list)
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
         for moment_index, new_ops in moment_to_ops.items():
@@ -2365,7 +2370,7 @@ def _pick_inserted_ops_moment_indices(
 def _resolve_operations(
     operations: Iterable['cirq.Operation'], param_resolver: 'cirq.ParamResolver', recursive: bool
 ) -> List['cirq.Operation']:
-    resolved_operations = []  # type: List['cirq.Operation']
+    resolved_operations: List['cirq.Operation'] = []
     for op in operations:
         resolved_operations.append(protocols.resolve_parameters(op, param_resolver, recursive))
     return resolved_operations

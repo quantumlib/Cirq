@@ -20,7 +20,6 @@ import scipy.linalg
 import cirq
 import cirq_google as google
 from cirq_google.ops import SycamoreGate
-from cirq_google.optimizers.two_qubit_gates.gate_compilation import GateTabulation
 
 
 UNITARY_ZZ = np.kron(cirq.unitary(cirq.Z), cirq.unitary(cirq.Z))
@@ -46,25 +45,27 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
     a TypeError.
     """
 
-    def __init__(self, tabulation: Optional[GateTabulation] = None, ignore_failures=False) -> None:
+    def __init__(
+        self, tabulation: Optional[cirq.TwoQubitGateTabulation] = None, ignore_failures=False
+    ) -> None:
         """Inits ConvertToSycamoreGates.
 
         Args:
             tabulation: If set, a tabulation for the Sycamore gate to use for
                 decomposing Matrix gates. If unset, an analytic calculation is
-                used for Matrix gates. To get a GateTabulation, call the
-                gate_product_tabulation method with a base gate (in this case,
+                used for Matrix gates. To get a TwoQubitGateTabulation, call the
+                `two_qubit_gate_product_tabulation` method with a base gate (in this case,
                 usually cirq_google.SYC) and a maximum infidelity.
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
 
         Raises:
-            ValueError: If the tabulation is not a `GateTabulation`.
+            ValueError: If the tabulation is not a `TwoQubitGateTabulation`.
         """
         super().__init__()
         self.ignore_failures = ignore_failures
-        if tabulation is not None and not isinstance(tabulation, GateTabulation):
-            raise ValueError("Provided tabulation must be of type GateTabulation.")
+        if tabulation is not None and not isinstance(tabulation, cirq.TwoQubitGateTabulation):
+            raise ValueError("provided tabulation must be of type cirq.TwoQubitGateTabulation")
         self.tabulation = tabulation
 
     def _is_native_sycamore_op(self, op: cirq.Operation) -> bool:
@@ -176,7 +177,7 @@ def known_two_q_operations_to_sycamore_operations(
     qubit_a: cirq.Qid,
     qubit_b: cirq.Qid,
     op: cirq.Operation,
-    tabulation: Optional[GateTabulation] = None,
+    tabulation: Optional[cirq.TwoQubitGateTabulation] = None,
 ) -> cirq.OP_TREE:
     """Synthesizes a known gate operation to a Sycamore operation.
 
@@ -306,7 +307,10 @@ def decompose_phased_iswap_into_syc_precomputed(
 
 
 def decompose_arbitrary_into_syc_tabulation(
-    qubit_a: cirq.Qid, qubit_b: cirq.Qid, op: cirq.Operation, tabulation: GateTabulation
+    qubit_a: cirq.Qid,
+    qubit_b: cirq.Qid,
+    op: cirq.Operation,
+    tabulation: cirq.TwoQubitGateTabulation,
 ) -> cirq.OP_TREE:
     """Synthesize an arbitrary 2 qubit operation to a Sycamore operation using the given Tabulation.
 
