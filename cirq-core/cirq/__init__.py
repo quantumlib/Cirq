@@ -416,6 +416,7 @@ from cirq.sim import (
     ActOnCliffordTableauArgs,
     ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
+    ActOnStabilizerArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,

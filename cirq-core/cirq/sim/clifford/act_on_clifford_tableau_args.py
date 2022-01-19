@@ -14,27 +14,20 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 
 from cirq.ops import common_gates
-from cirq.ops import pauli_gates
-from cirq.ops.clifford_gate import SingleQubitCliffordGate
-from cirq.protocols import has_unitary, num_qubits, unitary
-from cirq.sim.act_on_args import ActOnArgs
-from cirq.type_workarounds import NotImplementedType
+from cirq.ops import global_phase_op
+from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnCliffordTableauArgs(ActOnArgs):
-    """State and context for an operation acting on a clifford tableau.
-
-    To act on this object, directly edit the `tableau` property, which is
-    storing the density matrix of the quantum system with one axis per qubit.
-    """
+class ActOnCliffordTableauArgs(ActOnStabilizerArgs):
+    """State and context for an operation acting on a clifford tableau."""
 
     def __init__(
         self,
@@ -59,25 +52,6 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         super().__init__(prng, qubits, log_of_measurement_results)
         self.tableau = tableau
 
-    def _act_on_fallback_(
-        self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
-    ) -> Union[bool, NotImplementedType]:
-        strats = []
-        if allow_decompose:
-            strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)
-        for strat in strats:
-            result = strat(action, self, qubits)
-            if result is False:
-                break  # coverage: ignore
-            if result is True:
-                return True
-            assert result is NotImplemented, str(result)
-
-        return NotImplemented
-
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Returns the measurement from the tableau."""
         return [self.tableau._measure(self.qubit_map[q], self.prng) for q in qubits]
@@ -94,24 +68,111 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         # Unnecessary for now but can be added later if there is a use case.
         raise NotImplementedError()
 
+    def _x(self, g: common_gates.XPowGate, axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 0.5 != 0.0:
+            raise ValueError('X exponent must be half integer')  # coverage: ignore
+        tableau = self.tableau
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            tableau.xs[:, axis] ^= tableau.zs[:, axis]
+            tableau.rs[:] ^= tableau.xs[:, axis] & tableau.zs[:, axis]
+        elif effective_exponent == 1:
+            tableau.rs[:] ^= tableau.zs[:, axis]
+        elif effective_exponent == 1.5:
+            tableau.rs[:] ^= tableau.xs[:, axis] & tableau.zs[:, axis]
+            tableau.xs[:, axis] ^= tableau.zs[:, axis]
 
-def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
-    val: Any, args: 'cirq.ActOnCliffordTableauArgs', qubits: Sequence['cirq.Qid']
-) -> bool:
-    if num_qubits(val) == 1:
-        if not has_unitary(val):
-            return NotImplemented
-        u = unitary(val)
-        clifford_gate = SingleQubitCliffordGate.from_unitary(u)
-        if clifford_gate is not None:
-            for axis, quarter_turns in clifford_gate.decompose_rotation():
-                if axis == pauli_gates.X:
-                    common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
-                elif axis == pauli_gates.Y:
-                    common_gates.YPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
-                else:
-                    assert axis == pauli_gates.Z
-                    common_gates.ZPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
-            return True
+    def _y(self, g: common_gates.YPowGate, axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 0.5 != 0.0:
+            raise ValueError('Y exponent must be half integer')  # coverage: ignore
+        tableau = self.tableau
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            tableau.rs[:] ^= tableau.xs[:, axis] & (~tableau.zs[:, axis])
+            (tableau.xs[:, axis], tableau.zs[:, axis]) = (
+                tableau.zs[:, axis].copy(),
+                tableau.xs[:, axis].copy(),
+            )
+        elif effective_exponent == 1:
+            tableau.rs[:] ^= tableau.xs[:, axis] ^ tableau.zs[:, axis]
+        elif effective_exponent == 1.5:
+            tableau.rs[:] ^= ~(tableau.xs[:, axis]) & tableau.zs[:, axis]
+            (tableau.xs[:, axis], tableau.zs[:, axis]) = (
+                tableau.zs[:, axis].copy(),
+                tableau.xs[:, axis].copy(),
+            )
 
-    return NotImplemented
+    def _z(self, g: common_gates.ZPowGate, axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 0.5 != 0.0:
+            raise ValueError('Z exponent must be half integer')  # coverage: ignore
+        tableau = self.tableau
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            tableau.rs[:] ^= tableau.xs[:, axis] & tableau.zs[:, axis]
+            tableau.zs[:, axis] ^= tableau.xs[:, axis]
+        elif effective_exponent == 1:
+            tableau.rs[:] ^= tableau.xs[:, axis]
+        elif effective_exponent == 1.5:
+            tableau.rs[:] ^= tableau.xs[:, axis] & (~tableau.zs[:, axis])
+            tableau.zs[:, axis] ^= tableau.xs[:, axis]
+
+    def _h(self, g: common_gates.HPowGate, axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 1 != 0:
+            raise ValueError('H exponent must be integer')  # coverage: ignore
+        self._y(common_gates.YPowGate(exponent=0.5), axis)
+        self._x(common_gates.XPowGate(), axis)
+
+    def _cz(self, g: common_gates.CZPowGate, control_axis: int, target_axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 1 != 0:
+            raise ValueError('CZ exponent must be integer')  # coverage: ignore
+        tableau = self.tableau
+        (tableau.xs[:, target_axis], tableau.zs[:, target_axis]) = (
+            tableau.zs[:, target_axis].copy(),
+            tableau.xs[:, target_axis].copy(),
+        )
+        tableau.rs[:] ^= tableau.xs[:, target_axis] & tableau.zs[:, target_axis]
+        tableau.rs[:] ^= (
+            tableau.xs[:, control_axis]
+            & tableau.zs[:, target_axis]
+            & (~(tableau.xs[:, target_axis] ^ tableau.zs[:, control_axis]))
+        )
+        tableau.xs[:, target_axis] ^= tableau.xs[:, control_axis]
+        tableau.zs[:, control_axis] ^= tableau.zs[:, target_axis]
+        (tableau.xs[:, target_axis], tableau.zs[:, target_axis]) = (
+            tableau.zs[:, target_axis].copy(),
+            tableau.xs[:, target_axis].copy(),
+        )
+        tableau.rs[:] ^= tableau.xs[:, target_axis] & tableau.zs[:, target_axis]
+
+    def _cx(self, g: common_gates.CXPowGate, control_axis: int, target_axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 1 != 0:
+            raise ValueError('CX exponent must be integer')  # coverage: ignore
+        tableau = self.tableau
+        tableau.rs[:] ^= (
+            tableau.xs[:, control_axis]
+            & tableau.zs[:, target_axis]
+            & (~(tableau.xs[:, target_axis] ^ tableau.zs[:, control_axis]))
+        )
+        tableau.xs[:, target_axis] ^= tableau.xs[:, control_axis]
+        tableau.zs[:, control_axis] ^= tableau.zs[:, target_axis]
+
+    def _global_phase(self, g: global_phase_op.GlobalPhaseGate):
+        pass
