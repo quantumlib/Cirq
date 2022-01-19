@@ -17,7 +17,7 @@ from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, TYPE_C
 import functools
 import networkx
 
-from cirq import ops, devices
+from cirq import _compat, ops, devices
 from cirq.circuits import circuit
 
 if TYPE_CHECKING:
@@ -70,6 +70,12 @@ class CircuitDag(networkx.DiGraph):
 
     disjoint_qubits = staticmethod(_disjoint_qubits)
 
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
+        fix=circuit._DEVICE_DEP_MESSAGE,
+        parameter_desc='device',
+        match=lambda args, kwargs: 'device' in kwargs or len(args) == 4,
+    )
     def __init__(
         self,
         can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
@@ -92,7 +98,15 @@ class CircuitDag(networkx.DiGraph):
         """
         super().__init__(incoming_graph_data)
         self.can_reorder = can_reorder
-        self.device = device
+        self._device = device
+
+    @property  # type: ignore
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix=circuit._DEVICE_DEP_MESSAGE,
+    )
+    def device(self) -> devices.Device:
+        return self._device
 
     @staticmethod
     def make_node(op: 'cirq.Operation') -> Unique:
@@ -100,20 +114,33 @@ class CircuitDag(networkx.DiGraph):
 
     @staticmethod
     def from_circuit(
-        circuit: 'cirq.Circuit',
+        circuit: circuit.Circuit,
         can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
     ) -> 'CircuitDag':
+        if circuit._device == devices.UNCONSTRAINED_DEVICE:
+            return CircuitDag.from_ops(circuit.all_operations(), can_reorder=can_reorder)
         return CircuitDag.from_ops(
-            circuit.all_operations(), can_reorder=can_reorder, device=circuit.device
+            circuit.all_operations(), can_reorder=can_reorder, device=circuit._device
         )
 
     @staticmethod
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
+        fix=circuit._DEVICE_DEP_MESSAGE,
+        parameter_desc='device',
+        match=lambda args, kwargs: 'device' in kwargs,
+    )
     def from_ops(
         *operations: 'cirq.OP_TREE',
         can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
         device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE,
     ) -> 'CircuitDag':
-        dag = CircuitDag(can_reorder=can_reorder, device=device)
+        if device == devices.UNCONSTRAINED_DEVICE:
+            dag = CircuitDag(can_reorder=can_reorder)
+        else:
+            with circuit._block_overlapping_deprecation():
+                dag = CircuitDag(can_reorder=can_reorder, device=device)
+
         for op in ops.flatten_op_tree(operations):
             dag.append(cast(ops.Operation, op))
         return dag
@@ -184,9 +211,11 @@ class CircuitDag(networkx.DiGraph):
     def all_qubits(self):
         return frozenset(q for node in self.nodes for q in node.val.qubits)
 
-    def to_circuit(self) -> 'cirq.Circuit':
+    def to_circuit(self) -> circuit.Circuit:
+        if self._device == devices.UNCONSTRAINED_DEVICE:
+            return circuit.Circuit(self.all_operations(), strategy=circuit.InsertStrategy.EARLIEST)
         return circuit.Circuit(
-            self.all_operations(), strategy=circuit.InsertStrategy.EARLIEST, device=self.device
+            self.all_operations(), strategy=circuit.InsertStrategy.EARLIEST, device=self._device
         )
 
     def findall_nodes_until_blocked(

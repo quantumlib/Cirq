@@ -87,6 +87,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
         'GlobalPhaseGate': cirq.GlobalPhaseGate,
         'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
+        'GridDeviceMetadata': cirq.GridDeviceMetadata,
         'GridInteractionLayer': GridInteractionLayer,
         'GridParallelXEBMetadata': GridParallelXEBMetadata,
         'GridQid': cirq.GridQid,
