@@ -277,12 +277,12 @@ class StabilizerStateChForm:
     def kron(self, other: 'cirq.StabilizerStateChForm') -> 'cirq.StabilizerStateChForm':
         n = self.n + other.n
         copy = StabilizerStateChForm(n)
-        copy.G[:self.n, :self.n] = self.G
-        copy.G[self.n:, self.n:] = other.G
-        copy.F[:self.n, :self.n] = self.F
-        copy.F[self.n:, self.n:] = other.F
-        copy.M[:self.n, :self.n] = self.M
-        copy.M[self.n:, self.n:] = other.M
+        copy.G[: self.n, : self.n] = self.G
+        copy.G[self.n :, self.n :] = other.G
+        copy.F[: self.n, : self.n] = self.F
+        copy.F[self.n :, self.n :] = other.F
+        copy.M[: self.n, : self.n] = self.M
+        copy.M[self.n :, self.n :] = other.M
         copy.gamma = np.concatenate([self.gamma, other.gamma])
         copy.v = np.concatenate([self.v, other.v])
         copy.s = np.concatenate([self.s, other.s])
