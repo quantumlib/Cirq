@@ -23,11 +23,11 @@ def test_diagram():
     cirq.testing.assert_has_diagram(
         defer_measurements(circuit),
         """
-0: ───M───────
-      ║
-1: ───╫───X───
-      ║   ║
-a: ═══@═══^═══
+0: ─────@────────────────
+        │
+1: ─────┼───X────────────
+        │   │
+a 0: ───X───@───M('a')───
 """,
         use_unicode_characters=True,
     )
@@ -44,11 +44,15 @@ def test_diagram_extra_measurements():
     cirq.testing.assert_has_diagram(
         defer_measurements(circuit),
         """
-0: ───M───M('b')───
-      ║
-1: ───╫───X────────
-      ║   ║
-a: ═══@═══^════════
+            ┌──┐
+0: ─────@────@──────────────
+        │    │
+1: ─────┼────┼X─────────────
+        │    ││
+a 0: ───X────┼@────M('a')───
+             │
+b 0: ────────X─────M('b')───
+            └──┘
 """,
         use_unicode_characters=True,
     )
@@ -64,11 +68,11 @@ def test_diagram_extra_controlled_bits():
     cirq.testing.assert_has_diagram(
         defer_measurements(circuit),
         """
-0: ───M───@───
-      ║   ║
-1: ───╫───X───
-      ║   ║
-a: ═══@═══^═══
+0: ─────@───@────────────
+        │   │
+1: ─────┼───X────────────
+        │   │
+a 0: ───X───@───M('a')───
 """,
         use_unicode_characters=True,
     )
@@ -85,13 +89,13 @@ def test_diagram_extra_control_bits():
     cirq.testing.assert_has_diagram(
         defer_measurements(circuit),
         """
-0: ───M───M───────
-      ║   ║
-1: ───╫───╫───X───
-      ║   ║   ║
-a: ═══@═══╬═══^═══
-          ║   ║
-b: ═══════@═══^═══
+0: ─────@───@────────────────
+        │   │
+1: ─────┼───┼───X────────────
+        │   │   │
+a 0: ───X───┼───@───M('a')───
+            │   │
+b 0: ───────X───@───M('b')───
 """,
         use_unicode_characters=True,
     )
@@ -109,15 +113,15 @@ def test_diagram_multiple_ops_single_moment():
     cirq.testing.assert_has_diagram(
         defer_measurements(circuit),
         """
-      ┌──┐   ┌──┐
-0: ────M──────X─────
-       ║      ║
-1: ────╫M─────╫X────
-       ║║     ║║
-a: ════@╬═════^╬════
-        ║      ║
-b: ═════@══════^════
-      └──┘   └──┘
+        ┌──┐   ┌──┐
+0: ──────@──────X──────────────
+         │      │
+1: ──────┼@─────┼X─────────────
+         ││     ││
+a 0: ────X┼─────@┼────M('a')───
+          │      │
+b 1: ─────X──────@────M('b')───
+        └──┘   └──┘
 """,
         use_unicode_characters=True,
     )
@@ -137,13 +141,15 @@ def test_diagram_subcircuit():
     cirq.testing.assert_has_diagram(
         defer_measurements(circuit),
         """
-      [ 0: ───M─────── ]
-      [       ║        ]
-0: ───[ 1: ───╫───X─── ]───
-      [       ║   ║    ]
-      [ a: ═══@═══^═══ ]
-      │
-1: ───#2───────────────────
+        [ 0: ─────@─────── ]
+        [         │        ]
+0: ─────[ 1: ─────┼───X─── ]────────────
+        [         │   │    ]
+        [ a 0: ───X───@─── ]
+        │
+1: ─────#2──────────────────────────────
+        │
+a 0: ───#3─────────────────────M('a')───
 """,
         use_unicode_characters=True,
     )
@@ -157,35 +163,42 @@ def test_scope_local():
     )
     middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
     outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    circuit = outer_subcircuit.mapped_circuit(deep=True)
-    internal_control_keys = [
-        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
-    ]
-    assert internal_control_keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
     assert not cirq.control_keys(outer_subcircuit)
-    assert not cirq.control_keys(circuit)
     cirq.testing.assert_has_diagram(
-        defer_measurements(cirq.Circuit(outer_subcircuit))
-        ,
+        defer_measurements(cirq.Circuit(outer_subcircuit)),
         """
-      [       [ 0: ───M───X─── ]             ]
-0: ───[ 0: ───[       ║   ║    ]──────────── ]────────────
-      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2)
+            [           [ 0: ─────@───X─── ]             ]
+            [ 0: ───────[         │   │    ]──────────── ]
+            [           [ a 0: ───X───@─── ](loops=2)    ]
+0: ─────────[           │                                ]─────────────────────────
+            [ 0:a 0: ───#2────────────────────────────── ]
+            [           │                                ]
+            [ 1:a 0: ───#3────────────────────────────── ](loops=2)
+            │
+0:0:a 0: ───#2────────────────────────────────────────────────────────M('0:0:a')───
+            │
+0:1:a 0: ───#3────────────────────────────────────────────────────────M('0:1:a')───
+            │
+1:0:a 0: ───#4────────────────────────────────────────────────────────M('1:0:a')───
+            │
+1:1:a 0: ───#5────────────────────────────────────────────────────────M('1:1:a')───
 """,
         use_unicode_characters=True,
     )
+    circuit = cirq.Circuit(outer_subcircuit)
+    s = defer_measurements(circuit).freeze()
     cirq.testing.assert_has_diagram(
-        cirq.CircuitOperation(defer_measurements(cirq.Circuit(outer_subcircuit)).freeze()).mapped_circuit(deep=True),
+        cirq.CircuitOperation(s).mapped_circuit(deep=True),
         """
-0: ───────M───X───M───X───M───X───M───X───
-          ║   ║   ║   ║   ║   ║   ║   ║
-0:0:a: ═══@═══^═══╬═══╬═══╬═══╬═══╬═══╬═══
-                  ║   ║   ║   ║   ║   ║
-0:1:a: ═══════════@═══^═══╬═══╬═══╬═══╬═══
-                          ║   ║   ║   ║
-1:0:a: ═══════════════════@═══^═══╬═══╬═══
-                                  ║   ║
-1:1:a: ═══════════════════════════@═══^═══
+0: ─────────@───X───@───X───@───X───@───X────────────────
+            │   │   │   │   │   │   │   │
+0:0:a 0: ───X───@───┼───┼───┼───┼───┼───┼───M('0:0:a')───
+                    │   │   │   │   │   │
+0:1:a 0: ───────────X───@───┼───┼───┼───┼───M('0:1:a')───
+                            │   │   │   │
+1:0:a 0: ───────────────────X───@───┼───┼───M('1:0:a')───
+                                    │   │
+1:1:a 0: ───────────────────────────X───@───M('1:1:a')───
 """,
         use_unicode_characters=True,
     )

@@ -49,8 +49,8 @@ class MeasurementQid(ops.Qid):
 
 def _defer_measurements(
     circuit: 'cirq.AbstractCircuit',
-) -> Tuple['cirq.Circuit', Dict['cirq.MeasurementKey', List['cirq.Qid']]]:
-    measurement_qubits: Dict['cirq.MeasurementKey', List['cirq.Qid']] = {}
+) -> Tuple['cirq.Circuit', Dict['cirq.MeasurementKey', List['MeasurementQid']]]:
+    measurement_qubits: Dict['cirq.MeasurementKey', List['MeasurementQid']] = {}
 
     def defer(op: 'cirq.Operation') -> 'cirq.OP_TREE':
         gate = op.gate
@@ -87,16 +87,10 @@ def defer_measurements(
     circuit: 'cirq.AbstractCircuit', dephase_measurements=False
 ) -> 'cirq.Circuit':
     circuit, measurement_qubits = _defer_measurements(circuit)
-
-    def dephase_if_needed(op: 'cirq.Operation'):
-        gate = op.gate
-        assert isinstance(gate, ops.MeasurementGate)
-        return (
-            op
-            if not dephase_measurements
-            else ops.KrausChannel.from_channel(ops.phase_damp(1), key=gate.key).on(*op.qubits)
-        )
-
     for k, qubits in measurement_qubits.items():
-        circuit.append(dephase_if_needed(ops.measure(*qubits, key=k)))
+        circuit.append(
+            ops.KrausChannel.from_channel(ops.phase_damp(1), key=k).on(*qubits)
+            if dephase_measurements
+            else ops.measure(*qubits, key=k)
+        )
     return circuit

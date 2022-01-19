@@ -242,12 +242,10 @@ class CircuitOperation(ops.Operation):
         if self.param_resolver:
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if self.repetition_ids:
-            if not protocols.is_measurement(circuit):
-                circuit = circuit * abs(self.repetitions)
-            else:
-                circuit = circuits.Circuit(
-                    protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
-                )
+            # TODO: re-add the optimization but check qubits are not MeasurementQid
+            circuit = circuits.Circuit(
+                protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
+            )
         circuit = protocols.with_rescoped_keys(
             circuit, self.parent_path, bindable_keys=self.extern_keys
         )

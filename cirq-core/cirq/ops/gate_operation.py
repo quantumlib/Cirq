@@ -114,7 +114,7 @@ class GateOperation(raw_types.Operation):
         bindable_keys: FrozenSet['cirq.MeasurementKey'],
     ):
         new_gate = protocols.with_rescoped_keys(self.gate, path, bindable_keys)
-        qubits = [protocols.with_rescoped_keys(q, path, bindable_keys) for q in self.qubits]
+        qubits = tuple(protocols.with_rescoped_keys(q, path, bindable_keys) for q in self.qubits)
         if new_gate is self.gate and qubits == self.qubits:
             return self
         return new_gate.on(*qubits)
