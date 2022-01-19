@@ -14,7 +14,7 @@
 
 """An optimization pass that aligns gates to the left of the circuit."""
 
-from typing import Dict, List, TYPE_CHECKING, Any, Tuple, FrozenSet
+from typing import Dict, List, TYPE_CHECKING, Any, Tuple, FrozenSet, TypeVar
 from cirq import circuits, ops, protocols, value
 
 if TYPE_CHECKING:
@@ -40,9 +40,7 @@ class _MeasurementQid(ops.Qid):
         return f'_MeasurementQid({self._key}, {self._qid})'
 
 
-def defer_measurements(
-    circuit: 'cirq.AbstractCircuit'
-) -> 'cirq.Circuit':
+def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
     circuit = circuits.CircuitOperation(circuit.freeze()).mapped_circuit(deep=True)
     qubits_found = set()
     terminal_measurements = set()
@@ -87,14 +85,20 @@ def defer_measurements(
     return circuit
 
 
-def dephase_measurements(
-    circuit: 'cirq.AbstractCircuit'', dephase_measurements=False'
-) -> 'cirq.Circuit':
-    circuit, measurement_qubits = defer_measurements(circuit)
-    for k, qubits in measurement_qubits.items():
-        circuit.append(
-            ops.KrausChannel.from_channel(ops.phase_damp(1), key=k).on(*qubits)
-            if dephase_measurements
-            else ops.measure(*qubits, key=k)
-        )
-    return circuit
+CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
+
+
+def dephase_measurements(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
+    def dephase(op: 'cirq.Operation') -> 'cirq.OP_TREE':
+        gate = op.gate
+        if isinstance(gate, ops.MeasurementGate):
+            key = value.MeasurementKey.parse_serialized(gate.key)
+            return ops.KrausChannel.from_channel(ops.phase_damp(1), key=key).on_each(op.qubits)
+        elif isinstance(op, ops.ClassicallyControlledOperation):
+            raise ValueError('Use cirq.defer_measurements first to remove classical controls.')
+        elif isinstance(op, circuits.CircuitOperation):
+            circuit = dephase_measurements(op.circuit)
+            return op.replace(circuit=circuit)
+        return op
+
+    return circuit.map_operations(dephase)
