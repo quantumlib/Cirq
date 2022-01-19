@@ -31,6 +31,7 @@ def test_engine_backend():
         processor = cg.EngineBackend('rainbow')
     assert processor.processor_id == 'rainbow'
     assert isinstance(processor.get_sampler(), cirq.Sampler)
+    cirq.testing.assert_equivalent_repr(processor, global_vals={'cirq_google': cg})
 
 
 def test_simulated_backend():
@@ -44,9 +45,12 @@ def test_simulated_backend():
         processor = cg.SimulatedBackend('rainbow')
     assert processor.processor_id == 'rainbow'
     assert processor.descriptive_name() == 'rainbow-simulator'
+    cirq.testing.assert_equivalent_repr(processor, global_vals={'cirq_google': cg})
 
 
 def test_simulated_backend_with_local_device():
     processor = cg.SimulatedBackendWithLocalDevice('rainbow')
     assert processor.processor_id == 'rainbow'
     assert processor.descriptive_name() == 'rainbow-simulator'
+
+    cirq.testing.assert_equivalent_repr(processor, global_vals={'cirq_google': cg})

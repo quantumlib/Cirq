@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import dataclasses
 from typing import Optional, Iterable
 
 import cirq
@@ -40,6 +41,9 @@ class EngineBackend(cg.engine.EngineProcessor):
 
         assert gate_sets is ()
         return super().get_device(cg.SQRT_ISWAP_GATESET)
+
+    def __repr__(self):
+        return f'cirq_google.EngineBackend({self.processor_id!r})'
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -95,6 +99,18 @@ class SimulatedBackend(cg.engine.SimulatedLocalProcessor):
         else:
             suffix = f'p={self.noise_strength:.3e}'
         return f'{self.processor_id}-{suffix}'
+
+    def __eq__(self, other):
+        if not isinstance(other, SimulatedBackend):
+            return False
+
+        return (self.processor_id, self.noise_strength) == (
+            other.processor_id,
+            other.noise_strength,
+        )
+
+    def __repr__(self):
+        return f'cirq_google.{self.__class__.__name__}({self.processor_id!r}, noise_strength={self.noise_strength!r})'
 
 
 _DEVICES_BY_ID = {

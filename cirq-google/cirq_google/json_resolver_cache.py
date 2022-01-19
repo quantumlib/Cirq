@@ -56,4 +56,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         # pylint: enable=line-too-long
         'cirq.google.QuantumRuntimeConfiguration': cirq_google.QuantumRuntimeConfiguration,
         'cirq.google.NaiveQubitPlacer': cirq_google.NaiveQubitPlacer,
+        'cirq.google.EngineBackend': cirq_google.EngineBackend,
+        'cirq.google.SimulatedBackend': cirq_google.SimulatedBackend,
+        'cirq.google.SimulatedBackendWithLocalDevice': cirq_google.SimulatedBackendWithLocalDevice,
     }
