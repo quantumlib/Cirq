@@ -75,6 +75,8 @@ def test_value_equality_manual():
     eq.add_equality_group(MasqueradePositiveD(4), MasqueradePositiveD(4), BasicD(4))
     eq.add_equality_group(MasqueradePositiveD(-1), MasqueradePositiveD(-1))
     eq.add_equality_group(BasicD(-1))
+    assert cirq.approx_eq(MasqueradePositiveD(3), BasicD(3))
+    assert cirq.approx_eq(MasqueradePositiveD(4), MasqueradePositiveD(4))
 
 
 @cirq.value_equality(unhashable=True)
