@@ -138,6 +138,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_QubitAsQid': raw_types._QubitAsQid,
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'RandomGateChannel': cirq.RandomGateChannel,
+        'ReadoutConfusionMatrix': cirq.ReadoutConfusionMatrix,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
         'Result': cirq.Result,

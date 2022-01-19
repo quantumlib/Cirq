@@ -100,6 +100,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    ReadoutConfusionMatrix,
     estimate_parallel_single_qubit_readout_errors,
     estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
@@ -112,6 +113,7 @@ from cirq.experiments import (
     generate_boixo_2018_supremacy_circuits_v2,
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
+    measure_confusion_matrix,
     xeb_fidelity,
 )
 
