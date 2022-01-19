@@ -22,14 +22,28 @@ from typing import (
     Iterator,
     Iterable,
 )
+import contextlib
+import re
+import warnings
 
 import networkx as nx
-from cirq import value
+from cirq import _compat, value
 from cirq.devices.grid_qubit import _BaseGridQid
 from cirq.devices.line_qubit import _BaseLineQid
 
 if TYPE_CHECKING:
     import cirq
+
+
+@contextlib.contextmanager
+def _block_overlapping_deprecation():
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            action='ignore',
+            category=DeprecationWarning,
+            message=f'(.|\n)*device\\.metadata(.|\n)*',
+        )
+        yield
 
 
 class Device(metaclass=abc.ABCMeta):
@@ -59,6 +73,10 @@ class Device(metaclass=abc.ABCMeta):
         # Default to the qubits being unknown.
         return None
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='qubit coupling data can now be found in device.metadata if provided.',
+    )
     def qid_pairs(self) -> Optional[FrozenSet['cirq.SymmetricalQidPair']]:
         """Returns a set of qubit edges on the device, if possible.
 
@@ -74,27 +92,28 @@ class Device(metaclass=abc.ABCMeta):
             `cirq.UnconstrainedDevice` has this property), then `None` is
             returned.
         """
-        qs = self.qubit_set()
-        if qs is None:
-            return None
-        if all(isinstance(q, _BaseGridQid) for q in qs):
-            return frozenset(
-                [
-                    SymmetricalQidPair(q, q2)
-                    for q in [cast(_BaseGridQid, q) for q in qs]
-                    for q2 in [q + (0, 1), q + (1, 0)]
-                    if q2 in qs
-                ]
-            )
-        if all(isinstance(q, _BaseLineQid) for q in qs):
-            return frozenset(
-                [
-                    SymmetricalQidPair(q, q + 1)
-                    for q in [cast(_BaseLineQid, q) for q in qs]
-                    if q + 1 in qs
-                ]
-            )
-        return frozenset([SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
+        with _block_overlapping_deprecation():
+            qs = self.qubit_set()
+            if qs is None:
+                return None
+            if all(isinstance(q, _BaseGridQid) for q in qs):
+                return frozenset(
+                    [
+                        SymmetricalQidPair(q, q2)
+                        for q in [cast(_BaseGridQid, q) for q in qs]
+                        for q2 in [q + (0, 1), q + (1, 0)]
+                        if q2 in qs
+                    ]
+                )
+            if all(isinstance(q, _BaseLineQid) for q in qs):
+                return frozenset(
+                    [
+                        SymmetricalQidPair(q, q + 1)
+                        for q in [cast(_BaseLineQid, q) for q in qs]
+                        if q + 1 in qs
+                    ]
+                )
+            return frozenset([SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Returns a device-valid decomposition for the given operation.
@@ -157,6 +176,10 @@ class Device(metaclass=abc.ABCMeta):
         return not moment.operates_on(operation.qubits)
 
 
+@_compat.deprecated_class(
+    deadline='v0.15',
+    fix='Qid coupling information can now be found in device.metadata if applicable.',
+)
 @value.value_equality
 class SymmetricalQidPair:
     def __init__(self, qid1: 'cirq.Qid', qid2: 'cirq.Qid'):

@@ -26,10 +26,24 @@ from typing import (
     Type,
     FrozenSet,
 )
-
+import contextlib
+import re
+import warnings
 import cirq
+from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.api import v2
+
+
+@contextlib.contextmanager
+def _block_overlapping_deprecation():
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            action='ignore',
+            category=DeprecationWarning,
+            message=f'(.|\n)*device\\.metadata(.|\n)*',
+        )
+        yield
 
 
 class _GateDefinition:
@@ -240,6 +254,10 @@ class SerializableDevice(cirq.Device):
 
         return super().__str__()
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='qubit coupling data can now be found in device.metadata if provided.',
+    )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
         """Returns a list of qubit edges on the device, defined by the gate
         definitions.
@@ -247,16 +265,17 @@ class SerializableDevice(cirq.Device):
         Returns:
             The list of qubit edges on the device.
         """
-        return frozenset(
-            [
-                cirq.SymmetricalQidPair(pair[0], pair[1])
-                for gate_defs in self.gate_definitions.values()
-                for gate_def in gate_defs
-                if gate_def.number_of_qubits == 2
-                for pair in gate_def.target_set
-                if len(pair) == 2 and pair[0] < pair[1]
-            ]
-        )
+        with _block_overlapping_deprecation():
+            return frozenset(
+                [
+                    cirq.SymmetricalQidPair(pair[0], pair[1])
+                    for gate_defs in self.gate_definitions.values()
+                    for gate_def in gate_defs
+                    if gate_def.number_of_qubits == 2
+                    for pair in gate_def.target_set
+                    if len(pair) == 2 and pair[0] < pair[1]
+                ]
+            )
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Creates ASCII diagram for Jupyter, IPython, etc."""
