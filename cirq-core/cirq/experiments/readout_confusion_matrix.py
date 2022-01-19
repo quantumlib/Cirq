@@ -58,10 +58,12 @@ class ReadoutConfusionMatrix:
         `confusion_matrices[i]` should correspond to the qubit sequence `measure_qubits[i]`.
 
         Args:
-            confusion_matrices: Sequence of Confusion matrices, computed for qubit patterns present
+            confusion_matrices: Sequence of confusion matrices, computed for qubit patterns present
                                 in `measure_qubits`. A single confusion matrix is also accepted.
             measure_qubits: Sequence of smaller qubit patterns, for which the confusion matrices
-                            were computed. A single qubit pattern is also accepted.
+                            were computed. A single qubit pattern is also accepted. Note that the
+                            each qubit patterns is a sequence of qubits used to label the axes of
+                            the corresponding confusion matrix.
         Raises:
             ValueError: If length of `confusion_matrices` and `measure_qubits` is different or if
                         the shape of any confusion matrix does not match the corresponding qubit
@@ -84,9 +86,13 @@ class ReadoutConfusionMatrix:
                     f"Shape mismatch for confusion matrix {cm} at index {i} corresponding to {q}."
                     f"Confusion Matrix shape {cm.shape} should match {(2 ** len(q),) * 2}"
                 )
+
         self._confusion_matrices = list(confusion_matrices)
         self._measure_qubits = [list(q) for q in measure_qubits]
         self._qubits = sorted(set(q for ql in measure_qubits for q in ql))
+        self._qubits_to_idx = {q: i for i, q in enumerate(self._qubits)}
+        if sum(len(q) for q in self._measure_qubits) != len(self._qubits):
+            raise ValueError(f"Repeated qubits not allowed in measure_qubits: {measure_qubits}.")
 
     @property
     def confusion_matrices(self) -> List[np.ndarray]:
@@ -103,27 +109,18 @@ class ReadoutConfusionMatrix:
         """Sorted list of all calibrated qubits."""
         return self._qubits
 
-    def _get_vars(self, qubit_pattern: Optional[Sequence[Sequence['cirq.Qid']]] = None):
-        if qubit_pattern is None:
-            qubit_pattern = self.measure_qubits
-        abcd = "abcdefghijklmnopqrstuvwxyz"
-
-        def qubits_to_abcd(qs: Sequence['cirq.Qid']):
-            assert len(qs) <= len(abcd), "No. of qubits should be <= 26."
-            ret = ''.join(abcd[self.qubits.index(q)] for q in qs)
-            return ret + ret.upper()
-
-        return ','.join(qubits_to_abcd(qs) for qs in qubit_pattern)
+    def _get_vars(self, qubit_pattern: Sequence['cirq.Qid']):
+        in_vars = [2 * self._qubits_to_idx[q] for q in qubit_pattern]
+        out_vars = [2 * self._qubits_to_idx[q] + 1 for q in qubit_pattern]
+        return in_vars + out_vars
 
     @functools.lru_cache()
     def _confusion_matrix(self, qubits: Tuple['cirq.Qid']) -> np.ndarray:
-        ret = np.einsum(
-            f'{self._get_vars()}->{self._get_vars([qubits])}',
-            *[
-                cm.reshape((2, 2) * len(qs))
-                for qs, cm in zip(self.measure_qubits, self.confusion_matrices)
-            ],
-        ).reshape((2 ** len(qubits),) * 2)
+        ein_input = []
+        for qs, cm in zip(self.measure_qubits, self.confusion_matrices):
+            ein_input += [cm.reshape((2, 2) * len(qs)), self._get_vars(qs)]
+        ein_out = self._get_vars(qubits)
+        ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)
         return ret / ret.sum(axis=1)
 
     def confusion_matrix(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> np.ndarray:
@@ -136,6 +133,7 @@ class ReadoutConfusionMatrix:
         Args:
             qubits: The qubits representing the subspace for which a confusion matrix should be
                     constructed. By default, uses all qubits in sorted order, i.e. `self.qubits`.
+                    Note that ordering of qubits sets the basis ordering of the returned matrix.
 
         Returns:
             Confusion matrix for subspace corresponding to `qubits`.
@@ -161,6 +159,7 @@ class ReadoutConfusionMatrix:
         Args:
             qubits: The qubits representing the subspace for which a correction matrix should be
                     constructed. By default, uses all qubits in sorted order, i.e. `self.qubits`.
+                    Note that ordering of qubits sets the basis ordering of the returned matrix.
 
         Returns:
             Correction matrix for subspace corresponding to `qubits`.
@@ -184,15 +183,23 @@ class ReadoutConfusionMatrix:
     ) -> np.ndarray:
         """Applies corrections to the observed `result` to compensate for readout error on qubits.
 
-        The compensation is applied by multiplying the result with the correction matrix
-        corresponding to the subspace defined by `qubits`.
+        The compensation can applied by the following methods:
+         1. 'pseudo_inverse': The result is multiplied by the correction matrix, which is pseudo
+                              inverse of confusion matrix corresponding to the subspace defined by
+                              `qubits`.
+         2. 'least_squares': Solves a constrained minimization problem to find optimal `x` s.t.
+                                a) x >= 0
+                                b) sum(x) == sum(result) and
+                                c) sum((result - x @ confusion_matrix) ** 2) is minimized.
 
         Args:
             result: `(2 ** len(qubits), )` shaped numpy array containing observed frequencies /
                     probabilities.
             qubits: Sequence of qubits used for sampling to get `result`. By default, uses all
-                    qubits in sorted order, i.e. `self.qubits`.
+                    qubits in sorted order, i.e. `self.qubits`. Note that ordering of qubits sets
+                    the basis ordering for the `result` argument.
             method: Correction Method. Should be either 'pseudo_inverse' or 'least_squares'.
+                    Equal to `least_squares` by default.
 
         Returns:
               `(2 ** len(qubits), )` shaped numpy array corresponding to `result` with corrections.
@@ -214,7 +221,6 @@ class ReadoutConfusionMatrix:
         cm = self.confusion_matrix(qubits)
 
         def func(x):
-            print(x.shape)
             return np.sum((result - x @ cm) ** 2)
 
         constraints = {'type': 'eq', 'fun': lambda x: sum(result) - sum(x)}

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 
 import numpy as np
 import cirq
@@ -88,6 +89,11 @@ def test_readout_confusion_matrix_raises():
 
     with pytest.raises(ValueError, match="Shape mismatch for confusion matrix"):
         _ = cirq.ReadoutConfusionMatrix(confusion_matrix, qubits)
+
+    with pytest.raises(ValueError, match="Repeated qubits not allowed"):
+        _ = cirq.ReadoutConfusionMatrix(
+            [confusion_matrix, confusion_matrix], [qubits[:2], qubits[1:3]]
+        )
 
     readout_cm = cirq.ReadoutConfusionMatrix(
         [confusion_matrix, confusion_matrix], [qubits[:2], qubits[2:]]
