@@ -22,5 +22,7 @@ from cirq_google.workflow.io import (
 
 from cirq_google.workflow.qubit_placement import (
     QubitPlacer,
+    CouldNotPlaceError,
     NaiveQubitPlacer,
+    RandomDevicePlacer,
 )
