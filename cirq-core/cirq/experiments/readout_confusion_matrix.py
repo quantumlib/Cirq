@@ -62,7 +62,7 @@ class ReadoutConfusionMatrix:
                                 in `measure_qubits`. A single confusion matrix is also accepted.
             measure_qubits: Sequence of smaller qubit patterns, for which the confusion matrices
                             were computed. A single qubit pattern is also accepted. Note that the
-                            each qubit patterns is a sequence of qubits used to label the axes of
+                            each qubit pattern is a sequence of qubits used to label the axes of
                             the corresponding confusion matrix.
         Raises:
             ValueError: If length of `confusion_matrices` and `measure_qubits` is different or if
