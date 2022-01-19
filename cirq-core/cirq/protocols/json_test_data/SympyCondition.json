@@ -1,0 +1,17 @@
+{
+  "cirq_type": "SympyCondition",
+  "expr":
+  {
+    "cirq_type": "sympy.GreaterThan",
+    "args": [
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "a"
+      },
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "b"
+      }
+    ]
+  }
+}

@@ -21,7 +21,6 @@ from cirq.ops import common_gates, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.act_on_args import ActOnArgs
-from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -38,7 +37,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
 
     def __init__(
         self,
-        state: StabilizerStateChForm,
+        state: 'cirq.StabilizerStateChForm',
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
@@ -79,7 +78,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         """Returns the measurement from the stabilizer state form."""
         return [self.state._measure(self.qubit_map[q], self.prng) for q in qubits]
 
-    def _on_copy(self, target: 'ActOnStabilizerCHFormArgs'):
+    def _on_copy(self, target: 'ActOnStabilizerCHFormArgs', deep_copy_buffers: bool = True):
         target.state = self.state.copy()
 
     def sample(
@@ -111,7 +110,7 @@ def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
             # global phase later.
             final_unitary = np.eye(2)
             for axis, quarter_turns in clifford_gate.decompose_rotation():
-                gate = None  # type: Optional[cirq.Gate]
+                gate: Optional[cirq.Gate] = None
                 if axis == pauli_gates.X:
                     gate = common_gates.XPowGate(exponent=quarter_turns / 2)
                     assert gate._act_on_(args, qubits)

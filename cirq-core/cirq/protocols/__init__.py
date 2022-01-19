@@ -108,6 +108,7 @@ from cirq.protocols.measurement_key_protocol import (
     with_key_path,
     with_key_path_prefix,
     with_measurement_key_mapping,
+    with_rescoped_keys,
     SupportsMeasurementKey,
 )
 from cirq.protocols.mixture_protocol import (

@@ -23,7 +23,6 @@ from cirq.devices.noise_utils import (
     pauli_error_to_decay_constant,
     xeb_fidelity_to_decay_constant,
     pauli_error_from_t1,
-    pauli_error_from_depolarization,
     average_error,
     decoherence_pauli_error,
 )
@@ -58,7 +57,7 @@ def test_op_id_str():
 def test_op_id_swap():
     q0, q1 = cirq.LineQubit.range(2)
     base_id = OpIdentifier(cirq.CZPowGate, q0, q1)
-    swap_id = base_id.swapped()
+    swap_id = OpIdentifier(base_id.gate_type, *base_id.qubits[::-1])
     assert cirq.CZ(q0, q1) in base_id
     assert cirq.CZ(q0, q1) not in swap_id
     assert cirq.CZ(q1, q0) not in base_id
@@ -122,19 +121,6 @@ def test_xeb_fidelity_to_decay_constant(xeb_fidelity, num_qubits, expected_outpu
 )
 def test_pauli_error_from_t1(t, t1_ns, expected_output):
     val = pauli_error_from_t1(t, t1_ns)
-    assert val == expected_output
-
-
-@pytest.mark.parametrize(
-    't,t1_ns,pauli_error,expected_output',
-    [
-        (20, 1e5, 0.01, 0.01 - ((1 - np.exp(-20 / 2e5)) / 2 + (1 - np.exp(-20 / 1e5)) / 4)),
-        # In this case, the formula produces a negative result.
-        (4000, 1e4, 0.01, 0),
-    ],
-)
-def test_pauli_error_from_depolarization(t, t1_ns, pauli_error, expected_output):
-    val = pauli_error_from_depolarization(t, t1_ns, pauli_error)
     assert val == expected_output
 
 

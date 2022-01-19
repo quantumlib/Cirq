@@ -1194,7 +1194,7 @@ def main():
     )
 
     log('Watching for automergeable PRs.')
-    problem_seen_times = {}  # type: Dict[int, datetime.datetime]
+    problem_seen_times: Dict[int, datetime.datetime] = {}
     while True:
         try:
             merge_duty_cycle(repo, problem_seen_times)

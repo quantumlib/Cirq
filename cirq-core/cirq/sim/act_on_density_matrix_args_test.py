@@ -18,6 +18,35 @@ import pytest
 import cirq
 
 
+def test_default_parameter():
+    qid_shape = (2,)
+    tensor = cirq.to_valid_density_matrix(
+        0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
+    )
+    args = cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
+    assert len(args.available_buffer) == 3
+    for buffer in args.available_buffer:
+        assert buffer.shape == tensor.shape
+        assert buffer.dtype == tensor.dtype
+    assert args.qid_shape == qid_shape
+
+
+def test_shallow_copy_buffers():
+    qid_shape = (2,)
+    tensor = cirq.to_valid_density_matrix(
+        0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
+    )
+    args = cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
+    copy = args.copy(deep_copy_buffers=False)
+    assert copy.available_buffer is args.available_buffer
+
+
+def test_default_parameter_error():
+    tensor = np.ndarray(shape=(2,))
+    with pytest.raises(ValueError, match='The dimension of target_tensor is not divisible by 2'):
+        cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
+
+
 def test_decomposed_fallback():
     class Composite(cirq.Gate):
         def num_qubits(self) -> int:

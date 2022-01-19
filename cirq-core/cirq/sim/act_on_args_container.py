@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from collections import abc
+import inspect
 from typing import (
     Dict,
     TYPE_CHECKING,
@@ -25,6 +26,7 @@ from typing import (
     List,
     Union,
 )
+import warnings
 
 import numpy as np
 
@@ -118,8 +120,9 @@ class ActOnArgsContainer(
         protocols.act_on(action, op_args, act_on_qubits, allow_decompose=allow_decompose)
 
         # Decouple any measurements or resets
-        if self.split_untangled_states and isinstance(
-            gate, (ops.MeasurementGate, ops.ResetChannel)
+        if self.split_untangled_states and (
+            isinstance(gate, ops.ResetChannel)
+            or (isinstance(gate, ops.MeasurementGate) and not op_args.ignore_measurement_results)
         ):
             for q in qubits:
                 q_args, op_args = op_args.factor((q,), validate=False)
@@ -130,9 +133,21 @@ class ActOnArgsContainer(
                 self.args[q] = op_args
         return True
 
-    def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
+    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()
-        copies = {a: a.copy() for a in set(self.args.values())}
+        copies = {}
+        for act_on_args in set(self.args.values()):
+            if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
+                copies[act_on_args] = act_on_args.copy(deep_copy_buffers)
+            else:
+                warnings.warn(
+                    (
+                        'A new parameter deep_copy_buffers has been added to ActOnArgs.copy(). The '
+                        'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
+                    ),
+                    DeprecationWarning,
+                )
+                copies[act_on_args] = act_on_args.copy()
         for copy in copies.values():
             copy._log_of_measurement_results = logs
         args = {q: copies[a] for q, a in self.args.items()}
@@ -148,7 +163,7 @@ class ActOnArgsContainer(
 
     def sample(
         self,
-        qubits: List[ops.Qid],
+        qubits: List['cirq.Qid'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:

@@ -79,9 +79,7 @@ def main():
 
     print()
     print("Xmon circuit:")
-    translated = cirq_google.optimized_for_xmon(
-        circuit=circuit, new_device=cirq_google.Bristlecone, qubit_map=lambda q: line[q.x]
-    )
+    translated = cirq_google.optimized_for_xmon(circuit=circuit, qubit_map=lambda q: line[q.x])
     print(translated)
 
 

@@ -193,7 +193,7 @@ def line_content_counts_as_uncovered_manual(content: str) -> bool:
 
 def determine_ignored_lines(content: str) -> Set[int]:
     lines = content.split('\n')
-    result = []  # type: List[int]
+    result: List[int] = []
 
     i = 0
     while i < len(lines):
