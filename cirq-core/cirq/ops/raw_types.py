@@ -642,16 +642,6 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self
 
-    def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
-    ):
-        qubits = [protocols.with_rescoped_keys(q, path, bindable_keys) for q in self.qubits]
-        if qubits == self.qubits:
-            return self
-        return self.with_qubits(*qubits)
-
 
 @value.value_equality
 class TaggedOperation(Operation):

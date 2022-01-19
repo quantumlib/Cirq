@@ -17,13 +17,19 @@ from cirq.optimizers.deferred_measurements import defer_measurements
 
 
 def assert_equivalent_to_deferred(circuit: cirq.Circuit):
-    qubits = circuit.all_qubits()
-    deferred = defer_measurements(circuit)
-    keys = cirq.measurement_key_objs(circuit)
+    qubits = list(circuit.all_qubits())
     sim = cirq.Simulator()
-    for i in range(2**len(qubits)):
-        result = sim.simulate(circuit, initial_state=i).measurements
-        result1 = sim.simulate(deferred, initial_state=2**len(keys)*i).measurements
+    num_qubits = len(qubits)
+    for i in range(2**num_qubits):
+        bits = cirq.big_endian_int_to_bits(i, bit_count=num_qubits)
+        backwards = list(circuit.all_operations())[::-1]
+        for j in range(num_qubits):
+            if bits[j]:
+                backwards.append(cirq.X(qubits[j]))
+        modified = cirq.Circuit(backwards[::-1])
+        deferred = defer_measurements(modified)
+        result = sim.simulate(modified).measurements
+        result1 = sim.simulate(deferred).measurements
         assert result == result1
 
 

@@ -172,7 +172,8 @@ class CircuitOperation(ops.Operation):
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         """Returns the qubits operated on by this object."""
-        return ops.QubitOrder.DEFAULT.order_for(self.mapped_circuit(True).all_qubits())
+        ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
+        return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
 
     def _default_repetition_ids(self) -> Optional[List[str]]:
         return default_repetition_ids(self.repetitions)
@@ -242,10 +243,12 @@ class CircuitOperation(ops.Operation):
         if self.param_resolver:
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if self.repetition_ids:
-            # TODO: re-add the optimization but check qubits are not MeasurementQid
-            circuit = circuits.Circuit(
-                protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
-            )
+            if not protocols.is_measurement(circuit):
+                circuit = circuit * abs(self.repetitions)
+            else:
+                circuit = circuits.Circuit(
+                    protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
+                )
         circuit = protocols.with_rescoped_keys(
             circuit, self.parent_path, bindable_keys=self.extern_keys
         )
