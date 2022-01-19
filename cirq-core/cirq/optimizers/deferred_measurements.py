@@ -14,8 +14,9 @@
 
 """An optimization pass that aligns gates to the left of the circuit."""
 
-from typing import Dict, List, TYPE_CHECKING, Any, Tuple, FrozenSet, TypeVar
-from cirq import circuits, ops, protocols, value
+from typing import Any, Dict, List, Set, TYPE_CHECKING, TypeVar
+
+from cirq import circuits, ops, value
 
 if TYPE_CHECKING:
     import cirq
@@ -42,9 +43,9 @@ class _MeasurementQid(ops.Qid):
 
 def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
     circuit = circuits.CircuitOperation(circuit.freeze()).mapped_circuit(deep=True)
-    qubits_found = set()
-    terminal_measurements = set()
-    control_keys = set()
+    qubits_found: Set['cirq.Qid'] = set()
+    terminal_measurements: Set['cirq.MeasurementKey'] = set()
+    control_keys: Set['cirq.MeasurementKey'] = set()
     for op in reversed(list(circuit.all_operations())):
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
@@ -55,7 +56,7 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
             for c in op.classical_controls:
                 control_keys.update(c.keys)
         qubits_found.update(op.qubits)
-    measurement_qubits: Dict['cirq.MeasurementKey', List['cirq.Qid']] = {}
+    measurement_qubits: Dict['cirq.MeasurementKey', List['_MeasurementQid']] = {}
 
     def defer(op: 'cirq.Operation') -> 'cirq.OP_TREE':
         gate = op.gate
@@ -85,7 +86,7 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
     return circuit
 
 
-CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
+CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='cirq.AbstractCircuit')
 
 
 def dephase_measurements(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
