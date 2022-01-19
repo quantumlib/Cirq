@@ -250,7 +250,7 @@ class CircuitOperation(ops.Operation):
                 circuit, self.parent_path, bindable_keys=self.extern_keys
             )
             object.__setattr__(self, '_cached_mapped_circuit', circuit)
-        circuit = self._cached_mapped_circuit
+        circuit = self._cached_mapped_circuit  # type: ignore
         if deep:
             if self._cached_mapped_circuit_deep is None:
                 circuit = circuit.map_operations(
@@ -259,7 +259,7 @@ class CircuitOperation(ops.Operation):
                     else op
                 )
                 object.__setattr__(self, '_cached_mapped_circuit_deep', circuit)
-            circuit = self._cached_mapped_circuit_deep
+            circuit = self._cached_mapped_circuit_deep  # type: ignore
         return circuit
 
     def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
