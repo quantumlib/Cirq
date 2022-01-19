@@ -50,6 +50,7 @@ TestSpec = ModuleJsonTestSpec(
         'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'QuantumEngineSampler',
         'ValidatingSampler',
+        'CouldNotPlaceError',
         # Abstract:
         'ExecutableSpec',
     ],
@@ -67,6 +68,7 @@ TestSpec = ModuleJsonTestSpec(
             'SharedRuntimeInfo',
             'ExecutableGroupResultFilesystemRecord',
             'NaiveQubitPlacer',
+            'RandomDevicePlacer',
         ]
     },
     tested_elsewhere=[
