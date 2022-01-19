@@ -38,7 +38,7 @@ class _MeasurementQid(ops.Qid):
         return f'{self._key} (q {self._qid})'
 
     def __repr__(self) -> str:
-        return f'_MeasurementQid({self._key}, {self._qid})'
+        return f'_MeasurementQid({self._key!r}, {self._qid!r})'
 
 
 def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
@@ -72,11 +72,18 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
             controls = []
             for c in op.classical_controls:
                 if isinstance(c, value.KeyCondition):
-                    controls.extend(measurement_qubits[c.key])
+                    qubits = measurement_qubits[c.key]
+                    if len(qubits) != 1:
+                        # Multi-qubit conditions require
+                        # https://github.com/quantumlib/Cirq/issues/4512
+                        raise ValueError('Only single-qubit conditions are allowed.')
+                    controls.extend(qubits)
                 else:
                     raise ValueError('Only KeyConditions are allowed.')
             return ops.ControlledOperation(
-                controls=controls, sub_operation=op.without_classical_controls()
+                controls=controls,
+                sub_operation=op.without_classical_controls(),
+                control_values=[tuple(range(1, q.dimension)) for q in controls],
             )
         return op
 
