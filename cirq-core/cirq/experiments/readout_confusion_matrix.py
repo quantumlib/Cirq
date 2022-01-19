@@ -13,28 +13,27 @@
 # limitations under the License.
 
 """Utilities to compute readout confusion matrix and use it for readout error mitigation."""
-
-import functools
+import time
 from typing import Any, Dict, Union, Sequence, List, Tuple, TYPE_CHECKING, Optional, cast
-
+import sympy
 import numpy as np
 import scipy.optimize
-from cirq import circuits, ops, vis
+from cirq import circuits, ops, vis, study
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ReadoutConfusionMatrix:
+class TensoredConfusionMatrices:
     """Store and use confusion matrices for readout error mitigation on sets of qubits.
 
     The confusion matrix (CM) for two qubits is the following matrix:
 
-        ⎡ Pr(00o|00a) Pr(01o|00a) Pr(10o|00a) Pr(11o|00a) ⎤
-        ⎢ Pr(00o|01a) Pr(01o|01a) Pr(10o|01a) Pr(11o|01a) ⎥
-        ⎢ Pr(00o|10a) Pr(01o|10a) Pr(10o|10a) Pr(11o|10a) ⎥
-        ⎣ Pr(00o|11a) Pr(01o|11a) Pr(10o|11a) Pr(11o|11a) ⎦
+        ⎡ Pr(00|00) Pr(01|00) Pr(10|00) Pr(11|00) ⎤
+        ⎢ Pr(00|01) Pr(01|01) Pr(10|01) Pr(11|01) ⎥
+        ⎢ Pr(00|10) Pr(01|10) Pr(10|10) Pr(11|10) ⎥
+        ⎣ Pr(00|11) Pr(01|11) Pr(10|11) Pr(11|11) ⎦
 
     where Pr(ij | pq) = Probability of observing “ij” given state “pq” was prepared.
 
@@ -45,15 +44,18 @@ class ReadoutConfusionMatrix:
      - Apply readout corrections to observed frequencies / output probabilities.
 
     Use `cirq.measure_confusion_matrix(sampler, qubits, repetitions)` to perform
-    an experiment on `sampler` and construct the `cirq.ReadoutConfusionMatrix` object.
+    an experiment on `sampler` and construct the `cirq.TensoredConfusionMatrices` object.
     """
 
     def __init__(
         self,
         confusion_matrices: Union[np.ndarray, Sequence[np.ndarray]],
         measure_qubits: Union[Sequence['cirq.Qid'], Sequence[Sequence['cirq.Qid']]],
+        *,
+        repetitions: int,
+        timestamp: float,
     ):
-        """Initializes `cirq.ReadoutConfusionMatrix`.
+        """Initializes `cirq.TensoredConfusionMatrices`.
 
         `confusion_matrices[i]` should correspond to the qubit sequence `measure_qubits[i]`.
 
@@ -64,6 +66,10 @@ class ReadoutConfusionMatrix:
                             were computed. A single qubit pattern is also accepted. Note that the
                             each qubit pattern is a sequence of qubits used to label the axes of
                             the corresponding confusion matrix.
+            repetitions:    The number of repetitions that were used to estimate the confusion
+                            matrices.
+            timestamp:      The time the data was taken, in seconds since the epoch.
+
         Raises:
             ValueError: If length of `confusion_matrices` and `measure_qubits` is different or if
                         the shape of any confusion matrix does not match the corresponding qubit
@@ -87,12 +93,25 @@ class ReadoutConfusionMatrix:
                     f"Confusion Matrix shape {cm.shape} should match {(2 ** len(q),) * 2}"
                 )
 
+        self._timestamp = timestamp
+        self._repetitions = repetitions
         self._confusion_matrices = list(confusion_matrices)
         self._measure_qubits = [list(q) for q in measure_qubits]
         self._qubits = sorted(set(q for ql in measure_qubits for q in ql))
         self._qubits_to_idx = {q: i for i, q in enumerate(self._qubits)}
+        self._cache: Dict[Tuple['cirq.Qid', ...], np.ndarray] = {}
         if sum(len(q) for q in self._measure_qubits) != len(self._qubits):
             raise ValueError(f"Repeated qubits not allowed in measure_qubits: {measure_qubits}.")
+
+    @property
+    def repetitions(self) -> int:
+        """The number of repetitions that were used to estimate the confusion matrices."""
+        return self._repetitions
+
+    @property
+    def timestamp(self) -> float:
+        """The time the data for confusion matrix estimation was taken, in seconds since epoch."""
+        return self._timestamp
 
     @property
     def confusion_matrices(self) -> List[np.ndarray]:
@@ -114,8 +133,7 @@ class ReadoutConfusionMatrix:
         out_vars = [2 * self._qubits_to_idx[q] + 1 for q in qubit_pattern]
         return in_vars + out_vars
 
-    @functools.lru_cache()
-    def _confusion_matrix(self, qubits: Tuple['cirq.Qid']) -> np.ndarray:
+    def _confusion_matrix(self, qubits: Sequence['cirq.Qid']) -> np.ndarray:
         ein_input = []
         for qs, cm in zip(self.measure_qubits, self.confusion_matrices):
             ein_input += [cm.reshape((2, 2) * len(qs)), self._get_vars(qs)]
@@ -146,7 +164,10 @@ class ReadoutConfusionMatrix:
             qubits = self.qubits
         if any(q not in self.qubits for q in qubits):
             raise ValueError(f"qubits {qubits} should be a subset of self.qubits {self.qubits}.")
-        return self._confusion_matrix(tuple(qubits))
+        key = tuple(qubits)
+        if key not in self._cache:
+            self._cache[key] = self._confusion_matrix(qubits)
+        return self._cache[key]
 
     def correction_matrix(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> np.ndarray:
         """Returns a single correction matrix constructed for the given set of qubits.
@@ -232,9 +253,11 @@ class ReadoutConfusionMatrix:
 
     def __repr__(self) -> str:
         return (
-            f"cirq.ReadoutConfusionMatrix("
+            f"cirq.TensoredConfusionMatrices("
             f"[{','.join([proper_repr(cm) for cm in self.confusion_matrices])}],"
-            f"{self.measure_qubits}"
+            f"{self.measure_qubits},"
+            f"repetitions={self.repetitions},"
+            f"timestamp={self.timestamp}"
             f")"
         )
 
@@ -242,51 +265,64 @@ class ReadoutConfusionMatrix:
         return {
             'confusion_matrices': self.confusion_matrices,
             'measure_qubits': self.measure_qubits,
+            'repetitions': self.repetitions,
+            'timestamp': self.timestamp,
         }
 
     @classmethod
     def _from_json_dict_(
-        cls, confusion_matrices, measure_qubits, **kwargs
-    ) -> 'ReadoutConfusionMatrix':
-        return cls([np.asarray(cm) for cm in confusion_matrices], measure_qubits)
+        cls, confusion_matrices, measure_qubits, repetitions, timestamp, **kwargs
+    ) -> 'TensoredConfusionMatrices':
+        return cls(
+            [np.asarray(cm) for cm in confusion_matrices],
+            measure_qubits,
+            repetitions=repetitions,
+            timestamp=timestamp,
+        )
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.qubits == other.qubits and all(
-            np.allclose(cm, ocm, atol=atol)
-            for cm, ocm in zip(self.confusion_matrices, other.confusion_matrices)
+        return (
+            self.qubits == other.qubits
+            and self.repetitions == other.repetitions
+            and self.timestamp == other.timestamp
+            and all(
+                np.allclose(cm, ocm, atol=atol)
+                for cm, ocm in zip(self.confusion_matrices, other.confusion_matrices)
+            )
         )
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.qubits == other.qubits and all(
-            np.array_equal(cm, ocm)
-            for cm, ocm in zip(self.confusion_matrices, other.confusion_matrices)
+        return (
+            self.qubits == other.qubits
+            and self.repetitions == other.repetitions
+            and self.timestamp == other.timestamp
+            and all(
+                np.array_equal(cm, ocm)
+                for cm, ocm in zip(self.confusion_matrices, other.confusion_matrices)
+            )
         )
 
     def __ne__(self, other: Any) -> bool:
         return not self == other
-
-    def __hash__(self) -> int:
-        vals = tuple(v for cm in self.confusion_matrices for _, v in np.ndenumerate(cm))
-        return hash((ReadoutConfusionMatrix, vals, tuple(self.qubits)))
 
 
 def measure_confusion_matrix(
     sampler: 'cirq.Sampler',
     qubits: Union[Sequence['cirq.Qid'], Sequence[Sequence['cirq.Qid']]],
     repetitions: int = 1000,
-) -> ReadoutConfusionMatrix:
-    """Prepares `ReadoutConfusionMatrix` for the n qubits in the input.
+) -> TensoredConfusionMatrices:
+    """Prepares `TensoredConfusionMatrices` for the n qubits in the input.
 
     The confusion matrix (CM) for two qubits is the following matrix:
 
-        ⎡ Pr(00o|00a) Pr(01o|00a) Pr(10o|00a) Pr(11o|00a) ⎤
-        ⎢ Pr(00o|01a) Pr(01o|01a) Pr(10o|01a) Pr(11o|01a) ⎥
-        ⎢ Pr(00o|10a) Pr(01o|10a) Pr(10o|10a) Pr(11o|10a) ⎥
-        ⎣ Pr(00o|11a) Pr(01o|11a) Pr(10o|11a) Pr(11o|11a) ⎦
+        ⎡ Pr(00|00) Pr(01|00) Pr(10|00) Pr(11|00) ⎤
+        ⎢ Pr(00|01) Pr(01|01) Pr(10|01) Pr(11|01) ⎥
+        ⎢ Pr(00|10) Pr(01|10) Pr(10|10) Pr(11|10) ⎥
+        ⎣ Pr(00|11) Pr(01|11) Pr(10|11) Pr(11|11) ⎦
 
     where Pr(ij | pq) = Probability of observing “ij” given state “pq” was prepared.
 
@@ -300,17 +336,16 @@ def measure_confusion_matrix(
     )
     confusion_matrices = []
     for qs in qubits:
-        results = sampler.run_batch(
-            [
-                circuits.Circuit(
-                    [ops.X(q) ** ((state >> i) & 1) for i, q in enumerate(qs[::-1])],
-                    ops.measure(*qs),
-                )
-                for state in range(2 ** len(qs))
-            ],
-            repetitions=repetitions,
+        flip_symbols = sympy.symbols(f'flip_0:{len(qs)}')
+        flip_circuit = circuits.Circuit(
+            [ops.X(q) ** s for q, s in zip(qs, flip_symbols)],
+            ops.measure(*qs),
         )
+        sweeps = study.Product(*[study.Points(f'flip_{i}', [0, 1]) for i in range(len(qs))])
+        results = sampler.run_sweep(flip_circuit, sweeps, repetitions=repetitions)
         confusion_matrices.append(
-            np.asarray([vis.get_state_histogram(r[0]) for r in results], dtype=float) / repetitions
+            np.asarray([vis.get_state_histogram(r) for r in results], dtype=float) / repetitions
         )
-    return ReadoutConfusionMatrix(confusion_matrices, qubits)
+    return TensoredConfusionMatrices(
+        confusion_matrices, qubits, repetitions=repetitions, timestamp=time.time()
+    )

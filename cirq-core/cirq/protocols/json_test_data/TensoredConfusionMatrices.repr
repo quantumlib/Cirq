@@ -1,4 +1,4 @@
-cirq.ReadoutConfusionMatrix(
+cirq.TensoredConfusionMatrices(
     [
         np.array(
             [
@@ -12,4 +12,6 @@ cirq.ReadoutConfusionMatrix(
         np.array([[0.7999, 0.2001], [0.7046, 0.2954]], dtype=np.float64),
     ],
     [[cirq.LineQubit(0), cirq.LineQubit(1)], [cirq.NamedQubit('a')]],
+    repetitions=10000,
+    timestamp=1642630636.966274,
 )

@@ -43,9 +43,10 @@ def test_measure_confusion_matrix_with_noise(p0, p1):
     expected_cm = get_expected_cm(num_qubits, p0, p1)
     qubits_small = qubits[:2]
     expected_cm_small = get_expected_cm(2, p0, p1)
-
+    repetitions = 12_000
     # Build entire confusion matrix by running 2 ** 4 = 16 circuits.
-    readout_cm = cirq.measure_confusion_matrix(sampler, qubits, repetitions=10_000)
+    readout_cm = cirq.measure_confusion_matrix(sampler, qubits, repetitions=repetitions)
+    assert readout_cm.repetitions == repetitions
     for q, expected in zip([None, qubits_small], [expected_cm, expected_cm_small]):
         np.testing.assert_allclose(readout_cm.confusion_matrix(q), expected, atol=1e-2)
         np.testing.assert_allclose(
@@ -56,7 +57,10 @@ def test_measure_confusion_matrix_with_noise(p0, p1):
 
     # Build a tensored confusion matrix using smaller single qubit confusion matrices.
     # This works because the error is uncorrelated and requires only 4 * 2 = 8 circuits.
-    readout_cm = cirq.measure_confusion_matrix(sampler, [[q] for q in qubits], repetitions=10_000)
+    readout_cm = cirq.measure_confusion_matrix(
+        sampler, [[q] for q in qubits], repetitions=repetitions
+    )
+    assert readout_cm.repetitions == repetitions
     for q, expected in zip([None, qubits_small], [expected_cm, expected_cm_small]):
         np.testing.assert_allclose(readout_cm.confusion_matrix(q), expected, atol=1e-2)
         np.testing.assert_allclose(
@@ -84,18 +88,23 @@ def test_readout_confusion_matrix_raises():
     confusion_matrix = get_expected_cm(num_qubits, 0.1, 0.2)
     qubits = cirq.LineQubit.range(4)
     with pytest.raises(ValueError, match=r"len\(confusion_matrices\)"):
-        _ = cirq.ReadoutConfusionMatrix([confusion_matrix], [qubits[:2], qubits[2:]])
-
-    with pytest.raises(ValueError, match="Shape mismatch for confusion matrix"):
-        _ = cirq.ReadoutConfusionMatrix(confusion_matrix, qubits)
-
-    with pytest.raises(ValueError, match="Repeated qubits not allowed"):
-        _ = cirq.ReadoutConfusionMatrix(
-            [confusion_matrix, confusion_matrix], [qubits[:2], qubits[1:3]]
+        _ = cirq.TensoredConfusionMatrices(
+            [confusion_matrix], [qubits[:2], qubits[2:]], repetitions=0, timestamp=0
         )
 
-    readout_cm = cirq.ReadoutConfusionMatrix(
-        [confusion_matrix, confusion_matrix], [qubits[:2], qubits[2:]]
+    with pytest.raises(ValueError, match="Shape mismatch for confusion matrix"):
+        _ = cirq.TensoredConfusionMatrices(confusion_matrix, qubits, repetitions=0, timestamp=0)
+
+    with pytest.raises(ValueError, match="Repeated qubits not allowed"):
+        _ = cirq.TensoredConfusionMatrices(
+            [confusion_matrix, confusion_matrix],
+            [qubits[:2], qubits[1:3]],
+            repetitions=0,
+            timestamp=0,
+        )
+
+    readout_cm = cirq.TensoredConfusionMatrices(
+        [confusion_matrix, confusion_matrix], [qubits[:2], qubits[2:]], repetitions=0, timestamp=0
     )
 
     with pytest.raises(ValueError, match="should be a subset of"):
@@ -115,9 +124,9 @@ def test_readout_confusion_matrix_repr_and_equality():
     mat1 = cirq.testing.random_orthogonal(4, random_state=1234)
     mat2 = cirq.testing.random_orthogonal(2, random_state=1234)
     q = cirq.LineQubit.range(3)
-    a = cirq.ReadoutConfusionMatrix([mat1, mat2], [q[:2], q[2:]])
-    b = cirq.ReadoutConfusionMatrix(mat1, q[:2])
-    c = cirq.ReadoutConfusionMatrix(mat2, q[2:])
+    a = cirq.TensoredConfusionMatrices([mat1, mat2], [q[:2], q[2:]], repetitions=0, timestamp=0)
+    b = cirq.TensoredConfusionMatrices(mat1, q[:2], repetitions=0, timestamp=0)
+    c = cirq.TensoredConfusionMatrices(mat2, q[2:], repetitions=0, timestamp=0)
     for x in [a, b, c]:
         cirq.testing.assert_equivalent_repr(x)
         assert cirq.approx_eq(x, x)

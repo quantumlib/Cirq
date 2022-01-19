@@ -66,7 +66,7 @@ from cirq.experiments.random_quantum_circuit_generation import (
 )
 
 from cirq.experiments.readout_confusion_matrix import (
-    ReadoutConfusionMatrix,
+    TensoredConfusionMatrices,
     measure_confusion_matrix,
 )
 

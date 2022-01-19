@@ -1,5 +1,5 @@
 {
-  "cirq_type": "ReadoutConfusionMatrix",
+  "cirq_type": "TensoredConfusionMatrices",
   "confusion_matrices": [
     [
       [
@@ -55,5 +55,7 @@
         "name": "a"
       }
     ]
-  ]
+  ],
+  "repetitions": 10000,
+  "timestamp": 1642630636.966274
 }
