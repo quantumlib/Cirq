@@ -81,6 +81,8 @@ from cirq.circuits import (
 from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
+    DeviceMetadata,
+    GridDeviceMetadata,
     GridQid,
     GridQubit,
     LineQid,
@@ -412,6 +414,7 @@ from cirq.sim import (
     ActOnCliffordTableauArgs,
     ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
+    ActOnStabilizerArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
