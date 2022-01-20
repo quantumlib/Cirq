@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@ import pytest
 import sympy
 
 import cirq
-from cirq.optimizers.deferred_measurements import defer_measurements, _MeasurementQid
+from cirq.optimizers.deferred_measurements import (
+    defer_measurements,
+    dephase_measurements,
+    _MeasurementQid,
+)
 
 
 def assert_equivalent_to_deferred(circuit: cirq.Circuit):
@@ -35,6 +39,23 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
         result = sim.simulate(modified)
         result1 = sim.simulate(deferred)
         np.testing.assert_equal(result.measurements, result1.measurements)
+
+
+def assert_equivalent_to_dephased(circuit: cirq.Circuit):
+    qubits = list(circuit.all_qubits())
+    sim = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
+    num_qubits = len(qubits)
+    for i in range(2 ** num_qubits):
+        bits = cirq.big_endian_int_to_bits(i, bit_count=num_qubits)
+        backwards = list(circuit.all_operations())[::-1]
+        for j in range(num_qubits):
+            if bits[j]:
+                backwards.append(cirq.H(qubits[j]) ** 0.2)
+        modified = cirq.Circuit(backwards[::-1])
+        dephased = dephase_measurements(modified)
+        result = sim.simulate(modified)
+        result1 = sim.simulate(dephased)
+        np.testing.assert_almost_equal(result.final_density_matrix, result1.final_density_matrix)
 
 
 def test_basic():
@@ -195,3 +216,43 @@ def test_sympy_control():
     )
     with pytest.raises(ValueError, match='Only KeyConditions are allowed'):
         _ = defer_measurements(circuit)
+
+
+def test_dephase():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.CX(q1, q0),
+                cirq.measure(q0, key='a'),
+                cirq.CX(q0, q1),
+                cirq.measure(q1, key='b'),
+            )
+        )
+    )
+    assert_equivalent_to_dephased(circuit)
+    dephased = dephase_measurements(circuit)
+    cirq.testing.assert_same_circuits(
+        dephased,
+        cirq.Circuit(
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(
+                    cirq.CX(q1, q0),
+                    cirq.KrausChannel.from_channel(cirq.phase_damp(1), key='a')(q0),
+                    cirq.CX(q0, q1),
+                    cirq.KrausChannel.from_channel(cirq.phase_damp(1), key='b')(q1),
+                )
+            )
+        ),
+    )
+
+
+def test_dephase_classical_conditions():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls('a'),
+        cirq.measure(q1, key='b'),
+    )
+    with pytest.raises(ValueError, match='defer_measurements first to remove classical controls'):
+        _ = dephase_measurements(circuit)
