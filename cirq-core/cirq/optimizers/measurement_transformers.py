@@ -101,6 +101,7 @@ CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='cirq.AbstractCircuit')
 
 def dephase_measurements(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
     """Changes all measurements to a dephase operation."""
+
     def dephase(op: 'cirq.Operation') -> 'cirq.OP_TREE':
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
