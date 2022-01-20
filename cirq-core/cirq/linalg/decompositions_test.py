@@ -252,6 +252,7 @@ def test_kak_vector_empty():
     assert len(cirq.kak_vector([])) == 0
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_kak_plot_empty():
     cirq.scatter_plot_normalized_kak_interaction_coefficients([])
 
@@ -553,6 +554,7 @@ def test_axis_angle_init():
         cirq.AxisAngleDecomposition(angle=1, axis=(0, 0.5, 0), global_phase=1)
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_scatter_plot_normalized_kak_interaction_coefficients():
     a, b = cirq.LineQubit.range(2)
     data = [

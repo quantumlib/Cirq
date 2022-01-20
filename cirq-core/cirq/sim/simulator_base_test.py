@@ -36,7 +36,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
         self.measurement_count += 1
         return [self.gate_count]
 
-    def copy(self) -> 'CountingActOnArgs':
+    def copy(self, deep_copy_buffers: bool = True) -> 'CountingActOnArgs':
         args = CountingActOnArgs(
             qubits=self.qubits,
             logs=self.log_of_measurement_results.copy(),
@@ -224,6 +224,71 @@ def test_run_non_unitary_circuit():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
     assert np.allclose(r.measurements['0'], [[1], [1]])
+
+
+def test_run_no_reuse_buffer_warning():
+    # coverage: ignore
+    class MockCountingActOnArgs(CountingActOnArgs):
+        def copy(self) -> 'MockCountingActOnArgs':  # type: ignore
+            return super().copy()  # type: ignore
+
+    # coverage: ignore
+    class MockCountingStepResult(cirq.StepResultBase[MockCountingActOnArgs, MockCountingActOnArgs]):
+        def sample(
+            self,
+            qubits: List[cirq.Qid],
+            repetitions: int = 1,
+            seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        ) -> np.ndarray:
+            measurements: List[List[int]] = []
+            for _ in range(repetitions):
+                measurements.append(self._merged_sim_state._perform_measurement(qubits))
+            return np.array(measurements, dtype=int)
+
+        def _simulator_state(self) -> MockCountingActOnArgs:
+            return self._merged_sim_state
+
+    class MockCountingTrialResult(
+        cirq.SimulationTrialResultBase[MockCountingActOnArgs, MockCountingActOnArgs]
+    ):
+        pass
+
+    # coverage: ignore
+    class MockCountingSimulator(
+        cirq.SimulatorBase[
+            MockCountingStepResult,
+            MockCountingTrialResult,
+            MockCountingActOnArgs,
+            MockCountingActOnArgs,
+        ]
+    ):
+        def _create_partial_act_on_args(
+            self,
+            initial_state: Any,
+            qubits: Sequence['cirq.Qid'],
+            logs: Dict[str, Any],
+        ) -> MockCountingActOnArgs:
+            return MockCountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
+
+        def _create_simulator_trial_result(
+            self,
+            params: cirq.ParamResolver,
+            measurements: Dict[str, np.ndarray],
+            final_step_result: MockCountingStepResult,
+        ) -> MockCountingTrialResult:
+            return MockCountingTrialResult(
+                params, measurements, final_step_result=final_step_result
+            )
+
+        def _create_step_result(
+            self,
+            sim_state: cirq.OperationTarget[MockCountingActOnArgs],
+        ) -> MockCountingStepResult:
+            return MockCountingStepResult(sim_state)
+
+    sim = MockCountingSimulator()
+    with cirq.testing.assert_deprecated('deep_copy_buffers', deadline='0.15'):
+        sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)))
 
 
 def test_run_non_unitary_circuit_non_unitary_state():

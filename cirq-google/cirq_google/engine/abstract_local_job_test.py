@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A helper for jobs that have been created on the Quantum Engine."""
-from typing import List, Optional, Tuple
+from typing import Optional, Sequence, Tuple
 import datetime
 import cirq
 
@@ -40,13 +40,13 @@ class NothingJob(AbstractLocalJob):
     def delete(self) -> None:
         pass
 
-    def batched_results(self) -> List[List[cirq.Result]]:
+    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
         return []  # coverage: ignore
 
-    def results(self) -> List[cirq.Result]:
+    def results(self) -> Sequence[cirq.Result]:
         return []  # coverage: ignore
 
-    def calibration_results(self) -> List[CalibrationResult]:
+    def calibration_results(self) -> Sequence[CalibrationResult]:
         return []  # coverage: ignore
 
 

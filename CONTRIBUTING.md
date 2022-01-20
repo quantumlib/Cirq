@@ -76,6 +76,11 @@ the appropriate branches.
 you can perform these locally, and then push the new commit following
 the same process as above.
 
+## Development Environment Setup
+
+Please refer to our [development page](docs/dev/development.md) for instructions
+on setting up your local development environment.
+
 ## Code Testing Standards
 
 When a pull request is created or updated, various automatic checks will 
