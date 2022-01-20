@@ -212,10 +212,9 @@ class CircuitOperation(ops.Operation):
 
     def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._cached_control_keys is None:
-            circuit_keys = protocols.control_keys(self.circuit)
             keys = (
-                circuit_keys
-                if not self.repetition_ids or not circuit_keys
+                frozenset()
+                if not protocols.control_keys(self.circuit)
                 else protocols.control_keys(self.mapped_circuit())
             )
             object.__setattr__(self, '_cached_control_keys', keys)
