@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os
+from unittest import mock
 import pytest
-
 import cirq_google as cg
 import cirq
 import cirq.testing
@@ -43,7 +43,8 @@ class NotImplementedOperation(cirq.Operation):
         raise NotImplementedError()
 
 
-def test_init():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_init_deprecated():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
     ns = cirq.Duration(nanos=1)
     q00 = cirq.GridQubit(0, 0)
@@ -60,7 +61,8 @@ def test_init():
         _ = d.duration_of(cirq.SingleQubitGate().on(q00))
 
 
-def test_init_timedelta():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_init_timedelta_deprecated():
     from datetime import timedelta
 
     timedelta_duration = timedelta(microseconds=1)
@@ -84,7 +86,8 @@ def test_init_timedelta():
     assert d.duration_of(cirq.CZ(q00, q01)) == 3 * microsecond
 
 
-def test_repr():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_repr_deprecated():
     d = square_device(2, 2, holes=[])
 
     assert repr(d) == (
@@ -98,7 +101,8 @@ def test_repr():
     )
 
 
-def test_can_add_operation_into_moment():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_can_add_operation_into_moment_deprecated():
     d = square_device(2, 2)
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
@@ -108,7 +112,8 @@ def test_can_add_operation_into_moment():
     assert not d.can_add_operation_into_moment(cirq.CZ(q10, q11), m)
 
 
-def test_validate_moment():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_validate_moment_deprecated():
     d = square_device(2, 2)
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
@@ -119,7 +124,8 @@ def test_validate_moment():
         d.validate_moment(m)
 
 
-def test_validate_operation_adjacent_qubits():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_validate_operation_adjacent_qubits_deprecated():
     d = square_device(3, 3)
 
     d.validate_operation(cirq.GateOperation(cirq.CZ, (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
@@ -130,7 +136,8 @@ def test_validate_operation_adjacent_qubits():
         )
 
 
-def test_validate_measurement_non_adjacent_qubits_ok():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_validate_measurement_non_adjacent_qubits_ok_deprecated():
     d = square_device(3, 3)
 
     d.validate_operation(
@@ -140,7 +147,8 @@ def test_validate_measurement_non_adjacent_qubits_ok():
     )
 
 
-def test_validate_operation_existing_qubits():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_validate_operation_existing_qubits_deprecated():
     d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
 
     d.validate_operation(cirq.GateOperation(cirq.CZ, (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
@@ -163,6 +171,7 @@ q = cirq.GridQubit.rect(1, 3)
 matrix_gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @pytest.mark.parametrize(
     'op,is_valid',
     [
@@ -180,7 +189,7 @@ matrix_gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
         (MyGate()(cirq.GridQubit(0, 0)), False),
     ],
 )
-def test_validate_operation_supported_gate(op, is_valid):
+def test_validate_operation_supported_gate_deprecated(op, is_valid):
     d = square_device(3, 3)
     if is_valid:
         d.validate_operation(op)
@@ -189,7 +198,8 @@ def test_validate_operation_supported_gate(op, is_valid):
             d.validate_operation(op)
 
 
-def test_validate_circuit_repeat_measurement_keys():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_validate_circuit_repeat_measurement_keys_deprecated():
     d = square_device(3, 3)
 
     circuit = cirq.Circuit()
@@ -201,7 +211,8 @@ def test_validate_circuit_repeat_measurement_keys():
         d.validate_circuit(circuit)
 
 
-def test_xmon_device_eq():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_xmon_device_eq_deprecated():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: square_device(3, 3))
     eq.make_equality_group(lambda: square_device(3, 3, holes=[cirq.GridQubit(1, 1)]))
@@ -217,7 +228,8 @@ def test_xmon_device_eq():
     )
 
 
-def test_xmon_device_str():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_xmon_device_str_deprecated():
     assert (
         str(square_device(2, 2)).strip()
         == """
@@ -229,7 +241,8 @@ def test_xmon_device_str():
     )
 
 
-def test_xmon_device_repr_pretty():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_xmon_device_repr_pretty_deprecated():
     cirq.testing.assert_repr_pretty(
         square_device(2, 2),
         """
@@ -243,7 +256,8 @@ def test_xmon_device_repr_pretty():
     cirq.testing.assert_repr_pretty(square_device(2, 2), "cirq_google.XmonDevice(...)", cycle=True)
 
 
-def test_at():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_at_deprecated():
     d = square_device(3, 3)
     assert d.at(-1, -1) is None
     assert d.at(0, 0) == cirq.GridQubit(0, 0)
@@ -261,7 +275,8 @@ def test_at():
     assert d.at(1, 3) is None
 
 
-def test_row_and_col():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_row_and_col_deprecated():
     d = square_device(2, 3)
     assert d.col(-1) == []
     assert d.col(0) == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 0), cirq.GridQubit(2, 0)]
@@ -281,5 +296,6 @@ def test_row_and_col():
     assert b.col(1) == [cirq.GridQubit(4, 1), cirq.GridQubit(5, 1), cirq.GridQubit(6, 1)]
 
 
-def test_qubit_set():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_qubit_set_deprecated():
     assert cg.Foxtail.qubit_set() == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))

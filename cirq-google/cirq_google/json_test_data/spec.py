@@ -25,6 +25,7 @@ TestSpec = ModuleJsonTestSpec(
     ],
     should_not_be_serialized=[
         'AnnealSequenceSearchStrategy',
+        'Bristlecone',
         'CircuitOpDeserializer',
         'CircuitOpSerializer',
         'CircuitSerializer',
@@ -37,6 +38,7 @@ TestSpec = ModuleJsonTestSpec(
         'EngineJob',
         'EngineProcessor',
         'EngineProgram',
+        'Foxtail',
         'FSimPhaseCorrections',
         'NAMED_GATESETS',
         'ProtoVersion',

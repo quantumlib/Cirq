@@ -19,7 +19,7 @@ from cirq._doc import document
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
 from cirq_google.devices.serializable_device import SerializableDevice
-from cirq_google.devices.xmon_device import XmonDevice
+from cirq_google.devices.xmon_device import _XmonDeviceBase
 from cirq_google.serialization import gate_sets, op_serializer, serializable_gate_set
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
@@ -188,7 +188,7 @@ CCCCCCDDDDD
 """
 
 
-class _NamedConstantXmonDevice(XmonDevice):
+class _NamedConstantXmonDevice(_XmonDeviceBase):
     def __init__(self, constant: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self._repr = constant
@@ -198,9 +198,9 @@ class _NamedConstantXmonDevice(XmonDevice):
 
     @classmethod
     def _from_json_dict_(cls, constant: str, **kwargs):
-        if constant in ['cirq.google.Foxtail', Foxtail._repr]:
+        if constant in ['cirq.google.Foxtail', 'cirq_google.Foxtail']:
             return Foxtail
-        if constant in ['cirq.google.Bristlecone', Bristlecone._repr]:
+        if constant in ['cirq.google.Bristlecone', 'cirq_google.Bristlecone']:
             return Bristlecone
         raise ValueError(f'Unrecognized xmon device name: {constant!r}')
 
@@ -261,6 +261,7 @@ Bristlecone = _NamedConstantXmonDevice(
     exp_11_duration=cirq.Duration(nanos=50),
     qubits=_parse_device(_BRISTLECONE_GRID)[0],
 )
+
 document(
     Bristlecone,
     f"""72 xmon qubit device.
