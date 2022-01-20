@@ -228,26 +228,14 @@ M('b', q=3): ───────X────M──────────�
 
 
 def test_repr():
-    assert (
-        repr(_MeasurementQid('a', cirq.LineQubit(0)))
-        == "_MeasurementQid(cirq.MeasurementKey(name='a'), cirq.LineQubit(0))"
-    )
-    assert (
-        repr(_MeasurementQid('a', cirq.NamedQubit('x')))
-        == "_MeasurementQid(cirq.MeasurementKey(name='a'), cirq.NamedQubit('x'))"
-    )
-    assert (
-        repr(_MeasurementQid('a', cirq.NamedQid('x', 3)))
-        == "_MeasurementQid(cirq.MeasurementKey(name='a'), cirq.NamedQid('x', dimension=3))"
-    )
-    assert (
-        repr(_MeasurementQid('a', cirq.GridQubit(1, 2)))
-        == "_MeasurementQid(cirq.MeasurementKey(name='a'), cirq.GridQubit(1, 2))"
-    )
-    assert (
-        repr(_MeasurementQid('0:1:a', cirq.LineQubit(0)))
-        == "_MeasurementQid(cirq.MeasurementKey(path=('0', '1'), name='a'), cirq.LineQubit(0))"
-    )
+    def test_repr(qid: _MeasurementQid):
+        cirq.testing.assert_equivalent_repr(qid, global_vals={'_MeasurementQid': _MeasurementQid})
+
+    test_repr(_MeasurementQid('a', cirq.LineQubit(0)))
+    test_repr(_MeasurementQid('a', cirq.NamedQubit('x')))
+    test_repr(_MeasurementQid('a', cirq.NamedQid('x', 4)))
+    test_repr(_MeasurementQid('a', cirq.GridQubit(2, 3)))
+    test_repr(_MeasurementQid('0:1:a', cirq.LineQid(9, 4)))
 
 
 def test_multi_qubit_control():
