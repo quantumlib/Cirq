@@ -93,10 +93,6 @@ class CircuitOperation(ops.Operation):
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
-    _cached_mapped_circuit: Optional['cirq.Circuit'] = dataclasses.field(default=None, init=False)
-    _cached_mapped_circuit_deep: Optional['cirq.Circuit'] = dataclasses.field(
-        default=None, init=False
-    )
     _cached_measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = dataclasses.field(
         default=None, init=False
     )
@@ -227,39 +223,33 @@ class CircuitOperation(ops.Operation):
             qubit mapping, parameterization, etc.) applied to it. This behaves
             like `cirq.decompose(self)`, but preserving moment structure.
         """
-        if self._cached_mapped_circuit is None:
-            circuit = self.circuit.unfreeze()
-            if self.qubit_map:
-                circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
-            if self.repetitions < 0:
-                circuit = circuit ** -1
-            if self.measurement_key_map:
-                circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
-            if self.param_resolver:
-                circuit = protocols.resolve_parameters(
-                    circuit, self.param_resolver, recursive=False
-                )
-            if self.repetition_ids:
-                if not protocols.is_measurement(circuit):
-                    circuit = circuit * abs(self.repetitions)
-                else:
-                    circuit = circuits.Circuit(
-                        protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
-                    )
-            circuit = protocols.with_rescoped_keys(
-                circuit, self.parent_path, bindable_keys=self.extern_keys
+        circuit = self.circuit.unfreeze()
+        if self.qubit_map:
+            circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
+        if self.repetitions < 0:
+            circuit = circuit ** -1
+        if self.measurement_key_map:
+            circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
+        if self.param_resolver:
+            circuit = protocols.resolve_parameters(
+                circuit, self.param_resolver, recursive=False
             )
-            object.__setattr__(self, '_cached_mapped_circuit', circuit)
-        circuit = self._cached_mapped_circuit  # type: ignore
-        if deep:
-            if self._cached_mapped_circuit_deep is None:
-                circuit = circuit.map_operations(
-                    lambda op: op.mapped_circuit(deep=True)
-                    if isinstance(op, CircuitOperation)
-                    else op
+        if self.repetition_ids:
+            if not protocols.is_measurement(circuit):
+                circuit = circuit * abs(self.repetitions)
+            else:
+                circuit = circuits.Circuit(
+                    protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
                 )
-                object.__setattr__(self, '_cached_mapped_circuit_deep', circuit)
-            circuit = self._cached_mapped_circuit_deep  # type: ignore
+        circuit = protocols.with_rescoped_keys(
+            circuit, self.parent_path, bindable_keys=self.extern_keys
+        )
+        if deep:
+            circuit = circuit.map_operations(
+                lambda op: op.mapped_circuit(deep=True)
+                if isinstance(op, CircuitOperation)
+                else op
+            )
         return circuit
 
     def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
