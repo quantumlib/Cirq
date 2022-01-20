@@ -153,7 +153,7 @@ def test_subcircuit():
 
 
 def test_multi_qubit_measurements():
-    q0, q1, q2 = cirq.LineQubit.range(3)
+    q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, q1, key='a'),
         cirq.X(q0),
@@ -178,7 +178,7 @@ def test_multi_qubit_measurements():
 
 
 def test_multi_qubit_control():
-    q0, q1, q2 = cirq.LineQubit.range(3)
+    q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, q1, key='a'),
         cirq.X(q1).with_classical_controls('a'),
@@ -188,7 +188,7 @@ def test_multi_qubit_control():
 
 
 def test_sympy_control():
-    q0, q1, q2 = cirq.LineQubit.range(3)
+    q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, q1, key='a'),
         cirq.X(q1).with_classical_controls(sympy.Symbol('a')),
