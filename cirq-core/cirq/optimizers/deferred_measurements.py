@@ -14,7 +14,7 @@
 
 """An optimization pass that aligns gates to the left of the circuit."""
 
-from typing import Any, Dict, List, Set, TYPE_CHECKING, TypeVar
+from typing import Any, Dict, List, Set, TYPE_CHECKING, TypeVar, Union
 
 from cirq import circuits, ops, value
 
@@ -23,8 +23,8 @@ if TYPE_CHECKING:
 
 
 class _MeasurementQid(ops.Qid):
-    def __init__(self, key: 'cirq.MeasurementKey', qid: 'cirq.Qid'):
-        self._key = key
+    def __init__(self, key: Union[str, 'cirq.MeasurementKey'], qid: 'cirq.Qid'):
+        self._key = value.MeasurementKey.parse_serialized(key) if isinstance(key, str) else key
         self._qid = qid
 
     @property
@@ -35,10 +35,10 @@ class _MeasurementQid(ops.Qid):
         return (str(self._key), self._qid._comparison_key())
 
     def __str__(self) -> str:
-        return f'{self._key} (q {self._qid})'
+        return f'{self._key} (q {self._qid})'  # coverage: ignore
 
     def __repr__(self) -> str:
-        return f'_MeasurementQid({self._key!r}, {self._qid!r})'
+        return f'_MeasurementQid({self._key!r}, {self._qid!r})'  # coverage: ignore
 
 
 def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
@@ -76,7 +76,7 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
                     if len(qubits) != 1:
                         # Multi-qubit conditions require
                         # https://github.com/quantumlib/Cirq/issues/4512
-                        raise ValueError('Only single-qubit conditions are allowed.')
+                        raise ValueError('Only single qubit conditions are allowed.')
                     controls.extend(qubits)
                 else:
                     raise ValueError('Only KeyConditions are allowed.')

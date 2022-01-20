@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+import pytest
+import sympy
+
 import cirq
-from cirq.optimizers.deferred_measurements import defer_measurements
+from cirq.optimizers.deferred_measurements import defer_measurements, _MeasurementQid
 
 
 def assert_equivalent_to_deferred(circuit: cirq.Circuit):
@@ -28,15 +32,30 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
                 backwards.append(cirq.X(qubits[j]))
         modified = cirq.Circuit(backwards[::-1])
         deferred = defer_measurements(modified)
-        result = sim.simulate(modified).measurements
-        result1 = sim.simulate(deferred).measurements
-        assert result == result1
+        result = sim.simulate(modified)
+        result1 = sim.simulate(deferred)
+        np.testing.assert_equal(result.measurements, result1.measurements)
 
 
 def test_basic():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls('a'),
+        cirq.measure(q1, key='b'),
+    )
     assert_equivalent_to_deferred(circuit)
+    deferred = defer_measurements(circuit)
+    q_ma = _MeasurementQid('a', q0)
+    cirq.testing.assert_same_circuits(
+        deferred,
+        cirq.Circuit(
+            cirq.CX(q0, q_ma),
+            cirq.ControlledOperation([q_ma], cirq.X(q1)),
+            cirq.measure(q_ma, key='a'),
+            cirq.measure(q1, key='b'),
+        ),
+    )
 
 
 def test_extra_measurements():
@@ -45,8 +64,21 @@ def test_extra_measurements():
         cirq.measure(q0, key='a'),
         cirq.measure(q0, key='b'),
         cirq.X(q1).with_classical_controls('a'),
+        cirq.measure(q1, key='c'),
     )
     assert_equivalent_to_deferred(circuit)
+    deferred = defer_measurements(circuit)
+    q_ma = _MeasurementQid('a', q0)
+    cirq.testing.assert_same_circuits(
+        deferred,
+        cirq.Circuit(
+            cirq.CX(q0, q_ma),
+            cirq.ControlledOperation([q_ma], cirq.X(q1)),
+            cirq.measure(q_ma, key='a'),
+            cirq.measure(q0, key='b'),
+            cirq.measure(q1, key='c'),
+        ),
+    )
 
 
 def test_extra_controlled_bits():
@@ -54,8 +86,20 @@ def test_extra_controlled_bits():
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.CX(q0, q1).with_classical_controls('a'),
+        cirq.measure(q1, key='b'),
     )
     assert_equivalent_to_deferred(circuit)
+    deferred = defer_measurements(circuit)
+    q_ma = _MeasurementQid('a', q0)
+    cirq.testing.assert_same_circuits(
+        deferred,
+        cirq.Circuit(
+            cirq.CX(q0, q_ma),
+            cirq.ControlledOperation([q_ma], cirq.CX(q0, q1)),
+            cirq.measure(q_ma, key='a'),
+            cirq.measure(q1, key='b'),
+        ),
+    )
 
 
 def test_extra_control_bits():
@@ -64,19 +108,23 @@ def test_extra_control_bits():
         cirq.measure(q0, key='a'),
         cirq.measure(q0, key='b'),
         cirq.X(q1).with_classical_controls('a', 'b'),
+        cirq.measure(q1, key='c'),
     )
     assert_equivalent_to_deferred(circuit)
-
-
-def test_multiple_ops_single_moment():
-    q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.measure(q0, key='a'),
-        cirq.measure(q1, key='b'),
-        cirq.X(q0).with_classical_controls('a'),
-        cirq.X(q1).with_classical_controls('b'),
+    deferred = defer_measurements(circuit)
+    q_ma = _MeasurementQid('a', q0)
+    q_mb = _MeasurementQid('b', q0)
+    cirq.testing.assert_same_circuits(
+        deferred,
+        cirq.Circuit(
+            cirq.CX(q0, q_ma),
+            cirq.CX(q0, q_mb),
+            cirq.ControlledOperation([q_ma, q_mb], cirq.X(q1)),
+            cirq.measure(q_ma, key='a'),
+            cirq.measure(q_mb, key='b'),
+            cirq.measure(q1, key='c'),
+        ),
     )
-    assert_equivalent_to_deferred(circuit)
 
 
 def test_subcircuit():
@@ -86,32 +134,64 @@ def test_subcircuit():
             cirq.FrozenCircuit(
                 cirq.measure(q0, key='a'),
                 cirq.X(q1).with_classical_controls('a'),
+                cirq.measure(q1, key='b'),
             )
         )
     )
     assert_equivalent_to_deferred(circuit)
-
-
-def test_scope_local():
-    q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls('a'),
+    deferred = defer_measurements(circuit)
+    q_m = _MeasurementQid('a', q0)
+    cirq.testing.assert_same_circuits(
+        deferred,
+        cirq.Circuit(
+            cirq.CX(q0, q_m),
+            cirq.ControlledOperation([q_m], cirq.X(q1)),
+            cirq.measure(q_m, key='a'),
+            cirq.measure(q1, key='b'),
+        ),
     )
-    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    assert_equivalent_to_deferred(cirq.Circuit(outer_subcircuit))
 
 
-def test_scope_extern():
-    q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls('b'),
+def test_multi_qubit_measurements():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, q1, key='a'),
+        cirq.X(q0),
+        cirq.measure(q0, key='b'),
+        cirq.measure(q1, key='c'),
     )
-    middle = cirq.Circuit(
-        cirq.measure(q, key=cirq.MeasurementKey('b')),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2),
+    assert_equivalent_to_deferred(circuit)
+    deferred = defer_measurements(circuit)
+    q_ma0 = _MeasurementQid('a', q0)
+    q_ma1 = _MeasurementQid('a', q1)
+    cirq.testing.assert_same_circuits(
+        deferred,
+        cirq.Circuit(
+            cirq.CX(q0, q_ma0),
+            cirq.CX(q1, q_ma1),
+            cirq.X(q0),
+            cirq.measure(q_ma0, q_ma1, key='a'),
+            cirq.measure(q0, key='b'),
+            cirq.measure(q1, key='c'),
+        ),
     )
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
-    assert_equivalent_to_deferred(cirq.Circuit(outer_subcircuit))
+
+
+def test_multi_qubit_control():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, q1, key='a'),
+        cirq.X(q1).with_classical_controls('a'),
+    )
+    with pytest.raises(ValueError, match='Only single qubit conditions are allowed'):
+        _ = defer_measurements(circuit)
+
+
+def test_sympy_control():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, q1, key='a'),
+        cirq.X(q1).with_classical_controls(sympy.Symbol('a')),
+    )
+    with pytest.raises(ValueError, match='Only KeyConditions are allowed'):
+        _ = defer_measurements(circuit)
