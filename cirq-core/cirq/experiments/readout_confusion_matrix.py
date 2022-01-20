@@ -125,17 +125,17 @@ class TensoredConfusionMatrices:
         return self._timestamp
 
     @property
-    def confusion_matrices(self) -> Tuple[np.ndarray]:
+    def confusion_matrices(self) -> Tuple[np.ndarray, ...]:
         """List of confusion matrices corresponding to `measure_qubits` qubit pattern."""
         return self._confusion_matrices
 
     @property
-    def measure_qubits(self) -> Tuple[Tuple['cirq.Qid']]:
+    def measure_qubits(self) -> Tuple[Tuple['cirq.Qid', ...], ...]:
         """Calibrated qubit pattern for which individual confusion matrices were computed."""
         return self._measure_qubits
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid']:
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
         """Sorted list of all calibrated qubits."""
         return self._qubits
 
