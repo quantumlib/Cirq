@@ -42,6 +42,8 @@ class _MeasurementQid(ops.Qid):
 
 
 def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
+    """Uses the Deferred Measurement Principle to move all measurements to the
+    end of the circuit."""
     circuit = circuits.CircuitOperation(circuit.freeze()).mapped_circuit(deep=True)
     qubits_found: Set['cirq.Qid'] = set()
     terminal_measurements: Set['cirq.MeasurementKey'] = set()
@@ -67,7 +69,8 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
             targets = [_MeasurementQid(key, q) for q in op.qubits]
             measurement_qubits[key] = targets
             cxs = [ops.CX(q, target) for q, target in zip(op.qubits, targets)]
-            return cxs + [ops.X(targets[i]) for i, b in enumerate(gate.invert_mask) if b]
+            xs = [ops.X(targets[i]) for i, b in enumerate(gate.invert_mask) if b]  # type: ignore
+            return cxs + xs
         elif isinstance(op, ops.ClassicallyControlledOperation):
             controls = []
             for c in op.classical_controls:
@@ -97,6 +100,7 @@ CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='cirq.AbstractCircuit')
 
 
 def dephase_measurements(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
+    """Changes all measurements to a dephase operation."""
     def dephase(op: 'cirq.Operation') -> 'cirq.OP_TREE':
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
