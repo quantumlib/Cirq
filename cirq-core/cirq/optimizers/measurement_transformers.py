@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimization pass that aligns gates to the left of the circuit."""
-
 from typing import Any, Dict, List, Set, TYPE_CHECKING, TypeVar, Union
 
 from cirq import circuits, ops, value
@@ -42,8 +40,12 @@ class _MeasurementQid(ops.Qid):
 
 
 def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
-    """Uses the Deferred Measurement Principle to move all measurements to the
-    end of the circuit."""
+    """Implements the Deferred Measurement Principle.
+
+    Uses the Deferred Measurement Principle to move all measurements to the
+    end of the circuit.
+    """
+
     circuit = circuits.CircuitOperation(circuit.freeze()).mapped_circuit(deep=True)
     qubits_found: Set['cirq.Qid'] = set()
     terminal_measurements: Set['cirq.MeasurementKey'] = set()
