@@ -189,8 +189,22 @@ class CircuitOperation(ops.Operation):
 
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._cached_measurement_key_objs is None:
-            keys = protocols.measurement_key_objs(self.mapped_circuit())
-            object.__setattr__(self, '_cached_measurement_key_objs', keys)
+            circuit_keys = protocols.measurement_key_objs(self.circuit)
+            if self.repetition_ids is not None:
+                circuit_keys = {
+                    key.with_key_path_prefix(repetition_id)
+                    for repetition_id in self.repetition_ids
+                    for key in circuit_keys
+                }
+            circuit_keys = {key.with_key_path_prefix(*self.parent_path) for key in circuit_keys}
+            object.__setattr__(
+                self,
+                '_cached_measurement_key_objs',
+                {
+                    protocols.with_measurement_key_mapping(key, self.measurement_key_map)
+                    for key in circuit_keys
+                },
+            )
         return self._cached_measurement_key_objs  # type: ignore
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
@@ -231,9 +245,7 @@ class CircuitOperation(ops.Operation):
         if self.measurement_key_map:
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         if self.param_resolver:
-            circuit = protocols.resolve_parameters(
-                circuit, self.param_resolver, recursive=False
-            )
+            circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if self.repetition_ids:
             if not protocols.is_measurement(circuit):
                 circuit = circuit * abs(self.repetitions)
@@ -246,9 +258,7 @@ class CircuitOperation(ops.Operation):
         )
         if deep:
             circuit = circuit.map_operations(
-                lambda op: op.mapped_circuit(deep=True)
-                if isinstance(op, CircuitOperation)
-                else op
+                lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
             )
         return circuit
 
