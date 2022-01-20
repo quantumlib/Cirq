@@ -46,7 +46,9 @@ def test_sample_model():
     q0, q1 = cirq.LineQubit.range(2)
     props = SampleNoiseProperties([q0, q1], [(q0, q1), (q1, q0)])
     model = NoiseModelFromNoiseProperties(props)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.CNOT(q0, q1), cirq.Z(q1))
+    circuit = cirq.Circuit(
+        cirq.X(q0), cirq.CNOT(q0, q1), cirq.Z(q1), cirq.measure(q0, q1, key='meas')
+    )
     noisy_circuit = circuit.with_noise(model)
     expected_circuit = cirq.Circuit(
         cirq.Moment(cirq.X(q0).with_tags(PHYSICAL_GATE_TAG)),
@@ -55,5 +57,7 @@ def test_sample_model():
         cirq.Moment(cirq.ISWAP(q0, q1)),
         cirq.Moment(cirq.Z(q1).with_tags(PHYSICAL_GATE_TAG)),
         cirq.Moment(cirq.H(q1)),
+        cirq.Moment(cirq.measure(q0, q1, key='meas')),
+        cirq.Moment(cirq.H(q0), cirq.H(q1)),
     )
     assert noisy_circuit == expected_circuit
