@@ -21,7 +21,20 @@ if TYPE_CHECKING:
 
 
 class _MeasurementQid(ops.Qid):
+    """A qubit that substitutes in for a deferred measurement.
+
+    Exactly one qubit will be created per qubit in the measurement gate.
+    """
+
     def __init__(self, key: Union[str, 'cirq.MeasurementKey'], qid: 'cirq.Qid'):
+        """Initializes the qubit.
+
+        Args:
+            key: The key of the measurement gate being deferred.
+            qid: One qubit that is being measured. Each deferred measurement
+                should create one new _MeasurementQid per qubit being measured
+                by that gate.
+        """
         self._key = value.MeasurementKey.parse_serialized(key) if isinstance(key, str) else key
         self._qid = qid
 
@@ -33,10 +46,10 @@ class _MeasurementQid(ops.Qid):
         return (str(self._key), self._qid._comparison_key())
 
     def __str__(self) -> str:
-        return f'{self._key} (q {self._qid})'  # coverage: ignore
+        return f"M('{self._key}', q={self._qid})"
 
     def __repr__(self) -> str:
-        return f'_MeasurementQid({self._key!r}, {self._qid!r})'  # coverage: ignore
+        return f'_MeasurementQid({self._key!r}, {self._qid!r})'
 
 
 def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':

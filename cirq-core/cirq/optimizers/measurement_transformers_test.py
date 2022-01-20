@@ -26,11 +26,11 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
     num_qubits = len(qubits)
     for i in range(2 ** num_qubits):
         bits = cirq.big_endian_int_to_bits(i, bit_count=num_qubits)
-        backwards = list(circuit.all_operations())[::-1]
+        modified = cirq.Circuit()
         for j in range(num_qubits):
             if bits[j]:
-                backwards.append(cirq.X(qubits[j]))
-        modified = cirq.Circuit(backwards[::-1])
+                modified.append(cirq.X(qubits[j]))
+        modified.append(circuit)
         deferred = cirq.defer_measurements(modified)
         result = sim.simulate(modified)
         result1 = sim.simulate(deferred)
@@ -190,6 +190,63 @@ def test_multi_qubit_measurements():
             cirq.measure(q0, key='b'),
             cirq.measure(q1, key='c'),
         ),
+    )
+
+
+def test_diagram():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, q2, key='a'),
+        cirq.measure(q1, q3, key='b'),
+        cirq.X(q0),
+        cirq.measure(q0, q1, q2, q3, key='c'),
+    )
+    deferred = cirq.defer_measurements(circuit)
+    cirq.testing.assert_has_diagram(
+        deferred,
+        """
+                ┌────┐
+0: ──────────────@───────X────────M('c')───
+                 │                │
+1: ──────────────┼─@──────────────M────────
+                 │ │              │
+2: ──────────────┼@┼──────────────M────────
+                 │││              │
+3: ──────────────┼┼┼@─────────────M────────
+                 ││││
+M('a', q=0): ────X┼┼┼────M('a')────────────
+                  │││    │
+M('a', q=2): ─────X┼┼────M─────────────────
+                   ││
+M('b', q=1): ──────X┼────M('b')────────────
+                    │    │
+M('b', q=3): ───────X────M─────────────────
+                └────┘
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_repr():
+    assert (
+        repr(_MeasurementQid('a', cirq.LineQubit(0)))
+        == "_MeasurementQid(cirq.MeasurementKey(name='a'), cirq.LineQubit(0))"
+    )
+    assert (
+        repr(_MeasurementQid('a', cirq.NamedQubit('x')))
+        == "_MeasurementQid(cirq.MeasurementKey(name='a'), cirq.NamedQubit('x'))"
+    )
+    assert (
+        repr(_MeasurementQid('a', cirq.NamedQid('x', 3)))
+        == "_MeasurementQid(cirq.MeasurementKey(name='a'), cirq.NamedQid('x', dimension=3))"
+    )
+    assert (
+        repr(_MeasurementQid('a', cirq.GridQubit(1, 2)))
+        == "_MeasurementQid(cirq.MeasurementKey(name='a'), cirq.GridQubit(1, 2))"
+    )
+    assert (
+        repr(_MeasurementQid('0:1:a', cirq.LineQubit(0)))
+        == "_MeasurementQid(cirq.MeasurementKey(path=('0', '1'), name='a'), cirq.LineQubit(0))"
     )
 
 
