@@ -15,6 +15,7 @@
 from typing import Union
 import sympy
 
+from cirq import Duration
 from cirq._doc import document
 
 """Supply aliases for commonly used types.
@@ -23,7 +24,7 @@ from cirq._doc import document
 TParamKey = Union[str, sympy.Basic]
 document(TParamKey, """A parameter that a parameter resolver may map to a value.""")  # type: ignore
 
-TParamVal = Union[float, sympy.Basic]
+TParamVal = Union[float, sympy.Basic, Duration]
 document(
     TParamVal, """A value that a parameter resolver may return for a parameter."""  # type: ignore
 )
