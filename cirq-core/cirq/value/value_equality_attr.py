@@ -92,15 +92,13 @@ def _value_equality_hash(self: _SupportsValueEquality) -> int:
 def _value_equality_approx_eq(
     self: _SupportsValueEquality, other: _SupportsValueEquality, atol: float
 ) -> bool:
-
-    # Preserve regular equality type-comparison logic.
     cls_self = self._value_equality_values_cls_()
-    if not isinstance(other, cls_self):
+    get_cls_other = getattr(other, '_value_equality_values_cls_', None)
+    if get_cls_other is None:
         return NotImplemented
     cls_other = other._value_equality_values_cls_()
     if cls_self != cls_other:
         return False
-
     # Delegate to cirq.approx_eq for approximate equality comparison.
     return protocols.approx_eq(
         self._value_equality_approximate_values_(),
