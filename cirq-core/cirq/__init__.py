@@ -331,6 +331,8 @@ from cirq.optimizers import (
     AlignLeft,
     AlignRight,
     ConvertToCzAndSingleGates,
+    defer_measurements,
+    dephase_measurements,
     DropEmptyMoments,
     DropNegligible,
     EjectPhasedPaulis,
