@@ -87,6 +87,9 @@ def test_readout_confusion_matrix_raises():
     num_qubits = 2
     confusion_matrix = get_expected_cm(num_qubits, 0.1, 0.2)
     qubits = cirq.LineQubit.range(4)
+    with pytest.raises(ValueError, match=r"measure_qubits cannot be empty"):
+        _ = cirq.TensoredConfusionMatrices([], [], repetitions=0, timestamp=0)
+
     with pytest.raises(ValueError, match=r"len\(confusion_matrices\)"):
         _ = cirq.TensoredConfusionMatrices(
             [confusion_matrix], [qubits[:2], qubits[2:]], repetitions=0, timestamp=0

@@ -13,7 +13,9 @@
 # limitations under the License.
 
 """Utilities to compute readout confusion matrix and use it for readout error mitigation."""
+
 import time
+import warnings
 from typing import Any, Dict, Union, Sequence, List, Tuple, TYPE_CHECKING, Optional, cast
 import sympy
 import numpy as np
@@ -28,7 +30,14 @@ if TYPE_CHECKING:
 class TensoredConfusionMatrices:
     """Store and use confusion matrices for readout error mitigation on sets of qubits.
 
-    The confusion matrix (CM) for two qubits is the following matrix:
+    The confusion matrix (CM) for one qubit is:
+
+        [ Pr(0|0) Pr(1|0) ]
+        [ Pr(1|0) Pr(1|1) ]
+
+    where Pr(i | j) = Probability of observing state "i" given state "j" was prepared.
+
+    Similarly, the confusion matrix for two qubits is:
 
         ⎡ Pr(00|00) Pr(01|00) Pr(10|00) Pr(11|00) ⎤
         ⎢ Pr(00|01) Pr(01|01) Pr(10|01) Pr(11|01) ⎥
@@ -75,6 +84,8 @@ class TensoredConfusionMatrices:
                         the shape of any confusion matrix does not match the corresponding qubit
                         pattern.
         """
+        if len(measure_qubits) == 0:
+            raise ValueError(f"measure_qubits cannot be empty.")
         if isinstance(confusion_matrices, np.ndarray):
             confusion_matrices = [confusion_matrices]
         measure_qubits = cast(
@@ -95,9 +106,9 @@ class TensoredConfusionMatrices:
 
         self._timestamp = timestamp
         self._repetitions = repetitions
-        self._confusion_matrices = list(confusion_matrices)
-        self._measure_qubits = [list(q) for q in measure_qubits]
-        self._qubits = sorted(set(q for ql in measure_qubits for q in ql))
+        self._confusion_matrices = tuple(confusion_matrices)
+        self._measure_qubits = tuple(tuple(q) for q in measure_qubits)
+        self._qubits = tuple(sorted(set(q for ql in measure_qubits for q in ql)))
         self._qubits_to_idx = {q: i for i, q in enumerate(self._qubits)}
         self._cache: Dict[Tuple['cirq.Qid', ...], np.ndarray] = {}
         if sum(len(q) for q in self._measure_qubits) != len(self._qubits):
@@ -114,21 +125,21 @@ class TensoredConfusionMatrices:
         return self._timestamp
 
     @property
-    def confusion_matrices(self) -> List[np.ndarray]:
+    def confusion_matrices(self) -> Tuple[np.ndarray]:
         """List of confusion matrices corresponding to `measure_qubits` qubit pattern."""
         return self._confusion_matrices
 
     @property
-    def measure_qubits(self) -> List[List['cirq.Qid']]:
+    def measure_qubits(self) -> Tuple[Tuple['cirq.Qid']]:
         """Calibrated qubit pattern for which individual confusion matrices were computed."""
         return self._measure_qubits
 
     @property
-    def qubits(self) -> List['cirq.Qid']:
+    def qubits(self) -> Tuple['cirq.Qid']:
         """Sorted list of all calibrated qubits."""
         return self._qubits
 
-    def _get_vars(self, qubit_pattern: Sequence['cirq.Qid']):
+    def _get_vars(self, qubit_pattern: Sequence['cirq.Qid']) -> List[int]:
         in_vars = [2 * self._qubits_to_idx[q] for q in qubit_pattern]
         out_vars = [2 * self._qubits_to_idx[q] + 1 for q in qubit_pattern]
         return in_vars + out_vars
@@ -226,7 +237,8 @@ class TensoredConfusionMatrices:
               `(2 ** len(qubits), )` shaped numpy array corresponding to `result` with corrections.
 
         Raises:
-            ValueError: if `result.shape` != `(2 ** len(qubits),)`.
+            ValueError: If `result.shape` != `(2 ** len(qubits),)`.
+            ValueError: If `least_squares` constrained minimization problem does not converge.
         """
         if qubits is None:
             qubits = self.qubits
@@ -249,6 +261,11 @@ class TensoredConfusionMatrices:
         res = scipy.optimize.minimize(
             func, result, method='SLSQP', constraints=constraints, bounds=bounds
         )
+        if res.success is False:  # coverage: ignore
+            warnings.warn(  # coverage: ignore
+                f"SLSQP optimization for constrained minimization "  # coverage: ignore
+                f"did not converge. Result:\n{res}"  # coverage: ignore
+            )  # coverage: ignore
         return res.x
 
     def __repr__(self) -> str:
