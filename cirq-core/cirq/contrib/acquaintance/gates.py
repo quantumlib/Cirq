@@ -37,9 +37,9 @@ def operations_to_part_lens(
 ) -> Tuple[int, ...]:
     qubit_sort_key = functools.partial(operator.indexOf, qubit_order)
     op_parts = [tuple(sorted(op.qubits, key=qubit_sort_key)) for op in ops.flatten_op_tree(op_tree)]
-    singletons = [
+    singletons: List[Tuple['cirq.Qid', ...]] = [
         (q,) for q in set(qubit_order).difference(*op_parts)
-    ]  # type: List[Tuple['cirq.Qid', ...]]
+    ]
     part_sort_key = lambda p: min(qubit_sort_key(q) for q in p)
     parts = tuple(tuple(part) for part in sorted(singletons + op_parts, key=part_sort_key))
 

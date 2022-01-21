@@ -69,7 +69,7 @@ def _fit_horizontal(
         col_widths: a list of each column's width in pixels
     """
     max_xi = max(xi for xi, _ in tdd.entries.keys())
-    max_xi = max(max_xi, max(cast(int, xi2) for _, _, xi2, _ in tdd.horizontal_lines))
+    max_xi = max(max_xi, max(cast(int, xi2) for _, _, xi2, _, _ in tdd.horizontal_lines))
     col_widths = [0.0] * (max_xi + 2)
     for (xi, _), v in tdd.entries.items():
         tw = _get_text_width(v.text)
@@ -121,9 +121,9 @@ def _fit_vertical(
     # Note: y values come as half integers. Map to integers
     all_yis = sorted(
         {yi for _, yi in tdd.entries.keys()}
-        | {yi1 for _, yi1, _, _ in tdd.vertical_lines}
-        | {yi2 for _, _, yi2, _ in tdd.vertical_lines}
-        | {yi for yi, _, _, _ in tdd.horizontal_lines}
+        | {yi1 for _, yi1, _, _, _ in tdd.vertical_lines}
+        | {yi2 for _, _, yi2, _, _ in tdd.vertical_lines}
+        | {yi for yi, _, _, _, _ in tdd.horizontal_lines}
     )
     yi_map = {yi: i for i, yi in enumerate(all_yis)}
 
@@ -188,7 +188,7 @@ def tdd_to_svg(
     #             col_starts and row_starts
     # t += _debug_spacing(col_starts, row_starts)
 
-    for yi, xi1, xi2, _ in tdd.horizontal_lines:
+    for yi, xi1, xi2, _, _ in tdd.horizontal_lines:
         xi1 = cast(int, xi1)
         xi2 = cast(int, xi2)
         x1 = col_starts[xi1] + col_widths[xi1] / 2
@@ -205,7 +205,7 @@ def tdd_to_svg(
             stroke = 'black'
         t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" stroke="{stroke}" stroke-width="1" />'
 
-    for xi, yi1, yi2, _ in tdd.vertical_lines:
+    for xi, yi1, yi2, _, _ in tdd.vertical_lines:
         yi1 = yi_map[yi1]
         yi2 = yi_map[yi2]
         y1 = row_starts[yi1] + row_heights[yi1] / 2

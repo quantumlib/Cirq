@@ -237,6 +237,7 @@ def assert_has_diagram(
     # pylint: enable=unused-variable
     actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
+
     assert actual_diagram == desired_diagram, (
         "Circuit's text diagram differs from the desired diagram.\n"
         '\n'

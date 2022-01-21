@@ -321,13 +321,11 @@ def test_neg():
 
 def test_to_json():
     assert cirq.GridQubit(5, 6)._json_dict_() == {
-        'cirq_type': 'GridQubit',
         'row': 5,
         'col': 6,
     }
 
     assert cirq.GridQid(5, 6, dimension=3)._json_dict_() == {
-        'cirq_type': 'GridQid',
         'row': 5,
         'col': 6,
         'dimension': 3,

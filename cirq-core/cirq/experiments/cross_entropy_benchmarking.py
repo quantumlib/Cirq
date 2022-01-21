@@ -253,7 +253,6 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'results': list(self.results.items()),
         }
 
@@ -321,7 +320,7 @@ def cross_entropy_benchmarking(
     Then, take the average of $f_{mn}^{meas}$ over all circuit_mn with fixed
     n to obtain:
 
-    $f_{n} ^ {meas} = (\sum_m f_{mn}^{meas}) / M$
+    $f_{n}^{meas} = (\sum_m f_{mn}^{meas}) / M$
 
     4) Compute a theoretical XEB function for each circuit_mn:
 
@@ -333,7 +332,7 @@ def cross_entropy_benchmarking(
     Similarly, we then average $f_m^{th}$ over all circuit_mn with fixed n to
     obtain:
 
-    $f_{n} ^ {th} = (\sum_m f_{mn}^{th}) / M$
+    $f_{n}^{th} = (\sum_m f_{mn}^{th}) / M$
 
     5) Calculate the XEB fidelity $\alpha_n$ at fixed n:
 
@@ -384,7 +383,7 @@ def cross_entropy_benchmarking(
     # numbers of cycles. The values are 2D arrays with each row being the
     # probabilities obtained from a single trial.
     probs_meas = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
-    probs_exp = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
+    probs_th = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
 
     for k in range(num_circuits):
 
@@ -403,17 +402,17 @@ def cross_entropy_benchmarking(
         # Simulate each circuit with the Cirq simulator to obtain the
         # state vector at the end of each circuit, from which the
         # theoretically expected bit-string probabilities are obtained.
-        probs_exp_k = []  # type: List[np.ndarray]
+        probs_th_k: List[np.ndarray] = []
         for circ_k in circuits_k:
             res = simulator.simulate(circ_k, qubit_order=qubits)
             state_probs = value.state_vector_to_probabilities(np.asarray(res.final_state_vector))
-            probs_exp_k.append(state_probs)
+            probs_th_k.append(state_probs)
 
         for i, num_cycle in enumerate(cycle_range):
-            probs_exp[num_cycle][k, :] = probs_exp_k[i]
+            probs_th[num_cycle][k, :] = probs_th_k[i]
             probs_meas[num_cycle][k, :] = probs_meas_k[i]
 
-    fidelity_vals = _xeb_fidelities(probs_exp, probs_meas)
+    fidelity_vals = _xeb_fidelities(probs_th, probs_meas)
     xeb_data = [CrossEntropyPair(c, k) for (c, k) in zip(cycle_range, fidelity_vals)]
     return CrossEntropyResult(data=xeb_data, repetitions=repetitions)  # type: ignore
 
@@ -495,7 +494,7 @@ def _build_xeb_circuits(
         single_rots = _random_half_rotations(qubits, max_cycles)
     else:
         single_rots = _random_any_gates(qubits, single_qubit_gates, max_cycles)
-    all_circuits = []  # type: List[circuits.Circuit]
+    all_circuits: List[circuits.Circuit] = []
     for num_cycles in cycles:
         circuit_exp = circuits.Circuit()
         for i in range(num_cycles):
@@ -513,7 +512,7 @@ def _measure_prob_distribution(
     qubits: Sequence[ops.Qid],
     circuit_list: List[circuits.Circuit],
 ) -> List[np.ndarray]:
-    all_probs = []  # type: List[np.ndarray]
+    all_probs: List[np.ndarray] = []
     num_states = 2 ** len(qubits)
     for circuit in circuit_list:
         trial_circuit = circuit.copy()
@@ -528,26 +527,42 @@ def _measure_prob_distribution(
 
 
 def _xeb_fidelities(
-    ideal_probs: Dict[int, np.ndarray], actual_probs: Dict[int, np.ndarray]
+    probs_th: Dict[int, np.ndarray], probs_meas: Dict[int, np.ndarray]
 ) -> List[float]:
-    num_cycles = sorted(list(ideal_probs.keys()))
-    return [_compute_fidelity(ideal_probs[n], actual_probs[n]) for n in num_cycles]
+    """Compute XEB fidelity estimates for all circuit depths.
+
+    Args:
+        probs_th: Theoretical output probabilities by cycle number.
+        probs_meas: Experimental output probabilities by cycle number.
+    Returns:
+        List of fidelity estimates for each circuit depth.
+    """
+    num_cycles = sorted(list(probs_th.keys()))
+    return [_compute_fidelity(probs_th[n], probs_meas[n]) for n in num_cycles]
 
 
-def _compute_fidelity(probs_exp: np.ndarray, probs_meas: np.ndarray) -> float:
-    _, num_states = probs_exp.shape
-    pp_cross = probs_exp * probs_meas
-    pp_exp = probs_exp ** 2
+def _compute_fidelity(probs_th: np.ndarray, probs_meas: np.ndarray) -> float:
+    """Compute XEB fidelity estimate.
+
+    Args:
+        probs_th: Theoretical output probabilities.
+        probs_meas: Experimental output probabilities.
+    Returns:
+        XEB fidelity estimate.
+    """
+    _, num_states = probs_th.shape
+    pp_cross = probs_th * probs_meas
+    pp_th = probs_th ** 2
     f_meas = np.mean(num_states * np.sum(pp_cross, axis=1) - 1.0)
-    f_exp = np.mean(num_states * np.sum(pp_exp, axis=1) - 1.0)
-    return float(f_meas / f_exp)
+    f_th = np.mean(num_states * np.sum(pp_th, axis=1) - 1.0)
+    return float(f_meas / f_th)
 
 
 def _random_half_rotations(qubits: Sequence[ops.Qid], num_layers: int) -> List[List[ops.OP_TREE]]:
     rot_ops = [ops.X ** 0.5, ops.Y ** 0.5, ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)]
     num_qubits = len(qubits)
     rand_nums = np.random.choice(3, (num_qubits, num_layers))
-    single_q_layers = []  # type: List[List[ops.OP_TREE]]
+    single_q_layers: List[List[ops.OP_TREE]] = []
     for i in range(num_layers):
         single_q_layers.append([rot_ops[rand_nums[j, i]](qubits[j]) for j in range(num_qubits)])
     return single_q_layers
@@ -559,9 +574,9 @@ def _random_any_gates(
     num_ops = len(op_list)
     num_qubits = len(qubits)
     rand_nums = np.random.choice(num_ops, (num_qubits, num_layers))
-    single_q_layers = []  # type: List[List[ops.OP_TREE]]
+    single_q_layers: List[List[ops.OP_TREE]] = []
     for i in range(num_layers):
-        rots_i = []  # type: List[ops.OP_TREE]
+        rots_i: List[ops.OP_TREE] = []
         for j in range(num_qubits):
             rots_i.extend([rot(qubits[j]) for rot in op_list[rand_nums[j, i]]])
         single_q_layers.append(rots_i)
@@ -576,7 +591,7 @@ def _default_interaction_sequence(
     num_rows = max([q.row for q in qubits]) + 1
     num_cols = max([q.col for q in qubits]) + 1
 
-    l_s = [set() for _ in range(4)]  # type: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]]
+    l_s: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]] = [set() for _ in range(4)]
     for i in range(num_rows):
         for j in range(num_cols - 1):
             if (i, j) in qubit_locs and (i, j + 1) in qubit_locs:
@@ -587,7 +602,7 @@ def _default_interaction_sequence(
             if (i, j) in qubit_locs and (i + 1, j) in qubit_locs:
                 l_s[i % 2 * 2 + 1].add((qubit_dict[(i, j)], qubit_dict[(i + 1, j)]))
 
-    l_final = []  # type: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]]
+    l_final: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]] = []
     for gate_set in l_s:
         if len(gate_set) != 0:
             l_final.append(gate_set)

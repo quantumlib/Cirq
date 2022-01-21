@@ -53,16 +53,17 @@ else
     rev="${base}"
 fi
 
-changed=$(git diff --name-only ${rev} -- \
+typeset -a changed
+IFS=$'\n' read -r -d '' -a changed < \
+    <(git diff --name-only ${rev} -- \
     | grep -E "^(cirq|dev_tools|examples).*.py$"
 )
 
-num_changed=$(echo -e "${changed[@]}" | wc -w)
+num_changed=${#changed[@]}
 
 # Run it.
 echo "Found ${num_changed} lintable files associated with changes." >&2
 if [ "${num_changed}" -eq 0 ]; then
     exit 0
 fi
-env PYTHONPATH=dev_tools pylint --rcfile=dev_tools/conf/.pylintrc ${changed[@]}
-
+env PYTHONPATH=dev_tools pylint --rcfile=dev_tools/conf/.pylintrc "${changed[@]}"

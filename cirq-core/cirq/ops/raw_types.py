@@ -22,6 +22,7 @@ from typing import (
     Callable,
     Collection,
     Dict,
+    FrozenSet,
     Hashable,
     Iterable,
     List,
@@ -34,6 +35,7 @@ from typing import (
 )
 
 import numpy as np
+import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
@@ -590,6 +592,56 @@ class Operation(metaclass=abc.ABCMeta):
 
         return np.allclose(m12, m21, atol=atol)
 
+    @property
+    def classical_controls(self) -> FrozenSet['cirq.Condition']:
+        """The classical controls gating this operation."""
+        return frozenset()
+
+    def with_classical_controls(
+        self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
+    ) -> 'cirq.ClassicallyControlledOperation':
+        """Returns a classically controlled version of this operation.
+
+        An operation that is classically controlled is executed iff all
+        conditions evaluate to True. Currently the only condition type is a
+        measurement key. A measurement key evaluates to True iff any qubit in
+        the corresponding measurement operation evaluated to a non-zero value.
+
+        The classical control will hide any tags on the existing operation,
+        since tags are considered a local attribute.
+
+        Args:
+            conditions: A list of measurement keys, strings that can be parsed
+                into measurement keys, or sympy expressions where the free
+                symbols are measurement key strings.
+
+        Returns:
+            A `ClassicallyControlledOperation` wrapping the operation.
+        """
+        from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
+
+        return ClassicallyControlledOperation(self, conditions)
+
+    def without_classical_controls(self) -> 'cirq.Operation':
+        """Removes all classical controls from the operation.
+
+        This function removes all classical controls gating the operation. It
+        acts recursively, so that all classical control wrappers are always
+        removed from the current operation.
+
+        If there are no classical controls on the operation, it will return
+        `self`.
+
+        Since tags are considered local, this will also remove any tags from
+        the operation (unless there are no classical controls on it). If a
+        `TaggedOperation` is under all the classical control layers, that
+        `TaggedOperation` will be returned from this function.
+
+        Returns:
+            The operation with all classical controls removed.
+        """
+        return self
+
 
 @value.value_equality
 class TaggedOperation(Operation):
@@ -688,7 +740,7 @@ class TaggedOperation(Operation):
         return protocols.has_unitary(self.sub_operation)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        return protocols.unitary(self.sub_operation, default=None)
+        return protocols.unitary(self.sub_operation, NotImplemented)
 
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
@@ -710,7 +762,7 @@ class TaggedOperation(Operation):
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return protocols.measurement_key_names(self.sub_operation)
 
-    def _measurement_key_objs_(self) -> AbstractSet[value.MeasurementKey]:
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         return protocols.measurement_key_objs(self.sub_operation)
 
     def _is_measurement_(self) -> bool:
@@ -724,7 +776,7 @@ class TaggedOperation(Operation):
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
+    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
         sub = getattr(self.sub_operation, "_act_on_", None)
         if sub is not None:
             return sub(args)
@@ -776,6 +828,17 @@ class TaggedOperation(Operation):
         self, other: Any, atol: Union[int, float] = 1e-8
     ) -> Union[NotImplementedType, bool]:
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
+
+    @property
+    def classical_controls(self) -> FrozenSet['cirq.Condition']:
+        return self.sub_operation.classical_controls
+
+    def without_classical_controls(self) -> 'cirq.Operation':
+        new_sub_operation = self.sub_operation.without_classical_controls()
+        return self if new_sub_operation is self.sub_operation else new_sub_operation
+
+    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
+        return protocols.control_keys(self.sub_operation)
 
 
 @value.value_equality

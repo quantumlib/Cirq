@@ -14,7 +14,7 @@
 
 import numpy as np
 
-from cirq import ops, protocols, optimizers, circuits
+from cirq import ops, protocols, optimizers, circuits, transformers
 from cirq.ion import ms, two_qubit_matrix_to_ion_operations, ion_device
 
 
@@ -66,7 +66,7 @@ class ConvertToIonGates:
         # Known matrix
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
-            gates = optimizers.single_qubit_matrix_to_phased_x_z(mat)
+            gates = transformers.single_qubit_matrix_to_phased_x_z(mat)
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
             return two_qubit_matrix_to_ion_operations(op.qubits[0], op.qubits[1], mat)

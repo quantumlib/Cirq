@@ -33,6 +33,9 @@ if [ "$PYTHON_VERSION" -lt "37" ]; then
   PYTEST_ARGS+=("--ignore=cirq-rigetti")
 fi
 
+: ${CIRQ_TESTING_RANDOM_SEED=$(git log -1 --pretty="%ct")}
+export CIRQ_TESTING_RANDOM_SEED
+
 if [ -z "${ACTUALLY_QUIET}" ]; then
     pytest "${PYTEST_ARGS[@]}"
     RESULT=$?

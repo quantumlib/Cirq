@@ -13,11 +13,12 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
+from typing import Any, Optional, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
 
 import numpy as np
 
 from cirq import linalg, protocols, sim
+from cirq._compat import proper_repr
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
 
@@ -39,10 +40,10 @@ class ActOnStateVectorArgs(ActOnArgs):
     def __init__(
         self,
         target_tensor: np.ndarray,
-        available_buffer: np.ndarray,
-        prng: np.random.RandomState,
-        log_of_measurement_results: Dict[str, Any],
-        qubits: Sequence['cirq.Qid'] = None,
+        available_buffer: Optional[np.ndarray] = None,
+        prng: Optional[np.random.RandomState] = None,
+        log_of_measurement_results: Optional[Dict[str, Any]] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
     ):
         """Inits ActOnStateVectorArgs.
 
@@ -65,7 +66,10 @@ class ActOnStateVectorArgs(ActOnArgs):
         """
         super().__init__(prng, qubits, log_of_measurement_results)
         self.target_tensor = target_tensor
-        self.available_buffer = available_buffer
+        if available_buffer is None:
+            self.available_buffer = np.empty_like(target_tensor)
+        else:
+            self.available_buffer = available_buffer
 
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.
@@ -173,11 +177,16 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return bits
 
-    def _on_copy(self, target: 'ActOnStateVectorArgs'):
+    def _on_copy(self, target: 'cirq.ActOnStateVectorArgs', deep_copy_buffers: bool = True):
         target.target_tensor = self.target_tensor.copy()
-        target.available_buffer = self.available_buffer.copy()
+        if deep_copy_buffers:
+            target.available_buffer = self.available_buffer.copy()
+        else:
+            target.available_buffer = self.available_buffer
 
-    def _on_kronecker_product(self, other: 'ActOnStateVectorArgs', target: 'ActOnStateVectorArgs'):
+    def _on_kronecker_product(
+        self, other: 'cirq.ActOnStateVectorArgs', target: 'cirq.ActOnStateVectorArgs'
+    ):
         target_tensor = transformations.state_vector_kronecker_product(
             self.target_tensor, other.target_tensor
         )
@@ -187,8 +196,8 @@ class ActOnStateVectorArgs(ActOnArgs):
     def _on_factor(
         self,
         qubits: Sequence['cirq.Qid'],
-        extracted: 'ActOnStateVectorArgs',
-        remainder: 'ActOnStateVectorArgs',
+        extracted: 'cirq.ActOnStateVectorArgs',
+        remainder: 'cirq.ActOnStateVectorArgs',
         validate=True,
         atol=1e-07,
     ):
@@ -202,7 +211,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         remainder.available_buffer = np.empty_like(remainder_tensor)
 
     def _on_transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid'], target: 'ActOnStateVectorArgs'
+        self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStateVectorArgs'
     ):
         axes = self.get_axes(qubits)
         new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)
@@ -222,6 +231,15 @@ class ActOnStateVectorArgs(ActOnArgs):
             qid_shape=tuple(q.dimension for q in self.qubits),
             repetitions=repetitions,
             seed=seed,
+        )
+
+    def __repr__(self) -> str:
+        return (
+            'cirq.ActOnStateVectorArgs('
+            f'target_tensor={proper_repr(self.target_tensor)},'
+            f' available_buffer={proper_repr(self.available_buffer)},'
+            f' qubits={self.qubits!r},'
+            f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
         )
 
 

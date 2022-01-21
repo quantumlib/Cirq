@@ -19,6 +19,7 @@ from typing import (
     cast,
     Dict,
     Iterable,
+    Iterator,
     List,
     Optional,
     Sequence,
@@ -162,7 +163,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             return NotImplemented
         result = [PAULI_GATES[p].on(q) for p, q in zip(self.pauli_mask, qubits) if p]
         if self.coefficient != 1:
-            result.append(global_phase_op.GlobalPhaseOperation(self.coefficient))
+            result.append(global_phase_op.global_phase_operation(self.coefficient))
         return result
 
     def _is_parameterized_(self) -> bool:
@@ -199,6 +200,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             return type(self)(coefficient=1, pauli_mask=self.pauli_mask[item])
 
         raise TypeError(f'indices must be integers or slices, not {type(item)}')
+
+    def __iter__(self) -> Iterator['cirq.Gate']:
+        for i in range(len(self)):
+            yield self[i]
 
     def __len__(self):
         return len(self.pauli_mask)

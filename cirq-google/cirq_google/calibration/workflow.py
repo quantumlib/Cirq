@@ -192,6 +192,9 @@ def _list_moment_pairs_to_characterize(
         if not isinstance(op, cirq.GateOperation):
             raise IncompatibleMomentError('Moment contains operation different than GateOperation')
 
+        if isinstance(op.gate, cirq.GlobalPhaseGate):
+            raise IncompatibleMomentError('Moment contains global phase gate')
+
         if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
             other_operation = True
         else:
@@ -220,8 +223,8 @@ def _list_moment_pairs_to_characterize(
         return None
     elif not permit_mixed_moments and other_operation:
         raise IncompatibleMomentError(
-            f'Moment contains mixed two-qubit operations and either single-qubit measurement or '
-            f'wait operations. See permit_mixed_moments option to relax this restriction.'
+            'Moment contains mixed two-qubit operations and either single-qubit measurement or '
+            'wait operations. See permit_mixed_moments option to relax this restriction.'
         )
 
     if sort_pairs:
@@ -850,7 +853,7 @@ def run_calibrations(
             raise ValueError('gate_set must be provided.')
 
         if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
-            sampler = engine.sampler(processor_id=processor_id, gate_set=gate_set)
+            sampler = engine.get_sampler(processor_id=processor_id, gate_set=gate_set)
             return _run_local_calibrations_via_sampler(calibrations, sampler)
 
         return _run_calibrations_via_engine(
@@ -1093,6 +1096,9 @@ def _find_moment_zeta_chi_gamma_corrections(
     for op in moment:
         if not isinstance(op, cirq.GateOperation):
             raise IncompatibleMomentError('Moment contains operation different than GateOperation')
+
+        if isinstance(op.gate, cirq.GlobalPhaseGate):
+            raise IncompatibleMomentError('Moment contains global phase gate')
 
         if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
             other.append(op)

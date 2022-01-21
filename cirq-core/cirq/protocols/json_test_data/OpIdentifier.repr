@@ -1,0 +1,4 @@
+cirq.devices.noise_utils.OpIdentifier(
+    cirq.ops.common_gates.XPowGate,
+    cirq.LineQubit(1)
+)

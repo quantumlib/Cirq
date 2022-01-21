@@ -120,13 +120,13 @@ def get_max_cut_qaoa_circuit(
     n_vertices = len(vertices)
 
     # G_{i,j} ∝ exp(i gamma (|01><01| + |10><10|))
-    phase_sep_gates = {edge: cirq.ZZ ** gamma for edge in edges}  # type: LogicalMapping
+    phase_sep_gates: LogicalMapping = {edge: cirq.ZZ ** gamma for edge in edges}
 
     # Physical qubits
     qubits = cirq.LineQubit.range(n_vertices)
 
     # Mapping from qubits to vertices.
-    initial_mapping = {q: i for i, q in enumerate(qubits)}  # type: LogicalMapping
+    initial_mapping: LogicalMapping = {q: i for i, q in enumerate(qubits)}
 
     if use_logical_qubits:
         initial_mapping = {q: cirq.LineQubit(i) for q, i in initial_mapping.items()}
