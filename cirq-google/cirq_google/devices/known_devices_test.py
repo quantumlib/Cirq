@@ -464,16 +464,16 @@ valid_targets {
     )
 
 
-def test_json_dict():
-    with cirq.testing.assert_deprecated('Foxtail', deadline='v0.15', count=2):
+def test_json_dict_deprecated():
+    with cirq.testing.assert_deprecated('Foxtail', deadline='v0.15', count=1):
         assert cirq_google.Foxtail._json_dict_() == {
             'constant': 'cirq_google.Foxtail',
         }
-
+    with cirq.testing.assert_deprecated('Bristlecone', deadline='v0.15', count=1):
         assert cirq_google.Bristlecone._json_dict_() == {
             'constant': 'cirq_google.Bristlecone',
         }
-
+    with cirq.testing.assert_deprecated('Constant', deadline='v0.15', count=1):
         with pytest.raises(ValueError, match='xmon device name'):
             known_devices._NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
 

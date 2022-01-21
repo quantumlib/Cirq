@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Classes for working with Google's Quantum Engine API."""
+
 import sys
 from cirq import _compat
 from cirq_google import api

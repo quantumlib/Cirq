@@ -15,6 +15,7 @@
 from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple
 
 import cirq
+from cirq import _compat
 from cirq._doc import document
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
@@ -198,6 +199,10 @@ class _NamedConstantXmonDevice(_XmonDeviceBase):
 
     @classmethod
     def _from_json_dict_(cls, constant: str, **kwargs):
+        _compat._warn_or_error(
+            f'NamedConstantXmonDevice was used but is deprecated.\n'
+            f'It will be removed in cirq v0.15.\n'
+        )
         if constant in ['cirq.google.Foxtail', 'cirq_google.Foxtail']:
             return Foxtail
         if constant in ['cirq.google.Bristlecone', 'cirq_google.Bristlecone']:
