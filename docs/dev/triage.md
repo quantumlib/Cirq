@@ -1,6 +1,6 @@
 # Cirq Triage
 
-Original RFC: [bit.do/cirq-triage](bit.do/cirq-triage)
+Original RFC: [bit.do/cirq-triage](https://bit.do/cirq-triage)
 
 ## **Objective**
 
