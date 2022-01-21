@@ -495,15 +495,15 @@ def test_sycamore_metadata():
     assert len(cirq_google.Sycamore.metadata.qubit_pairs) == 88
     assert len(cirq_google.Sycamore23.metadata.qubit_pairs) == 32
     assert cirq_google.Sycamore.metadata.gateset == cirq.Gateset(
-        cirq.ops.fsim_gate.FSimGate,
-        cirq.ops.swap_gates.ISwapPowGate,
-        cirq.ops.phased_x_gate.PhasedXPowGate,
-        cirq.ops.common_gates.XPowGate,
-        cirq.ops.common_gates.YPowGate,
-        cirq.ops.common_gates.ZPowGate,
-        cirq.ops.phased_x_z_gate.PhasedXZGate,
-        cirq.ops.measurement_gate.MeasurementGate,
-        cirq.ops.wait_gate.WaitGate,
+        cirq.FSimGate,
+        cirq.ISwapPowGate,
+        cirq.PhasedXPowGate,
+        cirq.XPowGate,
+        cirq.YPowGate,
+        cirq.ZPowGate,
+        cirq.PhasedXZGate,
+        cirq.MeasurementGate,
+        cirq.WaitGate,
     )
 
 
