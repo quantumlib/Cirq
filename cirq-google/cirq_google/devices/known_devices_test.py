@@ -21,11 +21,13 @@ import cirq_google.serialization.common_serializers as cgc
 
 
 def test_foxtail_qubits():
-    expected_qubits = []
-    for i in range(0, 2):
-        for j in range(0, 11):
-            expected_qubits.append(cirq.GridQubit(i, j))
-    assert set(expected_qubits) == cirq_google.Foxtail.qubits
+    with cirq.testing.assert_deprecated('Foxtail', deadline='v0.15'):
+        expected_qubits = []
+        for i in range(0, 2):
+            for j in range(0, 11):
+                expected_qubits.append(cirq.GridQubit(i, j))
+
+        assert set(expected_qubits) == cirq_google.Foxtail.qubits
 
 
 def test_foxtail_device_proto():
@@ -462,17 +464,18 @@ valid_targets {
     )
 
 
-def test_json_dict():
-    assert cirq_google.Foxtail._json_dict_() == {
-        'constant': 'cirq_google.Foxtail',
-    }
-
-    assert cirq_google.Bristlecone._json_dict_() == {
-        'constant': 'cirq_google.Bristlecone',
-    }
-
-    with pytest.raises(ValueError, match='xmon device name'):
-        known_devices._NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
+def test_json_dict_deprecated():
+    with cirq.testing.assert_deprecated('Foxtail', deadline='v0.15', count=1):
+        assert cirq_google.Foxtail._json_dict_() == {
+            'constant': 'cirq_google.Foxtail',
+        }
+    with cirq.testing.assert_deprecated('Bristlecone', deadline='v0.15', count=1):
+        assert cirq_google.Bristlecone._json_dict_() == {
+            'constant': 'cirq_google.Bristlecone',
+        }
+    with cirq.testing.assert_deprecated('Constant', deadline='v0.15', count=1):
+        with pytest.raises(ValueError, match='xmon device name'):
+            known_devices._NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
 
 
 @pytest.mark.parametrize('device', [cirq_google.Sycamore, cirq_google.Sycamore23])

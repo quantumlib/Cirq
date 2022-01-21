@@ -14,6 +14,8 @@
 
 """Classes for working with Google's Quantum Engine API."""
 
+import sys
+from cirq import _compat
 from cirq_google import api
 
 from cirq_google._version import (
@@ -150,3 +152,13 @@ from cirq.protocols.json_serialization import _register_resolver
 from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)
+
+__spec_copy__ = sys.modules[__name__].__spec__
+sys.modules[__name__] = _compat.deprecate_attributes(
+    sys.modules[__name__],
+    {
+        'Bristlecone': ('v0.15', 'Bristlecone will no longer be supported.'),
+        'Foxtail': ('v0.15', 'Foxtail will no longer be supported.'),
+    },
+)
+sys.modules[__name__].__spec__ = __spec_copy__

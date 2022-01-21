@@ -19,6 +19,11 @@ import cirq_google as cg
 import numpy as np
 
 
+class TestDevice(cirq.Device):
+    def __init__(self):
+        self.qubits = cirq.GridQubit.rect(2, 8)
+
+
 def test_naive_qubit_placer():
     topo = cirq.TiltedSquareLattice(4, 2)
     qubits = sorted(topo.nodes_to_gridqubits(offset=(5, 3)).values())
@@ -112,6 +117,6 @@ def test_random_device_placer_small_device():
         qp.place_circuit(
             circuit,
             problem_topology=topo,
-            shared_rt_info=cg.SharedRuntimeInfo(run_id='1', device=cg.Foxtail),
+            shared_rt_info=cg.SharedRuntimeInfo(run_id='1', device=TestDevice()),
             rs=np.random.RandomState(1),
         )
