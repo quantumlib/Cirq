@@ -99,7 +99,7 @@ class TransformerLogger:
         - This behavior can be simulated by maintaining a stack of currently active stages and
           adding data from `log` calls to the stage at the top of the stack.
 
-    The `LogLevel`s can be used to control the iTransformerLoggernput processing and output resolution of the logs.
+    The `LogLevel`s can be used to control the input processing and output resolution of the logs.
     """
 
     def __init__(self):
