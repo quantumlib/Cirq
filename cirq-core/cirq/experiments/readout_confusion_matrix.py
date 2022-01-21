@@ -15,7 +15,6 @@
 """Utilities to compute readout confusion matrix and use it for readout error mitigation."""
 
 import time
-import warnings
 from typing import Any, Dict, Union, Sequence, List, Tuple, TYPE_CHECKING, Optional, cast
 import sympy
 import numpy as np
@@ -262,7 +261,7 @@ class TensoredConfusionMatrices:
             func, result, method='SLSQP', constraints=constraints, bounds=bounds
         )
         if res.success is False:  # coverage: ignore
-            warnings.warn(  # coverage: ignore
+            raise ValueError(  # coverage: ignore
                 f"SLSQP optimization for constrained minimization "  # coverage: ignore
                 f"did not converge. Result:\n{res}"  # coverage: ignore
             )  # coverage: ignore
