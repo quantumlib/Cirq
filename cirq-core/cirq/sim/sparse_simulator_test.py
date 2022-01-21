@@ -891,10 +891,10 @@ def test_sample_from_amplitudes():
     circuit = cirq.Circuit(
         cirq.H(q0),
         cirq.CNOT(q0, q1),
-        cirq.X(q1),
+        cirq.X(q1) ** sympy.Symbol('t'),
     )
     sim = cirq.Simulator(seed=1)
-    result = sim.sample_from_amplitudes(circuit, {}, repetitions=100)
+    result = sim.sample_from_amplitudes(circuit, {'t': 1}, repetitions=100)
     assert 40 < result[1] < 60
     assert 40 < result[2] < 60
     assert 0 not in result

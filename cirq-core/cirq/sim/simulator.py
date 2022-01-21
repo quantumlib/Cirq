@@ -266,20 +266,20 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             the number of occurrences of that bitstring.
 
         Raises:
-            ValueError if 'circuit' has non-unitary elements, as differences
-            in behavior between amplitude-sampling steps break this algorithm.
+            ValueError: if 'circuit' has non-unitary elements, as differences
+                in behavior between sampling steps break this algorithm.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        circuit += ops.Moment(ops.I(q) for q in qubits)
+        base_circuit = circuit.unfreeze() + ops.Moment(ops.I(q) for q in qubits)
         qmap = {q: i for i, q in enumerate(qubits)}
         current_samples = {(0,) * len(qubits): repetitions}
-        solved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        solved_circuit = protocols.resolve_parameters(base_circuit, param_resolver)
         if not protocols.has_unitary(solved_circuit):
             raise ValueError("sample_from_amplitudes does not support non-unitary behavior.")
         for m_id, moment in enumerate(solved_circuit):
             if m_id == 0:
                 continue  # skip the identities moment
-            circuit_prefix = circuit[:m_id]
+            circuit_prefix = solved_circuit[:m_id]
             for t, op in enumerate(moment.operations):
                 new_samples: Dict[Tuple[int, ...], int] = collections.defaultdict(int)
                 qubit_indices = {qmap[q] for q in op.qubits}
