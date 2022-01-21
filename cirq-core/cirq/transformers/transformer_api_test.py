@@ -15,7 +15,7 @@
 from unittest import mock
 
 import cirq
-from cirq.transformers.transformer_api import LogLevel, TRANSFORMER_TO_DECORATE
+from cirq.transformers.transformer_api import LogLevel
 
 import pytest
 
@@ -25,18 +25,20 @@ class MockTransformerClassCircuit:
     def __init__(self):
         self.mock = mock.Mock()
 
-    def __call__(self, circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
+    def __call__(
+        self, circuit: cirq.AbstractCircuit, context: cirq.TransformerContext
+    ) -> cirq.Circuit:
         self.mock(circuit, context)
-        return circuit
+        return circuit.unfreeze()
 
 
-def make_circuit_transformer_func() -> TRANSFORMER_TO_DECORATE:
+def make_circuit_transformer_func() -> cirq.TRANSFORMER:
     my_mock = mock.Mock()
 
     @cirq.transformer
-    def func(circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
+    def func(circuit: cirq.AbstractCircuit, context: cirq.TransformerContext) -> cirq.Circuit:
         my_mock(circuit, context)
-        return circuit
+        return circuit.unfreeze()
 
     func.mock = my_mock  # type: ignore
     return func
@@ -60,7 +62,7 @@ def test_transformer_decorator(context, transformer):
     circuit = cirq.Circuit(cirq.X(cirq.NamedQubit("a")))
     transformer(circuit, context)
     transformer.mock.assert_called_with(circuit, context)
-    if not isinstance(context.logger, cirq.TransformerStatsLogger):
+    if not isinstance(context.logger, cirq.TransformerLogger):
         transformer_name = (
             transformer.__name__ if hasattr(transformer, '__name__') else type(transformer).__name__
         )
@@ -70,54 +72,56 @@ def test_transformer_decorator(context, transformer):
 
 @cirq.transformer
 class T1:
-    def __call__(self, circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
+    def __call__(
+        self, circuit: cirq.AbstractCircuit, context: cirq.TransformerContext
+    ) -> cirq.AbstractCircuit:
         context.logger.log("First Verbose Log", "of T1", level=LogLevel.DEBUG)
         context.logger.log("Second INFO Log", "of T1", level=LogLevel.INFO)
         context.logger.log("Third WARNING Log", "of T1", level=LogLevel.WARNING)
-        return circuit + circuit[::-1]
+        return cirq.Circuit(*circuit, *circuit[::-1])
 
 
 t1 = T1()
 
 
 @cirq.transformer
-def t2(circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
+def t2(circuit: cirq.AbstractCircuit, context: cirq.TransformerContext) -> cirq.FrozenCircuit:
     context.logger.log("First INFO Log", "of T2 Start")
     circuit = t1(circuit, context)
     context.logger.log("Second INFO Log", "of T2 End")
-    return circuit[::2]
+    return circuit[::2].freeze()
 
 
 @cirq.transformer
-def t3(circuit: cirq.Circuit, context: cirq.TransformerContext) -> cirq.Circuit:
+def t3(circuit: cirq.AbstractCircuit, context: cirq.TransformerContext) -> cirq.Circuit:
     context.logger.log("First INFO Log", "of T3 Start")
     circuit = t1(circuit, context)
     context.logger.log("Second INFO Log", "of T3 Middle")
     circuit = t2(circuit, context)
     context.logger.log("Third INFO Log", "of T3 End")
-    return circuit
+    return circuit.unfreeze()
 
 
 def test_transformer_stats_logger_raises():
     with pytest.raises(ValueError, match='No active transformer'):
-        logger = cirq.TransformerStatsLogger()
+        logger = cirq.TransformerLogger()
         logger.log('test log')
 
     with pytest.raises(ValueError, match='No active transformer'):
-        logger = cirq.TransformerStatsLogger()
+        logger = cirq.TransformerLogger()
         logger.register_initial(cirq.Circuit(), 'stage-1')
         logger.register_final(cirq.Circuit(), 'stage-1')
         logger.log('test log')
 
     with pytest.raises(ValueError, match='currently active transformer stage-2'):
-        logger = cirq.TransformerStatsLogger()
+        logger = cirq.TransformerLogger()
         logger.register_initial(cirq.Circuit(), 'stage-2')
         logger.register_final(cirq.Circuit(), 'stage-3')
 
 
 def test_transformer_stats_logger_show_levels(capfd):
     q = cirq.LineQubit.range(2)
-    context = cirq.TransformerContext(logger=cirq.TransformerStatsLogger())
+    context = cirq.TransformerContext(logger=cirq.TransformerLogger())
     initial_circuit = cirq.Circuit(cirq.H.on_each(*q), cirq.CNOT(*q))
     _ = t1(initial_circuit, context)
     info_line = 'LogLevel.INFO Second INFO Log of T1'
@@ -145,7 +149,7 @@ def test_transformer_stats_logger_show_levels(capfd):
 def test_transformer_stats_logger_linear_and_nested(capfd):
     q = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H.on_each(*q), cirq.CNOT(*q))
-    context = cirq.TransformerContext(logger=cirq.TransformerStatsLogger())
+    context = cirq.TransformerContext(logger=cirq.TransformerLogger())
     circuit = t1(circuit, context)
     circuit = t3(circuit, context)
     context.logger.show(LogLevel.ALL)

@@ -17,26 +17,28 @@
 import textwrap
 import functools
 from typing import (
+    Any,
     Callable,
     Tuple,
     Hashable,
     List,
-    cast,
     Type,
     overload,
-    Union,
     TYPE_CHECKING,
 )
-
 import dataclasses
 import enum
+from cirq.circuits.circuit import CIRCUIT_TYPE
 
 if TYPE_CHECKING:
     import cirq
 
 
 class LogLevel(enum.Enum):
-    """Different logging resolution options for `cirq.TransformerStatsLogger`.
+    """Different logging resolution options for `cirq.TransformerLogger`.
+
+    The enum values of the logging levels are used to filter the stored logs when printing.
+    In general, a logging level `X` includes all logs stored at a level >= 'X'.
 
     Args:
         ALL:     All levels. Used to filter logs when printing.
@@ -55,8 +57,21 @@ class LogLevel(enum.Enum):
 
 
 @dataclasses.dataclass
-class LoggerNode:
-    """Stores logging data of a single transformer stage in `cirq.TransformerStatsLogger`."""
+class _LoggerNode:
+    """Stores logging data of a single transformer stage in `cirq.TransformerLogger`.
+
+    The class is used to define a logging graph to store logs of sequential or nested transformers.
+    Each node corresponds to logs of a single transformer stage.
+
+    Args:
+        transformer_id:   Integer specifying a unique id for corresponding transformer stage.
+        transformer_name: Name of the corresponding transformer stage.
+        initial_circuit:  Initial circuit before the transformer stage began.
+        final_circuit:    Final circuit after the transformer stage ended.
+        logs:             Messages logged by the transformer stage.
+        nested_loggers:   `transformer_id`s of nested transformer stages which were called by
+                          the current stage.
+    """
 
     transformer_id: int
     transformer_name: str
@@ -66,7 +81,7 @@ class LoggerNode:
     nested_loggers: List[int] = dataclasses.field(default_factory=list)
 
 
-class TransformerStatsLogger:
+class TransformerLogger:
     """Base Class for transformer logging infrastructure. Defaults to text-based logging.
 
     The logger implementation should be stateful, s.t.:
@@ -84,13 +99,13 @@ class TransformerStatsLogger:
         - This behavior can be simulated by maintaining a stack of currently active stages and
           adding data from `log` calls to the stage at the top of the stack.
 
-    The `LogLevel`s can be used to control the input processing and output resolution of the logs.
+    The `LogLevel`s can be used to control the iTransformerLoggernput processing and output resolution of the logs.
     """
 
     def __init__(self):
-        """Initializes TransformerStatsLogger."""
+        """Initializes TransformerLogger."""
         self._curr_id: int = 0
-        self._logs: List[LoggerNode] = []
+        self._logs: List[_LoggerNode] = []
         self._stack: List[int] = []
 
     def register_initial(self, circuit: 'cirq.AbstractCircuit', transformer_name: str) -> None:
@@ -102,7 +117,7 @@ class TransformerStatsLogger:
         """
         if self._stack:
             self._logs[self._stack[-1]].nested_loggers.append(self._curr_id)
-        self._logs.append(LoggerNode(self._curr_id, transformer_name, circuit, circuit))
+        self._logs.append(_LoggerNode(self._curr_id, transformer_name, circuit, circuit))
         self._stack.append(self._curr_id)
         self._curr_id += 1
 
@@ -139,9 +154,14 @@ class TransformerStatsLogger:
         self._logs[tid].final_circuit = circuit
 
     def show(self, level: LogLevel = LogLevel.INFO) -> None:
-        """Show the stored logs >= level in the desired format."""
+        """Show the stored logs >= level in the desired format.
 
-        def print_log(log: LoggerNode, pad=''):
+        Args:
+            level: The logging level to filter the logs with. The method shows all logs with a
+            `LogLevel` >= `level`.
+        """
+
+        def print_log(log: _LoggerNode, pad=''):
             print(pad, f"Transformer-{1+log.transformer_id}: {log.transformer_name}", sep='')
             print(pad, "Initial Circuit:", sep='')
             print(textwrap.indent(str(log.initial_circuit), pad), "\n", sep='')
@@ -164,7 +184,7 @@ class TransformerStatsLogger:
                     stack.append((child_id, pad + ' ' * 4))
 
 
-class NoOpTransformerStatsLogger(TransformerStatsLogger):
+class NoOpTransformerLogger(TransformerLogger):
     """All calls to this logger are a no-op"""
 
     def register_initial(self, circuit: 'cirq.AbstractCircuit', transformer_name: str) -> None:
@@ -185,7 +205,7 @@ class TransformerContext:
     """Stores common configurable options for transformers.
 
     Args:
-        logger: `cirq.TransformerStatsLogger` instance, which is a stateful logger used for logging
+        logger: `cirq.TransformerLogger` instance, which is a stateful logger used for logging
                 the actions of individual transformer stages. The same logger instance should be
                 shared across different transformer calls.
         ignore_tags: Tuple of tags which should be ignored while applying transformations on a
@@ -194,41 +214,71 @@ class TransformerContext:
                 `cirq.VirtualTag` etc.) is a valid tag.
     """
 
-    logger: TransformerStatsLogger = NoOpTransformerStatsLogger()
+    logger: TransformerLogger = NoOpTransformerLogger()
     ignore_tags: Tuple[Hashable, ...] = ()
 
 
-TRANSFORMER = Callable[['cirq.AbstractCircuit', TransformerContext], 'cirq.Circuit']
-TRANSFORMER_TO_DECORATE = Callable[['cirq.Circuit', TransformerContext], 'cirq.Circuit']
+TRANSFORMER = Callable[['cirq.AbstractCircuit', TransformerContext], 'cirq.AbstractCircuit']
+_TRANSFORMER_TYPE = Callable[['cirq.AbstractCircuit', TransformerContext], CIRCUIT_TYPE]
 
 
 def _transform_and_log(
-    func: TRANSFORMER_TO_DECORATE,
+    func: _TRANSFORMER_TYPE[CIRCUIT_TYPE],
     transformer_name: str,
     circuit: 'cirq.AbstractCircuit',
     context: TransformerContext,
-) -> 'cirq.Circuit':
+) -> CIRCUIT_TYPE:
     """Helper to log initial and final circuits before and after calling the transformer."""
 
     context.logger.register_initial(circuit, transformer_name)
-    transformed_circuit = func(circuit.unfreeze(copy=True), context)
+    transformed_circuit = func(circuit, context)
     context.logger.register_final(transformed_circuit, transformer_name)
     return transformed_circuit
 
 
+def _transformer_class(
+    cls: Type[_TRANSFORMER_TYPE[CIRCUIT_TYPE]],
+) -> Type[_TRANSFORMER_TYPE[CIRCUIT_TYPE]]:
+    old_func = cls.__call__
+
+    def transformer_with_logging_cls(
+        self: Type[_TRANSFORMER_TYPE[CIRCUIT_TYPE]],
+        circuit: 'cirq.AbstractCircuit',
+        context: TransformerContext,
+    ) -> CIRCUIT_TYPE:
+        def call_old_func(c: 'cirq.AbstractCircuit', ct: TransformerContext) -> CIRCUIT_TYPE:
+            return old_func(self, c, ct)
+
+        return _transform_and_log(call_old_func, cls.__name__, circuit, context)
+
+    setattr(cls, '__call__', transformer_with_logging_cls)
+    return cls
+
+
+def _transformer_func(func: _TRANSFORMER_TYPE[CIRCUIT_TYPE]) -> _TRANSFORMER_TYPE[CIRCUIT_TYPE]:
+    @functools.wraps(func)
+    def transformer_with_logging_func(
+        circuit: 'cirq.AbstractCircuit',
+        context: TransformerContext,
+    ) -> CIRCUIT_TYPE:
+        return _transform_and_log(func, func.__name__, circuit, context)
+
+    return transformer_with_logging_func
+
+
 @overload
-def transformer(cls_or_func: TRANSFORMER_TO_DECORATE) -> TRANSFORMER:
+def transformer(cls_or_func: _TRANSFORMER_TYPE[CIRCUIT_TYPE]) -> _TRANSFORMER_TYPE[CIRCUIT_TYPE]:
     pass
 
 
 @overload
-def transformer(cls_or_func: Type[TRANSFORMER_TO_DECORATE]) -> Type[TRANSFORMER]:
-    pass
-
-
 def transformer(
-    cls_or_func: Union[TRANSFORMER_TO_DECORATE, Type[TRANSFORMER_TO_DECORATE]],
-) -> Union[TRANSFORMER, Type[TRANSFORMER]]:
+    cls_or_func: Type[_TRANSFORMER_TYPE[CIRCUIT_TYPE]],
+) -> Type[_TRANSFORMER_TYPE[CIRCUIT_TYPE]]:
+    pass
+
+
+def transformer(cls_or_func: Any) -> Any:
     """Decorator to verify API and append logging functionality to transformer functions & classes.
 
     The decorated function or class must satisfy
@@ -256,32 +306,8 @@ def transformer(
         Decorated class / method which includes additional logging boilerplate. The decorated
         callable always receives a copy of the input circuit so that the input is never mutated.
     """
-    assert callable(
-        cls_or_func
-    ), f"The decorated object {cls_or_func} must be a callable class or a method."
     if isinstance(cls_or_func, type):
-        old_func = cls_or_func.__call__
-
-        def transformer_with_logging_cls(
-            self: Type[TRANSFORMER],
-            circuit: 'cirq.AbstractCircuit',
-            context: TransformerContext,
-        ) -> 'cirq.Circuit':
-            def call_old_func(c: 'cirq.Circuit', ct: TransformerContext) -> 'cirq.Circuit':
-                return old_func(self, c, ct)
-
-            return _transform_and_log(call_old_func, cls_or_func.__name__, circuit, context)
-
-        setattr(cls_or_func, '__call__', transformer_with_logging_cls)
-        return cast(Type[TRANSFORMER], cls_or_func)
+        return _transformer_class(cls_or_func)
     else:
-        func = cast(TRANSFORMER_TO_DECORATE, cls_or_func)
-
-        @functools.wraps(func)
-        def transformer_with_logging_func(
-            circuit: 'cirq.AbstractCircuit',
-            context: TransformerContext,
-        ) -> 'cirq.Circuit':
-            return _transform_and_log(func, func.__name__, circuit, context)
-
-        return cast(TRANSFORMER, transformer_with_logging_func)
+        assert callable(cls_or_func)
+        return _transformer_func(cls_or_func)

@@ -111,7 +111,7 @@ TestSpec = ModuleJsonTestSpec(
         'PointOptimizer',
         'SynchronizeTerminalMeasurements',
         # Transformers
-        'TransformerStatsLogger',
+        'TransformerLogger',
         'TransformerContext',
         # global objects
         'CONTROL_TAG',
@@ -175,6 +175,7 @@ TestSpec = ModuleJsonTestSpec(
         'Sweepable',
         'TParamKey',
         'TParamVal',
+        'TRANSFORMER',
         'ParamDictType',
         # utility:
         'CliffordSimulator',
