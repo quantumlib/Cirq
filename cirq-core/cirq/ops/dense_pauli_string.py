@@ -19,6 +19,7 @@ from typing import (
     cast,
     Dict,
     Iterable,
+    Iterator,
     List,
     Optional,
     Sequence,
@@ -199,6 +200,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             return type(self)(coefficient=1, pauli_mask=self.pauli_mask[item])
 
         raise TypeError(f'indices must be integers or slices, not {type(item)}')
+
+    def __iter__(self) -> Iterator['cirq.Gate']:
+        for i in range(len(self)):
+            yield self[i]
 
     def __len__(self):
         return len(self.pauli_mask)
