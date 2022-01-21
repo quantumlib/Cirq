@@ -29,7 +29,7 @@ The quantum state is specified in two forms:
     to state vector amplitudes.
 """
 
-from typing import Any, Dict, List, Sequence, Tuple, Union
+from typing import Any, Dict, List, Sequence, Union
 
 import numpy as np
 

@@ -19,7 +19,7 @@ https://arxiv.org/abs/2002.07730
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import numpy as np
 import quimb.tensor as qtn

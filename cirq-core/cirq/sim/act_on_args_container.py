@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import abc
 import inspect
+import warnings
+from collections import abc
 from typing import (
-    Any,
     Dict,
     Generic,
     Iterator,
@@ -26,7 +26,6 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
-import warnings
 
 import numpy as np
 
