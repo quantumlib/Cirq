@@ -188,7 +188,7 @@ def merge_operations(
     ret_circuit = circuits.Circuit()
     for current_moment in circuit:
         new_moment = ops.Moment()
-        for op in current_moment:
+        for op in sorted(current_moment.operations, key=lambda op: op.qubits):
             op_qs = set(op.qubits)
             idx = ret_circuit.prev_moment_operating_on(tuple(op_qs))
             if idx is not None and op_qs.issubset(ret_circuit[idx][op_qs].operations[0].qubits):
