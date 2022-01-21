@@ -64,8 +64,9 @@ from cirq.sim.simulator import (
 )
 
 from cirq.sim.simulator_base import (
-    StepResultBase,
+    SimulationTrialResultBase,
     SimulatorBase,
+    StepResultBase,
 )
 
 from cirq.sim.sparse_simulator import (
@@ -89,6 +90,7 @@ from cirq.sim.state_vector import (
 from cirq.sim.clifford import (
     ActOnCliffordTableauArgs,
     ActOnStabilizerCHFormArgs,
+    ActOnStabilizerArgs,
     StabilizerSampler,
     StabilizerStateChForm,
     CliffordSimulator,

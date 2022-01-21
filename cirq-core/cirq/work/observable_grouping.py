@@ -46,7 +46,7 @@ def group_settings_greedy(
         input list of settings. Each dictionary value is a list of
         settings compatible with `max_setting`.
     """
-    grouped_settings = {}  # type: Dict[InitObsSetting, List[InitObsSetting]]
+    grouped_settings: Dict[InitObsSetting, List[InitObsSetting]] = {}
     for setting in settings:
         for max_setting, simul_settings in grouped_settings.items():
             trial_grouped_settings = simul_settings + [setting]

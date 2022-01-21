@@ -59,7 +59,7 @@ def get_acquaintance_dag(strategy: 'cirq.Circuit', initial_mapping: LogicalMappi
         for op in moment.operations
         if isinstance(op, AcquaintanceOperation)
     )
-    return circuits.CircuitDag.from_ops(acquaintance_ops, device=strategy.device)
+    return circuits.CircuitDag.from_ops(acquaintance_ops)
 
 
 def get_logical_acquaintance_opportunities(

@@ -34,6 +34,7 @@ def test_init_result():
     assert result.data is data
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_plot_does_not_raise_error():
     class _TimeDependentDecay(cirq.NoiseModel):
         def noisy_moment(self, moment, system_qubits):
@@ -167,6 +168,7 @@ def test_all_off_results():
     )
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_curve_fit_plot_works():
     good_fit = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
@@ -184,6 +186,7 @@ def test_curve_fit_plot_works():
     good_fit.plot(include_fit=True)
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_curve_fit_plot_warning():
     bad_fit = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(

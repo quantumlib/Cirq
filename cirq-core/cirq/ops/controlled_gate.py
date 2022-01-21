@@ -210,7 +210,7 @@ class ControlledGate(raw_types.Gate):
             ),
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
-            qubit_map=args.qubit_map,
+            label_map=args.label_map,
         )
         sub_info = protocols.circuit_diagram_info(self.sub_gate, sub_args, None)
         if sub_info is None:
@@ -260,7 +260,6 @@ class ControlledGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'control_values': self.control_values,
             'control_qid_shape': self.control_qid_shape,
             'sub_gate': self.sub_gate,

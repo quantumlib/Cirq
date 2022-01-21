@@ -25,8 +25,6 @@ TestSpec = ModuleJsonTestSpec(
     resolver_cache=_class_resolver_dictionary(),
     not_yet_serializable=[
         'Alignment',
-        'AnyIntegerPowerGateFamily',
-        'AnyUnitaryGateFamily',
         'AxisAngleDecomposition',
         'CircuitDag',
         'CircuitDiagramInfo',
@@ -39,8 +37,6 @@ TestSpec = ModuleJsonTestSpec(
         'DensityMatrixStepResult',
         'DensityMatrixTrialResult',
         'ExpressionMap',
-        'GateFamily',
-        'Gateset',
         'InsertStrategy',
         'IonDevice',
         'KakDecomposition',
@@ -50,9 +46,7 @@ TestSpec = ModuleJsonTestSpec(
         'ListSweep',
         'DiagonalGate',
         'NeutralAtomDevice',
-        'ParallelGateFamily',
         'PauliInteractionGate',
-        'PauliStringPhasor',
         'PauliSum',
         'PauliSumCollector',
         'PauliSumExponential',
@@ -69,12 +63,14 @@ TestSpec = ModuleJsonTestSpec(
         'QuilFormatter',
         'QuilOutput',
         'SimulationTrialResult',
+        'SimulationTrialResultBase',
         'SparseSimulatorStep',
         'StateVectorMixin',
         'TextDiagramDrawer',
         'ThreeQubitDiagonalGate',
         'Timestamp',
         'TwoQubitDiagonalGate',
+        'TwoQubitGateTabulationResult',
         'UnitSweep',
         'StateVectorSimulatorState',
         'StateVectorTrialResult',
@@ -114,6 +110,9 @@ TestSpec = ModuleJsonTestSpec(
         'MergeSingleQubitGates',
         'PointOptimizer',
         'SynchronizeTerminalMeasurements',
+        # Transformers
+        'TransformerLogger',
+        'TransformerContext',
         # global objects
         'CONTROL_TAG',
         'PAULI_BASIS',
@@ -130,6 +129,7 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesFinalState',
         'NamedTopology',
         # protocols:
+        'HasJSONNamespace',
         'SupportsActOn',
         'SupportsActOnQubits',
         'SupportsApplyChannel',
@@ -161,6 +161,7 @@ TestSpec = ModuleJsonTestSpec(
         'CIRCUIT_LIKE',
         'DURATION_LIKE',
         'JsonResolver',
+        'LabelEntity',
         'NOISE_MODEL_LIKE',
         'OP_TREE',
         'PAULI_GATE_LIKE',
@@ -174,6 +175,7 @@ TestSpec = ModuleJsonTestSpec(
         'Sweepable',
         'TParamKey',
         'TParamVal',
+        'TRANSFORMER',
         'ParamDictType',
         # utility:
         'CliffordSimulator',
@@ -182,7 +184,7 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={},
+    deprecated={'GlobalPhaseOperation': 'v0.16'},
     tested_elsewhere=[
         # SerializableByKey does not follow common serialization rules.
         # It is tested separately in test_context_serialization.

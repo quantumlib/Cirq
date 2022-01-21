@@ -16,6 +16,7 @@
 
 import abc
 import collections
+import inspect
 from typing import (
     Any,
     Dict,
@@ -30,10 +31,11 @@ from typing import (
     Optional,
     TypeVar,
 )
+import warnings
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, study, value, devices
+from cirq import ops, protocols, study, value, devices
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
@@ -43,6 +45,7 @@ from cirq.sim.simulator import (
     SimulatesIntermediateState,
     SimulatesSamples,
     StepResult,
+    SimulationTrialResult,
     check_all_resolved,
     split_into_matching_protocol_then_general,
 )
@@ -176,7 +179,7 @@ class SimulatorBase(
 
     def _core_iterator(
         self,
-        circuit: circuits.AbstractCircuit,
+        circuit: 'cirq.AbstractCircuit',
         sim_state: OperationTarget[TActOnArgs],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResultBase]:
@@ -206,9 +209,6 @@ class SimulatorBase(
         for moment in noisy_moments:
             for op in ops.flatten_to_ops(moment):
                 try:
-                    # TODO: support more general measurements.
-                    # Github issue: https://github.com/quantumlib/Cirq/issues/3566
-
                     # Preprocess measurements
                     if all_measurements_are_terminal and measured[op.qubits]:
                         continue
@@ -216,8 +216,6 @@ class SimulatorBase(
                         measured[op.qubits] = True
                         if all_measurements_are_terminal:
                             continue
-                        if self._ignore_measurement_results:
-                            op = ops.phase_damp(1).on(*op.qubits)
 
                     # Simulate the operation
                     protocols.act_on(op, sim_state)
@@ -230,8 +228,8 @@ class SimulatorBase(
 
     def _run(
         self,
-        circuit: circuits.AbstractCircuit,
-        param_resolver: study.ParamResolver,
+        circuit: 'cirq.AbstractCircuit',
+        param_resolver: 'cirq.ParamResolver',
         repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
@@ -270,10 +268,25 @@ class SimulatorBase(
 
         measurements: Dict[str, List[np.ndarray]] = {}
         for i in range(repetitions):
-            all_step_results = self._core_iterator(
-                general_suffix,
-                sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
-            )
+            if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
+                all_step_results = self._core_iterator(
+                    general_suffix,
+                    sim_state=act_on_args.copy(deep_copy_buffers=False)
+                    if i < repetitions - 1
+                    else act_on_args,
+                )
+            else:
+                warnings.warn(
+                    (
+                        'A new parameter deep_copy_buffers has been added to ActOnArgs.copy(). The '
+                        'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
+                    ),
+                    DeprecationWarning,
+                )
+                all_step_results = self._core_iterator(
+                    general_suffix,
+                    sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
+                )
             for step_result in all_step_results:
                 pass
             for k, v in step_result.measurements.items():
@@ -285,8 +298,8 @@ class SimulatorBase(
     def simulate_sweep_iter(
         self,
         program: 'cirq.AbstractCircuit',
-        params: study.Sweepable,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        params: 'cirq.Sweepable',
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
     ) -> Iterator[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
@@ -399,8 +412,54 @@ class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulator
 
     def sample(
         self,
-        qubits: List[ops.Qid],
+        qubits: List['cirq.Qid'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
         return self._sim_state.sample(qubits, repetitions, seed)
+
+
+class SimulationTrialResultBase(
+    Generic[TSimulatorState, TActOnArgs], SimulationTrialResult, abc.ABC
+):
+    """A base class for trial results."""
+
+    def __init__(
+        self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_step_result: StepResultBase[TSimulatorState, TActOnArgs],
+    ) -> None:
+        """Initializes the `SimulationTrialResultBase` class.
+
+        Args:
+            params: A ParamResolver of settings used for this result.
+            measurements: A dictionary from measurement gate key to measurement
+                results. Measurement results are a numpy ndarray of actual
+                boolean measurement results (ordered by the qubits acted on by
+                the measurement gate.)
+            final_step_result: The step result coming from the simulation, that
+                can be used to get the final simulator state.
+        """
+        super().__init__(params, measurements, final_step_result=final_step_result)
+        self._final_step_result_typed = final_step_result
+
+    def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TActOnArgs:
+        """Returns the independent state space containing the qubit.
+
+        Args:
+            qubit: The qubit whose state space is required.
+
+        Returns:
+            The state space containing the qubit."""
+        return self._final_step_result_typed._sim_state[qubit]
+
+    def _get_substates(self) -> Sequence[TActOnArgs]:
+        state = self._final_step_result_typed._sim_state
+        if isinstance(state, ActOnArgsContainer):
+            substates: Dict[TActOnArgs, int] = {}
+            for q in state.qubits:
+                substates[self.get_state_containing_qubit(q)] = 0
+            substates[state[None]] = 0
+            return tuple(substates.keys())
+        return [state.create_merged_state()]

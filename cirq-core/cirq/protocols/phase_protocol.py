@@ -21,7 +21,7 @@ from typing_extensions import Protocol
 # implementation of _phase_by_ exists.
 from cirq._doc import doc_private
 
-RaiseTypeErrorIfNotProvided = ([],)  # type: Any
+RaiseTypeErrorIfNotProvided: Any = ([],)
 
 TDefault = TypeVar('TDefault')
 

@@ -175,7 +175,7 @@ def test_measurement_gate_diagram():
                 known_qubit_count=3,
                 use_unicode_characters=True,
                 precision=None,
-                qubit_map=None,
+                label_map=None,
             ),
         )
         == cirq.CircuitDiagramInfo(("M('a')", 'M', 'M'))

@@ -29,7 +29,7 @@ no_precision = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=None,
-    qubit_map=None,
+    label_map=None,
 )
 
 round_to_6_prec = cirq.CircuitDiagramInfoArgs(
@@ -37,7 +37,7 @@ round_to_6_prec = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=6,
-    qubit_map=None,
+    label_map=None,
 )
 
 round_to_2_prec = cirq.CircuitDiagramInfoArgs(
@@ -45,7 +45,7 @@ round_to_2_prec = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=2,
-    qubit_map=None,
+    label_map=None,
 )
 
 
@@ -498,7 +498,7 @@ def test_reset_act_on():
         target_tensor=cirq.one_hot(
             index=(1, 1, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
-        available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
+        available_buffer=np.empty(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},

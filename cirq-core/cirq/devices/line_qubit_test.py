@@ -214,11 +214,9 @@ def test_neg():
 
 def test_json_dict():
     assert cirq.LineQubit(5)._json_dict_() == {
-        'cirq_type': 'LineQubit',
         'x': 5,
     }
     assert cirq.LineQid(5, 3)._json_dict_() == {
-        'cirq_type': 'LineQid',
         'x': 5,
         'dimension': 3,
     }

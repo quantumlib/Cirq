@@ -1,0 +1,62 @@
+[
+  {
+    "cirq_type": "Gateset",
+    "gates": [
+      {
+        "cirq_type": "GateFamily",
+        "gate": "YPowGate",
+        "name": "Type GateFamily: cirq.ops.common_gates.YPowGate",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.YPowGate)`",
+        "ignore_global_phase": true
+      },
+      {
+        "cirq_type": "AnyUnitaryGateFamily",
+        "num_qubits": 2
+      },
+      {
+        "cirq_type": "GateFamily",
+        "gate": {
+          "cirq_type": "_PauliX",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        "name": "Instance GateFamily: X",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `g == X`",
+        "ignore_global_phase": true
+      }
+    ],
+    "name": null,
+    "unroll_circuit_op": true,
+    "accept_global_phase_op": true
+  },
+  {
+    "cirq_type": "Gateset",
+    "gates": [
+      {
+        "cirq_type": "GateFamily",
+        "gate": {
+          "cirq_type": "_PauliX",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        "name": "Instance GateFamily: X",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `g == X`",
+        "ignore_global_phase": true
+      },
+      {
+        "cirq_type": "GateFamily",
+        "gate": "YPowGate",
+        "name": "Type GateFamily: cirq.ops.common_gates.YPowGate",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.YPowGate)`",
+        "ignore_global_phase": true
+      },
+      {
+        "cirq_type": "AnyUnitaryGateFamily",
+        "num_qubits": 2
+      }
+    ],
+    "name": "Custom Name",
+    "unroll_circuit_op": false,
+    "accept_global_phase_op": false
+  }
+]
