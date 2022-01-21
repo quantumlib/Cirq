@@ -264,33 +264,40 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
         Returns:
             A dict of bitstrings sampled from the final state of `circuit` to
             the number of occurrences of that bitstring.
+
+        Raises:
+            ValueError if 'circuit' has non-unitary elements, as differences
+            in behavior between amplitude-sampling steps break this algorithm.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        circuit += ops.Moment(ops.I(q) for q in qubits)
         qmap = {q: i for i, q in enumerate(qubits)}
-        op_list = [
-            protocols.resolve_parameters(op, param_resolver) for moment in circuit for op in moment
-        ]
         current_samples = {(0,) * len(qubits): repetitions}
-        for t, op in enumerate(op_list):
-            new_samples: Dict[Tuple[int, ...], int] = collections.defaultdict(int)
-            for current_sample, count in current_samples.items():
+        solved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        if not protocols.has_unitary(solved_circuit):
+            raise ValueError("sample_from_amplitudes does not support non-unitary behavior.")
+        for m_id, moment in enumerate(solved_circuit):
+            if m_id == 0:
+                continue  # skip the identities moment
+            circuit_prefix = circuit[:m_id]
+            for t, op in enumerate(moment.operations):
+                new_samples: Dict[Tuple[int, ...], int] = collections.defaultdict(int)
                 qubit_indices = {qmap[q] for q in op.qubits}
-                sample_set = [current_sample]
-                for idx in qubit_indices:
-                    sample_set = [
-                        target[:idx] + (result,) + target[idx + 1 :]
-                        for target in sample_set
-                        for result in [0, 1]
-                    ]
-                bitstrings = [int(''.join(map(str, sample)), base=2) for sample in sample_set]
-                subcircuit = circuits.Circuit(op_list[: t + 1])
-                missed_qubits = [q for q in qubits if q not in subcircuit.all_qubits()]
-                subcircuit.append([ops.I(q) for q in missed_qubits])
-                amps = self.compute_amplitudes(subcircuit, bitstrings, qubit_order=qubit_order)
-                subsample = random.choices(sample_set, weights=[abs(a) for a in amps], k=count)
-                for sample in subsample:
-                    new_samples[sample] += 1
-            current_samples = new_samples
+                subcircuit = circuit_prefix + ops.Moment(moment.operations[: t + 1])
+                for current_sample, count in current_samples.items():
+                    sample_set = [current_sample]
+                    for idx in qubit_indices:
+                        sample_set = [
+                            target[:idx] + (result,) + target[idx + 1 :]
+                            for target in sample_set
+                            for result in [0, 1]
+                        ]
+                    bitstrings = [int(''.join(map(str, sample)), base=2) for sample in sample_set]
+                    amps = self.compute_amplitudes(subcircuit, bitstrings, qubit_order=qubit_order)
+                    subsample = random.choices(sample_set, weights=[abs(a) for a in amps], k=count)
+                    for sample in subsample:
+                        new_samples[sample] += 1
+                current_samples = new_samples
 
         return {int(''.join(map(str, k)), base=2): v for k, v in current_samples.items()}
 

@@ -901,6 +901,24 @@ def test_sample_from_amplitudes():
     assert 3 not in result
 
 
+def test_sample_from_amplitudes_nonunitary_fails():
+    q0, q1 = cirq.LineQubit.range(2)
+    sim = cirq.Simulator(seed=1)
+
+    circuit1 = cirq.Circuit(cirq.H(q0), cirq.measure(q0, key='m'))
+    with pytest.raises(ValueError, match='does not support non-unitary'):
+        _ = sim.sample_from_amplitudes(circuit1, {})
+
+    circuit2 = cirq.Circuit(
+        cirq.H(q0),
+        cirq.CNOT(q0, q1),
+        cirq.amplitude_damp(0.01)(q0),
+        cirq.amplitude_damp(0.01)(q1),
+    )
+    with pytest.raises(ValueError, match='does not support non-unitary'):
+        _ = sim.sample_from_amplitudes(circuit2, {})
+
+
 def test_run_sweep_parameters_not_resolved():
     a = cirq.LineQubit(0)
     simulator = cirq.Simulator()
