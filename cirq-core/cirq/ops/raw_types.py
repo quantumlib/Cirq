@@ -740,7 +740,7 @@ class TaggedOperation(Operation):
         return protocols.has_unitary(self.sub_operation)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        return protocols.unitary(self.sub_operation, default=None)
+        return protocols.unitary(self.sub_operation, NotImplemented)
 
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
@@ -776,7 +776,7 @@ class TaggedOperation(Operation):
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
+    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
         sub = getattr(self.sub_operation, "_act_on_", None)
         if sub is not None:
             return sub(args)

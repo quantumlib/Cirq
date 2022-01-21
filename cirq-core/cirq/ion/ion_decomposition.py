@@ -23,7 +23,7 @@ from typing import Iterable, List, Optional, cast, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, linalg, protocols, optimizers, circuits
+from cirq import ops, linalg, protocols, optimizers, circuits, transformers
 from cirq.ion import ms
 
 if TYPE_CHECKING:
@@ -83,7 +83,7 @@ def _kak_decomposition_to_operations(
 
 
 def _do_single_on(u: np.ndarray, q: 'cirq.Qid', atol: float = 1e-8):
-    for gate in optimizers.single_qubit_matrix_to_gates(u, atol):
+    for gate in transformers.single_qubit_matrix_to_gates(u, atol):
         yield gate(q)
 
 

@@ -15,6 +15,7 @@
 from typing import Any, cast, Iterable, List, Optional, Set, TYPE_CHECKING, FrozenSet
 
 import cirq
+from cirq import _compat
 from cirq_google.optimizers import convert_to_xmon_gates
 
 if TYPE_CHECKING:
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 
 
 @cirq.value_equality
-class XmonDevice(cirq.Device):
+class _XmonDeviceBase(cirq.Device):
     """A device with qubits placed in a grid. Neighboring qubits can interact."""
 
     def __init__(
@@ -213,3 +214,9 @@ def _verify_unique_measurement_keys(operations: Iterable[cirq.Operation]):
             if key in seen:
                 raise ValueError(f'Measurement key {key} repeated')
             seen.add(key)
+
+
+@_compat.deprecated_class(deadline='v0.15', fix='XmonDevice will no longer be supported.')
+class XmonDevice(_XmonDeviceBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

@@ -104,6 +104,11 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             ]
         return NotImplemented
 
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.OP_TREE':
+        yield common_gates.YPowGate(exponent=-0.5).on_each(*qubits)
+        yield ZZPowGate(exponent=self.exponent, global_shift=self.global_shift)(*qubits)
+        yield common_gates.YPowGate(exponent=0.5).on_each(*qubits)
+
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
@@ -215,6 +220,11 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
                 SingleQubitCliffordGate.Y_nsqrt.on_each(*qubits),
             ]
         return NotImplemented
+
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.OP_TREE':
+        yield common_gates.XPowGate(exponent=0.5).on_each(*qubits)
+        yield ZZPowGate(exponent=self.exponent, global_shift=self.global_shift)(*qubits)
+        yield common_gates.XPowGate(exponent=-0.5).on_each(*qubits)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'

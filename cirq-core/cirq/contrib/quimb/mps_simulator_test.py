@@ -223,6 +223,17 @@ def test_measurement_1qubit():
     assert sum(result.measurements['1'])[0] > 20
 
 
+def test_reset():
+    q = cirq.LineQubit(0)
+    simulator = ccq.mps_simulator.MPSSimulator()
+    c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q))
+    assert simulator.sample(c)['0'][0] == 0
+    c = cirq.Circuit(cirq.H(q), cirq.reset(q), cirq.measure(q))
+    assert simulator.sample(c)['0'][0] == 0
+    c = cirq.Circuit(cirq.reset(q), cirq.measure(q))
+    assert simulator.sample(c)['0'][0] == 0
+
+
 def test_measurement_2qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q2), cirq.measure(q0, q2))

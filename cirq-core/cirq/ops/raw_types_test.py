@@ -610,6 +610,9 @@ def test_tagged_operation_forwards_protocols():
     assert cirq.resolve_parameters_once(parameterized_op, resolver) == cirq.XPowGate(exponent=0.25)(
         q1
     ).with_tags(tag)
+    assert parameterized_op._unitary_() is NotImplemented
+    assert parameterized_op._mixture_() is NotImplemented
+    assert parameterized_op._kraus_() is NotImplemented
 
     y = cirq.Y(q1)
     tagged_y = cirq.Y(q1).with_tags(tag)

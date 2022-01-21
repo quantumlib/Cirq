@@ -1,4 +1,17 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
+# Copyright 2022 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import itertools
 import random
 from typing import Any
@@ -7,12 +20,23 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.optimizers.two_qubit_to_fsim import (
+from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
     _decompose_two_qubit_interaction_into_two_b_gates,
     _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops,
     _sticky_0_to_1,
     _B,
 )
+
+ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+
+
+def test_deprecated_submodule():
+    with cirq.testing.assert_deprecated(
+        "Use cirq.transformers.analytical_decompositions.two_qubit_to_fsim instead",
+        deadline="v0.16",
+    ):
+        _ = cirq.optimizers.two_qubit_to_fsim.decompose_two_qubit_interaction_into_four_fsim_gates
+
 
 UNITARY_OBJS = [
     cirq.IdentityGate(2),

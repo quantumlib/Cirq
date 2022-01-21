@@ -18,6 +18,16 @@ import numpy as np
 import cirq
 from cirq.testing import assert_allclose_up_to_global_phase
 
+ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+
+
+def test_deprecated_submodule():
+    with cirq.testing.assert_deprecated(
+        "Use cirq.transformers.analytical_decompositions.clifford_decomposition instead",
+        deadline="v0.16",
+    ):
+        _ = cirq.optimizers.clifford_decomposition.decompose_clifford_tableau_to_operations
+
 
 def test_misaligned_qubits():
     qubits = cirq.LineQubit.range(1)

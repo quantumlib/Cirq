@@ -14,6 +14,7 @@
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
 import copy
+import inspect
 from typing import (
     Any,
     Dict,
@@ -26,6 +27,7 @@ from typing import (
     Optional,
     Iterator,
 )
+import warnings
 
 import numpy as np
 
@@ -44,10 +46,10 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def __init__(
         self,
-        prng: np.random.RandomState = None,
-        qubits: Sequence['cirq.Qid'] = None,
-        log_of_measurement_results: Dict[str, List[int]] = None,
-        classical_data: 'cirq.ClassicalDataStore' = None,
+        prng: Optional[np.random.RandomState] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
         ignore_measurement_results: bool = False,
     ):
         """Inits ActOnArgs.
@@ -116,14 +118,33 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Child classes that perform measurements should implement this with
         the implementation."""
 
-    def copy(self: TSelf) -> TSelf:
-        """Creates a copy of the object."""
+    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
+        """Creates a copy of the object.
+
+        Args:
+            deep_copy_buffers: If True, buffers will also be deep-copied.
+            Otherwise the copy will share a reference to the original object's
+            buffers.
+
+        Returns:
+            A copied instance.
+        """
         args = copy.copy(self)
-        self._on_copy(args)
+        if 'deep_copy_buffers' in inspect.signature(self._on_copy).parameters:
+            self._on_copy(args, deep_copy_buffers)
+        else:
+            warnings.warn(
+                (
+                    'A new parameter deep_copy_buffers has been added to ActOnArgs._on_copy(). '
+                    'The classes that inherit from ActOnArgs should support it before Cirq 0.15.'
+                ),
+                DeprecationWarning,
+            )
+            self._on_copy(args)
         args._classical_data = self._classical_data.copy()
         return args
 
-    def _on_copy(self: TSelf, args: TSelf):
+    def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
         """Subclasses should implement this with any additional state copy
         functionality."""
 
@@ -278,6 +299,10 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
         return iter(self.qubits)
+
+    @property
+    def can_represent_mixed_states(self) -> bool:
+        return False
 
 
 def strat_act_on_from_apply_decompose(

@@ -87,20 +87,6 @@ class GlobalPhaseGate(raw_types.Gate):
     def _has_stabilizer_effect_(self) -> bool:
         return True
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits):
-        from cirq.sim import clifford
-
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            # Since CliffordTableau does not keep track of the global phase,
-            # it's safe to just ignore it here.
-            return True
-
-        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            args.state.omega *= self.coefficient
-            return True
-
-        return NotImplemented
-
     def __str__(self) -> str:
         return str(self.coefficient)
 

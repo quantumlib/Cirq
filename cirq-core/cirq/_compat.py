@@ -493,7 +493,6 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     It is meant to be used as a wrapper around existing MetaPathFinder instances.
 
     Args:
-        finder: The finder to wrap.
         new_module_name: The new module's fully qualified name.
         old_module_name: The deprecated module's fully qualified name.
         deadline: The deprecation deadline.
@@ -503,35 +502,18 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
 
     def __init__(
         self,
-        finder: Any,
         new_module_name: str,
         old_module_name: str,
         deadline: str,
         broken_module_exception: Optional[BaseException],
     ):
-        """An aliasing module finder that uses an existing module finder to find a python
+        """An aliasing module finder that uses existing module finders to find a python
         module spec and intercept the execution of matching modules.
         """
-        self.finder = finder
         self.new_module_name = new_module_name
         self.old_module_name = old_module_name
         self.deadline = deadline
         self.broken_module_exception = broken_module_exception
-        # to cater for metadata path finders
-        # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
-        if hasattr(finder, "find_distributions"):
-
-            def find_distributions(context):
-                return self.finder.find_distributions(context)
-
-            self.find_distributions = find_distributions
-        if hasattr(finder, "invalidate_caches"):
-
-            def invalidate_caches() -> None:
-                return self.finder.invalidate_caches()
-
-            # mypy#2427
-            self.invalidate_caches = invalidate_caches  # type: ignore
 
     def find_spec(self, fullname: str, path: Any = None, target: Any = None) -> Any:
         """Finds the specification of a module.
@@ -547,8 +529,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
                 to the wrapped finder.
         """
         if fullname != self.old_module_name and not fullname.startswith(self.old_module_name + "."):
-            # if we are not interested in it, then just pass through to the wrapped finder
-            return self.finder.find_spec(fullname, path, target)
+            return None
 
         if self.broken_module_exception is not None:
             raise self.broken_module_exception
@@ -557,33 +538,8 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
 
         new_fullname = self.new_module_name + fullname[len(self.old_module_name) :]
 
-        # find the corresponding spec in the new structure
-        if fullname == self.old_module_name:
-            # this is the first time the deprecated module is being found
-            # which means that the new parent needs to be found first and under
-            # the new parent's path, we should be able to find the new name of
-            # the deprecated module
-            # this code is heavily inspired by importlib.util.find_spec
-            parent_name = new_fullname.rpartition('.')[0]
-            if parent_name:
-                parent = __import__(parent_name, fromlist=['__path__'])
-                # note that compared to importlib.util.find_spec we don't handle
-                # AttributeError here because it is not expected to happen in case
-                # of a DeprecatedModuleLoader - the new parent should exist and be
-                # a proper package
-                parent_path = parent.__path__
-            else:
-                parent_path = None
-            spec = self.finder.find_spec(new_fullname, parent_path, None)
-        else:
-            # we are finding a submodule of the parent of the deprecated module,
-            # which means that the parent was already found, and thus, `path` is
-            # correctly pointing to the module's parent in the new hierarchy
-            spec = self.finder.find_spec(
-                new_fullname,
-                path=path,
-                target=target,
-            )
+        # use normal import mechanism for the new module specs
+        spec = importlib.util.find_spec(new_fullname)
 
         # if the spec exists, return the DeprecatedModuleLoader that will do the loading as well
         # as set the alias(es) in sys.modules as necessary
@@ -666,21 +622,10 @@ def deprecated_submodule(
                 _BrokenModule(new_module_name, broken_module_exception),
             )
 
-    def wrap(finder: Any) -> Any:
-        # Sphinx looks for non-wrapped MockFinders
-        # so we have to check for them and not wrap them
-        if 'sphinx' in sys.modules:
-            from sphinx.ext.autodoc.mock import MockFinder
-
-            if isinstance(finder, MockFinder):
-                return finder
-        if not hasattr(finder, 'find_spec'):
-            return finder
-        return DeprecatedModuleFinder(
-            finder, new_module_name, old_module_name, deadline, broken_module_exception
-        )
-
-    sys.meta_path = [wrap(finder) for finder in sys.meta_path]
+    finder = DeprecatedModuleFinder(
+        new_module_name, old_module_name, deadline, broken_module_exception
+    )
+    sys.meta_path.append(finder)
 
 
 def _setup_deprecated_submodule_attribute(

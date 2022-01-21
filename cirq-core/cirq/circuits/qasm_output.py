@@ -211,8 +211,8 @@ class QasmOutput:
 
     def _generate_measurement_ids(self) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
         # Pick an id for the creg that will store each measurement
-        meas_key_id_map = {}  # type: Dict[str, str]
-        meas_comments = {}  # type: Dict[str, Optional[str]]
+        meas_key_id_map: Dict[str, str] = {}
+        meas_comments: Dict[str, Optional[str]] = {}
         meas_i = 0
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)

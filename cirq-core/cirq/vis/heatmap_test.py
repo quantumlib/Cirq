@@ -311,6 +311,7 @@ def test_colorbar(ax, position, size, pad):
     plt.close(fig2)
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_plot_updates_local_config():
     value_map_2d = {
         (grid_qubit.GridQubit(3, 2), grid_qubit.GridQubit(4, 2)): 0.004619111460557768,

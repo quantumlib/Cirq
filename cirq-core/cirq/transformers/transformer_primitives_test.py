@@ -325,6 +325,29 @@ def test_merge_operations_merges_connected_component():
     )
 
 
+@pytest.mark.parametrize('qubit_order', ([0, 1], [1, 0]))
+def test_merge_operations_deterministic_order(qubit_order):
+    q = cirq.LineQubit.range(2)
+    c_orig = cirq.Circuit(cirq.identity_each(*q), cirq.H.on_each(q[i] for i in qubit_order))
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───I───H───
+      │
+1: ───I───H───''',
+    )
+    c_new = cirq.merge_operations(
+        c_orig, lambda op1, op2: op2 if isinstance(op1.gate, cirq.IdentityGate) else None
+    )
+    cirq.testing.assert_has_diagram(
+        c_new,
+        '''
+0: ───H───────
+
+1: ───────H───''',
+    )
+
+
 @pytest.mark.parametrize("op_density", [0.1, 0.5, 0.9])
 def test_merge_operations_complexity(op_density):
     prng = cirq.value.parse_random_state(11011)
@@ -333,7 +356,7 @@ def test_merge_operations_complexity(op_density):
         lambda _, __: None,
         lambda op1, _: op1,
         lambda _, op2: op2,
-        lambda op1, op2: prng.choice([op1, op2, None]),
+        lambda op1, op2: (op1, op2, None)[prng.choice(3)],
     ]:
 
         def wrapped_merge_func(op1, op2):

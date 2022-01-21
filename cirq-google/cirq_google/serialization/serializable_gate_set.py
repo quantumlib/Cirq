@@ -273,6 +273,12 @@ class SerializableGateSet(serializer.Serializer):
                 return proto_msg
         raise ValueError(f'Cannot serialize CircuitOperation {op!r}')
 
+    @cirq._compat.deprecated_parameter(
+        deadline='v0.15',
+        fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,
+        parameter_desc='device',
+        match=lambda args, kwargs: 'device' in kwargs or len(args) > 2,
+    )
     def deserialize(
         self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
     ) -> cirq.Circuit:
@@ -322,10 +328,10 @@ class SerializableGateSet(serializer.Serializer):
                 constants=proto.constants,
                 deserialized_constants=deserialized_constants,
             )
-            return circuit if device is None else circuit.with_device(device)
+            if device is not None:
+                circuit._device = device  # coverage: ignore
+            return circuit
         if which == 'schedule':
-            if device is None:
-                raise ValueError('Deserializing schedule requires a device but None was given.')
             return self._deserialize_schedule(
                 proto.schedule, device, arg_function_language=proto.language.arg_function_language
             )
@@ -497,7 +503,7 @@ class SerializableGateSet(serializer.Serializer):
     def _deserialize_schedule(
         self,
         schedule_proto: v2.program_pb2.Schedule,
-        device: cirq.Device,
+        device: Optional[cirq.Device],
         *,
         arg_function_language: str,
     ) -> cirq.Circuit:
@@ -510,4 +516,8 @@ class SerializableGateSet(serializer.Serializer):
                     scheduled_op_proto.operation, arg_function_language=arg_function_language
                 )
             )
-        return cirq.Circuit(result, device=device)
+        ret = cirq.Circuit(result)
+        if device is None:
+            device = cirq.UNCONSTRAINED_DEVICE
+        ret._device = device
+        return ret

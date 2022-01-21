@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
+from typing import Any, Optional, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
 
 import numpy as np
 
@@ -40,11 +40,11 @@ class ActOnStateVectorArgs(ActOnArgs):
     def __init__(
         self,
         target_tensor: np.ndarray,
-        available_buffer: np.ndarray,
-        prng: np.random.RandomState = None,
-        log_of_measurement_results: Dict[str, Any] = None,
-        qubits: Sequence['cirq.Qid'] = None,
-        classical_data: 'cirq.ClassicalDataStore' = None,
+        available_buffer: Optional[np.ndarray] = None,
+        prng: Optional[np.random.RandomState] = None,
+        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits ActOnStateVectorArgs.
 
@@ -69,7 +69,10 @@ class ActOnStateVectorArgs(ActOnArgs):
         """
         super().__init__(prng, qubits, log_of_measurement_results, classical_data)
         self.target_tensor = target_tensor
-        self.available_buffer = available_buffer
+        if available_buffer is None:
+            self.available_buffer = np.empty_like(target_tensor)
+        else:
+            self.available_buffer = available_buffer
 
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.
@@ -177,9 +180,12 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return bits
 
-    def _on_copy(self, target: 'cirq.ActOnStateVectorArgs'):
+    def _on_copy(self, target: 'cirq.ActOnStateVectorArgs', deep_copy_buffers: bool = True):
         target.target_tensor = self.target_tensor.copy()
-        target.available_buffer = self.available_buffer.copy()
+        if deep_copy_buffers:
+            target.available_buffer = self.available_buffer.copy()
+        else:
+            target.available_buffer = self.available_buffer
 
     def _on_kronecker_product(
         self, other: 'cirq.ActOnStateVectorArgs', target: 'cirq.ActOnStateVectorArgs'

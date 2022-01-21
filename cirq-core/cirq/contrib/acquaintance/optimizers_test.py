@@ -11,26 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import pytest
-
 import cirq
 import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
 
 
 def test_remove_redundant_acquaintance_opportunities():
-    device = cca.UnconstrainedAcquaintanceDevice
     a, b, c, d, e = cirq.LineQubit.range(5)
     swap = cca.SwapPermutationGate()
 
-    with pytest.raises(TypeError):
-        ops = [cca.acquaint(a, b)]
-        strategy = cirq.Circuit(ops)
-        cca.remove_redundant_acquaintance_opportunities(strategy)
-
     ops = [cca.acquaint(a, b), cca.acquaint(a, b)]
-    strategy = cirq.Circuit(ops, device=device)
+    strategy = cirq.Circuit(ops)
     diagram_before = """
 0: ───█───█───
       │   │
@@ -47,7 +38,7 @@ def test_remove_redundant_acquaintance_opportunities():
     ct.assert_has_diagram(strategy, diagram_after)
 
     ops = [cca.acquaint(a, b), cca.acquaint(c, d), swap(d, e), swap(c, d), cca.acquaint(d, e)]
-    strategy = cirq.Circuit(ops, device=device)
+    strategy = cirq.Circuit(ops)
     diagram_before = """
 0: ───█───────────────────
       │
