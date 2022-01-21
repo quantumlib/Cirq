@@ -895,8 +895,8 @@ def test_sample_from_amplitudes():
     )
     sim = cirq.Simulator(seed=1)
     result = sim.sample_from_amplitudes(circuit, {'t': 1}, repetitions=100)
-    assert 40 < result[1] < 60
-    assert 40 < result[2] < 60
+    assert 35 < result[1] < 65
+    assert 35 < result[2] < 65
     assert 0 not in result
     assert 3 not in result
 
