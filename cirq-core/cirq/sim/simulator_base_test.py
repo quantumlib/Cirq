@@ -264,13 +264,15 @@ def test_run_no_reuse_buffer_warning():
             MockCountingActOnArgs,
         ]
     ):
-        def _create_partial_act_on_args(
+        def _create_partial_act_on_args_ex(
             self,
             initial_state: Any,
             qubits: Sequence['cirq.Qid'],
-            logs: Dict[str, Any],
+            classical_data: cirq.ClassicalDataStore,
         ) -> MockCountingActOnArgs:
-            return MockCountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
+            return MockCountingActOnArgs(
+                qubits=qubits, state=initial_state, classical_data=classical_data
+            )
 
         def _create_simulator_trial_result(
             self,
