@@ -14,21 +14,21 @@
 
 """Defines the API for circuit transformers in Cirq."""
 
-import textwrap
+import dataclasses
+import enum
 import functools
+import textwrap
 from typing import (
     Any,
     Tuple,
     Hashable,
     List,
     overload,
-    Protocol,
     Type,
     TYPE_CHECKING,
     TypeVar,
 )
-import dataclasses
-import enum
+from typing_extensions import Protocol
 
 if TYPE_CHECKING:
     import cirq
