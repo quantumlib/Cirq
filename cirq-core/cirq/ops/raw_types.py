@@ -573,7 +573,11 @@ class Operation(metaclass=abc.ABCMeta):
             return NotImplemented
 
         if hasattr(other, 'qubits') and set(self.qubits).isdisjoint(other.qubits):
-            return True
+            # This should also validate that measurement keys are disjoint once we allow repeated
+            # measurements. Search for same message in circuit.py.
+            return protocols.control_keys(self).isdisjoint(
+                protocols.measurement_key_objs(other)
+            ) and protocols.control_keys(other).isdisjoint(protocols.measurement_key_objs(self))
 
         from cirq import circuits
 
