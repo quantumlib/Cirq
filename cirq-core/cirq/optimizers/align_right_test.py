@@ -51,4 +51,4 @@ def test_classical_control():
     circuit = cirq.Circuit(
         cirq.H(q0), cirq.measure(q0, key='m'), cirq.X(q1).with_classical_controls('m')
     )
-    assert_optimizes(before=circuit, after=circuit)
+    assert_optimizes(before=circuit, after=circuit.copy())

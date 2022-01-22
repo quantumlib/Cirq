@@ -221,6 +221,9 @@ class Moment:
             if qubits.isdisjoint(frozenset(operation.qubits))
         )
 
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
+        return frozenset(k for op in self.operations for k in protocols.control_keys(op))
+
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return Moment(
             protocols.with_measurement_key_mapping(op, key_map)
