@@ -52,12 +52,12 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
         results = self.simulator.run_sweep(program, params, repetitions)
         for result in results:
             for bits in result.measurements.values():
-                with np.nditer(bits, op_flags=['readwrite']) as it:
-                    for x in it:
-                        if x == 0 and self.prng.uniform() < self.p0:
-                            x[...] = 1
-                        elif self.prng.uniform() < self.p1:
-                            x[...] = 0
+                rand_num = self.prng.uniform(size=bits.shape)
+                should_flip = np.logical_or(
+                    np.logical_and(bits == 0, rand_num < self.p0),
+                    np.logical_and(bits == 1, rand_num < self.p1),
+                )
+                bits[should_flip] ^= 1
         return results
 
 

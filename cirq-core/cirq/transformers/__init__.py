@@ -41,6 +41,14 @@ from cirq.transformers.heuristic_decompositions import (
     two_qubit_gate_product_tabulation,
 )
 
+from cirq.transformers.transformer_api import (
+    LogLevel,
+    TRANSFORMER,
+    TransformerContext,
+    TransformerLogger,
+    transformer,
+)
+
 from cirq.transformers.transformer_primitives import (
     map_moments,
     map_operations,
