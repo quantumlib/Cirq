@@ -983,7 +983,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: Type[np.number] = np.complex128,
+        dtype: Type[np.number] = np.complex64,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1060,7 +1060,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: Type[np.number] = np.complex128,
+        dtype: Type[np.number] = np.complex64,
     ) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
 
