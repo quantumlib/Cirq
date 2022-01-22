@@ -6,7 +6,7 @@ dataclasses; python_version < '3.7'
 duet~=0.2.0
 matplotlib~=3.0
 networkx~=2.4
-numpy~=1.19
+numpy~=1.16
 pandas
 sortedcontainers~=2.0
 scipy
