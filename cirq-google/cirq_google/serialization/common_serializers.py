@@ -459,6 +459,11 @@ SQRT_ISWAP_SERIALIZERS = [
         ),
     ),
     op_serializer.GateOpSerializer(
+        gate_type=cirq.IdentityGate,
+        serialized_gate_id='identity',
+        args=[],
+    ),
+    op_serializer.GateOpSerializer(
         gate_type=cirq.ISwapPowGate,
         serialized_gate_id='fsim_pi_4',
         args=[_phase_match_arg],
