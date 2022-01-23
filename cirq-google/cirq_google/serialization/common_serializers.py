@@ -461,7 +461,13 @@ SQRT_ISWAP_SERIALIZERS = [
     op_serializer.GateOpSerializer(
         gate_type=cirq.IdentityGate,
         serialized_gate_id='identity',
-        args=[],
+        args=[
+            op_serializer.SerializingArg(
+                serialized_name='num_qubits',
+                serialized_type=int,
+                op_getter=(lambda op: op.gate.num_qubits()),
+            ),
+        ],
     ),
     op_serializer.GateOpSerializer(
         gate_type=cirq.ISwapPowGate,
@@ -499,8 +505,14 @@ SQRT_ISWAP_DESERIALIZERS = [
     ),
     op_deserializer.GateOpDeserializer(
         serialized_gate_id='identity',
-        gate_constructor=lambda: cirq.IdentityGate(),
-        args=[],
+        gate_constructor=cirq.IdentityGate,
+        args=[
+            op_deserializer.DeserializingArg(
+                serialized_name='num_qubits',
+                constructor_arg_name='num_qubits',
+                default=1,
+            ),
+        ],
     ),
     op_deserializer.GateOpDeserializer(
         serialized_gate_id='inv_fsim_pi_4',
