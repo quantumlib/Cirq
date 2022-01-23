@@ -17,7 +17,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq.optimizers.measurement_transformers import _MeasurementQid
+from cirq.transformers.measurement_transformers import _MeasurementQid
 
 
 def assert_equivalent_to_deferred(circuit: cirq.Circuit):
@@ -67,7 +67,7 @@ def test_basic():
         deferred,
         cirq.Circuit(
             cirq.CX(q0, q_ma),
-            cirq.ControlledOperation([q_ma], cirq.X(q1)),
+            cirq.CX(q_ma, q1),
             cirq.measure(q_ma, key='a'),
             cirq.measure(q1, key='b'),
         ),
@@ -89,7 +89,7 @@ def test_extra_measurements():
         deferred,
         cirq.Circuit(
             cirq.CX(q0, q_ma),
-            cirq.ControlledOperation([q_ma], cirq.X(q1)),
+            cirq.CX(q_ma, q1),
             cirq.measure(q_ma, key='a'),
             cirq.measure(q0, key='b'),
             cirq.measure(q1, key='c'),
@@ -111,7 +111,7 @@ def test_extra_controlled_bits():
         deferred,
         cirq.Circuit(
             cirq.CX(q0, q_ma),
-            cirq.ControlledOperation([q_ma], cirq.CX(q0, q1)),
+            cirq.CCX(q_ma, q0, q1),
             cirq.measure(q_ma, key='a'),
             cirq.measure(q1, key='b'),
         ),
@@ -135,7 +135,7 @@ def test_extra_control_bits():
         cirq.Circuit(
             cirq.CX(q0, q_ma),
             cirq.CX(q0, q_mb),
-            cirq.ControlledOperation([q_ma, q_mb], cirq.X(q1)),
+            cirq.CCX(q_ma, q_mb, q1),
             cirq.measure(q_ma, key='a'),
             cirq.measure(q_mb, key='b'),
             cirq.measure(q1, key='c'),
@@ -161,7 +161,7 @@ def test_subcircuit():
         deferred,
         cirq.Circuit(
             cirq.CX(q0, q_m),
-            cirq.ControlledOperation([q_m], cirq.X(q1)),
+            cirq.CX(q_m, q1),
             cirq.measure(q_m, key='a'),
             cirq.measure(q1, key='b'),
         ),

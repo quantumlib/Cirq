@@ -14,7 +14,8 @@
 
 from typing import Any, Dict, List, Set, TYPE_CHECKING, TypeVar, Union
 
-from cirq import circuits, ops, value
+from cirq import circuits, ops, protocols, value
+from cirq.transformers import transformer_primitives
 
 if TYPE_CHECKING:
     import cirq
@@ -59,7 +60,7 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
     end of the circuit.
     """
 
-    circuit = circuits.CircuitOperation(circuit.freeze()).mapped_circuit(deep=True)
+    circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
     qubits_found: Set['cirq.Qid'] = set()
     terminal_measurements: Set['cirq.MeasurementKey'] = set()
     control_keys: Set['cirq.MeasurementKey'] = set()
@@ -67,8 +68,10 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
             key = value.MeasurementKey.parse_serialized(gate.key)
-            if key not in control_keys and not any(q in qubits_found for q in op.qubits):
+            if key not in control_keys and qubits_found.isdisjoint(op.qubits):
                 terminal_measurements.add(key)
+        elif protocols.is_measurement(op):
+            raise ValueError('Only standard MeasurementGate is supported.')
         elif isinstance(op, ops.ClassicallyControlledOperation):
             for c in op.classical_controls:
                 control_keys.update(c.keys)
@@ -98,10 +101,8 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
                     controls.extend(qubits)
                 else:
                     raise ValueError('Only KeyConditions are allowed.')
-            return ops.ControlledOperation(
-                controls=controls,
-                sub_operation=op.without_classical_controls(),
-                control_values=[tuple(range(1, q.dimension)) for q in controls],
+            return op.without_classical_controls().controlled_by(
+                *controls, control_values=[tuple(range(1, q.dimension)) for q in controls]
             )
         return op
 
@@ -117,7 +118,7 @@ CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='cirq.AbstractCircuit')
 def dephase_measurements(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
     """Changes all measurements to a dephase operation."""
 
-    def dephase(op: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def dephase(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
             key = value.MeasurementKey.parse_serialized(gate.key)
@@ -129,4 +130,4 @@ def dephase_measurements(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
             return op.replace(circuit=circuit)
         return op
 
-    return circuit.map_operations(dephase)
+    return transformer_primitives.map_operations(circuit, dephase)

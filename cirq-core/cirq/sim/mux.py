@@ -23,7 +23,7 @@ import numpy as np
 
 from cirq import circuits, protocols, study, devices, ops, value
 from cirq._doc import document
-from cirq.optimizers import measurement_transformers
+from cirq.transformers import measurement_transformers
 from cirq.sim import sparse_simulator, density_matrix_simulator
 from cirq.sim.clifford import clifford_simulator
 

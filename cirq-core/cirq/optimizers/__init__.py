@@ -46,11 +46,6 @@ from cirq.optimizers.expand_composite import (
     ExpandComposite,
 )
 
-from cirq.optimizers.measurement_transformers import (
-    defer_measurements,
-    dephase_measurements,
-)
-
 from cirq.optimizers.merge_interactions import (
     MergeInteractions,
 )

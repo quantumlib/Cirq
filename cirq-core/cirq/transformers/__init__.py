@@ -41,6 +41,11 @@ from cirq.transformers.heuristic_decompositions import (
     two_qubit_gate_product_tabulation,
 )
 
+from cirq.transformers.measurement_transformers import (
+    defer_measurements,
+    dephase_measurements,
+)
+
 from cirq.transformers.transformer_primitives import (
     map_moments,
     map_operations,

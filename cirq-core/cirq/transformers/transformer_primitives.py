@@ -253,7 +253,10 @@ def _check_circuit_op(op, tags_to_check: Optional[Sequence[Hashable]]):
 
 
 def unroll_circuit_op(
-    circuit: CIRCUIT_TYPE, *, tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,)
+    circuit: CIRCUIT_TYPE,
+    *,
+    tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,),
+    deep=False,
 ) -> CIRCUIT_TYPE:
     """Unrolls (tagged) `cirq.CircuitOperation`s while preserving the moment structure.
 
@@ -271,7 +274,15 @@ def unroll_circuit_op(
 
     def map_func(m: ops.Moment, _: int):
         to_zip = [
-            cast(circuits.CircuitOperation, op.untagged).mapped_circuit()
+            (
+                unroll_circuit_op(
+                    cast(circuits.CircuitOperation, op.untagged).mapped_circuit(),
+                    tags_to_check=tags_to_check,
+                    deep=True,
+                )
+                if deep
+                else cast(circuits.CircuitOperation, op.untagged).mapped_circuit()
+            )
             if _check_circuit_op(op, tags_to_check)
             else circuits.Circuit(op)
             for op in m
