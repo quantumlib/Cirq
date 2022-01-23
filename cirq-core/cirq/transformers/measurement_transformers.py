@@ -70,8 +70,6 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
             key = value.MeasurementKey.parse_serialized(gate.key)
             if key not in control_keys and qubits_found.isdisjoint(op.qubits):
                 terminal_measurements.add(key)
-        elif protocols.is_measurement(op):
-            raise ValueError('Only standard MeasurementGate is supported.')
         elif isinstance(op, ops.ClassicallyControlledOperation):
             for c in op.classical_controls:
                 control_keys.update(c.keys)
@@ -89,6 +87,8 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
             cxs = [ops.CX(q, target) for q, target in zip(op.qubits, targets)]
             xs = [ops.X(targets[i]) for i, b in enumerate(gate.invert_mask) if b]  # type: ignore
             return cxs + xs
+        elif protocols.is_measurement(op):
+            return [defer(op) for op in protocols.decompose_once(op)]
         elif isinstance(op, ops.ClassicallyControlledOperation):
             controls = []
             for c in op.classical_controls:
