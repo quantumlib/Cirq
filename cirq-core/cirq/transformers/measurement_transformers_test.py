@@ -88,8 +88,8 @@ def test_pauli():
         cirq.Circuit(
             cirq.SingleQubitCliffordGate.X_sqrt(q0),
             cirq.CX(q0, q_ma),
-            cirq.SingleQubitCliffordGate.X_sqrt(q0) ** -1,
-            cirq.CX(q_ma, q1),
+            (cirq.SingleQubitCliffordGate.X_sqrt(q0) ** -1),
+            cirq.Moment(cirq.CX(q_ma, q1)),
             cirq.measure(q_ma, key='a'),
             cirq.measure(q1, key='b'),
         ),
