@@ -160,7 +160,7 @@ def kraus(
 
     decomposed, qubits, _ = decompose_protocol._try_decompose_into_operations_and_qubits(val)
 
-    if decomposed is not None and decomposed != [val]:
+    if decomposed is not None and decomposed != [val] and decomposed != []:
 
         superoperator_list = [_moment_superoperator(x, qubits, None) for x in decomposed]
         if not any([x is None for x in superoperator_list]):
@@ -187,6 +187,8 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
 
     Determines whether `val` has a Kraus representation by attempting
     the following strategies:
+
+    #TODO
 
     1. Try to use `val._has_kraus_()`.
         Case a) Method not present or returns `None` or returns `False`.
@@ -230,8 +232,12 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
     Returns:
         Whether or not `val` has a Kraus representation.
     """
-    result = _gettr_helper(val, ['_has_kraus_', '_has_channel_', '_kraus_'])
-    if result is not None and result is not NotImplemented and result:
+    result = _gettr_helper(val, ['_has_kraus_', '_has_channel_'])
+    if result is not None and result is not NotImplemented:
+        return result
+
+    result = _gettr_helper(val, ['_kraus_'])
+    if result is not None and result is not NotImplemented:
         return True
 
     if mixture_protocol.has_mixture(val, allow_decompose=False):
@@ -252,7 +258,7 @@ def _moment_superoperator(
     return superoperator_result if superoperator_result is not NotImplemented else default
 
 
-def _gettr_helper(val: Any, gett_str_list: Sequence[str]):
+def _gettr_helper(val: Any, gett_str_list: Sequence[str]) -> Any:
     notImplementedFlag = False
     for gettr_str in gett_str_list:
         gettr = getattr(val, gettr_str, None)

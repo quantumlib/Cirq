@@ -36,6 +36,7 @@ def assert_kraus_is_consistent_with_unitary(val: Any, ignoring_global_phase: boo
 
     # there is unitary and hence must have kraus operator
     assert has_krs
+    assert len(krs) == 1
     actual = krs[0]
 
     if ignoring_global_phase:
