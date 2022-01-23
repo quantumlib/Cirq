@@ -584,8 +584,10 @@ class Operation(metaclass=abc.ABCMeta):
 
         from cirq import circuits
 
-        circuit12 = circuits.Circuit(self, other)
-        circuit21 = circuits.Circuit(other, self)
+        self_raw = self.without_classical_controls()
+        other_raw = other.without_classical_controls()
+        circuit12 = circuits.Circuit(self_raw, other_raw)
+        circuit21 = circuits.Circuit(other_raw, self_raw)
 
         # Don't create gigantic matrices.
         shape = protocols.qid_shape_protocol.qid_shape(circuit12)

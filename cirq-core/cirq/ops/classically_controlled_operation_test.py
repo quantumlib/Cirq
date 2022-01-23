@@ -820,7 +820,13 @@ def test_commutes():
     assert cirq.commutes(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('b'))
     assert cirq.commutes(cirq.X(q1).with_classical_controls('b'), cirq.measure(q0, key='a'))
     assert cirq.commutes(
-        cirq.X(q0).with_classical_controls('a'), cirq.X(q1).with_classical_controls('a')
+        cirq.X(q0).with_classical_controls('a'), cirq.H(q1).with_classical_controls('a')
+    )
+    assert cirq.commutes(
+        cirq.X(q0).with_classical_controls('a'), cirq.X(q0).with_classical_controls('a')
     )
     assert not cirq.commutes(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
     assert not cirq.commutes(cirq.X(q1).with_classical_controls('a'), cirq.measure(q0, key='a'))
+    assert not cirq.commutes(
+        cirq.X(q0).with_classical_controls('a'), cirq.H(q0).with_classical_controls('a')
+    )
