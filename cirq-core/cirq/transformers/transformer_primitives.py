@@ -267,6 +267,7 @@ def unroll_circuit_op(
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         tags_to_check: If specified, only circuit operations tagged with one of the `tags_to_check`
             are unrolled.
+        deep: If true, this will call unroll_circuit_op recursively.
 
     Returns:
         Copy of input circuit with (Tagged) CircuitOperation's expanded in a moment preserving way.
