@@ -65,6 +65,11 @@ from cirq.experiments.random_quantum_circuit_generation import (
     random_rotations_between_grid_interaction_layers_circuit,
 )
 
+from cirq.experiments.readout_confusion_matrix import (
+    TensoredConfusionMatrices,
+    measure_confusion_matrix,
+)
+
 from cirq.experiments.n_qubit_tomography import (
     get_state_tomography_data,
     state_tomography,

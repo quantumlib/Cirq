@@ -39,7 +39,7 @@ def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int, routes: i
 
     Returns: Pass-through from calculate_quantum_volume.
     """
-    device = cirq_google.Bristlecone
+    device = cirq_google.Sycamore
     compiler = lambda circuit: cirq_google.optimized_for_xmon(circuit=circuit)
     noisy = cirq.DensityMatrixSimulator(
         noise=cirq.ConstantQubitNoiseModel(qubit_noise_gate=cirq.DepolarizingChannel(p=0.005))
