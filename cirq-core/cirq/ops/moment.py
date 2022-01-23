@@ -103,7 +103,7 @@ class Moment:
 
         self._qubits = frozenset(self._qubit_to_op.keys())
         self._measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = None
-        self._control_keys: Optional[AbstractSet['cirq.MeasurementKey']] = None
+        self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
