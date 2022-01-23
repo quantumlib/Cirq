@@ -498,6 +498,11 @@ SQRT_ISWAP_DESERIALIZERS = [
         op_wrapper=lambda op, proto: _add_phase_match(op, proto),
     ),
     op_deserializer.GateOpDeserializer(
+        serialized_gate_id='identity',
+        gate_constructor=lambda: cirq.IdentityGate(),
+        args=[],
+    ),
+    op_deserializer.GateOpDeserializer(
         serialized_gate_id='inv_fsim_pi_4',
         gate_constructor=lambda: cirq.FSimGate(theta=-np.pi / 4, phi=0),
         args=[],
