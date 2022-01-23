@@ -57,7 +57,27 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
     """Implements the Deferred Measurement Principle.
 
     Uses the Deferred Measurement Principle to move all measurements to the
-    end of the circuit.
+    end of the circuit. All non-terminal measurements are changed to
+    conditional quantum gates onto ancilla qubits, and classically controlled
+    operations are transformed to quantum controls from those ancilla qubits.
+    Finally, measurements of all ancilla qubits are appended to the end of the
+    circuit.
+
+    Optimizing deferred measurements is an area of active research, and future
+    iterations may contain optimizations that reduce the number of ancilla
+    qubits, so one should not depend on the exact shape of the output from this
+    function. Only the logical equivalence is guaranteed to remain unchanged.
+    Moment and subcircuit structure is not preserved.
+
+    Args:
+        circuit: The circuit to transform. It will not be modified.
+    Returns:
+        A circuit with equivalent logic, but all measurements at the end of the
+        circuit.
+    Raises:
+        ValueError: If sympy-based classical conditions are used, or if
+            conditions based on multi-qubit measurements exist. (The latter of
+            these is planned to be implemented soon).
     """
 
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
@@ -97,6 +117,7 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
                     if len(qubits) != 1:
                         # TODO: Multi-qubit conditions require
                         # https://github.com/quantumlib/Cirq/issues/4512
+                        # Remember to update docstring above once this works.
                         raise ValueError('Only single qubit conditions are allowed.')
                     controls.extend(qubits)
                 else:
@@ -116,7 +137,24 @@ CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='cirq.AbstractCircuit')
 
 
 def dephase_measurements(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
-    """Changes all measurements to a dephase operation."""
+    """Changes all measurements to a dephase operation.
+
+    This transformer is useful when using a density matrix simulator, when
+    wishing to calculate the final density matrix of a circuit and not simulate
+    the measurements themselves.
+
+    Args:
+        circuit: The circuit to transform. It will not be modified.
+    Returns:
+        A copy of the circuit, with dephase operations in place of all
+        measurements.
+    Raises:
+        ValueError: If the circuit contains classical controls. In this case,
+            it is required to change these to quantum controls via
+            `cirq.defer_measurements` first. Since deferral adds ancilla qubits
+            to the circuit, this is not done automatically, to prevent
+            surprises.
+    """
 
     def dephase(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         gate = op.gate
