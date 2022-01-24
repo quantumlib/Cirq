@@ -288,7 +288,6 @@ def _execute_sample_2q_xeb_tasks_in_batches(
             for future in concurrent.futures.as_completed(futures):
                 new_records = future.result()
                 if dataset_directory is not None:
-                    os.makedirs(f'{dataset_directory}', exist_ok=True)
                     protocols.to_json(new_records, f'{dataset_directory}/xeb.{uuid.uuid4()}.json')
                 records.extend(new_records)
                 progress.update(batch_size)
@@ -358,6 +357,14 @@ def sample_2q_xeb_circuits(
     if shuffle is not None:
         shuffle = value.parse_random_state(shuffle)
         shuffle.shuffle(tasks)
+
+    # Initialize data saving
+    if dataset_directory is not None:
+        dataset_directory = f'{dataset_directory}'
+        if os.path.exists(dataset_directory):
+            raise ValueError(f"Dataset directory {dataset_directory} already exists.")
+        os.makedirs(dataset_directory)
+        protocols.to_json_gzip(circuits, f'{dataset_directory}/circuits.json.gz')
 
     # Batch and run tasks.
     records = _execute_sample_2q_xeb_tasks_in_batches(

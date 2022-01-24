@@ -102,7 +102,7 @@ def benchmark_2q_xeb_fidelities(
     pure_probs = np.array(df['pure_probs'].to_list())
     sampled_probs = np.array(df['sampled_probs'].to_list())
     df['e_u'] = np.sum(pure_probs ** 2, axis=1)
-    df['u_u'] = np.sum(pure_probs, axis=1) / D
+    df['u_u'] = 1.0 / D
     df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
     df['y'] = df['m_u'] - df['u_u']
     df['x'] = df['e_u'] - df['u_u']
