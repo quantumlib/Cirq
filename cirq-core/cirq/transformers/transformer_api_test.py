@@ -32,6 +32,50 @@ class MockTransformerClassCircuit:
         return circuit.unfreeze()
 
 
+@cirq.value_equality
+class CustomArg:
+    def __init__(self, x: int = 0):
+        self._x = x
+
+    def _value_equality_values_(self):
+        return (self._x,)
+
+
+@cirq.transformer
+class MockTransformerClassWithDefaultsCircuit:
+    def __init__(self):
+        self.mock = mock.Mock()
+
+    def __call__(
+        self,
+        circuit: cirq.AbstractCircuit,
+        context: cirq.TransformerContext,
+        *,
+        atol: float = 1e-4,
+        custom_arg: CustomArg = CustomArg(),
+    ) -> cirq.AbstractCircuit:
+        self.mock(circuit, context, atol, custom_arg)
+        return circuit[::-1]
+
+
+def make_circuit_transformer_func_with_defaults() -> cirq.TRANSFORMER:
+    my_mock = mock.Mock()
+
+    @cirq.transformer
+    def func(
+        circuit: cirq.AbstractCircuit,
+        context: cirq.TransformerContext,
+        *,
+        atol: float = 1e-4,
+        custom_arg: CustomArg = CustomArg(),
+    ) -> cirq.FrozenCircuit:
+        my_mock(circuit, context, atol, custom_arg)
+        return circuit.freeze()
+
+    func.mock = my_mock  # type: ignore
+    return func
+
+
 def make_circuit_transformer_func() -> cirq.TRANSFORMER:
     my_mock = mock.Mock()
 
@@ -53,10 +97,7 @@ def make_circuit_transformer_func() -> cirq.TRANSFORMER:
 )
 @pytest.mark.parametrize(
     'transformer',
-    [
-        MockTransformerClassCircuit(),
-        make_circuit_transformer_func(),
-    ],
+    [MockTransformerClassCircuit(), make_circuit_transformer_func()],
 )
 def test_transformer_decorator(context, transformer):
     circuit = cirq.Circuit(cirq.X(cirq.NamedQubit("a")))
@@ -68,6 +109,26 @@ def test_transformer_decorator(context, transformer):
         )
         context.logger.register_initial.assert_called_with(circuit, transformer_name)
         context.logger.register_final.assert_called_with(circuit, transformer_name)
+
+
+@pytest.mark.parametrize(
+    'transformer',
+    [
+        MockTransformerClassWithDefaultsCircuit(),
+        make_circuit_transformer_func_with_defaults(),
+    ],
+)
+def test_transformer_decorator_with_defaults(transformer):
+    circuit = cirq.Circuit(cirq.X(cirq.NamedQubit("a")))
+    context = cirq.TransformerContext()
+    transformer(circuit, context)
+    transformer.mock.assert_called_with(circuit, context, 1e-4, CustomArg())
+    transformer(circuit, context, atol=1e-3)
+    transformer.mock.assert_called_with(circuit, context, 1e-3, CustomArg())
+    transformer(circuit, context, custom_arg=CustomArg(10))
+    transformer.mock.assert_called_with(circuit, context, 1e-4, CustomArg(10))
+    transformer(circuit, context, atol=1e-2, custom_arg=CustomArg(12))
+    transformer.mock.assert_called_with(circuit, context, 1e-2, CustomArg(12))
 
 
 @cirq.transformer

@@ -274,14 +274,13 @@ def transformer(cls_or_func: Any) -> Any:
         method = cls.__call__
 
         @functools.wraps(method)
-        def method_with_logging(
-            self, circuit: 'cirq.AbstractCircuit', context: TransformerContext
-        ) -> 'cirq.AbstractCircuit':
+        def method_with_logging(self, circuit, context, **kwargs) -> 'cirq.AbstractCircuit':
             return _transform_and_log(
-                lambda circuit, context: method(self, circuit, context),
+                lambda circuit, context, **kwargs: method(self, circuit, context, **kwargs),
                 cls.__name__,
                 circuit,
                 context,
+                **kwargs,
             )
 
         setattr(cls, '__call__', method_with_logging)
@@ -291,22 +290,17 @@ def transformer(cls_or_func: Any) -> Any:
         func = cls_or_func
 
         @functools.wraps(func)
-        def func_with_logging(
-            circuit: 'cirq.AbstractCircuit', context: TransformerContext
-        ) -> 'cirq.AbstractCircuit':
-            return _transform_and_log(func, func.__name__, circuit, context)
+        def func_with_logging(circuit, context, **kwargs) -> 'cirq.AbstractCircuit':
+            return _transform_and_log(func, func.__name__, circuit, context, **kwargs)
 
         return func_with_logging
 
 
 def _transform_and_log(
-    func: TRANSFORMER,
-    transformer_name: str,
-    circuit: 'cirq.AbstractCircuit',
-    context: TransformerContext,
+    func, transformer_name, circuit, context, **kwargs
 ) -> 'cirq.AbstractCircuit':
     """Helper to log initial and final circuits before and after calling the transformer."""
     context.logger.register_initial(circuit, transformer_name)
-    transformed_circuit = func(circuit, context)
+    transformed_circuit = func(circuit, context, **kwargs)
     context.logger.register_final(transformed_circuit, transformer_name)
     return transformed_circuit
