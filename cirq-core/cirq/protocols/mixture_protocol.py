@@ -12,15 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Protocol for objects that are mixtures (probabilistic combinations)."""
-from typing import Any, Sequence, Tuple, Union
+from typing import Any, Sequence, Tuple, Union, TYPE_CHECKING, TypeVar
+from functools import reduce
 
 import numpy as np
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
-from cirq.protocols.has_unitary_protocol import has_unitary
+from cirq.protocols.decompose_protocol import (
+    _try_decompose_into_operations_and_qubits,
+)
+from cirq.protocols import has_unitary_protocol, unitary_protocol
 from cirq.type_workarounds import NotImplementedType
+
+from cirq import qis
+from cirq.ops import Moment
+
+if TYPE_CHECKING:
+    import cirq
+
+TDefault = TypeVar('TDefault')
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -62,7 +73,7 @@ class SupportsMixture(Protocol):
 
 def mixture(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
-) -> Sequence[Tuple[float, np.ndarray]]:
+) -> Union[Sequence[Tuple[float, np.ndarray]], TDefault]:
     """Return a sequence of tuples representing a probabilistic unitary.
 
     A mixture is described by an iterable of tuples of the form
@@ -86,20 +97,28 @@ def mixture(
             does and this method returned `NotImplemented`.
     """
 
-    mixture_getter = getattr(val, '_mixture_', None)
-    result = NotImplemented if mixture_getter is None else mixture_getter()
-    if result is not NotImplemented:
-        return result
+    mixture_result = _gettr_helper(val, ['_mixture_'])
+    if mixture_result is not None and mixture_result is not NotImplemented:
+        return mixture_result
 
-    unitary_getter = getattr(val, '_unitary_', None)
-    result = NotImplemented if unitary_getter is None else unitary_getter()
-    if result is not NotImplemented:
-        return ((1.0, result),)
+    unitary_result = unitary_protocol.unitary(val, None)
+    if unitary_result is not None and unitary_result is not NotImplemented:
+        return ((1.0, unitary_result),)
+
+    decomposed, qubits, _ = _try_decompose_into_operations_and_qubits(val)
+
+    # serial concatenation
+    if decomposed is not None and decomposed != [val] and decomposed != []:
+
+        superoperator_list = [_moment_superoperator(x, qubits, None) for x in decomposed]
+        if not any([x is None for x in superoperator_list]):
+            superoperator_result = reduce(lambda x, y: x @ y, superoperator_list)
+            return tuple(_superoperator_to_mixture(superoperator_result))
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if mixture_getter is None and unitary_getter is None:
+    if _gettr_helper(val, ['_unitary_', '_mixture_']) is None:
         raise TypeError(f"object of type '{type(val)}' has no _mixture_ or _unitary_ method.")
 
     raise TypeError(
@@ -127,12 +146,11 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
         has a `_mixture_` method return True if that has a non-default value.
         Returns False if neither function exists.
     """
-    mixture_getter = getattr(val, '_has_mixture_', None)
-    result = NotImplemented if mixture_getter is None else mixture_getter()
-    if result is not NotImplemented:
-        return result
+    result = _gettr_helper(val, ['_has_mixture_', '_mixture_'])
+    if result is not None and result is not NotImplemented and result:
+        return True
 
-    if has_unitary(val, allow_decompose=False):
+    if has_unitary_protocol.has_unitary(val, allow_decompose=False):
         return True
 
     if allow_decompose:
@@ -140,8 +158,7 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
         if operations is not None:
             return all(has_mixture(val) for val in operations)
 
-    # No _has_mixture_ or _has_unitary_ function, use _mixture_ instead.
-    return mixture(val, None) is not None
+    return False
 
 
 def validate_mixture(supports_mixture: SupportsMixture):
@@ -162,3 +179,36 @@ def validate_mixture(supports_mixture: SupportsMixture):
         total += p
     if not np.isclose(total, 1.0):
         raise ValueError('Sum of probabilities of a mixture was not 1.0')
+
+
+def _superoperator_to_mixture(superoperator: np.ndarray) -> Sequence[Tuple[float, np.ndarray]]:
+    kraus = tuple(qis.superoperator_to_kraus(superoperator))
+    mixture = []
+    for k in kraus:
+        # $U^\dag U = I, \Sigma_i |\lambda_i|^2 = d$ where $d$ is the size.
+        p = np.sum(np.abs(np.linalg.eigvals(k)) ** 2) / np.shape(k)[0]
+        mixture.append((p, k / (p ** 0.5)))
+
+    return mixture
+
+
+def _moment_superoperator(op: 'cirq.Operation', qubits: Sequence['cirq.Qid'], default: Any) -> Any:
+    superoperator_result = Moment(op).expand_to(qubits)._superoperator_()
+    return superoperator_result if superoperator_result is not NotImplemented else default
+
+
+def _gettr_helper(val: Any, gett_str_list: Sequence[str]):
+    notImplementedFlag = False
+    for gettr_str in gett_str_list:
+        gettr = getattr(val, gettr_str, None)
+        if gettr is None:
+            continue
+        result = gettr()
+        if result is NotImplemented:
+            notImplementedFlag = True
+        elif result is not None:
+            return result
+
+    if notImplementedFlag:
+        return NotImplemented
+    return None
