@@ -274,7 +274,9 @@ def transformer(cls_or_func: Any) -> Any:
         method = cls.__call__
 
         @functools.wraps(method)
-        def method_with_logging(self, circuit, context):
+        def method_with_logging(
+            self, circuit: 'cirq.AbstractCircuit', context: TransformerContext
+        ) -> 'cirq.AbstractCircuit':
             return _transform_and_log(
                 lambda circuit, context: method(self, circuit, context),
                 cls.__name__,
@@ -289,7 +291,9 @@ def transformer(cls_or_func: Any) -> Any:
         func = cls_or_func
 
         @functools.wraps(func)
-        def func_with_logging(circuit, context):
+        def func_with_logging(
+            circuit: 'cirq.AbstractCircuit', context: TransformerContext
+        ) -> 'cirq.AbstractCircuit':
             return _transform_and_log(func, func.__name__, circuit, context)
 
         return func_with_logging
