@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.linalg import transformations
 import numpy as np
 import pytest
 
@@ -50,7 +49,7 @@ def test_default_parameter_error():
 
 def test_infer_target_tensor():
     args = cirq.ActOnDensityMatrixArgs(
-        initial_state=np.array([[1, 0], [0, 0]], dtype=np.complex64),
+        target_tensor=np.array([[1, 0], [0, 0]], dtype=np.complex64),
         qubits=cirq.LineQubit.range(1),
     )
     np.testing.assert_almost_equal(
@@ -59,7 +58,7 @@ def test_infer_target_tensor():
     )
 
     args = cirq.ActOnDensityMatrixArgs(
-        initial_state=1,
+        target_tensor=1,
         qubits=cirq.LineQubit.range(1),
     )
     np.testing.assert_almost_equal(
@@ -117,13 +116,13 @@ def test_cannot_act():
 
 def test_with_qubits():
     original = cirq.ActOnDensityMatrixArgs(
-        initial_state=1,
+        target_tensor=1,
         qubits=cirq.LineQubit.range(1),
     )
     extened = original.with_qubits(cirq.LineQubit.range(1, 2))
     np.testing.assert_almost_equal(
         extened.target_tensor,
-        transformations.density_matrix_kronecker_product(
+        cirq.density_matrix_kronecker_product(
             np.array([[0, 0], [0, 1]], dtype=np.complex64),
             np.array([[1, 0], [0, 0]], dtype=np.complex64),
         ),

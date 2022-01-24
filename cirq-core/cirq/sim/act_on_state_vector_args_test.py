@@ -30,7 +30,7 @@ def test_default_parameter():
 
 def test_infer_target_tensor():
     args = cirq.ActOnStateVectorArgs(
-        initial_state=np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64),
+        target_tensor=np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64),
         qubits=cirq.LineQubit.range(2),
     )
     np.testing.assert_almost_equal(
@@ -39,7 +39,7 @@ def test_infer_target_tensor():
     )
 
     args = cirq.ActOnStateVectorArgs(
-        initial_state=0,
+        target_tensor=0,
         qubits=cirq.LineQubit.range(2),
     )
     np.testing.assert_almost_equal(
@@ -104,13 +104,13 @@ def test_act_using_probabilistic_single_qubit_channel():
                 cirq.unitary(cirq.X) * np.sqrt(2 / 3),
             ]
 
-    initial_state = cirq.testing.random_superposition(dim=16).reshape((2,) * 4)
+    target_tensor = cirq.testing.random_superposition(dim=16).reshape((2,) * 4)
     mock_prng = mock.Mock()
 
     mock_prng.random.return_value = 1 / 3 + 1e-6
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=np.copy(initial_state),
-        available_buffer=np.empty_like(initial_state),
+        target_tensor=np.copy(target_tensor),
+        available_buffer=np.empty_like(target_tensor),
         qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
         log_of_measurement_results={},
@@ -120,7 +120,7 @@ def test_act_using_probabilistic_single_qubit_channel():
         args.target_tensor.reshape(16),
         cirq.final_state_vector(
             cirq.X(cirq.LineQubit(2)) ** -1,
-            initial_state=initial_state,
+            initial_state=target_tensor,
             qubit_order=cirq.LineQubit.range(4),
         ),
         atol=1e-8,
@@ -128,8 +128,8 @@ def test_act_using_probabilistic_single_qubit_channel():
 
     mock_prng.random.return_value = 1 / 3 - 1e-6
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=np.copy(initial_state),
-        available_buffer=np.empty_like(initial_state),
+        target_tensor=np.copy(target_tensor),
+        available_buffer=np.empty_like(target_tensor),
         qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
         log_of_measurement_results={},
@@ -139,7 +139,7 @@ def test_act_using_probabilistic_single_qubit_channel():
         args.target_tensor.reshape(16),
         cirq.final_state_vector(
             cirq.S(cirq.LineQubit(2)),
-            initial_state=initial_state,
+            initial_state=target_tensor,
             qubit_order=cirq.LineQubit.range(4),
         ),
         atol=1e-8,
@@ -291,7 +291,7 @@ def test_measured_mixture():
 
 def test_with_qubits():
     original = cirq.ActOnStateVectorArgs(
-        initial_state=1,
+        target_tensor=1,
         qubits=cirq.LineQubit.range(2),
     )
     extened = original.with_qubits(cirq.LineQubit.range(2, 4))

@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional, Sequence
-from cirq.sim.clifford.clifford_simulator import CliffordState
+from typing import Any, Dict, TYPE_CHECKING, List, Optional, Sequence, Union
 
 import numpy as np
 
-import cirq
 from cirq import value, ops, protocols
 from cirq.ops import common_gates, pauli_gates
 from cirq.ops import global_phase_op
+from cirq.sim.clifford import clifford_simulator
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
@@ -29,8 +31,7 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
 
     def __init__(
         self,
-        state: Optional['cirq.StabilizerStateChForm'] = None,
-        initial_state: int = 0,
+        state: Union['cirq.StabilizerStateChForm', int] = 0,
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, Any]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
@@ -38,10 +39,9 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
         """Initializes with the given state and the axes for the operation.
 
         Args:
-            state: The StabilizerStateChForm to act on. Operations are expected
-                to perform inplace edits of this object.
-            initial_state: The initial state for the simulation in the
-                computational basis. Only used when `state` is None.
+            state: The StabilizerStateChForm to act on or the initial state for
+                the simulation in the computational basis. Operations are
+                expected to perform inplace edits of this object.
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
@@ -51,9 +51,9 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
                 being recorded into.
         """
         super().__init__(prng, qubits, log_of_measurement_results)
-        if state is None:
+        if isinstance(state, int):
             qubit_map = {q: i for i, q in enumerate(self.qubits)}
-            self.state = CliffordState(qubit_map, initial_state=initial_state).ch_form
+            self.state = clifford_simulator.CliffordState(qubit_map, initial_state=state).ch_form
         else:
             self.state = state
 
@@ -75,9 +75,7 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
         for i in range(repetitions):
             op = ops.measure(*qubits, key=str(i))
             state = self.state.copy()
-            ch_form_args = ActOnStabilizerCHFormArgs(
-                state=state, prng=prng, log_of_measurement_results=measurements, qubits=self.qubits
-            )
+            ch_form_args = ActOnStabilizerCHFormArgs(state, prng, measurements, self.qubits)
             protocols.act_on(op, ch_form_args)
         return np.array(list(measurements.values()), dtype=bool)
 

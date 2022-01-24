@@ -134,6 +134,7 @@ from cirq.linalg import (
     block_diag,
     CONTROL_TAG,
     deconstruct_single_qubit_matrix_into_angles,
+    density_matrix_kronecker_product,
     diagonalize_real_symmetric_and_sorted_diagonal_matrices,
     diagonalize_real_symmetric_matrix,
     dot,
