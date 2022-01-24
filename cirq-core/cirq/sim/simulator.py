@@ -29,7 +29,6 @@ Simulator types include:
 
 import abc
 import collections
-import random
 from typing import (
     Any,
     Callable,
@@ -242,6 +241,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
         param_resolver: 'cirq.ParamResolver',
         repetitions: int = 1,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> Dict[int, int]:
         """Uses amplitude simulation to sample from the given circuit.
 
@@ -260,6 +260,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
+            seed: Random state to use as a seed. Defaults to a random seed.
 
         Returns:
             A dict of bitstrings sampled from the final state of `circuit` to
@@ -269,13 +270,16 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             ValueError: if 'circuit' has non-unitary elements, as differences
                 in behavior between sampling steps break this algorithm.
         """
+        prng = value.parse_random_state(seed)
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        base_circuit = circuit.unfreeze() + ops.Moment(ops.I(q) for q in qubits)
+        base_circuit = circuits.Circuit(ops.I(q) for q in qubits) + circuit.unfreeze()
         qmap = {q: i for i, q in enumerate(qubits)}
         current_samples = {(0,) * len(qubits): repetitions}
         solved_circuit = protocols.resolve_parameters(base_circuit, param_resolver)
         if not protocols.has_unitary(solved_circuit):
             raise ValueError("sample_from_amplitudes does not support non-unitary behavior.")
+        if protocols.is_measurement(solved_circuit):
+            raise ValueError("sample_from_amplitudes does not support intermediate measurement.")
         for m_id, moment in enumerate(solved_circuit):
             if m_id == 0:
                 continue  # skip the identities moment
@@ -294,9 +298,12 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
                         ]
                     bitstrings = [int(''.join(map(str, sample)), base=2) for sample in sample_set]
                     amps = self.compute_amplitudes(subcircuit, bitstrings, qubit_order=qubit_order)
-                    subsample = random.choices(sample_set, weights=[abs(a) for a in amps], k=count)
-                    for sample in subsample:
-                        new_samples[sample] += 1
+                    weights = [abs(a ** 2) for a in amps]
+                    norm = 1.0 / sum(weights)
+                    weights = [w * norm for w in weights]
+                    subsample = prng.choice(len(sample_set), p=weights, size=count)
+                    for sample_index in subsample:
+                        new_samples[sample_set[sample_index]] += 1
                 current_samples = new_samples
 
         return {int(''.join(map(str, k)), base=2): v for k, v in current_samples.items()}

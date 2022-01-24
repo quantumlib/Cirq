@@ -81,6 +81,20 @@ class SimulatesIntermediateStateVector(
             params=params, measurements=measurements, final_step_result=final_step_result
         )
 
+    def sample_from_amplitudes(
+        self,
+        circuit: 'cirq.AbstractCircuit',
+        param_resolver: 'cirq.ParamResolver',
+        repetitions: int = 1,
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> Dict[int, int]:
+        # Automates passing the simulator seed to sample_from_amplitudes.
+        seed = seed or self._prng
+        return super().sample_from_amplitudes(
+            circuit, param_resolver, repetitions, qubit_order, seed
+        )
+
     def compute_amplitudes_sweep_iter(
         self,
         program: 'cirq.AbstractCircuit',

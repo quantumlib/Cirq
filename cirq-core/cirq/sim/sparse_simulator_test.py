@@ -891,14 +891,45 @@ def test_sample_from_amplitudes():
     circuit = cirq.Circuit(
         cirq.H(q0),
         cirq.CNOT(q0, q1),
-        cirq.X(q1) ** sympy.Symbol('t'),
+        cirq.X(q1),
     )
     sim = cirq.Simulator(seed=1)
-    result = sim.sample_from_amplitudes(circuit, {'t': 1}, repetitions=100)
-    assert 35 < result[1] < 65
-    assert 35 < result[2] < 65
+    result = sim.sample_from_amplitudes(circuit, {}, repetitions=100)
+    assert 40 < result[1] < 60
+    assert 40 < result[2] < 60
     assert 0 not in result
     assert 3 not in result
+
+
+def test_sample_from_amplitudes_teleport():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    # Initialize q0 to some state, teleport it to q2, then clean up.
+    circuit = cirq.Circuit(
+        cirq.H(q1),
+        cirq.CNOT(q1, q2),
+        cirq.X(q0) ** sympy.Symbol('t'),
+        cirq.CNOT(q0, q1),
+        cirq.H(q0),
+        cirq.CNOT(q1, q2),
+        cirq.CZ(q0, q2),
+        cirq.H(q0),
+        cirq.H(q1),
+    )
+    sim = cirq.Simulator(seed=1)
+
+    # Full X, always produces |1) state
+    result_a = sim.sample_from_amplitudes(circuit, {'t': 1}, repetitions=100)
+    assert result_a == {1: 100}
+
+    # sqrt of X, produces 50:50 state
+    result_b = sim.sample_from_amplitudes(circuit, {'t': 0.5}, repetitions=100)
+    assert 40 < result_b[0] < 60
+    assert 40 < result_b[1] < 60
+
+    # X^(1/4), produces ~85:15 state
+    result_c = sim.sample_from_amplitudes(circuit, {'t': 0.25}, repetitions=100)
+    assert 80 < result_c[0]
+    assert result_c[1] < 20
 
 
 def test_sample_from_amplitudes_nonunitary_fails():
@@ -906,7 +937,7 @@ def test_sample_from_amplitudes_nonunitary_fails():
     sim = cirq.Simulator(seed=1)
 
     circuit1 = cirq.Circuit(cirq.H(q0), cirq.measure(q0, key='m'))
-    with pytest.raises(ValueError, match='does not support non-unitary'):
+    with pytest.raises(ValueError, match='does not support intermediate measurement'):
         _ = sim.sample_from_amplitudes(circuit1, {})
 
     circuit2 = cirq.Circuit(
