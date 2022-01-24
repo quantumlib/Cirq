@@ -263,6 +263,20 @@ def transformer(cls_or_func: Any) -> Any:
     >>>    ) -> cirq.Circuit:
     >>>        ...
 
+    Note that transformers which take additional parameters as `**kwargs`, with default values
+    specified for each keyword argument, are also supported. For example:
+
+    >>> @cirq.transformer
+    >>> def convert_to_sqrt_iswap(
+    >>>     circuit: cirq.AbstractCircuit,
+    >>>     context: cirq.TransformerContext,
+    >>>     *,
+    >>>     atol: float = 1e-8,
+    >>>     sqrt_iswap_gate: irq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
+    >>>     cleanup_operations: bool = True,
+    >>> ) -> cirq.Circuit:
+    >>>     pass
+
     Args:
         cls_or_func: The callable class or function to be decorated.
 
