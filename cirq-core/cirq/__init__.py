@@ -102,6 +102,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    TensoredConfusionMatrices,
     estimate_parallel_single_qubit_readout_errors,
     estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
@@ -114,6 +115,7 @@ from cirq.experiments import (
     generate_boixo_2018_supremacy_circuits_v2,
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
+    measure_confusion_matrix,
     xeb_fidelity,
 )
 
@@ -366,7 +368,11 @@ from cirq.transformers import (
     single_qubit_matrix_to_phased_x_z,
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
+    TRANSFORMER,
+    TransformerContext,
+    TransformerLogger,
     three_qubit_matrix_to_operations,
+    transformer,
     two_qubit_matrix_to_diagonal_and_operations,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,

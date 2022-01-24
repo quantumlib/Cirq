@@ -27,10 +27,15 @@ def assert_proto_dict_convert(gate: cirq.Gate, proto: operations_pb2.Operation, 
 
 
 def test_protobuf_round_trip():
-    device = cg.Foxtail
+    qubits = cirq.GridQubit.rect(1, 5)
     circuit = cirq.Circuit(
-        [cirq.X(q) ** 0.5 for q in device.qubits],
-        [cirq.CZ(q, q2) for q in [cirq.GridQubit(0, 0)] for q2 in device.neighbors_of(q)],
+        [cirq.X(q) ** 0.5 for q in qubits],
+        [
+            cirq.CZ(q, q2)
+            for q in [cirq.GridQubit(0, 0)]
+            for q, q2 in zip(qubits, qubits)
+            if q != q2
+        ],
     )
 
     protos = list(programs.circuit_as_schedule_to_protos(circuit))
@@ -39,7 +44,8 @@ def test_protobuf_round_trip():
 
 
 def test_protobuf_round_trip_device_deprecated():
-    device = cg.Foxtail
+    with cirq.testing.assert_deprecated('Foxtail', deadline='v0.15'):
+        device = cg.Foxtail
     circuit = cirq.Circuit(
         [cirq.X(q) ** 0.5 for q in device.qubits],
         [cirq.CZ(q, q2) for q in [cirq.GridQubit(0, 0)] for q2 in device.neighbors_of(q)],
