@@ -242,8 +242,8 @@ def transformer(cls_or_func: _TRANSFORMER_CLS_T) -> _TRANSFORMER_CLS_T:
 def transformer(cls_or_func: Any) -> Any:
     """Decorator to verify API and append logging functionality to transformer functions & classes.
 
-    A transformer is a callable that takes as inputs a cirq.AbstractCircuit and
-    cirq.TransformerContext, and returns another cirq.AbstractCircuit without
+    A transformer is a callable that takes as inputs a `cirq.AbstractCircuit` and
+    `cirq.TransformerContext`, and returns another `cirq.AbstractCircuit` without
     modifying the input circuit. A transformer could be a function, for example:
 
     >>> @cirq.transformer
@@ -259,7 +259,7 @@ def transformer(cls_or_func: Any) -> Any:
     >>>    def __init__(self):
     >>>        ...
     >>>    def __call__(
-    >>>        self, circuit: cirq.Circuit, context: cirq.TransformerContext
+    >>>        self, circuit: cirq.AbstractCircuit, context: cirq.TransformerContext
     >>>    ) -> cirq.Circuit:
     >>>        ...
 
