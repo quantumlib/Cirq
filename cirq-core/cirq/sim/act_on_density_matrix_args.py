@@ -84,8 +84,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             initial_matrix = qis.to_valid_density_matrix(
                 target_tensor, len(qubits_qid_shape), qid_shape=qubits_qid_shape, dtype=dtype
             )
-            if np.may_share_memory(initial_matrix, target_tensor):
-                initial_matrix = initial_matrix.copy()
             self.target_tensor = initial_matrix.reshape(qubits_qid_shape * 2)
 
         if available_buffer is None:
