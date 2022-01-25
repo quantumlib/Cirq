@@ -36,13 +36,13 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     def __init__(
         self,
         target_tensor: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
-        dtype: Type[np.number] = np.complex64,
         available_buffer: Optional[List[np.ndarray]] = None,
         qid_shape: Optional[Tuple[int, ...]] = None,
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, Any]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         ignore_measurement_results: bool = False,
+        dtype: Type[np.number] = np.complex64,
     ):
         """Inits ActOnDensityMatrixArgs.
 
@@ -52,9 +52,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 numpy array with one dimension for each qubit in the system.
                 Operations are expected to perform inplace edits of this
                 object.
-            dtype: The `numpy.dtype` of the inferred state vector. One of
-                `numpy.complex64` or `numpy.complex128`. Only used when
-                `target_tenson` is not `np.ndarray`.
             available_buffer: A workspace with the same shape and dtype as
                 `target_tensor`. Used by operations that cannot be applied to
                 `target_tensor` inline, in order to avoid unnecessary
@@ -71,6 +68,9 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 will treat measurement as dephasing instead of collapsing
                 process. This is only applicable to simulators that can
                 model dephasing.
+            dtype: The `numpy.dtype` of the inferred state vector. One of
+                `numpy.complex64` or `numpy.complex128`. Only used when
+                `target_tenson` is not `np.ndarray`.
 
         Raises:
             ValueError: The dimension of `target_tensor` is not divisible by 2

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from unittest import mock
-from cirq.linalg import transformations
 
 import numpy as np
 import pytest
@@ -297,7 +296,7 @@ def test_with_qubits():
     extened = original.with_qubits(cirq.LineQubit.range(2, 4))
     np.testing.assert_almost_equal(
         extened.target_tensor,
-        transformations.state_vector_kronecker_product(
+        cirq.state_vector_kronecker_product(
             np.array([0.0, 1.0, 0.0, 0.0], dtype=np.complex64),
             np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64),
         ),

@@ -204,9 +204,7 @@ class DensityMatrixSimulator(
         tensor = initial_matrix.reshape(qid_shape * 2)
         return act_on_density_matrix_args.ActOnDensityMatrixArgs(
             target_tensor=tensor,
-            available_buffer=[np.empty_like(tensor) for _ in range(3)],
             qubits=qubits,
-            qid_shape=qid_shape,
             prng=self._prng,
             log_of_measurement_results=logs,
             ignore_measurement_results=self._ignore_measurement_results,
