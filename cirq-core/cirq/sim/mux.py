@@ -23,7 +23,7 @@ import numpy as np
 
 from cirq import circuits, protocols, study, devices, ops, value
 from cirq._doc import document
-from cirq.transformers import measurement_transformers
+from cirq.transformers import measurement_transformers, transformer_api
 from cirq.sim import sparse_simulator, density_matrix_simulator
 from cirq.sim.clifford import clifford_simulator
 
@@ -283,7 +283,9 @@ def final_density_matrix(
             noise=noise,
             seed=seed,
         ).simulate(
-            program=measurement_transformers.dephase_measurements(circuit_like)
+            program=measurement_transformers.dephase_measurements(
+                circuit_like, transformer_api.TransformerContext()
+            )
             if ignore_measurement_results
             else circuit_like,
             initial_state=initial_state,

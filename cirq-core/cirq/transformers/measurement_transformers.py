@@ -15,7 +15,7 @@
 from typing import Any, Dict, List, Set, TYPE_CHECKING, TypeVar, Union
 
 from cirq import circuits, ops, protocols, value
-from cirq.transformers import transformer_primitives
+from cirq.transformers import transformer_api, transformer_primitives
 
 if TYPE_CHECKING:
     import cirq
@@ -53,7 +53,11 @@ class _MeasurementQid(ops.Qid):
         return f'_MeasurementQid({self._key!r}, {self._qid!r})'
 
 
-def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
+@transformer_api.transformer
+def defer_measurements(
+    circuit: 'cirq.AbstractCircuit',
+    context: 'cirq.TransformerContext' = transformer_api.TransformerContext(),
+) -> 'cirq.Circuit':
     """Implements the Deferred Measurement Principle.
 
     Uses the Deferred Measurement Principle to move all measurements to the
@@ -71,6 +75,8 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
 
     Args:
         circuit: The circuit to transform. It will not be modified.
+        context: `cirq.TransformerContext` storing common configurable options
+            for transformers.
     Returns:
         A circuit with equivalent logic, but all measurements at the end of the
         circuit.
@@ -136,7 +142,11 @@ def defer_measurements(circuit: 'cirq.AbstractCircuit') -> 'cirq.Circuit':
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='cirq.AbstractCircuit')
 
 
-def dephase_measurements(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
+@transformer_api.transformer
+def dephase_measurements(
+    circuit: CIRCUIT_TYPE,
+    context: 'cirq.TransformerContext' = transformer_api.TransformerContext(),
+) -> CIRCUIT_TYPE:
     """Changes all measurements to a dephase operation.
 
     This transformer is useful when using a density matrix simulator, when
@@ -145,6 +155,8 @@ def dephase_measurements(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
 
     Args:
         circuit: The circuit to transform. It will not be modified.
+        context: `cirq.TransformerContext` storing common configurable options
+            for transformers.
     Returns:
         A copy of the circuit, with dephase operations in place of all
         measurements.
@@ -164,7 +176,7 @@ def dephase_measurements(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
         elif isinstance(op, ops.ClassicallyControlledOperation):
             raise ValueError('Use cirq.defer_measurements first to remove classical controls.')
         elif isinstance(op, circuits.CircuitOperation):
-            circuit = dephase_measurements(op.circuit)
+            circuit = dephase_measurements(op.circuit, context)
             return op.replace(circuit=circuit)
         return op
 
