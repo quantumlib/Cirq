@@ -3,6 +3,7 @@
 pytest
 pytest-asyncio
 pytest-cov
+coverage<=6.2
 
 # for parallel testing notebooks
 pytest-xdist~=2.2.0
