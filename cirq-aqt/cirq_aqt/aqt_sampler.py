@@ -198,11 +198,10 @@ class AQTSampler(cirq.Sampler):
         # TODO: Use measurement name from circuit.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         meas_name = 'm'
-        assert isinstance(program.device, cirq.IonDevice)
         trial_results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             id_str = uuid.uuid1()
-            num_qubits = len(program.device.qubits)
+            num_qubits = len(program.all_qubits())
             json_str = self._generate_json(circuit=program, param_resolver=param_resolver)
             results = self._send_json(
                 json_str=json_str, id_str=id_str, repetitions=repetitions, num_qubits=num_qubits

@@ -1,0 +1,61 @@
+{
+  "cirq_type": "TensoredConfusionMatrices",
+  "confusion_matrices": [
+    [
+      [
+        0.6395,
+        0.1594,
+        0.1592,
+        0.0419
+      ],
+      [
+        0.5617,
+        0.2368,
+        0.1401,
+        0.0614
+      ],
+      [
+        0.5655,
+        0.1367,
+        0.2403,
+        0.0575
+      ],
+      [
+        0.4835,
+        0.2185,
+        0.2048,
+        0.0932
+      ]
+    ],
+    [
+      [
+        0.7999,
+        0.2001
+      ],
+      [
+        0.7046,
+        0.2954
+      ]
+    ]
+  ],
+  "measure_qubits": [
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      {
+        "cirq_type": "LineQubit",
+        "x": 1
+      }
+    ],
+    [
+      {
+        "cirq_type": "NamedQubit",
+        "name": "a"
+      }
+    ]
+  ],
+  "repetitions": 10000,
+  "timestamp": 1642630636.966274
+}

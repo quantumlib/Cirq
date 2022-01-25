@@ -28,7 +28,7 @@ class SupportsActOn(Protocol):
     """An object that explicitly specifies how to act on simulator states."""
 
     @doc_private
-    def _act_on_(self, args: 'cirq.ActOnArgs') -> Union[NotImplementedType, bool]:
+    def _act_on_(self, args: 'cirq.OperationTarget') -> Union[NotImplementedType, bool]:
         """Applies an action to the given argument, if it is a supported type.
 
         For example, unitary operations can implement an `_act_on_` method that
@@ -60,7 +60,7 @@ class SupportsActOnQubits(Protocol):
     @doc_private
     def _act_on_(
         self,
-        args: 'cirq.ActOnArgs',
+        args: 'cirq.OperationTarget',
         qubits: Sequence['cirq.Qid'],
     ) -> Union[NotImplementedType, bool]:
         """Applies an action to the given argument, if it is a supported type.

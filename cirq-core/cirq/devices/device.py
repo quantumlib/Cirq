@@ -13,7 +13,15 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterator, Iterable
+from typing import (
+    TYPE_CHECKING,
+    Optional,
+    AbstractSet,
+    cast,
+    FrozenSet,
+    Iterator,
+    Iterable,
+)
 
 import networkx as nx
 from cirq import value
@@ -96,6 +104,15 @@ class Device(metaclass=abc.ABCMeta):
         that must be decomposed into native gates.
         """
         return operation
+
+    @property
+    def metadata(self) -> Optional['DeviceMetadata']:
+        """Returns the associated Metadata with the device if applicable.
+
+        Returns:
+            `cirq.DeviceMetadata` if specified by the device otherwise None.
+        """
+        return None
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         """Raises an exception if an operation is not valid.
@@ -207,6 +224,7 @@ class DeviceMetadata:
 
         self._nx_graph = nx_graph
 
+    @property
     def qubit_set(self) -> Optional[FrozenSet['cirq.Qid']]:
         """Returns a set of qubits on the device, if possible.
 
@@ -215,6 +233,7 @@ class DeviceMetadata:
         """
         return self._qubits_set
 
+    @property
     def nx_graph(self) -> Optional['nx.Graph']:
         """Returns a nx.Graph where nodes are qubits and edges are couple-able qubits.
 
@@ -226,13 +245,12 @@ class DeviceMetadata:
     def _value_equality_values_(self):
         graph_equality = None
         if self._nx_graph is not None:
-            graph_equality = (sorted(self._nx_graph.nodes()), sorted(self._nx_graph.edges()))
+            graph_equality = (
+                tuple(sorted(self._nx_graph.nodes())),
+                tuple(sorted(self._nx_graph.edges(data='directed'))),
+            )
 
-        qubit_equality = None
-        if self._qubits_set is not None:
-            qubit_equality = sorted(list(self._qubits_set))
-
-        return qubit_equality, graph_equality
+        return self._qubits_set, graph_equality
 
     def _json_dict_(self):
         graph_payload = ''
