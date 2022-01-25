@@ -275,7 +275,7 @@ In order to ensure an apt comparison, it is important to keep the following poin
   - Use parallel readout heatmap to avoid any obviously broken qubits.
   - Use two-qubit error heatmaps to choose various patches of qubits with good two-qubit gate performance.
   - Use a mini-benchmark circuit to sanity check both qubit choice and basic circuit design.
-  - If in doubt, [use parallel XEB to check for issues like drift / TLS](../tutorials/google/compare_to_calibration.ipynb).
+  - If in doubt, [use parallel XEB to check for issues like drift / TLS](../tutorials/google/identifying_hardware_changes.ipynb).
 
 * Start small with a low number of qubits (e.g. 2 qubits, with 5-10 layers of 2 qubit gates), and increase the number of qubits 
   and gate depth.
