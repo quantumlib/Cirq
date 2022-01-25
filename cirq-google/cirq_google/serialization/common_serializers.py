@@ -465,7 +465,7 @@ SQRT_ISWAP_SERIALIZERS = [
             op_serializer.SerializingArg(
                 serialized_name='num_qubits',
                 serialized_type=int,
-                op_getter=(lambda op: op.gate.num_qubits()),
+                op_getter=(lambda op: cast(cirq.IdentityGate, op.gate).num_qubits()),
             ),
         ],
     ),
