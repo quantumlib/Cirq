@@ -111,7 +111,7 @@ class IonQAPIDevice(cirq.Device):
             if type(op.gate) == cirq.CZPowGate
             else op,
         )
-        cirq.optimizers.merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(temp)
+        cirq.merge_single_qubit_gates_into_phased_x_z(temp)
         # A final pass breaks up PhasedXPow into Rz, Rx.
         yield cirq.map_operations_and_unroll(
             temp,
