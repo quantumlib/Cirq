@@ -81,6 +81,8 @@ from cirq.circuits import (
 from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
+    DeviceMetadata,
+    GridDeviceMetadata,
     GridQid,
     GridQubit,
     LineQid,
@@ -100,6 +102,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    TensoredConfusionMatrices,
     estimate_parallel_single_qubit_readout_errors,
     estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
@@ -112,6 +115,7 @@ from cirq.experiments import (
     generate_boixo_2018_supremacy_circuits_v2,
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
+    measure_confusion_matrix,
     xeb_fidelity,
 )
 
@@ -329,7 +333,6 @@ from cirq.optimizers import (
     AlignLeft,
     AlignRight,
     ConvertToCzAndSingleGates,
-    decompose_two_qubit_interaction_into_four_fsim_gates,
     DropEmptyMoments,
     DropNegligible,
     EjectPhasedPaulis,
@@ -342,10 +345,6 @@ from cirq.optimizers import (
     MergeSingleQubitGates,
     stratified_circuit,
     SynchronizeTerminalMeasurements,
-    two_qubit_matrix_to_operations,
-    two_qubit_matrix_to_diagonal_and_operations,
-    two_qubit_matrix_to_sqrt_iswap_operations,
-    three_qubit_matrix_to_operations,
 )
 
 from cirq.transformers import (
@@ -354,6 +353,7 @@ from cirq.transformers import (
     decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
+    decompose_two_qubit_interaction_into_four_fsim_gates,
     is_negligible_turn,
     map_moments,
     map_operations,
@@ -367,6 +367,17 @@ from cirq.transformers import (
     single_qubit_matrix_to_phased_x_z,
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
+    TRANSFORMER,
+    TransformerContext,
+    TransformerLogger,
+    three_qubit_matrix_to_operations,
+    transformer,
+    two_qubit_matrix_to_diagonal_and_operations,
+    two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_sqrt_iswap_operations,
+    two_qubit_gate_product_tabulation,
+    TwoQubitGateTabulation,
+    TwoQubitGateTabulationResult,
     unroll_circuit_op,
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,
@@ -409,6 +420,7 @@ from cirq.sim import (
     ActOnCliffordTableauArgs,
     ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
+    ActOnStabilizerArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,

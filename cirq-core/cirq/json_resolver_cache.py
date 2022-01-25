@@ -77,6 +77,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CZPowGate': cirq.CZPowGate,
         'DensePauliString': cirq.DensePauliString,
         'DepolarizingChannel': cirq.DepolarizingChannel,
+        'DeviceMetadata': cirq.DeviceMetadata,
         'Duration': cirq.Duration,
         'FrozenCircuit': cirq.FrozenCircuit,
         'FSimGate': cirq.FSimGate,
@@ -86,6 +87,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
         'GlobalPhaseGate': cirq.GlobalPhaseGate,
         'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
+        'GridDeviceMetadata': cirq.GridDeviceMetadata,
         'GridInteractionLayer': GridInteractionLayer,
         'GridParallelXEBMetadata': GridParallelXEBMetadata,
         'GridQid': cirq.GridQid,
@@ -138,6 +140,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_QubitAsQid': raw_types._QubitAsQid,
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'RandomGateChannel': cirq.RandomGateChannel,
+        'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
         'Result': cirq.ResultDict,  # Keep support for Cirq < 0.14.
@@ -156,6 +159,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'TaggedOperation': cirq.TaggedOperation,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
         'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.
+        'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,

@@ -634,7 +634,6 @@ class Engine(abstract_engine.AbstractEngine):
     ) -> any_pb2.Any:
         if not isinstance(program, cirq.AbstractCircuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
-        program.device.validate_circuit(program)
 
         if self.context.proto_version == ProtoVersion.V2:
             program = gate_set.serialize(program)

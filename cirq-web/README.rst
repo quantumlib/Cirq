@@ -18,6 +18,7 @@ Below is a quick example of how to generate a portable 3D rendering of the Bloch
 
 .. code-block:: python
 
+    import cirq
     from cirq_web import BlochSphere
 
     # Prepare a state
@@ -36,6 +37,7 @@ with the following:
 
 .. code-block:: python
 
+    import cirq
     from cirq_web import BlochSphere
 
     # Prepare a state
