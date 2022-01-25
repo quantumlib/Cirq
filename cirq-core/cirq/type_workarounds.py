@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Workarounds for python typing gotchas."""
+"""Workarounds for deficiencies in python's typing system."""
 
 from typing import Any
 
