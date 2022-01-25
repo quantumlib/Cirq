@@ -276,6 +276,9 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         Returns:
             A dense pauli string with the concatenation of the paulis from the
             two input pauli strings, and the product of their coefficients.
+
+        Raises:
+            TypeError: If other is not of the same type than self.
         """
         cls = type(self)
         if isinstance(other, cls):
@@ -284,7 +287,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                 pauli_mask=np.concatenate([self.pauli_mask, other.pauli_mask]),
             )
 
-        raise TypeError("dense pauli strings should be both mutable or both non-mutable")
+        raise TypeError(f"Tensoring allowed only with objects of type {type(self)}.")
 
     def __abs__(self: T) -> T:
         cls = type(self)

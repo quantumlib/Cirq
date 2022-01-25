@@ -173,7 +173,7 @@ def test_mul():
     assert isinstance(f('') * f(''), f)
     assert isinstance(m('') * m(''), m)
     with pytest.raises(TypeError):
-        m('') * f('')
+        _ = m('') * f('')
 
     # Different lengths.
     assert f('I') * f('III') == f('III')
