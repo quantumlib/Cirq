@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 config = {
     "interfaces": {
         "google.cloud.quantum.v1alpha1.QuantumEngineService": {

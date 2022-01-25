@@ -92,15 +92,13 @@ def _value_equality_hash(self: _SupportsValueEquality) -> int:
 def _value_equality_approx_eq(
     self: _SupportsValueEquality, other: _SupportsValueEquality, atol: float
 ) -> bool:
-
-    # Preserve regular equality type-comparison logic.
     cls_self = self._value_equality_values_cls_()
-    if not isinstance(other, cls_self):
+    get_cls_other = getattr(other, '_value_equality_values_cls_', None)
+    if get_cls_other is None:
         return NotImplemented
     cls_other = other._value_equality_values_cls_()
     if cls_self != cls_other:
         return False
-
     # Delegate to cirq.approx_eq for approximate equality comparison.
     return protocols.approx_eq(
         self._value_equality_approximate_values_(),
@@ -133,8 +131,6 @@ def value_equality(
     pass
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def value_equality(
     cls: type = None,
     *,
@@ -184,6 +180,13 @@ def value_equality(
         approximate: When set, the decorated class will be enhanced with
             `_approx_eq_` implementation and thus start to support the
             `SupportsApproximateEquality` protocol.
+
+    Raises:
+        TypeError: If the class decorated does not implement the required
+            `_value_equality_values` method or, if `manual_cls` is True,
+            the class does not implement `_value_equality_values_cls_`.
+        ValueError: If both `distinct_child_types` and `manual_cls` are
+            specified.
     """
 
     # If keyword arguments were specified, python invokes the decorator method
@@ -231,4 +234,4 @@ def value_equality(
     return cls
 
 
-# pylint: enable=function-redefined,missing-raises-doc
+# pylint: enable=function-redefined

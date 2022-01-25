@@ -48,8 +48,8 @@ def test_any_unitary_gate_family():
                 assert f'{init_num_qubits}' in gate_family.description
                 assert UnitaryGate(num_qubits + 1) not in gate_family
             else:
-                assert f'Any-Qubit' in gate_family.name
-                assert f'any unitary' in gate_family.description
+                assert 'Any-Qubit' in gate_family.name
+                assert 'any unitary' in gate_family.description
 
     assert cirq.SingleQubitGate() not in cirq.AnyUnitaryGateFamily()
 

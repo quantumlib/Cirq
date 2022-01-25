@@ -139,8 +139,6 @@ class Simulator(
     See `Simulator` for the definitions of the supported methods.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         *,
@@ -159,6 +157,9 @@ class Simulator(
             split_untangled_states: If True, optimizes simulation by running
                 unentangled qubit sets independently and merging those states
                 at the end.
+
+        Raises:
+            ValueError: If the given dtype is not complex.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
@@ -169,9 +170,6 @@ class Simulator(
             split_untangled_states=split_untangled_states,
         )
 
-    # pylint: enable=missing-raises-doc
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
@@ -186,6 +184,7 @@ class Simulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
+            logs: Log of the measurement results.
 
         Returns:
             ActOnStateVectorArgs for the circuit.
@@ -206,7 +205,6 @@ class Simulator(
             log_of_measurement_results=logs,
         )
 
-    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
@@ -222,7 +220,7 @@ class Simulator(
         program: 'cirq.AbstractCircuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'cirq.Sweepable',
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
     ) -> Iterator[List[float]]:
@@ -254,7 +252,7 @@ class SparseSimulatorStep(
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
-        simulator: Simulator,
+        simulator: 'cirq.Simulator' = None,
         dtype: 'DTypeLike' = np.complex64,
     ):
         """Results of a step of the simulator.
@@ -271,7 +269,7 @@ class SparseSimulatorStep(
         self._state_vector: Optional[np.ndarray] = None
         self._simulator = simulator
 
-    def _simulator_state(self) -> state_vector_simulator.StateVectorSimulatorState:
+    def _simulator_state(self) -> 'cirq.StateVectorSimulatorState':
         return state_vector_simulator.StateVectorSimulatorState(
             qubit_map=self.qubit_map, state_vector=self.state_vector(copy=False)
         )
@@ -331,4 +329,11 @@ class SparseSimulatorStep(
                 corresponding to a computational basis state. If a numpy
                 array this is the full state vector.
         """
-        self._sim_state = self._simulator._create_act_on_args(state, self._qubits)
+        if self._simulator:
+            self._sim_state = self._simulator._create_act_on_args(state, self._qubits)
+
+    def __repr__(self) -> str:
+        return (
+            f'cirq.SparseSimulatorStep(sim_state={self._sim_state!r},'
+            f' dtype=np.{self._dtype.__name__})'
+        )

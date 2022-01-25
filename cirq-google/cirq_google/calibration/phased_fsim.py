@@ -42,7 +42,7 @@ from cirq.experiments.xeb_fitting import (
 )
 from cirq_google.api import v2
 from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
-from cirq_google.ops import SycamoreGate
+from cirq_google.ops import FSimGateFamily
 
 if TYPE_CHECKING:
     import cirq_google
@@ -331,7 +331,6 @@ class PhasedFSimCalibrationResult:
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         return {
-            'cirq_type': 'PhasedFSimCalibrationResult',
             'gate': self.gate,
             'parameters': [(q_a, q_b, params) for (q_a, q_b), params in self.parameters.items()],
             'options': self.options,
@@ -341,8 +340,6 @@ class PhasedFSimCalibrationResult:
         }
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def merge_matching_results(
     results: Iterable[PhasedFSimCalibrationResult],
 ) -> Optional[PhasedFSimCalibrationResult]:
@@ -356,6 +353,10 @@ def merge_matching_results(
     Returns:
         New PhasedFSimCalibrationResult that contains all the parameters from every result in
         results or None when the results list is empty.
+
+    Raises:
+        ValueError: If the gate and options fields are not all equal, or if the
+            results have shared keys.
     """
     all_parameters: Dict[Tuple[cirq.Qid, cirq.Qid], PhasedFSimCharacterization] = {}
     common_gate = None
@@ -377,7 +378,7 @@ def merge_matching_results(
             )
 
         if not all_parameters.keys().isdisjoint(result.parameters):
-            raise ValueError(f'Only results with disjoint parameters sets can be merged')
+            raise ValueError('Only results with disjoint parameters sets can be merged')
 
         all_parameters.update(result.parameters)
 
@@ -387,7 +388,6 @@ def merge_matching_results(
     return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
 
 
-# pylint: enable=missing-raises-doc
 class PhasedFSimCalibrationError(Exception):
     """Error that indicates the calibration failure."""
 
@@ -570,6 +570,8 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_gamma: bool
     characterize_phi: bool
     readout_error_tolerance: Optional[float] = None
+    version: int = 2
+    measure_qubits: Optional[Tuple[cirq.Qid, ...]] = None
 
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
@@ -664,6 +666,8 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = cirq.Circuit(self.gate.on(*pair) for pair in self.pairs)
+        if self.options.measure_qubits is not None:
+            circuit += cirq.Moment(cirq.measure(*self.options.measure_qubits))
         args: Dict[str, Any] = {
             'est_theta': self.options.characterize_theta,
             'est_zeta': self.options.characterize_zeta,
@@ -672,6 +676,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'est_phi': self.options.characterize_phi,
             # Experimental option that should always be set to True.
             'readout_corrections': True,
+            'version': self.options.version,
         }
         if self.options.readout_error_tolerance is not None:
             # Maximum error of the diagonal elements of the two-qubit readout confusion matrix.
@@ -741,7 +746,6 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         return {
-            'cirq_type': 'FloquetPhasedFSimCalibrationRequest',
             'pairs': [(pair[0], pair[1]) for pair in self.pairs],
             'gate': self.gate,
             'options': self.options,
@@ -925,6 +929,15 @@ class PhaseCalibratedFSimGate:
 
         (Z^-p ⊗ Z^p) FSim (Z^p ⊗ Z^-p).
 
+    The unitary matrix of the gate is:
+
+    [[1,            0,              0,        0],
+     [0,       cos(θ), (1/g^2) sin(θ),        0],
+     [0, (g^2) sin(θ),         cos(θ),        0],
+     [0,            0,              0, exp(-iφ)]]
+
+     where g = exp(i·π·p)
+
     The rotation should be reflected back during the compilation after the gate is calibrated and
     is equivalent to the shift of -2πp in the χ angle of PhasedFSimGate.
 
@@ -1045,37 +1058,13 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         If provided gate is equivalent to some PhaseCalibratedFSimGate, returns that gate.
         Otherwise returns None.
     """
-    if cirq.is_parameterized(gate):
+    cgate = FSimGateFamily().convert(gate, cirq.PhasedFSimGate)
+    if (cgate is None) or not (np.isclose(cgate.zeta, 0.0) and np.isclose(cgate.gamma, 0.0)):
         return None
-
-    phi = 0.0
-    theta = 0.0
-    phase_exponent = 0.0
-    if isinstance(gate, SycamoreGate):
-        phi = np.pi / 6
-        theta = np.pi / 2
-    elif isinstance(gate, cirq.FSimGate):
-        theta = gate.theta
-        phi = gate.phi
-    elif isinstance(gate, cirq.ISwapPowGate):
-        if not np.isclose(np.exp(np.pi * 1j * gate.global_shift * gate.exponent), 1.0):
-            return None
-        theta = -gate.exponent * np.pi / 2
-    elif isinstance(gate, cirq.PhasedFSimGate):
-        if not np.isclose(gate.zeta, 0.0) or not np.isclose(gate.gamma, 0.0):
-            return None
-        theta = gate.theta
-        phi = gate.phi
-        phase_exponent = -gate.chi / (2 * np.pi)
-    elif isinstance(gate, cirq.PhasedISwapPowGate):
-        theta = -gate.exponent * np.pi / 2
-        phase_exponent = -gate.phase_exponent
-    elif isinstance(gate, cirq.ops.CZPowGate):
-        if not np.isclose(np.exp(np.pi * 1j * gate.global_shift * gate.exponent), 1.0):
-            return None
-        phi = -np.pi * gate.exponent
-    else:
-        return None
+    # On comparing the unitary matrices of `PhasedFSimGate` and `PhaseCalibratedFSimGate`, we get:
+    theta = cgate.theta
+    phi = cgate.phi
+    phase_exponent = -cgate.chi / (2 * np.pi)
 
     phi = phi % (2 * np.pi)
     theta = theta % (2 * np.pi)

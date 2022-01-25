@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 # -*- coding: utf-8 -*-
 """Creates and simulates basic arithmetic circuits
 

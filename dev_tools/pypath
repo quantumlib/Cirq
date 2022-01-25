@@ -14,17 +14,26 @@
 
 #####
 # The main file to use to setup your PYTHONPATH. It sets up all cirq modules on the path.
+# The file can be sourced from any location with bash or zsh.
 # Usage:
 #   source dev_tools/pypath
 #####
 
 
-#!/usr/bin/bash
+if [ -n "${ZSH_VERSION}" ]; then
+    _PYPATH_BASE_DIR="${${(%):-%x}:a:h:h}"
+else
+    _PYPATH_BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fi
 
-PREFIX="$(pwd)"
-CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode folder)
-for m in $CIRQ_MODULES; do
-    PREFIX="$PREFIX:$(pwd)/$m"
-done
+_PYPATH_PREFIX="${_PYPATH_BASE_DIR}$(
+    cd "${_PYPATH_BASE_DIR}" &&
+        env PYTHONPATH=. python3 dev_tools/modules.py list --mode folder |
+        xargs printf ":${_PYPATH_BASE_DIR}/%s"
+)"
 
-[[ $PYTHONPATH == ${PREFIX}* ]] || export PYTHONPATH="$PREFIX:$PYTHONPATH"
+[[ $PYTHONPATH == ${_PYPATH_PREFIX}* ]] ||
+    export PYTHONPATH="${_PYPATH_PREFIX}${PYTHONPATH:+:}${PYTHONPATH}"
+
+unset _PYPATH_BASE_DIR
+unset _PYPATH_PREFIX

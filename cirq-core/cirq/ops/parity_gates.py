@@ -1,6 +1,6 @@
 # Copyright 2018 The Cirq Developers
 #
-# Licensed under the Apache License, Version 2.0 (the "License");l
+# Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -103,6 +103,11 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
                 SingleQubitCliffordGate.X_nsqrt.on_each(*qubits),
             ]
         return NotImplemented
+
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.OP_TREE':
+        yield common_gates.YPowGate(exponent=-0.5).on_each(*qubits)
+        yield ZZPowGate(exponent=self.exponent, global_shift=self.global_shift)(*qubits)
+        yield common_gates.YPowGate(exponent=0.5).on_each(*qubits)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -215,6 +220,11 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
                 SingleQubitCliffordGate.Y_nsqrt.on_each(*qubits),
             ]
         return NotImplemented
+
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.OP_TREE':
+        yield common_gates.XPowGate(exponent=0.5).on_each(*qubits)
+        yield ZZPowGate(exponent=self.exponent, global_shift=self.global_shift)(*qubits)
+        yield common_gates.XPowGate(exponent=-0.5).on_each(*qubits)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'

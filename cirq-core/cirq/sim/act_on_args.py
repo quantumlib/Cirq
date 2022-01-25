@@ -14,6 +14,7 @@
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
 import copy
+import inspect
 from typing import (
     Any,
     Dict,
@@ -26,10 +27,11 @@ from typing import (
     Optional,
     Iterator,
 )
+import warnings
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, ops
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -46,7 +48,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         self,
         prng: np.random.RandomState = None,
         qubits: Sequence['cirq.Qid'] = None,
-        log_of_measurement_results: Dict[str, Any] = None,
+        log_of_measurement_results: Dict[str, List[int]] = None,
+        ignore_measurement_results: bool = False,
     ):
         """Inits ActOnArgs.
 
@@ -58,6 +61,10 @@ class ActOnArgs(OperationTarget[TSelf]):
                 ordering of the computational basis states.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            ignore_measurement_results: If True, then the simulation
+                will treat measurement as dephasing instead of collapsing
+                process, and not log the result. This is only applicable to
+                simulators that can represent mixed states.
         """
         if prng is None:
             prng = cast(np.random.RandomState, np.random)
@@ -68,15 +75,18 @@ class ActOnArgs(OperationTarget[TSelf]):
         self._set_qubits(qubits)
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
+        self._ignore_measurement_results = ignore_measurement_results
 
     def _set_qubits(self, qubits: Sequence['cirq.Qid']):
         self._qubits = tuple(qubits)
         self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
-        """Adds a measurement result to the log.
+        """Measures the qubits and records to `log_of_measurement_results`.
+
+        Any bitmasks will be applied to the measurement record. If
+        `self._ignore_measurement_results` is set, it dephases instead of
+        measuring, and no measurement result will be logged.
 
         Args:
             qubits: The qubits to measure.
@@ -84,14 +94,19 @@ class ActOnArgs(OperationTarget[TSelf]):
                 that operations should only store results under keys they have
                 declared in a `_measurement_key_names_` method.
             invert_mask: The invert mask for the measurement.
+
+        Raises:
+            ValueError: If a measurement key has already been logged to a key.
         """
+        if self.ignore_measurement_results:
+            self._act_on_fallback_(ops.phase_damp(1), qubits)
+            return
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
         if key in self._log_of_measurement_results:
             raise ValueError(f"Measurement already logged to key {key!r}")
         self._log_of_measurement_results[key] = corrected
 
-    # pylint: enable=missing-raises-doc
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]
 
@@ -100,14 +115,33 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Child classes that perform measurements should implement this with
         the implementation."""
 
-    def copy(self: TSelf) -> TSelf:
-        """Creates a copy of the object."""
+    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
+        """Creates a copy of the object.
+
+        Args:
+            deep_copy_buffers: If True, buffers will also be deep-copied.
+            Otherwise the copy will share a reference to the original object's
+            buffers.
+
+        Returns:
+            A copied instance.
+        """
         args = copy.copy(self)
-        self._on_copy(args)
+        if 'deep_copy_buffers' in inspect.signature(self._on_copy).parameters:
+            self._on_copy(args, deep_copy_buffers)
+        else:
+            warnings.warn(
+                (
+                    'A new parameter deep_copy_buffers has been added to ActOnArgs._on_copy(). '
+                    'The classes that inherit from ActOnArgs should support it before Cirq 0.15.'
+                ),
+                DeprecationWarning,
+            )
+            self._on_copy(args)
         args._log_of_measurement_results = self.log_of_measurement_results.copy()
         return args
 
-    def _on_copy(self: TSelf, args: TSelf):
+    def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
         """Subclasses should implement this with any additional state copy
         functionality."""
 
@@ -181,8 +215,12 @@ class ActOnArgs(OperationTarget[TSelf]):
         functionality, if supported."""
 
     @property
-    def log_of_measurement_results(self) -> Dict[str, Any]:
+    def log_of_measurement_results(self) -> Dict[str, List[int]]:
         return self._log_of_measurement_results
+
+    @property
+    def ignore_measurement_results(self) -> bool:
+        return self._ignore_measurement_results
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
@@ -259,10 +297,14 @@ class ActOnArgs(OperationTarget[TSelf]):
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
         return iter(self.qubits)
 
+    @property
+    def can_represent_mixed_states(self) -> bool:
+        return False
+
 
 def strat_act_on_from_apply_decompose(
     val: Any,
-    args: ActOnArgs,
+    args: 'cirq.ActOnArgs',
     qubits: Sequence['cirq.Qid'],
 ) -> bool:
     operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)

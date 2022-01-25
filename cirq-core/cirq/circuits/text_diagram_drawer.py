@@ -24,6 +24,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    TYPE_CHECKING,
     Union,
 )
 
@@ -36,7 +37,11 @@ from cirq.circuits._box_drawing_character_data import (
     NORMAL_BOX_CHARS,
     BOLD_BOX_CHARS,
     ASCII_BOX_CHARS,
+    DOUBLED_BOX_CHARS,
 )
+
+if TYPE_CHECKING:
+    import cirq
 
 _HorizontalLine = NamedTuple(
     'HorizontalLine',
@@ -45,6 +50,7 @@ _HorizontalLine = NamedTuple(
         ('x1', Union[int, float]),
         ('x2', Union[int, float]),
         ('emphasize', bool),
+        ('doubled', bool),
     ],
 )
 _VerticalLine = NamedTuple(
@@ -54,6 +60,7 @@ _VerticalLine = NamedTuple(
         ('y1', Union[int, float]),
         ('y2', Union[int, float]),
         ('emphasize', bool),
+        ('doubled', bool),
     ],
 )
 _DiagramText = NamedTuple(
@@ -65,11 +72,15 @@ _DiagramText = NamedTuple(
 )
 
 
-def pick_charset(use_unicode: bool, emphasize: bool) -> BoxDrawCharacterSet:
+def pick_charset(use_unicode: bool, emphasize: bool, doubled: bool) -> BoxDrawCharacterSet:
     if not use_unicode:
         return ASCII_BOX_CHARS
+    if emphasize and doubled:
+        raise ValueError('Cannot use both emphasized and doubled.')
     if emphasize:
         return BOLD_BOX_CHARS
+    if doubled:
+        return DOUBLED_BOX_CHARS
     return NORMAL_BOX_CHARS
 
 
@@ -142,12 +153,14 @@ class TextDiagramDrawer:
             return True
 
         # Horizontal line?
-        if any(line_y == y and x1 < x < x2 for line_y, x1, x2, _ in self.horizontal_lines):
+        if any(line_y == y and x1 < x < x2 for line_y, x1, x2, _, _ in self.horizontal_lines):
             return True
 
         return False
 
-    def grid_line(self, x1: int, y1: int, x2: int, y2: int, emphasize: bool = False):
+    def grid_line(
+        self, x1: int, y1: int, x2: int, y2: int, emphasize: bool = False, doubled: bool = False
+    ):
         """Adds a vertical or horizontal line from (x1, y1) to (x2, y2).
 
         Horizontal line is selected on equality in the second coordinate and
@@ -157,9 +170,9 @@ class TextDiagramDrawer:
             ValueError: If line is neither horizontal nor vertical.
         """
         if x1 == x2:
-            self.vertical_line(x1, y1, y2, emphasize)
+            self.vertical_line(x1, y1, y2, emphasize, doubled)
         elif y1 == y2:
-            self.horizontal_line(y1, x1, x2, emphasize)
+            self.horizontal_line(y1, x1, x2, emphasize, doubled)
         else:
             raise ValueError("Line is neither horizontal nor vertical")
 
@@ -169,10 +182,11 @@ class TextDiagramDrawer:
         y1: Union[int, float],
         y2: Union[int, float],
         emphasize: bool = False,
+        doubled: bool = False,
     ) -> None:
         """Adds a line from (x, y1) to (x, y2)."""
         y1, y2 = sorted([y1, y2])
-        self.vertical_lines.append(_VerticalLine(x, y1, y2, emphasize))
+        self.vertical_lines.append(_VerticalLine(x, y1, y2, emphasize, doubled))
 
     def horizontal_line(
         self,
@@ -180,12 +194,13 @@ class TextDiagramDrawer:
         x1: Union[int, float],
         x2: Union[int, float],
         emphasize: bool = False,
+        doubled: bool = False,
     ) -> None:
         """Adds a line from (x1, y) to (x2, y)."""
         x1, x2 = sorted([x1, x2])
-        self.horizontal_lines.append(_HorizontalLine(y, x1, x2, emphasize))
+        self.horizontal_lines.append(_HorizontalLine(y, x1, x2, emphasize, doubled))
 
-    def transpose(self) -> 'TextDiagramDrawer':
+    def transpose(self) -> 'cirq.TextDiagramDrawer':
         """Returns the same diagram, but mirrored across its diagonal."""
         out = TextDiagramDrawer()
         out.entries = {
@@ -245,12 +260,12 @@ class TextDiagramDrawer:
             cast(Tuple[int, int], func(int(x), int(y))): v for (x, y), v in self.entries.items()
         }
         self.vertical_lines = [
-            _VerticalLine(func_x(x), func_y(y1), func_y(y2), emph)
-            for x, y1, y2, emph in self.vertical_lines
+            _VerticalLine(func_x(x), func_y(y1), func_y(y2), emph, doubled)
+            for x, y1, y2, emph, doubled in self.vertical_lines
         ]
         self.horizontal_lines = [
-            _HorizontalLine(func_y(y), func_x(x1), func_x(x2), emph)
-            for y, x1, x2, emph in self.horizontal_lines
+            _HorizontalLine(func_y(y), func_x(x1), func_x(x2), emph, doubled)
+            for y, x1, x2, emph, doubled in self.horizontal_lines
         ]
         self.horizontal_padding = {
             int(func_x(int(x))): padding for x, padding in self.horizontal_padding.items()
@@ -310,10 +325,10 @@ class TextDiagramDrawer:
             block_diagram.set_row_min_height(y * 2, 1)
 
         # Draw vertical lines.
-        for x_b, y1_b, y2_b, emphasize in self.vertical_lines:
+        for x_b, y1_b, y2_b, emphasize, doubled in self.vertical_lines:
             x = int(x_b * 2)
             y1, y2 = int(min(y1_b, y2_b) * 2), int(max(y1_b, y2_b) * 2)
-            charset = pick_charset(use_unicode_characters, emphasize)
+            charset = pick_charset(use_unicode_characters, emphasize, doubled)
 
             # Caps.
             block_diagram.mutable_block(x, y1).draw_curve(charset, bottom=True)
@@ -324,10 +339,10 @@ class TextDiagramDrawer:
                 block_diagram.mutable_block(x, y).draw_curve(charset, top=True, bottom=True)
 
         # Draw horizontal lines.
-        for y_b, x1_b, x2_b, emphasize in self.horizontal_lines:
+        for y_b, x1_b, x2_b, emphasize, doubled in self.horizontal_lines:
             y = int(y_b * 2)
             x1, x2 = int(min(x1_b, x2_b) * 2), int(max(x1_b, x2_b) * 2)
-            charset = pick_charset(use_unicode_characters, emphasize)
+            charset = pick_charset(use_unicode_characters, emphasize, doubled)
 
             # Caps.
             block_diagram.mutable_block(x1, y).draw_curve(charset, right=True)
@@ -356,14 +371,14 @@ class TextDiagramDrawer:
             horizontal_padding=self.horizontal_padding,
         )
 
-    def shift(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
+    def shift(self, dx: int = 0, dy: int = 0) -> 'cirq.TextDiagramDrawer':
         self._transform_coordinates(lambda x, y: (x + dx, y + dy))
         return self
 
-    def shifted(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
+    def shifted(self, dx: int = 0, dy: int = 0) -> 'cirq.TextDiagramDrawer':
         return self.copy().shift(dx, dy)
 
-    def superimpose(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+    def superimpose(self, other: 'cirq.TextDiagramDrawer') -> 'cirq.TextDiagramDrawer':
         self.entries.update(other.entries)
         self.horizontal_lines += other.horizontal_lines
         self.vertical_lines += other.vertical_lines
@@ -371,13 +386,13 @@ class TextDiagramDrawer:
         self.vertical_padding.update(other.vertical_padding)
         return self
 
-    def superimposed(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+    def superimposed(self, other: 'cirq.TextDiagramDrawer') -> 'cirq.TextDiagramDrawer':
         return self.copy().superimpose(other)
 
     @classmethod
     def vstack(
         cls,
-        diagrams: Sequence['TextDiagramDrawer'],
+        diagrams: Sequence['cirq.TextDiagramDrawer'],
         padding_resolver: Optional[Callable[[Sequence[Optional[int]]], int]] = None,
     ):
         """Vertically stack text diagrams.
@@ -418,7 +433,7 @@ class TextDiagramDrawer:
     @classmethod
     def hstack(
         cls,
-        diagrams: Sequence['TextDiagramDrawer'],
+        diagrams: Sequence['cirq.TextDiagramDrawer'],
         padding_resolver: Optional[Callable[[Sequence[Optional[int]]], int]] = None,
     ):
         """Horizontally stack text diagrams.

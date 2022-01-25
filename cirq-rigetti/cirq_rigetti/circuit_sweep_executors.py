@@ -1,23 +1,21 @@
-##############################################################################
 # Copyright 2021 The Cirq Developers
 #
-#    Licensed under the Apache License, Version 2.0 (the "License");
-#    you may not use this file except in compliance with the License.
-#    You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-#        http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS,
-#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    See the License for the specific language governing permissions and
-#    limitations under the License.
-##############################################################################
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """A collection of `CircuitSweepExecutor` s that the client may pass to `RigettiQCSService` or
 `RigettiQCSSampler` as `executor`.
 """
 
-from typing import Dict, Union, Sequence, cast, List, Any, Optional
+from typing import Any, cast, Dict, Optional, Sequence, Union
 from pyquil import Program
 from pyquil.api import QuantumComputer, QuantumExecutable
 from pyquil.quilbase import Declare
@@ -135,7 +133,7 @@ class CircuitSweepExecutor(Protocol):
         resolvers: Sequence[cirq.ParamResolverOrSimilarType],
         repetitions: int,
         transformer: transformers.CircuitTransformer,
-    ) -> List[cirq.Result]:
+    ) -> Sequence[cirq.Result]:
         """Transforms `cirq.Circuit` to `pyquil.Program` and executes it for given arguments.
 
         Args:
@@ -161,7 +159,7 @@ def without_quilc_compilation(
     resolvers: Sequence[cirq.ParamResolverOrSimilarType],
     repetitions: int,
     transformer: transformers.CircuitTransformer = transformers.default,
-) -> List[cirq.Result]:
+) -> Sequence[cirq.Result]:
     """This `CircuitSweepExecutor` will bypass quilc entirely, treating the transformed
     `cirq.Circuit` as native Quil.
 
@@ -202,7 +200,7 @@ def with_quilc_compilation_and_cirq_parameter_resolution(
     resolvers: Sequence[cirq.ParamResolverOrSimilarType],
     repetitions: int,
     transformer: transformers.CircuitTransformer = transformers.default,
-) -> List[cirq.Result]:
+) -> Sequence[cirq.Result]:
     """This `CircuitSweepExecutor` will first resolve each resolver in `resolvers` using
     `cirq.protocols.resolve_parameters` and then compile that resolved `cirq.Circuit` into
     native Quil using quilc. This executor may be useful if `with_quilc_parametric_compilation`
@@ -245,7 +243,7 @@ def with_quilc_parametric_compilation(
     resolvers: Sequence[cirq.ParamResolverOrSimilarType],
     repetitions: int,
     transformer: transformers.CircuitTransformer = transformers.default,
-) -> List[cirq.Result]:
+) -> Sequence[cirq.Result]:
     """This `CircuitSweepExecutor` will compile the `circuit` using quilc as a
     parameterized `pyquil.api.QuantumExecutable` and on each iteration of
     `resolvers`, rather than resolving the `circuit` with `cirq.protocols.resolve_parameters`,

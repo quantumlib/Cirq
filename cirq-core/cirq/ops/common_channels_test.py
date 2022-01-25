@@ -29,7 +29,7 @@ no_precision = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=None,
-    qubit_map=None,
+    label_map=None,
 )
 
 round_to_6_prec = cirq.CircuitDiagramInfoArgs(
@@ -37,7 +37,7 @@ round_to_6_prec = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=6,
-    qubit_map=None,
+    label_map=None,
 )
 
 round_to_2_prec = cirq.CircuitDiagramInfoArgs(
@@ -45,7 +45,7 @@ round_to_2_prec = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=2,
-    qubit_map=None,
+    label_map=None,
 )
 
 
@@ -63,6 +63,8 @@ def test_asymmetric_depolarizing_channel():
         (np.sqrt(0.4) * np.eye(2), np.sqrt(0.1) * X, np.sqrt(0.2) * Y, np.sqrt(0.3) * Z),
     )
     assert cirq.has_kraus(d)
+
+    assert cirq.AsymmetricDepolarizingChannel(p_x=0, p_y=0.1, p_z=0).num_qubits() == 1
 
 
 def test_asymmetric_depolarizing_mixture():
@@ -496,7 +498,7 @@ def test_reset_act_on():
         target_tensor=cirq.one_hot(
             index=(1, 1, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
-        available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
+        available_buffer=np.empty(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
@@ -729,7 +731,7 @@ def test_default_asymmetric_depolarizing_channel():
     assert d.p_x == 0.0
     assert d.p_y == 0.0
     assert d.p_z == 0.0
-    assert d.num_qubits == 1
+    assert d.num_qubits() == 1
 
 
 def test_bad_error_probabilities_gate():

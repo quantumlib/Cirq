@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -487,7 +487,7 @@ def assert_code_snippet_runs_and_prints_expected(
     snippet: str, state: Dict, line_number: int = None
 ):
     """Executes a snippet and compares captured output to annotated output."""
-    output_lines = []  # type: List[str]
+    output_lines: List[str] = []
     expected_outputs = find_expected_outputs(snippet)
 
     def print_capture(*values, sep=' '):
@@ -500,7 +500,7 @@ def assert_code_snippet_runs_and_prints_expected(
         assert_expected_lines_present_in_order(expected_outputs, output_lines)
     except AssertionError as ex:
         new_msg = ex.args[0] + '\n\nIn snippet{}:\n{}'.format(
-            "" if line_number == None else " (line {})".format(line_number), _indent([snippet])
+            "" if line_number is None else " (line {})".format(line_number), _indent([snippet])
         )
         ex.args = (new_msg,) + tuple(ex.args[1:])
         raise

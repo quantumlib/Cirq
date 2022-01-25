@@ -50,6 +50,17 @@ def test_program():
     assert job.program().program_id == 'b'
 
 
+def test_id():
+    job = cg.EngineJob(
+        'a',
+        'b',
+        'steve',
+        EngineContext(),
+        _job=qtypes.QuantumJob(create_time=qtypes.timestamp_pb2.Timestamp(seconds=1581515101)),
+    )
+    assert job.id() == 'steve'
+
+
 def test_create_time():
     job = cg.EngineJob(
         'a',
@@ -178,6 +189,7 @@ def test_status(get_job):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
     assert job.status() == 'RUNNING'
     get_job.assert_called_once()
+    assert job.execution_status() == qtypes.ExecutionStatus.State.RUNNING
 
 
 def test_failure():

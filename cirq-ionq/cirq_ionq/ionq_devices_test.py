@@ -1,4 +1,5 @@
 # Copyright 2021 The Cirq Developers
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -76,7 +77,7 @@ def test_validate_operation_invalid(gate):
 def test_validate_operation_no_gate():
     device = ionq.IonQAPIDevice(qubits=[])
     with pytest.raises(ValueError, match='no gates'):
-        device.validate_operation(cirq.GlobalPhaseOperation(1j))
+        device.validate_operation(cirq.CircuitOperation(cirq.FrozenCircuit()))
 
 
 def test_validate_operation_qubit_not_on_device():

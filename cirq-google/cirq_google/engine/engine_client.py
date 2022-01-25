@@ -299,8 +299,6 @@ class EngineClient:
             )
         )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def create_job(
         self,
         project_id: str,
@@ -325,7 +323,10 @@ class EngineClient:
             labels: Optional set of labels to set on the job.
 
         Returns:
-            Tuple of created job id and job
+            Tuple of created job id and job.
+
+        Raises:
+            ValueError: If the priority is not betwen 0 and 1000.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
@@ -358,7 +359,6 @@ class EngineClient:
         )
         return _ids_from_job_name(job.name)[2], job
 
-    # pylint: enable=missing-raises-doc
     def list_jobs(
         self,
         project_id: str,
@@ -367,6 +367,8 @@ class EngineClient:
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
         execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+        executed_processor_ids: Optional[List[str]] = None,
+        scheduled_processor_ids: Optional[List[str]] = None,
     ):
         """Returns the list of jobs for a given program.
 
@@ -390,6 +392,11 @@ class EngineClient:
             execution_states: retrieve jobs that have an execution state that
                 is contained in `execution_states`. See
                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+
+            executed_processor_ids: filters jobs by processor ID used for
+                execution. Matches any of provided IDs.
+            scheduled_processor_ids: filters jobs by any of provided
+                scheduled processor IDs.
         """
         filters = []
 
@@ -407,6 +414,16 @@ class EngineClient:
             for execution_state in execution_states:
                 state_filter.append(f"execution_status.state = {execution_state.name}")
             filters.append(f"({' OR '.join(state_filter)})")
+        if executed_processor_ids is not None:
+            ids_filter = []
+            for processor_id in executed_processor_ids:
+                ids_filter.append(f"executed_processor_id = {processor_id}")
+            filters.append(f"({' OR '.join(ids_filter)})")
+        if scheduled_processor_ids is not None:
+            ids_filter = []
+            for processor_id in scheduled_processor_ids:
+                ids_filter.append(f"scheduled_processor_ids: {processor_id}")
+            filters.append(f"({' OR '.join(ids_filter)})")
 
         if program_id is None:
             program_id = "-"
@@ -663,8 +680,6 @@ class EngineClient:
             )
         )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def get_current_calibration(
         self, project_id: str, processor_id: str
     ) -> Optional[qtypes.QuantumCalibration]:
@@ -676,6 +691,9 @@ class EngineClient:
 
         Returns:
             The quantum calibration or None if there is no current calibration.
+
+        Raises:
+            EngineException: If the request for calibration fails.
         """
         try:
             return self._make_request(
@@ -688,7 +706,6 @@ class EngineClient:
                 return None
             raise
 
-    # pylint: enable=missing-raises-doc
     def create_reservation(
         self,
         project_id: str,
@@ -762,15 +779,16 @@ class EngineClient:
         name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
         return self._make_request(lambda: self.grpc_client.delete_quantum_reservation(name=name))
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def get_reservation(self, project_id: str, processor_id: str, reservation_id: str):
         """Gets a quantum reservation from the engine.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            reservation_id: Unique ID of the reservation in the parent project,
+            reservation_id: Unique ID of the reservation in the parent project.
+
+        Raises:
+            EngineException: If the request to get the reservation failed.
         """
         try:
             name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
@@ -780,7 +798,6 @@ class EngineClient:
                 return None
             raise
 
-    # pylint: enable=missing-raises-doc
     def list_reservations(
         self, project_id: str, processor_id: str, filter_str: str = ''
     ) -> List[qtypes.QuantumReservation]:
@@ -851,7 +868,7 @@ class EngineClient:
         if end:
             reservation.end_time.seconds = int(end.timestamp())
             paths.append('end_time')
-        if whitelisted_users != None:
+        if whitelisted_users is not None:
             reservation.whitelisted_users.extend(whitelisted_users)
             paths.append('whitelisted_users')
 
@@ -940,14 +957,15 @@ def _ids_from_calibration_name(calibration_name: str) -> Tuple[str, str, int]:
     return parts[1], parts[3], int(parts[5])
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime, datetime.date]):
     """Formats datetime or date to filter expressions.
 
     Args:
-        param_name: the name of the filter parameter (for error messaging)
-        param: the value of the paramter
+        param_name: The name of the filter parameter (for error messaging).
+        param: The value of the parameter.
+
+    Raises:
+        ValueError: If the supplied param is not a datetime or date.
     """
     if isinstance(param, datetime.datetime):
         return f"{int(param.timestamp())}"
@@ -959,6 +977,3 @@ def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime
         f"type {type(param)}. Supported types: datetime.datetime and"
         f"datetime.date"
     )
-
-
-# pylint: enable=missing-raises-doc

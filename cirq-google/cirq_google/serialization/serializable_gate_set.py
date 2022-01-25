@@ -26,7 +26,6 @@ from typing import (
 )
 
 import cirq
-from cirq._compat import deprecated
 from cirq_google.api import v2
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
@@ -34,7 +33,7 @@ from cirq_google.serialization import serializer, op_deserializer, op_serializer
 class SerializableGateSet(serializer.Serializer):
     """A class for serializing and deserializing programs and operations.
 
-    This class is for cirq_google.api.v2. protos.
+    This class is for cirq_google.api.v2 protos.
     """
 
     def __init__(
@@ -61,12 +60,6 @@ class SerializableGateSet(serializer.Serializer):
         for s in serializers:
             self.serializers.setdefault(s.internal_type, []).append(s)
         self.deserializers = {d.serialized_id: d for d in deserializers}
-
-    @property  # type: ignore
-    @deprecated(deadline='v0.14', fix='Use name instead.', name='SerializableGateSet.gate_set_name')
-    def gate_set_name(self):
-        """The name of the serializer."""
-        return self._gate_set_name
 
     def with_added_types(
         self,
@@ -111,8 +104,6 @@ class SerializableGateSet(serializer.Serializer):
             for serializer in self.serializers.get(gate_type, [])
         )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def serialize(
         self,
         program: cirq.AbstractCircuit,
@@ -131,11 +122,14 @@ class SerializableGateSet(serializer.Serializer):
                 `Program.Language`.
             use_constants: Whether to use constants in serialization. This is
                 required to be True for serializing CircuitOperations.
+
+        Raises:
+            NotImplementedError: If the program type is not supported.
         """
         if msg is None:
             msg = v2.program_pb2.Program()
         msg.language.gate_set = self.name
-        if isinstance(program, cirq.Circuit):
+        if isinstance(program, cirq.AbstractCircuit):
             constants: Optional[List[v2.program_pb2.Constant]] = [] if use_constants else None
             raw_constants: Optional[Dict[Any, int]] = {} if use_constants else None
             self._serialize_circuit(
@@ -156,7 +150,6 @@ class SerializableGateSet(serializer.Serializer):
         msg.language.arg_function_language = arg_function_language
         return msg
 
-    # pylint: enable=missing-raises-doc
     def serialize_op(
         self,
         op: cirq.Operation,
@@ -177,8 +170,6 @@ class SerializableGateSet(serializer.Serializer):
             return self.serialize_circuit_op(op, msg, **kwargs)
         raise ValueError(f'Operation proto is of an unrecognized type: {msg!r}')
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def serialize_gate_op(
         self,
         op: cirq.Operation,
@@ -202,6 +193,9 @@ class SerializableGateSet(serializer.Serializer):
 
         Returns:
             The cirq.google.api.v2.Operation proto.
+
+        Raises:
+            ValueError: If the op cannot be serialized.
         """
         gate_type = type(op.gate)
         for gate_type_mro in gate_type.mro():
@@ -221,7 +215,6 @@ class SerializableGateSet(serializer.Serializer):
                         return proto_msg
         raise ValueError(f'Cannot serialize op {op!r} of type {gate_type}')
 
-    # TODO(#3388) Add documentation for Raises.
     def serialize_circuit_op(
         self,
         op: cirq.Operation,
@@ -245,6 +238,10 @@ class SerializableGateSet(serializer.Serializer):
 
         Returns:
             The cirq.google.api.v2.CircuitOperation proto.
+
+        Raises:
+            ValueError: If one of `constants` or `raw_constants` is None, or the circuit operation
+                cannot be serialized.
         """
         circuit = getattr(op.untagged, 'circuit', None)
         if constants is None or raw_constants is None:
@@ -276,7 +273,12 @@ class SerializableGateSet(serializer.Serializer):
                 return proto_msg
         raise ValueError(f'Cannot serialize CircuitOperation {op!r}')
 
-    # TODO(#3388) Add documentation for Raises.
+    @cirq._compat.deprecated_parameter(
+        deadline='v0.15',
+        fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,
+        parameter_desc='device',
+        match=lambda args, kwargs: 'device' in kwargs or len(args) > 2,
+    )
     def deserialize(
         self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
     ) -> cirq.Circuit:
@@ -290,6 +292,12 @@ class SerializableGateSet(serializer.Serializer):
         Returns:
             The deserialized Circuit, with a device if device was
             not None.
+
+        Raises:
+            ValueError: If the given proto has no language specified or it mismatched the
+                name specified for this serializable gate set. In addition if the program
+                is a schedule and no device was specified.
+            NotImplementedError: If the program does not contain a circuit or schedule.
         """
         if not proto.HasField('language') or not proto.language.gate_set:
             raise ValueError('Missing gate set specification.')
@@ -320,17 +328,16 @@ class SerializableGateSet(serializer.Serializer):
                 constants=proto.constants,
                 deserialized_constants=deserialized_constants,
             )
-            return circuit if device is None else circuit.with_device(device)
+            if device is not None:
+                circuit._device = device  # coverage: ignore
+            return circuit
         if which == 'schedule':
-            if device is None:
-                raise ValueError('Deserializing schedule requires a device but None was given.')
             return self._deserialize_schedule(
                 proto.schedule, device, arg_function_language=proto.language.arg_function_language
             )
 
         raise NotImplementedError('Program proto does not contain a circuit.')
 
-    # pylint: enable=missing-raises-doc
     def deserialize_op(
         self,
         operation_proto: Union[
@@ -348,8 +355,6 @@ class SerializableGateSet(serializer.Serializer):
 
         raise ValueError(f'Operation proto has unknown type: {type(operation_proto)}.')
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def deserialize_gate_op(
         self,
         operation_proto: v2.program_pb2.Operation,
@@ -372,6 +377,9 @@ class SerializableGateSet(serializer.Serializer):
 
         Returns:
             The deserialized Operation.
+
+        Raises:
+            ValueError: If the gate cannot be deserialized.
         """
         if not operation_proto.gate.id:
             raise ValueError('Operation proto does not have a gate.')
@@ -391,7 +399,6 @@ class SerializableGateSet(serializer.Serializer):
             deserialized_constants=deserialized_constants,
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def deserialize_circuit_op(
         self,
         operation_proto: v2.program_pb2.CircuitOperation,
@@ -400,8 +407,7 @@ class SerializableGateSet(serializer.Serializer):
         constants: Optional[List[v2.program_pb2.Constant]] = None,
         deserialized_constants: Optional[List[Any]] = None,
     ) -> cirq.CircuitOperation:
-        """Deserialize a CircuitOperation from a
-            cirq.google.api.v2.CircuitOperation.
+        """Deserialize a CircuitOperation from a cirq.google.api.v2.CircuitOperation.
 
         Args:
             operation_proto: A dictionary representing a
@@ -414,11 +420,15 @@ class SerializableGateSet(serializer.Serializer):
 
         Returns:
             The deserialized CircuitOperation.
+
+        Raises:
+            ValueError: If the deserializer does not support deserializing `CircuitOperation`.
         """
         deserializer = self.deserializers.get('circuit', None)
         if deserializer is None:
             raise ValueError(
-                f'Unsupported serialized CircuitOperation.\n\noperation_proto:\n{operation_proto}'
+                'Unsupported deserialized of a CircuitOperation.\n\noperation_proto:\n'
+                f'{operation_proto}'
             )
 
         if not isinstance(deserializer, op_deserializer.CircuitOpDeserializer):
@@ -434,7 +444,6 @@ class SerializableGateSet(serializer.Serializer):
             deserialized_constants=deserialized_constants,
         )
 
-    # pylint: enable=missing-raises-doc
     def _serialize_circuit(
         self,
         circuit: cirq.AbstractCircuit,
@@ -494,7 +503,7 @@ class SerializableGateSet(serializer.Serializer):
     def _deserialize_schedule(
         self,
         schedule_proto: v2.program_pb2.Schedule,
-        device: cirq.Device,
+        device: Optional[cirq.Device],
         *,
         arg_function_language: str,
     ) -> cirq.Circuit:
@@ -507,4 +516,8 @@ class SerializableGateSet(serializer.Serializer):
                     scheduled_op_proto.operation, arg_function_language=arg_function_language
                 )
             )
-        return cirq.Circuit(result, device=device)
+        ret = cirq.Circuit(result)
+        if device is None:
+            device = cirq.UNCONSTRAINED_DEVICE
+        ret._device = device
+        return ret

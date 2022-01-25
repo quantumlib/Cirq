@@ -42,8 +42,6 @@ SWAP = cca.SwapPermutationGate()
 QidPair = Tuple[ops.Qid, ops.Qid]
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 def route_circuit_greedily(
     circuit: circuits.Circuit, device_graph: nx.Graph, **kwargs
 ) -> SwapNetwork:
@@ -75,28 +73,26 @@ def route_circuit_greedily(
         device_graph: The device's graph, in which each vertex is a qubit
             and each edge indicates the ability to do an operation on those
             qubits.
-        max_search_radius: The maximum number of disjoint device edges to
-            consider routing on.
-        max_num_empty_steps: The maximum number of swap sets to apply without
-            allowing a new logical operation to be performed.
-        initial_mapping: The initial mapping of physical to logical qubits
-            to use. Defaults to a greedy initialization.
-        can_reorder: A predicate that determines if two operations may be
-            reordered.
-        random_state: Random state or random state seed.
+        **kwargs: Further keyword args, including
+            max_search_radius: The maximum number of disjoint device edges to
+                consider routing on.
+            max_num_empty_steps: The maximum number of swap sets to apply
+                without allowing a new logical operation to be performed.
+            initial_mapping: The initial mapping of physical to logical qubits
+                to use. Defaults to a greedy initialization.
+            can_reorder: A predicate that determines if two operations may be
+                reordered.
+            random_state: Random state or random state seed.
     """
 
     router = _GreedyRouter(circuit, device_graph, **kwargs)
     router.route()
 
     swap_network = router.swap_network
-    swap_network.circuit = circuits.Circuit(
-        swap_network.circuit.all_operations(), device=swap_network.device
-    )
+    swap_network.circuit = circuits.Circuit(swap_network.circuit.all_operations())
     return swap_network
 
 
-# pylint: enable=missing-param-doc
 class _GreedyRouter:
     """Keeps track of the state of a greedy circuit routing procedure."""
 

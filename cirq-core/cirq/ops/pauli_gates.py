@@ -36,7 +36,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     of private subclasses are the X, Y, or Z Pauli gates defined below.
     """
 
-    _XYZ = None  # type: Tuple[Pauli, Pauli, Pauli]
+    _XYZ: Tuple['Pauli', 'Pauli', 'Pauli']
 
     @staticmethod
     def by_index(index: int) -> 'Pauli':
@@ -84,13 +84,14 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
             return NotImplemented
         return (other._index - self._index) % 3 == 1
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def on(self, *qubits: 'cirq.Qid') -> 'SingleQubitPauliStringGateOperation':
         """Returns an application of this gate to the given qubits.
 
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
+
+        Raises:
+            ValueError: If more than one qubit is acted upon.
         """
         if len(qubits) != 1:
             raise ValueError(f'Expected a single qubit, got <{qubits!r}>.')
@@ -98,7 +99,6 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return SingleQubitPauliStringGateOperation(self, qubits[0])
 
-    # pylint: enable=missing-raises-doc
     @property
     def _canonical_exponent(self):
         """Overrides EigenGate._canonical_exponent in subclasses."""

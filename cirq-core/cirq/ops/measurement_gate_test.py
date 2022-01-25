@@ -156,7 +156,7 @@ def test_qudit_measure_quil():
             cirq.measure(q0, key='a'),
             formatter=cirq.QuilFormatter(qubit_id_map=qubit_id_map, measurement_id_map={}),
         )
-        == None
+        is None
     )
 
 
@@ -175,7 +175,7 @@ def test_measurement_gate_diagram():
                 known_qubit_count=3,
                 use_unicode_characters=True,
                 precision=None,
-                qubit_map=None,
+                label_map=None,
             ),
         )
         == cirq.CircuitDiagramInfo(("M('a')", 'M', 'M'))

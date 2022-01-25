@@ -19,4 +19,4 @@ cd "$(git rev-parse --show-toplevel)"
 
 source dev_tools/pypath
 
-python dev_tools/docs/run_doctest.py $@
+python dev_tools/docs/run_doctest.py "$@"

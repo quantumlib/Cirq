@@ -82,6 +82,10 @@ from cirq.ops.common_gate_families import (
     ParallelGateFamily,
 )
 
+from cirq.ops.classically_controlled_operation import (
+    ClassicallyControlledOperation,
+)
+
 from cirq.ops.controlled_gate import (
     ControlledGate,
 )
@@ -108,8 +112,6 @@ from cirq.ops.fsim_gate import (
 from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
     SingleQubitGate,
-    ThreeQubitGate,
-    TwoQubitGate,
 )
 
 from cirq.ops.gate_operation import (
@@ -125,7 +127,9 @@ from cirq.ops.identity import (
 )
 
 from cirq.ops.global_phase_op import (
+    GlobalPhaseGate,
     GlobalPhaseOperation,
+    global_phase_operation,
 )
 
 from cirq.ops.kraus_channel import (
@@ -153,10 +157,6 @@ from cirq.ops.pauli_measurement_gate import (
 )
 
 from cirq.ops.parallel_gate import ParallelGate, parallel_gate_op
-
-from cirq.ops.parallel_gate_operation import (
-    ParallelGateOperation,
-)
 
 from cirq.ops.projector import (
     ProjectorString,
@@ -237,6 +237,7 @@ from cirq.ops.pauli_string import (
 
 from cirq.ops.pauli_string_phasor import (
     PauliStringPhasor,
+    PauliStringPhasorGate,
 )
 
 from cirq.ops.pauli_string_raw_types import (

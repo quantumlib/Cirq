@@ -1,4 +1,5 @@
-# Copyright 2020 The Cirq Developers
+# Copyright 2021 The Cirq Developers
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -29,8 +30,6 @@ class Service:
     `IONQ_API_KEY`.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         remote_host: Optional[str] = None,
@@ -59,8 +58,8 @@ class Service:
             verbose: Whether to print to stdio and stderr on retriable errors.
 
         Raises:
-            EnvironmentError: if the `api_key` is None and has no corresponding environment
-                variable set.
+            OSError: If the `api_key` is None and has no corresponding environment variable set.
+                This is actually an EnvironmentError which is equal to an OSError.
         """
         self.remote_host = (
             remote_host or os.getenv('IONQ_REMOTE_HOST') or f'https://api.ionq.co/{api_version}'
@@ -68,8 +67,8 @@ class Service:
         self.api_key = api_key or os.getenv('IONQ_API_KEY')
         if not self.api_key:
             raise EnvironmentError(
-                f'Parameter api_key was not specified and the environment variable '
-                f'IONQ_API_KEY was also not set.'
+                'Parameter api_key was not specified and the environment variable '
+                'IONQ_API_KEY was also not set.'
             )
 
         self._client = ionq_client._IonQClient(
@@ -81,7 +80,6 @@ class Service:
             verbose=verbose,
         )
 
-    # pylint: enable=missing-raises-doc
     def run(
         self,
         circuit: cirq.Circuit,

@@ -17,7 +17,7 @@
 Filename is a reference to multiplexing.
 """
 
-from typing import List, Optional, Type, Union, cast, TYPE_CHECKING
+from typing import cast, List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -49,11 +49,11 @@ def sample(
     program: 'cirq.Circuit',
     *,
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
-    param_resolver: Optional[study.ParamResolver] = None,
+    param_resolver: Optional['cirq.ParamResolver'] = None,
     repetitions: int = 1,
     dtype: Type[np.number] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> study.Result:
+) -> 'cirq.Result':
     """Simulates sampling from the given circuit.
 
     Args:
@@ -99,14 +99,12 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
     return cast('cirq.Circuit', result)
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def final_state_vector(
     program: 'cirq.CIRCUIT_LIKE',
     *,
     initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
-    param_resolver: study.ParamResolverOrSimilarType = None,
-    qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+    qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
     dtype: Type[np.number] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'np.ndarray':
@@ -137,6 +135,10 @@ def final_state_vector(
         the amplitudes in np.kron order, where the order of arguments to kron
         is determined by the qubit order argument (which defaults to just
         sorting the qubits that are present into an ascending order).
+
+    Raises:
+        ValueError: If the program doesn't have a well defined final state because
+            it has non-unitary gates.
     """
     circuit_like = _to_circuit(program)
 
@@ -159,16 +161,15 @@ def final_state_vector(
     return result.state_vector()
 
 
-# pylint: enable=missing-raises-doc
 def sample_sweep(
     program: 'cirq.Circuit',
-    params: study.Sweepable,
+    params: 'cirq.Sweepable',
     *,
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
     repetitions: int = 1,
     dtype: Type[np.number] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> List[study.Result]:
+) -> Sequence['cirq.Result']:
     """Runs the supplied Circuit, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
@@ -191,7 +192,7 @@ def sample_sweep(
     """
     prng = value.parse_random_state(seed)
 
-    trial_results = []  # type: List[study.Result]
+    trial_results: List[study.Result] = []
     for param_resolver in study.to_resolvers(params):
         measurements = sample(
             program,
@@ -210,8 +211,8 @@ def final_density_matrix(
     *,
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
     initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
-    param_resolver: study.ParamResolverOrSimilarType = None,
-    qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+    qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
     dtype: Type[np.number] = np.complex64,
     seed: Optional[Union[int, np.random.RandomState]] = None,
     ignore_measurement_results: bool = True,

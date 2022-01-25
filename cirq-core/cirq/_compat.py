@@ -27,21 +27,40 @@ from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
 import numpy as np
 import pandas as pd
 import sympy
+import sympy.printing.repr
 
 
 def proper_repr(value: Any) -> str:
     """Overrides sympy and numpy returning repr strings that don't parse."""
 
     if isinstance(value, sympy.Basic):
-        result = sympy.srepr(value)
-
         # HACK: work around https://github.com/sympy/sympy/issues/16074
-        # (only handles a few cases)
-        fixed_tokens = ['Symbol', 'pi', 'Mul', 'Pow', 'Add', 'Mod', 'Integer', 'Float', 'Rational']
-        for token in fixed_tokens:
-            result = result.replace(token, 'sympy.' + token)
+        fixed_tokens = [
+            'Symbol',
+            'pi',
+            'Mul',
+            'Pow',
+            'Add',
+            'Mod',
+            'Integer',
+            'Float',
+            'Rational',
+            'GreaterThan',
+            'StrictGreaterThan',
+            'LessThan',
+            'StrictLessThan',
+            'Equality',
+            'Unequality',
+        ]
 
-        return result
+        class Printer(sympy.printing.repr.ReprPrinter):
+            def _print(self, expr, **kwargs):
+                s = super()._print(expr, **kwargs)
+                if any(s.startswith(t) for t in fixed_tokens):
+                    return 'sympy.' + s
+                return s
+
+        return Printer().doprint(value)
 
     if isinstance(value, np.ndarray):
         if np.issubdtype(value.dtype, np.datetime64):
@@ -68,6 +87,9 @@ def proper_repr(value: Any) -> str:
             f'\n    data={repr(rows)}'
             f'\n)'
         )
+
+    if isinstance(value, Dict):
+        return '{' + ','.join(f"{proper_repr(k)}: {proper_repr(v)}" for k, v in value.items()) + '}'
 
     return repr(value)
 
@@ -464,8 +486,6 @@ def _deduped_module_warn_or_error(old_module_name: str, new_module_name: str, de
     )
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     """A module finder to handle deprecated module references.
 
@@ -473,43 +493,27 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     It is meant to be used as a wrapper around existing MetaPathFinder instances.
 
     Args:
-        finder: the finder to wrap.
-        new_module_name: the new module's fully qualified name
-        old_module_name: the deprecated module's fully qualified name
-        deadline: the deprecation deadline
+        new_module_name: The new module's fully qualified name.
+        old_module_name: The deprecated module's fully qualified name.
+        deadline: The deprecation deadline.
+        broken_module_exception: If specified, an exception to throw if
+            the module is found.
     """
 
     def __init__(
         self,
-        finder: Any,
         new_module_name: str,
         old_module_name: str,
         deadline: str,
         broken_module_exception: Optional[BaseException],
     ):
-        """An aliasing module finder that uses an existing module finder to find a python
+        """An aliasing module finder that uses existing module finders to find a python
         module spec and intercept the execution of matching modules.
         """
-        self.finder = finder
         self.new_module_name = new_module_name
         self.old_module_name = old_module_name
         self.deadline = deadline
         self.broken_module_exception = broken_module_exception
-        # to cater for metadata path finders
-        # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
-        if hasattr(finder, "find_distributions"):
-
-            def find_distributions(context):
-                return self.finder.find_distributions(context)
-
-            self.find_distributions = find_distributions
-        if hasattr(finder, "invalidate_caches"):
-
-            def invalidate_caches() -> None:
-                return self.finder.invalidate_caches()
-
-            # mypy#2427
-            self.invalidate_caches = invalidate_caches  # type: ignore
 
     def find_spec(self, fullname: str, path: Any = None, target: Any = None) -> Any:
         """Finds the specification of a module.
@@ -525,8 +529,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
                 to the wrapped finder.
         """
         if fullname != self.old_module_name and not fullname.startswith(self.old_module_name + "."):
-            # if we are not interested in it, then just pass through to the wrapped finder
-            return self.finder.find_spec(fullname, path, target)
+            return None
 
         if self.broken_module_exception is not None:
             raise self.broken_module_exception
@@ -535,33 +538,8 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
 
         new_fullname = self.new_module_name + fullname[len(self.old_module_name) :]
 
-        # find the corresponding spec in the new structure
-        if fullname == self.old_module_name:
-            # this is the first time the deprecated module is being found
-            # which means that the new parent needs to be found first and under
-            # the new parent's path, we should be able to find the new name of
-            # the deprecated module
-            # this code is heavily inspired by importlib.util.find_spec
-            parent_name = new_fullname.rpartition('.')[0]
-            if parent_name:
-                parent = __import__(parent_name, fromlist=['__path__'])
-                # note that compared to importlib.util.find_spec we don't handle
-                # AttributeError here because it is not expected to happen in case
-                # of a DeprecatedModuleLoader - the new parent should exist and be
-                # a proper package
-                parent_path = parent.__path__
-            else:
-                parent_path = None
-            spec = self.finder.find_spec(new_fullname, parent_path, None)
-        else:
-            # we are finding a submodule of the parent of the deprecated module,
-            # which means that the parent was already found, and thus, `path` is
-            # correctly pointing to the module's parent in the new hierarchy
-            spec = self.finder.find_spec(
-                new_fullname,
-                path=path,
-                target=target,
-            )
+        # use normal import mechanism for the new module specs
+        spec = importlib.util.find_spec(new_fullname)
 
         # if the spec exists, return the DeprecatedModuleLoader that will do the loading as well
         # as set the alias(es) in sys.modules as necessary
@@ -576,7 +554,6 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         return spec
 
 
-# pylint: enable=missing-param-doc
 class _BrokenModule(ModuleType):
     def __init__(self, name, exc):
         self.exc = exc
@@ -590,8 +567,6 @@ class DeprecatedModuleImportError(ImportError):
     pass
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 def deprecated_submodule(
     *, new_module_name: str, old_parent: str, old_child: str, deadline: str, create_attribute: bool
 ):
@@ -607,11 +582,12 @@ def deprecated_submodule(
     cache.
 
     Args:
-        new_module_name: absolute module name for the new module
-        old_parent: the current module that had the original submodule
-        old_child: the submodule that is being relocated
-        create_attribute: if True, the submodule will be added as a deprecated attribute to the
-            old_parent module
+        new_module_name: Absolute module name for the new module.
+        old_parent: The current module that had the original submodule.
+        old_child: The submodule that is being relocated.
+        deadline: The version of Cirq where the module will be removed.
+        create_attribute: If True, the submodule will be added as a deprecated attribute to the
+            old_parent module.
 
     Returns:
         None
@@ -646,24 +622,12 @@ def deprecated_submodule(
                 _BrokenModule(new_module_name, broken_module_exception),
             )
 
-    def wrap(finder: Any) -> Any:
-        # Sphinx looks for non-wrapped MockFinders
-        # so we have to check for them and not wrap them
-        if 'sphinx' in sys.modules:
-            from sphinx.ext.autodoc.mock import MockFinder
-
-            if isinstance(finder, MockFinder):
-                return finder
-        if not hasattr(finder, 'find_spec'):
-            return finder
-        return DeprecatedModuleFinder(
-            finder, new_module_name, old_module_name, deadline, broken_module_exception
-        )
-
-    sys.meta_path = [wrap(finder) for finder in sys.meta_path]
+    finder = DeprecatedModuleFinder(
+        new_module_name, old_module_name, deadline, broken_module_exception
+    )
+    sys.meta_path.append(finder)
 
 
-# pylint: enable=missing-param-doc
 def _setup_deprecated_submodule_attribute(
     new_module_name: str,
     old_parent: str,

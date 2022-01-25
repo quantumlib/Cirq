@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
 import math
 from unittest import mock
@@ -9,6 +10,7 @@ import sympy
 import cirq
 import cirq.contrib.quimb as ccq
 import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
+import cirq.testing
 from cirq import value
 
 
@@ -221,6 +223,17 @@ def test_measurement_1qubit():
     assert sum(result.measurements['1'])[0] > 20
 
 
+def test_reset():
+    q = cirq.LineQubit(0)
+    simulator = ccq.mps_simulator.MPSSimulator()
+    c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q))
+    assert simulator.sample(c)['0'][0] == 0
+    c = cirq.Circuit(cirq.H(q), cirq.reset(q), cirq.measure(q))
+    assert simulator.sample(c)['0'][0] == 0
+    c = cirq.Circuit(cirq.reset(q), cirq.measure(q))
+    assert simulator.sample(c)['0'][0] == 0
+
+
 def test_measurement_2qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q2), cirq.measure(q0, q2))
@@ -274,6 +287,29 @@ output state: TensorNetwork([
     )
 
 
+def test_trial_result_repr_pretty():
+    q0 = cirq.LineQubit(0)
+    final_step_result = mock.Mock(cirq.StepResult)
+    final_step_result._simulator_state.return_value = ccq.mps_simulator.MPSState(
+        qubits=(q0,),
+        prng=value.parse_random_state(0),
+        simulation_options=ccq.mps_simulator.MPSOptions(),
+    )
+    result = ccq.mps_simulator.MPSTrialResult(
+        params=cirq.ParamResolver({}),
+        measurements={'m': np.array([[1]])},
+        final_step_result=final_step_result,
+    )
+    cirq.testing.assert_repr_pretty(
+        result,
+        """measurements: m=1
+output state: TensorNetwork([
+    Tensor(shape=(2,), inds=('i_0',), tags=set()),
+])""",
+    )
+    cirq.testing.assert_repr_pretty(result, "cirq.MPSTrialResult(...)", cycle=True)
+
+
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
     sim = ccq.mps_simulator.MPSSimulator()
@@ -285,6 +321,20 @@ TensorNetwork([
     Tensor(shape=(2,), inds=('i_0',), tags=set()),
 ])"""
     )
+
+
+def test_step_result_repr_pretty():
+    q0 = cirq.LineQubit(0)
+    sim = ccq.mps_simulator.MPSSimulator()
+    step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
+    cirq.testing.assert_repr_pretty(
+        step_result,
+        """0=0
+TensorNetwork([
+    Tensor(shape=(2,), inds=('i_0',), tags=set()),
+])""",
+    )
+    cirq.testing.assert_repr_pretty(step_result, "cirq.MPSSimulatorStepResult(...)", cycle=True)
 
 
 def test_state_equal():

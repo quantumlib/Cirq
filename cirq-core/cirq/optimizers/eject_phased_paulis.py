@@ -19,7 +19,7 @@ from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple, Dict, List
 import sympy
 
 from cirq import circuits, ops, value, protocols
-from cirq.optimizers import decompositions
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 if TYPE_CHECKING:
     import cirq
@@ -69,7 +69,9 @@ class EjectPhasedPaulis:
                 # Collect, phase, and merge Ws.
                 w = _try_get_known_phased_pauli(op, no_symbolic=not self.eject_parameterized)
                 if w is not None:
-                    if decompositions.is_negligible_turn((w[0] - 1) / 2, self.tolerance):
+                    if single_qubit_decompositions.is_negligible_turn(
+                        (w[0] - 1) / 2, self.tolerance
+                    ):
                         _potential_cross_whole_w(moment_index, op, self.tolerance, state)
                     else:
                         _potential_cross_partial_w(moment_index, op, state)
@@ -180,7 +182,7 @@ def _potential_cross_whole_w(
         # Cancel the gate.
         del state.held_w_phases[q]
         t = 2 * (b - a)
-        if not decompositions.is_negligible_turn(t / 2, tolerance):
+        if not single_qubit_decompositions.is_negligible_turn(t / 2, tolerance):
             leftover_phase = ops.Z(q) ** t
             state.inline_intos.append((moment_index, leftover_phase))
 

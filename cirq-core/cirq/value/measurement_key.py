@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Optional, Tuple
+from typing import Dict, FrozenSet, Optional, Tuple
 
 import dataclasses
 
@@ -79,7 +79,6 @@ class MeasurementKey:
 
     def _json_dict_(self):
         return {
-            'cirq_type': 'MeasurementKey',
             'name': self.name,
             'path': self.path,
         }
@@ -105,13 +104,26 @@ class MeasurementKey:
     def _with_key_path_(self, path: Tuple[str, ...]):
         return self.replace(path=path)
 
-    def with_key_path_prefix(self, path_component: str):
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        return self._with_key_path_(path=prefix + self.path)
+
+    def with_key_path_prefix(self, *path_component: str):
         """Adds the input path component to the start of the path.
 
         Useful when constructing the path from inside to out (in case of nested subcircuits),
         recursively.
         """
-        return self._with_key_path_((path_component,) + self.path)
+        return self.replace(path=path_component + self.path)
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['MeasurementKey'],
+    ):
+        new_key = self.replace(path=path + self.path)
+        if new_key in bindable_keys:
+            raise ValueError(f'Conflicting measurement keys found: {new_key}')
+        return new_key
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         if self.name not in key_map:

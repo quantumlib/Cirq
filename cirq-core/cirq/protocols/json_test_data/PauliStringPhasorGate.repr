@@ -1,0 +1,1 @@
+cirq.PauliStringPhasorGate(cirq.DensePauliString('XYZI', coefficient=1), exponent_neg=0.2, exponent_pos=0.1)

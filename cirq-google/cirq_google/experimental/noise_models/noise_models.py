@@ -13,11 +13,13 @@
 # limitations under the License.
 
 from math import exp
-from typing import Dict, Sequence
+from typing import Dict, Sequence, TYPE_CHECKING
 
 import cirq
 from cirq.devices.noise_model import validate_all_measurements
-from cirq_google import engine
+
+if TYPE_CHECKING:
+    from cirq_google.engine import calibration
 
 
 class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
@@ -93,10 +95,8 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
             return moments
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def simple_noise_from_calibration_metrics(
-    calibration: engine.Calibration,
+    calibration: 'calibration.Calibration',
     depol_noise: bool = False,
     damping_noise: bool = False,
     readout_decay_noise: bool = False,
@@ -119,6 +119,10 @@ def simple_noise_from_calibration_metrics(
     Returns:
         A PerQubitDepolarizingWithDampedReadoutNoiseModel with error
             probabilities generated from the provided calibration data.
+    Raises:
+        NotImplementedError: If `damping_noise` is True, as this is not yet
+            supported.
+        ValueError: If none of the noises is set to True.
     """
     if not any([depol_noise, damping_noise, readout_decay_noise, readout_error_noise]):
         raise ValueError('At least one error type must be specified.')
@@ -157,6 +161,3 @@ def simple_noise_from_calibration_metrics(
     return PerQubitDepolarizingWithDampedReadoutNoiseModel(
         depol_probs=depol_probs, decay_probs=readout_decay_probs, bitflip_probs=readout_error_probs
     )
-
-
-# pylint: enable=missing-raises-doc
