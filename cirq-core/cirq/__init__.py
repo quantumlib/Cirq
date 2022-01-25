@@ -170,6 +170,7 @@ from cirq.linalg import (
     pow_pauli_combination,
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
+    state_vector_kronecker_product,
     so4_to_magic_su2s,
     sub_state_vector,
     targeted_conjugate_about,
