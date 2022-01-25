@@ -112,8 +112,10 @@ def mixture(
 
         superoperator_list = [_moment_superoperator(x, qubits, None) for x in decomposed]
         if not any([x is None for x in superoperator_list]):
-            superoperator_result = reduce(lambda x, y: x @ y, superoperator_list)
-            return tuple(_superoperator_to_mixture(superoperator_result))
+            superoperator_result = reduce(lambda x, y: y @ x, superoperator_list)
+            mixture_result = tuple(_superoperator_to_mixture(superoperator_result))
+            if _check_mixture(mixture_result):
+                return mixture_result
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
@@ -161,6 +163,21 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     return False
 
 
+def _check_mixture(mixture_tuple, atol=1e-08):
+    def check_probability(p):
+        return (p >= 0) and (p <= 1)
+
+    def check_unitary(val):
+        return np.isclose(np.identity(np.shape(val)[0]), val.conj().T @ val).all()
+
+    total = 0.0
+    for p, val in mixture_tuple:
+        total += p
+        if not (check_probability(p) and ((p < atol) or check_unitary(val))):
+            return False
+    return np.isclose(total, 1.0)
+
+
 def validate_mixture(supports_mixture: SupportsMixture):
     """Validates that the mixture's tuple are valid probabilities."""
     mixture_tuple = mixture(supports_mixture, None)
@@ -187,7 +204,8 @@ def _superoperator_to_mixture(superoperator: np.ndarray) -> Sequence[Tuple[float
     for k in kraus:
         # $U^\dag U = I, \Sigma_i |\lambda_i|^2 = d$ where $d$ is the size.
         p = np.sum(np.abs(np.linalg.eigvals(k)) ** 2) / np.shape(k)[0]
-        mixture.append((p, k / (p ** 0.5)))
+        if p > 0:
+            mixture.append((p, k / (p ** 0.5)))
 
     return mixture
 

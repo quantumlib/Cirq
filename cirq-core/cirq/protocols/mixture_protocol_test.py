@@ -131,6 +131,41 @@ def test_invalid_mixture(val, message):
         cirq.validate_mixture(val)
 
 
+def test_serial_concatenation_no_kraus():
+    q1 = cirq.GridQubit(1, 1)
+
+    class defaultGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return NotImplemented
+
+        def _kraus_(self):
+            return (np.array([[1, 0], [0, 0]]), np.array([[0, 1], [0, 0]]))
+
+    class onlyDecompose:
+        def _decompose_(self):
+            return [cirq.Y.on(q1), defaultGate().on(q1)]
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return NotImplemented
+
+    default = (1.0, np.array([[1, 0], [0, 1]]))
+
+    with pytest.raises(TypeError, match="returned NotImplemented"):
+        _ = cirq.mixture(onlyDecompose())
+    assert cirq.mixture(onlyDecompose(), 0) == 0
+    np.testing.assert_equal(cirq.mixture(onlyDecompose(), default), default)
+    assert not cirq.has_mixture(onlyDecompose())
+
+
 def test_serial_concatenation_default():
     q1 = cirq.GridQubit(1, 1)
 
