@@ -11,49 +11,63 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
 import dataclasses
-from typing import Optional, Iterable
 
 import cirq
 import cirq_google as cg
+from cirq._compat import dataclass_repr
 
 
-class EngineBackend(cg.engine.EngineProcessor):
+class ProcessorRecord(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def get_processor(self) -> 'cg.engine.AbstractProcessor':
+        pass
+
+    def get_sampler(self) -> 'cirq.Sampler':
+        return self.get_processor().get_sampler()
+
+    def get_device(self) -> 'cirq.Device':
+        return self.get_processor().get_device()
+
+
+@dataclasses.dataclass(frozen=True)
+class EngineProcessorRecord(ProcessorRecord):
     """An EngineProcessor typified by its processor_id.
 
     This is serializable and relies on the GOOGLE_CLOUD_PROJECT environment
     variable to set up the actual connection.
     """
 
-    def __init__(self, processor_id: str):
+    processor_id: str
+
+    def get_processor(self) -> cg.EngineProcessor:
         engine = cg.get_engine()
-        super().__init__(
+        return cg.EngineProcessor(
             project_id=engine.project_id,
-            processor_id=processor_id,
+            processor_id=self.processor_id,
             context=engine.context,
         )
 
-    def get_sampler(self, gate_set: Optional['cg.Serializer'] = None) -> 'cg.QuantumEngineSampler':
-        assert gate_set is None
-        return super().get_sampler(cg.SQRT_ISWAP_GATESET)
+    def get_sampler(self) -> 'cg.QuantumEngineSampler':
+        return self.get_processor().get_sampler(cg.SQRT_ISWAP_GATESET)
 
-    def get_device(self, gate_sets: Iterable['cg.Serializer'] = ()) -> 'cirq.Device':
-
-        assert gate_sets is ()
-        return super().get_device(cg.SQRT_ISWAP_GATESET)
+    def get_device(self) -> 'cirq.Device':
+        return self.get_processor().get_device(cg.SQRT_ISWAP_GATESET)
 
     def __repr__(self):
-        return f'cirq_google.EngineBackend({self.processor_id!r})'
+        return dataclass_repr(self, namespace='cirq_google')
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
     def _json_dict_(self):
-        return cirq.obj_to_dict_helper(self, ['processor_id'])
+        return cirq.dataclass_json_dict(self)
 
 
-class SimulatedBackend(cg.engine.SimulatedLocalProcessor):
+@dataclasses.dataclass(frozen=True)
+class SimulatedProcessorRecord(ProcessorRecord):
     """Simulated Engine Processor
 
     Args:
@@ -64,32 +78,35 @@ class SimulatedBackend(cg.engine.SimulatedLocalProcessor):
             a depolarizing model with this probability of noise.
     """
 
-    def __init__(self, processor_id: str, noise_strength: float = 0):
+    processor_id: str
+    noise_strength: float = 0
 
-        super().__init__(
-            processor_id=processor_id,
-            sampler=self._init_sampler(noise_strength),
-            device=self._init_device(processor_id),
+    def get_processor(self) -> 'cg.engine.AbstractProcessor':
+        return cg.engine.SimulatedLocalProcessor(
+            processor_id=self.processor_id,
+            sampler=self.get_sampler(),
+            device=self.get_device(),
         )
-        self.noise_strength = noise_strength
 
-    def _init_device(self, processor_id: str) -> cirq.Device:
-        return cg.get_engine_device(processor_id)
+    def get_device(self) -> 'cirq.Device':
+        return cg.get_engine_device(self.processor_id)
 
-    def _init_sampler(self, noise_strength: float) -> cirq.Sampler:
-        if noise_strength == 0:
+    def get_sampler(
+        self,
+    ) -> 'cirq.Sampler':
+        if self.noise_strength == 0:
             return cirq.Simulator()
-        if noise_strength == float('inf'):
+        if self.noise_strength == float('inf'):
             return cirq.ZerosSampler()
 
-        return cirq.DensityMatrixSimulator(noise=cirq.depolarize(p=noise_strength))
+        return cirq.DensityMatrixSimulator(noise=cirq.depolarize(p=self.noise_strength))
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
     def _json_dict_(self):
-        return cirq.obj_to_dict_helper(self, ['processor_id', 'noise_strength'])
+        return cirq.dataclass_json_dict(self)
 
     def descriptive_name(self):
         if self.noise_strength == 0:
@@ -100,17 +117,8 @@ class SimulatedBackend(cg.engine.SimulatedLocalProcessor):
             suffix = f'p={self.noise_strength:.3e}'
         return f'{self.processor_id}-{suffix}'
 
-    def __eq__(self, other):
-        if not isinstance(other, SimulatedBackend):
-            return False
-
-        return (self.processor_id, self.noise_strength) == (
-            other.processor_id,
-            other.noise_strength,
-        )
-
     def __repr__(self):
-        return f'cirq_google.{self.__class__.__name__}({self.processor_id!r}, noise_strength={self.noise_strength!r})'
+        return dataclass_repr(self, namespace='cirq_google')
 
 
 _DEVICES_BY_ID = {
@@ -119,6 +127,6 @@ _DEVICES_BY_ID = {
 }
 
 
-class SimulatedBackendWithLocalDevice(SimulatedBackend):
-    def _init_device(self, processor_id: str) -> cirq.Device:
-        return _DEVICES_BY_ID[processor_id]
+class SimulatedProcessorWithLocalDeviceRecord(SimulatedProcessorRecord):
+    def get_device(self) -> 'cirq.Device':
+        return _DEVICES_BY_ID[self.processor_id]

@@ -177,7 +177,7 @@ class QuantumRuntimeConfiguration:
             The placer is only called if a given `cg.QuantumExecutable` has a `problem_topology`.
     """
 
-    processor: 'cg.engine.AbstractProcessor'
+    processor_record: 'cg.ProcessorRecord'
     run_id: Optional[str] = None
     random_seed: Optional[int] = None
     qubit_placer: QubitPlacer = NaiveQubitPlacer()
@@ -234,8 +234,8 @@ def execute(
         # coverage: ignore
         raise ValueError("Please provide a non-empty `base_data_dir`.")
 
-    sampler = rt_config.processor.get_sampler()
-    device = rt_config.processor.get_device()
+    sampler = rt_config.processor_record.get_sampler()
+    device = rt_config.processor_record.get_device()
 
     shared_rt_info = SharedRuntimeInfo(
         run_id=run_id,
