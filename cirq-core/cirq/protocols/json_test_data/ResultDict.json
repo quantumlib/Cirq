@@ -1,6 +1,6 @@
 [
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [
@@ -26,7 +26,7 @@
     }
   },
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [
@@ -52,7 +52,7 @@
     }
   },
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [
@@ -78,7 +78,7 @@
     }
   },
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [
@@ -104,7 +104,7 @@
     }
   },
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [
@@ -130,7 +130,7 @@
     }
   },
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [
@@ -156,7 +156,7 @@
     }
   },
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [
@@ -182,7 +182,7 @@
     }
   },
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [
@@ -208,7 +208,7 @@
     }
   },
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [
@@ -234,7 +234,7 @@
     }
   },
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [
@@ -260,7 +260,7 @@
     }
   },
   {
-    "cirq_type": "ResultImpl",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": [

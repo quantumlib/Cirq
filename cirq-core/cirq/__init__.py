@@ -456,6 +456,7 @@ from cirq.study import (
     flatten,
     flatten_with_params,
     flatten_with_sweep,
+    ResultDict,
     Linspace,
     ListSweep,
     ParamDictType,
@@ -469,7 +470,6 @@ from cirq.study import (
     to_sweep,
     to_sweeps,
     Result,
-    ResultImpl,
     UnitSweep,
     Zip,
 )

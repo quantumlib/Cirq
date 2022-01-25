@@ -67,7 +67,7 @@ def test_executable_result():
     er = cg.ExecutableResult(
         spec=_get_example_spec(name='test-spec'),
         runtime_info=rtinfo,
-        raw_data=cirq.ResultImpl(
+        raw_data=cirq.ResultDict(
             params=cirq.ParamResolver(), measurements={'z': np.ones((1_000, 4))}
         ),
     )
@@ -130,7 +130,7 @@ def test_executable_group_result(tmpdir):
             cg.ExecutableResult(
                 spec=_get_example_spec(name=f'test-spec-{i}'),
                 runtime_info=cg.RuntimeInfo(execution_index=i),
-                raw_data=cirq.ResultImpl(
+                raw_data=cirq.ResultDict(
                     params=cirq.ParamResolver(), measurements={'z': np.ones((1_000, 4))}
                 ),
             )

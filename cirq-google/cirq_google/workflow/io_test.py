@@ -112,7 +112,7 @@ def test_filesystem_saver(tmpdir, patch_cirq_default_resolvers):
     exe_result = cg.ExecutableResult(
         spec=None,
         runtime_info=cg.RuntimeInfo(execution_index=0),
-        raw_data=cirq.ResultImpl(
+        raw_data=cirq.ResultDict(
             params=cirq.ParamResolver({}), measurements={'z': np.ones((100, 5))}
         ),
     )

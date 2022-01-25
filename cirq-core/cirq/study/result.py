@@ -89,9 +89,9 @@ class Result(abc.ABC):
         if cls is Result:
             _warn_or_error(
                 "Result constructor is deprecated and will be removed in cirq v0.15. "
-                "Use the ResultImpl constructor instead, or another concrete subclass."
+                "Use the ResultDict constructor instead, or another concrete subclass."
             )
-            return ResultImpl(*args, **kwargs)
+            return ResultDict(*args, **kwargs)
         return super().__new__(cls)
 
     @property
@@ -125,7 +125,7 @@ class Result(abc.ABC):
     @deprecated(
         deadline="v0.15",
         fix="The static method from_single_parameter_set is deprecated. "
-        "Use the ResultImpl constructor instead.",
+        "Use the ResultDict constructor instead.",
     )
     def from_single_parameter_set(
         *,  # Forces keyword args.
@@ -142,7 +142,7 @@ class Result(abc.ABC):
                 second index running over the qubits for the corresponding
                 measurements.
         """
-        return ResultImpl(params=params, measurements=measurements)
+        return ResultDict(params=params, measurements=measurements)
 
     @property
     def repetitions(self) -> int:
@@ -277,20 +277,16 @@ class Result(abc.ABC):
             all_measurements[key] = np.append(
                 self.measurements[key], other.measurements[key], axis=0
             )
-        return ResultImpl(params=self.params, measurements=all_measurements)
+        return ResultDict(params=self.params, measurements=all_measurements)
 
 
-class ResultImpl(Result):
-    """The results of multiple executions of a circuit with fixed parameters.
+class ResultDict(Result):
+    """A Result created from a dict mapping measurement keys to measured values.
 
-    Stored as a dict mapping measurement key to 2D array of measurement results.
-    The first index in each array is the repetition number, and the second index
-    is the qubitPandas DataFrame that can be accessed through the "data"
-    attribute. The repetition number is the row index and measurement keys
-    are the columns of the DataFrame. Each element is a big endian integer
-    representation of measurement outcomes for the measurement key in that
-    repetition.  See `cirq.big_endian_int_to_bits` and similar functions
-    for how to convert this integer into bits.
+    Stores results of executing a circuit for multiple repetitions with one
+    fixed set of parameters. The values for each measurement key are stored as a
+    2D numpy array. The first (row) index in each array is the repetition
+    number, and the second (column) index is the qubit.
 
     Attributes:
         params: A ParamResolver of settings used when sampling result.
@@ -342,13 +338,13 @@ class ResultImpl(Result):
         measurement_dict_repr = (
             '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.measurements.items()) + '}'
         )
-        return f'cirq.ResultImpl(params={self.params!r}, measurements={measurement_dict_repr})'
+        return f'cirq.ResultDict(params={self.params!r}, measurements={measurement_dict_repr})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
         if cycle:
             # There should never be a cycle.  This is just in case.
-            p.text('ResultImpl(...)')
+            p.text('ResultDict(...)')
         else:
             p.text(str(self))
 
