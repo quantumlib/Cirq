@@ -21,9 +21,9 @@ import cirq
 from cirq_google import (
     PhasedFSimEngineSimulator,
     QuantumEngineSampler,
+    Sycamore,
     SQRT_ISWAP_INV_PARAMETERS,
     PhasedFSimCharacterization,
-    Bristlecone,
     get_engine_sampler,
     get_engine_device,
 )
@@ -113,7 +113,7 @@ def get_qcs_objects_for_notebook(
             mean=SQRT_ISWAP_INV_PARAMETERS,
             sigma=PhasedFSimCharacterization(theta=0.01, zeta=0.10, chi=0.01, gamma=0.10, phi=0.02),
         )
-        device = Bristlecone
+        device = Sycamore
     else:  # pragma: no cover
         device = get_engine_device(processor_id)
         sampler = get_engine_sampler(processor_id, gate_set_name="sqrt_iswap")

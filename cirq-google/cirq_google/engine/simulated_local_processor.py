@@ -77,6 +77,15 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             based on the given serializer.
         calibrations: A dictionary of calibration metrics keyed by epoch seconds
             that can be returned by the processor.
+        processor_id: Unique string id of the processor.
+        engine: The parent `AbstractEngine` object, if available.
+        expected_down_time: Optional datetime of the next expected downtime.
+            For informational purpose only.
+        expected_recovery_time: Optional datetime when the processor is
+            expected to be available again.  For informational purpose only.
+        schedule:  List of time slots that the scheduling/reservation should
+            use.  All time slots must be non-overlapping.
+        project_name: A project_name for resource naming.
     """
 
     def __init__(

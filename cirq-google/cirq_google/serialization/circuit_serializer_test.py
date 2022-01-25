@@ -22,6 +22,11 @@ import cirq_google as cg
 from cirq_google.api import v2
 
 
+class TestDevice(cirq.Device):
+    def __init__(self):
+        pass
+
+
 def op_proto(json: Dict) -> v2.program_pb2.Operation:
     op = v2.program_pb2.Operation()
     json_format.ParseDict(json, op)
@@ -675,7 +680,7 @@ def test_deserialize_schedule_not_supported():
         ),
     )
     with pytest.raises(ValueError, match='no longer supported'):
-        serializer.deserialize(proto, cg.Bristlecone)
+        serializer.deserialize(proto, TestDevice())
 
 
 def test_deserialize_fsim_missing_parameters():

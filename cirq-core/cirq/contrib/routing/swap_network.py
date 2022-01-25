@@ -36,7 +36,9 @@ class SwapNetwork:
     """
 
     def __init__(
-        self, circuit: 'cirq.Circuit', initial_mapping: Dict['cirq.Qid', 'cirq.Qid']
+        self,
+        circuit: 'cirq.Circuit',
+        initial_mapping: Dict['cirq.Qid', 'cirq.Qid'],
     ) -> None:
         if not all(isinstance(i, ops.Qid) for I in initial_mapping.items() for i in I):
             raise ValueError('Mapping must be from Qids to Qids.')
@@ -55,10 +57,6 @@ class SwapNetwork:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self.circuit == other.circuit and self.initial_mapping == other.initial_mapping
-
-    @property
-    def device(self) -> 'cirq.Device':
-        return self.circuit.device
 
     def __str__(self) -> str:
         circuit = self.circuit.copy()

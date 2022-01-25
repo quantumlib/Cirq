@@ -43,7 +43,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     # get_qcs_objects_for_notebook
     'docs/tutorials/google/calibration_api.ipynb',
     'docs/tutorials/google/colab.ipynb',
-    'docs/tutorials/google/compare_to_calibration.ipynb',
+    'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
     'docs/tutorials/google/floquet_calibration_example.ipynb',
     'docs/tutorials/google/reservations.ipynb',

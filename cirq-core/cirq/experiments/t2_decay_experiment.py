@@ -425,7 +425,7 @@ class T2DecayResult:
         # by squaring <X> and <Y> expectation values
         bloch_vector = self._expectation_pauli_x ** 2 + self._expectation_pauli_y ** 2
 
-        ax.plot(self._expectation_pauli_x['delay_ns'], bloch_vector, 'r+-', **plot_kwargs)
+        ax.plot(self._expectation_pauli_x['delay_ns'], bloch_vector['value'], 'r+-', **plot_kwargs)
         ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
         ax.set_ylabel('Bloch Vector X-Y Projection Squared')
         ax.set_title('T2 Decay Experiment Data')
