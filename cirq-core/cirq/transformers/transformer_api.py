@@ -15,6 +15,7 @@
 """Defines the API for circuit transformers in Cirq."""
 
 import dataclasses
+import inspect
 import enum
 import functools
 import textwrap
@@ -220,7 +221,7 @@ class TransformerContext:
 
 class TRANSFORMER(Protocol):
     def __call__(
-        self, circuit: 'cirq.AbstractCircuit', context: TransformerContext
+        self, circuit: 'cirq.AbstractCircuit', *, context: TransformerContext
     ) -> 'cirq.AbstractCircuit':
         ...
 
@@ -248,7 +249,7 @@ def transformer(cls_or_func: Any) -> Any:
 
     >>> @cirq.transformer
     >>> def convert_to_cz(
-    >>>    circuit: cirq.AbstractCircuit, context: cirq.TransformerContext
+    >>>    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext
     >>> ) -> cirq.Circuit:
     >>>    ...
 
@@ -259,7 +260,7 @@ def transformer(cls_or_func: Any) -> Any:
     >>>    def __init__(self):
     >>>        ...
     >>>    def __call__(
-    >>>        self, circuit: cirq.AbstractCircuit, context: cirq.TransformerContext
+    >>>        self, circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext
     >>>    ) -> cirq.Circuit:
     >>>        ...
 
@@ -269,8 +270,8 @@ def transformer(cls_or_func: Any) -> Any:
     >>> @cirq.transformer
     >>> def convert_to_sqrt_iswap(
     >>>     circuit: cirq.AbstractCircuit,
-    >>>     context: cirq.TransformerContext,
     >>>     *,
+    >>>     context: cirq.TransformerContext,
     >>>     atol: float = 1e-8,
     >>>     sqrt_iswap_gate: irq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
     >>>     cleanup_operations: bool = True,
@@ -288,12 +289,12 @@ def transformer(cls_or_func: Any) -> Any:
         method = cls.__call__
 
         @functools.wraps(method)
-        def method_with_logging(self, circuit, context, **kwargs) -> 'cirq.AbstractCircuit':
+        def method_with_logging(self, circuit, **kwargs) -> 'cirq.AbstractCircuit':
             return _transform_and_log(
-                lambda circuit, context, **kwargs: method(self, circuit, context, **kwargs),
+                lambda circuit, **kwargs: method(self, circuit, **kwargs),
                 cls.__name__,
                 circuit,
-                context,
+                _get_context(method, f'{cls.__name__}.__call__()', **kwargs),
                 **kwargs,
             )
 
@@ -304,17 +305,33 @@ def transformer(cls_or_func: Any) -> Any:
         func = cls_or_func
 
         @functools.wraps(func)
-        def func_with_logging(circuit, context, **kwargs) -> 'cirq.AbstractCircuit':
-            return _transform_and_log(func, func.__name__, circuit, context, **kwargs)
+        def func_with_logging(circuit, **kwargs) -> 'cirq.AbstractCircuit':
+            return _transform_and_log(
+                func,
+                func.__name__,
+                circuit,
+                _get_context(func, f'{func.__name__}()', **kwargs),
+                **kwargs,
+            )
 
         return func_with_logging
 
 
+def _get_context(func, name, **kwargs):
+    if 'context' in kwargs:
+        return kwargs['context']
+    sig = inspect.signature(func)
+    default_context = sig.parameters["context"].default
+    if default_context == inspect.Parameter.empty:
+        raise TypeError(f"{name} is missing 1 required keyword-only argument: 'context'")
+    return default_context
+
+
 def _transform_and_log(
-    func, transformer_name, circuit, context, **kwargs
+    func, transformer_name, circuit, extracted_context, **kwargs
 ) -> 'cirq.AbstractCircuit':
     """Helper to log initial and final circuits before and after calling the transformer."""
-    context.logger.register_initial(circuit, transformer_name)
-    transformed_circuit = func(circuit, context, **kwargs)
-    context.logger.register_final(transformed_circuit, transformer_name)
+    extracted_context.logger.register_initial(circuit, transformer_name)
+    transformed_circuit = func(circuit, **kwargs)
+    extracted_context.logger.register_final(transformed_circuit, transformer_name)
     return transformed_circuit
