@@ -101,7 +101,7 @@ class IonQAPIDevice(cirq.Device):
             yield gate(qubit)
 
     def _decompose_two_qubit(self, operation: cirq.Operation) -> cirq.OP_TREE:
-        """Decomposes a two qubit unitary Rz,Rx,and CNOT."""
+        """Decomposes a two qubit unitary operation into ZPOW, XPOW, and CNOT."""
         mat = cirq.unitary(operation)
         q0, q1 = operation.qubits
         naive = cirq.two_qubit_matrix_to_operations(q0, q1, mat, allow_partial_czs=False)
