@@ -17,6 +17,7 @@
 import abc
 import collections
 import inspect
+import warnings
 from typing import (
     Any,
     Dict,
@@ -31,12 +32,10 @@ from typing import (
     Optional,
     TypeVar,
 )
-import warnings
 
 import numpy as np
 
 from cirq import ops, protocols, study, value, devices
-from cirq._compat import deprecated
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
