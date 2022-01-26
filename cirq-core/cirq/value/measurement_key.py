@@ -84,6 +84,9 @@ class MeasurementKey:
             return self.name < other.name
         return NotImplemented
 
+    def __le__(self, other):
+        return self == other or self < other
+
     def _json_dict_(self):
         return {
             'name': self.name,
