@@ -25,6 +25,7 @@ from typing import (
     Hashable,
     List,
     overload,
+    Optional,
     Type,
     TYPE_CHECKING,
     TypeVar,
@@ -201,7 +202,7 @@ class NoOpTransformerLogger(TransformerLogger):
         pass
 
 
-@dataclasses.dataclass()
+@dataclasses.dataclass(frozen=True)
 class TransformerContext:
     """Stores common configurable options for transformers.
 
@@ -221,7 +222,7 @@ class TransformerContext:
 
 class TRANSFORMER(Protocol):
     def __call__(
-        self, circuit: 'cirq.AbstractCircuit', *, context: TransformerContext
+        self, circuit: 'cirq.AbstractCircuit', *, context: Optional[TransformerContext] = None
     ) -> 'cirq.AbstractCircuit':
         ...
 
@@ -249,7 +250,7 @@ def transformer(cls_or_func: Any) -> Any:
 
     >>> @cirq.transformer
     >>> def convert_to_cz(
-    >>>    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext
+    >>>    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
     >>> ) -> cirq.Circuit:
     >>>    ...
 
@@ -260,7 +261,10 @@ def transformer(cls_or_func: Any) -> Any:
     >>>    def __init__(self):
     >>>        ...
     >>>    def __call__(
-    >>>        self, circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext
+    >>>        self,
+    >>>        circuit: cirq.AbstractCircuit,
+    >>>        *,
+    >>>        context: Optional[cirq.TransformerContext] = None,
     >>>    ) -> cirq.Circuit:
     >>>        ...
 
@@ -271,9 +275,9 @@ def transformer(cls_or_func: Any) -> Any:
     >>> def convert_to_sqrt_iswap(
     >>>     circuit: cirq.AbstractCircuit,
     >>>     *,
-    >>>     context: cirq.TransformerContext,
+    >>>     context: Optional[cirq.TransformerContext] = None,
     >>>     atol: float = 1e-8,
-    >>>     sqrt_iswap_gate: irq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
+    >>>     sqrt_iswap_gate: cirq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
     >>>     cleanup_operations: bool = True,
     >>> ) -> cirq.Circuit:
     >>>     pass
@@ -322,8 +326,9 @@ def _get_context(func, name, **kwargs):
         return kwargs['context']
     sig = inspect.signature(func)
     default_context = sig.parameters["context"].default
-    if default_context == inspect.Parameter.empty:
-        raise TypeError(f"{name} is missing 1 required keyword-only argument: 'context'")
+    assert (
+        default_context != inspect.Parameter.empty
+    ), "`context` argument must have a default value specified."
     return default_context
 
 
@@ -331,7 +336,9 @@ def _transform_and_log(
     func, transformer_name, circuit, extracted_context, **kwargs
 ) -> 'cirq.AbstractCircuit':
     """Helper to log initial and final circuits before and after calling the transformer."""
-    extracted_context.logger.register_initial(circuit, transformer_name)
+    if extracted_context:
+        extracted_context.logger.register_initial(circuit, transformer_name)
     transformed_circuit = func(circuit, **kwargs)
-    extracted_context.logger.register_final(transformed_circuit, transformer_name)
+    if extracted_context:
+        extracted_context.logger.register_final(transformed_circuit, transformer_name)
     return transformed_circuit

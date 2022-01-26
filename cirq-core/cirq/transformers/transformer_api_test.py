@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from unittest import mock
+from typing import Optional
 
 import cirq
 from cirq.transformers.transformer_api import LogLevel
@@ -26,7 +27,7 @@ class MockTransformerClass:
         self.mock = mock.Mock()
 
     def __call__(
-        self, circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext
+        self, circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
     ) -> cirq.Circuit:
         self.mock(circuit, context)
         return circuit.unfreeze()
@@ -50,7 +51,7 @@ class MockTransformerClassWithDefaults:
         self,
         circuit: cirq.AbstractCircuit,
         *,
-        context: cirq.TransformerContext = cirq.TransformerContext(),
+        context: Optional[cirq.TransformerContext] = cirq.TransformerContext(),
         atol: float = 1e-4,
         custom_arg: CustomArg = CustomArg(),
     ) -> cirq.AbstractCircuit:
@@ -65,7 +66,7 @@ def make_transformer_func_with_defaults() -> cirq.TRANSFORMER:
     def func(
         circuit: cirq.AbstractCircuit,
         *,
-        context: cirq.TransformerContext = cirq.TransformerContext(),
+        context: Optional[cirq.TransformerContext] = cirq.TransformerContext(),
         atol: float = 1e-4,
         custom_arg: CustomArg = CustomArg(),
     ) -> cirq.FrozenCircuit:
@@ -81,7 +82,7 @@ def make_transformer_func() -> cirq.TRANSFORMER:
 
     @cirq.transformer
     def mock_tranformer_func(
-        circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext
+        circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
     ) -> cirq.Circuit:
         my_mock(circuit, context)
         return circuit.unfreeze()
@@ -113,13 +114,6 @@ def test_transformer_decorator(context, transformer):
         context.logger.register_final.assert_called_with(circuit, transformer_name)
 
 
-def test_transformer_decorator_no_default_raises():
-    with pytest.raises(TypeError, match=r'''MockTransformerClass.__call__.*context'''):
-        MockTransformerClass()(cirq.Circuit())
-    with pytest.raises(TypeError, match=r"mock_tranformer_func.*context"):
-        make_transformer_func()(cirq.Circuit())  #  pylint: disable=E1125
-
-
 @pytest.mark.parametrize(
     'transformer',
     [
@@ -143,8 +137,9 @@ def test_transformer_decorator_with_defaults(transformer):
 @cirq.transformer
 class T1:
     def __call__(
-        self, circuit: cirq.AbstractCircuit, context: cirq.TransformerContext
+        self, circuit: cirq.AbstractCircuit, context: Optional[cirq.TransformerContext] = None
     ) -> cirq.AbstractCircuit:
+        assert context is not None
         context.logger.log("First Verbose Log", "of T1", level=LogLevel.DEBUG)
         context.logger.log("Second INFO Log", "of T1", level=LogLevel.INFO)
         context.logger.log("Third WARNING Log", "of T1", level=LogLevel.WARNING)
@@ -155,7 +150,10 @@ t1 = T1()
 
 
 @cirq.transformer
-def t2(circuit: cirq.AbstractCircuit, context: cirq.TransformerContext) -> cirq.FrozenCircuit:
+def t2(
+    circuit: cirq.AbstractCircuit, context: Optional[cirq.TransformerContext] = None
+) -> cirq.FrozenCircuit:
+    assert context is not None
     context.logger.log("First INFO Log", "of T2 Start")
     circuit = t1(circuit, context=context)
     context.logger.log("Second INFO Log", "of T2 End")
@@ -163,7 +161,10 @@ def t2(circuit: cirq.AbstractCircuit, context: cirq.TransformerContext) -> cirq.
 
 
 @cirq.transformer
-def t3(circuit: cirq.AbstractCircuit, context: cirq.TransformerContext) -> cirq.Circuit:
+def t3(
+    circuit: cirq.AbstractCircuit, context: Optional[cirq.TransformerContext] = None
+) -> cirq.Circuit:
+    assert context is not None
     context.logger.log("First INFO Log", "of T3 Start")
     circuit = t1(circuit, context=context)
     context.logger.log("Second INFO Log", "of T3 Middle")
