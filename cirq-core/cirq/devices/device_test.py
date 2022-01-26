@@ -83,6 +83,13 @@ def test_qid_pair_deprecated():
             cirq.SymmetricalQidPair(q0, q0)
 
 
+def test_device_metadata():
+    class RawDevice(cirq.Device):
+        pass
+
+    assert RawDevice().metadata is None
+
+
 def test_metadata():
     qubits = cirq.LineQubit.range(4)
     graph = nx.star_graph(3)

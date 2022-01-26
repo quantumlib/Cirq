@@ -237,7 +237,10 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_sampler(self, gate_set: Optional['serializer.Serializer']) -> cirq.Sampler:
+    def get_sampler(
+        self,
+        gate_set: Optional['serializer.Serializer'] = None,
+    ) -> cirq.Sampler:
         """Returns a sampler backed by the processor.
 
         Args:
@@ -279,7 +282,10 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_device(self, gate_sets: Iterable['serializer.Serializer']) -> cirq.Device:
+    def get_device(
+        self,
+        gate_sets: Iterable['serializer.Serializer'] = (),
+    ) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
