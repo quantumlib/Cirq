@@ -170,7 +170,7 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
     ):
         if len(measurement) != len(qubits):
             raise ValueError(f'{len(measurement)} measurements but {len(qubits)} qubits.')
-        if key in self._measurements:
+        if key in self._measurement_types:
             raise ValueError(f"Measurement already logged to key {key}")
         self._measurement_types[key] = MeasurementType.MEASUREMENT
         self._measurements[key] = tuple(measurement)
