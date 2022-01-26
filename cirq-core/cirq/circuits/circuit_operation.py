@@ -105,6 +105,7 @@ class CircuitOperation(ops.Operation):
     repetition_ids: Optional[List[str]] = dataclasses.field(default=None)
     parent_path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
     extern_keys: FrozenSet['cirq.MeasurementKey'] = dataclasses.field(default_factory=frozenset)
+    flatten_repetitions: bool = False
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -165,6 +166,7 @@ class CircuitOperation(ops.Operation):
             and self.repetitions == other.repetitions
             and self.repetition_ids == other.repetition_ids
             and self.parent_path == other.parent_path
+            and self.flatten_repetitions == other.flatten_repetitions
         )
 
     # Methods for getting post-mapping properties of the contained circuit.
@@ -187,7 +189,7 @@ class CircuitOperation(ops.Operation):
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._cached_measurement_key_objs is None:
             circuit_keys = protocols.measurement_key_objs(self.circuit)
-            if self.repetition_ids is not None:
+            if self.repetition_ids is not None and not self.flatten_repetitions:
                 circuit_keys = {
                     key.with_key_path_prefix(repetition_id)
                     for repetition_id in self.repetition_ids
@@ -243,7 +245,7 @@ class CircuitOperation(ops.Operation):
         if self.param_resolver:
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if self.repetition_ids:
-            if not protocols.is_measurement(circuit):
+            if self.flatten_repetitions or not protocols.is_measurement(circuit):
                 circuit = circuit * abs(self.repetitions)
             else:
                 circuit = circuits.Circuit(
@@ -335,6 +337,7 @@ class CircuitOperation(ops.Operation):
                         self.param_resolver,
                         self.parent_path,
                         tuple([] if self.repetition_ids is None else self.repetition_ids),
+                        self.flatten_repetitions,
                     )
                 ),
             )
