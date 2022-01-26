@@ -204,10 +204,10 @@ document(UnitSweep, """The singleton sweep with no parameters.""")
 class Product(Sweep):
     """Cartesian product of one or more sweeps.
 
-    If one sweep assigns 'a' to the values 0, 1, 2, and the second sweep
-    assigns 'b' to the values 2, 3, then the product is a sweep that
-    assigns the tuple ('a','b') to all possible combinations of these
-    assignments: (0, 2), (1, 2), (2, 2), (0, 3), (1, 3), (2, 3).
+        If one sweep assigns 'a' to the values 0, 1, 2, and the second sweep
+        assigns 'b' to the values 2, 3, then the product is a sweep that
+        assigns the tuple ('a','b') to all possible combinations of these
+        assignments: (0, 2), (1, 2), (2, 2), (0, 3), (1, 3), (2, 3).
     """
 
     def __init__(self, *factors: Sweep) -> None:

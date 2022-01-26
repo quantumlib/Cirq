@@ -291,14 +291,17 @@ def transformer(cls_or_func: Any) -> Any:
     if isinstance(cls_or_func, type):
         cls = cls_or_func
         method = cls.__call__
+        default_context = _get_default_context(method)
 
         @functools.wraps(method)
-        def method_with_logging(self, circuit, **kwargs) -> 'cirq.AbstractCircuit':
+        def method_with_logging(
+            self, circuit: 'cirq.AbstractCircuit', **kwargs
+        ) -> 'cirq.AbstractCircuit':
             return _transform_and_log(
                 lambda circuit, **kwargs: method(self, circuit, **kwargs),
                 cls.__name__,
                 circuit,
-                _get_context(method, f'{cls.__name__}.__call__()', **kwargs),
+                kwargs.get('context', default_context),
                 **kwargs,
             )
 
@@ -307,23 +310,22 @@ def transformer(cls_or_func: Any) -> Any:
     else:
         assert callable(cls_or_func)
         func = cls_or_func
+        default_context = _get_default_context(func)
 
         @functools.wraps(func)
-        def func_with_logging(circuit, **kwargs) -> 'cirq.AbstractCircuit':
+        def func_with_logging(circuit: 'cirq.AbstractCircuit', **kwargs) -> 'cirq.AbstractCircuit':
             return _transform_and_log(
                 func,
                 func.__name__,
                 circuit,
-                _get_context(func, f'{func.__name__}()', **kwargs),
+                kwargs.get('context', default_context),
                 **kwargs,
             )
 
         return func_with_logging
 
 
-def _get_context(func, name, **kwargs):
-    if 'context' in kwargs:
-        return kwargs['context']
+def _get_default_context(func: TRANSFORMER):
     sig = inspect.signature(func)
     default_context = sig.parameters["context"].default
     assert (
@@ -333,7 +335,11 @@ def _get_context(func, name, **kwargs):
 
 
 def _transform_and_log(
-    func, transformer_name, circuit, extracted_context, **kwargs
+    func: TRANSFORMER,
+    transformer_name: str,
+    circuit: 'cirq.AbstractCircuit',
+    extracted_context: Optional[TransformerContext],
+    **kwargs,
 ) -> 'cirq.AbstractCircuit':
     """Helper to log initial and final circuits before and after calling the transformer."""
     if extracted_context:
