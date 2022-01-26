@@ -108,6 +108,25 @@ class SerializableDevice(cirq.Device):
         """
         self.qubits = qubits
         self.gate_definitions = gate_definitions
+        self._metadata = cirq.GridDeviceMetadata(
+            qubit_pairs=[
+                (pair[0], pair[1])
+                for gate_defs in gate_definitions.values()
+                for gate_def in gate_defs
+                if gate_def.number_of_qubits == 2
+                for pair in gate_def.target_set
+                if len(pair) == 2 and pair[0] < pair[1]
+            ],
+            supported_gates=cirq.Gateset(
+                *[g for g in gate_definitions.keys() if isinstance(g, (cirq.Gate, type(cirq.Gate)))]
+            ),
+            gate_durations=None,
+        )
+
+    @property
+    def metadata(self) -> cirq.GridDeviceMetadata:
+        """Get metadata information for device."""
+        return self._metadata
 
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)

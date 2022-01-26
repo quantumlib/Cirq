@@ -609,3 +609,22 @@ def test_to_special():
     su = cirq.to_special(u)
     assert not cirq.is_special_unitary(u)
     assert cirq.is_special_unitary(su)
+
+
+def test_default_tolerance():
+    a, b = cirq.LineQubit.range(2)
+    final_state_vector = (
+        cirq.Simulator()
+        .simulate(
+            cirq.Circuit(
+                cirq.H(a),
+                cirq.H(b),
+                cirq.CZ(a, b),
+                cirq.measure(a),
+            )
+        )
+        .final_state_vector.reshape((2, 2))
+    )
+    # Here, we do NOT specify the default tolerance. It is merely to check that the default value
+    # is reasonable.
+    cirq.sub_state_vector(final_state_vector, [0])
