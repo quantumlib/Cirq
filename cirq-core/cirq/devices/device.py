@@ -227,8 +227,8 @@ class DeviceMetadata:
 
     def __init__(
         self,
-        qubits: Optional[Iterable['cirq.Qid']] = None,
-        nx_graph: Optional['nx.graph'] = None,
+        qubits: Iterable['cirq.Qid'],
+        nx_graph: 'nx.graph',
     ):
         """Construct a DeviceMetadata object.
 
@@ -239,16 +239,11 @@ class DeviceMetadata:
                 directional coupling, undirected edges indicate bi-directional
                 coupling.
         """
-        if qubits is not None:
-            qubits = frozenset(qubits)
-        self._qubits_set: Optional[FrozenSet['cirq.Qid']] = (
-            None if qubits is None else frozenset(qubits)
-        )
-
+        self._qubits_set: FrozenSet['cirq.Qid'] = frozenset(qubits)
         self._nx_graph = nx_graph
 
     @property
-    def qubit_set(self) -> Optional[FrozenSet['cirq.Qid']]:
+    def qubit_set(self) -> FrozenSet['cirq.Qid']:
         """Returns a set of qubits on the device, if possible.
 
         Returns:
@@ -257,7 +252,7 @@ class DeviceMetadata:
         return self._qubits_set
 
     @property
-    def nx_graph(self) -> Optional['nx.Graph']:
+    def nx_graph(self) -> 'nx.Graph':
         """Returns a nx.Graph where nodes are qubits and edges are couple-able qubits.
 
         Returns:
@@ -266,31 +261,20 @@ class DeviceMetadata:
         return self._nx_graph
 
     def _value_equality_values_(self):
-        graph_equality = None
-        if self._nx_graph is not None:
-            graph_equality = (
-                tuple(sorted(self._nx_graph.nodes())),
-                tuple(sorted(self._nx_graph.edges(data='directed'))),
-            )
+        graph_equality = (
+            tuple(sorted(self._nx_graph.nodes())),
+            tuple(sorted(self._nx_graph.edges(data='directed'))),
+        )
 
         return self._qubits_set, graph_equality
 
     def _json_dict_(self):
-        graph_payload = ''
-        if self._nx_graph is not None:
-            graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph)
-
-        qubits_payload = ''
-        if self._qubits_set is not None:
-            qubits_payload = sorted(list(self._qubits_set))
+        graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph)
+        qubits_payload = sorted(list(self._qubits_set))
 
         return {'qubits': qubits_payload, 'nx_graph': graph_payload}
 
     @classmethod
     def _from_json_dict_(cls, qubits, nx_graph, **kwargs):
-        if qubits == '':
-            qubits = None
-        graph_obj = None
-        if nx_graph != '':
-            graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
+        graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
         return cls(qubits, graph_obj)

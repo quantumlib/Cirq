@@ -72,9 +72,8 @@ def _create_perfect_calibration(device: cirq.Device) -> calibration.Calibration:
         all_metrics[name] = {(q,): [0.0] for q in qubits}
     for name in METRICS_2Q:
         metric_dict: calibration.METRIC_DICT = {}
-        pairs = device.metadata.nx_graph.edges()
-        if pairs is not None:
-            for pair in pairs:
+        if device.metadata is not None:
+            for pair in device.metadata.nx_graph.edges():
                 qubits = [cast(cirq.GridQubit, q) for q in pair]
                 metric_dict[(qubits[0], qubits[1])] = [0.0]
         all_metrics[name] = metric_dict
