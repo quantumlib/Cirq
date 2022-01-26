@@ -77,6 +77,35 @@ def test_repr_pretty(cycle, func):
     printer.text.assert_called_once_with(func(device))
 
 
+def test_metadata_correct():
+    qubits = cirq.GridQubit.rect(2, 3, left=1, top=1)
+    pairs = [
+        (qubits[0], qubits[1]),
+        (qubits[0], qubits[3]),
+        (qubits[1], qubits[4]),
+        (qubits[4], qubits[5]),
+    ]
+    device_proto = cgdk.create_device_proto_for_qubits(
+        qubits=qubits,
+        pairs=pairs,
+        gate_sets=[cg.FSIM_GATESET],
+    )
+    device = cgdk.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
+    assert device.metadata.qubit_pairs == frozenset(pairs)
+    assert device.metadata.gateset == cirq.Gateset(
+        cirq.FSimGate,
+        cirq.ISwapPowGate,
+        cirq.CZPowGate,
+        cirq.PhasedXPowGate,
+        cirq.XPowGate,
+        cirq.YPowGate,
+        cirq.ZPowGate,
+        cirq.PhasedXZGate,
+        cirq.MeasurementGate,
+        cirq.WaitGate,
+    )
+
+
 def test_gate_definition_equality():
     def1 = cg.devices.serializable_device._GateDefinition(
         duration=cirq.Duration(picos=4),

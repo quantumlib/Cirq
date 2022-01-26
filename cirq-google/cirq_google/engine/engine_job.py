@@ -414,7 +414,7 @@ def _get_job_results_v1(result: v1.program_pb2.Result) -> Sequence[cirq.Result]:
             measurements = v1.unpack_results(data, sweep_repetitions, key_sizes)
 
             trial_results.append(
-                cirq.Result(
+                cirq.ResultDict(
                     params=cirq.ParamResolver(result.params.assignments),
                     measurements=measurements,
                 )

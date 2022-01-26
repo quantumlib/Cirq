@@ -125,8 +125,9 @@ class ActOnArgsContainer(
             or (isinstance(gate, ops.MeasurementGate) and not op_args.ignore_measurement_results)
         ):
             for q in qubits:
-                q_args, op_args = op_args.factor((q,), validate=False)
-                self.args[q] = q_args
+                if op_args.allows_factoring:
+                    q_args, op_args = op_args.factor((q,), validate=False)
+                    self.args[q] = q_args
 
             # (Backfill the args map with the new value)
             for q in op_args.qubits:
