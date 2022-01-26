@@ -349,7 +349,7 @@ class AbstractCircuit(abc.ABC):
         end_moment_index: Optional[int] = None,
         max_distance: Optional[int] = None,
     ) -> Optional[int]:
-        """Finds the index of the next moment that touches the given qubits.
+        """Finds the index of the previous moment that touches the given qubits.
 
         Args:
             qubits: We're looking for operations affecting any of these qubits.
