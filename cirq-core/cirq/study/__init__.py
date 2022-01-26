@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods for running studies (repeated trials)."""
+"""Parameterized circuits and results."""
 
 from cirq.study.flatten_expressions import (
     ExpressionMap,

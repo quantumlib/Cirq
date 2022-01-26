@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Methods for resolving JSON types during serialization."""
 
 import functools
 from typing import Dict, TYPE_CHECKING

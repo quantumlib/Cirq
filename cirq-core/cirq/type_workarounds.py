@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Module defining NotImplementedType."""
+"""Workarounds for deficiencies in python's typing system."""
+
 from typing import Any
 
 # At the moment there's no reliable way to say 'NotImplementedType'.
