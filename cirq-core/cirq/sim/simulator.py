@@ -280,10 +280,8 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             raise ValueError("sample_from_amplitudes does not support non-unitary behavior.")
         if protocols.is_measurement(solved_circuit):
             raise ValueError("sample_from_amplitudes does not support intermediate measurement.")
-        for m_id, moment in enumerate(solved_circuit):
-            if m_id == 0:
-                continue  # skip the identities moment
-            circuit_prefix = solved_circuit[:m_id]
+        for m_id, moment in enumerate(solved_circuit[1:]):
+            circuit_prefix = solved_circuit[: m_id + 1]
             for t, op in enumerate(moment.operations):
                 new_samples: Dict[Tuple[int, ...], int] = collections.defaultdict(int)
                 qubit_indices = {qmap[q] for q in op.qubits}
@@ -298,9 +296,8 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
                         ]
                     bitstrings = [int(''.join(map(str, sample)), base=2) for sample in sample_set]
                     amps = self.compute_amplitudes(subcircuit, bitstrings, qubit_order=qubit_order)
-                    weights = [abs(a ** 2) for a in amps]
-                    norm = 1.0 / sum(weights)
-                    weights = [w * norm for w in weights]
+                    weights = np.abs(np.square(np.array(amps))).astype(np.float64)
+                    weights /= np.linalg.norm(weights, 1)
                     subsample = prng.choice(len(sample_set), p=weights, size=count)
                     for sample_index in subsample:
                         new_samples[sample_set[sample_index]] += 1
