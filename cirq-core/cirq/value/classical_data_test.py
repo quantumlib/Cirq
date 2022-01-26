@@ -33,10 +33,10 @@ def test_init():
         _measured_qubits={mkey_m: [two_qubits]},
         _channel_measurements={mkey_c: [3]},
     )
-    assert cd.measurements == {mkey_m: (0, 1)}
+    assert cd.measurements == {mkey_m: [(0, 1)]}
     assert cd.keys() == (mkey_m, mkey_c)
-    assert cd.measured_qubits == {mkey_m: two_qubits}
-    assert cd.channel_measurements == {mkey_c: 3}
+    assert cd.measured_qubits == {mkey_m: [two_qubits]}
+    assert cd.channel_measurements == {mkey_c: [3]}
     assert cd.measurement_types == {
         mkey_m: cirq.MeasurementType.MEASUREMENT,
         mkey_c: cirq.MeasurementType.CHANNEL,
@@ -46,9 +46,9 @@ def test_init():
 def test_record_measurement():
     cd = cirq.ClassicalDataDictionaryStore()
     cd.record_measurement(mkey_m, (0, 1), two_qubits)
-    assert cd.measurements == {mkey_m: (0, 1)}
+    assert cd.measurements == {mkey_m: [(0, 1)]}
     assert cd.keys() == (mkey_m,)
-    assert cd.measured_qubits == {mkey_m: two_qubits}
+    assert cd.measured_qubits == {mkey_m: [two_qubits]}
 
 
 def test_record_measurement_errors():
@@ -66,7 +66,7 @@ def test_record_measurement_errors():
 def test_record_channel_measurement():
     cd = cirq.ClassicalDataDictionaryStore()
     cd.record_channel_measurement(mkey_m, 1)
-    assert cd.channel_measurements == {mkey_m: 1}
+    assert cd.channel_measurements == {mkey_m: [1]}
     assert cd.keys() == (mkey_m,)
 
 

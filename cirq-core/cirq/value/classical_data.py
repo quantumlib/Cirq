@@ -153,19 +153,19 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
         ] = _measurement_types
 
     @property
-    def measurements(self) -> Mapping['cirq.MeasurementKey', Tuple[int, ...]]:
+    def measurements(self) -> Mapping['cirq.MeasurementKey', List[Tuple[int, ...]]]:
         """Gets the a mapping from measurement key to measurement."""
-        return {k: v[-1] for k, v in self._measurements.items()}
+        return self._measurements
 
     @property
-    def channel_measurements(self) -> Mapping['cirq.MeasurementKey', int]:
+    def channel_measurements(self) -> Mapping['cirq.MeasurementKey', List[int]]:
         """Gets the a mapping from measurement key to channel measurement."""
-        return {k: v[-1] for k, v in self._channel_measurements.items()}
+        return self._channel_measurements
 
     @property
-    def measured_qubits(self) -> Mapping['cirq.MeasurementKey', Tuple['cirq.Qid', ...]]:
+    def measured_qubits(self) -> Mapping['cirq.MeasurementKey', List[Tuple['cirq.Qid', ...]]]:
         """Gets the a mapping from measurement key to the qubits measured."""
-        return {k: v[-1] for k, v in self._measured_qubits.items()}
+        return self._measured_qubits
 
     @property
     def measurement_types(self) -> Mapping['cirq.MeasurementKey', 'cirq.MeasurementType']:

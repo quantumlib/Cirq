@@ -76,7 +76,7 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
                 state, prng, qubits=self.qubits, classical_data=measurements
             )
             protocols.act_on(op, ch_form_args)
-        return np.array(list(measurements.measurements.values()), dtype=bool)
+        return np.array([v[-1] for v in measurements.measurements.values()], dtype=bool)
 
     def _x(self, g: common_gates.XPowGate, axis: int):
         exponent = g.exponent
