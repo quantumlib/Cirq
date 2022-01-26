@@ -21,13 +21,14 @@ import cirq_google.serialization.common_serializers as cgc
 
 
 def test_foxtail_qubits():
-    with cirq.testing.assert_deprecated('Foxtail', deadline='v0.15'):
+    with cirq.testing.assert_deprecated('Foxtail', deadline='v0.15', count=2):
         expected_qubits = []
         for i in range(0, 2):
             for j in range(0, 11):
                 expected_qubits.append(cirq.GridQubit(i, j))
 
         assert set(expected_qubits) == cirq_google.Foxtail.qubits
+        assert len(cirq_google.Foxtail.metadata.qubit_pairs) == 31
 
 
 def test_foxtail_device_proto():
@@ -488,6 +489,22 @@ def test_sycamore_devices(device):
     device.validate_operation(sqrt_iswap)
     assert device.duration_of(syc) == cirq.Duration(nanos=12)
     assert device.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
+
+
+def test_sycamore_metadata():
+    assert len(cirq_google.Sycamore.metadata.qubit_pairs) == 88
+    assert len(cirq_google.Sycamore23.metadata.qubit_pairs) == 32
+    assert cirq_google.Sycamore.metadata.gateset == cirq.Gateset(
+        cirq.FSimGate,
+        cirq.ISwapPowGate,
+        cirq.PhasedXPowGate,
+        cirq.XPowGate,
+        cirq.YPowGate,
+        cirq.ZPowGate,
+        cirq.PhasedXZGate,
+        cirq.MeasurementGate,
+        cirq.WaitGate,
+    )
 
 
 def test_sycamore_circuitop_device():
