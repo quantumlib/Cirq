@@ -64,7 +64,7 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
-    def _create_partial_act_on_args_ex(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'cirq.ActOnStabilizerCHFormArgs'],
         qubits: Sequence['cirq.Qid'],
@@ -277,7 +277,9 @@ class CliffordState:
         else:
             state = self.copy()
 
+        classical_data = value.ClassicalDataDictionaryStore()
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            state.ch_form, prng, measurements, self.qubit_map.keys()
+            state.ch_form, prng, qubits=self.qubit_map.keys(), classical_data=classical_data
         )
         act_on(op, ch_form_args)
+        measurements.update({str(k): list(v) for k, v in classical_data.measurements.items()})

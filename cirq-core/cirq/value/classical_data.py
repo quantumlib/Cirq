@@ -44,8 +44,8 @@ class ClassicalDataStoreReader(abc.ABC):
 
         The integer is determined by summing the qubit-dimensional basis value
         of each measured qubit. For example, if the measurement of qubits
-        [q0, q1] produces [0, 1], then the corresponding integer is 2, the big-
-        endian equivalent. If they are qutrits and the measurement is [1, 2],
+        [q1, q0] produces [1, 0], then the corresponding integer is 2, the big-
+        endian equivalent. If they are qutrits and the measurement is [2, 1],
         then the integer is 2 * 3 + 1 = 7.
 
         Args:

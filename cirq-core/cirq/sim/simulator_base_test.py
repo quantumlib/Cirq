@@ -107,7 +107,7 @@ class CountingSimulator(
             split_untangled_states=split_untangled_states,
         )
 
-    def _create_partial_act_on_args_ex(
+    def _create_partial_act_on_args(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
@@ -137,7 +137,7 @@ class SplittableCountingSimulator(CountingSimulator):
             split_untangled_states=split_untangled_states,
         )
 
-    def _create_partial_act_on_args_ex(
+    def _create_partial_act_on_args(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
@@ -264,7 +264,7 @@ def test_run_no_reuse_buffer_warning():
             MockCountingActOnArgs,
         ]
     ):
-        def _create_partial_act_on_args_ex(
+        def _create_partial_act_on_args(
             self,
             initial_state: Any,
             qubits: Sequence['cirq.Qid'],

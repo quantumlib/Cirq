@@ -67,14 +67,16 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        measurements: Dict[str, List[np.ndarray]] = {}
+        measurements = value.ClassicalDataDictionaryStore()
         prng = value.parse_random_state(seed)
         for i in range(repetitions):
             op = ops.measure(*qubits, key=str(i))
             state = self.state.copy()
-            ch_form_args = ActOnStabilizerCHFormArgs(state, prng, measurements, self.qubits)
+            ch_form_args = ActOnStabilizerCHFormArgs(
+                state, prng, qubits=self.qubits, classical_data=measurements
+            )
             protocols.act_on(op, ch_form_args)
-        return np.array(list(measurements.values()), dtype=bool)
+        return np.array(list(measurements.measurements.values()), dtype=bool)
 
     def _x(self, g: common_gates.XPowGate, axis: int):
         exponent = g.exponent

@@ -169,7 +169,7 @@ class Simulator(
             split_untangled_states=split_untangled_states,
         )
 
-    def _create_partial_act_on_args_ex(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],

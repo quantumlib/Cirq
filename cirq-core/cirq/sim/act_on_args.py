@@ -75,9 +75,12 @@ class ActOnArgs(OperationTarget[TSelf]):
             qubits = ()
         self._set_qubits(qubits)
         self.prng = prng
-        # pylint: disable=line-too-long
-        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(_measurements=log_of_measurement_results)  # type: ignore
-        # pylint: enable=line-too-long
+        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
+            _measurements={
+                value.MeasurementKey.parse_serialized(k): tuple(v)
+                for k, v in (log_of_measurement_results or {}).items()
+            }
+        )
         self._ignore_measurement_results = ignore_measurement_results
 
     def _set_qubits(self, qubits: Sequence['cirq.Qid']):

@@ -122,31 +122,8 @@ class SimulatorBase(
         self._ignore_measurement_results = ignore_measurement_results
         self._split_untangled_states = split_untangled_states
 
-    @deprecated(
-        deadline="v0.15",
-        fix="Override _create_partial_act_on_args_ex instead",
-    )
+    @abc.abstractmethod
     def _create_partial_act_on_args(
-        self,
-        initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
-    ) -> TActOnArgs:
-        """Creates an instance of the TActOnArgs class for the simulator.
-
-        It represents the supplied qubits initialized to the provided state.
-
-        Args:
-            initial_state: The initial state to represent. An integer state is
-                understood to be a pure state. Other state representations are
-                simulator-dependent.
-            qubits: The sequence of qubits to represent.
-            logs: The structure to hold measurement logs. A single instance
-                should be shared among all ActOnArgs within the simulation.
-        """
-        raise NotImplementedError()
-
-    def _create_partial_act_on_args_ex(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
@@ -164,13 +141,6 @@ class SimulatorBase(
             classical_data: The shared classical data container for this
                 simulation.
         """
-        # Child classes should override this behavior. We call the old one here by default for
-        # backwards compatibility, until deprecation cycle is complete. This method should be
-        # marked abstract once the deprecation is finished.
-        # coverage: ignore
-        return self._create_partial_act_on_args(
-            initial_state, qubits, classical_data.measurements  # type: ignore
-        )
 
     @abc.abstractmethod
     def _create_step_result(
@@ -388,26 +358,26 @@ class SimulatorBase(
             args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
             if isinstance(initial_state, int):
                 for q in reversed(qubits):
-                    args_map[q] = self._create_partial_act_on_args_ex(
+                    args_map[q] = self._create_partial_act_on_args(
                         initial_state=initial_state % q.dimension,
                         qubits=[q],
                         classical_data=classical_data,
                     )
                     initial_state = int(initial_state / q.dimension)
             else:
-                args = self._create_partial_act_on_args_ex(
+                args = self._create_partial_act_on_args(
                     initial_state=initial_state,
                     qubits=qubits,
                     classical_data=classical_data,
                 )
                 for q in qubits:
                     args_map[q] = args
-            args_map[None] = self._create_partial_act_on_args_ex(0, (), classical_data)
+            args_map[None] = self._create_partial_act_on_args(0, (), classical_data)
             return ActOnArgsContainer(
                 args_map, qubits, self._split_untangled_states, classical_data=classical_data
             )
         else:
-            return self._create_partial_act_on_args_ex(
+            return self._create_partial_act_on_args(
                 initial_state=initial_state,
                 qubits=qubits,
                 classical_data=classical_data,
