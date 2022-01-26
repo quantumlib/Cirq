@@ -322,9 +322,6 @@ def test_act_on_state_vector():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}
 
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
-
 
 def test_act_on_clifford_tableau():
     a, b = [cirq.LineQubit(3), cirq.LineQubit(1)]
@@ -360,9 +357,6 @@ def test_act_on_clifford_tableau():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}
 
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
-
 
 def test_act_on_stabilizer_ch_form():
     a, b = [cirq.LineQubit(3), cirq.LineQubit(1)]
@@ -397,9 +391,6 @@ def test_act_on_stabilizer_ch_form():
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
 
 
 def test_act_on_qutrit():

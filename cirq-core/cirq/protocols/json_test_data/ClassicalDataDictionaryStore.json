@@ -7,7 +7,7 @@
         "name": "m",
         "path": []
       },
-      [0, 1]
+      [[0, 1]]
     ]
   ],
   "measured_qubits": [
@@ -18,14 +18,16 @@
         "path": []
       },
       [
-        {
-          "cirq_type": "LineQubit",
-          "x": 0
-        },
-        {
-          "cirq_type": "LineQubit",
-          "x": 1
-        }
+        [
+          {
+            "cirq_type": "LineQubit",
+            "x": 0
+          },
+          {
+            "cirq_type": "LineQubit",
+            "x": 1
+          }
+        ]
       ]
     ]
   ],
@@ -36,7 +38,7 @@
         "name": "c",
         "path": []
       },
-      3
+      [3]
     ]
   ],
   "measurement_types": [
