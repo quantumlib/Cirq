@@ -25,7 +25,7 @@ def test_print_logger(capsys):
         exe_result = cg.ExecutableResult(
             spec=None,
             runtime_info=cg.RuntimeInfo(execution_index=i),
-            raw_data=cirq.Result(params=cirq.ParamResolver({}), measurements={}),
+            raw_data=cirq.ResultDict(params=cirq.ParamResolver({}), measurements={}),
         )
         pl.consume_result(exe_result, shared_rt_info)
     pl.finalize()
