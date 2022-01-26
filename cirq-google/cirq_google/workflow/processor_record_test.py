@@ -19,7 +19,73 @@ import cirq
 import cirq_google as cg
 
 
-def test_engine_backend():
+class _DummyProcessorRecord(cg.ProcessorRecord):
+    def get_processor(self) -> 'cg.engine.AbstractProcessor':
+        return cg.engine.SimulatedLocalProcessor(processor_id='dummy')
+
+
+def test_abstract_processor_record():
+    proc_rec = _DummyProcessorRecord()
+    assert isinstance(proc_rec.get_processor(), cg.engine.AbstractProcessor)
+    assert isinstance(proc_rec.get_sampler(), cirq.Sampler)
+    assert isinstance(proc_rec.get_device(), cirq.Device)
+
+
+def _set_get_processor_return(get_processor):
+    # from engine_test.py
+    import os
+    from unittest import mock
+    import time
+    import numpy as np
+    import pytest
+
+    from google.protobuf import any_pb2
+    from google.protobuf.text_format import Merge
+
+    import cirq
+    import cirq_google
+    import cirq_google as cg
+    from cirq_google.api import v1, v2
+    from cirq_google.engine.engine import EngineContext
+    from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
+
+    def _to_any(proto):
+        any_proto = qtypes.any_pb2.Any()
+        any_proto.Pack(proto)
+        return any_proto
+
+    device_spec = _to_any(
+        Merge(
+            """
+valid_gate_sets: [{
+    name: 'test_set',
+    valid_gates: [{
+        id: 'x',
+        number_of_qubits: 1,
+        gate_duration_picos: 1000,
+        valid_targets: ['1q_targets']
+    }]
+}],
+valid_qubits: ['0_0', '1_1'],
+valid_targets: [{
+    name: '1q_targets',
+    target_ordering: SYMMETRIC,
+    targets: [{
+        ids: ['0_0']
+    }]
+}]
+""",
+            v2.device_pb2.DeviceSpecification(),
+        )
+    )
+
+    get_processor.return_value = qtypes.QuantumProcessor(device_spec=device_spec)
+    return get_processor
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
+def test_engine_backend(get_processor):
+    _set_get_processor_return(get_processor)
 
     with mock.patch.dict(
         os.environ,
@@ -28,13 +94,18 @@ def test_engine_backend():
         },
         clear=True,
     ):
-        processor = cg.EngineProcessorRecord('rainbow')
-        assert processor.processor_id == 'rainbow'
-        assert isinstance(processor.get_sampler(), cirq.Sampler)
-    cirq.testing.assert_equivalent_repr(processor, global_vals={'cirq_google': cg})
+        proc_rec = cg.EngineProcessorRecord('rainbow')
+        assert proc_rec.processor_id == 'rainbow'
+        assert isinstance(proc_rec.get_processor(), cg.engine.AbstractProcessor)
+        assert isinstance(proc_rec.get_sampler(), cirq.Sampler)
+        # Gateset issues:
+        # assert isinstance(proc_rec.get_device(), cirq.Device)
+    cirq.testing.assert_equivalent_repr(proc_rec, global_vals={'cirq_google': cg})
 
 
-def test_simulated_backend():
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
+def test_simulated_backend(get_processor):
+    _set_get_processor_return(get_processor)
     with mock.patch.dict(
         os.environ,
         {
@@ -42,15 +113,34 @@ def test_simulated_backend():
         },
         clear=True,
     ):
-        processor = cg.SimulatedProcessorRecord('rainbow')
-    assert processor.processor_id == 'rainbow'
-    assert processor.descriptive_name() == 'rainbow-simulator'
-    cirq.testing.assert_equivalent_repr(processor, global_vals={'cirq_google': cg})
+        proc_rec = cg.SimulatedProcessorRecord('rainbow')
+        assert isinstance(proc_rec.get_processor(), cg.engine.AbstractProcessor)
+        assert isinstance(proc_rec.get_sampler(), cirq.Sampler)
+        assert isinstance(proc_rec.get_device(), cirq.Device)
+
+    assert proc_rec.processor_id == 'rainbow'
+    assert proc_rec.descriptive_name() == 'rainbow-simulator'
+    cirq.testing.assert_equivalent_repr(proc_rec, global_vals={'cirq_google': cg})
 
 
 def test_simulated_backend_with_local_device():
-    processor = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
-    assert processor.processor_id == 'rainbow'
-    assert processor.descriptive_name() == 'rainbow-simulator'
+    proc_rec = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
+    assert isinstance(proc_rec.get_processor(), cg.engine.AbstractProcessor)
+    assert proc_rec.processor_id == 'rainbow'
+    assert proc_rec.descriptive_name() == 'rainbow-simulator'
 
-    cirq.testing.assert_equivalent_repr(processor, global_vals={'cirq_google': cg})
+    cirq.testing.assert_equivalent_repr(proc_rec, global_vals={'cirq_google': cg})
+
+
+def test_simulated_backend_descriptive_name():
+    p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
+    assert p.descriptive_name() == 'rainbow-simulator'
+    assert isinstance(p.get_sampler(), cirq.Simulator)
+
+    p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=1e-3)
+    assert p.descriptive_name() == 'rainbow-p=1.000e-03'
+    assert isinstance(p.get_sampler(), cirq.DensityMatrixSimulator)
+
+    p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=float('inf'))
+    assert p.descriptive_name() == 'rainbow-zeros'
+    assert isinstance(p.get_sampler(), cirq.ZerosSampler)

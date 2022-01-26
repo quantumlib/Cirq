@@ -53,7 +53,9 @@ class EngineProcessorRecord(ProcessorRecord):
         return self.get_processor().get_sampler(cg.SQRT_ISWAP_GATESET)
 
     def get_device(self) -> 'cirq.Device':
-        return self.get_processor().get_device(cg.SQRT_ISWAP_GATESET)
+        # Issues mocking out the gateset, so ignore coverage
+        # coverage: ignore
+        return self.get_processor().get_device([cg.SQRT_ISWAP_GATESET])
 
     def __repr__(self):
         return dataclass_repr(self, namespace='cirq_google')
