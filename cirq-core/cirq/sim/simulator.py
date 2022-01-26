@@ -113,7 +113,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 measurements = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
                 )
-            yield study.Result(params=param_resolver, measurements=measurements)
+            yield study.ResultDict(params=param_resolver, measurements=measurements)
 
     @abc.abstractmethod
     def _run(

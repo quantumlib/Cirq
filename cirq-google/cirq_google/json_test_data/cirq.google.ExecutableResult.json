@@ -39,7 +39,7 @@
     ]
   },
   "raw_data": {
-    "cirq_type": "Result",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": []
