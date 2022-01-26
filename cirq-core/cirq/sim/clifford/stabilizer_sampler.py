@@ -48,7 +48,7 @@ class StabilizerSampler(sampler.Sampler):
                 resolved_circuit,
                 repetitions=repetitions,
             )
-            results.append(cirq.Result(params=param_resolver, measurements=measurements))
+            results.append(cirq.ResultDict(params=param_resolver, measurements=measurements))
         return results
 
     def _run(self, circuit: 'cirq.AbstractCircuit', repetitions: int) -> Dict[str, np.ndarray]:

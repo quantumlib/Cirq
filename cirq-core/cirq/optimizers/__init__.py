@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Circuit transformation utilities."""
+"""Classes and methods that optimize quantum circuits."""
 
 from cirq.optimizers.align_left import (
     AlignLeft,
