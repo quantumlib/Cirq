@@ -19,7 +19,6 @@ import cirq
 import cirq_google as cg
 import numpy as np
 from cirq_google.workflow.io import _FilesystemSaver
-from cirq_google.workflow.quantum_backend import SimulatedBackendWithLocalDevice
 
 
 def cg_assert_equivalent_repr(value):
@@ -90,7 +89,7 @@ def test_filesystem_saver(tmpdir):
     fs_saver = _FilesystemSaver(base_data_dir=tmpdir, run_id=run_id)
 
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor=SimulatedBackendWithLocalDevice('rainbow'), run_id=run_id
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'), run_id=run_id
     )
     shared_rt_info = cg.SharedRuntimeInfo(run_id=run_id)
     fs_saver.initialize(rt_config, shared_rt_info=shared_rt_info)

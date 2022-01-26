@@ -22,7 +22,6 @@ import pytest
 
 import cirq
 import cirq_google as cg
-from cirq_google.workflow.quantum_backend import SimulatedBackendWithLocalDevice
 from cirq_google.workflow.quantum_executable_test import _get_quantum_executables, _get_example_spec
 
 
@@ -66,20 +65,20 @@ def _assert_json_roundtrip(o, tmpdir):
 
 def test_quantum_runtime_configuration():
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor=SimulatedBackendWithLocalDevice('rainbow'),
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
         run_id='unit-test',
     )
 
-    sampler = rt_config.processor.get_sampler()
+    sampler = rt_config.processor_record.get_sampler()
     result = sampler.run(cirq.Circuit(cirq.measure(cirq.GridQubit(5, 3), key='z')))
     assert isinstance(result, cirq.Result)
 
-    assert isinstance(rt_config.processor.get_device(), cirq.Device)
+    assert isinstance(rt_config.processor_record.get_device(), cirq.Device)
 
 
 def test_quantum_runtime_configuration_serialization(tmpdir):
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor=SimulatedBackendWithLocalDevice('rainbow'),
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
         run_id='unit-test',
     )
     cg_assert_equivalent_repr(rt_config)
@@ -89,7 +88,7 @@ def test_quantum_runtime_configuration_serialization(tmpdir):
 def test_executable_group_result(tmpdir):
     egr = cg.ExecutableGroupResult(
         runtime_configuration=cg.QuantumRuntimeConfiguration(
-            processor=SimulatedBackendWithLocalDevice('rainbow'),
+            processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
             run_id='unit-test',
         ),
         shared_runtime_info=cg.SharedRuntimeInfo(run_id='my run'),
@@ -131,7 +130,7 @@ def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
 @pytest.mark.parametrize('run_id_in', ['unit_test_runid', None])
 def test_execute(tmpdir, run_id_in):
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor=SimulatedBackendWithLocalDevice('rainbow'),
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
         run_id=run_id_in,
         qubit_placer=cg.NaiveQubitPlacer(),
     )

@@ -57,7 +57,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.QuantumRuntimeConfiguration': cirq_google.QuantumRuntimeConfiguration,
         'cirq.google.NaiveQubitPlacer': cirq_google.NaiveQubitPlacer,
         'cirq.google.RandomDevicePlacer': cirq_google.RandomDevicePlacer,
-        'cirq.google.EngineBackend': cirq_google.EngineBackend,
-        'cirq.google.SimulatedBackend': cirq_google.SimulatedBackend,
-        'cirq.google.SimulatedBackendWithLocalDevice': cirq_google.SimulatedBackendWithLocalDevice,
+        'cirq.google.EngineProcessorRecord': cirq_google.EngineProcessorRecord,
+        'cirq.google.SimulatedProcessorRecord': cirq_google.SimulatedProcessorRecord,
+        'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,
     }
