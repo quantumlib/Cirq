@@ -141,7 +141,7 @@ class QPUResult:
             measurements[key] = np.array(
                 list(cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results)
             )
-        return cirq.Result(params=params or cirq.ParamResolver({}), measurements=measurements)
+        return cirq.ResultDict(params=params or cirq.ParamResolver({}), measurements=measurements)
 
     def __eq__(self, other):
         if not isinstance(other, QPUResult):
@@ -278,7 +278,7 @@ class SimulatorResult:
                 for value in rand_values
             ]
             measurements[key] = np.array(bits)
-        return cirq.Result(params=params or cirq.ParamResolver({}), measurements=measurements)
+        return cirq.ResultDict(params=params or cirq.ParamResolver({}), measurements=measurements)
 
     def __eq__(self, other):
         if not isinstance(other, SimulatorResult):
