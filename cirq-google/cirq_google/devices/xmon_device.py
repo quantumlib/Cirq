@@ -45,6 +45,23 @@ class _XmonDeviceBase(cirq.Device):
         self._exp_w_duration = cirq.Duration(exp_w_duration)
         self._exp_z_duration = cirq.Duration(exp_11_duration)
         self.qubits = frozenset(qubits)
+        self._metadata = cirq.GridDeviceMetadata(
+            [(q0, q1) for q0 in self.qubits for q1 in self.qubits if q0.is_adjacent(q1)],
+            cirq.Gateset(
+                cirq.CZPowGate,
+                cirq.XPowGate,
+                cirq.YPowGate,
+                cirq.PhasedXPowGate,
+                cirq.MeasurementGate,
+                cirq.ZPowGate,
+            ),
+            None,
+        )
+
+    @property
+    def metadata(self) -> cirq.GridDeviceMetadata:
+        """Return the metadata for this device"""
+        return self._metadata
 
     def qubit_set(self) -> FrozenSet[cirq.GridQubit]:
         return self.qubits
