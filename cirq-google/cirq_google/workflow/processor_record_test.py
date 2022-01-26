@@ -33,20 +33,10 @@ def test_abstract_processor_record():
 
 def _set_get_processor_return(get_processor):
     # from engine_test.py
-    import os
-    from unittest import mock
-    import time
-    import numpy as np
-    import pytest
 
-    from google.protobuf import any_pb2
     from google.protobuf.text_format import Merge
 
-    import cirq
-    import cirq_google
-    import cirq_google as cg
-    from cirq_google.api import v1, v2
-    from cirq_google.engine.engine import EngineContext
+    from cirq_google.api import v2
     from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
 
     def _to_any(proto):

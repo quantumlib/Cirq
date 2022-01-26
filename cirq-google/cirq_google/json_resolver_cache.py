@@ -59,5 +59,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.RandomDevicePlacer': cirq_google.RandomDevicePlacer,
         'cirq.google.EngineProcessorRecord': cirq_google.EngineProcessorRecord,
         'cirq.google.SimulatedProcessorRecord': cirq_google.SimulatedProcessorRecord,
+        # pylint: disable=line-too-long
         'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,
+        # pylint: enable=line-too-long
     }
