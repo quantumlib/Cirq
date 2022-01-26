@@ -101,7 +101,9 @@ class SimulatedProcessorRecord(ProcessorRecord):
         if self.noise_strength == float('inf'):
             return cirq.ZerosSampler()
 
-        return cirq.DensityMatrixSimulator(noise=cirq.depolarize(p=self.noise_strength))
+        return cirq.DensityMatrixSimulator(
+            noise=cirq.ConstantQubitNoiseModel(cirq.depolarize(p=self.noise_strength))
+        )
 
     @classmethod
     def _json_namespace_(cls) -> str:
