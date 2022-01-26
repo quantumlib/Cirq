@@ -260,6 +260,43 @@ def test_key_set(sim):
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeated_measurement_unset(sim):
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-2)),
+        cirq.measure(q1, key='b'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-1)),
+        cirq.measure(q1, key='c'),
+    )
+    result = sim.run(circuit)
+    assert result.measurements['a'] == 1
+    assert result.measurements['b'] == 0
+    assert result.measurements['c'] == 1
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeated_measurement_set(sim):
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-2)),
+        cirq.measure(q1, key='b'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-1)),
+        cirq.measure(q1, key='c'),
+    )
+    result = sim.run(circuit)
+    assert result.measurements['a'] == 0
+    assert result.measurements['b'] == 1
+    assert result.measurements['c'] == 1
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
 def test_subcircuit_key_unset(sim):
     q0, q1 = cirq.LineQubit.range(2)
     inner = cirq.Circuit(

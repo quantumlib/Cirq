@@ -102,8 +102,6 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
-        _verify_unique_measurement_keys(program)
-
         for param_resolver in study.to_resolvers(params):
             measurements = {}
             if repetitions == 0:
