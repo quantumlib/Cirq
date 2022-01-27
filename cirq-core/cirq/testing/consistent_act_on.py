@@ -47,11 +47,12 @@ def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauli
 
     qubits = LineQubit.range(protocols.num_qubits(stabilizer))
     args = act_on_state_vector_args.ActOnStateVectorArgs(
-        target_tensor=state_vector.copy(),
         available_buffer=np.empty_like(state_vector),
         qubits=qubits,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=state_vector.copy(),
+        dtype=state_vector.dtype,
     )
     protocols.act_on(stabilizer, args, qubits)
     return np.allclose(args.target_tensor, state_vector)

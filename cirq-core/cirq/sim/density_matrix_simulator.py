@@ -200,7 +200,7 @@ class DensityMatrixSimulator(
             log_of_measurement_results=logs,
             ignore_measurement_results=self._ignore_measurement_results,
             initial_state=initial_state,
-            dtype=self._dtype
+            dtype=self._dtype,
         )
 
     def _can_be_in_run_prefix(self, val: Any):

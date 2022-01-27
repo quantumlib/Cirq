@@ -21,35 +21,53 @@ import cirq
 
 
 def test_default_parameter():
-    target_tensor = cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64)
-    args = cirq.ActOnStateVectorArgs(target_tensor)
-    assert args.available_buffer.shape == target_tensor.shape
-    assert args.available_buffer.dtype == target_tensor.dtype
+    dtype = np.complex64
+    tensor = cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64)
+    qubits = cirq.LineQubit.range(3)
+    args = cirq.ActOnStateVectorArgs(
+        qubits=qubits,
+        initial_state=tensor,
+        dtype=dtype,
+    )
+    qid_shape = cirq.protocols.qid_shape(qubits)
+    tensor = np.reshape(tensor, qid_shape)
+    np.testing.assert_almost_equal(
+        args.target_tensor,
+        tensor,
+    )
+    assert args.available_buffer.shape == tensor.shape
+    assert args.available_buffer.dtype == tensor.dtype
 
+
+def test_deprecated_warning():
+    with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15'):
+        cirq.ActOnStateVectorArgs(target_tensor=np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64))
 
 def test_infer_target_tensor():
+    dtype = np.complex64
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64),
         qubits=cirq.LineQubit.range(2),
+        initial_state=np.array([1.0, 0.0, 0.0, 0.0], dtype=dtype),
+        dtype=dtype,
     )
     np.testing.assert_almost_equal(
         args.target_tensor,
-        np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64),
+        np.array([[1.+0.j, 0.+0.j], [0.+0.j, 0.+0.j]], dtype=dtype),
     )
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=0,
         qubits=cirq.LineQubit.range(2),
+        initial_state=0,
+        dtype=dtype,
     )
     np.testing.assert_almost_equal(
         args.target_tensor,
-        np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64),
+        np.array([[1.+0.j, 0.+0.j], [0.+0.j, 0.+0.j]], dtype=dtype),
     )
 
 
 def test_shallow_copy_buffers():
-    target_tensor = cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64)
-    args = cirq.ActOnStateVectorArgs(target_tensor)
+    args = cirq.ActOnStateVectorArgs()
     copy = args.copy(deep_copy_buffers=False)
     assert copy.available_buffer is args.available_buffer
 
@@ -63,11 +81,12 @@ def test_decomposed_fallback():
             yield cirq.X(*qubits)
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),
         available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),
+        dtype=np.complex64,
     )
 
     cirq.act_on(Composite(), args, [cirq.LineQubit(1)])
@@ -81,11 +100,12 @@ def test_cannot_act():
         pass
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),
         available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),
+        dtype=np.complex64,
     )
 
     with pytest.raises(TypeError, match="Can't simulate operations"):
@@ -108,11 +128,12 @@ def test_act_using_probabilistic_single_qubit_channel():
 
     mock_prng.random.return_value = 1 / 3 + 1e-6
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=np.copy(initial_state),
         available_buffer=np.empty_like(initial_state),
         qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
         log_of_measurement_results={},
+        initial_state=np.copy(initial_state),
+        dtype=initial_state.dtype,
     )
     cirq.act_on(ProbabilisticSorX(), args, [cirq.LineQubit(2)])
     np.testing.assert_allclose(
@@ -127,11 +148,12 @@ def test_act_using_probabilistic_single_qubit_channel():
 
     mock_prng.random.return_value = 1 / 3 - 1e-6
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=np.copy(initial_state),
         available_buffer=np.empty_like(initial_state),
         qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
         log_of_measurement_results={},
+        initial_state=np.copy(initial_state),
+        dtype=initial_state.dtype,
     )
     cirq.act_on(ProbabilisticSorX(), args, [cirq.LineQubit(2)])
     np.testing.assert_allclose(
@@ -164,11 +186,12 @@ def test_act_using_adaptive_two_qubit_channel():
     def get_result(state: np.ndarray, sample: float):
         mock_prng.random.return_value = sample
         args = cirq.ActOnStateVectorArgs(
-            target_tensor=np.copy(state),
             available_buffer=np.empty_like(state),
             qubits=cirq.LineQubit.range(4),
             prng=mock_prng,
             log_of_measurement_results={},
+            initial_state=np.copy(state),
+            dtype=state.dtype,
         )
         cirq.act_on(Decay11(), args, [cirq.LineQubit(1), cirq.LineQubit(3)])
         return args.target_tensor
@@ -226,11 +249,12 @@ def test_probability_comes_up_short_results_in_fallback():
     mock_prng.random.return_value = 0.9999
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=np.array([1, 0], dtype=np.complex64),
         available_buffer=np.empty(2, dtype=np.complex64),
         qubits=cirq.LineQubit.range(1),
         prng=mock_prng,
         log_of_measurement_results={},
+        initial_state=np.array([1, 0], dtype=np.complex64),
+        dtype=np.complex64,
     )
 
     cirq.act_on(Short(), args, cirq.LineQubit.range(1))
@@ -290,14 +314,15 @@ def test_measured_mixture():
 
 def test_with_qubits():
     original = cirq.ActOnStateVectorArgs(
-        target_tensor=1,
         qubits=cirq.LineQubit.range(2),
+        initial_state=1,
+        dtype=np.complex64,
     )
     extened = original.with_qubits(cirq.LineQubit.range(2, 4))
     np.testing.assert_almost_equal(
         extened.target_tensor,
         cirq.state_vector_kronecker_product(
-            np.array([0.0, 1.0, 0.0, 0.0], dtype=np.complex64),
-            np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64),
+            np.array([[0.+0.j, 1.+0.j], [0.+0.j, 0.+0.j]], dtype=np.complex64),
+            np.array([[1.+0.j, 0.+0.j], [0.+0.j, 0.+0.j]], dtype=np.complex64),
         ),
     )
