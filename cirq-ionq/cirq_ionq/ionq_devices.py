@@ -15,8 +15,6 @@
 
 from typing import AbstractSet, Sequence, Union
 
-import numpy as np
-
 import cirq
 
 
@@ -103,19 +101,19 @@ class IonQAPIDevice(cirq.Device):
             yield gate(qubit)
 
     def _decompose_two_qubit(self, operation: cirq.Operation) -> cirq.OP_TREE:
-        """Decomposes a two qubit gate into XXPow, YYPow, and ZZPow plus single qubit gates."""
+        """Decomposes a two qubit unitary operation into ZPOW, XPOW, and CNOT."""
         mat = cirq.unitary(operation)
-        kak = cirq.kak_decomposition(mat, check_preconditions=False)
-
-        for qubit, mat in zip(operation.qubits, kak.single_qubit_operations_before):
-            gates = cirq.single_qubit_matrix_to_gates(mat, self.atol)
-            for gate in gates:
-                yield gate(qubit)
-
-        two_qubit_gates = [cirq.XX, cirq.YY, cirq.ZZ]
-        for two_qubit_gate, coefficient in zip(two_qubit_gates, kak.interaction_coefficients):
-            yield (two_qubit_gate ** (-coefficient * 2 / np.pi))(*operation.qubits)
-
-        for qubit, mat in zip(operation.qubits, kak.single_qubit_operations_after):
-            for gate in cirq.single_qubit_matrix_to_gates(mat, self.atol):
-                yield gate(qubit)
+        q0, q1 = operation.qubits
+        naive = cirq.two_qubit_matrix_to_operations(q0, q1, mat, allow_partial_czs=False)
+        temp = cirq.map_operations_and_unroll(
+            cirq.Circuit(naive),
+            lambda op, _: [cirq.H(op.qubits[1]), cirq.CNOT(*op.qubits), cirq.H(op.qubits[1])]
+            if type(op.gate) == cirq.CZPowGate
+            else op,
+        )
+        cirq.merge_single_qubit_gates_into_phased_x_z(temp)
+        # A final pass breaks up PhasedXPow into Rz, Rx.
+        yield cirq.map_operations_and_unroll(
+            temp,
+            lambda op, _: cirq.decompose_once(op) if type(op.gate) == cirq.PhasedXPowGate else op,
+        ).all_operations()
