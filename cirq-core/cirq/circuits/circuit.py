@@ -2117,7 +2117,8 @@ class Circuit(AbstractCircuit):
         can_add_lambda = lambda a, b: b.operates_on(a.qubits)
         if self._device != cirq.UNCONSTRAINED_DEVICE:
             _compat._warn_or_error(
-                "In Cirq v0.15 device specific validation in insert_into_range will no longer enforced."
+                "In Cirq v0.15 device specific validation in "
+                "insert_into_range will no longer enforced."
             )
             can_add_lambda = lambda a, b: not self._device.can_add_operation_into_moment(a, b)
 
