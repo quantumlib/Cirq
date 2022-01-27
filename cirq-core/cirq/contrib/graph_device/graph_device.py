@@ -177,7 +177,7 @@ class UndirectedGraphDevice(devices.Device):
 
     @_compat.deprecated(
         deadline='v0.15',
-        fix='qubit coupling data can now be found in device.metadata if provided.',
+        fix='qubit coupling data can now be found in device.metadata.nx_graph if provided.',
     )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
         with _block_overlapping_deprecation():
