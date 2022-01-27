@@ -14,7 +14,6 @@
 
 from typing import Any, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
 import contextlib
-import re
 import warnings
 from cirq import _compat, circuits, value, devices, ops, protocols
 from cirq.ion import convert_to_ion_gates

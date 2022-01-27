@@ -23,7 +23,6 @@ from typing import (
     Iterable,
 )
 import contextlib
-import re
 import warnings
 
 import networkx as nx

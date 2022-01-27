@@ -27,7 +27,6 @@ from typing import (
     FrozenSet,
 )
 import contextlib
-import re
 import warnings
 import cirq
 from cirq import _compat

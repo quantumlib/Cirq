@@ -13,7 +13,6 @@
 # limitations under the License.
 from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
 import contextlib
-import re
 import warnings
 import numpy as np
 

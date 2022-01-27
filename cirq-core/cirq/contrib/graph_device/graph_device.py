@@ -15,7 +15,6 @@
 import abc
 import itertools
 import contextlib
-import re
 import warnings
 
 from typing import Iterable, Optional, FrozenSet, TYPE_CHECKING, Tuple, cast
