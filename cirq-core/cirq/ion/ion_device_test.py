@@ -156,21 +156,22 @@ def test_validate_operation_supported_gate():
         d.validate_operation(NotImplementedOperation())
 
 
-def test_can_add_operation_into_moment():
-    d = ion_device(3)
-    q0 = cirq.LineQubit(0)
-    q1 = cirq.LineQubit(1)
-    q2 = cirq.LineQubit(2)
-    q3 = cirq.LineQubit(3)
-    circuit = cirq.Circuit()
-    circuit.append(cirq.XX(q0, q1))
-    for moment in circuit:
-        assert not d.can_add_operation_into_moment(cirq.XX(q2, q0), moment)
-        assert not d.can_add_operation_into_moment(cirq.XX(q1, q2), moment)
-        assert d.can_add_operation_into_moment(cirq.XX(q2, q3), moment)
-        assert d.can_add_operation_into_moment(cirq.Z(q3), moment)
-    circuit = cirq.Circuit([cirq.X(q0)])
-    assert d.can_add_operation_into_moment(cirq.XX(q1, q2), circuit[0])
+def test_can_add_operation_into_moment_device_deprecated():
+    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=5):
+        d = ion_device(3)
+        q0 = cirq.LineQubit(0)
+        q1 = cirq.LineQubit(1)
+        q2 = cirq.LineQubit(2)
+        q3 = cirq.LineQubit(3)
+        circuit = cirq.Circuit()
+        circuit.append(cirq.XX(q0, q1))
+        for moment in circuit:
+            assert not d.can_add_operation_into_moment(cirq.XX(q2, q0), moment)
+            assert not d.can_add_operation_into_moment(cirq.XX(q1, q2), moment)
+            assert d.can_add_operation_into_moment(cirq.XX(q2, q3), moment)
+            assert d.can_add_operation_into_moment(cirq.Z(q3), moment)
+        circuit = cirq.Circuit([cirq.X(q0)])
+        assert d.can_add_operation_into_moment(cirq.XX(q1, q2), circuit[0])
 
 
 def test_ion_device_eq():

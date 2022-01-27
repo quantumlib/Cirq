@@ -74,12 +74,12 @@ _DEVICE_DEP_MESSAGE = 'Attaching devices to circuits will no longer be supported
 
 
 @contextlib.contextmanager
-def _block_overlapping_deprecation():
+def _block_overlapping_deprecation(sub_msg=_DEVICE_DEP_MESSAGE):
     with warnings.catch_warnings():
         warnings.filterwarnings(
             action='ignore',
             category=DeprecationWarning,
-            message=f'(.|\n)*{re.escape(_DEVICE_DEP_MESSAGE)}(.|\n)*',
+            message=f'(.|\n)*{re.escape(sub_msg)}(.|\n)*',
         )
         yield
 
@@ -2023,6 +2023,10 @@ class Circuit(AbstractCircuit):
     def _can_add_op_at(self, moment_index: int, operation: 'cirq.Operation') -> bool:
         if not 0 <= moment_index < len(self._moments):
             return True
+
+        if self._device == cirq.UNCONSTRAINED_DEVICE:
+            return not self._moments[moment_index].operates_on(operation.qubits)
+
         return self._device.can_add_operation_into_moment(operation, self._moments[moment_index])
 
     def insert(
@@ -2110,19 +2114,27 @@ class Circuit(AbstractCircuit):
 
         i = start
         op_index = 0
-        while op_index < len(flat_ops):
-            op = flat_ops[op_index]
-            while i < end and not self._device.can_add_operation_into_moment(op, self._moments[i]):
-                i += 1
-            if i >= end:
-                break
-            self._moments[i] = self._moments[i].with_operation(op)
-            op_index += 1
+        can_add_lambda = lambda a, b: b.operates_on(a.qubits)
+        if self._device != cirq.UNCONSTRAINED_DEVICE:
+            _compat._warn_or_error(
+                "In Cirq v0.15 device specific validation in insert_into_range will no longer enforced."
+            )
+            can_add_lambda = lambda a, b: not self._device.can_add_operation_into_moment(a, b)
 
-        if op_index >= len(flat_ops):
-            return end
+        with _block_overlapping_deprecation('can_add_operation_into_moment'):
+            while op_index < len(flat_ops):
+                op = flat_ops[op_index]
+                while i < end and can_add_lambda(op, self._moments[i]):
+                    i += 1
+                if i >= end:
+                    break
+                self._moments[i] = self._moments[i].with_operation(op)
+                op_index += 1
 
-        return self.insert(end, flat_ops[op_index:])
+            if op_index >= len(flat_ops):
+                return end
+
+            return self.insert(end, flat_ops[op_index:])
 
     def _push_frontier(
         self,

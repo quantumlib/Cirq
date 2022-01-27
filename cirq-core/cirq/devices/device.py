@@ -24,7 +24,7 @@ from typing import (
 )
 
 import networkx as nx
-from cirq import value
+from cirq import _compat, value
 from cirq.devices.grid_qubit import _BaseGridQid
 from cirq.devices.line_qubit import _BaseLineQid
 
@@ -148,6 +148,11 @@ class Device(metaclass=abc.ABCMeta):
         for operation in moment.operations:
             self.validate_operation(operation)
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='can_add_operation_into_moment will be revmoved in the future.'
+        ' Consider using device.validate_circuit instead.',
+    )
     def can_add_operation_into_moment(
         self, operation: 'cirq.Operation', moment: 'cirq.Moment'
     ) -> bool:
