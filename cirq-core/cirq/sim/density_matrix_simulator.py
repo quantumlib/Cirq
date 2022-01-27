@@ -17,7 +17,7 @@ from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, L
 import numpy as np
 
 from cirq import ops, protocols, qis, study, value
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq.sim import (
     simulator,
     act_on_density_matrix_args,
@@ -302,6 +302,11 @@ class DensityMatrixStepResult(
     def _simulator_state(self) -> 'cirq.DensityMatrixSimulatorState':
         return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_mapping)
 
+    # TODO: When removing, also remove `simulator` from the constructor, and the line
+    # `sim_state = step_result._sim_state` from `SimulatorBase._core_iterator()`.
+    @deprecated(
+        deadline="v0.15", fix='Use `initial_state` to prepare a new simulation on the suffix.'
+    )
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
         """Set the density matrix to a new density matrix.
 

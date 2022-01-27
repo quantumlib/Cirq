@@ -587,7 +587,8 @@ def test_simulate_moment_steps_set_state(dtype):
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         np.testing.assert_almost_equal(step.state_vector(), np.array([0.5] * 4))
         if i == 0:
-            step.set_state_vector(np.array([1, 0, 0, 0], dtype=dtype))
+            with cirq.testing.assert_deprecated('initial_state', deadline='v0.15'):
+                step.set_state_vector(np.array([1, 0, 0, 0], dtype=dtype))
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])

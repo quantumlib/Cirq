@@ -850,7 +850,8 @@ def test_simulate_moment_steps_set_state(dtype: Type[np.number]):
         if i == 0:
             zero_zero = np.zeros((4, 4), dtype=dtype)
             zero_zero[0, 0] = 1
-            step.set_density_matrix(zero_zero)
+            with cirq.testing.assert_deprecated('initial_state', deadline='v0.15'):
+                step.set_density_matrix(zero_zero)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
