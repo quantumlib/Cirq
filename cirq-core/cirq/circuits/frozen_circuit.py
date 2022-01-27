@@ -24,8 +24,6 @@ from typing import (
     Tuple,
     Union,
 )
-import contextlib
-import warnings
 import re
 
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
@@ -42,17 +40,6 @@ if TYPE_CHECKING:
 
 
 _DEVICE_DEP_MESSAGE = 'Attaching devices to circuits will no longer be supported.'
-
-
-@contextlib.contextmanager
-def _block_overlapping_deprecation():
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            action='ignore',
-            category=DeprecationWarning,
-            message=f'(.|\n)*{re.escape(_DEVICE_DEP_MESSAGE)}(.|\n)*',
-        )
-        yield
 
 
 class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
@@ -91,7 +78,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         if device == devices.UNCONSTRAINED_DEVICE:
             base = Circuit(contents, strategy=strategy)
         else:
-            with _block_overlapping_deprecation():
+            with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
                 base = Circuit(contents, strategy=strategy, device=device)
 
         self._moments = tuple(base.moments)
@@ -225,7 +212,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         new_device: 'cirq.Device',
         qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
     ) -> 'FrozenCircuit':
-        with _block_overlapping_deprecation():
+        with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
             return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
     def _resolve_parameters_(
