@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import re
 from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, TYPE_CHECKING
 
 import functools
@@ -138,7 +138,7 @@ class CircuitDag(networkx.DiGraph):
         if device == devices.UNCONSTRAINED_DEVICE:
             dag = CircuitDag(can_reorder=can_reorder)
         else:
-            with circuit._block_overlapping_deprecation():
+            with _compat.block_overlapping_deprecation(re.escape(circuit._DEVICE_DEP_MESSAGE)):
                 dag = CircuitDag(can_reorder=can_reorder, device=device)
 
         for op in ops.flatten_op_tree(operations):
