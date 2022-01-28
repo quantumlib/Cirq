@@ -39,22 +39,26 @@ def test_qid_pairs():
     class RawDevice(cirq.Device):
         pass
 
-    assert RawDevice().qid_pairs() is None
+    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=1):
+        assert RawDevice().qid_pairs() is None
 
     class QubitFieldDevice(cirq.Device):
         def __init__(self, qubits):
             self.qubits = qubits
 
-    assert len(QubitFieldDevice(cirq.LineQubit.range(10)).qid_pairs()) == 9
-    assert len(QubitFieldDevice(cirq.GridQubit.rect(10, 10)).qid_pairs()) == 180
-    assert len(QubitFieldDevice([cirq.NamedQubit(str(s)) for s in range(10)]).qid_pairs()) == 45
+    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=3):
+
+        assert len(QubitFieldDevice(cirq.LineQubit.range(10)).qid_pairs()) == 9
+        assert len(QubitFieldDevice(cirq.GridQubit.rect(10, 10)).qid_pairs()) == 180
+        assert len(QubitFieldDevice([cirq.NamedQubit(str(s)) for s in range(10)]).qid_pairs()) == 45
 
 
-def test_qid_pair():
+def test_qid_pair_deprecated():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
-    e1 = cirq.SymmetricalQidPair(q0, q1)
-    e2 = cirq.SymmetricalQidPair(q1, q0)
-    e3 = cirq.SymmetricalQidPair(q2, q3)
+    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=3):
+        e1 = cirq.SymmetricalQidPair(q0, q1)
+        e2 = cirq.SymmetricalQidPair(q1, q0)
+        e3 = cirq.SymmetricalQidPair(q2, q3)
     assert e1 == e2
     assert e2 != e3
     assert repr(e1) == "cirq.QidPair(cirq.LineQubit(0), cirq.LineQubit(1))"
@@ -74,8 +78,9 @@ def test_qid_pair():
     assert len(set1) == 1
     assert len(set2) == 2
 
-    with pytest.raises(ValueError, match='A QidPair cannot have identical qids.'):
-        cirq.SymmetricalQidPair(q0, q0)
+    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=1):
+        with pytest.raises(ValueError, match='A QidPair cannot have identical qids.'):
+            cirq.SymmetricalQidPair(q0, q0)
 
 
 def test_device_metadata():
@@ -92,10 +97,6 @@ def test_metadata():
     assert metadata.qubit_set == frozenset(qubits)
     assert metadata.nx_graph == graph
 
-    metadata = cirq.DeviceMetadata()
-    assert metadata.qubit_set is None
-    assert metadata.nx_graph is None
-
 
 def test_metadata_json_load_logic():
     qubits = cirq.LineQubit.range(4)
@@ -103,13 +104,6 @@ def test_metadata_json_load_logic():
     metadata = cirq.DeviceMetadata(qubits, graph)
     str_rep = cirq.to_json(metadata)
     assert metadata == cirq.read_json(json_text=str_rep)
-
-    qubits = None
-    graph = None
-    metadata = cirq.DeviceMetadata(qubits, graph)
-    str_rep = cirq.to_json(metadata)
-    output = cirq.read_json(json_text=str_rep)
-    assert metadata == output
 
 
 def test_metadata_equality():
@@ -121,8 +115,5 @@ def test_metadata_equality():
 
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.DeviceMetadata(qubits, graph))
-    eq.add_equality_group(cirq.DeviceMetadata(None, graph))
-    eq.add_equality_group(cirq.DeviceMetadata(qubits, None))
-    eq.add_equality_group(cirq.DeviceMetadata(None, None))
-
-    assert cirq.DeviceMetadata(None, graph) != cirq.DeviceMetadata(None, graph2)
+    eq.add_equality_group(cirq.DeviceMetadata(qubits, graph2))
+    eq.add_equality_group(cirq.DeviceMetadata(qubits[1:], graph))

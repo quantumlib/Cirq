@@ -166,6 +166,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         ]
         remainder.qid_shape = remainder_tensor.shape[: int(remainder_tensor.ndim / 2)]
 
+    @property
+    def allows_factoring(self):
+        return True
+
     def _on_transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnDensityMatrixArgs'
     ):

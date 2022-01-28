@@ -16,9 +16,10 @@ import cirq
 
 
 def assert_optimizes(before, after):
-    opt = cirq.AlignRight()
-    opt(before)
-    assert before == after
+    with cirq.testing.assert_deprecated("Use cirq.align_right", deadline='v1.0'):
+        opt = cirq.AlignRight()
+        opt(before)
+        assert before == after
 
 
 def test_align_right():

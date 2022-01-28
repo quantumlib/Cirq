@@ -284,7 +284,7 @@ def test_to_json():
     }
 
 
-def test_qid_pairs():
+def test_qid_pairs_deprecated():
     dev = PasqalVirtualDevice(
         1,
         qubits=[
@@ -295,14 +295,15 @@ def test_qid_pairs():
             ThreeDQubit(1, 1, 1),
         ],
     )
-    assert len(dev.qid_pairs()) == 5
-    dev1 = PasqalVirtualDevice(
-        5,
-        qubits=[
-            TwoDQubit(0, 0),
-            TwoDQubit(3, 2),
-            TwoDQubit(3, 4),
-            TwoDQubit(3, 6),
-        ],
-    )
-    assert len(dev1.qid_pairs()) == 5
+    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=2):
+        assert len(dev.qid_pairs()) == 5
+        dev1 = PasqalVirtualDevice(
+            5,
+            qubits=[
+                TwoDQubit(0, 0),
+                TwoDQubit(3, 2),
+                TwoDQubit(3, 4),
+                TwoDQubit(3, 6),
+            ],
+        )
+        assert len(dev1.qid_pairs()) == 5

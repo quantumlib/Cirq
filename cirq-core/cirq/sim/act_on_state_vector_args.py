@@ -210,6 +210,10 @@ class ActOnStateVectorArgs(ActOnArgs):
         remainder.target_tensor = remainder_tensor
         remainder.available_buffer = np.empty_like(remainder_tensor)
 
+    @property
+    def allows_factoring(self):
+        return True
+
     def _on_transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStateVectorArgs'
     ):
