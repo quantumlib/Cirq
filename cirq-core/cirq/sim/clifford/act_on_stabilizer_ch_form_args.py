@@ -58,6 +58,17 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
     def _on_copy(self, target: 'ActOnStabilizerCHFormArgs', deep_copy_buffers: bool = True):
         target.state = self.state.copy()
 
+    def _on_kronecker_product(
+        self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
+    ):
+        target.state = self.state.kron(other.state)
+
+    def _on_transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStabilizerCHFormArgs'
+    ):
+        axes = [self.qubit_map[q] for q in qubits]
+        target.state = self.state.reindex(axes)
+
     def sample(
         self,
         qubits: Sequence['cirq.Qid'],
