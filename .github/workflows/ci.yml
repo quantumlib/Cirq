@@ -147,7 +147,8 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8', '3.9' ]
+        python-version: ['3.7', '3.8', '3.9' ]
+        test-group: ['1', '2']
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -164,7 +165,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
+        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   build_docs:
@@ -221,6 +222,7 @@ jobs:
     strategy:
       matrix:
         python-version: [ '3.7', '3.8', '3.9' ]
+        test-group: ['1', '2']
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
@@ -231,13 +233,14 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
-        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
+        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
     strategy:
       matrix:
         python-version: [ '3.7', '3.8', '3.9' ]
+        test-group: ['1', '2']
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
@@ -248,7 +251,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest --ignore=cirq-core/cirq/contrib
+        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     env:
