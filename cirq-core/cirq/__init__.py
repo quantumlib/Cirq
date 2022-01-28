@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Cirq is a framework for creating, editing, and invoking quantum circuits."""
+
 from cirq import _import
 
 # A module can only depend on modules imported earlier in this list of modules
@@ -470,6 +472,7 @@ from cirq.study import (
     flatten,
     flatten_with_params,
     flatten_with_sweep,
+    ResultDict,
     Linspace,
     ListSweep,
     ParamDictType,
