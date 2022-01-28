@@ -283,9 +283,7 @@ def final_density_matrix(
             noise=noise,
             seed=seed,
         ).simulate(
-            program=measurement_transformers.dephase_measurements(
-                circuit_like, transformer_api.TransformerContext()
-            )
+            program=measurement_transformers.dephase_measurements(circuit_like)
             if ignore_measurement_results
             else circuit_like,
             initial_state=initial_state,

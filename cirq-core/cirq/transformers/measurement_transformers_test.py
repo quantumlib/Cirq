@@ -31,7 +31,7 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
             if bits[j]:
                 modified.append(cirq.X(qubits[j]))
         modified.append(circuit)
-        deferred = cirq.defer_measurements(modified, cirq.TransformerContext())
+        deferred = cirq.defer_measurements(modified)
         result = sim.simulate(modified)
         result1 = sim.simulate(deferred)
         np.testing.assert_equal(result.measurements, result1.measurements)
@@ -47,7 +47,7 @@ def assert_equivalent_to_dephased(circuit: cirq.Circuit):
     modified = cirq.Circuit(backwards[::-1])
     for j in range(num_qubits):
         modified.append(cirq.H(qubits[j]) ** np.random.rand())
-    dephased = cirq.dephase_measurements(modified, cirq.TransformerContext())
+    dephased = cirq.dephase_measurements(modified)
     result = sim.simulate(modified)
     result1 = sim.simulate(dephased)
     np.testing.assert_almost_equal(result.final_density_matrix, result1.final_density_matrix)
@@ -61,7 +61,7 @@ def test_basic():
         cirq.measure(q1, key='b'),
     )
     assert_equivalent_to_deferred(circuit)
-    deferred = cirq.defer_measurements(circuit, cirq.TransformerContext())
+    deferred = cirq.defer_measurements(circuit)
     q_ma = _MeasurementQid('a', q0)
     cirq.testing.assert_same_circuits(
         deferred,
@@ -81,10 +81,10 @@ def test_pauli():
         cirq.X(q1).with_classical_controls('a'),
         cirq.measure(q1, key='b'),
     )
-    deferred = cirq.defer_measurements(circuit, cirq.TransformerContext())
+    deferred = cirq.defer_measurements(circuit)
     q_ma = _MeasurementQid('a', q0)
     cirq.testing.assert_same_circuits(
-        deferred,
+        cirq.unroll_circuit_op(deferred),
         cirq.Circuit(
             cirq.SingleQubitCliffordGate.X_sqrt(q0),
             cirq.CX(q0, q_ma),
@@ -105,7 +105,7 @@ def test_extra_measurements():
         cirq.measure(q1, key='c'),
     )
     assert_equivalent_to_deferred(circuit)
-    deferred = cirq.defer_measurements(circuit, cirq.TransformerContext())
+    deferred = cirq.defer_measurements(circuit)
     q_ma = _MeasurementQid('a', q0)
     cirq.testing.assert_same_circuits(
         deferred,
@@ -127,7 +127,7 @@ def test_extra_controlled_bits():
         cirq.measure(q1, key='b'),
     )
     assert_equivalent_to_deferred(circuit)
-    deferred = cirq.defer_measurements(circuit, cirq.TransformerContext())
+    deferred = cirq.defer_measurements(circuit)
     q_ma = _MeasurementQid('a', q0)
     cirq.testing.assert_same_circuits(
         deferred,
@@ -149,7 +149,7 @@ def test_extra_control_bits():
         cirq.measure(q1, key='c'),
     )
     assert_equivalent_to_deferred(circuit)
-    deferred = cirq.defer_measurements(circuit, cirq.TransformerContext())
+    deferred = cirq.defer_measurements(circuit)
     q_ma = _MeasurementQid('a', q0)
     q_mb = _MeasurementQid('b', q0)
     cirq.testing.assert_same_circuits(
@@ -177,7 +177,7 @@ def test_subcircuit():
         )
     )
     assert_equivalent_to_deferred(circuit)
-    deferred = cirq.defer_measurements(circuit, cirq.TransformerContext())
+    deferred = cirq.defer_measurements(circuit)
     q_m = _MeasurementQid('a', q0)
     cirq.testing.assert_same_circuits(
         deferred,
@@ -199,7 +199,7 @@ def test_multi_qubit_measurements():
         cirq.measure(q1, key='c'),
     )
     assert_equivalent_to_deferred(circuit)
-    deferred = cirq.defer_measurements(circuit, cirq.TransformerContext())
+    deferred = cirq.defer_measurements(circuit)
     q_ma0 = _MeasurementQid('a', q0)
     q_ma1 = _MeasurementQid('a', q1)
     cirq.testing.assert_same_circuits(
@@ -223,7 +223,7 @@ def test_diagram():
         cirq.X(q0),
         cirq.measure(q0, q1, q2, q3, key='c'),
     )
-    deferred = cirq.defer_measurements(circuit, cirq.TransformerContext())
+    deferred = cirq.defer_measurements(circuit)
     cirq.testing.assert_has_diagram(
         deferred,
         """
@@ -267,7 +267,7 @@ def test_multi_qubit_control():
         cirq.X(q1).with_classical_controls('a'),
     )
     with pytest.raises(ValueError, match='Only single qubit conditions are allowed'):
-        _ = cirq.defer_measurements(circuit, cirq.TransformerContext())
+        _ = cirq.defer_measurements(circuit)
 
 
 def test_sympy_control():
@@ -277,7 +277,7 @@ def test_sympy_control():
         cirq.X(q1).with_classical_controls(sympy.Symbol('a')),
     )
     with pytest.raises(ValueError, match='Only KeyConditions are allowed'):
-        _ = cirq.defer_measurements(circuit, cirq.TransformerContext())
+        _ = cirq.defer_measurements(circuit)
 
 
 def test_dephase():
@@ -293,7 +293,7 @@ def test_dephase():
         )
     )
     assert_equivalent_to_dephased(circuit)
-    dephased = cirq.dephase_measurements(circuit, cirq.TransformerContext())
+    dephased = cirq.dephase_measurements(circuit)
     cirq.testing.assert_same_circuits(
         dephased,
         cirq.Circuit(
@@ -317,4 +317,4 @@ def test_dephase_classical_conditions():
         cirq.measure(q1, key='b'),
     )
     with pytest.raises(ValueError, match='defer_measurements first to remove classical controls'):
-        _ = cirq.dephase_measurements(circuit, cirq.TransformerContext())
+        _ = cirq.dephase_measurements(circuit)
