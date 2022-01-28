@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A transformer pass to move terminal measurements to the end of circuit."""
+"""Transformer pass to move terminal measurements to the end of circuit."""
 
 from typing import List, Optional, Set, Tuple, TYPE_CHECKING
 from cirq import protocols, ops
@@ -25,6 +25,18 @@ if TYPE_CHECKING:
 def find_terminal_measurements(
     circuit: 'cirq.AbstractCircuit',
 ) -> List[Tuple[int, 'cirq.Operation']]:
+    """Finds all terminal measurements in the given circuit.
+
+    A measurement is terminal if there are no other operations acting on the measured qubits
+    after the measurement operation occurs in the circuit.
+
+    Args:
+        circuit: The circuit to find terminal measurements in.
+
+    Returns:
+        List of terminal measurements, each specified as (moment_index, measurement_operation).
+    """
+
     open_qubits: Set['cirq.Qid'] = set(circuit.all_qubits())
     seen_control_keys: Set['cirq.MeasurementKey'] = set()
     terminal_measurements: List[Tuple[int, 'cirq.Operation']] = []
