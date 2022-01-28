@@ -584,6 +584,10 @@ class Operation(metaclass=abc.ABCMeta):
 
         from cirq import circuits
 
+        # Remove the classical controls to validate the quantum commutativity. This can be done
+        # because during execution, the two operations will either both be run, in which case they
+        # behave like the suboperations, so if the suboperations commute then these commute. Or
+        # one of them is cold in which case it behaves like the identity, which always commutes.
         self_raw = self.without_classical_controls()
         other_raw = other.without_classical_controls()
         circuit12 = circuits.Circuit(self_raw, other_raw)
