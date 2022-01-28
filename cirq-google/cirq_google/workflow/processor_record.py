@@ -60,11 +60,7 @@ class EngineProcessorRecord(ProcessorRecord):
     def get_processor(self) -> 'cg.EngineProcessor':
         """Return a `cg.EngineProcessor` for the specified processor_id."""
         engine = cg.get_engine()
-        return cg.EngineProcessor(
-            project_id=engine.project_id,
-            processor_id=self.processor_id,
-            context=engine.context,
-        )
+        return engine.get_processor(self.processor_id)
 
     def get_sampler(self) -> 'cg.QuantumEngineSampler':
         """Return a `cg.QuantumEngineSampler` for the specified processor_id.
