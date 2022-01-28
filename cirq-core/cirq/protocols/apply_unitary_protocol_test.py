@@ -468,15 +468,17 @@ def test_slices_size_2():
             target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
             available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
             axes=(0,),
-            slices=[slice(0, 2)]  # subspaces 0, 1
+            slices=[slice(0, 2)],  # subspace [0, 1]
         ),
     )
     np.testing.assert_allclose(
         result,
         np.array(
-            [[0, 1, 0],
-             [1, 0, 0],
-             [0, 0, 1]]
+            [
+                [0, 1, 0],
+                [1, 0, 0],
+                [0, 0, 1],
+            ]
         ),
         atol=1e-8,
     )
@@ -487,15 +489,17 @@ def test_slices_size_2():
             target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
             available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
             axes=(0,),
-            slices=[slice(0, 4, 2)]  # subspaces 0, 2
+            slices=[slice(0, 4, 2)],  # subspace [0, 2]
         ),
     )
     np.testing.assert_allclose(
         result,
         np.array(
-            [[0, 0, 1],
-             [0, 1, 0],
-             [1, 0, 0]]
+            [
+                [0, 0, 1],
+                [0, 1, 0],
+                [1, 0, 0],
+            ]
         ),
         atol=1e-8,
     )
@@ -506,15 +510,17 @@ def test_slices_size_2():
             target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
             available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
             axes=(0,),
-            slices=[slice(1, 3)]  # subspaces 1, 2
+            slices=[slice(1, 3)],  # subspace [1, 2]
         ),
     )
     np.testing.assert_allclose(
         result,
         np.array(
-            [[1, 0, 0],
-             [0, 0, 1],
-             [0, 1, 0]]
+            [
+                [1, 0, 0],
+                [0, 0, 1],
+                [0, 1, 0],
+            ]
         ),
         atol=1e-8,
     )
@@ -525,16 +531,18 @@ def test_slices_size_2():
             target_tensor=cirq.eye_tensor((4,), dtype=np.complex64),
             available_buffer=cirq.eye_tensor((4,), dtype=np.complex64),
             axes=(0,),
-            slices=[slice(1, 3)]  # subspaces 1, 2
+            slices=[slice(1, 3)],  # subspace [1, 2]
         ),
     )
     np.testing.assert_allclose(
         result,
         np.array(
-            [[1, 0, 0, 0],
-             [0, 0, 1, 0],
-             [0, 1, 0, 0],
-             [0, 0, 0, 1]]
+            [
+                [1, 0, 0, 0],
+                [0, 0, 1, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0, 1],
+            ]
         ),
         atol=1e-8,
     )
@@ -556,15 +564,17 @@ def test_slices_size_3():
             target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
             available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
             axes=(0,),
-            slices=[slice(0, 3)]  # subspaces 0, 1, 2
+            slices=[slice(0, 3)],  # subspace [0, 1, 2]
         ),
     )
     np.testing.assert_allclose(
         result,
         np.array(
-            [[0, 0, 1],
-             [1, 0, 0],
-             [0, 1, 0]]
+            [
+                [0, 0, 1],
+                [1, 0, 0],
+                [0, 1, 0],
+            ]
         ),
         atol=1e-8,
     )
@@ -575,15 +585,17 @@ def test_slices_size_3():
             target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
             available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
             axes=(0,),
-            slices=[slice(2, None, -1)]  # subspaces 2, 1, 0
+            slices=[slice(2, None, -1)],  # subspace [2, 1, 0]
         ),
     )
     np.testing.assert_allclose(
         result,
         np.array(
-            [[0, 1, 0],
-             [0, 0, 1],
-             [1, 0, 0]]
+            [
+                [0, 1, 0],
+                [0, 0, 1],
+                [1, 0, 0],
+            ]
         ),
         atol=1e-8,
     )
@@ -594,16 +606,18 @@ def test_slices_size_3():
             target_tensor=cirq.eye_tensor((4,), dtype=np.complex64),
             available_buffer=cirq.eye_tensor((4,), dtype=np.complex64),
             axes=(0,),
-            slices=[slice(1, 4)]  # subspaces 1, 2, 3
+            slices=[slice(1, 4)],  # subspace [1, 2, 3]
         ),
     )
     np.testing.assert_allclose(
         result,
         np.array(
-            [[1, 0, 0, 0],
-             [0, 0, 0, 1],
-             [0, 1, 0, 0],
-             [0, 0, 1, 0]]
+            [
+                [1, 0, 0, 0],
+                [0, 0, 0, 1],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+            ]
         ),
         atol=1e-8,
     )
