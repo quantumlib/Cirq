@@ -97,3 +97,12 @@ def test_align_right_no_compile_context():
             ]
         ),
     )
+
+
+def test_classical_control():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.H(q0), cirq.measure(q0, key='m'), cirq.X(q1).with_classical_controls('m')
+    )
+    cirq.testing.assert_same_circuits(cirq.align_left(circuit), circuit)
+    cirq.testing.assert_same_circuits(cirq.align_right(circuit), circuit)

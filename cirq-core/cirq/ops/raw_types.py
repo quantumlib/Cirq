@@ -572,13 +572,26 @@ class Operation(metaclass=abc.ABCMeta):
         if not isinstance(other, Operation):
             return NotImplemented
 
+        # This should also validate that measurement keys are disjoint once we allow repeated
+        # measurements. Search for same message in circuit.py.
+        if not protocols.control_keys(self).isdisjoint(
+            protocols.measurement_key_objs(other)
+        ) or not protocols.control_keys(other).isdisjoint(protocols.measurement_key_objs(self)):
+            return False
+
         if hasattr(other, 'qubits') and set(self.qubits).isdisjoint(other.qubits):
             return True
 
         from cirq import circuits
 
-        circuit12 = circuits.Circuit(self, other)
-        circuit21 = circuits.Circuit(other, self)
+        # Remove the classical controls to validate the quantum commutativity. This can be done
+        # because during execution, the two operations will either both be run, in which case they
+        # behave like the suboperations, so if the suboperations commute then these commute. Or
+        # one of them is cold in which case it behaves like the identity, which always commutes.
+        self_raw = self.without_classical_controls()
+        other_raw = other.without_classical_controls()
+        circuit12 = circuits.Circuit(self_raw, other_raw)
+        circuit21 = circuits.Circuit(other_raw, self_raw)
 
         # Don't create gigantic matrices.
         shape = protocols.qid_shape_protocol.qid_shape(circuit12)
