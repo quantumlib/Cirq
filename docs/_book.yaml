@@ -198,8 +198,8 @@ upper_tabs:
         path: /cirq/tutorials/google/start
       - title: "Visualizing calibration metrics"
         path: /cirq/tutorials/google/visualizing_calibration_metrics
-      - title: "Compare to latest calibration"
-        path: /cirq/tutorials/google/compare_to_calibration
+      - title: "Identifying Hardware Changes"
+        path: /cirq/tutorials/google/identifying_hardware_changes
       - title: "Qubit picking with Loschmidt echoes"
         path: /cirq/tutorials/google/echoes
       - title: "Circuit optimization, gate alignment, & spin echoes"

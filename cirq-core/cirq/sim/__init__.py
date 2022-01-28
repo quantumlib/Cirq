@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Base simulation classes and generic simulators."""
+"""Classes for circuit simulators and base implementations of these classes."""
 from typing import Tuple, Dict
 
 from cirq.sim.act_on_args import (
@@ -90,6 +90,7 @@ from cirq.sim.state_vector import (
 from cirq.sim.clifford import (
     ActOnCliffordTableauArgs,
     ActOnStabilizerCHFormArgs,
+    ActOnStabilizerArgs,
     StabilizerSampler,
     StabilizerStateChForm,
     CliffordSimulator,

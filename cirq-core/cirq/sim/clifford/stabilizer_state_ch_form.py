@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Union
+from typing import Any, Dict, Sequence, Union
 import numpy as np
 
 import cirq
@@ -273,3 +273,29 @@ class StabilizerStateChForm:
             self.omega /= np.sqrt(2)
 
         self.update_sum(t, u, delta=delta)
+
+    def kron(self, other: 'cirq.StabilizerStateChForm') -> 'cirq.StabilizerStateChForm':
+        n = self.n + other.n
+        copy = StabilizerStateChForm(n)
+        copy.G[: self.n, : self.n] = self.G
+        copy.G[self.n :, self.n :] = other.G
+        copy.F[: self.n, : self.n] = self.F
+        copy.F[self.n :, self.n :] = other.F
+        copy.M[: self.n, : self.n] = self.M
+        copy.M[self.n :, self.n :] = other.M
+        copy.gamma = np.concatenate([self.gamma, other.gamma])
+        copy.v = np.concatenate([self.v, other.v])
+        copy.s = np.concatenate([self.s, other.s])
+        copy.omega = self.omega * other.omega
+        return copy
+
+    def reindex(self, axes: Sequence[int]) -> 'cirq.StabilizerStateChForm':
+        copy = StabilizerStateChForm(self.n)
+        copy.G = self.G[axes][:, axes]
+        copy.F = self.F[axes][:, axes]
+        copy.M = self.M[axes][:, axes]
+        copy.gamma = self.gamma[axes]
+        copy.v = self.v[axes]
+        copy.s = self.s[axes]
+        copy.omega = self.omega
+        return copy

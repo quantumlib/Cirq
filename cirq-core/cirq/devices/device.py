@@ -105,6 +105,15 @@ class Device(metaclass=abc.ABCMeta):
         """
         return operation
 
+    @property
+    def metadata(self) -> Optional['DeviceMetadata']:
+        """Returns the associated Metadata with the device if applicable.
+
+        Returns:
+            `cirq.DeviceMetadata` if specified by the device otherwise None.
+        """
+        return None
+
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         """Raises an exception if an operation is not valid.
 

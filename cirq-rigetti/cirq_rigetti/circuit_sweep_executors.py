@@ -72,7 +72,7 @@ def _execute_and_read_result(
     logger.debug(f"measurements {measurements}")
 
     # collect results in a cirq.Result.
-    result = cirq.Result(
+    result = cirq.ResultDict(
         params=cast(cirq.ParamResolver, resolver or cirq.ParamResolver({})),
         measurements=measurements,
     )  # noqa
