@@ -129,6 +129,9 @@ def test_decompose_leaves_supported_alone(gate):
     assert device.decompose_operation(operation) == operation
 
 
+VALID_DECOMPOSED_GATES = cirq.Gateset(cirq.XPowGate, cirq.ZPowGate, cirq.CNOT)
+
+
 def test_decompose_single_qubit_matrix_gate():
     q = cirq.LineQubit(0)
     device = ionq.IonQAPIDevice(qubits=[q])
@@ -139,6 +142,7 @@ def test_decompose_single_qubit_matrix_gate():
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             circuit, decomposed_circuit, atol=1e-8
         )
+        assert VALID_DECOMPOSED_GATES.validate(decomposed_circuit)
 
 
 def test_decompose_two_qubit_matrix_gate():
@@ -151,6 +155,7 @@ def test_decompose_two_qubit_matrix_gate():
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             circuit, decomposed_circuit, atol=1e-8
         )
+        assert VALID_DECOMPOSED_GATES.validate(decomposed_circuit)
 
 
 def test_decompose_unsupported_gate():
