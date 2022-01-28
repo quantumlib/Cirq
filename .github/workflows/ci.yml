@@ -199,8 +199,11 @@ jobs:
       - name: Build protos
         run: check/build-changed-protos
   coverage:
-    name: Coverage check
+    name: Coverage Tests
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        test-group: ['1', '2', '3', '4']
     steps:
       - uses: actions/checkout@v2
         with:
@@ -213,10 +216,35 @@ jobs:
         run: pip install -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
-      - name: Coverage check
-        run: check/pytest-and-incremental-coverage --actually-quiet
+      - name: Coverage tests
+        run: check/pytest-and-incremental-coverage -- --splits 4 --group ${{ matrix.test-group }} --no-analyze
+      - name: Upload cov reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage${{ matrix.test-group }}
+          path: '.py,cover'
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
+  coverage-analysis:
+    name: Coverage Anlysis
+    runs-on: ubuntu-20.04
+    needs: coverage
+    steps:
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+      - name: Install requirements
+        run: pip install -r dev_tools/requirements/dev.env.txt
+      - name: Download cov reports
+        uses: actions/download-artifact@v2
+      - name: Run coverage
+        run: |
+          coverage combine coverage*/*.py,cover
+          python dev_tools/check_incremental_coverage_annotations.py master
+      - uses: codecov/codecov-action@v1
+
+
   windows:
     name: Pytest Windows
     strategy:

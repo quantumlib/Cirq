@@ -4,7 +4,7 @@
 # Finds changed uncovered lines.
 #
 # Usage:
-#     check/pytest-and-incremental-coverage [BASE_REVISION]
+#     check/pytest-and-incremental-coverage [BASE_REVISION] [PYTEST_ARGS]
 #
 # You can specify a base git revision to compare against (i.e. to use when
 # determining whether or not a line is considered to have "changed"). To make
@@ -25,6 +25,16 @@
 # Get the working directory to the repo root.
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 cd "$(git rev-parse --show-toplevel)" || exit 1
+
+PYTEST_ARGS=()
+ANALYZE_COV=1
+for arg in "${@:2}"; do
+    if [[ "${arg}" == "--no-analyze" ]]; then
+        ANALYZE_COV=0
+    else
+        PYTEST_ARGS+=("${arg}")
+    fi
+done
 
 # Figure out which revision to compare against.
 if [ ! -z "$1" ] && [[ $1 != -* ]]; then
@@ -58,18 +68,27 @@ check/pytest --actually-quiet \
              --rigetti-integration \
              --cov \
              --cov-report=annotate \
-             --cov-config=dev_tools/conf/.coveragerc
+             --cov-config=dev_tools/conf/.coveragerc \
+             "${PYTEST_ARGS[@]}"
 pytest_result=$?
 
-# Analyze coverage files.
-python dev_tools/check_incremental_coverage_annotations.py "${rev}"
-cover_result=$?
 
-# Clean up generated coverage files.
-find . | grep "\.py,cover$" | xargs rm -f
+if [ "$ANALYZE_COV" == "1" ]; then
+    # Analyze coverage files.
+    python dev_tools/check_incremental_coverage_annotations.py "${rev}"
+    cover_result=$?
 
-# Report result.
-if [ "${pytest_result}" -ne "0" ] || [ "${cover_result}" -ne "0" ]; then
-  exit 1
+    # Clean up generated coverage files.
+    find . | grep "\.py,cover$" | xargs rm -f
+
+    # Report result.
+    if [ "${pytest_result}" -ne "0" ] || [ "${cover_result}" -ne "0" ]; then
+      exit 1
+    fi
+    exit 0
+else
+    if [ "${pytest_result}" -ne "0" ]; then
+      exit 1
+    fi
+    exit 0
 fi
-exit 0
