@@ -21,7 +21,6 @@ import google.protobuf.text_format as text_format
 import cirq
 from cirq_google.api import v2
 from cirq_google.engine import (
-    abstract_local_processor,
     calibration,
     engine_validator,
     simulated_local_processor,
