@@ -14,7 +14,7 @@
 
 """Transformer passes which align operations to the left or right of the circuit."""
 
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 from cirq import circuits, ops
 from cirq.transformers import transformer_api
 
@@ -24,8 +24,7 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer
 def align_left(
-    circuit: 'cirq.AbstractCircuit',
-    context: 'cirq.TransformerContext' = transformer_api.TransformerContext(),
+    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
 ) -> 'cirq.Circuit':
     """Align gates to the left of the circuit.
 
@@ -39,6 +38,9 @@ def align_left(
     Returns:
           Copy of the transformed input circuit.
     """
+    if context is None:
+        context = transformer_api.TransformerContext()
+
     ret = circuits.Circuit()
     for i, moment in enumerate(circuit):
         for op in moment:
@@ -54,8 +56,7 @@ def align_left(
 
 @transformer_api.transformer
 def align_right(
-    circuit: 'cirq.AbstractCircuit',
-    context: 'cirq.TransformerContext' = transformer_api.TransformerContext(),
+    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
 ) -> 'cirq.Circuit':
     """Align gates to the right of the circuit.
 
@@ -69,4 +70,4 @@ def align_right(
     Returns:
           Copy of the transformed input circuit.
     """
-    return align_left(circuit[::-1], context)[::-1]
+    return align_left(circuit[::-1], context=context)[::-1]
