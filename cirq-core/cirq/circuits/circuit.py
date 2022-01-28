@@ -20,13 +20,11 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 import abc
-import contextlib
 import enum
 import html
 import itertools
 import math
 import re
-import warnings
 from collections import defaultdict
 from typing import (
     AbstractSet,
@@ -71,17 +69,6 @@ CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
 INT_TYPE = Union[int, np.integer]
 
 _DEVICE_DEP_MESSAGE = 'Attaching devices to circuits will no longer be supported.'
-
-
-@contextlib.contextmanager
-def _block_overlapping_deprecation():
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            action='ignore',
-            category=DeprecationWarning,
-            message=f'(.|\n)*{re.escape(_DEVICE_DEP_MESSAGE)}(.|\n)*',
-        )
-        yield
 
 
 class Alignment(enum.Enum):
@@ -1890,7 +1877,7 @@ class Circuit(AbstractCircuit):
         Returns:
             The translated circuit.
         """
-        with _block_overlapping_deprecation():
+        with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
             return Circuit(
                 [
                     ops.Moment(
@@ -1958,19 +1945,24 @@ class Circuit(AbstractCircuit):
         if new_device is None and self._device == devices.UNCONSTRAINED_DEVICE:
             return Circuit(op_list)
 
-        with _block_overlapping_deprecation():
+        with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
             return Circuit(op_list, device=self._device if new_device is None else new_device)
 
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
         op_control_keys = protocols.control_keys(op)
+        op_measurement_keys = protocols.measurement_key_objs(op)
         op_qubits = op.qubits
         while k > 0:
             k -= 1
             moment = self._moments[k]
-            if moment.operates_on(op_qubits) or (
-                op_control_keys & protocols.measurement_key_objs(moment)
+            # This should also validate that measurement keys are disjoint once we allow repeated
+            # measurements. Search for same message in raw_types.py.
+            if (
+                moment.operates_on(op_qubits)
+                or not op_control_keys.isdisjoint(protocols.measurement_key_objs(moment))
+                or not protocols.control_keys(moment).isdisjoint(op_measurement_keys)
             ):
                 return last_available
             if self._can_add_op_at(k, op):
@@ -2377,7 +2369,7 @@ class Circuit(AbstractCircuit):
             resolved_moments.append(new_moment)
         if self._device == devices.UNCONSTRAINED_DEVICE:
             return Circuit(resolved_moments)
-        with _block_overlapping_deprecation():
+        with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
             return Circuit(resolved_moments, device=self._device)
 
     @property

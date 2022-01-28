@@ -23,6 +23,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Union,
     TYPE_CHECKING,
 )
 
@@ -57,7 +58,7 @@ def _create_target_circuit_type(ops: ops.OP_TREE, target_circuit: CIRCUIT_TYPE) 
 
 def map_moments(
     circuit: CIRCUIT_TYPE,
-    map_func: Callable[[ops.Moment, int], Sequence[ops.Moment]],
+    map_func: Callable[[ops.Moment, int], Union[ops.Moment, Sequence[ops.Moment]]],
 ) -> CIRCUIT_TYPE:
     """Applies local transformation on moments, by calling `map_func(moment)` for each moment.
 
@@ -76,6 +77,8 @@ def map_moments(
 def map_operations(
     circuit: CIRCUIT_TYPE,
     map_func: Callable[[ops.Operation, int], ops.OP_TREE],
+    *,
+    raise_if_add_qubits=True,
 ) -> CIRCUIT_TYPE:
     """Applies local transformations on operations, by calling `map_func(op)` for each op.
 
@@ -88,9 +91,12 @@ def map_operations(
             `cirq.CircuitOperation(cirq.FrozenCircuit(op_tree)).with_tags(MAPPED_CIRCUIT_OP_TAG)`
             to preserve moment structure. Utility methods like `cirq.unroll_circuit_op` can
             subsequently be used to unroll the mapped circuit operation.
+        raise_if_add_qubits: Set to True by default. If True, Raises ValueError if `map_func(op)`
+            adds operations on qubits outside of `op.qubits`.
 
     Raises:
-          ValueError if `issubset(qubit_set(map_func(op)), op.qubits) is False`.
+          ValueError if `issubset(qubit_set(map_func(op)), op.qubits) is False` and
+            `raise_if_add_qubits is True`.
 
     Returns:
         Copy of input circuit with mapped operations (wrapped in a tagged CircuitOperation).
@@ -98,14 +104,15 @@ def map_operations(
 
     def apply_map(op: ops.Operation, idx: int) -> ops.OP_TREE:
         c = circuits.FrozenCircuit(map_func(op, idx))
-        if not c.all_qubits().issubset(op.qubits):
+        if raise_if_add_qubits and not c.all_qubits().issubset(op.qubits):
             raise ValueError(
                 f"Mapped operations {c.all_operations()} should act on a subset "
                 f"of qubits of the original operation {op}"
             )
-        if len(c) == 1:
-            # All operations act in the same moment; so we don't need to wrap them in a circuit_op.
-            return c[0].operations
+        if len(c) <= 1:
+            # Either empty circuit or all operations act in the same moment;
+            # So, we don't need to wrap them in a circuit_op.
+            return c[0].operations if c else []
         circuit_op = circuits.CircuitOperation(c).with_tags(MAPPED_CIRCUIT_OP_TAG)
         return circuit_op
 
