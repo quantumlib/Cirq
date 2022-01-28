@@ -14,27 +14,32 @@
 
 import cirq
 
-
-def assert_optimizes(atol: float, initial_circuit: cirq.Circuit, expected_circuit: cirq.Circuit):
-    with cirq.testing.assert_deprecated("Use cirq.drop_negligible_operations", deadline='v1.0'):
-        optimizer = cirq.DropNegligible(atol)
-        circuit = cirq.Circuit(initial_circuit)
-        optimizer.optimize_circuit(circuit)
-        assert circuit == expected_circuit
+NO_COMPILE_TAG = "no_compile_tag"
 
 
 def test_leaves_big():
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit([cirq.Moment([cirq.Z(a) ** 0.1])])
-
-    assert_optimizes(0.001, initial_circuit=circuit, expected_circuit=circuit)
+    cirq.testing.assert_same_circuits(cirq.drop_negligible_operations(circuit, atol=0.001), circuit)
 
 
 def test_clears_small():
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit([cirq.Moment([cirq.Z(a) ** 0.000001])])
+    cirq.testing.assert_same_circuits(
+        cirq.drop_negligible_operations(circuit, atol=0.001), cirq.Circuit([cirq.Moment()])
+    )
 
-    assert_optimizes(0.001, initial_circuit=circuit, expected_circuit=cirq.Circuit([cirq.Moment()]))
+
+def test_does_not_clear_small_no_compile():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit([cirq.Moment([(cirq.Z(a) ** 0.000001).with_tags(NO_COMPILE_TAG)])])
+    cirq.testing.assert_same_circuits(
+        cirq.drop_negligible_operations(
+            circuit, context=cirq.TransformerContext(ignore_tags=(NO_COMPILE_TAG,)), atol=0.001
+        ),
+        circuit,
+    )
 
 
 def test_clears_known_empties_even_at_zero_tolerance():
@@ -42,15 +47,12 @@ def test_clears_known_empties_even_at_zero_tolerance():
     circuit = cirq.Circuit(
         cirq.Z(a) ** 0, cirq.Y(a) ** 0.0000001, cirq.X(a) ** -0.0000001, cirq.CZ(a, b) ** 0
     )
-    assert_optimizes(
-        0.001,
-        initial_circuit=circuit,
-        expected_circuit=cirq.Circuit([cirq.Moment()] * 4),
+    cirq.testing.assert_same_circuits(
+        cirq.drop_negligible_operations(circuit, atol=0.001), cirq.Circuit([cirq.Moment()] * 4)
     )
-    assert_optimizes(
-        0,
-        initial_circuit=circuit,
-        expected_circuit=cirq.Circuit(
+    cirq.testing.assert_same_circuits(
+        cirq.drop_negligible_operations(circuit, atol=0),
+        cirq.Circuit(
             [
                 cirq.Moment(),
                 cirq.Moment([cirq.Y(a) ** 0.0000001]),

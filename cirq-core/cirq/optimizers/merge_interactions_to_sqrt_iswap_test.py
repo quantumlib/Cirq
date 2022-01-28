@@ -41,12 +41,18 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
         cirq.merge_single_qubit_gates_into_phased_x_z,
         cirq.EjectPhasedPaulis().optimize_circuit,
         cirq.EjectZ().optimize_circuit,
-        cirq.DropNegligible().optimize_circuit,
-        cirq.DropEmptyMoments().optimize_circuit,
     ]
     for post in followup_optimizations:
         post(actual)
         post(expected)
+
+    followup_optimizations_new: List[cirq.TRANSFORMER] = [
+        cirq.drop_negligible_operations,
+        cirq.drop_empty_moments,
+    ]
+    for post_new in followup_optimizations_new:
+        actual = post_new(actual).unfreeze(copy=False)
+        expected = post_new(expected).unfreeze(copy=False)
 
     assert actual == expected, f'ACTUAL {actual} : EXPECTED {expected}'
 
