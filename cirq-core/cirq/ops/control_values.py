@@ -48,77 +48,79 @@ class ControlValues:
         self, control_values: Sequence[Union[int, Collection[int], Type['ControlValues']]]
     ):
         if len(control_values) == 0:
-            self.vals = cast(Tuple[Tuple[int, ...], ...], (()))
-            self.num_variables = 0
-            self.nxt = None
-            self.itr = None
+            self._vals = cast(Tuple[Tuple[int, ...], ...], (()))
+            self._num_variables = 0
+            self._nxt = None
             return
-        self.itr = None
-        self.nxt = None
+        self._nxt = None
 
         if len(control_values) > 1:
-            self.nxt = ControlValues(control_values[1:])
+            self._nxt = ControlValues(control_values[1:])
 
         if isinstance(control_values[0], ControlValues):
             aux = control_values[0].copy()
-            aux.product(self.nxt)
-            self.vals, self.num_variables, self.nxt = aux.vals, aux.num_variables, aux.nxt
-            self.vals = cast(Tuple[Tuple[int, ...], ...], self.vals)
+            aux.product(self._nxt)
+            self._vals, self._num_variables, self._nxt = aux._vals, aux._num_variables, aux._nxt
+            self._vals = cast(Tuple[Tuple[int, ...], ...], self._vals)
             return
 
         val = control_values[0]
         if isinstance(val, int):
-            self.vals = _from_int(val)
+            self._vals = _from_int(val)
         elif isinstance(val, (list, tuple)):
             if isinstance(val[0], int):
-                self.vals = _from_sequence_int(val)
+                self._vals = _from_sequence_int(val)
             else:
-                self.vals = _from_sequence_sequence(val)
+                self._vals = _from_sequence_sequence(val)
         else:
             raise TypeError(f'{val} is of Unsupported type {type(val)}')
-        self.num_variables = len(self.vals[0])
+        self._num_variables = len(self._vals[0])
 
     def product(self, other):
-        # Cartesian product of all combinations in self x other
+        """Sets self to be the cartesian product of all combinations in self x other.
+
+        Args:
+            other: A ControlValues object
+        """
         if other is None:
             return
         other = other.copy()
         cur = self
-        while cur.nxt is not None:
-            cur = cur.nxt
-        cur.nxt = other
+        while cur._nxt is not None:
+            cur = cur._nxt
+        cur._nxt = other
 
     def __call__(self):
         return self.__iter__()
 
     def __iter__(self):
-        nxt = self.nxt if self.nxt else lambda: [()]
-        if self.num_variables:
-            self.itr = itertools.product(self.vals, nxt())
+        nxt = self._nxt if self._nxt else lambda: [()]
+        if self._num_variables:
+            return itertools.product(self._vals, nxt())
         else:
-            self.itr = itertools.product(*(), nxt())
-        return self.itr
+            return itertools.product(*(), nxt())
 
     def copy(self):
-        if self.num_variables == 0:
+        """Returns a deep copy of the object."""
+        if self._num_variables == 0:
             new_copy = ControlValues([])
         else:
             new_copy = ControlValues(
                 [
-                    copy.deepcopy(self.vals),
+                    copy.deepcopy(self._vals),
                 ]
             )
-        new_copy.nxt = None
-        if self.nxt:
-            new_copy.nxt = self.nxt.copy()
+        new_copy._nxt = None
+        if self._nxt:
+            new_copy._nxt = self._nxt.copy()
         return new_copy
 
     def __len__(self):
         cur = self
         num_variables = 0
         while cur is not None:
-            num_variables += cur.num_variables
-            cur = cur.nxt
+            num_variables += cur._num_variables
+            cur = cur._nxt
         return num_variables
 
     def __getitem__(self, key):
@@ -131,9 +133,9 @@ class ControlValues:
         if not 0 <= key < num_variables:
             key = key % num_variables
         cur = self
-        while cur.num_variables <= key:
-            key -= cur.num_variables
-            cur = cur.nxt
+        while cur._num_variables <= key:
+            key -= cur._num_variables
+            cur = cur._nxt
         return cur
 
     def __eq__(self, other):
@@ -147,33 +149,55 @@ class ControlValues:
         return self_values == other_values
 
     def identifier(self, companions: Sequence[Union[int, 'cirq.Qid']]):
+        """Returns an identifier that pairs the control_values with their counterparts
+            in the companion sequence (e.g. sequence of the control qubits ids)
+
+        Args:
+            companions: sequence of the same length as the number of control qubits.
+
+        Returns:
+            Tuple of pairs of the control values paired with its corresponding companion.
+        """
         companions = tuple(companions)
         controls = []
         cur = cast(Optional[ControlValues], self)
         while cur is not None:
-            controls.append((cur.vals, companions[: cur.num_variables]))
-            companions = companions[cur.num_variables :]
-            cur = cur.nxt
+            controls.append((cur._vals, companions[: cur._num_variables]))
+            companions = companions[cur._num_variables :]
+            cur = cur._nxt
         return tuple(controls)
 
-    def check_dimentionality(
+    def check_dimensionality(
         self,
         qid_shape: Optional[Union[Tuple[int, ...], List[int]]] = None,
         controls: Optional[Union[Tuple['cirq.Qid', ...], List['cirq.Qid']]] = None,
         offset=0,
     ):
-        if self.num_variables == 0:
+        """Checks the dimentionality of control values with respect to qid_shape or controls.
+            *At least one of qid_shape and controls must be provided.
+            *if both are provided then controls is ignored*
+
+        Args:
+            qid_shape: Sequence of shapes of the control qubits.
+            controls: Sequence of Qids.
+            offset: starting index.
+        Raises:
+            ValueError:
+                - if none of qid_shape or controls are provided or both are empty.
+                - if one of the control values violates the shape of its qubit.
+        """
+        if self._num_variables == 0:
             return
         if qid_shape is None and controls is None:
             raise ValueError('At least one of qid_shape or controls has to be not given.')
         if controls is not None:
             controls = tuple(controls)
         if (qid_shape is None or len(qid_shape) == 0) and controls is not None:
-            qid_shape = tuple(q.dimension for q in controls[: self.num_variables])
+            qid_shape = tuple(q.dimension for q in controls[: self._num_variables])
         qid_shape = cast(Tuple[int], qid_shape)
-        for product in self.vals:
+        for product in self._vals:
             product = flatten(product)
-            for i in range(self.num_variables):
+            for i in range(self._num_variables):
                 if not 0 <= product[i] < qid_shape[i]:
                     message = (
                         'Control values <{!r}> outside of range ' 'for control qubit number <{!r}>.'
@@ -185,38 +209,57 @@ class ControlValues:
                         )
                     raise ValueError(message)
 
-        if self.nxt is not None:
-            self.nxt.check_dimentionality(
-                qid_shape=qid_shape[self.num_variables :],
-                controls=controls[self.num_variables :] if controls else None,
-                offset=offset + self.num_variables,
+        if self._nxt is not None:
+            self._nxt.check_dimensionality(
+                qid_shape=qid_shape[self._num_variables :],
+                controls=controls[self._num_variables :] if controls else None,
+                offset=offset + self._num_variables,
             )
 
     def are_same_value(self, value: int = 1):
-        for product in self.vals:
+        for product in self._vals:
             product = flatten(product)
             if not all(v == value for v in product):
                 return False
-        if self.nxt is not None:
-            return self.nxt.are_same_value(value)
+        if self._nxt is not None:
+            return self._nxt.are_same_value(value)
         return True
 
     def arrangements(self):
+        """Returns a list of the control values.
+
+        Returns:
+            lists containing the control values whose product is the list of all
+            possible combinations of the control values.
+        """
         _arrangements = []
         cur = self
         while cur is not None:
-            if cur.num_variables == 1:
-                _arrangements.append(flatten(cur.vals))
+            if cur._num_variables == 1:
+                _arrangements.append(flatten(cur._vals))
             else:
-                _arrangements.append(tuple(flatten(product) for product in cur.vals))
-            cur = cur.nxt
+                _arrangements.append(tuple(flatten(product) for product in cur._vals))
+            cur = cur._nxt
         return _arrangements
 
     def pop(self):
-        if self.nxt is None:
+        """Removes the last control values combination."""
+        if self._nxt is None:
             return None
-        self.nxt = self.nxt.pop()
+        self._nxt = self._nxt.pop()
         return self
+
+
+def to_control_values(
+    values: Union[ControlValues, Sequence[Union[int, Collection[int]]]]
+) -> ControlValues:
+    if not isinstance(values, ControlValues):
+        # Convert to sorted tuples
+        return ControlValues(
+            tuple((val,) if isinstance(val, int) else tuple(sorted(val)) for val in values)
+        )
+    else:
+        return values
 
 
 class FreeVars(ControlValues):

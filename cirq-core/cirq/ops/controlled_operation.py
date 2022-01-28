@@ -53,17 +53,11 @@ class ControlledOperation(raw_types.Operation):
             control_values = ((1,),) * len(controls)
         if len(control_values) != len(controls):
             raise ValueError('len(control_values) != len(controls)')
-        if not isinstance(control_values, cv.ControlValues):
-            self.control_values = cv.ControlValues(
-                # Convert to sorted tuples
-                tuple(
-                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
-                )
-            )
-        else:
-            self.control_values = control_values
+
+        self.control_values = cv.to_control_values(control_values)
+
         # Verify control values not out of bounds
-        self.control_values.check_dimentionality(controls=tuple(controls))
+        self.control_values.check_dimensionality(controls=tuple(controls))
 
         if not isinstance(sub_operation, ControlledOperation):
             self.controls = tuple(controls)
@@ -87,6 +81,16 @@ class ControlledOperation(raw_types.Operation):
     @property
     def qubits(self):
         return self.controls + self.sub_operation.qubits
+
+    @property
+    def control_values(self) -> cv.ControlValues:
+        return self._control_values
+
+    @control_values.setter
+    def control_values(
+        self, values: Union[cv.ControlValues, Sequence[Union[int, Collection[int]]]]
+    ) -> None:
+        self._control_values = cv.to_control_values(values)
 
     def with_qubits(self, *new_qubits):
         n = len(self.controls)

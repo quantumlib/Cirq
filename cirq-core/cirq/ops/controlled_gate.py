@@ -79,18 +79,10 @@ class ControlledGate(raw_types.Gate):
             raise ValueError('len(control_qid_shape) != num_controls')
         self.control_qid_shape = tuple(control_qid_shape)
 
-        # Convert to sorted tuples
-        if not isinstance(control_values, cv.ControlValues):
-            self.control_values = cv.ControlValues(
-                tuple(
-                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
-                )
-            )
-        else:
-            self.control_values = control_values
+        self.control_values = cv.to_control_values(control_values)
 
         # Verify control values not out of bounds
-        self.control_values.check_dimentionality(self.control_qid_shape)
+        self.control_values.check_dimensionality(self.control_qid_shape)
 
         # Flatten nested ControlledGates.
         if isinstance(sub_gate, ControlledGate):
@@ -99,6 +91,16 @@ class ControlledGate(raw_types.Gate):
             self.control_qid_shape += sub_gate.control_qid_shape
         else:
             self.sub_gate = sub_gate
+
+    @property
+    def control_values(self) -> cv.ControlValues:
+        return self._control_values
+
+    @control_values.setter
+    def control_values(
+        self, values: Union[cv.ControlValues, Sequence[Union[int, Collection[int]]]]
+    ) -> None:
+        self._control_values = cv.to_control_values(values)
 
     def num_controls(self) -> int:
         return len(self.control_qid_shape)

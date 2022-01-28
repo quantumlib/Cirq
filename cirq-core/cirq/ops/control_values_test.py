@@ -78,13 +78,13 @@ def test_slicing_not_supported():
         _ = control_vals[0:1]
 
 
-def test_check_dimentionality():
+def test_check_dimensionality():
     empty_control_vals = cv.ControlValues([])
-    empty_control_vals.check_dimentionality()
+    empty_control_vals.check_dimensionality()
 
     control_values = cv.ControlValues([[0, 1], 1])
     with pytest.raises(ValueError):
-        control_values.check_dimentionality()
+        control_values.check_dimensionality()
 
 
 def test_pop():

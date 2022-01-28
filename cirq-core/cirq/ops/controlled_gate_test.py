@@ -20,6 +20,7 @@ import sympy
 
 import cirq
 from cirq.type_workarounds import NotImplementedType
+from cirq.ops import control_values as cv
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
@@ -157,6 +158,22 @@ def test_init2():
     assert gate.control_qid_shape == (3, 3)
     assert gate.num_qubits() == 3
     assert cirq.qid_shape(gate) == (3, 3, 2)
+
+    gate = cirq.ControlledGate(cirq.Z, control_values=cv.FreeVars([0, (0, 1)]))
+    assert gate.sub_gate is cirq.Z
+    assert gate.num_controls() == 2
+    assert gate.control_values == ((0,), (0, 1))
+    assert gate.control_qid_shape == (2, 2)
+    assert gate.num_qubits() == 3
+    assert cirq.qid_shape(gate) == (2, 2, 2)
+
+    gate = cirq.ControlledGate(cirq.Z, control_values=cv.ConstrainedVars([(1, 0), (0, 1)]))
+    assert gate.sub_gate is cirq.Z
+    assert gate.num_controls() == 2
+    assert gate.control_values == [((1, 0), (0, 1))]
+    assert gate.control_qid_shape == (2, 2)
+    assert gate.num_qubits() == 3
+    assert cirq.qid_shape(gate) == (2, 2, 2)
 
 
 def test_validate_args():
