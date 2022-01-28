@@ -239,9 +239,9 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
         self,
         circuit: 'cirq.AbstractCircuit',
         param_resolver: 'cirq.ParamResolver',
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE',
         repetitions: int = 1,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> Dict[int, int]:
         """Uses amplitude simulation to sample from the given circuit.
 
@@ -256,11 +256,13 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
         Args:
             circuit: The circuit to simulate.
             param_resolver: Parameters to run with the program.
+            seed: Random state to use as a seed. This must be provided
+                manually - if the simulator has its own seed, it will not be
+                used unless it is passed as this argument.
             repetitions: The number of repetitions to simulate.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            seed: Random state to use as a seed. Defaults to a random seed.
 
         Returns:
             A dict of bitstrings sampled from the final state of `circuit` to
