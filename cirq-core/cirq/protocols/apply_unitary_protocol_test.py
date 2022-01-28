@@ -460,6 +460,155 @@ def test_apply_unitaries_mixed_qid_shapes():
     )
 
 
+def test_slices_size_2():
+    a, b = cirq.LineQid.for_qid_shape((3, 4))
+    result = cirq.apply_unitary(
+        unitary_value=cirq.X(a.with_dimension(2)),
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            slices=[slice(0, 2)]  # subspaces 0, 1
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [[0, 1, 0],
+             [1, 0, 0],
+             [0, 0, 1]]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=cirq.X(a.with_dimension(2)),
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            slices=[slice(0, 4, 2)]  # subspaces 0, 2
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [[0, 0, 1],
+             [0, 1, 0],
+             [1, 0, 0]]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=cirq.X(a.with_dimension(2)),
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            slices=[slice(1, 3)]  # subspaces 1, 2
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [[1, 0, 0],
+             [0, 0, 1],
+             [0, 1, 0]]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=cirq.X(b.with_dimension(2)),
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((4,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((4,), dtype=np.complex64),
+            axes=(0,),
+            slices=[slice(1, 3)]  # subspaces 1, 2
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [[1, 0, 0, 0],
+             [0, 0, 1, 0],
+             [0, 1, 0, 0],
+             [0, 0, 0, 1]]
+        ),
+        atol=1e-8,
+    )
+
+
+def test_slices_size_3():
+    a, b = cirq.LineQid.for_qid_shape((3, 4))
+
+    class PlusOneMod3Gate(cirq.SingleQubitGate):
+        def _qid_shape_(self):
+            return (3,)
+
+        def _unitary_(self):
+            return np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])  # yapf: disable
+
+    result = cirq.apply_unitary(
+        unitary_value=PlusOneMod3Gate().on(a),
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            slices=[slice(0, 3)]  # subspaces 0, 1, 2
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [[0, 0, 1],
+             [1, 0, 0],
+             [0, 1, 0]]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=PlusOneMod3Gate().on(a),
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            slices=[slice(2, None, -1)]  # subspaces 2, 1, 0
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [[0, 1, 0],
+             [0, 0, 1],
+             [1, 0, 0]]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=PlusOneMod3Gate().on(b.with_dimension(3)),
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((4,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((4,), dtype=np.complex64),
+            axes=(0,),
+            slices=[slice(1, 4)]  # subspaces 1, 2, 3
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [[1, 0, 0, 0],
+             [0, 0, 0, 1],
+             [0, 1, 0, 0],
+             [0, 0, 1, 0]]
+        ),
+        atol=1e-8,
+    )
+
+
 def test_incorporate_result_not_view():
     tensor = np.zeros((2, 2))
     tensor2 = np.zeros((2, 2))
