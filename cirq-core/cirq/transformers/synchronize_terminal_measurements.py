@@ -92,11 +92,8 @@ def synchronize_terminal_measurements(
     if not terminal_measurements:
         return ret
 
-    print(ret, terminal_measurements, sep="\n")
     ret.batch_remove(terminal_measurements)
     if ret[-1] and after_other_operations:
         ret.append(ops.Moment())
-    print("Removed:", ret, sep="\n")
     ret[-1] = ret[-1].with_operations(op for _, op in terminal_measurements)
-    print("Appended:", ret, sep="\n")
     return ret
