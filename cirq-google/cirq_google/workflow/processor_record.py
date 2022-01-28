@@ -63,22 +63,14 @@ class EngineProcessorRecord(ProcessorRecord):
         return engine.get_processor(self.processor_id)
 
     def get_sampler(self) -> 'cg.QuantumEngineSampler':
-        """Return a `cg.QuantumEngineSampler` for the specified processor_id.
-
-        This implementation hardcodes the `cg.SQRT_ISWAP_GATESET` to construct
-        the sampler until this argument is made optional.
-        """
-        return self.get_processor().get_sampler(cg.SQRT_ISWAP_GATESET)
+        """Return a `cg.QuantumEngineSampler` for the specified processor_id."""
+        return self.get_processor().get_sampler()
 
     def get_device(self) -> 'cirq.Device':
-        """Return a `cg.SerializableDevice` for the specified processor_id.
-
-        This implementation hardcodes the `cg.SQRT_ISWAP_GATESET` to construct
-        the sampler until this argument is made optional.
-        """
+        """Return a `cg.SerializableDevice` for the specified processor_id."""
         # Issues mocking out the gateset, so ignore coverage
         # coverage: ignore
-        return self.get_processor().get_device([cg.SQRT_ISWAP_GATESET])
+        return self.get_processor().get_device()
 
     def __repr__(self):
         return dataclass_repr(self, namespace='cirq_google')
