@@ -165,7 +165,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
+        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   build_docs:
@@ -233,7 +233,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
-        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --ignore=cirq-core/cirq/contrib --actually-quiet
+        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
@@ -251,7 +251,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --ignore=cirq-core/cirq/contrib
+        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     env:
