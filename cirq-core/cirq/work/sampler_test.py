@@ -230,7 +230,7 @@ def test_sampler_sample_expectation_values_calculation():
             for idx in range(repetitions // 4):
                 results[idx][0] = 1
             return [
-                cirq.Result(params=pr, measurements={'z': results})
+                cirq.ResultDict(params=pr, measurements={'z': results})
                 for pr in cirq.study.to_resolvers(params)
             ]
 

@@ -208,7 +208,7 @@ class AQTSampler(cirq.Sampler):
             )
             results = results.astype(bool)
             res_dict = {meas_name: results}
-            trial_results.append(cirq.Result(params=param_resolver, measurements=res_dict))
+            trial_results.append(cirq.ResultDict(params=param_resolver, measurements=res_dict))
         return trial_results
 
 

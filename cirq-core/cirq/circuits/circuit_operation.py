@@ -96,6 +96,9 @@ class CircuitOperation(ops.Operation):
     _cached_measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = dataclasses.field(
         default=None, init=False
     )
+    _cached_control_keys: Optional[AbstractSet['cirq.MeasurementKey']] = dataclasses.field(
+        default=None, init=False
+    )
 
     circuit: 'cirq.FrozenCircuit'
     repetitions: int = 1
@@ -208,9 +211,14 @@ class CircuitOperation(ops.Operation):
         return {str(key) for key in self._measurement_key_objs_()}
 
     def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
-        if not protocols.control_keys(self.circuit):
-            return frozenset()
-        return protocols.control_keys(self.mapped_circuit())
+        if self._cached_control_keys is None:
+            keys = (
+                frozenset()
+                if not protocols.control_keys(self.circuit)
+                else protocols.control_keys(self.mapped_circuit())
+            )
+            object.__setattr__(self, '_cached_control_keys', keys)
+        return self._cached_control_keys  # type: ignore
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return {
