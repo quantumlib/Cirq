@@ -217,12 +217,13 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage tests
-        run: check/pytest-and-incremental-coverage -- --splits 4 --group ${{ matrix.test-group }} --no-analyze
+        run: check/pytest-and-incremental-coverage -- --splits 4 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --no-analyze
       - name: Upload cov reports
         uses: actions/upload-artifact@v2
         with:
           name: coverage${{ matrix.test-group }}
-          path: '.py,cover'
+          path: '*.py,cover'
+          if-no-files-found: error
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   coverage-analysis:
