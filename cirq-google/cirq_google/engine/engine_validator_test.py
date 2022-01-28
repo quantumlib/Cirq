@@ -27,13 +27,25 @@ SERIALIZABLE_GATE_DOMAIN = {
 }
 
 
-def test_validate_gate_set():
-    circuit = cirq.testing.random_circuit(
-        cirq.GridQubit.rect(5, 5),
-        n_moments=10,
-        op_density=1.0,
-        gate_domain=SERIALIZABLE_GATE_DOMAIN,
+def _big_circuit(num_cycles: int) -> cirq.Circuit:
+    qubits = cirq.GridQubit.rect(6, 6)
+    moment_1q = cirq.Moment([cirq.X(q) for q in qubits])
+    moment_2q = cirq.Moment(
+        [
+            cirq.CZ(cirq.GridQubit(row, col), cirq.GridQubit(row, col + 1))
+            for row in range(6)
+            for col in [0, 2, 4]
+        ]
     )
+    c = cirq.Circuit()
+    for _ in range(num_cycles):
+        c.append(moment_1q)
+        c.append(moment_2q)
+    return c
+
+
+def test_validate_gate_set():
+    circuit = _big_circuit(4)
 
     engine_validator.validate_gate_set(
         [circuit] * 5, [{}] * 5, 1000, cg.FSIM_GATESET, max_size=100000
@@ -51,28 +63,18 @@ def test_validate_gate_set():
 
 
 def test_create_gate_set_validator():
-    circuit = cirq.testing.random_circuit(
-        cirq.GridQubit.rect(4, 4),
-        n_moments=10,
-        op_density=1.0,
-        gate_domain=SERIALIZABLE_GATE_DOMAIN,
-    )
+    circuit = _big_circuit(4)
 
-    smaller_size_validator = engine_validator.create_gate_set_validator(max_size=20000)
+    smaller_size_validator = engine_validator.create_gate_set_validator(max_size=30000)
     smaller_size_validator([circuit] * 2, [{}] * 2, 1000, cg.FSIM_GATESET)
     with pytest.raises(RuntimeError, match='Program too long'):
         smaller_size_validator([circuit] * 5, [{}] * 5, 1000, cg.FSIM_GATESET)
-    larger_size_validator = engine_validator.create_gate_set_validator(max_size=50000)
-    larger_size_validator([circuit] * 5, [{}] * 5, 1000, cg.FSIM_GATESET)
+    larger_size_validator = engine_validator.create_gate_set_validator(max_size=500000)
+    larger_size_validator([circuit] * 10, [{}] * 10, 1000, cg.FSIM_GATESET)
 
 
 def test_validate_for_engine():
-    circuit = cirq.testing.random_circuit(
-        cirq.GridQubit.rect(5, 5),
-        n_moments=10,
-        op_density=1.0,
-        gate_domain=SERIALIZABLE_GATE_DOMAIN,
-    )
+    circuit = _big_circuit(4)
     long_circuit = cirq.Circuit([cirq.X(cirq.GridQubit(0, 0))] * 10001)
 
     with pytest.raises(RuntimeError, match='Provided circuit exceeds the limit'):
