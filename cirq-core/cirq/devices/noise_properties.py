@@ -12,13 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Classes for representing device noise.
+
+NoiseProperties is an abstract class for capturing metrics of a device that can
+be translated into noise models. NoiseModelFromNoiseProperties consumes those
+noise models to produce a single noise model which replicates device noise.
+"""
+
 import abc
 from typing import Iterable, Sequence, TYPE_CHECKING, List
 
-from cirq import ops, protocols, devices
+from cirq import _import, ops, protocols, devices
 from cirq.devices.noise_utils import (
     PHYSICAL_GATE_TAG,
 )
+
+circuits = _import.LazyLoader("circuits", globals(), "cirq.circuits.circuit")
 
 if TYPE_CHECKING:
     import cirq
@@ -50,15 +59,18 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
 
         Device-specific subclasses should implement this method to mark any
         operations which their device handles outside the quantum hardware.
+
+        Args:
+            op: an operation to check for virtual indicators.
+
+        Returns:
+            True if `op` is virtual.
         """
         return False
 
     def noisy_moments(
         self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
     ) -> Sequence['cirq.OP_TREE']:
-        # Hack to bypass import order constraints
-        from cirq import circuits
-
         # Split multi-qubit measurements into single-qubit measurements.
         # These will be recombined after noise is applied.
         split_measure_moments = []

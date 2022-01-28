@@ -15,7 +15,6 @@
 from typing import List, Tuple
 import cirq
 
-# from cirq.testing import assert_equivalent_op_tree
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
 from cirq.devices.noise_properties import (
     NoiseProperties,
