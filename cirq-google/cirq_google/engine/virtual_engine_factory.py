@@ -30,6 +30,7 @@ from cirq_google.devices import serializable_device
 from cirq_google.serialization.gate_sets import FSIM_GATESET
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
+from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
 
 METRICS_1Q = [
     'single_qubit_p00_error',
@@ -124,6 +125,19 @@ def create_noiseless_virtual_engine_from_device(
     return SimulatedLocalEngine([_create_virtual_processor_from_device(processor_id, device)])
 
 
+def create_noiseless_virtual_processor_from_proto(
+    processor_id: str,
+    device_specification: v2.device_pb2.DeviceSpecification,
+    gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
+) -> SimulatedLocalProcessor:
+    if gate_sets is None:
+        gate_sets = [FSIM_GATESET]
+
+    device = serializable_device.SerializableDevice.from_proto(device_specification, gate_sets)
+    processor = _create_virtual_processor_from_device(processor_id, device)
+    return processor
+
+
 def create_noiseless_virtual_engine_from_proto(
     processor_ids: Union[str, List[str]],
     device_specifications: Union[
@@ -159,13 +173,36 @@ def create_noiseless_virtual_engine_from_proto(
     if len(processor_ids) != len(device_specifications):
         raise ValueError('Must provide equal numbers of processor ids and device specifications.')
 
-    processors: List[abstract_local_processor.AbstractLocalProcessor] = []
-    for idx in range(len(processor_ids)):
-        device = serializable_device.SerializableDevice.from_proto(
-            device_specifications[idx], gate_sets
-        )
-        processors.append(_create_virtual_processor_from_device(processor_ids[idx], device))
-    return SimulatedLocalEngine(processors)
+    return SimulatedLocalEngine(
+        processors=[
+            create_noiseless_virtual_processor_from_proto(processor_id, device_spec, gate_sets)
+            for device_spec, processor_id in zip(device_specifications, processor_ids)
+        ]
+    )
+
+
+def _create_device_spec_from_template(
+    template_name: str,
+) -> v2.device_pb2.DeviceSpecification:
+
+    path = pathlib.Path(__file__).parent.parent.resolve()
+    with path.joinpath('devices', 'specifications', template_name).open() as f:
+        proto_txt = f.read()
+    device_spec = v2.device_pb2.DeviceSpecification()
+    text_format.Parse(proto_txt, device_spec)
+    return device_spec
+
+
+def create_noiseless_virtual_processor_from_template(
+    processor_id: str,
+    template_name: str,
+    gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
+) -> SimulatedLocalProcessor:
+    return create_noiseless_virtual_processor_from_proto(
+        processor_id,
+        device_specification=_create_device_spec_from_template(template_name),
+        gate_sets=gate_sets,
+    )
 
 
 def create_noiseless_virtual_engine_from_templates(
@@ -197,16 +234,16 @@ def create_noiseless_virtual_engine_from_templates(
     if len(processor_ids) != len(template_names):
         raise ValueError('Must provide equal numbers of processor ids and template names.')
 
-    specifications = []
-    for idx in range(len(processor_ids)):
-        path = pathlib.Path(__file__).parent.parent.resolve()
-        f = open(path.joinpath('devices', 'specifications', template_names[idx]))
-        proto_txt = f.read()
-        f.close()
-        device_spec = v2.device_pb2.DeviceSpecification()
-        text_format.Parse(proto_txt, device_spec)
-        specifications.append(device_spec)
+    specifications = [
+        _create_device_spec_from_template(template_name) for template_name in template_names
+    ]
     return create_noiseless_virtual_engine_from_proto(processor_ids, specifications, gate_sets)
+
+
+MOST_RECENT_TEMPLATES = {
+    'rainbow': 'rainbow_12_10_2021_device_spec.proto.txt',
+    'weber': 'weber_12_10_2021_device_spec.proto.txt',
+}
 
 
 def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEngine:
@@ -222,7 +259,6 @@ def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEng
     be considered stable from version to version and are not guaranteed to be
     backwards compatible.
     """
-    return create_noiseless_virtual_engine_from_templates(
-        ['rainbow', 'weber'],
-        ['rainbow_12_10_2021_device_spec.proto.txt', 'weber_12_10_2021_device_spec.proto.txt'],
-    )
+    processor_ids = list(MOST_RECENT_TEMPLATES.keys())
+    template_names = [MOST_RECENT_TEMPLATES[k] for k in processor_ids]
+    return create_noiseless_virtual_engine_from_templates(processor_ids, template_names)
