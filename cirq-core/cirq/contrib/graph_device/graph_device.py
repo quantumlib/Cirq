@@ -14,8 +14,6 @@
 
 import abc
 import itertools
-import contextlib
-import warnings
 
 from typing import Iterable, Optional, FrozenSet, TYPE_CHECKING, Tuple, cast
 
@@ -25,17 +23,6 @@ from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
 
 if TYPE_CHECKING:
     import cirq
-
-
-@contextlib.contextmanager
-def _block_overlapping_deprecation():
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            action='ignore',
-            category=DeprecationWarning,
-            message=f'(.|\n)*device\\.metadata(.|\n)*',
-        )
-        yield
 
 
 class UndirectedGraphDeviceEdge(metaclass=abc.ABCMeta):
@@ -180,7 +167,7 @@ class UndirectedGraphDevice(devices.Device):
         fix='qubit coupling data can now be found in device.metadata.nx_graph if provided.',
     )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
-        with _block_overlapping_deprecation():
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
             return frozenset(
                 [
                     devices.SymmetricalQidPair(*edge)  # type: ignore

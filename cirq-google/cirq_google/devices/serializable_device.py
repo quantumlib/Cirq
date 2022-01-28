@@ -26,23 +26,10 @@ from typing import (
     Type,
     FrozenSet,
 )
-import contextlib
-import warnings
 import cirq
 from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.api import v2
-
-
-@contextlib.contextmanager
-def _block_overlapping_deprecation():
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            action='ignore',
-            category=DeprecationWarning,
-            message=f'(.|\n)*device\\.metadata(.|\n)*',
-        )
-        yield
 
 
 class _GateDefinition:
@@ -283,7 +270,7 @@ class SerializableDevice(cirq.Device):
         Returns:
             The list of qubit edges on the device.
         """
-        with _block_overlapping_deprecation():
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
             return frozenset(
                 [
                     cirq.SymmetricalQidPair(pair[0], pair[1])

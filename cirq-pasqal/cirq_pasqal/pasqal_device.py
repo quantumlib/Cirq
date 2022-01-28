@@ -12,25 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
-import contextlib
-import warnings
 import numpy as np
 
 import cirq
 from cirq import _compat, GridQubit, LineQubit
 from cirq.ops import NamedQubit
 from cirq_pasqal import ThreeDQubit, TwoDQubit
-
-
-@contextlib.contextmanager
-def _block_overlapping_deprecation():
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            action='ignore',
-            category=DeprecationWarning,
-            message=f'(.|\n)*device\\.metadata(.|\n)*',
-        )
-        yield
 
 
 @cirq.value.value_equality
@@ -376,7 +363,7 @@ class PasqalVirtualDevice(PasqalDevice):
         Returns:
             All qubit pairs that are less or equal to the control radius apart.
         """
-        with _block_overlapping_deprecation():
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
             qs = self.qubits
             return frozenset(
                 [

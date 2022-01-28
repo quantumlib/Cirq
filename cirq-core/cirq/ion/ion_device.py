@@ -13,24 +13,11 @@
 # limitations under the License.
 
 from typing import Any, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
-import contextlib
-import warnings
 from cirq import _compat, circuits, value, devices, ops, protocols
 from cirq.ion import convert_to_ion_gates
 
 if TYPE_CHECKING:
     import cirq
-
-
-@contextlib.contextmanager
-def _block_overlapping_deprecation():
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            action='ignore',
-            category=DeprecationWarning,
-            message=f'(.|\n)*device\\.metadata(.|\n)*',
-        )
-        yield
 
 
 def get_ion_gateset() -> ops.Gateset:
@@ -96,7 +83,7 @@ class IonDevice(devices.Device):
         Returns:
             All qubit pairs on the device.
         """
-        with _block_overlapping_deprecation():
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
             qs = self.qubits
             return frozenset([devices.SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 

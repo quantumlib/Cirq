@@ -22,9 +22,6 @@ from typing import (
     Iterator,
     Iterable,
 )
-import contextlib
-import warnings
-
 import networkx as nx
 from cirq import _compat, value
 from cirq.devices.grid_qubit import _BaseGridQid
@@ -32,17 +29,6 @@ from cirq.devices.line_qubit import _BaseLineQid
 
 if TYPE_CHECKING:
     import cirq
-
-
-@contextlib.contextmanager
-def _block_overlapping_deprecation():
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            action='ignore',
-            category=DeprecationWarning,
-            message=f'(.|\n)*device\\.metadata(.|\n)*',
-        )
-        yield
 
 
 class Device(metaclass=abc.ABCMeta):
@@ -91,7 +77,7 @@ class Device(metaclass=abc.ABCMeta):
             `cirq.UnconstrainedDevice` has this property), then `None` is
             returned.
         """
-        with _block_overlapping_deprecation():
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
             qs = self.qubit_set()
             if qs is None:
                 return None
