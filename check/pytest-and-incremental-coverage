@@ -64,16 +64,17 @@ fi
 source dev_tools/pypath
 
 # Run tests while producing coverage files.
-check/pytest --actually-quiet \
-             --rigetti-integration \
+check/pytest --rigetti-integration \
              --cov \
-             --cov-report=annotate \
              --cov-config=dev_tools/conf/.coveragerc \
              "${PYTEST_ARGS[@]}"
 pytest_result=$?
 
 
 if [ "$ANALYZE_COV" == "1" ]; then
+    # Convert to .py,cover files.
+    coverage annotate
+
     # Analyze coverage files.
     python dev_tools/check_incremental_coverage_annotations.py "${rev}"
     cover_result=$?
