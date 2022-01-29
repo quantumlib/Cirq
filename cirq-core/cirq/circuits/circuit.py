@@ -1952,12 +1952,17 @@ class Circuit(AbstractCircuit):
         last_available = end_moment_index
         k = end_moment_index
         op_control_keys = protocols.control_keys(op)
+        op_measurement_keys = protocols.measurement_key_objs(op)
         op_qubits = op.qubits
         while k > 0:
             k -= 1
             moment = self._moments[k]
-            if moment.operates_on(op_qubits) or (
-                op_control_keys & protocols.measurement_key_objs(moment)
+            # This should also validate that measurement keys are disjoint once we allow repeated
+            # measurements. Search for same message in raw_types.py.
+            if (
+                moment.operates_on(op_qubits)
+                or not op_control_keys.isdisjoint(protocols.measurement_key_objs(moment))
+                or not protocols.control_keys(moment).isdisjoint(op_measurement_keys)
             ):
                 return last_available
             if self._can_add_op_at(k, op):
