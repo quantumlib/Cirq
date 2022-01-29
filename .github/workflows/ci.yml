@@ -148,7 +148,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.7', '3.8', '3.9' ]
-        test-group: ['1', '2']
+        test-group: ['1']
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -165,7 +165,8 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
+        # Update splits here to match len(test-group)
+        run: check/pytest --splits 1 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   build_docs:
@@ -203,7 +204,8 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        test-group: ['1', '2', '3', '4']
+        # Set to number of coverage runners.
+        test-group: ['1', '2']
     steps:
       - uses: actions/checkout@v2
         with:
@@ -217,7 +219,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage tests
-        run: check/pytest-and-incremental-coverage -- --splits 4 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --no-analyze
+        run: check/pytest-and-incremental-coverage -- --splits ${{ strategy.job-total }} --group ${{ matrix.test-group }} --splitting-algorithm least_duration --no-analyze
       - name: Upload cov reports
         uses: actions/upload-artifact@v2
         with:
@@ -265,14 +267,15 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
-        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet
+        # Update splits here to match len(test-group)
+        run: check/pytest --splits 1 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
     strategy:
       matrix:
         python-version: [ '3.7', '3.8', '3.9' ]
-        test-group: ['1', '2']
+        test-group: ['1']
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
@@ -283,7 +286,8 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib
+        # Update splits here to match len(test-group)
+        run: check/pytest --splits 1 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     env:
