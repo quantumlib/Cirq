@@ -227,10 +227,13 @@ jobs:
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   coverage-analysis:
-    name: Coverage Anlysis
+    name: Coverage Analysis
     runs-on: ubuntu-20.04
     needs: coverage
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.8'
@@ -241,7 +244,7 @@ jobs:
         uses: actions/download-artifact@v2
       - name: Run coverage
         run: |
-          coverage combine coverage*/*.py,cover
+          coverage combine coverage*/**/*.py,cover
           python dev_tools/check_incremental_coverage_annotations.py master
       - uses: codecov/codecov-action@v1
 
