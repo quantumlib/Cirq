@@ -222,7 +222,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: coverage${{ matrix.test-group }}
-          path: './**/*.coverage'
+          path: '.coverage'
           if-no-files-found: error
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
@@ -244,7 +244,7 @@ jobs:
         uses: actions/download-artifact@v2
       - name: Run coverage
         run: |
-          coverage combine coverage*/**/*.coverage
+          coverage combine coverage*/.coverage*
           coverage annotate
           python dev_tools/check_incremental_coverage_annotations.py master
       - uses: codecov/codecov-action@v1
