@@ -74,6 +74,32 @@ def test_basic():
     )
 
 
+def test_nocompile_context():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a').with_tags('nocompile'),
+        cirq.X(q1).with_classical_controls('a').with_tags('nocompile'),
+        cirq.measure(q1, key='b'),
+    )
+    deferred = cirq.defer_measurements(
+        circuit, context=cirq.TransformerContext(ignore_tags=('nocompile',))
+    )
+    cirq.testing.assert_same_circuits(deferred, circuit)
+
+
+def test_nocompile_context_leaves_invalid_circuit():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a').with_tags('nocompile'),
+        cirq.X(q1).with_classical_controls('a'),
+        cirq.measure(q1, key='b'),
+    )
+    with pytest.raises(ValueError, match='Deferred measurement for key=a not found'):
+        _ = cirq.defer_measurements(
+            circuit, context=cirq.TransformerContext(ignore_tags=('nocompile',))
+        )
+
+
 def test_pauli():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
@@ -318,3 +344,33 @@ def test_dephase_classical_conditions():
     )
     with pytest.raises(ValueError, match='defer_measurements first to remove classical controls'):
         _ = cirq.dephase_measurements(circuit)
+
+
+def test_dephase_nocompile_context():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.CX(q1, q0),
+                cirq.measure(q0, key='a').with_tags('nocompile'),
+                cirq.CX(q0, q1),
+                cirq.measure(q1, key='b'),
+            )
+        )
+    )
+    dephased = cirq.dephase_measurements(
+        circuit, context=cirq.TransformerContext(ignore_tags=('nocompile',))
+    )
+    cirq.testing.assert_same_circuits(
+        dephased,
+        cirq.Circuit(
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(
+                    cirq.CX(q1, q0),
+                    cirq.measure(q0, key='a').with_tags('nocompile'),
+                    cirq.CX(q0, q1),
+                    cirq.KrausChannel.from_channel(cirq.phase_damp(1), key='b')(q1),
+                )
+            )
+        ),
+    )

@@ -85,6 +85,7 @@ def defer_measurements(
             these is planned to be implemented soon).
     """
 
+    context1: 'cirq.TransformerContext' = context or transformer_api.TransformerContext()
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
     qubits_found: Set['cirq.Qid'] = set()
     terminal_measurements: Set['cirq.MeasurementKey'] = set()
@@ -95,13 +96,14 @@ def defer_measurements(
             key = value.MeasurementKey.parse_serialized(gate.key)
             if key not in control_keys and qubits_found.isdisjoint(op.qubits):
                 terminal_measurements.add(key)
-        elif isinstance(op, ops.ClassicallyControlledOperation):
-            for c in op.classical_controls:
-                control_keys.update(c.keys)
+        for c in op.classical_controls:
+            control_keys.update(c.keys)
         qubits_found.update(op.qubits)
     measurement_qubits: Dict['cirq.MeasurementKey', List['_MeasurementQid']] = {}
 
     def defer(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+        if any(t in context1.ignore_tags for t in op.tags):
+            return op
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
             key = value.MeasurementKey.parse_serialized(gate.key)
@@ -110,14 +112,16 @@ def defer_measurements(
             targets = [_MeasurementQid(key, q) for q in op.qubits]
             measurement_qubits[key] = targets
             cxs = [ops.CX(q, target) for q, target in zip(op.qubits, targets)]
-            xs = [ops.X(targets[i]) for i, b in enumerate(gate.invert_mask) if b]  # type: ignore
+            xs = [ops.X(targets[i]) for i, b in enumerate(gate.full_invert_mask()) if b]
             return cxs + xs
         elif protocols.is_measurement(op):
             return [defer(op, None) for op in protocols.decompose_once(op)]
-        elif isinstance(op, ops.ClassicallyControlledOperation):
+        elif op.classical_controls:
             controls = []
             for c in op.classical_controls:
                 if isinstance(c, value.KeyCondition):
+                    if c.key not in measurement_qubits:
+                        raise ValueError(f'Deferred measurement for key={c.key} not found.')
                     qubits = measurement_qubits[c.key]
                     if len(qubits) != 1:
                         # TODO: Multi-qubit conditions require
@@ -168,7 +172,11 @@ def dephase_measurements(
             surprises.
     """
 
+    context1: 'cirq.TransformerContext' = context or transformer_api.TransformerContext()
+
     def dephase(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+        if any(t in context1.ignore_tags for t in op.tags):
+            return op
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
             key = value.MeasurementKey.parse_serialized(gate.key)
@@ -176,7 +184,7 @@ def dephase_measurements(
         elif isinstance(op, ops.ClassicallyControlledOperation):
             raise ValueError('Use cirq.defer_measurements first to remove classical controls.')
         elif isinstance(op, circuits.CircuitOperation):
-            circuit = dephase_measurements(op.circuit)
+            circuit = dephase_measurements(op.circuit, context=context1)
             return op.replace(circuit=circuit)
         return op
 
