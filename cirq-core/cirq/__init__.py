@@ -350,6 +350,8 @@ from cirq.optimizers import (
 )
 
 from cirq.transformers import (
+    align_left,
+    align_right,
     compute_cphase_exponents_for_fsim_decomposition,
     decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
