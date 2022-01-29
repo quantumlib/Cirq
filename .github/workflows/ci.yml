@@ -148,7 +148,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.7', '3.8', '3.9' ]
-        test-group: ['1']
+        test-group: ['1', '2']
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -166,7 +166,7 @@ jobs:
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
         # Update splits here to match len(test-group)
-        run: check/pytest --splits 1 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
+        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   build_docs:
@@ -205,7 +205,7 @@ jobs:
     strategy:
       matrix:
         # Set to number of coverage runners.
-        test-group: ['1', '2']
+        test-group: ['1', '2', '3', '4']
     steps:
       - uses: actions/checkout@v2
         with:
@@ -255,7 +255,7 @@ jobs:
     strategy:
       matrix:
         python-version: [ '3.7', '3.8', '3.9' ]
-        test-group: ['1']
+        test-group: ['1', '2']
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
@@ -267,14 +267,14 @@ jobs:
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
         # Update splits here to match len(test-group)
-        run: check/pytest --splits 1 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet
+        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
     strategy:
       matrix:
         python-version: [ '3.7', '3.8', '3.9' ]
-        test-group: ['1']
+        test-group: ['1', '2']
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
@@ -286,7 +286,7 @@ jobs:
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
         # Update splits here to match len(test-group)
-        run: check/pytest --splits 1 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib
+        run: check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     env:
