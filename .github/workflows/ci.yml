@@ -222,7 +222,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: coverage${{ matrix.test-group }}
-          path: '*.py,cover'
+          path: './**/*.py,cover'
           if-no-files-found: error
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
