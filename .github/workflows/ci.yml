@@ -239,7 +239,7 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/dev.env.txt
+        run: pip install -r dev_tools/requirements/pytest-minimal.env.txt
       - name: Download cov reports
         uses: actions/download-artifact@v2
       - name: Run coverage
@@ -248,8 +248,6 @@ jobs:
           coverage annotate
           source dev_tools/pypath
           python dev_tools/check_incremental_coverage_annotations.py origin/master
-      - uses: codecov/codecov-action@v1
-
 
   windows:
     name: Pytest Windows
