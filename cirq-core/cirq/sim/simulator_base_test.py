@@ -70,6 +70,10 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         remainder.gate_count = 0
         remainder.measurement_count = 0
 
+    @property
+    def allows_factoring(self):
+        return True
+
     def _on_transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid'], target: 'SplittableCountingActOnArgs'
     ):

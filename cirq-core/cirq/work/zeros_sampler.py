@@ -64,6 +64,6 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             if key is not None:
                 measurements[key] = np.zeros((repetitions, len(op.qubits)), dtype=int)
         return [
-            study.Result(params=param_resolver, measurements=measurements)
+            study.ResultDict(params=param_resolver, measurements=measurements)
             for param_resolver in study.to_resolvers(params)
         ]

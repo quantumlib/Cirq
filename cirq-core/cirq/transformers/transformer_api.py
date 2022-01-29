@@ -15,6 +15,7 @@
 """Defines the API for circuit transformers in Cirq."""
 
 import dataclasses
+import inspect
 import enum
 import functools
 import textwrap
@@ -24,6 +25,7 @@ from typing import (
     Hashable,
     List,
     overload,
+    Optional,
     Type,
     TYPE_CHECKING,
     TypeVar,
@@ -200,7 +202,7 @@ class NoOpTransformerLogger(TransformerLogger):
         pass
 
 
-@dataclasses.dataclass()
+@dataclasses.dataclass(frozen=True)
 class TransformerContext:
     """Stores common configurable options for transformers.
 
@@ -220,7 +222,7 @@ class TransformerContext:
 
 class TRANSFORMER(Protocol):
     def __call__(
-        self, circuit: 'cirq.AbstractCircuit', context: TransformerContext
+        self, circuit: 'cirq.AbstractCircuit', *, context: Optional[TransformerContext] = None
     ) -> 'cirq.AbstractCircuit':
         ...
 
@@ -248,7 +250,7 @@ def transformer(cls_or_func: Any) -> Any:
 
     >>> @cirq.transformer
     >>> def convert_to_cz(
-    >>>    circuit: cirq.AbstractCircuit, context: cirq.TransformerContext
+    >>>    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
     >>> ) -> cirq.Circuit:
     >>>    ...
 
@@ -259,9 +261,26 @@ def transformer(cls_or_func: Any) -> Any:
     >>>    def __init__(self):
     >>>        ...
     >>>    def __call__(
-    >>>        self, circuit: cirq.AbstractCircuit, context: cirq.TransformerContext
+    >>>        self,
+    >>>        circuit: cirq.AbstractCircuit,
+    >>>        *,
+    >>>        context: Optional[cirq.TransformerContext] = None,
     >>>    ) -> cirq.Circuit:
     >>>        ...
+
+    Note that transformers which take additional parameters as `**kwargs`, with default values
+    specified for each keyword argument, are also supported. For example:
+
+    >>> @cirq.transformer
+    >>> def convert_to_sqrt_iswap(
+    >>>     circuit: cirq.AbstractCircuit,
+    >>>     *,
+    >>>     context: Optional[cirq.TransformerContext] = None,
+    >>>     atol: float = 1e-8,
+    >>>     sqrt_iswap_gate: cirq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
+    >>>     cleanup_operations: bool = True,
+    >>> ) -> cirq.Circuit:
+    >>>     pass
 
     Args:
         cls_or_func: The callable class or function to be decorated.
@@ -272,16 +291,18 @@ def transformer(cls_or_func: Any) -> Any:
     if isinstance(cls_or_func, type):
         cls = cls_or_func
         method = cls.__call__
+        default_context = _get_default_context(method)
 
         @functools.wraps(method)
         def method_with_logging(
-            self, circuit: 'cirq.AbstractCircuit', context: TransformerContext
+            self, circuit: 'cirq.AbstractCircuit', **kwargs
         ) -> 'cirq.AbstractCircuit':
             return _transform_and_log(
-                lambda circuit, context: method(self, circuit, context),
+                lambda circuit, **kwargs: method(self, circuit, **kwargs),
                 cls.__name__,
                 circuit,
-                context,
+                kwargs.get('context', default_context),
+                **kwargs,
             )
 
         setattr(cls, '__call__', method_with_logging)
@@ -289,24 +310,41 @@ def transformer(cls_or_func: Any) -> Any:
     else:
         assert callable(cls_or_func)
         func = cls_or_func
+        default_context = _get_default_context(func)
 
         @functools.wraps(func)
-        def func_with_logging(
-            circuit: 'cirq.AbstractCircuit', context: TransformerContext
-        ) -> 'cirq.AbstractCircuit':
-            return _transform_and_log(func, func.__name__, circuit, context)
+        def func_with_logging(circuit: 'cirq.AbstractCircuit', **kwargs) -> 'cirq.AbstractCircuit':
+            return _transform_and_log(
+                func,
+                func.__name__,
+                circuit,
+                kwargs.get('context', default_context),
+                **kwargs,
+            )
 
         return func_with_logging
+
+
+def _get_default_context(func: TRANSFORMER):
+    sig = inspect.signature(func)
+    default_context = sig.parameters["context"].default
+    assert (
+        default_context != inspect.Parameter.empty
+    ), "`context` argument must have a default value specified."
+    return default_context
 
 
 def _transform_and_log(
     func: TRANSFORMER,
     transformer_name: str,
     circuit: 'cirq.AbstractCircuit',
-    context: TransformerContext,
+    extracted_context: Optional[TransformerContext],
+    **kwargs,
 ) -> 'cirq.AbstractCircuit':
     """Helper to log initial and final circuits before and after calling the transformer."""
-    context.logger.register_initial(circuit, transformer_name)
-    transformed_circuit = func(circuit, context)
-    context.logger.register_final(transformed_circuit, transformer_name)
+    if extracted_context:
+        extracted_context.logger.register_initial(circuit, transformer_name)
+    transformed_circuit = func(circuit, **kwargs)
+    if extracted_context:
+        extracted_context.logger.register_final(transformed_circuit, transformer_name)
     return transformed_circuit

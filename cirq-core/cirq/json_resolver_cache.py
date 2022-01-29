@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Methods for resolving JSON types during serialization."""
 
 import functools
 from typing import Dict, TYPE_CHECKING
@@ -143,7 +144,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
-        'Result': cirq.Result,
+        'Result': cirq.ResultDict,  # Keep support for Cirq < 0.14.
+        'ResultDict': cirq.ResultDict,
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,
         'Rz': cirq.Rz,
@@ -157,7 +159,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
-        'TrialResult': cirq.Result,  # keep support for Cirq < 0.11.
+        'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.
         'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,

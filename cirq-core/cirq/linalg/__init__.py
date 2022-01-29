@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Types and methods related to performing linear algebra.
+"""Linear algebra methods and classes useful for quantum primitives.
 
 Focuses on methods useful for analyzing and optimizing quantum circuits.
 Avoids duplicating functionality present in numpy.

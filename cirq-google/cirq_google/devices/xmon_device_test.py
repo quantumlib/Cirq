@@ -45,6 +45,35 @@ class NotImplementedOperation(cirq.Operation):
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_device_metadata():
+    d = square_device(3, 3)
+    assert d.metadata.gateset == cirq.Gateset(
+        cirq.CZPowGate,
+        cirq.XPowGate,
+        cirq.YPowGate,
+        cirq.PhasedXPowGate,
+        cirq.MeasurementGate,
+        cirq.ZPowGate,
+    )
+    assert d.metadata.qubit_pairs == frozenset(
+        {
+            (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
+            (cirq.GridQubit(0, 1), cirq.GridQubit(1, 1)),
+            (cirq.GridQubit(2, 0), cirq.GridQubit(2, 1)),
+            (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
+            (cirq.GridQubit(0, 2), cirq.GridQubit(1, 2)),
+            (cirq.GridQubit(1, 0), cirq.GridQubit(2, 0)),
+            (cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)),
+            (cirq.GridQubit(1, 1), cirq.GridQubit(2, 1)),
+            (cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)),
+            (cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)),
+            (cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)),
+            (cirq.GridQubit(1, 2), cirq.GridQubit(2, 2)),
+        }
+    )
+
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_init():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
     ns = cirq.Duration(nanos=1)
