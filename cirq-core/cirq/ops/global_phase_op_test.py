@@ -52,7 +52,7 @@ def test_act_on_tableau(phase):
 def test_act_on_ch_form(phase):
     state = cirq.StabilizerStateChForm(0)
     args = cirq.ActOnStabilizerCHFormArgs(
-        state,
+        state=state,
         qubits=[],
         prng=np.random.RandomState(),
         log_of_measurement_results={},
@@ -318,7 +318,7 @@ def test_gate_act_on_tableau(phase):
 def test_gate_act_on_ch_form(phase):
     state = cirq.StabilizerStateChForm(0)
     args = cirq.ActOnStabilizerCHFormArgs(
-        state,
+        state=state,
         qubits=[],
         prng=np.random.RandomState(),
         log_of_measurement_results={},

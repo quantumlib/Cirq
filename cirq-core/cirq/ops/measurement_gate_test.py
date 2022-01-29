@@ -374,19 +374,19 @@ def test_act_on_stabilizer_ch_form():
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=0),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=0,
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=8),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=8,
     )
 
     cirq.act_on(m, args)

@@ -43,6 +43,7 @@ def test_deprecated_warning():
     with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15'):
         cirq.ActOnStateVectorArgs(target_tensor=np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64))
 
+
 def test_infer_target_tensor():
     dtype = np.complex64
     args = cirq.ActOnStateVectorArgs(
@@ -322,7 +323,7 @@ def test_with_qubits():
     np.testing.assert_almost_equal(
         extened.target_tensor,
         cirq.state_vector_kronecker_product(
-            np.array([[0.+0.j, 1.+0.j], [0.+0.j, 0.+0.j]], dtype=np.complex64),
-            np.array([[1.+0.j, 0.+0.j], [0.+0.j, 0.+0.j]], dtype=np.complex64),
+            np.array([[0.0 + 0.0j, 1.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=np.complex64),
+            np.array([[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=np.complex64),
         ),
     )

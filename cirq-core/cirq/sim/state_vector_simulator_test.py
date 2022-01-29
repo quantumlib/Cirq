@@ -197,7 +197,7 @@ def test_pretty_print():
         log_of_measurement_results={},
         qubits=[],
         initial_state=np.array([1], dtype=np.complex64),
-        dtype=np.complex64
+        dtype=np.complex64,
     )
     final_step_result = cirq.SparseSimulatorStep(args, cirq.Simulator())
     result = cirq.StateVectorTrialResult(cirq.ParamResolver(), {}, final_step_result)
