@@ -825,8 +825,8 @@ class TaggedOperation(Operation):
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'cirq.Operation':
         return protocols.phase_by(self.sub_operation, phase_turns, qubit_index)
 
-    def __pow__(self, exponent: Any) -> 'cirq.Operation':
-        return self.sub_operation ** exponent
+    def __pow__(self, exponent: Any) -> 'cirq.TaggedOperation':
+        return TaggedOperation(self.sub_operation ** exponent, *self.tags)
 
     def __mul__(self, other: Any) -> Any:
         return self.sub_operation * other

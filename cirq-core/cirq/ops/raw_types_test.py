@@ -422,6 +422,7 @@ def test_tagged_operation():
     op = cirq.X(q1).with_tags('tag1')
     op_repr = "cirq.X(cirq.GridQubit(1, 1))"
     assert repr(op) == f"cirq.TaggedOperation({op_repr}, 'tag1')"
+    assert op == op ** 1
 
     assert op.qubits == (q1,)
     assert op.tags == ('tag1',)
@@ -616,7 +617,7 @@ def test_tagged_operation_forwards_protocols():
 
     y = cirq.Y(q1)
     tagged_y = cirq.Y(q1).with_tags(tag)
-    assert tagged_y ** 0.5 == cirq.YPowGate(exponent=0.5)(q1)
+    assert tagged_y ** 0.5 == cirq.YPowGate(exponent=0.5)(q1).with_tags(tag)
     assert tagged_y * 2 == (y * 2)
     assert 3 * tagged_y == (3 * y)
     assert cirq.phase_by(y, 0.125, 0) == cirq.phase_by(tagged_y, 0.125, 0)
