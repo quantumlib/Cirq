@@ -34,6 +34,7 @@ from _pytest.outcomes import Failed
 
 import cirq.testing
 from cirq._compat import (
+    block_overlapping_deprecation,
     proper_repr,
     dataclass_repr,
     deprecated,
@@ -887,3 +888,17 @@ def _dir_is_still_valid_inner():
 
     for m in ['fake_a', 'info', 'module_a', 'sys']:
         assert m in dir(mod)
+
+
+def test_block_overlapping_deprecation():
+    @deprecated(fix="Don't use g.", deadline="v1000.0")
+    def g(y):
+        return y - 4
+
+    @deprecated(fix="Don't use f.", deadline="v1000.0")
+    def f(x):
+        with block_overlapping_deprecation('g'):
+            return [g(i + 1) for i in range(x)]
+
+    with cirq.testing.assert_deprecated('f', deadline='v1000.0', count=1):
+        f(5)

@@ -13,8 +13,7 @@
 # limitations under the License.
 
 from typing import Any, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
-
-from cirq import circuits, value, devices, ops, protocols
+from cirq import _compat, circuits, value, devices, ops, protocols
 from cirq.ion import convert_to_ion_gates
 
 if TYPE_CHECKING:
@@ -74,14 +73,19 @@ class IonDevice(devices.Device):
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='qubit coupling data can now be found in device.metadata if provided.',
+    )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
         """Qubits have all-to-all connectivity, so returns all pairs.
 
         Returns:
             All qubit pairs on the device.
         """
-        qs = self.qubits
-        return frozenset([devices.SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
+            qs = self.qubits
+            return frozenset([devices.SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
         return convert_to_ion_gates.ConvertToIonGates().convert_one(operation)
