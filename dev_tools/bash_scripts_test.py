@@ -340,171 +340,186 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     )
 
 
-# @only_on_posix
-# def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
-#     result = run(
-#         script_file='check/pytest-and-incremental-coverage',
-#         tmpdir_factory=tmpdir_factory,
-#         arg='HEAD',
-#         additional_intercepts=['check/pytest'],
-#     )
-#     assert result.exit_code == 0
-#     assert result.out == (
-#         'INTERCEPTED check/pytest '
-#         '--actually-quiet --rigetti-integration --cov '
-#         '--cov-config=dev_tools/conf/.coveragerc\n'
-#         'The annotate command will be removed in a future version.\n'
-#         'Get in touch if you still use it: ned@nedbatchelder.com\n'
-#         'No data to report.\n'
-#         'INTERCEPTED '
-#         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
-#     )
-#     assert result.err == "Comparing against revision 'HEAD'.\n"
+@only_on_posix
+def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
+    result = run(
+        script_file='check/pytest-and-incremental-coverage',
+        tmpdir_factory=tmpdir_factory,
+        arg='HEAD',
+        additional_intercepts=['check/pytest'],
+    )
+    assert result.exit_code == 0
+    assert result.out == (
+        'INTERCEPTED check/pytest '
+        '--actually-quiet --rigetti-integration --cov '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
+    )
+    assert result.err == "Comparing against revision 'HEAD'.\n"
 
-#     result = run(
-#         script_file='check/pytest-and-incremental-coverage',
-#         tmpdir_factory=tmpdir_factory,
-#         arg='HEAD~999999',
-#     )
-#     assert result.exit_code == 1
-#     assert result.out == ''
-#     assert "No revision 'HEAD~999999'." in result.err
+    result = run(
+        script_file='check/pytest-and-incremental-coverage',
+        tmpdir_factory=tmpdir_factory,
+        arg='HEAD~999999',
+    )
+    assert result.exit_code == 1
+    assert result.out == ''
+    assert "No revision 'HEAD~999999'." in result.err
 
-#     result = run(
-#         script_file='check/pytest-and-incremental-coverage',
-#         tmpdir_factory=tmpdir_factory,
-#         additional_intercepts=['check/pytest'],
-#     )
-#     assert result.exit_code == 0
-#     assert result.out == (
-#         'INTERCEPTED check/pytest '
-#         '--actually-quiet --rigetti-integration --cov '
-#         '--cov-config=dev_tools/conf/.coveragerc\n'
-#         'The annotate command will be removed in a future version.\n'
-#         'Get in touch if you still use it: ned@nedbatchelder.com\n'
-#         'No data to report.\n'
-#         'INTERCEPTED '
-#         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
-#     )
-#     assert result.err == "Comparing against revision 'master'.\n"
+    result = run(
+        script_file='check/pytest-and-incremental-coverage',
+        tmpdir_factory=tmpdir_factory,
+        additional_intercepts=['check/pytest'],
+    )
+    assert result.exit_code == 0
+    assert result.out == (
+        'INTERCEPTED check/pytest '
+        '--actually-quiet --rigetti-integration --cov '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py master\n'
+    )
+    assert result.err == "Comparing against revision 'master'.\n"
 
-#     result = run(
-#         script_file='check/pytest-and-incremental-coverage',
-#         tmpdir_factory=tmpdir_factory,
-#         setup='git branch origin/master',
-#         additional_intercepts=['check/pytest'],
-#     )
-#     assert result.exit_code == 0
-#     assert result.out == (
-#         'INTERCEPTED check/pytest '
-#         '--actually-quiet --rigetti-integration --cov '
-#         '--cov-config=dev_tools/conf/.coveragerc\n'
-#         'The annotate command will be removed in a future version.\n'
-#         'Get in touch if you still use it: ned@nedbatchelder.com\n'
-#         'No data to report.\n'
-#         'INTERCEPTED '
-#         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
-#     )
-#     assert result.err == "Comparing against revision 'origin/master'.\n"
+    result = run(
+        script_file='check/pytest-and-incremental-coverage',
+        tmpdir_factory=tmpdir_factory,
+        setup='git branch origin/master',
+        additional_intercepts=['check/pytest'],
+    )
+    assert result.exit_code == 0
+    assert result.out == (
+        'INTERCEPTED check/pytest '
+        '--actually-quiet --rigetti-integration --cov '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py origin/master\n'
+    )
+    assert result.err == "Comparing against revision 'origin/master'.\n"
 
-#     result = run(
-#         script_file='check/pytest-and-incremental-coverage',
-#         tmpdir_factory=tmpdir_factory,
-#         setup='git branch upstream/master',
-#         additional_intercepts=['check/pytest'],
-#     )
-#     assert result.exit_code == 0
-#     assert result.out == (
-#         'INTERCEPTED check/pytest '
-#         '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
-#         '--cov-config=dev_tools/conf/.coveragerc\n'
-#         'INTERCEPTED python '
-#         'dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
-#     )
-#     assert result.err == "Comparing against revision 'upstream/master'.\n"
+    result = run(
+        script_file='check/pytest-and-incremental-coverage',
+        tmpdir_factory=tmpdir_factory,
+        setup='git branch upstream/master',
+        additional_intercepts=['check/pytest'],
+    )
+    assert result.exit_code == 0
+    assert result.out == (
+        'INTERCEPTED check/pytest '
+        '--actually-quiet --rigetti-integration --cov '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
+    )
+    assert result.err == "Comparing against revision 'upstream/master'.\n"
 
-#     result = run(
-#         script_file='check/pytest-and-incremental-coverage',
-#         tmpdir_factory=tmpdir_factory,
-#         setup='git branch upstream/master; git branch origin/master',
-#         additional_intercepts=['check/pytest'],
-#     )
-#     assert result.exit_code == 0
-#     assert result.out == (
-#         'INTERCEPTED check/pytest '
-#         '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
-#         '--cov-config=dev_tools/conf/.coveragerc\n'
-#         'INTERCEPTED python '
-#         'dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
-#     )
-#     assert result.err == "Comparing against revision 'upstream/master'.\n"
+    result = run(
+        script_file='check/pytest-and-incremental-coverage',
+        tmpdir_factory=tmpdir_factory,
+        setup='git branch upstream/master; git branch origin/master',
+        additional_intercepts=['check/pytest'],
+    )
+    assert result.exit_code == 0
+    assert result.out == (
+        'INTERCEPTED check/pytest '
+        '--actually-quiet --rigetti-integration --cov '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
+    )
+    assert result.err == "Comparing against revision 'upstream/master'.\n"
 
-#     result = run(
-#         script_file='check/pytest-and-incremental-coverage',
-#         tmpdir_factory=tmpdir_factory,
-#         setup='git checkout -b other --quiet\ngit branch -D master --quiet\n',
-#         additional_intercepts=['check/pytest'],
-#     )
-#     assert result.exit_code == 1
-#     assert result.out == ''
-#     assert 'No default revision found to compare against' in result.err
+    result = run(
+        script_file='check/pytest-and-incremental-coverage',
+        tmpdir_factory=tmpdir_factory,
+        setup='git checkout -b other --quiet\ngit branch -D master --quiet\n',
+        additional_intercepts=['check/pytest'],
+    )
+    assert result.exit_code == 1
+    assert result.out == ''
+    assert 'No default revision found to compare against' in result.err
 
-#     # Works when ambiguous between revision and file.
-#     result = run(
-#         script_file='check/pytest-and-incremental-coverage',
-#         tmpdir_factory=tmpdir_factory,
-#         arg='HEAD',
-#         setup='touch HEAD\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
-#         additional_intercepts=['check/pytest'],
-#     )
-#     assert result.exit_code == 0
-#     assert result.out == (
-#         'INTERCEPTED check/pytest '
-#         '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
-#         '--cov-config=dev_tools/conf/.coveragerc\n'
-#         'INTERCEPTED python '
-#         'dev_tools/check_incremental_coverage_annotations.py HEAD\n'
-#     )
-#     assert result.err == "Comparing against revision 'HEAD'.\n"
+    # Works when ambiguous between revision and file.
+    result = run(
+        script_file='check/pytest-and-incremental-coverage',
+        tmpdir_factory=tmpdir_factory,
+        arg='HEAD',
+        setup='touch HEAD\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
+        additional_intercepts=['check/pytest'],
+    )
+    assert result.exit_code == 0
+    assert result.out == (
+        'INTERCEPTED check/pytest '
+        '--actually-quiet --rigetti-integration --cov '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
+    )
+    assert result.err == "Comparing against revision 'HEAD'.\n"
 
-#     result = run(
-#         script_file='check/pytest-and-incremental-coverage',
-#         tmpdir_factory=tmpdir_factory,
-#         setup='touch master\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
-#         additional_intercepts=['check/pytest'],
-#     )
-#     assert result.exit_code == 0
-#     assert result.out == (
-#         'INTERCEPTED check/pytest '
-#         '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
-#         '--cov-config=dev_tools/conf/.coveragerc\n'
-#         'INTERCEPTED python '
-#         'dev_tools/check_incremental_coverage_annotations.py master\n'
-#     )
-#     assert result.err == "Comparing against revision 'master'.\n"
+    result = run(
+        script_file='check/pytest-and-incremental-coverage',
+        tmpdir_factory=tmpdir_factory,
+        setup='touch master\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
+        additional_intercepts=['check/pytest'],
+    )
+    assert result.exit_code == 0
+    assert result.out == (
+        'INTERCEPTED check/pytest '
+        '--actually-quiet --rigetti-integration --cov '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py master\n'
+    )
+    assert result.err == "Comparing against revision 'master'.\n"
 
-#     result = run(
-#         script_file='check/pytest-and-incremental-coverage',
-#         tmpdir_factory=tmpdir_factory,
-#         setup='touch master\n'
-#         'git add -A\n'
-#         'git commit -q -m test --no-gpg-sign\n'
-#         'git branch alt\n'
-#         'touch master2\n'
-#         'git add -A\n'
-#         'git commit -q -m test2 --no-gpg-sign\n'
-#         'git checkout -q alt\n',
-#         additional_intercepts=['check/pytest'],
-#     )
-#     assert result.exit_code == 0
-#     assert result.out.startswith(
-#         'INTERCEPTED check/pytest '
-#         '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
-#         '--cov-config=dev_tools/conf/.coveragerc\n'
-#         'INTERCEPTED python '
-#         'dev_tools/check_incremental_coverage_annotations.py '
-#     )
-#     assert result.err.startswith("Comparing against revision 'master' (merge base ")
+    result = run(
+        script_file='check/pytest-and-incremental-coverage',
+        tmpdir_factory=tmpdir_factory,
+        setup='touch master\n'
+        'git add -A\n'
+        'git commit -q -m test --no-gpg-sign\n'
+        'git branch alt\n'
+        'touch master2\n'
+        'git add -A\n'
+        'git commit -q -m test2 --no-gpg-sign\n'
+        'git checkout -q alt\n',
+        additional_intercepts=['check/pytest'],
+    )
+    assert result.exit_code == 0
+    assert result.out.startswith(
+        'INTERCEPTED check/pytest '
+        '--actually-quiet --rigetti-integration --cov '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py '
+    )
+    assert result.err.startswith("Comparing against revision 'master' (merge base ")
 
 
 @only_on_posix
