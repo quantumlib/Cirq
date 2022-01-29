@@ -85,7 +85,7 @@ def defer_measurements(
             these is planned to be implemented soon).
     """
 
-    context1: 'cirq.TransformerContext' = context or transformer_api.TransformerContext()
+    context1 = context or transformer_api.TransformerContext()
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
     qubits_found: Set['cirq.Qid'] = set()
     terminal_measurements: Set['cirq.MeasurementKey'] = set()
@@ -172,7 +172,7 @@ def dephase_measurements(
             surprises.
     """
 
-    context1: 'cirq.TransformerContext' = context or transformer_api.TransformerContext()
+    context1 = context or transformer_api.TransformerContext()
 
     def dephase(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         if any(t in context1.ignore_tags for t in op.tags):
