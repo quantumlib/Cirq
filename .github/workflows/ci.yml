@@ -246,6 +246,7 @@ jobs:
         run: |
           coverage combine coverage*/.coverage*
           coverage annotate
+          source dev_tools/pypath
           python dev_tools/check_incremental_coverage_annotations.py master
       - uses: codecov/codecov-action@v1
 
