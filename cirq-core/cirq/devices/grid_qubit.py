@@ -438,15 +438,3 @@ def _ascii_diagram_to_coords(diagram: str) -> List[Tuple[int, int]]:
                     raise ValueError("Input string has invalid character")
                 qid_coords.append((row, col))
     return qid_coords
-
-
-def uncovered_function(x):
-    """Untested fxn.
-
-
-    Args:
-        x: value of number.
-    Returns:
-        x + 1.
-    """
-    return x + 1
