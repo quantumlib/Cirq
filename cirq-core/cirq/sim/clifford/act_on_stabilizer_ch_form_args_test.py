@@ -28,7 +28,8 @@ def test_init_state():
 
 def test_deprecated_warning():
     with cirq.testing.assert_deprecated(
-            'Specify all the arguments with keywords', deadline='v0.15'):
+            'Specify all the arguments with keywords', deadline='v0.15'
+        ):
         cirq.ActOnStabilizerCHFormArgs(cirq.StabilizerStateChForm(num_qubits=3))
 
 

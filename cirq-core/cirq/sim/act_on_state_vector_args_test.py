@@ -53,7 +53,7 @@ def test_infer_target_tensor():
     )
     np.testing.assert_almost_equal(
         args.target_tensor,
-        np.array([[1.+0.j, 0.+0.j], [0.+0.j, 0.+0.j]], dtype=dtype),
+        np.array([[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=dtype),
     )
 
     args = cirq.ActOnStateVectorArgs(
@@ -63,7 +63,7 @@ def test_infer_target_tensor():
     )
     np.testing.assert_almost_equal(
         args.target_tensor,
-        np.array([[1.+0.j, 0.+0.j], [0.+0.j, 0.+0.j]], dtype=dtype),
+        np.array([[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=dtype),
     )
 
 

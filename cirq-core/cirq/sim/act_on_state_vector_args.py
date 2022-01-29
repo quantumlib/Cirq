@@ -39,9 +39,9 @@ class ActOnStateVectorArgs(ActOnArgs):
 
     @_compat.deprecated_parameter(
         deadline='v0.15',
-        fix='Use initial_state instead.',
-        parameter_desc='target_tensor',
-        match=lambda args, kwargs: 'target_tensor' in kwargs,
+        fix='Use initial_state instead and specify all the arguments with keywords.',
+        parameter_desc='target_tensor and positional arguments',
+        match=lambda args, kwargs: 'target_tensor' in kwargs or len(args) != 1,
     )
     def __init__(
         self,
