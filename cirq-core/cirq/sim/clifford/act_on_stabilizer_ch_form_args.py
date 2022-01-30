@@ -64,7 +64,8 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
         if isinstance(initial_state, int):
             qubit_map = {q: i for i, q in enumerate(self.qubits)}
             initial_state = clifford_simulator.CliffordState(
-                qubit_map, initial_state=initial_state).ch_form
+                qubit_map, initial_state=initial_state
+            ).ch_form
         self.state = initial_state
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
