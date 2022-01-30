@@ -57,10 +57,10 @@ def test_gate_with_act_on():
 
     state = cirq.StabilizerStateChForm(num_qubits=3)
     args = cirq.ActOnStabilizerCHFormArgs(
-        state=state,
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=state,
     )
 
     cirq.act_on(CustomGate(), args, [cirq.LineQubit(1)])

@@ -192,10 +192,10 @@ def _final_stabilizer_state_ch_form(
 
     stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(len(qubit_map))
     args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
-        state=stabilizer_ch_form,
         qubits=list(qubit_map.keys()),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=stabilizer_ch_form,
     )
     for op in circuit.all_operations():
         try:

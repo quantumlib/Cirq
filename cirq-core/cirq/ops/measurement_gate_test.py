@@ -393,10 +393,10 @@ def test_act_on_stabilizer_ch_form():
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=10),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=10,
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}

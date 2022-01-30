@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Optional, Sequence
+from typing import Any, Dict, TYPE_CHECKING, List, Optional, Sequence, Union
 
 import numpy as np
 
@@ -31,9 +31,9 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
 
     @_compat.deprecated_parameter(
         deadline='v0.15',
-        fix='Specify all the arguments with keywords.',
+        fix='Specify all the arguments with keywords, use initial_state instead of state.',
         parameter_desc='positional arguments',
-        match=lambda args, kwargs: len(args) != 1,
+        match=lambda args, kwargs: len(args) != 1 or 'state' in kwargs,
     )
     def __init__(
         self,
@@ -41,7 +41,7 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, Any]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
-        initial_state: int = 0,
+        initial_state: Union[int, 'cirq.StabilizerStateChForm'] = 0,
     ):
         """Initializes with the given state and the axes for the operation.
 
@@ -55,14 +55,17 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            initial_state: The initial state for the simulation in the
-                computational basis. Represented as a big endian int.
+            initial_state: The initial state for the simulation. This can be a
+                full CH form passed by reference which will be modified inplace,
+                or a big-endian int in the computational basis.
         """
         super().__init__(prng, qubits, log_of_measurement_results)
-        if state is None:
+        initial_state = state or initial_state
+        if isinstance(initial_state, int):
             qubit_map = {q: i for i, q in enumerate(self.qubits)}
-            state = clifford_simulator.CliffordState(qubit_map, initial_state=initial_state).ch_form
-        self.state = state
+            initial_state = clifford_simulator.CliffordState(
+                qubit_map, initial_state=initial_state).ch_form
+        self.state = initial_state
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Returns the measurement from the stabilizer state form."""
@@ -94,10 +97,10 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
             op = ops.measure(*qubits, key=str(i))
             state = self.state.copy()
             ch_form_args = ActOnStabilizerCHFormArgs(
-                state=state,
                 prng=prng,
                 log_of_measurement_results=measurements,
                 qubits=self.qubits,
+                initial_state=state,
             )
             protocols.act_on(op, ch_form_args)
         return np.array(list(measurements.values()), dtype=bool)
