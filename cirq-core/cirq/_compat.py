@@ -661,7 +661,12 @@ def _setup_deprecated_submodule_attribute(
                 )
             return getattr(parent_module, name)
 
-    sys.modules[old_parent] = Wrapped(parent_module.__name__, parent_module.__doc__)
+    wrapped_parent_module = Wrapped(parent_module.__name__, parent_module.__doc__)
+    if '.' in old_parent:
+        grandpa_name, parent_tail = old_parent.rsplit('.', 1)
+        grandpa_module = sys.modules[grandpa_name]
+        setattr(grandpa_module, parent_tail, wrapped_parent_module)
+    sys.modules[old_parent] = wrapped_parent_module
 
 
 def _make_proxy_spec_property(source_module: ModuleType) -> property:

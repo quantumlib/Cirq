@@ -645,8 +645,6 @@ def subprocess_context(test_func):
     ],
 )
 def test_deprecated_module(outdated_method, deprecation_messages):
-    if outdated_method is _deprecate_grandchild_assert_attributes_in_sys_modules:
-        pytest.xfail(reason='Inconsistent module attribute after grandchild module deprecation')
     subprocess_context(_test_deprecated_module_inner)(outdated_method, deprecation_messages)
 
 
