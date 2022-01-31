@@ -50,6 +50,7 @@ TestSpec = ModuleJsonTestSpec(
         'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'QuantumEngineSampler',
         'ValidatingSampler',
+        'CouldNotPlaceError',
         # Abstract:
         'ExecutableSpec',
     ],
@@ -67,6 +68,7 @@ TestSpec = ModuleJsonTestSpec(
             'SharedRuntimeInfo',
             'ExecutableGroupResultFilesystemRecord',
             'NaiveQubitPlacer',
+            'RandomDevicePlacer',
         ]
     },
     tested_elsewhere=[
@@ -78,5 +80,10 @@ TestSpec = ModuleJsonTestSpec(
         'cirq.google.ExecutableGroupResult',
     ],
     resolver_cache=_class_resolver_dictionary(),
-    deprecated={},
+    deprecated={
+        '_NamedConstantXmonDevice': 'v0.15',
+        'Bristlecone': 'v0.15',
+        'Foxtail': 'v0.15',
+        'GateTabulation': 'v0.16',
+    },
 )

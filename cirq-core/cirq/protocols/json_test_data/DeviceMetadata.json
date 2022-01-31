@@ -1,0 +1,54 @@
+{
+  "cirq_type": "DeviceMetadata",
+  "qubits": [
+    {
+      "cirq_type": "LineQubit",
+      "x": 0
+    },
+    {
+      "cirq_type": "LineQubit",
+      "x": 1
+    },
+    {
+      "cirq_type": "LineQubit",
+      "x": 2
+    },
+    {
+      "cirq_type": "LineQubit",
+      "x": 3
+    }
+  ],
+  "nx_graph": {
+    "directed": false,
+    "multigraph": false,
+    "graph": {},
+    "nodes": [
+      {
+        "id": 0
+      },
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      },
+      {
+        "id": 3
+      }
+    ],
+    "links": [
+      {
+        "source": 0,
+        "target": 1
+      },
+      {
+        "source": 0,
+        "target": 2
+      },
+      {
+        "source": 0,
+        "target": 3
+      }
+    ]
+  }
+}

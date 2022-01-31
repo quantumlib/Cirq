@@ -12,10 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types for devices, device-specific qubits, and noise models."""
+"""Device classes, qubits, and topologies, as well as noise models."""
+
 from cirq.devices.device import (
     Device,
+    DeviceMetadata,
     SymmetricalQidPair,
+)
+
+from cirq.devices.grid_device_metadata import (
+    GridDeviceMetadata,
 )
 
 from cirq.devices.grid_qubit import (

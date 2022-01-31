@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Circuit transformation utilities."""
+"""Classes and methods for transforming circuits."""
 
 from cirq.transformers.analytical_decompositions import (
     compute_cphase_exponents_for_fsim_decomposition,
@@ -33,6 +33,22 @@ from cirq.transformers.analytical_decompositions import (
     two_qubit_matrix_to_diagonal_and_operations,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
+)
+
+from cirq.transformers.heuristic_decompositions import (
+    TwoQubitGateTabulation,
+    TwoQubitGateTabulationResult,
+    two_qubit_gate_product_tabulation,
+)
+
+from cirq.transformers.align import align_left, align_right
+
+from cirq.transformers.transformer_api import (
+    LogLevel,
+    TRANSFORMER,
+    TransformerContext,
+    TransformerLogger,
+    transformer,
 )
 
 from cirq.transformers.transformer_primitives import (

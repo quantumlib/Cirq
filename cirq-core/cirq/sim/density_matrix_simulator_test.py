@@ -571,6 +571,28 @@ def test_reset_one_qubit_does_not_affect_partial_trace_of_other_qubits(
     np.testing.assert_almost_equal(result.final_density_matrix, expected)
 
 
+def test_ignore_measurements_remains_entangled():
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator1 = cirq.DensityMatrixSimulator(
+        ignore_measurement_results=True, split_untangled_states=False
+    )
+    simulator2 = cirq.DensityMatrixSimulator(
+        ignore_measurement_results=True, split_untangled_states=True
+    )
+    circuit = cirq.Circuit(
+        cirq.H(q0),
+        cirq.CX(q0, q1),
+        cirq.measure(q0),
+    )
+    result1 = simulator1.simulate(circuit)
+    result2 = simulator2.simulate(circuit)
+    np.testing.assert_almost_equal(result2.final_density_matrix, result1.final_density_matrix)
+    expected = np.zeros((4, 4))
+    expected[0, 0] = 0.5
+    expected[3, 3] = 0.5
+    np.testing.assert_almost_equal(result2.final_density_matrix, expected)
+
+
 @pytest.mark.parametrize(
     'dtype,circuit',
     itertools.product(
@@ -819,7 +841,7 @@ def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_moment_steps_set_state(dtype: Type[np.number]):
+def test_simulate_moment_steps_set_state_deprecated(dtype: Type[np.number]):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
@@ -828,7 +850,8 @@ def test_simulate_moment_steps_set_state(dtype: Type[np.number]):
         if i == 0:
             zero_zero = np.zeros((4, 4), dtype=dtype)
             zero_zero[0, 0] = 1
-            step.set_density_matrix(zero_zero)
+            with cirq.testing.assert_deprecated('initial_state', deadline='v0.15'):
+                step.set_density_matrix(zero_zero)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])

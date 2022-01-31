@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Workarounds for compatibility issues between versions and libraries."""
+import contextlib
 import dataclasses
 import functools
 import importlib
@@ -649,3 +650,23 @@ def _setup_deprecated_submodule_attribute(
             return getattr(parent_module, name)
 
     sys.modules[old_parent] = Wrapped(parent_module.__name__, parent_module.__doc__)
+
+
+@contextlib.contextmanager
+def block_overlapping_deprecation(match_regex: str):
+    """Context to block deprecation warnings raised within it.
+
+    Useful if a function call might raise more than one warning,
+    where only one warning is desired.
+
+    Args:
+        match_regex: DeprecationWarnings with message fields matching
+            match_regex will be blocked.
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            action='ignore',
+            category=DeprecationWarning,
+            message=f'(.|\n)*{match_regex}(.|\n)*',
+        )
+        yield

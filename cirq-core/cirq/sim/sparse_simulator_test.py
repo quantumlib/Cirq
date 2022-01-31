@@ -580,14 +580,15 @@ def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_moment_steps_set_state(dtype):
+def test_simulate_moment_steps_set_state_deprecated(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
     simulator = cirq.Simulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         np.testing.assert_almost_equal(step.state_vector(), np.array([0.5] * 4))
         if i == 0:
-            step.set_state_vector(np.array([1, 0, 0, 0], dtype=dtype))
+            with cirq.testing.assert_deprecated('initial_state', deadline='v0.15'):
+                step.set_state_vector(np.array([1, 0, 0, 0], dtype=dtype))
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -884,6 +885,70 @@ def test_compute_amplitudes_bad_input():
 
     with pytest.raises(ValueError, match='1-dimensional'):
         _ = sim.compute_amplitudes(c, np.array([[0, 0]]))
+
+
+def test_sample_from_amplitudes():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.H(q0),
+        cirq.CNOT(q0, q1),
+        cirq.X(q1),
+    )
+    sim = cirq.Simulator(seed=1)
+    result = sim.sample_from_amplitudes(circuit, {}, sim._prng, repetitions=100)
+    assert 40 < result[1] < 60
+    assert 40 < result[2] < 60
+    assert 0 not in result
+    assert 3 not in result
+
+
+def test_sample_from_amplitudes_teleport():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    # Initialize q0 to some state, teleport it to q2, then clean up.
+    circuit = cirq.Circuit(
+        cirq.H(q1),
+        cirq.CNOT(q1, q2),
+        cirq.X(q0) ** sympy.Symbol('t'),
+        cirq.CNOT(q0, q1),
+        cirq.H(q0),
+        cirq.CNOT(q1, q2),
+        cirq.CZ(q0, q2),
+        cirq.H(q0),
+        cirq.H(q1),
+    )
+    sim = cirq.Simulator(seed=1)
+
+    # Full X, always produces |1) state
+    result_a = sim.sample_from_amplitudes(circuit, {'t': 1}, sim._prng, repetitions=100)
+    assert result_a == {1: 100}
+
+    # sqrt of X, produces 50:50 state
+    result_b = sim.sample_from_amplitudes(circuit, {'t': 0.5}, sim._prng, repetitions=100)
+    assert 40 < result_b[0] < 60
+    assert 40 < result_b[1] < 60
+
+    # X^(1/4), produces ~85:15 state
+    result_c = sim.sample_from_amplitudes(circuit, {'t': 0.25}, sim._prng, repetitions=100)
+    assert 80 < result_c[0]
+    assert result_c[1] < 20
+
+
+def test_sample_from_amplitudes_nonunitary_fails():
+    q0, q1 = cirq.LineQubit.range(2)
+    sim = cirq.Simulator(seed=1)
+
+    circuit1 = cirq.Circuit(cirq.H(q0), cirq.measure(q0, key='m'))
+    with pytest.raises(ValueError, match='does not support intermediate measurement'):
+        _ = sim.sample_from_amplitudes(circuit1, {}, sim._prng)
+
+    circuit2 = cirq.Circuit(
+        cirq.H(q0),
+        cirq.CNOT(q0, q1),
+        cirq.amplitude_damp(0.01)(q0),
+        cirq.amplitude_damp(0.01)(q1),
+    )
+    with pytest.raises(ValueError, match='does not support non-unitary'):
+        _ = sim.sample_from_amplitudes(circuit2, {}, sim._prng)
 
 
 def test_run_sweep_parameters_not_resolved():

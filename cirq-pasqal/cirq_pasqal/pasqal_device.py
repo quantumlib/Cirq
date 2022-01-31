@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
-
 import numpy as np
 
 import cirq
-from cirq import GridQubit, LineQubit
+from cirq import _compat, GridQubit, LineQubit
 from cirq.ops import NamedQubit
 from cirq_pasqal import ThreeDQubit, TwoDQubit
 
@@ -354,21 +353,26 @@ class PasqalVirtualDevice(PasqalDevice):
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['control_radius', 'qubits'])
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='qubit coupling data can now be found in device.metadata if provided.',
+    )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
         """Returns a list of qubit edges on the device.
 
         Returns:
             All qubit pairs that are less or equal to the control radius apart.
         """
-        qs = self.qubits
-        return frozenset(
-            [
-                cirq.SymmetricalQidPair(q, q2)
-                for q in qs
-                for q2 in qs
-                if q < q2 and self.distance(q, q2) <= self.control_radius
-            ]
-        )
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
+            qs = self.qubits
+            return frozenset(
+                [
+                    cirq.SymmetricalQidPair(q, q2)
+                    for q in qs
+                    for q2 in qs
+                    if q < q2 and self.distance(q, q2) <= self.control_radius
+                ]
+            )
 
 
 class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):

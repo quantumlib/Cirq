@@ -70,6 +70,7 @@ TestSpec = ModuleJsonTestSpec(
         'ThreeQubitDiagonalGate',
         'Timestamp',
         'TwoQubitDiagonalGate',
+        'TwoQubitGateTabulationResult',
         'UnitSweep',
         'StateVectorSimulatorState',
         'StateVectorTrialResult',
@@ -109,6 +110,9 @@ TestSpec = ModuleJsonTestSpec(
         'MergeSingleQubitGates',
         'PointOptimizer',
         'SynchronizeTerminalMeasurements',
+        # Transformers
+        'TransformerLogger',
+        'TransformerContext',
         # global objects
         'CONTROL_TAG',
         'PAULI_BASIS',
@@ -171,6 +175,7 @@ TestSpec = ModuleJsonTestSpec(
         'Sweepable',
         'TParamKey',
         'TParamVal',
+        'TRANSFORMER',
         'ParamDictType',
         # utility:
         'CliffordSimulator',
@@ -179,7 +184,10 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={'GlobalPhaseOperation': 'v0.16'},
+    deprecated={
+        'GlobalPhaseOperation': 'v0.16',
+        'SymmetricalQidPair': 'v0.15',
+    },
     tested_elsewhere=[
         # SerializableByKey does not follow common serialization rules.
         # It is tested separately in test_context_serialization.
