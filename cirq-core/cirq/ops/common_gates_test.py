@@ -1152,3 +1152,75 @@ def test_approx_eq():
     assert not cirq.approx_eq(cirq.Y ** 0.1, cirq.Y ** 0.2, atol=0.05)
     assert cirq.approx_eq(cirq.X ** 0.1, cirq.X ** 0.2, atol=0.3)
     assert not cirq.approx_eq(cirq.X ** 0.1, cirq.X ** 0.2, atol=0.05)
+
+
+def test_me2():
+    L = (-1+np.sqrt(3)*1j)/2
+    V = np.array([
+        [1, 1, 1],
+        [1, L, L**2],
+        [1, L**2, L],
+    ]) / np.sqrt(3)
+    Vinv = np.array([
+        [1, 1, 1],
+        [1, L**2, L],
+        [1, L, L**2],
+    ]) / np.sqrt(3)
+    D = np.array([
+        [1, 0, 0],
+        [0, L, 0],
+        [0, 0, L**0.5]
+    ])
+    X2 = V @ D @ Vinv
+    print()
+    print(np.round(X2, 2))
+    print(np.round(X2 @ X2, 2))
+    print()
+    print(np.round(V, 2))
+    print(np.round(np.linalg.inv(V), 2))
+    x = cirq.XPowGate()
+    print()
+    q = cirq.LineQid(0, 3)
+    sim = cirq.Simulator()
+    xx = x**0.5
+    print(np.round(cirq.unitary(xx), 2))
+    matrix = cirq.unitary(xx)
+    print(matrix.dot(np.conj(matrix.T)))
+    print(np.round(matrix.dot(np.conj(matrix.   T)), 2))
+    print()
+    print(np.round(np.matmul(matrix, (matrix)), 2))
+    z = cirq.MatrixGate(X2, qid_shape=[3], unitary_check_atol=1e-4, unitary_check_rtol=1e-4)
+    xq = xx(q)
+    circuit = cirq.Circuit(
+        xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq
+    )
+    svs = []
+    for step in sim.simulate_moment_steps(circuit):
+        svs.append(np.round(step.state_vector(), 2))
+    print(np.array(svs))
+
+
+def test_me():
+    print()
+    x = cirq.XPowGate()
+    q = cirq.LineQid(0, 3)
+    sim = cirq.Simulator()
+    xx = x**0.5
+    matrix = cirq.unitary(xx)
+    print(np.round(matrix, 2))
+    print()
+    print(matrix.dot(np.conj(matrix.T)))
+    print()
+    print(np.round(matrix.dot(np.conj(matrix.T)), 2))
+    print()
+    print(np.round(np.matmul(matrix, (matrix)), 2))
+    xq = xx(q)
+    circuit = cirq.Circuit(
+        xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq, xq
+    )
+    svs = []
+    for step in sim.simulate_moment_steps(circuit):
+        svs.append(np.round(step.state_vector(), 2))
+    print()
+    print(np.array(svs))
+    print(np.round(np.array(np.abs(svs)), 2))

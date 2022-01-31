@@ -89,10 +89,8 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     `cirq.X`, the Pauli X gate, is an instance of this gate at exponent=1.
     """
-
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
-        if self._exponent != 1:
-            return NotImplemented
+        return NotImplemented
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
         args.available_buffer[zero] = args.target_tensor[one]
@@ -110,10 +108,30 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         """Returns an equal-up-global-phase standardized form of the gate."""
         return XPowGate(exponent=self._exponent)
 
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return (3,)
+
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+        L = (-1+np.sqrt(3)*1j)/2
+        L2 = L ** 2
         return [
-            (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
-            (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
+            (0, np.array([
+                [1, 1, 1],
+                [1, 1, 1],
+                [1, 1, 1],
+            ]) / 3),
+            (2/3, np.array([
+                [1, L, L2],
+                [L2, 1, L],
+                [L, L2, 1],
+            ]) / 3),
+            (4/3, np.array([
+                [1, L2, L],
+                [L, 1, L2],
+                [L2, L, 1],
+            ]) / 3),
+            # (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
+            # (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
