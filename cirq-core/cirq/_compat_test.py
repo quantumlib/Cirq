@@ -429,6 +429,21 @@ def _import_multiple_deprecated():
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
 
 
+def _deprecate_grandchild_assert_attributes_in_sys_modules():
+    """Ensure submodule attributes are identical to sys.modules values."""
+    import cirq.testing._compat_test_data.module_a.fake_ab  # type: ignore
+
+    assert (
+        cirq.testing._compat_test_data.module_a.fake_ab
+        is sys.modules['cirq.testing._compat_test_data.module_a.fake_ab']
+    )
+    assert (
+        cirq.testing._compat_test_data.module_a
+        is sys.modules['cirq.testing._compat_test_data.module_a']
+    )
+    assert cirq.testing._compat_test_data is sys.modules['cirq.testing._compat_test_data']
+
+
 def _new_module_in_different_parent():
     from cirq.testing._compat_test_data.fake_ops import raw_types  # type: ignore
 
@@ -521,6 +536,12 @@ _fake_b_deprecation_msg = [
 ] + _deprecation_origin
 
 # see cirq_compat_test_data/__init__.py for the setup code
+_fake_ab_deprecation_msg = [
+    f'{old_parent}.module_a.fake_ab was used but is deprecated',
+    f'Use {old_parent}.module_a.module_b instead',
+] + _deprecation_origin
+
+# see cirq_compat_test_data/__init__.py for the setup code
 _fake_ops_deprecation_msg = [
     f'{old_parent}.fake_ops was used but is deprecated',
     'Use cirq.ops instead',
@@ -576,6 +597,7 @@ def subprocess_context(test_func):
     return isolated_func
 
 
+@pytest.mark.xfail(reason='Bug bites after grandchild module deprecation')
 @mock.patch.dict(os.environ, {"CIRQ_FORCE_DEDUPE_MODULE_DEPRECATION": "1"})
 @pytest.mark.parametrize(
     'outdated_method,deprecation_messages',
@@ -586,6 +608,7 @@ def subprocess_context(test_func):
         (_import_deprecated_first_new_second, [_fake_a_deprecation_msg]),
         (_import_new_first_deprecated_second, [_fake_a_deprecation_msg]),
         (_import_multiple_deprecated, [_fake_a_deprecation_msg, _fake_b_deprecation_msg]),
+        (_deprecate_grandchild_assert_attributes_in_sys_modules, [_fake_ab_deprecation_msg]),
         (_new_module_in_different_parent, [_fake_ops_deprecation_msg]),
         # ignore the frame requirement - as we are using find_spec from importlib, it
         # is detected as an 'internal' frame by warnings
