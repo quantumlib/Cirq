@@ -89,8 +89,16 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     `cirq.X`, the Pauli X gate, is an instance of this gate at exponent=1.
     """
+
+    def __init__(
+        self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
+    ):
+        super().__init__(exponent=exponent, global_shift=global_shift)
+        self._dimension = dimension
+
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
-        return NotImplemented
+        if self._dimension != 2:
+            return NotImplemented
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
         args.available_buffer[zero] = args.target_tensor[one]
@@ -109,30 +117,24 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return XPowGate(exponent=self._exponent)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
-        return (3,)
+        return (self._dimension,)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        L = (-1+np.sqrt(3)*1j)/2
-        L2 = L ** 2
-        return [
-            (0, np.array([
-                [1, 1, 1],
-                [1, 1, 1],
-                [1, 1, 1],
-            ]) / 3),
-            (2/3, np.array([
-                [1, L, L2],
-                [L2, 1, L],
-                [L, L2, 1],
-            ]) / 3),
-            (4/3, np.array([
-                [1, L2, L],
-                [L, 1, L2],
-                [L2, L, 1],
-            ]) / 3),
-            # (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
-            # (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
-        ]
+        components = []
+        rads = 2 * np.pi / self._dimension
+        root = np.cos(rads) + np.sin(rads) * 1j
+        for i in range(self._dimension):
+            half_turns = i * 2 / self._dimension
+            v = np.array([root ** (i * j) / self._dimension for j in range(self._dimension)])
+            m = np.array([np.roll(v, j) for j in range(self._dimension)])
+            component = (half_turns, np.round(m, 2))
+            components.append(component)
+        return components
+
+    def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'cirq.XPowGate':
+        return XPowGate(
+            exponent=exponent, global_shift=self._global_shift, dimension=self._dimension
+        )
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
