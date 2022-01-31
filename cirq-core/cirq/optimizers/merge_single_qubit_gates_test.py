@@ -29,10 +29,10 @@ def assert_optimizes(
     optimizer(before)
 
     # Ignore differences that would be caught by follow-up optimizations.
-    followup_optimizations = [cirq.drop_negligible_operations, cirq.drop_empty_moments]
-    for post in followup_optimizations:
-        before = post(before)  # type: ignore #  error: "object" not callable
-        expected = post(expected)  # type: ignore #  error: "object" not callable
+    followup_transformers = [cirq.drop_negligible_operations, cirq.drop_empty_moments]
+    for transform in followup_transformers:
+        before = transform(before)  # type: ignore #  error: "object" not callable
+        expected = transform(expected)  # type: ignore #  error: "object" not callable
 
     assert before == expected, f'BEFORE:\n{before}\nEXPECTED:\n{expected}'
 

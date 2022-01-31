@@ -35,13 +35,13 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
         post(actual)
         post(expected)
 
-    followup_optimizations_new: List[cirq.TRANSFORMER] = [
+    followup_transformers: List[cirq.TRANSFORMER] = [
         cirq.drop_negligible_operations,
         cirq.drop_empty_moments,
     ]
-    for post_new in followup_optimizations_new:
-        actual = post_new(actual).unfreeze(copy=False)
-        expected = post_new(expected).unfreeze(copy=False)
+    for transform in followup_transformers:
+        actual = transform(actual).unfreeze(copy=False)
+        expected = transform(expected).unfreeze(copy=False)
 
     assert actual == expected, f'ACTUAL {actual} : EXPECTED {expected}'
 

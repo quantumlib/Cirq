@@ -21,17 +21,11 @@ def test_drop():
     cirq.testing.assert_same_circuits(
         cirq.drop_empty_moments(
             cirq.Circuit(
-                [
-                    cirq.Moment(),
-                    cirq.Moment(),
-                    cirq.Moment([cirq.CNOT(q1, q2)]),
-                    cirq.Moment(),
-                ]
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment([cirq.CNOT(q1, q2)]),
+                cirq.Moment(),
             )
         ),
-        cirq.Circuit(
-            [
-                cirq.Moment([cirq.CNOT(q1, q2)]),
-            ]
-        ),
+        cirq.Circuit(cirq.Moment([cirq.CNOT(q1, q2)])),
     )
