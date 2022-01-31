@@ -261,7 +261,10 @@ def test_wrap_module():
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
         deprecate_attributes(my_module, {'foo': ('invalid', 'use bar instead')})
 
-    wrapped = deprecate_attributes(my_module, {'foo': ('v0.6', 'use bar instead')})
+    # temporarily update sys.modules so deprecate_attributes can find my_module
+    sys.modules['my_module'] = my_module
+    wrapped = deprecate_attributes('my_module', {'foo': ('v0.6', 'use bar instead')})
+    assert wrapped is sys.modules.pop('my_module')
     # Dunder methods
     assert wrapped.__doc__ == 'my doc string'
     assert wrapped.__name__ == 'my_module'
@@ -288,6 +291,24 @@ def test_wrap_module():
 
     with cirq.testing.assert_logs(count=0):
         _ = wrapped.bar
+
+
+def test_deprecate_attributes_assert_attributes_in_sys_modules():
+    subprocess_context(_test_deprecate_attributes_assert_attributes_in_sys_modules)()
+
+
+def _test_deprecate_attributes_assert_attributes_in_sys_modules():
+    """Ensure submodule attributes are consistent with sys.modules items."""
+    import cirq.testing._compat_test_data.module_a as module_a0
+
+    module_a1 = deprecate_attributes(
+        'cirq.testing._compat_test_data.module_a',
+        {'MODULE_A_ATTRIBUTE': ('v0.6', 'use plain string instead')},
+    )
+
+    assert module_a1 is not module_a0
+    assert module_a1 is cirq.testing._compat_test_data.module_a
+    assert module_a1 is sys.modules['cirq.testing._compat_test_data.module_a']
 
 
 def test_deprecated_class():

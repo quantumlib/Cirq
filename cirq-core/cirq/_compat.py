@@ -328,11 +328,11 @@ def deprecated_parameter(
     return decorator
 
 
-def deprecate_attributes(module: ModuleType, deprecated_attributes: Dict[str, Tuple[str, str]]):
-    """Wrap a module with deprecated attributes that give warnings.
+def deprecate_attributes(module_name: str, deprecated_attributes: Dict[str, Tuple[str, str]]):
+    """Replace module with a wrapper that gives warnings for deprecated attributes.
 
     Args:
-        module: The module to wrap.
+        module_name: Absolute name of the module that deprecates attributes.
         deprecated_attributes: A dictionary from attribute name to a tuple of
             strings, where the first string gives the version that the attribute
             will be removed in, and the second string describes what the user
@@ -345,6 +345,8 @@ def deprecate_attributes(module: ModuleType, deprecated_attributes: Dict[str, Tu
 
     for (deadline, _) in deprecated_attributes.values():
         _validate_deadline(deadline)
+
+    module = sys.modules[module_name]
 
     class Wrapped(ModuleType):
 
@@ -362,7 +364,13 @@ def deprecate_attributes(module: ModuleType, deprecated_attributes: Dict[str, Tu
                 )
             return getattr(module, name)
 
-    return Wrapped(module.__name__, module.__doc__)
+    wrapped_module = Wrapped(module_name, module.__doc__)
+    if '.' in module_name:
+        parent_name, module_tail = module_name.rsplit('.', 1)
+        setattr(sys.modules[parent_name], module_tail, wrapped_module)
+    sys.modules[module_name] = wrapped_module
+
+    return wrapped_module
 
 
 class DeprecatedModuleLoader(importlib.abc.Loader):

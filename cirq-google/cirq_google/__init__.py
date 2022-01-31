@@ -153,8 +153,8 @@ from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)
 
-sys.modules[__name__] = _compat.deprecate_attributes(
-    sys.modules[__name__],
+_compat.deprecate_attributes(
+    __name__,
     {
         'Bristlecone': ('v0.15', 'Bristlecone will no longer be supported.'),
         'Foxtail': ('v0.15', 'Foxtail will no longer be supported.'),
