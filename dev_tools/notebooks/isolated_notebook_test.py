@@ -54,6 +54,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/named_topologies.ipynb',
     # New Transformers.
     'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
+    'cirq-core/cirq/contrib/quimb/Cirq-to-Tensor-Networks.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
