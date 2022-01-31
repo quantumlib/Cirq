@@ -97,7 +97,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         self._dimension = dimension
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
-        if self._dimension != 2:
+        if self._exponent != 1 or self._dimension != 2:
             return NotImplemented
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
@@ -121,8 +121,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         components = []
-        rads = 2 * np.pi / self._dimension
-        root = np.cos(rads) + np.sin(rads) * 1j
+        root = 1j ** (4 / self._dimension)
         for i in range(self._dimension):
             half_turns = i * 2 / self._dimension
             v = np.array([root ** (i * j) / self._dimension for j in range(self._dimension)])
