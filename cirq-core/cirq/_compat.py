@@ -352,7 +352,8 @@ def deprecate_attributes(module_name: str, deprecated_attributes: Dict[str, Tupl
 
         __dict__ = module.__dict__
 
-        __spec__ = _make_proxy_spec_property(module)
+        # Workaround for: https://github.com/python/mypy/issues/8083
+        __spec__ = _make_proxy_spec_property(module)  # type: ignore
 
         def __getattr__(self, name):
             if name in deprecated_attributes:
@@ -652,7 +653,8 @@ def _setup_deprecated_submodule_attribute(
     class Wrapped(ModuleType):
         __dict__ = parent_module.__dict__
 
-        __spec__ = _make_proxy_spec_property(parent_module)
+        # Workaround for: https://github.com/python/mypy/issues/8083
+        __spec__ = _make_proxy_spec_property(parent_module)  # type: ignore
 
         def __getattr__(self, name):
             if name == old_child:
