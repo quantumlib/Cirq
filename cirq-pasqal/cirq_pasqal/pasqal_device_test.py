@@ -215,13 +215,14 @@ def test_validate_circuit():
         d.validate_circuit(circuit1)
 
 
-def test_can_add_operation_into_moment():
+def test_can_add_operation_into_moment_deprecated():
     d = square_virtual_device(control_r=1.0, num_qubits=2)
-    m1 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0))])
-    assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(0, 0)), m1)
-    assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(1, 1)), m1)
-    m2 = cirq.Moment([cirq.measure(*d.qubits[:-1])])
-    assert d.can_add_operation_into_moment(cirq.measure(TwoDQubit(1, 1)), m2)
+    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=3):
+        m1 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0))])
+        assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(0, 0)), m1)
+        assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(1, 1)), m1)
+        m2 = cirq.Moment([cirq.measure(*d.qubits[:-1])])
+        assert d.can_add_operation_into_moment(cirq.measure(TwoDQubit(1, 1)), m2)
 
 
 def test_minimal_distance():
