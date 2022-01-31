@@ -29,6 +29,7 @@ from typing import (
 import numpy as np
 
 from cirq import ops, protocols, qis
+from cirq._compat import deprecated
 from cirq.sim import (
     simulator,
     state_vector,
@@ -316,6 +317,11 @@ class SparseSimulatorStep(
                 self._state_vector = np.reshape(vector, size)
         return self._state_vector.copy() if copy else self._state_vector
 
+    # TODO: When removing, also remove `simulator` from the constructor, and the line
+    # `sim_state = step_result._sim_state` from `SimulatorBase._core_iterator()`.
+    @deprecated(
+        deadline="v0.15", fix='Use `initial_state` to prepare a new simulation on the suffix.'
+    )
     def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
         """Set the state vector.
 

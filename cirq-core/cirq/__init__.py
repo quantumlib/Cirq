@@ -371,6 +371,7 @@ from cirq.transformers import (
     single_qubit_matrix_to_phased_x_z,
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
+    synchronize_terminal_measurements,
     TRANSFORMER,
     TransformerContext,
     TransformerLogger,
