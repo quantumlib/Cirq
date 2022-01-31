@@ -43,6 +43,8 @@ from cirq.transformers.heuristic_decompositions import (
 
 from cirq.transformers.align import align_left, align_right
 
+from cirq.transformers.synchronize_terminal_measurements import synchronize_terminal_measurements
+
 from cirq.transformers.transformer_api import (
     LogLevel,
     TRANSFORMER,
