@@ -2101,18 +2101,18 @@ class Circuit(AbstractCircuit):
 
         i = start
         op_index = 0
-        can_add_lambda = lambda a, b: b.operates_on(a.qubits)
+        cannot_add_lambda = lambda a, b: b.operates_on(a.qubits)
         if self._device != cirq.UNCONSTRAINED_DEVICE:
             _compat._warn_or_error(
                 "In Cirq v0.15 device specific validation in "
                 "insert_into_range will no longer enforced."
             )
-            can_add_lambda = lambda a, b: not self._device.can_add_operation_into_moment(a, b)
+            cannot_add_lambda = lambda a, b: not self._device.can_add_operation_into_moment(a, b)
 
         with _compat.block_overlapping_deprecation('can_add_operation_into_moment'):
             while op_index < len(flat_ops):
                 op = flat_ops[op_index]
-                while i < end and can_add_lambda(op, self._moments[i]):
+                while i < end and cannot_add_lambda(op, self._moments[i]):
                     i += 1
                 if i >= end:
                     break

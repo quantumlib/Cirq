@@ -154,7 +154,7 @@ class Device(metaclass=abc.ABCMeta):
 
     @_compat.deprecated(
         deadline='v0.15',
-        fix='can_add_operation_into_moment will be revmoved in the future.'
+        fix='can_add_operation_into_moment will be removed in the future.'
         ' Consider using device.validate_circuit instead.',
     )
     def can_add_operation_into_moment(
