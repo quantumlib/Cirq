@@ -153,7 +153,6 @@ from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)
 
-__spec_copy__ = sys.modules[__name__].__spec__
 sys.modules[__name__] = _compat.deprecate_attributes(
     sys.modules[__name__],
     {
@@ -161,4 +160,3 @@ sys.modules[__name__] = _compat.deprecate_attributes(
         'Foxtail': ('v0.15', 'Foxtail will no longer be supported.'),
     },
 )
-sys.modules[__name__].__spec__ = __spec_copy__

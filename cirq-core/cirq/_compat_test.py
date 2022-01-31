@@ -249,7 +249,6 @@ def test_deprecated_parameter():
         # pylint: enable=unused-variable
 
 
-@pytest.mark.xfail(reason='Module spec missing after attribute deprecation')
 def test_wrap_module():
     my_module = types.ModuleType('my_module', 'my doc string')
     my_module.foo = 'foo'
@@ -600,7 +599,6 @@ def subprocess_context(test_func):
     return isolated_func
 
 
-@pytest.mark.xfail(reason='Bug bites after grandchild module deprecation')
 @mock.patch.dict(os.environ, {"CIRQ_FORCE_DEDUPE_MODULE_DEPRECATION": "1"})
 @pytest.mark.parametrize(
     'outdated_method,deprecation_messages',
@@ -626,6 +624,8 @@ def subprocess_context(test_func):
     ],
 )
 def test_deprecated_module(outdated_method, deprecation_messages):
+    if outdated_method is _deprecate_grandchild_assert_attributes_in_sys_modules:
+        pytest.xfail(reason='Inconsistent module attribute after grandchild module deprecation')
     subprocess_context(_test_deprecated_module_inner)(outdated_method, deprecation_messages)
 
 
@@ -717,7 +717,6 @@ def _test_metadata_distributions_after_deprecated_submodule():
     assert all(isinstance(d.name, str) for d in distlist)
 
 
-@pytest.mark.xfail(reason='Parent module spec missing after submodule deprecation')
 def test_parent_spec_after_deprecated_submodule():
     subprocess_context(_test_parent_spec_after_deprecated_submodule)()
 
