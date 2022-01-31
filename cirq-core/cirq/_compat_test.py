@@ -249,10 +249,12 @@ def test_deprecated_parameter():
         # pylint: enable=unused-variable
 
 
+@pytest.mark.xfail(reason='Module spec missing after attribute deprecation')
 def test_wrap_module():
     my_module = types.ModuleType('my_module', 'my doc string')
     my_module.foo = 'foo'
     my_module.bar = 'bar'
+    my_module.__spec__ = ModuleSpec('my_module', loader=None)
     assert 'foo' in my_module.__dict__
     assert 'bar' in my_module.__dict__
     assert 'zoo' not in my_module.__dict__
@@ -264,6 +266,7 @@ def test_wrap_module():
     # Dunder methods
     assert wrapped.__doc__ == 'my doc string'
     assert wrapped.__name__ == 'my_module'
+    assert wrapped.__spec__ is my_module.__spec__
     # Test dict is correct.
     assert 'foo' in wrapped.__dict__
     assert 'bar' in wrapped.__dict__
