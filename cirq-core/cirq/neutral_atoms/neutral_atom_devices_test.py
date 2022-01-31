@@ -220,15 +220,16 @@ def test_validate_moment_errors():
         d2.validate_moment(m)
 
 
-def test_can_add_operation_into_moment_coverage():
-    d = square_device(2, 2)
-    q00 = cirq.GridQubit(0, 0)
-    q01 = cirq.GridQubit(0, 1)
-    q10 = cirq.GridQubit(1, 0)
-    m = cirq.Moment([cirq.X.on(q00)])
-    assert not d.can_add_operation_into_moment(cirq.X.on(q00), m)
-    assert not d.can_add_operation_into_moment(cirq.CZ.on(q01, q10), m)
-    assert d.can_add_operation_into_moment(cirq.Z.on(q01), m)
+def test_can_add_operation_into_moment_coverage_deprecated():
+    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=3):
+        d = square_device(2, 2)
+        q00 = cirq.GridQubit(0, 0)
+        q01 = cirq.GridQubit(0, 1)
+        q10 = cirq.GridQubit(1, 0)
+        m = cirq.Moment([cirq.X.on(q00)])
+        assert not d.can_add_operation_into_moment(cirq.X.on(q00), m)
+        assert not d.can_add_operation_into_moment(cirq.CZ.on(q01, q10), m)
+        assert d.can_add_operation_into_moment(cirq.Z.on(q01), m)
 
 
 def test_validate_circuit_errors():
