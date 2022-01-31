@@ -1161,13 +1161,13 @@ def test_xpow_dim_3():
     circuit = cirq.Circuit([half_x(q)] * 6)
     svs = []
     for step in sim.simulate_moment_steps(circuit):
-        svs.append(np.round(np.abs(step.state_vector()), 1))
+        svs.append(np.round(np.abs(step.state_vector()), 2))
     expected = [
-        [0.7, 0.7, 0.3],
+        [0.67, 0.67, 0.33],
         [0.0, 1.0, 0.0],
-        [0.3, 0.6, 0.7],
+        [0.33, 0.67, 0.67],
         [0.0, 0.0, 1.0],
-        [0.7, 0.3, 0.6],
+        [0.67, 0.33, 0.67],
         [1.0, 0.0, 0.0],
     ]
     assert np.allclose(svs, expected)

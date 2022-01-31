@@ -126,7 +126,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             half_turns = i * 2 / self._dimension
             v = np.array([root ** (i * j) / self._dimension for j in range(self._dimension)])
             m = np.array([np.roll(v, j) for j in range(self._dimension)])
-            component = (half_turns, np.round(m, 2))
+            component = (half_turns, m)
             components.append(component)
         return components
 
