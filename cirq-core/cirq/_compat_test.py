@@ -714,6 +714,17 @@ def _test_metadata_distributions_after_deprecated_submodule():
     assert all(isinstance(d.name, str) for d in distlist)
 
 
+@pytest.mark.xfail(reason='Parent module spec missing after submodule deprecation')
+def test_parent_spec_after_deprecated_submodule():
+    subprocess_context(_test_parent_spec_after_deprecated_submodule)()
+
+
+def _test_parent_spec_after_deprecated_submodule():
+    import cirq.testing._compat_test_data
+
+    assert cirq.testing._compat_test_data.__spec__.name == 'cirq.testing._compat_test_data'
+
+
 def test_type_repr_in_new_module():
     # to cater for metadata path finders
     # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
