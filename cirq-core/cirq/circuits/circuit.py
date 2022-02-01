@@ -2139,6 +2139,7 @@ class Circuit(AbstractCircuit):
                     i += 1
                 if i >= end:
                     break
+
                 self._moments[i] = self._moments[i].with_operation(op)
                 op_index += 1
 
