@@ -114,7 +114,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def with_canonical_global_phase(self) -> 'XPowGate':
         """Returns an equal-up-global-phase standardized form of the gate."""
-        return XPowGate(exponent=self._exponent)
+        return XPowGate(exponent=self._exponent, dimension=self._dimension)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return (self._dimension,)
@@ -148,7 +148,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return NotImplemented
 
     def _trace_distance_bound_(self) -> Optional[float]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
@@ -200,7 +200,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return result
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        if protocols.is_parameterized(self):
+        if protocols.is_parameterized(self) or self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
@@ -246,7 +246,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         )
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return self.exponent % 0.5 == 0
 
@@ -258,12 +258,12 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return f'XPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
-        if self._global_shift == 0:
+        if self._global_shift == 0 and self._dimension == 2:
             if self._exponent == 1:
                 return 'cirq.X'
             return f'(cirq.X**{proper_repr(self._exponent)})'
-        return 'cirq.XPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
+        return 'cirq.XPowGate(exponent={}, global_shift={!r}, dimension={!r})'.format(
+            proper_repr(self._exponent), self._global_shift, self._dimension
         )
 
 
@@ -544,7 +544,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def with_canonical_global_phase(self) -> 'ZPowGate':
         """Returns an equal-up-global-phase standardized form of the gate."""
-        return ZPowGate(exponent=self._exponent)
+        return ZPowGate(exponent=self._exponent, dimension=self._dimension)
 
     def controlled(
         self,
@@ -611,12 +611,12 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         )
 
     def _trace_distance_bound_(self) -> Optional[float]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        if protocols.is_parameterized(self):
+        if protocols.is_parameterized(self) or self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
@@ -631,7 +631,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return self
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return self.exponent % 0.5 == 0
 
@@ -681,7 +681,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return f'ZPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
-        if self._global_shift == 0:
+        if self._global_shift == 0 and self._dimension == 2:
             if self._exponent == 0.25:
                 return 'cirq.T'
             if self._exponent == -0.25:
@@ -693,8 +693,8 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             if self._exponent == 1:
                 return 'cirq.Z'
             return f'(cirq.Z**{proper_repr(self._exponent)})'
-        return 'cirq.ZPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
+        return 'cirq.ZPowGate(exponent={}, global_shift={!r}, dimension={!r})'.format(
+            proper_repr(self._exponent), self._global_shift, self._dimension
         )
 
     def _commutes_on_qids_(
