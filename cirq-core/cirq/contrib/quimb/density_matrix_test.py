@@ -58,7 +58,7 @@ def test_tensor_density_matrix_3():
 def test_tensor_density_matrix_4():
     qubits = cirq.LineQubit.range(4)
     circuit = cirq.testing.random_circuit(qubits=qubits, n_moments=100, op_density=0.8)
-    cirq.DropEmptyMoments().optimize_circuit(circuit)
+    circuit = cirq.drop_empty_moments(circuit)
     noise_model = cirq.ConstantQubitNoiseModel(cirq.DepolarizingChannel(p=1e-3))
     circuit = cirq.Circuit(noise_model.noisy_moments(circuit.moments, qubits))
     rho1 = cirq.final_density_matrix(circuit, dtype=np.complex128)
@@ -69,7 +69,7 @@ def test_tensor_density_matrix_4():
 def test_tensor_density_matrix_gridqubit():
     qubits = cirq.GridQubit.rect(2, 2)
     circuit = cirq.testing.random_circuit(qubits=qubits, n_moments=10, op_density=0.8)
-    cirq.DropEmptyMoments().optimize_circuit(circuit)
+    circuit = cirq.drop_empty_moments(circuit)
     noise_model = cirq.ConstantQubitNoiseModel(cirq.DepolarizingChannel(p=1e-3))
     circuit = cirq.Circuit(noise_model.noisy_moments(circuit.moments, qubits))
     rho1 = cirq.final_density_matrix(circuit, dtype=np.complex128)

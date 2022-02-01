@@ -1176,6 +1176,14 @@ d: ───@───────@───────
     )
 
 
+def test_insert_into_range_deprecated():
+    with cirq.testing.assert_deprecated('insert_into_range', deadline='v0.15'):
+        x, y = cirq.GridQubit.rect(1, 2)
+        c = cirq.Circuit([cirq.Moment([cirq.X(x)])] * 4)
+        c._device = FOXY
+        c.insert_into_range([cirq.Z(x), cirq.CZ(x, y)], 2, 2)
+
+
 def test_insert_into_range():
     x = cirq.NamedQubit('x')
     y = cirq.NamedQubit('y')
