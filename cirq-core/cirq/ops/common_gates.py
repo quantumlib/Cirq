@@ -513,15 +513,13 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         self._dimension = dimension
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
-        if self._dimension != 2:
-            return NotImplemented
-
         if protocols.is_parameterized(self):
             return None
 
-        one = args.subspace_index(1)
-        c = 1j ** (self._exponent * 2)
-        args.target_tensor[one] *= c
+        for i in range(1, self._dimension):
+            subspace = args.subspace_index(i)
+            c = 1j ** (self._exponent * 4 * i / self._dimension)
+            args.target_tensor[subspace] *= c
         p = 1j ** (2 * self._exponent * self._global_shift)
         if p != 1:
             args.target_tensor *= p
