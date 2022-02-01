@@ -189,7 +189,8 @@ def test_validate_operation_errors_deprecated():
     with pytest.raises(
         NotImplementedError, match="Measurements on Pasqal devices don't support invert_mask."
     ):
-        circuit.append(cirq.measure(*d.qubits, invert_mask=(True, False, False)))
+        with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
+            circuit.append(cirq.measure(*d.qubits, invert_mask=(True, False, False)))
 
 
 def test_validate_moment():
