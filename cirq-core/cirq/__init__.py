@@ -683,4 +683,24 @@ from cirq import (
     contrib,
 )
 
+# deprecate cirq.ops.moment and related attributes
+
+from cirq import _compat
+
+_compat.deprecated_submodule(
+    new_module_name='cirq.circuits.moment',
+    old_parent='cirq.ops',
+    old_child='moment',
+    deadline='v0.16',
+    create_attribute=True,
+)
+
+ops.Moment = Moment
+_compat.deprecate_attributes(
+    'cirq.ops',
+    {
+        'Moment': ('v0.16', 'Use cirq.circuits.Moment instead'),
+    },
+)
+
 # pylint: enable=wrong-import-position
