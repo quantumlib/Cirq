@@ -120,14 +120,13 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return (self._dimension,)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+        root = np.exp(2 * np.pi * 1j / self._dimension)
         components = []
-        root = 1j ** (4 / self._dimension)
         for i in range(self._dimension):
             half_turns = i * 2 / self._dimension
             v = np.array([root ** (i * j) / self._dimension for j in range(self._dimension)])
             m = np.array([np.roll(v, j) for j in range(self._dimension)])
-            component = (half_turns, m)
-            components.append(component)
+            components.append((half_turns, m))
         return components
 
     def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'cirq.XPowGate':
@@ -507,7 +506,16 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     `cirq.Z`, the Pauli Z gate, is an instance of this gate at exponent=1.
     """
 
+    def __init__(
+        self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
+    ):
+        super().__init__(exponent=exponent, global_shift=global_shift)
+        self._dimension = dimension
+
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+        if self._dimension != 2:
+            return NotImplemented
+
         if protocols.is_parameterized(self):
             return None
 
@@ -587,11 +595,22 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             )
         return result
 
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return (self._dimension,)
+
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 0])),
-            (1, np.diag([0, 1])),
-        ]
+        components = []
+        for i in range(self._dimension):
+            half_turns = i * 2 / self._dimension
+            m = np.zeros((self._dimension, self._dimension))
+            m[i][i] = 1
+            components.append((half_turns, m))
+        return components
+
+    def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'cirq.ZPowGate':
+        return ZPowGate(
+            exponent=exponent, global_shift=self._global_shift, dimension=self._dimension
+        )
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():

@@ -1155,13 +1155,17 @@ def test_approx_eq():
 
 
 def test_xpow_dim_3():
-    q = cirq.LineQid(0, 3)
+    x = cirq.XPowGate(dimension=3)
+    expected = [
+        [0, 0, 1],
+        [1, 0, 0],
+        [0, 1, 0],
+    ]
+    assert np.allclose(cirq.unitary(x), expected)
+
     sim = cirq.Simulator()
-    half_x = cirq.XPowGate(dimension=3) ** 0.5
-    circuit = cirq.Circuit([half_x(q)] * 6)
-    svs = []
-    for step in sim.simulate_moment_steps(circuit):
-        svs.append(np.round(np.abs(step.state_vector()), 2))
+    circuit = cirq.Circuit([x(cirq.LineQid(0, 3)) ** 0.5] * 6)
+    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit)]
     expected = [
         [0.67, 0.67, 0.33],
         [0.0, 1.0, 0.0],
@@ -1170,17 +1174,22 @@ def test_xpow_dim_3():
         [0.67, 0.33, 0.67],
         [1.0, 0.0, 0.0],
     ]
-    assert np.allclose(svs, expected)
+    assert np.allclose(np.abs(svs), expected, atol=1e-2)
 
 
 def test_xpow_dim_4():
-    q = cirq.LineQid(0, 4)
+    x = cirq.XPowGate(dimension=4)
+    expected = [
+        [0, 0, 0, 1],
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+    ]
+    assert np.allclose(cirq.unitary(x), expected)
+
     sim = cirq.Simulator()
-    half_x = cirq.XPowGate(dimension=4) ** 0.5
-    circuit = cirq.Circuit([half_x(q)] * 8)
-    svs = []
-    for step in sim.simulate_moment_steps(circuit):
-        svs.append(np.round(np.abs(step.state_vector()), 2))
+    circuit = cirq.Circuit([x(cirq.LineQid(0, 4)) ** 0.5] * 8)
+    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit)]
     expected = [
         [0.65, 0.65, 0.27, 0.27],
         [0.0, 1.0, 0.0, 0.0],
@@ -1190,5 +1199,101 @@ def test_xpow_dim_4():
         [0.0, 0.0, 0.0, 1.0],
         [0.65, 0.27, 0.27, 0.65],
         [1.0, 0.0, 0.0, 0.0],
+    ]
+    assert np.allclose(np.abs(svs), expected, atol=1e-2)
+
+
+def test_zpow_dim_3():
+    L = np.exp(2 * np.pi * 1j / 3)
+    L2 = L ** 2
+    z = cirq.ZPowGate(dimension=3)
+    expected = [
+        [1, 0, 0],
+        [0, L, 0],
+        [0, 0, L2],
+    ]
+    assert np.allclose(cirq.unitary(z), expected)
+
+    sim = cirq.Simulator()
+    circuit = cirq.Circuit([z(cirq.LineQid(0, 3)) ** 0.5] * 6)
+    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=0)]
+    expected = [[1, 0, 0]] * 6
+    assert np.allclose((svs), expected)
+
+    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=1)]
+    expected = [
+        [0, L ** 0.5, 0],
+        [0, L ** 1.0, 0],
+        [0, L ** 1.5, 0],
+        [0, L ** 2.0, 0],
+        [0, L ** 2.5, 0],
+        [0, 1, 0],
+    ]
+    assert np.allclose((svs), expected)
+
+    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=2)]
+    expected = [
+        [0, 0, L],
+        [0, 0, L2],
+        [0, 0, 1],
+        [0, 0, L],
+        [0, 0, L2],
+        [0, 0, 1],
+    ]
+    assert np.allclose((svs), expected)
+
+
+def test_zpow_dim_4():
+    z = cirq.ZPowGate(dimension=4)
+    expected = [
+        [1, 0, 0, 0],
+        [0, 1j, 0, 0],
+        [0, 0, -1, 0],
+        [0, 0, 0, -1j],
+    ]
+    assert np.allclose(cirq.unitary(z), expected)
+
+    sim = cirq.Simulator()
+    circuit = cirq.Circuit([z(cirq.LineQid(0, 4)) ** 0.5] * 8)
+    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=0)]
+    expected = [[1, 0, 0, 0]] * 8
+    assert np.allclose((svs), expected)
+
+    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=1)]
+    expected = [
+        [0, 1j ** 0.5, 0, 0],
+        [0, 1j ** 1.0, 0, 0],
+        [0, 1j ** 1.5, 0, 0],
+        [0, 1j ** 2.0, 0, 0],
+        [0, 1j ** 2.5, 0, 0],
+        [0, 1j ** 3.0, 0, 0],
+        [0, 1j ** 3.5, 0, 0],
+        [0, 1, 0, 0],
+    ]
+    assert np.allclose(svs, expected)
+
+    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=2)]
+    expected = [
+        [0, 0, 1j, 0],
+        [0, 0, -1, 0],
+        [0, 0, -1j, 0],
+        [0, 0, 1, 0],
+        [0, 0, 1j, 0],
+        [0, 0, -1, 0],
+        [0, 0, -1j, 0],
+        [0, 0, 1, 0],
+    ]
+    assert np.allclose(svs, expected)
+
+    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=3)]
+    expected = [
+        [0, 0, 0, 1j ** 1.5],
+        [0, 0, 0, 1j ** 3],
+        [0, 0, 0, 1j ** 0.5],
+        [0, 0, 0, 1j ** 2],
+        [0, 0, 0, 1j ** 3.5],
+        [0, 0, 0, 1j ** 1],
+        [0, 0, 0, 1j ** 2.5],
+        [0, 0, 0, 1],
     ]
     assert np.allclose(svs, expected)
