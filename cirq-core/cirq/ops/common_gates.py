@@ -90,6 +90,8 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     `cirq.X`, the Pauli X gate, is an instance of this gate at exponent=1.
     """
 
+    _eigencomponents: Dict[int, List[Tuple[float, np.ndarray]]] = {}
+
     def __init__(
         self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
     ):
@@ -120,14 +122,16 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return (self._dimension,)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        components = []
-        root = 1j ** (4 / self._dimension)
-        for i in range(self._dimension):
-            half_turns = i * 2 / self._dimension
-            v = np.array([root ** (i * j) / self._dimension for j in range(self._dimension)])
-            m = np.array([np.roll(v, j) for j in range(self._dimension)])
-            components.append((half_turns, m))
-        return components
+        if self._dimension not in XPowGate._eigencomponents:
+            components = []
+            root = 1j ** (4 / self._dimension)
+            for i in range(self._dimension):
+                half_turns = i * 2 / self._dimension
+                v = np.array([root ** (i * j) / self._dimension for j in range(self._dimension)])
+                m = np.array([np.roll(v, j) for j in range(self._dimension)])
+                components.append((half_turns, m))
+            XPowGate._eigencomponents[self._dimension] = components
+        return XPowGate._eigencomponents[self._dimension]
 
     def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'cirq.XPowGate':
         return XPowGate(
@@ -506,6 +510,8 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     `cirq.Z`, the Pauli Z gate, is an instance of this gate at exponent=1.
     """
 
+    _eigencomponents: Dict[int, List[Tuple[float, np.ndarray]]] = {}
+
     def __init__(
         self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
     ):
@@ -597,13 +603,15 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return (self._dimension,)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        components = []
-        for i in range(self._dimension):
-            half_turns = i * 2 / self._dimension
-            m = np.zeros((self._dimension, self._dimension))
-            m[i][i] = 1
-            components.append((half_turns, m))
-        return components
+        if self._dimension not in ZPowGate._eigencomponents:
+            components = []
+            for i in range(self._dimension):
+                half_turns = i * 2 / self._dimension
+                m = np.zeros((self._dimension, self._dimension))
+                m[i][i] = 1
+                components.append((half_turns, m))
+            ZPowGate._eigencomponents[self._dimension] = components
+        return ZPowGate._eigencomponents[self._dimension]
 
     def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'cirq.ZPowGate':
         return ZPowGate(
