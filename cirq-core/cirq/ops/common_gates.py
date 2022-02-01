@@ -120,8 +120,8 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return (self._dimension,)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        root = np.exp(2 * np.pi * 1j / self._dimension)
         components = []
+        root = 1j ** (4 / self._dimension)
         for i in range(self._dimension):
             half_turns = i * 2 / self._dimension
             v = np.array([root ** (i * j) / self._dimension for j in range(self._dimension)])
