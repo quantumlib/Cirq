@@ -152,6 +152,11 @@ class Device(metaclass=abc.ABCMeta):
         for operation in moment.operations:
             self.validate_operation(operation)
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='can_add_operation_into_moment will be removed in the future.'
+        ' Consider using device.validate_circuit instead.',
+    )
     def can_add_operation_into_moment(
         self, operation: 'cirq.Operation', moment: 'cirq.Moment'
     ) -> bool:
