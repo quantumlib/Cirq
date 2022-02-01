@@ -269,6 +269,9 @@ def test_wrap_module():
     assert wrapped.__doc__ == 'my doc string'
     assert wrapped.__name__ == 'my_module'
     assert wrapped.__spec__ is my_module.__spec__
+    # Verify __spec__ setter in the wrapped module
+    wrapped.__spec__ = ModuleSpec('my_module', loader=None)
+    assert my_module.__spec__ is wrapped.__spec__
     # Test dict is correct.
     assert 'foo' in wrapped.__dict__
     assert 'bar' in wrapped.__dict__
