@@ -1939,7 +1939,7 @@ class Circuit(AbstractCircuit):
             raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
 
         op_list = [
-            ops.Moment(operation.transform_qubits(transform) for operation in moment.operations)
+            Moment(operation.transform_qubits(transform) for operation in moment.operations)
             for moment in self._moments
         ]
 
