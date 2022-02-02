@@ -229,6 +229,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
       - name: Install requirements
+        run: pip install wheel
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
         run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
