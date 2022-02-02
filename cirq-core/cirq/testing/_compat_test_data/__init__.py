@@ -19,6 +19,16 @@ _compat.deprecated_submodule(
     create_attribute=True,
 )
 
+# simulates a rename of a grandchild module
+# module_a.fake_ab -> module_a.module_b
+_compat.deprecated_submodule(
+    new_module_name=f"{__name__}.module_a.module_b",
+    old_parent=f"{__name__}.module_a",
+    old_child="fake_ab",
+    deadline="v0.20",
+    create_attribute=True,
+)
+
 # simulates a rename of a child module with same prefix
 # this prefix will collide with multiple "old" and new prefixes here
 # module_ -> module_a

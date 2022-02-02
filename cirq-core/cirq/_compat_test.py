@@ -253,6 +253,7 @@ def test_wrap_module():
     my_module = types.ModuleType('my_module', 'my doc string')
     my_module.foo = 'foo'
     my_module.bar = 'bar'
+    my_module.__spec__ = ModuleSpec('my_module', loader=None)
     assert 'foo' in my_module.__dict__
     assert 'bar' in my_module.__dict__
     assert 'zoo' not in my_module.__dict__
@@ -260,10 +261,17 @@ def test_wrap_module():
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
         deprecate_attributes(my_module, {'foo': ('invalid', 'use bar instead')})
 
-    wrapped = deprecate_attributes(my_module, {'foo': ('v0.6', 'use bar instead')})
+    # temporarily update sys.modules so deprecate_attributes can find my_module
+    sys.modules['my_module'] = my_module
+    wrapped = deprecate_attributes('my_module', {'foo': ('v0.6', 'use bar instead')})
+    assert wrapped is sys.modules.pop('my_module')
     # Dunder methods
     assert wrapped.__doc__ == 'my doc string'
     assert wrapped.__name__ == 'my_module'
+    assert wrapped.__spec__ is my_module.__spec__
+    # Verify __spec__ setter in the wrapped module
+    wrapped.__spec__ = ModuleSpec('my_module', loader=None)
+    assert my_module.__spec__ is wrapped.__spec__
     # Test dict is correct.
     assert 'foo' in wrapped.__dict__
     assert 'bar' in wrapped.__dict__
@@ -286,6 +294,24 @@ def test_wrap_module():
 
     with cirq.testing.assert_logs(count=0):
         _ = wrapped.bar
+
+
+def test_deprecate_attributes_assert_attributes_in_sys_modules():
+    subprocess_context(_test_deprecate_attributes_assert_attributes_in_sys_modules)()
+
+
+def _test_deprecate_attributes_assert_attributes_in_sys_modules():
+    """Ensure submodule attributes are consistent with sys.modules items."""
+    import cirq.testing._compat_test_data.module_a as module_a0
+
+    module_a1 = deprecate_attributes(
+        'cirq.testing._compat_test_data.module_a',
+        {'MODULE_A_ATTRIBUTE': ('v0.6', 'use plain string instead')},
+    )
+
+    assert module_a1 is not module_a0
+    assert module_a1 is cirq.testing._compat_test_data.module_a
+    assert module_a1 is sys.modules['cirq.testing._compat_test_data.module_a']
 
 
 def test_deprecated_class():
@@ -429,6 +455,21 @@ def _import_multiple_deprecated():
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
 
 
+def _deprecate_grandchild_assert_attributes_in_sys_modules():
+    """Ensure submodule attributes are identical to sys.modules values."""
+    import cirq.testing._compat_test_data.module_a.fake_ab  # type: ignore
+
+    assert (
+        cirq.testing._compat_test_data.module_a.fake_ab
+        is sys.modules['cirq.testing._compat_test_data.module_a.fake_ab']
+    )
+    assert (
+        cirq.testing._compat_test_data.module_a
+        is sys.modules['cirq.testing._compat_test_data.module_a']
+    )
+    assert cirq.testing._compat_test_data is sys.modules['cirq.testing._compat_test_data']
+
+
 def _new_module_in_different_parent():
     from cirq.testing._compat_test_data.fake_ops import raw_types  # type: ignore
 
@@ -521,6 +562,12 @@ _fake_b_deprecation_msg = [
 ] + _deprecation_origin
 
 # see cirq_compat_test_data/__init__.py for the setup code
+_fake_ab_deprecation_msg = [
+    f'{old_parent}.module_a.fake_ab was used but is deprecated',
+    f'Use {old_parent}.module_a.module_b instead',
+] + _deprecation_origin
+
+# see cirq_compat_test_data/__init__.py for the setup code
 _fake_ops_deprecation_msg = [
     f'{old_parent}.fake_ops was used but is deprecated',
     'Use cirq.ops instead',
@@ -586,6 +633,7 @@ def subprocess_context(test_func):
         (_import_deprecated_first_new_second, [_fake_a_deprecation_msg]),
         (_import_new_first_deprecated_second, [_fake_a_deprecation_msg]),
         (_import_multiple_deprecated, [_fake_a_deprecation_msg, _fake_b_deprecation_msg]),
+        (_deprecate_grandchild_assert_attributes_in_sys_modules, [_fake_ab_deprecation_msg]),
         (_new_module_in_different_parent, [_fake_ops_deprecation_msg]),
         # ignore the frame requirement - as we are using find_spec from importlib, it
         # is detected as an 'internal' frame by warnings
@@ -689,6 +737,16 @@ def _test_metadata_distributions_after_deprecated_submodule():
     m = pytest.importorskip("importlib_metadata")
     distlist = list(m.distributions())
     assert all(isinstance(d.name, str) for d in distlist)
+
+
+def test_parent_spec_after_deprecated_submodule():
+    subprocess_context(_test_parent_spec_after_deprecated_submodule)()
+
+
+def _test_parent_spec_after_deprecated_submodule():
+    import cirq.testing._compat_test_data
+
+    assert cirq.testing._compat_test_data.__spec__.name == 'cirq.testing._compat_test_data'
 
 
 def test_type_repr_in_new_module():
