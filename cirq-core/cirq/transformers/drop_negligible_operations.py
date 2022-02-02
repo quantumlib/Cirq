@@ -50,5 +50,5 @@ def drop_negligible_operations(
         )
 
     return transformer_primitives.map_operations(
-        circuit, map_func, tags_to_ignore=context.ignore_tags if context else ()
+        circuit, map_func, tags_to_ignore=context.tags_to_ignore if context else ()
     ).unfreeze(copy=False)

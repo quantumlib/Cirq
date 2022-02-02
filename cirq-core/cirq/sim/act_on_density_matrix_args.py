@@ -13,11 +13,11 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence, Union
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence, Type, Union
 
 import numpy as np
 
-from cirq import protocols, sim
+from cirq import _compat, protocols, qis, sim
 from cirq._compat import proper_repr
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
@@ -33,15 +33,23 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     storing the density matrix of the quantum system with one axis per qubit.
     """
 
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
+        fix='Use initial_state instead and specify all the arguments with keywords.',
+        parameter_desc='target_tensor and positional arguments',
+        match=lambda args, kwargs: 'target_tensor' in kwargs or len(args) != 1,
+    )
     def __init__(
         self,
-        target_tensor: np.ndarray,
+        target_tensor: Optional[np.ndarray] = None,
         available_buffer: Optional[List[np.ndarray]] = None,
         qid_shape: Optional[Tuple[int, ...]] = None,
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, Any]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         ignore_measurement_results: bool = False,
+        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
+        dtype: Type[np.number] = np.complex64,
     ):
         """Inits ActOnDensityMatrixArgs.
 
@@ -65,17 +73,31 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 will treat measurement as dephasing instead of collapsing
                 process. This is only applicable to simulators that can
                 model dephasing.
+            initial_state: The initial state for the simulation in the
+                computational basis.
+            dtype: The `numpy.dtype` of the inferred state vector. One of
+                `numpy.complex64` or `numpy.complex128`. Only used when
+                `target_tenson` is None.
 
         Raises:
             ValueError: The dimension of `target_tensor` is not divisible by 2
                 and `qid_shape` is not provided.
         """
         super().__init__(prng, qubits, log_of_measurement_results, ignore_measurement_results)
+        if target_tensor is None:
+            qubits_qid_shape = protocols.qid_shape(self.qubits)
+            initial_matrix = qis.to_valid_density_matrix(
+                initial_state, len(qubits_qid_shape), qid_shape=qubits_qid_shape, dtype=dtype
+            )
+            if np.may_share_memory(initial_matrix, initial_state):
+                initial_matrix = initial_matrix.copy()
+            target_tensor = initial_matrix.reshape(qubits_qid_shape * 2)
         self.target_tensor = target_tensor
+
         if available_buffer is None:
-            self.available_buffer = [np.empty_like(target_tensor) for _ in range(3)]
-        else:
-            self.available_buffer = available_buffer
+            available_buffer = [np.empty_like(target_tensor) for _ in range(3)]
+        self.available_buffer = available_buffer
+
         if qid_shape is None:
             target_shape = target_tensor.shape
             if len(target_shape) % 2 != 0:
@@ -83,9 +105,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                     'The dimension of target_tensor is not divisible by 2.'
                     ' Require explicit qid_shape.'
                 )
-            self.qid_shape = target_shape[: len(target_shape) // 2]
-        else:
-            self.qid_shape = qid_shape
+            qid_shape = target_shape[: len(target_shape) // 2]
+        self.qid_shape = qid_shape
 
     def _act_on_fallback_(
         self,

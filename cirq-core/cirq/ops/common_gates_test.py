@@ -603,10 +603,10 @@ def test_act_on_ch_form(input_gate_sequence, outcome):
         assert num_qubits == 2
         qubits = cirq.LineQubit.range(2)
     args = cirq.ActOnStabilizerCHFormArgs(
-        state=original_state.copy(),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=original_state.copy(),
     )
 
     flipped_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=23)
