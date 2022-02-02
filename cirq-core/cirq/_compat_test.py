@@ -598,6 +598,11 @@ def _trace_unhandled_exceptions(*args, queue: 'multiprocessing.Queue', func: Cal
 
 def subprocess_context(test_func):
     """Ensures that sys.modules changes in subprocesses won't impact the parent process."""
+    assert callable(test_func), (
+        "subprocess_context expects a function. Did you call the function instead of passing "
+        "it to this method?"
+    )
+
     import os
 
     ctx = multiprocessing.get_context('spawn' if os.name == 'nt' else 'fork')
@@ -609,8 +614,8 @@ def subprocess_context(test_func):
         kwargs['func'] = test_func
         p = ctx.Process(target=_trace_unhandled_exceptions, args=args, kwargs=kwargs)
         p.start()
-        result = exception.get()
         p.join()
+        result = exception.get()
         if result:
             # coverage: ignore
             ex_type, msg, ex_trace = result
