@@ -197,6 +197,7 @@ def create_noiseless_virtual_engine_from_proto(
 def _create_device_spec_from_template(
     template_name: str,
 ) -> v2.device_pb2.DeviceSpecification:
+    """Load a template proto into a `v2.device_pb2.DeviceSpecification`."""
 
     path = pathlib.Path(__file__).parent.parent.resolve()
     with path.joinpath('devices', 'specifications', template_name).open() as f:
