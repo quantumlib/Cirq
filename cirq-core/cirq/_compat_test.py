@@ -791,32 +791,27 @@ def _test_broken_module_1_inner():
 
 
 def _test_broken_module_2_inner():
-    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
-        with pytest.raises(
-            DeprecatedModuleImportError,
-            match="missing_module cannot be imported. The typical reasons",
-        ):
+    with pytest.raises(
+        DeprecatedModuleImportError,
+        match="missing_module cannot be imported. The typical reasons",
+    ):
+        with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
             # note that this passes
             from cirq.testing._compat_test_data import broken_ref  # type: ignore
 
             # but when you try to use it
             broken_ref.something()
-        sys.stdout.flush()
-        sys.stderr.flush()
 
 
 def _test_broken_module_3_inner():
     import cirq.testing._compat_test_data
 
-    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
-
-        with pytest.raises(
-            DeprecatedModuleImportError,
-            match="missing_module cannot be imported. The typical reasons",
-        ):
+    with pytest.raises(
+        DeprecatedModuleImportError,
+        match="missing_module cannot be imported. The typical reasons",
+    ):
+        with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
             cirq.testing._compat_test_data.broken_ref.something()
-        sys.stdout.flush()
-        sys.stderr.flush()
 
 
 def test_deprecated_module_error_handling_1():
