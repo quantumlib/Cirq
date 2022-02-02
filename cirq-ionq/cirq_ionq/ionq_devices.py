@@ -92,10 +92,29 @@ class IonQAPIDevice(cirq.Device):
 
 
 def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.OP_TREE:
+    """Decompose operation to ionq native operations.
+
+
+    Merges single qubit operations and decomposes two qubit operations
+    into CZ gates.
+
+    Args:
+        operation: `cirq.Operation` to decompose.
+        atol: absolute error tolerance to use when declaring two unitary
+            operations equal.
+
+    Returns:
+        cirq.OP_TREE containing decomposed operations.
+
+    Raises:
+        ValueError: If supplied operation cannot be decomposed
+            for the ionq device.
+
+    """
     if operation in _VALID_GATES:
         return operation
     assert cirq.has_unitary(operation), (
-        f'Operation {operation} that is not available on the IonQ API nor does it have a '
+        f'Operation {operation} is not available on the IonQ API nor does it have a '
         'unitary matrix to use to decompose it to the API.'
     )
     num_qubits = len(operation.qubits)
