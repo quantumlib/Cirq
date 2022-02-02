@@ -335,7 +335,6 @@ def test_merge_operations_merges_connected_component():
 
     def merge_func(op1, op2):
         """Artificial example where a CZ will absorb any merge-able operation."""
-        print("DEBUG:", op1, op2)
         for op in [op1, op2]:
             if op.gate == cirq.CZ:
                 return op
