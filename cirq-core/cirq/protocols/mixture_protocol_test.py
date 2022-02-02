@@ -144,9 +144,6 @@ def test_serial_concatenation_no_kraus():
         def _mixture_(self):
             return NotImplemented
 
-        def _kraus_(self):
-            return (np.array([[1, 0], [0, 0]]), np.array([[0, 1], [0, 0]]))
-
     class onlyDecompose:
         def _decompose_(self):
             return [cirq.Y.on(q1), defaultGate().on(q1)]

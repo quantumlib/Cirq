@@ -110,11 +110,11 @@ def mixture(
     # serial concatenation
     if decomposed is not None and decomposed != [val] and decomposed != []:
 
-        superoperator_list = [_moment_superoperator(x, qubits, None) for x in decomposed]
-        if not any([x is None for x in superoperator_list]):
-            superoperator_result = reduce(lambda x, y: x @ y, superoperator_list)
-            mixture_result = tuple(_superoperator_to_mixture(superoperator_result))
-            if _check_mixture(mixture_result):
+        if all([has_mixture(x) for x in decomposed]):
+            superoperator_list = [_moment_superoperator(x, qubits, None) for x in decomposed]
+            if not any([x is None for x in superoperator_list]):
+                superoperator_result = reduce(lambda x, y: x @ y, superoperator_list)
+                mixture_result = tuple(_superoperator_to_mixture(superoperator_result))
                 return mixture_result
 
     if default is not RaiseTypeErrorIfNotProvided:
@@ -161,21 +161,6 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
             return all(has_mixture(val) for val in operations)
 
     return False
-
-
-def _check_mixture(mixture_tuple, atol=1e-08):
-    def check_probability(p):
-        return (p >= 0) and (p <= 1)
-
-    def check_unitary(val):
-        return np.isclose(np.identity(np.shape(val)[0]), val.conj().T @ val).all()
-
-    total = 0.0
-    for p, val in mixture_tuple:
-        total += p
-        if not (check_probability(p) and ((p < atol) or check_unitary(val))):
-            return False
-    return np.isclose(total, 1.0)
 
 
 def validate_mixture(supports_mixture: SupportsMixture):
