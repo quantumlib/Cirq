@@ -77,18 +77,21 @@ def test_init_errors():
         square_virtual_device(control_r=11.0, num_qubits=2)
 
 
-def test_decompose_error():
+def test_decompose_error_deprecated():
     d = generic_device(2)
     op = (cirq.ops.CZ).on(*(d.qubit_list()))
-    assert d.decompose_operation(op) == [op]
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+        assert d.decompose_operation(op) == [op]
 
     op = op ** sympy.Symbol('exp')
     with pytest.raises(TypeError, match="Don't know how to work with "):
-        d.decompose_operation(op)
+        with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+            d.decompose_operation(op)
 
     # MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
-        d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=2, key='a'))
+        with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+            d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=2, key='a'))
     # It has to be made into one
     assert d.is_pasqal_device_op(
         cirq.ops.GateOperation(
@@ -118,28 +121,26 @@ def test_is_pasqal_device_op():
     op2 = (cirq.ops.H ** sympy.Symbol('exp')).on(d.qubit_list()[0])
     assert not d.is_pasqal_device_op(op2)
 
-    decomp = d.decompose_operation(op2)
-    for op_ in decomp:
-        assert d.is_pasqal_device_op(op_)
-
     d2 = square_virtual_device(control_r=1.1, num_qubits=3)
     assert d.is_pasqal_device_op(cirq.ops.X(TwoDQubit(0, 0)))
     assert not d2.is_pasqal_device_op(op1(TwoDQubit(0, 0), TwoDQubit(0, 1)))
 
 
-def test_decompose_operation():
+def test_decompose_operation_deprecated():
     d = generic_device(3)
-    for op in d.decompose_operation((cirq.CCZ ** 1.5).on(*(d.qubit_list()))):
-        d.validate_operation(op)
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+        for op in d.decompose_operation((cirq.CCZ ** 1.5).on(*(d.qubit_list()))):
+            d.validate_operation(op)
 
     p_qubits = [cirq.LineQubit(3), cirq.LineQubit(4)]
     d = PasqalVirtualDevice(1.0, p_qubits)
     op = (cirq.ops.CNOT).on(*(d.qubit_list())) ** 2
 
-    assert d.decompose_operation(op) == []
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+        assert d.decompose_operation(op) == []
 
 
-def test_pasqal_converter():
+def test_pasqal_converter_deprecated():
     q = cirq.NamedQubit.range(2, prefix='q')
     g = cirq.testing.TwoQubitGate()
 
@@ -159,7 +160,8 @@ def test_pasqal_converter():
     d = PasqalDevice(q)
 
     with pytest.raises(TypeError, match="Don't know how to work with"):
-        d.decompose_operation(op)
+        with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+            d.decompose_operation(op)
 
 
 def test_validate_operation_errors():
@@ -189,7 +191,8 @@ def test_validate_operation_errors_deprecated():
     with pytest.raises(
         NotImplementedError, match="Measurements on Pasqal devices don't support invert_mask."
     ):
-        circuit.append(cirq.measure(*d.qubits, invert_mask=(True, False, False)))
+        with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+            circuit.append(cirq.measure(*d.qubits, invert_mask=(True, False, False)))
 
 
 def test_validate_moment():
