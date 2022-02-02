@@ -30,12 +30,18 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
         cirq.merge_single_qubit_gates_into_phased_x_z,
         cirq.EjectPhasedPaulis().optimize_circuit,
         cirq.EjectZ().optimize_circuit,
-        cirq.DropNegligible().optimize_circuit,
-        cirq.DropEmptyMoments().optimize_circuit,
     ]
     for post in followup_optimizations:
         post(actual)
         post(expected)
+
+    followup_transformers: List[cirq.TRANSFORMER] = [
+        cirq.drop_negligible_operations,
+        cirq.drop_empty_moments,
+    ]
+    for transform in followup_transformers:
+        actual = transform(actual).unfreeze(copy=False)
+        expected = transform(expected).unfreeze(copy=False)
 
     assert actual == expected, f'ACTUAL {actual} : EXPECTED {expected}'
 
@@ -249,7 +255,7 @@ def test_post_clean_up():
 
     optimizer = cirq.MergeInteractions(allow_partial_czs=False, post_clean_up=clean_up)
     optimizer.optimize_circuit(circuit)
-    cirq.DropEmptyMoments().optimize_circuit(circuit)
+    circuit = cirq.drop_empty_moments(circuit)
 
     assert isinstance(circuit[0].operations[0].gate, Marker)
     assert isinstance(circuit[-1].operations[0].gate, Marker)

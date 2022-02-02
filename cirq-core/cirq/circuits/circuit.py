@@ -1952,12 +1952,17 @@ class Circuit(AbstractCircuit):
         last_available = end_moment_index
         k = end_moment_index
         op_control_keys = protocols.control_keys(op)
+        op_measurement_keys = protocols.measurement_key_objs(op)
         op_qubits = op.qubits
         while k > 0:
             k -= 1
             moment = self._moments[k]
-            if moment.operates_on(op_qubits) or (
-                op_control_keys & protocols.measurement_key_objs(moment)
+            # This should also validate that measurement keys are disjoint once we allow repeated
+            # measurements. Search for same message in raw_types.py.
+            if (
+                moment.operates_on(op_qubits)
+                or not op_control_keys.isdisjoint(protocols.measurement_key_objs(moment))
+                or not protocols.control_keys(moment).isdisjoint(op_measurement_keys)
             ):
                 return last_available
             if self._can_add_op_at(k, op):
@@ -2010,6 +2015,10 @@ class Circuit(AbstractCircuit):
     def _can_add_op_at(self, moment_index: int, operation: 'cirq.Operation') -> bool:
         if not 0 <= moment_index < len(self._moments):
             return True
+
+        if self._device == cirq.UNCONSTRAINED_DEVICE:
+            return not self._moments[moment_index].operates_on(operation.qubits)
+
         return self._device.can_add_operation_into_moment(operation, self._moments[moment_index])
 
     def insert(
@@ -2097,19 +2106,28 @@ class Circuit(AbstractCircuit):
 
         i = start
         op_index = 0
-        while op_index < len(flat_ops):
-            op = flat_ops[op_index]
-            while i < end and not self._device.can_add_operation_into_moment(op, self._moments[i]):
-                i += 1
-            if i >= end:
-                break
-            self._moments[i] = self._moments[i].with_operation(op)
-            op_index += 1
+        cannot_add_lambda = lambda a, b: b.operates_on(a.qubits)
+        if self._device != cirq.UNCONSTRAINED_DEVICE:
+            _compat._warn_or_error(
+                "In Cirq v0.15 device specific validation in "
+                "insert_into_range will no longer enforced."
+            )
+            cannot_add_lambda = lambda a, b: not self._device.can_add_operation_into_moment(a, b)
 
-        if op_index >= len(flat_ops):
-            return end
+        with _compat.block_overlapping_deprecation('can_add_operation_into_moment'):
+            while op_index < len(flat_ops):
+                op = flat_ops[op_index]
+                while i < end and cannot_add_lambda(op, self._moments[i]):
+                    i += 1
+                if i >= end:
+                    break
+                self._moments[i] = self._moments[i].with_operation(op)
+                op_index += 1
 
-        return self.insert(end, flat_ops[op_index:])
+            if op_index >= len(flat_ops):
+                return end
+
+            return self.insert(end, flat_ops[op_index:])
 
     def _push_frontier(
         self,

@@ -841,7 +841,7 @@ def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_moment_steps_set_state(dtype: Type[np.number]):
+def test_simulate_moment_steps_set_state_deprecated(dtype: Type[np.number]):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
@@ -850,7 +850,8 @@ def test_simulate_moment_steps_set_state(dtype: Type[np.number]):
         if i == 0:
             zero_zero = np.zeros((4, 4), dtype=dtype)
             zero_zero[0, 0] = 1
-            step.set_density_matrix(zero_zero)
+            with cirq.testing.assert_deprecated('initial_state', deadline='v0.15'):
+                step.set_density_matrix(zero_zero)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
