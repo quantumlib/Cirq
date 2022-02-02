@@ -711,28 +711,11 @@ class ResetChannel(gate_features.SingleQubitGate):
         if len(qubits) != 1:
             return NotImplemented
 
-        class PlusGate(raw_types.Gate):
-            """A qudit gate that increments a qudit state mod its dimension."""
-
-            def __init__(self, dimension, increment=1):
-                self.dimension = dimension
-                self.increment = increment % dimension
-
-            def _qid_shape_(self):
-                return (self.dimension,)
-
-            def _unitary_(self):
-                inc = (self.increment - 1) % self.dimension + 1
-                u = np.empty((self.dimension, self.dimension))
-                u[inc:] = np.eye(self.dimension)[:-inc]
-                u[:inc] = np.eye(self.dimension)[-inc:]
-                return u
-
         from cirq.sim import act_on_args
 
         if isinstance(args, act_on_args.ActOnArgs) and not args.can_represent_mixed_states:
             result = args._perform_measurement(qubits)[0]
-            gate = PlusGate(self.dimension, self.dimension - result)
+            gate = common_gates.XPowGate(dimension=self.dimension) ** (self.dimension - result)
             protocols.act_on(gate, args, qubits)
             return True
 
