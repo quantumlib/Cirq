@@ -129,6 +129,20 @@ def create_noiseless_virtual_processor_from_proto(
     device_specification: v2.device_pb2.DeviceSpecification,
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ) -> SimulatedLocalProcessor:
+    """Creates a simulated local processor from a device specification proto.
+
+    The device specification protocol buffer specifies qubits and gates on the device
+    and can be retrieved from a stored "proto.txt" file or from the QCS API.
+
+    Args:
+         processor_id: name of the processor to simulate.  This is an arbitrary
+             string identifier and does not have to match the processor's name
+             in QCS.
+         device_specification:  `v2.device_pb2.DeviceSpecification` proto to create
+             a validating device from.
+         gate_sets: Iterable of serializers to use in the processor.  Defaults
+             to the FSIM_GATESET.
+    """
     if gate_sets is None:
         gate_sets = [FSIM_GATESET]
 
@@ -144,17 +158,17 @@ def create_noiseless_virtual_engine_from_proto(
     ],
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ) -> SimulatedLocalEngine:
-    """Creates a noiseless virtual engine object from a device specification proto.a
+    """Creates a noiseless virtual engine object from a device specification proto.
 
     The device specification protocol buffer specifies qubits and gates on the device
     and can be retrieved from a stored "proto.txt" file or from the QCS API.
 
     Args:
-         processor_ids: name of the processor to simulate.  This is an arbitrary
-             string identifier and does not have to match the processor's name
+         processor_ids: names of the processors to simulate.  These are arbitrary
+             string identifiers and do not have to match the processors' names
              in QCS.  This can be a single string or list of strings.
          device_specifications:  `v2.device_pb2.DeviceSpecification` proto to create
-             a validating device from.  This can be a single DeviceSpecification
+             validating devices from.  This can be a single DeviceSpecification
              or a list of them.  There should be one DeviceSpecification for each
              processor_id.
          gate_sets: Iterable of serializers to use in the processor.  Defaults
