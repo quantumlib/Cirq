@@ -1717,7 +1717,8 @@ class Circuit(AbstractCircuit):
         """
         self._moments: List['cirq.Moment'] = []
         self._device = device
-        self.append(contents, strategy=strategy)
+        with _compat.block_overlapping_deprecation('.*'):
+            self.append(contents, strategy=strategy)
 
     @property  # type: ignore
     @_compat.deprecated(
@@ -2045,15 +2046,32 @@ class Circuit(AbstractCircuit):
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = list(
-            ops.flatten_to_ops_or_moments(
-                ops.transform_op_tree(
-                    moment_or_operation_tree,
-                    self._device.decompose_operation,
-                    preserve_moments=True,
-                ),
+        if self._device == devices.UNCONSTRAINED_DEVICE:
+            moments_and_operations = list(
+                ops.flatten_to_ops_or_moments(
+                    ops.transform_op_tree(
+                        moment_or_operation_tree,
+                        preserve_moments=True,
+                    ),
+                )
             )
-        )
+        else:
+            _compat._warn_or_error(
+                'circuit.insert behavior relies on circuit.device.\n'
+                'The ability to construct a circuit with a device\n'
+                'will be removed in cirq v0.15. please update this use of\n'
+                'insert.'
+            )
+            with _compat.block_overlapping_deprecation('decompose'):
+                moments_and_operations = list(
+                    ops.flatten_to_ops_or_moments(
+                        ops.transform_op_tree(
+                            moment_or_operation_tree,
+                            self._device.decompose_operation,
+                            preserve_moments=True,
+                        ),
+                    )
+                )
 
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, ops.Moment):
@@ -2114,13 +2132,14 @@ class Circuit(AbstractCircuit):
             )
             cannot_add_lambda = lambda a, b: not self._device.can_add_operation_into_moment(a, b)
 
-        with _compat.block_overlapping_deprecation('can_add_operation_into_moment'):
+        with _compat.block_overlapping_deprecation('(can_add_operation_into_moment|insert)'):
             while op_index < len(flat_ops):
                 op = flat_ops[op_index]
                 while i < end and cannot_add_lambda(op, self._moments[i]):
                     i += 1
                 if i >= end:
                     break
+
                 self._moments[i] = self._moments[i].with_operation(op)
                 op_index += 1
 
