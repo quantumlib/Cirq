@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import contextlib
 import dataclasses
 import importlib
 import logging
@@ -790,6 +791,7 @@ def _test_broken_module_1_inner():
 
 
 def _test_broken_module_2_inner():
+
     with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
         with pytest.raises(
             DeprecatedModuleImportError,
@@ -805,7 +807,10 @@ def _test_broken_module_2_inner():
 def _test_broken_module_3_inner():
     import cirq.testing._compat_test_data
 
-    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+    with cirq.testing.assert_deprecated(
+        deadline="v0.20", count=None
+    ) if os.name != 'nt' else contextlib.nullcontext():
+
         with pytest.raises(
             DeprecatedModuleImportError,
             match="missing_module cannot be imported. The typical reasons",
@@ -822,7 +827,10 @@ def test_deprecated_module_error_handling_2():
 
 
 def test_deprecated_module_error_handling_3():
-    subprocess_context(_test_broken_module_3_inner)()
+    with cirq.testing.assert_deprecated(
+        deadline="v0.20", count=None
+    ) if os.name == 'nt' else contextlib.nullcontext():
+        subprocess_context(_test_broken_module_3_inner)()
 
 
 def test_new_module_is_top_level():
