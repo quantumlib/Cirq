@@ -31,6 +31,11 @@ from cirq_google.serialization import serializable_gate_set
 from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
 from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
 
+MOST_RECENT_TEMPLATES = {
+    'rainbow': 'rainbow_12_10_2021_device_spec.proto.txt',
+    'weber': 'weber_12_10_2021_device_spec.proto.txt',
+}
+
 METRICS_1Q = [
     'single_qubit_p00_error',
     'single_qubit_p11_error',
@@ -263,12 +268,6 @@ def create_noiseless_virtual_engine_from_templates(
         _create_device_spec_from_template(template_name) for template_name in template_names
     ]
     return create_noiseless_virtual_engine_from_proto(processor_ids, specifications, gate_sets)
-
-
-MOST_RECENT_TEMPLATES = {
-    'rainbow': 'rainbow_12_10_2021_device_spec.proto.txt',
-    'weber': 'weber_12_10_2021_device_spec.proto.txt',
-}
 
 
 def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEngine:
