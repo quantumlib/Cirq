@@ -8,7 +8,7 @@
 # vendor maintainers
 ####################
 
-cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @cduck @verult
 
 cirq-ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @quantumlib/cirq-maintainers @vtomole @cduck
 
@@ -34,8 +34,8 @@ docs/**/*.* @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
 # vendor docs maintainers: vendor maintainers + @rmlarose
 ############################################################
 
-docs/google/**/*.* @wcourtney @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
-docs/tutorials/google/**/*.* @wcourtney @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+docs/google/**/*.* @wcourtney @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck @verult
+docs/tutorials/google/**/*.* @wcourtney @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck @verult
 
 docs/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
 docs/tutorials/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
