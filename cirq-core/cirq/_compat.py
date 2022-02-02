@@ -174,6 +174,7 @@ def _warn_or_error(msg):
         DeprecationWarning,
         stacklevel=stack_level,
     )
+    sys.stderr.flush()
 
 
 def _validate_deadline(deadline: str):
