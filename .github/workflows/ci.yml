@@ -228,10 +228,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Install wheel
-        run: pip install wheel
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/no-contrib.env.txt
+        run: pip install wheel & pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
         run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
