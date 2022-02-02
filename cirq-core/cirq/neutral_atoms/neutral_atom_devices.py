@@ -16,7 +16,7 @@ import itertools
 import collections
 from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
 from numpy import sqrt
-from cirq import devices, ops, circuits, value
+from cirq import _compat, devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import raw_types
 from cirq.value import Duration
@@ -122,6 +122,10 @@ class NeutralAtomDevice(devices.Device):
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
+    @_compat.deprecated(
+        fix='Use cirq.ConvertToNeutralAtomGates() instead to decompose operations.',
+        deadline='v0.15',
+    )
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
         return convert_to_neutral_atom_gates.ConvertToNeutralAtomGates().convert(operation)
 
