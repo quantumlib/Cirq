@@ -119,6 +119,15 @@ def test_map_operations_does_not_insert_too_many_moments():
     )
 
 
+def test_map_operations_respects_tags_to_ignore():
+    q = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.CNOT(*q), cirq.CNOT(*q).with_tags("ignore"), cirq.CNOT(*q))
+    cirq.testing.assert_same_circuits(
+        cirq.Circuit(cirq.Z.on_each(*q), cirq.CNOT(*q).with_tags("ignore"), cirq.Z.on_each(*q)),
+        cirq.map_operations(c, lambda op, i: cirq.Z.on_each(*op.qubits), tags_to_ignore=["ignore"]),
+    )
+
+
 def test_unroll_circuit_op_and_variants():
     q = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(q[0]), cirq.CNOT(q[0], q[1]), cirq.X(q[0]))
@@ -291,6 +300,9 @@ def test_merge_operations_nothing_to_merge():
     # Multi moment with disjoint operations + global phase operation.
     c += cirq.Moment(cirq.X(q[2]), cirq.global_phase_operation(1j))
     assert cirq.merge_operations(c, fail_if_called_func) == c
+    # Tagged operations to be ignored.
+    c += cirq.Moment(cirq.CNOT(*q[:2]).with_tags("ignore"))
+    assert cirq.merge_operations(c, fail_if_called_func, tags_to_ignore=["ignore"]) == c
 
 
 def test_merge_operations_merges_connected_component():
@@ -337,6 +349,36 @@ def test_merge_operations_merges_connected_component():
 1: ───────┼───────────@───────────────@───────Y───X───
           │                           │
 2: ───H───X───────────────────────────X───────────────''',
+    )
+
+
+def test_merge_operations_respects_tags_to_ignore():
+    q = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.CZ(*q),
+        cirq.Moment(cirq.X(q[0]), cirq.Y(q[1]).with_tags("ignore")),
+        cirq.Moment(cirq.X(q[0]).with_tags("ignore"), cirq.Y(q[1])),
+        cirq.CZ(*q),
+        [cirq.CNOT(*q), cirq.CNOT(*q).with_tags("ignore"), cirq.CNOT(*q)],
+        cirq.CZ(*q),
+    )
+    c_merged = cirq.Circuit(
+        cirq.Moment(cirq.CZ(*q)),
+        cirq.Moment(cirq.Y(q[1]).with_tags("ignore")),
+        cirq.Moment(cirq.X(q[0]).with_tags("ignore")),
+        cirq.Moment(cirq.CZ(*q)),
+        cirq.Moment(),
+        cirq.Moment(cirq.CNOT(*q).with_tags("ignore")),
+        cirq.Moment(cirq.CZ(*q)),
+        cirq.Moment(),
+    )
+
+    def merge_func(op1, op2):
+        """Artificial example where a CZ will absorb any merge-able operation."""
+        return op1 if op1.gate == cirq.CZ else (op2 if op2.gate == cirq.CZ else None)
+
+    cirq.testing.assert_same_circuits(
+        cirq.merge_operations(c, merge_func, tags_to_ignore=["ignore"]), c_merged
     )
 
 
