@@ -94,6 +94,9 @@ class PasqalDevice(cirq.devices.Device):
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
+    @_compat.deprecated(
+        fix='Use PasqalConverter() to decompose operation instead.', deadline='v0.15'
+    )
     def decompose_operation(self, operation: cirq.ops.Operation) -> 'cirq.OP_TREE':
 
         decomposition = [operation]
