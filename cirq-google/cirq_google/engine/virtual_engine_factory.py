@@ -211,6 +211,17 @@ def create_noiseless_virtual_processor_from_template(
     template_name: str,
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ) -> SimulatedLocalProcessor:
+    """Creates a simulated local processor from a device specification template.
+
+    Args:
+         processor_id: name of the processor to simulate.  This is an arbitrary
+             string identifier and does not have to match the processor's name
+             in QCS.
+         template_name: File name of the device specification template, see
+             cirq_google/devices/specifications for valid templates.
+         gate_sets: Iterable of serializers to use in the processor.  Defaults
+             to the FSIM_GATESET.
+    """
     return create_noiseless_virtual_processor_from_proto(
         processor_id,
         device_specification=_create_device_spec_from_template(template_name),
@@ -226,11 +237,11 @@ def create_noiseless_virtual_engine_from_templates(
     """Creates a noiseless virtual engine object from a device specification template.
 
     Args:
-         processor_ids: name of the processor to simulate.  This is an arbitrary
-             string identifier and does not have to match the processor's name
+         processor_ids: names of the processors to simulate.  These are arbitrary
+             string identifiers and do not have to match the processors' names
              in QCS.  There can be a single string or a list of strings for multiple
              processors.
-         template_names: File name of the device specification template, see
+         template_names: File names of the device specification templates, see
              cirq_google/devices/specifications for valid templates.  There can
              be a single str for a template name or a list of strings.  Each
              template name should be matched to a single processor id.
