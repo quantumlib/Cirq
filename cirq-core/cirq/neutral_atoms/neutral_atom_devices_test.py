@@ -97,10 +97,11 @@ def test_init_errors():
         )
 
 
-def test_decompose_error():
+def test_decompose_error_deprecated():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
-    for op in d.decompose_operation((cirq.CCZ ** 1.5).on(*(d.qubit_list()))):
-        d.validate_operation(op)
+    with cirq.testing.assert_deprecated('ConvertToNeutralAtomGates', deadline='v0.15'):
+        for op in d.decompose_operation((cirq.CCZ ** 1.5).on(*(d.qubit_list()))):
+            d.validate_operation(op)
 
 
 def test_validate_gate_errors():
