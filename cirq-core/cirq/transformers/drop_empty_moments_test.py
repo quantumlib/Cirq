@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,28 +15,17 @@
 import cirq
 
 
-def assert_optimizes(before, after):
-    with cirq.testing.assert_deprecated("Use cirq.drop_empty_moments", deadline='v1.0'):
-        opt = cirq.DropEmptyMoments()
-        opt.optimize_circuit(before)
-        assert before == after
-
-
 def test_drop():
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
-    assert_optimizes(
-        before=cirq.Circuit(
-            [
+    cirq.testing.assert_same_circuits(
+        cirq.drop_empty_moments(
+            cirq.Circuit(
                 cirq.Moment(),
                 cirq.Moment(),
                 cirq.Moment([cirq.CNOT(q1, q2)]),
                 cirq.Moment(),
-            ]
+            )
         ),
-        after=cirq.Circuit(
-            [
-                cirq.Moment([cirq.CNOT(q1, q2)]),
-            ]
-        ),
+        cirq.Circuit(cirq.Moment([cirq.CNOT(q1, q2)])),
     )
