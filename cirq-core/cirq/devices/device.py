@@ -13,10 +13,17 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterator, Iterable
-
+from typing import (
+    TYPE_CHECKING,
+    Optional,
+    AbstractSet,
+    cast,
+    FrozenSet,
+    Iterator,
+    Iterable,
+)
 import networkx as nx
-from cirq import value
+from cirq import _compat, value
 from cirq.devices.grid_qubit import _BaseGridQid
 from cirq.devices.line_qubit import _BaseLineQid
 
@@ -51,6 +58,10 @@ class Device(metaclass=abc.ABCMeta):
         # Default to the qubits being unknown.
         return None
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='qubit coupling data can now be found in device.metadata if provided.',
+    )
     def qid_pairs(self) -> Optional[FrozenSet['cirq.SymmetricalQidPair']]:
         """Returns a set of qubit edges on the device, if possible.
 
@@ -66,27 +77,28 @@ class Device(metaclass=abc.ABCMeta):
             `cirq.UnconstrainedDevice` has this property), then `None` is
             returned.
         """
-        qs = self.qubit_set()
-        if qs is None:
-            return None
-        if all(isinstance(q, _BaseGridQid) for q in qs):
-            return frozenset(
-                [
-                    SymmetricalQidPair(q, q2)
-                    for q in [cast(_BaseGridQid, q) for q in qs]
-                    for q2 in [q + (0, 1), q + (1, 0)]
-                    if q2 in qs
-                ]
-            )
-        if all(isinstance(q, _BaseLineQid) for q in qs):
-            return frozenset(
-                [
-                    SymmetricalQidPair(q, q + 1)
-                    for q in [cast(_BaseLineQid, q) for q in qs]
-                    if q + 1 in qs
-                ]
-            )
-        return frozenset([SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
+            qs = self.qubit_set()
+            if qs is None:
+                return None
+            if all(isinstance(q, _BaseGridQid) for q in qs):
+                return frozenset(
+                    [
+                        SymmetricalQidPair(q, q2)
+                        for q in [cast(_BaseGridQid, q) for q in qs]
+                        for q2 in [q + (0, 1), q + (1, 0)]
+                        if q2 in qs
+                    ]
+                )
+            if all(isinstance(q, _BaseLineQid) for q in qs):
+                return frozenset(
+                    [
+                        SymmetricalQidPair(q, q + 1)
+                        for q in [cast(_BaseLineQid, q) for q in qs]
+                        if q + 1 in qs
+                    ]
+                )
+            return frozenset([SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Returns a device-valid decomposition for the given operation.
@@ -96,6 +108,15 @@ class Device(metaclass=abc.ABCMeta):
         that must be decomposed into native gates.
         """
         return operation
+
+    @property
+    def metadata(self) -> Optional['DeviceMetadata']:
+        """Returns the associated Metadata with the device if applicable.
+
+        Returns:
+            `cirq.DeviceMetadata` if specified by the device otherwise None.
+        """
+        return None
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         """Raises an exception if an operation is not valid.
@@ -131,6 +152,11 @@ class Device(metaclass=abc.ABCMeta):
         for operation in moment.operations:
             self.validate_operation(operation)
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='can_add_operation_into_moment will be removed in the future.'
+        ' Consider using device.validate_circuit instead.',
+    )
     def can_add_operation_into_moment(
         self, operation: 'cirq.Operation', moment: 'cirq.Moment'
     ) -> bool:
@@ -149,6 +175,10 @@ class Device(metaclass=abc.ABCMeta):
         return not moment.operates_on(operation.qubits)
 
 
+@_compat.deprecated_class(
+    deadline='v0.15',
+    fix='Qid coupling information can now be found in device.metadata if applicable.',
+)
 @value.value_equality
 class SymmetricalQidPair:
     def __init__(self, qid1: 'cirq.Qid', qid2: 'cirq.Qid'):
@@ -187,8 +217,8 @@ class DeviceMetadata:
 
     def __init__(
         self,
-        qubits: Optional[Iterable['cirq.Qid']] = None,
-        nx_graph: Optional['nx.graph'] = None,
+        qubits: Iterable['cirq.Qid'],
+        nx_graph: 'nx.graph',
     ):
         """Construct a DeviceMetadata object.
 
@@ -199,15 +229,11 @@ class DeviceMetadata:
                 directional coupling, undirected edges indicate bi-directional
                 coupling.
         """
-        if qubits is not None:
-            qubits = frozenset(qubits)
-        self._qubits_set: Optional[FrozenSet['cirq.Qid']] = (
-            None if qubits is None else frozenset(qubits)
-        )
-
+        self._qubits_set: FrozenSet['cirq.Qid'] = frozenset(qubits)
         self._nx_graph = nx_graph
 
-    def qubit_set(self) -> Optional[FrozenSet['cirq.Qid']]:
+    @property
+    def qubit_set(self) -> FrozenSet['cirq.Qid']:
         """Returns a set of qubits on the device, if possible.
 
         Returns:
@@ -215,7 +241,8 @@ class DeviceMetadata:
         """
         return self._qubits_set
 
-    def nx_graph(self) -> Optional['nx.Graph']:
+    @property
+    def nx_graph(self) -> 'nx.Graph':
         """Returns a nx.Graph where nodes are qubits and edges are couple-able qubits.
 
         Returns:
@@ -224,32 +251,20 @@ class DeviceMetadata:
         return self._nx_graph
 
     def _value_equality_values_(self):
-        graph_equality = None
-        if self._nx_graph is not None:
-            graph_equality = (sorted(self._nx_graph.nodes()), sorted(self._nx_graph.edges()))
+        graph_equality = (
+            tuple(sorted(self._nx_graph.nodes())),
+            tuple(sorted(self._nx_graph.edges(data='directed'))),
+        )
 
-        qubit_equality = None
-        if self._qubits_set is not None:
-            qubit_equality = sorted(list(self._qubits_set))
-
-        return qubit_equality, graph_equality
+        return self._qubits_set, graph_equality
 
     def _json_dict_(self):
-        graph_payload = ''
-        if self._nx_graph is not None:
-            graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph)
-
-        qubits_payload = ''
-        if self._qubits_set is not None:
-            qubits_payload = sorted(list(self._qubits_set))
+        graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph)
+        qubits_payload = sorted(list(self._qubits_set))
 
         return {'qubits': qubits_payload, 'nx_graph': graph_payload}
 
     @classmethod
     def _from_json_dict_(cls, qubits, nx_graph, **kwargs):
-        if qubits == '':
-            qubits = None
-        graph_obj = None
-        if nx_graph != '':
-            graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
+        graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
         return cls(qubits, graph_obj)

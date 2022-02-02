@@ -320,7 +320,7 @@ def cross_entropy_benchmarking(
     Then, take the average of $f_{mn}^{meas}$ over all circuit_mn with fixed
     n to obtain:
 
-    $f_{n} ^ {meas} = (\sum_m f_{mn}^{meas}) / M$
+    $f_{n}^{meas} = (\sum_m f_{mn}^{meas}) / M$
 
     4) Compute a theoretical XEB function for each circuit_mn:
 
@@ -332,7 +332,7 @@ def cross_entropy_benchmarking(
     Similarly, we then average $f_m^{th}$ over all circuit_mn with fixed n to
     obtain:
 
-    $f_{n} ^ {th} = (\sum_m f_{mn}^{th}) / M$
+    $f_{n}^{th} = (\sum_m f_{mn}^{th}) / M$
 
     5) Calculate the XEB fidelity $\alpha_n$ at fixed n:
 
@@ -383,7 +383,7 @@ def cross_entropy_benchmarking(
     # numbers of cycles. The values are 2D arrays with each row being the
     # probabilities obtained from a single trial.
     probs_meas = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
-    probs_exp = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
+    probs_th = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
 
     for k in range(num_circuits):
 
@@ -402,17 +402,17 @@ def cross_entropy_benchmarking(
         # Simulate each circuit with the Cirq simulator to obtain the
         # state vector at the end of each circuit, from which the
         # theoretically expected bit-string probabilities are obtained.
-        probs_exp_k: List[np.ndarray] = []
+        probs_th_k: List[np.ndarray] = []
         for circ_k in circuits_k:
             res = simulator.simulate(circ_k, qubit_order=qubits)
             state_probs = value.state_vector_to_probabilities(np.asarray(res.final_state_vector))
-            probs_exp_k.append(state_probs)
+            probs_th_k.append(state_probs)
 
         for i, num_cycle in enumerate(cycle_range):
-            probs_exp[num_cycle][k, :] = probs_exp_k[i]
+            probs_th[num_cycle][k, :] = probs_th_k[i]
             probs_meas[num_cycle][k, :] = probs_meas_k[i]
 
-    fidelity_vals = _xeb_fidelities(probs_exp, probs_meas)
+    fidelity_vals = _xeb_fidelities(probs_th, probs_meas)
     xeb_data = [CrossEntropyPair(c, k) for (c, k) in zip(cycle_range, fidelity_vals)]
     return CrossEntropyResult(data=xeb_data, repetitions=repetitions)  # type: ignore
 
@@ -527,19 +527,35 @@ def _measure_prob_distribution(
 
 
 def _xeb_fidelities(
-    ideal_probs: Dict[int, np.ndarray], actual_probs: Dict[int, np.ndarray]
+    probs_th: Dict[int, np.ndarray], probs_meas: Dict[int, np.ndarray]
 ) -> List[float]:
-    num_cycles = sorted(list(ideal_probs.keys()))
-    return [_compute_fidelity(ideal_probs[n], actual_probs[n]) for n in num_cycles]
+    """Compute XEB fidelity estimates for all circuit depths.
+
+    Args:
+        probs_th: Theoretical output probabilities by cycle number.
+        probs_meas: Experimental output probabilities by cycle number.
+    Returns:
+        List of fidelity estimates for each circuit depth.
+    """
+    num_cycles = sorted(list(probs_th.keys()))
+    return [_compute_fidelity(probs_th[n], probs_meas[n]) for n in num_cycles]
 
 
-def _compute_fidelity(probs_exp: np.ndarray, probs_meas: np.ndarray) -> float:
-    _, num_states = probs_exp.shape
-    pp_cross = probs_exp * probs_meas
-    pp_exp = probs_exp ** 2
+def _compute_fidelity(probs_th: np.ndarray, probs_meas: np.ndarray) -> float:
+    """Compute XEB fidelity estimate.
+
+    Args:
+        probs_th: Theoretical output probabilities.
+        probs_meas: Experimental output probabilities.
+    Returns:
+        XEB fidelity estimate.
+    """
+    _, num_states = probs_th.shape
+    pp_cross = probs_th * probs_meas
+    pp_th = probs_th ** 2
     f_meas = np.mean(num_states * np.sum(pp_cross, axis=1) - 1.0)
-    f_exp = np.mean(num_states * np.sum(pp_exp, axis=1) - 1.0)
-    return float(f_meas / f_exp)
+    f_th = np.mean(num_states * np.sum(pp_th, axis=1) - 1.0)
+    return float(f_meas / f_th)
 
 
 def _random_half_rotations(qubits: Sequence[ops.Qid], num_layers: int) -> List[List[ops.OP_TREE]]:

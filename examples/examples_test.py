@@ -20,7 +20,6 @@ import examples.hhl
 import examples.hidden_shift_algorithm
 import examples.noisy_simulation_example
 import examples.phase_estimator
-import examples.place_on_bristlecone
 import examples.qaoa
 import examples.quantum_fourier_transform
 import examples.quantum_teleportation
@@ -51,11 +50,6 @@ def test_example_runs_hidden_shift():
 
 def test_example_runs_deutsch():
     examples.deutsch.main()
-
-
-def test_example_runs_hello_line():
-    pytest.importorskip("cirq_google")
-    examples.place_on_bristlecone.main()
 
 
 def test_example_runs_hello_qubit():

@@ -396,7 +396,7 @@ def sub_state_vector(
     keep_indices: List[int],
     *,
     default: np.ndarray = RaiseValueErrorIfNotProvided,
-    atol: Union[int, float] = 1e-8,
+    atol: Union[int, float] = 1e-6,
 ) -> np.ndarray:
     r"""Attempts to factor a state vector into two parts and return one of them.
 

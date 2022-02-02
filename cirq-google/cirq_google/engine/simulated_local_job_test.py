@@ -104,7 +104,7 @@ def test_unsupported_types():
         parent_program=program,
         repetitions=100,
         sweeps=[],
-        simulation_type=LocalSimulationType.ASYNCHRONOUS,
+        simulation_type=LocalSimulationType.ASYNCHRONOUS_WITH_DELAY,
     )
     with pytest.raises(ValueError, match='Unsupported simulation type'):
         job.results()
@@ -136,6 +136,24 @@ def test_failure():
         code, message = job.failure()
         assert code == '500'
         assert 'Circuit contains ops whose symbols were not specified' in message
+
+
+def test_run_async():
+    qubits = cirq.LineQubit.range(20)
+    c = cirq.testing.random_circuit(qubits, n_moments=20, op_density=1.0)
+    c.append(cirq.measure(*qubits))
+    program = ParentProgram([c], None)
+    job = SimulatedLocalJob(
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=100,
+        sweeps=[],
+        simulation_type=LocalSimulationType.ASYNCHRONOUS,
+    )
+    assert job.execution_status() == quantum.enums.ExecutionStatus.State.RUNNING
+    _ = job.results()
+    assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
 
 
 def test_run_calibration_unsupported():

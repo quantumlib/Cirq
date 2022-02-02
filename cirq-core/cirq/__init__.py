@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Cirq is a framework for creating, editing, and invoking quantum circuits."""
+
 from cirq import _import
 
 # A module can only depend on modules imported earlier in this list of modules
@@ -83,6 +85,7 @@ from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
     DeviceMetadata,
+    GridDeviceMetadata,
     GridQid,
     GridQubit,
     LineQid,
@@ -102,6 +105,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    TensoredConfusionMatrices,
     estimate_parallel_single_qubit_readout_errors,
     estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
@@ -114,6 +118,7 @@ from cirq.experiments import (
     generate_boixo_2018_supremacy_circuits_v2,
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
+    measure_confusion_matrix,
     xeb_fidelity,
 )
 
@@ -345,12 +350,16 @@ from cirq.optimizers import (
 )
 
 from cirq.transformers import (
+    align_left,
+    align_right,
     compute_cphase_exponents_for_fsim_decomposition,
     decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates,
+    drop_empty_moments,
+    drop_negligible_operations,
     is_negligible_turn,
     map_moments,
     map_operations,
@@ -364,7 +373,12 @@ from cirq.transformers import (
     single_qubit_matrix_to_phased_x_z,
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
+    synchronize_terminal_measurements,
+    TRANSFORMER,
+    TransformerContext,
+    TransformerLogger,
     three_qubit_matrix_to_operations,
+    transformer,
     two_qubit_matrix_to_diagonal_and_operations,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
@@ -413,6 +427,7 @@ from cirq.sim import (
     ActOnCliffordTableauArgs,
     ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
+    ActOnStabilizerArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
@@ -460,6 +475,7 @@ from cirq.study import (
     flatten,
     flatten_with_params,
     flatten_with_sweep,
+    ResultDict,
     Linspace,
     ListSweep,
     ParamDictType,

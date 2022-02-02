@@ -103,6 +103,7 @@ class Moment:
 
         self._qubits = frozenset(self._qubit_to_op.keys())
         self._measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = None
+        self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
@@ -238,6 +239,13 @@ class Moment:
                 key for op in self.operations for key in protocols.measurement_key_objs(op)
             }
         return self._measurement_key_objs
+
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
+        if self._control_keys is None:
+            self._control_keys = frozenset(
+                k for op in self.operations for k in protocols.control_keys(op)
+            )
+        return self._control_keys
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         return Moment(

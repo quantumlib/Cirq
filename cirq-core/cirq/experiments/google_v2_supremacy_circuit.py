@@ -105,6 +105,84 @@ def generate_boixo_2018_supremacy_circuits_v2_grid(
     return generate_boixo_2018_supremacy_circuits_v2(qubits, cz_depth, seed)
 
 
+_bristlecone_qubits = frozenset(
+    {
+        devices.GridQubit(4, 8),
+        devices.GridQubit(2, 5),
+        devices.GridQubit(3, 2),
+        devices.GridQubit(5, 10),
+        devices.GridQubit(0, 6),
+        devices.GridQubit(4, 3),
+        devices.GridQubit(6, 7),
+        devices.GridQubit(8, 4),
+        devices.GridQubit(5, 5),
+        devices.GridQubit(4, 9),
+        devices.GridQubit(7, 8),
+        devices.GridQubit(8, 5),
+        devices.GridQubit(6, 2),
+        devices.GridQubit(7, 3),
+        devices.GridQubit(5, 0),
+        devices.GridQubit(4, 4),
+        devices.GridQubit(1, 4),
+        devices.GridQubit(7, 9),
+        devices.GridQubit(6, 3),
+        devices.GridQubit(3, 7),
+        devices.GridQubit(5, 1),
+        devices.GridQubit(7, 4),
+        devices.GridQubit(8, 6),
+        devices.GridQubit(4, 5),
+        devices.GridQubit(9, 7),
+        devices.GridQubit(3, 8),
+        devices.GridQubit(1, 5),
+        devices.GridQubit(2, 6),
+        devices.GridQubit(8, 7),
+        devices.GridQubit(5, 11),
+        devices.GridQubit(7, 5),
+        devices.GridQubit(3, 3),
+        devices.GridQubit(3, 9),
+        devices.GridQubit(1, 6),
+        devices.GridQubit(6, 8),
+        devices.GridQubit(2, 7),
+        devices.GridQubit(4, 1),
+        devices.GridQubit(5, 6),
+        devices.GridQubit(10, 5),
+        devices.GridQubit(7, 6),
+        devices.GridQubit(4, 10),
+        devices.GridQubit(8, 3),
+        devices.GridQubit(0, 5),
+        devices.GridQubit(3, 4),
+        devices.GridQubit(6, 9),
+        devices.GridQubit(10, 6),
+        devices.GridQubit(5, 7),
+        devices.GridQubit(9, 4),
+        devices.GridQubit(6, 4),
+        devices.GridQubit(2, 8),
+        devices.GridQubit(5, 2),
+        devices.GridQubit(3, 5),
+        devices.GridQubit(7, 2),
+        devices.GridQubit(2, 3),
+        devices.GridQubit(6, 10),
+        devices.GridQubit(5, 8),
+        devices.GridQubit(9, 5),
+        devices.GridQubit(4, 6),
+        devices.GridQubit(8, 8),
+        devices.GridQubit(6, 5),
+        devices.GridQubit(2, 4),
+        devices.GridQubit(5, 3),
+        devices.GridQubit(5, 9),
+        devices.GridQubit(3, 6),
+        devices.GridQubit(9, 6),
+        devices.GridQubit(4, 7),
+        devices.GridQubit(1, 7),
+        devices.GridQubit(4, 2),
+        devices.GridQubit(6, 6),
+        devices.GridQubit(7, 7),
+        devices.GridQubit(5, 4),
+        devices.GridQubit(6, 1),
+    }
+)
+
+
 def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
     n_rows: int, cz_depth: int, seed: int
 ) -> circuits.Circuit:
@@ -135,12 +213,9 @@ def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
 
         assert 2 <= n_rows <= 11
         max_row = n_rows - 1
-        # to avoid circular dependencies
-        import cirq_google
 
-        dev = cirq_google.Bristlecone
         # we need a consistent order of qubits
-        qubits = list(dev.qubits)
+        qubits = list(_bristlecone_qubits)
         qubits.sort()
         qubits = [
             q
