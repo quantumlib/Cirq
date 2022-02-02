@@ -695,7 +695,7 @@ _compat.deprecated_submodule(
     create_attribute=True,
 )
 
-ops.Moment = Moment
+ops.Moment = Moment  # type: ignore
 _compat.deprecate_attributes(
     'cirq.ops',
     {
