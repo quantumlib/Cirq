@@ -673,8 +673,6 @@ def _test_deprecated_module_inner(outdated_method, deprecation_messages):
             deadline='v0.20',
             count=len(deprecation_messages),
         ):
-            import warnings
-
             warnings.simplefilter('always')
             outdated_method()
 
@@ -791,11 +789,12 @@ def _test_broken_module_1_inner():
 
 
 def _test_broken_module_2_inner():
-    with pytest.raises(
-        DeprecatedModuleImportError,
-        match="missing_module cannot be imported. The typical reasons",
-    ):
-        with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+    warnings.simplefilter('always')
+    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+        with pytest.raises(
+            DeprecatedModuleImportError,
+            match="missing_module cannot be imported. The typical reasons",
+        ):
             # note that this passes
             from cirq.testing._compat_test_data import broken_ref  # type: ignore
 
@@ -806,11 +805,12 @@ def _test_broken_module_2_inner():
 def _test_broken_module_3_inner():
     import cirq.testing._compat_test_data
 
-    with pytest.raises(
-        DeprecatedModuleImportError,
-        match="missing_module cannot be imported. The typical reasons",
-    ):
-        with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+    warnings.simplefilter('always')
+    with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
+        with pytest.raises(
+            DeprecatedModuleImportError,
+            match="missing_module cannot be imported. The typical reasons",
+        ):
             cirq.testing._compat_test_data.broken_ref.something()
 
 
