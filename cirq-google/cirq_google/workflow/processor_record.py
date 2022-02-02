@@ -17,6 +17,10 @@ import dataclasses
 import cirq
 import cirq_google as cg
 from cirq._compat import dataclass_repr
+from cirq_google.engine.virtual_engine_factory import (
+    MOST_RECENT_TEMPLATES,
+    _create_device_spec_from_template,
+)
 
 
 class ProcessorRecord(metaclass=abc.ABCMeta):
@@ -155,12 +159,6 @@ class SimulatedProcessorRecord(ProcessorRecord):
         return dataclass_repr(self, namespace='cirq_google')
 
 
-_DEVICES_BY_ID = {
-    'rainbow': cg.Sycamore23,
-    'weber': cg.Sycamore,
-}
-
-
 class SimulatedProcessorWithLocalDeviceRecord(SimulatedProcessorRecord):
     """A serializable record mapping a processor_id and optional noise spec to a
     completely local cg.AbstractProcessor
@@ -179,4 +177,8 @@ class SimulatedProcessorWithLocalDeviceRecord(SimulatedProcessorRecord):
         Only 'rainbow' and 'weber' are recognized processor_ids and the device information
         may not be up-to-date, as it is completely local.
         """
-        return _DEVICES_BY_ID[self.processor_id]
+
+        gate_sets = [cg.FSIM_GATESET]
+        device_spec = _create_device_spec_from_template(MOST_RECENT_TEMPLATES[self.processor_id])
+        device = cg.SerializableDevice.from_proto(device_spec, gate_sets)
+        return device

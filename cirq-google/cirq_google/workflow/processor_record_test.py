@@ -15,6 +15,8 @@
 import os
 from unittest import mock
 
+import pytest
+
 import cirq
 import cirq_google as cg
 
@@ -120,6 +122,12 @@ def test_simulated_backend_with_local_device():
     assert proc_rec.descriptive_name() == 'rainbow-simulator'
 
     cirq.testing.assert_equivalent_repr(proc_rec, global_vals={'cirq_google': cg})
+
+
+def test_simulated_backend_with_bad_local_device():
+    proc_rec = cg.SimulatedProcessorWithLocalDeviceRecord('my_processor')
+    with pytest.raises(KeyError):
+        proc_rec.get_device()
 
 
 def test_simulated_backend_descriptive_name():
