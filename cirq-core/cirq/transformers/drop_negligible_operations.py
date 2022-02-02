@@ -46,7 +46,7 @@ def drop_negligible_operations(
 
     def map_func(op: 'cirq.Operation', _: int) -> 'cirq.OP_TREE':
         if protocols.is_measurement(op) or (
-            context and not set(op.tags).isdisjoint(context.ignore_tags)
+            context and not set(op.tags).isdisjoint(context.tags_to_ignore)
         ):
             return op
         return [] if protocols.trace_distance_bound(op) <= atol else op
