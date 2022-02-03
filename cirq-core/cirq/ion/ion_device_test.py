@@ -209,8 +209,9 @@ def test_at():
     assert d.at(2) == cirq.LineQubit(2)
 
 
-def test_qubit_set():
-    assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))
+def test_qubit_set_deprecated():
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))
 
 
 def test_qid_pairs_deprecated():

@@ -70,6 +70,10 @@ class IonDevice(devices.Device):
         self.qubits = frozenset(qubits)
         self.gateset = get_ion_gateset()
 
+    @_compat.deprecated(
+        fix='Use metadata.qubit_set if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
 

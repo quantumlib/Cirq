@@ -282,5 +282,6 @@ def test_repr_pretty():
     cirq.testing.assert_repr_pretty(square_device(2, 2), "cirq.NeutralAtomDevice(...)", cycle=True)
 
 
-def test_qubit_set():
-    assert square_device(2, 2).qubit_set() == frozenset(cirq.GridQubit.square(2, 0, 0))
+def test_qubit_set_deprecated():
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        assert square_device(2, 2).qubit_set() == frozenset(cirq.GridQubit.square(2, 0, 0))
