@@ -42,13 +42,13 @@ if TYPE_CHECKING:
 PAULI_CHARS = 'IXYZ'
 PAULI_GATES: List['cirq.Gate'] = [
     # mypy false positive "Cannot determine type of 'I'"
-    identity.I,  # type: ignore
+    identity.I,
     pauli_gates.X,
     pauli_gates.Y,
     pauli_gates.Z,
 ]
 
-T = TypeVar('T', bound='BaseDensePauliString')
+TCls = TypeVar('TCls', bound='BaseDensePauliString')
 
 
 @value.value_equality(approximate=True, distinct_child_types=True)
@@ -59,9 +59,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     X_VAL = 1
     Y_VAL = 2
     Z_VAL = 3
-
-    pauli_mask: np.ndarray
-    coefficient: Union[sympy.Basic, complex]
 
     def __init__(
         self,
@@ -110,7 +107,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return self.coefficient, tuple(PAULI_CHARS[p] for p in self.pauli_mask)
 
     @classmethod
-    def one_hot(cls: Type[T], *, index: int, length: int, pauli: 'cirq.PAULI_GATE_LIKE') -> T:
+    def one_hot(cls: Type[TCls], *, index: int, length: int, pauli: 'cirq.PAULI_GATE_LIKE') -> TCls:
         """Creates a dense pauli string with only one non-identity Pauli.
 
         Args:
@@ -126,7 +123,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return cls(pauli_mask=mask)
 
     @classmethod
-    def eye(cls: Type[T], length: int) -> T:
+    def eye(cls: Type[TCls], length: int) -> TCls:
         """Creates a dense pauli string containing only identity gates.
 
         Args:
@@ -169,7 +166,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.coefficient)
 
-    def _resolve_parameters_(self: T, resolver: 'cirq.ParamResolver', recursive: bool) -> T:
+    def _resolve_parameters_(self: TCls, resolver: 'cirq.ParamResolver', recursive: bool) -> TCls:
         return self.copy(
             coefficient=protocols.resolve_parameters(self.coefficient, resolver, recursive)
         )
@@ -177,7 +174,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __pos__(self):
         return self
 
-    def __pow__(self, power):
+    def __pow__(self: TCls, power: Union[float, int]) -> TCls:
         if isinstance(power, int):
             i_group = [1, +1j, -1, -1j]
             if self.coefficient in i_group:
@@ -186,17 +183,16 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                 coef = self.coefficient ** power
             if power % 2 == 0:
                 return coef * self.eye(len(self))
-            cls = type(self)
-            return cls(coefficient=coef, pauli_mask=self.pauli_mask)
+            return type(self)(coefficient=coef, pauli_mask=self.pauli_mask)
+
         return NotImplemented
 
-    def __getitem__(self, item):
+    def __getitem__(self: TCls, item: Union[int, slice]) -> Union[raw_types.Gate, TCls]:
         if isinstance(item, int):
             return PAULI_GATES[self.pauli_mask[item]]
 
         if isinstance(item, slice):
-            cls = type(self)
-            return cls(coefficient=1, pauli_mask=self.pauli_mask[item])
+            return type(self)(coefficient=1, pauli_mask=self.pauli_mask[item])
 
         raise TypeError(f'indices must be integers or slices, not {type(item)}')
 
@@ -207,17 +203,16 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __len__(self) -> int:
         return len(self.pauli_mask)
 
-    def __neg__(self: T) -> T:  # type: ignore
-        cls = type(self)
-        return cls(coefficient=-self.coefficient, pauli_mask=self.pauli_mask)
+    def __neg__(self: TCls) -> TCls:
+        return type(self)(coefficient=-self.coefficient, pauli_mask=self.pauli_mask)
 
-    def __truediv__(self: T, other: Any) -> T:  # type: ignore
+    def __truediv__(self: TCls, other: Union[sympy.Basic, int, float, complex]) -> TCls:
         if isinstance(other, (sympy.Basic, int, float, complex)):
             return self.__mul__(1 / other)
 
         return NotImplemented
 
-    def __mul__(self: T, other: Any) -> T:  # type: ignore
+    def __mul__(self: TCls, other: Union[sympy.Basic, int, float, complex, TCls]) -> TCls:
         cls = type(self)
 
         if isinstance(other, cls):
@@ -251,7 +246,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return NotImplemented
 
-    def __rmul__(self: T, other: Any) -> T:  # type: ignore
+    def __rmul__(self: TCls, other: Union[sympy.Basic, int, float, complex, TCls]) -> TCls:
         if isinstance(other, (sympy.Basic, int, float, complex)):
             return self.__mul__(other)
 
@@ -267,7 +262,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return NotImplemented
 
-    def tensor_product(self: T, other: T) -> T:
+    def tensor_product(self: TCls, other: TCls) -> TCls:
         """Concatenates dense pauli strings and multiplies their coefficients.
 
         Args:
@@ -289,9 +284,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
         raise TypeError(f"Tensoring allowed only with objects of type {type(self)}.")
 
-    def __abs__(self: T) -> T:
-        cls = type(self)
-        return cls(coefficient=abs(self.coefficient), pauli_mask=self.pauli_mask)
+    def __abs__(self: TCls) -> TCls:
+        return type(self)(coefficient=abs(self.coefficient), pauli_mask=self.pauli_mask)
 
     def on(self, *qubits: 'cirq.Qid') -> 'cirq.PauliString':
         return self.sparse(qubits)
@@ -370,10 +364,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def copy(
-        self: T,
+        self: TCls,
         coefficient: Optional[complex] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
-    ) -> T:
+    ) -> TCls:
         """Returns a copy with possibly modified contents.
 
         Args:
@@ -431,13 +425,17 @@ class MutableDensePauliString(BaseDensePauliString):
 
         raise TypeError(f'indices must be integers or slices, not {type(key)}')
 
-    def __itruediv__(self, other: Any) -> 'MutableDensePauliString':  # type: ignore
+    def __itruediv__(
+        self, other: Union[sympy.Basic, int, float, complex]
+    ) -> 'MutableDensePauliString':
         if isinstance(other, (sympy.Basic, int, float, complex)):
             return self.__imul__(1 / other)
 
         return NotImplemented
 
-    def __imul__(self, other: Any) -> 'MutableDensePauliString':  # type: ignore
+    def __imul__(
+        self, other: Union[sympy.Basic, int, float, complex, 'MutableDensePauliString']
+    ) -> 'MutableDensePauliString':
         if isinstance(other, MutableDensePauliString):
             if len(other) > len(self):
                 raise ValueError(

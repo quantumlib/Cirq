@@ -275,31 +275,37 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def __add__(
         self, other: Union['Gate', 'cirq.LinearCombinationOfGates']
-    ) -> 'cirq.LinearCombinationOfGates':
+    ) -> Union['Gate', 'cirq.LinearCombinationOfGates']:
         if isinstance(other, Gate):
             return self.wrap_in_linear_combination() + other.wrap_in_linear_combination()
         return self.wrap_in_linear_combination() + other
 
     def __sub__(
         self, other: Union['Gate', 'cirq.LinearCombinationOfGates']
-    ) -> 'cirq.LinearCombinationOfGates':
+    ) -> Union['Gate', 'cirq.LinearCombinationOfGates']:
         if isinstance(other, Gate):
             return self.wrap_in_linear_combination() - other.wrap_in_linear_combination()
         return self.wrap_in_linear_combination() - other
 
-    def __neg__(self) -> 'cirq.LinearCombinationOfGates':
+    def __neg__(self) -> Union['Gate', 'cirq.LinearCombinationOfGates']:
         return self.wrap_in_linear_combination(coefficient=-1)
 
-    def __mul__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __mul__(
+        self, other: Union[complex, float, int]
+    ) -> Union['Gate', 'cirq.LinearCombinationOfGates']:
         return self.wrap_in_linear_combination(coefficient=other)
 
-    def __rmul__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __rmul__(
+        self, other: Union[complex, float, int]
+    ) -> Union['Gate', 'cirq.LinearCombinationOfGates']:
         return self.wrap_in_linear_combination(coefficient=other)
 
-    def __truediv__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __truediv__(
+        self, other: Union[complex, float, int]
+    ) -> Union['Gate', 'cirq.LinearCombinationOfGates']:
         return self.wrap_in_linear_combination(coefficient=1 / other)
 
-    def __pow__(self, power):
+    def __pow__(self, power: Union[float, int]) -> 'Gate':
         if power == 1:
             return self
 
