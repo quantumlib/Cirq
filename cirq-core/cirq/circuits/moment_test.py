@@ -323,6 +323,16 @@ def test_with_key_path():
     )
 
 
+def test_with_key_path_prefix():
+    a, b, c = cirq.LineQubit.range(3)
+    m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'), cirq.X(c))
+    mb = cirq.with_key_path(m, ('b',))
+    mab = cirq.with_key_path_prefix(mb, ('a',))
+    assert mab.operations[0] == cirq.measure(a, key=cirq.MeasurementKey.parse_serialized('a:b:m1'))
+    assert mab.operations[1] == cirq.measure(b, key=cirq.MeasurementKey.parse_serialized('a:b:m2'))
+    assert mab.operations[2] is m.operations[2]
+
+
 def test_copy():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
