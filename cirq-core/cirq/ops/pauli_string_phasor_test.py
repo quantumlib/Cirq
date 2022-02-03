@@ -250,8 +250,8 @@ def test_drop_negligible():
         cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** 0.25,
         cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** sym,
     )
-    cirq.DropNegligible().optimize_circuit(circuit)
-    cirq.DropEmptyMoments().optimize_circuit(circuit)
+    circuit = cirq.drop_negligible_operations(circuit)
+    circuit = cirq.drop_empty_moments(circuit)
     assert circuit == expected
 
 

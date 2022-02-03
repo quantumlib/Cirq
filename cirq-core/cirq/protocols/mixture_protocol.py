@@ -248,7 +248,7 @@ def _moment_superoperator(op: 'cirq.Operation', qubits: Sequence['cirq.Qid'], de
     return superoperator_result if superoperator_result is not NotImplemented else default
 
 
-def _gettr_helper(val: Any, gett_str_list: Sequence[str]):
+def _gettr_helper(val: Any, gett_str_list: Sequence[str]) -> Any:
     notImplementedFlag = False
     for gettr_str in gett_str_list:
         gettr = getattr(val, gettr_str, None)
