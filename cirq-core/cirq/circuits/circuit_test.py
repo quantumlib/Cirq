@@ -107,10 +107,12 @@ def test_insert_moment_types_deprecated():
         circuit = cirq.Circuit(device=moment_and_op_type_validating_device)
 
     moment_or_operation_tree = [cirq.X(x), cirq.Moment([cirq.Y(x)])]
-    circuit.insert(0, moment_or_operation_tree)
+    with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
+        circuit.insert(0, moment_or_operation_tree)
 
     moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
-    circuit.insert(0, moment_or_operation_tree)
+    with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
+        circuit.insert(0, moment_or_operation_tree)
 
 
 def test_setitem():

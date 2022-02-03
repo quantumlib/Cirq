@@ -86,7 +86,7 @@ def synchronize_terminal_measurements(
     terminal_measurements = [
         (i, op)
         for i, op in find_terminal_measurements(circuit)
-        if set(op.tags).isdisjoint(context.ignore_tags)
+        if set(op.tags).isdisjoint(context.tags_to_ignore)
     ]
     ret = circuit.unfreeze(copy=True)
     if not terminal_measurements:
