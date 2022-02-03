@@ -49,14 +49,23 @@ class CliffordSimulator(
 ):
     """An efficient simulator for Clifford circuits."""
 
-    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def __init__(
+        self,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        split_untangled_states: bool = False,
+    ):
         """Creates instance of `CliffordSimulator`.
 
         Args:
             seed: The random seed to use for this simulator.
+            split_untangled_states: Optimizes simulation by running separable
+                states independently and merging those states at the end.
         """
         self.init = True
-        super().__init__(seed=seed)
+        super().__init__(
+            seed=seed,
+            split_untangled_states=split_untangled_states,
+        )
 
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
@@ -86,14 +95,11 @@ class CliffordSimulator(
         if isinstance(initial_state, clifford.ActOnStabilizerCHFormArgs):
             return initial_state
 
-        qubit_map = {q: i for i, q in enumerate(qubits)}
-
-        state = CliffordState(qubit_map, initial_state=initial_state)
         return clifford.ActOnStabilizerCHFormArgs(
-            state=state.ch_form,
             prng=self._prng,
             log_of_measurement_results=logs,
             qubits=qubits,
+            initial_state=initial_state,
         )
 
     def _create_step_result(
@@ -247,7 +253,10 @@ class CliffordState:
 
     def apply_unitary(self, op: 'cirq.Operation'):
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            self.ch_form, np.random.RandomState(), {}, self.qubit_map.keys()
+            prng=np.random.RandomState(),
+            log_of_measurement_results={},
+            qubits=self.qubit_map.keys(),
+            initial_state=self.ch_form,
         )
         try:
             act_on(op, ch_form_args)
@@ -276,6 +285,9 @@ class CliffordState:
             state = self.copy()
 
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            state.ch_form, prng, measurements, self.qubit_map.keys()
+            prng=prng,
+            log_of_measurement_results=measurements,
+            qubits=self.qubit_map.keys(),
+            initial_state=state.ch_form,
         )
         act_on(op, ch_form_args)

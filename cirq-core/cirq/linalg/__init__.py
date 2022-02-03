@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Types and methods related to performing linear algebra.
+"""Linear algebra methods and classes useful for quantum primitives.
 
 Focuses on methods useful for analyzing and optimizing quantum circuits.
 Avoids duplicating functionality present in numpy.
@@ -80,10 +80,12 @@ from cirq.linalg.tolerance import (
 
 from cirq.linalg.transformations import (
     apply_matrix_to_slices,
+    density_matrix_kronecker_product,
     match_global_phase,
     partial_trace,
     partial_trace_of_state_vector_as_mixture,
     reflection_matrix_pow,
+    state_vector_kronecker_product,
     sub_state_vector,
     targeted_conjugate_about,
     targeted_left_multiply,

@@ -26,6 +26,7 @@ from cirq_pasqal.pasqal_qubits import (
 from cirq_pasqal.pasqal_device import (
     PasqalDevice,
     PasqalVirtualDevice,
+    PasqalConverter,
 )
 
 from cirq_pasqal.pasqal_noise_model import (
