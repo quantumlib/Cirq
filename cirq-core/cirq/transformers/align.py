@@ -28,7 +28,7 @@ def align_left(
 ) -> 'cirq.Circuit':
     """Align gates to the left of the circuit.
 
-    Note that tagged operations with tag in `context.ignore_tags` will continue to stay in their
+    Note that tagged operations with tag in `context.tags_to_ignore` will continue to stay in their
     original position and will not be aligned.
 
     Args:
@@ -45,7 +45,7 @@ def align_left(
     for i, moment in enumerate(circuit):
         for op in moment:
             if isinstance(op, ops.TaggedOperation) and set(op.tags).intersection(
-                context.ignore_tags
+                context.tags_to_ignore
             ):
                 ret.append([ops.Moment()] * (i + 1 - len(ret)))
                 ret[i] = ret[i].with_operation(op)
@@ -60,7 +60,7 @@ def align_right(
 ) -> 'cirq.Circuit':
     """Align gates to the right of the circuit.
 
-    Note that tagged operations with tag in `context.ignore_tags` will continue to stay in their
+    Note that tagged operations with tag in `context.tags_to_ignore` will continue to stay in their
     original position and will not be aligned.
 
     Args:

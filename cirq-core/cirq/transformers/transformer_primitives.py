@@ -79,10 +79,11 @@ def map_operations(
     map_func: Callable[[ops.Operation, int], ops.OP_TREE],
     *,
     raise_if_add_qubits=True,
+    tags_to_ignore: Sequence[Hashable] = (),
 ) -> CIRCUIT_TYPE:
     """Applies local transformations on operations, by calling `map_func(op)` for each op.
 
-    Note that the function assumes `issubset(qubit_set(map_func(op)), op.qubits)` is True.
+    By default, the function assumes `issubset(qubit_set(map_func(op)), op.qubits)` is True.
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
@@ -91,8 +92,11 @@ def map_operations(
             `cirq.CircuitOperation(cirq.FrozenCircuit(op_tree)).with_tags(MAPPED_CIRCUIT_OP_TAG)`
             to preserve moment structure. Utility methods like `cirq.unroll_circuit_op` can
             subsequently be used to unroll the mapped circuit operation.
-        raise_if_add_qubits: Set to True by default. If True, Raises ValueError if `map_func(op)`
+        raise_if_add_qubits: Set to True by default. If True, raises ValueError if `map_func(op)`
             adds operations on qubits outside of `op.qubits`.
+        tags_to_ignore: Sequence of tags which should be ignored while applying `map_func` on
+            tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
+            satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
 
     Raises:
           ValueError if `issubset(qubit_set(map_func(op)), op.qubits) is False` and
@@ -103,6 +107,8 @@ def map_operations(
     """
 
     def apply_map(op: ops.Operation, idx: int) -> ops.OP_TREE:
+        if not set(op.tags).isdisjoint(tags_to_ignore):
+            return op
         c = circuits.FrozenCircuit(map_func(op, idx))
         if raise_if_add_qubits and not c.all_qubits().issubset(op.qubits):
             raise ValueError(
@@ -122,6 +128,9 @@ def map_operations(
 def map_operations_and_unroll(
     circuit: CIRCUIT_TYPE,
     map_func: Callable[[ops.Operation, int], ops.OP_TREE],
+    *,
+    raise_if_add_qubits=True,
+    tags_to_ignore: Sequence[Hashable] = (),
 ) -> CIRCUIT_TYPE:
     """Applies local transformations via `cirq.map_operations` & unrolls intermediate circuit ops.
 
@@ -130,16 +139,30 @@ def map_operations_and_unroll(
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         map_func: Mapping function from (cirq.Operation, moment_index) to a cirq.OP_TREE.
+        raise_if_add_qubits: Set to True by default. If True, raises ValueError if `map_func(op)`
+            adds operations on qubits outside of `op.qubits`.
+        tags_to_ignore: Sequence of tags which should be ignored while applying `map_func` on
+            tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
+            satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
 
     Returns:
         Copy of input circuit with mapped operations, unrolled in a moment preserving way.
     """
-    return unroll_circuit_op(map_operations(circuit, map_func))
+    return unroll_circuit_op(
+        map_operations(
+            circuit,
+            map_func,
+            raise_if_add_qubits=raise_if_add_qubits,
+            tags_to_ignore=tags_to_ignore,
+        )
+    )
 
 
 def merge_operations(
     circuit: CIRCUIT_TYPE,
     merge_func: Callable[[ops.Operation, ops.Operation], Optional[ops.Operation]],
+    *,
+    tags_to_ignore: Sequence[Hashable] = (),
 ) -> CIRCUIT_TYPE:
     """Merges operations in a circuit by calling `merge_func` iteratively on operations.
 
@@ -173,6 +196,10 @@ def merge_operations(
         merge_func: Callable to determine whether two merge-able operations in the circuit should
             be merged. If the operations can be merged, the callable should return the merged
             operation, else None.
+        tags_to_ignore: Sequence of tags which should be ignored while applying `merge_func` on
+            tagged operations -- i.e. `merge_func(op1, op2)` will be called only if both `op1` and
+            `op2` satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
+
 
     Returns:
         Copy of input circuit with merged operations.
@@ -183,6 +210,8 @@ def merge_operations(
     """
 
     def apply_merge_func(op1: ops.Operation, op2: ops.Operation) -> Optional[ops.Operation]:
+        if not all(set(op.tags).isdisjoint(tags_to_ignore) for op in [op1, op2]):
+            return None
         new_op = merge_func(op1, op2)
         qubit_set = frozenset(op1.qubits + op2.qubits)
         if new_op is not None and not qubit_set.issuperset(new_op.qubits):

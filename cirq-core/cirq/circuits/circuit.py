@@ -1717,7 +1717,8 @@ class Circuit(AbstractCircuit):
         """
         self._moments: List['cirq.Moment'] = []
         self._device = device
-        self.append(contents, strategy=strategy)
+        with _compat.block_overlapping_deprecation('.*'):
+            self.append(contents, strategy=strategy)
 
     @property  # type: ignore
     @_compat.deprecated(
@@ -2015,6 +2016,10 @@ class Circuit(AbstractCircuit):
     def _can_add_op_at(self, moment_index: int, operation: 'cirq.Operation') -> bool:
         if not 0 <= moment_index < len(self._moments):
             return True
+
+        if self._device == cirq.UNCONSTRAINED_DEVICE:
+            return not self._moments[moment_index].operates_on(operation.qubits)
+
         return self._device.can_add_operation_into_moment(operation, self._moments[moment_index])
 
     def insert(
@@ -2041,15 +2046,32 @@ class Circuit(AbstractCircuit):
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = list(
-            ops.flatten_to_ops_or_moments(
-                ops.transform_op_tree(
-                    moment_or_operation_tree,
-                    self._device.decompose_operation,
-                    preserve_moments=True,
-                ),
+        if self._device == devices.UNCONSTRAINED_DEVICE:
+            moments_and_operations = list(
+                ops.flatten_to_ops_or_moments(
+                    ops.transform_op_tree(
+                        moment_or_operation_tree,
+                        preserve_moments=True,
+                    ),
+                )
             )
-        )
+        else:
+            _compat._warn_or_error(
+                'circuit.insert behavior relies on circuit.device.\n'
+                'The ability to construct a circuit with a device\n'
+                'will be removed in cirq v0.15. please update this use of\n'
+                'insert.'
+            )
+            with _compat.block_overlapping_deprecation('decompose'):
+                moments_and_operations = list(
+                    ops.flatten_to_ops_or_moments(
+                        ops.transform_op_tree(
+                            moment_or_operation_tree,
+                            self._device.decompose_operation,
+                            preserve_moments=True,
+                        ),
+                    )
+                )
 
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, ops.Moment):
@@ -2102,19 +2124,29 @@ class Circuit(AbstractCircuit):
 
         i = start
         op_index = 0
-        while op_index < len(flat_ops):
-            op = flat_ops[op_index]
-            while i < end and not self._device.can_add_operation_into_moment(op, self._moments[i]):
-                i += 1
-            if i >= end:
-                break
-            self._moments[i] = self._moments[i].with_operation(op)
-            op_index += 1
+        cannot_add_lambda = lambda a, b: b.operates_on(a.qubits)
+        if self._device != cirq.UNCONSTRAINED_DEVICE:
+            _compat._warn_or_error(
+                "In Cirq v0.15 device specific validation in "
+                "insert_into_range will no longer enforced."
+            )
+            cannot_add_lambda = lambda a, b: not self._device.can_add_operation_into_moment(a, b)
 
-        if op_index >= len(flat_ops):
-            return end
+        with _compat.block_overlapping_deprecation('(can_add_operation_into_moment|insert)'):
+            while op_index < len(flat_ops):
+                op = flat_ops[op_index]
+                while i < end and cannot_add_lambda(op, self._moments[i]):
+                    i += 1
+                if i >= end:
+                    break
 
-        return self.insert(end, flat_ops[op_index:])
+                self._moments[i] = self._moments[i].with_operation(op)
+                op_index += 1
+
+            if op_index >= len(flat_ops):
+                return end
+
+            return self.insert(end, flat_ops[op_index:])
 
     def _push_frontier(
         self,
