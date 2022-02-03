@@ -295,7 +295,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 != 0:
             if exponent % 0.5 != 0.0:
-                raise ValueError('Y exponent must be half integer')  # coverage: ignore
+                raise ValueError('X exponent must be half integer')  # coverage: ignore
             self.apply_h(axis)
             self.apply_z(axis, exponent)
             self.apply_h(axis)
