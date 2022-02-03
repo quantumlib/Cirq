@@ -17,7 +17,6 @@ import numpy as np
 
 import cirq
 from cirq import protocols, qis, value
-from cirq.ops import common_gates, global_phase_op, pauli_gates
 from cirq.value import big_endian_int_to_digits
 
 
@@ -59,7 +58,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
         ):
             if val:
-                self.apply_x(pauli_gates.X, i)
+                self.apply_x(i)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
@@ -293,39 +292,37 @@ class StabilizerStateChForm(qis.StabilizerState):
         copy.omega = self.omega
         return copy
 
-    def apply_x(self, g: common_gates.XPowGate, axis: int):
-        exponent = g.exponent
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 != 0:
             if exponent % 0.5 != 0.0:
                 raise ValueError('Y exponent must be half integer')  # coverage: ignore
-            self.apply_h(common_gates.H, axis)
-            self.apply_z(common_gates.ZPowGate(exponent=exponent), axis)
-            self.apply_h(common_gates.H, axis)
-        self.omega *= _phase(g)
+            self.apply_h(axis)
+            self.apply_z(axis, exponent)
+            self.apply_h(axis)
+        self.omega *= _phase(exponent, global_shift)
 
-    def apply_y(self, g: common_gates.YPowGate, axis: int):
-        exponent = g.exponent
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 0.5 != 0.0:
             raise ValueError('Y exponent must be half integer')  # coverage: ignore
+        shift = _phase(exponent, global_shift)
         if exponent % 2 == 0:
-            self.omega *= _phase(g)
+            self.omega *= shift
         elif exponent % 2 == 0.5:
-            self.apply_z(pauli_gates.Z, axis)
-            self.apply_h(common_gates.H, axis)
-            self.omega *= _phase(g) * (1 + 1j) / (2 ** 0.5)
+            self.apply_z(axis)
+            self.apply_h(axis)
+            self.omega *= shift * (1 + 1j) / (2 ** 0.5)
         elif exponent % 2 == 1:
-            self.apply_z(pauli_gates.Z, axis)
-            self.apply_h(common_gates.H, axis)
-            self.apply_z(pauli_gates.Z, axis)
-            self.apply_h(common_gates.H, axis)
-            self.omega *= _phase(g) * 1j
+            self.apply_z(axis)
+            self.apply_h(axis)
+            self.apply_z(axis)
+            self.apply_h(axis)
+            self.omega *= shift * 1j
         elif exponent % 2 == 1.5:
-            self.apply_h(common_gates.H, axis)
-            self.apply_z(pauli_gates.Z, axis)
-            self.omega *= _phase(g) * (1 - 1j) / (2 ** 0.5)
+            self.apply_h(axis)
+            self.apply_z(axis)
+            self.omega *= shift * (1 - 1j) / (2 ** 0.5)
 
-    def apply_z(self, g: common_gates.ZPowGate, axis: int):
-        exponent = g.exponent
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 != 0:
             if exponent % 0.5 != 0.0:
                 raise ValueError('Z exponent must be half integer')  # coverage: ignore
@@ -335,10 +332,9 @@ class StabilizerStateChForm(qis.StabilizerState):
                 # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
                 self.M[axis, :] ^= self.G[axis, :]
                 self.gamma[axis] = (self.gamma[axis] - 1) % 4
-        self.omega *= _phase(g)
+        self.omega *= _phase(exponent, global_shift)
 
-    def apply_h(self, g: common_gates.HPowGate, axis: int):
-        exponent = g.exponent
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 != 0:
             if exponent % 1 != 0:
                 raise ValueError('H exponent must be integer')  # coverage: ignore
@@ -354,10 +350,11 @@ class StabilizerStateChForm(qis.StabilizerState):
             beta %= 2
             delta = (self.gamma[axis] + 2 * (alpha + beta)) % 4
             self.update_sum(t, u, delta=delta, alpha=alpha)
-        self.omega *= _phase(g)
+        self.omega *= _phase(exponent, global_shift)
 
-    def apply_cz(self, g: common_gates.CZPowGate, control_axis: int, target_axis: int):
-        exponent = g.exponent
+    def apply_cz(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
         if exponent % 2 != 0:
             if exponent % 1 != 0:
                 raise ValueError('CZ exponent must be integer')  # coverage: ignore
@@ -365,10 +362,11 @@ class StabilizerStateChForm(qis.StabilizerState):
             # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
             self.M[control_axis, :] ^= self.G[target_axis, :]
             self.M[target_axis, :] ^= self.G[control_axis, :]
-        self.omega *= _phase(g)
+        self.omega *= _phase(exponent, global_shift)
 
-    def apply_cx(self, g: common_gates.CXPowGate, control_axis: int, target_axis: int):
-        exponent = g.exponent
+    def apply_cx(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
         if exponent % 2 != 0:
             if exponent % 1 != 0:
                 raise ValueError('CX exponent must be integer')  # coverage: ignore
@@ -382,11 +380,11 @@ class StabilizerStateChForm(qis.StabilizerState):
             self.G[target_axis, :] ^= self.G[control_axis, :]
             self.F[control_axis, :] ^= self.F[target_axis, :]
             self.M[control_axis, :] ^= self.M[target_axis, :]
-        self.omega *= _phase(g)
+        self.omega *= _phase(exponent, global_shift)
 
-    def apply_global_phase(self, g: global_phase_op.GlobalPhaseGate):
-        self.omega *= g.coefficient
+    def apply_global_phase(self, coefficient: value.Scalar):
+        self.omega *= coefficient
 
 
-def _phase(gate):
-    return np.exp(1j * np.pi * gate.global_shift * gate.exponent)
+def _phase(exponent, global_shift):
+    return np.exp(1j * np.pi * global_shift * exponent)

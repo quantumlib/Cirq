@@ -69,17 +69,15 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
 
         return NotImplemented
 
-    def _swap(self, g: swap_gates.SwapPowGate, control_axis: int, target_axis: int):
+    def _swap(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
         """Apply a SWAP gate"""
-        if g.exponent % 1 != 0:
+        if exponent % 1 != 0:
             raise ValueError('Swap exponent must be integer')  # coverage: ignore
-        self._state.apply_cx(common_gates.CX, control_axis, target_axis)
-        self._state.apply_cx(
-            common_gates.CXPowGate(exponent=g.exponent, global_shift=g.global_shift),
-            target_axis,
-            control_axis,
-        )
-        self._state.apply_cx(common_gates.CX, control_axis, target_axis)
+        self._state.apply_cx(control_axis, target_axis)
+        self._state.apply_cx(target_axis, control_axis, exponent, global_shift)
+        self._state.apply_cx(control_axis, target_axis)
 
     def _strat_apply_gate(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         if not protocols.has_stabilizer_effect(val):
@@ -87,21 +85,21 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
         gate = val.gate if isinstance(val, ops.Operation) else val
         axes = self.get_axes(qubits)
         if isinstance(gate, common_gates.XPowGate):
-            self._state.apply_x(gate, axes[0])
+            self._state.apply_x(axes[0], gate.exponent, gate.global_shift)
         elif isinstance(gate, common_gates.YPowGate):
-            self._state.apply_y(gate, axes[0])
+            self._state.apply_y(axes[0], gate.exponent, gate.global_shift)
         elif isinstance(gate, common_gates.ZPowGate):
-            self._state.apply_z(gate, axes[0])
+            self._state.apply_z(axes[0], gate.exponent, gate.global_shift)
         elif isinstance(gate, common_gates.HPowGate):
-            self._state.apply_h(gate, axes[0])
+            self._state.apply_h(axes[0], gate.exponent, gate.global_shift)
         elif isinstance(gate, common_gates.CXPowGate):
-            self._state.apply_cx(gate, axes[0], axes[1])
+            self._state.apply_cx(axes[0], axes[1], gate.exponent, gate.global_shift)
         elif isinstance(gate, common_gates.CZPowGate):
-            self._state.apply_cz(gate, axes[0], axes[1])
+            self._state.apply_cz(axes[0], axes[1], gate.exponent, gate.global_shift)
         elif isinstance(gate, global_phase_op.GlobalPhaseGate):
-            self._state.apply_global_phase(gate)
+            self._state.apply_global_phase(gate.coefficient)
         elif isinstance(gate, swap_gates.SwapPowGate):
-            self._swap(gate, axes[0], axes[1])
+            self._swap(axes[0], axes[1], gate.exponent, gate.global_shift)
         else:
             return NotImplemented
         return True
@@ -139,9 +137,7 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
                 k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
                 # Correct the global phase that wasn't conserved in the above
                 # decomposition.
-                self._state.apply_global_phase(
-                    global_phase_op.GlobalPhaseGate(u[k] / final_unitary[k])
-                )
+                self._state.apply_global_phase(u[k] / final_unitary[k])
                 return True
 
         return NotImplemented

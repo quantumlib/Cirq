@@ -17,7 +17,7 @@ from typing import Any, Dict, List, TYPE_CHECKING
 import numpy as np
 
 from cirq import protocols
-from cirq.value import big_endian_int_to_digits
+from cirq.value import big_endian_int_to_digits, linear_dict
 
 if TYPE_CHECKING:
     import cirq
@@ -25,31 +25,35 @@ if TYPE_CHECKING:
 
 class StabilizerState(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def apply_x(self, g: 'cirq.XPowGate', axis: int):
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
         """Apply an X gate"""
 
     @abc.abstractmethod
-    def apply_y(self, g: 'cirq.YPowGate', axis: int):
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
         """Apply a Y gate"""
 
     @abc.abstractmethod
-    def apply_z(self, g: 'cirq.ZPowGate', axis: int):
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
         """Apply a Z gate"""
 
     @abc.abstractmethod
-    def apply_h(self, g: 'cirq.HPowGate', axis: int):
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
         """Apply an H gate"""
 
     @abc.abstractmethod
-    def apply_cz(self, g: 'cirq.CZPowGate', control_axis: int, target_axis: int):
+    def apply_cz(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
         """Apply a CZ gate"""
 
     @abc.abstractmethod
-    def apply_cx(self, g: 'cirq.CXPowGate', control_axis: int, target_axis: int):
+    def apply_cx(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
         """Apply a CX gate"""
 
     @abc.abstractmethod
-    def apply_global_phase(self, g: 'cirq.GlobalPhaseGate'):
+    def apply_global_phase(self, coefficient: linear_dict.Scalar):
         """Apply global phase"""
 
 
@@ -407,8 +411,7 @@ class CliffordTableau(StabilizerState):
 
         return int(self.rs[p])
 
-    def apply_x(self, g: 'cirq.XPowGate', axis: int):
-        exponent = g.exponent
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
@@ -423,8 +426,7 @@ class CliffordTableau(StabilizerState):
             self.rs[:] ^= self.xs[:, axis] & self.zs[:, axis]
             self.xs[:, axis] ^= self.zs[:, axis]
 
-    def apply_y(self, g: 'cirq.YPowGate', axis: int):
-        exponent = g.exponent
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
@@ -445,8 +447,7 @@ class CliffordTableau(StabilizerState):
                 self.xs[:, axis].copy(),
             )
 
-    def apply_z(self, g: 'cirq.ZPowGate', axis: int):
-        exponent = g.exponent
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
@@ -461,8 +462,7 @@ class CliffordTableau(StabilizerState):
             self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
             self.zs[:, axis] ^= self.xs[:, axis]
 
-    def apply_h(self, g: 'cirq.HPowGate', axis: int):
-        exponent = g.exponent
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
@@ -474,8 +474,9 @@ class CliffordTableau(StabilizerState):
         )
         self.rs[:] ^= self.zs[:, axis]
 
-    def apply_cz(self, g: 'cirq.CZPowGate', control_axis: int, target_axis: int):
-        exponent = g.exponent
+    def apply_cz(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
@@ -498,8 +499,9 @@ class CliffordTableau(StabilizerState):
         )
         self.rs[:] ^= self.xs[:, target_axis] & self.zs[:, target_axis]
 
-    def apply_cx(self, g: 'cirq.CXPowGate', control_axis: int, target_axis: int):
-        exponent = g.exponent
+    def apply_cx(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
@@ -512,5 +514,5 @@ class CliffordTableau(StabilizerState):
         self.xs[:, target_axis] ^= self.xs[:, control_axis]
         self.zs[:, control_axis] ^= self.zs[:, target_axis]
 
-    def apply_global_phase(self, g: 'cirq.GlobalPhaseGate'):
+    def apply_global_phase(self, coefficient: linear_dict.Scalar):
         pass
