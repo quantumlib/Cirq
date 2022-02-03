@@ -43,6 +43,10 @@ from cirq.transformers.heuristic_decompositions import (
 
 from cirq.transformers.align import align_left, align_right
 
+from cirq.transformers.drop_empty_moments import drop_empty_moments
+
+from cirq.transformers.drop_negligible_operations import drop_negligible_operations
+
 from cirq.transformers.synchronize_terminal_measurements import synchronize_terminal_measurements
 
 from cirq.transformers.transformer_api import (

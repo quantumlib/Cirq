@@ -57,7 +57,12 @@ class StabilizerStateChForm:
 
         # Apply X for every non-zero element of initial_state
         qubits = cirq.LineQubit.range(num_qubits)
-        args = clifford.ActOnStabilizerCHFormArgs(self, np.random.RandomState(), {}, qubits=qubits)
+        args = clifford.ActOnStabilizerCHFormArgs(
+            prng=np.random.RandomState(),
+            log_of_measurement_results={},
+            qubits=qubits,
+            initial_state=self,
+        )
         for (i, val) in enumerate(
             big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
         ):
