@@ -17,7 +17,7 @@ from typing import Any, Dict, Generic, Optional, Sequence, TYPE_CHECKING, TypeVa
 
 import numpy as np
 
-from cirq import linalg, ops, protocols, qis
+from cirq import linalg, ops, protocols
 from cirq.ops import common_gates, global_phase_op, matrix_gates, swap_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary

@@ -57,7 +57,13 @@ class ActOnStabilizerCHFormArgs(
                 being recorded into.
             initial_state: The initial state for the simulation. This can be a
                 full CH form passed by reference which will be modified inplace,
-                or a big-endian int in the computational basis.
+                or a big-endian int in the computational basis. If the state is
+                an integer, qubits must be provided in order to determine
+                array sizes.
+
+        Raises:
+            ValueError: If initial state is an integer but qubits are not
+                provided.
         """
         initial_state = state or initial_state
         if isinstance(initial_state, int):
