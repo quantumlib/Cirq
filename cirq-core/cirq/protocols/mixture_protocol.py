@@ -192,8 +192,12 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     Returns:
         Whether or not `val` has a mixture representation.
     """
-    result = _gettr_helper(val, ['_has_mixture_', '_mixture_'])
-    if result is not None and result is not NotImplemented and result:
+    result = _gettr_helper(val, ['_has_mixture_'])
+    if result is not None and result is not NotImplemented:
+        return result
+
+    result = _gettr_helper(val, ['_mixture_'])
+    if result is not None and result is not NotImplemented:
         return True
 
     if has_unitary_protocol.has_unitary(val, allow_decompose=False):
