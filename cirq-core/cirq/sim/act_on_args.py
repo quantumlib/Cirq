@@ -31,7 +31,7 @@ import warnings
 
 import numpy as np
 
-from cirq import protocols, ops, value
+from cirq import ops, protocols, value
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 

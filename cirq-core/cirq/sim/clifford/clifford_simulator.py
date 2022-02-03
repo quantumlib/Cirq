@@ -99,8 +99,8 @@ class CliffordSimulator(
 
         return clifford.ActOnStabilizerCHFormArgs(
             prng=self._prng,
-            qubits=qubits,
             classical_data=classical_data,
+            qubits=qubits,
             initial_state=initial_state,
         )
 
@@ -256,7 +256,6 @@ class CliffordState:
     def apply_unitary(self, op: 'cirq.Operation'):
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
             prng=np.random.RandomState(),
-            log_of_measurement_results={},
             qubits=self.qubit_map.keys(),
             initial_state=self.ch_form,
         )
@@ -288,8 +287,8 @@ class CliffordState:
 
         classical_data = value.ClassicalDataDictionaryStore()
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            classical_data=classical_data,
             prng=prng,
+            classical_data=classical_data,
             qubits=self.qubit_map.keys(),
             initial_state=state.ch_form,
         )

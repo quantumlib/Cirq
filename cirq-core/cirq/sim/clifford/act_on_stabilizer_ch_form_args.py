@@ -54,11 +54,11 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
                 ordering of the computational basis states.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
+            log_of_measurement_results: A mutable object that measurements are
+                being recorded into.
             initial_state: The initial state for the simulation. This can be a
                 full CH form passed by reference which will be modified inplace,
                 or a big-endian int in the computational basis.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             classical_data: The shared classical data container for this
                 simulation.
         """

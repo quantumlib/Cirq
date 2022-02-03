@@ -47,10 +47,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
         ignore_measurement_results: bool = False,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         dtype: Type[np.number] = np.complex64,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits ActOnDensityMatrixArgs.
 
@@ -70,8 +70,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            classical_data: The shared classical data container for this
-                simulation.
             ignore_measurement_results: If True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process. This is only applicable to simulators that can
@@ -81,6 +79,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             dtype: The `numpy.dtype` of the inferred state vector. One of
                 `numpy.complex64` or `numpy.complex128`. Only used when
                 `target_tenson` is None.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Raises:
             ValueError: The dimension of `target_tensor` is not divisible by 2
@@ -90,8 +90,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             prng=prng,
             qubits=qubits,
             log_of_measurement_results=log_of_measurement_results,
-            classical_data=classical_data,
             ignore_measurement_results=ignore_measurement_results,
+            classical_data=classical_data,
         )
         if target_tensor is None:
             qubits_qid_shape = protocols.qid_shape(self.qubits)
