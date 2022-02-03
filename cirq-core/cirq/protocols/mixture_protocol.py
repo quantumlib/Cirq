@@ -83,6 +83,27 @@ def mixture(
     The probability components of the tuples must sum to 1.0 and be
     non-negative.
 
+    Determines the Mixture representation of `val` by the following strategies:
+
+    1. Try to use `val._mixture_()`.
+        Case a) Method not present or returns `None`.
+            Continue to next strategy.
+        Case b) Returns the Mixture representation.
+            Return the result.
+
+    2. Try to use `unitary()`.
+        Case a) Method not present or returns `None`.
+            Continue to next strategy.
+        Case b) Method returns a unitary.
+            Convert unitary into mixture and return.
+
+    3. Try to use serial concatenation recursively.
+        Case a) One or more decomposed operators doesn't have mixture.
+            `val` does not have a mixture representation.
+        Case b) All decomposed operators have mixture representation.
+            Serially concatenate and return the result using superoperator
+            as intermediate.
+
     Args:
         val: The value to decompose into a mixture of unitaries.
         default: A default value if val does not support mixture.
@@ -112,10 +133,10 @@ def mixture(
 
         if all([has_mixture(x) for x in decomposed]):
             superoperator_list = [_moment_superoperator(x, qubits, None) for x in decomposed]
+
             if not any([x is None for x in superoperator_list]):
                 superoperator_result = reduce(lambda x, y: x @ y, superoperator_list)
-                mixture_result = tuple(_superoperator_to_mixture(superoperator_result))
-                return mixture_result
+                return tuple(_superoperator_to_mixture(superoperator_result))
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
@@ -132,6 +153,32 @@ def mixture(
 def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     """Returns whether the value has a mixture representation.
 
+    Determines whether `val` has a mixture representation by attempting
+    the following strategies:
+
+    1. Try to use `val._has_mixture_()`.
+        Case a) Method not present or returns `None`.
+            Continue to next strategy.
+        Case b) Method returns valid result.
+            return result.
+
+    2. Try to use `val._mixture_()`.
+        Case a) Method not present or returns `None`.
+            Continue to next strategy.
+        Case b) Method returns valid mixture.
+            return True.
+
+    3. Try to use `has_unitary`.
+        Case a) Method not present or returns `None` or returns False.
+            Continue to next strategy.
+        Case b) Method returns True.
+            return True.
+
+    4. If decomposition is allowed decompose `val` and check recursively.
+
+    If all the above methods fail then it is assumed to have no Kraus
+    representation.
+
     Args:
         val: The value to check.
         allow_decompose: Used by internal methods to stop redundant
@@ -143,13 +190,14 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
             the result is skipped.
 
     Returns:
-        If `val` has a `_has_mixture_` method and its result is not
-        NotImplemented, that result is returned. Otherwise, if the value
-        has a `_mixture_` method return True if that has a non-default value.
-        Returns False if neither function exists.
+        Whether or not `val` has a mixture representation.
     """
-    result = _gettr_helper(val, ['_has_mixture_', '_mixture_'])
-    if result is not None and result is not NotImplemented and result:
+    result = _gettr_helper(val, ['_has_mixture_'])
+    if result is not None and result is not NotImplemented:
+        return result
+
+    result = _gettr_helper(val, ['_mixture_'])
+    if result is not None and result is not NotImplemented:
         return True
 
     if has_unitary_protocol.has_unitary(val, allow_decompose=False):
