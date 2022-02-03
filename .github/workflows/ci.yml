@@ -156,9 +156,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Force old pip (3.6 only)
-        if: matrix.python-version == '3.6'
-        run: pip install pip==20.2
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
         run: |
           pip install -r dev_tools/requirements/dev.env.txt
@@ -267,6 +268,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
@@ -286,6 +291,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
         run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
