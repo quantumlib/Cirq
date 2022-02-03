@@ -78,8 +78,7 @@ f: ───×(2,1)───
     ct.assert_has_diagram(swap_network, expected_text_diagram)
 
     no_decomp = lambda op: isinstance(op.gate, (cca.CircularShiftGate, cca.LinearPermutationGate))
-    expander = cirq.ExpandComposite(no_decomp=no_decomp)
-    expander(swap_network)
+    swap_network = cirq.expand_composite(swap_network, no_decomp=no_decomp)
     expected_text_diagram = """
 a: ───█───────╲0╱───█─────────────────█───────────╲0╱───█───────0↦1───
       │       │     │                 │           │     │       │
@@ -95,9 +94,6 @@ f: ─────────────────█───────�
     """.strip()
     ct.assert_has_diagram(swap_network, expected_text_diagram)
 
-    no_decomp = lambda op: isinstance(op.gate, cca.CircularShiftGate)
-    expander = cirq.ExpandComposite(no_decomp=no_decomp)
-
     acquaintance_size = 3
     n_parts = 6
     part_lens = (1,) * n_parts
@@ -106,8 +102,8 @@ f: ─────────────────█───────�
         *qubits[:n_qubits]
     )
     swap_network = cirq.Circuit(swap_network_op)
-
-    expander(swap_network)
+    no_decomp = lambda op: isinstance(op.gate, cca.CircularShiftGate)
+    swap_network = cirq.expand_composite(swap_network, no_decomp=no_decomp)
     expected_text_diagram = """
 a: ───╲0╱─────────╲0╱─────────╲0╱─────────
       │           │           │
