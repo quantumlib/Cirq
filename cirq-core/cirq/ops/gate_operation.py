@@ -149,13 +149,15 @@ class GateOperation(raw_types.Operation):
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
         else:
-            return tuple((k, frozenset(g for _, g in kg))
-            for k, kg in itertools.groupby(
-                enumerate(self.qubits),
-                lambda i_q: cast(
-                    gate_features.InterchangeableQubitsGate, self.gate
-                ).qubit_index_to_equivalence_group_key(i_q[0]),
-            ))
+            return tuple(
+                (k, frozenset(g for _, g in kg))
+                for k, kg in itertools.groupby(
+                    enumerate(self.qubits),
+                    lambda i_q: cast(
+                        gate_features.InterchangeableQubitsGate, self.gate
+                    ).qubit_index_to_equivalence_group_key(i_q[0]),
+                )
+            )
 
     def _value_equality_values_(self):
         return self.gate, self._group_interchangeable_qubits()
