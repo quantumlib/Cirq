@@ -25,7 +25,7 @@ from cirq.qis.channels import (
     superoperator_to_kraus,
 )
 
-from cirq.qis.clifford_tableau import CliffordTableau
+from cirq.qis.clifford_tableau import CliffordTableau, StabilizerState
 
 from cirq.qis.measures import (
     entanglement_fidelity,

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 from typing import Any, Dict, List, TYPE_CHECKING
 import numpy as np
 
@@ -22,7 +23,37 @@ if TYPE_CHECKING:
     import cirq
 
 
-class CliffordTableau:
+class StabilizerState(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def apply_x(self, g: 'cirq.XPowGate', axis: int):
+        """Apply an X gate"""
+
+    @abc.abstractmethod
+    def apply_y(self, g: 'cirq.YPowGate', axis: int):
+        """Apply a Y gate"""
+
+    @abc.abstractmethod
+    def apply_z(self, g: 'cirq.ZPowGate', axis: int):
+        """Apply a Z gate"""
+
+    @abc.abstractmethod
+    def apply_h(self, g: 'cirq.HPowGate', axis: int):
+        """Apply an H gate"""
+
+    @abc.abstractmethod
+    def apply_cz(self, g: 'cirq.CZPowGate', control_axis: int, target_axis: int):
+        """Apply a CZ gate"""
+
+    @abc.abstractmethod
+    def apply_cx(self, g: 'cirq.CXPowGate', control_axis: int, target_axis: int):
+        """Apply a CX gate"""
+
+    @abc.abstractmethod
+    def apply_global_phase(self, g: 'cirq.GlobalPhaseGate'):
+        """Apply global phase"""
+
+
+class CliffordTableau(StabilizerState):
     """Tableau representation of a stabilizer state
     (based on Aaronson and Gottesman 2006).
 
@@ -375,3 +406,111 @@ class CliffordTableau:
         self.rs[p] = bool(prng.randint(2))
 
         return int(self.rs[p])
+
+    def apply_x(self, g: 'cirq.XPowGate', axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 0.5 != 0.0:
+            raise ValueError('X exponent must be half integer')  # coverage: ignore
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            self.xs[:, axis] ^= self.zs[:, axis]
+            self.rs[:] ^= self.xs[:, axis] & self.zs[:, axis]
+        elif effective_exponent == 1:
+            self.rs[:] ^= self.zs[:, axis]
+        elif effective_exponent == 1.5:
+            self.rs[:] ^= self.xs[:, axis] & self.zs[:, axis]
+            self.xs[:, axis] ^= self.zs[:, axis]
+
+    def apply_y(self, g: 'cirq.YPowGate', axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 0.5 != 0.0:
+            raise ValueError('Y exponent must be half integer')  # coverage: ignore
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
+            (self.xs[:, axis], self.zs[:, axis]) = (
+                self.zs[:, axis].copy(),
+                self.xs[:, axis].copy(),
+            )
+        elif effective_exponent == 1:
+            self.rs[:] ^= self.xs[:, axis] ^ self.zs[:, axis]
+        elif effective_exponent == 1.5:
+            self.rs[:] ^= ~(self.xs[:, axis]) & self.zs[:, axis]
+            (self.xs[:, axis], self.zs[:, axis]) = (
+                self.zs[:, axis].copy(),
+                self.xs[:, axis].copy(),
+            )
+
+    def apply_z(self, g: 'cirq.ZPowGate', axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 0.5 != 0.0:
+            raise ValueError('Z exponent must be half integer')  # coverage: ignore
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            self.rs[:] ^= self.xs[:, axis] & self.zs[:, axis]
+            self.zs[:, axis] ^= self.xs[:, axis]
+        elif effective_exponent == 1:
+            self.rs[:] ^= self.xs[:, axis]
+        elif effective_exponent == 1.5:
+            self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
+            self.zs[:, axis] ^= self.xs[:, axis]
+
+    def apply_h(self, g: 'cirq.HPowGate', axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 1 != 0:
+            raise ValueError('H exponent must be integer')  # coverage: ignore
+        self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
+        (self.xs[:, axis], self.zs[:, axis]) = (
+            self.zs[:, axis].copy(),
+            self.xs[:, axis].copy(),
+        )
+        self.rs[:] ^= self.zs[:, axis]
+
+    def apply_cz(self, g: 'cirq.CZPowGate', control_axis: int, target_axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 1 != 0:
+            raise ValueError('CZ exponent must be integer')  # coverage: ignore
+        (self.xs[:, target_axis], self.zs[:, target_axis]) = (
+            self.zs[:, target_axis].copy(),
+            self.xs[:, target_axis].copy(),
+        )
+        self.rs[:] ^= self.xs[:, target_axis] & self.zs[:, target_axis]
+        self.rs[:] ^= (
+            self.xs[:, control_axis]
+            & self.zs[:, target_axis]
+            & (~(self.xs[:, target_axis] ^ self.zs[:, control_axis]))
+        )
+        self.xs[:, target_axis] ^= self.xs[:, control_axis]
+        self.zs[:, control_axis] ^= self.zs[:, target_axis]
+        (self.xs[:, target_axis], self.zs[:, target_axis]) = (
+            self.zs[:, target_axis].copy(),
+            self.xs[:, target_axis].copy(),
+        )
+        self.rs[:] ^= self.xs[:, target_axis] & self.zs[:, target_axis]
+
+    def apply_cx(self, g: 'cirq.CXPowGate', control_axis: int, target_axis: int):
+        exponent = g.exponent
+        if exponent % 2 == 0:
+            return
+        if exponent % 1 != 0:
+            raise ValueError('CX exponent must be integer')  # coverage: ignore
+        self.rs[:] ^= (
+            self.xs[:, control_axis]
+            & self.zs[:, target_axis]
+            & (~(self.xs[:, target_axis] ^ self.zs[:, control_axis]))
+        )
+        self.xs[:, target_axis] ^= self.xs[:, control_axis]
+        self.zs[:, control_axis] ^= self.zs[:, target_axis]
+
+    def apply_global_phase(self, g: 'cirq.GlobalPhaseGate'):
+        pass
