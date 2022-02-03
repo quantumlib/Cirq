@@ -153,8 +153,6 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
         self._on_kronecker_product(other, args)
-        print(self)
-        print(other)
         args._set_qubits(self.qubits + other.qubits)
         return args
 
