@@ -13,6 +13,7 @@
 # limitations under the License.
 from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
 import numpy as np
+import networkx as nx
 
 import cirq
 from cirq import _compat, GridQubit, LineQubit
@@ -78,6 +79,9 @@ class PasqalDevice(cirq.devices.Device):
             accept_global_phase_op=False,
         )
         self.qubits = qubits
+        self._metadata = cirq.DeviceMetadata(
+            qubits, nx.from_edgelist([(a, b) for a in qubits for b in qubits if a != b])
+        )
 
     # pylint: enable=missing-raises-doc
     @property
@@ -88,6 +92,14 @@ class PasqalDevice(cirq.devices.Device):
     def maximum_qubit_number(self):
         return 100
 
+    @property
+    def metadata(self):
+        return self._metadata
+
+    @_compat.deprecated(
+        fix='Use metadata.qubit_set() if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
@@ -142,7 +154,7 @@ class PasqalDevice(cirq.devices.Device):
                     'device accepts gates on qubits of type: '
                     '{}'.format(qub, operation.gate, self.supported_qubit_type)
                 )
-            if qub not in self.qubit_set():
+            if qub not in self.metadata.qubit_set:
                 raise ValueError(f'{qub} is not part of the device.')
 
         if isinstance(operation.gate, cirq.ops.MeasurementGate):
