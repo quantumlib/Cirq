@@ -27,4 +27,4 @@ def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
 
 def _Device_dot_get_nx_graph(device: 'cirq.Device') -> nx.Graph:
     """Shim over future `cirq.Device` method to get a NetworkX graph."""
-    return _gridqubits_to_graph_device(cast(Iterable[cirq.GridQubit], device.qubit_set()))
+    return device.metadata.nx_graph
