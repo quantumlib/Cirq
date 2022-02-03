@@ -813,3 +813,20 @@ def test_sympy_scope_simulation():
         assert result.measurements['0:0:m_result'][0][0] == (
             bits[0] and bits[1] or bits[2] and bits[3]  # bits[4] irrelevant
         )
+
+
+def test_commutes():
+    q0, q1 = cirq.LineQubit.range(2)
+    assert cirq.commutes(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('b'))
+    assert cirq.commutes(cirq.X(q1).with_classical_controls('b'), cirq.measure(q0, key='a'))
+    assert cirq.commutes(
+        cirq.X(q0).with_classical_controls('a'), cirq.H(q1).with_classical_controls('a')
+    )
+    assert cirq.commutes(
+        cirq.X(q0).with_classical_controls('a'), cirq.X(q0).with_classical_controls('a')
+    )
+    assert not cirq.commutes(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
+    assert not cirq.commutes(cirq.X(q1).with_classical_controls('a'), cirq.measure(q0, key='a'))
+    assert not cirq.commutes(
+        cirq.X(q0).with_classical_controls('a'), cirq.H(q0).with_classical_controls('a')
+    )

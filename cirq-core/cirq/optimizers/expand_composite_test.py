@@ -17,9 +17,7 @@ import cirq
 
 
 def assert_equal_mod_empty(expected, actual):
-    drop_empty = cirq.DropEmptyMoments()
-    drop_empty.optimize_circuit(actual)
-
+    actual = cirq.drop_empty_moments(actual)
     assert expected == actual, f'EXPECTED {expected} : ACTUAL {actual}'
 
 

@@ -29,10 +29,10 @@ def assert_optimizes(
     optimizer(before)
 
     # Ignore differences that would be caught by follow-up optimizations.
-    followup_optimizations = [cirq.DropNegligible(), cirq.DropEmptyMoments()]
-    for post in followup_optimizations:
-        post(before)  # type: ignore #  error: "object" not callable
-        post(expected)  # type: ignore #  error: "object" not callable
+    followup_transformers = [cirq.drop_negligible_operations, cirq.drop_empty_moments]
+    for transform in followup_transformers:
+        before = transform(before)  # type: ignore #  error: "object" not callable
+        expected = transform(expected)  # type: ignore #  error: "object" not callable
 
     assert before == expected, f'BEFORE:\n{before}\nEXPECTED:\n{expected}'
 
@@ -150,7 +150,7 @@ def test_rewrite():
     cirq.MergeSingleQubitGates(rewriter=lambda ops: cirq.H(ops[0].qubits[0])).optimize_circuit(
         circuit
     )
-    cirq.DropEmptyMoments().optimize_circuit(circuit)
+    circuit = cirq.drop_empty_moments(circuit)
 
     cirq.testing.assert_same_circuits(
         circuit,

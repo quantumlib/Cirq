@@ -16,8 +16,10 @@
 
 from cirq.circuits.circuit import Circuit
 from cirq.circuits import circuit as _circuit
+from cirq._compat import deprecated_class
 
 
+@deprecated_class(deadline='v1.0', fix='Use cirq.drop_empty_moments instead.')
 class DropEmptyMoments:
     """Removes empty moments from a circuit."""
 
