@@ -95,7 +95,7 @@ def make_transformer_func() -> cirq.TRANSFORMER:
     'context',
     [
         cirq.TransformerContext(),
-        cirq.TransformerContext(logger=mock.Mock(), ignore_tags=('tag',)),
+        cirq.TransformerContext(logger=mock.Mock(), tags_to_ignore=('tag',)),
     ],
 )
 @pytest.mark.parametrize(
@@ -123,7 +123,7 @@ def test_transformer_decorator(context, transformer):
 )
 def test_transformer_decorator_with_defaults(transformer):
     circuit = cirq.Circuit(cirq.X(cirq.NamedQubit("a")))
-    context = cirq.TransformerContext(ignore_tags=("tags", "to", "ignore"))
+    context = cirq.TransformerContext(tags_to_ignore=("tags", "to", "ignore"))
     transformer(circuit)
     transformer.mock.assert_called_with(circuit, cirq.TransformerContext(), 1e-4, CustomArg())
     transformer(circuit, context=context, atol=1e-3)

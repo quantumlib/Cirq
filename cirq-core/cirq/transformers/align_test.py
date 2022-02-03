@@ -57,7 +57,7 @@ def test_align_left_no_compile_context():
                     cirq.measure(*[q1, q2], key='a'),
                 ]
             ),
-            context=cirq.TransformerContext(ignore_tags=["nocompile"]),
+            context=cirq.TransformerContext(tags_to_ignore=["nocompile"]),
         ),
         cirq.Circuit(
             [
@@ -85,7 +85,7 @@ def test_align_right_no_compile_context():
                     cirq.measure(*[q1, q2], key='a'),
                 ]
             ),
-            context=cirq.TransformerContext(ignore_tags=["nocompile"]),
+            context=cirq.TransformerContext(tags_to_ignore=["nocompile"]),
         ),
         cirq.Circuit(
             [
