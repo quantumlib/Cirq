@@ -12,9 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-from typing import TYPE_CHECKING, Type, Callable, Union, Iterable, Set
+from typing import (
+    TYPE_CHECKING,
+    Type,
+    Callable,
+    Optional,
+    Union,
+    Iterable,
+    Sequence,
+    List,
+    Tuple,
+)
 
 from cirq import ops, circuits
+from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers import drop_empty_moments  # type: ignore
 
 if TYPE_CHECKING:
     import cirq
@@ -29,8 +41,12 @@ Category = Union[
 ]
 
 
+@transformer_api.transformer
 def stratified_circuit(
-    circuit: 'cirq.Circuit', *, categories: Iterable[Category]
+    circuit: 'cirq.AbstractCircuit',
+    *,
+    context: Optional['cirq.TransformerContext'] = None,
+    categories: Iterable[Category] = (),
 ) -> 'cirq.Circuit':
     """Repacks avoiding simultaneous operations with different classes.
 
@@ -48,8 +64,12 @@ def stratified_circuit(
     with operations from the same category. There is no guarantee that the
     resulting circuit will be optimally packed under this constraint.
 
+    Tagged Operations marked with any of `context.tags_to_ignore` will be treated as a separate
+    category will be left in their original moments without stratification.
+
     Args:
         circuit: The circuit whose operations should be re-arranged.
+        context: `cirq.TransformerContext` storing common configurable options for transformers.
         categories: A list of classifiers picking out certain operations.
             There are several ways to specify a classifier. You can pass
             in a gate instance (e.g. `cirq.X`), a gate type (e.g.
@@ -73,58 +93,87 @@ def stratified_circuit(
     reversed_circuit = circuit[::-1]
     solutions = []
     for c in classifiers_permutations:
-        solutions.append(stratify_circuit(list(c), circuit))
+        solutions.append(
+            stratify_circuit(
+                circuit,
+                classifiers=list(c),
+                context=context or transformer_api.TransformerContext(),
+            )
+        )
         # Do the same thing, except this time in reverse. This helps for some
         # circuits because it inserts operations at the end instead of at the
         # beginning.
-        solutions.append(stratify_circuit(list(c), reversed_circuit)[::-1])
+        solutions.append(
+            stratify_circuit(
+                reversed_circuit,
+                classifiers=list(c),
+                context=context or transformer_api.TransformerContext(),
+            )[::-1]
+        )
 
     # Return the shortest circuit.
     return min(solutions, key=lambda c: len(c))
 
 
-def stratify_circuit(classifiers: Iterable[Classifier], circuit: circuits.Circuit):
+def stratify_circuit(
+    circuit: circuits.AbstractCircuit,
+    *,
+    classifiers: Sequence[Classifier],
+    context: 'cirq.TransformerContext',
+) -> 'cirq.Circuit':
     """Performs the stratification by iterating through the operations in the
     circuit and using the given classifiers to align them.
+
+    Tagged Operations marked with any of `context.tags_to_ignore` are treated as separate
+    categories and left in their original moments without stratification.
 
     Args:
         classifiers: A list of rules to align the circuit. Must be exhaustive,
             i.e. all operations will be caught by one of the processors.
-        circuit: The circuit to break out into homogeneous moments. Will not be
-            edited.
+        circuit: The circuit to break out into homogeneous moments. Will not be edited.
+        context: `cirq.TransformerContext` storing common configurable options for transformers.
 
     Returns:
         The stratified circuit.
     """
-    solution = circuits.Circuit()
-    circuit_copy = circuit.copy()
-    while len(circuit_copy.all_qubits()) > 0:
-        for classifier in classifiers:
-            current_moment = ops.Moment()
-            blocked_qubits: Set[ops.Qid] = set()
-            for moment_idx, moment in enumerate(circuit_copy.moments):
-                for op in moment.operations:
-                    can_insert = classifier(op)
-                    if not can_insert:
-                        blocked_qubits.update(op.qubits)
-                    else:
-                        # Ensure that all the qubits for this operation are
-                        # still available.
-                        if not any(qubit in blocked_qubits for qubit in op.qubits):
-                            # Add the operation to the current moment and
-                            # remove it from the circuit.
-                            current_moment = current_moment.with_operation(op)
-                            blocked_qubits.update(op.qubits)
-                            circuit_copy.batch_remove([(moment_idx, op)])
+    num_categories = len(classifiers) + 1
 
-                # Short-circuit: If all the qubits are blocked, go on to the
-                # next moment.
-                if blocked_qubits.issuperset(circuit_copy.all_qubits()):
+    def map_func(m: 'cirq.Moment', _) -> Sequence['cirq.Moment']:
+        stratified_ops: List[List['cirq.Operation']] = [[] for _ in range(num_categories)]
+        for op in m:
+            if set(op.tags) & set(context.tags_to_ignore):
+                stratified_ops[0].append(op)
+                continue
+            for i, classifier in enumerate(classifiers):
+                if classifier(op):
+                    stratified_ops[i + 1].append(op)
                     break
+        return [ops.Moment(op_list) for op_list in stratified_ops]
 
-            if len(current_moment) > 0:
-                solution.append(current_moment)
-    return solution
+    stratified_circuit = transformer_primitives.map_moments(circuit, map_func).unfreeze(copy=False)
+    assert len(stratified_circuit) == len(circuit) * num_categories
+
+    # Try to move operations to the left to reduce circuit depth, preserving stratification.
+    for curr_idx, moment in enumerate(stratified_circuit):
+        curr_category = curr_idx % num_categories
+        if curr_category == 0:
+            # Moment containing tagged operations to be ignored.
+            continue
+        batch_removals: List[Tuple[int, 'cirq.Operation']] = []
+        batch_inserts: List[Tuple[int, 'cirq.Operation']] = []
+        for op in moment:
+            prv_idx = stratified_circuit.prev_moment_operating_on(op.qubits, curr_idx)
+            prv_idx = 0 if prv_idx is None else prv_idx + 1
+            prv_category = prv_idx % num_categories
+            should_move_to_next_batch = curr_category < prv_category
+            prv_idx += curr_category - prv_category + num_categories * should_move_to_next_batch
+            assert prv_idx <= curr_idx and prv_idx % num_categories == curr_idx % num_categories
+            if prv_idx < curr_idx:
+                batch_inserts.append((prv_idx, op))
+                batch_removals.append((curr_idx, op))
+        stratified_circuit.batch_remove(batch_removals)
+        stratified_circuit.batch_insert_into(batch_inserts)
+    return drop_empty_moments.drop_empty_moments(stratified_circuit)
 
 
 # No type for `category` because MyPy does not keep the return type when
