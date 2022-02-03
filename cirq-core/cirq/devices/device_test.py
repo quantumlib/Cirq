@@ -53,6 +53,16 @@ def test_qid_pairs():
         assert len(QubitFieldDevice([cirq.NamedQubit(str(s)) for s in range(10)]).qid_pairs()) == 45
 
 
+def test_decompose_operation_deprecated():
+    q0 = cirq.GridQubit(0, 0)
+
+    class RawDevice(cirq.Device):
+        pass
+
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+        RawDevice().decompose_operation(cirq.H(q0))
+
+
 def test_qid_pair_deprecated():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=3):
