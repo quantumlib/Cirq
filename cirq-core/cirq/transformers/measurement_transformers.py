@@ -102,7 +102,7 @@ def defer_measurements(
     measurement_qubits: Dict['cirq.MeasurementKey', List['_MeasurementQid']] = {}
 
     def defer(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
-        if any(t in context1.ignore_tags for t in op.tags):
+        if any(t in context1.tags_to_ignore for t in op.tags):
             return op
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
@@ -175,7 +175,7 @@ def dephase_measurements(
     context1 = context or transformer_api.TransformerContext()
 
     def dephase(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
-        if any(t in context1.ignore_tags for t in op.tags):
+        if any(t in context1.tags_to_ignore for t in op.tags):
             return op
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):

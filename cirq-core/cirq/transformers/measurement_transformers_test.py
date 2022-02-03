@@ -82,7 +82,7 @@ def test_nocompile_context():
         cirq.measure(q1, key='b'),
     )
     deferred = cirq.defer_measurements(
-        circuit, context=cirq.TransformerContext(ignore_tags=('nocompile',))
+        circuit, context=cirq.TransformerContext(tags_to_ignore=('nocompile',))
     )
     cirq.testing.assert_same_circuits(deferred, circuit)
 
@@ -96,7 +96,7 @@ def test_nocompile_context_leaves_invalid_circuit():
     )
     with pytest.raises(ValueError, match='Deferred measurement for key=a not found'):
         _ = cirq.defer_measurements(
-            circuit, context=cirq.TransformerContext(ignore_tags=('nocompile',))
+            circuit, context=cirq.TransformerContext(tags_to_ignore=('nocompile',))
         )
 
 
@@ -359,7 +359,7 @@ def test_dephase_nocompile_context():
         )
     )
     dephased = cirq.dephase_measurements(
-        circuit, context=cirq.TransformerContext(ignore_tags=('nocompile',))
+        circuit, context=cirq.TransformerContext(tags_to_ignore=('nocompile',))
     )
     cirq.testing.assert_same_circuits(
         dephased,
