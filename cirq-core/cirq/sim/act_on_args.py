@@ -49,8 +49,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         prng: Optional[np.random.RandomState] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
         ignore_measurement_results: bool = False,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits ActOnArgs.
 
@@ -62,12 +62,12 @@ class ActOnArgs(OperationTarget[TSelf]):
                 ordering of the computational basis states.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            classical_data: The shared classical data container for this
-                simulation.
             ignore_measurement_results: If True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process, and not log the result. This is only applicable to
                 simulators that can represent mixed states.
+            classical_data: The shared classical data container for this
+                simulation.
         """
         if prng is None:
             prng = cast(np.random.RandomState, np.random)
@@ -166,6 +166,22 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Subclasses should implement this with any additional state product
         functionality, if supported."""
 
+    def with_qubits(self: TSelf, qubits) -> TSelf:
+        """Extend current state space with added qubits.
+
+        The state of the added qubits is the default value set in the
+        subclasses. A new state space is created as the Kronecker product of
+        the original one and the added one.
+
+        Args:
+            qubits: The qubits to be added to the state space.
+
+        Regurns:
+            A new subclass object containing the extended state space.
+        """
+        new_space = type(self)(qubits=qubits)
+        return self.kronecker_product(new_space)
+
     def factor(
         self: TSelf,
         qubits: Sequence['cirq.Qid'],
@@ -181,6 +197,11 @@ class ActOnArgs(OperationTarget[TSelf]):
         extracted._set_qubits(qubits)
         remainder._set_qubits([q for q in self.qubits if q not in qubits])
         return extracted, remainder
+
+    @property
+    def allows_factoring(self):
+        """Subclasses that allow factorization should override this."""
+        return False
 
     def _on_factor(
         self: TSelf,

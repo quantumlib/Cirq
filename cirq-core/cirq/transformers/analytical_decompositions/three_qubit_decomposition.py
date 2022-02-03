@@ -211,7 +211,7 @@ def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
         the optimized operations
     """
     circuit = cirq.Circuit(operations)
-    cirq.optimizers.DropNegligible().optimize_circuit(circuit)
+    circuit = cirq.transformers.drop_negligible_operations(circuit)
     if np.allclose(circuit.unitary(), np.eye(8), atol=1e-14):
         return cirq.Circuit([])
 

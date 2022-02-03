@@ -250,7 +250,12 @@ class MPSState(ActOnArgs):
         Raises:
             ValueError: If the grouping does not cover the qubits.
         """
-        super().__init__(prng, qubits, log_of_measurement_results, classical_data)
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
         qubit_map = self.qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():

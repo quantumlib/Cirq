@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
-from cirq import value, ops, protocols
+from cirq import _compat, value, ops, protocols
 from cirq.ops import common_gates, pauli_gates
 from cirq.ops import global_phase_op
+from cirq.sim.clifford import clifford_simulator
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
 if TYPE_CHECKING:
@@ -28,12 +29,19 @@ if TYPE_CHECKING:
 class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
     """Wrapper around a stabilizer state in CH form for the act_on protocol."""
 
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
+        fix='Specify all the arguments with keywords, use initial_state instead of state.',
+        parameter_desc='positional arguments',
+        match=lambda args, kwargs: len(args) != 1 or 'state' in kwargs,
+    )
     def __init__(
         self,
-        state: 'cirq.StabilizerStateChForm',
+        state: Optional['cirq.StabilizerStateChForm'] = None,
         prng: Optional[np.random.RandomState] = None,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
+        log_of_measurement_results: Optional[Dict[str, Any]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
+        initial_state: Union[int, 'cirq.StabilizerStateChForm'] = 0,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Initializes with the given state and the axes for the operation.
@@ -46,13 +54,27 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
                 ordering of the computational basis states.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
+            initial_state: The initial state for the simulation. This can be a
+                full CH form passed by reference which will be modified inplace,
+                or a big-endian int in the computational basis.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
             classical_data: The shared classical data container for this
                 simulation.
         """
-        super().__init__(prng, qubits, log_of_measurement_results, classical_data)
-        self.state = state
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
+        initial_state = state or initial_state
+        if isinstance(initial_state, int):
+            qubit_map = {q: i for i, q in enumerate(self.qubits)}
+            initial_state = clifford_simulator.CliffordState(
+                qubit_map, initial_state=initial_state
+            ).ch_form
+        self.state = initial_state
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Returns the measurement from the stabilizer state form."""
@@ -60,6 +82,17 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
 
     def _on_copy(self, target: 'ActOnStabilizerCHFormArgs', deep_copy_buffers: bool = True):
         target.state = self.state.copy()
+
+    def _on_kronecker_product(
+        self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
+    ):
+        target.state = self.state.kron(other.state)
+
+    def _on_transpose_to_qubit_order(
+        self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStabilizerCHFormArgs'
+    ):
+        axes = [self.qubit_map[q] for q in qubits]
+        target.state = self.state.reindex(axes)
 
     def sample(
         self,
@@ -73,7 +106,10 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
             op = ops.measure(*qubits, key=str(i))
             state = self.state.copy()
             ch_form_args = ActOnStabilizerCHFormArgs(
-                state, prng, qubits=self.qubits, classical_data=measurements
+                classical_data=measurements,
+                prng=prng,
+                qubits=self.qubits,
+                initial_state=state,
             )
             protocols.act_on(op, ch_form_args)
         return np.array(list(measurements.measurements.values()), dtype=bool)

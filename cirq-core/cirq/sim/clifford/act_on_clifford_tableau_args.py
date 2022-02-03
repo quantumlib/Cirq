@@ -52,7 +52,12 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs):
             classical_data: The shared classical data container for this
                 simulation.
         """
-        super().__init__(prng, qubits, log_of_measurement_results, classical_data)
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
         self.tableau = tableau
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:

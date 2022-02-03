@@ -67,10 +67,10 @@ def test_run():
         classical_data = cirq.ClassicalDataDictionaryStore()
         for op in circuit.all_operations():
             args = cirq.ActOnStabilizerCHFormArgs(
-                state,
                 qubits=list(circuit.all_qubits()),
                 prng=np.random.RandomState(),
                 classical_data=classical_data,
+                initial_state=state,
             )
             cirq.act_on(op, args)
         measurements = {str(k): list(v) for k, v in classical_data.measurements.items()}

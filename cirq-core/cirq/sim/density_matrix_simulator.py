@@ -16,8 +16,8 @@ from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, L
 
 import numpy as np
 
-from cirq import ops, protocols, qis, study, value
-from cirq._compat import proper_repr
+from cirq import ops, protocols, study, value
+from cirq._compat import deprecated, proper_repr
 from cirq.sim import (
     simulator,
     act_on_density_matrix_args,
@@ -195,22 +195,13 @@ class DensityMatrixSimulator(
         if isinstance(initial_state, act_on_density_matrix_args.ActOnDensityMatrixArgs):
             return initial_state
 
-        qid_shape = protocols.qid_shape(qubits)
-        initial_matrix = qis.to_valid_density_matrix(
-            initial_state, len(qid_shape), qid_shape=qid_shape, dtype=self._dtype
-        )
-        if np.may_share_memory(initial_matrix, initial_state):
-            initial_matrix = initial_matrix.copy()
-
-        tensor = initial_matrix.reshape(qid_shape * 2)
         return act_on_density_matrix_args.ActOnDensityMatrixArgs(
-            target_tensor=tensor,
-            available_buffer=[np.empty_like(tensor) for _ in range(3)],
             qubits=qubits,
-            qid_shape=qid_shape,
             prng=self._prng,
             classical_data=classical_data,
             ignore_measurement_results=self._ignore_measurement_results,
+            initial_state=initial_state,
+            dtype=self._dtype,
         )
 
     def _can_be_in_run_prefix(self, val: Any):
@@ -303,6 +294,11 @@ class DensityMatrixStepResult(
     def _simulator_state(self) -> 'cirq.DensityMatrixSimulatorState':
         return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_mapping)
 
+    # TODO: When removing, also remove `simulator` from the constructor, and the line
+    # `sim_state = step_result._sim_state` from `SimulatorBase._core_iterator()`.
+    @deprecated(
+        deadline="v0.15", fix='Use `initial_state` to prepare a new simulation on the suffix.'
+    )
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
         """Set the density matrix to a new density matrix.
 
