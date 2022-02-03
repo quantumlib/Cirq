@@ -467,12 +467,8 @@ class CliffordTableau(StabilizerState):
             return
         if exponent % 1 != 0:
             raise ValueError('H exponent must be integer')  # coverage: ignore
-        self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
-        (self.xs[:, axis], self.zs[:, axis]) = (
-            self.zs[:, axis].copy(),
-            self.xs[:, axis].copy(),
-        )
-        self.rs[:] ^= self.zs[:, axis]
+        self.apply_y(axis, 0.5)
+        self.apply_x(axis)
 
     def apply_cz(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
