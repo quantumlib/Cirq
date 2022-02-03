@@ -16,8 +16,6 @@ import logging
 import os
 from typing import Iterator, Optional
 
-import cirq.testing.logs as logs
-
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
 
@@ -36,12 +34,14 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1) -> It
         count: if None count of messages is not asserted, otherwise the number of deprecation
             messages have to equal count.
     """
+    # Avoid circular import.
+    from cirq.testing import assert_logs
 
     orig_exist = ALLOW_DEPRECATION_IN_TEST in os.environ
     orig_value = os.environ.get(ALLOW_DEPRECATION_IN_TEST, None)
     os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
     try:
-        with logs.assert_logs(
+        with assert_logs(
             *msgs,
             deadline,
             min_level=logging.WARNING,
