@@ -12,10 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, protocols, value
-from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers import (
+    transformer_api,
+    transformer_primitives,
+)
+from cirq.transformers.synchronize_terminal_measurements import find_terminal_measurements
 
 if TYPE_CHECKING:
     import cirq
@@ -87,28 +91,15 @@ def defer_measurements(
 
     context1 = context or transformer_api.TransformerContext()
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
-    qubits_found: Set['cirq.Qid'] = set()
-    terminal_measurements: Set['cirq.MeasurementKey'] = set()
-    control_keys: Set['cirq.MeasurementKey'] = set()
-    for op in reversed(list(circuit.all_operations())):
-        gate = op.gate
-        if isinstance(gate, ops.MeasurementGate):
-            key = value.MeasurementKey.parse_serialized(gate.key)
-            if key not in control_keys and qubits_found.isdisjoint(op.qubits):
-                terminal_measurements.add(key)
-        for c in op.classical_controls:
-            control_keys.update(c.keys)
-        qubits_found.update(op.qubits)
+    terminal_measurements = {op for _, op in find_terminal_measurements(circuit)}
     measurement_qubits: Dict['cirq.MeasurementKey', List['_MeasurementQid']] = {}
 
     def defer(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
-        if any(t in context1.tags_to_ignore for t in op.tags):
+        if any(t in context1.tags_to_ignore for t in op.tags) or op in terminal_measurements:
             return op
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
             key = value.MeasurementKey.parse_serialized(gate.key)
-            if key in terminal_measurements:
-                return op
             targets = [_MeasurementQid(key, q) for q in op.qubits]
             measurement_qubits[key] = targets
             cxs = [ops.CX(q, target) for q, target in zip(op.qubits, targets)]
@@ -136,7 +127,7 @@ def defer_measurements(
             )
         return op
 
-    circuit = transformer_primitives.map_operations(
+    circuit = transformer_primitives.map_operations_and_unroll(
         circuit, defer, raise_if_add_qubits=False
     ).unfreeze()
     for k, qubits in measurement_qubits.items():
@@ -144,13 +135,10 @@ def defer_measurements(
     return circuit
 
 
-CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='cirq.AbstractCircuit')
-
-
 @transformer_api.transformer
 def dephase_measurements(
-    circuit: CIRCUIT_TYPE, *, context: Optional['cirq.TransformerContext'] = None
-) -> CIRCUIT_TYPE:
+    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
+) -> 'cirq.Circuit':
     """Changes all measurements to a dephase operation.
 
     This transformer is useful when using a density matrix simulator, when
@@ -184,8 +172,8 @@ def dephase_measurements(
         elif isinstance(op, ops.ClassicallyControlledOperation):
             raise ValueError('Use cirq.defer_measurements first to remove classical controls.')
         elif isinstance(op, circuits.CircuitOperation):
-            circuit = dephase_measurements(op.circuit, context=context1)
+            circuit = dephase_measurements(op.circuit, context=context1).freeze()
             return op.replace(circuit=circuit)
         return op
 
-    return transformer_primitives.map_operations(circuit, dephase)
+    return transformer_primitives.map_operations(circuit, dephase).unfreeze()
