@@ -1,9 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Iterator
 import pytest
 import httpx
-import httpcore
-from httpcore._types import URL, Headers
+from pytest_httpx import HTTPXMock
+
 from cirq_rigetti import get_rigetti_qcs_service, RigettiQCSService
 
 
@@ -16,26 +15,13 @@ def test_get_rigetti_qcs_service():
 
 
 @pytest.mark.rigetti_integration
-def test_rigetti_qcs_service_api_call():
+def test_rigetti_qcs_service_api_call(httpx_mock: HTTPXMock):
     """test that `RigettiQCSService` will use a custom defined client when the
     user specifies one to make an API call."""
 
-    class Response(httpcore.SyncByteStream):
-        def __iter__(self) -> Iterator[bytes]:
-            yield b"{\"quantumProcessors\": [{\"id\": \"Aspen-8\"}]}"  # pragma: nocover
+    httpx_mock.add_response(json={"quantumProcessors": [{"id": "Aspen-8"}]})
 
-    class Transport(httpcore.SyncHTTPTransport):
-        def request(
-            self,
-            method: bytes,
-            url: URL,
-            headers: Headers = None,
-            stream: httpcore.SyncByteStream = None,
-            ext: dict = None,
-        ):
-            return 200, [('Content-Type', 'application/json')], Response(), {}
-
-    client = httpx.Client(base_url="https://mock.api.qcs.rigetti.com", transport=Transport())
+    client = httpx.Client(base_url="https://mock.api.qcs.rigetti.com")
 
     response = RigettiQCSService.list_quantum_processors(client=client)
     assert 1 == len(response.quantum_processors)
