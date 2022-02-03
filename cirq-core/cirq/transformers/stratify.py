@@ -118,8 +118,8 @@ def stratified_circuit(
 def stratify_circuit(
     circuit: circuits.AbstractCircuit,
     *,
-    classifiers: Sequence[Classifier],
     context: 'cirq.TransformerContext',
+    classifiers: Sequence[Classifier],
 ) -> 'cirq.Circuit':
     """Performs the stratification by iterating through the operations in the
     circuit and using the given classifiers to align them.
@@ -128,10 +128,10 @@ def stratify_circuit(
     categories and left in their original moments without stratification.
 
     Args:
-        classifiers: A list of rules to align the circuit. Must be exhaustive,
-            i.e. all operations will be caught by one of the processors.
         circuit: The circuit to break out into homogeneous moments. Will not be edited.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
+        classifiers: A list of rules to align the circuit. Must be exhaustive,
+            i.e. all operations will be caught by one of the processors.
 
     Returns:
         The stratified circuit.
