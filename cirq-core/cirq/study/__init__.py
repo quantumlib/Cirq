@@ -47,5 +47,6 @@ from cirq.study.sweeps import (
 )
 
 from cirq.study.result import (
+    ResultDict,
     Result,
 )

@@ -314,7 +314,7 @@ jobs:
       - name: Install npm
         run: check/npm ci
       - name: Lint
-        run: check/ts-lint 
+        run: check/ts-lint
   ts-test:
     name: Typescript tests
     runs-on: ubuntu-20.04
@@ -325,7 +325,7 @@ jobs:
       - name: Install npm dependencies
         run: check/npm ci
       - name: Unit tests
-        run: check/ts-test 
+        run: check/ts-test
       - name: End to end tests
         run: check/ts-test-e2e
   ts-coverage:

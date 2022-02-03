@@ -14,6 +14,7 @@
 
 """Basic types defining qubits, gates, and operations."""
 
+import itertools
 import re
 from typing import (
     AbstractSet,
@@ -22,7 +23,6 @@ from typing import (
     Collection,
     Dict,
     FrozenSet,
-    List,
     Optional,
     Sequence,
     Tuple,
@@ -146,17 +146,19 @@ class GateOperation(raw_types.Operation):
     def _group_interchangeable_qubits(
         self,
     ) -> Tuple[Union['cirq.Qid', Tuple[int, FrozenSet['cirq.Qid']]], ...]:
-
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
+        else:
 
-        groups: Dict[int, List['cirq.Qid']] = {}
-        for i, q in enumerate(self.qubits):
-            k = self.gate.qubit_index_to_equivalence_group_key(i)
-            if k not in groups:
-                groups[k] = []
-            groups[k].append(q)
-        return tuple(sorted((k, frozenset(v)) for k, v in groups.items()))
+            def make_key(i_q: Tuple[int, 'cirq.Qid']) -> int:
+                return cast(
+                    gate_features.InterchangeableQubitsGate, self.gate
+                ).qubit_index_to_equivalence_group_key(i_q[0])
+
+            return tuple(
+                (k, frozenset(g for _, g in kg))
+                for k, kg in itertools.groupby(enumerate(self.qubits), make_key)
+            )
 
     def _value_equality_values_(self):
         return self.gate, self._group_interchangeable_qubits()
@@ -349,7 +351,7 @@ class GateOperation(raw_types.Operation):
     ) -> Union[NotImplementedType, bool]:
         if not isinstance(other, type(self)):
             return NotImplemented
-        if self.qubits != other.qubits:
+        if self._group_interchangeable_qubits() != other._group_interchangeable_qubits():
             return False
         return protocols.equal_up_to_global_phase(self.gate, other.gate, atol=atol)
 
