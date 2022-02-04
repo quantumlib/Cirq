@@ -29,7 +29,6 @@ def test_remove_redundant_acquaintance_opportunities():
     """
     ct.assert_has_diagram(strategy, diagram_before)
     cca.remove_redundant_acquaintance_opportunities(strategy)
-    cca.remove_redundant_acquaintance_opportunities(strategy)
     diagram_after = """
 0: ───█───────
       │
