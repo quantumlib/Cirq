@@ -162,7 +162,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
         run: |
-          pip install -r dev_tools/requirements/dev.env.txt
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
@@ -220,7 +220,7 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/dev.env.txt
+        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage tests
@@ -250,7 +250,7 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/pytest-minimal.env.txt
+        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/pytest-minimal.env.txt
       - name: Download cov reports
         uses: actions/download-artifact@v2
       - name: Run coverage
@@ -277,12 +277,12 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/no-contrib.env.txt
+        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
         # Update splits here to match len(test-group)
         run: |
           source dev_tools/pypath
-          check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet
+          check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --n auto --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
@@ -302,7 +302,7 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/no-contrib.env.txt
+        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
         # Update splits here to match len(test-group)
         run: check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib
