@@ -127,7 +127,7 @@ class Result(abc.ABC):
 
         This can be used by subclasses as a default implementation for the data
         property. Note that subclasses should typically memoize the result to
-        avoid recomputing
+        avoid recomputing.
         """
         # Convert to a DataFrame with columns as measurement keys, rows as
         # repetitions and a big endian integer for individual measurements.
