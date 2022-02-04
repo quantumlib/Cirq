@@ -282,7 +282,7 @@ jobs:
         # Update splits here to match len(test-group)
         run: |
           source dev_tools/pypath
-          check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --n auto --ignore=cirq-core/cirq/contrib --actually-quiet
+          check/pytest --splits 2 --group ${{ matrix.test-group }} --splitting-algorithm least_duration --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
