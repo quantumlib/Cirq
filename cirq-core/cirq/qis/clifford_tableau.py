@@ -24,6 +24,12 @@ if TYPE_CHECKING:
 
 
 class StabilizerState(metaclass=abc.ABCMeta):
+    """Interface for quantum stabilizer state representations.
+
+    This interface is used for CliffordTableau and StabilizerChForm quantum
+    state representations, allowing simulators to act on them abstractly.
+    """
+
     @abc.abstractmethod
     def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
         """Apply an X operation to the state.

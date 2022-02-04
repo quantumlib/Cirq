@@ -41,6 +41,19 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
         log_of_measurement_results: Optional[Dict[str, Any]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
     ):
+        """Initializes the ActOnStabilizerArgs.
+
+        Args:
+            state: The quantum stabilizer state to use in the simulation or
+                act_on invocation.
+            prng: The pseudo random number generator to use for probabilistic
+                effects.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            log_of_measurement_results: A mutable object that measurements are
+                being recorded into.
+        """
         super().__init__(prng, qubits, log_of_measurement_results)
         self._state = state
 
