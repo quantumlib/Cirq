@@ -133,7 +133,10 @@ def test_assert_logs_log_level():
 
 def test_invalid_levels():
     with pytest.raises(ValueError, match="min_level.*max_level"):
-        cirq.testing.assert_logs("test", min_level=logging.CRITICAL, max_level=logging.WARNING)
+        with cirq.testing.assert_logs(
+            "test", min_level=logging.CRITICAL, max_level=logging.WARNING
+        ):
+            pass
 
 
 def test_assert_logs_warnings():

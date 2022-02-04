@@ -20,13 +20,12 @@ from typing import (
     Iterable,
     Sequence,
     Tuple,
-    TYPE_CHECKING,
     TypeVar,
     Union,
     TYPE_CHECKING,
 )
 
-from cirq import circuits, ops, optimizers, protocols, value
+from cirq import ops, protocols, transformers, value
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -278,7 +277,7 @@ def get_logical_operations(
             yield op.transform_qubits(mapping.__getitem__)
 
 
-class DecomposePermutationGates(optimizers.ExpandComposite):
+class DecomposePermutationGates:
     def __init__(self, keep_swap_permutations: bool = True):
         """Decomposes permutation gates.
 
@@ -286,8 +285,6 @@ class DecomposePermutationGates(optimizers.ExpandComposite):
             keep_swap_permutations: Whether or not to except
                 SwapPermutationGate.
         """
-        circuits.PointOptimizer.__init__(self)
-
         if keep_swap_permutations:
             self.no_decomp = lambda op: (
                 not all(
@@ -302,6 +299,12 @@ class DecomposePermutationGates(optimizers.ExpandComposite):
             self.no_decomp = lambda op: (
                 not all([isinstance(op, ops.GateOperation), isinstance(op.gate, PermutationGate)])
             )
+
+    def optimize_circuit(self, circuit: 'cirq.Circuit') -> None:
+        circuit._moments = [*transformers.expand_composite(circuit, no_decomp=self.no_decomp)]
+
+    def __call__(self, circuit: 'cirq.Circuit') -> None:
+        self.optimize_circuit(circuit)
 
 
 EXPAND_PERMUTATION_GATES = DecomposePermutationGates(keep_swap_permutations=True)
