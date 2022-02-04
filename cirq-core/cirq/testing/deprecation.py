@@ -11,14 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import contextlib
 import logging
 import os
-from typing import Optional
+from typing import Iterator, Optional
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
 
-def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
+@contextlib.contextmanager
+def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1) -> Iterator[None]:
     """Allows deprecated functions, classes, decorators in tests.
 
     It acts as a contextmanager that can be used in with statements:
@@ -32,32 +34,25 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
         count: if None count of messages is not asserted, otherwise the number of deprecation
             messages have to equal count.
     """
+    # Avoid circular import.
+    from cirq.testing import assert_logs
 
-    class DeprecationAssertContext:
-        def __enter__(self):
-            self.orig_exist, self.orig_value = (
-                ALLOW_DEPRECATION_IN_TEST in os.environ,
-                os.environ.get(ALLOW_DEPRECATION_IN_TEST, None),
-            )
-            os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
-            # Avoid circular import.
-            from cirq.testing import assert_logs
-
-            self.assert_logs = assert_logs(
-                *(msgs + (deadline,)),
-                min_level=logging.WARNING,
-                max_level=logging.WARNING,
-                count=count,
-            )
-            self.assert_logs.__enter__()
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            if self.orig_exist:
-                # mypy can't resolve that orig_exist ensures that orig_value
-                # of type Optional[str] can't be None
-                os.environ[ALLOW_DEPRECATION_IN_TEST] = self.orig_value  # type: ignore
-            else:
-                del os.environ[ALLOW_DEPRECATION_IN_TEST]
-            self.assert_logs.__exit__(exc_type, exc_val, exc_tb)
-
-    return DeprecationAssertContext()
+    orig_exist = ALLOW_DEPRECATION_IN_TEST in os.environ
+    orig_value = os.environ.get(ALLOW_DEPRECATION_IN_TEST, None)
+    os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
+    try:
+        with assert_logs(
+            *msgs,
+            deadline,
+            min_level=logging.WARNING,
+            max_level=logging.WARNING,
+            count=count,
+        ):
+            yield
+    finally:
+        if orig_exist:
+            # mypy can't resolve that orig_exist ensures that orig_value
+            # of type Optional[str] can't be None
+            os.environ[ALLOW_DEPRECATION_IN_TEST] = orig_value  # type: ignore
+        else:
+            del os.environ[ALLOW_DEPRECATION_IN_TEST]
