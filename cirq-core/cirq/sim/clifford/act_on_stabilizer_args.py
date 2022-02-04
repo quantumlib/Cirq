@@ -39,12 +39,12 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
     ) -> Union[bool, NotImplementedType]:
         if self._strat_apply_gate(action, qubits):
             return True
-        if self._strat_apply_mixture(action, qubits):
-            return True
         if allow_decompose:
-            if self._strat_decompose(action, qubits):
-                return True
             if self._strat_act_from_single_qubit_decompose(action, qubits):
+                return True
+            if self._strat_apply_mixture(action, qubits):
+                return True
+            if self._strat_decompose(action, qubits):
                 return True
         return NotImplemented
 
@@ -128,28 +128,28 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
     def _strat_act_from_single_qubit_decompose(
         self, val: Any, qubits: Sequence['cirq.Qid']
     ) -> bool:
-        if num_qubits(val) == 1:
-            if not has_unitary(val):
-                return False
-            u = unitary(val)
-            clifford_gate = SingleQubitCliffordGate.from_unitary(u)
-            if clifford_gate is not None:
-                # Gather the effective unitary applied so as to correct for the
-                # global phase later.
-                final_unitary = np.eye(2)
-                for axis, quarter_turns in clifford_gate.decompose_rotation():
-                    gate = axis ** (quarter_turns / 2)
-                    self._strat_apply_gate(gate, qubits)
-                    final_unitary = np.matmul(unitary(gate), final_unitary)
+        if num_qubits(val) != 1:
+            return False
+        if not has_unitary(val):
+            return False
+        u = unitary(val)
+        clifford_gate = SingleQubitCliffordGate.from_unitary(u)
+        if clifford_gate is None:
+            return False
+        # Gather the effective unitary applied so as to correct for the
+        # global phase later.
+        final_unitary = np.eye(2)
+        for axis, quarter_turns in clifford_gate.decompose_rotation():
+            gate = axis ** (quarter_turns / 2)
+            self._strat_apply_gate(gate, qubits)
+            final_unitary = np.matmul(unitary(gate), final_unitary)
 
-                # Find the entry with the largest magnitude in the input unitary.
-                k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
-                # Correct the global phase that wasn't conserved in the above
-                # decomposition.
-                self._global_phase(global_phase_op.GlobalPhaseGate(u[k] / final_unitary[k]))
-                return True
-
-        return False
+        # Find the entry with the largest magnitude in the input unitary.
+        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
+        # Correct the global phase that wasn't conserved in the above
+        # decomposition.
+        self._global_phase(global_phase_op.GlobalPhaseGate(u[k] / final_unitary[k]))
+        return True
 
     def _strat_decompose(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         gate = val.gate if isinstance(val, ops.Operation) else val
