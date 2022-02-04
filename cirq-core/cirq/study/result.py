@@ -110,6 +110,7 @@ class Result(abc.ABC):
         """
 
     @property
+    @abc.abstractmethod
     def data(self) -> pd.DataFrame:
         """Measurements converted to a pandas dataframe.
 
@@ -119,11 +120,20 @@ class Result(abc.ABC):
         for the measurement key in that repetition. To convert these ints to
         bits see `cirq.big_endian_int_to_bits` and similar functions.
         """
+
+    @staticmethod
+    def dataframe_from_measurements(measurements: Mapping[str, np.ndarray]) -> pd.DataFrame:
+        """Converts the given measurements to a pandas dataframe.
+
+        This can be used by subclasses as a default implementation for the data
+        property. Note that subclasses should typically memoize the result to
+        avoid recomputing
+        """
         # Convert to a DataFrame with columns as measurement keys, rows as
         # repetitions and a big endian integer for individual measurements.
         converted_dict = {
             key: [value.big_endian_bits_to_int(m_vals) for m_vals in val]
-            for key, val in self.measurements.items()
+            for key, val in measurements.items()
         }
         # Note that when a numpy array is produced from this data frame,
         # Pandas will try to use np.int64 as dtype, but will upgrade to
@@ -332,7 +342,7 @@ class ResultDict(Result):
     @property
     def data(self) -> pd.DataFrame:
         if self._data is None:
-            self._data = super().data
+            self._data = self.dataframe_from_measurements(self._measurements)
         return self._data
 
     def __repr__(self) -> str:
