@@ -275,7 +275,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             return False
         self.swap_target_tensor_for(new_target_tensor)
         return True
-    
+
     def _strat_act_on_state_vector_from_mixture(
         self, action: Any, qubits: Sequence['cirq.Qid']
     ) -> bool:
@@ -283,7 +283,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         if mixture is None:
             return False
         probabilities, unitaries = zip(*mixture)
-    
+
         index = self.prng.choice(range(len(unitaries)), p=probabilities)
         shape = protocols.qid_shape(action) * 2
         unitary = unitaries[index].astype(self.target_tensor.dtype).reshape(shape)
@@ -295,14 +295,14 @@ class ActOnStateVectorArgs(ActOnArgs):
             key = protocols.measurement_key_name(action)
             self.log_of_measurement_results[key] = [index]
         return True
-    
+
     def _strat_act_on_state_vector_from_channel(
         self, action: Any, qubits: Sequence['cirq.Qid']
     ) -> bool:
         kraus_operators = protocols.kraus(action, default=None)
         if kraus_operators is None:
             return False
-    
+
         def prepare_into_buffer(k: int):
             linalg.targeted_left_multiply(
                 left_matrix=kraus_tensors[k],
@@ -310,9 +310,11 @@ class ActOnStateVectorArgs(ActOnArgs):
                 target_axes=self.get_axes(qubits),
                 out=self.available_buffer,
             )
-    
+
         shape = protocols.qid_shape(action)
-        kraus_tensors = [e.reshape(shape * 2).astype(self.target_tensor.dtype) for e in kraus_operators]
+        kraus_tensors = [
+            e.reshape(shape * 2).astype(self.target_tensor.dtype) for e in kraus_operators
+        ]
         p = self.prng.random()
         weight = None
         fallback_weight = 0
@@ -320,15 +322,15 @@ class ActOnStateVectorArgs(ActOnArgs):
         for index in range(len(kraus_tensors)):
             prepare_into_buffer(index)
             weight = np.linalg.norm(self.available_buffer) ** 2
-    
+
             if weight > fallback_weight:
                 fallback_weight_index = index
                 fallback_weight = weight
-    
+
             p -= weight
             if p < 0:
                 break
-    
+
         assert weight is not None, "No Kraus operators"
         if p >= 0 or weight == 0:
             # Floating point error resulted in a malformed sample.
@@ -336,7 +338,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             prepare_into_buffer(fallback_weight_index)
             weight = fallback_weight
             index = fallback_weight_index
-    
+
         self.available_buffer /= np.sqrt(weight)
         self.swap_target_tensor_for(self.available_buffer)
         if protocols.is_measurement(action):

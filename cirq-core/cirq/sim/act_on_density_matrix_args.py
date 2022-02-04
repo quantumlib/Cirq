@@ -223,9 +223,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
         )
 
-    def _strat_apply_channel_to_state(
-        self, action: Any, qubits: Sequence['cirq.Qid']
-    ) -> bool:
+    def _strat_apply_channel_to_state(self, action: Any, qubits: Sequence['cirq.Qid']) -> bool:
         """Apply channel to state."""
         axes = self.get_axes(qubits)
         result = protocols.apply_channel(
