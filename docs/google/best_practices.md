@@ -296,7 +296,7 @@ book-keeping measures rather than physical operations on the device. These
 virtual Z operations have zero duration and have no cost, if they add no moments
 to your circuit.  In order to guarantee that they do not add moments, you can
 make sure that virtual Z are aggregated into their own layer.  Alternatively,
-you can use the `EjectZ` optimizer to propagate these Z gates forward through
+you can use the `cirq.eject_z` optimizer to propagate these Z gates forward through
 commuting operators.
 
 See the function `cirq.stratified_circuit` for an automated way to organize gates

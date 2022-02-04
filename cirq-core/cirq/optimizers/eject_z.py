@@ -14,8 +14,9 @@
 
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
-from cirq import circuits
-from cirq.transformers import eject_z
+from cirq import circuits, transformers
+
+# from cirq.transformers import eject_z
 from cirq._compat import deprecated_class
 
 
@@ -43,7 +44,7 @@ class EjectZ:
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         circuit._moments = [
-            *eject_z.eject_z(
+            *transformers.eject_z(
                 circuit, atol=self.tolerance, eject_parameterized=self.eject_parameterized
             )
         ]
