@@ -332,7 +332,7 @@ def strat_act_on_from_apply_decompose(
     assert len(qubits1) == len(qubits)
     qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
     if operations is None:
-        return NotImplemented
+        return False
     for operation in operations:
         operation = operation.with_qubits(*[qubit_map[q] for q in operation.qubits])
         protocols.act_on(operation, args)

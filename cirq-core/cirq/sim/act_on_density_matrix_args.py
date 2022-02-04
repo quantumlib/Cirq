@@ -114,20 +114,11 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
-        strats = [
-            _strat_apply_channel_to_state,
-        ]
+        if self._strat_apply_channel_to_state(action, qubits):
+            return True
         if allow_decompose:
-            strats.append(strat_act_on_from_apply_decompose)  # type: ignore
-
-        # Try each strategy, stopping if one works.
-        for strat in strats:
-            result = strat(action, self, qubits)
-            if result is False:
-                break  # coverage: ignore
-            if result is True:
+            if strat_act_on_from_apply_decompose(action, self, qubits):
                 return True
-            assert result is NotImplemented, str(result)
         raise TypeError(
             "Can't simulate operations that don't implement "
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
@@ -232,28 +223,27 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
         )
 
-
-def _strat_apply_channel_to_state(
-    action: Any, args: 'cirq.ActOnDensityMatrixArgs', qubits: Sequence['cirq.Qid']
-) -> bool:
-    """Apply channel to state."""
-    axes = args.get_axes(qubits)
-    result = protocols.apply_channel(
-        action,
-        args=protocols.ApplyChannelArgs(
-            target_tensor=args.target_tensor,
-            out_buffer=args.available_buffer[0],
-            auxiliary_buffer0=args.available_buffer[1],
-            auxiliary_buffer1=args.available_buffer[2],
-            left_axes=axes,
-            right_axes=[e + len(args.qubits) for e in axes],
-        ),
-        default=None,
-    )
-    if result is None:
-        return NotImplemented
-    for i in range(len(args.available_buffer)):
-        if result is args.available_buffer[i]:
-            args.available_buffer[i] = args.target_tensor
-    args.target_tensor = result
-    return True
+    def _strat_apply_channel_to_state(
+        self, action: Any, qubits: Sequence['cirq.Qid']
+    ) -> bool:
+        """Apply channel to state."""
+        axes = self.get_axes(qubits)
+        result = protocols.apply_channel(
+            action,
+            args=protocols.ApplyChannelArgs(
+                target_tensor=self.target_tensor,
+                out_buffer=self.available_buffer[0],
+                auxiliary_buffer0=self.available_buffer[1],
+                auxiliary_buffer1=self.available_buffer[2],
+                left_axes=axes,
+                right_axes=[e + len(self.qubits) for e in axes],
+            ),
+            default=None,
+        )
+        if result is None:
+            return False
+        for i in range(len(self.available_buffer)):
+            if result is self.available_buffer[i]:
+                self.available_buffer[i] = self.target_tensor
+        self.target_tensor = result
+        return True

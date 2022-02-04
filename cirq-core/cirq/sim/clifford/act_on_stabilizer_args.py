@@ -37,19 +37,15 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
-        strats = [
-            self._strat_apply_gate,
-            self._strat_apply_mixture,
-        ]
+        if self._strat_apply_gate(action, qubits):
+            return True
+        if self._strat_apply_mixture(action, qubits):
+            return True
         if allow_decompose:
-            strats.append(self._strat_decompose)
-            strats.append(self._strat_act_from_single_qubit_decompose)
-        for strat in strats:
-            result = strat(action, qubits)  # type: ignore
-            if result is True:
+            if self._strat_decompose(action, qubits):
                 return True
-            assert result is NotImplemented, str(result)
-
+            if self._strat_act_from_single_qubit_decompose(action, qubits):
+                return True
         return NotImplemented
 
     @abc.abstractmethod
@@ -94,7 +90,7 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
 
     def _strat_apply_gate(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         if not protocols.has_stabilizer_effect(val):
-            return NotImplemented
+            return False
         gate = val.gate if isinstance(val, ops.Operation) else val
         axes = self.get_axes(qubits)
         if isinstance(gate, common_gates.XPowGate):
@@ -114,15 +110,15 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
         elif isinstance(gate, swap_gates.SwapPowGate):
             self._swap(gate, axes[0], axes[1])
         else:
-            return NotImplemented
+            return False
         return True
 
     def _strat_apply_mixture(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         mixture = protocols.mixture(val, None)
         if mixture is None:
-            return NotImplemented
+            return False
         if not all(linalg.is_unitary(m) for _, m in mixture):
-            return NotImplemented
+            return False
         probabilities, unitaries = zip(*mixture)
         index = self.prng.choice(len(unitaries), p=probabilities)
         return self._strat_act_from_single_qubit_decompose(
@@ -134,7 +130,7 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
     ) -> bool:
         if num_qubits(val) == 1:
             if not has_unitary(val):
-                return NotImplemented
+                return False
             u = unitary(val)
             clifford_gate = SingleQubitCliffordGate.from_unitary(u)
             if clifford_gate is not None:
@@ -153,13 +149,13 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
                 self._global_phase(global_phase_op.GlobalPhaseGate(u[k] / final_unitary[k]))
                 return True
 
-        return NotImplemented
+        return False
 
     def _strat_decompose(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         gate = val.gate if isinstance(val, ops.Operation) else val
         operations = protocols.decompose_once_with_qubits(gate, qubits, None)
         if operations is None or not all(protocols.has_stabilizer_effect(op) for op in operations):
-            return NotImplemented
+            return False
         for op in operations:
             protocols.act_on(op, self)
         return True
