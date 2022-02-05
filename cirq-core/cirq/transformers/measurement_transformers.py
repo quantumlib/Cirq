@@ -14,7 +14,7 @@
 
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
-from cirq import circuits, ops, protocols, value
+from cirq import ops, protocols, value
 from cirq.transformers import (
     transformer_api,
     transformer_primitives,
@@ -171,9 +171,6 @@ def dephase_measurements(
             return ops.KrausChannel.from_channel(ops.phase_damp(1), key=key).on_each(op.qubits)
         elif isinstance(op, ops.ClassicallyControlledOperation):
             raise ValueError('Use cirq.defer_measurements first to remove classical controls.')
-        elif isinstance(op, circuits.CircuitOperation):
-            circuit = dephase_measurements(op.circuit, context=context1).freeze()
-            return op.replace(circuit=circuit)
         return op
 
-    return transformer_primitives.map_operations(circuit, dephase).unfreeze()
+    return transformer_primitives.map_operations(circuit, dephase, deep=True).unfreeze()
