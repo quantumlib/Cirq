@@ -15,12 +15,17 @@
 """A recursive type describing trees of operations, and utility methods for it.
 """
 
-from typing import Callable, Iterable, Iterator, NoReturn, Union
+from typing import Callable, Iterable, Iterator, NoReturn, Union, TYPE_CHECKING
 from typing_extensions import Protocol
 
 from cirq._doc import document
-from cirq.ops.moment import Moment
+from cirq._import import LazyLoader
 from cirq.ops.raw_types import Operation
+
+if TYPE_CHECKING:
+    import cirq
+
+moment = LazyLoader("moment", globals(), "cirq.circuits.moment")
 
 
 class OpTree(Protocol):
@@ -69,7 +74,7 @@ document(
 
 def flatten_op_tree(
     root: OP_TREE, preserve_moments: bool = False
-) -> Iterator[Union[Operation, Moment]]:
+) -> Iterator[Union[Operation, 'cirq.Moment']]:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
 
     Args:
@@ -110,7 +115,7 @@ def flatten_to_ops(root: OP_TREE) -> Iterator[Operation]:
         _bad_op_tree(root)
 
 
-def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Union[Operation, Moment]]:
+def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Union[Operation, 'cirq.Moment']]:
     """Performs an in-order iteration OP_TREE, yielding ops and moments.
 
     Args:
@@ -122,7 +127,7 @@ def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Union[Operation, Moment
     Raises:
         TypeError: root isn't a valid OP_TREE.
     """
-    if isinstance(root, (Operation, Moment)):
+    if isinstance(root, (Operation, moment.Moment)):
         yield root
     elif isinstance(root, Iterable) and not isinstance(root, str):
         for subtree in root:
@@ -157,7 +162,7 @@ def transform_op_tree(
     if isinstance(root, Operation):
         return op_transformation(root)
 
-    if preserve_moments and isinstance(root, Moment):
+    if preserve_moments and isinstance(root, moment.Moment):
         return root
 
     if isinstance(root, Iterable) and not isinstance(root, str):
