@@ -160,11 +160,7 @@ def dephase_measurements(
             surprises.
     """
 
-    context1 = context or transformer_api.TransformerContext()
-
     def dephase(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
-        if any(t in context1.tags_to_ignore for t in op.tags):
-            return op
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
             key = value.MeasurementKey.parse_serialized(gate.key)
@@ -173,4 +169,7 @@ def dephase_measurements(
             raise ValueError('Use cirq.defer_measurements first to remove classical controls.')
         return op
 
-    return transformer_primitives.map_operations(circuit, dephase, deep=True).unfreeze()
+    ignored = () if context is None else context.tags_to_ignore
+    return transformer_primitives.map_operations(
+        circuit, dephase, deep=True, tags_to_ignore=ignored
+    ).unfreeze()

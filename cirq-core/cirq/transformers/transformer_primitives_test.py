@@ -267,26 +267,6 @@ def test_unroll_circuit_op_no_tags():
         )
 
 
-def test_unroll_circuit_op_deep():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    c = cirq.Circuit(
-        cirq.X(q0),
-        cirq.CircuitOperation(
-            cirq.FrozenCircuit(cirq.X(q1), cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q2))))
-        ),
-    )
-    expected = cirq.Circuit(cirq.X.on_each(q0, q1, q2))
-    cirq.testing.assert_same_circuits(
-        cirq.unroll_circuit_op(c, tags_to_check=None, deep=True), expected
-    )
-    expected = cirq.Circuit(
-        cirq.X.on_each(q0, q1), cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q2)))
-    )
-    cirq.testing.assert_same_circuits(
-        cirq.unroll_circuit_op(c, tags_to_check=None, deep=False), expected
-    )
-
-
 def test_map_operations_raises_qubits_not_subset():
     q = cirq.LineQubit.range(3)
     with pytest.raises(ValueError, match='should act on a subset'):
