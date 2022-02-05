@@ -36,4 +36,4 @@ class VirtualTag:
         return {}
 
     def __hash__(self):
-        return 0
+        return hash(VirtualTag)
