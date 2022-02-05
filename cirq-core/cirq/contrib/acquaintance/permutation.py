@@ -25,7 +25,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from cirq import ops, protocols, transformers, value
+from cirq import circuits, ops, protocols, transformers, value
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:

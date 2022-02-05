@@ -16,7 +16,7 @@ import collections
 
 from typing import cast, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
-from cirq import ops, transformers
+from cirq import circuits, ops, transformers
 
 from cirq.contrib.acquaintance.gates import SwapNetworkGate, AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.devices import get_acquaintance_size
