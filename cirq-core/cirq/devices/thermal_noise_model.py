@@ -19,12 +19,15 @@ import numpy as np
 import scipy.linalg
 
 from cirq import devices, ops, protocols, qis
+from cirq._import import LazyLoader
 from cirq.devices.noise_utils import (
     PHYSICAL_GATE_TAG,
 )
 
 if TYPE_CHECKING:
     import cirq
+
+moment_module = LazyLoader("moment_module", globals(), "cirq.circuits.moment")
 
 
 def _left_mul(mat: np.ndarray) -> np.ndarray:
@@ -273,4 +276,4 @@ class ThermalNoiseModel(devices.NoiseModel):
             noise_ops.append(ops.KrausChannel(kraus_ops).on(qubit))
         if not noise_ops:
             return [moment]
-        return [moment, ops.Moment(noise_ops)]
+        return [moment, moment_module.Moment(noise_ops)]

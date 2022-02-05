@@ -25,7 +25,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from cirq import ops, protocols, transformers, value
+from cirq import circuits, ops, protocols, transformers, value
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -131,12 +131,12 @@ def display_mapping(circuit: 'cirq.Circuit', initial_mapping: LogicalMapping) ->
 
     old_moments = circuit._moments
     gate = MappingDisplayGate(mapping.get(q) for q in qubits)
-    new_moments = [ops.Moment([gate(*qubits)])]
+    new_moments = [circuits.Moment([gate(*qubits)])]
     for moment in old_moments:
         new_moments.append(moment)
         update_mapping(mapping, moment)
         gate = MappingDisplayGate(mapping.get(q) for q in qubits)
-        new_moments.append(ops.Moment([gate(*qubits)]))
+        new_moments.append(circuits.Moment([gate(*qubits)]))
 
     circuit._moments = new_moments
 

@@ -58,7 +58,7 @@ def _create_target_circuit_type(ops: ops.OP_TREE, target_circuit: CIRCUIT_TYPE) 
 
 def map_moments(
     circuit: CIRCUIT_TYPE,
-    map_func: Callable[[ops.Moment, int], Union[ops.Moment, Sequence[ops.Moment]]],
+    map_func: Callable[[circuits.Moment, int], Union[circuits.Moment, Sequence[circuits.Moment]]],
     *,
     deep: bool = False,
 ) -> CIRCUIT_TYPE:
@@ -143,7 +143,7 @@ def map_operations(
         return circuit_op
 
     return map_moments(
-        circuit, lambda m, i: [ops.Moment(apply_map(op, i) for op in m.operations)], deep=deep
+        circuit, lambda m, i: [circuits.Moment(apply_map(op, i) for op in m.operations)], deep=deep
     )
 
 
@@ -249,7 +249,7 @@ def merge_operations(
 
     ret_circuit = circuits.Circuit()
     for current_moment in circuit:
-        new_moment = ops.Moment()
+        new_moment = circuits.Moment()
         for op in sorted(current_moment.operations, key=lambda op: op.qubits):
             op_qs = set(op.qubits)
             idx = ret_circuit.prev_moment_operating_on(tuple(op_qs))
@@ -283,7 +283,7 @@ def merge_operations(
 
 def merge_moments(
     circuit: CIRCUIT_TYPE,
-    merge_func: Callable[[ops.Moment, ops.Moment], Optional[ops.Moment]],
+    merge_func: Callable[[circuits.Moment, circuits.Moment], Optional[circuits.Moment]],
 ) -> CIRCUIT_TYPE:
     """Merges adjacent moments, one by one from left to right, by calling `merge_func(m1, m2)`.
 
@@ -298,7 +298,7 @@ def merge_moments(
     """
     if not circuit:
         return circuit
-    merged_moments: List[ops.Moment] = [circuit[0]]
+    merged_moments: List[circuits.Moment] = [circuit[0]]
     for current_moment in circuit[1:]:
         merged_moment = merge_func(merged_moments[-1], current_moment)
         if not merged_moment:
@@ -336,7 +336,7 @@ def unroll_circuit_op(
         Copy of input circuit with (Tagged) CircuitOperation's expanded in a moment preserving way.
     """
 
-    def map_func(m: ops.Moment, _: int):
+    def map_func(m: circuits.Moment, _: int):
         to_zip: List['cirq.AbstractCircuit'] = []
         for op in m:
             if _check_circuit_op(op, tags_to_check):
