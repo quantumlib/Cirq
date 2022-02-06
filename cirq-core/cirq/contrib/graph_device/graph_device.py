@@ -211,7 +211,7 @@ class UndirectedGraphDevice(devices.Device):
             ):
                 validator(operation, *crosstalk_operations)
 
-    def validate_moment(self, moment: ops.Moment):
+    def validate_moment(self, moment: 'cirq.Moment'):
         super().validate_moment(moment)
         ops = moment.operations
         for i, op in enumerate(ops):

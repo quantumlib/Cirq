@@ -16,7 +16,7 @@ import collections
 
 from typing import cast, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
-from cirq import ops, transformers
+from cirq import circuits, ops, transformers
 
 from cirq.contrib.acquaintance.gates import SwapNetworkGate, AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.devices import get_acquaintance_size
@@ -52,7 +52,7 @@ def rectify_acquaintance_strategy(circuit: 'cirq.Circuit', acquaint_first: bool 
             rectified_moments.append(moment)
             continue
         for acquaint_first in sorted(gate_type_to_ops.keys(), reverse=acquaint_first):
-            rectified_moments.append(ops.Moment(gate_type_to_ops[acquaint_first]))
+            rectified_moments.append(circuits.Moment(gate_type_to_ops[acquaint_first]))
     circuit._moments = rectified_moments
 
 
@@ -92,7 +92,7 @@ def replace_acquaintance_with_swap_network(
                 qubit_order, moment.operations, acquaintance_size, swap_gate
             )
             swap_network_op = swap_network_gate(*qubit_order)
-            moment = ops.Moment([swap_network_op])
+            moment = circuits.Moment([swap_network_op])
             reflected = not reflected
         circuit._moments[moment_index] = moment
     return reflected

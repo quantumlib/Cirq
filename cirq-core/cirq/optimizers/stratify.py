@@ -100,7 +100,7 @@ def stratify_circuit(classifiers: Iterable[Classifier], circuit: circuits.Circui
     circuit_copy = circuit.copy()
     while len(circuit_copy.all_qubits()) > 0:
         for classifier in classifiers:
-            current_moment = ops.Moment()
+            current_moment = circuits.Moment()
             blocked_qubits: Set[ops.Qid] = set()
             for moment_idx, moment in enumerate(circuit_copy.moments):
                 for op in moment.operations:
