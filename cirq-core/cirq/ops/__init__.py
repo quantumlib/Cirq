@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Types for representing and methods for manipulating circuit operation trees.
+"""Gates (unitary and non-unitary), operations, base types, and gate sets.
 """
 
 from cirq.ops.arithmetic_operation import (
@@ -187,10 +187,6 @@ from cirq.ops.measure_util import (
 
 from cirq.ops.measurement_gate import (
     MeasurementGate,
-)
-
-from cirq.ops.moment import (
-    Moment,
 )
 
 from cirq.ops.named_qubit import (

@@ -250,8 +250,8 @@ def test_drop_negligible():
         cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** 0.25,
         cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** sym,
     )
-    cirq.DropNegligible().optimize_circuit(circuit)
-    cirq.DropEmptyMoments().optimize_circuit(circuit)
+    circuit = cirq.drop_negligible_operations(circuit)
+    circuit = cirq.drop_empty_moments(circuit)
     assert circuit == expected
 
 
@@ -341,13 +341,13 @@ def test_decompose_with_symbol():
     ps = cirq.PauliString({q0: cirq.Y})
     op = cirq.PauliStringPhasor(ps, exponent_neg=sympy.Symbol('a'))
     circuit = cirq.Circuit(op)
-    cirq.ExpandComposite().optimize_circuit(circuit)
+    circuit = cirq.expand_composite(circuit)
     cirq.testing.assert_has_diagram(circuit, "q0: ───X^0.5───Z^a───X^-0.5───")
 
     ps = cirq.PauliString({q0: cirq.Y}, -1)
     op = cirq.PauliStringPhasor(ps, exponent_neg=sympy.Symbol('a'))
     circuit = cirq.Circuit(op)
-    cirq.ExpandComposite().optimize_circuit(circuit)
+    circuit = cirq.expand_composite(circuit)
     cirq.testing.assert_has_diagram(circuit, "q0: ───X^0.5───X───Z^a───X───X^-0.5───")
 
 

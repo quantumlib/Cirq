@@ -61,7 +61,7 @@ class IdentityGate(raw_types.Gate):
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
+    def _act_on_(self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']):
         return True
 
     def _qid_shape_(self) -> Tuple[int, ...]:

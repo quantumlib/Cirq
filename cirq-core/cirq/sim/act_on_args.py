@@ -31,7 +31,7 @@ import warnings
 
 import numpy as np
 
-from cirq import protocols, ops
+from cirq import ops, protocols, value
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -46,10 +46,11 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def __init__(
         self,
-        prng: np.random.RandomState = None,
-        qubits: Sequence['cirq.Qid'] = None,
-        log_of_measurement_results: Dict[str, List[int]] = None,
+        prng: Optional[np.random.RandomState] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         ignore_measurement_results: bool = False,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits ActOnArgs.
 
@@ -65,16 +66,21 @@ class ActOnArgs(OperationTarget[TSelf]):
                 will treat measurement as dephasing instead of collapsing
                 process, and not log the result. This is only applicable to
                 simulators that can represent mixed states.
+            classical_data: The shared classical data container for this
+                simulation.
         """
         if prng is None:
             prng = cast(np.random.RandomState, np.random)
         if qubits is None:
             qubits = ()
-        if log_of_measurement_results is None:
-            log_of_measurement_results = {}
         self._set_qubits(qubits)
         self.prng = prng
-        self._log_of_measurement_results = log_of_measurement_results
+        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
+            _measurements={
+                value.MeasurementKey.parse_serialized(k): tuple(v)
+                for k, v in (log_of_measurement_results or {}).items()
+            }
+        )
         self._ignore_measurement_results = ignore_measurement_results
 
     def _set_qubits(self, qubits: Sequence['cirq.Qid']):
@@ -103,9 +109,9 @@ class ActOnArgs(OperationTarget[TSelf]):
             return
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
-        if key in self._log_of_measurement_results:
-            raise ValueError(f"Measurement already logged to key {key!r}")
-        self._log_of_measurement_results[key] = corrected
+        self._classical_data.record_measurement(
+            value.MeasurementKey.parse_serialized(key), corrected, qubits
+        )
 
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]
@@ -138,7 +144,7 @@ class ActOnArgs(OperationTarget[TSelf]):
                 DeprecationWarning,
             )
             self._on_copy(args)
-        args._log_of_measurement_results = self.log_of_measurement_results.copy()
+        args._classical_data = self._classical_data.copy()
         return args
 
     def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
@@ -160,6 +166,22 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Subclasses should implement this with any additional state product
         functionality, if supported."""
 
+    def with_qubits(self: TSelf, qubits) -> TSelf:
+        """Extend current state space with added qubits.
+
+        The state of the added qubits is the default value set in the
+        subclasses. A new state space is created as the Kronecker product of
+        the original one and the added one.
+
+        Args:
+            qubits: The qubits to be added to the state space.
+
+        Regurns:
+            A new subclass object containing the extended state space.
+        """
+        new_space = type(self)(qubits=qubits)
+        return self.kronecker_product(new_space)
+
     def factor(
         self: TSelf,
         qubits: Sequence['cirq.Qid'],
@@ -175,6 +197,11 @@ class ActOnArgs(OperationTarget[TSelf]):
         extracted._set_qubits(qubits)
         remainder._set_qubits([q for q in self.qubits if q not in qubits])
         return extracted, remainder
+
+    @property
+    def allows_factoring(self):
+        """Subclasses that allow factorization should override this."""
+        return False
 
     def _on_factor(
         self: TSelf,
@@ -215,8 +242,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         functionality, if supported."""
 
     @property
-    def log_of_measurement_results(self) -> Dict[str, List[int]]:
-        return self._log_of_measurement_results
+    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
+        return self._classical_data
 
     @property
     def ignore_measurement_results(self) -> bool:

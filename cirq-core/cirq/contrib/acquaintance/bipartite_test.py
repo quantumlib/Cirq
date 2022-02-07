@@ -278,8 +278,7 @@ def test_circuit_diagrams(part_size, subgraph):
     no_decomp = lambda op: isinstance(
         op.gate, (cca.AcquaintanceOpportunityGate, cca.SwapPermutationGate)
     )
-    expander = cirq.ExpandComposite(no_decomp=no_decomp)
-    expander(circuit)
+    circuit = cirq.expand_composite(circuit, no_decomp=no_decomp)
     diagram = circuit_diagrams['decomposed', subgraph, part_size]
     cirq.testing.assert_has_diagram(circuit, diagram)
 

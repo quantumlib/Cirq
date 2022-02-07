@@ -31,7 +31,7 @@ from cirq.testing.devices import ValidatingTestDevice
 
 class _Foxy(ValidatingTestDevice):
     def can_add_operation_into_moment(
-        self, operation: 'ops.Operation', moment: 'ops.Moment'
+        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
     ) -> bool:
         if not super().can_add_operation_into_moment(operation, moment):
             return False
@@ -107,10 +107,12 @@ def test_insert_moment_types_deprecated():
         circuit = cirq.Circuit(device=moment_and_op_type_validating_device)
 
     moment_or_operation_tree = [cirq.X(x), cirq.Moment([cirq.Y(x)])]
-    circuit.insert(0, moment_or_operation_tree)
+    with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
+        circuit.insert(0, moment_or_operation_tree)
 
     moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
-    circuit.insert(0, moment_or_operation_tree)
+    with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
+        circuit.insert(0, moment_or_operation_tree)
 
 
 def test_setitem():
@@ -1174,6 +1176,14 @@ c: ───@───────@───────
 d: ───@───────@───────
 """,
     )
+
+
+def test_insert_into_range_deprecated():
+    with cirq.testing.assert_deprecated('insert_into_range', deadline='v0.15'):
+        x, y = cirq.GridQubit.rect(1, 2)
+        c = cirq.Circuit([cirq.Moment([cirq.X(x)])] * 4)
+        c._device = FOXY
+        c.insert_into_range([cirq.Z(x), cirq.CZ(x, y)], 2, 2)
 
 
 def test_insert_into_range():
