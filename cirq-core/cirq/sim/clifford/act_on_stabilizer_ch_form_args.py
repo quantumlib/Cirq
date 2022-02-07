@@ -17,16 +17,16 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 import numpy as np
 
 from cirq import _compat, value, ops, protocols
-from cirq.ops import common_gates, pauli_gates
-from cirq.ops import global_phase_op
-from cirq.sim.clifford import clifford_simulator
+from cirq.sim.clifford import stabilizer_state_ch_form
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
+class ActOnStabilizerCHFormArgs(
+    ActOnStabilizerArgs[stabilizer_state_ch_form.StabilizerStateChForm]
+):
     """Wrapper around a stabilizer state in CH form for the act_on protocol."""
 
     @_compat.deprecated_parameter(
@@ -58,41 +58,48 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
                 being recorded into.
             initial_state: The initial state for the simulation. This can be a
                 full CH form passed by reference which will be modified inplace,
-                or a big-endian int in the computational basis.
+                or a big-endian int in the computational basis. If the state is
+                an integer, qubits must be provided in order to determine
+                array sizes.
             classical_data: The shared classical data container for this
                 simulation.
+
+        Raises:
+            ValueError: If initial state is an integer but qubits are not
+                provided.
         """
+        initial_state = state or initial_state
+        if isinstance(initial_state, int):
+            if qubits is None:
+                raise ValueError('Must specify qubits if initial state is integer')
+            initial_state = stabilizer_state_ch_form.StabilizerStateChForm(
+                len(qubits), initial_state
+            )
         super().__init__(
+            state=initial_state,
             prng=prng,
             qubits=qubits,
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-        initial_state = state or initial_state
-        if isinstance(initial_state, int):
-            qubit_map = {q: i for i, q in enumerate(self.qubits)}
-            initial_state = clifford_simulator.CliffordState(
-                qubit_map, initial_state=initial_state
-            ).ch_form
-        self.state = initial_state
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Returns the measurement from the stabilizer state form."""
         return [self.state._measure(self.qubit_map[q], self.prng) for q in qubits]
 
     def _on_copy(self, target: 'ActOnStabilizerCHFormArgs', deep_copy_buffers: bool = True):
-        target.state = self.state.copy()
+        target._state = self.state.copy()
 
     def _on_kronecker_product(
         self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
     ):
-        target.state = self.state.kron(other.state)
+        target._state = self.state.kron(other.state)
 
     def _on_transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStabilizerCHFormArgs'
     ):
         axes = [self.qubit_map[q] for q in qubits]
-        target.state = self.state.reindex(axes)
+        target._state = self.state.reindex(axes)
 
     def sample(
         self,
@@ -113,105 +120,3 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
             )
             protocols.act_on(op, ch_form_args)
         return np.array(list(measurements.measurements.values()), dtype=bool)
-
-    def _x(self, g: common_gates.XPowGate, axis: int):
-        exponent = g.exponent
-        if exponent % 2 != 0:
-            if exponent % 0.5 != 0.0:
-                raise ValueError('Y exponent must be half integer')  # coverage: ignore
-            self._h(common_gates.H, axis)
-            self._z(common_gates.ZPowGate(exponent=exponent), axis)
-            self._h(common_gates.H, axis)
-        self.state.omega *= _phase(g)
-
-    def _y(self, g: common_gates.YPowGate, axis: int):
-        exponent = g.exponent
-        if exponent % 0.5 != 0.0:
-            raise ValueError('Y exponent must be half integer')  # coverage: ignore
-        if exponent % 2 == 0:
-            self.state.omega *= _phase(g)
-        elif exponent % 2 == 0.5:
-            self._z(pauli_gates.Z, axis)
-            self._h(common_gates.H, axis)
-            self.state.omega *= _phase(g) * (1 + 1j) / (2 ** 0.5)
-        elif exponent % 2 == 1:
-            self._z(pauli_gates.Z, axis)
-            self._h(common_gates.H, axis)
-            self._z(pauli_gates.Z, axis)
-            self._h(common_gates.H, axis)
-            self.state.omega *= _phase(g) * 1j
-        elif exponent % 2 == 1.5:
-            self._h(common_gates.H, axis)
-            self._z(pauli_gates.Z, axis)
-            self.state.omega *= _phase(g) * (1 - 1j) / (2 ** 0.5)
-
-    def _z(self, g: common_gates.ZPowGate, axis: int):
-        exponent = g.exponent
-        state = self.state
-        if exponent % 2 != 0:
-            if exponent % 0.5 != 0.0:
-                raise ValueError('Z exponent must be half integer')  # coverage: ignore
-            effective_exponent = exponent % 2
-            for _ in range(int(effective_exponent * 2)):
-                # Prescription for S left multiplication.
-                # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-                state.M[axis, :] ^= state.G[axis, :]
-                state.gamma[axis] = (state.gamma[axis] - 1) % 4
-        state.omega *= _phase(g)
-
-    def _h(self, g: common_gates.HPowGate, axis: int):
-        exponent = g.exponent
-        state = self.state
-        if exponent % 2 != 0:
-            if exponent % 1 != 0:
-                raise ValueError('H exponent must be integer')  # coverage: ignore
-            # Prescription for H left multiplication
-            # Reference: https://arxiv.org/abs/1808.00128
-            # Equations 48, 49 and Proposition 4
-            t = state.s ^ (state.G[axis, :] & state.v)
-            u = state.s ^ (state.F[axis, :] & (~state.v)) ^ (state.M[axis, :] & state.v)
-            alpha = sum(state.G[axis, :] & (~state.v) & state.s) % 2
-            beta = sum(state.M[axis, :] & (~state.v) & state.s)
-            beta += sum(state.F[axis, :] & state.v & state.M[axis, :])
-            beta += sum(state.F[axis, :] & state.v & state.s)
-            beta %= 2
-            delta = (state.gamma[axis] + 2 * (alpha + beta)) % 4
-            state.update_sum(t, u, delta=delta, alpha=alpha)
-        state.omega *= _phase(g)
-
-    def _cz(self, g: common_gates.CZPowGate, control_axis: int, target_axis: int):
-        exponent = g.exponent
-        state = self.state
-        if exponent % 2 != 0:
-            if exponent % 1 != 0:
-                raise ValueError('CZ exponent must be integer')  # coverage: ignore
-            # Prescription for CZ left multiplication.
-            # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-            state.M[control_axis, :] ^= state.G[target_axis, :]
-            state.M[target_axis, :] ^= state.G[control_axis, :]
-        state.omega *= _phase(g)
-
-    def _cx(self, g: common_gates.CXPowGate, control_axis: int, target_axis: int):
-        exponent = g.exponent
-        state = self.state
-        if exponent % 2 != 0:
-            if exponent % 1 != 0:
-                raise ValueError('CX exponent must be integer')  # coverage: ignore
-            # Prescription for CX left multiplication.
-            # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-            state.gamma[control_axis] = (
-                state.gamma[control_axis]
-                + state.gamma[target_axis]
-                + 2 * (sum(state.M[control_axis, :] & state.F[target_axis, :]) % 2)
-            ) % 4
-            state.G[target_axis, :] ^= state.G[control_axis, :]
-            state.F[control_axis, :] ^= state.F[target_axis, :]
-            state.M[control_axis, :] ^= state.M[target_axis, :]
-        state.omega *= _phase(g)
-
-    def _global_phase(self, g: global_phase_op.GlobalPhaseGate):
-        self.state.omega *= g.coefficient
-
-
-def _phase(gate):
-    return np.exp(1j * np.pi * gate.global_shift * gate.exponent)
