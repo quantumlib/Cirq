@@ -87,21 +87,27 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
                     split_measure_ops.append(ops.measure(q, key=m_key))
             split_measure_moments.append(ops.Moment(split_measure_ops))
 
+        # Append PHYSICAL_GATE_TAG to non-virtual ops in the input circuit,
+        # using `self.virtual_predicate` to determine virtuality.
         new_moments = []
         for moment in split_measure_moments:
             virtual_ops = {op for op in moment if self.virtual_predicate(op)}
             physical_ops = [
                 op.with_tags(PHYSICAL_GATE_TAG) for op in moment if op not in virtual_ops
             ]
-            # Only subclasses will trigger this case.
+            # Both physical and virtual operations remain in the circuit, but
+            # only ops with PHYSICAL_GATE_TAG will receive noise.
             if virtual_ops:
+                # Only subclasses will trigger this case.
                 new_moments.append(ops.Moment(virtual_ops))  # coverage: ignore
             if physical_ops:
                 new_moments.append(ops.Moment(physical_ops))
 
         split_measure_circuit = circuits.Circuit(new_moments)
 
-        # Add actual noise.
+        # Add noise from each noise model. The PHYSICAL_GATE_TAGs added
+        # previously allow noise models to distinguish physical gates from
+        # those added by other noise models.
         noisy_circuit = split_measure_circuit.copy()
         for model in self.noise_models:
             noisy_circuit = noisy_circuit.with_noise(model)
