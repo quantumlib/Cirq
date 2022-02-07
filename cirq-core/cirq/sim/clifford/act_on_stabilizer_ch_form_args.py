@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -42,6 +42,7 @@ class ActOnStabilizerCHFormArgs(
         log_of_measurement_results: Optional[Dict[str, Any]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[int, 'cirq.StabilizerStateChForm'] = 0,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Initializes with the given state and the axes for the operation.
 
@@ -60,6 +61,8 @@ class ActOnStabilizerCHFormArgs(
                 or a big-endian int in the computational basis. If the state is
                 an integer, qubits must be provided in order to determine
                 array sizes.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Raises:
             ValueError: If initial state is an integer but qubits are not
@@ -77,6 +80,7 @@ class ActOnStabilizerCHFormArgs(
             prng=prng,
             qubits=qubits,
             log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
         )
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
@@ -103,16 +107,16 @@ class ActOnStabilizerCHFormArgs(
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        measurements: Dict[str, List[np.ndarray]] = {}
+        measurements = value.ClassicalDataDictionaryStore()
         prng = value.parse_random_state(seed)
         for i in range(repetitions):
             op = ops.measure(*qubits, key=str(i))
             state = self.state.copy()
             ch_form_args = ActOnStabilizerCHFormArgs(
+                classical_data=measurements,
                 prng=prng,
-                log_of_measurement_results=measurements,
                 qubits=self.qubits,
                 initial_state=state,
             )
             protocols.act_on(op, ch_form_args)
-        return np.array(list(measurements.values()), dtype=bool)
+        return np.array(list(measurements.measurements.values()), dtype=bool)

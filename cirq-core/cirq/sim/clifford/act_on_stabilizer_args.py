@@ -40,6 +40,7 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, Any]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Initializes the ActOnStabilizerArgs.
 
@@ -53,8 +54,15 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
                 ordering of the computational basis states.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            classical_data: The shared classical data container for this
+                simulation.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
         self._state = state
 
     @property

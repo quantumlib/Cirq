@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -31,9 +31,10 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTabl
     def __init__(
         self,
         tableau: 'cirq.CliffordTableau',
-        prng: np.random.RandomState,
-        log_of_measurement_results: Dict[str, Any],
-        qubits: Sequence['cirq.Qid'] = None,
+        prng: Optional[np.random.RandomState] = None,
+        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits ActOnCliffordTableauArgs.
 
@@ -47,12 +48,15 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTabl
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            classical_data: The shared classical data container for this
+                simulation.
         """
         super().__init__(
             state=tableau,
             prng=prng,
             qubits=qubits,
             log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
         )
 
     @property

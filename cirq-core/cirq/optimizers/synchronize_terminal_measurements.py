@@ -62,7 +62,7 @@ class SynchronizeTerminalMeasurements:
             # Can safely add to the end if
             # self._after_other_operations is false or we happen to get an
             # empty final moment before re-adding all the measurements.
-            circuit.append(ops.Moment())
+            circuit.append(circuits.Moment())
 
         for op in terminal_measures:
             circuit[-1] = circuit[-1].with_operation(op)

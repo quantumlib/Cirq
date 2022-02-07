@@ -31,7 +31,7 @@ from cirq.testing.devices import ValidatingTestDevice
 
 class _Foxy(ValidatingTestDevice):
     def can_add_operation_into_moment(
-        self, operation: 'ops.Operation', moment: 'ops.Moment'
+        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
     ) -> bool:
         if not super().can_add_operation_into_moment(operation, moment):
             return False
