@@ -99,10 +99,10 @@ def test_absorbs_z():
         ),
     )
 
-    # Partial Z.
+    # Partial Z. PhasedXZGate with z_exponent = 0.
     assert_optimizes(
         before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.125).on(q)],
+            [cirq.PhasedXZGate(x_exponent=1, axis_phase_exponent=0.125, z_exponent=0).on(q)],
             [cirq.S(q)],
         ),
         expected=quick_circuit(
@@ -327,6 +327,36 @@ def test_toggles_measurements():
             [cirq.measure(a, b, invert_mask=(True,), key='t')],
         ),
     )
+
+    # CCOs
+    assert_optimizes(
+        before=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0.25).on(a)],
+            [cirq.measure(a, key="m")],
+            [cirq.X(b).with_classical_controls("m")],
+        ),
+        expected=quick_circuit(
+            [cirq.measure(a, invert_mask=(True,), key="m")],
+            [cirq.X(b).with_classical_controls("m")],
+        ),
+        compare_unitaries=False,
+    )
+
+
+def test_eject_phased_xz():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.Circuit(
+        cirq.PhasedXZGate(x_exponent=1, z_exponent=0.5, axis_phase_exponent=0.5).on(a),
+        cirq.CZ(a, b) ** 0.25,
+    )
+    c_expected = cirq.Circuit(
+        cirq.CZ(a, b) ** -0.25, cirq.PhasedXPowGate(phase_exponent=0.75).on(a), cirq.T(b)
+    )
+    cirq.testing.assert_same_circuits(
+        cirq.eject_z(cirq.eject_phased_paulis(cirq.eject_z(c))), c_expected
+    )
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c, c_expected, 1e-8)
 
 
 def test_cancels_other_full_w():

@@ -16,6 +16,7 @@
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple, Dict
 import sympy
+import numpy as np
 
 from cirq import circuits, ops, value, protocols
 from cirq.transformers import transformer_api, transformer_primitives
@@ -39,6 +40,7 @@ def eject_phased_paulis(
     X, Y, or PhasedX gates with exponent=1, get merged into measurements (as
     output bit flips), and cause phase kickback operations across CZs (which can
     then be removed by the EjectZ optimization).
+
     Args:
         circuit: Input circuit to transform.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
@@ -314,6 +316,13 @@ def _try_get_known_phased_pauli(
     elif isinstance(gate, ops.XPowGate):
         e = gate.exponent
         p = 0.0
+    elif (
+        isinstance(gate, ops.PhasedXZGate)
+        and not protocols.is_parameterized(gate.z_exponent)
+        and np.isclose(gate.z_exponent, 0)
+    ):
+        e = gate.x_exponent
+        p = gate.axis_phase_exponent
     else:
         return None
     return value.canonicalize_half_turns(e), value.canonicalize_half_turns(p)

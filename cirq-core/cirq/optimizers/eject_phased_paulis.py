@@ -15,11 +15,10 @@
 """Pushes 180 degree rotations around axes in the XY plane later in the circuit.
 """
 
-from cirq import circuits, transformers
-from cirq._compat import deprecated_class
+from cirq import _compat, circuits, transformers
 
 
-@deprecated_class(deadline='v1.0', fix='Use cirq.eject_phased_paulis instead.')
+@_compat.deprecated_class(deadline='v1.0', fix='Use cirq.eject_phased_paulis instead.')
 class EjectPhasedPaulis:
     """Pushes X, Y, and PhasedX gates towards the end of the circuit.
 
