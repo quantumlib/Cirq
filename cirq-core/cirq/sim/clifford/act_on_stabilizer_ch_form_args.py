@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -42,6 +42,7 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
         log_of_measurement_results: Optional[Dict[str, Any]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[int, 'cirq.StabilizerStateChForm'] = 0,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Initializes with the given state and the axes for the operation.
 
@@ -58,8 +59,15 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
             initial_state: The initial state for the simulation. This can be a
                 full CH form passed by reference which will be modified inplace,
                 or a big-endian int in the computational basis.
+            classical_data: The shared classical data container for this
+                simulation.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
         initial_state = state or initial_state
         if isinstance(initial_state, int):
             qubit_map = {q: i for i, q in enumerate(self.qubits)}
@@ -92,19 +100,19 @@ class ActOnStabilizerCHFormArgs(ActOnStabilizerArgs):
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        measurements: Dict[str, List[np.ndarray]] = {}
+        measurements = value.ClassicalDataDictionaryStore()
         prng = value.parse_random_state(seed)
         for i in range(repetitions):
             op = ops.measure(*qubits, key=str(i))
             state = self.state.copy()
             ch_form_args = ActOnStabilizerCHFormArgs(
+                classical_data=measurements,
                 prng=prng,
-                log_of_measurement_results=measurements,
                 qubits=self.qubits,
                 initial_state=state,
             )
             protocols.act_on(op, ch_form_args)
-        return np.array(list(measurements.values()), dtype=bool)
+        return np.array(list(measurements.measurements.values()), dtype=bool)
 
     def _x(self, g: common_gates.XPowGate, axis: int):
         exponent = g.exponent
