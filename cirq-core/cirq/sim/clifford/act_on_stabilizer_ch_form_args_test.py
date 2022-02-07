@@ -24,6 +24,8 @@ def test_init_state():
         initial_state=1,
     )
     np.testing.assert_allclose(args.state.state_vector(), [0, 1])
+    with pytest.raises(ValueError, match='Must specify qubits'):
+        _ = cirq.ActOnStabilizerCHFormArgs(initial_state=1)
 
 
 def test_deprecated_warning():

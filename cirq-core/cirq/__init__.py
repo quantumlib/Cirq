@@ -414,6 +414,7 @@ from cirq.qis import (
     QuantumState,
     quantum_state,
     STATE_VECTOR_LIKE,
+    StabilizerState,
     superoperator_to_choi,
     superoperator_to_kraus,
     to_valid_density_matrix,
