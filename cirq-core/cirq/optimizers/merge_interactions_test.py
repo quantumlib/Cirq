@@ -28,7 +28,6 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
     # Ignore differences that would be caught by follow-up optimizations.
     followup_optimizations: List[Callable[[cirq.Circuit], None]] = [
         cirq.merge_single_qubit_gates_into_phased_x_z,
-        cirq.EjectPhasedPaulis().optimize_circuit,
         cirq.EjectZ().optimize_circuit,
     ]
     for post in followup_optimizations:
@@ -36,6 +35,7 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
         post(expected)
 
     followup_transformers: List[cirq.TRANSFORMER] = [
+        cirq.eject_phased_paulis,
         cirq.drop_negligible_operations,
         cirq.drop_empty_moments,
     ]
