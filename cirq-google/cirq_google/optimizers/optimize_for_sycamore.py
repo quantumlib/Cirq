@@ -165,8 +165,8 @@ def optimized_for_sycamore(
     for optimizer in opts:
         optimizer(copy)
 
-    copy = cirq.drop_negligible_operations(copy, atol=tolerance)
     copy = cirq.eject_z(copy, atol=tolerance)
+    copy = cirq.drop_negligible_operations(copy, atol=tolerance)
 
     ret = cirq.Circuit(
         (op.transform_qubits(qubit_map) for op in copy.all_operations()),

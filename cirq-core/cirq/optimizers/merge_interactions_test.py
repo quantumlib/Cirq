@@ -35,9 +35,9 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
         post(expected)
 
     followup_transformers: List[cirq.TRANSFORMER] = [
+        cirq.eject_z,
         cirq.drop_negligible_operations,
         cirq.drop_empty_moments,
-        cirq.eject_z,
     ]
     for transform in followup_transformers:
         actual = transform(actual).unfreeze(copy=False)
