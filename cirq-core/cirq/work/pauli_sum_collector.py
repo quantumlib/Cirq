@@ -17,7 +17,7 @@ from typing import cast, Dict, Optional, Union, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops
+from cirq import circuits, ops
 from cirq.work import collector
 
 if TYPE_CHECKING:
@@ -104,6 +104,6 @@ def _circuit_plus_pauli_string_measurements(
     """A circuit measuring the given observable at the end of the given circuit."""
     assert pauli_string
     circuit = circuit.copy()
-    circuit.append(ops.Moment(pauli_string.to_z_basis_ops()))
-    circuit.append(ops.Moment([ops.measure(*sorted(pauli_string.keys()), key='out')]))
+    circuit.append(circuits.Moment(pauli_string.to_z_basis_ops()))
+    circuit.append(circuits.Moment([ops.measure(*sorted(pauli_string.keys()), key='out')]))
     return circuit

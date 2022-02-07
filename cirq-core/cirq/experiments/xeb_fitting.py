@@ -27,8 +27,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 import sympy
-from cirq import ops, protocols, _import
-from cirq.circuits import Circuit
+from cirq import circuits, ops, protocols, _import
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
 if TYPE_CHECKING:
@@ -335,8 +334,8 @@ def parameterize_circuit(
     `phased_fsim_options`.
     """
     gate = options.get_parameterized_gate()
-    return Circuit(
-        ops.Moment(
+    return circuits.Circuit(
+        circuits.Moment(
             gate.on(*op.qubits) if options.should_parameterize(op) else op
             for op in moment.operations
         )

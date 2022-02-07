@@ -176,7 +176,7 @@ class DensityMatrixSimulator(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: 'cirq.ClassicalDataStore',
     ) -> 'cirq.ActOnDensityMatrixArgs':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 
@@ -186,7 +186,8 @@ class DensityMatrixSimulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            logs: The log of measurement results that is added into.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Returns:
             ActOnDensityMatrixArgs for the circuit.
@@ -197,7 +198,7 @@ class DensityMatrixSimulator(
         return act_on_density_matrix_args.ActOnDensityMatrixArgs(
             qubits=qubits,
             prng=self._prng,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
             ignore_measurement_results=self._ignore_measurement_results,
             initial_state=initial_state,
             dtype=self._dtype,

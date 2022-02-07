@@ -13,11 +13,11 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Sequence, TYPE_CHECKING, Union
+from typing import Any, Dict, Generic, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 
-from cirq import ops, protocols, linalg
+from cirq import linalg, ops, protocols
 from cirq.ops import common_gates, global_phase_op, matrix_gates, swap_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
@@ -28,8 +28,46 @@ if TYPE_CHECKING:
     import cirq
 
 
-class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
+TStabilizerState = TypeVar('TStabilizerState', bound='cirq.StabilizerState')
+
+
+class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.ABCMeta):
     """Abstract wrapper around a stabilizer state for the act_on protocol."""
+
+    def __init__(
+        self,
+        state: TStabilizerState,
+        prng: Optional[np.random.RandomState] = None,
+        log_of_measurement_results: Optional[Dict[str, Any]] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+    ):
+        """Initializes the ActOnStabilizerArgs.
+
+        Args:
+            state: The quantum stabilizer state to use in the simulation or
+                act_on invocation.
+            prng: The pseudo random number generator to use for probabilistic
+                effects.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            log_of_measurement_results: A mutable object that measurements are
+                being recorded into.
+            classical_data: The shared classical data container for this
+                simulation.
+        """
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
+        self._state = state
+
+    @property
+    def state(self) -> TStabilizerState:
+        return self._state
 
     def _act_on_fallback_(
         self,
@@ -52,45 +90,15 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
 
         return NotImplemented
 
-    @abc.abstractmethod
-    def _x(self, g: common_gates.XPowGate, axis: int):
-        """Apply an X gate"""
-
-    @abc.abstractmethod
-    def _y(self, g: common_gates.YPowGate, axis: int):
-        """Apply a Y gate"""
-
-    @abc.abstractmethod
-    def _z(self, g: common_gates.ZPowGate, axis: int):
-        """Apply a Z gate"""
-
-    @abc.abstractmethod
-    def _h(self, g: common_gates.HPowGate, axis: int):
-        """Apply an H gate"""
-
-    @abc.abstractmethod
-    def _cz(self, g: common_gates.CZPowGate, control_axis: int, target_axis: int):
-        """Apply a CZ gate"""
-
-    @abc.abstractmethod
-    def _cx(self, g: common_gates.CXPowGate, control_axis: int, target_axis: int):
-        """Apply a CX gate"""
-
-    @abc.abstractmethod
-    def _global_phase(self, g: global_phase_op.GlobalPhaseGate):
-        """Apply global phase"""
-
-    def _swap(self, g: swap_gates.SwapPowGate, control_axis: int, target_axis: int):
+    def _swap(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
         """Apply a SWAP gate"""
-        if g.exponent % 1 != 0:
+        if exponent % 1 != 0:
             raise ValueError('Swap exponent must be integer')  # coverage: ignore
-        self._cx(common_gates.CX, control_axis, target_axis)
-        self._cx(
-            common_gates.CXPowGate(exponent=g.exponent, global_shift=g.global_shift),
-            target_axis,
-            control_axis,
-        )
-        self._cx(common_gates.CX, control_axis, target_axis)
+        self._state.apply_cx(control_axis, target_axis)
+        self._state.apply_cx(target_axis, control_axis, exponent, global_shift)
+        self._state.apply_cx(control_axis, target_axis)
 
     def _strat_apply_gate(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
         if not protocols.has_stabilizer_effect(val):
@@ -98,21 +106,21 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
         gate = val.gate if isinstance(val, ops.Operation) else val
         axes = self.get_axes(qubits)
         if isinstance(gate, common_gates.XPowGate):
-            self._x(gate, axes[0])
+            self._state.apply_x(axes[0], gate.exponent, gate.global_shift)
         elif isinstance(gate, common_gates.YPowGate):
-            self._y(gate, axes[0])
+            self._state.apply_y(axes[0], gate.exponent, gate.global_shift)
         elif isinstance(gate, common_gates.ZPowGate):
-            self._z(gate, axes[0])
+            self._state.apply_z(axes[0], gate.exponent, gate.global_shift)
         elif isinstance(gate, common_gates.HPowGate):
-            self._h(gate, axes[0])
+            self._state.apply_h(axes[0], gate.exponent, gate.global_shift)
         elif isinstance(gate, common_gates.CXPowGate):
-            self._cx(gate, axes[0], axes[1])
+            self._state.apply_cx(axes[0], axes[1], gate.exponent, gate.global_shift)
         elif isinstance(gate, common_gates.CZPowGate):
-            self._cz(gate, axes[0], axes[1])
+            self._state.apply_cz(axes[0], axes[1], gate.exponent, gate.global_shift)
         elif isinstance(gate, global_phase_op.GlobalPhaseGate):
-            self._global_phase(gate)
+            self._state.apply_global_phase(gate.coefficient)
         elif isinstance(gate, swap_gates.SwapPowGate):
-            self._swap(gate, axes[0], axes[1])
+            self._swap(axes[0], axes[1], gate.exponent, gate.global_shift)
         else:
             return NotImplemented
         return True
@@ -150,7 +158,7 @@ class ActOnStabilizerArgs(ActOnArgs, metaclass=abc.ABCMeta):
                 k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
                 # Correct the global phase that wasn't conserved in the above
                 # decomposition.
-                self._global_phase(global_phase_op.GlobalPhaseGate(u[k] / final_unitary[k]))
+                self._state.apply_global_phase(u[k] / final_unitary[k])
                 return True
 
         return NotImplemented
