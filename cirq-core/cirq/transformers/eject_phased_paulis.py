@@ -39,7 +39,10 @@ def eject_phased_paulis(
     As the gates get pushed, they may absorb Z gates, cancel against other
     X, Y, or PhasedX gates with exponent=1, get merged into measurements (as
     output bit flips), and cause phase kickback operations across CZs (which can
-    then be removed by the EjectZ optimization).
+    then be removed by the `cirq.eject_z` transformation).
+
+    `cirq.PhasedXZGate` with `z_exponent=0` are also supported. To eject `PhasedXZGates` with
+    arbitrary `z_exponent`, run `cirq.eject_z(cirq.eject_phased_paulis(cirq.eject_z(circuit)))`.
 
     Args:
         circuit: Input circuit to transform.
