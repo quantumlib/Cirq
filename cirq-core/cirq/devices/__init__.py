@@ -67,6 +67,10 @@ from cirq.devices.noise_properties import (
     NoiseProperties,
 )
 
+from cirq.devices.superconducting_qubits_noise_properties import (
+    SuperconductingQubitsNoiseProperties,
+)
+
 from cirq.devices.noise_utils import (
     OpIdentifier,
     decay_constant_to_xeb_fidelity,
