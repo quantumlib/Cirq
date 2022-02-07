@@ -767,10 +767,11 @@ def test_simulator_step_state_mixin():
     qubits = cirq.LineQubit.range(2)
     args = cirq.ActOnStateVectorArgs(
         log_of_measurement_results={'m': np.array([1, 2])},
-        target_tensor=np.array([0, 1, 0, 0]).reshape((2, 2)),
         available_buffer=np.array([0, 1, 0, 0]).reshape((2, 2)),
         prng=cirq.value.parse_random_state(0),
         qubits=qubits,
+        initial_state=np.array([0, 1, 0, 0], dtype=np.complex64).reshape((2, 2)),
+        dtype=np.complex64,
     )
     result = cirq.SparseSimulatorStep(
         sim_state=args,

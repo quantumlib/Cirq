@@ -43,11 +43,6 @@ d: ───█───
     assert actual_text_diagram == expected_text_diagram
     assert cca.get_acquaintance_size(trivial_strategy) == 1
 
-    is_shift_or_lin_perm = lambda op: isinstance(
-        op.gate, (cca.CircularShiftGate, cca.LinearPermutationGate)
-    )
-    expand = cirq.ExpandComposite(no_decomp=is_shift_or_lin_perm)
-
     quadratic_strategy = cca.complete_acquaintance_strategy(qubits[:8], 2)
     actual_text_diagram = quadratic_strategy.to_text_diagram().strip()
     expected_text_diagram = """
@@ -69,8 +64,10 @@ h: ───×(7,0)───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
     assert cca.get_acquaintance_size(quadratic_strategy) == 2
-
-    expand(quadratic_strategy)
+    is_shift_or_lin_perm = lambda op: isinstance(
+        op.gate, (cca.CircularShiftGate, cca.LinearPermutationGate)
+    )
+    quadratic_strategy = cirq.expand_composite(quadratic_strategy, no_decomp=is_shift_or_lin_perm)
     actual_text_diagram = quadratic_strategy.to_text_diagram(transpose=True).strip()
     expected_text_diagram = '\n'.join(
         (

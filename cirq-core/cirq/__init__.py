@@ -72,6 +72,7 @@ from cirq.circuits import (
     CircuitOperation,
     FrozenCircuit,
     InsertStrategy,
+    Moment,
     PointOptimizationSummary,
     PointOptimizer,
     QasmOutput,
@@ -138,6 +139,7 @@ from cirq.linalg import (
     block_diag,
     CONTROL_TAG,
     deconstruct_single_qubit_matrix_into_angles,
+    density_matrix_kronecker_product,
     diagonalize_real_symmetric_and_sorted_diagonal_matrices,
     diagonalize_real_symmetric_matrix,
     dot,
@@ -171,6 +173,7 @@ from cirq.linalg import (
     pow_pauli_combination,
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
+    state_vector_kronecker_product,
     so4_to_magic_su2s,
     sub_state_vector,
     targeted_conjugate_about,
@@ -248,7 +251,6 @@ from cirq.ops import (
     measure_paulistring_terms,
     measure_single_paulistring,
     MeasurementGate,
-    Moment,
     MutableDensePauliString,
     MutablePauliString,
     NamedQubit,
@@ -360,6 +362,8 @@ from cirq.transformers import (
     decompose_two_qubit_interaction_into_four_fsim_gates,
     drop_empty_moments,
     drop_negligible_operations,
+    eject_z,
+    expand_composite,
     is_negligible_turn,
     map_moments,
     map_operations,
@@ -681,6 +685,26 @@ _register_resolver(_class_resolver_dictionary)
 
 from cirq import (
     contrib,
+)
+
+# deprecate cirq.ops.moment and related attributes
+
+from cirq import _compat
+
+_compat.deprecated_submodule(
+    new_module_name='cirq.circuits.moment',
+    old_parent='cirq.ops',
+    old_child='moment',
+    deadline='v0.16',
+    create_attribute=True,
+)
+
+ops.Moment = Moment  # type: ignore
+_compat.deprecate_attributes(
+    'cirq.ops',
+    {
+        'Moment': ('v0.16', 'Use cirq.circuits.Moment instead'),
+    },
 )
 
 # pylint: enable=wrong-import-position

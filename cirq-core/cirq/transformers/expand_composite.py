@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Transformer pass that removes operations with tiny effects."""
+"""Transformer pass that expands composite operations via `cirq.decompose`."""
 
-from typing import Optional, TYPE_CHECKING
-from cirq import protocols
+from typing import Callable, Optional, TYPE_CHECKING
+
+from cirq import ops, protocols
 from cirq.transformers import transformer_api, transformer_primitives
 
 if TYPE_CHECKING:
@@ -23,32 +24,33 @@ if TYPE_CHECKING:
 
 
 @transformer_api.transformer
-def drop_negligible_operations(
+def expand_composite(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
-    atol: float = 1e-8,
-) -> 'cirq.Circuit':
-    """Removes operations with tiny effects.
+    no_decomp: Callable[[ops.Operation], bool] = (lambda _: False),
+):
+    """A transformer that expands composite operations via `cirq.decompose`.
 
-    An operation `op` is considered to have a tiny effect if
-    `cirq.trace_distance_bound(op) <= atol`.
+    For each operation in the circuit, this pass examines if the operation can
+    be decomposed. If it can be, the operation is cleared out and and replaced
+    with its decomposition using a fixed insertion strategy.
+
+    Transformation is applied using `cirq.map_operations_and_unroll`, which preserves the
+    moment structure of the input circuit.
 
     Args:
           circuit: Input circuit to transform.
           context: `cirq.TransformerContext` storing common configurable options for transformers.
-          atol: Absolute tolerance to determine if an operation `op` is negligible --
-                i.e. if `cirq.trace_distance_bound(op) <= atol`.
-
+          no_decomp: A predicate that determines whether an operation should
+                be decomposed or not. Defaults to decomposing everything.
     Returns:
           Copy of the transformed input circuit.
     """
 
-    def map_func(op: 'cirq.Operation', _: int) -> 'cirq.OP_TREE':
-        return (
-            op if protocols.is_measurement(op) or protocols.trace_distance_bound(op) > atol else []
-        )
+    def map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+        return protocols.decompose(op, keep=no_decomp, on_stuck_raise=None)
 
-    return transformer_primitives.map_operations(
+    return transformer_primitives.map_operations_and_unroll(
         circuit, map_func, tags_to_ignore=context.tags_to_ignore if context else ()
     ).unfreeze(copy=False)

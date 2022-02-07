@@ -16,7 +16,7 @@ import itertools
 import collections
 from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
 from numpy import sqrt
-from cirq import devices, ops, circuits, value
+from cirq import _compat, devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import raw_types
 from cirq.value import Duration
@@ -122,6 +122,10 @@ class NeutralAtomDevice(devices.Device):
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
+    @_compat.deprecated(
+        fix='Use cirq.ConvertToNeutralAtomGates() instead to decompose operations.',
+        deadline='v0.15',
+    )
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
         return convert_to_neutral_atom_gates.ConvertToNeutralAtomGates().convert(operation)
 
@@ -190,7 +194,7 @@ class NeutralAtomDevice(devices.Device):
                     if self.distance(p, q) > self._control_radius:
                         raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
 
-    def validate_moment(self, moment: ops.Moment):
+    def validate_moment(self, moment: circuits.Moment):
         """Raises an error if the given moment is invalid on this device.
 
         Args:
@@ -264,7 +268,9 @@ class NeutralAtomDevice(devices.Device):
             self._are_qubit_lists_too_close(a, b) for a, b in itertools.combinations(qubit_lists, 2)
         )
 
-    def can_add_operation_into_moment(self, operation: ops.Operation, moment: ops.Moment) -> bool:
+    def can_add_operation_into_moment(
+        self, operation: ops.Operation, moment: circuits.Moment
+    ) -> bool:
         """Determines if it's possible to add an operation into a moment.
 
         An operation can be added if the moment with the operation added is valid.

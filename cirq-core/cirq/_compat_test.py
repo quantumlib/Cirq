@@ -598,6 +598,11 @@ def _trace_unhandled_exceptions(*args, queue: 'multiprocessing.Queue', func: Cal
 
 def subprocess_context(test_func):
     """Ensures that sys.modules changes in subprocesses won't impact the parent process."""
+    assert callable(test_func), (
+        "subprocess_context expects a function. Did you call the function instead of passing "
+        "it to this method?"
+    )
+
     import os
 
     ctx = multiprocessing.get_context('spawn' if os.name == 'nt' else 'fork')
@@ -609,8 +614,8 @@ def subprocess_context(test_func):
         kwargs['func'] = test_func
         p = ctx.Process(target=_trace_unhandled_exceptions, args=args, kwargs=kwargs)
         p.start()
-        result = exception.get()
         p.join()
+        result = exception.get()
         if result:
             # coverage: ignore
             ex_type, msg, ex_trace = result
@@ -667,8 +672,6 @@ def _test_deprecated_module_inner(outdated_method, deprecation_messages):
             deadline='v0.20',
             count=len(deprecation_messages),
         ):
-            import warnings
-
             warnings.simplefilter('always')
             outdated_method()
 
@@ -785,6 +788,7 @@ def _test_broken_module_1_inner():
 
 
 def _test_broken_module_2_inner():
+    warnings.simplefilter('always')
     with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
         with pytest.raises(
             DeprecatedModuleImportError,
@@ -798,6 +802,9 @@ def _test_broken_module_2_inner():
 
 
 def _test_broken_module_3_inner():
+    import cirq.testing._compat_test_data
+
+    warnings.simplefilter('always')
     with cirq.testing.assert_deprecated(deadline="v0.20", count=None):
         with pytest.raises(
             DeprecatedModuleImportError,
@@ -807,15 +814,15 @@ def _test_broken_module_3_inner():
 
 
 def test_deprecated_module_error_handling_1():
-    subprocess_context(_test_broken_module_1_inner())
+    subprocess_context(_test_broken_module_1_inner)()
 
 
 def test_deprecated_module_error_handling_2():
-    subprocess_context(_test_broken_module_2_inner())
+    subprocess_context(_test_broken_module_2_inner)()
 
 
 def test_deprecated_module_error_handling_3():
-    subprocess_context(_test_broken_module_3_inner())
+    subprocess_context(_test_broken_module_3_inner)()
 
 
 def test_new_module_is_top_level():

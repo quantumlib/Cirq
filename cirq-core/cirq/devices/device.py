@@ -100,6 +100,10 @@ class Device(metaclass=abc.ABCMeta):
                 )
             return frozenset([SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='Devices will no longer decompose operations.',
+    )
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Returns a device-valid decomposition for the given operation.
 
