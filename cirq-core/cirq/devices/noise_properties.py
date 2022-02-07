@@ -85,7 +85,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
                 multi_measurements[m_key] = op
                 for q in op.qubits:
                     split_measure_ops.append(ops.measure(q, key=m_key))
-            split_measure_moments.append(ops.Moment(split_measure_ops))
+            split_measure_moments.append(circuits.Moment(split_measure_ops))
 
         # Append PHYSICAL_GATE_TAG to non-virtual ops in the input circuit,
         # using `self.virtual_predicate` to determine virtuality.
@@ -99,9 +99,9 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
             # only ops with PHYSICAL_GATE_TAG will receive noise.
             if virtual_ops:
                 # Only subclasses will trigger this case.
-                new_moments.append(ops.Moment(virtual_ops))  # coverage: ignore
+                new_moments.append(circuits.Moment(virtual_ops))  # coverage: ignore
             if physical_ops:
-                new_moments.append(ops.Moment(physical_ops))
+                new_moments.append(circuits.Moment(physical_ops))
 
         split_measure_circuit = circuits.Circuit(new_moments)
 
@@ -124,5 +124,5 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
                 restore_keys.add(protocols.measurement_key_obj(op))
             for key in restore_keys:
                 combined_measure_ops.append(multi_measurements[key])
-            final_moments.append(ops.Moment(combined_measure_ops))
+            final_moments.append(circuits.Moment(combined_measure_ops))
         return final_moments
