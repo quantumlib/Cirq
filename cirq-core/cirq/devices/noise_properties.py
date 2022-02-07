@@ -2,7 +2,7 @@
 import warnings
 from typing import Sequence, TYPE_CHECKING, List
 from itertools import product
-from cirq import ops, protocols, devices
+from cirq import circuits, ops, protocols, devices
 import numpy as np
 
 if TYPE_CHECKING:
@@ -203,7 +203,7 @@ def _apply_readout_noise(p00, p11, moments, measurement_qubits):
         p = p11 / (p00 + p11)
         gamma = p11 / p
     moments.append(
-        ops.Moment(
+        circuits.Moment(
             ops.GeneralizedAmplitudeDampingChannel(p=p, gamma=gamma)(q) for q in measurement_qubits
         )
     )
@@ -215,12 +215,12 @@ def _apply_depol_noise(pauli_error, moments, system_qubits):
     pauli_inds = np.array(list(product(_sq_inds, repeat=1)))
     num_inds = len(pauli_inds)
     p_other = pauli_error / (num_inds - 1)  # probability of X, Y, Z gates
-    moments.append(ops.Moment(ops.depolarize(p_other)(q) for q in system_qubits))
+    moments.append(circuits.Moment(ops.depolarize(p_other)(q) for q in system_qubits))
 
 
 def _apply_amplitude_damp_noise(duration, t1, moments, system_qubits):
     moments.append(
-        ops.Moment(ops.amplitude_damp(1 - np.exp(-duration / t1)).on_each(system_qubits))
+        circuits.Moment(ops.amplitude_damp(1 - np.exp(-duration / t1)).on_each(system_qubits))
     )
 
 
@@ -240,9 +240,9 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
             raise ValueError('A NoiseProperties object must be specified')
 
     def noisy_moment(
-        self, moment: ops.Moment, system_qubits: Sequence['cirq.Qid']
+        self, moment: circuits.Moment, system_qubits: Sequence['cirq.Qid']
     ) -> 'cirq.OP_TREE':
-        moments: List[ops.Moment] = []
+        moments: List[circuits.Moment] = []
 
         if any(
             [protocols.is_measurement(op.gate) for op in moment.operations]
