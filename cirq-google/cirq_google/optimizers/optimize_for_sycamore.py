@@ -32,7 +32,6 @@ if TYPE_CHECKING:
 def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[[cirq.Circuit], None]]:
     return [
         cirq.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
-        cirq.EjectZ(tolerance=tolerance).optimize_circuit,
     ]
 
 
@@ -166,6 +165,7 @@ def optimized_for_sycamore(
     for optimizer in opts:
         optimizer(copy)
 
+    copy = cirq.eject_z(copy, atol=tolerance)
     copy = cirq.drop_negligible_operations(copy, atol=tolerance)
 
     ret = cirq.Circuit(
