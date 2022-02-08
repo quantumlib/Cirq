@@ -89,13 +89,12 @@ def defer_measurements(
             these is planned to be implemented soon).
     """
 
-    context1 = context or transformer_api.TransformerContext()
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
     terminal_measurements = {op for _, op in find_terminal_measurements(circuit)}
     measurement_qubits: Dict['cirq.MeasurementKey', List['_MeasurementQid']] = {}
 
     def defer(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
-        if any(t in context1.tags_to_ignore for t in op.tags) or op in terminal_measurements:
+        if op in terminal_measurements:
             return op
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
@@ -128,7 +127,10 @@ def defer_measurements(
         return op
 
     circuit = transformer_primitives.map_operations_and_unroll(
-        circuit, defer, raise_if_add_qubits=False
+        circuit=circuit,
+        map_func=defer,
+        tags_to_ignore=context.tags_to_ignore if context else (),
+        raise_if_add_qubits=False,
     ).unfreeze()
     for k, qubits in measurement_qubits.items():
         circuit.append(ops.measure(*qubits, key=k))
