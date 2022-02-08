@@ -179,6 +179,7 @@ TestSpec = ModuleJsonTestSpec(
         'ParamDictType',
         # utility:
         'CliffordSimulator',
+        'NoiseModelFromNoiseProperties',
         'Simulator',
         'StabilizerSampler',
         'Unique',
