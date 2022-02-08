@@ -74,6 +74,11 @@ def test_validate_operation_invalid(gate):
         device.validate_operation(operation)
 
 
+def test_metadata():
+    device = ionq.IonQAPIDevice(qubits=[cirq.LineQubit(0)])
+    assert device.metadata.qubit_set == {cirq.LineQubit(0)}
+
+
 def test_validate_operation_no_gate():
     device = ionq.IonQAPIDevice(qubits=[])
     with pytest.raises(ValueError, match='no gates'):
