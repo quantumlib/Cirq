@@ -45,6 +45,8 @@ from cirq.transformers.align import align_left, align_right
 
 from cirq.transformers.expand_composite import expand_composite
 
+from cirq.transformers.eject_phased_paulis import eject_phased_paulis
+
 from cirq.transformers.drop_empty_moments import drop_empty_moments
 
 from cirq.transformers.drop_negligible_operations import drop_negligible_operations

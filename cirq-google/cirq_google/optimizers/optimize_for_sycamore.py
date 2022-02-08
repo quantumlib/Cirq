@@ -29,12 +29,6 @@ if TYPE_CHECKING:
     import cirq_google
 
 
-def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[[cirq.Circuit], None]]:
-    return [
-        cirq.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
-    ]
-
-
 def _get_xmon_optimizers(
     tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
 ) -> List[Callable[[cirq.Circuit], None]]:
@@ -46,7 +40,6 @@ def _get_xmon_optimizers(
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
         cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=False).optimize_circuit,
         lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
@@ -60,7 +53,6 @@ def _get_xmon_optimizers_part_cz(
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
         cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=True).optimize_circuit,
         lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
@@ -70,7 +62,6 @@ def _get_sycamore_optimizers(
     return [
         ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit,
         lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
@@ -83,7 +74,6 @@ def _get_sqrt_iswap_optimizers(
     return [
         ConvertToSqrtIswapGates().optimize_circuit,
         lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
@@ -165,6 +155,7 @@ def optimized_for_sycamore(
     for optimizer in opts:
         optimizer(copy)
 
+    copy = cirq.eject_phased_paulis(copy, atol=tolerance)
     copy = cirq.eject_z(copy, atol=tolerance)
     copy = cirq.drop_negligible_operations(copy, atol=tolerance)
 
