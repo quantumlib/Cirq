@@ -65,6 +65,14 @@ def test_init():
         )
 
 
+def test_metadata():
+    d = ion_device(3)
+    assert d.metadata.qubit_set == frozenset(
+        {cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)}
+    )
+    assert len(d.metadata.nx_graph.edges()) == 3
+
+
 def test_init_timedelta():
     d = ion_device(3, use_timedelta=True)
     ms = 1000 * cirq.Duration(nanos=1)
