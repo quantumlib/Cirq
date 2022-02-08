@@ -35,10 +35,12 @@ def test_key_condition_with_keys():
 
 def test_key_condition_str():
     assert str(init_key_condition) == '0:a'
+    assert str(cirq.KeyCondition(key_a, index=-2)) == '0:a[-2]'
 
 
 def test_key_condition_repr():
     cirq.testing.assert_equivalent_repr(init_key_condition)
+    cirq.testing.assert_equivalent_repr(cirq.KeyCondition(key_a, index=-2))
 
 
 def test_key_condition_resolve():
