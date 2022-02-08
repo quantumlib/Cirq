@@ -122,6 +122,25 @@ class Result(abc.ABC):
         """
 
     @staticmethod
+    def dataframe_from_measurements(measurements: Mapping[str, np.ndarray]) -> pd.DataFrame:
+        """Converts the given measurements to a pandas dataframe.
+
+        This can be used by subclasses as a default implementation for the data
+        property. Note that subclasses should typically memoize the result to
+        avoid recomputing.
+        """
+        # Convert to a DataFrame with columns as measurement keys, rows as
+        # repetitions and a big endian integer for individual measurements.
+        converted_dict = {
+            key: [value.big_endian_bits_to_int(m_vals) for m_vals in val]
+            for key, val in measurements.items()
+        }
+        # Note that when a numpy array is produced from this data frame,
+        # Pandas will try to use np.int64 as dtype, but will upgrade to
+        # object if any value is too large to fit.
+        return pd.DataFrame(converted_dict, dtype=np.int64)
+
+    @staticmethod
     @deprecated(
         deadline="v0.15",
         fix="The static method from_single_parameter_set is deprecated. "
@@ -323,15 +342,7 @@ class ResultDict(Result):
     @property
     def data(self) -> pd.DataFrame:
         if self._data is None:
-            # Convert to a DataFrame with columns as measurement keys, rows as
-            # repetitions and a big endian integer for individual measurements.
-            converted_dict = {}
-            for key, val in self._measurements.items():
-                converted_dict[key] = [value.big_endian_bits_to_int(m_vals) for m_vals in val]
-            # Note that when a numpy array is produced from this data frame,
-            # Pandas will try to use np.int64 as dtype, but will upgrade to
-            # object if any value is too large to fit.
-            self._data = pd.DataFrame(converted_dict, dtype=np.int64)
+            self._data = self.dataframe_from_measurements(self._measurements)
         return self._data
 
     def __repr__(self) -> str:

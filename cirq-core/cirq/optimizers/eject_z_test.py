@@ -16,36 +16,36 @@ import numpy as np
 import sympy
 
 import cirq
-from cirq.optimizers.eject_z import _try_get_known_z_half_turns
 
 
 def assert_optimizes(
     before: cirq.Circuit, expected: cirq.Circuit, eject_parameterized: bool = False
 ):
-    opt = cirq.EjectZ(eject_parameterized=eject_parameterized)
+    with cirq.testing.assert_deprecated("Use cirq.eject_z", deadline='v1.0'):
+        opt = cirq.EjectZ(eject_parameterized=eject_parameterized)
 
-    if cirq.has_unitary(before):
-        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            before, expected, atol=1e-8
-        )
+        if cirq.has_unitary(before):
+            cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+                before, expected, atol=1e-8
+            )
 
-    circuit = before.copy()
-    opt.optimize_circuit(circuit)
-    opt.optimize_circuit(expected)
+        circuit = before.copy()
+        opt.optimize_circuit(circuit)
+        opt.optimize_circuit(expected)
 
-    cirq.testing.assert_same_circuits(circuit, expected)
+        cirq.testing.assert_same_circuits(circuit, expected)
 
-    # And it should be idempotent.
-    opt.optimize_circuit(circuit)
-    cirq.testing.assert_same_circuits(circuit, expected)
+        # And it should be idempotent.
+        opt.optimize_circuit(circuit)
+        cirq.testing.assert_same_circuits(circuit, expected)
 
 
 def assert_removes_all_z_gates(circuit: cirq.Circuit, eject_parameterized: bool = True):
-    opt = cirq.EjectZ(eject_parameterized=eject_parameterized)
+    with cirq.testing.assert_deprecated("Use cirq.eject_z", deadline='v1.0'):
+        opt = cirq.EjectZ(eject_parameterized=eject_parameterized)
     optimized = circuit.copy()
     opt.optimize_circuit(optimized)
     for op in optimized.all_operations():
-        assert _try_get_known_z_half_turns(op, eject_parameterized) is None
         if isinstance(op.gate, cirq.PhasedXZGate) and (
             eject_parameterized or not cirq.is_parameterized(op.gate.z_exponent)
         ):
@@ -373,7 +373,8 @@ def test_swap():
     original = cirq.Circuit([cirq.rz(0.123).on(a), cirq.SWAP(a, b)])
     optimized = original.copy()
 
-    cirq.EjectZ().optimize_circuit(optimized)
+    with cirq.testing.assert_deprecated("Use cirq.eject_z", deadline='v1.0'):
+        cirq.EjectZ().optimize_circuit(optimized)
     optimized = cirq.drop_empty_moments(optimized)
 
     assert optimized[0].operations == (cirq.SWAP(a, b),)
@@ -384,19 +385,14 @@ def test_swap():
     )
 
 
-@pytest.mark.parametrize('exponent', (0, 2, 1.1, -2, -1.6))
-def test_not_a_swap(exponent):
-    a, b = cirq.LineQubit.range(2)
-    assert not cirq.optimizers.eject_z._is_swaplike(cirq.SWAP(a, b) ** exponent)
-
-
 @pytest.mark.parametrize('theta', (np.pi / 2, -np.pi / 2, np.pi / 2 + 5 * np.pi))
 def test_swap_fsim(theta):
     a, b = cirq.LineQubit.range(2)
     original = cirq.Circuit([cirq.rz(0.123).on(a), cirq.FSimGate(theta=theta, phi=0.123).on(a, b)])
     optimized = original.copy()
 
-    cirq.EjectZ().optimize_circuit(optimized)
+    with cirq.testing.assert_deprecated("Use cirq.eject_z", deadline='v1.0'):
+        cirq.EjectZ().optimize_circuit(optimized)
     optimized = cirq.drop_empty_moments(optimized)
 
     assert optimized[0].operations == (cirq.FSimGate(theta=theta, phi=0.123).on(a, b),)
@@ -407,19 +403,13 @@ def test_swap_fsim(theta):
     )
 
 
-@pytest.mark.parametrize('theta', (0, 5 * np.pi, -np.pi))
-def test_not_a_swap_fsim(theta):
-    a, b = cirq.LineQubit.range(2)
-    assert not cirq.optimizers.eject_z._is_swaplike(cirq.FSimGate(theta=theta, phi=0.456).on(a, b))
-
-
 @pytest.mark.parametrize('exponent', (1, -1))
 def test_swap_iswap(exponent):
     a, b = cirq.LineQubit.range(2)
     original = cirq.Circuit([cirq.rz(0.123).on(a), cirq.ISWAP(a, b) ** exponent])
     optimized = original.copy()
-
-    cirq.EjectZ().optimize_circuit(optimized)
+    with cirq.testing.assert_deprecated("Use cirq.eject_z", deadline='v1.0'):
+        cirq.EjectZ().optimize_circuit(optimized)
     optimized = cirq.drop_empty_moments(optimized)
 
     assert optimized[0].operations == (cirq.ISWAP(a, b) ** exponent,)
