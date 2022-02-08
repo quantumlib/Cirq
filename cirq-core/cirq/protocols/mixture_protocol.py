@@ -26,7 +26,7 @@ from cirq.protocols import has_unitary_protocol, unitary_protocol
 from cirq.type_workarounds import NotImplementedType
 
 from cirq import qis
-from cirq.ops import Moment
+from cirq.circuits import Moment
 
 if TYPE_CHECKING:
     import cirq
