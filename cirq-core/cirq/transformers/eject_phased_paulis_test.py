@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,13 +25,13 @@ def assert_optimizes(
     expected: cirq.Circuit,
     compare_unitaries: bool = True,
     eject_parameterized: bool = False,
+    *,
+    with_context: bool = False,
 ):
-    with cirq.testing.assert_deprecated("Use cirq.eject_phased_paulis", deadline='v1.0'):
-        opt = cirq.EjectPhasedPaulis(eject_parameterized=eject_parameterized)
-
-    circuit = before.copy()
-    expected = cirq.drop_empty_moments(expected)
-    opt.optimize_circuit(circuit)
+    context = cirq.TransformerContext(tags_to_ignore=("nocompile",)) if with_context else None
+    circuit = cirq.eject_phased_paulis(
+        before, eject_parameterized=eject_parameterized, context=context
+    )
 
     # They should have equivalent effects.
     if compare_unitaries:
@@ -72,7 +72,9 @@ def assert_optimizes(
     ).format(before, expected, circuit, expected, circuit)
 
     # And it should be idempotent.
-    opt.optimize_circuit(circuit)
+    circuit = cirq.eject_phased_paulis(
+        circuit, eject_parameterized=eject_parameterized, context=context
+    )
     assert circuit == expected
 
 
@@ -94,19 +96,28 @@ def test_absorbs_z():
         ),
         expected=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.625).on(q)],
-            [],
         ),
     )
 
-    # Partial Z.
+    # PhasedXZGate
     assert_optimizes(
         before=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.125).on(q)],
+            [cirq.PhasedXZGate(x_exponent=0, axis_phase_exponent=0, z_exponent=1).on(q)],
+        ),
+        expected=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0.625).on(q)],
+        ),
+    )
+
+    # Partial Z. PhasedXZGate with z_exponent = 0.
+    assert_optimizes(
+        before=quick_circuit(
+            [cirq.PhasedXZGate(x_exponent=1, axis_phase_exponent=0.125, z_exponent=0).on(q)],
             [cirq.S(q)],
         ),
         expected=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.375).on(q)],
-            [],
         ),
     )
 
@@ -118,7 +129,6 @@ def test_absorbs_z():
         ),
         expected=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.125 + x / 2).on(q)],
-            [],
         ),
         eject_parameterized=True,
     )
@@ -129,7 +139,6 @@ def test_absorbs_z():
         ),
         expected=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.625 + x / 2).on(q)],
-            [],
         ),
         eject_parameterized=True,
     )
@@ -143,8 +152,6 @@ def test_absorbs_z():
         ),
         expected=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)],
-            [],
-            [],
         ),
     )
 
@@ -157,8 +164,6 @@ def test_absorbs_z():
         ),
         expected=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.125 + x * 0.125).on(q)],
-            [],
-            [],
         ),
         eject_parameterized=True,
     )
@@ -171,7 +176,6 @@ def test_absorbs_z():
         ),
         expected=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=x + 0.25).on(q)],
-            [],
         ),
         eject_parameterized=True,
     )
@@ -253,8 +257,6 @@ def test_crosses_czs():
             [cirq.CZ(a, b) ** 0.25],
         ),
         expected=quick_circuit(
-            [],
-            [],
             [cirq.CZ(a, b) ** 0.25],
             [
                 cirq.PhasedXPowGate(phase_exponent=0.5).on(b),
@@ -269,8 +271,6 @@ def test_crosses_czs():
             [cirq.CZ(a, b) ** z],
         ),
         expected=quick_circuit(
-            [],
-            [],
             [cirq.CZ(a, b) ** z],
             [
                 cirq.PhasedXPowGate(phase_exponent=y + z / 2).on(b),
@@ -293,7 +293,6 @@ def test_toggles_measurements():
             [cirq.measure(a, b)],
         ),
         expected=quick_circuit(
-            [],
             [cirq.measure(a, b, invert_mask=(True,))],
         ),
     )
@@ -303,7 +302,6 @@ def test_toggles_measurements():
             [cirq.measure(a, b)],
         ),
         expected=quick_circuit(
-            [],
             [cirq.measure(a, b, invert_mask=(False, True))],
         ),
     )
@@ -313,7 +311,6 @@ def test_toggles_measurements():
             [cirq.measure(a, b)],
         ),
         expected=quick_circuit(
-            [],
             [cirq.measure(a, b, invert_mask=(False, True))],
         ),
         eject_parameterized=True,
@@ -327,8 +324,6 @@ def test_toggles_measurements():
             [cirq.measure(a, b)],
         ),
         expected=quick_circuit(
-            [],
-            [],
             [cirq.measure(a, b, invert_mask=(True, True))],
         ),
     )
@@ -340,10 +335,39 @@ def test_toggles_measurements():
             [cirq.measure(a, b, key='t')],
         ),
         expected=quick_circuit(
-            [],
             [cirq.measure(a, b, invert_mask=(True,), key='t')],
         ),
     )
+
+    # CCOs
+    assert_optimizes(
+        before=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0.25).on(a)],
+            [cirq.measure(a, key="m")],
+            [cirq.X(b).with_classical_controls("m")],
+        ),
+        expected=quick_circuit(
+            [cirq.measure(a, invert_mask=(True,), key="m")],
+            [cirq.X(b).with_classical_controls("m")],
+        ),
+        compare_unitaries=False,
+    )
+
+
+def test_eject_phased_xz():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.Circuit(
+        cirq.PhasedXZGate(x_exponent=1, z_exponent=0.5, axis_phase_exponent=0.5).on(a),
+        cirq.CZ(a, b) ** 0.25,
+    )
+    c_expected = cirq.Circuit(
+        cirq.CZ(a, b) ** -0.25, cirq.PhasedXPowGate(phase_exponent=0.75).on(a), cirq.T(b)
+    )
+    cirq.testing.assert_same_circuits(
+        cirq.eject_z(cirq.eject_phased_paulis(cirq.eject_z(c))), c_expected
+    )
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c, c_expected, 1e-8)
 
 
 def test_cancels_other_full_w():
@@ -356,10 +380,7 @@ def test_cancels_other_full_w():
             [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)],
             [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)],
         ),
-        expected=quick_circuit(
-            [],
-            [],
-        ),
+        expected=quick_circuit(),
     )
 
     assert_optimizes(
@@ -367,10 +388,7 @@ def test_cancels_other_full_w():
             [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
             [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
         ),
-        expected=quick_circuit(
-            [],
-            [],
-        ),
+        expected=quick_circuit(),
         eject_parameterized=True,
     )
 
@@ -380,7 +398,6 @@ def test_cancels_other_full_w():
             [cirq.PhasedXPowGate(phase_exponent=0.125).on(q)],
         ),
         expected=quick_circuit(
-            [],
             [cirq.Z(q) ** -0.25],
         ),
     )
@@ -391,8 +408,17 @@ def test_cancels_other_full_w():
             [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)],
         ),
         expected=quick_circuit(
-            [],
             [cirq.Z(q) ** 0.5],
+        ),
+    )
+
+    assert_optimizes(
+        before=quick_circuit(
+            [cirq.Y(q)],
+            [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)],
+        ),
+        expected=quick_circuit(
+            [cirq.Z(q) ** -0.5],
         ),
     )
 
@@ -402,8 +428,17 @@ def test_cancels_other_full_w():
             [cirq.X(q)],
         ),
         expected=quick_circuit(
-            [],
             [cirq.Z(q) ** -0.5],
+        ),
+    )
+
+    assert_optimizes(
+        before=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)],
+            [cirq.Y(q)],
+        ),
+        expected=quick_circuit(
+            [cirq.Z(q) ** 0.5],
         ),
     )
 
@@ -413,7 +448,6 @@ def test_cancels_other_full_w():
             [cirq.PhasedXPowGate(phase_exponent=y).on(q)],
         ),
         expected=quick_circuit(
-            [],
             [cirq.Z(q) ** (2 * (y - x))],
         ),
         eject_parameterized=True,
@@ -432,7 +466,6 @@ def test_phases_partial_ws():
             [cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.5).on(q)],
         ),
         expected=quick_circuit(
-            [],
             [cirq.PhasedXPowGate(phase_exponent=-0.25, exponent=0.5).on(q)],
             [cirq.X(q)],
         ),
@@ -444,7 +477,6 @@ def test_phases_partial_ws():
             [cirq.X(q) ** 0.5],
         ),
         expected=quick_circuit(
-            [],
             [cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.5).on(q)],
             [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)],
         ),
@@ -456,7 +488,6 @@ def test_phases_partial_ws():
             [cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.75).on(q)],
         ),
         expected=quick_circuit(
-            [],
             [cirq.X(q) ** 0.75],
             [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)],
         ),
@@ -467,7 +498,6 @@ def test_phases_partial_ws():
             [cirq.X(q)], [cirq.PhasedXPowGate(exponent=-0.25, phase_exponent=0.5).on(q)]
         ),
         expected=quick_circuit(
-            [],
             [cirq.PhasedXPowGate(exponent=-0.25, phase_exponent=-0.5).on(q)],
             [cirq.X(q)],
         ),
@@ -479,7 +509,6 @@ def test_phases_partial_ws():
             [cirq.PhasedXPowGate(phase_exponent=y, exponent=z).on(q)],
         ),
         expected=quick_circuit(
-            [],
             [cirq.PhasedXPowGate(phase_exponent=2 * x - y, exponent=z).on(q)],
             [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
         ),
@@ -537,6 +566,25 @@ def test_blocked_by_unknown_and_symbols(sym):
             [cirq.X(a)],
         ),
         compare_unitaries=False,
+    )
+
+
+def test_blocked_by_nocompile_tag():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    assert_optimizes(
+        before=quick_circuit(
+            [cirq.X(a)],
+            [cirq.CZ(a, b).with_tags("nocompile")],
+            [cirq.X(a)],
+        ),
+        expected=quick_circuit(
+            [cirq.X(a)],
+            [cirq.CZ(a, b).with_tags("nocompile")],
+            [cirq.X(a)],
+        ),
+        with_context=True,
     )
 
 

@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import numpy as np
 import pytest
 import sympy
 from sympy.parsing import sympy_parser
@@ -700,6 +702,40 @@ def test_sympy():
             # m_result should now be set iff j > i.
             result = cirq.Simulator().run(circuit)
             assert result.measurements['m_result'][0][0] == (j > i)
+
+
+def test_sympy_qudits():
+    q0 = cirq.LineQid(0, 3)
+    q1 = cirq.LineQid(1, 5)
+    q_result = cirq.LineQubit(2)
+
+    class PlusGate(cirq.Gate):
+        def __init__(self, dimension, increment=1):
+            self.dimension = dimension
+            self.increment = increment % dimension
+
+        def _qid_shape_(self):
+            return (self.dimension,)
+
+        def _unitary_(self):
+            inc = (self.increment - 1) % self.dimension + 1
+            u = np.empty((self.dimension, self.dimension))
+            u[inc:] = np.eye(self.dimension)[:-inc]
+            u[:inc] = np.eye(self.dimension)[-inc:]
+            return u
+
+    for i in range(15):
+        digits = cirq.big_endian_int_to_digits(i, digit_count=2, base=(3, 5))
+        circuit = cirq.Circuit(
+            PlusGate(3, digits[0]).on(q0),
+            PlusGate(5, digits[1]).on(q1),
+            cirq.measure(q0, q1, key='m'),
+            cirq.X(q_result).with_classical_controls(sympy_parser.parse_expr('m % 4 <= 1')),
+            cirq.measure(q_result, key='m_result'),
+        )
+
+        result = cirq.Simulator().run(circuit)
+        assert result.measurements['m_result'][0][0] == (i % 4 <= 1)
 
 
 def test_sympy_path_prefix():
