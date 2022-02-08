@@ -79,8 +79,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
             working_gatefamilies = frozenset(gate_durations.keys())
             if working_gatefamilies != gateset.gates:
                 raise ValueError(
-                    "Supplied gate_durations contains gates not present"
-                    f" in gateset."
+                    "Supplied gate_durations contains gates not present" f" in gateset."
                 )
 
         self._gate_durations = gate_durations
