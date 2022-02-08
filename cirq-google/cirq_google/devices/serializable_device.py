@@ -128,6 +128,10 @@ class SerializableDevice(cirq.Device):
         """Get metadata information for device."""
         return self._metadata
 
+    @_compat.deprecated(
+        fix='Please use metadata.qubit_set if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
