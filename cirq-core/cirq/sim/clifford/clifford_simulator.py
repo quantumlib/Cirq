@@ -99,8 +99,8 @@ class CliffordSimulator(
 
         return clifford.ActOnStabilizerCHFormArgs(
             prng=self._prng,
-            qubits=qubits,
             classical_data=classical_data,
+            qubits=qubits,
             initial_state=initial_state,
         )
 

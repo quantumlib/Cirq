@@ -70,8 +70,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            classical_data: The shared classical data container for this
-                simulation.
             ignore_measurement_results: If True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process. This is only applicable to simulators that can

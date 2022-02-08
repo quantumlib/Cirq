@@ -62,8 +62,6 @@ class ActOnArgs(OperationTarget[TSelf]):
                 ordering of the computational basis states.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            classical_data: The shared classical data container for this
-                simulation.
             ignore_measurement_results: If True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process, and not log the result. This is only applicable to
