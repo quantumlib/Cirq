@@ -14,7 +14,7 @@
 
 import abc
 import enum
-from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING, TypeVar, List
+from typing import Dict, List, Mapping, Sequence, Tuple, TYPE_CHECKING, TypeVar
 
 from cirq.value import digits, value_equality_attr
 

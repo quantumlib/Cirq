@@ -210,14 +210,14 @@ class TransformerContext:
         logger: `cirq.TransformerLogger` instance, which is a stateful logger used for logging
                 the actions of individual transformer stages. The same logger instance should be
                 shared across different transformer calls.
-        ignore_tags: Tuple of tags which should be ignored while applying transformations on a
+        tags_to_ignore: Tuple of tags which should be ignored while applying transformations on a
                 circuit. Transformers should not transform any operation marked with a tag that
                 belongs to this tuple. Note that any instance of a Hashable type (like `str`,
                 `cirq.VirtualTag` etc.) is a valid tag.
     """
 
     logger: TransformerLogger = NoOpTransformerLogger()
-    ignore_tags: Tuple[Hashable, ...] = ()
+    tags_to_ignore: Tuple[Hashable, ...] = ()
 
 
 class TRANSFORMER(Protocol):

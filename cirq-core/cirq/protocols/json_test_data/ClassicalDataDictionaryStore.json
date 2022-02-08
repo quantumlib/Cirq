@@ -7,7 +7,11 @@
         "name": "m",
         "path": []
       },
+<<<<<<< HEAD
       [[0, 1]]
+=======
+      [0, 1]
+>>>>>>> master
     ]
   ],
   "measured_qubits": [
@@ -17,7 +21,11 @@
         "name": "m",
         "path": []
       },
+<<<<<<< HEAD
       [[
+=======
+      [
+>>>>>>> master
         {
           "cirq_type": "LineQubit",
           "x": 0
@@ -26,7 +34,11 @@
           "cirq_type": "LineQubit",
           "x": 1
         }
+<<<<<<< HEAD
       ]]
+=======
+      ]
+>>>>>>> master
     ]
   ],
   "channel_measurements": [
@@ -36,7 +48,11 @@
         "name": "c",
         "path": []
       },
+<<<<<<< HEAD
       [3]
+=======
+      3
+>>>>>>> master
     ]
   ],
   "measurement_types": [

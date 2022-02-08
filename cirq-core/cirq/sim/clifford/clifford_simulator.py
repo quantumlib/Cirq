@@ -97,14 +97,11 @@ class CliffordSimulator(
         if isinstance(initial_state, clifford.ActOnStabilizerCHFormArgs):
             return initial_state
 
-        qubit_map = {q: i for i, q in enumerate(qubits)}
-
-        state = CliffordState(qubit_map, initial_state=initial_state)
         return clifford.ActOnStabilizerCHFormArgs(
-            state=state.ch_form,
             prng=self._prng,
             qubits=qubits,
             classical_data=classical_data,
+            initial_state=initial_state,
         )
 
     def _create_step_result(
@@ -258,7 +255,9 @@ class CliffordState:
 
     def apply_unitary(self, op: 'cirq.Operation'):
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            self.ch_form, np.random.RandomState(), {}, self.qubit_map.keys()
+            prng=np.random.RandomState(),
+            qubits=self.qubit_map.keys(),
+            initial_state=self.ch_form,
         )
         try:
             act_on(op, ch_form_args)
@@ -288,7 +287,10 @@ class CliffordState:
 
         classical_data = value.ClassicalDataDictionaryStore()
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            state.ch_form, prng, qubits=self.qubit_map.keys(), classical_data=classical_data
+            prng=prng,
+            classical_data=classical_data,
+            qubits=self.qubit_map.keys(),
+            initial_state=state.ch_form,
         )
         act_on(op, ch_form_args)
         measurements.update({str(k): list(v[-1]) for k, v in classical_data.measurements.items()})

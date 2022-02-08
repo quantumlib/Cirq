@@ -23,7 +23,11 @@ def test_default_parameter():
     tensor = cirq.to_valid_density_matrix(
         0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
     )
-    args = cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
+    args = cirq.ActOnDensityMatrixArgs(
+        qubits=cirq.LineQubit.range(1),
+        initial_state=0,
+    )
+    np.testing.assert_almost_equal(args.target_tensor, tensor)
     assert len(args.available_buffer) == 3
     for buffer in args.available_buffer:
         assert buffer.shape == tensor.shape
@@ -32,19 +36,30 @@ def test_default_parameter():
 
 
 def test_shallow_copy_buffers():
-    qid_shape = (2,)
-    tensor = cirq.to_valid_density_matrix(
-        0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
+    args = cirq.ActOnDensityMatrixArgs(
+        qubits=cirq.LineQubit.range(1),
+        initial_state=0,
     )
-    args = cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
     copy = args.copy(deep_copy_buffers=False)
     assert copy.available_buffer is args.available_buffer
 
 
-def test_default_parameter_error():
+def test_positional_argument():
+    qid_shape = (2,)
+    tensor = cirq.to_valid_density_matrix(
+        0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
+    )
+    with cirq.testing.assert_deprecated(
+        'specify all the arguments with keywords', deadline='v0.15'
+    ):
+        cirq.ActOnDensityMatrixArgs(tensor)
+
+
+def test_deprecated_warning_and_default_parameter_error():
     tensor = np.ndarray(shape=(2,))
-    with pytest.raises(ValueError, match='The dimension of target_tensor is not divisible by 2'):
-        cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
+    with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15'):
+        with pytest.raises(ValueError, match='dimension of target_tensor is not divisible by 2'):
+            cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
 
 
 def test_decomposed_fallback():
@@ -55,17 +70,12 @@ def test_decomposed_fallback():
         def _decompose_(self, qubits):
             yield cirq.X(*qubits)
 
-    qid_shape = (2,)
-    tensor = cirq.to_valid_density_matrix(
-        0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
-    )
     args = cirq.ActOnDensityMatrixArgs(
-        target_tensor=tensor,
-        available_buffer=[np.empty_like(tensor) for _ in range(3)],
         qubits=cirq.LineQubit.range(1),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
-        qid_shape=qid_shape,
+        initial_state=0,
+        dtype=np.complex64,
     )
 
     cirq.act_on(Composite(), args, cirq.LineQubit.range(1))
@@ -78,17 +88,28 @@ def test_cannot_act():
     class NoDetails:
         pass
 
-    qid_shape = (2,)
-    tensor = cirq.to_valid_density_matrix(
-        0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
-    )
     args = cirq.ActOnDensityMatrixArgs(
-        target_tensor=tensor,
-        available_buffer=[np.empty_like(tensor) for _ in range(3)],
         qubits=cirq.LineQubit.range(1),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
-        qid_shape=qid_shape,
+        initial_state=0,
+        dtype=np.complex64,
     )
     with pytest.raises(TypeError, match="Can't simulate operations"):
         cirq.act_on(NoDetails(), args, qubits=())
+
+
+def test_with_qubits():
+    original = cirq.ActOnDensityMatrixArgs(
+        qubits=cirq.LineQubit.range(1),
+        initial_state=1,
+        dtype=np.complex64,
+    )
+    extened = original.with_qubits(cirq.LineQubit.range(1, 2))
+    np.testing.assert_almost_equal(
+        extened.target_tensor,
+        cirq.density_matrix_kronecker_product(
+            np.array([[0, 0], [0, 1]], dtype=np.complex64),
+            np.array([[1, 0], [0, 0]], dtype=np.complex64),
+        ),
+    )

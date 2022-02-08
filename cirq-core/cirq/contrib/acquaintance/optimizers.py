@@ -14,7 +14,7 @@
 
 from typing import cast, FrozenSet, List, Sequence, Set, TYPE_CHECKING
 
-from cirq import ops
+from cirq import circuits
 
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.executor import AcquaintanceOperation
@@ -50,6 +50,6 @@ def remove_redundant_acquaintance_opportunities(strategy: 'cirq.Circuit') -> int
                     n_removed += 1
             else:
                 new_moment.append(op)
-        new_moments.append(ops.Moment(new_moment))
+        new_moments.append(circuits.Moment(new_moment))
     strategy._moments = new_moments
     return n_removed
