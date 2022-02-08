@@ -22,7 +22,7 @@ import numpy as np
 class TestDevice(cirq.Device):
     def __init__(self):
         self.qubits = cirq.GridQubit.rect(2, 8)
-        neighbs = [(a, b) for a in self.qubits for b in self.qubits if a.is_adjacent(b)]
+        neighbors = [(a, b) for a in self.qubits for b in self.qubits if a.is_adjacent(b)]
         self._metadata = cirq.GridDeviceMetadata(neighbs, cirq.Gateset(cirq.H))
 
     @property
