@@ -301,7 +301,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         self.swap_target_tensor_for(self.available_buffer)
         if protocols.is_measurement(action):
             key = protocols.measurement_key_name(action)
-            self.log_of_measurement_results[key] = [index]
+            self._classical_data.record_channel_measurement(key, index)
         return True
 
     def _strat_act_on_state_vector_from_channel(
@@ -351,5 +351,5 @@ class ActOnStateVectorArgs(ActOnArgs):
         self.swap_target_tensor_for(self.available_buffer)
         if protocols.is_measurement(action):
             key = protocols.measurement_key_name(action)
-            self.log_of_measurement_results[key] = [index]
+            self._classical_data.record_channel_measurement(key, index)
         return True
