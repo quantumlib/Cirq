@@ -23,7 +23,7 @@ class TestDevice(cirq.Device):
     def __init__(self):
         self.qubits = cirq.GridQubit.rect(2, 8)
         neighbors = [(a, b) for a in self.qubits for b in self.qubits if a.is_adjacent(b)]
-        self._metadata = cirq.GridDeviceMetadata(neighbs, cirq.Gateset(cirq.H))
+        self._metadata = cirq.GridDeviceMetadata(neighbors, cirq.Gateset(cirq.H))
 
     @property
     def metadata(self):
