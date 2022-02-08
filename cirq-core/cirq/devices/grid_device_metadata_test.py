@@ -54,7 +54,7 @@ def test_griddevice_metadata_bad_durations():
         cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=1),
         cirq.GateFamily(cirq.ZPowGate): cirq.Duration(picos=1),
     }
-    with pytest.raises(ValueError, match="not present"):
+    with pytest.raises(ValueError, match="ZPowGate"):
         cirq.GridDeviceMetadata([qubits], gateset, gate_durations=invalid_duration)
 
 
