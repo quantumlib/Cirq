@@ -48,10 +48,11 @@ class ActOnStateVectorArgs(ActOnArgs):
         target_tensor: Optional[np.ndarray] = None,
         available_buffer: Optional[np.ndarray] = None,
         prng: Optional[np.random.RandomState] = None,
-        log_of_measurement_results: Optional[Dict[str, Any]] = None,
+        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         dtype: Type[np.number] = np.complex64,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits ActOnStateVectorArgs.
 
@@ -76,8 +77,15 @@ class ActOnStateVectorArgs(ActOnArgs):
             dtype: The `numpy.dtype` of the inferred state vector. One of
                 `numpy.complex64` or `numpy.complex128`. Only used when
                 `target_tenson` is None.
+            classical_data: The shared classical data container for this
+                simulation.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
         if target_tensor is None:
             qid_shape = protocols.qid_shape(self.qubits)
             state = qis.to_valid_state_vector(
