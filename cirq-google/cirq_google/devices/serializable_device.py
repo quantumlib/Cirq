@@ -117,7 +117,7 @@ class SerializableDevice(cirq.Device):
                 for pair in gate_def.target_set
                 if len(pair) == 2 and pair[0] < pair[1]
             ],
-            supported_gates=cirq.Gateset(
+            gateset=cirq.Gateset(
                 *[g for g in gate_definitions.keys() if isinstance(g, (cirq.Gate, type(cirq.Gate)))]
             ),
             gate_durations=None,

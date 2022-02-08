@@ -474,7 +474,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         self,
         initial_state: Union[int, cirq.ActOnStateVectorArgs],
         qubits: Sequence[cirq.Qid],
-        logs: Dict[str, Any],
+        classical_data: cirq.ClassicalDataStore,
     ) -> cirq.ActOnStateVectorArgs:
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()

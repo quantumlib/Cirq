@@ -17,6 +17,7 @@
 import abc
 import collections
 import inspect
+import warnings
 from typing import (
     Any,
     Dict,
@@ -31,7 +32,6 @@ from typing import (
     Optional,
     TypeVar,
 )
-import warnings
 
 import numpy as np
 
@@ -126,7 +126,7 @@ class SimulatorBase(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: 'cirq.ClassicalDataStore',
     ) -> TActOnArgs:
         """Creates an instance of the TActOnArgs class for the simulator.
 
@@ -137,8 +137,8 @@ class SimulatorBase(
                 understood to be a pure state. Other state representations are
                 simulator-dependent.
             qubits: The sequence of qubits to represent.
-            logs: The structure to hold measurement logs. A single instance
-                should be shared among all ActOnArgs within the simulation.
+            classical_data: The shared classical data container for this
+                simulation.
         """
 
     @abc.abstractmethod
@@ -352,7 +352,7 @@ class SimulatorBase(
         if isinstance(initial_state, OperationTarget):
             return initial_state
 
-        log: Dict[str, Any] = {}
+        classical_data = value.ClassicalDataDictionaryStore()
         if self._split_untangled_states:
             args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
             if isinstance(initial_state, int):
@@ -360,24 +360,26 @@ class SimulatorBase(
                     args_map[q] = self._create_partial_act_on_args(
                         initial_state=initial_state % q.dimension,
                         qubits=[q],
-                        logs=log,
+                        classical_data=classical_data,
                     )
                     initial_state = int(initial_state / q.dimension)
             else:
                 args = self._create_partial_act_on_args(
                     initial_state=initial_state,
                     qubits=qubits,
-                    logs=log,
+                    classical_data=classical_data,
                 )
                 for q in qubits:
                     args_map[q] = args
-            args_map[None] = self._create_partial_act_on_args(0, (), log)
-            return ActOnArgsContainer(args_map, qubits, self._split_untangled_states, log)
+            args_map[None] = self._create_partial_act_on_args(0, (), classical_data)
+            return ActOnArgsContainer(
+                args_map, qubits, self._split_untangled_states, classical_data=classical_data
+            )
         else:
             return self._create_partial_act_on_args(
                 initial_state=initial_state,
                 qubits=qubits,
-                logs=log,
+                classical_data=classical_data,
             )
 
 

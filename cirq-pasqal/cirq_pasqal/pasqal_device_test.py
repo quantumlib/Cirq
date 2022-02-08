@@ -36,13 +36,13 @@ def test_init():
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
 
-    assert d.qubit_set() == {q0, q1, q2}
+    assert d.metadata.qubit_set == {q0, q1, q2}
     assert d.qubit_list() == [q0, q1, q2]
     assert d.supported_qubit_type == (cirq.NamedQubit,)
 
     d = square_virtual_device(control_r=1.0, num_qubits=1)
 
-    assert d.qubit_set() == {TwoDQubit(0, 0)}
+    assert d.metadata.qubit_set == {TwoDQubit(0, 0)}
     assert d.qubit_list() == [TwoDQubit(0, 0)]
     assert d.control_radius == 1.0
     assert d.supported_qubit_type == (
@@ -193,6 +193,24 @@ def test_validate_operation_errors_deprecated():
     ):
         with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
             circuit.append(cirq.measure(*d.qubits, invert_mask=(True, False, False)))
+
+
+def test_qubit_set_deprecated():
+    d = generic_device(3)
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        _ = d.qubit_set()
+
+
+def test_metadata():
+    d = generic_device(3)
+    assert d.metadata.qubit_set == frozenset(
+        [
+            cirq.NamedQubit('q0'),
+            cirq.NamedQubit('q1'),
+            cirq.NamedQubit('q2'),
+        ]
+    )
+    assert len(d.metadata.nx_graph.edges()) == 3
 
 
 def test_validate_moment():
