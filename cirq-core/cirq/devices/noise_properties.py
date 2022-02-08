@@ -1,227 +1,44 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
-import warnings
-from typing import Sequence, TYPE_CHECKING, List
-from itertools import product
-from cirq import circuits, ops, protocols, devices
-import numpy as np
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Classes for representing device noise.
+
+NoiseProperties is an abstract class for capturing metrics of a device that can
+be translated into noise models. NoiseModelFromNoiseProperties consumes those
+noise models to produce a single noise model which replicates device noise.
+"""
+
+import abc
+from typing import Iterable, Sequence, TYPE_CHECKING, List
+
+from cirq import _import, ops, protocols, devices
+from cirq.devices.noise_utils import (
+    PHYSICAL_GATE_TAG,
+)
+
+circuits = _import.LazyLoader("circuits", globals(), "cirq.circuits.circuit")
 
 if TYPE_CHECKING:
-    from typing import Iterable
     import cirq
 
 
-class NoiseProperties:
-    def __init__(
-        self,
-        *,
-        t1_ns: float = None,
-        decay_constant: float = None,
-        xeb_fidelity: float = None,
-        pauli_error: float = None,
-        p00: float = None,
-        p11: float = None,
-    ) -> None:
-        """Creates a NoiseProperties object using the provided metrics.
+class NoiseProperties(abc.ABC):
+    """Noise-defining properties for a quantum device."""
 
-          Only one of decay_constant, xeb_fidelity, and pauli_error should be specified.
-
-        Args:
-          t1_ns: t1 decay constant in ns
-          decay_constant: depolarization decay constant
-          xeb_fidelity: 2-qubit XEB Fidelity
-          pauli_error: total Pauli error
-          p00: probability of qubit initialized as zero being measured as zero
-          p11: probability of qubit initialized as one being measured as one
-
-        Raises:
-          ValueError: if no metrics are specified
-          ValueError: if xeb fidelity, pauli error, p00, or p00 are less than 0 or greater than 1
-          ValueError: if more than one of pauli error, xeb fidelity, or decay constant is specified
-        """
-        if not any([t1_ns, decay_constant, xeb_fidelity, pauli_error, p00, p11]):
-            raise ValueError('At least one metric must be specified')
-
-        for metric in [xeb_fidelity, pauli_error, p00, p11]:
-            if metric is not None and not 0.0 <= metric <= 1.0:
-                raise ValueError('xeb, pauli error, p00, and p11 must be between 0 and 1')
-
-        if (
-            np.count_nonzero(
-                [metric is not None for metric in [xeb_fidelity, pauli_error, decay_constant]]
-            )
-            > 1
-        ):
-            raise ValueError(
-                'Only one of xeb fidelity, pauli error, or decay constant should be defined'
-            )
-
-        self._t1_ns = t1_ns
-        self._p = decay_constant
-        self._p00 = p00
-        self._p11 = p11
-
-        if pauli_error is not None:
-            self._p = self.pauli_error_to_decay_constant(pauli_error)
-        elif xeb_fidelity is not None:
-            self._p = self.xeb_fidelity_to_decay_constant(xeb_fidelity)
-
-    @property
-    def decay_constant(self):
-        return self._p
-
-    @property
-    def p00(self):
-        return self._p00
-
-    @property
-    def p11(self):
-        return self._p11
-
-    @property
-    def pauli_error(self):
-        return self.decay_constant_to_pauli_error()
-
-    @property
-    def t1_ns(self):
-        return self._t1_ns
-
-    @property
-    def xeb(self):
-        return self.decay_constant_to_xeb_fidelity()
-
-    def decay_constant_to_xeb_fidelity(self, num_qubits: int = 2):
-        """Calculates the XEB fidelity from the depolarization decay constant.
-
-        Args:
-            num_qubits: number of qubits
-        """
-        if self._p is not None:
-            N = 2 ** num_qubits
-            return 1 - ((1 - self._p) * (1 - 1 / N))
-        return None
-
-    def decay_constant_to_pauli_error(self, num_qubits: int = 1):
-        """Calculates pauli error from the depolarization decay constant.
-        Args:
-            num_qubits: number of qubits
-        """
-        if self._p is not None:
-            N = 2 ** num_qubits
-            return (1 - self._p) * (1 - 1 / N / N)
-        return None
-
-    def pauli_error_to_decay_constant(self, pauli_error: float, num_qubits: int = 1):
-        """Calculates depolarization decay constant from pauli error.
-
-        Args:
-            pauli_error: The pauli error
-            num_qubits: Number of qubits
-        """
-        N = 2 ** num_qubits
-        return 1 - (pauli_error / (1 - 1 / N / N))
-
-    def xeb_fidelity_to_decay_constant(self, xeb_fidelity: float, num_qubits: int = 2):
-        """Calculates the depolarization decay constant from the XEB noise_properties.
-
-        Args:
-            xeb_fidelity: The XEB noise_properties
-            num_qubits: Number of qubits
-        """
-        N = 2 ** num_qubits
-        return 1 - (1 - xeb_fidelity) / (1 - 1 / N)
-
-    def pauli_error_from_t1(self, t: float, t1_ns: float):
-        """Calculates the pauli error from amplitude damping.
-        Unlike the other methods, this computes a specific case (over time t).
-
-        Args:
-            t: the duration of the gate
-            t1_ns: the t1 decay constant in ns
-        """
-        t2 = 2 * t1_ns
-        return (1 - np.exp(-t / t2)) / 2 + (1 - np.exp(-t / t1_ns)) / 4
-
-    def pauli_error_from_depolarization(self, t: float):
-        """Calculates the amount of pauli error from depolarization.
-        Unlike the other methods, this computes a specific case (over time t).
-
-        If pauli error from t1 decay is more than total pauli error, just return the pauli error.
-
-        Args:
-            t: the duration of the gate
-        """
-        if self.t1_ns is not None:
-            pauli_error_from_t1 = self.pauli_error_from_t1(t, self.t1_ns)
-            if self.pauli_error >= pauli_error_from_t1:
-                return self.pauli_error - pauli_error_from_t1
-            else:
-                warnings.warn(
-                    "Pauli error from T1 decay is greater than total Pauli error", RuntimeWarning
-                )
-        return self.pauli_error
-
-    def average_error(self, num_qubits: int = 1):
-        """Calculates the average error from the depolarization decay constant.
-
-        Args:
-            num_qubits: the number of qubits
-        """
-        if self._p is not None:
-            N = 2 ** num_qubits
-            return (1 - self._p) * (1 - 1 / N)
-        return None
-
-
-def get_duration_ns(gate):
-    # Gate durations based on sycamore durations.
-    # TODO: pull the gate durations from cirq_google
-    # or allow users to pass them in
-    if isinstance(gate, ops.FSimGate):
-        theta, _ = gate._value_equality_values_()
-        if np.abs(theta) % (np.pi / 2) == 0:
-            return 12.0
-        return 32.0
-    elif isinstance(gate, ops.ISwapPowGate):
-        return 32.0
-    elif isinstance(gate, ops.ZPowGate):
-        return 0.0
-    elif isinstance(gate, ops.MeasurementGate):
-        return 4000.0
-    elif isinstance(gate, ops.WaitGate):
-        return gate.duration.total_nanos()
-    return 25.0
-
-
-def _apply_readout_noise(p00, p11, moments, measurement_qubits):
-    if p00 is None:
-        p = 1.0
-        gamma = p11
-    elif p11 is None:
-        p = 0.0
-        gamma = p00
-    else:
-        p = p11 / (p00 + p11)
-        gamma = p11 / p
-    moments.append(
-        circuits.Moment(
-            ops.GeneralizedAmplitudeDampingChannel(p=p, gamma=gamma)(q) for q in measurement_qubits
-        )
-    )
-
-
-def _apply_depol_noise(pauli_error, moments, system_qubits):
-
-    _sq_inds = np.arange(4)
-    pauli_inds = np.array(list(product(_sq_inds, repeat=1)))
-    num_inds = len(pauli_inds)
-    p_other = pauli_error / (num_inds - 1)  # probability of X, Y, Z gates
-    moments.append(circuits.Moment(ops.depolarize(p_other)(q) for q in system_qubits))
-
-
-def _apply_amplitude_damp_noise(duration, t1, moments, system_qubits):
-    moments.append(
-        circuits.Moment(ops.amplitude_damp(1 - np.exp(-duration / t1)).on_each(system_qubits))
-    )
+    @abc.abstractmethod
+    def build_noise_models(self) -> List['cirq.NoiseModel']:
+        """Construct all NoiseModels associated with this NoiseProperties."""
 
 
 class NoiseModelFromNoiseProperties(devices.NoiseModel):
@@ -234,37 +51,78 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         Raises:
             ValueError: if no NoiseProperties object is specified.
         """
-        if noise_properties is not None:
-            self._noise_properties = noise_properties
-        else:
-            raise ValueError('A NoiseProperties object must be specified')
+        self._noise_properties = noise_properties
+        self.noise_models = self._noise_properties.build_noise_models()
 
-    def noisy_moment(
-        self, moment: circuits.Moment, system_qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
-        moments: List[circuits.Moment] = []
+    def virtual_predicate(self, op: 'cirq.Operation') -> bool:
+        """Returns True if an operation is virtual.
 
-        if any(
-            [protocols.is_measurement(op.gate) for op in moment.operations]
-        ):  # Add readout error before measurement gate
-            p00 = self._noise_properties.p00
-            p11 = self._noise_properties.p11
-            measurement_qubits = [
-                list(op.qubits)[0] for op in moment.operations if protocols.is_measurement(op.gate)
+        Device-specific subclasses should implement this method to mark any
+        operations which their device handles outside the quantum hardware.
+
+        Args:
+            op: an operation to check for virtual indicators.
+
+        Returns:
+            True if `op` is virtual.
+        """
+        return False
+
+    def noisy_moments(
+        self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
+    ) -> Sequence['cirq.OP_TREE']:
+        # Split multi-qubit measurements into single-qubit measurements.
+        # These will be recombined after noise is applied.
+        split_measure_moments = []
+        multi_measurements = {}
+        for moment in moments:
+            split_measure_ops = []
+            for op in moment:
+                if not protocols.is_measurement(op):
+                    split_measure_ops.append(op)
+                    continue
+                m_key = protocols.measurement_key_obj(op)
+                multi_measurements[m_key] = op
+                for q in op.qubits:
+                    split_measure_ops.append(ops.measure(q, key=m_key))
+            split_measure_moments.append(circuits.Moment(split_measure_ops))
+
+        # Append PHYSICAL_GATE_TAG to non-virtual ops in the input circuit,
+        # using `self.virtual_predicate` to determine virtuality.
+        new_moments = []
+        for moment in split_measure_moments:
+            virtual_ops = {op for op in moment if self.virtual_predicate(op)}
+            physical_ops = [
+                op.with_tags(PHYSICAL_GATE_TAG) for op in moment if op not in virtual_ops
             ]
-            if p00 is not None or p11 is not None:
-                _apply_readout_noise(p00, p11, moments, measurement_qubits)
-            moments.append(moment)
-        else:
-            moments.append(moment)
-        if self._noise_properties.pauli_error is not None:  # Add depolarization error#
-            duration = max([get_duration_ns(op.gate) for op in moment.operations])
-            pauli_error = self._noise_properties.pauli_error_from_depolarization(duration)
-            _apply_depol_noise(pauli_error, moments, system_qubits)
+            # Both physical and virtual operations remain in the circuit, but
+            # only ops with PHYSICAL_GATE_TAG will receive noise.
+            if virtual_ops:
+                # Only subclasses will trigger this case.
+                new_moments.append(circuits.Moment(virtual_ops))  # coverage: ignore
+            if physical_ops:
+                new_moments.append(circuits.Moment(physical_ops))
 
-        if self._noise_properties.t1_ns is not None:  # Add amplitude damping noise
-            duration = max([get_duration_ns(op.gate) for op in moment.operations])
-            _apply_amplitude_damp_noise(
-                duration, self._noise_properties.t1_ns, moments, system_qubits
-            )
-        return moments
+        split_measure_circuit = circuits.Circuit(new_moments)
+
+        # Add noise from each noise model. The PHYSICAL_GATE_TAGs added
+        # previously allow noise models to distinguish physical gates from
+        # those added by other noise models.
+        noisy_circuit = split_measure_circuit.copy()
+        for model in self.noise_models:
+            noisy_circuit = noisy_circuit.with_noise(model)
+
+        # Recombine measurements.
+        final_moments = []
+        for moment in noisy_circuit:
+            combined_measure_ops = []
+            restore_keys = set()
+            for op in moment:
+                if not protocols.is_measurement(op):
+                    combined_measure_ops.append(op)
+                    continue
+                restore_keys.add(protocols.measurement_key_obj(op))
+            for key in restore_keys:
+                combined_measure_ops.append(multi_measurements[key])
+            final_moments.append(circuits.Moment(combined_measure_ops))
+        return final_moments

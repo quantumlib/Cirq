@@ -16,14 +16,12 @@ from typing import Any, Dict, Sequence, Union
 import numpy as np
 
 import cirq
-from cirq import protocols, value
-from cirq.ops import pauli_gates
-from cirq.sim import clifford
+from cirq import protocols, qis, value
 from cirq.value import big_endian_int_to_digits
 
 
 @value.value_equality
-class StabilizerStateChForm:
+class StabilizerStateChForm(qis.StabilizerState):
     r"""A representation of stabilizer states using the CH form,
 
         $|\psi> = \omega U_C U_H |s>$
@@ -56,22 +54,11 @@ class StabilizerStateChForm:
         self.omega: complex = 1
 
         # Apply X for every non-zero element of initial_state
-        qubits = cirq.LineQubit.range(num_qubits)
-        args = clifford.ActOnStabilizerCHFormArgs(
-            prng=np.random.RandomState(),
-            log_of_measurement_results={},
-            qubits=qubits,
-            initial_state=self,
-        )
         for (i, val) in enumerate(
             big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
         ):
             if val:
-                protocols.act_on(
-                    pauli_gates.X,
-                    args,
-                    [qubits[i]],
-                )
+                self.apply_x(i)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
@@ -304,3 +291,100 @@ class StabilizerStateChForm:
         copy.s = self.s[axes]
         copy.omega = self.omega
         return copy
+
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        if exponent % 2 != 0:
+            if exponent % 0.5 != 0.0:
+                raise ValueError('X exponent must be half integer')  # coverage: ignore
+            self.apply_h(axis)
+            self.apply_z(axis, exponent)
+            self.apply_h(axis)
+        self.omega *= _phase(exponent, global_shift)
+
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        if exponent % 0.5 != 0.0:
+            raise ValueError('Y exponent must be half integer')  # coverage: ignore
+        shift = _phase(exponent, global_shift)
+        if exponent % 2 == 0:
+            self.omega *= shift
+        elif exponent % 2 == 0.5:
+            self.apply_z(axis)
+            self.apply_h(axis)
+            self.omega *= shift * (1 + 1j) / (2 ** 0.5)
+        elif exponent % 2 == 1:
+            self.apply_z(axis)
+            self.apply_h(axis)
+            self.apply_z(axis)
+            self.apply_h(axis)
+            self.omega *= shift * 1j
+        elif exponent % 2 == 1.5:
+            self.apply_h(axis)
+            self.apply_z(axis)
+            self.omega *= shift * (1 - 1j) / (2 ** 0.5)
+
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        if exponent % 2 != 0:
+            if exponent % 0.5 != 0.0:
+                raise ValueError('Z exponent must be half integer')  # coverage: ignore
+            effective_exponent = exponent % 2
+            for _ in range(int(effective_exponent * 2)):
+                # Prescription for S left multiplication.
+                # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
+                self.M[axis, :] ^= self.G[axis, :]
+                self.gamma[axis] = (self.gamma[axis] - 1) % 4
+        self.omega *= _phase(exponent, global_shift)
+
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        if exponent % 2 != 0:
+            if exponent % 1 != 0:
+                raise ValueError('H exponent must be integer')  # coverage: ignore
+            # Prescription for H left multiplication
+            # Reference: https://arxiv.org/abs/1808.00128
+            # Equations 48, 49 and Proposition 4
+            t = self.s ^ (self.G[axis, :] & self.v)
+            u = self.s ^ (self.F[axis, :] & (~self.v)) ^ (self.M[axis, :] & self.v)
+            alpha = sum(self.G[axis, :] & (~self.v) & self.s) % 2
+            beta = sum(self.M[axis, :] & (~self.v) & self.s)
+            beta += sum(self.F[axis, :] & self.v & self.M[axis, :])
+            beta += sum(self.F[axis, :] & self.v & self.s)
+            beta %= 2
+            delta = (self.gamma[axis] + 2 * (alpha + beta)) % 4
+            self.update_sum(t, u, delta=delta, alpha=alpha)
+        self.omega *= _phase(exponent, global_shift)
+
+    def apply_cz(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
+        if exponent % 2 != 0:
+            if exponent % 1 != 0:
+                raise ValueError('CZ exponent must be integer')  # coverage: ignore
+            # Prescription for CZ left multiplication.
+            # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
+            self.M[control_axis, :] ^= self.G[target_axis, :]
+            self.M[target_axis, :] ^= self.G[control_axis, :]
+        self.omega *= _phase(exponent, global_shift)
+
+    def apply_cx(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
+        if exponent % 2 != 0:
+            if exponent % 1 != 0:
+                raise ValueError('CX exponent must be integer')  # coverage: ignore
+            # Prescription for CX left multiplication.
+            # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
+            self.gamma[control_axis] = (
+                self.gamma[control_axis]
+                + self.gamma[target_axis]
+                + 2 * (sum(self.M[control_axis, :] & self.F[target_axis, :]) % 2)
+            ) % 4
+            self.G[target_axis, :] ^= self.G[control_axis, :]
+            self.F[control_axis, :] ^= self.F[target_axis, :]
+            self.M[control_axis, :] ^= self.M[target_axis, :]
+        self.omega *= _phase(exponent, global_shift)
+
+    def apply_global_phase(self, coefficient: value.Scalar):
+        self.omega *= coefficient
+
+
+def _phase(exponent, global_shift):
+    return np.exp(1j * np.pi * global_shift * exponent)
