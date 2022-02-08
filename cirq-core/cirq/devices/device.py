@@ -269,6 +269,6 @@ class DeviceMetadata:
         return {'qubits': qubits_payload, 'nx_graph': graph_payload}
 
     @classmethod
-    def _from_json_dict_(cls, qubits, nx_graph, **kwargs):
+    def _from_json_dict_(cls, qubits: Iterable['cirq.Qid'], nx_graph: 'nx.Graph', **kwargs):
         graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
         return cls(qubits, graph_obj)

@@ -57,8 +57,8 @@ class GridDeviceMetadata(device.DeviceMetadata):
                 must match all entries in gateset.
 
         Raises:
-            ValueError: if the union of gateset keys in gate_durations,
-                do not represent an identical gateset to gateset.
+            ValueError: if the union of GateFamily keys in gate_durations
+                is not identical to set of gate families in gateset.
         """
         qubit_pairs = list(qubit_pairs)
         flat_pairs = [q for pair in qubit_pairs for q in pair]
@@ -78,11 +78,9 @@ class GridDeviceMetadata(device.DeviceMetadata):
         if gate_durations is not None:
             working_gatefamilies = frozenset(gate_durations.keys())
             if working_gatefamilies != gateset.gates:
-                missing_items = working_gatefamilies.difference(gateset.gates)
                 raise ValueError(
                     "Supplied gate_durations contains gates not present"
-                    f" in gateset. {missing_items} in gateset"
-                    " is False."
+                    f" in gateset."
                 )
 
         self._gate_durations = gate_durations
