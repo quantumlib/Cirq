@@ -366,6 +366,7 @@ from cirq.transformers import (
     dephase_measurements,
     drop_empty_moments,
     drop_negligible_operations,
+    eject_phased_paulis,
     eject_z,
     expand_composite,
     is_negligible_turn,

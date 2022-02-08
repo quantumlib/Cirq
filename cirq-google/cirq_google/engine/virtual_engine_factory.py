@@ -64,9 +64,9 @@ T1_METRIC_NAME = 'single_qubit_idle_t1_micros'
 
 def _create_perfect_calibration(device: cirq.Device) -> calibration.Calibration:
     all_metrics: calibration.ALL_METRICS = {}
-    qubit_set = device.qubit_set()
-    if qubit_set is None:
+    if device.metadata is None:
         raise ValueError('Devices for noiseless Virtual Engine must have qubits')
+    qubit_set = device.metadata.qubit_set
     qubits = [cast(cirq.GridQubit, q) for q in qubit_set]
     for name in METRICS_1Q:
         all_metrics[name] = {(q,): [0.0] for q in qubits}
