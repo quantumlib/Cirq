@@ -99,6 +99,17 @@ def test_absorbs_z():
         ),
     )
 
+    # PhasedXZGate
+    assert_optimizes(
+        before=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0.125).on(q)],
+            [cirq.PhasedXZGate(x_exponent=0, axis_phase_exponent=0, z_exponent=1).on(q)],
+        ),
+        expected=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0.625).on(q)],
+        ),
+    )
+
     # Partial Z. PhasedXZGate with z_exponent = 0.
     assert_optimizes(
         before=quick_circuit(

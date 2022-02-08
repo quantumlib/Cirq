@@ -34,15 +34,17 @@ def eject_phased_paulis(
     atol: float = 1e-8,
     eject_parameterized: bool = False,
 ) -> 'cirq.Circuit':
-    """Transformer pass to push X, Y, and PhasedX gates towards the end of the circuit.
+    """Transformer pass to push X, Y, PhasedX & (certain) PhasedXZ gates to the end of the circuit.
 
     As the gates get pushed, they may absorb Z gates, cancel against other
     X, Y, or PhasedX gates with exponent=1, get merged into measurements (as
     output bit flips), and cause phase kickback operations across CZs (which can
     then be removed by the `cirq.eject_z` transformation).
 
-    `cirq.PhasedXZGate` with `z_exponent=0` are also supported. To eject `PhasedXZGates` with
-    arbitrary `z_exponent`, run `cirq.eject_z(cirq.eject_phased_paulis(cirq.eject_z(circuit)))`.
+    `cirq.PhasedXZGate` with `z_exponent=0` (i.e. equivalent to PhasedXPow) or with `x_exponent=0`
+    and `axis_phase_exponent=0` (i.e. equivalent to ZPowGate) are also supported.
+    To eject `PhasedXZGates` with arbitrary x/z/axis exponents, run
+    `cirq.eject_z(cirq.eject_phased_paulis(cirq.eject_z(circuit)))`.
 
     Args:
         circuit: Input circuit to transform.
@@ -334,9 +336,17 @@ def _try_get_known_phased_pauli(
 def _try_get_known_z_half_turns(
     op: ops.Operation, no_symbolic: bool = False
 ) -> Optional[value.TParamVal]:
-    if not isinstance(op.gate, ops.ZPowGate):
+    g = op.gate
+    if (
+        isinstance(g, ops.PhasedXZGate)
+        and np.isclose(g.x_exponent, 0)
+        and np.isclose(g.axis_phase_exponent, 0)
+    ):
+        h = g.z_exponent
+    elif isinstance(g, ops.ZPowGate):
+        h = g.exponent
+    else:
         return None
-    h = op.gate.exponent
     if no_symbolic and isinstance(h, sympy.Basic):
         return None
     return h
