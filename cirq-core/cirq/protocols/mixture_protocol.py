@@ -26,7 +26,10 @@ from cirq.protocols import has_unitary_protocol, unitary_protocol
 from cirq.type_workarounds import NotImplementedType
 
 from cirq import qis
-from cirq.circuits import Moment
+from cirq._import import LazyLoader
+
+moment_module = LazyLoader("moment", globals(), "cirq.circuits.moment")
+
 
 if TYPE_CHECKING:
     import cirq
@@ -244,7 +247,7 @@ def _superoperator_to_mixture(superoperator: np.ndarray) -> Sequence[Tuple[float
 
 
 def _moment_superoperator(op: 'cirq.Operation', qubits: Sequence['cirq.Qid'], default: Any) -> Any:
-    superoperator_result = Moment(op).expand_to(qubits)._superoperator_()
+    superoperator_result = moment_module.Moment(op).expand_to(qubits)._superoperator_()
     return superoperator_result if superoperator_result is not NotImplemented else default
 
 
