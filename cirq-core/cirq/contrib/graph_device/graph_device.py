@@ -155,6 +155,7 @@ class UndirectedGraphDevice(devices.Device):
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return cast(Tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
 
+    @_compat.deprecated(fix='Check metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet['cirq.Qid']:
         return frozenset(self.qubits)
 
