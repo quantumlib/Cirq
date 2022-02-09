@@ -6,11 +6,11 @@
 # Usage:
 #     check/format-incremental [BASE_REVISION] [--apply] [--all]
 #
-# By default, the script runs flynt to convert old string literal formatting to f-strings
-# and analyzes python files that have changed relative to the
-# base revision and determines whether they need to be formatted. If any changes
-# are needed, it prints the diff and exits with code 1, otherwise it exits with
-# code 0.
+# By default, the script runs flynt to convert old string literal formatting to
+# f-strings and uses black for general formatting of Python.  Both analyze
+# python files that have changed relative to the base revision and
+# determines whether they need to be formatted. If any changes are needed,
+# it prints the diff and exits with code 1, otherwise it exits with code 0.
 #
 # With '--apply', reformats the files instead of printing the diff and exits
 # with code 0.
@@ -99,8 +99,23 @@ if (( only_print == 1 )); then
     flynt_args+=("--dry-run")
 fi
 
+echo "Running the flynt formatter..."
+
 flynt "${format_files[@]}" "${flynt_args[@]}"
 FLYNTSTATUS=$?
+
+docformatter_args=()
+if (( only_print == 0)); then
+  docformatter_args+=("--in-place")
+fi
+docformatter_args+=("--wrap-summaries 99" "--wrap-descriptions 96")
+
+echo "Running the docformatter formatter..."
+
+echo "${docformatter_args[@]}"
+
+docformatter ${docformatter_args[@]} "${format_files[@]}"
+DOCFORMATTERSTATUS=$?
 
 echo "Running the black formatter..."
 
@@ -108,7 +123,6 @@ args=("--color")
 if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
-
 # Warn users about bug in black: https://github.com/psf/black/issues/1629
 # Once that is fixed upstream, we can just do:
 # black "${args[@]}" "${format_files[@]}"
@@ -120,7 +134,7 @@ if [[ "$BLACKSTATUS" == "123" && "$LOGS" =~ ^.*"INTERNAL ERROR: Black produced d
   echo -e "\033[31mWarning, it seems we ran into https://github.com/psf/black/issues/1629. Typically, this can be fixed by adding a trailing comma. If you get stuck, please file a cirq issue on github.\033[0m"
 fi
 
-if [[ "$FLYNTSTATUS" != "0" || "$BLACKSTATUS" != "0"  ]]; then
+if [[ "$FLYNTSTATUS" != "0" || "$BLACKSTATUS" != "0"  || "$DOCFORMATTERSTATE" != "0" ]]; then
   exit 1
 fi
 exit 0
