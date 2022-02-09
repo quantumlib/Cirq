@@ -116,6 +116,15 @@ class NeutralAtomDevice(devices.Device):
                 raise ValueError(f'Unsupported qubit type: {q!r}')
         self.qubits = frozenset(qubits)
 
+        self._metadata = devices.GridDeviceMetadata(
+            [(a, b) for a in self.qubits for b in self.qubits if a.is_adjacent(b)], self.gateset
+        )
+
+    @property
+    def metadata(self) -> devices.GridDeviceMetadata:
+        return self._metadata
+
+    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
         return self.qubits
 
