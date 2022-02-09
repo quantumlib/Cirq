@@ -218,9 +218,9 @@ def print_results(alice_basis, bob_basis, alice_state, expected_key, obtained_ke
     alice_basis_str = "".join(['C' if alice_basis[i] == 0 else "H" for i in range(num_qubits)])
     bob_basis_str = "".join(['C' if bob_basis[i] == 0 else "H" for i in range(num_qubits)])
 
-    print('Alice\'s basis:\t{}'.format(alice_basis_str))
-    print('Bob\'s basis:\t{}'.format(bob_basis_str))
-    print('Alice\'s bits:\t{}'.format(bitstring(alice_state)))
+    print(f'Alice\'s basis:\t{alice_basis_str}')
+    print(f'Bob\'s basis:\t{bob_basis_str}')
+    print(f'Alice\'s bits:\t{bitstring(alice_state)}')
     print(f'Bases match::\t{basis_match}')
     print(f'Expected key:\t{expected_key}')
     print(f'Actual key:\t{obtained_key}')
