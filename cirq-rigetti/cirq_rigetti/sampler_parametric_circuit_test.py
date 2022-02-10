@@ -11,8 +11,9 @@ from cirq_rigetti import RigettiQCSSampler, circuit_sweep_executors
 def test_parametric_circuit_through_sampler(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
 ) -> None:
-    """test that RigettiQCSSampler can run a basic parametric circuit on the
-    QVM and return an accurate list of `cirq.study.Result`.
+    """Tests that RigettiQCSSampler can run a basic parametric circuit on the QVM.
+
+    Tests that it returns an accurate `cirq.study.Result`.
     """
     circuit, sweepable = parametric_circuit_with_params
 
@@ -50,8 +51,10 @@ def test_parametric_circuit_through_sampler(
 def test_parametric_circuit_through_sampler_with_parametric_compilation(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
 ) -> None:
-    """test that RigettiQCSSampler can run a basic parametric circuit on the QVM using parametric
-    compilation and return an accurate list of `cirq.study.Result`.
+    """Tests that RigettiQCSSampler can run a basic parametric circuit on the QVM.
+
+    This tests using parametric compilation and that it returns an accurate list of
+    `cirq.study.Result`s.
     """
     circuit, sweepable = parametric_circuit_with_params
 

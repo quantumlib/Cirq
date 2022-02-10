@@ -14,9 +14,9 @@
 
 """Classes for representing device noise.
 
-NoiseProperties is an abstract class for capturing metrics of a device that can
-be translated into noise models. NoiseModelFromNoiseProperties consumes those
-noise models to produce a single noise model which replicates device noise.
+NoiseProperties is an abstract class for capturing metrics of a device that can be translated into
+noise models. NoiseModelFromNoiseProperties consumes those noise models to produce a single noise
+model which replicates device noise.
 """
 
 import abc

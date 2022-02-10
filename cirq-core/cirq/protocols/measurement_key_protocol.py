@@ -62,36 +62,32 @@ class SupportsMeasurementKey(Protocol):
     def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
         """Return the key object that will be used to identify this measurement.
 
-        When a measurement occurs, either on hardware, or in a simulation,
-        this is the key value under which the results of the measurement
-        will be stored.
+        When a measurement occurs, either on hardware, or in a simulation, this is the key value
+        under which the results of the measurement will be stored.
         """
 
     @doc_private
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         """Return the key objects for measurements performed by the receiving object.
 
-        When a measurement occurs, either on hardware, or in a simulation,
-        these are the key values under which the results of the measurements
-        will be stored.
+        When a measurement occurs, either on hardware, or in a simulation, these are the key values
+        under which the results of the measurements will be stored.
         """
 
     @doc_private
     def _measurement_key_name_(self) -> str:
         """Return the string key that will be used to identify this measurement.
 
-        When a measurement occurs, either on hardware, or in a simulation,
-        this is the key value under which the results of the measurement
-        will be stored.
+        When a measurement occurs, either on hardware, or in a simulation, this is the key value
+        under which the results of the measurement will be stored.
         """
 
     @doc_private
     def _measurement_key_names_(self) -> AbstractSet[str]:
         """Return the string keys for measurements performed by the receiving object.
 
-        When a measurement occurs, either on hardware, or in a simulation,
-        these are the key values under which the results of the measurements
-        will be stored.
+        When a measurement occurs, either on hardware, or in a simulation, these are the key values
+        under which the results of the measurements will be stored.
         """
 
     @doc_private
@@ -277,8 +273,8 @@ def is_measurement(val: Any) -> bool:
 def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
     """Remaps the target's measurement keys according to the provided key_map.
 
-    This method can be used to reassign measurement keys at runtime, or to
-    assign measurement keys from a higher-level object (such as a Circuit).
+    This method can be used to reassign measurement keys at runtime, or to assign measurement keys
+    from a higher-level object (such as a Circuit).
     """
     getter = getattr(val, '_with_measurement_key_mapping_', None)
     return NotImplemented if getter is None else getter(key_map)
@@ -287,8 +283,8 @@ def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
 def with_key_path(val: Any, path: Tuple[str, ...]):
     """Adds the path to the target's measurement keys.
 
-    The path usually refers to an identifier or a list of identifiers from a subcircuit that
-    used to contain the target. Since a subcircuit can be repeated and reused, these paths help
+    The path usually refers to an identifier or a list of identifiers from a subcircuit that used
+    to contain the target. Since a subcircuit can be repeated and reused, these paths help
     differentiate the actual measurement keys.
     """
     getter = getattr(val, '_with_key_path_', None)

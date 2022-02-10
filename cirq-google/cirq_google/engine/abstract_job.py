@@ -47,7 +47,6 @@ class AbstractJob(abc.ABC):
     `AbstractJob`s can be iterated over, returning `Result`s. These
     `Result`s can also be accessed by index. Note that this will block
     until the results are returned.
-
     """
 
     @abc.abstractmethod
@@ -144,13 +143,17 @@ class AbstractJob(abc.ABC):
 
     @abc.abstractmethod
     def get_processor(self) -> Optional['abstract_processor.AbstractProcessor']:
-        """Returns the AbstractProcessor for the processor the job is/was run on,
-        if available, else None."""
+        """Returns the AbstractProcessor for the processor the job is/was run on.
+
+        If none is avaiable, returns None.
+        """
 
     @abc.abstractmethod
     def get_calibration(self) -> Optional['calibration.Calibration']:
-        """Returns the recorded calibration at the time when the job was run, if
-        one was captured, else None."""
+        """Returns the recorded calibration at the time when the job was run.
+
+        If one was not captured, returns None.
+        """
 
     @abc.abstractmethod
     def cancel(self) -> Optional[bool]:
@@ -164,9 +167,8 @@ class AbstractJob(abc.ABC):
     def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
         """Returns the job results, blocking until the job is complete.
 
-        This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a List[Result]
-        for each circuit in the batch.
+        This method is intended for batched jobs.  Instead of flattening results into a single
+        list, this will return a List[Result] for each circuit in the batch.
         """
 
     @abc.abstractmethod

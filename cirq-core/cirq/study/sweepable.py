@@ -27,8 +27,10 @@ document(SweepLike, """An object similar to an iterable of parameter resolvers."
 
 
 class _Sweepable(Protocol):
-    """An intermediate class allowing for recursive definition of Sweepable,
-    since recursive union definitions are not yet supported in mypy."""
+    """An intermediate class allowing for recursive definition of Sweepable.
+
+    This is necessary since recursive union definitions are not yet supported in mypy.
+    """
 
     def __iter__(self) -> Iterator[Union[SweepLike, '_Sweepable']]:
         pass

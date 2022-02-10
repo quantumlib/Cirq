@@ -251,7 +251,6 @@ def final_density_matrix(
     Returns:
         The density matrix for the state which results from applying the given
         operations to the desired initial state.
-
     """
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
     circuit_like = _to_circuit(program)

@@ -124,8 +124,7 @@ class MergeNQubitGates(cirq.PointOptimizer):
 
 
 def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit):
-    """For low weight operators on low-degree circuits, we can simplify
-    the circuit representation of an expectation value.
+    """Simplifies the circuit for expectations with low weight operators on low-degree circuits.
 
     In particular, this should be used on `circuit_for_expectation_value`
     circuits. It will merge single- and two-qubit gates from the "forwards"

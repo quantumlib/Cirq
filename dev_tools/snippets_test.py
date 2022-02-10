@@ -368,8 +368,8 @@ def assert_file_has_working_code_snippets(path: str, assume_import: bool):
 def assert_code_snippets_run_in_sequence(snippets: List[Tuple[str, int]], assume_import: bool):
     """Checks that a sequence of code snippets actually run.
 
-    State is kept between snippets. Imports and variables defined in one
-    snippet will be visible in later snippets.
+    State is kept between snippets. Imports and variables defined in one snippet will be visible in
+    later snippets.
     """
 
     state: Dict[str, Any] = {}

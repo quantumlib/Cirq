@@ -65,14 +65,15 @@ class _SampleInBatches:
         repetitions: int,
         combinations_by_layer: List[CircuitLibraryCombination],
     ):
-        """This closure will execute a list of `tasks` with one call to
-        `run_batch` on the provided sampler for a given number of repetitions.
+        """Encapsulates the ability to sample with the given number of repetitions some tasks.
 
-        It also keeps a record of the circuit library combinations in order to
-        back out which qubit pairs correspond to each pair index. We tag
-        our return value with this so it is in the resultant DataFrame, which
-        is very convenient for dealing with the results (but not strictly
-        necessary, as the information could be extracted from (`layer_i`, `pair_i`).
+        This closure will execute a list of `tasks` with one call to `run_batch` on the provided
+        sampler for a given number of repetitions.
+
+        It also keeps a record of the circuit library combinations in order to back out which
+        qubit pairs correspond to each pair index. We tag our return value with this so it is in
+        the resultant DataFrame, which is very convenient for dealing with the results (but not
+        strictly necessary, as the information could be extracted from (`layer_i`, `pair_i`).
         """
         self.sampler = sampler
         self.repetitions = repetitions
@@ -149,8 +150,8 @@ class _NoProgress:
 
 @dataclass(frozen=True)
 class _ZippedCircuit:
-    """A fully-wide circuit made by zipping together a bunch of two-qubit circuits
-    and its provenance data.
+    """A fully-wide circuit made by zipping together a two-qubit circuits and their provenance
+    data.
 
     Args:
         wide_circuit: The zipped circuit on all pairs
@@ -181,10 +182,10 @@ def _get_combinations_by_layer_for_isolated_xeb(
 ) -> Tuple[List[CircuitLibraryCombination], List['cirq.Circuit']]:
     """Helper function used in `sample_2q_xeb_circuits`.
 
-    This creates a CircuitLibraryCombination object for isolated XEB. First, the qubits
-    are extracted from the lists of circuits and used to define one pair. Instead of using
-    `combinations` to shuffle the circuits for each pair, we just use each circuit (in order)
-    for the one pair.
+    This creates a CircuitLibraryCombination object for isolated XEB. First, the qubits are
+    extracted from the lists of circuits and used to define one pair. Instead of using
+    `combinations` to shuffle the circuits for each pair, we just use each circuit (in order) for
+    the one pair.
     """
     q0, q1 = _verify_and_get_two_qubits_from_circuits(circuits)
     circuits = [

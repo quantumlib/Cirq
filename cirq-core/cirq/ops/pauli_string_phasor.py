@@ -36,9 +36,9 @@ if TYPE_CHECKING:
 class PauliStringPhasor(gate_operation.GateOperation):
     """An operation that phases the eigenstates of a Pauli string.
 
-    The -1 eigenstates of the Pauli string will have their amplitude multiplied
-    by e^(i pi exponent_neg) while +1 eigenstates of the Pauli string will have
-    their amplitude multiplied by e^(i pi exponent_pos).
+    The -1 eigenstates of the Pauli string will have their amplitude multiplied by a factor of e^(i
+    pi exponent_neg) while +1 eigenstates of the Pauli string will have their amplitude multiplied
+    by e^(i pi exponent_pos).
     """
 
     def __init__(
@@ -224,9 +224,9 @@ class PauliStringPhasor(gate_operation.GateOperation):
 class PauliStringPhasorGate(raw_types.Gate):
     """A gate that phases the eigenstates of a Pauli string.
 
-    The -1 eigenstates of the Pauli string will have their amplitude multiplied
-    by e^(i pi exponent_neg) while +1 eigenstates of the Pauli string will have
-    their amplitude multiplied by e^(i pi exponent_pos).
+    The -1 eigenstates of the Pauli string will have their amplitude multiplied by e^(i pi
+    exponent_neg) while +1 eigenstates of the Pauli string will have their amplitude multiplied by
+    e^(i pi exponent_pos).
     """
 
     def __init__(

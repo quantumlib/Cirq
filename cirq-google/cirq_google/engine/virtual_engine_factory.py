@@ -131,7 +131,7 @@ def create_noiseless_virtual_engine_from_proto(
     ],
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ) -> SimulatedLocalEngine:
-    """Creates a noiseless virtual engine object from a device specification proto.a
+    """Creates a noiseless virtual engine object from a device specification proto.
 
     The device specification protocol buffer specifies qubits and gates on the device
     and can be retrieved from a stored "proto.txt" file or from the QCS API.

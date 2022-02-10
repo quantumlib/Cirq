@@ -147,13 +147,11 @@ class _GreedyRouter:
         return self.edge_sets[edge_set_size]
 
     def log_to_phys(self, *qubits: 'cirq.Qid') -> Iterable[ops.Qid]:
-        """Returns an iterator over the physical qubits mapped to by the given
-        logical qubits."""
+        """Returns an iterator over the physical qubits mapped to by the given logical qubits."""
         return (self._log_to_phys[q] for q in qubits)
 
     def phys_to_log(self, *qubits: 'cirq.Qid') -> Iterable[Optional[ops.Qid]]:
-        """Returns an iterator over the logical qubits that map to the given
-        physical qubits."""
+        """Returns an iterator over the logical qubits that map to the given physical qubits."""
         return (self._phys_to_log[q] for q in qubits)
 
     def apply_swap(self, *physical_edges: QidPair):
@@ -162,8 +160,7 @@ class _GreedyRouter:
         self.physical_ops += [SWAP(*e) for e in physical_edges]
 
     def update_mapping(self, *physical_edges: QidPair):
-        """Updates the mapping in accordance with SWAPs on the given physical
-        edges."""
+        """Updates the mapping in accordance with SWAPs on the given physical edges."""
         for physical_edge in physical_edges:
             old_logical_edge = tuple(self.phys_to_log(*physical_edge))
             new_logical_edge = old_logical_edge[::-1]
@@ -229,8 +226,7 @@ class _GreedyRouter:
         return SwapNetwork(circuits.Circuit(self.physical_ops), self.initial_mapping)
 
     def distance(self, edge: QidPair) -> int:
-        """The distance between the physical qubits mapped to by a pair of
-        logical qubits."""
+        """The distance between the physical qubits mapped to by a pair of logical qubits."""
         return self.physical_distances[cast(QidPair, tuple(self.log_to_phys(*edge)))]
 
     def swap_along_path(self, path: Tuple[ops.Qid]):
@@ -239,8 +235,7 @@ class _GreedyRouter:
             self.apply_swap(cast(QidPair, path[i : i + 2]))
 
     def bring_farthest_pair_together(self, pairs: Sequence[QidPair]):
-        """Adds SWAPs to bring the farthest-apart pair of logical qubits
-        together."""
+        """Adds SWAPs to bring the farthest-apart pair of logical qubits together."""
         distances = [self.distance(pair) for pair in pairs]
         assert distances
         max_distance = min(distances)
@@ -255,16 +250,15 @@ class _GreedyRouter:
         self.swap_along_path(shortest_path[midpoint:])
 
     def get_distance_vector(self, logical_edges: Iterable[QidPair], swaps: Sequence[QidPair]):
-        """Gets distances between physical qubits mapped to by given logical
-        edges, after specified SWAPs are applied."""
+        """Gets distances between physical qubits from the given logical edges after apply
+        SWAPs."""
         self.update_mapping(*swaps)
         distance_vector = np.array([self.distance(e) for e in logical_edges])
         self.update_mapping(*swaps)
         return distance_vector
 
     def apply_next_swaps(self, require_frontier_adjacency: bool = False):
-        """Applies a few SWAPs to get the mapping closer to one in which the
-        next logical gates can be applied.
+        """Applies SWAPs to get the mapping closer to when the next logical gates can be applied.
 
         See route_circuit_greedily for more details.
         """
@@ -314,9 +308,7 @@ class _GreedyRouter:
 
 
 def _get_dominated_indices(vectors: List[np.ndarray]) -> Set[int]:
-    """Get the indices of vectors that are element-wise at least some other
-    vector.
-    """
+    """Get the indices of vectors that are element-wise at least some other vector."""
     dominated_indices = set()
     for i, v in enumerate(vectors):
         for w in vectors[:i] + vectors[i + 1 :]:

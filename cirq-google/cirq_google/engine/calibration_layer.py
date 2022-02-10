@@ -20,9 +20,10 @@ import cirq
 
 @dataclasses.dataclass
 class CalibrationLayer:
-    """Python implementation of the proto found in
-    cirq_google.api.v2.calibration_pb2.FocusedCalibrationLayer for use
-    in Engine calls."""
+    """Python implementation of the proto found in cirq_google v2 apis.
+
+    This corresponds to `cirq_google.api.v2.calibration_pb2.FocusedCalibrationLayer`.
+    """
 
     calibration_type: str
     program: cirq.Circuit

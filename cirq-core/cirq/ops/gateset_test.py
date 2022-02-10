@@ -167,7 +167,7 @@ def test_gate_family_predicate_and_containment(gate_family, gates_to_check):
 
 
 class CustomXGateFamily(cirq.GateFamily):
-    """Accepts all integer powers of CustomXPowGate"""
+    """Accepts all integer powers of CustomXPowGate."""
 
     def __init__(self) -> None:
         super().__init__(

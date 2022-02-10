@@ -38,7 +38,6 @@ class SimulatedLocalEngine(AbstractLocalEngine):
     This class assumes that all processors are local.  Processors
     are given during initialization.  Program and job querying
     functionality is done by serially querying all child processors.
-
     """
 
     def __init__(self, processors: List[AbstractLocalProcessor]):

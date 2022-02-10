@@ -276,9 +276,7 @@ def apply_mixture(
 
 
 def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixtureArgs', bool]:
-    """Validate args input and determine if we are operating on a
-    density matrix or a state vector.
-    """
+    """Validate args input and determine if we acting on a density matrix or a state vector."""
 
     is_density_matrix = False
     val_qid_shape = qid_shape_protocol.qid_shape(val, (2,) * len(args.left_axes))

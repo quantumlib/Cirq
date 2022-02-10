@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pushes 180 degree rotations around axes in the XY plane later in the circuit.
-"""
+"""Pushes 180 degree rotations around axes in the XY plane later in the circuit."""
 
 from cirq import _compat, circuits, transformers
 
@@ -22,10 +21,9 @@ from cirq import _compat, circuits, transformers
 class EjectPhasedPaulis:
     """Pushes X, Y, and PhasedX gates towards the end of the circuit.
 
-    As the gates get pushed, they may absorb Z gates, cancel against other
-    X, Y, or PhasedX gates with exponent=1, get merged into measurements (as
-    output bit flips), and cause phase kickback operations across CZs (which can
-    then be removed by the EjectZ optimization).
+    As the gates get pushed, they may absorb Z gates, cancel against other X, Y, or PhasedX gates
+    with exponent=1, get merged into measurements (as output bit flips), and cause phase kickback
+    operations across CZs (which can then be removed by the EjectZ optimization).
     """
 
     def __init__(self, tolerance: float = 1e-8, eject_parameterized: bool = False) -> None:

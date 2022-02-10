@@ -29,7 +29,6 @@ https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/
 
 Model was then fitted by hand, correcting for anomalies and outliers
 when possible.
-
 """
 from typing import List, Optional, Sequence
 import cirq

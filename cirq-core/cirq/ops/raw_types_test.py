@@ -266,9 +266,13 @@ def test_gate_shape():
 
 
 def test_gate_shape_protocol():
-    """This test is only needed while the `_num_qubits_` and `_qid_shape_`
-    methods are implemented as alternatives.  This can be removed once the
-    deprecated `num_qubits` method is removed."""
+    """Tests the gate shape protocol while both are still supported.
+
+    This test is only needed while the `_num_qubits_` and `_qid_shape_` methods are implemented
+    as alternatives.
+
+    This can be removed once the deprecated `num_qubits` method is removed.
+    """
 
     class NotImplementedGate1(cirq.Gate):
         def _num_qubits_(self):
@@ -581,8 +585,10 @@ def test_circuit_diagram_no_circuit_diagram():
 
 
 def test_tagged_operation_forwards_protocols():
-    """The results of all protocols applied to an operation with a tag should
-    be equivalent to the result without tags.
+    """Tests that protocols worked on tagged operations.
+
+    The results of all protocols applied to an operation with a tag should be equivalent to the
+    result without tags.
     """
     q1 = cirq.GridQubit(1, 1)
     q2 = cirq.GridQubit(1, 2)

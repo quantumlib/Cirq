@@ -263,10 +263,9 @@ def _cpmg_circuit(qubit: 'cirq.Qid', delay_var: sympy.Symbol, max_pulses: int) -
 def _cpmg_sweep(num_pulses: List[int]):
     """Returns a sweep for a circuit created by _cpmg_circuit.
 
-    The circuit in _cpmg_circuit parameterizes the pulses, so this function
-    fills in the parameters for each pulse.  For instance, if we want 3 pulses,
-    pulse_0, pulse_1, and pulse_2 should be 1 and the rest of the pulses should
-    be 0.
+    The circuit in _cpmg_circuit parameterizes the pulses, so this function fills in the parameters
+    for each pulse.  For instance, if we want 3 pulses, pulse_0, pulse_1, and pulse_2 should be 1
+    and the rest of the pulses should be 0.
     """
     pulse_points = []
     for n in range(max(num_pulses)):
@@ -277,10 +276,9 @@ def _cpmg_sweep(num_pulses: List[int]):
 class T2DecayResult:
     """Results from a T2 decay experiment.
 
-    This object is a container for the measurement results in each basis
-    for each amount of delay.  These can be used to calculate Pauli
-    expectation values, length of the Bloch vector, and various fittings of
-    the data to calculate estimated T2 phase decay times.
+    This object is a container for the measurement results in each basis for each amount of delay.
+    These can be used to calculate Pauli expectation values, length of the Bloch vector, and
+    various fittings of the data to calculate estimated T2 phase decay times.
     """
 
     def __init__(self, x_basis_data: pd.DataFrame, y_basis_data: pd.DataFrame):
@@ -341,8 +339,8 @@ class T2DecayResult:
     def expectation_pauli_x(self) -> pd.DataFrame:
         """A data frame with delay_ns, value columns.
 
-        This value contains the expectation of the Pauli X operator as
-        estimated by measurement outcomes.
+        This value contains the expectation of the Pauli X operator as estimated by measurement
+        outcomes.
         """
         return self._expectation_pauli_x
 
@@ -350,8 +348,8 @@ class T2DecayResult:
     def expectation_pauli_y(self) -> pd.DataFrame:
         """A data frame with delay_ns, value columns.
 
-        This value contains the expectation of the Pauli X operator as
-        estimated by measurement outcomes.
+        This value contains the expectation of the Pauli X operator as estimated by measurement
+        outcomes.
         """
         return self._expectation_pauli_y
 

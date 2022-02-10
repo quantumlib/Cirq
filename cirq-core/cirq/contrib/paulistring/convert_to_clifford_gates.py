@@ -28,8 +28,7 @@ if TYPE_CHECKING:
 
 
 class ConvertToSingleQubitCliffordGates(PointOptimizer):
-    """Attempts to convert single-qubit gates into single-qubit
-    SingleQubitCliffordGates.
+    """Attempts to convert single-qubit gates into single-qubit SingleQubitCliffordGates.
 
     First, checks if the operation has a known unitary effect. If so, and the
         gate is a 1-qubit gate, then decomposes it and tries to make a

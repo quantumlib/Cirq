@@ -58,9 +58,11 @@ def plot_state_histogram(
     ylabel: Optional[str] = 'result count',
     title: Optional[str] = 'Result State Histogram',
 ) -> 'plt.Axis':
-    """Plot the state histogram from either a single result with repetitions or
-       a histogram computed using `result.histogram()` or a flattened histogram
-       of measurement results computed using `get_state_histogram`.
+    """Plot a state histogram.
+
+    This uses data from either a single result with repetitions or a histogram computed
+    using `result.histogram()` or a flattened histogram of measurement results computed
+    using `get_state_histogram`.
 
     Args:
         data:   The histogram values to plot. Possible options are:

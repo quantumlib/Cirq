@@ -2835,9 +2835,9 @@ def test_circuit_superoperator_depolarizing_channel_compositions(rs, n_qubits):
     def pauli_error_probability(r: float, n_qubits: int) -> float:
         """Computes Pauli error probability for given depolarization parameter.
 
-        Pauli error is what cirq.depolarize takes as argument. Depolarization parameter
-        makes it simple to compute the serial composition of depolarizing channels. It
-        is multiplicative under channel composition.
+        Pauli error is what cirq.depolarize takes as argument. Depolarization parameter makes it
+        simple to compute the serial composition of depolarizing channels. It is multiplicative
+        under channel composition.
         """
         d2 = 4 ** n_qubits
         return (1 - r) * (d2 - 1) / d2

@@ -14,9 +14,8 @@
 
 """Utility methods related to optimizing quantum circuits using native iontrap operations.
 
-Gate compilation methods implemented here are following the paper below:
-    'Basic circuit compilation techniques for an ion-trap quantum machine'
-    arXiv:1603.07678
+Gate compilation methods implemented are described in the paper "Basic circuit ompilation
+techniques for an ion-trap quantum machine", https://arxiv.org/abs/1603.07678
 """
 
 from typing import Iterable, List, Optional, cast, Tuple, TYPE_CHECKING

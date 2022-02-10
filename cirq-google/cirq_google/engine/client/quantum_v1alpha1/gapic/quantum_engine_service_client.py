@@ -64,8 +64,7 @@ class QuantumEngineServiceClient(object):
 
     @classmethod
     def from_service_account_file(cls, filename, *args, **kwargs):
-        """Creates an instance of this client using the provided credentials
-        file.
+        """Creates an instance of this client using the provided credentials file.
 
         Args:
             filename (str): The path to the service account private key json

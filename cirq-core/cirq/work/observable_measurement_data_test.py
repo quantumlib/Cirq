@@ -129,7 +129,7 @@ def test_observable_measured_result():
 
 @pytest.fixture()
 def example_bsa() -> 'cw.BitstringAccumulator':
-    """Test fixture to create an (empty) example BitstringAccumulator"""
+    """Test fixture to create an (empty) example BitstringAccumulator."""
     q0, q1 = cirq.LineQubit.range(2)
     setting = cw.InitObsSetting(
         init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)

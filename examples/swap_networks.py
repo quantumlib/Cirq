@@ -97,8 +97,7 @@ def get_max_cut_qaoa_circuit(
     use_logical_qubits: bool = False,
     verbose: bool = True,
 ):
-    """Implement a single round of QAOA for MaxCut using linearly connected
-    qubits.
+    """Implement a single round of QAOA for MaxCut using linearly connected qubits.
 
     Args:
         vertices: The vertices of the graph.
@@ -112,7 +111,6 @@ def get_max_cut_qaoa_circuit(
     Returns:
         A circuit implementing a single round of QAOA with the specified
         angles.
-
     """
 
     assert all(set(edge) <= set(vertices) for edge in edges)

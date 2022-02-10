@@ -33,8 +33,9 @@ def test_bad_args():
 
 
 def create_circuit_and_device():
-    """Construct a small circuit and a device with line connectivity
-    to test the greedy router. This instance hangs router in Cirq 8.2.
+    """Construct a small circuit and a device with line connectivity to test the greedy router.
+
+    This instance hangs router in Cirq 0.8.2.
     """
     num_qubits = 6
     gate_domain = {cirq.ops.CNOT: 2}

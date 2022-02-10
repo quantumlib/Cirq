@@ -23,7 +23,7 @@ from cirq_aqt.aqt_device import get_aqt_device, get_op_string
 
 
 class EngineReturn:
-    """A put mock class for testing the REST interface"""
+    """A put mock class for testing the REST interface."""
 
     def __init__(self):
         self.test_dict = {
@@ -44,7 +44,7 @@ class EngineReturn:
 
 
 class EngineError(EngineReturn):
-    """A put mock class for testing error responses"""
+    """A put mock class for testing error responses."""
 
     def __init__(self):
         self.test_dict = {'status': 'error', 'id': '2131da', 'samples': "Error message"}
@@ -52,8 +52,10 @@ class EngineError(EngineReturn):
 
 
 class EngineNoid(EngineReturn):
-    """A put mock class for testing error responses
-    This will not return an id at the first call"""
+    """A put mock class for testing error responses.
+
+    This will not return an id at the first call.
+    """
 
     def __init__(self):
         self.test_dict = {'status': 'queued'}
@@ -61,8 +63,10 @@ class EngineNoid(EngineReturn):
 
 
 class EngineNoStatus(EngineReturn):
-    """A put mock class for testing error responses
-    This will not return a status in the second call"""
+    """A put mock class for testing error responses.
+
+    This will not return a status in the second call.
+    """
 
     def update(self, *args, **kwargs):
         del self.test_dict['status']
@@ -70,8 +74,10 @@ class EngineNoStatus(EngineReturn):
 
 
 class EngineNoStatus2(EngineReturn):
-    """A put mock class for testing error responses
-    This will not return a status in the second call"""
+    """A put mock class for testing error responses.
+
+    This will not return a status in the second call.
+    """
 
     def update(self, *args, **kwargs):
         if self.counter >= 1:
@@ -80,8 +86,10 @@ class EngineNoStatus2(EngineReturn):
 
 
 class EngineErrorSecond(EngineReturn):
-    """A put mock class for testing error responses
-    This will return an error on the second put call"""
+    """A put mock class for testing error responses.
+
+    This will return an error on the second put call.
+    """
 
     def update(self, *args, **kwargs):
         if self.counter >= 1:

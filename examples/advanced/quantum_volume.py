@@ -1,6 +1,8 @@
-"""Tool to run the Quantum Volume benchmark defined by IBM in
-https://arxiv.org/abs/1811.12926. By default, this runs on the Bristlecone
-device.
+"""Tool to run the Quantum Volume benchmark defined by IBM.
+
+For the definition of quantum volume see https://arxiv.org/abs/1811.12926.
+
+By default, this runs on the Bristlecone device.
 
 Usage: python examples/advanced/quantum_volume.py \
          --num_qubits=4 --depth=4 --num_circuits=1 [--seed=int]
@@ -14,7 +16,6 @@ Output:
     the bit-strings produced by a randomly-generated model circuit (Example: [1,
     5, 7]), and the HOG probability for each given sampler when run on the
     device.
-
 """
 
 import argparse

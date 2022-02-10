@@ -11,9 +11,7 @@ from cirq_rigetti import circuit_transformers as transformers
 def test_transform_cirq_circuit_to_pyquil_program(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
-    """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
-    functionally.
-    """
+    """Test that a user can transform a `cirq.Circuit` to a `pyquil.Program` functionally."""
 
     parametric_circuit, param_resolvers = parametric_circuit_with_params
     circuit = cirq.protocols.resolve_parameters(parametric_circuit, param_resolvers[1])
@@ -33,9 +31,8 @@ def test_transform_cirq_circuit_to_pyquil_program(
 def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
     bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]],
 ) -> None:
-    """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
-    functionally with explicit physical qubit address mapping.
-    """
+    """Test that a user can transform a `cirq.Circuit` to a `pyquil.Program` functionally with
+    explicit physical qubit address mapping."""
 
     bell_circuit, qubits = bell_circuit_with_qids
 
@@ -62,9 +59,8 @@ def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
 def test_transform_with_post_transformation_hooks(
     bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]],
 ) -> None:
-    """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
-    functionally with explicit physical qubit address mapping.
-    """
+    """test that a user can transform a `cirq.Circuit` to a `pyquil.Program` functionally with
+    explicit physical qubit address mapping."""
     bell_circuit, qubits = bell_circuit_with_qids
 
     def reset_hook(program, measurement_id_map):
@@ -114,7 +110,7 @@ def test_transform_with_post_transformation_hooks(
 def test_transform_cirq_circuit_with_explicit_decompose(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
-    """test that a user add a custom circuit decomposition function"""
+    """Tests that a user add a custom circuit decomposition function."""
 
     parametric_circuit, param_resolvers = parametric_circuit_with_params
     parametric_circuit.append(cirq.I(cirq.GridQubit(0, 0)))

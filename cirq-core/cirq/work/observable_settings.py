@@ -26,9 +26,8 @@ if TYPE_CHECKING:
 class InitObsSetting:
     """A pair of initial state and observable.
 
-    Usually, given a circuit you want to iterate through many
-    InitObsSettings to vary the initial state preparation and output
-    observable.
+    Usually, given a circuit you want to iterate through many InitObsSettings to vary the initial
+    state preparation and output observable.
     """
 
     init_state: value.ProductState
@@ -60,8 +59,9 @@ class InitObsSetting:
 
 
 def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None, ops.PauliString]:
-    """Create a new observable that is compatible with all input observables
-    and has the maximum non-identity elements.
+    """Create a new observable that is compatible with all input observables.
+
+    This observable has the maximum non-identity elements.
 
     The returned PauliString is constructed by taking the non-identity
     single-qubit Pauli at each qubit position.
@@ -87,8 +87,7 @@ def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None
 
 
 def _max_weight_state(states: Iterable[value.ProductState]) -> Union[None, value.ProductState]:
-    """Create a new state that is compatible with all input states
-    and has the maximum weight.
+    """Create a new state that is compatible with all input states and has the maximum weight.
 
     The returned TensorProductState is constructed by taking the
     single-qubit state at each qubit position.
@@ -118,9 +117,7 @@ def zeros_state(qubits: Iterable['cirq.Qid']):
 def observables_to_settings(
     observables: Iterable['cirq.PauliString'], qubits: Iterable['cirq.Qid']
 ) -> Iterable[InitObsSetting]:
-    """Transform an observable to an InitObsSetting initialized in the
-    all-zeros state.
-    """
+    """Transform an observable to an InitObsSetting initialized in the all-zeros state."""
     for observable in observables:
         yield InitObsSetting(init_state=zeros_state(qubits), observable=observable)
 
@@ -128,8 +125,8 @@ def observables_to_settings(
 def _fix_precision(val: float, precision) -> int:
     """Convert floating point numbers to (implicitly) fixed point integers.
 
-    Circuit parameters can be floats but we also need to use them as
-    dictionary keys. We secretly use these fixed-precision integers.
+    Circuit parameters can be floats but we also need to use them as dictionary keys. We secretly
+    use these fixed-precision integers.
     """
     return int(val * precision)
 
@@ -139,20 +136,19 @@ def _hashable_param(
 ) -> FrozenSet[Tuple[str, float]]:
     """Hash circuit parameters using fixed precision.
 
-    Circuit parameters can be floats but we also need to use them as
-    dictionary keys. We secretly use these fixed-precision integers.
+    Circuit parameters can be floats but we also need to use them as dictionary keys. We secretly
+    use these fixed-precision integers.
     """
     return frozenset((k, _fix_precision(v, precision)) for k, v in param_tuples)
 
 
 @dataclasses.dataclass(frozen=True)
 class _MeasurementSpec:
-    """An encapsulation of all the specifications for one run of a
-    quantum processor.
+    """An encapsulation of all the specifications for one run of a quantum processor.
 
-    This includes the maximal input-output setting (which may result in many
-    observables being measured if they are consistent with `max_setting`) and
-    a set of circuit parameters if the circuit is parameterized.
+    This includes the maximal input-output setting (which may result in many observables being
+    measured if they are consistent with `max_setting`) and a set of circuit parameters if the
+    circuit is parameterized.
     """
 
     max_setting: InitObsSetting

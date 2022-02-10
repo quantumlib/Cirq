@@ -83,7 +83,8 @@ class ProgramDictProcessor(AbstractLocalProcessor):
     ):
         """Lists all programs regardless of filters.
 
-        This isn't really correct, but we don't want to test test functionality."""
+        This isn't really correct, but we don't want to test test functionality.
+        """
         return self._programs.values()
 
     def get_program(self, program_id: str) -> AbstractProgram:

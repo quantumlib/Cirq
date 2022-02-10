@@ -23,7 +23,10 @@ if TYPE_CHECKING:
 
 
 def _asinsin(x: float) -> float:
-    """Computes arcsin(sin(x)) for any x. Return value in [-π/2, π/2]."""
+    """Computes arcsin(sin(x)) for any x.
+
+    Return value in [-π/2, π/2].
+    """
     k = round(x / np.pi)
     if k % 2 == 0:
         return x - k * np.pi

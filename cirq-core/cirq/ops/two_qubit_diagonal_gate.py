@@ -13,8 +13,7 @@
 # limitations under the License.
 """Creates the gate instance for a two qubit diagonal gate.
 
-The gate is used to create a 4x4 matrix with the diagonal elements
-passed as a list.
+The gate is used to create a 4x4 matrix with the diagonal elements passed as a list.
 """
 
 from typing import AbstractSet, Any, Tuple, Optional, Sequence, TYPE_CHECKING

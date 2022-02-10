@@ -22,9 +22,10 @@ def converted_gate_set(
     no_clifford_gates: bool = False,
     atol: float = 1e-8,
 ) -> circuits.Circuit:
-    """Returns a new, equivalent circuit using the gate set
-    {SingleQubitCliffordGate,
-    CZ/PauliInteractionGate, PauliStringPhasor}.
+    """Convert a circuit to one with gate set useful for PauliStringPhasors.
+
+    This converts to the gate set made up of SingleQubitCliffordGate, CZ/PauliInteractionGate, and
+    PauliStringPhasor.
     """
     conv_circuit = circuits.Circuit(circuit)
     optimizers.ConvertToCzAndSingleGates().optimize_circuit(conv_circuit)

@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A recursive type describing trees of operations, and utility methods for it.
-"""
+"""A recursive type describing trees of operations, and utility methods for it."""
 
 from typing import Callable, Iterable, Iterator, NoReturn, Union, TYPE_CHECKING
 from typing_extensions import Protocol

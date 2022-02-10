@@ -47,9 +47,11 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
 
 
 def assert_optimization_not_broken(circuit):
-    """Check that the unitary matrix for the input circuit is the same (up to
-    global phase and rounding error) as the unitary matrix of the optimized
-    circuit."""
+    """Tests that MergeInteractions preserves the circuit unitary.
+
+    This checks that the unitary matrix for the input circuit is the same (up to global phase and
+    rounding error) as the unitary matrix of the optimized circuit.
+    """
     u_before = circuit.unitary()
     cirq.MergeInteractions().optimize_circuit(circuit)
     u_after = circuit.unitary()

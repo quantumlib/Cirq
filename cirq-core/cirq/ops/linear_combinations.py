@@ -478,8 +478,7 @@ class PauliSum:
         return factory(self._linear_dict.copy())
 
     def matrix(self, qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
-        """Reconstructs matrix of self from underlying Pauli operations in
-        computational basis of qubits.
+        """Reconstructs matrix of self from underlying Pauli operations in computational basis.
 
         Raises:
             TypeError: if any of the gates in self does not provide a unitary.
@@ -758,7 +757,7 @@ class ProjectorSum:
     def __init__(
         self, linear_dict: Optional[value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]]] = None
     ):
-        """Constructor for ProjectorSum
+        """Constructor for ProjectorSum.
 
         Args:
             linear_dict: A linear dictionary from a set of tuples of (Qubit, integer) to a complex

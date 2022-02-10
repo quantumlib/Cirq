@@ -52,8 +52,13 @@ _GRIDLIKE_NODE = Union['cirq.GridQubit', Tuple[int, int]]
 def _node_and_coordinates(
     nodes: Iterable[_GRIDLIKE_NODE],
 ) -> Iterable[Tuple[_GRIDLIKE_NODE, Tuple[int, int]]]:
-    """Yield tuples whose first element is the input node and the second is guaranteed to be a tuple
-    of two integers. The input node can be a tuple of ints or a GridQubit."""
+    """Yield nodes and coordinates.
+
+    These are tuples whose first element is the input node and the second is guaranteed to be a
+    tuple of two integers.
+
+    The input node can be a tuple of ints or a GridQubit.
+    """
     for node in nodes:
         if isinstance(node, GridQubit):
             yield node, (node.row, node.col)
@@ -117,7 +122,7 @@ class LineTopology(NamedTopology):
         object.__setattr__(self, 'graph', graph)
 
     def nodes_as_linequbits(self) -> List['cirq.LineQubit']:
-        """Get the graph nodes as cirq.LineQubit"""
+        """Get the graph nodes as cirq.LineQubit."""
         return [LineQubit(x) for x in sorted(self.graph.nodes)]
 
     def draw(self, ax=None, tilted: bool = True, **kwargs) -> Dict[Any, Tuple[int, int]]:
@@ -222,7 +227,7 @@ class TiltedSquareLattice(NamedTopology):
         return draw_gridlike(self.graph, ax=ax, tilted=tilted, **kwargs)
 
     def nodes_as_gridqubits(self) -> List['cirq.GridQubit']:
-        """Get the graph nodes as cirq.GridQubit"""
+        """Get the graph nodes as cirq.GridQubit."""
         return [GridQubit(r, c) for r, c in sorted(self.graph.nodes)]
 
     def nodes_to_gridqubits(self, offset=(0, 0)) -> Dict[Tuple[int, int], 'cirq.GridQubit']:

@@ -115,6 +115,7 @@ class Moment:
 
     def operates_on_single_qubit(self, qubit: 'cirq.Qid') -> bool:
         """Determines if the moment has operations touching the given qubit.
+
         Args:
             qubit: The qubit that may or may not be touched by operations.
         Returns:

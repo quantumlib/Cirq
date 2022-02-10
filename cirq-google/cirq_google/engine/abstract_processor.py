@@ -13,9 +13,8 @@
 # limitations under the License.
 """Abstract interface for a quantum processor.
 
-This interface can run circuits, sweeps, batches, or calibration
-requests.  Inheritors of this interface should implement all
-methods.
+This interface can run circuits, sweeps, batches, or calibration requests.  Inheritors of this
+interface should implement all methods.
 """
 
 import abc
@@ -261,8 +260,7 @@ class AbstractProcessor(abc.ABC):
 
     @abc.abstractmethod
     def expected_down_time(self) -> 'Optional[datetime.datetime]':
-        """Returns the start of the next expected down time of the processor, if
-        set."""
+        """Returns the start of the next expected down time of the processor, if set."""
 
     @abc.abstractmethod
     def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
@@ -274,8 +272,8 @@ class AbstractProcessor(abc.ABC):
 
     @abc.abstractmethod
     def get_device_specification(self) -> Optional[v2.device_pb2.DeviceSpecification]:
-        """Returns a device specification proto for use in determining
-        information about the device.
+        """Returns a device specification proto for use in determining information about the
+        device.
 
         Returns:
             Device specification proto if present.
@@ -374,9 +372,8 @@ class AbstractProcessor(abc.ABC):
     ):
         """Updates a reservation with new information.
 
-        Updates a reservation with a new start date, end date, or
-        list of additional users.  For each field, it the argument is left as
-        None, it will not be updated.
+        Updates a reservation with a new start date, end date, or list of additional users.  For
+        each field, it the argument is left as None, it will not be updated.
         """
 
     @abc.abstractmethod

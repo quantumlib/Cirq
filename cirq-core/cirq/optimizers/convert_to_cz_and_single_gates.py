@@ -19,8 +19,7 @@ from cirq.transformers.analytical_decompositions import two_qubit_to_cz
 
 
 class ConvertToCzAndSingleGates(circuits.PointOptimizer):
-    """Attempts to convert strange multi-qubit gates into CZ and single qubit
-    gates.
+    """Attempts to convert strange multi-qubit gates into CZ and single qubit gates.
 
     First, checks if the operation has a unitary effect. If so, and the gate is
         a 1-qubit or 2-qubit gate, then performs circuit synthesis of the

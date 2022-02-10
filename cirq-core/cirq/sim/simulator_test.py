@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for simulator.py"""
+"""Tests for simulator.py."""
 import abc
 from typing import Generic, Dict, Any, List, Sequence, Union
 from unittest import mock

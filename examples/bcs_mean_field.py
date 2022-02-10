@@ -188,8 +188,7 @@ def main():
 
 
 def fswap(p, q):
-    """Decompose the Fermionic SWAP gate into two single-qubit gates and
-    one iSWAP gate.
+    """Decompose the Fermionic SWAP gate into two single-qubit gates and one iSWAP gate.
 
     Args:
         p: the id of the first qubit
@@ -226,10 +225,12 @@ def bogoliubov_trans(p, q, theta):
 
 
 def fermi_fourier_trans_2(p, q):
-    """The 2-mode fermionic Fourier transformation can be implemented
-    straightforwardly by the √iSWAP gate. The √iSWAP gate can be readily
-    implemented with the gmon qubits using the XX + YY Hamiltonian. The matrix
-    representation of the 2-qubit fermionic Fourier transformation is:
+    """Returns fermionic fourier transform in terms of ZPow and ISWAPPow gates.
+
+    The 2-mode fermionic Fourier transformation can be implemented straightforwardly by the
+    √iSWAP gate. The √iSWAP gate can be readily implemented with the gmon qubits using the XX + YY
+    Hamiltonian. The matrix representation of the 2-qubit fermionic Fourier transformation is:
+
     [1  0      0      0],
     [0  1/√2   1/√2   0],
     [0  1/√2  -1/√2   0],
@@ -251,11 +252,12 @@ def fermi_fourier_trans_2(p, q):
 
 
 def fermi_fourier_trans_inverse_4(qubits):
-    """The reverse fermionic Fourier transformation implemented on 4 qubits
-    on a line, which maps the momentum picture to the position picture.
-    Using the fast Fourier transformation algorithm, the circuit can be
-    decomposed into 2-mode fermionic Fourier transformation, the fermionic
-    SWAP gates, and single-qubit rotations.
+    """Returns the inverse fermionic fourier transform in terms of ZPow and ISWAPPow gates.
+
+    The inverse fermionic Fourier transformation implemented on 4 qubits on a line, which maps
+    the momentum picture to the position picture. Using the fast Fourier transformation algorithm,
+    the circuit can be decomposed into 2-mode fermionic Fourier transformation, the fermionic SWAP
+    gates, and single-qubit rotations.
 
     Args:
         qubits: list of four qubits
@@ -292,9 +294,10 @@ def fermi_fourier_trans_inverse_conjugate_4(qubits):
 
 
 def bcs_parameters(n_site, n_fermi, u, t):
-    """Generate the parameters for the BCS ground state, i.e., the
-    superconducting gap and the rotational angles in the Bogoliubov
-    transformation.
+    """Generate the parameters for the BCS ground state.
+
+    This returns the superconducting gap and the rotational angles in the
+    Bogoliubov transformation.
 
      Args:
         n_site: the number of sites in the Hubbard model

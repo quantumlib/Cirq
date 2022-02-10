@@ -133,8 +133,9 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
             raise UnsupportedQubit(f'unsupported Qid type {type(valid_qubit)}')
 
     def validate_qubit(self, qubit: 'cirq.Qid') -> None:
-        """Raises an exception if the qubit does not satisfy the topological constraints
-        of the RigettiQCSAspenDevice.
+        """Raises an exception if the qubit does not satisfy topological constraints.
+
+        This usese the topological constraints of the RigettiQCSAspenDevice.
 
         Args:
             qubit: The qubit to validate.
@@ -189,8 +190,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
             raise UnsupportedQubit(f'unsupported Qid type {type(qubit)}')
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
-        """Raises an exception if an operation does not satisfy the topological constraints
-        of the device.
+        """Raises an exception if an operation does not satisfy topological constraints.
 
         Note, in case the operation is invalid, you can still use the Quil
         compiler to rewire qubits and decompose the operation to this device's
@@ -244,8 +244,9 @@ def get_rigetti_qcs_aspen_device(
     quantum_processor_id: str,
     client: Optional[httpx.Client],
 ) -> RigettiQCSAspenDevice:
-    """Retrieves a `qcs_api_client.models.InstructionSetArchitecture` from the Rigetti
-    QCS API and uses it to initialize a RigettiQCSAspenDevice.
+    """Retrieves a `qcs_api_client.models.InstructionSetArchitecture` from the Rigetti QCS API.
+
+    Uses this to initialize a RigettiQCSAspenDevice.
 
     Args:
         quantum_processor_id: The identifier of the Rigetti QCS quantum processor.
@@ -257,7 +258,6 @@ def get_rigetti_qcs_aspen_device(
     Returns:
         A `RigettiQCSAspenDevice` with the specified quantum processor instruction
         set and architecture.
-
     """
     # coverage: ignore
     isa = cast(
@@ -327,8 +327,9 @@ class OctagonalQubit(cirq.ops.Qid):
 
     @property
     def x(self) -> float:
-        """Returns the horizontal position of the qubit, assuming each side of
-        the octagon has length 1.
+        """Returns the horizontal position of the qubit.
+
+        This assumes each side of the octagon has length 1.
 
         Returns:
             The horizontal position of the qubit.
@@ -349,8 +350,9 @@ class OctagonalQubit(cirq.ops.Qid):
 
     @property
     def y(self) -> float:
-        """Returns the vertical position of the qubit, assuming each side of
-        the octagon has length 1. The y-axis is oriented downwards.
+        """Returns the vertical position of the qubit.
+
+        This assumes each side of the octagon has length 1 and the y-axis is oriented downwards.
 
         Returns:
             The vertical position of the qubit.
@@ -402,8 +404,9 @@ class AspenQubit(OctagonalQubit):
 
     @property
     def x(self) -> float:
-        """Returns the horizontal position of the qubit, assuming each side of
-        the octagon has length 1.
+        """Returns the horizontal position of the qubit.
+
+        This assumesg each side of the octagon has length 1.
 
         Returns:
             The horizontal position of the qubit.

@@ -172,9 +172,10 @@ class MockQPUImplementer:
         self,
         results: List[np.ndarray],
     ) -> QuantumComputer:
-        """Mocks compilation methods on the `quantum_computer.compiler`, passively passing the
-        `Program` through. Sequentially adds results to the
-        `quantum_computer.qam._memory_region` (this will not work for asynchronous runs).
+        """Mocks compilation methods on the `quantum_computer.compiler`.
+
+        This passively passes the `Program` through. Sequentially it adds results to
+        the `quantum_computer.qam._memory_region` (this will not work for asynchronous runs).
 
         Args:
             results: np.ndarray to sequentially write to `QAM._memory_region`.

@@ -63,8 +63,8 @@ def test_protobuf_round_trip_device_deprecated():
 def make_bytes(s: str) -> bytes:
     """Helper function to convert a string of digits into packed bytes.
 
-    Ignores any characters other than 0 and 1, in particular whitespace. The
-    bits are packed in little-endian order within each byte.
+    Ignores any characters other than 0 and 1, in particular whitespace. The bits are packed in
+    little-endian order within each byte.
     """
     buf = []
     byte = 0

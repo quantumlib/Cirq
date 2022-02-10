@@ -62,8 +62,8 @@ def test_pasqal_circuit_init():
 def test_run_sweep(mock_post, mock_get):
     """Test running a sweep.
 
-    Encodes a random binary number in the qubits, sweeps between odd and even
-    without noise and checks if the results match.
+    Encodes a random binary number in the qubits, sweeps between odd and even without noise and
+    checks if the results match.
     """
 
     qs = [cirq_pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)]
@@ -110,8 +110,8 @@ def test_run_sweep(mock_post, mock_get):
 def test_run_sweep_device_deprecated(mock_post, mock_get):
     """Test running a sweep.
 
-    Encodes a random binary number in the qubits, sweeps between odd and even
-    without noise and checks if the results match.
+    Encodes a random binary number in the qubits, sweeps between odd and even without noise and
+    checks if the results match.
     """
 
     qs = [cirq_pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)]

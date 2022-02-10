@@ -9,6 +9,7 @@ import cirq_google
 
 def single_qubit_heatmap():
     """Demo of cirq.Heatmap.
+
     Demonstrates how cirq.Heatmap can be used to generate a heatmap of the qubit fidelities.
     """
     value_map = {(qubit,): np.random.random() for qubit in cirq_google.Sycamore.qubits}
@@ -33,6 +34,7 @@ def _sycamore_qubit_pairs():
 
 def two_qubit_interaction_heatmap():
     """Demo of cirq.InteractionHeatmap.
+
     Demonstrates how cirq.Heatmap can be used to generate a two qubit interaction heatmap.
     """
 

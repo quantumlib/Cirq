@@ -368,8 +368,8 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
 class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
 
-    The matrix of `CCX**t` is an 8x8 identity except the bottom right 2x2 area
-    is the matrix of `X**t`.
+    The matrix of `CCX**t` is an 8x8 identity except the bottom right 2x2 area is the matrix of
+    `X**t`.
     """
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
@@ -496,7 +496,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
 @value.value_equality()
 class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
-    """A controlled swap gate. The Fredkin gate."""
+    """A controlled swap gate also known as the Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
         return 0 if index == 0 else 1

@@ -1,10 +1,10 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-"""Superdense Coding.
-Superdense Coding is a method to transmit two classical bits of information
-by sending only one qubit of information. This is accomplished by
-pre-sharing an entangled state between the sender and the receiver. This
-entangled state allows the receiver of the one qubit of information to
-decode the two classical bits that were originally encoded by the sender.
+"""An example showing superdense doding.
+
+Superdense coding is a method to transmit two classical bits of information
+by sending only one qubit of information. This is accomplished by pre-sharing an entangled state
+between the sender and the receiver. This entangled state allows the receiver of the one qubit of
+information to decode the two classical bits that were originally encoded by the sender.
 
 In the following example output, qubit 0 and qubit 1 are randomly set to
 either 0 or 1 by using Hadamard and Measure gates. By sending one qubit of
@@ -34,7 +34,6 @@ Circuit:
 Results:
 input =10001000000000011110, 10000001100000001000
 output=10001000000000011110, 10000001100000001000
-
 """
 
 import cirq

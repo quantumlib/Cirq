@@ -88,8 +88,7 @@ def is_valid_routing(
 def get_circuit_connectivity(circuit: 'cirq.Circuit') -> nx.Graph:
     """Return a graph of all 2q interactions in a circuit.
 
-    Nodes are qubits and undirected edges correspond to any two-qubit
-    operation.
+    Nodes are qubits and undirected edges correspond to any two-qubit operation.
     """
     g = nx.Graph()
     for op in circuit.all_operations():

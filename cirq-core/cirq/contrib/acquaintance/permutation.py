@@ -40,8 +40,7 @@ LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 
 class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
-    """A permutation gate indicates a change in the mapping from qubits to
-    logical indices.
+    """A permutation gate indicates a change in the mapping from qubits to logical indices.
 
     Args:
         num_qubits: The number of qubits the gate should act on.
@@ -124,8 +123,7 @@ class MappingDisplayGate(ops.Gate):
 
 
 def display_mapping(circuit: 'cirq.Circuit', initial_mapping: LogicalMapping) -> None:
-    """Inserts display gates between moments to indicate the mapping throughout
-    the circuit."""
+    """Inserts display gates between moments to indicate the mapping throughout the circuit."""
     qubits = sorted(circuit.all_qubits())
     mapping = initial_mapping.copy()
 
@@ -182,8 +180,7 @@ def _canonicalize_permutation(permutation: Dict[int, int]) -> Dict[int, int]:
 
 @value.value_equality(unhashable=True)
 class LinearPermutationGate(PermutationGate):
-    """A permutation gate that decomposes a given permutation using a linear
-    sorting network."""
+    """A permutation gate that decomposes a given permutation using a linear sorting network."""
 
     def __init__(
         self, num_qubits: int, permutation: Dict[int, int], swap_gate: 'cirq.Gate' = ops.SWAP
@@ -239,9 +236,9 @@ class LinearPermutationGate(PermutationGate):
 
 
 def update_mapping(mapping: Dict[ops.Qid, LogicalIndex], operations: 'cirq.OP_TREE') -> None:
-    """Updates a mapping (in place) from qubits to logical indices according to
-    a set of permutation gates. Any gates other than permutation gates are
-    ignored.
+    """Updates a mapping from qubits to logical indices according to a set of permutation gates.
+
+    This mapping is done in place. Any gates other than permutation gates are ignored.
 
     Args:
         mapping: The mapping to update.
@@ -255,8 +252,7 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex], operations: 'cirq.OP_TR
 def get_logical_operations(
     operations: 'cirq.OP_TREE', initial_mapping: Dict[ops.Qid, ops.Qid]
 ) -> Iterable['cirq.Operation']:
-    """Gets the logical operations specified by the physical operations and
-    initial mapping.
+    """Gets the logical operations specified by the physical operations and initial mapping.
 
     Args:
         operations: The physical operations.

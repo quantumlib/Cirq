@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A protocol for implementing high performance clifford tableau evolutions
- for Clifford Simulator."""
+"""A protocol for implementing high performance Clifford tableau evolutions."""
 
 from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
 

@@ -118,8 +118,7 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     @abc.abstractmethod
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Child classes that perform measurements should implement this with
-        the implementation."""
+        """Child classes that perform measurements should implement this."""
 
     def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
         """Creates a copy of the object.
@@ -148,8 +147,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         return args
 
     def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
-        """Subclasses should implement this with any additional state copy
-        functionality."""
+        """Subclasses should implement this with any additional state copy functionality."""
 
     def create_merged_state(self: TSelf) -> TSelf:
         """Creates a final merged state."""
@@ -163,8 +161,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         return args
 
     def _on_kronecker_product(self: TSelf, other: TSelf, target: TSelf):
-        """Subclasses should implement this with any additional state product
-        functionality, if supported."""
+        """Subclasses should implement this with any additional state product functionality."""
 
     def with_qubits(self: TSelf, qubits) -> TSelf:
         """Extend current state space with added qubits.
@@ -211,8 +208,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         validate=True,
         atol=1e-07,
     ):
-        """Subclasses should implement this with any additional state factor
-        functionality, if supported."""
+        """Subclasses should implement this with any additional state factor functionality."""
 
     def transpose_to_qubit_order(
         self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False
@@ -238,8 +234,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         return args
 
     def _on_transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
-        """Subclasses should implement this with any additional state transpose
-        functionality, if supported."""
+        """Subclasses should implement this with any additional state transpose functionality."""
 
     @property
     def classical_data(self) -> 'cirq.ClassicalDataStoreReader':

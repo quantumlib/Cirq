@@ -312,7 +312,7 @@ def _apply_kraus(
 def _apply_kraus_single_qubit(
     kraus: Union[Tuple[Any], Sequence[Any]], args: 'ApplyChannelArgs'
 ) -> np.ndarray:
-    """Use slicing to apply single qubit channel.  Only for two-level qubits."""
+    """Use slicing to apply single qubit channel (only for two-level `cirq.Qid`s)."""
     zero_left = linalg.slice_for_qubits_equal_to(args.left_axes, 0)
     one_left = linalg.slice_for_qubits_equal_to(args.left_axes, 1)
     zero_right = linalg.slice_for_qubits_equal_to(args.right_axes, 0)

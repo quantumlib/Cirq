@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
-    """A dummy sampler for testing. Immediately returns zeroes."""
+    """A dummy sampler for testing that returns zeros."""
 
     def __init__(self, device: devices.Device = None):
         """Construct a sampler that returns 0 for all measurements.

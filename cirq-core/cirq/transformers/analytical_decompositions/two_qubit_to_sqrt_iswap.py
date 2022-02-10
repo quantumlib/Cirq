@@ -135,16 +135,15 @@ def _decomp_to_operations(
     u0_after: np.ndarray = np.eye(2),
     atol: float = 1e-8,
 ) -> Sequence['cirq.Operation']:
-    """Converts a sequence of single-qubit unitary matrices on two qubits into a
-    list of operations with interleaved two-qubit gates."""
+    """Converts a sequence of single-qubit unitary matrices on two qubits into a list of operations
+    with interleaved two-qubit gates."""
     two_qubit_op = two_qubit_gate(q0, q1)
     operations = []
 
     prev_commute = 1
 
     def append(matrix0, matrix1, final_layer=False):
-        """Appends the decomposed single-qubit operations for matrix0 and
-        matrix1.
+        """Appends the decomposed single-qubit operations for matrix0 and matrix1.
 
         The cleanup logic, specific to sqrt-iSWAP, commutes the final Z**a gate
         and any whole X or Y gate on q1 through the following sqrt-iSWAP.
@@ -207,8 +206,8 @@ def _single_qubit_matrices_with_sqrt_iswap(
     required_sqrt_iswap_count: Optional[int] = None,
     atol: float = 1e-8,
 ) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
-    """Computes the sequence of interleaved single-qubit unitary matrices in the
-    sqrt-iSWAP decomposition."""
+    """Computes the sequence of interleaved single-qubit unitary matrices in the sqrt-iSWAP
+    decomposition."""
     decomposers = [
         (_in_0_region, _decomp_0_matrices),
         (_in_1sqrt_iswap_region, _decomp_1sqrt_iswap_matrices),
@@ -253,8 +252,10 @@ def _in_2sqrt_iswap_region(
     interaction_coefficients: Tuple[float, float, float],
     weyl_tol: float = 1e-8,
 ) -> bool:
-    """Tests if (x, y, z) is inside or within weyl_tol of the volume
-    x >= y + |z| assuming x, y, z are canonical.
+    """Test if (x, y, z) coordinates are inside a vaolume x >= y + |z| to a given tolerance.
+
+    True if (x, y, z) is inside or within weyl_tol of the volume x >= y + |z| assuming x, y, z
+    are canonical.
 
     References:
         Towards ultra-high fidelity quantum operations: SQiSW gate as a native

@@ -14,9 +14,9 @@
 
 """The circuit data structure.
 
-Circuits consist of a list of Moments, each Moment made up of a set of
-Operations. Each Operation is a Gate that acts on some Qubits, for a given
-Moment the Operations must all act on distinct Qubits.
+Circuits consist of a list of Moments, each Moment made up of a set of Operations. Each Operation
+is a Gate that acts on some Qubits, for a given Moment the Operations must all act on distinct
+Qubits.
 """
 
 import abc
@@ -696,7 +696,6 @@ class AbstractCircuit(abc.ABC):
             the start frontier and a blocking operation. The first item of
             each tuple is the index of the moment containing the operation,
             and the second item is the operation itself.
-
         """
         op_list: List[Tuple[int, ops.Operation]] = []
         if not start_frontier:
@@ -868,9 +867,8 @@ class AbstractCircuit(abc.ABC):
     def all_operations(self) -> Iterator['cirq.Operation']:
         """Iterates over the operations applied by this circuit.
 
-        Operations from earlier moments will be iterated over first. Operations
-        within a moment are iterated in the order they were given to the
-        moment's constructor.
+        Operations from earlier moments will be iterated over first. Operations within a moment are
+        iterated in the order they were given to the moment's constructor.
         """
         return (op for moment in self for op in moment.operations)
 
@@ -956,11 +954,10 @@ class AbstractCircuit(abc.ABC):
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """Converts the circuit into a unitary matrix, if possible.
 
-        If the circuit contains any non-terminal measurements, the conversion
-        into a unitary matrix fails (i.e. returns NotImplemented). Terminal
-        measurements are ignored when computing the unitary matrix. The unitary
-        matrix is the product of the unitary matrix of all operations in the
-        circuit (after expanding them to apply to the whole system).
+        If the circuit contains any non-terminal measurements, the conversion into a unitary matrix
+        fails (i.e. returns NotImplemented). Terminal measurements are ignored when computing the
+        unitary matrix. The unitary matrix is the product of the unitary matrix of all operations
+        in the circuit (after expanding them to apply to the whole system).
         """
         if not self._has_unitary_():
             return NotImplemented
@@ -1498,7 +1495,6 @@ class AbstractCircuit(abc.ABC):
 
         Returns:
             The list of independent qubit sets.
-
         """
         uf = networkx.utils.UnionFind(self.all_qubits())
         for op in self.all_operations():
@@ -1540,7 +1536,6 @@ class AbstractCircuit(abc.ABC):
         Returns:
             The sequence of circuits, each including only the qubits from one
             independent qubit set.
-
         """
 
         qubit_factors = self.get_independent_qubit_sets()
@@ -1838,11 +1833,10 @@ class Circuit(AbstractCircuit):
     def __pow__(self, exponent: int) -> 'cirq.Circuit':
         """A circuit raised to a power, only valid for exponent -1, the inverse.
 
-        This will fail if anything other than -1 is passed to the Circuit by
-        returning NotImplemented.  Otherwise this will return the inverse
-        circuit, which is the circuit with its moment order reversed and for
-        every moment all the moment's operations are replaced by its inverse.
-        If any of the operations do not support inverse, NotImplemented will be
+        This will fail if anything other than -1 is passed to the Circuit by returning
+        NotImplemented.  Otherwise this will return the inverse circuit, which is the circuit with
+        its moment order reversed and for every moment all the moment's operations are replaced by
+        its inverse. If any of the operations do not support inverse, NotImplemented will be
         returned.
         """
         if exponent != -1:
@@ -2197,8 +2191,7 @@ class Circuit(AbstractCircuit):
     def _insert_operations(
         self, operations: Sequence['cirq.Operation'], insertion_indices: Sequence[int]
     ) -> None:
-        """Inserts operations at the specified moments. Appends new moments if
-        necessary.
+        """Inserts operations at the specified moments. Appends new moments if necessary.
 
         Args:
             operations: The operations to insert.

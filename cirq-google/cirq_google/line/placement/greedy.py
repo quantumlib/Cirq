@@ -30,8 +30,7 @@ if TYPE_CHECKING:
 class GreedySequenceSearch:
     """Base class for greedy search heuristics.
 
-    Specialized greedy heuristics should implement abstract _sequence_search
-    method.
+    Specialized greedy heuristics should implement abstract _sequence_search method.
     """
 
     def __init__(self, device: 'cirq_google.XmonDevice', start: GridQubit) -> None:
@@ -204,11 +203,10 @@ class GreedySequenceSearch:
 class _PickFewestNeighbors(GreedySequenceSearch):
     """Minimal qubit connectivity greedy heuristic for linear sequence.
 
-    Traverses the grid by choosing the qubit which has the least number of still
-    available neighbours in each step. However, qubits with no remaining
-    neighbors at all are avoided if at all possible. The idea is that this will
-    cause the search to "hug the walls" and spiral inward, without falling into
-    obvious traps.
+    Traverses the grid by choosing the qubit which has the least number of still available
+    neighbours in each step. However, qubits with no remaining neighbors at all are avoided if at
+    all possible. The idea is that this will cause the search to "hug the walls" and spiral inward,
+    without falling into obvious traps.
     """
 
     def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:
@@ -223,8 +221,8 @@ class _PickFewestNeighbors(GreedySequenceSearch):
 class _PickLargestArea(GreedySequenceSearch):
     """Largest area greedy heuristic for linear sequence.
 
-    Traverses the grid by choosing the qubit which is connected with the largest
-    part of the chip, when this qubit is added to the sequence.
+    Traverses the grid by choosing the qubit which is connected with the largest part of the chip,
+    when this qubit is added to the sequence.
     """
 
     def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:

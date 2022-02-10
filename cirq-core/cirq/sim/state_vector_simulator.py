@@ -53,8 +53,8 @@ class SimulatesIntermediateStateVector(
 ):
     """A simulator that accesses its state vector as it does its simulation.
 
-    Implementors of this interface should implement the _core_iterator
-    method."""
+    Implementors of this interface should implement the _core_iterator method.
+    """
 
     def __init__(
         self,
@@ -115,9 +115,8 @@ class StateVectorStepResult(
     def _simulator_state(self) -> 'StateVectorSimulatorState':
         """Returns the simulator_state of the simulator after this step.
 
-        The form of the simulator_state depends on the implementation of the
-        simulation,see documentation for the implementing class for the form of
-        details.
+        The form of the simulator_state depends on the implementation of the simulation,see
+        documentation for the implementing class for the form of details.
         """
         raise NotImplementedError()
 

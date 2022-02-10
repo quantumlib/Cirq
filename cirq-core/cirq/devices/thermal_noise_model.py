@@ -163,9 +163,9 @@ def _validate_rates(qubits: Set['cirq.Qid'], rates: Dict['cirq.Qid', np.ndarray]
 class ThermalNoiseModel(devices.NoiseModel):
     """NoiseModel representing simulated thermalization of a qubit.
 
-    This model is designed for qubits which use energy levels as their states.
-    "Heating" and "cooling" here are used to refer to environmental noise which
-    transitions a qubit to higher or lower energy levels, respectively.
+    This model is designed for qubits which use energy levels as their states. "Heating" and
+    "cooling" here are used to refer to environmental noise which transitions a qubit to higher or
+    lower energy levels, respectively.
     """
 
     def __init__(

@@ -63,8 +63,8 @@ def _stats_from_measurements(
     observable: 'cirq.PauliString',
     atol: float,
 ) -> Tuple[float, float]:
-    """Return the mean and squared standard error of the mean for the given
-    observable according to the measurements in `bitstrings`."""
+    """Returns the mean and squared standard error of the mean for given results and an
+    observable."""
     obs_vals = _obs_vals_from_measurements(bitstrings, qubit_to_index, observable, atol=atol)
     obs_mean = np.mean(obs_vals)
 
@@ -160,8 +160,9 @@ def _setting_to_z_observable(setting: InitObsSetting):
 
 
 class BitstringAccumulator:
-    """A mutable container of bitstrings and associated metadata populated
-    during a `measure_observables` run.
+    """A mutable container of bitstrings and associated metadata.
+
+    This is populated during a `measure_observables` run.
 
     This object contains all raw results and can be serialized via JSON to
     keep a record of your experiment results. There are also various
@@ -271,9 +272,9 @@ class BitstringAccumulator:
     def consume_results(self, bitstrings):
         """Add bitstrings sampled according to `meas_spec`.
 
-        We don't validate that bitstrings were sampled correctly according
-        to `meas_spec` (how could we?) so please be careful. Consider
-        using `measure_observables` rather than calling this method yourself.
+        We don't validate that bitstrings were sampled correctly according to `meas_spec` (how
+        could we?) so please be careful. Consider using `measure_observables` rather than calling
+        this method yourself.
         """
         if bitstrings.dtype != np.uint8:
             raise ValueError("`bitstrings` should be of type np.uint8")
@@ -288,8 +289,7 @@ class BitstringAccumulator:
 
     @property
     def results(self) -> Iterable[ObservableMeasuredResult]:
-        """Yield individual setting results as `ObservableMeasuredResult`
-        objects."""
+        """Yields individual setting results as `ObservableMeasuredResult` objects."""
         for setting in self._simul_settings:
             yield ObservableMeasuredResult(
                 setting=setting,
@@ -303,8 +303,8 @@ class BitstringAccumulator:
     def records(self):
         """Yield individual setting results as dictionary records.
 
-        This is suitable for passing to pd.DataFrame constructor, perhaps
-        after chaining these results with those from other BitstringAccumulators.
+        This is suitable for passing to pd.DataFrame constructor, perhaps after chaining these
+        results with those from other BitstringAccumulators.
         """
         for result in self.results:
             yield result.as_dict()

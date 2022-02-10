@@ -31,7 +31,10 @@ if TYPE_CHECKING:
 
 
 class Sampler(metaclass=abc.ABCMeta):
-    """Something capable of sampling quantum circuits. Simulator or hardware."""
+    """Something capable of sampling quantum circuits.
+
+    Can be a simulator, emulator, or hardware.
+    """
 
     def run(
         self,

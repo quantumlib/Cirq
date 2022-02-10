@@ -31,10 +31,8 @@ if TYPE_CHECKING:
 class AbstractLocalEngine(AbstractEngine):
     """Collection of processors that can execute quantum jobs.
 
-    This class assumes that all processors are local.  Processors
-    are given during initialization.  Program and job querying
-    functionality is done by serially querying all child processors.
-
+    This class assumes that all processors are local.  Processors are given during initialization.
+    Program and job querying functionality is done by serially querying all child processors.
     """
 
     def __init__(self, processors: List[AbstractLocalProcessor]):
@@ -143,10 +141,11 @@ class AbstractLocalEngine(AbstractEngine):
         return valid_jobs
 
     def list_processors(self) -> Sequence[AbstractLocalProcessor]:
-        """Returns a list of Processors that the user has visibility to in the
-        current Engine project. The names of these processors are used to
-        identify devices when scheduling jobs and gathering calibration metrics.
+        """Returns a list of Processors that the user has visibility to..
 
+        This returns processors that are visible in the current Engine project. The names of
+        these processors are used to identify devices when scheduling jobs and gathering
+        calibration metrics.
         Returns:
             A list of EngineProcessors to access status, device and calibration
             information.

@@ -22,9 +22,9 @@ from cirq.study import resolver, sweeps, sweepable
 
 
 def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
-    """Creates a copy of `val` with any symbols or expressions replaced with
-    new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
-    type.
+    """Creates a copy with any symbols or expressions replaced with new symbols.
+
+     Here `val` can be a `Circuit`, `Gate`, `Operation`, or other type.
 
     `flatten` goes through every parameter in `val` and does the following:
     - If the parameter is a number, don't change it.
@@ -108,10 +108,10 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
 def flatten_with_sweep(
     val: Any, sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
 ) -> Tuple[Any, sweeps.Sweep]:
-    """Creates a copy of `val` with any symbols or expressions replaced with
-    new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
-    type.  Also transforms a sweep over the symbols in `val` to a sweep over the
-    new symbols.
+    """Replaces symbols or expressions with new symbols and calculates the sweep over new symbols.
+
+    Here `val` can be a `Circuit`, `Gate`, `Operation`, or other type.  Also transforms a
+    sweep over the symbols in `val` to a sweep over the new symbols.
 
     `flatten_with_sweep` goes through every parameter in `val` and does the
     following:
@@ -142,10 +142,9 @@ def flatten_with_sweep(
 def flatten_with_params(
     val: Any, params: resolver.ParamResolverOrSimilarType
 ) -> Tuple[Any, resolver.ParamDictType]:
-    """Creates a copy of `val` with any symbols or expressions replaced with
-    new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
-    type.  Also transforms a dictionary of symbol values for `val` to an
-    equivalent dictionary mapping the new symbols to their evaluated values.
+    """Creates a copy of `val` with any symbols or expressions replaced with new symbols.  `val`
+    can be a `Circuit`, `Gate`, `Operation`, or other type.  Also transforms a dictionary of symbol
+    values for `val` to an equivalent dictionary mapping the new symbols to their evaluated values.
 
     `flatten_with_params` goes through every parameter in `val` and does the
     following:
@@ -180,11 +179,10 @@ def flatten_with_params(
 class _ParamFlattener(resolver.ParamResolver):
     """A `ParamResolver` that resolves sympy expressions to unique symbols.
 
-    This is a mutable object that stores new expression to symbol mappings
-    when it is used to resolve parameters with `cirq.resolve_parameters` or
-    `_ParamFlattener.flatten_circuit`.  It is useful for replacing sympy
-    expressions from circuits with single symbols and transforming parameter
-    sweeps to match.
+    This is a mutable object that stores new expression to symbol mappings when it is used to
+    resolve parameters with `cirq.resolve_parameters` or `_ParamFlattener.flatten_circuit`.  It is
+    useful for replacing sympy expressions from circuits with single symbols and transforming
+    parameter sweeps to match.
     """
 
     def __new__(cls, *args, **kwargs):
@@ -296,9 +294,9 @@ class _ParamFlattener(resolver.ParamResolver):
             return f'_ParamFlattener({self.param_dict!r}, get_param_name={self.get_param_name!r})'
 
     def flatten(self, val: Any) -> Any:
-        """Returns a copy of `val` with any symbols or expressions replaced with
-        new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
-        type.
+        """Returns a copy of `val` with any symbols or expressions replaced with new symbols.
+
+        Here `val` can be a `Circuit`, `Gate`, `Operation`, or other type.
 
         This method mutates the `_ParamFlattener` by storing any new mappings
         from expression to symbol that is uses on val.
@@ -310,8 +308,7 @@ class _ParamFlattener(resolver.ParamResolver):
 
 
 class ExpressionMap(dict):
-    """A dictionary with sympy expressions and symbols for keys and sympy
-    symbols for values.
+    """A dictionary with sympy expressions and symbols for keys and sympy symbols for values.
 
     This is returned by `cirq.flatten`.  See `ExpressionMap.transform_sweep` and
     `ExpressionMap.transform_params`.
@@ -320,16 +317,15 @@ class ExpressionMap(dict):
     def __init__(self, *args, **kwargs):
         """Initializes the `ExpressionMap`.
 
-        Takes the same arguments as the builtin `dict`.  Keys must be sympy
-        expressions or symbols (instances of `sympy.Basic`).
+        Takes the same arguments as the builtin `dict`.  Keys must be sympy expressions or symbols
+        (instances of `sympy.Basic`).
         """
         super().__init__(*args, **kwargs)
 
     def transform_sweep(
         self, sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
     ) -> sweeps.Sweep:
-        """Returns a sweep to use with a circuit flattened earlier with
-        `cirq.flatten`.
+        """Returns a sweep to use with a circuit flattened earlier with `cirq.flatten`.
 
         If `sweep` sweeps symbol `a` over (1.0, 2.0, 3.0) and this
         `ExpressionMap` maps `a/2+1` to the symbol `'<a/2 + 1>'` then this
@@ -354,8 +350,7 @@ class ExpressionMap(dict):
     def transform_params(
         self, params: resolver.ParamResolverOrSimilarType
     ) -> resolver.ParamDictType:
-        """Returns a `ParamResolver` to use with a circuit flattened earlier
-        with `cirq.flatten`.
+        """Returns a `ParamResolver` to use with a circuit flattened earlier with `cirq.flatten`.
 
         If `params` maps symbol `a` to 3.0 and this `ExpressionMap` maps
         `a/2+1` to `'<a/2 + 1>'` then this method returns a resolver that maps

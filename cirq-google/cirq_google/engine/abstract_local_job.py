@@ -136,8 +136,7 @@ class AbstractLocalJob(AbstractJob):
         return self
 
     def remove_labels(self, keys: List[str]) -> 'AbstractJob':
-        """Removes labels with given keys from the labels of a previously
-        created quantum job.
+        """Removes labels with given keys from the labels of a previously created quantum job.
 
         Params:
             label_keys: Label keys to remove from the existing job labels.
@@ -163,11 +162,15 @@ class AbstractLocalJob(AbstractJob):
         return (self._repetitions, self._sweeps)
 
     def get_processor(self) -> 'AbstractLocalProcessor':
-        """Returns the AbstractProcessor for the processor the job is/was run on,
-        if available, else None."""
+        """Returns the AbstractProcessor for the processor the job is/was run on.
+
+        If none is available, returns None.
+        """
         return self.engine().get_processor(self._processor_id)
 
     def get_calibration(self) -> Optional[calibration.Calibration]:
-        """Returns the recorded calibration at the time when the job was created,
-        from the parent Engine object."""
+        """Returns the recorded calibration at the time when the job was created.
+
+        This is returned from the parent Engine object.
+        """
         return self.get_processor().get_latest_calibration(int(self._create_time.timestamp()))

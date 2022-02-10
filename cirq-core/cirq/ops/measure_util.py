@@ -33,7 +33,7 @@ def measure_single_paulistring(
     pauli_observable: pauli_string.PauliString,
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
 ) -> raw_types.Operation:
-    """Returns a single PauliMeasurementGate which measures the pauli observable
+    """Returns a single PauliMeasurementGate which measures the pauli observable.
 
     Args:
         pauli_observable: The `cirq.PauliString` observable to measure.

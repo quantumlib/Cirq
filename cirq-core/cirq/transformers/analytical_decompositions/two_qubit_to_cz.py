@@ -198,8 +198,7 @@ def _kak_decomposition_to_operations(
 
 
 def _is_trivial_angle(rad: float, atol: float) -> bool:
-    """Tests if a circuit for an operator exp(i*rad*XX) (or YY, or ZZ) can
-    be performed with a whole CZ.
+    """Tests if a circuit for exp(i*rad*XX) (or YY, or ZZ) can be performed with a whole CZ.
 
     Args:
         rad: The angle in radians, assumed to be in the range [-pi/4, pi/4]

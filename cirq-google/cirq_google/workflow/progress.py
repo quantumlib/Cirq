@@ -22,8 +22,7 @@ if TYPE_CHECKING:
 
 
 class _WorkflowLogger(abc.ABC):
-    """Implementers of this class can provide logging and progress information
-    for execution loops."""
+    """Implementers of this class can provide logging and progress info for execution loops."""
 
     def initialize(self):
         """Initialization logic at the start of an execution loop."""

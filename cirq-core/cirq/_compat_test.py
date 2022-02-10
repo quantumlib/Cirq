@@ -332,7 +332,7 @@ def test_deprecated_class():
 
     @deprecated_class(deadline='v1.2', fix='theFix', name='foo')
     class OldClass(NewClass):
-        """The OldClass docs"""
+        """The OldClass docs."""
 
     assert OldClass.__doc__.startswith('THIS CLASS IS DEPRECATED')
     assert 'OldClass docs' in OldClass.__doc__
@@ -384,9 +384,9 @@ def _from_deprecated_import_sub():
 def _import_deprecated_first_new_second():
     """To ensure that module_a gets initialized only once.
 
-    Note that the single execution of _compat_test_data and module_a is asserted
-    in _test_deprecated_module_inner by counting the INFO messages emitted by
-    the modules ('init:compat_test_data' and 'init:module_a').
+    Note that the single execution of _compat_test_data and module_a is asserted in
+    _test_deprecated_module_inner by counting the INFO messages emitted by the modules
+    ('init:compat_test_data' and 'init:module_a').
     """
 
     from cirq.testing._compat_test_data.fake_a import module_b
@@ -410,8 +410,8 @@ def _import_deprecated_first_new_second():
 def _import_new_first_deprecated_second():
     """To ensure that module_a gets initialized only once.
 
-    It is the same as _import_deprecated_first_new_second just with different import order.
-    See that for more details.
+    It is the same as _import_deprecated_first_new_second just with different import order. See
+    that for more details.
     """
     from cirq.testing._compat_test_data.module_a import module_b
 
@@ -477,7 +477,7 @@ def _new_module_in_different_parent():
 
 
 def _find_spec_deprecated_multiple_times():
-    """to ensure the idempotency of the aliasing loader change"""
+    """Ensures the idempotency of the aliasing loader change."""
     # sets up the DeprecationFinders
     import importlib.util
 
@@ -488,7 +488,7 @@ def _find_spec_deprecated_multiple_times():
 
 
 def _import_parent_use_constant_from_deprecated_module_attribute():
-    """to ensure that module initializations set attributes correctly"""
+    """Ensures that module initializations set attributes correctly."""
     # sets up the DeprecationFinders
     import cirq.testing._compat_test_data
 
@@ -502,7 +502,7 @@ def _import_parent_use_constant_from_deprecated_module_attribute():
 
 
 def _import_deprecated_sub_use_constant():
-    """to ensure that submodule initializations set attributes correctly"""
+    """Ensures that submodule initializations set attributes correctly."""
     # sets up the DeprecationFinders
     import cirq.testing._compat_test_data.fake_a.dupe  # type: ignore
 
@@ -524,7 +524,7 @@ def _import_top_level_deprecated():
 
 
 def _repeated_import_path():
-    """to ensure that the highly unlikely repeated subpath import doesn't interfere"""
+    """to ensure that the highly unlikely repeated subpath import doesn't interfere."""
 
     # pylint: disable=line-too-long
     from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore
@@ -846,7 +846,7 @@ def test_import_deprecated_with_no_attribute():
 
 
 def _test_import_deprecated_with_no_attribute_inner():
-    """to ensure that create_attribute=False works too"""
+    """Ensures that create_attribute=False works too."""
 
     # sets up the DeprecationFinders - fake_b is setup with create_attribute=False
     import cirq.testing._compat_test_data
@@ -947,7 +947,7 @@ def test_dir_is_still_valid():
 
 
 def _dir_is_still_valid_inner():
-    """to ensure that create_attribute=True keeps the dir(module) intact"""
+    """Ensures that create_attribute=True keeps the dir(module) intact."""
 
     import cirq.testing._compat_test_data as mod
 

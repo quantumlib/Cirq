@@ -111,8 +111,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         self._engine = engine
 
     def expected_down_time(self) -> 'Optional[datetime.datetime]':
-        """Returns the start of the next expected down time of the processor, if
-        set."""
+        """Returns the start of the next expected down time of the processor, if set."""
         return self._expected_down_time
 
     def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
@@ -142,8 +141,8 @@ class AbstractLocalProcessor(AbstractProcessor):
     def _insert_reservation_into(self, time_slot: qtypes.QuantumTimeSlot) -> None:
         """Inserts a new reservation time slot into the ordered schedule.
 
-        If this reservation overlaps with existing time slots, these slots will be
-        shortened, removed, or split to insert the new reservation.
+        If this reservation overlaps with existing time slots, these slots will be shortened,
+        removed, or split to insert the new reservation.
         """
         new_schedule = []
         time_slot_inserted = False

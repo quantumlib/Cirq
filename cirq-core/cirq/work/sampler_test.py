@@ -216,8 +216,9 @@ def test_sampler_simple_sample_expectation_values():
 def test_sampler_sample_expectation_values_calculation():
     class DeterministicImbalancedStateSampler(cirq.Sampler):
         """A simple, deterministic mock sampler.
-        Pretends to sample from a state vector with a 3:1 balance between the
-        probabilities of the |0) and |1) state.
+
+        Pretends to sample from a state vector with a 3:1 balance between the probabilities of the
+        |0) and |1) state.
         """
 
         def run_sweep(

@@ -93,7 +93,7 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
     def _swap(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
     ):
-        """Apply a SWAP gate"""
+        """Apply a SWAP gate."""
         if exponent % 1 != 0:
             raise ValueError('Swap exponent must be integer')  # coverage: ignore
         self._state.apply_cx(control_axis, target_axis)

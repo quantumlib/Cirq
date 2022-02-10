@@ -67,11 +67,10 @@ CIRCUIT_SAMPLE_JOB_TREE = Union[CircuitSampleJob, CircuitSampleJobTree]
 class Collector(metaclass=abc.ABCMeta):
     """Collects data from a sampler, in parallel, towards some purpose.
 
-    Child classes must override the `next_job` and `on_job_result` methods,
-    which respectively determine what to sample and how to process the results.
-    Utility methods on the base class such as `collect` and `collect_async` can
-    then be given a sampler to collect from, and will request samples with some
-    specified amount of parallelism.
+    Child classes must override the `next_job` and `on_job_result` methods, which respectively
+    determine what to sample and how to process the results. Utility methods on the base class such
+    as `collect` and `collect_async` can then be given a sampler to collect from, and will request
+    samples with some specified amount of parallelism.
     """
 
     @abc.abstractmethod

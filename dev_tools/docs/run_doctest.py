@@ -13,8 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Runs python doctest on all python source files in the cirq directory.
+"""Runs python doctest on all python source files in the cirq directory.
 
 See also:
     https://docs.python.org/3/library/doctest.html
@@ -185,8 +184,7 @@ def exec_tests(
 
 
 def import_file(file_path: str) -> ModuleType:
-    """Finds and runs a python file as if were imported with an `import`
-    statement.
+    """Finds and runs a python file as if were imported with an `import` statement.
 
     Args:
         file_path: The file to import.

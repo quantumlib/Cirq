@@ -176,8 +176,7 @@ class EngineJob(abstract_job.AbstractJob):
         return self
 
     def remove_labels(self, keys: List[str]) -> 'EngineJob':
-        """Removes labels with given keys from the labels of a previously
-        created quantum job.
+        """Removes labels with given keys from the labels of a previously created quantum job.
 
         Params:
             label_keys: Label keys to remove from the existing job labels.
@@ -229,8 +228,10 @@ class EngineJob(abstract_job.AbstractJob):
         return _deserialize_run_context(self._job.run_context)
 
     def get_processor(self) -> 'Optional[engine_processor.EngineProcessor]':
-        """Returns the EngineProcessor for the processor the job is/was run on,
-        if available, else None."""
+        """Returns the EngineProcessor for the processor the job is/was run on.
+
+        If no processor is associated, this returns None.
+        """
         status = self._inner_job().execution_status
         if not status.processor_name:
             return None
@@ -240,8 +241,10 @@ class EngineJob(abstract_job.AbstractJob):
         return engine_processor.EngineProcessor(ids[0], ids[1], self.context)
 
     def get_calibration(self) -> Optional[calibration.Calibration]:
-        """Returns the recorded calibration at the time when the job was run, if
-        one was captured, else None."""
+        """Returns the recorded calibration at the time when the job was run.
+
+        If a calibration was not captured, returns None.
+        """
         status = self._inner_job().execution_status
         if not status.calibration_name:
             return None
@@ -261,9 +264,8 @@ class EngineJob(abstract_job.AbstractJob):
     def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
         """Returns the job results, blocking until the job is complete.
 
-        This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a Sequence[Result]
-        for each circuit in the batch.
+        This method is intended for batched jobs.  Instead of flattening results into a single
+        list, this will return a Sequence[Result] for each circuit in the batch.
         """
         self.results()
         if not self._batched_results:
@@ -318,8 +320,7 @@ class EngineJob(abstract_job.AbstractJob):
     def calibration_results(self) -> Sequence[CalibrationResult]:
         """Returns the results of a run_calibration() call.
 
-        This function will fail if any other type of results were returned
-        by the Engine.
+        This function will fail if any other type of results were returned by the Engine.
         """
         import cirq_google.engine.engine as engine_base
 

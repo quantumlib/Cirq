@@ -13,8 +13,8 @@
 # limitations under the License.
 """Interface for Engine objects.
 
-This class is an abstract class which all Engine implementations
-(production API or locally simulated) should follow.
+This class is an abstract class which all Engine implementations (production API or locally
+simulated) should follow.
 """
 
 import abc
@@ -39,7 +39,6 @@ class AbstractEngine(abc.ABC):
     programs, jobs, and sampler.
 
     This is an abstract interface and inheritors must implement the abstract methods.
-
     """
 
     @abc.abstractmethod

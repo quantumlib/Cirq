@@ -108,11 +108,9 @@ docformatter_args=()
 if (( only_print == 0)); then
   docformatter_args+=("--in-place")
 fi
-docformatter_args+=("--wrap-summaries 99" "--wrap-descriptions 96")
+docformatter_args+=("--wrap-summaries 99" "--wrap-descriptions 99")
 
 echo "Running the docformatter formatter..."
-
-echo "${docformatter_args[@]}"
 
 docformatter ${docformatter_args[@]} "${format_files[@]}"
 DOCFORMATTERSTATUS=$?

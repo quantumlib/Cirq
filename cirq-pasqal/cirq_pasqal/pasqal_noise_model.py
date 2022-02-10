@@ -18,7 +18,7 @@ import cirq_pasqal
 
 
 class PasqalNoiseModel(cirq.devices.NoiseModel):
-    """A noise model for Pasqal neutral atom device"""
+    """A noise model for Pasqal neutral atom device."""
 
     def __init__(self, device: cirq.devices.Device):
         self.noise_op_dict = self.get_default_noise_dict()
@@ -31,7 +31,7 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
         self.device = device
 
     def get_default_noise_dict(self) -> Dict[str, Any]:
-        """Returns the current noise parameters"""
+        """Returns the current noise parameters."""
         default_noise_dict = {
             str(cirq.YPowGate()): cirq.depolarize(1e-2),
             str(cirq.ZPowGate()): cirq.depolarize(1e-2),
@@ -48,8 +48,8 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
     def noisy_moment(
         self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]
     ) -> List[cirq.Operation]:
-        """Returns a list of noisy moments.
-        The model includes
+        """Returns a list of noisy moments. The model includes.
+
         - Depolarizing noise with gate-dependent strength
         Args:
             moment: ideal moment

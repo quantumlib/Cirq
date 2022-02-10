@@ -24,9 +24,10 @@ _default_executor = executors.with_quilc_compilation_and_cirq_parameter_resoluti
 
 
 class RigettiQCSSampler(cirq.Sampler):
-    """This class supports running circuits on QCS quantum hardware as well as pyQuil's
-    quantum virtual machine (QVM). It implements the `cirq.Sampler` interface and
-    thereby supports sampling parameterized circuits across parameter sweeps.
+    """Supports running circuits on QCS quantum hardware and pyQuil's quantum virtual machine.
+
+    It implements the `cirq.Sampler` interface and thereby supports sampling parameterized circuits
+    across parameter sweeps.
     """
 
     def __init__(
@@ -88,8 +89,9 @@ def get_rigetti_qcs_sampler(
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
 ) -> RigettiQCSSampler:
-    """Calls `pyquil.get_qc` to initialize a `pyquil.api.QuantumComputer` and uses
-    this to initialize `RigettiQCSSampler`.
+    """Calls `pyquil.get_qc` to initialize a `pyquil.api.QuantumComputer`.
+
+    This returns an initialize `RigettiQCSSampler`.
 
     Args:
         quantum_processor_id: The name of the desired quantum computer. This should
@@ -113,7 +115,6 @@ def get_rigetti_qcs_sampler(
 
     Returns:
         A `RigettiQCSSampler` with the specified quantum processor, executor, and transformer.
-
     """
     qc = get_qc(
         quantum_processor_id,

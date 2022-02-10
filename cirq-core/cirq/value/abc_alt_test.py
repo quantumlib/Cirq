@@ -130,9 +130,8 @@ def test_unrelated_attribute():
 
 
 def test_classcell_in_namespace():
-    """Tests a historical issue where super() triggers python to add
-    `__classcell__` to the namespace passed to the metaclass __new__.
-    """
+    """Tests a historical issue where super() triggers python to add `__classcell__` to the
+    namespace passed to the metaclass __new__."""
 
     # Test that the class is created without wrongly raising a TypeError
     class _(metaclass=ABCMetaImplementAnyOneOf):

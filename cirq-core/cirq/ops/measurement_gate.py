@@ -27,8 +27,7 @@ if TYPE_CHECKING:
 class MeasurementGate(raw_types.Gate):
     """A gate that measures qubits in the computational basis.
 
-    The measurement gate contains a key that is used to identify results
-    of measurements.
+    The measurement gate contains a key that is used to identify results of measurements.
     """
 
     def __init__(

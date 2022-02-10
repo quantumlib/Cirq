@@ -42,12 +42,10 @@ class Qasm:
 
 
 class QasmGateStatement:
-    """Specifies how to convert a call to an OpenQASM gate
-    to a list of `cirq.GateOperation`s.
+    """Specifies how to convert a call to an OpenQASM gate to a list of `cirq.GateOperation`s.
 
-    Has the responsibility to validate the arguments
-    and parameters of the call and to generate a list of corresponding
-    `cirq.GateOperation`s in the `on` method.
+    Has the responsibility to validate the arguments and parameters of the call and to generate a
+    list of corresponding `cirq.GateOperation`s in the `on` method.
     """
 
     def __init__(

@@ -102,8 +102,7 @@ def simple_noise_from_calibration_metrics(
     readout_decay_noise: bool = False,
     readout_error_noise: bool = False,
 ) -> cirq.NoiseModel:
-    """Creates a reasonable PerQubitDepolarizingWithDampedReadoutNoiseModel
-    using the provided calibration data.
+    """Creates a reasonable PerQubitDepolarizingWithDampedReadoutNoiseModel using calibration data.
 
     Args:
         calibration: a Calibration object (cirq/google/engine/calibration.py).

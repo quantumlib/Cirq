@@ -104,9 +104,9 @@ class Result(abc.ABC):
     def measurements(self) -> Mapping[str, np.ndarray]:
         """A mapping from measurement gate key to measurement results.
 
-        The value for each key is a 2-D array of booleans, with the first index
-        running over the repetitions, and the second index running over the
-        qubits for the corresponding measurements.
+        The value for each key is a 2-D array of booleans, with the first index running over the
+        repetitions, and the second index running over the qubits for the corresponding
+        measurements.
         """
 
     @property
@@ -114,20 +114,18 @@ class Result(abc.ABC):
     def data(self) -> pd.DataFrame:
         """Measurements converted to a pandas dataframe.
 
-        The rows in the returned data frame correspond to repetitions of the
-        circuit, and the columns correspond to measurement keys, where each
-        element is a big-endian integer representation of measurement outcomes
-        for the measurement key in that repetition. To convert these ints to
-        bits see `cirq.big_endian_int_to_bits` and similar functions.
+        The rows in the returned data frame correspond to repetitions of the circuit, and the
+        columns correspond to measurement keys, where each element is a big-endian integer
+        representation of measurement outcomes for the measurement key in that repetition. To
+        convert these ints to bits see `cirq.big_endian_int_to_bits` and similar functions.
         """
 
     @staticmethod
     def dataframe_from_measurements(measurements: Mapping[str, np.ndarray]) -> pd.DataFrame:
         """Converts the given measurements to a pandas dataframe.
 
-        This can be used by subclasses as a default implementation for the data
-        property. Note that subclasses should typically memoize the result to
-        avoid recomputing.
+        This can be used by subclasses as a default implementation for the data property. Note that
+        subclasses should typically memoize the result to avoid recomputing.
         """
         # Convert to a DataFrame with columns as measurement keys, rows as
         # repetitions and a big endian integer for individual measurements.
@@ -386,8 +384,7 @@ class ResultDict(Result):
 
 
 def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool]:
-    """Returns a string of packed digits and a boolean indicating whether the
-    digits were packed as binary values.
+    """Returns a string of packed digits and a boolean whether the digits were packed as binary.
 
     Args:
         digits: A numpy array.

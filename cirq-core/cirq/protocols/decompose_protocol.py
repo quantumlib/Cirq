@@ -388,8 +388,8 @@ def _decompose_preserving_structure(
 ) -> List['cirq.Operation']:
     """Preserves structure (e.g. subcircuits) while decomposing ops.
 
-    This can be used to reduce a circuit to a particular gateset without
-    increasing its serialization size. See tests for examples.
+    This can be used to reduce a circuit to a particular gateset without increasing its
+    serialization size. See tests for examples.
     """
 
     # This method provides a generated 'keep' to its decompose() calls.

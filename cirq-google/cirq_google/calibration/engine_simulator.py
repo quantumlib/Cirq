@@ -380,7 +380,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
     def get_calibrations(
         self, requests: Sequence[PhasedFSimCalibrationRequest]
     ) -> List[PhasedFSimCalibrationResult]:
-        """Retrieves the calibration that matches the requests
+        """Retrieves the calibration that matches the requests.
 
         Args:
             requests: Calibration requests to obtain.

@@ -37,8 +37,7 @@ def uniform_undirected_graph_device(
 def uniform_undirected_linear_device(
     n_qubits: int, edge_labels: Mapping[int, Optional[UndirectedGraphDeviceEdge]]
 ) -> UndirectedGraphDevice:
-    """A uniform , undirected graph device whose qubits are arranged
-    on a line.
+    """A uniform , undirected graph device whose qubits are arranged on a line.
 
     Uniformity refers to the fact that all edges of the same size have the same
     label.

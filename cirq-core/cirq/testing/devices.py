@@ -18,9 +18,9 @@ from cirq import devices, ops, protocols
 
 
 class ValidatingTestDevice(devices.Device):
-    """A fake device that was created to ensure certain Device validation features are
-    leveraged in Circuit functions. It contains the minimum set of features that tests
-    require. Feel free to extend the features here as needed.
+    """A fake device that was created to ensure certain Device validation features are leveraged in
+    Circuit functions. It contains the minimum set of features that tests require. Feel free to
+    extend the features here as needed.
 
     Args:
         qubits: set of qubits on this device

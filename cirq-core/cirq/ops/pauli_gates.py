@@ -32,8 +32,8 @@ if TYPE_CHECKING:
 class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     """Represents the Pauli gates.
 
-    This is an abstract class with no public subclasses. The only instances
-    of private subclasses are the X, Y, or Z Pauli gates defined below.
+    This is an abstract class with no public subclasses. The only instances of private subclasses
+    are the X, Y, or Z Pauli gates defined below.
     """
 
     _XYZ: Tuple['Pauli', 'Pauli', 'Pauli']
@@ -62,7 +62,10 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         return Pauli._XYZ[(-self._index - second._index) % 3]
 
     def relative_index(self, second: 'Pauli') -> int:
-        """Relative index of self w.r.t. second in the (X, Y, Z) cycle."""
+        """Relative index of self w.r.t.
+
+        second in the (X, Y, Z) cycle.
+        """
         return (self._index - second._index + 1) % 3 - 1
 
     def phased_pauli_product(

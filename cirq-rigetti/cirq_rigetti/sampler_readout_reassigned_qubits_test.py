@@ -26,9 +26,7 @@ def circuit_data() -> Tuple[cirq.Circuit, List[cirq.LineQubit], cirq.Linspace]:
 def test_readout_on_reassigned_qubits(
     circuit_data: Tuple[cirq.Circuit, List[cirq.LineQubit], cirq.Linspace]
 ) -> None:
-    """test that RigettiQCSSampler can properly readout qubits after quilc has
-    reassigned those qubits in the compiled native Quil.
-    """
+    """Test that RigettiQCSSampler can properly readout qubits after quilc qubits."""
     qc = get_qc('9q-square', as_qvm=True)
     circuit, qubits, sweepable = circuit_data
 

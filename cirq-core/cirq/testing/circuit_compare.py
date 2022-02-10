@@ -399,8 +399,7 @@ def assert_has_consistent_apply_unitary_for_various_exponents(
 
 
 def assert_has_consistent_qid_shape(val: Any) -> None:
-    """Tests whether a value's `_qid_shape_` and `_num_qubits_` are correct and
-    consistent.
+    """Tests whether a value's `_qid_shape_` and `_num_qubits_` are correct and consistent.
 
     Verifies that the entries in the shape are all positive integers and the
     length of shape equals `_num_qubits_` (and also equals `len(qubits)` if

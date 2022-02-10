@@ -49,10 +49,9 @@ class OpIdentifier:
     def is_proper_subtype_of(self, op_id: 'OpIdentifier'):
         """Returns true if this is contained within op_id, but not equal to it.
 
-        If this returns true, (x in self) implies (x in op_id), but the reverse
-        implication does not hold. op_id must be more general than self (either
-        by accepting any qubits or having a more general gate type) for this
-        to return true.
+        If this returns true, (x in self) implies (x in op_id), but the reverse implication does
+        not hold. op_id must be more general than self (either by accepting any qubits or having a
+        more general gate type) for this to return true.
         """
         more_specific_qubits = self.qubits and not op_id.qubits
         more_specific_gate = self.gate_type != op_id.gate_type and issubclass(

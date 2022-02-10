@@ -35,9 +35,8 @@ if TYPE_CHECKING:
 class Cell(metaclass=abc.ABCMeta):
     """A gate, operation, display, operation modifier, etc from Quirk.
 
-    Represents something that can go into a column in Quirk, and supports the
-    operations ultimately necessary to transform a grid of these cells into a
-    `cirq.Circuit`.
+    Represents something that can go into a column in Quirk, and supports the operations ultimately
+    necessary to transform a grid of these cells into a `cirq.Circuit`.
     """
 
     @classmethod

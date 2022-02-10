@@ -185,7 +185,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
 
     @property
     def error_probabilities(self) -> Dict[str, float]:
-        """A dictionary from Pauli gates to probability"""
+        """A dictionary from Pauli gates to probability."""
         return self._error_probabilities
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -337,7 +337,7 @@ class DepolarizingChannel(raw_types.Gate):
 
     @property
     def n_qubits(self) -> int:
-        """The number of qubits"""
+        """The number of qubits."""
         return self._n_qubits
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -383,8 +383,8 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
 class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through non ideal dissipation.
 
-    This channel models the effect of energy dissipation into the environment
-    as well as the environment depositing energy into the system.
+    This channel models the effect of energy dissipation into the environment as well as the
+    environment depositing energy into the system.
     """
 
     def __init__(self, p: float, gamma: float) -> None:
@@ -544,8 +544,7 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
 class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through dissipation.
 
-    This channel models the effect of energy dissipation to the
-    surrounding environment.
+    This channel models the effect of energy dissipation to the surrounding environment.
     """
 
     def __init__(self, gamma: float) -> None:
@@ -658,8 +657,8 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 class ResetChannel(gate_features.SingleQubitGate):
     """Reset a qubit back to its |0⟩ state.
 
-    The reset channel is equivalent to performing an unobserved measurement
-    which then controls a bit flip onto the targeted qubit.
+    The reset channel is equivalent to performing an unobserved measurement which then controls a
+    bit flip onto the targeted qubit.
     """
 
     def __init__(self, dimension: int = 2) -> None:
@@ -785,8 +784,8 @@ def reset_each(*qubits: 'cirq.Qid') -> List[raw_types.Operation]:
 class PhaseDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit phase.
 
-    This channel models phase damping which is the loss of quantum
-    information without the loss of energy.
+    This channel models phase damping which is the loss of quantum information without the loss of
+    energy.
     """
 
     def __init__(self, gamma: float) -> None:

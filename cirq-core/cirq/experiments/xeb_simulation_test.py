@@ -104,13 +104,13 @@ def _ref_simulate_2q_xeb_circuits(
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
 ):
-    """Reference implementation for `simulate_2q_xeb_circuits` that
-    does each circuit independently instead of using intermediate states.
+    """Reference implementation for `simulate_2q_xeb_circuits`
 
-    You can also try editing the helper function to use QSimSimulator() for
-    benchmarking. This simulator does not support intermediate states, so
-    you can't use it with the new functionality.
-    https://github.com/quantumlib/qsim/issues/101
+    This does each circuit independently instead of using intermediate states.
+
+    You can also try editing the helper function to use QSimSimulator() for benchmarking. This
+    simulator does not support intermediate states, so you can't use it with the new
+    functionality. https://github.com/quantumlib/qsim/issues/101
     """
     tasks = []
     for cycle_depth in cycle_depths:

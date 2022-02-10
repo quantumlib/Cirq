@@ -143,10 +143,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
     """Simulator that computes final amplitudes of given bitstrings.
 
-    Given a circuit and a list of bitstrings, computes the amplitudes
-    of the given bitstrings in the state obtained by applying the circuit
-    to the all zeros state. Implementors of this interface should implement
-    the compute_amplitudes_sweep_iter method.
+    Given a circuit and a list of bitstrings, computes the amplitudes of the given bitstrings in
+    the state obtained by applying the circuit to the all zeros state. Implementors of this
+    interface should implement the compute_amplitudes_sweep_iter method.
     """
 
     def compute_amplitudes(
@@ -327,8 +326,10 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
     ) -> List[float]:
-        """Simulates the supplied circuit and calculates exact expectation
-        values for the given observables on its final state.
+        """Simulate and return expectation values.
+
+        Simulates the supplied circuit and calculates exact expectation values for the given
+        observables on its final state.
 
         This method has no perfect analogy in hardware. Instead compare with
         Sampler.sample_expectation_values, which calculates estimated
@@ -429,9 +430,8 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
     ) -> Iterator[List[float]]:
-        """Simulates the supplied circuit and calculates exact expectation
-        values for the given observables on its final state, sweeping over the
-        given params.
+        """Simulates the supplied circuit and calculates exact expectation values for the given
+        observables on its final state, sweeping over the given params.
 
         This method has no perfect analogy in hardware. Instead compare with
         Sampler.sample_expectation_values, which calculates estimated
@@ -469,12 +469,11 @@ class SimulatesFinalState(
 ):
     """Simulator that allows access to the simulator's final state.
 
-    Implementors of this interface should implement the simulate_sweep_iter
-    method. This simulator only returns the state of the quantum system
-    for the final step of a simulation. This simulator state may be a state
-    vector, the density matrix, or another representation, depending on the
-    implementation.  For simulators that also allow stepping through
-    a circuit see `SimulatesIntermediateState`.
+    Implementors of this interface should implement the simulate_sweep_iter method. This simulator
+    only returns the state of the quantum system for the final step of a simulation. This simulator
+    state may be a state vector, the density matrix, or another representation, depending on the
+    implementation.  For simulators that also allow stepping through a circuit see
+    `SimulatesIntermediateState`.
     """
 
     def simulate(
@@ -965,9 +964,7 @@ class SimulationTrialResult:
 
     @property
     def qubit_map(self) -> Dict['cirq.Qid', int]:
-        """A map from Qid to index used to define the ordering of the basis in
-        the result.
-        """
+        """A map from Qid to index used to define the ordering of the basis in the result."""
         return self._final_simulator_state.qubit_map
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -1014,11 +1011,10 @@ def split_into_matching_protocol_then_general(
 ) -> Tuple['cirq.AbstractCircuit', 'cirq.AbstractCircuit']:
     """Splits the circuit into a matching prefix and non-matching suffix.
 
-    The splitting happens in a per-qubit fashion. A non-matching operation on
-    qubit A will cause later operations on A to be part of the non-matching
-    suffix, but later operations on other qubits will continue to be put into
-    the matching part (as long as those qubits have had no non-matching operation
-    up to that point).
+    The splitting happens in a per-qubit fashion. A non-matching operation on qubit A will cause
+    later operations on A to be part of the non-matching suffix, but later operations on other
+    qubits will continue to be put into the matching part (as long as those qubits have had no non-
+    matching operation up to that point).
     """
     blocked_qubits: Set[cirq.Qid] = set()
     matching_prefix = circuits.Circuit()

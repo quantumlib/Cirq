@@ -22,7 +22,8 @@ from cirq.value.duration import Duration
 class Timestamp:
     """A location in time with picosecond accuracy.
 
-    Supports affine operations against Duration."""
+    Supports affine operations against Duration.
+    """
 
     def __init__(
         self, *, picos: Union[int, float] = 0, nanos: Union[int, float] = 0  # Forces keyword args.

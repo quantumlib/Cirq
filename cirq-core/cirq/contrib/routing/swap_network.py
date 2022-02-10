@@ -22,8 +22,10 @@ if TYPE_CHECKING:
 
 
 class SwapNetwork:
-    """A swap network, i.e. a circuit containing logical operations and swaps
-    together with an initial mapping of physical to logical qubits.
+    """A swap network.
+
+    Swap networks are a circuit containing logical operations and swaps together with an
+    initial mapping of physical to logical qubits.
 
     Only instances of PermutationGate are considered as changing the mapping
     between logical and physical qubits. This is, in part, to distinguish

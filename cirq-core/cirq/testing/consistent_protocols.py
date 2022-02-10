@@ -91,8 +91,7 @@ def assert_eigengate_implements_consistent_protocols(
     global_vals: Optional[Dict[str, Any]] = None,
     local_vals: Optional[Dict[str, Any]] = None,
 ) -> None:
-    """Checks that an EigenGate subclass is internally consistent and has a
-    good __repr__."""
+    """Checks that an EigenGate subclass is internally consistent and has a good __repr__."""
     # pylint: disable=unused-variable
     __tracebackhide__ = True
     # pylint: enable=unused-variable

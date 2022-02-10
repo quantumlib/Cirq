@@ -31,9 +31,9 @@ if TYPE_CHECKING:
 class ExpandComposite(PointOptimizer):
     """An optimizer that expands composite operations via `cirq.decompose`.
 
-    For each operation in the circuit, this pass examines if the operation can
-    be decomposed. If it can be, the operation is cleared out and and replaced
-    with its decomposition using a fixed insertion strategy.
+    For each operation in the circuit, this pass examines if the operation can be decomposed. If it
+    can be, the operation is cleared out and and replaced with its decomposition using a fixed
+    insertion strategy.
     """
 
     def __init__(self, no_decomp: Callable[[ops.Operation], bool] = (lambda _: False)) -> None:

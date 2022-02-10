@@ -312,7 +312,7 @@ def decompose_arbitrary_into_syc_tabulation(
     op: cirq.Operation,
     tabulation: cirq.TwoQubitGateTabulation,
 ) -> cirq.OP_TREE:
-    """Synthesize an arbitrary 2 qubit operation to a Sycamore operation using the given Tabulation.
+    """Synthesize an arbitrary 2 qubit operation to a Sycamore operation for a given Tabulation.
 
     Args:
         qubit_a: First qubit of the operation.
@@ -334,7 +334,8 @@ def decompose_arbitrary_into_syc_tabulation(
 def decompose_arbitrary_into_syc_analytic(
     qubit_a: cirq.Qid, qubit_b: cirq.Qid, op: cirq.Operation
 ) -> cirq.OP_TREE:
-    """Synthesize an arbitrary 2 qubit operation to a Sycamore operation using the given Tabulation.
+    """Synthesize an arbitrary 2 qubit operation to a Sycamore operation using the given
+    Tabulation.
 
     Args:
         qubit_a: First qubit of the operation.
@@ -392,7 +393,7 @@ def decompose_iswap_into_syc(a: cirq.Qid, b: cirq.Qid):
 
 
 def decompose_swap_into_syc(a: cirq.Qid, b: cirq.Qid):
-    """Decompose SWAP into sycamore gates using precomputed coefficients"""
+    """Decompose SWAP into sycamore gates using precomputed coefficients."""
     yield cirq.PhasedXPowGate(phase_exponent=0.44650378384076217, exponent=0.8817921214052824).on(a)
     yield cirq.PhasedXPowGate(phase_exponent=-0.7656774060816165, exponent=0.6628666504604785).on(b)
     yield google.SYC.on(a, b)

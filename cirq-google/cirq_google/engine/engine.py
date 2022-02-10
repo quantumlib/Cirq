@@ -74,9 +74,10 @@ def _make_random_id(prefix: str, length: int = 16):
 
 @cirq.value_equality
 class EngineContext:
-    """Context for running against the Quantum Engine API. Most users should
-    simply create an Engine object instead of working with one of these
-    directly."""
+    """Context for running against the Quantum Engine API.
+
+    Most users should simply create an Engine object instead of working with one of these directly.
+    """
 
     def __init__(
         self,
@@ -265,7 +266,7 @@ class Engine(abstract_engine.AbstractEngine):
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
-        """Runs the supplied Circuit via Quantum Engine.Creates
+        """Runs the supplied Circuit via Quantum Engine.Creates.
 
         In contrast to run, this runs across multiple parameter sweeps, and
         does not block until a result is returned.
@@ -329,7 +330,7 @@ class Engine(abstract_engine.AbstractEngine):
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
-        """Runs the supplied Circuits via Quantum Engine.Creates
+        """Runs the supplied Circuits via Quantum Engine.Creates.
 
         This will combine each Circuit provided in `programs` into
         a BatchProgram.  Each circuit will pair with the associated
@@ -752,9 +753,11 @@ class Engine(abstract_engine.AbstractEngine):
         ]
 
     def list_processors(self) -> List[engine_processor.EngineProcessor]:
-        """Returns a list of Processors that the user has visibility to in the
-        current Engine project. The names of these processors are used to
-        identify devices when scheduling jobs and gathering calibration metrics.
+        """Returns a list of Processors that the user has visibility to.
+
+        This returns processors that are visible in the current Engine project. The names
+        of these processors are used to identify devices when scheduling jobs and gathering
+        calibration metrics.
 
         Returns:
             A list of EngineProcessors to access status, device and calibration
@@ -859,9 +862,8 @@ def get_engine_device(
 ) -> cirq.Device:
     """Returns a `Device` object for a given processor.
 
-    This is a short-cut for creating an engine object, getting the
-    processor object, and retrieving the device.  Note that the
-    gateset is required in order to match the serialized specification
+    This is a short-cut for creating an engine object, getting the processor object, and retrieving
+    the device.  Note that the gateset is required in order to match the serialized specification
     back into cirq objects.
     """
     return get_engine(project_id).get_processor(processor_id).get_device(gatesets)
@@ -873,8 +875,7 @@ def get_engine_calibration(
 ) -> Optional['cirq_google.Calibration']:
     """Returns calibration metrics for a given processor.
 
-    This is a short-cut for creating an engine object, getting the
-    processor object, and retrieving the current calibration.
-    May return None if no calibration metrics exist for the device.
+    This is a short-cut for creating an engine object, getting the processor object, and retrieving
+    the current calibration. May return None if no calibration metrics exist for the device.
     """
     return get_engine(project_id).get_processor(processor_id).get_current_calibration()

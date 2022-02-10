@@ -213,9 +213,13 @@ def test_empty():
 
 
 def test_greedy_merging():
-    """Tests a tricky situation where the algorithm of "Merge single-qubit
-    gates, greedily align single-qubit then 2-qubit operations" doesn't work.
-    Our algorithm succeeds because we also run it in reverse order."""
+    """A test for greedy merging.
+
+    Tests a tricky situation where the algorithm of "Merge single-qubit gates, greedily align
+    single-qubit then 2-qubit operations" doesn't work.
+
+    Our algorithm succeeds because we also run it in reverse order.
+    """
     q1, q2, q3, q4 = cirq.LineQubit.range(4)
     input_circuit = cirq.Circuit(
         cirq.Moment([cirq.X(q1)]),
@@ -267,7 +271,7 @@ def test_complex_circuit():
 
 
 def test_heterogeneous_circuit():
-    """Tests that a circuit that is very heterogeneous is correctly optimized"""
+    """Tests that a circuit that is very heterogeneous is correctly optimized."""
     q1, q2, q3, q4, q5, q6 = cirq.LineQubit.range(6)
     input_circuit = cirq.Circuit(
         cirq.Moment([cirq.X(q1), cirq.X(q2), cirq.ISWAP(q3, q4), cirq.ISWAP(q5, q6)]),

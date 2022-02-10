@@ -993,9 +993,8 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
 ):
     """A Pauli operation applied to a qubit.
 
-    Satisfies the contract of both GateOperation and PauliString. Relies
-    implicitly on the fact that PauliString({q: X}) compares as equal to
-    GateOperation(X, [q]).
+    Satisfies the contract of both GateOperation and PauliString. Relies implicitly on the fact
+    that PauliString({q: X}) compares as equal to GateOperation(X, [q]).
     """
 
     def __init__(self, pauli: pauli_gates.Pauli, qubit: 'cirq.Qid'):
@@ -1097,8 +1096,8 @@ class MutablePauliString(Generic[TKey]):
     def frozen(self) -> 'cirq.PauliString':
         """Returns a cirq.PauliString with the same contents.
 
-        For example, this is useful because cirq.PauliString is an operation
-        whereas cirq.MutablePauliString is not.
+        For example, this is useful because cirq.PauliString is an operation whereas
+        cirq.MutablePauliString is not.
         """
         return PauliString(
             coefficient=self.coefficient,
@@ -1370,7 +1369,6 @@ class MutablePauliString(Generic[TKey]):
 
             If `other` is not a `cirq.PAULI_STRING_LIKE`, `self` is not mutated
             and `NotImplemented` is returned.
-
         """
         return self._imul_helper_checkpoint(other, +1)
 

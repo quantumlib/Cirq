@@ -1243,9 +1243,9 @@ def test_random_seed_mixture_deterministic():
 def test_entangled_reset_does_not_break_randomness():
     """Test for bad assumptions on caching the wave function on general channels.
 
-    A previous version of cirq made the mistake of assuming that it was okay to
-    cache the wavefunction produced by general channels on unrelated qubits
-    before repeatedly sampling measurements. This test checks for that mistake.
+    A previous version of cirq made the mistake of assuming that it was okay to cache the
+    wavefunction produced by general channels on unrelated qubits before repeatedly sampling
+    measurements. This test checks for that mistake.
     """
 
     a, b = cirq.LineQubit.range(2)

@@ -35,9 +35,7 @@ class BipartiteGraphType(enum.Enum):
 
 
 class BipartiteSwapNetworkGate(PermutationGate):
-    """A swap network that acquaints qubits in one half with qubits in the
-    other.
-
+    """A swap network that acquaints qubits in one half with qubits in the other.
 
     Acts on 2k qubits, acquainting some of the first k qubits with some of the
     latter k. May have the effect permuting the qubits within each half.

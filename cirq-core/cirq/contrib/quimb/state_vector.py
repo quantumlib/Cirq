@@ -12,6 +12,7 @@ import cirq
 # coverage: ignore
 def _get_quimb_version():
     """Returns the quimb version and parsed (major,minor) numbers if possible.
+
     Returns:
         a tuple of ((major, minor), version string)
     """
@@ -106,8 +107,7 @@ def tensor_state_vector(
 def tensor_unitary(
     circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
 ) -> np.ndarray:
-    """Given a circuit contract a tensor network into a dense unitary
-    of the circuit."""
+    """Given a circuit contract a tensor network into a dense unitary of the circuit."""
     if qubits is None:
         qubits = sorted(circuit.all_qubits())
 
@@ -124,8 +124,7 @@ def tensor_unitary(
 def circuit_for_expectation_value(
     circuit: cirq.Circuit, pauli_string: cirq.PauliString
 ) -> cirq.Circuit:
-    """Sandwich a PauliString operator between a forwards and backwards
-    copy of a circuit.
+    """Sandwich a PauliString operator between a forwards and backwards copy of a circuit.
 
     This is a circuit representation of the expectation value of an operator
     <A> = <psi|A|psi> = <0|U^dag A U|0>. You can either extract the 0..0
@@ -146,8 +145,7 @@ def circuit_for_expectation_value(
 def tensor_expectation_value(
     circuit: cirq.Circuit, pauli_string: cirq.PauliString, max_ram_gb=16, tol=1e-6
 ) -> float:
-    """Compute an expectation value for an operator and a circuit via tensor
-    contraction.
+    """Compute an expectation value for an operator and a circuit via tensor contraction.
 
     This will give up if it looks like the computation will take too much RAM.
     """

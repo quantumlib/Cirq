@@ -102,8 +102,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         return f'StabilizerStateChForm(num_qubits={self.n!r})'
 
     def inner_product_of_state_and_x(self, x: int) -> Union[float, complex]:
-        """Returns the amplitude of x'th element of
-        the state vector, i.e. <x|psi>"""
+        """Returns the amplitude of x'th element of the state vector, i.e. <x|psi>"""
         if type(x) == int:
             y = cirq.big_endian_int_to_bits(x, bit_count=self.n)
 
@@ -194,7 +193,9 @@ class StabilizerStateChForm(qis.StabilizerState):
         self.v[q] ^= b ^ self.v[q]
 
     def _H_decompose(self, v, y, z, delta):
-        """Determines the transformation
+        """Perform an H decomposition.
+
+        Determines the transformation.
 
                 H^v (|y> + i^delta |z>) = omega S^a H^b |c>
 
@@ -203,7 +204,8 @@ class StabilizerStateChForm(qis.StabilizerState):
         Input: v,y,z are boolean; delta is an integer (mod 4)
         Outputs: a,b,c are boolean; omega is a complex number
 
-        Precondition: y != z"""
+        Precondition: y != z
+        """
         if y == z:
             raise ValueError('|y> is equal to |z>')
 

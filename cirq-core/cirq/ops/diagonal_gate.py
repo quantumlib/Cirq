@@ -14,8 +14,7 @@
 
 """Creates the gate instance for any number qubits diagonal gate.
 
-The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
-passed as a list.
+The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements passed as a list.
 """
 
 from typing import AbstractSet, Any, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
@@ -50,8 +49,8 @@ def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
     """Generate the Gray Code from 0 to 2^n-1.
 
     Each iteration yields a two-tuple, `(gray_code, bit_flip)`. `gray_code` is the decimal
-    representation of the gray code and `bit_flip` is the position of bits flipped for next
-    gray code.
+    representation of the gray code and `bit_flip` is the position of bits flipped for next gray
+    code.
     """
     gray_code = 0
     for i in range(1, 2 ** n):

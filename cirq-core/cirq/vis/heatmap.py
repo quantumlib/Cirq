@@ -51,7 +51,7 @@ class Point:
 
 @dataclass
 class PolygonUnit:
-    """Dataclass to store information about a single polygon unit to plot on the heatmap
+    """Dataclass to store information about a single polygon unit to plot on the heatmap.
 
     For single (grid) qubit heatmaps, the polygon is a square.
     For two (grid) qubit interaction heatmaps, the polygon is a hexagon.
@@ -61,7 +61,6 @@ class PolygonUnit:
         value: The value for the heatmap coloring.
         center: The center point of the polygon where annotation text should be printed.
         annot: The annotation string to print on the coupler.
-
     """
 
     polygon: Polygon
@@ -89,7 +88,7 @@ class Heatmap:
         ],
         **kwargs,
     ):
-        """2D qubit grid Heatmaps
+        """2D qubit grid Heatmaps.
 
         Draw 2D qubit grid heatmap with Matplotlib with parameters to configure the properties of
         the plot.
@@ -218,7 +217,7 @@ class Heatmap:
     def _plot_colorbar(
         self, mappable: mpl.cm.ScalarMappable, ax: plt.Axes
     ) -> mpl.colorbar.Colorbar:
-        """Plots the colorbar. Internal."""
+        """Plots the colorbar."""
         colorbar_ax = axes_grid1.make_axes_locatable(ax).append_axes(
             position=self._config['colorbar_position'],
             size=self._config['colorbar_size'],
@@ -238,7 +237,7 @@ class Heatmap:
         collection: mpl_collections.Collection,
         ax: plt.Axes,
     ) -> None:
-        """Writes annotations to the center of cells. Internal."""
+        """Writes annotations to the center of cells."""
         for (center, annotation), facecolor in zip(centers_and_annot, collection.get_facecolors()):
             # Calculate the center of the cell, assuming that it is a square
             # centered at (x=col, y=row).
@@ -292,6 +291,7 @@ class Heatmap:
         self, ax: Optional[plt.Axes] = None, **kwargs: Any
     ) -> Tuple[plt.Axes, mpl_collections.Collection]:
         """Plots the heatmap on the given Axes.
+
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
@@ -381,6 +381,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         self, ax: Optional[plt.Axes] = None, **kwargs: Any
     ) -> Tuple[plt.Axes, mpl_collections.Collection]:
         """Plots the heatmap on the given Axes.
+
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.

@@ -49,7 +49,7 @@ def _to_clifford_tableau(
     x_to: Optional[PauliTransform] = None,
     z_to: Optional[PauliTransform] = None,
 ) -> qis.CliffordTableau:
-    """Transfer the rotation map to clifford tableau representation"""
+    """Transfer the rotation map to clifford tableau representation."""
     if x_to is None and z_to is None and rotation_map is None:
         raise ValueError(
             "The function either takes rotation_map or a combination "
@@ -146,6 +146,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         x_to: Tuple[Pauli, bool], z_to: Tuple[Pauli, bool]
     ) -> 'SingleQubitCliffordGate':
         """Returns a SingleQubitCliffordGate for the specified transforms.
+
         The Y transform is derived from the X and Z.
 
         Args:
@@ -164,8 +165,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         y_to: Optional[Tuple[Pauli, bool]] = None,
         z_to: Optional[Tuple[Pauli, bool]] = None,
     ) -> 'SingleQubitCliffordGate':
-        """Returns a SingleQubitCliffordGate for the
-        specified transform with a 90 or 180 degree rotation.
+        """Returns a SingleQubitCliffordGate for the specified transforms.
 
         The arguments are exclusive, only one may be specified.
 
@@ -199,8 +199,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         y_to: Optional[Tuple[Pauli, bool]] = None,
         z_to: Optional[Tuple[Pauli, bool]] = None,
     ) -> 'SingleQubitCliffordGate':
-        """Returns a SingleQubitCliffordGate for the
-        specified transform with a 90 or 180 degree rotation.
+        """Returns a SingleQubitCliffordGate for the specified transform.
 
         Either pauli_map_to or two of (x_to, y_to, z_to) may be specified.
 
@@ -366,8 +365,11 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return NotImplemented
 
     def commutes_with_single_qubit_gate(self, gate: 'SingleQubitCliffordGate') -> bool:
-        """Tests if the two circuits would be equivalent up to global phase:
-        --self--gate-- and --gate--self--"""
+        """Returns if the two circuits would be equivalent up to global phase.
+
+        Diagramatically this is true if, up to a global phase,
+            --self--gate-- and --gate--self--
+        """
         self_then_gate = self.clifford_tableau.then(gate.clifford_tableau)
         gate_then_self = gate.clifford_tableau.then(self.clifford_tableau)
         return self_then_gate == gate_then_self
@@ -377,9 +379,12 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return to == pauli and not flip
 
     def merged_with(self, second: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
-        """Returns a SingleQubitCliffordGate such that the circuits
+        """Returns a SingleQubitCliffordGate such that the circuits.
+
+        Diagramatically this returns andout such that
             --output-- and --self--second--
-        are equivalent up to global phase."""
+        are equivalent up to global phase.
+        """
         return SingleQubitCliffordGate.from_clifford_tableau(
             self.clifford_tableau.then(second.clifford_tableau)
         )
@@ -404,7 +409,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     def decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
         """Returns ((first_rotation_axis, first_rotation_quarter_turns), ...)
 
-        This is a sequence of zero, one, or two rotations."""
+        This is a sequence of zero, one, or two rotations.
+        """
         x_rot = self.transform(pauli_gates.X)
         y_rot = self.transform(pauli_gates.Y)
         z_rot = self.transform(pauli_gates.Z)
@@ -459,9 +465,11 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         ), 'Impossible condition where this gate only rotates one Pauli to a different Pauli.'
 
     def equivalent_gate_before(self, after: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
-        """Returns a SingleQubitCliffordGate such that the circuits
+        """Returns a SingleQubitCliffordGate such that the circuits.
+
             --output--self-- and --self--gate--
-        are equivalent up to global phase."""
+        are equivalent up to global phase.
+        """
         return self.merged_with(after).merged_with(self ** -1)
 
     def __repr__(self) -> str:

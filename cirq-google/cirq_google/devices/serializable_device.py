@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Device object for converting from device specification protos"""
+"""Device object for converting from device specification protos."""
 
 from typing import (
     Any,
@@ -33,7 +33,7 @@ from cirq_google.api import v2
 
 
 class _GateDefinition:
-    """Class for keeping track of gate definitions within SerializableDevice"""
+    """Class for keeping track of gate definitions within SerializableDevice."""
 
     def __init__(
         self,
@@ -55,12 +55,12 @@ class _GateDefinition:
     def with_can_serialize_predicate(
         self, can_serialize_predicate: Callable[[cirq.Operation], bool]
     ) -> '_GateDefinition':
-        """Creates a new _GateDefinition as a copy of the existing definition
-        but with a new with_can_serialize_predicate.  This is useful if multiple
-        definitions exist for the same gate, but with different conditions.
+        """Creates a new _GateDefinition with a new with_can_serialize_predicate.
 
-        An example is if gates at certain angles of a gate take longer or are
-        not allowed.
+        This is useful if multiple definitions exist for the same gate, but with
+        different conditions.
+
+        An example is if gates at certain angles of a gate take longer or are not allowed.
         """
         return _GateDefinition(
             self.duration,
@@ -215,7 +215,7 @@ class SerializableDevice(cirq.Device):
 
     @classmethod
     def _create_target_set(cls, ts: v2.device_pb2.TargetSet) -> Set[Tuple[cirq.Qid, ...]]:
-        """Transform a TargetSet proto into a set of qubit tuples"""
+        """Transform a TargetSet proto into a set of qubit tuples."""
         target_set = set()
         for target in ts.targets:
             qid_tuple = tuple(_qid_from_str(q) for q in target.ids)
@@ -268,8 +268,7 @@ class SerializableDevice(cirq.Device):
         fix='qubit coupling data can now be found in device.metadata if provided.',
     )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
-        """Returns a list of qubit edges on the device, defined by the gate
-        definitions.
+        """Returns a list of qubit edges on the device, defined by the gate definitions.
 
         Returns:
             The list of qubit edges on the device.
@@ -292,8 +291,8 @@ class SerializableDevice(cirq.Device):
         p.text(repr(self) if cycle else str(self))
 
     def _find_operation_type(self, op: cirq.Operation) -> Optional[_GateDefinition]:
-        """Finds the type (or a compatible type) of an operation from within
-        a dictionary with keys of Gate type.
+        """Finds the type (or a compatible type) of an operation from within a dictionary with keys
+        of Gate type.
 
         Returns:
              the value corresponding to that key or None if no type matches
@@ -362,8 +361,8 @@ class SerializableDevice(cirq.Device):
 def _qid_from_str(id_str: str) -> cirq.Qid:
     """Translates a qubit id string info cirq.Qid objects.
 
-    Tries to translate to GridQubit if possible (e.g. '4_3'), otherwise
-    falls back to using NamedQubit.
+    Tries to translate to GridQubit if possible (e.g. '4_3'), otherwise falls back to using
+    NamedQubit.
     """
     try:
         return v2.grid_qubit_from_proto_id(id_str)

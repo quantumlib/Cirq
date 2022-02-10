@@ -55,8 +55,9 @@ parser.add_argument(
 
 
 def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool = False) -> bool:
-    """Locates imports that violate cirq's submodule dependencies by
-    instrumenting python import machinery then importing cirq.
+    """Locates imports that violate cirq's submodule dependencies.
+
+    This is done  by instrumenting python import machinery then importing cirq.
 
     Logs when each submodule (up to the given depth) begins and ends executing
     during import and prints an error when any import within a submodule causes
@@ -207,8 +208,10 @@ FAIL_EXIT_CODE = 65
 
 
 def test_no_circular_imports():
-    """Runs the test in a subprocess because cirq has already been imported
-    before in an earlier test but this test needs to control the import process.
+    """Runs the test in a subprocess.
+
+    This is done because Cirq has already been imported before in an earlier test but this test
+    needs to control the import process.
     """
     status = subprocess.call([sys.executable, __file__])
     if status == FAIL_EXIT_CODE:

@@ -24,10 +24,9 @@ from cirq_ionq import calibration, ionq_client, job, results, sampler, serialize
 class Service:
     """A class to access IonQ's API.
 
-    To access the API, this class requires a remote host url and an API key. These can be
-    specified in the constructor via the parameters `remote_host` and `api_key`. Alternatively
-    these can be specified by setting the environment variables `IONQ_REMOTE_HOST` and
-    `IONQ_API_KEY`.
+    To access the API, this class requires a remote host url and an API key. These can be specified
+    in the constructor via the parameters `remote_host` and `api_key`. Alternatively these can be
+    specified by setting the environment variables `IONQ_REMOTE_HOST` and `IONQ_API_KEY`.
     """
 
     def __init__(

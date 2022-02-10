@@ -34,8 +34,8 @@ from cirq_google.serialization import arg_func_langs
 class OpDeserializer(abc.ABC):
     """Generic supertype for operation deserializers.
 
-    Each operation deserializer describes how to deserialize operation protos
-    with a particular `serialized_id` to a specific type of Cirq operation.
+    Each operation deserializer describes how to deserialize operation protos with a particular
+    `serialized_id` to a specific type of Cirq operation.
     """
 
     @property
@@ -43,9 +43,8 @@ class OpDeserializer(abc.ABC):
     def serialized_id(self) -> str:
         """Returns the string identifier for the accepted serialized objects.
 
-        This ID denotes the serialization format this deserializer consumes. For
-        example, one of the common deserializers converts objects with the id
-        'xy' into PhasedXPowGates.
+        This ID denotes the serialization format this deserializer consumes. For example, one of
+        the common deserializers converts objects with the id 'xy' into PhasedXPowGates.
         """
 
     @abc.abstractmethod

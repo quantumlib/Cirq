@@ -62,8 +62,10 @@ class ExecutableGroupResultFilesystemRecord:
         return egr_record
 
     def load(self, *, base_data_dir: str = ".") -> 'cg.ExecutableGroupResult':
-        """Using the filename references in this dataclass, load a `cg.ExecutableGroupResult`
-        from its constituent parts.
+        """load a `cg.ExecutableGroupResult` from its constituent parts.
+
+        This uses the filename references in this dataclass.
+
 
         Args:
             base_data_dir: The base data directory. Files should be found at
@@ -113,9 +115,8 @@ def _update_updatable_files(
     shared_rt_info: 'cg.SharedRuntimeInfo',
     data_dir: str,
 ):
-    """Safely update ExecutableGroupResultFilesystemRecord.json.gz and SharedRuntimeInfo.json.gz
-    during an execution run.
-    """
+    """Safely update ExecutableGroupResultFilesystemRecord.json.gz and
+    SharedRuntimeInfo.json.gz."""
     _safe_to_json(
         shared_rt_info,
         part_path=f'{data_dir}/SharedRuntimeInfo.json.gz.part',
@@ -195,7 +196,7 @@ class _FilesystemSaver(_WorkflowSaver):
     def initialize(
         self, rt_config: 'cg.QuantumRuntimeConfiguration', shared_rt_info: 'cg.SharedRuntimeInfo'
     ):
-        """Initialize the filesystem for data saving
+        """Initialize the filesystem for data saving.
 
         Args:
             rt_config: The immutable `cg.QuantumRuntimeConfiguation` for this run. This is written

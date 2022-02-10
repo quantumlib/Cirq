@@ -66,8 +66,8 @@ def highlight(text: str, color_code: int, bold: bool = False) -> str:
 class TeeCapture:
     """Marker class indicating desire to capture output written to a pipe.
 
-    If out_pipe is None, the caller just wants to capture output without
-    writing it to anything in particular.
+    If out_pipe is None, the caller just wants to capture output without writing it to anything in
+    particular.
     """
 
     def __init__(self, out_pipe: Optional[IO[str]] = None) -> None:

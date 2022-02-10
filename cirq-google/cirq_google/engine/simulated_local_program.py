@@ -25,8 +25,7 @@ if TYPE_CHECKING:
 class SimulatedLocalProgram(AbstractLocalProgram):
     """A program backed by a (local) sampler.
 
-    This class functions as a parent class for a `SimulatedLocalJob`
-    object.
+    This class functions as a parent class for a `SimulatedLocalJob` object.
     """
 
     def __init__(

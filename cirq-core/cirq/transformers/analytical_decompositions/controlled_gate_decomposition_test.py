@@ -61,7 +61,8 @@ def _random_special_unitary():
 def _count_operations(operations):
     """Counts single-qubit, CNOT and CCNOT gates.
 
-    Also validates that there are no other gates."""
+    Also validates that there are no other gates.
+    """
     count_2x2 = 0
     count_cnot = 0
     count_ccnot = 0

@@ -28,8 +28,7 @@ if TYPE_CHECKING:
 @value.value_equality(approximate=True)
 class QasmUGate(ops.SingleQubitGate):
     def __init__(self, theta, phi, lmda) -> None:
-        """A QASM gate representing any single qubit unitary with a series of
-        three rotations, Z, Y, and Z.
+        """A QASM single qubit unitary gate represented as rotations about Z, Y, and Z axes.
 
         The angles are normalized to the range [0, 2) half_turns.
 

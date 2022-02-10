@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A collection of `CircuitSweepExecutor` s that the client may pass to `RigettiQCSService` or
-`RigettiQCSSampler` as `executor`.
+"""A collection of `CircuitSweepExecutor`s.
+
+These may be passed to `RigettiQCSService` or `RigettiQCSSampler` as `executor`.
 """
 
 from typing import Any, cast, Dict, Optional, Sequence, Union
@@ -32,8 +33,7 @@ def _execute_and_read_result(
     resolver: cirq.ParamResolverOrSimilarType,
     memory_map: Optional[Dict[str, Union[int, float, Sequence[int], Sequence[float]]]] = None,
 ) -> cirq.Result:
-    """Execute the `pyquil.api.QuantumExecutable` and parse the measurements into
-    a `cirq.Result`.
+    """Execute the `pyquil.api.QuantumExecutable` and parse the measurements into a `cirq.Result`.
 
     Args:
         quantum_computer: The `pyquil.api.QuantumComputer` on which to execute
@@ -99,9 +99,10 @@ def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[str, Any]
 def _prepend_real_declarations(
     *, program: Program, resolvers: Sequence[cirq.ParamResolverOrSimilarType]
 ) -> Program:
-    """Adds memory declarations for all variables in each of the `resolver`'s
-    param dict. Note, this function assumes that the first parameter resolver
-    will contain all variables subsequently referenced in `resolvers`.
+    """Adds memory declarations for all variables in each of the `resolver`'s param dict.
+
+    Note, this function assumes that the first parameter resolver will contain all variables
+    subsequently referenced in `resolvers`.
 
     Args:
         program: The program that the quantum computer will execute.
@@ -201,10 +202,12 @@ def with_quilc_compilation_and_cirq_parameter_resolution(
     repetitions: int,
     transformer: transformers.CircuitTransformer = transformers.default,
 ) -> Sequence[cirq.Result]:
-    """This `CircuitSweepExecutor` will first resolve each resolver in `resolvers` using
-    `cirq.protocols.resolve_parameters` and then compile that resolved `cirq.Circuit` into
-    native Quil using quilc. This executor may be useful if `with_quilc_parametric_compilation`
-    fails to properly resolve a parameterized `cirq.Circuit`.
+    """A `CircuitSweepExecutor` which uses cirq parameter resolution.
+
+    This `CircuitSweepExecutor` will first resolve each resolver in `resolvers` using
+    `cirq.protocols.resolve_parameters` and then compile that resolved `cirq.Circuit` into native
+    Quil using quilc. This executor may be useful if `with_quilc_parametric_compilation` fails to
+    properly resolve a parameterized `cirq.Circuit`.
 
     Args:
         quantum_computer: The `pyquil.api.QuantumComputer` against which to execute the circuit.
@@ -244,11 +247,12 @@ def with_quilc_parametric_compilation(
     repetitions: int,
     transformer: transformers.CircuitTransformer = transformers.default,
 ) -> Sequence[cirq.Result]:
-    """This `CircuitSweepExecutor` will compile the `circuit` using quilc as a
-    parameterized `pyquil.api.QuantumExecutable` and on each iteration of
-    `resolvers`, rather than resolving the `circuit` with `cirq.protocols.resolve_parameters`,
-    it will attempt to cast the resolver to a dict and pass it as a memory map to
-    to `pyquil.api.QuantumComputer`.
+    """A `CirqcuitSweepExecutor` that will attempt to use a quilc parameterization.
+
+    This `CircuitSweepExecutor` will compile the `circuit` using quilc as a parameterized
+    `pyquil.api.QuantumExecutable` and on each iteration of `resolvers`, rather than resolving the
+    `circuit` with `cirq.protocols.resolve_parameters`, it will attempt to cast the resolver to a
+    dict and pass it as a memory map to to `pyquil.api.QuantumComputer`.
 
     Args:
         quantum_computer: The `pyquil.api.QuantumComputer` against which to execute the circuit.

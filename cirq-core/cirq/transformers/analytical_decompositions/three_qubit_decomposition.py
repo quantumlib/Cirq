@@ -202,8 +202,9 @@ def _two_qubit_multiplexor_to_ops(
 
 def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
     """Removes two qubit gates that amount to identity.
-    Exploiting the specific multiplexed structure, this methods looks ahead
-    to find stripes of 3 or 4 consecutive CZ or CNOT gates and removes them.
+
+    Exploiting the specific multiplexed structure, this methods looks ahead to find stripes
+    of 3 or 4 consecutive CZ or CNOT gates and removes them.
 
     Args:
         operations: operations to be optimized

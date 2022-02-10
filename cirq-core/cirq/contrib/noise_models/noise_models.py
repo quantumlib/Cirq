@@ -22,15 +22,13 @@ if TYPE_CHECKING:
 
 
 class DepolarizingNoiseModel(devices.NoiseModel):
-    """Applies depolarizing noise to each qubit individually at the end of
-    every moment.
+    """Applies depolarizing noise to each qubit individually at the end of every moment.
 
-    If a circuit contains measurements, they must be in moments that don't
-    also contain gates.
+    If a circuit contains measurements, they must be in moments that don't also contain gates.
     """
 
     def __init__(self, depol_prob: float):
-        """A depolarizing noise model
+        """A depolarizing noise model.
 
         Args:
             depol_prob: Depolarizing probability.
@@ -120,15 +118,15 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
 
 
 class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
-    """DepolarizingNoiseModel with probabilistic bit flips preceding
-    measurement.
-    This simulates readout error.
-    If a circuit contains measurements, they must be in moments that don't
-    also contain gates.
+    """DepolarizingNoiseModel with probabilistic bit flips preceding measurement.
+
+    This simulates readout error. If a circuit contains measurements, they must be in moments that
+    don't also contain gates.
     """
 
     def __init__(self, depol_prob: float, bitflip_prob: float):
         """A depolarizing noise model with readout error.
+
         Args:
             depol_prob: Depolarizing probability.
             bitflip_prob: Probability of a bit-flip during measurement.
@@ -151,12 +149,11 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
 
 
 class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
-    """DepolarizingWithReadoutNoiseModel with T1 decay preceding
-    measurement.
-    This simulates asymmetric readout error. The noise is structured
-    so the T1 decay is applied, then the readout bitflip, then measurement.
-    If a circuit contains measurements, they must be in moments that don't
-    also contain gates.
+    """DepolarizingWithReadoutNoiseModel with T1 decay preceding measurement.
+
+    This simulates asymmetric readout error. The noise is structured so the T1 decay is applied,
+    then the readout bitflip, then measurement. If a circuit contains measurements, they must be in
+    moments that don't also contain gates.
     """
 
     def __init__(
@@ -166,6 +163,7 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         decay_prob: float,
     ):
         """A depolarizing noise model with damped readout error.
+
         Args:
             depol_prob: Depolarizing probability.
             bitflip_prob: Probability of a bit-flip during measurement.

@@ -78,8 +78,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         )
 
     def is_virtual_moment(self, moment: 'cirq.Moment') -> bool:
-        """Returns true iff the given moment is non-empty and all of its
-        operations are virtual.
+        """Returns true iff the given moment is non-empty and all of its operations are virtual.
 
         Moments for which this method returns True should not have additional
         noise applied to them.
@@ -208,8 +207,8 @@ class _NoNoiseModel(NoiseModel):
 class ConstantQubitNoiseModel(NoiseModel):
     """Applies noise to each qubit individually at the start of every moment.
 
-    This is the noise model that is wrapped around an operation when that
-    operation is given as "the noise to use" for a `NOISE_MODEL_LIKE` parameter.
+    This is the noise model that is wrapped around an operation when that operation is given as
+    "the noise to use" for a `NOISE_MODEL_LIKE` parameter.
     """
 
     def __init__(self, qubit_noise_gate: 'cirq.Gate'):

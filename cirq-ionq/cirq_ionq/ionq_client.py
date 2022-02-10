@@ -274,7 +274,6 @@ class _IonQClient:
             IonQException: If there was a not-retriable error from the API.
             IonQNotFoundException: If the api returned not found.
             TimeoutError: If the requests retried for more than `max_retry_seconds`.
-
         """
         # Initial backoff of 100ms.
         delay_seconds = 0.1

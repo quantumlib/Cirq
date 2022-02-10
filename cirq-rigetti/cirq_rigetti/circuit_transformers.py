@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A collection of `CircuitTransformer` s that the client may pass to `RigettiQCSService` or
-`RigettiQCSSampler` as `transformer`.
+"""A collection of `CircuitTransformer`s.
+
+These may be passed to `RigettiQCSService` or `RigettiQCSSampler` as `transformer`.
 """
 from typing import Dict, cast, Optional, Tuple, List, Callable
 from pyquil import Program
@@ -116,8 +117,10 @@ def build(
 
 
 def default(*, circuit: cirq.Circuit) -> Tuple[Program, Dict[str, str]]:
-    """The default `CircuitTransformer` uses the default behavior of cirq's Quil
-    protocol to transform a `cirq.Circuit` into a `pyquil.Program`.
+    """The default `CircuitTransformer.
+
+    This uses the default behavior of cirq's Quil protocol to transform a `cirq.Circuit` into
+    a `pyquil.Program`.
 
     Args:
         circuit: The `cirq.Circuit` the transformer will transform into a `pyquil.Program`.

@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Define version number here, read it from setup.py automatically,
-and warn users that the latest version of cirq uses python 3.6+"""
+"""Defines the version number and warn users that the latest version of cirq uses python 3.6+."""
 
 import sys
 

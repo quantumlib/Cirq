@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 def _load_json_bool(b: Any):
-    """Converts a json field to bool.  If already a bool, pass through."""
+    """Converts a json field to bool, or if it is already a bool, pass it through."""
     if isinstance(b, bool):
         return b
     return json.loads(b)

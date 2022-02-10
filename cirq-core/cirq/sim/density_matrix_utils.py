@@ -224,9 +224,7 @@ def _probs(
 def _validate_density_matrix_qid_shape(
     density_matrix: np.array, qid_shape: Tuple[int, ...]
 ) -> Tuple[int, ...]:
-    """Validates that a tensor's shape is a valid shape for qids and returns the
-    qid shape.
-    """
+    """Validates that a tensor's shape is a valid shape for qids and returns the qid shape."""
     shape = density_matrix.shape
     if len(shape) == 2:
         if np.prod(qid_shape, dtype=np.int64) ** 2 != np.prod(shape, dtype=np.int64):

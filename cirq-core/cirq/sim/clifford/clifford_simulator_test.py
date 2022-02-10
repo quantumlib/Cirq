@@ -465,8 +465,8 @@ def test_is_supported_operation():
     class MultiQubitOp(cirq.Operation):
         """Multi-qubit operation with unitary.
 
-        Used to verify that `is_supported_operation` does not attempt to
-        allocate the unitary for multi-qubit operations.
+        Used to verify that `is_supported_operation` does not attempt to allocate the unitary for
+        multi-qubit operations.
         """
 
         @property

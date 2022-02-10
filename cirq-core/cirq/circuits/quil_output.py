@@ -26,9 +26,7 @@ def to_quil_complex_format(num) -> str:
 
 @value.value_equality(approximate=True)
 class QuilOneQubitGate(ops.SingleQubitGate):
-    """A QUIL gate representing any single qubit unitary with a DEFGATE and
-    2x2 matrix in QUIL.
-    """
+    """A QUIL gate representing any single qubit unitary with a DEFGATE and 2x2 matrix in QUIL."""
 
     def __init__(self, matrix: np.ndarray) -> None:
         """Inits QuilOneQubitGate.
@@ -57,9 +55,7 @@ class QuilOneQubitGate(ops.SingleQubitGate):
 
 @value.value_equality(approximate=True)
 class QuilTwoQubitGate(ops.Gate):
-    """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4
-    unitary matrix.
-    """
+    """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4 unitary matrix."""
 
     def __init__(self, matrix: np.ndarray) -> None:
         """Inits QuilTwoQubitGate.
@@ -102,9 +98,9 @@ class QuilTwoQubitGate(ops.Gate):
 
 
 class QuilOutput:
-    """An object for passing operations and qubits then outputting them to
-    QUIL format. The string representation returns the QUIL output for the
-    circuit.
+    """An object for passing operations and qubits then outputting them to QUIL format.
+
+    The string representation returns the QUIL output for the circuit.
     """
 
     def __init__(self, operations: 'cirq.OP_TREE', qubits: Tuple['cirq.Qid', ...]) -> None:
@@ -193,9 +189,9 @@ class QuilOutput:
                 output_func(protocols.quil(decomposed_op, formatter=self.formatter))
 
     def rename_defgates(self, output: str) -> str:
-        """A function for renaming the DEFGATEs within the QUIL output. This
-        utilizes a second pass to find each DEFGATE and rename it based on
-        a counter.
+        """A function for renaming the DEFGATEs within the QUIL output.
+
+        This utilizes a second pass to find each DEFGATE and rename it based on a counter.
         """
         result = output
         defString = "DEFGATE"

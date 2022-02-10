@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Current device parameters for the AQT/UIBK ion trap device
+"""Current device parameters for the AQT/UIBK ion trap device.
 
 The device is based on a linear calcium ion string with
 arbitrary connectivity. For more information see:
@@ -20,8 +20,7 @@ https://quantumoptics.at/en/publications/journal-articles.html
 
 https://iopscience.iop.org/article/10.1088/1367-2630/15/12/123012/meta
 
-The native gate set consists of the local gates: X,Y, and XX entangling gates
-
+The native gate set consists of the local gates: X,Y, and XX entangling gates.
 """
 import json
 from typing import Any, cast, Dict, Optional, Sequence, List, Tuple, Union
@@ -62,7 +61,7 @@ def get_op_string(op_obj: cirq.Operation) -> str:
 
 
 class AQTNoiseModel(cirq.NoiseModel):
-    """A noise model for the AQT ion trap"""
+    """A noise model for the AQT ion trap."""
 
     def __init__(self):
         self.noise_op_dict = get_default_noise_dict()
@@ -97,7 +96,7 @@ class AQTNoiseModel(cirq.NoiseModel):
     def get_crosstalk_operation(
         self, operation: cirq.Operation, system_qubits: Sequence[cirq.Qid]
     ) -> List[cirq.Operation]:
-        """Returns a list of operations including crosstalk
+        """Returns a list of operations including crosstalk.
 
         Args:
             operation: Ideal operation
@@ -219,7 +218,7 @@ class AQTSimulator:
 
 
 def get_aqt_device(num_qubits: int) -> Tuple[cirq.IonDevice, List[cirq.LineQubit]]:
-    """Returns an AQT ion device
+    """Returns an AQT ion device.
 
     Args:
         num_qubits: number of qubits
@@ -239,7 +238,7 @@ def get_aqt_device(num_qubits: int) -> Tuple[cirq.IonDevice, List[cirq.LineQubit
 
 
 def get_default_noise_dict() -> Dict[str, Any]:
-    """Returns the current noise parameters"""
+    """Returns the current noise parameters."""
     default_noise_dict = {
         'X': cirq.depolarize(1e-3),
         'Y': cirq.depolarize(1e-3),

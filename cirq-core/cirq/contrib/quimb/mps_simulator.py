@@ -13,8 +13,7 @@
 # limitations under the License.
 """An MPS simulator.
 
-This is based on this paper:
-https://arxiv.org/abs/2002.07730
+This is based on this paper: https://arxiv.org/abs/2002.07730
 """
 
 import dataclasses
@@ -148,7 +147,7 @@ class MPSSimulator(
 
 
 class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState', 'MPSState']):
-    """A single trial reult"""
+    """A single trial reult."""
 
     def __init__(
         self,
@@ -186,6 +185,7 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
         sim_state: 'cirq.OperationTarget[MPSState]',
     ):
         """Results of a step of the simulator.
+
         Attributes:
             sim_state: The qubit:ActOnArgs lookup for this step.
         """
@@ -232,7 +232,7 @@ class MPSState(ActOnArgs):
         log_of_measurement_results: Dict[str, Any] = None,
         classical_data: 'cirq.ClassicalDataStore' = None,
     ):
-        """Creates and MPSState
+        """Creates and MPSState.
 
         Args:
             qubits: Determines the canonical ordering of the qubits. This
@@ -458,7 +458,7 @@ class MPSState(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
-        """Delegates the action to self.apply_op"""
+        """Delegates the action to self.apply_op."""
         if isinstance(action, ops.Gate):
             action = ops.GateOperation(action, qubits)
         return self.apply_op(action, self.prng)

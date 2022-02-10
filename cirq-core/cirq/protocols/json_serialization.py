@@ -164,7 +164,7 @@ def _obj_to_dict_helper_helper(obj: Any, attribute_names: Iterable[str]) -> Dict
 def obj_to_dict_helper(
     obj: Any, attribute_names: Iterable[str], namespace: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Construct a dictionary containing attributes from obj
+    """Construct a dictionary containing attributes from obj.
 
     This is useful as a helper function in objects implementing the
     SupportsJSON protocol, particularly in the _json_dict_ method.
@@ -430,19 +430,17 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
 class SerializableByKey(SupportsJSON):
     """Protocol for objects that can be serialized to a key + context.
 
-    In serialization, objects that inherit from this type will only be fully
-    defined once (the "context"). Thereafter, a unique integer key will be used
-    to identify that object.
+    In serialization, objects that inherit from this type will only be fully defined once (the
+    "context"). Thereafter, a unique integer key will be used to identify that object.
     """
 
 
 class _SerializedKey(SupportsJSON):
     """Internal object for holding a SerializableByKey key.
 
-    This is a private type used in contextual serialization. Its deserialization
-    is context-dependent, and is not expected to match the original; in other
-    words, `cls._from_json_dict_(obj._json_dict_())` does not return
-    the original `obj` for this type.
+    This is a private type used in contextual serialization. Its deserialization is context-
+    dependent, and is not expected to match the original; in other words,
+    `cls._from_json_dict_(obj._json_dict_())` does not return the original `obj` for this type.
     """
 
     def __init__(self, key: str):
@@ -463,10 +461,9 @@ class _SerializedKey(SupportsJSON):
 class _SerializedContext(SupportsJSON):
     """Internal object for a single SerializableByKey key-to-object mapping.
 
-    This is a private type used in contextual serialization. Its deserialization
-    is context-dependent, and is not expected to match the original; in other
-    words, `cls._from_json_dict_(obj._json_dict_())` does not return
-    the original `obj` for this type.
+    This is a private type used in contextual serialization. Its deserialization is context-
+    dependent, and is not expected to match the original; in other words,
+    `cls._from_json_dict_(obj._json_dict_())` does not return the original `obj` for this type.
     """
 
     def __init__(self, obj: SerializableByKey, uid: int):
@@ -488,10 +485,9 @@ class _SerializedContext(SupportsJSON):
 class _ContextualSerialization(SupportsJSON):
     """Internal object for serializing an object with its context.
 
-    This is a private type used in contextual serialization. Its deserialization
-    is context-dependent, and is not expected to match the original; in other
-    words, `cls._from_json_dict_(obj._json_dict_())` does not return
-    the original `obj` for this type.
+    This is a private type used in contextual serialization. Its deserialization is context-
+    dependent, and is not expected to match the original; in other words,
+    `cls._from_json_dict_(obj._json_dict_())` does not return the original `obj` for this type.
     """
 
     def __init__(self, obj: Any):
@@ -545,9 +541,8 @@ def has_serializable_by_keys(obj: Any) -> bool:
 def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
     """Returns all SerializableByKeys contained by obj.
 
-    Objects are ordered such that nested objects appear before the object they
-    are nested inside. This is required to ensure SerializableByKeys are only
-    fully defined once in serialization.
+    Objects are ordered such that nested objects appear before the object they are nested inside.
+    This is required to ensure SerializableByKeys are only fully defined once in serialization.
     """
     result = []
     if isinstance(obj, SerializableByKey):
@@ -594,9 +589,8 @@ def json_namespace(type_obj: Type) -> str:
 def json_cirq_type(type_obj: Type) -> str:
     """Returns a string type for JSON serialization of `type_obj`.
 
-    This method is not part of the base serialization path. Together with
-    `cirq_type_from_json`, it can be used to provide type-object serialization
-    for classes that need it.
+    This method is not part of the base serialization path. Together with `cirq_type_from_json`, it
+    can be used to provide type-object serialization for classes that need it.
     """
     namespace = json_namespace(type_obj)
     if namespace:

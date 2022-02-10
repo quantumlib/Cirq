@@ -82,7 +82,6 @@ class StateVectorMixin:
                 |  5  |   1    |   0    |   1    |
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
-
         """
         raise NotImplementedError()
 
@@ -94,7 +93,8 @@ class StateVectorMixin:
 
         Returns:
             A pretty string consisting of a sum of computational basis kets
-            and non-zero floats of the specified accuracy."""
+            and non-zero floats of the specified accuracy.
+        """
         return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
     def density_matrix_of(self, qubits: List['cirq.Qid'] = None) -> np.ndarray:

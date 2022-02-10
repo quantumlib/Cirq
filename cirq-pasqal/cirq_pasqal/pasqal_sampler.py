@@ -42,6 +42,7 @@ class PasqalSampler(cirq.work.Sampler):
         param_resolver: cirq.study.ParamResolverOrSimilarType,
     ) -> str:
         """Serialize a given Circuit.
+
         Args:
             circuit: The circuit to be run
             param_resolver: Param resolver for the
@@ -123,6 +124,7 @@ class PasqalSampler(cirq.work.Sampler):
         self, program: cirq.AbstractCircuit, params: cirq.study.Sweepable, repetitions: int = 1
     ) -> List[cirq.study.Result]:
         """Samples from the given Circuit.
+
         In contrast to run, this allows for sweeping over different parameter
         values.
         Args:

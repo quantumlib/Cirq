@@ -328,8 +328,7 @@ def test_constrained_permutations():
 
 
 def test_mixing_types():
-    """Mixing SUBSET_PERMUTATION with SYMMETRIC targets is confusing,
-    and not yet supported"""
+    """Mixing SUBSET_PERMUTATION with SYMMETRIC targets is confusing, and not yet supported."""
     spec = device_pb2.DeviceSpecification()
 
     grid_targets = spec.valid_targets.add()
@@ -379,9 +378,10 @@ def test_multiple_gatesets():
 
 
 def test_half_pi_takes_half_duration():
-    """This tests that gate sets with two different definitions for the same
-    gate perform correctly.  In this case, we set the XPowGate to be
-    half the duration of the full exponent and make sure it still works.
+    """Tests that gate sets with two different definitions for the same gate behave correctly.
+
+    In this case, we set the XPowGate to be half the duration of the full exponent and make sure it
+    still works.
     """
     half_pi_gs = cirq_google.SerializableGateSet(
         gate_set_name='half_pi',
@@ -410,9 +410,11 @@ def test_half_pi_takes_half_duration():
 
 
 def test_multiple_fsim_gatesets():
-    """This tests that gate sets with two different definitions for the same
-    gate perform correctly.  In this case, we set the XPowGate to be
-    half the duration of the full exponent and make sure it still works.
+    """This tests that gate sets with two different definitions for the same gate perform
+    correctly.
+
+    In this case, we set the XPowGate to be half the duration of the full exponent and make sure it
+    still works.
     """
     half_pi_gs = cirq_google.SerializableGateSet(
         gate_set_name='half_pi',

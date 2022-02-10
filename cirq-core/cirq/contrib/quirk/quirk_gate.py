@@ -23,8 +23,8 @@ from cirq import ops
 class QuirkOp:
     """An operation as understood by Quirk's parser.
 
-    Basically just a series of text identifiers for each qubit, and some rules
-    for how things can be combined.
+    Basically just a series of text identifiers for each qubit, and some rules for how things can
+    be combined.
     """
 
     def __init__(self, *keys: Any, can_merge: bool = True) -> None:

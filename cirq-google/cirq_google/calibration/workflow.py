@@ -365,7 +365,7 @@ def prepare_characterization_for_circuits_moments(
     initial: Optional[Sequence[RequestT]] = None,
     permit_mixed_moments: bool = False,
 ) -> Tuple[List[CircuitWithCalibration], List[RequestT]]:
-    """Extracts a minimal set of characterization requests necessary to characterize given circuits.
+    """Extracts a minimal set of characterization requests needed to characterize given circuits.
 
     This prepare method works on moments of the circuit and assumes that all the
     two-qubit gates to calibrate are not mixed with other gates in a moment. The method groups
@@ -558,8 +558,7 @@ def prepare_floquet_characterization_for_operations(
     ] = try_convert_syc_or_sqrt_iswap_to_fsim,
     permit_mixed_moments: bool = False,
 ) -> List[FloquetPhasedFSimCalibrationRequest]:
-    """Extracts a minimal set of Floquet characterization requests necessary to characterize all the
-    operations within a circuit(s).
+    """Extracts a minimal set of Floquet characterization requests need for a circuit or circuits.
 
     This variant of prepare method works on two-qubit operations of the circuit. The method extracts
     all the operations and groups them in a way to minimize the number of characterizations

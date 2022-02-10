@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods related to the AQT ion trap device"""
+"""Types and methods related to the AQT ion trap device."""
 
 from cirq_aqt._version import (
     __version__,

@@ -26,27 +26,24 @@ TDefault = TypeVar('TDefault')
 class SupportsTraceDistanceBound(Protocol):
     """An effect with known bounds on how easy it is to detect.
 
-    Used when deciding whether or not an operation is negligible. For example,
-    the trace distance between the states before and after a Z**0.00000001
-    operation is very close to 0, so it would typically be considered
-    negligible.
+    Used when deciding whether or not an operation is negligible. For example, the trace distance
+    between the states before and after a Z**0.00000001 operation is very close to 0, so it would
+    typically be considered negligible.
     """
 
     @doc_private
     def _trace_distance_bound_(self) -> float:
         """A maximum on the trace distance between `val`'s input and output.
 
-        Generally this method is used when deciding whether to keep gates, so
-        only the behavior near 0 is important. Approximations that overestimate
-        the maximum trace distance are permitted. If, for any case, the bound
-        exceeds 1, this function will return 1.  Underestimates are not
-        permitted.
+        Generally this method is used when deciding whether to keep gates, so only the behavior
+        near 0 is important. Approximations that overestimate the maximum trace distance are
+        permitted. If, for any case, the bound exceeds 1, this function will return 1.
+        Underestimates are not permitted.
         """
 
 
 def trace_distance_bound(val: Any) -> float:
-    """Returns a maximum on the trace distance between this effect's input
-    and output.
+    """Returns a maximum on the trace distance between this effect's input and output.
 
     This method attempts a number of strategies to calculate this value.
 
@@ -65,7 +62,6 @@ def trace_distance_bound(val: Any) -> float:
         not None, that result is returned. Otherwise, 1.0 is returned.
         Result is capped at a maximum of 1.0, even if the underlying function
         produces a result greater than 1.0
-
     """
     strats = [_strat_from_trace_distance_bound_method, _strat_distance_from_unitary]
 
@@ -110,11 +106,12 @@ def _strat_distance_from_unitary(val: Any) -> Optional[float]:
 
 
 def trace_distance_from_angle_list(angle_list: Sequence[float]) -> float:
-    """Given a list of arguments of the eigenvalues of a unitary matrix,
-    calculates the trace distance bound of the unitary effect.
+    """Calculates the trace distance from a list of eigenvalue angles of a unitary matrix.
 
-    The maximum provided angle should not exceed the minimum provided angle
-    by more than 2π.
+    Given a list of arguments of the eigenvalues of a unitary matrix, calculates the trace
+    distance bound of the unitary effect.
+
+    The maximum provided angle should not exceed the minimum provided angle by more than 2π.
     """
     angles = np.sort(angle_list)
     maxim = 2 * np.pi + angles[0] - angles[-1]

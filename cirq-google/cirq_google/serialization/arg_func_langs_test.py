@@ -212,9 +212,10 @@ def test_missing_required_arg():
 
 
 def test_unrecognized_arg():
-    """Getting to some parts of the codes imply that the
-    set of supported of languages has changed.  Modify the
-    supported languages to simulate this future code change."""
+    """Getting to some parts of the codes imply that the set of supported of languages has changed.
+
+    Modify the supported languages to simulate this future code change.
+    """
     cirq_google.serialization.arg_func_langs.SUPPORTED_FUNCTIONS_FOR_LANGUAGE['test'] = frozenset(
         {'magic'}
     )

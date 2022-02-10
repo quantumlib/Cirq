@@ -11,15 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Samplers to access the AQT ion trap devices via the provided API. For
-more information on these devices see the AQT homepage:
+"""Samplers to access the AQT ion trap devices via the provided API.
+
+For more information on these devices see the AQT homepage:
 
 https://www.aqt.eu
 
 API keys for classical simulators and quantum devices can be obtained at:
 
 https://gateway-portal.aqt.eu/
-
 """
 
 import json
@@ -35,9 +35,9 @@ from cirq_aqt.aqt_device import AQTSimulator, get_op_string
 
 
 class AQTSampler(cirq.Sampler):
-    """cirq.Sampler for the AQT ion trap device
-    This sampler connects to the AQT machine and
-    runs a single circuit or an entire sweep remotely
+    """cirq.Sampler for the AQT ion trap device.
+
+    This sampler connects to the AQT machine and runs a single circuit or an entire sweep remotely.
     """
 
     def __init__(self, remote_host: str, access_token: str):
@@ -110,7 +110,7 @@ class AQTSampler(cirq.Sampler):
         repetitions: int = 1,
         num_qubits: int = 1,
     ) -> np.ndarray:
-        """Sends the json string to the remote AQT device
+        """Sends the json string to the remote AQT device.
 
         The interface is given by PUT requests to a single endpoint URL.
         The first PUT will insert the circuit into the remote queue,
@@ -244,7 +244,7 @@ class AQTSamplerLocalSimulator(AQTSampler):
         repetitions: int = 1,
         num_qubits: int = 1,
     ) -> np.ndarray:
-        """Replaces the remote host with a local simulator
+        """Replaces the remote host with a local simulator.
 
         Args:
             json_str: Json representation of the circuit.

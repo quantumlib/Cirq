@@ -14,8 +14,7 @@
 
 """Functionality that is not part of core supported Cirq apis.
 
-Any contributions not ready for full production can be put in a subdirectory in
-this package.
+Any contributions not ready for full production can be put in a subdirectory in this package.
 """
 
 from cirq.contrib import acquaintance

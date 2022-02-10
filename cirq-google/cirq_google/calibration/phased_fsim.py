@@ -72,10 +72,9 @@ def _create_pairs_from_moment(
 ) -> Tuple[Tuple[Tuple[cirq.Qid, cirq.Qid], ...], cirq.Gate]:
     """Creates instantiation parameters from a Moment.
 
-    Given a moment, creates a tuple of pairs of qubits and the
-    gate for instantiation of a sub-class of PhasedFSimCalibrationRequest,
-    Sub-classes of PhasedFSimCalibrationRequest can call this function
-    to implement a from_moment function.
+    Given a moment, creates a tuple of pairs of qubits and the gate for instantiation of a sub-
+    class of PhasedFSimCalibrationRequest, Sub-classes of PhasedFSimCalibrationRequest can call
+    this function to implement a from_moment function.
     """
     gate = None
     pairs: List[Tuple[cirq.Qid, cirq.Qid]] = []
@@ -136,7 +135,7 @@ class PhasedFSimCharacterization:
         return dataclasses.asdict(self)
 
     def all_none(self) -> bool:
-        """Returns True if all the angles are None"""
+        """Returns True if all the angles are None."""
         return (
             self.theta is None
             and self.zeta is None
@@ -146,7 +145,7 @@ class PhasedFSimCharacterization:
         )
 
     def any_none(self) -> bool:
-        """Returns True if any the angle is None"""
+        """Returns True if any the angle is None."""
         return (
             self.theta is None
             or self.zeta is None
@@ -311,8 +310,8 @@ class PhasedFSimCalibrationResult:
     ) -> Dict[Tuple[cirq.Qid, cirq.Qid], PhasedFSimCharacterization]:
         """Utility function to create parameters from JSON.
 
-        Can be used from child classes to instantiate classes in a _from_json_dict_
-        method."""
+        Can be used from child classes to instantiate classes in a _from_json_dict_ method.
+        """
         return {(q_a, q_b): params for q_a, q_b, params in parameters}
 
     @classmethod
@@ -322,8 +321,8 @@ class PhasedFSimCalibrationResult:
     ) -> 'PhasedFSimCalibrationResult':
         """Magic method for the JSON serialization protocol.
 
-        Converts serialized dictionary into a dict suitable for
-        class instantiation."""
+        Converts serialized dictionary into a dict suitable for class instantiation.
+        """
         del kwargs['cirq_type']
         kwargs['parameters'] = cls._create_parameters_dict(kwargs['parameters'])
         return cls(**kwargs)
@@ -575,8 +574,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
 
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
-        correcting for zeta, chi and gamma angles.
-        """
+        correcting for zeta, chi and gamma angles."""
         return PhasedFSimCharacterization(
             zeta=0.0 if self.characterize_zeta else None,
             chi=0.0 if self.characterize_chi else None,
@@ -656,10 +654,9 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def from_moment(cls, moment: cirq.Moment, options: FloquetPhasedFSimCalibrationOptions):
         """Creates a FloquetPhasedFSimCalibrationRequest from a Moment.
 
-        Given a `Moment` object, this function extracts out the pairs of
-        qubits and the `Gate` used to create a `FloquetPhasedFSimCalibrationRequest`
-        object.  The moment must contain only identical two-qubit FSimGates.
-        If dissimilar gates are passed in, a ValueError is raised.
+        Given a `Moment` object, this function extracts out the pairs of qubits and the `Gate` used
+        to create a `FloquetPhasedFSimCalibrationRequest` object.  The moment must contain only
+        identical two-qubit FSimGates. If dissimilar gates are passed in, a ValueError is raised.
         """
         pairs, gate = _create_pairs_from_moment(moment)
         return cls(pairs, gate, options)
@@ -738,8 +735,8 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     ) -> 'FloquetPhasedFSimCalibrationRequest':
         """Magic method for the JSON serialization protocol.
 
-        Converts serialized dictionary into a dict suitable for
-        class instantiation."""
+        Converts serialized dictionary into a dict suitable for class instantiation.
+        """
         instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
         return cls(instantiation_pairs, gate, options)
 

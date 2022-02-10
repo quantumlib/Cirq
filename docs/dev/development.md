@@ -264,15 +264,17 @@ For this pull request you may want to mark it as `[Testing]` so that it is not r
 
 ### Writing docstrings and generating documentation
 
-Cirq uses [Google style doc strings](http://google.github.io/styleguide/pyguide.html#381-docstrings) with a markdown flavor and support for latex.
-Here is an example docstring:
+Cirq uses [Google style doc strings](http://google.github.io/styleguide/pyguide.html#381-docstrings) 
+with a markdown flavor and support for latex. We prefer to use a 100 character limit for 
+docstrings for new code, but it is ok to leave current documentation as 80 character or
+a mixture. Here is an example docstring:
 
 ```
 def some_method(a: int, b: str) -> float:
     r"""One line summary of method.
 
-    Additional information about the method, perhaps with some sort of latex
-    equation to make it clearer:
+    Additional information about the method, perhaps with some sort of latex equation to make 
+    it clearer:
 
         $$
         M = \begin{bmatrix}
@@ -303,14 +305,20 @@ def some_method(a: int, b: str) -> float:
     """
 ```
 
-Currently the docs folder serves two sites: the new site that is under construction and the current site that is deployed to readthedocs.io. 
-The new site is currently not available for preview just yet. For the current site, documentation is generated automatically by readthedocs when pushing to `master`, but you can also generate a local copy by running:
+Documentation appears on Cirq's documentation [site](https://quantumai.google/cirq).  This
+site contains the documentation for the latest release of Cirq, so changes to tutorial
+and guides will not appear until the next release.  Documentation is also automatically 
+generated from docstrings and used to populate the [references](https://quantumai.google/reference/python/cirq/all_symbols)
+section of the documentation.  This does have a version which shows nightly updates to 
+the head of the master branch in Cirq.  You can preview changes to the api docs by running
 
 ```bash
-dev_tools/docs/build-rtd-docs.sh
+python dev_tools/docs/build_api_docs.py --output_dir=docs/api_docs
 ```
 
-The HTML output will go into the `dev_tools/rtd_docs/sphinx/_build` directory.
+There is currently no way to preview changes to documentation on the documentation site
+for external contributors to Cirq (outside of Google). If you want to check changes before
+submitting please ask a Googler for help.
 
 ## Dependencies 
 

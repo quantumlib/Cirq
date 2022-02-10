@@ -53,12 +53,14 @@ class StatePreparationChannel(raw_types.Gate):
 
     def _has_unitary_(self) -> bool:
         """Checks and returns if the gate has a unitary representation.
-        It doesn't, since the resetting of the channels is a non-unitary operations,
-        it involves measurement."""
+
+        It doesn't, since the resetting of the channels is a non-unitary operations, it involves
+        measurement.
+        """
         return False
 
     def _json_dict_(self) -> Dict[str, Any]:
-        """Converts the gate object into a serializable dictionary"""
+        """Converts the gate object into a serializable dictionary."""
         return {
             'target_state': self._state.tolist(),
             'name': self._name,
@@ -68,7 +70,7 @@ class StatePreparationChannel(raw_types.Gate):
     def _from_json_dict_(
         cls, target_state: np.ndarray, name: str, **kwargs
     ) -> 'StatePreparationChannel':
-        """Recreates the channel object from it's serialized form
+        """Recreates the channel object from it's serialized form.
 
         Args:
             target_state: the state to prepare using this channel
@@ -98,7 +100,7 @@ class StatePreparationChannel(raw_types.Gate):
         return True
 
     def _kraus_(self) -> Iterable[np.ndarray]:
-        """Returns the Kraus operator for this gate
+        """Returns the Kraus operator for this gate.
 
         The Kraus Operator is |Psi><i| for all |i>, where |Psi> is the target state.
         This allows is to take any input state to the target state.

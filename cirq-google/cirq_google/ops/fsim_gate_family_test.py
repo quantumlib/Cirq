@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for Common Gate Families used in cirq-google"""
+"""Tests for Common Gate Families used in cirq-google."""
 
 import pytest
 import sympy

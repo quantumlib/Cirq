@@ -49,8 +49,10 @@ def random_locals(x, y, z, seed=None):
 
 
 def perturbations_unitary(u, amount=1e-10):
-    """Returns several unitaries in the neighborhood of u to test for numerical
-    corner cases near critical values."""
+    """Returns several unitaries in the neighborhood of u.
+
+    Used to test for numerical corner cases near critical values.
+    """
     kak = cirq.kak_decomposition(u)
     yield u
     for i in range(3):

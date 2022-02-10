@@ -46,8 +46,9 @@ def run_local_xeb_calibration(
     calibration: LocalXEBPhasedFSimCalibrationRequest,
     sampler: cirq.Sampler,
 ) -> PhasedFSimCalibrationResult:
-    """Run a calibration request using `cirq.experiments` XEB utilities and a sampler rather
-    than `Engine.run_calibrations`.
+    """Run a calibration request locally.
+
+    This uses `cirq.experiments` XEB utilities and a sampler rather than `Engine.run_calibrations`.
 
     Args:
         calibration: A LocalXEBPhasedFSimCalibration request describing the XEB characterization

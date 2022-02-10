@@ -37,10 +37,12 @@ RETRYABLE_ERROR_CODES = [500, 503]
 
 
 class EngineClient:
-    """Client for the Quantum Engine API that deals with the engine protos and
-    the gRPC client but not cirq protos or objects. All users are likely better
-    served by using the Engine, EngineProgram, EngineJob, EngineProcessor, and
-    Calibration objects instead of using this directly.
+    """Client for the Quantum Engine API that deals with the engine protos and the gRPC client.
+
+    This is in contrast to a client that would use cirq protos or cirq objects.
+
+    All users are likely better served by using the Engine, EngineProgram, EngineJob,
+    EngineProcessor, and Calibration objects instead of using this directly.
     """
 
     def __init__(
@@ -224,8 +226,7 @@ class EngineClient:
     def set_program_labels(
         self, project_id: str, program_id: str, labels: Dict[str, str]
     ) -> qtypes.QuantumProgram:
-        """Sets (overwriting) the labels for a previously created quantum
-        program.
+        """Sets (overwriting) the labels for a previously created quantum program.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
@@ -263,8 +264,7 @@ class EngineClient:
     def remove_program_labels(
         self, project_id: str, program_id: str, label_keys: List[str]
     ) -> qtypes.QuantumProgram:
-        """Removes labels with given keys from the labels of a previously
-        created quantum program.
+        """Removes labels with given keys from the labels of a previously created quantum program.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
@@ -536,8 +536,7 @@ class EngineClient:
     def remove_job_labels(
         self, project_id: str, program_id: str, job_id: str, label_keys: List[str]
     ) -> qtypes.QuantumJob:
-        """Removes labels with given keys from the labels of a previously
-        created quantum job.
+        """Removes labels with given keys from the labels of a previously created quantum job.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
@@ -606,9 +605,11 @@ class EngineClient:
         )
 
     def list_processors(self, project_id: str) -> List[qtypes.QuantumProcessor]:
-        """Returns a list of Processors that the user has visibility to in the
-        current Engine project. The names of these processors are used to
-        identify devices when scheduling jobs and gathering calibration metrics.
+        """Returns a list of Processors that the user has visibility to.
+
+        These are processors that are visible in the current Engine project. The names of
+        these processors are used to identify devices when scheduling jobs and gathering
+        calibration metrics.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.

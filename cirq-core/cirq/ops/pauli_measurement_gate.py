@@ -32,8 +32,8 @@ if TYPE_CHECKING:
 class PauliMeasurementGate(raw_types.Gate):
     """A gate that measures a Pauli observable.
 
-    PauliMeasurementGate contains a key used to identify results of measurement
-    and a list of Paulis which denote the observable to be measured.
+    PauliMeasurementGate contains a key used to identify results of measurement and a list of
+    Paulis which denote the observable to be measured.
     """
 
     def __init__(

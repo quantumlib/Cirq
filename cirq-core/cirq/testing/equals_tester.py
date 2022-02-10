@@ -14,10 +14,10 @@
 
 """A utility class for testing equality methods.
 
-To test an equality method, create an EqualityTester and add several groups
-of items to it. The equality tester will check that the items within each
-group are all equal to each other, but that items between each group are never
-equal to each other. It will also check that a==b implies hash(a)==hash(b).
+To test an equality method, create an EqualityTester and add several groups of items to it. The
+equality tester will check that the items within each group are all equal to each other, but that
+items between each group are never equal to each other. It will also check that a==b implies
+hash(a)==hash(b).
 """
 
 import collections

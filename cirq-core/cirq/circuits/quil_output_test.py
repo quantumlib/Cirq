@@ -403,8 +403,9 @@ CZ 0 1
 
 
 def test_equivalent_unitaries():
-    """This test covers the factor of pi change. However, it will be skipped
-    if pyquil is unavailable for import.
+    """This test covers the factor of pi change.
+
+    It will be skipped if pyquil is unavailable for import.
 
     References:
         https://docs.pytest.org/en/latest/skipping.html#skipping-on-a-missing-import-dependency

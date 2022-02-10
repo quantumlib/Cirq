@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utilities for routing circuits on devices"""
+"""Utilities for routing circuits on devices."""
 
 from cirq.contrib.routing.device import (
     get_linear_device_graph,

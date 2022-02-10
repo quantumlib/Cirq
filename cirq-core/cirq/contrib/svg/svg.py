@@ -92,8 +92,7 @@ def _fit_horizontal(
 def _fit_vertical(
     tdd: 'cirq.TextDiagramDrawer', ref_boxheight: float, row_padding: float
 ) -> Tuple[List[float], List[float], Dict[float, int]]:
-    """Return data structures used to turn tdd vertical coordinates into
-    well-spaced SVG coordinates.
+    """Return data structures used to turn tdd vertical coord into well-spaced SVG coords.
 
     The eagle eyed coder may notice that this function is very
     similar to _fit_horizontal. That function was written first
@@ -144,9 +143,11 @@ def _fit_vertical(
 
 
 def _debug_spacing(col_starts, row_starts):
-    """Return a string suitable for inserting inside an <svg> tag that
-    draws green lines where columns and rows start. This is very useful
-    if you're developing this code and are debugging spacing issues.
+    """Return a string that can be inserted into <svg> tag for debugging.
+
+    This string causes the svg to draws green lines where columns and rows start.
+
+    This is very useful if you're developing this code and are debugging spacing issues.
     """
     # coverage: ignore
     t = ''
@@ -256,12 +257,11 @@ def _validate_circuit(circuit: 'cirq.Circuit'):
 
 
 class SVGCircuit:
-    """A wrapper around cirq.Circuit to enable rich display in a Jupyter
-    notebook.
+    """A wrapper around cirq.Circuit to enable rich display in a Jupyter notebook.
 
-    Jupyter will display the result of the last line in a cell. Often,
-    this is repr(o) for an object. This class defines a magic method
-    which will cause the circuit to be displayed as an SVG image.
+    Jupyter will display the result of the last line in a cell. Often, this is repr(o) for an
+    object. This class defines a magic method which will cause the circuit to be displayed as an
+    SVG image.
     """
 
     def __init__(self, circuit: 'cirq.Circuit'):

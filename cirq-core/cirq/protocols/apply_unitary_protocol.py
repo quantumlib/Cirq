@@ -87,7 +87,6 @@ class ApplyUnitaryArgs:
                 dtype as the target tensor.
             axes: Which axes the unitary effect is being applied to (e.g. the
                 qubits that the gate is operating on).
-
         """
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
@@ -139,8 +138,10 @@ class ApplyUnitaryArgs:
     def _for_operation_with_qid_shape(
         self, indices: Iterable[int], qid_shape: Tuple[int, ...]
     ) -> 'ApplyUnitaryArgs':
-        """Creates a sliced and transposed view of `self` appropriate for an
-        operation with shape `qid_shape` on qubits with the given indices.
+        """Create a view for given indices and shape.
+
+        This creates a sliced and transposed view of `self` appropriate for an operation with shape
+        `qid_shape` on qubits with the given indices.
 
         Example:
             sub_args = args._for_operation_with_qid_shape(indices, (2, 2, 2))
@@ -517,10 +518,12 @@ def apply_unitaries(
 def _incorporate_result_into_target(
     args: 'ApplyUnitaryArgs', sub_args: 'ApplyUnitaryArgs', sub_result: np.ndarray
 ):
-    """Takes the result of calling `_apply_unitary_` on `sub_args` and
-    copies it back into `args.target_tensor` or `args.available_buffer` as
-    necessary to return the result of applying the unitary to the full args.
-    Also swaps the buffers so the result is always in `args.target_tensor`.
+    """Incorporate result into a target.
+
+    Takes the result of calling `_apply_unitary_` on `sub_args` and copies it back into
+    `args.target_tensor` or `args.available_buffer` as necessary to return the result of applying
+    the unitary to the full args. Also swaps the buffers so the result is always in
+    `args.target_tensor`.
 
     Args:
         args: The original args.
@@ -536,7 +539,6 @@ def _incorporate_result_into_target(
 
     Raises:
         ValueError: If `sub_args` tensors are not views of `args` tensors.
-
     """
     if not (
         np.may_share_memory(args.target_tensor, sub_args.target_tensor)

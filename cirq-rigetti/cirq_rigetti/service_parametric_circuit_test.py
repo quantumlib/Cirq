@@ -11,8 +11,9 @@ from cirq_rigetti import RigettiQCSService
 def test_parametric_circuit_through_service(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
 ) -> None:
-    """test that RigettiQCSService can run a basic parametric circuit on
-    the QVM and return an accurate `cirq.study.Result`.
+    """Tests that RigettiQCSService can run a basic parametric circuit on the QVM.
+
+    Check that it returns an accurate `cirq.study.Result`.
     """
     circuit, sweepable = parametric_circuit_with_params
 

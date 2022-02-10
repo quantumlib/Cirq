@@ -118,9 +118,8 @@ class QuantumState:
     def state_vector(self) -> Optional[np.ndarray]:
         """Return the state vector of this state.
 
-        A state vector stores the amplitudes of a pure state as a
-        one-dimensional array.
-        If the state is a density matrix, this method returns None.
+        A state vector stores the amplitudes of a pure state as a one-dimensional array. If the
+        state is a density matrix, this method returns None.
         """
         if self._is_density_matrix():
             return None
@@ -129,9 +128,8 @@ class QuantumState:
     def state_tensor(self) -> Optional[np.ndarray]:
         """Return the state tensor of this state.
 
-        A state tensor stores the amplitudes of a pure state as an array with
-        shape equal to the qid shape of the state.
-        If the state is a density matrix, this method returns None.
+        A state tensor stores the amplitudes of a pure state as an array with shape equal to the
+        qid shape of the state. If the state is a density matrix, this method returns None.
         """
         if self._is_density_matrix():
             return None
@@ -140,8 +138,8 @@ class QuantumState:
     def density_matrix(self) -> np.ndarray:
         """Return the density matrix of this state.
 
-        A density matrix stores the entries of a density matrix as a matrix
-        (a two-dimensional array).
+        A density matrix stores the entries of a density matrix as a matrix (a two-dimensional
+        array).
         """
         if not self._is_density_matrix():
             state_vector = self.state_vector()

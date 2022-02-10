@@ -12,4 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Defines the version number which is read by setup.py."""
+
 __version__ = "0.14.0.dev"

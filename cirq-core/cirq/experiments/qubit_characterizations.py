@@ -71,15 +71,12 @@ class RabiResult:
 
     @property
     def data(self) -> Sequence[Tuple[float, float]]:
-        """Returns a sequence of tuple pairs with the first item being a Rabi
-        angle and the second item being the corresponding excited state
-        probability.
-        """
+        """Returns a sequence of tuple pairs of the Rabi angle and the excited state
+        probability."""
         return [(angle, prob) for angle, prob in zip(self._rabi_angles, self._excited_state_probs)]
 
     def plot(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
-        """Plots excited state probability vs the Rabi angle (angle of rotation
-        around the x-axis).
+        """Plots excited state probability vs the Rabi angle (angle of rotation around the x-axis).
 
         Args:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
@@ -117,15 +114,14 @@ class RandomizedBenchMarkResult:
 
     @property
     def data(self) -> Sequence[Tuple[int, float]]:
-        """Returns a sequence of tuple pairs with the first item being a
-        number of Cliffords and the second item being the corresponding average
-        ground state probability.
+        """Returns a sequence of tuple pairs for the expeimrent.
+
+        These tuples are a tuple of number of Cliffords and average ground state probability.
         """
         return [(num, prob) for num, prob in zip(self._num_cfds_seq, self._gnd_state_probs)]
 
     def plot(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
-        """Plots the average ground state probability vs the number of
-        Cliffords in the RB study.
+        """Plots the average ground state probability vs the number of Cliffords in the RB study.
 
         Args:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
@@ -159,9 +155,8 @@ class TomographyResult:
 
     @property
     def data(self) -> np.ndarray:
-        """Returns an n^2 by n^2 complex matrix representing the density
-        matrix of the n-qubit system.
-        """
+        """Returns an n^2 by n^2 complex matrix representing the density matrix of the n-qubit
+        system."""
         return self._density_matrix
 
     def plot(self, axes: Optional[List[plt.Axes]] = None, **plot_kwargs: Any) -> List[plt.Axes]:

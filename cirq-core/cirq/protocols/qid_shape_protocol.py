@@ -33,13 +33,13 @@ TDefault = TypeVar('TDefault')
 
 
 class SupportsExplicitQidShape(Protocol):
-    """A unitary, channel, mixture or other object that operates on a known
-    number qubits/qudits/qids, each with a specific number of quantum levels."""
+    """A unitary, channel, mixture or other object that operates on a known number
+    qubits/qudits/qids, each with a specific number of quantum levels."""
 
     @doc_private
     def _qid_shape_(self) -> Union[Tuple[int, ...], NotImplementedType]:
-        """A tuple specifying the number of quantum levels of each qid this
-        object operates on, e.g. (2, 2, 2) for a three-qubit gate.
+        """A tuple specifying the number of quantum levels of each qid this object operates on,
+        e.g. (2, 2, 2) for a three-qubit gate.
 
         This method is used by the global `cirq.qid_shape` method (and by
         `cirq.num_qubits` if `_num_qubits_` is not defined). If this
@@ -61,8 +61,7 @@ class SupportsExplicitQidShape(Protocol):
 
 
 class SupportsExplicitNumQubits(Protocol):
-    """A unitary, channel, mixture or other object that operates on a known
-    number of qubits."""
+    """A unitary, channel, mixture or other object that operates on a known number of qubits."""
 
     @document
     def _num_qubits_(self) -> Union[int, NotImplementedType]:
@@ -81,8 +80,8 @@ class SupportsExplicitNumQubits(Protocol):
 def qid_shape(
     val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
 ) -> Union[Tuple[int, ...], TDefault]:
-    """Returns a tuple describing the number of quantum levels of each
-    qubit/qudit/qid `val` operates on.
+    """Returns a tuple describing the number of quantum levels of each qubit/qudit/qid `val`
+    operates on.
 
     Args:
         val: The value to get the shape of.

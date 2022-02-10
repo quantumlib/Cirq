@@ -13,11 +13,10 @@
 # limitations under the License.
 """Parallel two-qubit cross-entropy benchmarking on a grid.
 
-Cross-entropy benchmarking is a method of estimating the fidelity of quantum
-gates by executing random quantum circuits containing those gates.
-This experiment performs cross-entropy benchmarking of a two-qubit gate applied
-to connected pairs of grid qubits. The qubit pairs are benchmarked in parallel
-by executing circuits that act on many pairs simultaneously.
+Cross-entropy benchmarking is a method of estimating the fidelity of quantum gates by executing
+random quantum circuits containing those gates. This experiment performs cross-entropy benchmarking
+of a two-qubit gate applied to connected pairs of grid qubits. The qubit pairs are benchmarked in
+parallel by executing circuits that act on many pairs simultaneously.
 """
 
 from typing import Any, Iterable, List, Optional, Sequence, TYPE_CHECKING, Tuple, cast

@@ -129,8 +129,7 @@ def test_nested_unsupported_gate():
 
 
 def test_unsupported_phased_iswap():
-    """Tests that a Phased ISwap with a provided phase_exponent and exponent is
-    not supported."""
+    """Tests that a Phased ISwap with a provided phase_exponent and exponent is not supported."""
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     circuit = cirq.Circuit(cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=0.33)(q0, q1))

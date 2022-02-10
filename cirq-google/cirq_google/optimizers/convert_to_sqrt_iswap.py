@@ -112,8 +112,7 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
 
 
 def is_sqrt_iswap_compatible(op: cirq.Operation) -> bool:
-    """Check if the given operation is compatible with the sqrt_iswap gateset
-    gate set.
+    """Check if the given operation is compatible with the sqrt_iswap gateset gate set.
 
     Args:
         op: Input operation.
@@ -125,9 +124,7 @@ def is_sqrt_iswap_compatible(op: cirq.Operation) -> bool:
 
 
 def is_sqrt_iswap(gate: Optional[cirq.Gate]) -> bool:
-    """Checks if this is a ± sqrt(iSWAP) gate specified using either
-    ISwapPowGate or with the equivalent FSimGate.
-    """
+    """Checks if this is a ± sqrt(iSWAP) gate for either ISwapPowGate or FSimGate gates."""
     if (
         isinstance(gate, cirq.FSimGate)
         and not isinstance(gate.theta, sympy.Basic)
@@ -165,8 +162,9 @@ def is_basic_gate(gate: Optional[cirq.Gate]) -> bool:
 
 
 def cphase_to_sqrt_iswap(a, b, turns):
-    """Implement a C-Phase gate using two sqrt ISWAP gates and single-qubit
-    operations. The circuit is equivalent to cirq.CZPowGate(exponent=turns).
+    """Implement a C-Phase gate using two sqrt ISWAP gates and single-qubit operations.
+
+    The circuit is equivalent to cirq.CZPowGate(exponent=turns).
 
     Output unitary:
     [1   0   0   0],
@@ -213,8 +211,8 @@ def cphase_to_sqrt_iswap(a, b, turns):
 def cphase_symbols_to_sqrt_iswap(a, b, turns):
     """Version of cphase_to_sqrt_iswap that works with symbols.
 
-    Note that the formulae contained below will need to be flattened
-    into a sweep before serializing.
+    Note that the formulae contained below will need to be flattened into a sweep before
+    serializing.
     """
     theta = sympy.Mod(turns, 2.0) * sympy.pi
 
@@ -239,8 +237,10 @@ def cphase_symbols_to_sqrt_iswap(a, b, turns):
 
 
 def iswap_to_sqrt_iswap(a, b, turns):
-    """Implement the evolution of the hopping term using two sqrt_iswap gates
-     and single-qubit operations. Output unitary:
+    """Implement the evolution of the hopping term using two sqrt_iswap gates and single-qubit
+    gate.
+
+    Output unitary:
     [1   0   0   0],
     [0   c  is   0],
     [0  is   c   0],
@@ -308,9 +308,11 @@ def swap_to_sqrt_iswap(a, b, turns):
 
 
 def fsim_gate(a, b, theta, phi):
-    """FSimGate has a default decomposition in cirq to XXPowGate and YYPowGate,
-    which is an awkward decomposition for this gate set.
-    Decompose into ISWAP and CZ instead."""
+    """Return a decomposition of an fsim gate in terms of ISWAP and CZ.
+
+    FSimGate has a default decomposition in cirq to XXPowGate and YYPowGate, which is an awkward
+    decomposition for this gate set, so we provide this decomposition.
+    """
     if theta != 0.0:
         yield cirq.ISWAP(a, b) ** (-2 * theta / np.pi)
     if phi != 0.0:

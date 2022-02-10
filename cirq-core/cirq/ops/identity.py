@@ -49,7 +49,6 @@ class IdentityGate(raw_types.Gate):
         Raises:
             ValueError: If the length of qid_shape doesn't equal num_qubits, or
                 neither `num_qubits` or `qid_shape` is supplied.
-
         """
         if qid_shape is None:
             if num_qubits is None:

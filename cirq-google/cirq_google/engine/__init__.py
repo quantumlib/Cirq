@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Client for running on Google's Quantum Engine.
-"""
+"""Client for running on Google's Quantum Engine."""
 
 from cirq_google.engine.abstract_engine import (
     AbstractEngine,

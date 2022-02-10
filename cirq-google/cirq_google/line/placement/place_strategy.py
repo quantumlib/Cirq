@@ -24,8 +24,8 @@ if TYPE_CHECKING:
 class LinePlacementStrategy(metaclass=abc.ABCMeta):
     """Choice and options for the line placement calculation method.
 
-    Currently two methods are available: cirq.line.GreedySequenceSearchMethod
-    and cirq.line.AnnealSequenceSearchMethod.
+    Currently two methods are available: cirq.line.GreedySequenceSearchMethod and
+    cirq.line.AnnealSequenceSearchMethod.
     """
 
     @abc.abstractmethod

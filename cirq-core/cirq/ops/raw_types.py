@@ -68,15 +68,15 @@ class Qid(metaclass=abc.ABCMeta):
     def _comparison_key(self) -> Any:
         """Returns a value used to sort and compare this qubit with others.
 
-        By default, qubits of differing type are sorted ascending according to
-        their type name. Qubits of the same type are then sorted using their
-        comparison key.
+        By default, qubits of differing type are sorted ascending according to their type name.
+        Qubits of the same type are then sorted using their comparison key.
         """
 
     @property
     @abc.abstractmethod
     def dimension(self) -> int:
         """Returns the dimension or the number of quantum levels this qid has.
+
         E.g. 2 for a qubit, 3 for a qutrit, etc.
         """
 
@@ -333,19 +333,20 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> 'Gate':
-        """Returns a controlled version of this gate. If no arguments are
-        specified, defaults to a single qubit control.
+        """Returns a controlled version of this gate.
 
-         num_controls: Total number of control qubits.
-         control_values: For which control qubit values to apply the sub
-             gate.  A sequence of length `num_controls` where each
-             entry is an integer (or set of integers) corresponding to the
-             qubit value (or set of possible values) where that control is
-             enabled.  When all controls are enabled, the sub gate is
-             applied.  If unspecified, control values default to 1.
-         control_qid_shape: The qid shape of the controls.  A tuple of the
-             expected dimension of each control qid.  Defaults to
-             `(2,) * num_controls`.  Specify this argument when using qudits.
+        If no arguments are specified, defaults to a single qubit control.
+
+        num_controls: Total number of control qubits.
+        control_values: For which control qubit values to apply the sub
+            gate.  A sequence of length `num_controls` where each
+            entry is an integer (or set of integers) corresponding to the
+            qubit value (or set of possible values) where that control is
+            enabled.  When all controls are enabled, the sub gate is
+            applied.  If unspecified, control values default to 1.
+        control_qid_shape: The qid shape of the controls.  A tuple of the
+            expected dimension of each control qid.  Defaults to
+            `(2,) * num_controls`.  Specify this argument when using qudits.
         """
 
         if num_controls == 0:
@@ -392,9 +393,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     @value.alternative(requires='_num_qubits_', implementation=_default_shape_from_num_qubits)
     def _qid_shape_(self) -> Tuple[int, ...]:
-        """Returns a Tuple containing the number of quantum levels of each qid
-        the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
-        (3, 3) for a 2-qutrit ternary gate.
+        """Returns a Tuple containing the number of quantum levels of each qid the gate acts on.
+
+        E.g. (2, 2, 2) for the three-qubit CCZ gate and (3, 3) for a 2-qutrit ternary gate.
         """
 
     def _commutes_on_qids_(
@@ -429,8 +430,8 @@ TSelf = TypeVar('TSelf', bound='Operation')
 class Operation(metaclass=abc.ABCMeta):
     """An effect applied to a collection of qubits.
 
-    The most common kind of Operation is a GateOperation, which separates its
-    effect into a qubit-independent Gate and the qubits it should be applied to.
+    The most common kind of Operation is a GateOperation, which separates its effect into a qubit-
+    independent Gate and the qubits it should be applied to.
     """
 
     @property
@@ -524,8 +525,9 @@ class Operation(metaclass=abc.ABCMeta):
         *control_qubits: 'cirq.Qid',
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
     ) -> 'cirq.Operation':
-        """Returns a controlled version of this operation. If no control_qubits
-           are specified, returns self.
+        """Returns a controlled version of this operation.
+
+        If no control_qubits are specified, returns self.
 
         Args:
             control_qubits: Qubits to control the operation by. Required.
@@ -552,8 +554,7 @@ class Operation(metaclass=abc.ABCMeta):
         )
 
     def validate_args(self, qubits: Sequence['cirq.Qid']):
-        """Raises an exception if the `qubits` don't match this operation's qid
-        shape.
+        """Raises an exception if the `qubits` don't match this operation's qid shape.
 
         Call this method from a subclass's `with_qubits` method.
 
@@ -568,7 +569,7 @@ class Operation(metaclass=abc.ABCMeta):
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
-        """Determine if this Operation commutes with the object"""
+        """Determine if this Operation commutes with the object."""
         if not isinstance(other, Operation):
             return NotImplemented
 
@@ -713,9 +714,8 @@ class TaggedOperation(Operation):
     def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
         """Creates a new TaggedOperation with combined tags.
 
-        Overloads Operation.with_tags to create a new TaggedOperation
-        that has the tags of this operation combined with the new_tags
-        specified as the parameter.
+        Overloads Operation.with_tags to create a new TaggedOperation that has the tags of this
+        operation combined with the new_tags specified as the parameter.
         """
         if not new_tags:
             return self

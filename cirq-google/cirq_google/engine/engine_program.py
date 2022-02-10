@@ -432,8 +432,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         return self._inner_program().labels
 
     def set_labels(self, labels: Dict[str, str]) -> 'EngineProgram':
-        """Sets (overwriting) the labels for a previously created quantum
-        program.
+        """Sets (overwriting) the labels for a previously created quantum program.
 
         Params:
             labels: The entire set of new program labels.
@@ -461,8 +460,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         return self
 
     def remove_labels(self, keys: List[str]) -> 'EngineProgram':
-        """Removes labels with given keys from the labels of a previously
-        created quantum program.
+        """Removes labels with given keys from the labels of a previously created quantum program.
 
         Params:
             label_keys: Label keys to remove from the existing program labels.
@@ -476,8 +474,9 @@ class EngineProgram(abstract_program.AbstractProgram):
         return self
 
     def get_circuit(self, program_num: Optional[int] = None) -> cirq.Circuit:
-        """Returns the cirq Circuit for the Quantum Engine program. This is only
-        supported if the program was created with the V2 protos.
+        """Returns the cirq Circuit for the Quantum Engine program.
+
+        This is only supported if the program was created with the V2 protos.
 
         Args:
             program_num: if this is a batch program, the index of the circuit in

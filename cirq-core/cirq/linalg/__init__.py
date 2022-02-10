@@ -13,8 +13,8 @@
 # limitations under the License.
 """Linear algebra methods and classes useful for quantum primitives.
 
-Focuses on methods useful for analyzing and optimizing quantum circuits.
-Avoids duplicating functionality present in numpy.
+Focuses on methods useful for analyzing and optimizing quantum circuits. Avoids duplicating
+functionality present in numpy.
 """
 
 from cirq.linalg.combinators import (

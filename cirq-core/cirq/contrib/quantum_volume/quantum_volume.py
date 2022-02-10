@@ -1,6 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-"""Utility functions to run the Quantum Volume benchmark defined by IBM in
-https://arxiv.org/abs/1811.12926.
+"""Utility functions to run the Quantum Volume benchmark defined by IBM.
+
+For the defition see https://arxiv.org/abs/1811.12926.
 """
 
 from dataclasses import dataclass
@@ -103,8 +104,7 @@ def sample_heavy_set(
     repetitions=10_000,
     sampler: cirq.Sampler = cirq.Simulator(),
 ) -> float:
-    """Run a sampler over the given circuit and compute the percentage of its
-       outputs that are in the heavy set.
+    """Run a sampler and compute the percentage of its outputs that are in in the heavy set.
 
     Args:
         compilation_result: All the information from the compilation.
@@ -115,7 +115,6 @@ def sample_heavy_set(
     Returns:
         A probability percentage, from 0 to 1, representing how many of the
         output bit-strings were in the heavy set.
-
     """
     mapping = compilation_result.mapping
     circuit = compilation_result.circuit
@@ -158,8 +157,7 @@ def process_results(
     parity_mapping: Dict[cirq.Qid, cirq.Qid],
     trial_result: cirq.Result,
 ) -> pd.DataFrame:
-    """Checks the given results for parity and throws away all of the runs that
-    don't pass the parity test.
+    """Checks the given results for parity and throws away runs that don't pass the parity test.
 
     Args:
         mapping: The circuit's mapping from logical qubit to physical qubit.
@@ -169,7 +167,6 @@ def process_results(
     Returns:
         Returns the rows that passed the parity test, with the parity qubit
         measurements removed.
-
     """
     # The circuit's mapping from physical qubit to logical qubit.
     inverse_mapping: Dict[cirq.Qid, cirq.Qid] = {v: k for k, v in mapping.items()}
@@ -196,8 +193,7 @@ def process_results(
 
 
 class SwapPermutationReplacer(cirq.PointOptimizer):
-    """Replaces SwapPermutationGates with their underlying implementation
-    gate."""
+    """Replaces SwapPermutationGates with their underlying implementation gate."""
 
     def __init__(self):
         super().__init__()
@@ -223,12 +219,13 @@ def compile_circuit(
     router: Optional[Callable[..., ccr.SwapNetwork]] = None,
     add_readout_error_correction=False,
 ) -> CompilationResult:
-    """Compile the given model circuit onto the given device graph. This uses a
-    different compilation method than described in
-    https://arxiv.org/pdf/1811.12926.pdf Appendix A. The latter goes through a
-    7-step process involving various decompositions, routing, and optimization
-    steps. We route the model circuit and then run a series of optimizers on it
-    (which can be passed into this function).
+    """Compile the given model circuit onto the given device graph.
+
+    This uses a different compilation method than described in Appendix A of
+    https://arxiv.org/abs/1811.12926. The latter goes through a  7-step process
+    involving various decompositions, routing, and optimization steps.  We route the
+    model circuit and then run a series of optimizers on it (which can be passed into
+    this function).
 
     Args:
         circuit: The model circuit to compile.
@@ -246,7 +243,6 @@ def compile_circuit(
         second value is the final mapping from the model circuit to the compiled
         circuit. The latter is necessary in order to preserve the measurement
         order.
-
     """
     compiled_circuit = circuit.copy()
 
@@ -311,10 +307,7 @@ def compile_circuit(
 
 @dataclass
 class QuantumVolumeResult:
-    """Stores one run of the results and test information used when running the
-    quantum volume benchmark so it may be analyzed in detail afterwards.
-
-    """
+    """Stores one run of the results and test information for a quantum volume benchmark run."""
 
     # The model circuit used.
     model_circuit: cirq.Circuit
@@ -387,7 +380,6 @@ def execute_circuits(
     Returns:
         A list of QuantumVolumeResults that contains all of the information for
         running the algorithm and its results.
-
     """
     # First, compile all of the model circuits.
     print("Compiling model circuits")
@@ -476,7 +468,6 @@ def calculate_quantum_volume(
 
     Returns: A list of QuantumVolumeResults that contains all of the information
         for running the algorithm and its results.
-
     """
     circuits = prepare_circuits(
         num_qubits=num_qubits, depth=depth, num_circuits=num_circuits, random_state=random_state

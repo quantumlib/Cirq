@@ -94,7 +94,7 @@ class SpecklePurityDepolarizingModel(CrossEntropyDepolarizingModel):
 
     @property
     def purity(self) -> float:
-        """The purity. Equal to p**2, where p is the cycle depolarization."""
+        """The purity which is equal to p**2, where p is the cycle depolarization."""
         return self.cycle_depolarization ** 2
 
 

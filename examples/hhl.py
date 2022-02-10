@@ -125,9 +125,9 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
 class PhaseKickback(cirq.Gate):
     """A gate for the phase kickback stage of Quantum Phase Estimation.
 
-    It consists of a series of controlled e^iAt gates with the memory qubit as the target and
-    each register qubit as the control, raised to the power of 2 based on the qubit index.
-    unitary is the unitary gate whose phases will be estimated.
+    It consists of a series of controlled e^iAt gates with the memory qubit as the target and each
+    register qubit as the control, raised to the power of 2 based on the qubit index. unitary is
+    the unitary gate whose phases will be estimated.
     """
 
     def __init__(self, num_qubits, unitary):
@@ -264,8 +264,8 @@ def simulate(circuit):
 def main():
     """The main program loop.
 
-    Simulates HHL with matrix input, and outputs Pauli observables of the resulting qubit state |x>.
-    Expected observables are calculated from the expected solution |x>.
+    Simulates HHL with matrix input, and outputs Pauli observables of the resulting qubit state
+    |x>. Expected observables are calculated from the expected solution |x>.
     """
 
     # Eigendecomposition:

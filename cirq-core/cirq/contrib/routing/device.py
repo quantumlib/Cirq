@@ -30,7 +30,8 @@ def get_linear_device_graph(n_qubits: int) -> nx.Graph:
 def get_grid_device_graph(*args, **kwargs) -> nx.Graph:
     """Gets the graph of a grid of qubits.
 
-    See GridQubit.rect for argument details."""
+    See GridQubit.rect for argument details.
+    """
     return gridqubits_to_graph_device(cirq.GridQubit.rect(*args, **kwargs))
 
 
@@ -60,7 +61,6 @@ def nx_qubit_layout(graph: nx.Graph) -> Dict[cirq.Qid, Tuple[float, float]]:
     >>> g = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(4,5))
     >>> pos = ccr.nx_qubit_layout(g)
     >>> nx.draw_networkx(g, pos=pos)
-
     """
     pos: Dict[cirq.Qid, Tuple[float, float]] = {}
 

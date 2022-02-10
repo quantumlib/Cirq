@@ -25,7 +25,6 @@ Sampled results:
 Counter({'10': 10})
 Most common bitstring: 10
 Found a match: True
-
 """
 
 import random

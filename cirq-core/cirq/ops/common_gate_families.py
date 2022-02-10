@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Common Gate Families used in cirq-core"""
+"""Common Gate Families used in cirq-core."""
 
 from typing import Any, cast, Optional, Type, Union
 
@@ -24,7 +24,7 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
     """GateFamily which accepts any N-Qubit unitary gate."""
 
     def __init__(self, num_qubits: Optional[int] = None) -> None:
-        """Init AnyUnitaryGateFamily
+        """Init AnyUnitaryGateFamily.
 
         Args:
             num_qubits: The GateFamily will accept any unitary gate acting on `num_qubits`.
@@ -65,7 +65,7 @@ class AnyIntegerPowerGateFamily(gateset.GateFamily):
     """GateFamily which accepts instances of a given `cirq.EigenGate`, raised to integer power."""
 
     def __init__(self, gate: Type[eigen_gate.EigenGate]) -> None:
-        """Init AnyIntegerPowerGateFamily
+        """Init AnyIntegerPowerGateFamily.
 
         Args:
             gate: A subclass of `cirq.EigenGate` s.t. an instance `g` of `gate` will be
@@ -132,7 +132,7 @@ class ParallelGateFamily(gateset.GateFamily):
         description: Optional[str] = None,
         max_parallel_allowed: Optional[int] = None,
     ) -> None:
-        """Inits ParallelGateFamily
+        """Inits ParallelGateFamily.
 
         Args:
             gate: The gate which can act in parallel. It can be a python `type` inheriting from

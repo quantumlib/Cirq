@@ -107,9 +107,9 @@ class Device(metaclass=abc.ABCMeta):
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Returns a device-valid decomposition for the given operation.
 
-        This method is used when adding operations into circuits with a device
-        specified, to avoid spurious failures due to e.g. using a Hadamard gate
-        that must be decomposed into native gates.
+        This method is used when adding operations into circuits with a device specified, to avoid
+        spurious failures due to e.g. using a Hadamard gate that must be decomposed into native
+        gates.
         """
         return operation
 

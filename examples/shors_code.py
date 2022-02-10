@@ -1,7 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-""" Shor's code is a stabilizer code for quantum error correction.
-It uses 9 qubits to encode 1 logic qubit and is able to correct
-at most one bit flip and one sign flip or their combination.
+"""An example showing Shor's quantum error correcting code.
+
+Shor's code is a stabilizer code for quantum error correction. It uses 9 qubits to encode 1
+logic qubit and is able to correct at most one bit flip and one sign flip or their combination.
 
 (0, 0): ───@───@───H───@───@───@───@───X───H───@───@───X───M───
            │   │       │   │   │   │   │       │   │   │

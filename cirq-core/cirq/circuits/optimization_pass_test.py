@@ -56,9 +56,8 @@ def test_equality():
 class ReplaceWithXGates(PointOptimizer):
     """Replaces a block of operations with X gates.
 
-    Searches ahead for gates covering a subset of the focused operation's
-    qubits, clears the whole range, and inserts X gates for each cleared
-    operation's qubits.
+    Searches ahead for gates covering a subset of the focused operation's qubits, clears the whole
+    range, and inserts X gates for each cleared operation's qubits.
     """
 
     def optimization_at(

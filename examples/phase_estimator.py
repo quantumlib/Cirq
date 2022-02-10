@@ -57,14 +57,10 @@ def run_estimate(unknown_gate, qnum, repetitions):
 
 
 def experiment(qnum, repetitions=100):
-    """Execute the phase estimator circuit with multiple settings and
-    show results.
-    """
+    """Execute the phase estimator circuit with multiple settings and show results."""
 
     def example_gate(phi):
-        """An example unitary 1-qubit gate U with an eigen vector |0> and an
-        eigen value exp(2*Pi*i*phi)
-        """
+        """A unitary 1-qubit gate U with an eigen vector |0> and an eigen value exp(2*Pi*i*phi)."""
 
         gate = cirq.MatrixGate(matrix=np.array([[np.exp(2 * np.pi * 1.0j * phi), 0], [0, 1]]))
         return gate

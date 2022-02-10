@@ -31,7 +31,7 @@ class ProjectorString:
         projector_dict: Dict[raw_types.Qid, int],
         coefficient: Union[int, float, complex] = 1,
     ):
-        """Contructor for ProjectorString
+        """Contructor for ProjectorString.
 
         Args:
             projector_dict: A python dictionary mapping from cirq.Qid to integers. A key value pair

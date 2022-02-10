@@ -26,8 +26,8 @@ if TYPE_CHECKING:
 class WaitGate(raw_types.Gate):
     """A single-qubit idle gate that represents waiting.
 
-    In non-noisy simulators, this gate is just an identity gate. But noisy
-    simulators and noise models may insert more error for longer waits.
+    In non-noisy simulators, this gate is just an identity gate. But noisy simulators and noise
+    models may insert more error for longer waits.
     """
 
     def __init__(

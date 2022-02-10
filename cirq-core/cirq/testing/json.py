@@ -146,7 +146,7 @@ def spec_for(module_name: str) -> ModuleJsonTestSpec:
 
 
 def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None):
-    """Tests that the given object can serialized and de-serialized
+    """Tests that the given object can serialized and de-serialized.
 
     Args:
         obj: The object to test round-tripping for.

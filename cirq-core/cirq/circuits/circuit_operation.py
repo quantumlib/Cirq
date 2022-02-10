@@ -13,9 +13,9 @@
 # limitations under the License.
 """A structure for encapsulating entire circuits in an operation.
 
-A CircuitOperation is an Operation object that wraps a FrozenCircuit. When
-applied as part of a larger circuit, a CircuitOperation will execute all
-component operations in order, including any nested CircuitOperations.
+A CircuitOperation is an Operation object that wraps a FrozenCircuit. When applied as part of a
+larger circuit, a CircuitOperation will execute all component operations in order, including any
+nested CircuitOperations.
 """
 from typing import (
     TYPE_CHECKING,
@@ -390,7 +390,8 @@ class CircuitOperation(ops.Operation):
         repetition_ids: Optional[List[str]] = None,
     ) -> 'CircuitOperation':
         """Returns a copy of this operation repeated 'repetitions' times.
-         Each repetition instance will be identified by a single repetition_id.
+
+        Each repetition instance will be identified by a single repetition_id.
 
         Args:
             repetitions: Number of times this operation should repeat. This

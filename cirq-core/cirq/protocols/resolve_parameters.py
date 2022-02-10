@@ -29,22 +29,22 @@ T = TypeVar('T')
 
 
 class SupportsParameterization(Protocol):
-    """An object that can be parameterized by Symbols and resolved
-    via a ParamResolver"""
+    """An object that can be parameterized by Symbols and resolved via a ParamResolver."""
 
     @doc_private
     def _is_parameterized_(self: Any) -> bool:
-        """Whether the object is parameterized by any Symbols that require
-        resolution. Returns True if the object has any unresolved Symbols
-        and False otherwise."""
+        """Whether the object is parameterized by any Symbols that require resolution.
+
+        Returns True if the object has any unresolved Symbols and False otherwise.
+        """
 
     @doc_private
     def _parameter_names_(self: Any) -> AbstractSet[str]:
-        """Returns a collection of string names of parameters that require
-        resolution. If _is_parameterized_ is False, the collection is empty.
-        The converse is not necessarily true, because some objects may report
-        that they are parameterized when they contain symbolic constants which
-        need to be evaluated, but no free symbols.
+        """Returns a collection of string names of parameters that require resolution.
+
+        If _is_parameterized_ is False, the collection is empty. The converse is not necessarily
+        true, because some objects may report that they are parameterized when they contain
+        symbolic constants which need to be evaluated, but no free symbols.
         """
 
     @doc_private
@@ -57,8 +57,8 @@ class ResolvableValue(Protocol):
     def _resolved_value_(self) -> Any:
         """Returns a resolved value during parameter resolution.
 
-        Use this to mark a custom type as "resolved", instead of requiring
-        further parsing like we do with Sympy symbols.
+        Use this to mark a custom type as "resolved", instead of requiring further parsing like we
+        do with Sympy symbols.
         """
 
 

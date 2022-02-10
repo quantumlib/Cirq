@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 def _subgate_if_parallel_gate(gate: 'cirq.Gate') -> 'cirq.Gate':
-    """Returns gate.sub_gate if gate is a ParallelGate, else returns gate"""
+    """Returns gate.sub_gate if gate is a ParallelGate, else returns gate."""
     return gate.sub_gate if isinstance(gate, ops.ParallelGate) else gate
 
 

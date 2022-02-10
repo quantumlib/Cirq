@@ -314,8 +314,8 @@ class Result:
 class DFEIntermediateResult:
     """A container for debug and run data returned from `direct_fidelity_estimation`.
 
-    This is useful when running a long-computation on an actual computer, which is expensive.
-    This allows theses runs to be more easily debugged offline.
+    This is useful when running a long-computation on an actual computer, which is expensive. This
+    allows theses runs to be more easily debugged offline.
     """
 
     # If the circuit is Clifford, the Clifford tableau from which we can extract

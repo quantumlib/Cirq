@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""An implementation of AbstractJob that uses in-memory constructs
-and a provided sampler to execute circuits."""
+"""An implementation of AbstractJob that uses in-memory constructs and a provided sampler."""
 from typing import cast, List, Optional, Sequence, Tuple
 
 import concurrent.futures
@@ -88,9 +87,8 @@ class SimulatedLocalJob(AbstractLocalJob):
     def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
         """Returns the job results, blocking until the job is complete.
 
-        This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a Sequence[Result]
-        for each circuit in the batch.
+        This method is intended for batched jobs.  Instead of flattening results into a single
+        list, this will return a Sequence[Result] for each circuit in the batch.
         """
         if self._type == LocalSimulationType.SYNCHRONOUS:
             reps, sweeps = self.get_repetitions_and_sweeps()

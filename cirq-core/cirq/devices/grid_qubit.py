@@ -57,7 +57,7 @@ class _BaseGridQid(ops.Qid):
         )
 
     def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseGridQid']:
-        """Returns qubits that are potential neighbors to this GridQid
+        """Returns qubits that are potential neighbors to this GridQid.
 
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.
@@ -124,7 +124,7 @@ class _BaseGridQid(ops.Qid):
 
 
 class GridQid(_BaseGridQid):
-    """A qid on a 2d square lattice
+    """A qid on a 2d square lattice.
 
     GridQid uses row-major ordering:
 
@@ -145,7 +145,7 @@ class GridQid(_BaseGridQid):
     """
 
     def __init__(self, row: int, col: int, *, dimension: int) -> None:
-        """Initializes a grid qid at the given row, col coordinate
+        """Initializes a grid qid at the given row, col coordinate.
 
         Args:
             row: the row coordinate
@@ -356,9 +356,10 @@ class GridQubit(_BaseGridQid):
 
     @staticmethod
     def from_diagram(diagram: str) -> List['GridQubit']:
-        """Parse ASCII art device layout into info about qubits and
-        connectivity. As an example, the below diagram will create a list of
-        GridQubit in a pyramid structure.
+        """Parse ASCII art device layout into info about qubits and connectivity.
+
+        As an example, the below diagram will create a list of GridQubit in a pyramid structure.
+
         ---A---
         --AAA--
         -AAAAA-
@@ -410,7 +411,7 @@ class GridQubit(_BaseGridQid):
 
 
 def _ascii_diagram_to_coords(diagram: str) -> List[Tuple[int, int]]:
-    """Parse ASCII art device layout into info about qids coordinates
+    """Parse ASCII art device layout into info about qids coordinates.
 
     Args:
         diagram: String representing the qid layout. Each line represents

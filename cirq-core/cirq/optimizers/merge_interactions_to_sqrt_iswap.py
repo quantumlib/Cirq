@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimization pass that combines adjacent series of gates on two qubits and
-outputs a circuit with SQRT_ISWAP or SQRT_ISWAP_INV gates."""
+"""An optimization pass that combines adjacent series of gates.
+
+on two qubits and outputs a circuit with SQRT_ISWAP or SQRT_ISWAP_INV gates.
+"""
 
 from typing import Callable, Optional, Sequence, TYPE_CHECKING
 
@@ -28,9 +30,7 @@ if TYPE_CHECKING:
 
 
 class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
-    """Combines series of adjacent one- and two-qubit, non-parametrized gates
-    operating on a pair of qubits and replaces each series with the minimum
-    number of SQRT_ISWAP gates.
+    """Merge adjacent one and two qubit gates into minimal numbers of SQRT_ISWAP gates.
 
     See also: ``two_qubit_matrix_to_sqrt_iswap_operations``
     """
@@ -77,8 +77,7 @@ class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
         )
 
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
-        """Returns True if the old two-qubit operation may be left unchanged
-        without decomposition."""
+        """Returns if the old two-qubit operation may be left unchanged without decomposition."""
         return old_op in self.gateset
 
     def _two_qubit_matrix_to_operations(
@@ -87,8 +86,7 @@ class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
         q1: 'cirq.Qid',
         mat: np.ndarray,
     ) -> Sequence['cirq.Operation']:
-        """Decomposes the merged two-qubit gate unitary into the minimum number
-        of SQRT_ISWAP gates.
+        """Decomposes merged two-qubit gate unitary into the minimum number of SQRT_ISWAP gates.
 
         Args:
             q0: The first qubit being operated on.

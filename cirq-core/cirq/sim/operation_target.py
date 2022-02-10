@@ -62,7 +62,8 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
             allow_decompose: Flag to allow decomposition.
 
         Returns:
-            True if the fallback applies, else NotImplemented."""
+            True if the fallback applies, else NotImplemented.
+        """
 
     def apply_operation(self, op: 'cirq.Operation'):
         protocols.act_on(op, self)

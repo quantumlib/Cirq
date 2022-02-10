@@ -33,8 +33,10 @@ class InstrumentedFinder(abc.MetaPathFinder):
         wrap_module: Callable[[ModuleType], Optional[ModuleType]],
         after_exec: Callable[[ModuleType], None],
     ):
-        """A module finder that uses an existing module finder to find a python
-        module spec and intercept the execution of matching modules.
+        """A module finder used to hook into python import statements.
+
+        A module finder that uses an existing module finder to find a python module spec and
+        intercept the execution of matching modules.
 
         Replace finders in `sys.meta_path` with instances of this class to
         instrument import statements.
@@ -84,8 +86,7 @@ class InstrumentedLoader(abc.Loader):
         wrap_module: Callable[[ModuleType], Optional[ModuleType]],
         after_exec: Callable[[ModuleType], None],
     ):
-        """A module loader that uses an existing module loader and intercepts
-        the execution of a module.
+        """A module loader that uses an existing module loader and intercepts module execution.
 
         Use `InstrumentedFinder` to instrument modules with instances of this
         class.
@@ -124,11 +125,10 @@ def wrap_module_executions(
     after_exec: Callable[[ModuleType], None] = lambda m: None,
     assert_meta_path_unchanged: bool = True,
 ):
-    """A context manager that hooks python's import machinery within the
-    context.
+    """A context manager that hooks python's import machinery within the context.
 
-    `wrap_func` is called before executing the module called `module_name` and
-    any of its submodules.  The module returned by `wrap_func` will be executed.
+    `wrap_func` is called before executing the module called `module_name` and any of its
+    submodules.  The module returned by `wrap_func` will be executed.
     """
 
     def wrap(finder: Any) -> Any:
@@ -149,9 +149,9 @@ def wrap_module_executions(
 
 @contextmanager
 def delay_import(module_name: str):
-    """A context manager that allows the module or submodule named `module_name`
-    to be imported without the contents of the module executing until the
-    context manager exits.
+    """A context manager that allows a module to be delayed.
+
+    The module or submodule named `module_name` is not imported until the context manager exits.
     """
     delay = True
     execute_list = []

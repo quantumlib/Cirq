@@ -43,15 +43,13 @@ def convert_and_separate_circuit(
         SingleQubitCliffordGate and PauliInteractionGate gates.
         It also contains MeasurementGates if the
         given circuit contains measurements.
-
     """
     circuit = converted_gate_set(circuit, no_clifford_gates=not leave_cliffords, atol=atol)
     return pauli_string_half(circuit), regular_half(circuit)
 
 
 def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
-    """Return only the Clifford part of a circuit.  See
-    convert_and_separate_circuit().
+    """Return only the Clifford part of a circuit.  See convert_and_separate_circuit().
 
     Args:
         circuit: A Circuit with the gate set {SingleQubitCliffordGate,
@@ -69,8 +67,7 @@ def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
 
 
 def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
-    """Return only the non-Clifford part of a circuit.  See
-    convert_and_separate_circuit().
+    """Return only the non-Clifford part of a circuit.  See convert_and_separate_circuit().
 
     Args:
         circuit: A Circuit with the gate set {SingleQubitCliffordGate,

@@ -23,11 +23,10 @@ if TYPE_CHECKING:
 
 
 def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence['cirq.Qid']]) -> List['cirq.Qid']:
-    """Takes a sequence of qubit pairs and returns a sequence in which every
-    pair is at distance two.
+    """Takes a sequence of qubit pairs and returns a sequence in which every pair is at distance 2.
 
-    Specifically, given pairs (1a, 1b), (2a, 2b), etc. returns
-    (1a, 2a, 1b, 2b, 3a, 4a, 3b, 4b, ...).
+    Specifically, given pairs (1a, 1b), (2a, 2b), etc. returns (1a, 2a, 1b, 2b, 3a, 4a, 3b, 4b,
+    ...).
     """
 
     if set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,)):

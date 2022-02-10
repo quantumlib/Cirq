@@ -55,9 +55,9 @@ def expand_matrix_in_orthogonal_basis(
 ) -> value.LinearDict[str]:
     """Computes coefficients of expansion of m in basis.
 
-    We require that basis be orthogonal w.r.t. the Hilbert-Schmidt inner
-    product. We do not require that basis be orthonormal. Note that Pauli
-    basis (I, X, Y, Z) is orthogonal, but not orthonormal.
+    We require that basis be orthogonal w.r.t. the Hilbert-Schmidt inner product. We do not require
+    that basis be orthonormal. Note that Pauli basis (I, X, Y, Z) is orthogonal, but not
+    orthonormal.
     """
     return value.LinearDict(
         {
@@ -92,7 +92,6 @@ def pow_pauli_combination(
     non-negative integer k:
 
          [ax X + ay Y + az Z]^(2k) = (ax^2 + ay^2 + az^2)^k I
-
     """
     if exponent == 0:
         return 1, 0, 0, 0

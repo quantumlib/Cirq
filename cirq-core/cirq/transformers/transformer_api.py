@@ -187,7 +187,7 @@ class TransformerLogger:
 
 
 class NoOpTransformerLogger(TransformerLogger):
-    """All calls to this logger are a no-op"""
+    """All calls to this logger are a no-op."""
 
     def register_initial(self, circuit: 'cirq.AbstractCircuit', transformer_name: str) -> None:
         pass

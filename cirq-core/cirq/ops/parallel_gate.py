@@ -67,11 +67,11 @@ class ParallelGate(raw_types.Gate):
         return [self.sub_gate(*qubits[i : i + step]) for i in range(0, len(qubits), step)]
 
     def with_gate(self, sub_gate: 'cirq.Gate') -> 'ParallelGate':
-        """ParallelGate with same number of copies but a new gate"""
+        """ParallelGate with same number of copies but a new gate."""
         return ParallelGate(sub_gate, self._num_copies)
 
     def with_num_copies(self, num_copies: int) -> 'ParallelGate':
-        """ParallelGate with same sub_gate but different num_copies"""
+        """ParallelGate with same sub_gate but different num_copies."""
         return ParallelGate(self.sub_gate, num_copies)
 
     def __repr__(self) -> str:
@@ -160,7 +160,7 @@ class ParallelGate(raw_types.Gate):
 
 
 def parallel_gate_op(gate: 'cirq.Gate', *targets: 'cirq.Qid') -> 'cirq.Operation':
-    """Constructs a ParallelGate using gate and applies to all given qubits
+    """Constructs a ParallelGate using gate and applies to all given qubits.
 
     Args:
         gate: The gate to apply
@@ -168,6 +168,5 @@ def parallel_gate_op(gate: 'cirq.Gate', *targets: 'cirq.Qid') -> 'cirq.Operation
 
     Returns:
         ParallelGate(gate, len(targets)).on(*targets)
-
     """
     return ParallelGate(gate, len(targets)).on(*targets)

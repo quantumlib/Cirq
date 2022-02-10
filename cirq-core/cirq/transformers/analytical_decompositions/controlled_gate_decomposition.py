@@ -94,9 +94,9 @@ def _decompose_single_ctrl(
 def _ccnot_congruent(c0: 'cirq.Qid', c1: 'cirq.Qid', target: 'cirq.Qid') -> List['cirq.Operation']:
     """Implements 3-qubit gate 'congruent' to CCNOT.
 
-    Returns sequence of operations which is equivalent to applying
-    CCNOT(c0, c1, target) and multiplying phase of |101> sate by -1.
-    See lemma 6.2 in [1]."""
+    Returns sequence of operations which is equivalent to applying CCNOT(c0, c1, target) and
+    multiplying phase of |101> sate by -1. See lemma 6.2 in [1].
+    """
     return [
         ops.ry(-np.pi / 4).on(target),
         ops.CNOT(c1, target),
@@ -166,8 +166,7 @@ def _decompose_su(
 ) -> List['cirq.Operation']:
     """Decomposes controlled special unitary gate into elementary gates.
 
-    Result has O(len(controls)) operations.
-    See [1], lemma 7.9.
+    Result has O(len(controls)) operations. See [1], lemma 7.9.
     """
     assert matrix.shape == (2, 2)
     assert is_special_unitary(matrix)
@@ -194,8 +193,7 @@ def _decompose_recursive(
 ) -> List['cirq.Operation']:
     """Decomposes controlled unitary gate into elementary gates.
 
-    Result has O(len(controls)^2) operations.
-    See [1], lemma 7.5.
+    Result has O(len(controls)^2) operations. See [1], lemma 7.5.
     """
     if len(controls) == 1:
         return _decompose_single_ctrl(_unitary_power(matrix, power), controls[0], target)

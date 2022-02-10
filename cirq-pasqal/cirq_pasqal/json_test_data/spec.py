@@ -14,8 +14,8 @@
 
 """The cirq-pasqal test specification for JSON serialization tests.
 
-The actual tests live in cirq.protocols.json_serialization_test.py.
-See cirq-core/cirq/testing/json.py for a description of the framework.
+The actual tests live in cirq.protocols.json_serialization_test.py. See cirq-
+core/cirq/testing/json.py for a description of the framework.
 """
 
 import pathlib

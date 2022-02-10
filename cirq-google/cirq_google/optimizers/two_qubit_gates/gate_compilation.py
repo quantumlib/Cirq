@@ -1,8 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-"""Attempt to tabulate single qubit gates required to generate a target 2Q gate
-with a product A k A.
+"""Tabulates single qubit gates required to generate a target 2Q gate with a product A k A.
 
-Attention: this module is now deprecated! Use the classes from cirq-core instead."""
+Attention: this module is now deprecated! Use the classes from cirq-core instead.
+"""
 from typing import cast
 import numpy as np
 

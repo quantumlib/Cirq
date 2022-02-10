@@ -82,8 +82,7 @@ class Condition(abc.ABC):
 class KeyCondition(Condition):
     """A classical control condition based on a single measurement key.
 
-    This condition resolves to True iff the measurement key is non-zero at the
-    time of resolution.
+    This condition resolves to True iff the measurement key is non-zero at the time of resolution.
     """
 
     key: 'cirq.MeasurementKey'
@@ -125,9 +124,8 @@ class KeyCondition(Condition):
 class SympyCondition(Condition):
     """A classical control condition based on a sympy expression.
 
-    This condition resolves to True iff the sympy expression resolves to a
-    truthy value (i.e. `bool(x) == True`) when the measurement keys are
-    substituted in as the free variables.
+    This condition resolves to True iff the sympy expression resolves to a truthy value (i.e.
+    `bool(x) == True`) when the measurement keys are substituted in as the free variables.
     """
 
     expr: sympy.Basic

@@ -37,12 +37,14 @@ _default_executor = executors.with_quilc_compilation_and_cirq_parameter_resoluti
 
 
 class RigettiQCSService:
-    """This class supports running circuits on QCS quantum hardware as well as
-    pyQuil's quantum virtual machine (QVM). When sampling a parametric circuit
-    across a parameter sweep, use `RigettiQCSSampler` instead.
+    """This class supports running circuits on QCS quantum hardware or pyQuil's QVM.
 
-    This class also includes a number of convenience static methods for describing
-    Rigetti quantum processors through the `qcs_api_client`."""
+     When sampling a parametric circuit across a parameter sweep, use
+    `RigettiQCSSampler` instead.
+
+    This class also includes a number of convenience static methods for describing Rigetti
+    quantum processors through the `qcs_api_client`.
+    """
 
     def __init__(
         self,
@@ -70,7 +72,7 @@ class RigettiQCSService:
         repetitions: int,
         param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({}),
     ) -> cirq.Result:
-        """Run the given circuit on the QuantumComputer with which the user initialized the service.
+        """Run a circuit on the QuantumComputer using this objects executors and transformers.
 
         Args:
             circuit: The circuit to run.
@@ -156,8 +158,9 @@ class RigettiQCSService:
         quantum_processor_id: str,
         client: Optional[httpx.Client],
     ) -> InstructionSetArchitecture:  # coverage: ignore
-        """Retrieve the Instruction Set Architecture of a QuantumProcessor by ID. This
-        includes site specific operations and native gate capabilities.
+        """Retrieve the Instruction Set Architecture of a QuantumProcessor by ID.
+
+        This includes site specific operations and native gate capabilities.
 
         Args:
             quantum_processor_id: The identifier of the Rigetti QCS quantum processor.
@@ -186,8 +189,9 @@ def get_rigetti_qcs_service(
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
 ) -> RigettiQCSService:
-    """Calls `pyquil.get_qc` to initialize a `pyquil.api.QuantumComputer` and uses
-    this to initialize `RigettiQCSService`.
+    """Calls `pyquil.get_qc` to initialize a `pyquil.api.QuantumComputer`.
+
+    This returns an initialize `RigettiQCSService` using this QuantumComputer.
 
     Args:
         quantum_processor_id: The name of the desired quantum computer. This should
@@ -211,7 +215,6 @@ def get_rigetti_qcs_service(
 
     Returns:
         A `RigettiQCSService` with the specified quantum processor, executor, and transformer.
-
     """
     qc = get_qc(
         quantum_processor_id,

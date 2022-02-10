@@ -38,8 +38,9 @@ def _unitaries_allclose(circuit1, circuit2):
     ],
 )
 def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
-    """Tests that two qubit gates decompose to an equivalent and
-    serializable circuit with the expected length (or less).
+    """Tests that two qubit gates decompose to an equivalent and serializable circuit.
+
+    Also checks that this decomoisition is of the expected length or less.
     """
     q0 = cirq.GridQubit(5, 3)
     q1 = cirq.GridQubit(5, 4)
@@ -63,9 +64,7 @@ def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
     ],
 )
 def test_two_qubit_gates_with_symbols(gate: cirq.Gate, expected_length: int):
-    """Tests that the gates with symbols decompose without error into a
-    circuit that has an equivalent unitary form.
-    """
+    """Tests that the gates with symbols decompose without error into a circuit that an unitary."""
     q0 = cirq.GridQubit(5, 3)
     q1 = cirq.GridQubit(5, 4)
     original_circuit = cirq.Circuit(gate(q0, q1))
@@ -82,7 +81,7 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, expected_length: int):
 
 
 def test_cphase():
-    """Test if the sqrt_iswap synthesis for a cphase rotation is correct"""
+    """Test if the sqrt_iswap synthesis for a cphase rotation is correct."""
     thetas = np.linspace(0, 2 * np.pi, 100)
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     for theta in thetas:
@@ -95,7 +94,7 @@ def test_cphase():
 
 
 def test_givens_rotation():
-    """Test if the sqrt_iswap synthesis for a givens rotation is correct"""
+    """Test if the sqrt_iswap synthesis for a givens rotation is correct."""
     thetas = np.linspace(0, 2 * np.pi, 100)
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     for theta in thetas:

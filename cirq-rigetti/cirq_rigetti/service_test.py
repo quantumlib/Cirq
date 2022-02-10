@@ -9,16 +9,15 @@ from cirq_rigetti import get_rigetti_qcs_service, RigettiQCSService
 
 @pytest.mark.rigetti_integration
 def test_get_rigetti_qcs_service():
-    """test that get_rigetti_qcs_service can initialize a `RigettiQCSService`
-    through `pyquil.get_qc`."""
+    """Test that get_rigetti_qcs_service can initialize a `RigettiQCSService` via
+    `pyquil.get_qc`."""
     service = get_rigetti_qcs_service('9q-square', as_qvm=True, noisy=False)
     assert service._quantum_computer.name == '9q-square-qvm'
 
 
 @pytest.mark.rigetti_integration
 def test_rigetti_qcs_service_api_call():
-    """test that `RigettiQCSService` will use a custom defined client when the
-    user specifies one to make an API call."""
+    """Test that `RigettiQCSService` will use a custom defined clients when the user supplied."""
 
     class Response(httpcore.SyncByteStream):
         def __iter__(self) -> Iterator[bytes]:

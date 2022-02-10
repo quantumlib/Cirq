@@ -24,7 +24,10 @@ if TYPE_CHECKING:
 
 @cirq.value_equality
 class _XmonDeviceBase(cirq.Device):
-    """A device with qubits placed in a grid. Neighboring qubits can interact."""
+    """A device with qubits placed in a grid.
+
+    Neighboring qubits can interact.
+    """
 
     def __init__(
         self,
@@ -60,7 +63,7 @@ class _XmonDeviceBase(cirq.Device):
 
     @property
     def metadata(self) -> cirq.GridDeviceMetadata:
-        """Return the metadata for this device"""
+        """Return the metadata for this device."""
         return self._metadata
 
     @_compat.deprecated(

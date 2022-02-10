@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tool to visualize the magnitudes and phases in the density matrix"""
+"""Tool to visualize the magnitudes and phases in the density matrix."""
 
 from typing import Optional
 
@@ -24,7 +24,7 @@ from cirq.qis.states import validate_density_matrix
 
 
 def _plot_element_of_density_matrix(ax, x, y, r, phase, show_rect=False, show_text=False):
-    """Plots a single element of a density matrix
+    """Plots a single element of a density matrix.
 
     Args:
         x: x coordinate of the cell we are plotting

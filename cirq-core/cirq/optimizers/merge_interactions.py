@@ -27,8 +27,7 @@ if TYPE_CHECKING:
 
 
 class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
-    """Combines series of adjacent one- and two-qubit, non-parametrized gates
-    operating on a pair of qubits."""
+    """Combines series of adjacent one- and two-qubit, non-parametrized gates pairs of qubits."""
 
     def __init__(
         self,
@@ -90,8 +89,7 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
-        """Returns True if the old two-qubit operation may be left unchanged
-        without decomposition."""
+        """Returns if the old two-qubit operation may be left unchanged without decomposition."""
 
     @abc.abstractmethod
     def _two_qubit_matrix_to_operations(
@@ -100,8 +98,7 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
         q1: 'cirq.Qid',
         mat: np.ndarray,
     ) -> Sequence['cirq.Operation']:
-        """Decomposes the merged two-qubit gate unitary into the minimum number
-        of two-qubit gates.
+        """Decomposes the merged two-qubit gate unitary into the minimum number of two-qubit gates.
 
         Args:
             q0: The first qubit being operated on.
@@ -207,9 +204,11 @@ def _flip_kron_order(mat4x4: np.ndarray) -> np.ndarray:
 
 
 class MergeInteractions(MergeInteractionsAbc):
-    """Combines series of adjacent one- and two-qubit, non-parametrized gates
-    operating on a pair of qubits and replaces each series with the minimum
-    number of CZ gates."""
+    """Merge adjacent one and two-qubit gates with circuits containing minimal CZ gates.
+
+    Combines series of adjacent one- and two-qubit, non-parametrized gates operating on a pair of
+    qubits and replaces each series with the minimum number of CZ gates.
+    """
 
     def __init__(
         self,
@@ -236,8 +235,7 @@ class MergeInteractions(MergeInteractionsAbc):
         )
 
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
-        """Returns True if the old two-qubit operation may be left unchanged
-        without decomposition."""
+        """Returns if the old two-qubit operation may be left unchanged without decomposition."""
         return old_op in self.gateset
 
     def _two_qubit_matrix_to_operations(
@@ -246,8 +244,7 @@ class MergeInteractions(MergeInteractionsAbc):
         q1: 'cirq.Qid',
         mat: np.ndarray,
     ) -> Sequence['cirq.Operation']:
-        """Decomposes the merged two-qubit gate unitary into the minimum number
-        of CZ gates.
+        """Decomposes the merged two-qubit gate unitary into the minimum number of CZ gates.
 
         Args:
             q0: The first qubit being operated on.

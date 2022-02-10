@@ -25,11 +25,10 @@ from cirq.testing import assert_has_consistent_trace_distance_bound
 
 
 class CExpZinGate(cirq.EigenGate, cirq.testing.TwoQubitGate):
-    """Two-qubit gate for the following matrix:
-    [1  0  0  0]
-    [0  1  0  0]
-    [0  0  i  0]
-    [0  0  0 -i]
+    """Two-qubit gate used for testing.
+
+    The unitary for this gate is     [[1, 0, 0, 0],      [0, 1, 0, 0],      [0, 0, i, 0],      [0,
+    0, 0, -i]]
     """
 
     def __init__(self, quarter_turns: value.TParamVal) -> None:

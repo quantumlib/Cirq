@@ -11,11 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tomography code for an arbitrary number of qubits allowing for
-different pre-measurement rotations.
+"""Tomography code for an arbitrary number of qubits allowing different pre-measurement gates.
 
-The code is designed to be modular with regards to data collection
-so that occurs outside of the StateTomographyExperiment class.
+The code is designed to be modular with regards to data collection so that occurs outside of the
+StateTomographyExperiment class.
 """
 from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING
 
@@ -139,7 +138,7 @@ def state_tomography(
     repetitions: int = 1000,
     prerotations: Sequence[Tuple[float, float]] = None,
 ) -> TomographyResult:
-    """This performs n qubit tomography on a cirq circuit
+    """This performs n qubit tomography on a cirq circuit.
 
     Follows https://web.physics.ucsb.edu/~martinisgroup/theses/Neeley2010b.pdf
     A.1. State Tomography.

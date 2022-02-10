@@ -43,9 +43,7 @@ class SymbolInfo:
 
 
 class SymbolResolver(metaclass=abc.ABCMeta):
-    """Abstract class providing the interface for users to specify information
-    about how a particular symbol should be displayed in the 3D circuit
-    """
+    """An interface that specifies information about how a symbol should be displayed in 3D."""
 
     def __call__(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
         return self.resolve(operation)
@@ -56,8 +54,9 @@ class SymbolResolver(metaclass=abc.ABCMeta):
 
 
 class DefaultResolver(SymbolResolver):
-    """Default symbol resolver implementation. Takes information
-    from circuit_diagram_info, if unavailable, returns information representing
+    """Default symbol resolver implementation.
+
+    Takes information from circuit_diagram_info, if unavailable, returns information representing
     an unknown symbol.
     """
 
@@ -73,9 +72,8 @@ class DefaultResolver(SymbolResolver):
     }
 
     def resolve(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
-        """Checks for the _circuit_diagram_info attribute of the operation,
-        and if it exists, build the symbol information from it. Otherwise,
-        builds symbol info for an unknown operation.
+        """Checks for the _circuit_diagram_info attribute of the operation, and if it exists, build
+        the symbol information from it. Otherwise, builds symbol info for an unknown operation.
 
         Args:
             operation: the cirq.Operation object to resolve
@@ -100,8 +98,9 @@ DEFAULT_SYMBOL_RESOLVERS: Iterable[SymbolResolver] = tuple([DefaultResolver()])
 
 
 def resolve_operation(operation: cirq.Operation, resolvers: Iterable[SymbolResolver]) -> SymbolInfo:
-    """Builds a SymbolInfo object based off of a designated operation
-    and list of resolvers. The latest resolver takes precendent.
+    """Builds a SymbolInfo object based off of a designated operation and list of resolvers.
+
+    The latest resolver takes precendent.
 
     Args:
         operation: the cirq.Operation object to resolve
@@ -124,8 +123,7 @@ def resolve_operation(operation: cirq.Operation, resolvers: Iterable[SymbolResol
 
 class Operation3DSymbol:
     def __init__(self, wire_symbols, location_info, color_info, moment):
-        """Gathers symbol information from an operation and builds an
-        object to represent it in 3D.
+        """Gathers symbol information from an operation and builds an object to represent it in 3D.
 
         Args:
             wire_symbols: a list of symbols taken from circuit_diagram_info()

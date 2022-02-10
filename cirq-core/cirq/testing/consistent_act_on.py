@@ -157,7 +157,8 @@ def _final_clifford_tableau(
 
     Returns:
         None if any of the operations can not act on a CliffordTableau, returns
-        the tableau otherwise."""
+        the tableau otherwise.
+    """
 
     tableau = clifford_tableau.CliffordTableau(len(qubit_map))
     args = act_on_clifford_tableau_args.ActOnCliffordTableauArgs(
@@ -188,7 +189,8 @@ def _final_stabilizer_state_ch_form(
 
     Returns:
         None if any of the operations can not act on a StabilizerStateChForm,
-        returns the StabilizerStateChForm otherwise."""
+        returns the StabilizerStateChForm otherwise.
+    """
 
     stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(len(qubit_map))
     args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(

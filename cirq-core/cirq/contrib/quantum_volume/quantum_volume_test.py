@@ -66,7 +66,7 @@ def test_compute_heavy_set():
 
 
 def test_sample_heavy_set():
-    """Test that we correctly sample a circuit's heavy set"""
+    """Test that we correctly sample a circuit's heavy set."""
 
     sampler = Mock(spec=cirq.Simulator)
     # Construct a result that returns "1", "2", "3", "0"
@@ -86,7 +86,7 @@ def test_sample_heavy_set():
 
 
 def test_sample_heavy_set_with_parity():
-    """Test that we correctly sample a circuit's heavy set with a parity map"""
+    """Test that we correctly sample a circuit's heavy set with a parity map."""
 
     sampler = Mock(spec=cirq.Simulator)
     # Construct a result that returns [1, 0, 1, 0] for the physical qubit
@@ -155,8 +155,7 @@ def test_compile_circuit():
 
 
 def test_compile_circuit_replaces_swaps():
-    """Tests that the compiler never sees the SwapPermutationGates from the
-    router."""
+    """Tests that the compiler never sees the SwapPermutationGates from the router."""
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
     a, b, c = cirq.LineQubit.range(3)
     # Create a circuit that will require some swaps.
@@ -196,8 +195,7 @@ def test_compile_circuit_replaces_swaps():
 
 
 def test_compile_circuit_with_readout_correction():
-    """Tests that we are able to compile a model circuit with readout error
-    correction."""
+    """Tests that we are able to compile a model circuit with readout error correction."""
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
     router_mock = MagicMock(side_effect=lambda circuit, network: ccr.SwapNetwork(circuit, {}))
     a, b, c = cirq.LineQubit.range(3)
@@ -288,7 +286,7 @@ def test_compile_circuit_no_routing_attempts():
 
 
 def test_calculate_quantum_volume_result():
-    """Test that running the main loop returns the desired result"""
+    """Test that running the main loop returns the desired result."""
     results = cirq.contrib.quantum_volume.calculate_quantum_volume(
         num_qubits=3,
         depth=3,
@@ -309,8 +307,7 @@ def test_calculate_quantum_volume_result():
 
 
 def test_calculate_quantum_volume_result_with_device_graph():
-    """Test that running the main loop routes the circuit onto the given device
-    graph"""
+    """Test that running the main loop routes the circuit onto the given device graph."""
     device_qubits = [cirq.GridQubit(i, j) for i in range(2) for j in range(3)]
 
     results = cirq.contrib.quantum_volume.calculate_quantum_volume(
@@ -345,8 +342,7 @@ def test_calculate_quantum_volume_loop():
 
 
 def test_calculate_quantum_volume_loop_with_readout_correction():
-    """Test that calculate_quantum_volume is able to run without erring with
-    readout error correction."""
+    """Test that calculate_quantum_volume is able to run with readout error correction."""
     # Keep test from taking a long time by lowering circuits and routing
     # attempts.
     cirq.contrib.quantum_volume.calculate_quantum_volume(

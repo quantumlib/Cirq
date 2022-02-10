@@ -14,8 +14,8 @@
 """An efficient simulator for Clifford circuits.
 
 Allowed operations include:
-	- X,Y,Z,H,S,CNOT,CZ
-	- measurements in the computational basis
+    - X,Y,Z,H,S,CNOT,CZ
+    - measurements in the computational basis
 
 The quantum state is specified in two forms:
     1. In terms of stabilizer generators. These are a set of n Pauli operators
@@ -161,6 +161,7 @@ class CliffordSimulatorStepResult(
         sim_state: 'cirq.OperationTarget[clifford.ActOnStabilizerCHFormArgs]',
     ):
         """Results of a step of the simulator.
+
         Attributes:
             sim_state: The qubit:ActOnArgs lookup for this step.
         """

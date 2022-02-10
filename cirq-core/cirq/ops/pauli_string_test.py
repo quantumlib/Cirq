@@ -30,6 +30,7 @@ def _make_qubits(n):
 
 def _sample_qubit_pauli_maps():
     """All combinations of having a Pauli or nothing on 3 qubits.
+
     Yields 64 qubit pauli maps
     """
     qubits = _make_qubits(3)

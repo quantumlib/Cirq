@@ -76,9 +76,8 @@ class QasmArgs(string.Formatter):
 class SupportsQasm(Protocol):
     """An object that can be turned into QASM code.
 
-    Returning `NotImplemented` or `None` means "don't know how to turn into
-    QASM". In that case fallbacks based on decomposition and known unitaries
-    will be used instead.
+    Returning `NotImplemented` or `None` means "don't know how to turn into QASM". In that case
+    fallbacks based on decomposition and known unitaries will be used instead.
     """
 
     @doc_private
@@ -89,9 +88,8 @@ class SupportsQasm(Protocol):
 class SupportsQasmWithArgs(Protocol):
     """An object that can be turned into QASM code.
 
-    Returning `NotImplemented` or `None` means "don't know how to turn into
-    QASM". In that case fallbacks based on decomposition and known unitaries
-    will be used instead.
+    Returning `NotImplemented` or `None` means "don't know how to turn into QASM". In that case
+    fallbacks based on decomposition and known unitaries will be used instead.
     """
 
     @doc_private
@@ -102,9 +100,8 @@ class SupportsQasmWithArgs(Protocol):
 class SupportsQasmWithArgsAndQubits(Protocol):
     """An object that can be turned into QASM code if it knows its qubits.
 
-    Returning `NotImplemented` or `None` means "don't know how to turn into
-    QASM". In that case fallbacks based on decomposition and known unitaries
-    will be used instead.
+    Returning `NotImplemented` or `None` means "don't know how to turn into QASM". In that case
+    fallbacks based on decomposition and known unitaries will be used instead.
     """
 
     @doc_private

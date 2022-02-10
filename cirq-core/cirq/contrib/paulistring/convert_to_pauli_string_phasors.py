@@ -28,12 +28,10 @@ if TYPE_CHECKING:
 
 
 class ConvertToPauliStringPhasors(PointOptimizer):
-    """Attempts to convert single-qubit gates into single-qubit
-    PauliStringPhasor operations.
+    """Attempts to convert single-qubit gates into single-qubit PauliStringPhasor operations.
 
-    Checks if the operation has a known unitary effect. If so, and the gate is a
-        1-qubit gate, then decomposes it into x, y, or z rotations and creates a
-        PauliStringPhasor for each.
+    Checks if the operation has a known unitary effect. If so, and the gate is a 1-qubit gate, then
+    decomposes it into x, y, or z rotations and creates a PauliStringPhasor for each.
     """
 
     def __init__(

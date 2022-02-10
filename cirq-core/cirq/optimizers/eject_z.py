@@ -24,8 +24,8 @@ from cirq._compat import deprecated_class
 class EjectZ:
     """Pushes Z gates towards the end of the circuit.
 
-    As the Z gates get pushed they may absorb other Z gates, get absorbed into
-    measurements, cross CZ gates, cross W gates (by phasing them), etc.
+    As the Z gates get pushed they may absorb other Z gates, get absorbed into measurements, cross
+    CZ gates, cross W gates (by phasing them), etc.
     """
 
     def __init__(self, tolerance: float = 0.0, eject_parameterized: bool = False) -> None:

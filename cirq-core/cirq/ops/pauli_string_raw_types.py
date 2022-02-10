@@ -45,8 +45,7 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
     def map_qubits(
         self: TSelf_PauliStringGateOperation, qubit_map: Dict[raw_types.Qid, raw_types.Qid]
     ) -> TSelf_PauliStringGateOperation:
-        """Return an equivalent operation on new qubits with its Pauli string
-        mapped to new qubits.
+        """Return an equivalent operation on new qubits with its Pauli string mapped to new qubits.
 
         new_pauli_string = self.pauli_string.map_qubits(qubit_map)
         """

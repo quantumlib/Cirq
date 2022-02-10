@@ -84,8 +84,7 @@ def stratified_circuit(
 
 
 def stratify_circuit(classifiers: Iterable[Classifier], circuit: circuits.Circuit):
-    """Performs the stratification by iterating through the operations in the
-    circuit and using the given classifiers to align them.
+    """Performs the stratification using the given classifiers to align the circuits.
 
     Args:
         classifiers: A list of rules to align the circuit. Must be exhaustive,

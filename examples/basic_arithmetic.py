@@ -1,6 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 # -*- coding: utf-8 -*-
-"""Creates and simulates basic arithmetic circuits
+"""Creates and simulates basic arithmetic circuits.
 
 === EXAMPLE OUTPUT ===
 Execute Adder
@@ -91,7 +91,7 @@ import cirq
 
 
 class Adder(cirq.Gate):
-    """A quantum circuit to calculate a + b
+    """A quantum circuit to calculate a + b.
 
             -----------@---             ---@------------
                        |                   |

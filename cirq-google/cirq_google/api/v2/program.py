@@ -126,7 +126,7 @@ def line_qubit_from_proto_id(proto_id: str) -> cirq.LineQubit:
 
 
 def named_qubit_from_proto_id(proto_id: str) -> cirq.NamedQubit:
-    """Parse a proto id to a `cirq.NamedQubit'
+    """Parse a proto id to a `cirq.NamedQubit'.
 
     This simply returns a `cirq.NamedQubit` with a name equal to `proto_id`.
     """

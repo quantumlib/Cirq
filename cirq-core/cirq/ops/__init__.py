@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Gates (unitary and non-unitary), operations, base types, and gate sets.
-"""
+"""Gates (unitary and non-unitary), operations, base types, and gate sets."""
 
 from cirq.ops.arithmetic_operation import (
     ArithmeticOperation,

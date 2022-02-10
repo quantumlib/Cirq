@@ -305,8 +305,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return qtypes.QuantumProcessor.Health.Name(self._processor.health)
 
     def expected_down_time(self) -> 'Optional[datetime.datetime]':
-        """Returns the start of the next expected down time of the processor, if
-        set."""
+        """Returns the start of the next expected down time of the processor, if set."""
         if self._inner_processor().HasField('expected_down_time'):
             return self._inner_processor().expected_down_time.ToDatetime()
         else:
@@ -324,8 +323,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return self._inner_processor().supported_languages
 
     def get_device_specification(self) -> Optional[v2.device_pb2.DeviceSpecification]:
-        """Returns a device specification proto for use in determining
-        information about the device.
+        """Returns a device specification proto that gives information about the device.
 
         Returns:
             Device specification proto if present.
@@ -343,9 +341,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     ) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
-        This method queries the processor to retrieve the device specification,
-        which is then use to create a `serializable_gate_set.SerializableDevice` that will validate
-        that operations are supported and use the correct qubits.
+        This method queries the processor to retrieve the device specification, which is then use
+        to create a `serializable_gate_set.SerializableDevice` that will validate that operations
+        are supported and use the correct qubits.
         """
         spec = self.get_device_specification()
         if not spec:
@@ -463,9 +461,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     def _delete_reservation(self, reservation_id: str):
         """Delete a reservation.
 
-        This will only work for reservations outside the processor's
-        schedule freeze window.  If you are not sure whether the reservation
-        falls within this window, use remove_reservation
+        This will only work for reservations outside the processor's schedule freeze window.  If
+        you are not sure whether the reservation falls within this window, use remove_reservation
         """
         return self.context.client.delete_reservation(
             self.project_id, self.processor_id, reservation_id
@@ -474,9 +471,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     def _cancel_reservation(self, reservation_id: str):
         """Cancel a reservation.
 
-        This will only work for reservations inside the processor's
-        schedule freeze window.  If you are not sure whether the reservation
-        falls within this window, use remove_reservation
+        This will only work for reservations inside the processor's schedule freeze window.  If you
+        are not sure whether the reservation falls within this window, use remove_reservation
         """
         return self.context.client.cancel_reservation(
             self.project_id, self.processor_id, reservation_id
@@ -517,9 +513,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     ):
         """Updates a reservation with new information.
 
-        Updates a reservation with a new start date, end date, or
-        list of additional users.  For each field, it the argument is left as
-        None, it will not be updated.
+        Updates a reservation with a new start date, end date, or list of additional users.  For
+        each field, it the argument is left as None, it will not be updated.
         """
         return self.context.client.update_reservation(
             self.project_id,

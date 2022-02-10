@@ -50,9 +50,11 @@ def operations_to_part_lens(
 
 
 class AcquaintanceOpportunityGate(ops.Gate, ops.InterchangeableQubitsGate):
-    """Represents an acquaintance opportunity. An acquaintance opportunity is
-    essentially a placeholder in a swap network that may later be replaced with
-    a logical gate."""
+    """Represents an acquaintance opportunity.
+
+    An acquaintance opportunity is essentially a placeholder in a swap network that may later be
+    replaced with a logical gate.
+    """
 
     def __init__(self, num_qubits: int):
         self._num_qubits = num_qubits
@@ -100,8 +102,7 @@ def acquaint_insides(
     layers: Layers,
     mapping: Dict[ops.Qid, int],
 ) -> None:
-    """Acquaints each of the qubits with another set specified by an
-    acquaintance gate.
+    """Acquaints each of the qubits with another set specified by an acquaintance gate.
 
     Args:
         qubits: The list of qubits of which half are individually acquainted
@@ -151,9 +152,11 @@ def acquaint_and_shift(
     swap_gate: 'cirq.Gate',
     mapping: Dict[ops.Qid, int],
 ):
-    """Acquaints and shifts a pair of lists of qubits. The first part is
-    acquainted with every qubit individually in the second part, and vice
-    versa. Operations are grouped into several layers:
+    """Acquaints and shifts a pair of lists of qubits.
+
+    The first part is acquainted with every qubit individually in the second part, and vice versa.
+    Operations are grouped into several layers:
+
         * prior_interstitial: The first layer of acquaintance gates.
         * prior: The combination of acquaintance gates and swaps that acquaints
             the inner halves.

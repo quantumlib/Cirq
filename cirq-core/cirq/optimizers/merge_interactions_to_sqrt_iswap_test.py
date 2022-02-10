@@ -58,9 +58,11 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
 
 
 def assert_optimization_not_broken(circuit: cirq.Circuit, **kwargs):
-    """Check that the unitary matrix for the input circuit is the same (up to
-    global phase and rounding error) as the unitary matrix of the optimized
-    circuit."""
+    """Tests that the optimization does not change the unitary of the circuit.
+
+    Check that the unitary matrix for the input circuit is the same (up to global phase and
+    rounding error) as the unitary matrix of the optimized circuit.
+    """
     u_before = circuit.unitary(sorted(circuit.all_qubits()))
     c_sqrt_iswap = circuit.copy()
     cirq.MergeInteractionsToSqrtIswap(**kwargs).optimize_circuit(c_sqrt_iswap)

@@ -13,11 +13,10 @@
 # limitations under the License.
 """Defines the fermionic simulation gate family.
 
-This is the family of two-qubit gates that preserve excitations (number of ON
-qubits), ignoring single-qubit gates and global phase. For example, when using
-the second quantized representation of electrons to simulate chemistry, this is
-a natural gateset because each ON qubit corresponds to an electron and in the
-context of chemistry the electron count is conserved over time. This property
+This is the family of two-qubit gates that preserve excitations (number of ON qubits), ignoring
+single-qubit gates and global phase. For example, when using the second quantized representation of
+electrons to simulate chemistry, this is a natural gateset because each ON qubit corresponds to an
+electron and in the context of chemistry the electron count is conserved over time. This property
 applies more generally to fermions, thus the name of the gate.
 """
 
@@ -407,10 +406,10 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def _decompose_(self, qubits) -> 'cirq.OP_TREE':
         """Decomposes self into Z rotations and FSimGate.
 
-        Note that Z rotations returned by this method have unusual global phase
-        in that one of their eigenvalues is 1. This ensures the decomposition
-        agrees with the matrix specified in class docstring. In particular, it
-        makes the top left element of the matrix equal to 1.
+        Note that Z rotations returned by this method have unusual global phase in that one of
+        their eigenvalues is 1. This ensures the decomposition agrees with the matrix specified
+        in class docstring. In particular, it makes the top left element of the matrix equal to
+        1.
         """
 
         def to_exponent(angle_rads: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]:

@@ -71,7 +71,6 @@ def circuit_to_quirk_url(
             bar).
 
     Returns:
-
     """
     circuit = circuit.copy()
     linearize_circuit_qubits(circuit)

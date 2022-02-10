@@ -11,9 +11,10 @@ def test_with_quilc_compilation_and_cirq_parameter_resolution(
     mock_qpu_implementer: Any,
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable],
 ) -> None:
-    """test that execution with quilc compilation and cirq parameter resolution calls
-    ``quil_to_native_quil`` and ``native_quil_to_executable`` for each parameter
-    resolver.
+    """Tests execution with quilc compilation and cirq parameter resolution.
+
+    This test that this calls `quil_to_native_quil` and `native_quil_to_executable` for each
+    parameter resolver.
     """
 
     parametric_circuit, sweepable = parametric_circuit_with_params
@@ -52,8 +53,9 @@ def test_with_quilc_parametric_compilation(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
     pass_dict: bool,
 ) -> None:
-    """test that execution with quilc parametric compilation only compiles only once and
-    parameters are properly resolved before execution.
+    """Tests that execution with quilc parametric compilation only compiles only once.
+
+    Also checks that parameters are properly resolved before execution.
     """
 
     parametric_circuit, sweepable = parametric_circuit_with_params
@@ -94,8 +96,9 @@ def test_without_quilc_compilation(
     mock_qpu_implementer: Any,
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable],
 ) -> None:
-    """test execution without quilc compilation treats the transformed cirq
-    Circuit as native quil and does not pass it through quilc.
+    """Tests that execution without quilc compilation has a transformed circuit with native quil.
+
+    Also tests that it does not pass it through quilc.
     """
 
     parametric_circuit, sweepable = parametric_circuit_with_params
@@ -133,9 +136,7 @@ def test_invalid_pyquil_region_measurement(
     mock_qpu_implementer: Any,
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable],
 ) -> None:
-    """test that executors raise `ValueError` if the measurement_id_map
-    does not exist.
-    """
+    """Tests that executors raise `ValueError` if the measurement_id_map does not exist."""
 
     parametric_circuit, sweepable = parametric_circuit_with_params
     repetitions = 2

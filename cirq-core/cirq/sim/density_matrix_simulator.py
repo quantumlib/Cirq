@@ -368,7 +368,7 @@ class DensityMatrixStepResult(
 
 @value.value_equality(unhashable=True)
 class DensityMatrixSimulatorState:
-    """The simulator state for DensityMatrixSimulator
+    """The simulator state for DensityMatrixSimulator.
 
     Args:
         density_matrix: The density matrix of the simulation.

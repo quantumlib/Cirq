@@ -20,7 +20,6 @@ This file contains the following serializers (and corresponding deserializers)
     - MEASUREMENT_SERIALIZER:  Single GateOpSerializer for the measurement gate
     - SINGLE_QUBIT_SERIALIZERS: A list of GateOpSerializer for single qubit
         rotations confined to half-pi increments using cirq Gates.
-
 """
 from typing import cast, List, Union
 

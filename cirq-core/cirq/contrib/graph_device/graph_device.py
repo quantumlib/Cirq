@@ -39,8 +39,10 @@ class UndirectedGraphDeviceEdge(metaclass=abc.ABCMeta):
 
 @value.value_equality
 class FixedDurationUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
-    """An edge of an undirected graph device on which every operation is
-    allowed and has the same duration."""
+    """An edge of an undirected graph device which all operations being the same duration.
+
+    All operations are considered valid.
+    """
 
     def __init__(self, duration: value.Duration) -> None:
         self._duration = duration

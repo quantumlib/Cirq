@@ -21,7 +21,9 @@ import cirq_google.engine.virtual_engine_factory as factory
 
 def _test_processor(processor: cg.engine.abstract_processor.AbstractProcessor):
     """Tests an engine instance with some standard commands.
-    Also tests the non-Sycamore qubits and gates fail."""
+
+    Also tests the non-Sycamore qubits and gates fail.
+    """
     good_qubit = cirq.GridQubit(5, 4)
     circuit = cirq.Circuit(cirq.X(good_qubit), cirq.measure(good_qubit))
     results = processor.run(circuit, repetitions=100)

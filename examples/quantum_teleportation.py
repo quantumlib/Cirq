@@ -1,11 +1,11 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-"""Quantum Teleportation.
-Quantum Teleportation is a process by which a quantum state can be transmitted
-by sending only two classical bits of information. This is accomplished by
-pre-sharing an entangled state between the sender (Alice) and the receiver
-(Bob). This entangled state allows the receiver (Bob) of the two classical
-bits of information to possess a qubit with the same state as the one held by
-the sender (Alice).
+"""Example that demonstrates quantum teleportation.
+
+Quantum Teleportation is a process by which a quantum state can be
+transmitted by sending only two classical bits of information. This is accomplished by pre-sharing
+an entangled state between the sender (Alice) and the receiver (Bob). This entangled state allows
+the receiver (Bob) of the two classical bits of information to possess a qubit with the same state
+as the one held by the sender (Alice).
 
 In the following example output, qubit 0 (the Message) is set to a random state
 by applying X and Y gates. By sending two classical bits of information after

@@ -26,8 +26,8 @@ if TYPE_CHECKING:
 class StabilizerState(metaclass=abc.ABCMeta):
     """Interface for quantum stabilizer state representations.
 
-    This interface is used for CliffordTableau and StabilizerChForm quantum
-    state representations, allowing simulators to act on them abstractly.
+    This interface is used for CliffordTableau and StabilizerChForm quantum state representations,
+    allowing simulators to act on them abstractly.
     """
 
     @abc.abstractmethod
@@ -124,8 +124,7 @@ class StabilizerState(metaclass=abc.ABCMeta):
 
 
 class CliffordTableau(StabilizerState):
-    """Tableau representation of a stabilizer state
-    (based on Aaronson and Gottesman 2006).
+    """Tableau representation of a stabilizer state (based on Aaronson and Gottesman 2006).
 
     The tableau stores the stabilizer generators of
     the state using three binary arrays: xs, zs, and rs.
@@ -374,9 +373,10 @@ class CliffordTableau(StabilizerState):
         return second.then(self)
 
     def _rowsum(self, q1, q2):
-        """Implements the "rowsum" routine defined by
-        Aaronson and Gottesman.
-        Multiplies the stabilizer in row q1 by the stabilizer in row q2."""
+        """Implements the "rowsum" routine defined by Aaronson and Gottesman.
+
+        Multiplies the stabilizer in row q1 by the stabilizer in row q2.
+        """
 
         def g(x1, z1, x2, z2):
             if not x1 and not z1:
@@ -428,14 +428,19 @@ class CliffordTableau(StabilizerState):
         return DensePauliString(pauli_mask, coefficient=coefficient)
 
     def stabilizers(self) -> List['cirq.DensePauliString']:
-        """Returns the stabilizer generators of the state. These
-        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
+        """Returns the stabilizer generators of the state.
+
+        These
+        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>
+        """
         return [self._row_to_dense_pauli(i) for i in range(self.n, 2 * self.n)]
 
     def destabilizers(self) -> List['cirq.DensePauliString']:
-        """Returns the destabilizer generators of the state. These
-        are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
-        generators above generate the full Pauli group on n qubits."""
+        """Returns the destabilizer generators of the state.
+
+        These are n operators {S_1,S_2,...,S_n} such that along with the stabilizer generators
+        above generate the full Pauli group on n qubits.
+        """
         return [self._row_to_dense_pauli(i) for i in range(0, self.n)]
 
     def _measure(self, q, prng: np.random.RandomState) -> int:

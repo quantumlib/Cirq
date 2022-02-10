@@ -145,7 +145,7 @@ def make_simon_circuit(input_qubits, output_qubits, oracle):
 
 
 def post_processing(data, results):
-    """Solves a system of equations with modulo 2 numbers"""
+    """Solves a system of equations with modulo 2 numbers."""
     sing_values = sp.linalg.svdvals(results)
     tolerance = 1e-5
     if sum(sing_values < tolerance) == 0:  # check if measurements are linearly dependent

@@ -294,9 +294,12 @@ def _get_active_pairs(graph: nx.Graph, grid_layer: GridInteractionLayer):
 
 @dataclasses.dataclass(frozen=True)
 class CircuitLibraryCombination:
-    """For a given layer (specifically, a set of pairs of qubits), `combinations` is a 2d array
-    of shape (n_combinations, len(pairs)) where each row represents a combination (with replacement)
+    """Different combinations for a layer made up of two qubit circuits.
+
+    For a given layer (specifically, a set of pairs of qubits), `combinations` is a 2d array of
+    shape (n_combinations, len(pairs)) where each row represents a combination (with replacement)
     of two-qubit circuits. The actual values are indices into a list of library circuits.
+
 
     `layer` is used for record-keeping. This is the GridInteractionLayer if using
     `get_random_combinations_for_device`, the Moment if using
@@ -316,8 +319,7 @@ def _get_random_combinations(
     pair_gen: Iterator[Tuple[List[QidPairT], Any]],
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> List[CircuitLibraryCombination]:
-    """For qubit pairs, prepare a set of combinations to efficiently sample
-    parallel two-qubit XEB circuits.
+    """Prepare a set of combinations to efficiently sample parallel two-qubit XEB circuits.
 
     This helper function should be called by one of
     `get_random_comibations_for_device`,
@@ -366,8 +368,7 @@ def get_random_combinations_for_device(
     pattern: Sequence[GridInteractionLayer] = HALF_GRID_STAGGERED_PATTERN,
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> List[CircuitLibraryCombination]:
-    """For a given device, prepare a set of combinations to efficiently sample
-    parallel two-qubit XEB circuits.
+    """Prepares a set of combinations to efficiently sample parallel two-qubit XEB circuits.
 
     Args:
         n_library_circuits: The number of circuits in your library. Likely the value
@@ -478,8 +479,7 @@ def get_random_combinations_for_layer_circuit(
     layer_circuit: 'cirq.Circuit',
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> List[CircuitLibraryCombination]:
-    """For a layer circuit, prepare a set of combinations to efficiently sample
-    parallel two-qubit XEB circuits.
+    """Prepares a set of combinations to efficiently sample parallel two-qubit XEB circuits.
 
     Args:
         n_library_circuits: The number of circuits in your library. Likely the value
@@ -676,9 +676,9 @@ def _single_qubit_gates_arg_to_factory(
 ) -> _SingleQubitLayerFactory:
     """Parse the `single_qubit_gates` argument for circuit generation functions.
 
-    If only one single qubit gate is provided, it will be used everywhere.
-    Otherwise, we use the factory that excludes operations that were used
-    in the previous layer. This check is done by gate identity, not equality.
+    If only one single qubit gate is provided, it will be used everywhere. Otherwise, we use the
+    factory that excludes operations that were used in the previous layer. This check is done by
+    gate identity, not equality.
     """
     if len(set(single_qubit_gates)) == 1:
         return _FixedSingleQubitLayerFactory({q: single_qubit_gates[0] for q in qubits})

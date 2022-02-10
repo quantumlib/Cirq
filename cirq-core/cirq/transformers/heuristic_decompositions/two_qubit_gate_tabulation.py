@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Attempt to tabulate single qubit gates required to generate a target 2Q gate
-with a product A k A."""
+"""Tabulates single qubit gates targeting a 2Q gate with a product A k A."""
 from functools import reduce
 from typing import Tuple, Sequence, List, NamedTuple
 

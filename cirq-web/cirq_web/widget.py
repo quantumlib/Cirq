@@ -54,9 +54,7 @@ class Widget(ABC):
         raise NotImplementedError()
 
     def _repr_html_(self):
-        """Allows the object's html to be easily displayed in a notebook
-        by using the display() method.
-        """
+        """Allows the object's html to be displayed in a notebook by using the display() method."""
         client_code = self.get_client_code()
         return self._create_html_content(client_code)
 
@@ -66,8 +64,9 @@ class Widget(ABC):
         file_name: str = 'bloch_sphere.html',
         open_in_browser: bool = False,
     ) -> str:
-        """Generates a portable HTML file of the widget that
-        can be run anywhere. Prints out the absolute path of the file to the console.
+        """Generates a portable HTML file of the widget that can be run anywhere.
+
+        Prints out the absolute path of the file to the console.
 
         Args:
             output_directory: the directory in which the output file will be
@@ -92,7 +91,7 @@ class Widget(ABC):
         return path_of_html_file
 
     def _get_bundle_script(self):
-        """Returns the bundle script of a widget"""
+        """Returns the bundle script of a widget."""
         bundle_filename = self.get_widget_bundle_name()
         return _to_script_tag(bundle_filename)
 

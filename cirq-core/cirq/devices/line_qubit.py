@@ -48,7 +48,7 @@ class _BaseLineQid(ops.Qid):
         return isinstance(other, _BaseLineQid) and abs(self.x - other.x) == 1
 
     def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseLineQid']:
-        """Returns qubits that are potential neighbors to this LineQubit
+        """Returns qubits that are potential neighbors to this LineQubit.
 
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.
@@ -159,8 +159,7 @@ class LineQid(_BaseLineQid):
 
     @staticmethod
     def for_qid_shape(qid_shape: Sequence[int], start: int = 0, step: int = 1) -> List['LineQid']:
-        """Returns a range of line qids for each entry in `qid_shape` with
-        matching dimension.
+        """Returns a range of line qids for each entry in `qid_shape` with matching dimension.
 
         Args:
             qid_shape: A sequence of dimensions for each `LineQid` to create.

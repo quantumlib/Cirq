@@ -18,12 +18,10 @@ from cirq_google.engine.client.quantum_v1alpha1.proto import engine_pb2_grpc
 
 
 class QuantumEngineServiceGrpcTransport(object):
-    """gRPC transport class providing stubs for
-    google.cloud.quantum.v1alpha1 QuantumEngineService API.
+    """gRPC transport class providing stubs for google.cloud.quantum.v1alpha1 QuantumEngineService.
 
-    The transport provides access to the raw gRPC stubs,
-    which can be used to take advantage of advanced
-    features of gRPC.
+    The transport provides access to the raw gRPC stubs, which can be used to take advantage of
+    advanced features of gRPC.
     """
 
     # The scopes needed to make gRPC calls to all of the methods defined

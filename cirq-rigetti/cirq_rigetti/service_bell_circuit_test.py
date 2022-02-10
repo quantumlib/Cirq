@@ -9,9 +9,7 @@ from cirq_rigetti import RigettiQCSService
 
 @pytest.mark.rigetti_integration
 def test_bell_circuit_through_service(bell_circuit: cirq.Circuit) -> None:
-    """test that RigettiQCSService can run a basic bell circuit on the QVM and return an accurate
-    ``cirq.study.Result``.
-    """
+    """Tests that RigettiQCSService can run a Bell circuit on the QVM and return a result."""
     qc = get_qc('9q-square', as_qvm=True)
     service = RigettiQCSService(
         quantum_computer=qc,

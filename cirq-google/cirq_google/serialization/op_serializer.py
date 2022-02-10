@@ -31,9 +31,8 @@ Gate = TypeVar('Gate', bound=cirq.Gate)
 class OpSerializer(abc.ABC):
     """Generic supertype for operation serializers.
 
-    Each operation serializer describes how to serialize a specific type of
-    Cirq operation to its corresponding proto format. Multiple operation types
-    may serialize to the same format.
+    Each operation serializer describes how to serialize a specific type of Cirq operation to its
+    corresponding proto format. Multiple operation types may serialize to the same format.
     """
 
     @property
@@ -41,8 +40,7 @@ class OpSerializer(abc.ABC):
     def internal_type(self) -> Type:
         """Returns the type that the operation contains.
 
-        For GateOperations, this is the gate type.
-        For CircuitOperations, this is FrozenCircuit.
+        For GateOperations, this is the gate type. For CircuitOperations, this is FrozenCircuit.
         """
 
     @property
@@ -50,9 +48,9 @@ class OpSerializer(abc.ABC):
     def serialized_id(self) -> str:
         """Returns the string identifier for the resulting serialized object.
 
-        This ID denotes the serialization format this serializer produces. For
-        example, one of the common serializers assigns the id 'xy' to XPowGates,
-        as they serialize into a format also used by YPowGates.
+        This ID denotes the serialization format this serializer produces. For example, one of the
+        common serializers assigns the id 'xy' to XPowGates, as they serialize into a format also
+        used by YPowGates.
         """
 
     @abc.abstractmethod
@@ -182,9 +180,8 @@ class GateOpSerializer(OpSerializer):
     def can_serialize_operation(self, op: cirq.Operation) -> bool:
         """Whether the given operation can be serialized by this serializer.
 
-        This checks that the gate is a subclass of the gate type for this
-        serializer, and that the gate returns true for
-        `can_serializer_predicate` called on the gate.
+        This checks that the gate is a subclass of the gate type for this serializer, and that the
+        gate returns true for `can_serializer_predicate` called on the gate.
         """
         supported_gate_type = self._gate_type in type(op.gate).mro()
         return supported_gate_type and super().can_serialize_operation(op)
@@ -200,8 +197,8 @@ class GateOpSerializer(OpSerializer):
     ) -> Optional[v2.program_pb2.Operation]:
         """Returns the cirq_google.api.v2.Operation message as a proto dict.
 
-        Note that this function may modify the constant list if it adds
-        tokens to the circuit's constant table.
+        Note that this function may modify the constant list if it adds tokens to the circuit's
+        constant table.
         """
 
         gate = op.gate
@@ -314,8 +311,8 @@ class CircuitOpSerializer(OpSerializer):
     ) -> v2.program_pb2.CircuitOperation:
         """Returns the cirq.google.api.v2.CircuitOperation message as a proto dict.
 
-        Note that this function requires constants and raw_constants to be
-        pre-populated with the circuit in op.
+        Note that this function requires constants and raw_constants to be pre-populated with the
+        circuit in op.
         """
         if constants is None or raw_constants is None:
             raise ValueError(

@@ -157,8 +157,7 @@ def definitely_commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> 
 def _strat_commutes_from_commutes(
     v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8
 ) -> Union[bool, NotImplementedType, None]:
-    """Attempts to determine commutativity via the objects' _commutes_
-    method."""
+    """Attempts to determine commutativity via the objects' _commutes_ method."""
 
     for a, b in [(v1, v2), (v2, v1)]:
         getter = getattr(a, '_commutes_', None)

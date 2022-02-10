@@ -156,8 +156,11 @@ class XEBCharacterizationOptions(ABC):
 
 
 def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, float]:
-    """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
-    for the five PhasedFSim angles."""
+    """Gets the fsim angle for a given gate.
+
+    For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value for the
+    five PhasedFSim angles.
+    """
     defaults = {
         'theta_default': 0.0,
         'zeta_default': 0.0,
@@ -238,7 +241,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     def get_initial_simplex_and_names(
         self, initial_simplex_step_size: float = 0.1
     ) -> Tuple[np.ndarray, List[str]]:
-        """Get an initial simplex and parameter names for the optimization implied by these options.
+        """Get an initial simplex and parameter names for the optimization.
 
         The initial simplex initiates the Nelder-Mead optimization parameter. We
         use the standard simplex of `x0 + s*basis_vec` where x0 is given by the
@@ -284,8 +287,8 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         """Whether the default angles are set.
 
         This only considers angles where characterize_{angle} is True. If all such angles have
-        {angle}_default set to a value, this returns True. If none of the defaults are set,
-        this returns False. If some defaults are set, we raise an exception.
+        {angle}_default set to a value, this returns True. If none of the defaults are set, this
+        returns False. If some defaults are set, we raise an exception.
         """
         defaults_set = [default is not None for _, default, _ in self._iter_angles()]
         if any(defaults_set):
@@ -303,8 +306,8 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     ):
         """A new Options class with {angle}_defaults inferred from `gate`.
 
-        This keeps the same settings for the characterize_{angle} booleans, but will disregard
-        any current {angle}_default values.
+        This keeps the same settings for the characterize_{angle} booleans, but will disregard any
+        current {angle}_default values.
         """
         return XEBPhasedFSimCharacterizationOptions(
             characterize_theta=self.characterize_theta,
@@ -330,9 +333,7 @@ def parameterize_circuit(
     circuit: 'cirq.Circuit',
     options: XEBCharacterizationOptions,
 ) -> 'cirq.Circuit':
-    """Parameterize PhasedFSim-like gates in a given circuit according to
-    `phased_fsim_options`.
-    """
+    """Parameterize PhasedFSim-like gates in a given circuit according to `phased_fsim_options`."""
     gate = options.get_parameterized_gate()
     return circuits.Circuit(
         circuits.Moment(
@@ -374,8 +375,9 @@ def characterize_phased_fsim_parameters_with_xeb(
     verbose: bool = True,
     pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> XEBCharacterizationResult:
-    """Run a classical optimization to fit phased fsim parameters to experimental data, and
-    thereby characterize PhasedFSim-like gates.
+    """Run a classical optimization to fit phased fsim parameters to experimental data.
+
+    This characterize PhasedFSim-like gates.
 
     Args:
         sampled_df: The DataFrame of sampled two-qubit probability distributions returned
@@ -473,8 +475,9 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     fatol: float = 1e-3,
     pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> XEBCharacterizationResult:
-    """Run a classical optimization to fit phased fsim parameters to experimental data, and
-    thereby characterize PhasedFSim-like gates grouped by pairs.
+    """Run a classical optimization to fit phased fsim parameters to experimental data.
+
+    This characterizes PhasedFSim-like gates grouped by pairs.
 
     This is appropriate if you have run parallel XEB on multiple pairs of qubits.
 

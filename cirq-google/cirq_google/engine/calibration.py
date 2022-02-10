@@ -174,8 +174,7 @@ class Calibration(abc.Mapping):
     def str_to_key(self, target: str) -> Union[cirq.GridQubit, str]:
         """Turns a string into a calibration key.
 
-        Attempts to parse it as a GridQubit.  If this fails,
-        returns the string itself.
+        Attempts to parse it as a GridQubit.  If this fails, returns the string itself.
         """
         try:
             return v2.grid_qubit_from_proto_id(target)
@@ -260,7 +259,7 @@ class Calibration(abc.Mapping):
         *,
         labels: Optional[Sequence[str]] = None,
     ) -> plt.Axes:
-        """Plots integrated histograms of metric values corresponding to keys
+        """Plots integrated histograms of metric values corresponding to keys.
 
         Args:
             keys: List of metric keys for which an integrated histogram should be plot

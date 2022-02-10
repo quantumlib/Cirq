@@ -106,7 +106,6 @@ class IonQAPIDevice(cirq.Device):
 def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.OP_TREE:
     """Decompose operation to ionq native operations.
 
-
     Merges single qubit operations and decomposes two qubit operations
     into CZ gates.
 
@@ -121,7 +120,6 @@ def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.O
     Raises:
         ValueError: If supplied operation cannot be decomposed
             for the ionq device.
-
     """
     if operation in _VALID_GATES:
         return operation

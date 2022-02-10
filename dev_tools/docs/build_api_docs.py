@@ -61,8 +61,8 @@ FLAGS = flags.FLAGS
 def filter_unwanted_inherited_methods(path, parent, children):
     """Filter the unwanted inherited methods.
 
-    CircuitDag inherits a lot of methods from `networkx.DiGraph` and `Graph`.
-    This filter removes these, as it creates a lot of noise in the API docs.
+    CircuitDag inherits a lot of methods from `networkx.DiGraph` and `Graph`. This filter removes
+    these, as it creates a lot of noise in the API docs.
     """
     if parent.__name__ != "CircuitDag":
         return children

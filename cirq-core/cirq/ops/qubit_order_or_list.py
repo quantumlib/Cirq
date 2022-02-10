@@ -14,8 +14,7 @@
 
 """Any method taking a QubitOrder instance should also take raw qubit lists.
 
-This type is defined in its own file to work around an "invalid type" bug in
-mypy.
+This type is defined in its own file to work around an "invalid type" bug in mypy.
 """
 
 from typing import Iterable, Union

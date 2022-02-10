@@ -25,13 +25,12 @@ from cirq_pasqal import ThreeDQubit, TwoDQubit
 class PasqalDevice(cirq.devices.Device):
     """A generic Pasqal device.
 
-    The most general of Pasqal devices, enforcing only restrictions expected to
-    be shared by all future devices. Serves as the parent class of all Pasqal
-    devices, but can also be used on its own for hosting a nearly unconstrained
-    device. When used as a circuit's device, the qubits have to be of the type
-    cirq.NamedQubit and assumed to be all connected, the idea behind it being
-    that after submission, all optimization and transpilation necessary for its
-    execution on the specified device are handled internally by Pasqal.
+    The most general of Pasqal devices, enforcing only restrictions expected to be shared by all
+    future devices. Serves as the parent class of all Pasqal devices, but can also be used on its
+    own for hosting a nearly unconstrained device. When used as a circuit's device, the qubits have
+    to be of the type cirq.NamedQubit and assumed to be all connected, the idea behind it being
+    that after submission, all optimization and transpilation necessary for its execution on the
+    specified device are handled internally by Pasqal.
     """
 
     def __init__(self, qubits: Sequence[cirq.Qid]) -> None:
@@ -43,7 +42,6 @@ class PasqalDevice(cirq.devices.Device):
         Raises:
             TypeError: If the wrong qubit type is provided.
             ValueError: If the number of qubits is greater than the devices maximum.
-
         """
         if len(qubits) > 0:
             q_type = type(qubits[0])
@@ -224,10 +222,9 @@ class PasqalDevice(cirq.devices.Device):
 class PasqalVirtualDevice(PasqalDevice):
     """A Pasqal virtual device with qubits in 3d.
 
-    A virtual representation of a Pasqal device, enforcing the constraints
-    typically found in a physical device. The qubits can be positioned in 3d
-    space, although 2d layouts will be supported sooner and are thus
-    recommended. Only accepts qubits with physical placement.
+    A virtual representation of a Pasqal device, enforcing the constraints typically found in a
+    physical device. The qubits can be positioned in 3d space, although 2d layouts will be
+    supported sooner and are thus recommended. Only accepts qubits with physical placement.
     """
 
     def __init__(
@@ -244,7 +241,8 @@ class PasqalVirtualDevice(PasqalDevice):
 
         Raises:
             ValueError: if the wrong qubit type is provided or if invalid
-                parameter is provided for control_radius."""
+                parameter is provided for control_radius.
+        """
 
         super().__init__(qubits)
 
@@ -391,8 +389,8 @@ class PasqalVirtualDevice(PasqalDevice):
 class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
     """A gate converter for compatibility with Pasqal processors.
 
-    Modified version of ConvertToNeutralAtomGates, where a new 'convert' method
-    'pasqal_convert' takes the 'keep' function as an input.
+    Modified version of ConvertToNeutralAtomGates, where a new 'convert' method 'pasqal_convert'
+    takes the 'keep' function as an input.
     """
 
     def pasqal_convert(

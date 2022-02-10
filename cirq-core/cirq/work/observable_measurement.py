@@ -94,15 +94,14 @@ def _with_parameterized_layers(
 
 
 class StoppingCriteria(abc.ABC):
-    """An abstract object that queries a BitstringAccumulator to figure out
-    whether that `meas_spec` is complete."""
+    """An abstract object used to query `cirq.BitstringAccumulator` for additional repetitions."""
 
     @abc.abstractmethod
     def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
         """Return the number of additional repetitions to take.
 
-        StoppingCriteria should be respectful and have some notion of a
-        maximum number of repetitions per chunk.
+        StoppingCriteria should be respectful and have some notion of a maximum number of
+        repetitions per chunk.
         """
 
 
@@ -244,8 +243,10 @@ def _pad_setting(
 
 
 def _aggregate_n_repetitions(next_chunk_repetitions: Set[int]) -> int:
-    """A stopping criteria can request a different number of more_repetitions for each
-    measurement spec. For batching efficiency, we take the max and issue a warning in this case."""
+    """A stopping criteria can request a different number of repetitions for each measurement spec.
+
+    For batching efficiency, we take the max and issue a warning in this case.
+    """
     if len(next_chunk_repetitions) == 1:
         return list(next_chunk_repetitions)[0]
 
@@ -265,9 +266,8 @@ def _check_meas_specs_still_todo(
 ) -> Tuple[List[_MeasurementSpec], int]:
     """Filter `meas_specs` in case some are done.
 
-    In the sampling loop in `measure_grouped_settings`, we submit
-    each `meas_spec` in chunks. This function contains the logic for
-    removing `meas_spec`s from the loop if they are done.
+    In the sampling loop in `measure_grouped_settings`, we submit each `meas_spec` in chunks. This
+    function contains the logic for removing `meas_spec`s from the loop if they are done.
     """
     still_todo = []
     repetitions_set: Set[int] = set()
@@ -311,8 +311,7 @@ def _check_meas_specs_still_todo(
 
 @dataclasses.dataclass(frozen=True)
 class _FlippyMeasSpec:
-    """Internally, each MeasurementSpec class is split into two
-    _FlippyMeasSpecs to support readout symmetrization.
+    """Each MeasurementSpec is split into two _FlippyMeasSpecs to support readout symmetrization.
 
     Bitstring results are combined, so this should be opaque to the user.
     """
@@ -337,12 +336,11 @@ def _subdivide_meas_specs(
     qubits: Sequence['cirq.Qid'],
     readout_symmetrization: bool,
 ) -> Tuple[List[_FlippyMeasSpec], int]:
-    """Split measurement specs into sub-jobs for readout symmetrization
+    """Split measurement specs into sub-jobs for readout symmetrization.
 
-    In readout symmetrization, we first run the "normal" circuit followed
-    by running the circuit with flipped measurement.
-    One _MeasurementSpec is split into two _FlippyMeasSpecs. These are run
-    separately but accumulated according to their shared _MeasurementSpec.
+    In readout symmetrization, we first run the "normal" circuit followed by running the circuit
+    with flipped measurement. One _MeasurementSpec is split into two _FlippyMeasSpecs. These are
+    run separately but accumulated according to their shared _MeasurementSpec.
     """
     n_qubits = len(qubits)
     flippy_mspecs = []
@@ -614,8 +612,10 @@ _GROUPING_FUNCS: Dict[str, GROUPER_T] = {
 
 
 def _parse_grouper(grouper: Union[str, GROUPER_T] = group_settings_greedy) -> GROUPER_T:
-    """Logic for turning a named grouper into one of the build-in groupers in support of the
-    high-level `measure_observables` API."""
+    """Turns a named grouper into on of the built-in groups.
+
+    This is done in support of the high-level `measure_observables` API.
+    """
     if isinstance(grouper, str):
         try:
             grouper = _GROUPING_FUNCS[grouper.lower()]
@@ -628,8 +628,7 @@ def _get_all_qubits(
     circuit: 'cirq.AbstractCircuit',
     observables: Iterable['cirq.PauliString'],
 ) -> List['cirq.Qid']:
-    """Helper function for `measure_observables` to get all qubits from a circuit and a
-    collection of observables."""
+    """Gets all qubits from a circuit and a collection of observables."""
     qubit_set = set()
     for obs in observables:
         qubit_set |= set(obs.qubits)

@@ -36,18 +36,16 @@ if TYPE_CHECKING:
 class ExecutionStrategy(metaclass=abc.ABCMeta):
     """Tells StrategyExecutor how to execute an acquaintance strategy.
 
-    An execution strategy tells StrategyExecutor how to execute an
-    acquaintance strategy, i.e. what gates to implement at the available
-    acquaintance opportunities."""
+    An execution strategy tells StrategyExecutor how to execute an acquaintance strategy, i.e. what
+    gates to implement at the available acquaintance opportunities.
+    """
 
     keep_acquaintance = False
 
     @property
     @abc.abstractmethod
     def device(self) -> 'cirq.Device':
-        """The device for which the executed acquaintance strategy should be
-        valid.
-        """
+        """The device for which the executed acquaintance strategy should be valid."""
 
     @property
     @abc.abstractmethod
@@ -101,9 +99,8 @@ class StrategyExecutor(circuits.PointOptimizer):
 
 
 class AcquaintanceOperation(ops.GateOperation):
-    """Represents an a acquaintance opportunity between a particular set of
-    logical indices on a particular set of physical qubits.
-    """
+    """Represents an a acquaintance opportunity between a particular set of logical indices on a
+    particular set of physical qubits."""
 
     def __init__(
         self, qubits: Sequence['cirq.Qid'], logical_indices: Sequence[LogicalIndex]
@@ -123,8 +120,8 @@ class AcquaintanceOperation(ops.GateOperation):
 class GreedyExecutionStrategy(ExecutionStrategy):
     """A greedy execution strategy.
 
-    When an acquaintance opportunity is reached, all gates acting on those
-    qubits in any order are inserted.
+    When an acquaintance opportunity is reached, all gates acting on those qubits in any order are
+    inserted.
     """
 
     def __init__(
@@ -171,9 +168,9 @@ class GreedyExecutionStrategy(ExecutionStrategy):
     def canonicalize_gates(gates: LogicalGates) -> Dict[frozenset, LogicalGates]:
         """Canonicalizes a set of gates by the qubits they act on.
 
-        Takes a set of gates specified by ordered sequences of logical
-        indices, and groups those that act on the same qubits regardless of
-        order."""
+        Takes a set of gates specified by ordered sequences of logical indices, and groups those
+        that act on the same qubits regardless of order.
+        """
         canonicalized_gates: DefaultDict[frozenset, LogicalGates] = defaultdict(dict)
         for indices, gate in gates.items():
             indices = tuple(indices)

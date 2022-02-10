@@ -64,13 +64,11 @@ EigenComponent = NamedTuple(
 class EigenGate(raw_types.Gate):
     """A gate with a known eigendecomposition.
 
-    EigenGate is particularly useful when one wishes for different parts of
-    the same eigenspace to be extrapolated differently. For example, if a gate
-    has a 2-dimensional eigenspace with eigenvalue -1, but one wishes for the
-    square root of the gate to split this eigenspace into a part with
-    eigenvalue i and a part with eigenvalue -i, then EigenGate allows this
-    functionality to be unambiguously specified via the _eigen_components
-    method.
+    EigenGate is particularly useful when one wishes for different parts of the same eigenspace to
+    be extrapolated differently. For example, if a gate has a 2-dimensional eigenspace with
+    eigenvalue -1, but one wishes for the square root of the gate to split this eigenspace into a
+    part with eigenvalue i and a part with eigenvalue -i, then EigenGate allows this functionality
+    to be unambiguously specified via the _eigen_components method.
     """
 
     def __init__(
@@ -137,8 +135,8 @@ class EigenGate(raw_types.Gate):
     def _with_exponent(self: TSelf, exponent: value.TParamVal) -> 'EigenGate':
         """Return the same kind of gate, but with a different exponent.
 
-        Child classes should override this method if they have an __init__
-        method with a differing signature.
+        Child classes should override this method if they have an __init__ method with a differing
+        signature.
         """
         # pylint: disable=unexpected-keyword-arg
         if self._global_shift == 0:

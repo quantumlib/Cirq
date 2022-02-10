@@ -174,7 +174,8 @@ class SimulatorBase(
 
         Returns:
             A boolean representing whether the value can be added to the
-            `_run` prefix."""
+            `_run` prefix.
+        """
         return protocols.has_unitary(val)
 
     def _core_iterator(
@@ -453,7 +454,8 @@ class SimulationTrialResultBase(
             qubit: The qubit whose state space is required.
 
         Returns:
-            The state space containing the qubit."""
+            The state space containing the qubit.
+        """
         return self._final_step_result_typed._sim_state[qubit]
 
     def _get_substates(self) -> Sequence[TActOnArgs]:

@@ -78,8 +78,7 @@ def _add_to_positions(
 def circuit_to_density_matrix_tensors(
     circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
 ) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], Dict[Tuple[str, str], Tuple[float, float]]]:
-    """Given a circuit with mixtures or channels, construct a tensor network
-    representation of the density matrix.
+    """Construct a tensor network rep of the output of a circuit with channels and mixtures.
 
     This assumes you start in the |0..0><0..0| state. Indices are named
     "nf{i}_q{x}" and "nb{i}_q{x}" where i is a time index and x is a
@@ -199,8 +198,7 @@ def circuit_to_density_matrix_tensors(
 def tensor_density_matrix(
     circuit: cirq.Circuit, qubits: Optional[List[cirq.Qid]] = None
 ) -> np.ndarray:
-    """Given a circuit with mixtures or channels, contract a tensor network
-    representing the resultant density matrix.
+    """Returns the density matrix of the output of a circuit obtained via tensor contraction.
 
     Note: If the circuit contains 6 qubits or fewer, we use a bespoke
     contraction ordering that corresponds to the "normal" in-time contraction

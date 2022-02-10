@@ -24,9 +24,9 @@ if TYPE_CHECKING:
 
 @dataclasses.dataclass
 class CalibrationResult:
-    """Python implementation of the proto found in
-    cirq_google.api.v2.calibration_pb2.CalibrationLayerResult for use
-    in Engine calls.
+    """Python implementation of the proto found in the v2 api.
+
+    This corresponds to `cirq_google.api.v2.calibration_pb2.CalibrationLayerResult`.
 
     Note that, if these fields are not filled out by the calibration API,
     they will be set to the default values in the proto, as defined here:

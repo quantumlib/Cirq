@@ -123,9 +123,9 @@ def dataclass_repr(value: Any, namespace: str = 'cirq') -> str:
 def proper_eq(a: Any, b: Any) -> bool:
     """Compares objects for equality, working around __eq__ not always working.
 
-    For example, in numpy a == b broadcasts and returns an array instead of
-    doing what np.array_equal(a, b) does. This method uses np.array_equal(a, b)
-    when dealing with numpy arrays.
+    For example, in numpy a == b broadcasts and returns an array instead of doing what
+    np.array_equal(a, b) does. This method uses np.array_equal(a, b) when dealing with numpy
+    arrays.
     """
     if type(a) == type(b):
         if isinstance(a, np.ndarray):
@@ -388,9 +388,7 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
     """
 
     def __init__(self, loader: Any, old_module_name: str, new_module_name: str):
-        """A module loader that uses an existing module loader and intercepts
-        the execution of a module.
-        """
+        """A module loader that uses an existing module loader and intercepts module execution."""
         self.loader = loader
         if hasattr(loader, 'exec_module'):
             # mypy#2427
@@ -478,8 +476,8 @@ def _called_from_test() -> bool:
 def _should_dedupe_module_deprecation() -> bool:
     """Whether module deprecation warnings should be deduped or not.
 
-    We should always dedupe when not called from test.
-    We should only dedupe during tests if forced.
+    We should always dedupe when not called from test. We should only dedupe during tests if
+    forced.
     """
     force_dedupe = "CIRQ_FORCE_DEDUPE_MODULE_DEPRECATION" in os.environ
     return not _called_from_test() or force_dedupe
@@ -501,15 +499,8 @@ def _deduped_module_warn_or_error(old_module_name: str, new_module_name: str, de
 class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     """A module finder to handle deprecated module references.
 
-    It sends a deprecation warning when a deprecated module is asked to be found.
-    It is meant to be used as a wrapper around existing MetaPathFinder instances.
-
-    Args:
-        new_module_name: The new module's fully qualified name.
-        old_module_name: The deprecated module's fully qualified name.
-        deadline: The deprecation deadline.
-        broken_module_exception: If specified, an exception to throw if
-            the module is found.
+    It sends a deprecation warning when a deprecated module is asked to be found. It is meant to be
+    used as a wrapper around existing MetaPathFinder instances.
     """
 
     def __init__(
@@ -519,8 +510,14 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         deadline: str,
         broken_module_exception: Optional[BaseException],
     ):
-        """An aliasing module finder that uses existing module finders to find a python
-        module spec and intercept the execution of matching modules.
+        """Create the module finder that handles deprecated module references.
+
+        Args:
+            new_module_name: The new module's fully qualified name.
+            old_module_name: The deprecated module's fully qualified name.
+            deadline: The deprecation deadline.
+            broken_module_exception: If specified, an exception to throw if
+              the module is found.
         """
         self.new_module_name = new_module_name
         self.old_module_name = old_module_name

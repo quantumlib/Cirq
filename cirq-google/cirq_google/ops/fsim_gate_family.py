@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Define FSimGateFamily used to convert/accept `cirq.FSimGate` and other related gate types"""
+"""Define FSimGateFamily used to convert/accept `cirq.FSimGate` and other related gate types."""
 
 from typing import Any, Callable, cast, Dict, Iterable, Optional, Type, TypeVar, Sequence, Union
 

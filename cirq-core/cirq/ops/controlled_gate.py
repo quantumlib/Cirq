@@ -36,8 +36,8 @@ class ControlledGate(raw_types.Gate):
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Sequence[int]] = None,
     ) -> None:
-        """Initializes the controlled gate. If no arguments are specified for
-           the controls, defaults to a single qubit control.
+        """Initializes the controlled gate. If no arguments are specified for the controls,
+        defaults to a single qubit control.
 
         Args:
             sub_gate: The gate to add a control qubit to.

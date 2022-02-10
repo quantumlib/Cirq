@@ -26,9 +26,7 @@ def circuit_with_separate_readout_keys() -> Tuple[cirq.Circuit, cirq.Linspace]:
 def test_circuit_with_separate_readout_keys_through_sampler(
     circuit_with_separate_readout_keys: Tuple[cirq.Circuit, cirq.Linspace]
 ) -> None:
-    """test that RigettiQCSSampler can properly readout from separate memory
-    regions.
-    """
+    """Test that RigettiQCSSampler can properly readout from separate memory regions."""
     qc = get_qc('9q-square', as_qvm=True)
     sampler = RigettiQCSSampler(quantum_computer=qc)
 

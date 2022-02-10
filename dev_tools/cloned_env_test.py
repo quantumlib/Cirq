@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests the cloned_env fixture in conftest.py"""
+"""Tests the cloned_env fixture in conftest.py."""
 import json
 import os
 from unittest import mock

@@ -29,8 +29,8 @@ if TYPE_CHECKING:
 class ActOnDensityMatrixArgs(ActOnArgs):
     """State and context for an operation acting on a density matrix.
 
-    To act on this object, directly edit the `target_tensor` property, which is
-    storing the density matrix of the quantum system with one axis per qubit.
+    To act on this object, directly edit the `target_tensor` property, which is storing the density
+    matrix of the quantum system with one axis per qubit.
     """
 
     @_compat.deprecated_parameter(
