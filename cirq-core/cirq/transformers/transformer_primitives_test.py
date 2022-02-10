@@ -423,6 +423,7 @@ def test_merge_operations_merges_connected_component():
     )
 
 
+# pylint: disable=line-too-long
 def test_merge_operations_to_circuit_op_merges_connected_component():
     q = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(
@@ -458,7 +459,6 @@ def test_merge_operations_to_circuit_op_merges_connected_component():
     c_new = cirq.merge_operations_to_circuit_op(
         c_orig, can_merge, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
     )
-    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         c_new,
         '''
@@ -470,7 +470,9 @@ def test_merge_operations_to_circuit_op_merges_connected_component():
           │                                                                      │
 2: ───H───X──────────────────────────────────────────────────────────────────────X─────────────────────────''',
     )
-    # pylint: enable=line-too-long
+
+
+# pylint: enable=line-too-long
 
 
 def test_merge_operations_respects_tags_to_ignore():
