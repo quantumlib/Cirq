@@ -464,7 +464,7 @@ def test_merge_operations_to_circuit_op_merges_connected_component():
 
 def test_merge_2q_unitaries_to_circuit_op():
     c_orig = _create_circuit_to_merge()
-    c_orig[-1] = c_orig[-1].with_operations(cirq.measure(cirq.LineQubit(3)))
+    c_orig[-1] = c_orig[-1].with_operations(cirq.measure(cirq.LineQubit(2)))
     cirq.testing.assert_has_diagram(
         c_orig,
         '''
