@@ -1412,10 +1412,14 @@ def test_prev_moment_available():
     assert c.prev_moment_available(cirq.Y(q[1])) == 2
     assert c.prev_moment_available(cirq.Y(q[2])) == 0
     assert c.prev_moment_available(cirq.Y(q[2]).with_classical_controls("m")) == 1
-    assert c.prev_moment_available(cirq.Y(q[2]).with_classical_controls("m"), 1) == 1
+    assert (
+        c.prev_moment_available(cirq.Y(q[2]).with_classical_controls("m"), end_moment_index=1) == 1
+    )
 
     # Returns `end_moment_index` by default without verifying if an operation already exists there.
-    assert c.prev_moment_available(cirq.Y(q[1]).with_classical_controls("m"), 1) == 1
+    assert (
+        c.prev_moment_available(cirq.Y(q[1]).with_classical_controls("m"), end_moment_index=1) == 1
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])

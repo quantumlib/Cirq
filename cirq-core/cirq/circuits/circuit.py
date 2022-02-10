@@ -1952,7 +1952,7 @@ class Circuit(AbstractCircuit):
             return Circuit(op_list, device=self._device if new_device is None else new_device)
 
     def prev_moment_available(
-        self, op: 'cirq.Operation', end_moment_index: Optional[int] = None
+        self, op: 'cirq.Operation', *, end_moment_index: Optional[int] = None
     ) -> int:
         """Finds the index of the previous (i.e. left most) moment which can accommodate `op`.
 
@@ -2028,7 +2028,7 @@ class Circuit(AbstractCircuit):
 
         if strategy is InsertStrategy.EARLIEST:
             if self._can_add_op_at(splitter_index, op):
-                return self.prev_moment_available(op, splitter_index)
+                return self.prev_moment_available(op, end_moment_index=splitter_index)
 
             return self._pick_or_create_inserted_op_moment_index(
                 splitter_index, op, InsertStrategy.INLINE
