@@ -72,6 +72,7 @@ from cirq.transformers.transformer_primitives import (
     map_moments,
     map_operations,
     map_operations_and_unroll,
+    merge_k_qubit_unitaries_to_circuit_op,
     merge_moments,
     merge_operations,
     merge_operations_to_circuit_op,

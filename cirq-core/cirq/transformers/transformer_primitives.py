@@ -27,7 +27,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from cirq import circuits, ops
+from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
 
 if TYPE_CHECKING:
@@ -307,8 +307,6 @@ def merge_operations_to_circuit_op(
     """
 
     def merge_func(op1: 'cirq.Operation', op2: 'cirq.Operation') -> Optional['cirq.Operation']:
-        print(op1, op2)
-
         def get_ops(op: 'cirq.Operation'):
             op_untagged = op.untagged
             return (
@@ -318,8 +316,7 @@ def merge_operations_to_circuit_op(
                 else [op]
             )
 
-        left_ops = get_ops(op1)
-        right_ops = get_ops(op2)
+        left_ops, right_ops = get_ops(op1), get_ops(op2)
         if not can_merge(left_ops, right_ops):
             return None
         return circuits.CircuitOperation(circuits.FrozenCircuit(left_ops, right_ops)).with_tags(
@@ -327,6 +324,28 @@ def merge_operations_to_circuit_op(
         )
 
     return merge_operations(circuit, merge_func, tags_to_ignore=tags_to_ignore)
+
+
+def merge_k_qubit_unitaries_to_circuit_op(
+    circuit: CIRCUIT_TYPE,
+    k: int,
+    *,
+    tags_to_ignore: Sequence[Hashable] = (),
+    merged_circuit_op_tag: Optional[str] = None,
+) -> CIRCUIT_TYPE:
+    def can_merge(ops1: Sequence['cirq.Operation'], ops2: Sequence['cirq.Operation']) -> bool:
+        return all(
+            protocols.has_unitary(op) and protocols.num_qubits(op) <= k
+            for op_list in [ops1, ops2]
+            for op in op_list
+        )
+
+    return merge_operations_to_circuit_op(
+        circuit,
+        can_merge,
+        tags_to_ignore=tags_to_ignore,
+        merged_circuit_op_tag=merged_circuit_op_tag or f"Merged {k}q unitary connected component.",
+    )
 
 
 def merge_moments(
