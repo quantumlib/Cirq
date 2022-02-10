@@ -75,8 +75,9 @@ valid_targets: [{
     return get_processor
 
 
+@mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
-def test_engine_backend(get_processor):
+def test_engine_backend(get_processor, _):
     _set_get_processor_return(get_processor)
 
     with mock.patch.dict(
@@ -90,13 +91,13 @@ def test_engine_backend(get_processor):
         assert proc_rec.processor_id == 'rainbow'
         assert isinstance(proc_rec.get_processor(), cg.engine.AbstractProcessor)
         assert isinstance(proc_rec.get_sampler(), cirq.Sampler)
-        # Gateset issues:
-        # assert isinstance(proc_rec.get_device(), cirq.Device)
+        assert isinstance(proc_rec.get_device(), cirq.Device)
     cirq.testing.assert_equivalent_repr(proc_rec, global_vals={'cirq_google': cg})
 
 
+@mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
-def test_simulated_backend(get_processor):
+def test_simulated_backend(get_processor, _):
     _set_get_processor_return(get_processor)
     with mock.patch.dict(
         os.environ,
