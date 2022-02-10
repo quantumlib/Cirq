@@ -379,6 +379,44 @@ def test_stratify_respects_no_compile_operations():
     )
 
 
+def test_does_not_move_ccos_behind_measurement():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.measure(q[0], key='m'),
+        cirq.X(q[1]).with_classical_controls('m'),
+        cirq.Moment(cirq.X.on_each(q[1], q[2])),
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───M───────────
+      ║
+1: ───╫───X───X───
+      ║   ║
+2: ───╫───╫───X───
+      ║   ║
+m: ═══@═══^═══════
+''',
+    )
+    c_out = cirq.stratified_circuit(
+        c_orig, categories=[cirq.GateOperation, cirq.ClassicallyControlledOperation]
+    )
+    cirq.testing.assert_has_diagram(
+        c_out,
+        '''
+      ┌──┐
+0: ────M─────────────
+       ║
+1: ────╫─────X───X───
+       ║     ║
+2: ────╫X────╫───────
+       ║     ║
+m: ════@═════^═══════
+      └──┘
+''',
+    )
+
+
 def test_heterogeneous_circuit():
     """Tests that a circuit that is very heterogeneous is correctly optimized"""
     q1, q2, q3, q4, q5, q6 = cirq.LineQubit.range(6)

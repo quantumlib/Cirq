@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""Transformer pass to repack circuits avoiding simultaneous operations with different classes."""
+
 import itertools
 from typing import (
     TYPE_CHECKING,
@@ -24,9 +27,10 @@ from typing import (
     Tuple,
 )
 
-from cirq import ops, circuits
+from cirq import ops, circuits, _import
 from cirq.transformers import transformer_api, transformer_primitives
-from cirq.transformers import drop_empty_moments  # type: ignore
+
+drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
 
 if TYPE_CHECKING:
     import cirq
@@ -50,33 +54,19 @@ def stratified_circuit(
 ) -> 'cirq.Circuit':
     """Repacks avoiding simultaneous operations with different classes.
 
-    Sometimes, certain operations should not be done at the same time. For
-    example, the physical hardware may not be capable of doing certain
-    operations at the same time. Or it may have worse noise characteristics
-    when certain operations are done at the same time. In these cases, it
-    would be good to rearrange the circuit so that these operations always
-    occur in different moments.
-
-    (As a secondary effect, this may make the circuit easier to read.)
-
-    This methods takes a series of classifiers identifying categories of
-    operations and then ensures operations from each category only overlap
-    with operations from the same category. There is no guarantee that the
-    resulting circuit will be optimally packed under this constraint.
-
+    This transforms the given circuit to ensure that no operations of different categories are
+    found in the same moment. Makes no optimality guarantees.
     Tagged Operations marked with any of `context.tags_to_ignore` will be treated as a separate
     category will be left in their original moments without stratification.
 
     Args:
-        circuit: The circuit whose operations should be re-arranged.
+        circuit: The circuit whose operations should be re-arranged. Will not be modified.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
-        categories: A list of classifiers picking out certain operations.
-            There are several ways to specify a classifier. You can pass
-            in a gate instance (e.g. `cirq.X`), a gate type (e.g.
-            `cirq.XPowGate`), an operation instance (e.g.
-            `cirq.X(cirq.LineQubit(0))`), an operation type (e.g.
-            `cirq.GlobalPhaseOperation`), or an arbitrary operation
-            predicate (e.g. `lambda op: len(op.qubits) == 2`).
+        categories: A list of classifiers picking out certain operations. There are several ways
+            to specify a classifier. You can pass in a gate instance (e.g. `cirq.X`),
+            a gate type (e.g. `cirq.XPowGate`), an operation instance
+            (e.g. `cirq.X(cirq.LineQubit(0))`), an operation type (e.g.`cirq.CircuitOperation`),
+            or an arbitrary operation predicate (e.g. `lambda op: len(op.qubits) == 2`).
 
     Returns:
         A copy of the original circuit, but with re-arranged operations.
@@ -94,7 +84,7 @@ def stratified_circuit(
     solutions = []
     for c in classifiers_permutations:
         solutions.append(
-            stratify_circuit(
+            _stratify_circuit(
                 circuit,
                 classifiers=list(c),
                 context=context or transformer_api.TransformerContext(),
@@ -104,7 +94,7 @@ def stratified_circuit(
         # circuits because it inserts operations at the end instead of at the
         # beginning.
         solutions.append(
-            stratify_circuit(
+            _stratify_circuit(
                 reversed_circuit,
                 classifiers=list(c),
                 context=context or transformer_api.TransformerContext(),
@@ -115,7 +105,7 @@ def stratified_circuit(
     return min(solutions, key=lambda c: len(c))
 
 
-def stratify_circuit(
+def _stratify_circuit(
     circuit: circuits.AbstractCircuit,
     *,
     context: 'cirq.TransformerContext',
@@ -130,8 +120,8 @@ def stratify_circuit(
     Args:
         circuit: The circuit to break out into homogeneous moments. Will not be edited.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
-        classifiers: A list of rules to align the circuit. Must be exhaustive,
-            i.e. all operations will be caught by one of the processors.
+        classifiers: A list of rules to align the circuit. Must be exhaustive, i.e. all operations
+                    will be caught by one of the processors.
 
     Returns:
         The stratified circuit.
@@ -148,7 +138,7 @@ def stratify_circuit(
                 if classifier(op):
                     stratified_ops[i + 1].append(op)
                     break
-        return [ops.Moment(op_list) for op_list in stratified_ops]
+        return [circuits.Moment(op_list) for op_list in stratified_ops]
 
     stratified_circuit = transformer_primitives.map_moments(circuit, map_func).unfreeze(copy=False)
     assert len(stratified_circuit) == len(circuit) * num_categories
@@ -162,8 +152,8 @@ def stratify_circuit(
         batch_removals: List[Tuple[int, 'cirq.Operation']] = []
         batch_inserts: List[Tuple[int, 'cirq.Operation']] = []
         for op in moment:
-            prv_idx = stratified_circuit.prev_moment_operating_on(op.qubits, curr_idx)
-            prv_idx = 0 if prv_idx is None else prv_idx + 1
+            prv_idx = stratified_circuit._prev_moment_available(op, curr_idx)
+            prv_idx = 0 if prv_idx is None else prv_idx
             prv_category = prv_idx % num_categories
             should_move_to_next_batch = curr_category < prv_category
             prv_idx += curr_category - prv_category + num_categories * should_move_to_next_batch
