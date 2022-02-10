@@ -27,7 +27,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from cirq import circuits, ops, protocols
+from cirq import circuits, ops
 from cirq.circuits.circuit import CIRCUIT_TYPE
 
 if TYPE_CHECKING:
@@ -58,19 +58,36 @@ def _create_target_circuit_type(ops: ops.OP_TREE, target_circuit: CIRCUIT_TYPE) 
 
 def map_moments(
     circuit: CIRCUIT_TYPE,
-    map_func: Callable[[ops.Moment, int], Union[ops.Moment, Sequence[ops.Moment]]],
+    map_func: Callable[[circuits.Moment, int], Union[circuits.Moment, Sequence[circuits.Moment]]],
+    *,
+    deep: bool = False,
 ) -> CIRCUIT_TYPE:
     """Applies local transformation on moments, by calling `map_func(moment)` for each moment.
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         map_func: Mapping function from (cirq.Moment, moment_index) to a sequence of moments.
+        deep: If true, `map_func` will be recursively applied to circuits wrapped inside
+            any circuit operations contained within `circuit`.
 
     Returns:
         Copy of input circuit with mapped moments.
     """
+    mutable_circuit = circuit.unfreeze(copy=False)
+    if deep:
+        batch_replace = []
+        for i, op in circuit.findall_operations(
+            lambda o: isinstance(o.untagged, circuits.CircuitOperation)
+        ):
+            op_untagged = cast(circuits.CircuitOperation, op.untagged)
+            mapped_op = op_untagged.replace(
+                circuit=map_moments(op_untagged.mapped_circuit(), map_func, deep=deep).freeze()
+            )
+            batch_replace.append((i, op, mapped_op))
+        mutable_circuit = circuit.unfreeze(copy=True)
+        mutable_circuit.batch_replace(batch_replace)
     return _create_target_circuit_type(
-        (map_func(circuit[i], i) for i in range(len(circuit))), circuit
+        (map_func(mutable_circuit[i], i) for i in range(len(mutable_circuit))), circuit
     )
 
 
@@ -78,11 +95,13 @@ def map_operations(
     circuit: CIRCUIT_TYPE,
     map_func: Callable[[ops.Operation, int], ops.OP_TREE],
     *,
+    deep: bool = False,
     raise_if_add_qubits=True,
+    tags_to_ignore: Sequence[Hashable] = (),
 ) -> CIRCUIT_TYPE:
     """Applies local transformations on operations, by calling `map_func(op)` for each op.
 
-    Note that the function assumes `issubset(qubit_set(map_func(op)), op.qubits)` is True.
+    By default, the function assumes `issubset(qubit_set(map_func(op)), op.qubits)` is True.
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
@@ -91,8 +110,13 @@ def map_operations(
             `cirq.CircuitOperation(cirq.FrozenCircuit(op_tree)).with_tags(MAPPED_CIRCUIT_OP_TAG)`
             to preserve moment structure. Utility methods like `cirq.unroll_circuit_op` can
             subsequently be used to unroll the mapped circuit operation.
-        raise_if_add_qubits: Set to True by default. If True, Raises ValueError if `map_func(op)`
+        deep: If true, `map_func` will be recursively applied to circuits wrapped inside
+            any circuit operations contained within `circuit`.
+        raise_if_add_qubits: Set to True by default. If True, raises ValueError if `map_func(op)`
             adds operations on qubits outside of `op.qubits`.
+        tags_to_ignore: Sequence of tags which should be ignored while applying `map_func` on
+            tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
+            satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
 
     Raises:
           ValueError if `issubset(qubit_set(map_func(op)), op.qubits) is False` and
@@ -103,6 +127,8 @@ def map_operations(
     """
 
     def apply_map(op: ops.Operation, idx: int) -> ops.OP_TREE:
+        if not set(op.tags).isdisjoint(tags_to_ignore):
+            return op
         c = circuits.FrozenCircuit(map_func(op, idx))
         if raise_if_add_qubits and not c.all_qubits().issubset(op.qubits):
             raise ValueError(
@@ -116,12 +142,18 @@ def map_operations(
         circuit_op = circuits.CircuitOperation(c).with_tags(MAPPED_CIRCUIT_OP_TAG)
         return circuit_op
 
-    return map_moments(circuit, lambda m, i: [ops.Moment(apply_map(op, i) for op in m.operations)])
+    return map_moments(
+        circuit, lambda m, i: [circuits.Moment(apply_map(op, i) for op in m.operations)], deep=deep
+    )
 
 
 def map_operations_and_unroll(
     circuit: CIRCUIT_TYPE,
     map_func: Callable[[ops.Operation, int], ops.OP_TREE],
+    *,
+    deep: bool = False,
+    raise_if_add_qubits=True,
+    tags_to_ignore: Sequence[Hashable] = (),
 ) -> CIRCUIT_TYPE:
     """Applies local transformations via `cirq.map_operations` & unrolls intermediate circuit ops.
 
@@ -130,16 +162,33 @@ def map_operations_and_unroll(
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         map_func: Mapping function from (cirq.Operation, moment_index) to a cirq.OP_TREE.
+        deep: If true, `map_func` will be recursively applied to circuits wrapped inside
+            any circuit operations contained within `circuit`.
+        raise_if_add_qubits: Set to True by default. If True, raises ValueError if `map_func(op)`
+            adds operations on qubits outside of `op.qubits`.
+        tags_to_ignore: Sequence of tags which should be ignored while applying `map_func` on
+            tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
+            satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
 
     Returns:
         Copy of input circuit with mapped operations, unrolled in a moment preserving way.
     """
-    return unroll_circuit_op(map_operations(circuit, map_func))
+    return unroll_circuit_op(
+        map_operations(
+            circuit,
+            map_func,
+            deep=deep,
+            raise_if_add_qubits=raise_if_add_qubits,
+            tags_to_ignore=tags_to_ignore,
+        )
+    )
 
 
 def merge_operations(
     circuit: CIRCUIT_TYPE,
     merge_func: Callable[[ops.Operation, ops.Operation], Optional[ops.Operation]],
+    *,
+    tags_to_ignore: Sequence[Hashable] = (),
 ) -> CIRCUIT_TYPE:
     """Merges operations in a circuit by calling `merge_func` iteratively on operations.
 
@@ -173,6 +222,10 @@ def merge_operations(
         merge_func: Callable to determine whether two merge-able operations in the circuit should
             be merged. If the operations can be merged, the callable should return the merged
             operation, else None.
+        tags_to_ignore: Sequence of tags which should be ignored while applying `merge_func` on
+            tagged operations -- i.e. `merge_func(op1, op2)` will be called only if both `op1` and
+            `op2` satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
+
 
     Returns:
         Copy of input circuit with merged operations.
@@ -183,6 +236,8 @@ def merge_operations(
     """
 
     def apply_merge_func(op1: ops.Operation, op2: ops.Operation) -> Optional[ops.Operation]:
+        if not all(set(op.tags).isdisjoint(tags_to_ignore) for op in [op1, op2]):
+            return None
         new_op = merge_func(op1, op2)
         qubit_set = frozenset(op1.qubits + op2.qubits)
         if new_op is not None and not qubit_set.issuperset(new_op.qubits):
@@ -194,7 +249,7 @@ def merge_operations(
 
     ret_circuit = circuits.Circuit()
     for current_moment in circuit:
-        new_moment = ops.Moment()
+        new_moment = circuits.Moment()
         for op in sorted(current_moment.operations, key=lambda op: op.qubits):
             op_qs = set(op.qubits)
             idx = ret_circuit.prev_moment_operating_on(tuple(op_qs))
@@ -228,7 +283,7 @@ def merge_operations(
 
 def merge_moments(
     circuit: CIRCUIT_TYPE,
-    merge_func: Callable[[ops.Moment, ops.Moment], Optional[ops.Moment]],
+    merge_func: Callable[[circuits.Moment, circuits.Moment], Optional[circuits.Moment]],
 ) -> CIRCUIT_TYPE:
     """Merges adjacent moments, one by one from left to right, by calling `merge_func(m1, m2)`.
 
@@ -243,7 +298,7 @@ def merge_moments(
     """
     if not circuit:
         return circuit
-    merged_moments: List[ops.Moment] = [circuit[0]]
+    merged_moments: List[circuits.Moment] = [circuit[0]]
     for current_moment in circuit[1:]:
         merged_moment = merge_func(merged_moments[-1], current_moment)
         if not merged_moment:
@@ -253,14 +308,17 @@ def merge_moments(
     return _create_target_circuit_type(merged_moments, circuit)
 
 
-def _check_circuit_op(op, tags_to_check: Optional[Sequence[Hashable]]):
+def _check_circuit_op(op, tags_to_check: Optional[Sequence[Hashable]]) -> bool:
     return isinstance(op.untagged, circuits.CircuitOperation) and (
         tags_to_check is None or any(tag in op.tags for tag in tags_to_check)
     )
 
 
 def unroll_circuit_op(
-    circuit: CIRCUIT_TYPE, *, tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,)
+    circuit: CIRCUIT_TYPE,
+    *,
+    deep: bool = False,
+    tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,),
 ) -> CIRCUIT_TYPE:
     """Unrolls (tagged) `cirq.CircuitOperation`s while preserving the moment structure.
 
@@ -269,6 +327,8 @@ def unroll_circuit_op(
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
+        deep: If True, `unroll_circuit_op` is recursively called on all circuit operations matching
+            `tags_to_check`.
         tags_to_check: If specified, only circuit operations tagged with one of the `tags_to_check`
             are unrolled.
 
@@ -276,20 +336,28 @@ def unroll_circuit_op(
         Copy of input circuit with (Tagged) CircuitOperation's expanded in a moment preserving way.
     """
 
-    def map_func(m: ops.Moment, _: int):
-        to_zip = [
-            cast(circuits.CircuitOperation, op.untagged).mapped_circuit()
-            if _check_circuit_op(op, tags_to_check)
-            else circuits.Circuit(op)
-            for op in m
-        ]
+    def map_func(m: circuits.Moment, _: int):
+        to_zip: List['cirq.AbstractCircuit'] = []
+        for op in m:
+            if _check_circuit_op(op, tags_to_check):
+                sub_circuit = cast(circuits.CircuitOperation, op.untagged).mapped_circuit()
+                to_zip.append(
+                    unroll_circuit_op(sub_circuit, deep=deep, tags_to_check=tags_to_check)
+                    if deep
+                    else sub_circuit
+                )
+            else:
+                to_zip.append(circuits.Circuit(op))
         return circuits.Circuit.zip(*to_zip).moments
 
     return map_moments(circuit, map_func)
 
 
 def unroll_circuit_op_greedy_earliest(
-    circuit: CIRCUIT_TYPE, *, tags_to_check=(MAPPED_CIRCUIT_OP_TAG,)
+    circuit: CIRCUIT_TYPE,
+    *,
+    deep: bool = False,
+    tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,),
 ) -> CIRCUIT_TYPE:
     """Unrolls (tagged) `cirq.CircuitOperation`s by inserting operations using EARLIEST strategy.
 
@@ -299,6 +367,8 @@ def unroll_circuit_op_greedy_earliest(
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
+        deep: If True, `unroll_circuit_op_greedy_earliest` is recursively called on all circuit
+            operations matching `tags_to_check`.
         tags_to_check: If specified, only circuit operations tagged with one of the `tags_to_check`
             are unrolled.
 
@@ -306,7 +376,15 @@ def unroll_circuit_op_greedy_earliest(
         Copy of input circuit with (Tagged) CircuitOperation's expanded using EARLIEST strategy.
     """
     batch_removals = [*circuit.findall_operations(lambda op: _check_circuit_op(op, tags_to_check))]
-    batch_inserts = [(i, protocols.decompose_once(op)) for i, op in batch_removals]
+    batch_inserts = []
+    for i, op in batch_removals:
+        sub_circuit = cast(circuits.CircuitOperation, op.untagged).mapped_circuit()
+        sub_circuit = (
+            unroll_circuit_op_greedy_earliest(sub_circuit, deep=deep, tags_to_check=tags_to_check)
+            if deep
+            else sub_circuit
+        )
+        batch_inserts += [(i, sub_circuit.all_operations())]
     unrolled_circuit = circuit.unfreeze(copy=True)
     unrolled_circuit.batch_remove(batch_removals)
     unrolled_circuit.batch_insert(batch_inserts)
@@ -314,7 +392,10 @@ def unroll_circuit_op_greedy_earliest(
 
 
 def unroll_circuit_op_greedy_frontier(
-    circuit: CIRCUIT_TYPE, *, tags_to_check=(MAPPED_CIRCUIT_OP_TAG,)
+    circuit: CIRCUIT_TYPE,
+    *,
+    deep: bool = False,
+    tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,),
 ) -> CIRCUIT_TYPE:
     """Unrolls (tagged) `cirq.CircuitOperation`s by inserting operations inline at qubit frontier.
 
@@ -324,6 +405,8 @@ def unroll_circuit_op_greedy_frontier(
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
+        deep: If True, `unroll_circuit_op_greedy_frontier` is recursively called on all circuit
+            operations matching `tags_to_check`.
         tags_to_check: If specified, only circuit operations tagged with one of the `tags_to_check`
             are unrolled.
 
@@ -335,5 +418,11 @@ def unroll_circuit_op_greedy_frontier(
     for idx, op in circuit.findall_operations(lambda op: _check_circuit_op(op, tags_to_check)):
         idx = max(idx, max(frontier[q] for q in op.qubits))
         unrolled_circuit.clear_operations_touching(op.qubits, [idx])
-        frontier = unrolled_circuit.insert_at_frontier(protocols.decompose_once(op), idx, frontier)
+        sub_circuit = cast(circuits.CircuitOperation, op.untagged).mapped_circuit()
+        sub_circuit = (
+            unroll_circuit_op_greedy_earliest(sub_circuit, deep=deep, tags_to_check=tags_to_check)
+            if deep
+            else sub_circuit
+        )
+        frontier = unrolled_circuit.insert_at_frontier(sub_circuit.all_operations(), idx, frontier)
     return _to_target_circuit_type(unrolled_circuit, circuit)

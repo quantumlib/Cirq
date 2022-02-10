@@ -36,7 +36,7 @@ def test_does_not_clear_small_no_compile():
     circuit = cirq.Circuit(cirq.Moment((cirq.Z(a) ** 0.000001).with_tags(NO_COMPILE_TAG)))
     cirq.testing.assert_same_circuits(
         cirq.drop_negligible_operations(
-            circuit, context=cirq.TransformerContext(ignore_tags=(NO_COMPILE_TAG,)), atol=0.001
+            circuit, context=cirq.TransformerContext(tags_to_ignore=(NO_COMPILE_TAG,)), atol=0.001
         ),
         circuit,
     )
