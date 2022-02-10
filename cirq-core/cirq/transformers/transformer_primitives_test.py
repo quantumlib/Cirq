@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Optional, List
 import pytest
 
 import cirq
@@ -421,6 +421,56 @@ def test_merge_operations_merges_connected_component():
           │                           │
 2: ───H───X───────────────────────────X───────────────''',
     )
+
+
+def test_merge_operations_to_circuit_op_merges_connected_component():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.Moment(cirq.H.on_each(*q)),
+        cirq.CNOT(q[0], q[2]),
+        cirq.CNOT(*q[0:2]),
+        cirq.H(q[0]),
+        cirq.CZ(*q[:2]),
+        cirq.X(q[0]),
+        cirq.Y(q[1]),
+        cirq.CNOT(*q[0:2]),
+        cirq.CNOT(*q[1:3]),
+        cirq.X(q[0]).with_tags("ignore"),
+        cirq.Y(q[1]),
+        cirq.CNOT(*q[:2]),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───H───@───@───H───@───X───────@───────X['ignore']───────@───
+          │   │       │           │                         │
+1: ───H───┼───X───────@───────Y───X───@─────────────────Y───X───
+          │                           │
+2: ───H───X───────────────────────────X─────────────────────────
+''',
+    )
+
+    def can_merge(ops1: List['cirq.Operation'], ops2: List['cirq.Operation']) -> bool:
+        """Artificial example where a CZ will absorb any merge-able operation."""
+        return any(o.gate == cirq.CZ for op_list in [ops1, ops2] for o in op_list)
+
+    c_new = cirq.merge_operations_to_circuit_op(
+        c_orig, can_merge, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    # pylint: disable=line-too-long
+    cirq.testing.assert_has_diagram(
+        c_new,
+        '''
+                      [ 0: ───────@───H───@───X───@─── ]
+0: ───H───@───────────[           │       │       │    ]─────────────────────────────X['ignore']───────@───
+          │           [ 1: ───H───X───────@───Y───X─── ]['merged']                                     │
+          │           │                                                                                │
+1: ───────┼───────────#2─────────────────────────────────────────────────────────@─────────────────Y───X───
+          │                                                                      │
+2: ───H───X──────────────────────────────────────────────────────────────────────X─────────────────────────''',
+    )
+    # pylint: enable=line-too-long
 
 
 def test_merge_operations_respects_tags_to_ignore():

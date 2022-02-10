@@ -281,6 +281,54 @@ def merge_operations(
     return _to_target_circuit_type(ret_circuit, circuit)
 
 
+def merge_operations_to_circuit_op(
+    circuit: CIRCUIT_TYPE,
+    can_merge: Callable[[Sequence['cirq.Operation'], Sequence['cirq.Operation']], bool],
+    *,
+    tags_to_ignore: Sequence[Hashable] = (),
+    merged_circuit_op_tag: str = "Merged connected component",
+) -> CIRCUIT_TYPE:
+    """Merges connected components of operations and wraps each component into a circuit operation.
+
+    Uses `cirq.merge_operations` to identify connected components of operations.
+
+    Args:
+        circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
+        can_merge: Callable to determine whether a new operation `right_op` can be merged into an
+            existing connected component of operations `left_ops` based on boolen returned by
+            `can_merge(left_ops, right_op)`.
+        tags_to_ignore: Tagged operations marked any of `tags_to_ignore` will not be considered as
+            potential candidates for any connected component.
+        merged_circuit_op_tag: Tag to be applied on circuit operations wrapping valid connected
+            components.
+
+    Returns:
+        Copy of input circuit with valid connected components wrapped in tagged circuit operations.
+    """
+
+    def merge_func(op1: 'cirq.Operation', op2: 'cirq.Operation') -> Optional['cirq.Operation']:
+        print(op1, op2)
+
+        def get_ops(op: 'cirq.Operation'):
+            op_untagged = op.untagged
+            return (
+                [*op_untagged.circuit.all_operations()]
+                if isinstance(op_untagged, circuits.CircuitOperation)
+                and merged_circuit_op_tag in op.tags
+                else [op]
+            )
+
+        left_ops = get_ops(op1)
+        right_ops = get_ops(op2)
+        if not can_merge(left_ops, right_ops):
+            return None
+        return circuits.CircuitOperation(circuits.FrozenCircuit(left_ops, right_ops)).with_tags(
+            merged_circuit_op_tag
+        )
+
+    return merge_operations(circuit, merge_func, tags_to_ignore=tags_to_ignore)
+
+
 def merge_moments(
     circuit: CIRCUIT_TYPE,
     merge_func: Callable[[circuits.Moment, circuits.Moment], Optional[circuits.Moment]],

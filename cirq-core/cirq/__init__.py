@@ -375,6 +375,7 @@ from cirq.transformers import (
     map_operations_and_unroll,
     merge_moments,
     merge_operations,
+    merge_operations_to_circuit_op,
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
     single_qubit_matrix_to_gates,

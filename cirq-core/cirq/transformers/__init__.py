@@ -74,6 +74,7 @@ from cirq.transformers.transformer_primitives import (
     map_operations_and_unroll,
     merge_moments,
     merge_operations,
+    merge_operations_to_circuit_op,
     unroll_circuit_op,
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,
