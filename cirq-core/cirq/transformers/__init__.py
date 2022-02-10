@@ -43,7 +43,6 @@ from cirq.transformers.heuristic_decompositions import (
 
 from cirq.transformers.align import align_left, align_right
 
-
 from cirq.transformers.stratify import stratified_circuit
 
 from cirq.transformers.expand_composite import expand_composite
