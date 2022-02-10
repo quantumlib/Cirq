@@ -13,15 +13,12 @@
 # limitations under the License.
 """Protocol for objects that are mixtures (probabilistic combinations)."""
 from typing import Any, Sequence, Tuple, Union, TYPE_CHECKING, TypeVar
-from functools import reduce
 
 import numpy as np
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,
-)
+from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.protocols import has_unitary_protocol, unitary_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -86,16 +83,16 @@ def mixture(
     The probability components of the tuples must sum to 1.0 and be
     non-negative.
 
-    Determines the Mixture representation of `val` by the following strategies:
+    Determines the mixture representation of `val` by the following strategies:
 
     1. Try to use `val._mixture_()`.
         Case a) Method not present or returns `None`.
             Continue to next strategy.
-        Case b) Returns the Mixture representation.
+        Case b) Returns the mixture representation.
             Return the result.
 
     2. Try to use `unitary()`.
-        Case a) Method not present or returns `None`.
+        Case a) Returns `None`.
             Continue to next strategy.
         Case b) Method returns a unitary.
             Convert unitary into mixture and return.
@@ -117,39 +114,46 @@ def mixture(
         with that probability in the mixture. The probabilities will sum to 1.0.
 
     Raises:
-        TypeError: If `val` has no `_mixture_` or `_unitary_` mehod, or if it
-            does and this method returned `NotImplemented`.
+        TypeError: If `val` has no `_mixture_` method, or if it does and this
+        method returned `NotImplemented`.
+
+        TypeError: If `has_mixture` returns True but method is unable to
+        calculate a valid mixture.
     """
+
+    if not has_mixture(val):
+        if default is not RaiseTypeErrorIfNotProvided:
+            return default
+
+        if _gettr_helper(val, ['_mixture_']) is None:
+            raise TypeError(f"object of type '{type(val)}' has no _mixture_ method.")
+
+        raise TypeError(
+            "object of type '{}' does have a _mixture_ "
+            "method, but it returned NotImplemented.".format(type(val))
+        )
 
     mixture_result = _gettr_helper(val, ['_mixture_'])
     if mixture_result is not None and mixture_result is not NotImplemented:
         return mixture_result
 
     unitary_result = unitary_protocol.unitary(val, None)
-    if unitary_result is not None and unitary_result is not NotImplemented:
+    if unitary_result is not None:
         return ((1.0, unitary_result),)
 
     decomposed, qubits, _ = _try_decompose_into_operations_and_qubits(val)
 
     # serial concatenation
-    if decomposed is not None and decomposed != [val] and decomposed != []:
+    if decomposed is not None:
+        superoperator_list = [_moment_superoperator(x, qubits, None) for x in decomposed]
 
-        if all([has_mixture(x) for x in decomposed]):
-            superoperator_list = [_moment_superoperator(x, qubits, None) for x in decomposed]
-
-            if not any([x is None for x in superoperator_list]):
-                superoperator_result = reduce(lambda x, y: x @ y, superoperator_list)
-                return tuple(_superoperator_to_mixture(superoperator_result))
-
-    if default is not RaiseTypeErrorIfNotProvided:
-        return default
-
-    if _gettr_helper(val, ['_unitary_', '_mixture_']) is None:
-        raise TypeError(f"object of type '{type(val)}' has no _mixture_ or _unitary_ method.")
+        if not any([x is None for x in superoperator_list]):
+            superoperator_result = np.linalg.multi_dot(superoperator_list[::-1])
+            return tuple(_superoperator_to_mixture(superoperator_result))
 
     raise TypeError(
-        "object of type '{}' does have a _mixture_ or _unitary_ "
-        "method, but it returned NotImplemented.".format(type(val))
+        "object of type '{}' returns True for has_mixture"
+        "but could not find a strategy to calculate mixture.".format(type(val))
     )
 
 
@@ -172,14 +176,14 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
             return True.
 
     3. Try to use `has_unitary`.
-        Case a) Method not present or returns `None` or returns False.
+        Case a) Returns False.
             Continue to next strategy.
         Case b) Method returns True.
             return True.
 
     4. If decomposition is allowed decompose `val` and check recursively.
 
-    If all the above methods fail then it is assumed to have no Kraus
+    If all the above methods fail then it is assumed to have no mixture
     representation.
 
     Args:

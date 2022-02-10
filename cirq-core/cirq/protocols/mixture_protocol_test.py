@@ -131,38 +131,6 @@ def test_invalid_mixture(val, message):
         cirq.validate_mixture(val)
 
 
-def test_serial_concatenation_no_kraus():
-    q1 = cirq.GridQubit(1, 1)
-
-    class defaultGate(cirq.Gate):
-        def num_qubits(self):
-            return 1
-
-        def _unitary_(self):
-            return None
-
-        def _mixture_(self):
-            return NotImplemented
-
-    class onlyDecompose:
-        def _decompose_(self):
-            return [cirq.Y.on(q1), defaultGate().on(q1)]
-
-        def _unitary_(self):
-            return None
-
-        def _mixture_(self):
-            return NotImplemented
-
-    default = (1.0, np.array([[1, 0], [0, 1]]))
-
-    with pytest.raises(TypeError, match="returned NotImplemented"):
-        _ = cirq.mixture(onlyDecompose())
-    assert cirq.mixture(onlyDecompose(), 0) == 0
-    np.testing.assert_equal(cirq.mixture(onlyDecompose(), default), default)
-    assert not cirq.has_mixture(onlyDecompose())
-
-
 def test_serial_concatenation_default():
     q1 = cirq.GridQubit(1, 1)
 
@@ -195,13 +163,53 @@ def test_serial_concatenation_default():
     assert not cirq.has_mixture(onlyDecompose())
 
 
+def test_serial_concatenation_inconsistent_has_mixture():
+    q1 = cirq.GridQubit(1, 1)
+
+    class defaultGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return NotImplemented
+
+    class onlyDecompose:
+        def _decompose_(self):
+            return [cirq.Y.on(q1), defaultGate().on(q1)]
+
+        def _unitary_(self):
+            return None
+
+        def _mixture_(self):
+            return NotImplemented
+
+        def _has_mixture_(self):
+            return True
+
+    with pytest.raises(TypeError, match="strategy to calculate mixture."):
+        _ = cirq.mixture(onlyDecompose())
+    assert cirq.has_mixture(onlyDecompose())
+
+
 def test_serial_concatenation_circuit():
     q1 = cirq.GridQubit(1, 1)
     q2 = cirq.GridQubit(1, 2)
 
+    class defaultGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _mixture_(self):
+            return cirq.mixture(cirq.X.on(q1))
+
     class onlyDecompose:
         def _decompose_(self):
-            circ = cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)])
+            circ = cirq.Circuit(
+                [cirq.S.on(q1), cirq.CNOT(q1, q2), defaultGate().on(q2), cirq.Y.on(q1)]
+            )
             return cirq.decompose(circ)
 
         def _unitary_(self):
@@ -210,7 +218,16 @@ def test_serial_concatenation_circuit():
         def _mixture_(self):
             return NotImplemented
 
-    c = ((1.0, np.array(cirq.unitary(cirq.Circuit([cirq.Y.on(q1), cirq.X.on(q2)])))),)
+    c = (
+        (
+            1.0,
+            np.array(
+                cirq.unitary(
+                    cirq.Circuit([cirq.S.on(q1), cirq.CNOT(q1, q2), cirq.X.on(q2), cirq.Y.on(q1)])
+                )
+            ),
+        ),
+    )
 
     def mixture_to_superoperator(mixture):
         return cirq.kraus_to_superoperator(tuple((p ** 0.5) * u for p, u in mixture))
