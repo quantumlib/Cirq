@@ -166,7 +166,7 @@ def _stratify_circuit(
     return drop_empty_moments.drop_empty_moments(stratified_circuit)
 
 
-# No type for `category` because MyPy does not keep the return type when
+# No type for `category` because mypy does not keep the return type when
 # returning a callback.
 def _category_to_classifier(category) -> Classifier:
     """Normalizes the given category into a classifier function."""
