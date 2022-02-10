@@ -394,6 +394,7 @@ from cirq.transformers import (
     two_qubit_gate_product_tabulation,
     TwoQubitGateTabulation,
     TwoQubitGateTabulationResult,
+    toggle_tags,
     unroll_circuit_op,
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,
