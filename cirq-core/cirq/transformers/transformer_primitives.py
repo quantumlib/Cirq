@@ -426,3 +426,18 @@ def unroll_circuit_op_greedy_frontier(
         )
         frontier = unrolled_circuit.insert_at_frontier(sub_circuit.all_operations(), idx, frontier)
     return _to_target_circuit_type(unrolled_circuit, circuit)
+
+
+def xor_ops_with_tags(circuit: CIRCUIT_TYPE, tags: Sequence[Hashable], *, deep: bool = False):
+    tags_to_xor = set(tags)
+
+    def map_func(op: 'cirq.Operation', _) -> 'cirq.Operation':
+        op_tags = set(op.tags)
+        new_tags = (op_tags - tags_to_xor) | (tags_to_xor - op_tags)
+        return (
+            op
+            if deep and isinstance(op, circuits.CircuitOperation)
+            else op.untagged.with_tags(*new_tags)
+        )
+
+    return map_operations(circuit, map_func, deep=deep)

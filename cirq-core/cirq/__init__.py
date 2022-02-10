@@ -397,6 +397,7 @@ from cirq.transformers import (
     unroll_circuit_op,
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,
+    xor_ops_with_tags,
 )
 
 from cirq.qis import (

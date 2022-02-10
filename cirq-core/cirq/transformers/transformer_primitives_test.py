@@ -166,6 +166,22 @@ def test_map_operations_respects_tags_to_ignore():
     )
 
 
+def test_apply_tag_to_inverted_op_set():
+    q = cirq.LineQubit.range(2)
+    op = cirq.CNOT(*q)
+    tag = "tag_to_flip"
+    c_orig = cirq.Circuit(op, op.with_tags(tag), cirq.CircuitOperation(cirq.FrozenCircuit(op)))
+    c_flipped_with_deep = cirq.Circuit(
+        op.with_tags(tag), op, cirq.CircuitOperation(cirq.FrozenCircuit(op.with_tags(tag)))
+    )
+    c_flipped_without_deep = cirq.Circuit(
+        op.with_tags(tag), op, cirq.CircuitOperation(cirq.FrozenCircuit(op)).with_tags(tag)
+    )
+    for c_flip, deep in zip([c_flipped_with_deep, c_flipped_without_deep], [True, False]):
+        cirq.testing.assert_same_circuits(cirq.xor_ops_with_tags(c_orig, [tag], deep=deep), c_flip)
+        cirq.testing.assert_same_circuits(cirq.xor_ops_with_tags(c_flip, [tag], deep=deep), c_orig)
+
+
 def test_unroll_circuit_op_and_variants():
     q = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(q[0]), cirq.CNOT(q[0], q[1]), cirq.X(q[0]))
