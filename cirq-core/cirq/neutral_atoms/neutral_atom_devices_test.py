@@ -56,6 +56,21 @@ def test_init():
         _ = d.duration_of(cirq.SingleQubitGate().on(q00))
 
 
+def test_metadata():
+    d = square_device(2, 3)
+    assert d.metadata.qubit_set == frozenset(
+        {
+            cirq.GridQubit(0, 0),
+            cirq.GridQubit(0, 1),
+            cirq.GridQubit(1, 0),
+            cirq.GridQubit(1, 1),
+            cirq.GridQubit(2, 0),
+            cirq.GridQubit(2, 1),
+        }
+    )
+    assert len(d.metadata.nx_graph.edges()) == 7
+
+
 def test_init_timedelta():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)], use_timedelta=True)
     us = cirq.Duration(nanos=10 ** 3)
@@ -282,5 +297,6 @@ def test_repr_pretty():
     cirq.testing.assert_repr_pretty(square_device(2, 2), "cirq.NeutralAtomDevice(...)", cycle=True)
 
 
-def test_qubit_set():
-    assert square_device(2, 2).qubit_set() == frozenset(cirq.GridQubit.square(2, 0, 0))
+def test_qubit_set_deprecated():
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        assert square_device(2, 2).qubit_set() == frozenset(cirq.GridQubit.square(2, 0, 0))

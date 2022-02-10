@@ -362,6 +362,8 @@ from cirq.transformers import (
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates,
+    defer_measurements,
+    dephase_measurements,
     drop_empty_moments,
     drop_negligible_operations,
     eject_phased_paulis,

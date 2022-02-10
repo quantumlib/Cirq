@@ -53,6 +53,11 @@ from cirq.transformers.drop_negligible_operations import drop_negligible_operati
 
 from cirq.transformers.eject_z import eject_z
 
+from cirq.transformers.measurement_transformers import (
+    defer_measurements,
+    dephase_measurements,
+)
+
 from cirq.transformers.synchronize_terminal_measurements import synchronize_terminal_measurements
 
 from cirq.transformers.transformer_api import (
