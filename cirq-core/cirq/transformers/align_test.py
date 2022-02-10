@@ -94,9 +94,9 @@ def test_align_left_subset_of_operations():
         ]
     )
     cirq.testing.assert_same_circuits(
-        cirq.xor_ops_with_tags(
+        cirq.toggle_tags(
             cirq.align_left(
-                cirq.xor_ops_with_tags(c_orig, [tag]),
+                cirq.toggle_tags(c_orig, [tag]),
                 context=cirq.TransformerContext(tags_to_ignore=[tag]),
             ),
             [tag],

@@ -171,15 +171,19 @@ def test_apply_tag_to_inverted_op_set():
     op = cirq.CNOT(*q)
     tag = "tag_to_flip"
     c_orig = cirq.Circuit(op, op.with_tags(tag), cirq.CircuitOperation(cirq.FrozenCircuit(op)))
-    c_flipped_with_deep = cirq.Circuit(
+    # Toggle with deep = True.
+    c_toggled = cirq.Circuit(
         op.with_tags(tag), op, cirq.CircuitOperation(cirq.FrozenCircuit(op.with_tags(tag)))
     )
-    c_flipped_without_deep = cirq.Circuit(
+    cirq.testing.assert_same_circuits(cirq.toggle_tags(c_orig, [tag], deep=True), c_toggled)
+    cirq.testing.assert_same_circuits(cirq.toggle_tags(c_toggled, [tag], deep=True), c_orig)
+
+    # Toggle with deep = False
+    c_toggled = cirq.Circuit(
         op.with_tags(tag), op, cirq.CircuitOperation(cirq.FrozenCircuit(op)).with_tags(tag)
     )
-    for c_flip, deep in zip([c_flipped_with_deep, c_flipped_without_deep], [True, False]):
-        cirq.testing.assert_same_circuits(cirq.xor_ops_with_tags(c_orig, [tag], deep=deep), c_flip)
-        cirq.testing.assert_same_circuits(cirq.xor_ops_with_tags(c_flip, [tag], deep=deep), c_orig)
+    cirq.testing.assert_same_circuits(cirq.toggle_tags(c_orig, [tag], deep=False), c_toggled)
+    cirq.testing.assert_same_circuits(cirq.toggle_tags(c_toggled, [tag], deep=False), c_orig)
 
 
 def test_unroll_circuit_op_and_variants():
