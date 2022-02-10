@@ -37,8 +37,8 @@ class GridDeviceMetadata(device.DeviceMetadata):
     def __init__(
         self,
         qubit_pairs: Iterable[Tuple['cirq.Qid', 'cirq.Qid']],
-        supported_gates: 'cirq.Gateset',
-        gate_durations: Optional[Dict['cirq.Gateset', 'cirq.Duration']] = None,
+        gateset: 'cirq.Gateset',
+        gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
     ):
         """Create a GridDeviceMetadata object.
 
@@ -49,16 +49,16 @@ class GridDeviceMetadata(device.DeviceMetadata):
         Args:
             qubit_pairs: Iterable of pairs of `cirq.Qid`s representing
                 bi-directional couplings.
-            supported_gates: `cirq.Gateset` indicating gates supported
+            gateset: `cirq.Gateset` indicating gates supported
                 everywhere on the device.
-            gate_durations: Optional dictionary of `cirq.Gateset`
+            gate_durations: Optional dictionary of `cirq.GateFamily`
                 instances mapping to `cirq.Duration` instances for
                 gate timing metadata information. If provided,
-                must match all entries in supported_gates.
+                must match all entries in gateset.
 
         Raises:
-            ValueError: if the union of gateset keys in gate_durations,
-                do not represent an identical gateset to supported_gates.
+            ValueError: if the union of GateFamily keys in gate_durations
+                is not identical to set of gate families in gateset.
         """
         qubit_pairs = list(qubit_pairs)
         flat_pairs = [q for pair in qubit_pairs for q in pair]
@@ -73,18 +73,17 @@ class GridDeviceMetadata(device.DeviceMetadata):
         connectivity.add_edges_from(sorted(pair_set), directed=False)
         super().__init__(flat_pairs, connectivity)
         self._qubit_pairs = frozenset(pair_set)
-        self._supported_gates = supported_gates
+        self._gateset = gateset
 
         if gate_durations is not None:
-            working_gatefamilies = frozenset(
-                g for gset in gate_durations.keys() for g in gset.gates
-            )
-            if working_gatefamilies != supported_gates.gates:
-                missing_items = working_gatefamilies.difference(supported_gates.gates)
+            working_gatefamilies = frozenset(gate_durations.keys())
+            if working_gatefamilies != gateset.gates:
                 raise ValueError(
-                    "Supplied gate_durations contains gates not present"
-                    f" in supported_gates. {missing_items} in supported_gates"
-                    " is False."
+                    "set of gate_durations keys are not equal to the "
+                    "GateFamily instances found in gateset. Some gates "
+                    "will be missing duration information."
+                    f" gate_durations={gate_durations}"
+                    f" gateset.gates={gateset.gates}"
                 )
 
         self._gate_durations = gate_durations
@@ -97,10 +96,10 @@ class GridDeviceMetadata(device.DeviceMetadata):
     @property
     def gateset(self) -> 'cirq.Gateset':
         """Returns the `cirq.Gateset` of supported gates on this device."""
-        return self._supported_gates
+        return self._gateset
 
     @property
-    def gate_durations(self) -> Optional[Dict['cirq.Gateset', 'cirq.Duration']]:
+    def gate_durations(self) -> Optional[Dict['cirq.GateFamily', 'cirq.Duration']]:
         """Get a dictionary mapping from gateset to duration for gates."""
         return self._gate_durations
 
@@ -111,14 +110,14 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
         return (
             tuple(sorted(self._qubit_pairs)),
-            self._supported_gates,
+            self._gateset,
             tuple(duration_equality),
         )
 
     def __repr__(self) -> str:
         return (
             f'cirq.GridDeviceMetadata({repr(self._qubit_pairs)},'
-            f' {repr(self._supported_gates)}, {repr(self._gate_durations)})'
+            f' {repr(self._gateset)}, {repr(self._gate_durations)})'
         )
 
     def _json_dict_(self):
@@ -128,10 +127,10 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
         return {
             'qubit_pairs': sorted(list(self._qubit_pairs)),
-            'supported_gates': self._supported_gates,
+            'gateset': self._gateset,
             'gate_durations': duration_payload,
         }
 
     @classmethod
-    def _from_json_dict_(cls, qubit_pairs, supported_gates, gate_durations, **kwargs):
-        return cls(qubit_pairs, supported_gates, dict(gate_durations))
+    def _from_json_dict_(cls, qubit_pairs, gateset, gate_durations, **kwargs):
+        return cls(qubit_pairs, gateset, dict(gate_durations))

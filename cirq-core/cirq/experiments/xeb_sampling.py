@@ -36,7 +36,7 @@ import pandas as pd
 import tqdm
 
 from cirq import ops, devices, value, protocols
-from cirq.circuits import Circuit
+from cirq.circuits import Circuit, Moment
 from cirq.experiments.random_quantum_circuit_generation import CircuitLibraryCombination
 
 if TYPE_CHECKING:
@@ -248,7 +248,7 @@ def _generate_sample_2q_xeb_tasks(
             assert circuit_depth <= len(zipped_circuit.wide_circuit)
             # Slicing creates a copy, although this isn't documented
             prepared_circuit = zipped_circuit.wide_circuit[:circuit_depth]
-            prepared_circuit += ops.Moment(
+            prepared_circuit += Moment(
                 ops.measure(*pair, key=str(pair_i))
                 for pair_i, pair in enumerate(zipped_circuit.pairs)
             )

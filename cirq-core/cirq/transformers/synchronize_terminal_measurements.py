@@ -15,7 +15,7 @@
 """Transformer pass to move terminal measurements to the end of circuit."""
 
 from typing import List, Optional, Set, Tuple, TYPE_CHECKING
-from cirq import protocols, ops
+from cirq import protocols, circuits
 from cirq.transformers import transformer_api
 
 if TYPE_CHECKING:
@@ -44,7 +44,6 @@ def find_terminal_measurements(
         moment = circuit[i]
         for q in open_qubits:
             op = moment.operation_at(q)
-            seen_control_keys |= protocols.control_keys(op)
             if (
                 op is not None
                 and open_qubits.issuperset(op.qubits)
@@ -53,6 +52,7 @@ def find_terminal_measurements(
             ):
                 terminal_measurements.append((i, op))
         open_qubits -= moment.qubits
+        seen_control_keys |= protocols.control_keys(moment)
         if not open_qubits:
             break
     return terminal_measurements
@@ -94,6 +94,6 @@ def synchronize_terminal_measurements(
 
     ret.batch_remove(terminal_measurements)
     if ret[-1] and after_other_operations:
-        ret.append(ops.Moment())
+        ret.append(circuits.Moment())
     ret[-1] = ret[-1].with_operations(op for _, op in terminal_measurements)
     return ret

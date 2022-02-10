@@ -72,6 +72,7 @@ from cirq.circuits import (
     CircuitOperation,
     FrozenCircuit,
     InsertStrategy,
+    Moment,
     PointOptimizationSummary,
     PointOptimizer,
     QasmOutput,
@@ -92,6 +93,8 @@ from cirq.devices import (
     NO_NOISE,
     NOISE_MODEL_LIKE,
     NoiseModel,
+    NoiseModelFromNoiseProperties,
+    NoiseProperties,
     OpIdentifier,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
@@ -250,7 +253,6 @@ from cirq.ops import (
     measure_paulistring_terms,
     measure_single_paulistring,
     MeasurementGate,
-    Moment,
     MutableDensePauliString,
     MutablePauliString,
     NamedQubit,
@@ -359,8 +361,13 @@ from cirq.transformers import (
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates,
+    defer_measurements,
+    dephase_measurements,
     drop_empty_moments,
     drop_negligible_operations,
+    eject_phased_paulis,
+    eject_z,
+    expand_composite,
     is_negligible_turn,
     map_moments,
     map_operations,
@@ -412,6 +419,7 @@ from cirq.qis import (
     QuantumState,
     quantum_state,
     STATE_VECTOR_LIKE,
+    StabilizerState,
     superoperator_to_choi,
     superoperator_to_kraus,
     to_valid_density_matrix,
@@ -505,6 +513,9 @@ from cirq.value import (
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
+    ClassicalDataDictionaryStore,
+    ClassicalDataStore,
+    ClassicalDataStoreReader,
     Condition,
     Duration,
     DURATION_LIKE,
@@ -513,6 +524,7 @@ from cirq.value import (
     LinearDict,
     MEASUREMENT_KEY_SEPARATOR,
     MeasurementKey,
+    MeasurementType,
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
     state_vector_to_probabilities,
@@ -683,6 +695,26 @@ _register_resolver(_class_resolver_dictionary)
 
 from cirq import (
     contrib,
+)
+
+# deprecate cirq.ops.moment and related attributes
+
+from cirq import _compat
+
+_compat.deprecated_submodule(
+    new_module_name='cirq.circuits.moment',
+    old_parent='cirq.ops',
+    old_child='moment',
+    deadline='v0.16',
+    create_attribute=True,
+)
+
+ops.Moment = Moment  # type: ignore
+_compat.deprecate_attributes(
+    'cirq.ops',
+    {
+        'Moment': ('v0.16', 'Use cirq.circuits.Moment instead'),
+    },
 )
 
 # pylint: enable=wrong-import-position

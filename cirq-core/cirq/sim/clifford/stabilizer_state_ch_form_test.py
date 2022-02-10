@@ -64,14 +64,15 @@ def test_run():
     )
     for _ in range(10):
         state = cirq.StabilizerStateChForm(num_qubits=3)
-        measurements = {}
+        classical_data = cirq.ClassicalDataDictionaryStore()
         for op in circuit.all_operations():
             args = cirq.ActOnStabilizerCHFormArgs(
                 qubits=list(circuit.all_qubits()),
                 prng=np.random.RandomState(),
-                log_of_measurement_results=measurements,
+                classical_data=classical_data,
                 initial_state=state,
             )
             cirq.act_on(op, args)
+        measurements = {str(k): list(v) for k, v in classical_data.measurements.items()}
         assert measurements['1'] == [1]
         assert measurements['0'] != measurements['2']

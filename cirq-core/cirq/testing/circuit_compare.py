@@ -222,7 +222,7 @@ def _first_differing_moment_index(
 
 
 def assert_has_diagram(
-    actual: Union[circuits.AbstractCircuit, ops.Moment], desired: str, **kwargs
+    actual: Union[circuits.AbstractCircuit, circuits.Moment], desired: str, **kwargs
 ) -> None:
     """Determines if a given circuit has the desired text diagram.
 
