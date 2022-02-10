@@ -14,16 +14,16 @@
 """An interface for quantum states as targets for operations."""
 import abc
 from typing import (
-    TypeVar,
-    TYPE_CHECKING,
-    Generic,
-    Dict,
     Any,
-    Tuple,
-    Optional,
+    Dict,
+    Generic,
     Iterator,
     List,
+    Optional,
     Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    TypeVar,
     Union,
 )
 
@@ -86,9 +86,14 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
         """Gets the qubit order maintained by this target."""
 
     @property
-    @abc.abstractmethod
     def log_of_measurement_results(self) -> Dict[str, Any]:
         """Gets the log of measurement results."""
+        return {str(k): list(self.classical_data.get_digits(k)) for k in self.classical_data.keys()}
+
+    @property
+    @abc.abstractmethod
+    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
+        """The shared classical data container for this simulation.."""
 
     @abc.abstractmethod
     def sample(

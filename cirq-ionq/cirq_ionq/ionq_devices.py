@@ -66,7 +66,19 @@ class IonQAPIDevice(cirq.Device):
         else:
             self.qubits = frozenset(qubits)
         self.atol = atol
+        self._metadata = cirq.DeviceMetadata(
+            self.qubits,
+            [(a, b) for a in self.qubits for b in self.qubits if a != b],
+        )
 
+    @property
+    def metadata(self) -> cirq.DeviceMetadata:
+        return self._metadata
+
+    @_compat.deprecated(
+        fix='Use metadata.qubit_set if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> AbstractSet['cirq.Qid']:
         return self.qubits
 
@@ -77,7 +89,7 @@ class IonQAPIDevice(cirq.Device):
             )
         if not self.is_api_gate(operation):
             raise ValueError(f'IonQAPIDevice has unsupported gate {operation.gate}.')
-        if not set(operation.qubits).intersection(self.qubit_set()):
+        if not set(operation.qubits).intersection(self.metadata.qubit_set):
             raise ValueError(f'Operation with qubits not on the device. Qubits: {operation.qubits}')
 
     def is_api_gate(self, operation: cirq.Operation) -> bool:
