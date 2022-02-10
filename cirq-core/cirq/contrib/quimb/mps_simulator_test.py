@@ -550,10 +550,10 @@ def test_state_act_on_args_initializer():
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
-        log_of_measurement_results={'test': 4},
+        log_of_measurement_results={'test': [4]},
     )
     assert s.qubits == (cirq.LineQubit(0),)
-    assert s.log_of_measurement_results == {'test': 4}
+    assert s.log_of_measurement_results == {'test': [4]}
 
 
 def test_act_on_gate():

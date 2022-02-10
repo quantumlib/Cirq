@@ -34,3 +34,6 @@ class VirtualTag:
 
     def _json_dict_(self) -> Dict[str, str]:
         return {}
+
+    def __hash__(self):
+        return hash(VirtualTag)

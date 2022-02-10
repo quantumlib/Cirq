@@ -133,6 +133,14 @@ def test_gate_definition_equality():
     eq.add_equality_group(cirq.X)
 
 
+def test_qubit_set_deprecated():
+    foxtail = cg.SerializableDevice.from_proto(
+        proto=cg.devices.known_devices.FOXTAIL_PROTO, gate_sets=[cg.XMON]
+    )
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        _ = foxtail.qubit_set()
+
+
 def test_foxtail():
     valid_qubit1 = cirq.GridQubit(0, 0)
     valid_qubit2 = cirq.GridQubit(1, 0)
@@ -143,7 +151,7 @@ def test_foxtail():
     foxtail = cg.SerializableDevice.from_proto(
         proto=cg.devices.known_devices.FOXTAIL_PROTO, gate_sets=[cg.XMON]
     )
-    assert foxtail.qubit_set() == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
+    assert foxtail.metadata.qubit_set == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
     foxtail.validate_operation(cirq.X(valid_qubit1))
     foxtail.validate_operation(cirq.X(valid_qubit2))
     foxtail.validate_operation(cirq.X(valid_qubit3))

@@ -77,7 +77,7 @@ class CliffordSimulator(
         self,
         initial_state: Union[int, 'cirq.ActOnStabilizerCHFormArgs'],
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: 'cirq.ClassicalDataStore',
     ) -> 'cirq.ActOnStabilizerCHFormArgs':
         """Creates the ActOnStabilizerChFormArgs for a circuit.
 
@@ -88,6 +88,8 @@ class CliffordSimulator(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             logs: A log of the results of measurement that is added to.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Returns:
             ActOnStabilizerChFormArgs for the circuit.
@@ -97,7 +99,7 @@ class CliffordSimulator(
 
         return clifford.ActOnStabilizerCHFormArgs(
             prng=self._prng,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
             qubits=qubits,
             initial_state=initial_state,
         )
@@ -254,7 +256,6 @@ class CliffordState:
     def apply_unitary(self, op: 'cirq.Operation'):
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
             prng=np.random.RandomState(),
-            log_of_measurement_results={},
             qubits=self.qubit_map.keys(),
             initial_state=self.ch_form,
         )
@@ -284,10 +285,12 @@ class CliffordState:
         else:
             state = self.copy()
 
+        classical_data = value.ClassicalDataDictionaryStore()
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
             prng=prng,
-            log_of_measurement_results=measurements,
+            classical_data=classical_data,
             qubits=self.qubit_map.keys(),
             initial_state=state.ch_form,
         )
         act_on(op, ch_form_args)
+        measurements.update({str(k): list(v) for k, v in classical_data.measurements.items()})
