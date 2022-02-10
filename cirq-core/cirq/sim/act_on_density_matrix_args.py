@@ -24,6 +24,115 @@ from cirq.linalg import transformations
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
+
+
+class _BufferedDensityMatrix:
+    def __init__(
+        self,
+        *,
+        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        available_buffer: Optional[List[np.ndarray]] = None,
+        dtype: Optional['DTypeLike'] = None,
+    ):
+        if qid_shape is not None:
+            initial_matrix = qis.to_valid_density_matrix(
+                initial_state, len(qid_shape), qid_shape=qid_shape, dtype=dtype
+            )
+            if np.may_share_memory(initial_matrix, initial_state):
+                initial_matrix = initial_matrix.copy()
+            target_tensor = initial_matrix.reshape(qid_shape * 2)
+            self.target_tensor = target_tensor
+
+        else:
+            if isinstance(initial_state, np.ndarray):
+                target_shape = initial_state.shape
+                if len(target_shape) % 2 != 0:
+                    raise ValueError(
+                        'The dimension of target_tensor is not divisible by 2.'
+                        ' Require explicit qid_shape.'
+                    )
+                qid_shape = target_shape[: len(target_shape) // 2]
+                self.target_tensor = initial_state
+            else:
+                qid_shape = (2,)
+        self.qid_shape = qid_shape
+
+        if available_buffer is None:
+            available_buffer = [np.empty_like(self.target_tensor) for _ in range(3)]
+        self.available_buffer = available_buffer
+
+    def copy(self, deep_copy_buffers: bool = True) -> '_BufferedDensityMatrix':
+        target_tensor = self.target_tensor.copy()
+        if deep_copy_buffers:
+            available_buffer = [b.copy() for b in self.available_buffer]
+        else:
+            available_buffer = self.available_buffer
+        return _BufferedDensityMatrix(
+            initial_state=target_tensor,
+            available_buffer=available_buffer,
+        )
+
+    def kron(self, other: '_BufferedDensityMatrix') -> '_BufferedDensityMatrix':
+        target_tensor = transformations.density_matrix_kronecker_product(
+            self.target_tensor, other.target_tensor
+        )
+        available_buffer = [np.empty_like(target_tensor) for _ in range(len(self.available_buffer))]
+        return _BufferedDensityMatrix(
+            initial_state=target_tensor,
+            available_buffer=available_buffer,
+        )
+
+    def factor(
+        self, axes: Sequence[int], *, validate=True, atol=1e-07
+    ) -> Tuple['_BufferedDensityMatrix', '_BufferedDensityMatrix']:
+        extracted_tensor, remainder_tensor = transformations.factor_density_matrix(
+            self.target_tensor, axes, validate=validate, atol=atol
+        )
+        extracted_buffer = [np.empty_like(extracted_tensor) for _ in self.available_buffer]
+        extracted = _BufferedDensityMatrix(
+            initial_state=extracted_tensor,
+            available_buffer=extracted_buffer,
+        )
+        remainder_buffer = [np.empty_like(remainder_tensor) for _ in self.available_buffer]
+        remainder = _BufferedDensityMatrix(
+            initial_state=remainder_tensor,
+            available_buffer=remainder_buffer,
+        )
+        return extracted, remainder
+
+    def reindex(self, axes: Sequence[int]) -> '_BufferedDensityMatrix':
+        new_tensor = transformations.transpose_density_matrix_to_axis_order(
+            self.target_tensor, axes
+        )
+        buffer = [np.empty_like(new_tensor) for _ in self.available_buffer]
+        return _BufferedDensityMatrix(
+            initial_state=new_tensor,
+            available_buffer=buffer,
+        )
+
+    def apply_channel(self, action: Any, axes: Sequence[int]) -> bool:
+        """Apply channel to state."""
+        result = protocols.apply_channel(
+            action,
+            args=protocols.ApplyChannelArgs(
+                target_tensor=self.target_tensor,
+                out_buffer=self.available_buffer[0],
+                auxiliary_buffer0=self.available_buffer[1],
+                auxiliary_buffer1=self.available_buffer[2],
+                left_axes=axes,
+                right_axes=[e + len(self.qid_shape) for e in axes],
+            ),
+            default=None,
+        )
+        if result is None:
+            return False
+        for i in range(len(self.available_buffer)):
+            if result is self.available_buffer[i]:
+                self.available_buffer[i] = self.target_tensor
+        self.target_tensor = result
+        return True
 
 
 class ActOnDensityMatrixArgs(ActOnArgs):
@@ -93,29 +202,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             ignore_measurement_results=ignore_measurement_results,
             classical_data=classical_data,
         )
-        if target_tensor is None:
-            qubits_qid_shape = protocols.qid_shape(self.qubits)
-            initial_matrix = qis.to_valid_density_matrix(
-                initial_state, len(qubits_qid_shape), qid_shape=qubits_qid_shape, dtype=dtype
-            )
-            if np.may_share_memory(initial_matrix, initial_state):
-                initial_matrix = initial_matrix.copy()
-            target_tensor = initial_matrix.reshape(qubits_qid_shape * 2)
-        self.target_tensor = target_tensor
-
-        if available_buffer is None:
-            available_buffer = [np.empty_like(target_tensor) for _ in range(3)]
-        self.available_buffer = available_buffer
-
-        if qid_shape is None:
-            target_shape = target_tensor.shape
-            if len(target_shape) % 2 != 0:
-                raise ValueError(
-                    'The dimension of target_tensor is not divisible by 2.'
-                    ' Require explicit qid_shape.'
-                )
-            qid_shape = target_shape[: len(target_shape) // 2]
-        self.qid_shape = qid_shape
+        self._state = _BufferedDensityMatrix(
+            initial_state=target_tensor if target_tensor is not None else initial_state,
+            qid_shape=qid_shape or (protocols.qid_shape(qubits) if qubits is not None else None),
+            available_buffer=available_buffer,
+            dtype=dtype,
+        )
 
     def _act_on_fallback_(
         self,
@@ -155,23 +247,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         return bits
 
     def _on_copy(self, target: 'cirq.ActOnDensityMatrixArgs', deep_copy_buffers: bool = True):
-        target.target_tensor = self.target_tensor.copy()
-        if deep_copy_buffers:
-            target.available_buffer = [b.copy() for b in self.available_buffer]
-        else:
-            target.available_buffer = self.available_buffer
+        target._state = self._state.copy(deep_copy_buffers)
 
     def _on_kronecker_product(
         self, other: 'cirq.ActOnDensityMatrixArgs', target: 'cirq.ActOnDensityMatrixArgs'
     ):
-        target_tensor = transformations.density_matrix_kronecker_product(
-            self.target_tensor, other.target_tensor
-        )
-        target.target_tensor = target_tensor
-        target.available_buffer = [
-            np.empty_like(target_tensor) for _ in range(len(self.available_buffer))
-        ]
-        target.qid_shape = target_tensor.shape[: int(target_tensor.ndim / 2)]
+        target._state = self._state.kron(other._state)
 
     def _on_factor(
         self,
@@ -182,19 +263,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         atol=1e-07,
     ):
         axes = self.get_axes(qubits)
-        extracted_tensor, remainder_tensor = transformations.factor_density_matrix(
-            self.target_tensor, axes, validate=validate, atol=atol
-        )
-        extracted.target_tensor = extracted_tensor
-        extracted.available_buffer = [
-            np.empty_like(extracted_tensor) for _ in self.available_buffer
-        ]
-        extracted.qid_shape = extracted_tensor.shape[: int(extracted_tensor.ndim / 2)]
-        remainder.target_tensor = remainder_tensor
-        remainder.available_buffer = [
-            np.empty_like(remainder_tensor) for _ in self.available_buffer
-        ]
-        remainder.qid_shape = remainder_tensor.shape[: int(remainder_tensor.ndim / 2)]
+        extracted._state, remainder._state = self._state.factor(axes, validate=validate, atol=atol)
 
     @property
     def allows_factoring(self):
@@ -203,14 +272,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     def _on_transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnDensityMatrixArgs'
     ):
-        axes = self.get_axes(qubits)
-        new_tensor = transformations.transpose_density_matrix_to_axis_order(
-            self.target_tensor, axes
-        )
-        buffer = [np.empty_like(new_tensor) for _ in self.available_buffer]
-        target.target_tensor = new_tensor
-        target.available_buffer = buffer
-        target.qid_shape = new_tensor.shape[: int(new_tensor.ndim / 2)]
+        target._state = self._state.reindex(self.get_axes(qubits))
 
     def sample(
         self,
@@ -241,28 +303,21 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
         )
 
+    @property
+    def target_tensor(self):
+        return self._state.target_tensor
+
+    @property
+    def available_buffer(self):
+        return self._state.available_buffer
+
+    @property
+    def qid_shape(self):
+        return self._state.qid_shape
+
 
 def _strat_apply_channel_to_state(
     action: Any, args: 'cirq.ActOnDensityMatrixArgs', qubits: Sequence['cirq.Qid']
 ) -> bool:
     """Apply channel to state."""
-    axes = args.get_axes(qubits)
-    result = protocols.apply_channel(
-        action,
-        args=protocols.ApplyChannelArgs(
-            target_tensor=args.target_tensor,
-            out_buffer=args.available_buffer[0],
-            auxiliary_buffer0=args.available_buffer[1],
-            auxiliary_buffer1=args.available_buffer[2],
-            left_axes=axes,
-            right_axes=[e + len(args.qubits) for e in axes],
-        ),
-        default=None,
-    )
-    if result is None:
-        return NotImplemented
-    for i in range(len(args.available_buffer)):
-        if result is args.available_buffer[i]:
-            args.available_buffer[i] = args.target_tensor
-    args.target_tensor = result
-    return True
+    return True if args._state.apply_channel(action, args.get_axes(qubits)) else NotImplemented
