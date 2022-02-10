@@ -1402,6 +1402,22 @@ def test_prev_moment_operating_on_distance(circuit_cls):
         c.prev_moment_operating_on([a], 6, max_distance=-1)
 
 
+def test_prev_moment_available():
+    q = cirq.LineQubit.range(3)
+    c = cirq.Circuit(
+        cirq.Moment(cirq.measure(q[0], key="m")),
+        cirq.Moment(cirq.X(q[1]).with_classical_controls("m")),
+    )
+    assert c.prev_moment_available(cirq.Y(q[0])) == 1
+    assert c.prev_moment_available(cirq.Y(q[1])) == 2
+    assert c.prev_moment_available(cirq.Y(q[2])) == 0
+    assert c.prev_moment_available(cirq.Y(q[2]).with_classical_controls("m")) == 1
+    assert c.prev_moment_available(cirq.Y(q[2]).with_classical_controls("m"), 1) == 1
+
+    # Returns `end_moment_index` by default without verifying if an operation already exists there.
+    assert c.prev_moment_available(cirq.Y(q[1]).with_classical_controls("m"), 1) == 1
+
+
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_operation_at(circuit_cls):
     a = cirq.NamedQubit('a')
