@@ -363,7 +363,6 @@ def test_run_circuit(client):
         program_id='prog',
         job_id='job-id',
         processor_ids=['mysim'],
-        gate_set=cg.XMON,
     )
 
     assert result.repetitions == 1
@@ -393,20 +392,17 @@ def test_run_circuit(client):
 
 
 def test_no_gate_set():
-    circuit = cirq.Circuit()
     engine = cg.Engine(project_id='project-id')
-    with pytest.raises(ValueError, match='No gate set'):
-        engine.run(program=circuit)
-    with pytest.raises(ValueError, match='No gate set'):
-        engine.run_sweep(program=circuit)
-    with pytest.raises(ValueError, match='No gate set'):
-        engine.create_program(program=circuit)
+    assert engine.context.serializer == cg.CIRCUIT_SERIALIZER
+
+    engine = cg.Engine(project_id='project_id', serializer=cg.XMON)
+    assert engine.context.serializer == cg.XMON
 
 
 def test_unsupported_program_type():
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(TypeError, match='program'):
-        engine.run(program="this isn't even the right type of thing!", gate_set=cg.XMON)
+        engine.run(program="this isn't even the right type of thing!")
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient')
@@ -436,7 +432,7 @@ def test_run_circuit_failed(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' myqc failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT, gate_set=cg.XMON)
+        engine.run(program=_CIRCUIT)
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient')
@@ -465,7 +461,7 @@ def test_run_circuit_failed_missing_processor_name(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' UNKNOWN failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT, gate_set=cg.XMON)
+        engine.run(program=_CIRCUIT)
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient')
@@ -492,7 +488,7 @@ def test_run_circuit_cancelled(client):
         RuntimeError,
         match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.',
     ):
-        engine.run(program=_CIRCUIT, gate_set=cg.XMON)
+        engine.run(program=_CIRCUIT)
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient')
@@ -517,7 +513,7 @@ def test_run_circuit_timeout(patched_time_sleep, client):
 
     engine = cg.Engine(project_id='project-id', timeout=600)
     with pytest.raises(RuntimeError, match='Timed out'):
-        engine.run(program=_CIRCUIT, gate_set=cg.XMON)
+        engine.run(program=_CIRCUIT)
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient')
@@ -528,7 +524,6 @@ def test_run_sweep_params(client):
     job = engine.run_sweep(
         program=_CIRCUIT,
         params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
-        gate_set=cg.XMON,
     )
     results = job.results()
     assert len(results) == 2
@@ -556,7 +551,7 @@ def test_run_multiple_times(client):
     setup_run_circuit_with_result_(client, _RESULTS)
 
     engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
-    program = engine.create_program(program=_CIRCUIT, gate_set=cg.XMON)
+    program = engine.create_program(program=_CIRCUIT)
     program.run(param_resolver=cirq.ParamResolver({'a': 1}))
     run_context = v2.run_context_pb2.RunContext()
     client().create_job.call_args[1]['run_context'].Unpack(run_context)
@@ -590,9 +585,7 @@ def test_run_sweep_v2(client):
         project_id='proj',
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
-    job = engine.run_sweep(
-        program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]), gate_set=cg.XMON
-    )
+    job = engine.run_sweep(program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
@@ -620,7 +613,6 @@ def test_run_batch(client):
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
     job = engine.run_batch(
-        gate_set=cg.XMON,
         programs=[_CIRCUIT, _CIRCUIT2],
         job_id='job-id',
         params_list=[cirq.Points('a', [1, 2]), cirq.Points('a', [3, 4])],
@@ -658,9 +650,7 @@ def test_run_batch_no_params(client):
         project_id='proj',
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
-    engine.run_batch(
-        programs=[_CIRCUIT, _CIRCUIT2], gate_set=cg.XMON, job_id='job-id', processor_ids=['mysim']
-    )
+    engine.run_batch(programs=[_CIRCUIT, _CIRCUIT2], job_id='job-id', processor_ids=['mysim'])
     # Validate correct number of params have been created and that they
     # are empty sweeps.
     run_context = v2.batch_pb2.BatchRunContext()
@@ -682,7 +672,6 @@ def test_batch_size_validation_fails():
     with pytest.raises(ValueError, match='Number of circuits and sweeps'):
         _ = engine.run_batch(
             programs=[_CIRCUIT, _CIRCUIT2],
-            gate_set=cg.XMON,
             job_id='job-id',
             params_list=[
                 cirq.Points('a', [1, 2]),
@@ -695,17 +684,8 @@ def test_batch_size_validation_fails():
     with pytest.raises(ValueError, match='Processor id must be specified'):
         _ = engine.run_batch(
             programs=[_CIRCUIT, _CIRCUIT2],
-            gate_set=cg.XMON,
             job_id='job-id',
             params_list=[cirq.Points('a', [1, 2]), cirq.Points('a', [3, 4])],
-        )
-
-    with pytest.raises(ValueError, match='Gate set must be specified'):
-        _ = engine.run_batch(
-            programs=[_CIRCUIT, _CIRCUIT2],
-            job_id='job-id',
-            params_list=[cirq.Points('a', [1, 2]), cirq.Points('a', [3, 4])],
-            processor_ids=['mysim'],
         )
 
 
@@ -730,9 +710,7 @@ def test_run_calibration(client):
     layer2 = cg.CalibrationLayer(
         'readout', cirq.Circuit(cirq.measure(q1, q2)), {'num_samples': 4242}
     )
-    job = engine.run_calibration(
-        gate_set=cg.FSIM_GATESET, layers=[layer1, layer2], job_id='job-id', processor_id='mysim'
-    )
+    job = engine.run_calibration(layers=[layer1, layer2], job_id='job-id', processor_id='mysim')
     results = job.calibration_results()
     assert len(results) == 2
     assert results[0].code == v2.calibration_pb2.SUCCESS
@@ -769,18 +747,13 @@ def test_run_calibration_validation_fails():
     )
 
     with pytest.raises(ValueError, match='Processor id must be specified'):
-        _ = engine.run_calibration(layers=[layer1, layer2], gate_set=cg.XMON, job_id='job-id')
+        _ = engine.run_calibration(layers=[layer1, layer2], job_id='job-id')
 
-    with pytest.raises(ValueError, match='Gate set must be specified'):
-        _ = engine.run_calibration(
-            layers=[layer1, layer2], processor_ids=['mysim'], job_id='job-id'
-        )
     with pytest.raises(ValueError, match='processor_id and processor_ids'):
         _ = engine.run_calibration(
             layers=[layer1, layer2],
             processor_ids=['mysim'],
             processor_id='mysim',
-            gate_set=cg.XMON,
             job_id='job-id',
         )
 
@@ -793,9 +766,7 @@ def test_bad_result_proto(client):
     setup_run_circuit_with_result_(client, result)
 
     engine = cg.Engine(project_id='project-id', proto_version=cg.engine.engine.ProtoVersion.V2)
-    job = engine.run_sweep(
-        program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]), gate_set=cg.XMON
-    )
+    job = engine.run_sweep(program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]))
     with pytest.raises(ValueError, match='invalid result proto version'):
         job.results()
 
@@ -805,9 +776,9 @@ def test_bad_program_proto():
         project_id='project-id', proto_version=cg.engine.engine.ProtoVersion.UNDEFINED
     )
     with pytest.raises(ValueError, match='invalid program proto version'):
-        engine.run_sweep(program=_CIRCUIT, gate_set=cg.XMON)
+        engine.run_sweep(program=_CIRCUIT)
     with pytest.raises(ValueError, match='invalid program proto version'):
-        engine.create_program(_CIRCUIT, gate_set=cg.XMON)
+        engine.create_program(_CIRCUIT)
 
 
 def test_get_program():
@@ -833,7 +804,7 @@ def test_list_programs(list_programs):
 @mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_create_program(client):
     client().create_program.return_value = ('prog', qtypes.QuantumProgram())
-    result = cg.Engine(project_id='proj').create_program(_CIRCUIT, 'prog', gate_set=cg.XMON)
+    result = cg.Engine(project_id='proj').create_program(_CIRCUIT, 'prog')
     client().create_program.assert_called_once()
     assert result.program_id == 'prog'
 
@@ -880,7 +851,7 @@ def test_sampler(client):
     setup_run_circuit_with_result_(client, _RESULTS)
 
     engine = cg.Engine(project_id='proj')
-    sampler = engine.get_sampler(processor_id='tmp', gate_set=cg.XMON)
+    sampler = engine.get_sampler(processor_id='tmp')
     results = sampler.run_sweep(
         program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )
@@ -892,7 +863,7 @@ def test_sampler(client):
     assert client().create_program.call_args[0][0] == 'proj'
 
     with cirq.testing.assert_deprecated('sampler', deadline='1.0'):
-        _ = engine.sampler(processor_id='tmp', gate_set=cg.XMON)
+        _ = engine.sampler(processor_id='tmp')
 
 
 @mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
