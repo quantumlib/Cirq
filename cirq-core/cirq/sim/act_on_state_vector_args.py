@@ -24,6 +24,168 @@ from cirq.linalg import transformations
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
+
+
+class _BufferedStateVector:
+    def __init__(
+        self,
+        *,
+        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        available_buffer: Optional[np.ndarray] = None,
+        dtype: Optional['DTypeLike'] = None,
+    ):
+        if qid_shape is not None:
+            initial_tensor = qis.to_valid_state_vector(
+                initial_state, len(qid_shape), qid_shape=qid_shape, dtype=dtype
+            )
+            if np.may_share_memory(initial_tensor, initial_state):
+                initial_tensor = initial_tensor.copy()
+            target_tensor = initial_tensor.reshape(qid_shape)
+            self.target_tensor = target_tensor
+        else:
+            if isinstance(initial_state, np.ndarray):
+                qid_shape = initial_state.shape
+                self.target_tensor = initial_state
+            else:
+                qid_shape = ()
+                self.target_tensor = qis.to_valid_state_vector(
+                    initial_state, len(qid_shape), qid_shape=qid_shape, dtype=dtype
+                )
+        self.qid_shape = qid_shape
+        self.available_buffer = (
+            available_buffer if available_buffer is not None else np.empty_like(self.target_tensor)
+        )
+
+    def copy(self, deep_copy_buffers: bool = True) -> '_BufferedStateVector':
+        target_tensor = self.target_tensor.copy()
+        return _BufferedStateVector(
+            initial_state=target_tensor,
+            available_buffer=self.available_buffer.copy()
+            if deep_copy_buffers
+            else self.available_buffer,
+        )
+
+    def kron(self, other: '_BufferedStateVector') -> '_BufferedStateVector':
+        target_tensor = transformations.state_vector_kronecker_product(
+            self.target_tensor, other.target_tensor
+        )
+        return _BufferedStateVector(
+            initial_state=target_tensor,
+            available_buffer=np.empty_like(target_tensor),
+        )
+
+    def factor(
+        self, axes: Sequence[int], *, validate=True, atol=1e-07
+    ) -> Tuple['_BufferedStateVector', '_BufferedStateVector']:
+        extracted_tensor, remainder_tensor = transformations.factor_state_vector(
+            self.target_tensor, axes, validate=validate, atol=atol
+        )
+        extracted = _BufferedStateVector(
+            initial_state=extracted_tensor,
+            available_buffer=np.empty_like(extracted_tensor),
+        )
+        remainder = _BufferedStateVector(
+            initial_state=remainder_tensor,
+            available_buffer=np.empty_like(remainder_tensor),
+        )
+        return extracted, remainder
+
+    def reindex(self, axes: Sequence[int]) -> '_BufferedStateVector':
+        new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)
+        return _BufferedStateVector(
+            initial_state=new_tensor,
+            available_buffer=np.empty_like(new_tensor),
+        )
+
+    def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
+        """Gives a new state vector for the system.
+
+        Typically, the new state vector should be `args.available_buffer` where
+        `args` is this `cirq.ActOnStateVectorArgs` instance.
+
+        Args:
+            new_target_tensor: The new system state. Must have the same shape
+                and dtype as the old system state.
+        """
+        if new_target_tensor is self.available_buffer:
+            self.available_buffer = self.target_tensor
+        self.target_tensor = new_target_tensor
+
+    def apply_unitary(self, unitary_value: Any, axes: Sequence[int]) -> bool:
+        new_target_tensor = protocols.apply_unitary(
+            unitary_value,
+            protocols.ApplyUnitaryArgs(
+                target_tensor=self.target_tensor,
+                available_buffer=self.available_buffer,
+                axes=axes,
+            ),
+            allow_decompose=False,
+            default=NotImplemented,
+        )
+        if new_target_tensor is NotImplemented:
+            return False
+        self.swap_target_tensor_for(new_target_tensor)
+        return True
+
+    def apply_mixture(self, action: Any, axes: Sequence[int], prng) -> Tuple[bool, int]:
+        mixture = protocols.mixture(action, default=None)
+        if mixture is None:
+            return False, 0
+        probabilities, unitaries = zip(*mixture)
+
+        index = prng.choice(range(len(unitaries)), p=probabilities)
+        shape = protocols.qid_shape(action) * 2
+        unitary = unitaries[index].astype(self.target_tensor.dtype).reshape(shape)
+        linalg.targeted_left_multiply(unitary, self.target_tensor, axes, out=self.available_buffer)
+        self.swap_target_tensor_for(self.available_buffer)
+        return True, index
+
+    def apply_channel(self, action: Any, axes: Sequence[int], prng) -> Tuple[bool, int]:
+        kraus_operators = protocols.kraus(action, default=None)
+        if kraus_operators is None:
+            return False, 0
+
+        def prepare_into_buffer(k: int):
+            linalg.targeted_left_multiply(
+                left_matrix=kraus_tensors[k],
+                right_target=self.target_tensor,
+                target_axes=axes,
+                out=self.available_buffer,
+            )
+
+        shape = protocols.qid_shape(action)
+        kraus_tensors = [
+            e.reshape(shape * 2).astype(self.target_tensor.dtype) for e in kraus_operators
+        ]
+        p = prng.random()
+        weight = None
+        fallback_weight = 0
+        fallback_weight_index = 0
+        for index in range(len(kraus_tensors)):
+            prepare_into_buffer(index)
+            weight = np.linalg.norm(self.available_buffer) ** 2
+
+            if weight > fallback_weight:
+                fallback_weight_index = index
+                fallback_weight = weight
+
+            p -= weight
+            if p < 0:
+                break
+
+        assert weight is not None, "No Kraus operators"
+        if p >= 0 or weight == 0:
+            # Floating point error resulted in a malformed sample.
+            # Fall back to the most likely case.
+            prepare_into_buffer(fallback_weight_index)
+            weight = fallback_weight
+            index = fallback_weight_index
+
+        self.available_buffer /= np.sqrt(weight)
+        self.swap_target_tensor_for(self.available_buffer)
+        return True, index
 
 
 class ActOnStateVectorArgs(ActOnArgs):
@@ -86,83 +248,11 @@ class ActOnStateVectorArgs(ActOnArgs):
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-        if target_tensor is None:
-            qid_shape = protocols.qid_shape(self.qubits)
-            state = qis.to_valid_state_vector(
-                initial_state, len(self.qubits), qid_shape=qid_shape, dtype=dtype
-            )
-            target_tensor = np.reshape(state, qid_shape)
-        self.target_tensor = target_tensor
-
-        if available_buffer is None:
-            available_buffer = np.empty_like(target_tensor)
-        self.available_buffer = available_buffer
-
-    def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
-        """Gives a new state vector for the system.
-
-        Typically, the new state vector should be `args.available_buffer` where
-        `args` is this `cirq.ActOnStateVectorArgs` instance.
-
-        Args:
-            new_target_tensor: The new system state. Must have the same shape
-                and dtype as the old system state.
-        """
-        if new_target_tensor is self.available_buffer:
-            self.available_buffer = self.target_tensor
-        self.target_tensor = new_target_tensor
-
-    def subspace_index(
-        self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
-    ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
-        """An index for the subspace where the target axes equal a value.
-
-        Args:
-            axes: The qubits that are specified by the index bits.
-            little_endian_bits_int: The desired value of the qubits at the
-                targeted `axes`, packed into an integer. The least significant
-                bit of the integer is the desired bit for the first axis, and
-                so forth in increasing order. Can't be specified at the same
-                time as `big_endian_bits_int`.
-
-                When operating on qudits instead of qubits, the same basic logic
-                applies but in a different basis. For example, if the target
-                axes have dimension [a:2, b:3, c:2] then the integer 10
-                decomposes into [a=0, b=2, c=1] via 7 = 1*(3*2) +  2*(2) + 0.
-            big_endian_bits_int: The desired value of the qubits at the
-                targeted `axes`, packed into an integer. The most significant
-                bit of the integer is the desired bit for the first axis, and
-                so forth in decreasing order. Can't be specified at the same
-                time as `little_endian_bits_int`.
-
-                When operating on qudits instead of qubits, the same basic logic
-                applies but in a different basis. For example, if the target
-                axes have dimension [a:2, b:3, c:2] then the integer 10
-                decomposes into [a=1, b=2, c=0] via 7 = 1*(3*2) +  2*(2) + 0.
-
-        Returns:
-            A value that can be used to index into `target_tensor` and
-            `available_buffer`, and manipulate only the part of Hilbert space
-            corresponding to a given bit assignment.
-
-        Example:
-            If `target_tensor` is a 4 qubit tensor and `axes` is `[1, 3]` and
-            then this method will return the following when given
-            `little_endian_bits=0b01`:
-
-                `(slice(None), 0, slice(None), 1, Ellipsis)`
-
-            Therefore the following two lines would be equivalent:
-
-                args.target_tensor[args.subspace_index(0b01)] += 1
-
-                args.target_tensor[:, 0, :, 1] += 1
-        """
-        return linalg.slice_for_qubits_equal_to(
-            axes,
-            little_endian_qureg_value=little_endian_bits_int,
-            big_endian_qureg_value=big_endian_bits_int,
-            qid_shape=self.target_tensor.shape,
+        self._state = _BufferedStateVector(
+            initial_state=target_tensor if target_tensor is not None else initial_state,
+            qid_shape=protocols.qid_shape(qubits) if qubits is not None else None,
+            available_buffer=available_buffer,
+            dtype=dtype,
         )
 
     def _act_on_fallback_(
@@ -177,7 +267,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             _strat_act_on_state_vector_from_channel,
         ]
         if allow_decompose:
-            strats.append(strat_act_on_from_apply_decompose)
+            strats.append(strat_act_on_from_apply_decompose)  # type: ignore
 
         # Try each strategy, stopping if one works.
         for strat in strats:
@@ -205,20 +295,12 @@ class ActOnStateVectorArgs(ActOnArgs):
         return bits
 
     def _on_copy(self, target: 'cirq.ActOnStateVectorArgs', deep_copy_buffers: bool = True):
-        target.target_tensor = self.target_tensor.copy()
-        if deep_copy_buffers:
-            target.available_buffer = self.available_buffer.copy()
-        else:
-            target.available_buffer = self.available_buffer
+        target._state = self._state.copy(deep_copy_buffers)
 
     def _on_kronecker_product(
         self, other: 'cirq.ActOnStateVectorArgs', target: 'cirq.ActOnStateVectorArgs'
     ):
-        target_tensor = transformations.state_vector_kronecker_product(
-            self.target_tensor, other.target_tensor
-        )
-        target.target_tensor = target_tensor
-        target.available_buffer = np.empty_like(target_tensor)
+        target._state = self._state.kron(other._state)
 
     def _on_factor(
         self,
@@ -229,13 +311,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         atol=1e-07,
     ):
         axes = self.get_axes(qubits)
-        extracted_tensor, remainder_tensor = transformations.factor_state_vector(
-            self.target_tensor, axes, validate=validate, atol=atol
-        )
-        extracted.target_tensor = extracted_tensor
-        extracted.available_buffer = np.empty_like(extracted_tensor)
-        remainder.target_tensor = remainder_tensor
-        remainder.available_buffer = np.empty_like(remainder_tensor)
+        extracted._state, remainder._state = self._state.factor(axes, validate=validate, atol=atol)
 
     @property
     def allows_factoring(self):
@@ -244,10 +320,7 @@ class ActOnStateVectorArgs(ActOnArgs):
     def _on_transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStateVectorArgs'
     ):
-        axes = self.get_axes(qubits)
-        new_tensor = transformations.transpose_state_vector_to_axis_order(self.target_tensor, axes)
-        target.target_tensor = new_tensor
-        target.available_buffer = np.empty_like(new_tensor)
+        target._state = self._state.reindex(self.get_axes(qubits))
 
     def sample(
         self,
@@ -273,43 +346,31 @@ class ActOnStateVectorArgs(ActOnArgs):
             f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
         )
 
+    @property
+    def target_tensor(self):
+        return self._state.target_tensor
+
+    @property
+    def available_buffer(self):
+        return self._state.available_buffer
+
+    @property
+    def qid_shape(self):
+        return self._state.qid_shape
+
 
 def _strat_act_on_state_vector_from_apply_unitary(
-    unitary_value: Any,
-    args: 'cirq.ActOnStateVectorArgs',
-    qubits: Sequence['cirq.Qid'],
+    action: Any, args: 'cirq.ActOnStateVectorArgs', qubits: Sequence['cirq.Qid']
 ) -> bool:
-    new_target_tensor = protocols.apply_unitary(
-        unitary_value,
-        protocols.ApplyUnitaryArgs(
-            target_tensor=args.target_tensor,
-            available_buffer=args.available_buffer,
-            axes=args.get_axes(qubits),
-        ),
-        allow_decompose=False,
-        default=NotImplemented,
-    )
-    if new_target_tensor is NotImplemented:
-        return NotImplemented
-    args.swap_target_tensor_for(new_target_tensor)
-    return True
+    return True if args._state.apply_unitary(action, args.get_axes(qubits)) else NotImplemented
 
 
 def _strat_act_on_state_vector_from_mixture(
     action: Any, args: 'cirq.ActOnStateVectorArgs', qubits: Sequence['cirq.Qid']
 ) -> bool:
-    mixture = protocols.mixture(action, default=None)
-    if mixture is None:
+    ok, index = args._state.apply_mixture(action, args.get_axes(qubits), args.prng)
+    if not ok:
         return NotImplemented
-    probabilities, unitaries = zip(*mixture)
-
-    index = args.prng.choice(range(len(unitaries)), p=probabilities)
-    shape = protocols.qid_shape(action) * 2
-    unitary = unitaries[index].astype(args.target_tensor.dtype).reshape(shape)
-    linalg.targeted_left_multiply(
-        unitary, args.target_tensor, args.get_axes(qubits), out=args.available_buffer
-    )
-    args.swap_target_tensor_for(args.available_buffer)
     if protocols.is_measurement(action):
         key = protocols.measurement_key_name(action)
         args._classical_data.record_channel_measurement(key, index)
@@ -319,46 +380,9 @@ def _strat_act_on_state_vector_from_mixture(
 def _strat_act_on_state_vector_from_channel(
     action: Any, args: 'cirq.ActOnStateVectorArgs', qubits: Sequence['cirq.Qid']
 ) -> bool:
-    kraus_operators = protocols.kraus(action, default=None)
-    if kraus_operators is None:
+    ok, index = args._state.apply_channel(action, args.get_axes(qubits), args.prng)
+    if not ok:
         return NotImplemented
-
-    def prepare_into_buffer(k: int):
-        linalg.targeted_left_multiply(
-            left_matrix=kraus_tensors[k],
-            right_target=args.target_tensor,
-            target_axes=args.get_axes(qubits),
-            out=args.available_buffer,
-        )
-
-    shape = protocols.qid_shape(action)
-    kraus_tensors = [e.reshape(shape * 2).astype(args.target_tensor.dtype) for e in kraus_operators]
-    p = args.prng.random()
-    weight = None
-    fallback_weight = 0
-    fallback_weight_index = 0
-    for index in range(len(kraus_tensors)):
-        prepare_into_buffer(index)
-        weight = np.linalg.norm(args.available_buffer) ** 2
-
-        if weight > fallback_weight:
-            fallback_weight_index = index
-            fallback_weight = weight
-
-        p -= weight
-        if p < 0:
-            break
-
-    assert weight is not None, "No Kraus operators"
-    if p >= 0 or weight == 0:
-        # Floating point error resulted in a malformed sample.
-        # Fall back to the most likely case.
-        prepare_into_buffer(fallback_weight_index)
-        weight = fallback_weight
-        index = fallback_weight_index
-
-    args.available_buffer /= np.sqrt(weight)
-    args.swap_target_tensor_for(args.available_buffer)
     if protocols.is_measurement(action):
         key = protocols.measurement_key_name(action)
         args._classical_data.record_channel_measurement(key, index)
