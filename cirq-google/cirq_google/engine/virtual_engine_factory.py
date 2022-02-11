@@ -21,7 +21,6 @@ import google.protobuf.text_format as text_format
 import cirq
 from cirq_google.api import v2
 from cirq_google.engine import (
-    abstract_local_processor,
     calibration,
     engine_validator,
     simulated_local_processor,
@@ -30,6 +29,12 @@ from cirq_google.devices import serializable_device
 from cirq_google.serialization.gate_sets import FSIM_GATESET
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
+from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
+
+MOST_RECENT_TEMPLATES = {
+    'rainbow': 'rainbow_12_10_2021_device_spec.proto.txt',
+    'weber': 'weber_12_10_2021_device_spec.proto.txt',
+}
 
 METRICS_1Q = [
     'single_qubit_p00_error',
@@ -124,6 +129,33 @@ def create_noiseless_virtual_engine_from_device(
     return SimulatedLocalEngine([_create_virtual_processor_from_device(processor_id, device)])
 
 
+def create_noiseless_virtual_processor_from_proto(
+    processor_id: str,
+    device_specification: v2.device_pb2.DeviceSpecification,
+    gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
+) -> SimulatedLocalProcessor:
+    """Creates a simulated local processor from a device specification proto.
+
+    The device specification protocol buffer specifies qubits and gates on the device
+    and can be retrieved from a stored "proto.txt" file or from the QCS API.
+
+    Args:
+         processor_id: name of the processor to simulate.  This is an arbitrary
+             string identifier and does not have to match the processor's name
+             in QCS.
+         device_specification:  `v2.device_pb2.DeviceSpecification` proto to create
+             a validating device from.
+         gate_sets: Iterable of serializers to use in the processor.  Defaults
+             to the FSIM_GATESET.
+    """
+    if gate_sets is None:
+        gate_sets = [FSIM_GATESET]
+
+    device = serializable_device.SerializableDevice.from_proto(device_specification, gate_sets)
+    processor = _create_virtual_processor_from_device(processor_id, device)
+    return processor
+
+
 def create_noiseless_virtual_engine_from_proto(
     processor_ids: Union[str, List[str]],
     device_specifications: Union[
@@ -131,17 +163,17 @@ def create_noiseless_virtual_engine_from_proto(
     ],
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ) -> SimulatedLocalEngine:
-    """Creates a noiseless virtual engine object from a device specification proto.a
+    """Creates a noiseless virtual engine object from a device specification proto.
 
     The device specification protocol buffer specifies qubits and gates on the device
     and can be retrieved from a stored "proto.txt" file or from the QCS API.
 
     Args:
-         processor_ids: name of the processor to simulate.  This is an arbitrary
-             string identifier and does not have to match the processor's name
+         processor_ids: names of the processors to simulate.  These are arbitrary
+             string identifiers and do not have to match the processors' names
              in QCS.  This can be a single string or list of strings.
          device_specifications:  `v2.device_pb2.DeviceSpecification` proto to create
-             a validating device from.  This can be a single DeviceSpecification
+             validating devices from.  This can be a single DeviceSpecification
              or a list of them.  There should be one DeviceSpecification for each
              processor_id.
          gate_sets: Iterable of serializers to use in the processor.  Defaults
@@ -159,13 +191,48 @@ def create_noiseless_virtual_engine_from_proto(
     if len(processor_ids) != len(device_specifications):
         raise ValueError('Must provide equal numbers of processor ids and device specifications.')
 
-    processors: List[abstract_local_processor.AbstractLocalProcessor] = []
-    for idx in range(len(processor_ids)):
-        device = serializable_device.SerializableDevice.from_proto(
-            device_specifications[idx], gate_sets
-        )
-        processors.append(_create_virtual_processor_from_device(processor_ids[idx], device))
-    return SimulatedLocalEngine(processors)
+    return SimulatedLocalEngine(
+        processors=[
+            create_noiseless_virtual_processor_from_proto(processor_id, device_spec, gate_sets)
+            for device_spec, processor_id in zip(device_specifications, processor_ids)
+        ]
+    )
+
+
+def _create_device_spec_from_template(
+    template_name: str,
+) -> v2.device_pb2.DeviceSpecification:
+    """Load a template proto into a `v2.device_pb2.DeviceSpecification`."""
+
+    path = pathlib.Path(__file__).parent.parent.resolve()
+    with path.joinpath('devices', 'specifications', template_name).open() as f:
+        proto_txt = f.read()
+    device_spec = v2.device_pb2.DeviceSpecification()
+    text_format.Parse(proto_txt, device_spec)
+    return device_spec
+
+
+def create_noiseless_virtual_processor_from_template(
+    processor_id: str,
+    template_name: str,
+    gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
+) -> SimulatedLocalProcessor:
+    """Creates a simulated local processor from a device specification template.
+
+    Args:
+         processor_id: name of the processor to simulate.  This is an arbitrary
+             string identifier and does not have to match the processor's name
+             in QCS.
+         template_name: File name of the device specification template, see
+             cirq_google/devices/specifications for valid templates.
+         gate_sets: Iterable of serializers to use in the processor.  Defaults
+             to the FSIM_GATESET.
+    """
+    return create_noiseless_virtual_processor_from_proto(
+        processor_id,
+        device_specification=_create_device_spec_from_template(template_name),
+        gate_sets=gate_sets,
+    )
 
 
 def create_noiseless_virtual_engine_from_templates(
@@ -176,11 +243,11 @@ def create_noiseless_virtual_engine_from_templates(
     """Creates a noiseless virtual engine object from a device specification template.
 
     Args:
-         processor_ids: name of the processor to simulate.  This is an arbitrary
-             string identifier and does not have to match the processor's name
+         processor_ids: names of the processors to simulate.  These are arbitrary
+             string identifiers and do not have to match the processors' names
              in QCS.  There can be a single string or a list of strings for multiple
              processors.
-         template_names: File name of the device specification template, see
+         template_names: File names of the device specification templates, see
              cirq_google/devices/specifications for valid templates.  There can
              be a single str for a template name or a list of strings.  Each
              template name should be matched to a single processor id.
@@ -197,15 +264,9 @@ def create_noiseless_virtual_engine_from_templates(
     if len(processor_ids) != len(template_names):
         raise ValueError('Must provide equal numbers of processor ids and template names.')
 
-    specifications = []
-    for idx in range(len(processor_ids)):
-        path = pathlib.Path(__file__).parent.parent.resolve()
-        f = open(path.joinpath('devices', 'specifications', template_names[idx]))
-        proto_txt = f.read()
-        f.close()
-        device_spec = v2.device_pb2.DeviceSpecification()
-        text_format.Parse(proto_txt, device_spec)
-        specifications.append(device_spec)
+    specifications = [
+        _create_device_spec_from_template(template_name) for template_name in template_names
+    ]
     return create_noiseless_virtual_engine_from_proto(processor_ids, specifications, gate_sets)
 
 
@@ -222,7 +283,6 @@ def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEng
     be considered stable from version to version and are not guaranteed to be
     backwards compatible.
     """
-    return create_noiseless_virtual_engine_from_templates(
-        ['rainbow', 'weber'],
-        ['rainbow_12_10_2021_device_spec.proto.txt', 'weber_12_10_2021_device_spec.proto.txt'],
-    )
+    processor_ids = list(MOST_RECENT_TEMPLATES.keys())
+    template_names = [MOST_RECENT_TEMPLATES[k] for k in processor_ids]
+    return create_noiseless_virtual_engine_from_templates(processor_ids, template_names)
