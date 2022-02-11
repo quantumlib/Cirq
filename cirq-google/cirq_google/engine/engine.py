@@ -30,6 +30,7 @@ import random
 import string
 from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
 
+import google.auth
 from google.protobuf import any_pb2
 
 import cirq
@@ -834,7 +835,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
 
     Args:
         project_id: If set overrides the project id obtained from the
-            environment variable `GOOGLE_CLOUD_PROJECT`.
+            google.auth.default().
 
     Returns:
         The Engine instance.
@@ -843,11 +844,16 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
         OSError: If the environment variable GOOGLE_CLOUD_PROJECT is not set. This is actually
             an `EnvironmentError`, which by definition is an `OsError`.
     """
-    env_project_id = 'GOOGLE_CLOUD_PROJECT'
     if not project_id:
-        project_id = os.environ.get(env_project_id)
+        try:
+            _, project_id = google.auth.default()
+        except google.auth.exceptions.DefaultCredentialsError:
+            pass
     if not project_id:
-        raise EnvironmentError(f'Environment variable {env_project_id} is not set.')
+        raise EnvironmentError(
+            'Unable to determine project id. Please set environment variable GOOGLE_CLOUD_PROJECT '
+            'or configure default project with `gcloud set project <project_id>`.'
+        )
 
     return Engine(project_id=project_id)
 
