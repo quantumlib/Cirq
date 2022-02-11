@@ -142,6 +142,10 @@ from cirq_google.workflow import (
     CouldNotPlaceError,
     NaiveQubitPlacer,
     RandomDevicePlacer,
+    ProcessorRecord,
+    EngineProcessorRecord,
+    SimulatedProcessorRecord,
+    SimulatedProcessorWithLocalDeviceRecord,
 )
 
 from cirq_google import experimental

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Optional, List
 import pytest
 
 import cirq
@@ -396,9 +396,9 @@ def test_merge_operations_nothing_to_merge():
     assert cirq.merge_operations(c, fail_if_called_func, tags_to_ignore=["ignore"]) == c
 
 
-def test_merge_operations_merges_connected_component():
+def _create_circuit_to_merge():
     q = cirq.LineQubit.range(3)
-    c_orig = cirq.Circuit(
+    return cirq.Circuit(
         cirq.Moment(cirq.H.on_each(*q)),
         cirq.CNOT(q[0], q[2]),
         cirq.CNOT(*q[0:2]),
@@ -409,18 +409,22 @@ def test_merge_operations_merges_connected_component():
         cirq.CNOT(*q[0:2]),
         cirq.CNOT(*q[1:3]),
         cirq.X(q[0]),
-        cirq.Y(q[1]),
+        cirq.Moment(cirq.X(q[0]).with_tags("ignore"), cirq.Y(q[1])),
         cirq.CNOT(*q[:2]),
         strategy=cirq.InsertStrategy.NEW,
     )
+
+
+def test_merge_operations_merges_connected_component():
+    c_orig = _create_circuit_to_merge()
     cirq.testing.assert_has_diagram(
         c_orig,
         '''
-0: ───H───@───@───H───@───X───────@───────X───────@───
-          │   │       │           │               │
-1: ───H───┼───X───────@───────Y───X───@───────Y───X───
+0: ───H───@───@───H───@───X───────@───────X───X['ignore']───@───
+          │   │       │           │                         │
+1: ───H───┼───X───────@───────Y───X───@───────Y─────────────X───
           │                           │
-2: ───H───X───────────────────────────X───────────────
+2: ───H───X───────────────────────────X─────────────────────────
 ''',
     )
 
@@ -441,6 +445,76 @@ def test_merge_operations_merges_connected_component():
           │                           │
 2: ───H───X───────────────────────────X───────────────''',
     )
+
+
+# pylint: disable=line-too-long
+def test_merge_operations_to_circuit_op_merges_connected_component():
+    c_orig = _create_circuit_to_merge()
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───H───@───@───H───@───X───────@───────X───X['ignore']───@───
+          │   │       │           │                         │
+1: ───H───┼───X───────@───────Y───X───@───────Y─────────────X───
+          │                           │
+2: ───H───X───────────────────────────X─────────────────────────
+''',
+    )
+
+    def can_merge(ops1: List['cirq.Operation'], ops2: List['cirq.Operation']) -> bool:
+        """Artificial example where a CZ will absorb any merge-able operation."""
+        return any(o.gate == cirq.CZ for op_list in [ops1, ops2] for o in op_list)
+
+    c_new = cirq.merge_operations_to_circuit_op(
+        c_orig, can_merge, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    cirq.testing.assert_has_diagram(
+        c_new,
+        '''
+                      [ 0: ───────@───H───@───X───@───X─── ]
+0: ───H───@───────────[           │       │       │        ]─────────────────────────────────X['ignore']───@───
+          │           [ 1: ───H───X───────@───Y───X─────── ]['merged']                                     │
+          │           │                                                                                    │
+1: ───────┼───────────#2─────────────────────────────────────────────────────────────@───────Y─────────────X───
+          │                                                                          │
+2: ───H───X──────────────────────────────────────────────────────────────────────────X─────────────────────────
+''',
+    )
+
+
+def test_merge_2q_unitaries_to_circuit_op():
+    c_orig = _create_circuit_to_merge()
+    c_orig[-1] = c_orig[-1].with_operations(cirq.measure(cirq.LineQubit(2)))
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───H───@───@───H───@───X───────@───────X───X['ignore']───@───
+          │   │       │           │                         │
+1: ───H───┼───X───────@───────Y───X───@───────Y─────────────X───
+          │                           │
+2: ───H───X───────────────────────────X─────────────────────M───
+''',
+    )
+
+    c_new = cirq.merge_k_qubit_unitaries_to_circuit_op(
+        c_orig, k=2, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.drop_empty_moments(c_new),
+        '''
+      [ 0: ───H───@─── ]             [ 0: ───────@───H───@───X───@───X─── ]
+0: ───[           │    ]─────────────[           │       │       │        ]────────────────────────────────────────────X['ignore']───@───
+      [ 2: ───H───X─── ]['merged']   [ 1: ───H───X───────@───Y───X─────── ]['merged']                                                │
+      │                              │                                                                                               │
+      │                              │                                                  [ 1: ───@───Y─── ]                           │
+1: ───┼──────────────────────────────#2─────────────────────────────────────────────────[       │        ]───────────────────────────X───
+      │                                                                                 [ 2: ───X─────── ]['merged']
+      │                                                                                 │
+2: ───#2────────────────────────────────────────────────────────────────────────────────#2───────────────────────────────────────────M───''',
+    )
+
+
+# pylint: enable=line-too-long
 
 
 def test_merge_operations_respects_tags_to_ignore():

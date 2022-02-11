@@ -19,12 +19,6 @@ import cirq
 import cirq_google as cg
 import numpy as np
 from cirq_google.workflow.io import _FilesystemSaver
-from cirq_google.workflow.quantum_runtime_test import (
-    _MockEngineProcessor,
-    patch_cirq_default_resolvers,
-)
-
-assert patch_cirq_default_resolvers, 'Pytest fixture -- not unused import'
 
 
 def cg_assert_equivalent_repr(value):
@@ -90,12 +84,13 @@ def test_egr_filesystem_record_from_json(tmpdir):
         )
 
 
-def test_filesystem_saver(tmpdir, patch_cirq_default_resolvers):
-    assert patch_cirq_default_resolvers
+def test_filesystem_saver(tmpdir):
     run_id = 'asdf'
     fs_saver = _FilesystemSaver(base_data_dir=tmpdir, run_id=run_id)
 
-    rt_config = cg.QuantumRuntimeConfiguration(processor=_MockEngineProcessor(), run_id=run_id)
+    rt_config = cg.QuantumRuntimeConfiguration(
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'), run_id=run_id
+    )
     shared_rt_info = cg.SharedRuntimeInfo(run_id=run_id)
     fs_saver.initialize(rt_config, shared_rt_info=shared_rt_info)
 
