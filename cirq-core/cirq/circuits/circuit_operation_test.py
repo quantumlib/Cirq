@@ -928,4 +928,34 @@ def test_simulate_flattened_subcircuit_inner(sim):
     assert result.records['1:a'].shape == (1, 2, 1)
 
 
+@pytest.mark.parametrize('sim', [cirq.Simulator(), cirq.DensityMatrixSimulator()])
+def test_repeat_until(sim):
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    c = cirq.Circuit(
+        cirq.measure(q, key='m'),
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(q) ** 0.2,
+                cirq.measure(q, key='m'),
+            ),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        ),
+    )
+    result = sim.run(c)
+    assert result.records['m'][0][-1] == (1,)
+    for i in range(len(result.records['m'][0]) - 1):
+        assert result.records['m'][0][i] == (0,)
+
+
+def test_repeat_until_error():
+    with pytest.raises(ValueError, match='Cannot use repetition ids with repeat_until'):
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(),
+            use_repetition_ids=True,
+            repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+        )
+
+
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?

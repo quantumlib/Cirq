@@ -113,6 +113,7 @@ class CircuitOperation(ops.Operation):
     parent_path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
     extern_keys: FrozenSet['cirq.MeasurementKey'] = dataclasses.field(default_factory=frozenset)
     use_repetition_ids: bool = True
+    repeat_until: Optional['cirq.Condition'] = dataclasses.field(default=None)
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -147,6 +148,10 @@ class CircuitOperation(ops.Operation):
         for q, q_new in self.qubit_map.items():
             if q_new.dimension != q.dimension:
                 raise ValueError(f'Qid dimension conflict.\nFrom qid: {q}\nTo qid: {q_new}')
+
+        if self.repeat_until:
+            if self.use_repetition_ids or self.repetition_ids or self.repetitions != 1:
+                raise ValueError('Cannot use repetition ids with repeat_until')
 
         # Ensure that param_resolver is converted to an actual ParamResolver.
         object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
@@ -235,6 +240,23 @@ class CircuitOperation(ops.Operation):
             )
         }
 
+    def mapped_single_loop(self, repetition_id: Optional[str] = None) -> 'cirq.Circuit':
+        circuit = self.circuit.unfreeze()
+        if self.qubit_map:
+            circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
+        if self.repetitions < 0:
+            circuit = circuit ** -1
+        if self.measurement_key_map:
+            circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
+        if self.param_resolver:
+            circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
+        if repetition_id:
+            circuit = protocols.with_rescoped_keys(circuit, (repetition_id,))
+        circuit = protocols.with_rescoped_keys(
+            circuit, self.parent_path, bindable_keys=self.extern_keys
+        )
+        return circuit
+
     def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
         """Applies all maps to the contained circuit and returns the result.
 
@@ -247,25 +269,15 @@ class CircuitOperation(ops.Operation):
             qubit mapping, parameterization, etc.) applied to it. This behaves
             like `cirq.decompose(self)`, but preserving moment structure.
         """
-        circuit = self.circuit.unfreeze()
-        if self.qubit_map:
-            circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
-        if self.repetitions < 0:
-            circuit = circuit ** -1
-        if self.measurement_key_map:
-            circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
-        if self.param_resolver:
-            circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if self.repetition_ids:
-            if not self.use_repetition_ids or not protocols.is_measurement(circuit):
-                circuit = circuit * abs(self.repetitions)
+            if not self.use_repetition_ids or not protocols.is_measurement(self.circuit):
+                circuit = self.mapped_single_loop() * abs(self.repetitions)
             else:
                 circuit = circuits.Circuit(
-                    protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
+                    self.mapped_single_loop(rep) for rep in self.repetition_ids
                 )
-        circuit = protocols.with_rescoped_keys(
-            circuit, self.parent_path, bindable_keys=self.extern_keys
-        )
+        else:
+            circuit = self.mapped_single_loop()
         if deep:
             circuit = circuit.map_operations(
                 lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
@@ -280,8 +292,14 @@ class CircuitOperation(ops.Operation):
         return self.mapped_circuit(deep=False).all_operations()
 
     def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
-        for op in self._decompose_():
-            protocols.act_on(op, args)
+        if self.repeat_until:
+            circuit = self.mapped_single_loop()
+            while not self.repeat_until.resolve(args.classical_data):
+                for op in circuit.all_operations():
+                    protocols.act_on(op, args)
+        else:
+            for op in self._decompose_():
+                protocols.act_on(op, args)
         return True
 
     # Methods for string representation of the operation.
