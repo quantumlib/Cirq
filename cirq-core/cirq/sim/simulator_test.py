@@ -13,6 +13,7 @@
 # limitations under the License.
 """Tests for simulator.py"""
 import abc
+import re
 from typing import Generic, Dict, Any, List, Sequence, Union
 from unittest import mock
 
@@ -238,7 +239,7 @@ def test_step_sample_measurement_ops_not_measurement():
 def test_step_sample_measurement_ops_repeated_qubit():
     q0, q1, q2 = cirq.LineQubit.range(3)
     step_result = FakeStepResult([q0])
-    with pytest.raises(ValueError, match='MeasurementGate'):
+    with pytest.raises(ValueError, match='Measurement key 0 repeated'):
         step_result.sample_measurement_ops(
             [cirq.measure(q0), cirq.measure(q1, q2), cirq.measure(q0)]
         )
@@ -400,7 +401,7 @@ def test_verify_unique_measurement_keys():
             cirq.measure(q[1], key='b'),
         ]
     )
-    with pytest.raises(ValueError, match='Duplicate MeasurementGate with key a'):
+    with pytest.raises(ValueError, match=re.escape('Measurement key a,b repeated')):
         _ = cirq.sample(circuit)
 
 

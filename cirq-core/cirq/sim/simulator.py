@@ -836,15 +836,19 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         """
 
         # Sanity checks.
-        seen_measurement_keys: Set[str] = set()
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError(f'{op.gate} was not a MeasurementGate')
-            key = protocols.measurement_key_name(gate)
-            if key in seen_measurement_keys:
-                raise ValueError(f'Duplicate MeasurementGate with key {key}')
-            seen_measurement_keys.add(key)
+        result = collections.Counter(
+            key
+            for op in measurement_ops
+            for key in protocols.measurement_key_names(op)
+        )
+        if result:
+            duplicates = [k for k, v in result.most_common() if v > 1]
+            if duplicates:
+                raise ValueError(f"Measurement key {','.join(duplicates)} repeated")
 
         # Find measured qubits, ensuring a consistent ordering.
         measured_qubits = []
