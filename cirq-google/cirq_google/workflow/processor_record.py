@@ -13,6 +13,7 @@
 # limitations under the License.
 import abc
 import dataclasses
+from typing import Any, Dict
 
 import cirq
 import cirq_google as cg
@@ -132,10 +133,10 @@ class SimulatedProcessorRecord(ProcessorRecord):
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return cirq.dataclass_json_dict(self)
 
-    def descriptive_name(self) -> str:
+    def __str__(self) -> str:
         """A pretty string name combining processor_id and noise_strength into a unique name."""
         if self.noise_strength == 0:
             suffix = 'simulator'
@@ -145,7 +146,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
             suffix = f'p={self.noise_strength:.3e}'
         return f'{self.processor_id}-{suffix}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return dataclass_repr(self, namespace='cirq_google')
 
 

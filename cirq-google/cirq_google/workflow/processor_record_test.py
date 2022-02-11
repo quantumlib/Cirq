@@ -112,7 +112,7 @@ def test_simulated_backend(get_processor, _):
         assert isinstance(proc_rec.get_device(), cirq.Device)
 
     assert proc_rec.processor_id == 'rainbow'
-    assert proc_rec.descriptive_name() == 'rainbow-simulator'
+    assert str(proc_rec) == 'rainbow-simulator'
     cirq.testing.assert_equivalent_repr(proc_rec, global_vals={'cirq_google': cg})
 
 
@@ -120,7 +120,7 @@ def test_simulated_backend_with_local_device():
     proc_rec = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
     assert isinstance(proc_rec.get_processor(), cg.engine.AbstractProcessor)
     assert proc_rec.processor_id == 'rainbow'
-    assert proc_rec.descriptive_name() == 'rainbow-simulator'
+    assert str(proc_rec) == 'rainbow-simulator'
 
     cirq.testing.assert_equivalent_repr(proc_rec, global_vals={'cirq_google': cg})
 
@@ -133,13 +133,13 @@ def test_simulated_backend_with_bad_local_device():
 
 def test_simulated_backend_descriptive_name():
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
-    assert p.descriptive_name() == 'rainbow-simulator'
+    assert str(p) == 'rainbow-simulator'
     assert isinstance(p.get_sampler(), cirq.Simulator)
 
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=1e-3)
-    assert p.descriptive_name() == 'rainbow-p=1.000e-03'
+    assert str(p) == 'rainbow-p=1.000e-03'
     assert isinstance(p.get_sampler(), cirq.DensityMatrixSimulator)
 
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=float('inf'))
-    assert p.descriptive_name() == 'rainbow-zeros'
+    assert str(p) == 'rainbow-zeros'
     assert isinstance(p.get_sampler(), cirq.ZerosSampler)
