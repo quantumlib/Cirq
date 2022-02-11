@@ -188,8 +188,10 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
             raise ValueError(f"Channel Measurement already logged to key {key}")
         measured_qubits = self._measured_qubits[key]
         if measured_qubits:
-            if [q.dimension for q in qubits] != [q.dimension for q in measured_qubits[-1]]:
-                raise ValueError(f'Measurements of keys must all be same shape.')
+            shape = tuple(q.dimension for q in qubits)
+            key_shape = tuple(q.dimension for q in measured_qubits[-1])
+            if shape != key_shape:
+                raise ValueError(f'Measurement shape {shape} does not match {key_shape} in {key}.')
         measured_qubits.append(tuple(qubits))
         self._measurements[key].append(tuple(measurement))
 
@@ -231,10 +233,10 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
 
     def _json_dict_(self):
         return {
-            'measurements': list(self._measurements.items()),
-            'measured_qubits': list(self._measured_qubits.items()),
-            'channel_measurements': list(self._channel_measurements.items()),
-            'measurement_types': list(self._measurement_types.items()),
+            'measurements': list(self.measurements.items()),
+            'measured_qubits': list(self.measured_qubits.items()),
+            'channel_measurements': list(self.channel_measurements.items()),
+            'measurement_types': list(self.measurement_types.items()),
         }
 
     @classmethod
@@ -250,10 +252,10 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
 
     def __repr__(self):
         return (
-            f'cirq.ClassicalDataDictionaryStore(_measurements={self._measurements!r},'
-            f' _measured_qubits={self._measured_qubits!r},'
-            f' _channel_measurements={self._channel_measurements!r},'
-            f' _measurement_types={self._measurement_types!r})'
+            f'cirq.ClassicalDataDictionaryStore(_measurements={self.measurements!r},'
+            f' _measured_qubits={self.measured_qubits!r},'
+            f' _channel_measurements={self.channel_measurements!r},'
+            f' _measurement_types={self.measurement_types!r})'
         )
 
     def _value_equality_values_(self):

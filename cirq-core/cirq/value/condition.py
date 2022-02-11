@@ -113,12 +113,11 @@ class KeyCondition(Condition):
         return classical_data.get_int(self.key, self.index) != 0
 
     def _json_dict_(self):
-        fields = ['key'] if self.index == -1 else ['key', 'index']
-        return json_serialization.obj_to_dict_helper(self, fields)
+        return json_serialization.dataclass_json_dict(self)
 
     @classmethod
     def _from_json_dict_(cls, key, **kwargs):
-        return cls(key=key, index=kwargs.get('index', -1))
+        return cls(key=key)
 
     @property
     def qasm(self):
