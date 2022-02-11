@@ -27,7 +27,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from cirq import circuits, ops
+from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
 
 if TYPE_CHECKING:
@@ -279,6 +279,97 @@ def merge_operations(
             new_moment = new_moment.with_operation(op)
         ret_circuit += new_moment
     return _to_target_circuit_type(ret_circuit, circuit)
+
+
+def merge_operations_to_circuit_op(
+    circuit: CIRCUIT_TYPE,
+    can_merge: Callable[[Sequence['cirq.Operation'], Sequence['cirq.Operation']], bool],
+    *,
+    tags_to_ignore: Sequence[Hashable] = (),
+    merged_circuit_op_tag: str = "Merged connected component",
+) -> CIRCUIT_TYPE:
+    """Merges connected components of operations and wraps each component into a circuit operation.
+
+    Uses `cirq.merge_operations` to identify connected components of operations. Moment structure
+    is preserved for operations that do not participate in merging. For merged operations, the
+    newly created circuit operations are constructed by inserting operations using EARLIEST
+    strategy.
+    If you need more control on moment structure of newly created circuit operations, consider
+    using `cirq.merge_operations` directly with a custom `merge_func`.
+
+    Args:
+        circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
+        can_merge: Callable to determine whether a new operation `right_op` can be merged into an
+            existing connected component of operations `left_ops` based on boolen returned by
+            `can_merge(left_ops, right_op)`.
+        tags_to_ignore: Tagged operations marked any of `tags_to_ignore` will not be considered as
+            potential candidates for any connected component.
+        merged_circuit_op_tag: Tag to be applied on circuit operations wrapping valid connected
+            components.
+
+    Returns:
+        Copy of input circuit with valid connected components wrapped in tagged circuit operations.
+    """
+
+    def merge_func(op1: 'cirq.Operation', op2: 'cirq.Operation') -> Optional['cirq.Operation']:
+        def get_ops(op: 'cirq.Operation'):
+            op_untagged = op.untagged
+            return (
+                [*op_untagged.circuit.all_operations()]
+                if isinstance(op_untagged, circuits.CircuitOperation)
+                and merged_circuit_op_tag in op.tags
+                else [op]
+            )
+
+        left_ops, right_ops = get_ops(op1), get_ops(op2)
+        if not can_merge(left_ops, right_ops):
+            return None
+        return circuits.CircuitOperation(circuits.FrozenCircuit(left_ops, right_ops)).with_tags(
+            merged_circuit_op_tag
+        )
+
+    return merge_operations(circuit, merge_func, tags_to_ignore=tags_to_ignore)
+
+
+def merge_k_qubit_unitaries_to_circuit_op(
+    circuit: CIRCUIT_TYPE,
+    k: int,
+    *,
+    tags_to_ignore: Sequence[Hashable] = (),
+    merged_circuit_op_tag: Optional[str] = None,
+) -> CIRCUIT_TYPE:
+    """Merges connected components of operations, acting on <= k qubits, into circuit operations.
+
+    Uses `cirq.merge_operations_to_circuit_op` to identify and merge connected components of
+    unitary operations acting on at-most k-qubits. Moment structure is preserved for operations
+    that do not participate in merging. For merged operations, the newly created circuit operations
+    are constructed by inserting operations using EARLIEST strategy.
+
+    Args:
+        circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
+        k: Merge-able operations acting on <= k qubits are merged into a connected component.
+        tags_to_ignore: Tagged operations marked any of `tags_to_ignore` will not be considered as
+            potential candidates for any connected component.
+        merged_circuit_op_tag: Tag to be applied on circuit operations wrapping valid connected
+            components. A default tag is applied if left None.
+
+    Returns:
+        Copy of input circuit with valid connected components wrapped in tagged circuit operations.
+    """
+
+    def can_merge(ops1: Sequence['cirq.Operation'], ops2: Sequence['cirq.Operation']) -> bool:
+        return all(
+            protocols.has_unitary(op) and protocols.num_qubits(op) <= k
+            for op_list in [ops1, ops2]
+            for op in op_list
+        )
+
+    return merge_operations_to_circuit_op(
+        circuit,
+        can_merge,
+        tags_to_ignore=tags_to_ignore,
+        merged_circuit_op_tag=merged_circuit_op_tag or f"Merged {k}q unitary connected component.",
+    )
 
 
 def merge_moments(
