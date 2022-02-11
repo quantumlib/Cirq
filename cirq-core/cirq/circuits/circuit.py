@@ -1618,7 +1618,7 @@ class Circuit(AbstractCircuit):
     AbstractCircuit):
 
     *   next_moment_operating_on
-    *   prev_moment_available
+    *   earliest_available_moment
     *   prev_moment_operating_on
     *   next_moments_operating_on
     *   operation_at
@@ -1951,7 +1951,7 @@ class Circuit(AbstractCircuit):
         with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
             return Circuit(op_list, device=self._device if new_device is None else new_device)
 
-    def prev_moment_available(
+    def earliest_available_moment(
         self, op: 'cirq.Operation', *, end_moment_index: Optional[int] = None
     ) -> int:
         """Finds the index of the previous (i.e. left most) moment which can accommodate `op`.
@@ -1967,8 +1967,8 @@ class Circuit(AbstractCircuit):
                 Defaults to the length of the list of moments.
 
         Returns:
-            Index of the latest matching moment. Returns `end_moment_index` if no moment on left is
-            available.
+            Index of the earliest matching moment. Returns `end_moment_index` if no moment on left
+            is available.
         """
         if end_moment_index is None:
             end_moment_index = len(self.moments)
@@ -2028,7 +2028,7 @@ class Circuit(AbstractCircuit):
 
         if strategy is InsertStrategy.EARLIEST:
             if self._can_add_op_at(splitter_index, op):
-                return self.prev_moment_available(op, end_moment_index=splitter_index)
+                return self.earliest_available_moment(op, end_moment_index=splitter_index)
 
             return self._pick_or_create_inserted_op_moment_index(
                 splitter_index, op, InsertStrategy.INLINE

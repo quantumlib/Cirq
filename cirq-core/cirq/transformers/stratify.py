@@ -152,7 +152,7 @@ def _stratify_circuit(
         batch_removals: List[Tuple[int, 'cirq.Operation']] = []
         batch_inserts: List[Tuple[int, 'cirq.Operation']] = []
         for op in moment:
-            prv_idx = stratified_circuit.prev_moment_available(op, end_moment_index=curr_idx)
+            prv_idx = stratified_circuit.earliest_available_moment(op, end_moment_index=curr_idx)
             prv_category = prv_idx % num_categories
             should_move_to_next_batch = curr_category < prv_category
             prv_idx += curr_category - prv_category + num_categories * should_move_to_next_batch
