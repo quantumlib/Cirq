@@ -984,18 +984,6 @@ def _qubit_map_to_shape(qubit_map: Dict['cirq.Qid', int]) -> Tuple[int, ...]:
     return tuple(qid_shape)
 
 
-def _verify_unique_measurement_keys(circuit: 'cirq.AbstractCircuit'):
-    result = collections.Counter(
-        key
-        for op in ops.flatten_op_tree(iter(circuit))
-        for key in protocols.measurement_key_names(op)
-    )
-    if result:
-        duplicates = [k for k, v in result.most_common() if v > 1]
-        if duplicates:
-            raise ValueError(f"Measurement key {','.join(duplicates)} repeated")
-
-
 def check_all_resolved(circuit):
     """Raises if the circuit contains unresolved symbols."""
     if protocols.is_parameterized(circuit):
