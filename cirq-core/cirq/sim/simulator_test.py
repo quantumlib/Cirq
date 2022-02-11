@@ -389,6 +389,21 @@ def test_simulation_trial_result_qubit_map():
     assert result.qubit_map == {q[0]: 0, q[1]: 1}
 
 
+def test_verify_unique_measurement_keys():
+    q = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit()
+    circuit.append(
+        [
+            cirq.measure(q[0], key='a'),
+            cirq.measure(q[1], key='a'),
+            cirq.measure(q[0], key='b'),
+            cirq.measure(q[1], key='b'),
+        ]
+    )
+    with pytest.raises(ValueError, match='Duplicate MeasurementGate with key a'):
+        _ = cirq.sample(circuit)
+
+
 def test_simulate_with_invert_mask():
     class PlusGate(cirq.Gate):
         """A qudit gate that increments a qudit state mod its dimension."""

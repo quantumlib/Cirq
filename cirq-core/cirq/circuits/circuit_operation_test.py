@@ -834,4 +834,28 @@ def test_mapped_circuit_keeps_keys_under_parent_path():
     assert cirq.measurement_key_names(op2.mapped_circuit()) == {'X:A', 'X:B', 'X:C', 'X:D'}
 
 
+def test_mapped_circuit_allows_repeated_keys():
+    q = cirq.LineQubit(0)
+    op1 = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.measure(q, key='A'),
+        )
+    )
+    op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
+    circuit = op2.mapped_circuit(deep=True)
+    cirq.testing.assert_has_diagram(
+        circuit,
+        "0: ───M('A')───M('A')───",
+        use_unicode_characters=True,
+    )
+    op1 = cirq.measure(q, key='A')
+    op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
+    circuit = op2.mapped_circuit()
+    cirq.testing.assert_has_diagram(
+        circuit,
+        "0: ───M('A')───M('A')───",
+        use_unicode_characters=True,
+    )
+
+
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?
