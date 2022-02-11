@@ -139,7 +139,7 @@ def test_serial_concatenation_default():
             return 1
 
         def _unitary_(self):
-            return None
+            return NotImplemented
 
         def _mixture_(self):
             return NotImplemented
@@ -149,7 +149,7 @@ def test_serial_concatenation_default():
             return [cirq.Y.on(q1), defaultGate().on(q1)]
 
         def _unitary_(self):
-            return None
+            return NotImplemented
 
         def _mixture_(self):
             return NotImplemented

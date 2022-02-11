@@ -45,6 +45,8 @@ from cirq.testing.consistent_specified_has_unitary import (
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 from cirq.testing.consistent_controlled_gate_op import assert_controlled_and_controlled_by_identical
 
+from cirq.testing.consistent_mixture import assert_mixture_is_consistent_with_unitary
+
 
 def assert_implements_consistent_protocols(
     val: Any,
@@ -155,6 +157,7 @@ def _assert_meets_standards_helper(
     assert_has_consistent_trace_distance_bound(val)
     assert_decompose_is_consistent_with_unitary(val, ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)
+    assert_mixture_is_consistent_with_unitary(val, ignoring_global_phase=ignoring_global_phase)
     assert_pauli_expansion_is_consistent_with_unitary(val)
     assert_equivalent_repr(
         val, setup_code=setup_code, global_vals=global_vals, local_vals=local_vals

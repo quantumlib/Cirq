@@ -132,3 +132,5 @@ from cirq.testing.repr_pretty_tester import (
 from cirq.testing.sample_circuits import (
     nonoptimal_toffoli_circuit,
 )
+
+from cirq.testing.consistent_mixture import assert_mixture_is_consistent_with_unitary
