@@ -1954,7 +1954,7 @@ class Circuit(AbstractCircuit):
     def earliest_available_moment(
         self, op: 'cirq.Operation', *, end_moment_index: Optional[int] = None
     ) -> int:
-        """Finds the index of the previous (i.e. left most) moment which can accommodate `op`.
+        """Finds the index of the earliest (i.e. left most) moment which can accommodate `op`.
 
         Note that, unlike `circuit.prev_moment_operating_on`, this method also takes care of
         implicit dependencies between measurements and classically controlled operations (CCO)
@@ -1962,7 +1962,7 @@ class Circuit(AbstractCircuit):
         `op` would not be allowed to move left past a measurement it depends upon.
 
         Args:
-            op: Operation for which the previous moment that can accommodate it needs to be found.
+            op: Operation for which the earliest moment that can accommodate it needs to be found.
             end_moment_index: The moment index just after the starting point of the reverse search.
                 Defaults to the length of the list of moments.
 
