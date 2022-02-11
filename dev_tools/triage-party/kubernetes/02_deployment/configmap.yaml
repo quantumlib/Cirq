@@ -97,14 +97,14 @@ data:
         resolution: "Open a PR to close these issues"
         type: issue
         filters:
-          - label: "time/before-one"
+          - label: "time/before-1.0"
 
       issues-after-one:
         name: "Issues after 1.0"
         resolution: "Open a PR to close these issues"
         type: issue
         filters:
-          - label: "time/after-one"
+          - label: "time/after-1.0"
 
       ## Daily triage
       issue-needs-triage:
