@@ -13,7 +13,6 @@
 # limitations under the License.
 """Tests for simulator.py"""
 import abc
-import re
 from typing import Generic, Dict, Any, List, Sequence, Union
 from unittest import mock
 
@@ -401,7 +400,7 @@ def test_verify_unique_measurement_keys():
             cirq.measure(q[1], key='b'),
         ]
     )
-    with pytest.raises(ValueError, match=re.escape('Measurement key a,b repeated')):
+    with pytest.raises(ValueError, match='Measurement key a,b repeated'):
         _ = cirq.sample(circuit)
 
 
