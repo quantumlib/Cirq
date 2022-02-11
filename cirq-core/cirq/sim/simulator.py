@@ -841,9 +841,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError(f'{op.gate} was not a MeasurementGate')
         result = collections.Counter(
-            key
-            for op in measurement_ops
-            for key in protocols.measurement_key_names(op)
+            key for op in measurement_ops for key in protocols.measurement_key_names(op)
         )
         if result:
             duplicates = [k for k, v in result.most_common() if v > 1]
