@@ -307,3 +307,10 @@ from cirq.ops.wait_gate import (
 )
 
 from cirq.ops.state_preparation_channel import StatePreparationChannel
+
+from cirq.ops.control_values import (
+    ControlValues,
+    SimpleControlValues,
+    ConstrainedValues,
+    ControlValuesBuilder,
+)

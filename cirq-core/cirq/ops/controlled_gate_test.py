@@ -159,7 +159,9 @@ def test_init2():
     assert gate.num_qubits() == 3
     assert cirq.qid_shape(gate) == (3, 3, 2)
 
-    gate = cirq.ControlledGate(cirq.Z, control_values=cv.FreeVars([0, (0, 1)]))
+    gate = cirq.ControlledGate(
+        cirq.Z, control_values=cv.ControlValuesBuilder().append([0, (0, 1)]).build()
+    )
     assert gate.sub_gate is cirq.Z
     assert gate.num_controls() == 2
     assert gate.control_values == ((0,), (0, 1))
@@ -167,7 +169,9 @@ def test_init2():
     assert gate.num_qubits() == 3
     assert cirq.qid_shape(gate) == (2, 2, 2)
 
-    gate = cirq.ControlledGate(cirq.Z, control_values=cv.ConstrainedVars([(1, 0), (0, 1)]))
+    gate = cirq.ControlledGate(
+        cirq.Z, control_values=cv.ControlValuesBuilder().append([[(1, 0), (0, 1)]]).build()
+    )
     assert gate.sub_gate is cirq.Z
     assert gate.num_controls() == 2
     assert gate.control_values == [((1, 0), (0, 1))]
@@ -576,9 +580,9 @@ def test_controlled_mixture():
 
 def test_json_dict():
     tests = [
-        (CY, {'control_values': [(1,)], 'control_qid_shape': (2,), 'sub_gate': cirq.Y}),
-        (CCH, {'control_values': [(1,), (1,)], 'control_qid_shape': (2, 2), 'sub_gate': cirq.H}),
-        (C0Y, {'control_values': [(0,)], 'control_qid_shape': (2,), 'sub_gate': cirq.Y}),
+        (CY, {'control_values': ((1,),), 'control_qid_shape': (2,), 'sub_gate': cirq.Y}),
+        (CCH, {'control_values': ((1,), (1,)), 'control_qid_shape': (2, 2), 'sub_gate': cirq.H}),
+        (C0Y, {'control_values': ((0,),), 'control_qid_shape': (2,), 'sub_gate': cirq.Y}),
     ]
     for gate, want in tests:
         assert want == gate._json_dict_()

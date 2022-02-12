@@ -14,37 +14,31 @@
 
 import pytest
 
-from cirq.ops import control_values as cv
 import cirq
 
 
+flatten = cirq.ops.ControlValues.flatten
+builder = lambda values: cirq.ops.ControlValuesBuilder().append(values).build()
+
+
 def test_empty_init():
-    assert [cv.flatten(p) for p in cv.ControlValues([])] == [()]
+    assert [flatten(p) for p in builder([])] == [()]
 
 
 def test_init_control_values():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(cv.ControlValues([]))
+    eq.add_equality_group(builder([]))
     tests = [
         ([1], [(1,)]),
-        ([[0, 1], 1], [[(0, 1), (1, 1)]]),
-        ([[[0, 1], [1, 0]]], [[(0, 1), (1, 0)]]),
+        ([[0, 1], 1], [(0, 1), (1, 1)]),
+        ([[[0, 1], [1, 0]]], [(0, 1), (1, 0)]),
     ]
     for control_values, want in tests:
-        eq.add_equality_group(cv.ControlValues(control_values), want)
+        got = [flatten(c) for c in builder(control_values)]
+        eq.add_equality_group(got, want)
 
     with pytest.raises(TypeError):
-        _ = cv.ControlValues([1.0])
-
-
-def test_copy_constructor():
-    eq = cirq.testing.EqualsTester()
-    tests = [[], [1], [[0, 1], 1], [[[0, 1], [1, 0]]]]
-    for control_values in tests:
-        values = [cv.ControlValues([cv.ControlValues([val])]) for val in control_values]
-        eq.add_equality_group(
-            cv.ControlValues([cv.ControlValues(control_values)]), cv.ControlValues(values)
-        )
+        _ = builder([1.0])
 
 
 def test_constrained_init():
@@ -55,34 +49,34 @@ def test_constrained_init():
         ([[1, 0], [1, 1]], [(0, 1), (1, 1)]),
     ]
     for control_values, want in tests:
-        control_vals = cv.ConstrainedVars(control_values)
-        got = [cv.flatten(product) for product in control_vals]
+        control_vals = cirq.ops.ConstrainedValues.factory(control_values)
+        got = [flatten(product) for product in control_vals]
         eq.add_equality_group(sorted(got), want)
 
 
-def test_and():
+def test_product():
     eq = cirq.testing.EqualsTester()
     originals = [[1], [[0, 1], 1], [[[0, 1], [1, 0]]]]
     for control_values1 in originals:
         for control_values2 in originals:
-            control_vals1 = cv.ControlValues(control_values1)
-            control_vals2 = cv.ControlValues(control_values2)
-            want = [[v1 + v2 for v1 in control_vals1 for v2 in control_vals2]]
-            control_vals1.product(control_vals2)
-            eq.add_equality_group(control_vals1, want)
+            control_vals1 = builder(control_values1)
+            control_vals2 = builder(control_values2)
+            want = [[flatten(v1 + v2) for v1 in control_vals1 for v2 in control_vals2]]
+            got = [[flatten(c) for c in control_vals1.product(control_vals2)]]
+            eq.add_equality_group(got, want)
 
 
 def test_slicing_not_supported():
-    control_vals = cv.ControlValues([[[0, 1], [1, 0]]])
+    control_vals = builder([[[0, 1], [1, 0]]])
     with pytest.raises(ValueError):
         _ = control_vals[0:1]
 
 
 def test_check_dimensionality():
-    empty_control_vals = cv.ControlValues([])
+    empty_control_vals = builder([])
     empty_control_vals.check_dimensionality()
 
-    control_values = cv.ControlValues([[0, 1], 1])
+    control_values = builder([[0, 1], 1])
     with pytest.raises(ValueError):
         control_values.check_dimensionality()
 
@@ -93,19 +87,19 @@ def test_pop():
         ([[[0, 1], [1, 0]], 0, 1], [(0, 1, 0), (1, 0, 0)]),
     ]
     for control_values, want in tests:
-        control_vals = cv.ControlValues(control_values)
-        control_vals.pop()
-        got = [cv.flatten(product) for product in control_vals]
+        control_vals = builder(control_values)
+        control_vals = control_vals.pop()
+        got = [flatten(product) for product in control_vals]
         assert want == sorted(got)
 
 
 def test_arrangements():
     tests = [
-        ((), [()]),
-        ([1], [(1,)]),
-        ([(0, 1), (1,)], [(0, 1), (1,)]),
-        ([((0, 1), (1, 0))], [((0, 1), (1, 0))]),
+        ((), ((),)),
+        ([1], ((1,),)),
+        ([(0, 1), (1,)], ((0, 1), (1,))),
+        ([((0, 1), (1, 0))], (((0, 1), (1, 0)),)),
     ]
     for control_values, want in tests:
-        control_vals = cv.ControlValues(control_values)
+        control_vals = builder(control_values)
         assert want == control_vals.arrangements()

@@ -54,7 +54,7 @@ class ControlledOperation(raw_types.Operation):
         if len(control_values) != len(controls):
             raise ValueError('len(control_values) != len(controls)')
 
-        self.control_values = cv.to_control_values(control_values)
+        self.control_values = cv.ControlValuesBuilder().append(control_values).build()
 
         # Verify control values not out of bounds
         self.control_values.check_dimensionality(controls=tuple(controls))
@@ -66,7 +66,7 @@ class ControlledOperation(raw_types.Operation):
             # Auto-flatten nested controlled operations.
             self.controls = tuple(controls) + sub_operation.controls
             self.sub_operation = sub_operation.sub_operation
-            self.control_values.product(sub_operation.control_values)
+            self.control_values = self.control_values.product(sub_operation.control_values)
 
     @property
     def gate(self) -> Optional['cirq.ControlledGate']:
@@ -90,7 +90,7 @@ class ControlledOperation(raw_types.Operation):
     def control_values(
         self, values: Union[cv.ControlValues, Sequence[Union[int, Collection[int]]]]
     ) -> None:
-        self._control_values = cv.to_control_values(values)
+        self._control_values = cv.ControlValuesBuilder().append(values).build()
 
     def with_qubits(self, *new_qubits):
         n = len(self.controls)
@@ -113,7 +113,7 @@ class ControlledOperation(raw_types.Operation):
         sub_n = len(args.axes) - n
         sub_axes = args.axes[n:]
         for control_vals in self.control_values:
-            control_vals = cv.flatten(control_vals)
+            control_vals = cv.ControlValues.flatten(control_vals)
             active = (..., *(slice(v, v + 1) for v in control_vals), *(slice(None),) * sub_n)
             target_view = args.target_tensor[active]
             buffer_view = args.available_buffer[active]
@@ -142,7 +142,7 @@ class ControlledOperation(raw_types.Operation):
         tensor = qis.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
         sub_tensor = sub_matrix.reshape(qid_shape[len(self.controls) :] * 2)
         for control_vals in self.control_values:
-            control_vals = cv.flatten(control_vals)
+            control_vals = cv.ControlValues.flatten(control_vals)
             active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
             tensor[active] = sub_tensor
         return tensor.reshape((np.prod(qid_shape, dtype=np.int64).item(),) * 2)

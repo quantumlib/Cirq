@@ -405,7 +405,7 @@ def test_json_dict():
     )
     want = {
         'controls': (cirq.LineQubit(0), cirq.LineQid(1, dimension=3)),
-        'control_values': [(0,), (1,)],
+        'control_values': ((0,), (1,)),
         'sub_operation': cirq.X(cirq.LineQubit(2)),
     }
     assert want == op._json_dict_()
