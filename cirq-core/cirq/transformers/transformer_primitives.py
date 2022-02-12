@@ -359,7 +359,7 @@ def merge_k_qubit_unitaries_to_circuit_op(
 
     def can_merge(ops1: Sequence['cirq.Operation'], ops2: Sequence['cirq.Operation']) -> bool:
         return all(
-            protocols.has_unitary(op) and protocols.num_qubits(op) <= k
+            protocols.num_qubits(op) <= k and protocols.has_unitary(op)
             for op_list in [ops1, ops2]
             for op in op_list
         )

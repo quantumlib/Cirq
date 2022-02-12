@@ -60,6 +60,12 @@ from cirq.transformers.measurement_transformers import (
     dephase_measurements,
 )
 
+from cirq.transformers.merge_single_qubit_gates import (
+    merge_single_qubit_gates,
+    merge_single_qubit_gates_to_phased_x_and_z,
+    merge_single_qubit_gates_to_phxz,
+)
+
 from cirq.transformers.synchronize_terminal_measurements import synchronize_terminal_measurements
 
 from cirq.transformers.transformer_api import (
