@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Package for contributions.
+"""Functionality that is not part of core supported Cirq apis.
 
 Any contributions not ready for full production can be put in a subdirectory in
 this package.

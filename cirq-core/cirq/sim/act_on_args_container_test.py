@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Dict, Any, Sequence, Tuple, Optional, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import cirq
 
@@ -24,9 +24,10 @@ class EmptyActOnArgs(cirq.ActOnArgs):
         )
 
     def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
-        return []
+        return [0] * len(qubits)
 
-    def copy(self) -> 'EmptyActOnArgs':
+    def copy(self) -> 'EmptyActOnArgs':  # type: ignore
+        """The deep_copy_buffers parameter is omitted to trigger a deprecation warning test."""
         return EmptyActOnArgs(
             qubits=self.qubits,
             logs=self.log_of_measurement_results.copy(),
@@ -51,6 +52,10 @@ class EmptyActOnArgs(cirq.ActOnArgs):
 
     def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
         pass
+
+    @property
+    def allows_factoring(self):
+        return True
 
     def sample(self, qubits, repetitions=1, seed=None):
         pass
@@ -224,6 +229,12 @@ def test_copy_succeeds():
     args = create_container(qs2, False)
     copied = args[q0].copy()
     assert copied.qubits == (q0, q1)
+
+
+def test_copy_deprecation_warning():
+    args = create_container(qs2, False)
+    with cirq.testing.assert_deprecated('deep_copy_buffers', deadline='0.15'):
+        args.copy(False)
 
 
 def test_merge_succeeds():

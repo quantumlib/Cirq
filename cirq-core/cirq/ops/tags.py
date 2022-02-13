@@ -33,4 +33,7 @@ class VirtualTag:
         return 'cirq.VirtualTag()'
 
     def _json_dict_(self) -> Dict[str, str]:
-        return {'cirq_type': self.__class__.__name__}
+        return {}
+
+    def __hash__(self):
+        return hash(VirtualTag)

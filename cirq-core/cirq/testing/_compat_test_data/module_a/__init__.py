@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """module_a for module deprecation tests"""
 
 from logging import info

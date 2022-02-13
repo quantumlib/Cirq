@@ -23,24 +23,14 @@ from cirq_google.optimizers import (
     convert_to_xmon_gates,
     ConvertToSycamoreGates,
     ConvertToSqrtIswapGates,
-    gate_product_tabulation,
-    GateTabulation,
 )
 
 if TYPE_CHECKING:
     import cirq_google
 
 
-def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[[cirq.Circuit], None]]:
-    return [
-        cirq.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
-        cirq.EjectZ(tolerance=tolerance).optimize_circuit,
-        cirq.DropNegligible(tolerance=tolerance).optimize_circuit,
-    ]
-
-
 def _get_xmon_optimizers(
-    tolerance: float, tabulation: Optional[GateTabulation]
+    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
 ) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
@@ -50,12 +40,11 @@ def _get_xmon_optimizers(
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
         cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=False).optimize_circuit,
         lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
 def _get_xmon_optimizers_part_cz(
-    tolerance: float, tabulation: Optional[GateTabulation]
+    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
 ) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
@@ -64,22 +53,20 @@ def _get_xmon_optimizers_part_cz(
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
         cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=True).optimize_circuit,
         lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
 def _get_sycamore_optimizers(
-    tolerance: float, tabulation: Optional[GateTabulation]
+    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
 ) -> List[Callable[[cirq.Circuit], None]]:
     return [
         ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit,
         lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
 def _get_sqrt_iswap_optimizers(
-    tolerance: float, tabulation: Optional[GateTabulation]
+    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
 ) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
@@ -87,7 +74,6 @@ def _get_sqrt_iswap_optimizers(
     return [
         ConvertToSqrtIswapGates().optimize_circuit,
         lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
@@ -102,18 +88,22 @@ _OPTIMIZER_TYPES = {
 @lru_cache()
 def _gate_product_tabulation_cached(
     optimizer_type: str, tabulation_resolution: float
-) -> GateTabulation:
+) -> cirq.TwoQubitGateTabulation:
     random_state = np.random.RandomState(51)
     if optimizer_type == 'sycamore':
-        return gate_product_tabulation(
+        return cirq.two_qubit_gate_product_tabulation(
             cirq.unitary(cg_ops.SYC), tabulation_resolution, random_state=random_state
         )
     else:
-        raise NotImplementedError(f"Gate tabulation not supported for {optimizer_type}")
+        raise NotImplementedError(f"Two qubit gate tabulation not supported for {optimizer_type}")
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
+@cirq._compat.deprecated_parameter(
+    deadline='v0.15',
+    fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,
+    parameter_desc='new_device',
+    match=lambda args, kwargs: 'new_device' in kwargs,
+)
 def optimized_for_sycamore(
     circuit: cirq.Circuit,
     *,
@@ -146,6 +136,9 @@ def optimized_for_sycamore(
             is not known.
     Returns:
         The optimized circuit.
+
+    Raises:
+        ValueError: If the `optimizer_type` is not a supported type.
     """
     copy = circuit.copy()
     if optimizer_type not in _OPTIMIZER_TYPES:
@@ -154,7 +147,7 @@ def optimized_for_sycamore(
             f'types are: {_OPTIMIZER_TYPES.keys()}'
         )
 
-    tabulation: Optional[GateTabulation] = None
+    tabulation: Optional[cirq.TwoQubitGateTabulation] = None
     if tabulation_resolution is not None:
         tabulation = _gate_product_tabulation_cached(optimizer_type, tabulation_resolution)
 
@@ -162,11 +155,13 @@ def optimized_for_sycamore(
     for optimizer in opts:
         optimizer(copy)
 
-    return cirq.Circuit(
+    copy = cirq.eject_phased_paulis(copy, atol=tolerance)
+    copy = cirq.eject_z(copy, atol=tolerance)
+    copy = cirq.drop_negligible_operations(copy, atol=tolerance)
+
+    ret = cirq.Circuit(
         (op.transform_qubits(qubit_map) for op in copy.all_operations()),
         strategy=cirq.InsertStrategy.EARLIEST,
-        device=new_device or copy.device,
     )
-
-
-# pylint: enable=missing-raises-doc
+    ret._device = new_device or copy._device
+    return ret

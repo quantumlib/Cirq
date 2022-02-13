@@ -34,7 +34,7 @@ _CIRCUIT = cirq.Circuit(
 )
 
 
-_CIRCUIT2 = cirq.Circuit(
+_CIRCUIT2 = cirq.FrozenCircuit(
     cirq.Y(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
 )
 
@@ -392,21 +392,8 @@ def test_run_circuit(client):
     client.get_job_result.called_once_with()
 
 
-def test_circuit_device_validation_fails():
-    circuit = cirq.Circuit(device=cg.Foxtail)
-
-    # Purposefully create an invalid Circuit by fiddling with internal bits.
-    # This simulates a failure in the incremental checks.
-    circuit._moments.append(cirq.Moment([cirq.Z(cirq.NamedQubit("dorothy"))]))
-    engine = cg.Engine(project_id='project-id')
-    with pytest.raises(ValueError, match='Unsupported qubit type'):
-        engine.run_sweep(program=circuit, gate_set=cg.XMON)
-    with pytest.raises(ValueError, match='Unsupported qubit type'):
-        engine.create_program(circuit, gate_set=cg.XMON)
-
-
 def test_no_gate_set():
-    circuit = cirq.Circuit(device=cg.Sycamore)
+    circuit = cirq.Circuit()
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(ValueError, match='No gate set'):
         engine.run(program=circuit)
@@ -893,7 +880,7 @@ def test_sampler(client):
     setup_run_circuit_with_result_(client, _RESULTS)
 
     engine = cg.Engine(project_id='proj')
-    sampler = engine.sampler(processor_id='tmp', gate_set=cg.XMON)
+    sampler = engine.get_sampler(processor_id='tmp', gate_set=cg.XMON)
     results = sampler.run_sweep(
         program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )
@@ -903,6 +890,9 @@ def test_sampler(client):
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().create_program.call_args[0][0] == 'proj'
+
+    with cirq.testing.assert_deprecated('sampler', deadline='1.0'):
+        _ = engine.sampler(processor_id='tmp', gate_set=cg.XMON)
 
 
 @mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')

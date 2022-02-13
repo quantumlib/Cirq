@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods related to building and optimizing sequenced circuits."""
+"""Circuit classes, mutators, and outputs."""
 
 from cirq.circuits.text_diagram_drawer import (
     TextDiagramDrawer,
@@ -43,6 +43,10 @@ from cirq.circuits.frozen_circuit import (
 )
 from cirq.circuits.insert_strategy import (
     InsertStrategy,
+)
+
+from cirq.circuits.moment import (
+    Moment,
 )
 
 from cirq.circuits.optimization_pass import (

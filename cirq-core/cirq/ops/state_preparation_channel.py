@@ -60,7 +60,6 @@ class StatePreparationChannel(raw_types.Gate):
     def _json_dict_(self) -> Dict[str, Any]:
         """Converts the gate object into a serializable dictionary"""
         return {
-            'cirq_type': self.__class__.__name__,
             'target_state': self._state.tolist(),
             'name': self._name,
         }

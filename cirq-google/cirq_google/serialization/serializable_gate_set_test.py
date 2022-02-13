@@ -18,7 +18,6 @@ import sympy
 from google.protobuf import json_format
 
 import cirq
-from cirq.testing import assert_deprecated
 import cirq_google as cg
 from cirq_google.api import v2
 
@@ -76,11 +75,6 @@ MY_GATE_SET = cg.SerializableGateSet(
     serializers=[X_SERIALIZER, CIRCUIT_OP_SERIALIZER],
     deserializers=[X_DESERIALIZER, CIRCUIT_OP_DESERIALIZER],
 )
-
-
-def test_deprecated_methods():
-    with assert_deprecated('Use name instead', deadline='v0.14'):
-        _ = MY_GATE_SET.gate_set_name
 
 
 def op_proto(json: Dict) -> v2.program_pb2.Operation:
@@ -161,8 +155,7 @@ def test_is_supported_operation_can_serialize_predicate():
 def test_serialize_deserialize_circuit():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
-
+    circuit_base = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
@@ -180,8 +173,9 @@ def test_serialize_deserialize_circuit():
             ],
         ),
     )
-    assert proto == MY_GATE_SET.serialize(circuit)
-    assert MY_GATE_SET.deserialize(proto) == circuit
+    for circuit in [circuit_base, circuit_base.freeze()]:
+        assert proto == MY_GATE_SET.serialize(circuit)
+        assert MY_GATE_SET.deserialize(proto) == circuit
 
 
 def test_serialize_deserialize_circuit_with_tokens():
@@ -393,29 +387,6 @@ def test_serialize_unrecognized():
         MY_GATE_SET.serialize("not quite right")
 
 
-def test_serialize_deserialize_schedule_no_device():
-    q0 = cirq.GridQubit(1, 1)
-    q1 = cirq.GridQubit(1, 2)
-    proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
-        schedule=v2.program_pb2.Schedule(
-            scheduled_operations=[
-                v2.program_pb2.ScheduledOperation(
-                    operation=X_SERIALIZER.to_proto(cirq.X(q0)), start_time_picos=0
-                ),
-                v2.program_pb2.ScheduledOperation(
-                    operation=X_SERIALIZER.to_proto(cirq.X(q1)), start_time_picos=200000
-                ),
-                v2.program_pb2.ScheduledOperation(
-                    operation=X_SERIALIZER.to_proto(cirq.X(q0)), start_time_picos=400000
-                ),
-            ]
-        ),
-    )
-    with pytest.raises(ValueError):
-        MY_GATE_SET.deserialize(proto)
-
-
 def test_serialize_deserialize_op():
     q0 = cirq.GridQubit(1, 1)
     proto = op_proto(
@@ -542,7 +513,7 @@ def test_deserialize_circuit_op_errors():
         serializers=[X_SERIALIZER],
         deserializers=[X_DESERIALIZER],
     )
-    with pytest.raises(ValueError, match='Unsupported serialized CircuitOperation'):
+    with pytest.raises(ValueError, match='Unsupported deserialized of a CircuitOperation'):
         NO_CIRCUIT_OP_GATE_SET.deserialize_op(
             proto, constants=constants, deserialized_constants=deserialized_constants
         )
@@ -772,15 +743,6 @@ def test_deserialize_invalid_gate_set():
         )
     )
     with pytest.raises(ValueError, match='Missing gate set'):
-        MY_GATE_SET.deserialize(proto)
-
-
-def test_deserialize_schedule_missing_device():
-    proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(gate_set='my_gate_set'),
-        schedule=v2.program_pb2.Schedule(scheduled_operations=[]),
-    )
-    with pytest.raises(ValueError, match='device'):
         MY_GATE_SET.deserialize(proto)
 
 

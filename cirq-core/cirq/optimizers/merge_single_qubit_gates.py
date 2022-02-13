@@ -19,7 +19,7 @@ from typing import Optional, Callable, List, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops, linalg, protocols, circuits
-from cirq.optimizers import decompositions
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 if TYPE_CHECKING:
     import cirq
@@ -28,8 +28,6 @@ if TYPE_CHECKING:
 class MergeSingleQubitGates(circuits.PointOptimizer):
     """Optimizes runs of adjacent unitary 1-qubit operations."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         *,
@@ -51,6 +49,9 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
                 be specified at the same time as `rewriter`. If `synthesizer`
                 returns `None`, that means "do not rewrite the operations used
                 to make this matrix".
+
+        Raises:
+            ValueError: If both a rewriter and synthesizer were specified.
         """
         super().__init__()
         if rewriter is not None and synthesizer is not None:
@@ -58,7 +59,6 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
         self._rewriter = rewriter
         self._synthesizer = synthesizer
 
-    # pylint: enable=missing-raises-doc
     def _rewrite(self, operations: List[ops.Operation]) -> Optional[ops.OP_TREE]:
         if not operations:
             return None
@@ -115,7 +115,7 @@ def merge_single_qubit_gates_into_phased_x_z(circuit: circuits.Circuit, atol: fl
     """
 
     def synth(qubit: 'cirq.Qid', matrix: np.ndarray) -> List[ops.Operation]:
-        out_gates = decompositions.single_qubit_matrix_to_phased_x_z(matrix, atol)
+        out_gates = single_qubit_decompositions.single_qubit_matrix_to_phased_x_z(matrix, atol)
         return [gate(qubit) for gate in out_gates]
 
     MergeSingleQubitGates(synthesizer=synth).optimize_circuit(circuit)
@@ -137,7 +137,7 @@ def merge_single_qubit_gates_into_phxz(
     """
 
     def synth(qubit: 'cirq.Qid', matrix: np.ndarray) -> List[ops.Operation]:
-        gate = decompositions.single_qubit_matrix_to_phxz(matrix, atol)
+        gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(matrix, atol)
         return [gate(qubit)] if gate else []
 
     MergeSingleQubitGates(synthesizer=synth).optimize_circuit(circuit)

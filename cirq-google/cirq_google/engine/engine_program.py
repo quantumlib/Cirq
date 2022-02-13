@@ -16,7 +16,7 @@ import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import cirq
-from cirq_google.engine import engine_client
+from cirq_google.engine import abstract_program, engine_client
 from cirq_google.engine.client import quantum
 from cirq_google.engine.client.quantum import types as qtypes
 from cirq_google.engine.result_type import ResultType
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
 
 
-class EngineProgram:
+class EngineProgram(abstract_program.AbstractProgram):
     """A program created via the Quantum Engine API.
 
     This program wraps a Circuit with additional metadata used to
@@ -62,8 +62,6 @@ class EngineProgram:
         self._program = _program
         self.result_type = result_type
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def run_sweep(
         self,
         job_id: Optional[str] = None,
@@ -94,6 +92,9 @@ class EngineProgram:
         Returns:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
+
+        Raises:
+            ValueError: If called on a program that is a batch of programs.
         """
         import cirq_google.engine.engine as engine_base
 
@@ -117,7 +118,6 @@ class EngineProgram:
             self.project_id, self.program_id, created_job_id, self.context, job
         )
 
-    # pylint: enable=missing-raises-doc
     def run_batch(
         self,
         job_id: Optional[str] = None,
@@ -204,8 +204,6 @@ class EngineProgram:
             result_type=ResultType.Batch,
         )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def run_calibration(
         self,
         job_id: Optional[str] = None,
@@ -233,7 +231,10 @@ class EngineProgram:
             labels: Optional set of labels to set on the job.
 
         Returns:
-            An EngineJob.  Results can be accessed with calibration_results().
+            An EngineJob. Results can be accessed with calibration_results().
+
+        Raises:
+            ValueError: If no processors are specified.
         """
         import cirq_google.engine.engine as engine_base
 
@@ -266,7 +267,6 @@ class EngineProgram:
             result_type=ResultType.Batch,
         )
 
-    # pylint: enable=missing-raises-doc
     def run(
         self,
         job_id: Optional[str] = None,
@@ -522,6 +522,10 @@ class EngineProgram:
         self.context.client.delete_program(
             self.project_id, self.program_id, delete_jobs=delete_jobs
         )
+
+    def delete_job(self, job_id: str) -> None:
+        """Deletes the job and result, if any."""
+        self.context.client.delete_job(self.project_id, self.program_id, job_id)
 
     def __str__(self) -> str:
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'

@@ -21,11 +21,13 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
 )
+from cirq._compat import deprecated_class
 
 if TYPE_CHECKING:
     import cirq
 
 
+@deprecated_class(deadline='v1.0', fix='Use cirq.expand_composite instead.')
 class ExpandComposite(PointOptimizer):
     """An optimizer that expands composite operations via `cirq.decompose`.
 

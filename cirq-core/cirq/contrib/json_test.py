@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import cirq
 from cirq.contrib.quantum_volume import QuantumVolumeResult
 from cirq.testing import assert_json_roundtrip_works

@@ -1,6 +1,7 @@
 -r ipython.txt
 
-notebook>=6.4.1
+# Notebook >=6.4.8 + coverage > 6.2 hangs CI: https://github.com/quantumlib/Cirq/issues/4897
+notebook>=6.4.1,<=6.4.7
 
 # https://github.com/nteract/papermill/issues/519
 ipykernel==5.3.4

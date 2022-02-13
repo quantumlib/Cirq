@@ -290,7 +290,7 @@ def test_run_delegation(create_job, get_results):
         job_id='steve', repetitions=10, param_resolver=param_resolver, processor_ids=['mine']
     )
 
-    assert results == cirq.Result(
+    assert results == cirq.ResultDict(
         params=cirq.ParamResolver({'a': 1.0}),
         measurements={'q': np.array([[False], [True], [True], [False]], dtype=bool)},
     )
@@ -535,6 +535,13 @@ def test_delete(delete_program):
 
     program.delete(delete_jobs=True)
     delete_program.assert_called_with('a', 'b', delete_jobs=True)
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_job')
+def test_delete_jobs(delete_job):
+    program = cg.EngineProgram('a', 'b', EngineContext())
+    program.delete_job('c')
+    delete_job.assert_called_with('a', 'b', 'c')
 
 
 def test_str():

@@ -21,9 +21,10 @@ import os
 import pathlib
 import sys
 import warnings
-from typing import Dict, List, Optional, Tuple
+from typing import ClassVar, Dict, List, Optional, Tuple, Type
 from unittest import mock
 
+import networkx as nx
 import numpy as np
 import pandas as pd
 import pytest
@@ -45,30 +46,10 @@ class _ModuleDeprecation:
 
 # tested modules and their deprecation settings
 TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
-    'cirq_aqt': _ModuleDeprecation(
-        old_name="cirq.aqt",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.aqt", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_ionq': _ModuleDeprecation(
-        old_name="cirq.ionq",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.ionq", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_google': _ModuleDeprecation(
-        old_name="cirq.google",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.google", deadline="v0.14", count=None
-        ),
-    ),
-    'cirq_pasqal': _ModuleDeprecation(
-        old_name="cirq.pasqal",
-        deprecation_assertion=cirq.testing.assert_deprecated(
-            "cirq.pasqal", deadline="v0.14", count=None
-        ),
-    ),
+    'cirq_aqt': None,
+    'cirq_ionq': None,
+    'cirq_google': None,
+    'cirq_pasqal': None,
     'cirq_rigetti': None,
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,
@@ -93,6 +74,95 @@ def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
 
 
 MODULE_TEST_SPECS = _get_testspecs_for_modules()
+
+
+def test_deprecated_cirq_type_in_json_dict():
+    class HasOldJsonDict:
+        # Required for testing serialization of non-cirq objects.
+        __module__ = 'test.noncirq.namespace'  # type: ignore
+
+        def __eq__(self, other):
+            return isinstance(other, HasOldJsonDict)
+
+        def _json_dict_(self):
+            return {'cirq_type': 'test.noncirq.namespace.HasOldJsonDict'}
+
+        @classmethod
+        def _from_json_dict_(cls, **kwargs):
+            return cls()
+
+    with pytest.raises(ValueError, match='not a Cirq type'):
+        _ = cirq.json_cirq_type(HasOldJsonDict)
+
+    def custom_resolver(name):
+        if name == 'test.noncirq.namespace.HasOldJsonDict':
+            return HasOldJsonDict
+
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    with cirq.testing.assert_deprecated("Found 'cirq_type'", deadline='v0.15'):
+        assert_json_roundtrip_works(HasOldJsonDict(), resolvers=test_resolvers)
+
+
+def test_deprecated_obj_to_dict_helper_namespace():
+    class HasOldJsonDict:
+        # Required for testing serialization of non-cirq objects.
+        __module__ = 'test.noncirq.namespace'  # type: ignore
+
+        def __init__(self, x):
+            self.x = x
+
+        def __eq__(self, other):
+            return isinstance(other, HasOldJsonDict) and other.x == self.x
+
+        def _json_dict_(self):
+            return json_serialization.obj_to_dict_helper(
+                self, ['x'], namespace='test.noncirq.namespace'
+            )
+
+        @classmethod
+        def _from_json_dict_(cls, x, **kwargs):
+            return cls(x)
+
+    with pytest.raises(ValueError, match='not a Cirq type'):
+        _ = cirq.json_cirq_type(HasOldJsonDict)
+
+    def custom_resolver(name):
+        if name == 'test.noncirq.namespace.HasOldJsonDict':
+            return HasOldJsonDict
+
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    with cirq.testing.assert_deprecated(
+        "Found 'cirq_type'", 'Define obj._json_namespace_', deadline='v0.15', count=3
+    ):
+        assert_json_roundtrip_works(HasOldJsonDict(1), resolvers=test_resolvers)
+
+
+def test_deprecated_dataclass_json_dict_namespace():
+    @dataclasses.dataclass
+    class HasOldJsonDict:
+        # Required for testing serialization of non-cirq objects.
+        __module__: ClassVar = 'test.noncirq.namespace'  # type: ignore
+        x: int
+
+        def _json_dict_(self):
+            return json_serialization.dataclass_json_dict(self, namespace='test.noncirq.namespace')
+
+        @classmethod
+        def _from_json_dict_(cls, x, **kwargs):
+            return cls(x)
+
+    with pytest.raises(ValueError, match='not a Cirq type'):
+        _ = cirq.json_cirq_type(HasOldJsonDict)
+
+    def custom_resolver(name):
+        if name == 'test.noncirq.namespace.HasOldJsonDict':
+            return HasOldJsonDict
+
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    with cirq.testing.assert_deprecated(
+        "Found 'cirq_type'", 'Define obj._json_namespace_', deadline='v0.15', count=5
+    ):
+        assert_json_roundtrip_works(HasOldJsonDict(1), resolvers=test_resolvers)
 
 
 def test_line_qubit_roundtrip():
@@ -380,7 +450,6 @@ class SBKImpl(cirq.SerializableByKey):
 
     def _json_dict_(self):
         return {
-            "cirq_type": "SBKImpl",
             "name": self.name,
             "data_list": self.data_list,
             "data_tuple": self.data_tuple,
@@ -469,11 +538,14 @@ def _list_public_classes_for_tested_modules():
     # to remove DeprecationWarning noise during test collection
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        return [
-            (mod_spec, o, n)
-            for mod_spec in MODULE_TEST_SPECS
-            for (o, n) in mod_spec.find_classes_that_should_serialize()
-        ]
+        return sorted(
+            (
+                (mod_spec, n, o)
+                for mod_spec in MODULE_TEST_SPECS
+                for (n, o) in mod_spec.find_classes_that_should_serialize()
+            ),
+            key=lambda mno: (str(mno[0]), mno[1]),
+        )
 
 
 @pytest.mark.parametrize(
@@ -554,6 +626,68 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
             )
 
 
+@dataclasses.dataclass
+class SerializableTypeObject:
+    test_type: Type
+
+    def _json_dict_(self):
+        return {
+            'test_type': json_serialization.json_cirq_type(self.test_type),
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, test_type, **kwargs):
+        return cls(json_serialization.cirq_type_from_json(test_type))
+
+
+@pytest.mark.parametrize(
+    'mod_spec,cirq_obj_name,cls',
+    _list_public_classes_for_tested_modules(),
+)
+def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
+    if cirq_obj_name in mod_spec.tested_elsewhere:
+        pytest.skip("Tested elsewhere.")
+
+    if cirq_obj_name in mod_spec.not_yet_serializable:
+        return pytest.xfail(reason="Not serializable (yet)")
+
+    if cls is None:
+        pytest.skip(f'No serialization for None-mapped type: {cirq_obj_name}')
+
+    try:
+        typename = cirq.json_cirq_type(cls)
+    except ValueError as e:
+        pytest.skip(f'No serialization for non-Cirq type: {str(e)}')
+
+    def custom_resolver(name):
+        if name == 'SerializableTypeObject':
+            return SerializableTypeObject
+
+    sto = SerializableTypeObject(cls)
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    expected_json = (
+        f'{{\n  "cirq_type": "SerializableTypeObject",\n' f'  "test_type": "{typename}"\n}}'
+    )
+    assert cirq.to_json(sto) == expected_json
+    assert cirq.read_json(json_text=expected_json, resolvers=test_resolvers) == sto
+    assert_json_roundtrip_works(sto, resolvers=test_resolvers)
+
+
+def test_invalid_type_deserialize():
+    def custom_resolver(name):
+        if name == 'SerializableTypeObject':
+            return SerializableTypeObject
+
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    invalid_json = '{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "bad_type"\n}'
+    with pytest.raises(ValueError, match='Could not resolve type'):
+        _ = cirq.read_json(json_text=invalid_json, resolvers=test_resolvers)
+
+    factory_json = '{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "sympy.Add"\n}'
+    with pytest.raises(ValueError, match='maps to a factory method'):
+        _ = cirq.read_json(json_text=factory_json, resolvers=test_resolvers)
+
+
 def test_to_from_strings():
     x_json_text = """{
   "cirq_type": "_PauliX",
@@ -593,13 +727,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         if deprecation is not None and deprecation.old_name in content:
             ctx_managers.append(deprecation.deprecation_assertion)
 
-    imports = {
-        'cirq': cirq,
-        'pd': pd,
-        'sympy': sympy,
-        'np': np,
-        'datetime': datetime,
-    }
+    imports = {'cirq': cirq, 'pd': pd, 'sympy': sympy, 'np': np, 'datetime': datetime, 'nx': nx}
 
     for m in TESTED_MODULES.keys():
         try:

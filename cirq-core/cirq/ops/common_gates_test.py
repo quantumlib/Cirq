@@ -603,10 +603,10 @@ def test_act_on_ch_form(input_gate_sequence, outcome):
         assert num_qubits == 2
         qubits = cirq.LineQubit.range(2)
     args = cirq.ActOnStabilizerCHFormArgs(
-        state=original_state.copy(),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=original_state.copy(),
     )
 
     flipped_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=23)
@@ -1042,10 +1042,10 @@ q: ───Z───Z───Z───S───S───
 @pytest.mark.parametrize(
     'theta,exp',
     [
-        {sympy.Symbol("theta"), 1 / 2},
-        {np.pi / 2, 1 / 2},
-        {np.pi / 2, sympy.Symbol("exp")},
-        {sympy.Symbol("theta"), sympy.Symbol("exp")},
+        (sympy.Symbol("theta"), 1 / 2),
+        (np.pi / 2, 1 / 2),
+        (np.pi / 2, sympy.Symbol("exp")),
+        (sympy.Symbol("theta"), sympy.Symbol("exp")),
     ],
 )
 def test_rxyz_exponent(theta, exp):

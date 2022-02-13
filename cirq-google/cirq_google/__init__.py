@@ -14,7 +14,13 @@
 
 """Classes for working with Google's Quantum Engine API."""
 
+import sys
+from cirq import _compat
 from cirq_google import api
+
+from cirq_google._version import (
+    __version__,
+)
 
 from cirq_google.calibration import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -67,9 +73,9 @@ from cirq_google.engine import (
     EngineJob,
     EngineProgram,
     EngineProcessor,
-    EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
+    ValidatingSampler,
     get_engine,
     get_engine_calibration,
     get_engine_device,
@@ -85,6 +91,7 @@ from cirq_google.line import (
 
 from cirq_google.ops import (
     CalibrationTag,
+    FSimGateFamily,
     PhysicalZTag,
     SycamoreGate,
     SYC,
@@ -127,6 +134,18 @@ from cirq_google.workflow import (
     SharedRuntimeInfo,
     RuntimeInfo,
     ExecutableResult,
+    ExecutableGroupResult,
+    ExecutableGroupResultFilesystemRecord,
+    QuantumRuntimeConfiguration,
+    execute,
+    QubitPlacer,
+    CouldNotPlaceError,
+    NaiveQubitPlacer,
+    RandomDevicePlacer,
+    ProcessorRecord,
+    EngineProcessorRecord,
+    SimulatedProcessorRecord,
+    SimulatedProcessorWithLocalDeviceRecord,
 )
 
 from cirq_google import experimental
@@ -137,3 +156,11 @@ from cirq.protocols.json_serialization import _register_resolver
 from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)
+
+_compat.deprecate_attributes(
+    __name__,
+    {
+        'Bristlecone': ('v0.15', 'Bristlecone will no longer be supported.'),
+        'Foxtail': ('v0.15', 'Foxtail will no longer be supported.'),
+    },
+)

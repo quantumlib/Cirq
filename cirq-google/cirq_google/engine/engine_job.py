@@ -15,10 +15,10 @@
 import datetime
 import time
 
-from typing import Dict, Iterator, List, Optional, overload, Tuple, TYPE_CHECKING
+from typing import Dict, Iterator, List, Optional, overload, Sequence, Tuple, TYPE_CHECKING
 
 import cirq
-from cirq_google.engine import calibration, engine_client
+from cirq_google.engine import abstract_job, calibration, engine_client
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
@@ -37,7 +37,7 @@ TERMINAL_STATES = [
 ]
 
 
-class EngineJob:
+class EngineJob(abstract_job.AbstractJob):
     """A job created via the Quantum Engine API.
 
     This job may be in a variety of states. It may be scheduling, it may be
@@ -79,10 +79,14 @@ class EngineJob:
         self.job_id = job_id
         self.context = context
         self._job = _job
-        self._results: Optional[List[cirq.Result]] = None
-        self._calibration_results: Optional[CalibrationResult] = None
-        self._batched_results: Optional[List[List[cirq.Result]]] = None
+        self._results: Optional[Sequence[cirq.Result]] = None
+        self._calibration_results: Optional[Sequence[CalibrationResult]] = None
+        self._batched_results: Optional[Sequence[Sequence[cirq.Result]]] = None
         self.result_type = result_type
+
+    def id(self) -> str:
+        """Returns the job id."""
+        return self.job_id
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object."""
@@ -193,6 +197,10 @@ class EngineJob:
             for p in self._inner_job().scheduling_config.processor_selector.processor_names
         ]
 
+    def execution_status(self) -> quantum.enums.ExecutionStatus.State:
+        """Return the execution status of the job."""
+        return self._refresh_job().execution_status.state
+
     def status(self) -> str:
         """Return the execution status of the job."""
         return quantum.types.ExecutionStatus.State.Name(self._refresh_job().execution_status.state)
@@ -250,11 +258,11 @@ class EngineJob:
         """Deletes the job and result, if any."""
         self.context.client.delete_job(self.project_id, self.program_id, self.job_id)
 
-    def batched_results(self) -> List[List[cirq.Result]]:
+    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a List[Result]
+        results into a single list, this will return a Sequence[Result]
         for each circuit in the batch.
         """
         self.results()
@@ -280,7 +288,7 @@ class EngineJob:
         )
         return response.result
 
-    def results(self) -> List[cirq.Result]:
+    def results(self) -> Sequence[cirq.Result]:
         """Returns the job results, blocking until the job is complete."""
         import cirq_google.engine.engine as engine_base
 
@@ -307,7 +315,7 @@ class EngineJob:
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
 
-    def calibration_results(self):
+    def calibration_results(self) -> Sequence[CalibrationResult]:
         """Returns the results of a run_calibration() call.
 
         This function will fail if any other type of results were returned
@@ -326,16 +334,17 @@ class EngineJob:
                 metrics = calibration.Calibration(layer.metrics)
                 message = layer.error_message or None
                 token = layer.token or None
+                ts: Optional[datetime.datetime] = None
                 if layer.valid_until_ms > 0:
                     ts = datetime.datetime.fromtimestamp(layer.valid_until_ms / 1000)
-                else:
-                    ts = None
                 cal_results.append(CalibrationResult(layer.code, message, token, ts, metrics))
             self._calibration_results = cal_results
         return self._calibration_results
 
     @classmethod
-    def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult) -> List[List[cirq.Result]]:
+    def _get_batch_results_v2(
+        cls, results: v2.batch_pb2.BatchResult
+    ) -> Sequence[Sequence[cirq.Result]]:
         trial_results = []
         for result in results.results:
             # Add a new list for the result
@@ -343,7 +352,7 @@ class EngineJob:
         return trial_results
 
     @classmethod
-    def _flatten(cls, result) -> List[cirq.Result]:
+    def _flatten(cls, result) -> Sequence[cirq.Result]:
         return [res for result_list in result for res in result_list]
 
     def __iter__(self) -> Iterator[cirq.Result]:
@@ -355,7 +364,7 @@ class EngineJob:
         pass
 
     @overload
-    def __getitem__(self, item: slice) -> List[cirq.Result]:
+    def __getitem__(self, item: slice) -> Sequence[cirq.Result]:
         pass
 
     def __getitem__(self, item):
@@ -395,7 +404,7 @@ def _deserialize_run_context(
     raise ValueError(f'unsupported run_context type: {run_context_type}')
 
 
-def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
+def _get_job_results_v1(result: v1.program_pb2.Result) -> Sequence[cirq.Result]:
     trial_results = []
     for sweep_result in result.sweep_results:
         sweep_repetitions = sweep_result.repetitions
@@ -405,7 +414,7 @@ def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
             measurements = v1.unpack_results(data, sweep_repetitions, key_sizes)
 
             trial_results.append(
-                cirq.Result.from_single_parameter_set(
+                cirq.ResultDict(
                     params=cirq.ParamResolver(result.params.assignments),
                     measurements=measurements,
                 )
@@ -413,7 +422,7 @@ def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
     return trial_results
 
 
-def _get_job_results_v2(result: v2.result_pb2.Result) -> List[cirq.Result]:
+def _get_job_results_v2(result: v2.result_pb2.Result) -> Sequence[cirq.Result]:
     sweep_results = v2.results_from_proto(result)
     # Flatten to single list to match to sampler api.
     return [trial_result for sweep_result in sweep_results for trial_result in sweep_result]

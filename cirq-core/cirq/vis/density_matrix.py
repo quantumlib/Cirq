@@ -41,18 +41,18 @@ def _plot_element_of_density_matrix(ax, x, y, r, phase, show_rect=False, show_te
     _image_opacity = 0.8 if not show_text else 0.4
 
     circle_out = plt.Circle(
-        (x + 0.5, y + 0.5), radius=1 / _half_cell_size_after_padding, fill=False, color='#333333'
+        (x + 0.5, y + 0.5), radius=1 * _half_cell_size_after_padding, fill=False, color='#333333'
     )
     circle_in = plt.Circle(
         (x + 0.5, y + 0.5),
-        radius=r / _half_cell_size_after_padding,
+        radius=r * _half_cell_size_after_padding,
         fill=True,
         color='IndianRed',
         alpha=_image_opacity,
     )
     line = lines.Line2D(
-        (x + 0.5, x + 0.5 + np.cos(phase) / _half_cell_size_after_padding),
-        (y + 0.5, y + 0.5 + np.sin(phase) / _half_cell_size_after_padding),
+        (x + 0.5, x + 0.5 + np.cos(phase) * _half_cell_size_after_padding),
+        (y + 0.5, y + 0.5 + np.sin(phase) * _half_cell_size_after_padding),
         color='#333333',
         alpha=_image_opacity,
     )
@@ -128,7 +128,7 @@ def plot_density_matrix(
         f"{'0'*(num_qubits - len(f'{i:b}'))}{i:b}" for i in range(matrix.shape[0])
     ]
     ax.set_xticks(ticks)
-    ax.set_xticklabels(labels)
+    ax.set_xticklabels(labels, rotation=90)
     ax.set_yticks(ticks)
     ax.set_yticklabels(reversed(labels))
     ax.set_facecolor('#eeeeee')

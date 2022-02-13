@@ -13,6 +13,7 @@
 # limitations under the License.
 """Defines trial results."""
 
+import abc
 import collections
 import io
 from typing import (
@@ -20,6 +21,7 @@ from typing import (
     Callable,
     Dict,
     Iterable,
+    Mapping,
     Optional,
     Sequence,
     TYPE_CHECKING,
@@ -33,7 +35,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr, _warn_or_error
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -62,7 +64,7 @@ def _bitstring(vals: Iterable[Any]) -> str:
     return separator.join(str_list)
 
 
-def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
+def _keyed_repeated_bitstrings(vals: Mapping[str, np.ndarray]) -> str:
     keyed_bitstrings = []
     for key in sorted(vals.keys()):
         reps = vals[key]
@@ -80,59 +82,75 @@ def _key_to_str(key: TMeasurementKey) -> str:
     return ','.join(str(q) for q in key)
 
 
-class Result:
-    """The results of multiple executions of a circuit with fixed parameters.
-    Stored as a Pandas DataFrame that can be accessed through the "data"
-    attribute. The repetition number is the row index and measurement keys
-    are the columns of the DataFrame. Each element is a big endian integer
-    representation of measurement outcomes for the measurement key in that
-    repetition.  See `cirq.big_endian_int_to_bits` and similar functions
-    for how to convert this integer into bits.
+class Result(abc.ABC):
+    """The results of multiple executions of a circuit with fixed parameters."""
 
-    Attributes:
-        params: A ParamResolver of settings used when sampling result.
-    """
-
-    def __init__(
-        self,
-        *,  # Forces keyword args.
-        params: resolver.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-    ) -> None:
-        """Inits Result.
-
-        Args:
-            params: A ParamResolver of settings used for this result.
-            measurements: A dictionary from measurement gate key to measurement
-                results. The value for each key is a 2-D array of booleans,
-                with the first index running over the repetitions, and the
-                second index running over the qubits for the corresponding
-                measurements.
-        """
-        self.params = params
-        self._data: Optional[pd.DataFrame] = None
-        self._measurements = measurements
+    def __new__(cls, *args, **kwargs):
+        if cls is Result:
+            _warn_or_error(
+                "Result constructor is deprecated and will be removed in cirq v0.15. "
+                "Use the ResultDict constructor instead, or another concrete subclass."
+            )
+            return ResultDict(*args, **kwargs)
+        return super().__new__(cls)
 
     @property
+    @abc.abstractmethod
+    def params(self) -> 'cirq.ParamResolver':
+        """A ParamResolver of settings used for this result."""
+
+    @property
+    @abc.abstractmethod
+    def measurements(self) -> Mapping[str, np.ndarray]:
+        """A mapping from measurement gate key to measurement results.
+
+        The value for each key is a 2-D array of booleans, with the first index
+        running over the repetitions, and the second index running over the
+        qubits for the corresponding measurements.
+        """
+
+    @property
+    @abc.abstractmethod
     def data(self) -> pd.DataFrame:
-        if self._data is None:
-            # Convert to a DataFrame with columns as measurement keys, rows as
-            # repetitions and a big endian integer for individual measurements.
-            converted_dict = {}
-            for key, val in self._measurements.items():
-                converted_dict[key] = [value.big_endian_bits_to_int(m_vals) for m_vals in val]
-            # Note that when a numpy array is produced from this data frame,
-            # Pandas will try to use np.int64 as dtype, but will upgrade to
-            # object if any value is too large to fit.
-            self._data = pd.DataFrame(converted_dict, dtype=np.int64)
-        return self._data
+        """Measurements converted to a pandas dataframe.
+
+        The rows in the returned data frame correspond to repetitions of the
+        circuit, and the columns correspond to measurement keys, where each
+        element is a big-endian integer representation of measurement outcomes
+        for the measurement key in that repetition. To convert these ints to
+        bits see `cirq.big_endian_int_to_bits` and similar functions.
+        """
 
     @staticmethod
+    def dataframe_from_measurements(measurements: Mapping[str, np.ndarray]) -> pd.DataFrame:
+        """Converts the given measurements to a pandas dataframe.
+
+        This can be used by subclasses as a default implementation for the data
+        property. Note that subclasses should typically memoize the result to
+        avoid recomputing.
+        """
+        # Convert to a DataFrame with columns as measurement keys, rows as
+        # repetitions and a big endian integer for individual measurements.
+        converted_dict = {
+            key: [value.big_endian_bits_to_int(m_vals) for m_vals in val]
+            for key, val in measurements.items()
+        }
+        # Note that when a numpy array is produced from this data frame,
+        # Pandas will try to use np.int64 as dtype, but will upgrade to
+        # object if any value is too large to fit.
+        return pd.DataFrame(converted_dict, dtype=np.int64)
+
+    @staticmethod
+    @deprecated(
+        deadline="v0.15",
+        fix="The static method from_single_parameter_set is deprecated. "
+        "Use the ResultDict constructor instead.",
+    )
     def from_single_parameter_set(
         *,  # Forces keyword args.
         params: resolver.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-    ) -> 'Result':
+        measurements: Mapping[str, np.ndarray],
+    ) -> 'cirq.Result':
         """Packages runs of a single parameterized circuit into a Result.
 
         Args:
@@ -143,11 +161,7 @@ class Result:
                 second index running over the qubits for the corresponding
                 measurements.
         """
-        return Result(params=params, measurements=measurements)
-
-    @property
-    def measurements(self) -> Dict[str, np.ndarray]:
-        return self._measurements
+        return ResultDict(params=params, measurements=measurements)
 
     @property
     def repetitions(self) -> int:
@@ -208,12 +222,10 @@ class Result:
             results.
         """
         fixed_keys = tuple(_key_to_str(key) for key in keys)
-        samples = zip(
-            *(self.measurements[sub_key] for sub_key in fixed_keys)
-        )  # type: Iterable[Any]
+        samples: Iterable[Any] = zip(*(self.measurements[sub_key] for sub_key in fixed_keys))
         if len(fixed_keys) == 0:
             samples = [()] * self.repetitions
-        c = collections.Counter()  # type: collections.Counter
+        c: collections.Counter = collections.Counter()
         for sample in samples:
             c[fold_func(sample)] += 1
         return c
@@ -263,50 +275,92 @@ class Result:
         """
         return self.multi_measurement_histogram(keys=[key], fold_func=lambda e: fold_func(e[0]))
 
-    def __repr__(self) -> str:
-        def item_repr(entry):
-            key, val = entry
-            return f'{key!r}: {proper_repr(val)}'
-
-        measurement_dict_repr = (
-            '{' + ', '.join([item_repr(e) for e in self.measurements.items()]) + '}'
-        )
-
-        return f'cirq.Result(params={self.params!r}, measurements={measurement_dict_repr})'
-
-    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
-        """Output to show in ipython and Jupyter notebooks."""
-        if cycle:
-            # There should never be a cycle.  This is just in case.
-            p.text('Result(...)')
-        else:
-            p.text(str(self))
-
-    def __str__(self) -> str:
-        return _keyed_repeated_bitstrings(self.measurements)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Result):
             return NotImplemented
         return self.data.equals(other.data) and self.params == other.params
 
-    def _measurement_shape(self):
+    def _measurement_shape(self) -> Tuple['cirq.ParamResolver', Dict[str, Tuple[int, ...]]]:
         return self.params, {k: v.shape[1] for k, v in self.measurements.items()}
 
     def __add__(self, other: 'cirq.Result') -> 'cirq.Result':
-        if not isinstance(other, type(self)):
+        if not isinstance(other, Result):
             return NotImplemented
         if self._measurement_shape() != other._measurement_shape():
             raise ValueError(
-                'TrialResults do not have the same parameters or do '
-                'not have the same measurement keys.'
+                'Results do not have the same parameters or do not have the '
+                'same measurement keys.'
             )
         all_measurements: Dict[str, np.ndarray] = {}
         for key in other.measurements:
             all_measurements[key] = np.append(
                 self.measurements[key], other.measurements[key], axis=0
             )
-        return Result(params=self.params, measurements=all_measurements)
+        return ResultDict(params=self.params, measurements=all_measurements)
+
+
+class ResultDict(Result):
+    """A Result created from a dict mapping measurement keys to measured values.
+
+    Stores results of executing a circuit for multiple repetitions with one
+    fixed set of parameters. The values for each measurement key are stored as a
+    2D numpy array. The first (row) index in each array is the repetition
+    number, and the second (column) index is the qubit.
+
+    Attributes:
+        params: A ParamResolver of settings used when sampling result.
+    """
+
+    def __init__(
+        self,
+        *,  # Forces keyword args.
+        params: resolver.ParamResolver,
+        measurements: Mapping[str, np.ndarray],
+    ) -> None:
+        """Inits Result.
+
+        Args:
+            params: A ParamResolver of settings used for this result.
+            measurements: A dictionary from measurement gate key to measurement
+                results. The value for each key is a 2-D array of booleans,
+                with the first index running over the repetitions, and the
+                second index running over the qubits for the corresponding
+                measurements.
+        """
+        self._params = params
+        self._measurements = measurements
+        self._data: Optional[pd.DataFrame] = None
+
+    @property
+    def params(self) -> 'cirq.ParamResolver':
+        return self._params
+
+    @property
+    def measurements(self) -> Mapping[str, np.ndarray]:
+        return self._measurements
+
+    @property
+    def data(self) -> pd.DataFrame:
+        if self._data is None:
+            self._data = self.dataframe_from_measurements(self._measurements)
+        return self._data
+
+    def __repr__(self) -> str:
+        measurement_dict_repr = (
+            '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.measurements.items()) + '}'
+        )
+        return f'cirq.ResultDict(params={self.params!r}, measurements={measurement_dict_repr})'
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Output to show in ipython and Jupyter notebooks."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('ResultDict(...)')
+        else:
+            p.text(str(self))
+
+    def __str__(self) -> str:
+        return _keyed_repeated_bitstrings(self.measurements)
 
     def _json_dict_(self):
         packed_measurements = {}
@@ -319,7 +373,6 @@ class Result:
                 'shape': digits.shape,
             }
         return {
-            'cirq_type': self.__class__.__name__,
             'params': self.params,
             'measurements': packed_measurements,
         }
@@ -332,8 +385,6 @@ class Result:
         )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool]:
     """Returns a string of packed digits and a boolean indicating whether the
     digits were packed as binary values.
@@ -344,6 +395,9 @@ def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool
             using `np.packbits` to save space. If 'never', do not pack binary
             digits. If 'force', use `np.packbits` without checking for
             compatibility.
+
+    Raises:
+        ValueError: If `pack_bits` is not `auto`, `force`, or `never`.
     """
     # If digits are binary, pack them better to save space
 
@@ -365,7 +419,6 @@ def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool
     return packed_digits, False
 
 
-# pylint: enable=missing-raises-doc
 def _pack_bits(bits: np.ndarray) -> str:
     return np.packbits(bits).tobytes().hex()
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Base simulation classes and generic simulators."""
+"""Classes for circuit simulators and base implementations of these classes."""
 from typing import Tuple, Dict
 
 from cirq.sim.act_on_args import (
@@ -64,8 +64,9 @@ from cirq.sim.simulator import (
 )
 
 from cirq.sim.simulator_base import (
-    StepResultBase,
+    SimulationTrialResultBase,
     SimulatorBase,
+    StepResultBase,
 )
 
 from cirq.sim.sparse_simulator import (
@@ -89,6 +90,7 @@ from cirq.sim.state_vector import (
 from cirq.sim.clifford import (
     ActOnCliffordTableauArgs,
     ActOnStabilizerCHFormArgs,
+    ActOnStabilizerArgs,
     StabilizerSampler,
     StabilizerStateChForm,
     CliffordSimulator,
@@ -96,13 +98,3 @@ from cirq.sim.clifford import (
     CliffordTrialResult,
     CliffordSimulatorStepResult,
 )
-
-# pylint: disable=wrong-import-order
-import sys as _sys
-from cirq._compat import deprecate_attributes as _deprecate_attributes
-
-deprecated_constants: Dict[str, Tuple[str, str]] = {
-    # currently none, you can use this to deprecate constants, for example like this:
-    # 'STATE_VECTOR_LIKE': ('v0.9', 'Use cirq.STATE_VECTOR_LIKE instead'),
-}
-_sys.modules[__name__] = _deprecate_attributes(_sys.modules[__name__], deprecated_constants)
