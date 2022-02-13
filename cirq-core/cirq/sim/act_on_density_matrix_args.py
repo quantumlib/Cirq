@@ -36,28 +36,26 @@ class _BufferedDensityMatrix:
         available_buffer: Optional[List[np.ndarray]] = None,
         dtype: Optional['DTypeLike'] = None,
     ):
-        if qid_shape is not None:
-            initial_matrix = qis.to_valid_density_matrix(
+        if not isinstance(initial_state, np.ndarray):
+            if qid_shape is None:
+                raise ValueError(f'Must define qid_shape if initial_initial state is not ndarray')
+            self.qid_shape = qid_shape
+            self.target_tensor = qis.to_valid_density_matrix(
                 initial_state, len(qid_shape), qid_shape=qid_shape, dtype=dtype
-            )
-            if np.may_share_memory(initial_matrix, initial_state):
-                initial_matrix = initial_matrix.copy()
-            target_tensor = initial_matrix.reshape(qid_shape * 2)
-            self.target_tensor = target_tensor
-
+            ).reshape(qid_shape * 2)
         else:
-            if isinstance(initial_state, np.ndarray):
+            if qid_shape is not None:
+                self.qid_shape = qid_shape
+                self.target_tensor = initial_state.reshape(qid_shape * 2)
+            else:
                 target_shape = initial_state.shape
                 if len(target_shape) % 2 != 0:
                     raise ValueError(
                         'The dimension of target_tensor is not divisible by 2.'
                         ' Require explicit qid_shape.'
                     )
-                qid_shape = target_shape[: len(target_shape) // 2]
+                self.qid_shape = target_shape[: len(target_shape) // 2]
                 self.target_tensor = initial_state
-            else:
-                qid_shape = (2,)
-        self.qid_shape = qid_shape
 
         if available_buffer is None:
             available_buffer = [np.empty_like(self.target_tensor) for _ in range(3)]
@@ -78,11 +76,7 @@ class _BufferedDensityMatrix:
         target_tensor = transformations.density_matrix_kronecker_product(
             self.target_tensor, other.target_tensor
         )
-        available_buffer = [np.empty_like(target_tensor) for _ in range(len(self.available_buffer))]
-        return _BufferedDensityMatrix(
-            initial_state=target_tensor,
-            available_buffer=available_buffer,
-        )
+        return _BufferedDensityMatrix(initial_state=target_tensor)
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
@@ -90,27 +84,15 @@ class _BufferedDensityMatrix:
         extracted_tensor, remainder_tensor = transformations.factor_density_matrix(
             self.target_tensor, axes, validate=validate, atol=atol
         )
-        extracted_buffer = [np.empty_like(extracted_tensor) for _ in self.available_buffer]
-        extracted = _BufferedDensityMatrix(
-            initial_state=extracted_tensor,
-            available_buffer=extracted_buffer,
-        )
-        remainder_buffer = [np.empty_like(remainder_tensor) for _ in self.available_buffer]
-        remainder = _BufferedDensityMatrix(
-            initial_state=remainder_tensor,
-            available_buffer=remainder_buffer,
-        )
+        extracted = _BufferedDensityMatrix(initial_state=extracted_tensor)
+        remainder = _BufferedDensityMatrix(initial_state=remainder_tensor)
         return extracted, remainder
 
     def reindex(self, axes: Sequence[int]) -> '_BufferedDensityMatrix':
         new_tensor = transformations.transpose_density_matrix_to_axis_order(
             self.target_tensor, axes
         )
-        buffer = [np.empty_like(new_tensor) for _ in self.available_buffer]
-        return _BufferedDensityMatrix(
-            initial_state=new_tensor,
-            available_buffer=buffer,
-        )
+        return _BufferedDensityMatrix(initial_state=new_tensor)
 
     def apply_channel(self, action: Any, axes: Sequence[int]) -> bool:
         """Apply channel to state."""
@@ -195,6 +177,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             ValueError: The dimension of `target_tensor` is not divisible by 2
                 and `qid_shape` is not provided.
         """
+        if qubits is None:
+            raise ValueError('qubits must be specified')
         super().__init__(
             prng=prng,
             qubits=qubits,
@@ -204,7 +188,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
         self._state = _BufferedDensityMatrix(
             initial_state=target_tensor if target_tensor is not None else initial_state,
-            qid_shape=qid_shape or (protocols.qid_shape(qubits) if qubits is not None else None),
+            qid_shape=tuple(q.dimension for q in qubits),
             available_buffer=available_buffer,
             dtype=dtype,
         )
