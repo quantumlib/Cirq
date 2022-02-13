@@ -71,8 +71,12 @@ class _BufferedDensityMatrix:
             dtype: The dtype of the density matrix, if the initial state is provided as an int.
             buffer: Optional, must be length 3 and same shape as the density matrix. If not
                 provided, a buffer will be created automatically.
+        Raises:
+            ValueError: If initial state is provided as integer, but qid_shape is not provided.
         """
         if not isinstance(initial_state, np.ndarray):
+            if qid_shape is None:
+                raise ValueError('qid_shape must be provided if initial_state is not ndarray')
             density_matrix = qis.to_valid_density_matrix(
                 initial_state, len(qid_shape), qid_shape=qid_shape, dtype=dtype
             ).reshape(qid_shape * 2)
