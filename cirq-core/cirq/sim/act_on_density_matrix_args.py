@@ -28,93 +28,121 @@ if TYPE_CHECKING:
 
 
 class _BufferedDensityMatrix:
-    def __init__(
-        self,
+    def __init__(self, density_matrix: np.ndarray, buffer: Optional[List[np.ndarray]] = None):
+        self._density_matrix = density_matrix
+        if buffer is None:
+            buffer = [np.empty_like(density_matrix) for _ in range(3)]
+        self._buffer = buffer
+        if len(density_matrix.shape) % 2 != 0:
+            raise ValueError(
+                'The dimension of target_tensor is not divisible by 2.'
+                ' Require explicit qid_shape.'
+            )
+        self._qid_shape = density_matrix.shape[: len(density_matrix.shape) // 2]
+        
+    @classmethod
+    def create(
+        cls,
         *,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         qid_shape: Optional[Tuple[int, ...]] = None,
-        available_buffer: Optional[List[np.ndarray]] = None,
         dtype: Optional['DTypeLike'] = None,
+        buffer: Optional[List[np.ndarray]] = None,
     ):
         if not isinstance(initial_state, np.ndarray):
             if qid_shape is None:
                 raise ValueError(f'Must define qid_shape if initial_initial state is not ndarray')
-            self.qid_shape = qid_shape
-            self.target_tensor = qis.to_valid_density_matrix(
+            density_matrix = qis.to_valid_density_matrix(
                 initial_state, len(qid_shape), qid_shape=qid_shape, dtype=dtype
             ).reshape(qid_shape * 2)
         else:
             if qid_shape is not None:
-                self.qid_shape = qid_shape
-                self.target_tensor = initial_state.reshape(qid_shape * 2)
+                density_matrix = initial_state.reshape(qid_shape * 2)
             else:
-                target_shape = initial_state.shape
-                if len(target_shape) % 2 != 0:
-                    raise ValueError(
-                        'The dimension of target_tensor is not divisible by 2.'
-                        ' Require explicit qid_shape.'
-                    )
-                self.qid_shape = target_shape[: len(target_shape) // 2]
-                self.target_tensor = initial_state
-
-        if available_buffer is None:
-            available_buffer = [np.empty_like(self.target_tensor) for _ in range(3)]
-        self.available_buffer = available_buffer
+                density_matrix = initial_state
+            if np.may_share_memory(density_matrix, initial_state):
+                density_matrix = density_matrix.copy()
+        return cls(density_matrix, buffer)
 
     def copy(self, deep_copy_buffers: bool = True) -> '_BufferedDensityMatrix':
-        target_tensor = self.target_tensor.copy()
+        density_matrix = self._density_matrix.copy()
         if deep_copy_buffers:
-            available_buffer = [b.copy() for b in self.available_buffer]
+            buffer = [b.copy() for b in self._buffer]
         else:
-            available_buffer = self.available_buffer
+            buffer = self._buffer
         return _BufferedDensityMatrix(
-            initial_state=target_tensor,
-            available_buffer=available_buffer,
+            density_matrix=density_matrix,
+            buffer=buffer,
         )
 
     def kron(self, other: '_BufferedDensityMatrix') -> '_BufferedDensityMatrix':
-        target_tensor = transformations.density_matrix_kronecker_product(
-            self.target_tensor, other.target_tensor
+        density_matrix = transformations.density_matrix_kronecker_product(
+            self._density_matrix, other._density_matrix
         )
-        return _BufferedDensityMatrix(initial_state=target_tensor)
+        return _BufferedDensityMatrix(density_matrix=density_matrix)
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
     ) -> Tuple['_BufferedDensityMatrix', '_BufferedDensityMatrix']:
         extracted_tensor, remainder_tensor = transformations.factor_density_matrix(
-            self.target_tensor, axes, validate=validate, atol=atol
+            self._density_matrix, axes, validate=validate, atol=atol
         )
-        extracted = _BufferedDensityMatrix(initial_state=extracted_tensor)
-        remainder = _BufferedDensityMatrix(initial_state=remainder_tensor)
+        extracted = _BufferedDensityMatrix(density_matrix=extracted_tensor)
+        remainder = _BufferedDensityMatrix(density_matrix=remainder_tensor)
         return extracted, remainder
 
     def reindex(self, axes: Sequence[int]) -> '_BufferedDensityMatrix':
         new_tensor = transformations.transpose_density_matrix_to_axis_order(
-            self.target_tensor, axes
+            self._density_matrix, axes
         )
-        return _BufferedDensityMatrix(initial_state=new_tensor)
+        return _BufferedDensityMatrix(density_matrix=new_tensor)
 
     def apply_channel(self, action: Any, axes: Sequence[int]) -> bool:
         """Apply channel to state."""
         result = protocols.apply_channel(
             action,
             args=protocols.ApplyChannelArgs(
-                target_tensor=self.target_tensor,
-                out_buffer=self.available_buffer[0],
-                auxiliary_buffer0=self.available_buffer[1],
-                auxiliary_buffer1=self.available_buffer[2],
+                target_tensor=self._density_matrix,
+                out_buffer=self._buffer[0],
+                auxiliary_buffer0=self._buffer[1],
+                auxiliary_buffer1=self._buffer[2],
                 left_axes=axes,
-                right_axes=[e + len(self.qid_shape) for e in axes],
+                right_axes=[e + len(self._qid_shape) for e in axes],
             ),
             default=None,
         )
         if result is None:
             return False
-        for i in range(len(self.available_buffer)):
-            if result is self.available_buffer[i]:
-                self.available_buffer[i] = self.target_tensor
-        self.target_tensor = result
+        for i in range(len(self._buffer)):
+            if result is self._buffer[i]:
+                self._buffer[i] = self._density_matrix
+        self._density_matrix = result
         return True
+
+    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> List[int]:
+        """Delegates the call to measure the density matrix."""
+        bits, _ = sim.measure_density_matrix(
+            self._density_matrix,
+            axes,
+            out=self._density_matrix,
+            qid_shape=self._qid_shape,
+            seed=seed,
+        )
+        return bits
+
+    def sample(
+        self,
+        axes: Sequence[int],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        return sim.sample_density_matrix(
+            self._density_matrix,
+            axes,
+            qid_shape=self._qid_shape,
+            repetitions=repetitions,
+            seed=seed,
+        )
 
 
 class ActOnDensityMatrixArgs(ActOnArgs):
@@ -177,8 +205,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             ValueError: The dimension of `target_tensor` is not divisible by 2
                 and `qid_shape` is not provided.
         """
-        if qubits is None:
-            raise ValueError('qubits must be specified')
         super().__init__(
             prng=prng,
             qubits=qubits,
@@ -186,11 +212,11 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             ignore_measurement_results=ignore_measurement_results,
             classical_data=classical_data,
         )
-        self._state = _BufferedDensityMatrix(
+        self._state = _BufferedDensityMatrix.create(
             initial_state=target_tensor if target_tensor is not None else initial_state,
-            qid_shape=tuple(q.dimension for q in qubits),
-            available_buffer=available_buffer,
+            qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
             dtype=dtype,
+            buffer=available_buffer,
         )
 
     def _act_on_fallback_(
@@ -221,14 +247,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Delegates the call to measure the density matrix."""
-        bits, _ = sim.measure_density_matrix(
-            self.target_tensor,
-            self.get_axes(qubits),
-            out=self.target_tensor,
-            qid_shape=self.qid_shape,
-            seed=self.prng,
-        )
-        return bits
+        return self._state.measure(self.get_axes(qubits), self.prng)
 
     def _on_copy(self, target: 'cirq.ActOnDensityMatrixArgs', deep_copy_buffers: bool = True):
         target._state = self._state.copy(deep_copy_buffers)
@@ -264,14 +283,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        indices = [self.qubit_map[q] for q in qubits]
-        return sim.sample_density_matrix(
-            self.target_tensor,
-            indices,
-            qid_shape=tuple(q.dimension for q in self.qubits),
-            repetitions=repetitions,
-            seed=seed,
-        )
+        return self._state.sample(self.get_axes(qubits), repetitions, seed)
 
     @property
     def can_represent_mixed_states(self) -> bool:
@@ -289,15 +301,15 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
     @property
     def target_tensor(self):
-        return self._state.target_tensor
+        return self._state._density_matrix
 
     @property
     def available_buffer(self):
-        return self._state.available_buffer
+        return self._state._buffer
 
     @property
     def qid_shape(self):
-        return self._state.qid_shape
+        return self._state._qid_shape
 
 
 def _strat_apply_channel_to_state(
