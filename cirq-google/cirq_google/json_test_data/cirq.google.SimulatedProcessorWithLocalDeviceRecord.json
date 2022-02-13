@@ -1,0 +1,5 @@
+{
+  "cirq_type": "cirq.google.SimulatedProcessorWithLocalDeviceRecord",
+  "processor_id": "rainbow",
+  "noise_strength": 0.001
+}

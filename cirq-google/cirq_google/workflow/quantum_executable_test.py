@@ -30,9 +30,15 @@ def test_bitstrings_measurement():
     cirq.testing.assert_equivalent_repr(bs, global_vals={'cirq_google': cirq_google})
 
 
-def _get_random_circuit(qubits, n_moments=10, op_density=0.8, random_state=52):
-    return cirq.testing.random_circuit(
-        qubits, n_moments=n_moments, op_density=op_density, random_state=random_state
+def _get_random_circuit(qubits, *, n_moments=10, random_state=52):
+    return (
+        cirq.experiments.random_rotations_between_grid_interaction_layers_circuit(
+            qubits=qubits,
+            depth=n_moments,
+            seed=random_state,
+            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
+        )
+        + cirq.measure(*qubits, key='z')
     )
 
 
@@ -63,7 +69,7 @@ def test_kv_repr():
 
 
 def test_quantum_executable(tmpdir):
-    qubits = cirq.LineQubit.range(10)
+    qubits = cirq.GridQubit.rect(2, 2)
     exe = QuantumExecutable(
         spec=_get_example_spec(name='example-program'),
         circuit=_get_random_circuit(qubits),
@@ -109,7 +115,7 @@ def test_quantum_executable(tmpdir):
 
 
 def test_quantum_executable_inputs():
-    qubits = cirq.LineQubit.range(10)
+    qubits = cirq.GridQubit.rect(2, 3)
     spec = _get_example_spec(name='example-program')
     circuit = _get_random_circuit(qubits)
     measurement = BitstringsMeasurement(n_repetitions=10)
@@ -134,11 +140,11 @@ def test_quantum_executable_inputs():
 
 
 def _get_quantum_executables():
-    qubits = cirq.LineQubit.range(10)
+    qubits = cirq.GridQubit.rect(1, 5, 5, 0)
     return [
         QuantumExecutable(
             spec=_get_example_spec(name=f'example-program-{i}'),
-            problem_topology=cirq.LineTopology(10),
+            problem_topology=cirq.LineTopology(5),
             circuit=_get_random_circuit(qubits, random_state=i),
             measurement=BitstringsMeasurement(n_repetitions=10),
         )
