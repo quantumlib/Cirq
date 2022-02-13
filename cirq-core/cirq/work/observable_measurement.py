@@ -79,11 +79,11 @@ def _with_parameterized_layers(
     "{qubit}-Xf" and "{qubit}-Yf" and are use to change the frame of the
     qubit before measurement, effectively measuring in bases other than Z.
     """
-    x_beg_mom = ops.Moment([ops.X(q) ** sympy.Symbol(f'{q}-Xi') for q in qubits])
-    y_beg_mom = ops.Moment([ops.Y(q) ** sympy.Symbol(f'{q}-Yi') for q in qubits])
-    x_end_mom = ops.Moment([ops.X(q) ** sympy.Symbol(f'{q}-Xf') for q in qubits])
-    y_end_mom = ops.Moment([ops.Y(q) ** sympy.Symbol(f'{q}-Yf') for q in qubits])
-    meas_mom = ops.Moment([ops.measure(*qubits, key='z')])
+    x_beg_mom = circuits.Moment([ops.X(q) ** sympy.Symbol(f'{q}-Xi') for q in qubits])
+    y_beg_mom = circuits.Moment([ops.Y(q) ** sympy.Symbol(f'{q}-Yi') for q in qubits])
+    x_end_mom = circuits.Moment([ops.X(q) ** sympy.Symbol(f'{q}-Xf') for q in qubits])
+    y_end_mom = circuits.Moment([ops.Y(q) ** sympy.Symbol(f'{q}-Yf') for q in qubits])
+    meas_mom = circuits.Moment([ops.measure(*qubits, key='z')])
     if needs_init_layer:
         total_circuit = circuits.Circuit([x_beg_mom, y_beg_mom])
         total_circuit += circuit.unfreeze()

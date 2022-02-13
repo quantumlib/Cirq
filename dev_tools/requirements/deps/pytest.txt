@@ -3,6 +3,8 @@
 pytest
 pytest-asyncio
 pytest-cov
+# Notebook >=6.4.8 + coverage > 6.2 hangs CI: https://github.com/quantumlib/Cirq/issues/4897
+coverage<=6.2
 
 # for parallel testing notebooks
 pytest-xdist~=2.2.0
@@ -15,7 +17,7 @@ freezegun~=0.3.15
 importlib-metadata
 
 # codeowners test dependency
-codeowners; python_version >= '3.7'
+codeowners; python_version >= '3.7' and platform_system != "Windows"
 
 # for creating isolated environments
 virtualenv

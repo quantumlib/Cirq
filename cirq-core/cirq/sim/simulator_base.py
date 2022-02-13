@@ -16,6 +16,8 @@
 
 import abc
 import collections
+import inspect
+import warnings
 from typing import (
     Any,
     Dict,
@@ -124,7 +126,7 @@ class SimulatorBase(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: 'cirq.ClassicalDataStore',
     ) -> TActOnArgs:
         """Creates an instance of the TActOnArgs class for the simulator.
 
@@ -135,8 +137,8 @@ class SimulatorBase(
                 understood to be a pure state. Other state representations are
                 simulator-dependent.
             qubits: The sequence of qubits to represent.
-            logs: The structure to hold measurement logs. A single instance
-                should be shared among all ActOnArgs within the simulation.
+            classical_data: The shared classical data container for this
+                simulation.
         """
 
     @abc.abstractmethod
@@ -266,10 +268,25 @@ class SimulatorBase(
 
         measurements: Dict[str, List[np.ndarray]] = {}
         for i in range(repetitions):
-            all_step_results = self._core_iterator(
-                general_suffix,
-                sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
-            )
+            if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
+                all_step_results = self._core_iterator(
+                    general_suffix,
+                    sim_state=act_on_args.copy(deep_copy_buffers=False)
+                    if i < repetitions - 1
+                    else act_on_args,
+                )
+            else:
+                warnings.warn(
+                    (
+                        'A new parameter deep_copy_buffers has been added to ActOnArgs.copy(). The '
+                        'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
+                    ),
+                    DeprecationWarning,
+                )
+                all_step_results = self._core_iterator(
+                    general_suffix,
+                    sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
+                )
             for step_result in all_step_results:
                 pass
             for k, v in step_result.measurements.items():
@@ -335,7 +352,7 @@ class SimulatorBase(
         if isinstance(initial_state, OperationTarget):
             return initial_state
 
-        log: Dict[str, Any] = {}
+        classical_data = value.ClassicalDataDictionaryStore()
         if self._split_untangled_states:
             args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
             if isinstance(initial_state, int):
@@ -343,24 +360,26 @@ class SimulatorBase(
                     args_map[q] = self._create_partial_act_on_args(
                         initial_state=initial_state % q.dimension,
                         qubits=[q],
-                        logs=log,
+                        classical_data=classical_data,
                     )
                     initial_state = int(initial_state / q.dimension)
             else:
                 args = self._create_partial_act_on_args(
                     initial_state=initial_state,
                     qubits=qubits,
-                    logs=log,
+                    classical_data=classical_data,
                 )
                 for q in qubits:
                     args_map[q] = args
-            args_map[None] = self._create_partial_act_on_args(0, (), log)
-            return ActOnArgsContainer(args_map, qubits, self._split_untangled_states, log)
+            args_map[None] = self._create_partial_act_on_args(0, (), classical_data)
+            return ActOnArgsContainer(
+                args_map, qubits, self._split_untangled_states, classical_data=classical_data
+            )
         else:
             return self._create_partial_act_on_args(
                 initial_state=initial_state,
                 qubits=qubits,
-                logs=log,
+                classical_data=classical_data,
             )
 
 
@@ -440,7 +459,7 @@ class SimulationTrialResultBase(
     def _get_substates(self) -> Sequence[TActOnArgs]:
         state = self._final_step_result_typed._sim_state
         if isinstance(state, ActOnArgsContainer):
-            substates = dict()  # type: Dict[TActOnArgs, int]
+            substates: Dict[TActOnArgs, int] = {}
             for q in state.qubits:
                 substates[self.get_state_containing_qubit(q)] = 0
             substates[state[None]] = 0

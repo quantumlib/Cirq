@@ -365,7 +365,7 @@ def _init_ops(data: Dict[str, Any]) -> 'cirq.OP_TREE':
             init_ops.append(ops.rx(np.pi / 2).on(q))
         else:
             raise ValueError(f'Unrecognized init state: {state!r}')
-    return ops.Moment(init_ops)
+    return circuits.Moment(init_ops)
 
 
 def _parse_col_cells_with_height(

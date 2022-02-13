@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for cirq.Sampler."""
-from typing import List
+from typing import Sequence
 
 import pytest
 
@@ -225,12 +225,12 @@ def test_sampler_sample_expectation_values_calculation():
             program: 'cirq.AbstractCircuit',
             params: 'cirq.Sweepable',
             repetitions: int = 1,
-        ) -> List['cirq.Result']:
+        ) -> Sequence['cirq.Result']:
             results = np.zeros((repetitions, 1), dtype=bool)
             for idx in range(repetitions // 4):
                 results[idx][0] = 1
             return [
-                cirq.Result(params=pr, measurements={'z': results})
+                cirq.ResultDict(params=pr, measurements={'z': results})
                 for pr in cirq.study.to_resolvers(params)
             ]
 

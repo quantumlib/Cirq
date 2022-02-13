@@ -26,9 +26,11 @@ def assert_optimizes(
     compare_unitaries: bool = True,
     eject_parameterized: bool = False,
 ):
-    opt = cirq.EjectPhasedPaulis(eject_parameterized=eject_parameterized)
+    with cirq.testing.assert_deprecated("Use cirq.eject_phased_paulis", deadline='v1.0'):
+        opt = cirq.EjectPhasedPaulis(eject_parameterized=eject_parameterized)
 
     circuit = before.copy()
+    expected = cirq.drop_empty_moments(expected)
     opt.optimize_circuit(circuit)
 
     # They should have equivalent effects.

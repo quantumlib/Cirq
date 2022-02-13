@@ -1,0 +1,13 @@
+{
+  "cirq_type": "cirq.google.QuantumRuntimeConfiguration",
+  "processor_record": {
+    "cirq_type": "cirq.google.SimulatedProcessorRecord",
+    "processor_id": "rainbow",
+    "noise_strength": 0
+  },
+  "run_id": "unit-test",
+  "random_seed": null,
+  "qubit_placer": {
+    "cirq_type": "cirq.google.NaiveQubitPlacer"
+  }
+}

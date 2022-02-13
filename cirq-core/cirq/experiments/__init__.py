@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Package containing characterization tools and experiments."""
+"""Experiments and tools for characterizing quantum operations."""
 
 from cirq.experiments.google_v2_supremacy_circuit import (
     generate_boixo_2018_supremacy_circuits_v2,
@@ -63,6 +63,11 @@ from cirq.experiments.random_quantum_circuit_generation import (
     HALF_GRID_STAGGERED_PATTERN,
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit,
+)
+
+from cirq.experiments.readout_confusion_matrix import (
+    TensoredConfusionMatrices,
+    measure_confusion_matrix,
 )
 
 from cirq.experiments.n_qubit_tomography import (

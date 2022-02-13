@@ -392,21 +392,8 @@ def test_run_circuit(client):
     client.get_job_result.called_once_with()
 
 
-def test_circuit_device_validation_fails():
-    circuit = cirq.Circuit(device=cg.Foxtail)
-
-    # Purposefully create an invalid Circuit by fiddling with internal bits.
-    # This simulates a failure in the incremental checks.
-    circuit._moments.append(cirq.Moment([cirq.Z(cirq.NamedQubit("dorothy"))]))
-    engine = cg.Engine(project_id='project-id')
-    with pytest.raises(ValueError, match='Unsupported qubit type'):
-        engine.run_sweep(program=circuit, gate_set=cg.XMON)
-    with pytest.raises(ValueError, match='Unsupported qubit type'):
-        engine.create_program(circuit, gate_set=cg.XMON)
-
-
 def test_no_gate_set():
-    circuit = cirq.Circuit(device=cg.Sycamore)
+    circuit = cirq.Circuit()
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(ValueError, match='No gate set'):
         engine.run(program=circuit)

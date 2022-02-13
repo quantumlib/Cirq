@@ -21,17 +21,19 @@ if TYPE_CHECKING:
     import cirq_google
 
 
+@cirq._compat.deprecated_parameter(
+    deadline='v0.15',
+    fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,
+    parameter_desc='new_device',
+    match=lambda args, kwargs: 'new_device' in kwargs,
+)
 def optimized_for_xmon(
     circuit: cirq.Circuit,
     new_device: Optional['cirq_google.XmonDevice'] = None,
     qubit_map: Callable[[cirq.Qid], cirq.GridQubit] = lambda e: cast(cirq.GridQubit, e),
     allow_partial_czs: bool = False,
 ) -> cirq.Circuit:
-    if allow_partial_czs:
-        return optimized_for_sycamore(
-            circuit, new_device=new_device, qubit_map=qubit_map, optimizer_type='xmon_partial_cz'
-        )
-    else:
-        return optimized_for_sycamore(
-            circuit, new_device=new_device, qubit_map=qubit_map, optimizer_type='xmon'
-        )
+    optimizer_type = 'xmon_partial_cz' if allow_partial_czs else 'xmon'
+    ret = optimized_for_sycamore(circuit, qubit_map=qubit_map, optimizer_type=optimizer_type)
+    ret._device = new_device or circuit._device
+    return ret

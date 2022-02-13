@@ -196,7 +196,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         raise ValueError(f'{self} is not unitary')
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        result = value.LinearDict({})  # type: value.LinearDict[str]
+        result: value.LinearDict[str] = value.LinearDict({})
         for gate, coefficient in self.items():
             result += protocols.pauli_expansion(gate) * coefficient
         return result
@@ -334,7 +334,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
                 {extend_term(p, qubits, all_qubits): c for p, c in expansion.items()}
             )
 
-        result = value.LinearDict({})  # type: value.LinearDict[str]
+        result: value.LinearDict[str] = value.LinearDict({})
         for op, coefficient in self.items():
             expansion = protocols.pauli_expansion(op)
             extended_expansion = extend(expansion, op.qubits, self.qubits)

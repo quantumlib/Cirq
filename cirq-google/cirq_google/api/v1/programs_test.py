@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import numpy as np
 import pytest
 import sympy
@@ -28,16 +27,37 @@ def assert_proto_dict_convert(gate: cirq.Gate, proto: operations_pb2.Operation, 
 
 
 def test_protobuf_round_trip():
-    device = cg.Foxtail
+    qubits = cirq.GridQubit.rect(1, 5)
     circuit = cirq.Circuit(
-        [cirq.X(q) ** 0.5 for q in device.qubits],
-        [cirq.CZ(q, q2) for q in [cirq.GridQubit(0, 0)] for q2 in device.neighbors_of(q)],
-        device=device,
+        [cirq.X(q) ** 0.5 for q in qubits],
+        [
+            cirq.CZ(q, q2)
+            for q in [cirq.GridQubit(0, 0)]
+            for q, q2 in zip(qubits, qubits)
+            if q != q2
+        ],
     )
 
     protos = list(programs.circuit_as_schedule_to_protos(circuit))
-    s2 = programs.circuit_from_schedule_from_protos(device, protos)
+    s2 = programs.circuit_from_schedule_from_protos(protos)
     assert s2 == circuit
+
+
+def test_protobuf_round_trip_device_deprecated():
+    with cirq.testing.assert_deprecated('Foxtail', deadline='v0.15'):
+        device = cg.Foxtail
+    circuit = cirq.Circuit(
+        [cirq.X(q) ** 0.5 for q in device.qubits],
+        [cirq.CZ(q, q2) for q in [cirq.GridQubit(0, 0)] for q2 in device.neighbors_of(q)],
+    )
+    circuit._device = device
+
+    protos = list(programs.circuit_as_schedule_to_protos(circuit))
+    with cirq.testing.assert_deprecated(
+        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
+    ):
+        s2 = programs.circuit_from_schedule_from_protos(device, protos)
+        assert s2 == circuit
 
 
 def make_bytes(s: str) -> bytes:

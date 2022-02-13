@@ -22,5 +22,14 @@ from cirq_google.workflow.io import (
 
 from cirq_google.workflow.qubit_placement import (
     QubitPlacer,
+    CouldNotPlaceError,
     NaiveQubitPlacer,
+    RandomDevicePlacer,
+)
+
+from cirq_google.workflow.processor_record import (
+    ProcessorRecord,
+    EngineProcessorRecord,
+    SimulatedProcessorRecord,
+    SimulatedProcessorWithLocalDeviceRecord,
 )

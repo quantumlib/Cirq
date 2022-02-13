@@ -7,6 +7,10 @@ from cirq.sim.clifford.act_on_stabilizer_ch_form_args import (
     ActOnStabilizerCHFormArgs,
 )
 
+from cirq.sim.clifford.act_on_stabilizer_args import (
+    ActOnStabilizerArgs,
+)
+
 from cirq.sim.clifford.stabilizer_state_ch_form import (
     StabilizerStateChForm,
 )

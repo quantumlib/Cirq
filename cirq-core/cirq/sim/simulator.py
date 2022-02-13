@@ -31,19 +31,19 @@ import abc
 import collections
 from typing import (
     Any,
+    Callable,
+    cast,
     Dict,
+    Generic,
     Iterator,
     List,
-    Sequence,
-    Tuple,
-    Union,
     Optional,
-    TYPE_CHECKING,
+    Sequence,
     Set,
-    cast,
-    Callable,
+    Tuple,
+    TYPE_CHECKING,
     TypeVar,
-    Generic,
+    Union,
 )
 
 import numpy as np
@@ -73,7 +73,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> Sequence['cirq.Result']:
         return list(self.run_sweep_iter(program, params, repetitions))
 
     def run_sweep_iter(
@@ -113,7 +113,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 measurements = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
                 )
-            yield study.Result(params=param_resolver, measurements=measurements)
+            yield study.ResultDict(params=param_resolver, measurements=measurements)
 
     @abc.abstractmethod
     def _run(
@@ -234,6 +234,78 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             the circuit parameters and the inner dimension indexes bitstrings.
         """
         raise NotImplementedError()
+
+    def sample_from_amplitudes(
+        self,
+        circuit: 'cirq.AbstractCircuit',
+        param_resolver: 'cirq.ParamResolver',
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE',
+        repetitions: int = 1,
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    ) -> Dict[int, int]:
+        """Uses amplitude simulation to sample from the given circuit.
+
+        This implements the algorithm outlined by Bravyi, Gosset, and Liu in
+        https://arxiv.org/abs/2112.08499 to more efficiently calculate samples
+        given an amplitude-based simulator.
+
+        Simulators which also implement SimulatesSamples or SimulatesFullState
+        should prefer `run()` or `simulate()`, respectively, as this method
+        only accelerates sampling for amplitude-based simulators.
+
+        Args:
+            circuit: The circuit to simulate.
+            param_resolver: Parameters to run with the program.
+            seed: Random state to use as a seed. This must be provided
+                manually - if the simulator has its own seed, it will not be
+                used unless it is passed as this argument.
+            repetitions: The number of repetitions to simulate.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            A dict of bitstrings sampled from the final state of `circuit` to
+            the number of occurrences of that bitstring.
+
+        Raises:
+            ValueError: if 'circuit' has non-unitary elements, as differences
+                in behavior between sampling steps break this algorithm.
+        """
+        prng = value.parse_random_state(seed)
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        base_circuit = circuits.Circuit(ops.I(q) for q in qubits) + circuit.unfreeze()
+        qmap = {q: i for i, q in enumerate(qubits)}
+        current_samples = {(0,) * len(qubits): repetitions}
+        solved_circuit = protocols.resolve_parameters(base_circuit, param_resolver)
+        if not protocols.has_unitary(solved_circuit):
+            raise ValueError("sample_from_amplitudes does not support non-unitary behavior.")
+        if protocols.is_measurement(solved_circuit):
+            raise ValueError("sample_from_amplitudes does not support intermediate measurement.")
+        for m_id, moment in enumerate(solved_circuit[1:]):
+            circuit_prefix = solved_circuit[: m_id + 1]
+            for t, op in enumerate(moment.operations):
+                new_samples: Dict[Tuple[int, ...], int] = collections.defaultdict(int)
+                qubit_indices = {qmap[q] for q in op.qubits}
+                subcircuit = circuit_prefix + circuits.Moment(moment.operations[: t + 1])
+                for current_sample, count in current_samples.items():
+                    sample_set = [current_sample]
+                    for idx in qubit_indices:
+                        sample_set = [
+                            target[:idx] + (result,) + target[idx + 1 :]
+                            for target in sample_set
+                            for result in [0, 1]
+                        ]
+                    bitstrings = [int(''.join(map(str, sample)), base=2) for sample in sample_set]
+                    amps = self.compute_amplitudes(subcircuit, bitstrings, qubit_order=qubit_order)
+                    weights = np.abs(np.square(np.array(amps))).astype(np.float64)
+                    weights /= np.linalg.norm(weights, 1)
+                    subsample = prng.choice(len(sample_set), p=weights, size=count)
+                    for sample_index in subsample:
+                        new_samples[sample_set[sample_index]] += 1
+                current_samples = new_samples
+
+        return {int(''.join(map(str, k)), base=2): v for k, v in current_samples.items()}
 
 
 class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
@@ -545,7 +617,7 @@ class SimulatesIntermediateState(
             all_step_results = self.simulate_moment_steps(
                 program, param_resolver, qubit_order, state
             )
-            measurements = {}  # type: Dict[str, np.ndarray]
+            measurements: Dict[str, np.ndarray] = {}
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=np.uint8)
@@ -964,7 +1036,7 @@ def split_into_matching_protocol_then_general(
             else:
                 general_part.append(op)
         if matching_part:
-            matching_prefix.append(ops.Moment(matching_part))
+            matching_prefix.append(circuits.Moment(matching_part))
         if general_part:
-            general_suffix.append(ops.Moment(general_part))
+            general_suffix.append(circuits.Moment(general_part))
     return matching_prefix, general_suffix
