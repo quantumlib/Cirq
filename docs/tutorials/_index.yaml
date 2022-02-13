@@ -14,6 +14,16 @@ landing_page:
         path: /cirq/tutorials/basics
         icon:
           name: menu_book
+      - heading: Heatmaps
+        description: Compare qubit data with graphs.
+        path: /cirq/tutorials/heatmaps
+        icon:
+          name: menu_book
+      - heading: State Histograms
+        description: Visualize the output from running circuits.
+        path: /cirq/tutorials/state_histograms
+        icon:
+          name: menu_book
 
     - heading: Intermediate
       description: Use Cirq for intermediate-level subroutines and algorithms.
@@ -33,19 +43,44 @@ landing_page:
         path: /cirq/tutorials/quantum_walks
         icon:
           name: menu_book
+      - heading: Fourier Checking
+        description: Demonstrate the separation between classical and quantum computation.
+        path: /cirq/tutorials/fourier_checking
+        icon:
+          name: menu_book
 
 
     - heading: Advanced
       description: Utilize Cirq features to implement advanced quantum algorithms.
       items:
-      - heading: Hidden linear function problem
-        description: Find a hidden vector with a constant depth quantum circuit.
-        path: /cirq/tutorials/hidden_linear_function
-        icon:
-          name: menu_book
       - heading: Rabi oscillation experiment
         description: Example of using sweeps and symbols to show rotation of a qubit by different angles.
         path: /cirq/tutorials/rabi_oscillations
+        icon:
+          name: menu_book
+      - heading: Cross entropy benchmarking (XEB) theory
+        description: Qubit performance characterization with randomized circuits.
+        path: /cirq/qcvv/xeb_theory
+        icon:
+          name: menu_book
+      - heading: XEB and coherent error
+        description: Emulate coherent error in cross entropy benchmarking.
+        path: /cirq/qcvv/xeb_coherent_noise
+        icon:
+          name: menu_book
+      - heading: Parallel XEB
+        description: Example of end-to-end XEB that characterizes multiple qubit pairs simultaneously.
+        path: /cirq/qcvv/parallel_xeb
+        icon:
+          name: menu_book
+      - heading: Isolated XEB
+        description: Example of end-to-end XEB that characterizes each qubit in isolation.
+        path: /cirq/qcvv/isolated_xeb
+        icon:
+          name: menu_book
+      - heading: Hidden linear function problem
+        description: Find a hidden vector with a constant depth quantum circuit.
+        path: /cirq/tutorials/hidden_linear_function
         icon:
           name: menu_book
       - heading: Shor's algorithm
