@@ -39,7 +39,7 @@ class _BufferedDensityMatrix:
                 ' Require explicit qid_shape.'
             )
         self._qid_shape = density_matrix.shape[: len(density_matrix.shape) // 2]
-        
+
     @classmethod
     def create(
         cls,
@@ -119,7 +119,9 @@ class _BufferedDensityMatrix:
         self._density_matrix = result
         return True
 
-    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> List[int]:
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
         """Delegates the call to measure the density matrix."""
         bits, _ = sim.measure_density_matrix(
             self._density_matrix,
