@@ -119,4 +119,4 @@ class ActOnStabilizerCHFormArgs(
                 initial_state=state,
             )
             protocols.act_on(op, ch_form_args)
-        return np.array([v[-1] for v in measurements.measurements.values()], dtype=bool)
+        return np.array([v[-1] for v in measurements.records.values()], dtype=bool)

@@ -1,6 +1,6 @@
 {
   "cirq_type": "ClassicalDataDictionaryStore",
-  "measurements": [
+  "records": [
     [
       {
         "cirq_type": "MeasurementKey",
@@ -29,7 +29,7 @@
       ]]
     ]
   ],
-  "channel_measurements": [
+  "channel_records": [
     [
       {
         "cirq_type": "MeasurementKey",

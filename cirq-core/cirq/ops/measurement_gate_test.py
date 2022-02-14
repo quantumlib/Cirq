@@ -327,10 +327,10 @@ def test_act_on_state_vector():
     datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
     out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.measurements[out] == [(0, 1)]
+    assert datastore.records[out] == [(0, 1)]
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.measurements[out] == [(0, 1), (0, 1)]
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_clifford_tableau():
@@ -368,10 +368,10 @@ def test_act_on_clifford_tableau():
     datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
     out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.measurements[out] == [(0, 1)]
+    assert datastore.records[out] == [(0, 1)]
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.measurements[out] == [(0, 1), (0, 1)]
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_stabilizer_ch_form():
@@ -409,10 +409,10 @@ def test_act_on_stabilizer_ch_form():
     datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
     out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.measurements[out] == [(0, 1)]
+    assert datastore.records[out] == [(0, 1)]
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.measurements[out] == [(0, 1), (0, 1)]
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_qutrit():
