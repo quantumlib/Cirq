@@ -23,7 +23,7 @@ def assert_optimizes(before, after, measure_only_moment=True, with_context=False
         if not with_context
         else cirq.synchronize_terminal_measurements(
             before,
-            context=cirq.TransformerContext(ignore_tags=(NO_COMPILE_TAG,)),
+            context=cirq.TransformerContext(tags_to_ignore=(NO_COMPILE_TAG,)),
             after_other_operations=measure_only_moment,
         )
     )

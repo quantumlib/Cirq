@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import abc
-
-import cirq.work
+import cirq
 
 
-class AbstractEngineProcessorShim(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def get_device(self) -> cirq.Device:
-        pass
-
-    @abc.abstractmethod
-    def get_sampler(self) -> cirq.Sampler:
-        pass
+def test_drop():
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
+    cirq.testing.assert_same_circuits(
+        cirq.drop_empty_moments(
+            cirq.Circuit(
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment([cirq.CNOT(q1, q2)]),
+                cirq.Moment(),
+            )
+        ),
+        cirq.Circuit(cirq.Moment([cirq.CNOT(q1, q2)])),
+    )

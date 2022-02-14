@@ -51,8 +51,8 @@ def test_griddevice_metadata_bad_durations():
 
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate)
     invalid_duration = {
-        cirq.Gateset(cirq.XPowGate): cirq.Duration(nanos=1),
-        cirq.Gateset(cirq.ZPowGate): cirq.Duration(picos=1),
+        cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=1),
+        cirq.GateFamily(cirq.ZPowGate): cirq.Duration(picos=1),
     }
     with pytest.raises(ValueError, match="ZPowGate"):
         cirq.GridDeviceMetadata([qubits], gateset, gate_durations=invalid_duration)
@@ -63,9 +63,9 @@ def test_griddevice_json_load():
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate)
     duration = {
-        cirq.Gateset(cirq.XPowGate): cirq.Duration(nanos=1),
-        cirq.Gateset(cirq.YPowGate): cirq.Duration(picos=2),
-        cirq.Gateset(cirq.ZPowGate): cirq.Duration(picos=3),
+        cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=1),
+        cirq.GateFamily(cirq.YPowGate): cirq.Duration(picos=2),
+        cirq.GateFamily(cirq.ZPowGate): cirq.Duration(picos=3),
     }
     metadata = cirq.GridDeviceMetadata(qubit_pairs, gateset, gate_durations=duration)
     rep_str = cirq.to_json(metadata)
@@ -77,14 +77,14 @@ def test_griddevice_metadata_equality():
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate)
     duration = {
-        cirq.Gateset(cirq.XPowGate): cirq.Duration(nanos=1),
-        cirq.Gateset(cirq.YPowGate): cirq.Duration(picos=3),
-        cirq.Gateset(cirq.ZPowGate): cirq.Duration(picos=2),
+        cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=1),
+        cirq.GateFamily(cirq.YPowGate): cirq.Duration(picos=3),
+        cirq.GateFamily(cirq.ZPowGate): cirq.Duration(picos=2),
     }
     duration2 = {
-        cirq.Gateset(cirq.XPowGate): cirq.Duration(nanos=10),
-        cirq.Gateset(cirq.YPowGate): cirq.Duration(picos=13),
-        cirq.Gateset(cirq.ZPowGate): cirq.Duration(picos=12),
+        cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=10),
+        cirq.GateFamily(cirq.YPowGate): cirq.Duration(picos=13),
+        cirq.GateFamily(cirq.ZPowGate): cirq.Duration(picos=12),
     }
     metadata = cirq.GridDeviceMetadata(qubit_pairs, gateset, gate_durations=duration)
     metadata2 = cirq.GridDeviceMetadata(qubit_pairs[:2], gateset, gate_durations=duration)
@@ -106,9 +106,9 @@ def test_repr():
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate)
     duration = {
-        cirq.Gateset(cirq.XPowGate): cirq.Duration(nanos=1),
-        cirq.Gateset(cirq.YPowGate): cirq.Duration(picos=3),
-        cirq.Gateset(cirq.ZPowGate): cirq.Duration(picos=2),
+        cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=1),
+        cirq.GateFamily(cirq.YPowGate): cirq.Duration(picos=3),
+        cirq.GateFamily(cirq.ZPowGate): cirq.Duration(picos=2),
     }
     metadata = cirq.GridDeviceMetadata(qubit_pairs, gateset, gate_durations=duration)
     cirq.testing.assert_equivalent_repr(metadata)

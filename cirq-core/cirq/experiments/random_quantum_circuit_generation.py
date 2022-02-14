@@ -224,7 +224,7 @@ def random_rotations_between_two_qubit_circuit(
     prng = value.parse_random_state(seed)
 
     circuit = circuits.Circuit()
-    previous_single_qubit_layer = ops.Moment()
+    previous_single_qubit_layer = circuits.Moment()
     single_qubit_layer_factory = _single_qubit_gates_arg_to_factory(
         single_qubit_gates=single_qubit_gates, qubits=(q0, q1), prng=prng
     )
@@ -541,7 +541,7 @@ def get_grid_interaction_layer_circuit(
         pairs = sorted(_get_active_pairs(device_graph, layer))
         if len(pairs) == 0:
             continue
-        moments += [ops.Moment(two_qubit_gate.on(*pair) for pair in pairs)]
+        moments += [circuits.Moment(two_qubit_gate.on(*pair) for pair in pairs)]
     return circuits.Circuit(moments)
 
 
@@ -597,7 +597,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
 
     circuit = circuits.Circuit()
-    previous_single_qubit_layer = ops.Moment()
+    previous_single_qubit_layer = circuits.Moment()
     single_qubit_layer_factory = _single_qubit_gates_arg_to_factory(
         single_qubit_gates=single_qubit_gates, qubits=qubits, prng=prng
     )
@@ -655,7 +655,7 @@ class _RandomSingleQubitLayerFactory:
                 g = self.single_qubit_gates[self.prng.randint(0, len(self.single_qubit_gates))]
             return g
 
-        return ops.Moment(random_gate(q).on(q) for q in self.qubits)
+        return circuits.Moment(random_gate(q).on(q) for q in self.qubits)
 
 
 class _FixedSingleQubitLayerFactory:
@@ -663,7 +663,7 @@ class _FixedSingleQubitLayerFactory:
         self.fixed_single_qubit_layer = fixed_single_qubit_layer
 
     def new_layer(self, previous_single_qubit_layer: 'cirq.Moment') -> 'cirq.Moment':
-        return ops.Moment(v.on(q) for q, v in self.fixed_single_qubit_layer.items())
+        return circuits.Moment(v.on(q) for q, v in self.fixed_single_qubit_layer.items())
 
 
 _SingleQubitLayerFactory = Union[_FixedSingleQubitLayerFactory, _RandomSingleQubitLayerFactory]

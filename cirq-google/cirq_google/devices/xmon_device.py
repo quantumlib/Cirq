@@ -63,9 +63,17 @@ class _XmonDeviceBase(cirq.Device):
         """Return the metadata for this device"""
         return self._metadata
 
+    @_compat.deprecated(
+        fix='Use metadata.qubit_set if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> FrozenSet[cirq.GridQubit]:
         return self.qubits
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='XmonDevice.decompose_operation is deperecated. Please use ConvertToXmonGates().',
+    )
     def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
         return convert_to_xmon_gates.ConvertToXmonGates().convert(operation)
 

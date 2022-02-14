@@ -22,6 +22,7 @@ from cirq_ionq.calibration import (
 
 from cirq_ionq.ionq_devices import (
     IonQAPIDevice,
+    decompose_to_device,
 )
 
 from cirq_ionq.ionq_exceptions import (

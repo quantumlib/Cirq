@@ -47,7 +47,7 @@ SUFFIXES = ['B', 'kB', 'MB', 'GB', 'TB']
 
 
 def serialize(serializer: str, num_gates: int, nesting_depth: int) -> int:
-    """"Runs a round-trip of the serializer."""
+    """Runs a round-trip of the serializer."""
     circuit = cirq.Circuit()
     for _ in range(num_gates):
         which = np.random.choice(['expz', 'expw', 'exp11'])

@@ -27,7 +27,7 @@ _DENSITY = 'density_matrix'
 
 
 def simulate(sim_type: str, num_qubits: int, num_gates: int, run_repetitions: int = 1) -> None:
-    """"Runs the simulator."""
+    """Runs the simulator."""
     circuit = cirq.Circuit()
 
     for _ in range(num_gates):

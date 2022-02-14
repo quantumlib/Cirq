@@ -287,7 +287,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             for t, op in enumerate(moment.operations):
                 new_samples: Dict[Tuple[int, ...], int] = collections.defaultdict(int)
                 qubit_indices = {qmap[q] for q in op.qubits}
-                subcircuit = circuit_prefix + ops.Moment(moment.operations[: t + 1])
+                subcircuit = circuit_prefix + circuits.Moment(moment.operations[: t + 1])
                 for current_sample, count in current_samples.items():
                     sample_set = [current_sample]
                     for idx in qubit_indices:
@@ -1036,7 +1036,7 @@ def split_into_matching_protocol_then_general(
             else:
                 general_part.append(op)
         if matching_part:
-            matching_prefix.append(ops.Moment(matching_part))
+            matching_prefix.append(circuits.Moment(matching_part))
         if general_part:
-            general_suffix.append(ops.Moment(general_part))
+            general_suffix.append(circuits.Moment(general_part))
     return matching_prefix, general_suffix

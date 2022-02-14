@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Helper for testing python logging statements."""
-
+import contextlib
 import logging
-from typing import ContextManager, List, Optional
+from typing import Iterator, List, Optional
 
 
+@contextlib.contextmanager
 def assert_logs(
     *matches: str,
     count: Optional[int] = 1,
     min_level: int = logging.WARNING,
     max_level: int = logging.CRITICAL,
     capture_warnings: bool = True,
-) -> ContextManager[List[logging.LogRecord]]:
+) -> Iterator[List[logging.LogRecord]]:
     """A context manager for testing logging and warning events.
 
     To use this one wraps the code that is to be tested for log events within
@@ -71,30 +72,26 @@ def assert_logs(
             if max_level >= record.levelno >= min_level:
                 records.append(record)
 
-        def __enter__(self):
-            logging.captureWarnings(capture_warnings)
-            logger = logging.getLogger()
-            # we capture all the logs
-            logger.setLevel(logging.DEBUG)
-            logger.addHandler(self)
-            return records
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            logging.getLogger().removeHandler(self)
-            if capture_warnings:
-                logging.captureWarnings(False)
-            msgs = [record.getMessage() for record in records]
-
-            assert count is None or len(records) == count, (
-                f'Expected {count} log message but ' f'got {len(records)}. Log messages: ' f'{msgs}'
+    handler = Handler()
+    logging.captureWarnings(capture_warnings)
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)  # Capture all logs.
+    logger.addHandler(handler)
+    try:
+        yield records
+    finally:
+        logger.removeHandler(handler)
+        if capture_warnings:
+            logging.captureWarnings(False)
+        msgs = [record.getMessage() for record in records]
+        assert (
+            count is None or len(records) == count
+        ), f'Expected {count} log message but got {len(records)}. Log messages: {msgs}'
+        for match in matches:
+            assert match in ''.join(msgs), (
+                f'{match} expected to appear in log messages but it was '
+                f'not found. Log messages: {msgs}.'
             )
-            for match in matches:
-                assert match in ''.join(msgs), (
-                    f'{match} expected to appear in log messages but it was '
-                    f'not found. Log messages: {msgs}.'
-                )
-
-    return Handler()
 
 
 # pylint: enable=missing-raises-doc

@@ -69,16 +69,11 @@ TestSpec = ModuleJsonTestSpec(
             'ExecutableGroupResultFilesystemRecord',
             'NaiveQubitPlacer',
             'RandomDevicePlacer',
+            'EngineProcessorRecord',
+            'SimulatedProcessorRecord',
+            'SimulatedProcessorWithLocalDeviceRecord',
         ]
     },
-    tested_elsewhere=[
-        # Until `AbstractEngineProcessor` is implemented, we are using
-        # `AbstractEngineProcessorShim` and a mocked implementation for the `processor` argument
-        # in tests for `QuantumRuntimeConfiguration` (which is copied into `ExecutableGroupResult`).
-        # Therefore, we test json roundtrippability for these two classes in quantum_runtime_test.py
-        'cirq.google.QuantumRuntimeConfiguration',
-        'cirq.google.ExecutableGroupResult',
-    ],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={
         '_NamedConstantXmonDevice': 'v0.15',

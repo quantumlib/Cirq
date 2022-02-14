@@ -31,7 +31,7 @@ from cirq.testing.devices import ValidatingTestDevice
 
 class _Foxy(ValidatingTestDevice):
     def can_add_operation_into_moment(
-        self, operation: 'ops.Operation', moment: 'ops.Moment'
+        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
     ) -> bool:
         if not super().can_add_operation_into_moment(operation, moment):
             return False
@@ -107,10 +107,12 @@ def test_insert_moment_types_deprecated():
         circuit = cirq.Circuit(device=moment_and_op_type_validating_device)
 
     moment_or_operation_tree = [cirq.X(x), cirq.Moment([cirq.Y(x)])]
-    circuit.insert(0, moment_or_operation_tree)
+    with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
+        circuit.insert(0, moment_or_operation_tree)
 
     moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
-    circuit.insert(0, moment_or_operation_tree)
+    with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
+        circuit.insert(0, moment_or_operation_tree)
 
 
 def test_setitem():
@@ -1176,6 +1178,14 @@ d: ───@───────@───────
     )
 
 
+def test_insert_into_range_deprecated():
+    with cirq.testing.assert_deprecated('insert_into_range', deadline='v0.15'):
+        x, y = cirq.GridQubit.rect(1, 2)
+        c = cirq.Circuit([cirq.Moment([cirq.X(x)])] * 4)
+        c._device = FOXY
+        c.insert_into_range([cirq.Z(x), cirq.CZ(x, y)], 2, 2)
+
+
 def test_insert_into_range():
     x = cirq.NamedQubit('x')
     y = cirq.NamedQubit('y')
@@ -1390,6 +1400,28 @@ def test_prev_moment_operating_on_distance(circuit_cls):
 
     with pytest.raises(ValueError, match='Negative max_distance'):
         c.prev_moment_operating_on([a], 6, max_distance=-1)
+
+
+def test_earliest_available_moment():
+    q = cirq.LineQubit.range(3)
+    c = cirq.Circuit(
+        cirq.Moment(cirq.measure(q[0], key="m")),
+        cirq.Moment(cirq.X(q[1]).with_classical_controls("m")),
+    )
+    assert c.earliest_available_moment(cirq.Y(q[0])) == 1
+    assert c.earliest_available_moment(cirq.Y(q[1])) == 2
+    assert c.earliest_available_moment(cirq.Y(q[2])) == 0
+    assert c.earliest_available_moment(cirq.Y(q[2]).with_classical_controls("m")) == 1
+    assert (
+        c.earliest_available_moment(cirq.Y(q[2]).with_classical_controls("m"), end_moment_index=1)
+        == 1
+    )
+
+    # Returns `end_moment_index` by default without verifying if an operation already exists there.
+    assert (
+        c.earliest_available_moment(cirq.Y(q[1]).with_classical_controls("m"), end_moment_index=1)
+        == 1
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
