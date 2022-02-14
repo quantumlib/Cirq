@@ -35,7 +35,7 @@ TDefault = TypeVar('TDefault')
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided: Sequence[Tuple[float, Any]] = ((0.0, []),)
+RaiseTypeErrorIfNotProvided: Sequence[Tuple[float, np.ndarray]] = ((0.0, np.ndarray([])),)
 
 
 class SupportsMixture(Protocol):

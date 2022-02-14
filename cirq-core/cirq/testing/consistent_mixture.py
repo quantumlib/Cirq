@@ -34,6 +34,7 @@ def assert_mixture_is_consistent_with_unitary(val: Any, ignoring_global_phase: b
 
     # there is unitary and hence must have mixture representation.
     assert has_mix
+    assert mix is not None
     assert len(mix) == 1
     prob, unitary = mix[0]
     assert prob == 1
