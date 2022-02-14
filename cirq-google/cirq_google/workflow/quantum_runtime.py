@@ -16,13 +16,12 @@
 
 import dataclasses
 import uuid
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, TYPE_CHECKING
 
 import cirq
 import numpy as np
 from cirq import _compat
 from cirq.protocols import dataclass_json_dict, obj_to_dict_helper
-from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
 from cirq_google.workflow.io import _FilesystemSaver
 from cirq_google.workflow.progress import _PrintLogger
 from cirq_google.workflow.quantum_executable import (
@@ -31,6 +30,9 @@ from cirq_google.workflow.quantum_executable import (
     QuantumExecutableGroup,
 )
 from cirq_google.workflow.qubit_placement import QubitPlacer, NaiveQubitPlacer
+
+if TYPE_CHECKING:
+    import cirq_google as cg
 
 
 @dataclasses.dataclass
@@ -175,7 +177,7 @@ class QuantumRuntimeConfiguration:
             The placer is only called if a given `cg.QuantumExecutable` has a `problem_topology`.
     """
 
-    processor: AbstractEngineProcessorShim
+    processor_record: 'cg.ProcessorRecord'
     run_id: Optional[str] = None
     random_seed: Optional[int] = None
     qubit_placer: QubitPlacer = NaiveQubitPlacer()
@@ -232,8 +234,8 @@ def execute(
         # coverage: ignore
         raise ValueError("Please provide a non-empty `base_data_dir`.")
 
-    sampler = rt_config.processor.get_sampler()
-    device = rt_config.processor.get_device()
+    sampler = rt_config.processor_record.get_sampler()
+    device = rt_config.processor_record.get_device()
 
     shared_rt_info = SharedRuntimeInfo(
         run_id=run_id,
