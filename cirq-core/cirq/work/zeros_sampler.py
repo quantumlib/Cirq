@@ -13,12 +13,11 @@
 # limitations under the License.
 
 import abc
-import collections
-from typing import Dict, List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import devices, work, study, protocols
+from cirq import devices, work, study
 
 if TYPE_CHECKING:
     import cirq
@@ -59,25 +58,13 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         """
         if self.device:
             self.device.validate_circuit(program)
-        num_qubits: Dict[str, int] = {}
-        num_instances: Dict[str, int] = collections.Counter()
-        for op in program.all_operations():
-            key = protocols.measurement_key_name(op, default=None)
-            if key is not None:
-                n = len(op.qubits)
-                prev_n = num_qubits.setdefault(key, n)
-                if n != prev_n:
-                    raise ValueError(
-                        "Different num qubits for repeated measurement: "
-                        f"key={key!r}, prev_n={prev_n}, n={n}"
-                    )
-                num_instances[key] += 1
+        shapes = self._get_measurement_shapes(program)
         return [
             study.ResultDict(
                 params=param_resolver,
                 records={
-                    k: np.zeros((repetitions, num_instances[k], n), dtype=int)
-                    for k, n in num_qubits.items()
+                    k: np.zeros((repetitions, num_instances, len(qid_shape)), dtype=int)
+                    for k, (num_instances, qid_shape) in shapes.items()
                 },
             )
             for param_resolver in study.to_resolvers(params)

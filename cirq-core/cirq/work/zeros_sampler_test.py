@@ -70,7 +70,7 @@ def test_repeated_keys():
         cirq.measure(q0, key='a'),
         cirq.measure(q1, q2, key='a'),
     )
-    with pytest.raises(ValueError, match="Different num qubits for repeated measurement"):
+    with pytest.raises(ValueError, match="Different qid shapes for repeated measurement"):
         cirq.ZerosSampler().run(c2, repetitions=10)
 
 
