@@ -72,7 +72,7 @@ class SupportsMixture(Protocol):
 
 
 def mixture(
-    val: Any, default: Any = RaiseTypeErrorIfNotProvided
+    val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
 ) -> Union[Sequence[Tuple[float, np.ndarray]], TDefault]:
     """Return a sequence of tuples representing a probabilistic unitary.
 
