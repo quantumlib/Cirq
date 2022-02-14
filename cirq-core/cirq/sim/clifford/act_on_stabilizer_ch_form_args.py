@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
-from cirq import _compat, value, ops, protocols
+from cirq import _compat, value
 from cirq.sim.clifford import stabilizer_state_ch_form
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
@@ -107,16 +107,10 @@ class ActOnStabilizerCHFormArgs(
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        measurements = value.ClassicalDataDictionaryStore()
         prng = value.parse_random_state(seed)
-        for i in range(repetitions):
-            op = ops.measure(*qubits, key=str(i))
+        axes = self.get_axes(qubits)
+        measurements = []
+        for _ in range(repetitions):
             state = self.state.copy()
-            ch_form_args = ActOnStabilizerCHFormArgs(
-                classical_data=measurements,
-                prng=prng,
-                qubits=self.qubits,
-                initial_state=state,
-            )
-            protocols.act_on(op, ch_form_args)
-        return np.array([v[-1] for v in measurements.records.values()], dtype=bool)
+            measurements.append([state._measure(i, prng) for i in axes])
+        return np.array(measurements, dtype=bool)
