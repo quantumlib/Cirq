@@ -1618,6 +1618,7 @@ class Circuit(AbstractCircuit):
     AbstractCircuit):
 
     *   next_moment_operating_on
+    *   earliest_available_moment
     *   prev_moment_operating_on
     *   next_moments_operating_on
     *   operation_at
@@ -1950,7 +1951,27 @@ class Circuit(AbstractCircuit):
         with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
             return Circuit(op_list, device=self._device if new_device is None else new_device)
 
-    def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
+    def earliest_available_moment(
+        self, op: 'cirq.Operation', *, end_moment_index: Optional[int] = None
+    ) -> int:
+        """Finds the index of the earliest (i.e. left most) moment which can accommodate `op`.
+
+        Note that, unlike `circuit.prev_moment_operating_on`, this method also takes care of
+        implicit dependencies between measurements and classically controlled operations (CCO)
+        that depend on the results of those measurements. Therefore, using this method, a CCO
+        `op` would not be allowed to move left past a measurement it depends upon.
+
+        Args:
+            op: Operation for which the earliest moment that can accommodate it needs to be found.
+            end_moment_index: The moment index just after the starting point of the reverse search.
+                Defaults to the length of the list of moments.
+
+        Returns:
+            Index of the earliest matching moment. Returns `end_moment_index` if no moment on left
+            is available.
+        """
+        if end_moment_index is None:
+            end_moment_index = len(self.moments)
         last_available = end_moment_index
         k = end_moment_index
         op_control_keys = protocols.control_keys(op)
@@ -1968,6 +1989,8 @@ class Circuit(AbstractCircuit):
             ):
                 return last_available
             if self._can_add_op_at(k, op):
+                # Note: Remove the if condition after `self._device` is gone and move the method to
+                # `cirq.AbstractDevice`.
                 last_available = k
         return last_available
 
@@ -2005,8 +2028,7 @@ class Circuit(AbstractCircuit):
 
         if strategy is InsertStrategy.EARLIEST:
             if self._can_add_op_at(splitter_index, op):
-                p = self._prev_moment_available(op, splitter_index)
-                return p or 0
+                return self.earliest_available_moment(op, end_moment_index=splitter_index)
 
             return self._pick_or_create_inserted_op_moment_index(
                 splitter_index, op, InsertStrategy.INLINE

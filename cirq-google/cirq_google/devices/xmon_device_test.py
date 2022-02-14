@@ -74,6 +74,13 @@ def test_device_metadata():
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_qubit_set_deprecated():
+    d = square_device(2, 2)
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        _ = d.qubit_set()
+
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_init():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
     ns = cirq.Duration(nanos=1)
