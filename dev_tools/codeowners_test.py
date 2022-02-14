@@ -19,7 +19,8 @@ CIRQ_MAINTAINERS = ('TEAM', "@quantumlib/cirq-maintainers")
 
 BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole"), ('USERNAME', "@cduck")}
 
-DOCS_MAINTAINERS = BASE_MAINTAINERS.union({('USERNAME', '@aasfaw')})
+DOCS_MAINTAINERS = BASE_MAINTAINERS.union({('USERNAME', '@aasfaw'),
+                                           ('USERNAME', '@rmlarose')})
 
 GOOGLE_TEAM = {('USERNAME', "@wcourtney"), ('USERNAME', "@verult")}
 
