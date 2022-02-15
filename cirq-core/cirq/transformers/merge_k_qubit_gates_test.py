@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: skip-file
+
 from typing import List
 
 import numpy as np
@@ -100,7 +102,6 @@ def test_merge_k_qubit_unitaries_raises():
         _ = cirq.merge_k_qubit_unitaries(cirq.Circuit())
 
 
-# pylint: disable=line-too-long
 def test_merge_complex_circuit_preserving_moment_structure():
     q = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(
@@ -179,7 +180,6 @@ a: ═════════════════════════�
     cirq.testing.assert_has_diagram(
         cirq.drop_empty_moments(c_new),
         '''
-
 0: ───T['1']───iSwap['1']───T['1']───T['2']───iSwap['2']───T['2']─────────────────X['ignore']───T['4']───iSwap['4']───T['4']───X───
                │                              │                                                          │                     ║
 1: ────────────┼─────────────────────T['2']───iSwap^0.5────T['2']───@['ignore']─────────────────T['4']───iSwap^0.5────T['4']───╫───
@@ -188,6 +188,3 @@ a: ═════════════════════════�
                                                                                                 ║                              ║
 a: ═════════════════════════════════════════════════════════════════════════════════════════════@══════════════════════════════^═══''',
     )
-
-
-# pylint: enable=line-too-long

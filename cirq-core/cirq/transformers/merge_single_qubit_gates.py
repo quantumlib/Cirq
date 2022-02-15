@@ -129,4 +129,4 @@ def merge_single_qubit_moments_to_phxz(
                 ret_ops.append(gate(q))
         return circuits.Moment(ret_ops)
 
-    return transformer_primitives.merge_moments(circuit, merge_func)
+    return transformer_primitives.merge_moments(circuit, merge_func).unfreeze(copy=False)
