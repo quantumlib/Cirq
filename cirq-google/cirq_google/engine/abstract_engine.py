@@ -126,7 +126,7 @@ class AbstractEngine(abc.ABC):
 
     @abc.abstractmethod
     def get_sampler(
-        self, processor_id: Union[str, List[str]], gate_set: Serializer
+        self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
     ) -> cirq.Sampler:
         """Returns a sampler backed by the engine.
 

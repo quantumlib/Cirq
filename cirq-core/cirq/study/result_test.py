@@ -49,6 +49,54 @@ def test_from_single_parameter_set_deprecation():
     assert result.repetitions == 0
 
 
+def test_construct_from_measurements():
+    r = cirq.ResultDict(
+        params=None,
+        measurements={
+            'a': np.array([[0, 0], [1, 1]]),
+            'b': np.array([[0, 0, 0], [1, 1, 1]]),
+        },
+    )
+    assert np.all(r.measurements['a'] == np.array([[0, 0], [1, 1]]))
+    assert np.all(r.measurements['b'] == np.array([[0, 0, 0], [1, 1, 1]]))
+    assert np.all(r.records['a'] == np.array([[[0, 0]], [[1, 1]]]))
+    assert np.all(r.records['b'] == np.array([[[0, 0, 0]], [[1, 1, 1]]]))
+
+
+def test_construct_from_repeated_measurements():
+    r = cirq.ResultDict(
+        params=None,
+        records={
+            'a': np.array([[[0, 0], [0, 1]], [[1, 0], [1, 1]]]),
+            'b': np.array([[[0, 0, 0]], [[1, 1, 1]]]),
+        },
+    )
+    with pytest.raises(ValueError):
+        _ = r.measurements
+    assert np.all(r.records['a'] == np.array([[[0, 0], [0, 1]], [[1, 0], [1, 1]]]))
+    assert np.all(r.records['b'] == np.array([[[0, 0, 0]], [[1, 1, 1]]]))
+    assert r.repetitions == 2
+
+    r2 = cirq.ResultDict(
+        params=None,
+        records={
+            'a': np.array([[[0, 0]], [[1, 1]]]),
+            'b': np.array([[[0, 0, 0]], [[1, 1, 1]]]),
+        },
+    )
+    assert np.all(r2.measurements['a'] == np.array([[0, 0], [1, 1]]))
+    assert np.all(r2.measurements['b'] == np.array([[0, 0, 0], [1, 1, 1]]))
+    assert np.all(r2.records['a'] == np.array([[[0, 0]], [[1, 1]]]))
+    assert np.all(r2.records['b'] == np.array([[[0, 0, 0]], [[1, 1, 1]]]))
+    assert r2.repetitions == 2
+
+
+def test_empty_measurements():
+    assert cirq.ResultDict(params=None).repetitions == 0
+    assert cirq.ResultDict(params=None, measurements={}).repetitions == 0
+    assert cirq.ResultDict(params=None, records={}).repetitions == 0
+
+
 def test_str():
     result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
