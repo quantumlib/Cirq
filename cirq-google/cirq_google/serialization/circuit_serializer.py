@@ -96,7 +96,7 @@ class CircuitSerializer(serializer.Serializer):
     ) -> None:
         msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
         for moment in circuit:
-            moment_proto = msg.moments.add()
+            moment_proto = v2.program_pb2.Moment()
             for op in moment:
                 if isinstance(op.untagged, cirq.CircuitOperation):
                     op_pb = moment_proto.circuit_operations.add()
@@ -108,24 +108,25 @@ class CircuitSerializer(serializer.Serializer):
                         raw_constants=raw_constants,
                     )
                 else:
-                    op_pb = moment_proto.operations.add()
-                    self._serialize_gate_op(
+                    op_pb = self._serialize_gate_op(
                         op,
-                        op_pb,
                         arg_function_language=arg_function_language,
                         constants=constants,
                         raw_constants=raw_constants,
                     )
+                    if op_pb:
+                        moment_proto.operations.append(op_pb)
+            if len(moment_proto.operations) > 0 or len(moment_proto.circuit_operations) > 0:
+                msg.moments.append(moment_proto)
 
     def _serialize_gate_op(
         self,
         op: cirq.Operation,
-        msg: v2.program_pb2.Operation,
         *,
         constants: List[v2.program_pb2.Constant],
         raw_constants: Dict[Any, int],
         arg_function_language: Optional[str] = '',
-    ) -> v2.program_pb2.Operation:
+    ) -> Optional[v2.program_pb2.Operation]:
         """Serialize an Operation to cirq_google.api.v2.Operation proto.
 
         Args:
@@ -145,6 +146,12 @@ class CircuitSerializer(serializer.Serializer):
             ValueError: If the operation cannot be serialized.
         """
         gate = op.gate
+
+        if isinstance(op.gate, cirq.IdentityGate):
+            # Ignore identity gates completely
+            return None
+
+        msg = v2.program_pb2.Operation()
 
         if isinstance(gate, cirq.XPowGate):
             arg_func_langs.float_arg_to_proto(

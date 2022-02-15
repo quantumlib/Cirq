@@ -312,6 +312,23 @@ def test_serialize_deserialize_ops(op, op_proto):
     assert serializer.deserialize(circuit_proto) == circuit
 
 
+def test_serialize_deserialize_identity():
+    serializer = cg.CircuitSerializer('my_gate_set')
+
+    # Identity gates should be dropped on serialization.
+    circuit = cirq.Circuit(cirq.I(Q0))
+    empty_circuit = cirq.Circuit()
+
+    proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
+        ),
+    )
+    assert proto == serializer.serialize(circuit)
+    assert serializer.deserialize(proto) == empty_circuit
+
+
 def test_serialize_deserialize_circuit():
     serializer = cg.CircuitSerializer('my_gate_set')
     q0 = cirq.GridQubit(1, 1)
