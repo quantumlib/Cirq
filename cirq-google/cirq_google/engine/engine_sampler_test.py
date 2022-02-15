@@ -127,7 +127,7 @@ def test_engine_sampler_engine_property():
     assert sampler.engine is engine
 
 
-def test_get_engine_sampler_explicit_project_id(monkeypatch):
+def test_get_engine_sampler_explicit_project_id():
     with mock.patch.object(
         cirq_google.engine.client.quantum, 'QuantumEngineServiceClient', autospec=True
     ):
@@ -140,13 +140,12 @@ def test_get_engine_sampler_explicit_project_id(monkeypatch):
         sampler = cg.get_engine_sampler(processor_id='hi mom', gate_set_name='ccz')
 
 
-def test_get_engine_sampler(monkeypatch):
-    monkeypatch.setenv('GOOGLE_CLOUD_PROJECT', 'myproj')
-
+def test_get_engine_sampler():
     with mock.patch.object(
         cirq_google.engine.client.quantum, 'QuantumEngineServiceClient', autospec=True
     ):
-        sampler = cg.get_engine_sampler(processor_id='hi mom', gate_set_name='sqrt_iswap')
+        with mock.patch('google.auth.default', lambda: (None, 'myproj')):
+            sampler = cg.get_engine_sampler(processor_id='hi mom', gate_set_name='sqrt_iswap')
     assert hasattr(sampler, 'run_sweep')
 
     with pytest.raises(ValueError):
