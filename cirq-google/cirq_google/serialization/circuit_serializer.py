@@ -67,7 +67,7 @@ class CircuitSerializer(serializer.Serializer):
         Raises:
             NotImplementedError: If the program is of a type that is supported.
         """
-        if not isinstance(program, cirq.Circuit):
+        if not isinstance(program, (cirq.Circuit, cirq.FrozenCircuit)):
             raise NotImplementedError(f'Unrecognized program type: {type(program)}')
         raw_constants: Dict[Any, int] = {}
         if msg is None:

@@ -33,7 +33,7 @@ class QuantumEngineSampler(cirq.Sampler):
         *,
         engine: 'cirq_google.Engine',
         processor_id: Union[str, List[str]],
-        gate_set: 'cirq_google.serialization.Serializer',
+        gate_set: Optional['cirq_google.serialization.Serializer'] = None,
     ):
         """Inits QuantumEngineSampler.
 
