@@ -488,8 +488,12 @@ def test_scope_flat():
         cirq.measure(q, key='a'),
         cirq.X(q).with_classical_controls('a'),
     )
-    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2, flatten_repetitions=True))
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2, flatten_repetitions=True)
+    middle = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, flatten_repetitions=True)
+    )
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, flatten_repetitions=True
+    )
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
         str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
