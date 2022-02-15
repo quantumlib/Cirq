@@ -25,7 +25,6 @@ API is (as of June 22, 2018) restricted to invitation only.
 
 import datetime
 import enum
-import os
 import random
 import string
 from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
@@ -36,7 +35,7 @@ from google.protobuf import any_pb2
 import cirq
 from cirq._compat import deprecated
 from cirq_google.api import v2
-from cirq_google.engine import engine_client, abstract_engine, abstract_program
+from cirq_google.engine import abstract_engine, abstract_program
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.serialization import SerializableGateSet, Serializer
