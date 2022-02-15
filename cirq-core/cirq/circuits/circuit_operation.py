@@ -297,6 +297,8 @@ class CircuitOperation(ops.Operation):
         if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
+        if self.flatten_repetitions:
+            args += 'flatten_repetitions=True,\n'
         indented_args = args.replace('\n', '\n    ')
         return f'cirq.CircuitOperation({indented_args[:-4]})'
 
@@ -327,6 +329,8 @@ class CircuitOperation(ops.Operation):
         elif self.repetitions != 1:
             # Only add loops if we haven't added repetition_ids.
             args.append(f'loops={self.repetitions}')
+        if self.flatten_repetitions:
+            args.append('flat')
         if not args:
             return circuit_msg
         return f'{circuit_msg}({", ".join(args)})'
@@ -352,7 +356,7 @@ class CircuitOperation(ops.Operation):
         return self._hash
 
     def _json_dict_(self):
-        return {
+        resp = {
             'circuit': self.circuit,
             'repetitions': self.repetitions,
             # JSON requires mappings to have keys of basic types.
@@ -363,6 +367,9 @@ class CircuitOperation(ops.Operation):
             'repetition_ids': self.repetition_ids,
             'parent_path': self.parent_path,
         }
+        if self.flatten_repetitions:
+            resp['flatten_repetitions'] = True
+        return resp
 
     @classmethod
     def _from_json_dict_(
@@ -374,10 +381,11 @@ class CircuitOperation(ops.Operation):
         param_resolver,
         repetition_ids,
         parent_path=(),
+        flatten_repetitions=False,
         **kwargs,
     ):
         return (
-            cls(circuit)
+            cls(circuit, flatten_repetitions=flatten_repetitions)
             .with_qubit_mapping(dict(qubit_map))
             .with_measurement_key_mapping(measurement_key_map)
             .with_params(param_resolver)

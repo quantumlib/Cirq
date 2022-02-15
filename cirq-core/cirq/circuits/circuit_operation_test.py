@@ -457,6 +457,26 @@ cirq.CircuitOperation(
     ]),
 )"""
     )
+    op6 = cirq.CircuitOperation(fc5, flatten_repetitions=True)
+    assert (
+        repr(op6)
+        == """\
+cirq.CircuitOperation(
+    circuit=cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.X(cirq.LineQubit(0)),
+            cirq.CircuitOperation(
+                circuit=cirq.FrozenCircuit([
+                    cirq.Moment(
+                        cirq.X(cirq.LineQubit(1)),
+                    ),
+                ]),
+            ),
+        ),
+    ]),
+    flatten_repetitions=True,
+)"""
+    )
 
 
 def test_json_dict():
