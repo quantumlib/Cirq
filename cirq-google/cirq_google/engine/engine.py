@@ -25,17 +25,17 @@ API is (as of June 22, 2018) restricted to invitation only.
 
 import datetime
 import enum
-import os
 import random
 import string
 from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
 
+import google.auth
 from google.protobuf import any_pb2
 
 import cirq
 from cirq._compat import deprecated
 from cirq_google.api import v2
-from cirq_google.engine import engine_client, abstract_engine, abstract_program
+from cirq_google.engine import abstract_engine, abstract_program
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.serialization import SerializableGateSet, Serializer
@@ -834,7 +834,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
 
     Args:
         project_id: If set overrides the project id obtained from the
-            environment variable `GOOGLE_CLOUD_PROJECT`.
+            google.auth.default().
 
     Returns:
         The Engine instance.
@@ -843,13 +843,17 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
         OSError: If the environment variable GOOGLE_CLOUD_PROJECT is not set. This is actually
             an `EnvironmentError`, which by definition is an `OsError`.
     """
-    env_project_id = 'GOOGLE_CLOUD_PROJECT'
+    service_args = {}
     if not project_id:
-        project_id = os.environ.get(env_project_id)
+        credentials, project_id = google.auth.default()
+        service_args['credentials'] = credentials
     if not project_id:
-        raise EnvironmentError(f'Environment variable {env_project_id} is not set.')
+        raise EnvironmentError(
+            'Unable to determine project id. Please set environment variable GOOGLE_CLOUD_PROJECT '
+            'or configure default project with `gcloud set project <project_id>`.'
+        )
 
-    return Engine(project_id=project_id)
+    return Engine(project_id=project_id, service_args=service_args)
 
 
 def get_engine_device(

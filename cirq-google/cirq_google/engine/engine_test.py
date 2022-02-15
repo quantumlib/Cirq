@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """Tests for engine."""
-import os
 from unittest import mock
 import time
 import numpy as np
@@ -898,18 +897,12 @@ def test_sampler(client):
 @mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
 def test_get_engine(build):
     # Default project id present.
-    with mock.patch.dict(
-        os.environ,
-        {
-            'GOOGLE_CLOUD_PROJECT': 'project!',
-        },
-        clear=True,
-    ):
+    with mock.patch('google.auth.default', lambda: (None, 'project!')):
         eng = cirq_google.get_engine()
         assert eng.project_id == 'project!'
 
     # Nothing present.
-    with mock.patch.dict(os.environ, {}, clear=True):
+    with mock.patch('google.auth.default', lambda: (None, None)):
         with pytest.raises(EnvironmentError, match='GOOGLE_CLOUD_PROJECT'):
             _ = cirq_google.get_engine()
         _ = cirq_google.get_engine('project!')
