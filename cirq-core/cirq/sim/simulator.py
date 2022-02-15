@@ -37,7 +37,6 @@ from typing import (
     Generic,
     Iterator,
     List,
-    Mapping,
     Sequence,
     Set,
     Tuple,
@@ -826,6 +825,8 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
                 `MeasurementGate` instances to be sampled form.
             repetitions: The number of samples to take.
             seed: A seed for the pseudorandom number generator.
+            _allow_repeated: If True, adds extra dimension to the result,
+                corresponding to the number of times a key is repeated.
 
         Returns: A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
@@ -878,7 +879,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             results[gate.key] = out
         if not _allow_repeated:
             return results
-        return {k: [[x] * result[k] for x in v] for k, v in results.items()}
+        return {k: np.array([[x] * result[k] for x in v]) for k, v in results.items()}
 
 
 @value.value_equality(unhashable=True)
