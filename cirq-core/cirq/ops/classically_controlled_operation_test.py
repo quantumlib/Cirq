@@ -489,10 +489,10 @@ def test_scope_flatten_both():
         cirq.X(q).with_classical_controls('a'),
     )
     middle = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=2, flatten_repetitions=True)
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
     )
     outer_subcircuit = cirq.CircuitOperation(
-        middle.freeze(), repetitions=2, flatten_repetitions=True
+        middle.freeze(), repetitions=2, use_repetition_ids=False
     )
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
@@ -528,7 +528,7 @@ def test_scope_flatten_inner():
         cirq.X(q).with_classical_controls('a'),
     )
     middle = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=2, flatten_repetitions=True)
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
     )
     outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = outer_subcircuit.mapped_circuit(deep=True)
@@ -568,7 +568,7 @@ def test_scope_flatten_outer():
     )
     middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
     outer_subcircuit = cirq.CircuitOperation(
-        middle.freeze(), repetitions=2, flatten_repetitions=True
+        middle.freeze(), repetitions=2, use_repetition_ids=False
     )
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [

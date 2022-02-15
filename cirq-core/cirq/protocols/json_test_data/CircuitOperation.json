@@ -293,7 +293,7 @@
         },
         "parent_path": [],
         "repetition_ids": null,
-        "flatten_repetitions": true
+        "use_repetition_ids": false
       }
     ]
   ]

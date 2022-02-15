@@ -108,7 +108,7 @@ class CircuitOperation(ops.Operation):
     repetition_ids: Optional[List[str]] = dataclasses.field(default=None)
     parent_path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
     extern_keys: FrozenSet['cirq.MeasurementKey'] = dataclasses.field(default_factory=frozenset)
-    flatten_repetitions: bool = False
+    use_repetition_ids: bool = True
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -169,7 +169,7 @@ class CircuitOperation(ops.Operation):
             and self.repetitions == other.repetitions
             and self.repetition_ids == other.repetition_ids
             and self.parent_path == other.parent_path
-            and self.flatten_repetitions == other.flatten_repetitions
+            and self.use_repetition_ids == other.use_repetition_ids
         )
 
     # Methods for getting post-mapping properties of the contained circuit.
@@ -192,7 +192,7 @@ class CircuitOperation(ops.Operation):
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._cached_measurement_key_objs is None:
             circuit_keys = protocols.measurement_key_objs(self.circuit)
-            if self.repetition_ids is not None and not self.flatten_repetitions:
+            if self.repetition_ids is not None and self.use_repetition_ids:
                 circuit_keys = {
                     key.with_key_path_prefix(repetition_id)
                     for repetition_id in self.repetition_ids
@@ -253,7 +253,7 @@ class CircuitOperation(ops.Operation):
         if self.param_resolver:
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if self.repetition_ids:
-            if self.flatten_repetitions or not protocols.is_measurement(circuit):
+            if not self.use_repetition_ids or not protocols.is_measurement(circuit):
                 circuit = circuit * abs(self.repetitions)
             else:
                 circuit = circuits.Circuit(
@@ -297,8 +297,8 @@ class CircuitOperation(ops.Operation):
         if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
-        if self.flatten_repetitions:
-            args += 'flatten_repetitions=True,\n'
+        if not self.use_repetition_ids:
+            args += 'use_repetition_ids=False,\n'
         indented_args = args.replace('\n', '\n    ')
         return f'cirq.CircuitOperation({indented_args[:-4]})'
 
@@ -329,7 +329,7 @@ class CircuitOperation(ops.Operation):
         elif self.repetitions != 1:
             # Only add loops if we haven't added repetition_ids.
             args.append(f'loops={self.repetitions}')
-        if self.flatten_repetitions:
+        if not self.use_repetition_ids:
             args.append('flat')
         if not args:
             return circuit_msg
@@ -349,7 +349,7 @@ class CircuitOperation(ops.Operation):
                         self.param_resolver,
                         self.parent_path,
                         tuple([] if self.repetition_ids is None else self.repetition_ids),
-                        self.flatten_repetitions,
+                        self.use_repetition_ids,
                     )
                 ),
             )
@@ -367,8 +367,8 @@ class CircuitOperation(ops.Operation):
             'repetition_ids': self.repetition_ids,
             'parent_path': self.parent_path,
         }
-        if self.flatten_repetitions:
-            resp['flatten_repetitions'] = True
+        if not self.use_repetition_ids:
+            resp['use_repetition_ids'] = False
         return resp
 
     @classmethod
@@ -381,11 +381,11 @@ class CircuitOperation(ops.Operation):
         param_resolver,
         repetition_ids,
         parent_path=(),
-        flatten_repetitions=False,
+        use_repetition_ids=True,
         **kwargs,
     ):
         return (
-            cls(circuit, flatten_repetitions=flatten_repetitions)
+            cls(circuit, use_repetition_ids=use_repetition_ids)
             .with_qubit_mapping(dict(qubit_map))
             .with_measurement_key_mapping(measurement_key_map)
             .with_params(param_resolver)

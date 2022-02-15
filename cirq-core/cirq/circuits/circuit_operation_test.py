@@ -457,7 +457,7 @@ cirq.CircuitOperation(
     ]),
 )"""
     )
-    op6 = cirq.CircuitOperation(fc5, flatten_repetitions=True)
+    op6 = cirq.CircuitOperation(fc5, use_repetition_ids=False)
     assert (
         repr(op6)
         == """\
@@ -474,7 +474,7 @@ cirq.CircuitOperation(
             ),
         ),
     ]),
-    flatten_repetitions=True,
+    use_repetition_ids=False,
 )"""
     )
 

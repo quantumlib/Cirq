@@ -35,4 +35,4 @@ cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     ),
 ]),
 param_resolver={sympy.Symbol('theta'): 1.5},
-flatten_repetitions=True)]
+use_repetition_ids=False)]
