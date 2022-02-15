@@ -153,7 +153,6 @@ class Engine(abstract_engine.AbstractEngine):
         verbose: Optional[bool] = None,
         timeout: Optional[int] = None,
         context: Optional[EngineContext] = None,
-        serializer: Serializer = CIRCUIT_SERIALIZER,
     ) -> None:
         """Supports creating and running programs against the Quantum Engine.
 
@@ -172,8 +171,6 @@ class Engine(abstract_engine.AbstractEngine):
                 to never timeout.
             context: Engine configuration and context to use. For most users
                 this should never be specified.
-            serializer: Default serializer to use, which will take effect if
-                context is not specified.
 
         Raises:
             ValueError: If context is provided and one of proto_version, service_args, or verbose.
@@ -185,7 +182,6 @@ class Engine(abstract_engine.AbstractEngine):
         if not context:
             context = EngineContext(
                 proto_version=proto_version,
-                serializer=serializer,
                 service_args=service_args,
                 verbose=verbose,
                 timeout=timeout,

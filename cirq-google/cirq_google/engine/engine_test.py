@@ -395,9 +395,6 @@ def test_no_gate_set():
     engine = cg.Engine(project_id='project-id')
     assert engine.context.serializer == cg.CIRCUIT_SERIALIZER
 
-    engine = cg.Engine(project_id='project_id', serializer=cg.XMON)
-    assert engine.context.serializer == cg.XMON
-
 
 def test_unsupported_program_type():
     engine = cg.Engine(project_id='project-id')
