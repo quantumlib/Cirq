@@ -866,20 +866,28 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         indexed_sample = self.sample(measured_qubits, repetitions, seed=seed)
 
         # Extract results for each measurement.
-        results: Dict[str, np.ndarray] = {}
+        results: Dict[str, Any] = {}
         qubits_to_index = {q: i for i, q in enumerate(measured_qubits)}
         for op in measurement_ops:
             gate = cast(ops.MeasurementGate, op.gate)
+            key = gate.key
             out = np.zeros(shape=(repetitions, len(op.qubits)), dtype=np.int8)
             inv_mask = gate.full_invert_mask()
             for i, q in enumerate(op.qubits):
                 out[:, i] = indexed_sample[:, qubits_to_index[q]]
                 if inv_mask[i]:
                     out[:, i] ^= out[:, i] < 2
-            results[gate.key] = out
-        if not _allow_repeated:
-            return results
-        return {k: np.array([[x] * result[k] for x in v]) for k, v in results.items()}
+            if _allow_repeated:
+                if key not in results:
+                    results[key] = []
+                results[key].append(out)
+            else:
+                results[gate.key] = out
+        return (
+            results
+            if not _allow_repeated
+            else {k: np.array(v).swapaxes(0, 1) for k, v in results.items()}
+        )
 
 
 @value.value_equality(unhashable=True)
