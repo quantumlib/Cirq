@@ -37,6 +37,7 @@ from typing import (
     Generic,
     Iterator,
     List,
+    Mapping,
     Sequence,
     Set,
     Tuple,
@@ -807,6 +808,8 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         measurement_ops: List['cirq.GateOperation'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        *,
+        _allow_repeated=False,
     ) -> Dict[str, np.ndarray]:
         """Samples from the system at this point in the computation.
 
@@ -844,7 +847,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         result = collections.Counter(
             key for op in measurement_ops for key in protocols.measurement_key_names(op)
         )
-        if result:
+        if result and not _allow_repeated:
             duplicates = [k for k, v in result.most_common() if v > 1]
             if duplicates:
                 raise ValueError(f"Measurement key {','.join(duplicates)} repeated")
@@ -873,8 +876,9 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
                 if inv_mask[i]:
                     out[:, i] ^= out[:, i] < 2
             results[gate.key] = out
-
-        return results
+        if not _allow_repeated:
+            return results
+        return {k: [[x] * result[k] for x in v] for k, v in results.items()}
 
 
 @value.value_equality(unhashable=True)

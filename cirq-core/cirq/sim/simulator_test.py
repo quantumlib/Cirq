@@ -389,7 +389,7 @@ def test_simulation_trial_result_qubit_map():
     assert result.qubit_map == {q[0]: 0, q[1]: 1}
 
 
-def test_verify_unique_measurement_keys():
+def test_sample_repeated_measurement_keys():
     q = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append(
@@ -400,8 +400,11 @@ def test_verify_unique_measurement_keys():
             cirq.measure(q[1], key='b'),
         ]
     )
-    with pytest.raises(ValueError, match='Measurement key a,b repeated'):
-        _ = cirq.sample(circuit)
+    result = cirq.sample(circuit)
+    assert len(result.records['a']) == 1
+    assert len(result.records['b']) == 1
+    assert len(result.records['a'][0]) == 2
+    assert len(result.records['b'][0]) == 2
 
 
 def test_simulate_with_invert_mask():

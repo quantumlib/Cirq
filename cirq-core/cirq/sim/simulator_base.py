@@ -25,7 +25,6 @@ from typing import (
     Iterator,
     Generic,
     List,
-    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -266,9 +265,9 @@ class SimulatorBase(
             assert step_result is not None
             measurement_ops = [cast(ops.GateOperation, op) for op in general_ops]
             samples = step_result.sample_measurement_ops(
-                measurement_ops, repetitions, seed=self._prng
+                measurement_ops, repetitions, seed=self._prng, _allow_repeated=True
             )
-            return {k: np.array([[x] for x in v], dtype=np.uint8) for k, v in samples.items()}
+            return {k: np.array(v, dtype=np.uint8) for k, v in samples.items()}
 
         records: Dict['cirq.MeasurementKey', List[np.ndarray]] = {}
         for i in range(repetitions):
