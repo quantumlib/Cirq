@@ -25,7 +25,6 @@ API is (as of June 22, 2018) restricted to invitation only.
 
 import datetime
 import enum
-import os
 import random
 import string
 from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING

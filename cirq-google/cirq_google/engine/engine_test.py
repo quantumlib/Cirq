@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """Tests for engine."""
-import os
 from unittest import mock
 import time
 import numpy as np
