@@ -25,6 +25,7 @@ API is (as of June 22, 2018) restricted to invitation only.
 
 import datetime
 import enum
+import os
 import random
 import string
 from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
@@ -843,18 +844,21 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
         OSError: If the environment variable GOOGLE_CLOUD_PROJECT is not set. This is actually
             an `EnvironmentError`, which by definition is an `OsError`.
     """
+    service_args = {}
     if not project_id:
         try:
-            _, project_id = google.auth.default()
+            credentials, project_id = google.auth.default()
         except google.auth.exceptions.DefaultCredentialsError:
             pass
+        else:
+            service_args['credentials'] = credentials
     if not project_id:
         raise EnvironmentError(
             'Unable to determine project id. Please set environment variable GOOGLE_CLOUD_PROJECT '
             'or configure default project with `gcloud set project <project_id>`.'
         )
 
-    return Engine(project_id=project_id)
+    return Engine(project_id=project_id, service_args=service_args)
 
 
 def get_engine_device(
