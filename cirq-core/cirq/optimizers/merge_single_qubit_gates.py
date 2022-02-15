@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@_compat.deprecated_class(deadline='v1.0', fix='Use cirq.merge_single_qubit_gates instead.')
+@_compat.deprecated_class(deadline='v1.0', fix='Use cirq.merge_k_qubit_unitaries instead.')
 class MergeSingleQubitGates(circuits.PointOptimizer):
     """Optimizes runs of adjacent unitary 1-qubit operations."""
 
