@@ -834,7 +834,7 @@ def test_mapped_circuit_keeps_keys_under_parent_path():
     assert cirq.measurement_key_names(op2.mapped_circuit()) == {'X:A', 'X:B', 'X:C', 'X:D'}
 
 
-def test_keys_conflict_no_repetitions():
+def test_mapped_circuit_allows_repeated_keys():
     q = cirq.LineQubit(0)
     op1 = cirq.CircuitOperation(
         cirq.FrozenCircuit(
@@ -842,16 +842,20 @@ def test_keys_conflict_no_repetitions():
         )
     )
     op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
-    with pytest.raises(ValueError, match='Conflicting measurement keys found: A'):
-        _ = op2.mapped_circuit(deep=True)
-
-
-def test_keys_conflict_locally():
-    q = cirq.LineQubit(0)
+    circuit = op2.mapped_circuit(deep=True)
+    cirq.testing.assert_has_diagram(
+        circuit,
+        "0: ───M('A')───M('A')───",
+        use_unicode_characters=True,
+    )
     op1 = cirq.measure(q, key='A')
     op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
-    with pytest.raises(ValueError, match='Conflicting measurement keys found: A'):
-        _ = op2.mapped_circuit()
+    circuit = op2.mapped_circuit()
+    cirq.testing.assert_has_diagram(
+        circuit,
+        "0: ───M('A')───M('A')───",
+        use_unicode_characters=True,
+    )
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?

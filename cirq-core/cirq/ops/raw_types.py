@@ -572,11 +572,13 @@ class Operation(metaclass=abc.ABCMeta):
         if not isinstance(other, Operation):
             return NotImplemented
 
-        # This should also validate that measurement keys are disjoint once we allow repeated
-        # measurements. Search for same message in circuit.py.
-        if not protocols.control_keys(self).isdisjoint(
-            protocols.measurement_key_objs(other)
-        ) or not protocols.control_keys(other).isdisjoint(protocols.measurement_key_objs(self)):
+        self_keys = protocols.measurement_key_objs(self)
+        other_keys = protocols.measurement_key_objs(other)
+        if (
+            not self_keys.isdisjoint(other_keys)
+            or not protocols.control_keys(self).isdisjoint(other_keys)
+            or not protocols.control_keys(other).isdisjoint(self_keys)
+        ):
             return False
 
         if hasattr(other, 'qubits') and set(self.qubits).isdisjoint(other.qubits):

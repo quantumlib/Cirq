@@ -65,13 +65,13 @@ class SimulatesIntermediateStateImpl(
 @mock.patch.multiple(cirq.SimulatesSamples, __abstractmethods__=set(), _run=mock.Mock())
 def test_run_simulator_run():
     simulator = cirq.SimulatesSamples()
-    expected_measurements = {'a': np.array([[1]])}
+    expected_measurements = {'a': np.array([[[1]]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     circuit.__iter__ = mock.Mock(return_value=iter([]))
     param_resolver = mock.Mock(cirq.ParamResolver)
     param_resolver.param_dict = {}
-    expected_result = cirq.ResultDict(measurements=expected_measurements, params=param_resolver)
+    expected_result = cirq.ResultDict(records=expected_measurements, params=param_resolver)
     assert expected_result == simulator.run(
         program=circuit, repetitions=10, param_resolver=param_resolver
     )
@@ -83,7 +83,7 @@ def test_run_simulator_run():
 @mock.patch.multiple(cirq.SimulatesSamples, __abstractmethods__=set(), _run=mock.Mock())
 def test_run_simulator_sweeps():
     simulator = cirq.SimulatesSamples()
-    expected_measurements = {'a': np.array([[1]])}
+    expected_measurements = {'a': np.array([[[1]]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     circuit.__iter__ = mock.Mock(return_value=iter([]))
@@ -91,8 +91,8 @@ def test_run_simulator_sweeps():
     for resolver in param_resolvers:
         resolver.param_dict = {}
     expected_results = [
-        cirq.ResultDict(measurements=expected_measurements, params=param_resolvers[0]),
-        cirq.ResultDict(measurements=expected_measurements, params=param_resolvers[1]),
+        cirq.ResultDict(records=expected_measurements, params=param_resolvers[0]),
+        cirq.ResultDict(records=expected_measurements, params=param_resolvers[1]),
     ]
     assert expected_results == simulator.run_sweep(
         program=circuit, repetitions=10, params=param_resolvers
@@ -238,7 +238,7 @@ def test_step_sample_measurement_ops_not_measurement():
 def test_step_sample_measurement_ops_repeated_qubit():
     q0, q1, q2 = cirq.LineQubit.range(3)
     step_result = FakeStepResult([q0])
-    with pytest.raises(ValueError, match='MeasurementGate'):
+    with pytest.raises(ValueError, match='Measurement key 0 repeated'):
         step_result.sample_measurement_ops(
             [cirq.measure(q0), cirq.measure(q1, q2), cirq.measure(q0)]
         )
@@ -368,7 +368,7 @@ def test_pretty_print():
 
 @duet.sync
 async def test_async_sample():
-    m = {'mock': np.array([[0], [1]])}
+    m = {'mock': np.array([[[0]], [[1]]])}
 
     class MockSimulator(cirq.SimulatesSamples):
         def _run(self, circuit, param_resolver, repetitions):
@@ -377,7 +377,7 @@ async def test_async_sample():
     q = cirq.LineQubit(0)
     f = MockSimulator().run_async(cirq.Circuit(cirq.measure(q)), repetitions=10)
     result = await f
-    np.testing.assert_equal(result.measurements, m)
+    np.testing.assert_equal(result.records, m)
 
 
 def test_simulation_trial_result_qubit_map():
@@ -389,7 +389,7 @@ def test_simulation_trial_result_qubit_map():
     assert result.qubit_map == {q[0]: 0, q[1]: 1}
 
 
-def test_verify_unique_measurement_keys():
+def test_sample_repeated_measurement_keys():
     q = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append(
@@ -400,8 +400,11 @@ def test_verify_unique_measurement_keys():
             cirq.measure(q[1], key='b'),
         ]
     )
-    with pytest.raises(ValueError, match='Measurement key a,b repeated'):
-        _ = cirq.sample(circuit)
+    result = cirq.sample(circuit)
+    assert len(result.records['a']) == 1
+    assert len(result.records['b']) == 1
+    assert len(result.records['a'][0]) == 2
+    assert len(result.records['b'][0]) == 2
 
 
 def test_simulate_with_invert_mask():

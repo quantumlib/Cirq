@@ -293,4 +293,4 @@ class CliffordState:
             initial_state=state.ch_form,
         )
         act_on(op, ch_form_args)
-        measurements.update({str(k): list(v) for k, v in classical_data.measurements.items()})
+        measurements.update({str(k): list(v[-1]) for k, v in classical_data.records.items()})
