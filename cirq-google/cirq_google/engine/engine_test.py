@@ -894,6 +894,20 @@ def test_sampler(client):
         _ = engine.sampler(processor_id='tmp', gate_set=cg.XMON)
 
 
+@mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
+def test_get_engine(build):
+    # Default project id present.
+    with mock.patch('google.auth.default', lambda: (None, 'project!')):
+        eng = cirq_google.get_engine()
+        assert eng.project_id == 'project!'
+
+    # Nothing present.
+    with mock.patch('google.auth.default', lambda: (None, None)):
+        with pytest.raises(EnvironmentError, match='GOOGLE_CLOUD_PROJECT'):
+            _ = cirq_google.get_engine()
+        _ = cirq_google.get_engine('project!')
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_get_engine_device(get_processor):
     device_spec = _to_any(

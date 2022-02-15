@@ -845,12 +845,8 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     """
     service_args = {}
     if not project_id:
-        try:
-            credentials, project_id = google.auth.default()
-        except google.auth.exceptions.DefaultCredentialsError:
-            pass
-        else:
-            service_args['credentials'] = credentials
+        credentials, project_id = google.auth.default()
+        service_args['credentials'] = credentials
     if not project_id:
         raise EnvironmentError(
             'Unable to determine project id. Please set environment variable GOOGLE_CLOUD_PROJECT '
