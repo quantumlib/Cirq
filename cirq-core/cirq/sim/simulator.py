@@ -37,7 +37,6 @@ from typing import (
     Generic,
     Iterator,
     List,
-    Optional,
     Sequence,
     Set,
     Tuple,
@@ -103,15 +102,15 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             raise ValueError("Circuit has no measurements to sample.")
 
         for param_resolver in study.to_resolvers(params):
-            measurements = {}
+            records = {}
             if repetitions == 0:
                 for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    measurements[protocols.measurement_key_name(op)] = np.empty([0, 1])
+                    records[protocols.measurement_key_name(op)] = np.empty([0, 1, 1])
             else:
-                measurements = self._run(
+                records = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
                 )
-            yield study.ResultDict(params=param_resolver, measurements=measurements)
+            yield study.ResultDict(params=param_resolver, records=records)
 
     @abc.abstractmethod
     def _run(
@@ -130,10 +129,11 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
         Returns:
             A dictionary from measurement gate key to measurement
-            results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
-            and the second to the actual boolean measurement results (ordered
-            by the qubits being measured.)
+            results. Measurement results are stored in a 3-dimensional
+            numpy array, the first dimension corresponding to the repetition.
+            the second to the instance of that key in the circuit, and the
+            third to the actual boolean measurement results (ordered by the
+            qubits being measured.)
         """
         raise NotImplementedError()
 
@@ -761,8 +761,9 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             results, ordered by the qubits that the measurement operates on.
     """
 
-    def __init__(self, measurements: Optional[Dict[str, List[int]]] = None) -> None:
-        self.measurements = measurements or collections.defaultdict(list)
+    def __init__(self, sim_state: 'cirq.OperationTarget') -> None:
+        self.measurements = sim_state.log_of_measurement_results
+        self._classical_data = sim_state.classical_data
 
     @abc.abstractmethod
     def _simulator_state(self) -> TSimulatorState:

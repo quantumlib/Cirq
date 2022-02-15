@@ -38,6 +38,16 @@ class ClassicalDataStoreReader(abc.ABC):
     def keys(self) -> Tuple['cirq.MeasurementKey', ...]:
         """Gets the measurement keys in the order they were stored."""
 
+    @property
+    @abc.abstractmethod
+    def records(self) -> Mapping['cirq.MeasurementKey', List[Tuple[int, ...]]]:
+        """Gets the a mapping from measurement key to measurement records."""
+
+    @property
+    @abc.abstractmethod
+    def channel_records(self) -> Mapping['cirq.MeasurementKey', List[int]]:
+        """Gets the a mapping from measurement key to channel measurement records."""
+
     @abc.abstractmethod
     def get_int(self, key: 'cirq.MeasurementKey', index=-1) -> int:
         """Gets the integer corresponding to the measurement.

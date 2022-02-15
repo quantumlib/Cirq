@@ -272,9 +272,10 @@ def test_repeated_measurement_unset(sim):
         cirq.measure(q1, key='c'),
     )
     result = sim.run(circuit)
-    assert result.measurements['a'] == 1
-    assert result.measurements['b'] == 0
-    assert result.measurements['c'] == 1
+    assert result.records['a'][0][0][0] == 0
+    assert result.records['a'][0][1][0] == 1
+    assert result.records['b'][0][0][0] == 0
+    assert result.records['c'][0][0][0] == 1
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
@@ -291,9 +292,10 @@ def test_repeated_measurement_set(sim):
         cirq.measure(q1, key='c'),
     )
     result = sim.run(circuit)
-    assert result.measurements['a'] == 0
-    assert result.measurements['b'] == 1
-    assert result.measurements['c'] == 1
+    assert result.records['a'][0][0][0] == 1
+    assert result.records['a'][0][1][0] == 0
+    assert result.records['b'][0][0][0] == 1
+    assert result.records['c'][0][0][0] == 1
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)

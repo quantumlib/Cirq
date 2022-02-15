@@ -65,13 +65,13 @@ class SimulatesIntermediateStateImpl(
 @mock.patch.multiple(cirq.SimulatesSamples, __abstractmethods__=set(), _run=mock.Mock())
 def test_run_simulator_run():
     simulator = cirq.SimulatesSamples()
-    expected_measurements = {'a': np.array([[1]])}
+    expected_measurements = {'a': np.array([[[1]]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     circuit.__iter__ = mock.Mock(return_value=iter([]))
     param_resolver = mock.Mock(cirq.ParamResolver)
     param_resolver.param_dict = {}
-    expected_result = cirq.ResultDict(measurements=expected_measurements, params=param_resolver)
+    expected_result = cirq.ResultDict(records=expected_measurements, params=param_resolver)
     assert expected_result == simulator.run(
         program=circuit, repetitions=10, param_resolver=param_resolver
     )
@@ -83,7 +83,7 @@ def test_run_simulator_run():
 @mock.patch.multiple(cirq.SimulatesSamples, __abstractmethods__=set(), _run=mock.Mock())
 def test_run_simulator_sweeps():
     simulator = cirq.SimulatesSamples()
-    expected_measurements = {'a': np.array([[1]])}
+    expected_measurements = {'a': np.array([[[1]]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     circuit.__iter__ = mock.Mock(return_value=iter([]))
@@ -91,8 +91,8 @@ def test_run_simulator_sweeps():
     for resolver in param_resolvers:
         resolver.param_dict = {}
     expected_results = [
-        cirq.ResultDict(measurements=expected_measurements, params=param_resolvers[0]),
-        cirq.ResultDict(measurements=expected_measurements, params=param_resolvers[1]),
+        cirq.ResultDict(records=expected_measurements, params=param_resolvers[0]),
+        cirq.ResultDict(records=expected_measurements, params=param_resolvers[1]),
     ]
     assert expected_results == simulator.run_sweep(
         program=circuit, repetitions=10, params=param_resolvers
@@ -368,7 +368,7 @@ def test_pretty_print():
 
 @duet.sync
 async def test_async_sample():
-    m = {'mock': np.array([[0], [1]])}
+    m = {'mock': np.array([[[0]], [[1]]])}
 
     class MockSimulator(cirq.SimulatesSamples):
         def _run(self, circuit, param_resolver, repetitions):
@@ -377,7 +377,7 @@ async def test_async_sample():
     q = cirq.LineQubit(0)
     f = MockSimulator().run_async(cirq.Circuit(cirq.measure(q)), repetitions=10)
     result = await f
-    np.testing.assert_equal(result.measurements, m)
+    np.testing.assert_equal(result.records, m)
 
 
 def test_simulation_trial_result_qubit_map():
