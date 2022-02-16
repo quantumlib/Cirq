@@ -97,7 +97,7 @@ def merge_single_qubit_moments_to_phxz(
     context: Optional['cirq.TransformerContext'] = None,
     atol: float = 1e-8,
 ) -> 'cirq.Circuit':
-    """Merges adjacent moments containing only single qubit rotations into a single moment.
+    """Merges adjacent moments with only 1-qubit rotations to a single moment with PhasedXZ gates.
 
     Args:
         circuit: Input circuit to transform. It will not be modified.
