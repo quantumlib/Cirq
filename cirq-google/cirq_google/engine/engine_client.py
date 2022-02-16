@@ -12,17 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import datetime
 import sys
-import time
-from typing import Callable, Dict, List, Optional, Sequence, Set, TypeVar, Tuple, Union
+import threading
+from typing import (
+    AsyncIterable,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    TypeVar,
+    Tuple,
+    Union,
+)
 import warnings
 
+import duet
 import proto
 from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from cirq._compat import cached_property
 from cirq_google.cloud import quantum
 
 _M = TypeVar('_M', bound=proto.Message)
@@ -36,6 +51,26 @@ class EngineException(Exception):
 
 
 RETRYABLE_ERROR_CODES = [500, 503]
+
+
+class AsyncioExecutor:
+    def __init__(self) -> None:
+        loop_future: duet.AwaitableFuture[asyncio.AbstractEventLoop] = duet.AwaitableFuture()
+        thread = threading.Thread(target=asyncio.run, args=(self._main(loop_future),), daemon=True)
+        thread.start()
+        self.loop = loop_future.result()
+
+    @staticmethod
+    async def _main(loop_future: duet.AwaitableFuture) -> None:
+        loop = asyncio.get_running_loop()
+        loop_future.set_result(loop)
+        while True:
+            await asyncio.sleep(1)
+
+    def submit(self, func, *args, **kw) -> duet.AwaitableFuture:
+        """Dispatch the given function to be run in a duet coroutine."""
+        future = asyncio.run_coroutine_threadsafe(func(*args, **kw), self.loop)
+        return duet.AwaitableFuture.wrap(future)
 
 
 class EngineClient:
@@ -69,22 +104,41 @@ class EngineClient:
         if not service_args:
             service_args = {}
 
-        # Suppress warnings about using Application Default Credentials.
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            self.grpc_client = quantum.QuantumEngineServiceClient(**service_args)
+        self._service_args = service_args
+        self._executor = AsyncioExecutor()
 
-    def _make_request(self, func: Callable[[_M], _R], request: _M) -> _R:
-        return self._run_retry(lambda: func(request))
+    @cached_property
+    def grpc_client(self) -> quantum.QuantumEngineServiceAsyncClient:
+        """Creates an async grpc client for the quantum engine service."""
 
-    def _run_retry(self, func: Callable[[], _R]) -> _R:
+        async def make_client():
+            # Suppress warnings about using Application Default Credentials.
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                return quantum.QuantumEngineServiceAsyncClient(**self._service_args)
+
+        return self._executor.submit(make_client).result()
+
+    async def _make_request_async(self, func: Callable[[_M], Awaitable[_R]], request: _M) -> _R:
+        return await self._run_retry_async(lambda: func(request))
+
+    async def _make_list_request_async(
+        self, func: Callable[[_M], Awaitable[AsyncIterable[_R]]], request: _M
+    ) -> _R:
+        async def new_func():
+            pager = await func(request)
+            return [item async for item in pager]
+
+        return await self._run_retry_async(new_func)
+
+    async def _run_retry_async(self, func: Callable[[], Awaitable[_R]]) -> _R:
         # Start with a 100ms retry delay with exponential backoff to
         # max_retry_delay_seconds
         current_delay = 0.1
 
         while True:
             try:
-                return func()
+                return await self._executor.submit(func)
             except GoogleAPICallError as err:
                 message = err.message
                 # Raise RuntimeError for exceptions that are not retryable.
@@ -97,10 +151,10 @@ class EngineClient:
             if self.verbose:
                 print(message, file=sys.stderr)
                 print(f'Waiting {current_delay} seconds before retrying.', file=sys.stderr)
-            time.sleep(current_delay)
+            await duet.sleep(current_delay)
             current_delay *= 2
 
-    def create_program(
+    async def create_program_async(
         self,
         project_id: str,
         program_id: Optional[str],
@@ -132,10 +186,12 @@ class EngineClient:
         request = quantum.CreateQuantumProgramRequest(
             parent=parent_name, quantum_program=program, overwrite_existing_source_code=False
         )
-        program = self._make_request(self.grpc_client.create_quantum_program, request)
+        program = await self._make_request_async(self.grpc_client.create_quantum_program, request)
         return _ids_from_program_name(program.name)[1], program
 
-    def get_program(
+    create_program = duet.sync(create_program_async)
+
+    async def get_program_async(
         self, project_id: str, program_id: str, return_code: bool
     ) -> quantum.QuantumProgram:
         """Returns a previously created quantum program.
@@ -148,9 +204,11 @@ class EngineClient:
         request = quantum.GetQuantumProgramRequest(
             name=_program_name_from_ids(project_id, program_id), return_code=return_code
         )
-        return self._make_request(self.grpc_client.get_quantum_program, request)
+        return await self._make_request_async(self.grpc_client.get_quantum_program, request)
 
-    def list_programs(
+    get_program = duet.sync(get_program_async)
+
+    async def list_programs_async(
         self,
         project_id: str,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
@@ -187,9 +245,11 @@ class EngineClient:
         request = quantum.ListQuantumProgramsRequest(
             parent=_project_name(project_id), filter=" AND ".join(filters)
         )
-        return self._make_request(self.grpc_client.list_quantum_programs, request)
+        return await self._make_request_async(self.grpc_client.list_quantum_programs, request)
 
-    def set_program_description(
+    list_programs = duet.sync(list_programs_async)
+
+    async def set_program_description_async(
         self, project_id: str, program_id: str, description: str
     ) -> quantum.QuantumProgram:
         """Sets the description for a previously created quantum program.
@@ -210,9 +270,11 @@ class EngineClient:
             ),
             update_mask=field_mask_pb2.FieldMask(paths=['description']),
         )
-        return self._make_request(self.grpc_client.update_quantum_program, request)
+        return await self._make_request_async(self.grpc_client.update_quantum_program, request)
 
-    def _set_program_labels(
+    set_program_description = duet.sync(set_program_description_async)
+
+    async def _set_program_labels_async(
         self, project_id: str, program_id: str, labels: Dict[str, str], fingerprint: str
     ) -> quantum.QuantumProgram:
         program_resource_name = _program_name_from_ids(project_id, program_id)
@@ -223,9 +285,9 @@ class EngineClient:
             ),
             update_mask=field_mask_pb2.FieldMask(paths=['labels']),
         )
-        return self._make_request(self.grpc_client.update_quantum_program, request)
+        return await self._make_request_async(self.grpc_client.update_quantum_program, request)
 
-    def set_program_labels(
+    async def set_program_labels_async(
         self, project_id: str, program_id: str, labels: Dict[str, str]
     ) -> quantum.QuantumProgram:
         """Sets (overwriting) the labels for a previously created quantum
@@ -240,9 +302,13 @@ class EngineClient:
             The updated quantum program.
         """
         program = self.get_program(project_id, program_id, False)
-        return self._set_program_labels(project_id, program_id, labels, program.label_fingerprint)
+        return await self._set_program_labels_async(
+            project_id, program_id, labels, program.label_fingerprint
+        )
 
-    def add_program_labels(
+    set_program_labels = duet.sync(set_program_labels_async)
+
+    async def add_program_labels_async(
         self, project_id: str, program_id: str, labels: Dict[str, str]
     ) -> quantum.QuantumProgram:
         """Adds new labels to a previously created quantum program.
@@ -255,16 +321,20 @@ class EngineClient:
         Returns:
             The updated quantum program.
         """
-        program = self.get_program(project_id, program_id, False)
+        program = await self.get_program_async(project_id, program_id, False)
         old_labels = program.labels
         new_labels = dict(old_labels)
         new_labels.update(labels)
         if new_labels != old_labels:
             fingerprint = program.label_fingerprint
-            return self._set_program_labels(project_id, program_id, new_labels, fingerprint)
+            return await self._set_program_labels_async(
+                project_id, program_id, new_labels, fingerprint
+            )
         return program
 
-    def remove_program_labels(
+    add_program_labels = duet.sync(add_program_labels_async)
+
+    async def remove_program_labels_async(
         self, project_id: str, program_id: str, label_keys: List[str]
     ) -> quantum.QuantumProgram:
         """Removes labels with given keys from the labels of a previously
@@ -278,17 +348,23 @@ class EngineClient:
         Returns:
             The updated quantum program.
         """
-        program = self.get_program(project_id, program_id, False)
+        program = await self.get_program_async(project_id, program_id, False)
         old_labels = program.labels
         new_labels = dict(old_labels)
         for key in label_keys:
             new_labels.pop(key, None)
         if new_labels != old_labels:
             fingerprint = program.label_fingerprint
-            return self._set_program_labels(project_id, program_id, new_labels, fingerprint)
+            return await self._set_program_labels_async(
+                project_id, program_id, new_labels, fingerprint
+            )
         return program
 
-    def delete_program(self, project_id: str, program_id: str, delete_jobs: bool = False) -> None:
+    remove_program_labels = duet.sync(remove_program_labels_async)
+
+    async def delete_program_async(
+        self, project_id: str, program_id: str, delete_jobs: bool = False
+    ) -> None:
         """Deletes a previously created quantum program.
 
         Args:
@@ -300,9 +376,11 @@ class EngineClient:
         request = quantum.DeleteQuantumProgramRequest(
             name=_program_name_from_ids(project_id, program_id), delete_jobs=delete_jobs
         )
-        self._make_request(self.grpc_client.delete_quantum_program, request)
+        await self._make_request_async(self.grpc_client.delete_quantum_program, request)
 
-    def create_job(
+    delete_program = duet.sync(delete_program_async)
+
+    async def create_job_async(
         self,
         project_id: str,
         program_id: str,
@@ -360,10 +438,12 @@ class EngineClient:
             quantum_job=job,
             overwrite_existing_run_context=False,
         )
-        job = self._make_request(self.grpc_client.create_quantum_job, request)
+        job = await self._make_request_async(self.grpc_client.create_quantum_job, request)
         return _ids_from_job_name(job.name)[2], job
 
-    def list_jobs(
+    create_job = duet.sync(create_job_async)
+
+    async def list_jobs_async(
         self,
         project_id: str,
         program_id: Optional[str] = None,
@@ -433,9 +513,11 @@ class EngineClient:
             program_id = "-"
         parent = _program_name_from_ids(project_id, program_id)
         request = quantum.ListQuantumJobsRequest(parent=parent, filter=" AND ".join(filters))
-        return self._make_request(self.grpc_client.list_quantum_jobs, request)
+        return await self._make_request_async(self.grpc_client.list_quantum_jobs, request)
 
-    def get_job(
+    list_jobs = duet.sync(list_jobs_async)
+
+    async def get_job_async(
         self, project_id: str, program_id: str, job_id: str, return_run_context: bool
     ) -> quantum.QuantumJob:
         """Returns a previously created job.
@@ -452,9 +534,11 @@ class EngineClient:
             name=_job_name_from_ids(project_id, program_id, job_id),
             return_run_context=return_run_context,
         )
-        return self._make_request(self.grpc_client.get_quantum_job, request)
+        return await self._make_request_async(self.grpc_client.get_quantum_job, request)
 
-    def set_job_description(
+    get_job = duet.sync(get_job_async)
+
+    async def set_job_description_async(
         self, project_id: str, program_id: str, job_id: str, description: str
     ) -> quantum.QuantumJob:
         """Sets the description for a previously created quantum job.
@@ -474,9 +558,11 @@ class EngineClient:
             quantum_job=quantum.QuantumJob(name=job_resource_name, description=description),
             update_mask=field_mask_pb2.FieldMask(paths=['description']),
         )
-        return self._make_request(self.grpc_client.update_quantum_job, request)
+        return await self._make_request_async(self.grpc_client.update_quantum_job, request)
 
-    def _set_job_labels(
+    set_job_description = duet.sync(set_job_description_async)
+
+    async def _set_job_labels_async(
         self,
         project_id: str,
         program_id: str,
@@ -492,9 +578,9 @@ class EngineClient:
             ),
             update_mask=field_mask_pb2.FieldMask(paths=['labels']),
         )
-        return self._make_request(self.grpc_client.update_quantum_job, request)
+        return await self._make_request_async(self.grpc_client.update_quantum_job, request)
 
-    def set_job_labels(
+    async def set_job_labels_async(
         self, project_id: str, program_id: str, job_id: str, labels: Dict[str, str]
     ) -> quantum.QuantumJob:
         """Sets (overwriting) the labels for a previously created quantum job.
@@ -508,10 +594,14 @@ class EngineClient:
         Returns:
             The updated quantum job.
         """
-        job = self.get_job(project_id, program_id, job_id, False)
-        return self._set_job_labels(project_id, program_id, job_id, labels, job.label_fingerprint)
+        job = await self.get_job_async(project_id, program_id, job_id, False)
+        return await self._set_job_labels_async(
+            project_id, program_id, job_id, labels, job.label_fingerprint
+        )
 
-    def add_job_labels(
+    set_job_labels = duet.sync(set_job_labels_async)
+
+    async def add_job_labels_async(
         self, project_id: str, program_id: str, job_id: str, labels: Dict[str, str]
     ) -> quantum.QuantumJob:
         """Adds new labels to a previously created quantum job.
@@ -525,16 +615,20 @@ class EngineClient:
         Returns:
             The updated quantum job.
         """
-        job = self.get_job(project_id, program_id, job_id, False)
+        job = await self.get_job_async(project_id, program_id, job_id, False)
         old_labels = job.labels
         new_labels = dict(old_labels)
         new_labels.update(labels)
         if new_labels != old_labels:
             fingerprint = job.label_fingerprint
-            return self._set_job_labels(project_id, program_id, job_id, new_labels, fingerprint)
+            return await self._set_job_labels_async(
+                project_id, program_id, job_id, new_labels, fingerprint
+            )
         return job
 
-    def remove_job_labels(
+    add_job_labels = duet.sync(add_job_labels_async)
+
+    async def remove_job_labels_async(
         self, project_id: str, program_id: str, job_id: str, label_keys: List[str]
     ) -> quantum.QuantumJob:
         """Removes labels with given keys from the labels of a previously
@@ -549,17 +643,21 @@ class EngineClient:
         Returns:
             The updated quantum job.
         """
-        job = self.get_job(project_id, program_id, job_id, False)
+        job = await self.get_job_async(project_id, program_id, job_id, False)
         old_labels = job.labels
         new_labels = dict(old_labels)
         for key in label_keys:
             new_labels.pop(key, None)
         if new_labels != old_labels:
             fingerprint = job.label_fingerprint
-            return self._set_job_labels(project_id, program_id, job_id, new_labels, fingerprint)
+            return await self._set_job_labels_async(
+                project_id, program_id, job_id, new_labels, fingerprint
+            )
         return job
 
-    def delete_job(self, project_id: str, program_id: str, job_id: str) -> None:
+    remove_job_labels = duet.sync(remove_job_labels_async)
+
+    async def delete_job_async(self, project_id: str, program_id: str, job_id: str) -> None:
         """Deletes a previously created quantum job.
 
         Args:
@@ -570,9 +668,11 @@ class EngineClient:
         request = quantum.DeleteQuantumJobRequest(
             name=_job_name_from_ids(project_id, program_id, job_id)
         )
-        self._make_request(self.grpc_client.delete_quantum_job, request)
+        await self._make_request_async(self.grpc_client.delete_quantum_job, request)
 
-    def cancel_job(self, project_id: str, program_id: str, job_id: str) -> None:
+    delete_job = duet.sync(delete_job_async)
+
+    async def cancel_job_async(self, project_id: str, program_id: str, job_id: str) -> None:
         """Cancels the given job.
 
         Args:
@@ -583,9 +683,11 @@ class EngineClient:
         request = quantum.CancelQuantumJobRequest(
             name=_job_name_from_ids(project_id, program_id, job_id)
         )
-        self._make_request(self.grpc_client.cancel_quantum_job, request)
+        await self._make_request_async(self.grpc_client.cancel_quantum_job, request)
 
-    def get_job_results(
+    cancel_job = duet.sync(cancel_job_async)
+
+    async def get_job_results_async(
         self, project_id: str, program_id: str, job_id: str
     ) -> quantum.QuantumResult:
         """Returns the results of a completed job.
@@ -601,9 +703,11 @@ class EngineClient:
         request = quantum.GetQuantumResultRequest(
             parent=_job_name_from_ids(project_id, program_id, job_id)
         )
-        return self._make_request(self.grpc_client.get_quantum_result, request)
+        return await self._make_request_async(self.grpc_client.get_quantum_result, request)
 
-    def list_processors(self, project_id: str) -> List[quantum.QuantumProcessor]:
+    get_job_results = duet.sync(get_job_results_async)
+
+    async def list_processors_async(self, project_id: str) -> List[quantum.QuantumProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
         identify devices when scheduling jobs and gathering calibration metrics.
@@ -615,10 +719,15 @@ class EngineClient:
             A list of metadata of each processor.
         """
         request = quantum.ListQuantumProcessorsRequest(parent=_project_name(project_id), filter='')
-        response = self._make_request(self.grpc_client.list_quantum_processors, request)
-        return list(response)
+        return await self._make_list_request_async(
+            self.grpc_client.list_quantum_processors, request
+        )
 
-    def get_processor(self, project_id: str, processor_id: str) -> quantum.QuantumProcessor:
+    list_processors = duet.sync(list_processors_async)
+
+    async def get_processor_async(
+        self, project_id: str, processor_id: str
+    ) -> quantum.QuantumProcessor:
         """Returns a quantum processor.
 
         Args:
@@ -631,9 +740,11 @@ class EngineClient:
         request = quantum.GetQuantumProcessorRequest(
             name=_processor_name_from_ids(project_id, processor_id)
         )
-        return self._make_request(self.grpc_client.get_quantum_processor, request)
+        return await self._make_request_async(self.grpc_client.get_quantum_processor, request)
 
-    def list_calibrations(
+    get_processor = duet.sync(get_processor_async)
+
+    async def list_calibrations_async(
         self, project_id: str, processor_id: str, filter_str: str = ''
     ) -> List[quantum.QuantumCalibration]:
         """Returns a list of quantum calibrations.
@@ -652,10 +763,13 @@ class EngineClient:
         request = quantum.ListQuantumCalibrationsRequest(
             parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
         )
-        response = self._make_request(self.grpc_client.list_quantum_calibrations, request)
-        return list(response)
+        return await self._make_list_request_async(
+            self.grpc_client.list_quantum_calibrations, request
+        )
 
-    def get_calibration(
+    list_calibrations = duet.sync(list_calibrations_async)
+
+    async def get_calibration_async(
         self, project_id: str, processor_id: str, calibration_timestamp_seconds: int
     ) -> quantum.QuantumCalibration:
         """Returns a quantum calibration.
@@ -672,9 +786,11 @@ class EngineClient:
         request = quantum.GetQuantumCalibrationRequest(
             name=_calibration_name_from_ids(project_id, processor_id, calibration_timestamp_seconds)
         )
-        return self._make_request(self.grpc_client.get_quantum_calibration, request)
+        return await self._make_request_async(self.grpc_client.get_quantum_calibration, request)
 
-    def get_current_calibration(
+    get_calibration = duet.sync(get_calibration_async)
+
+    async def get_current_calibration_async(
         self, project_id: str, processor_id: str
     ) -> Optional[quantum.QuantumCalibration]:
         """Returns the current quantum calibration for a processor if it has one.
@@ -693,13 +809,15 @@ class EngineClient:
             request = quantum.GetQuantumCalibrationRequest(
                 name=_processor_name_from_ids(project_id, processor_id) + '/calibrations/current'
             )
-            return self._make_request(self.grpc_client.get_quantum_calibration, request)
+            return await self._make_request_async(self.grpc_client.get_quantum_calibration, request)
         except EngineException as err:
             if isinstance(err.__cause__, NotFound):
                 return None
             raise
 
-    def create_reservation(
+    get_current_calibration = duet.sync(get_current_calibration_async)
+
+    async def create_reservation_async(
         self,
         project_id: str,
         processor_id: str,
@@ -729,9 +847,13 @@ class EngineClient:
         request = quantum.CreateQuantumReservationRequest(
             parent=parent, quantum_reservation=reservation
         )
-        return self._make_request(self.grpc_client.create_quantum_reservation, request)
+        return await self._make_request_async(self.grpc_client.create_quantum_reservation, request)
 
-    def cancel_reservation(self, project_id: str, processor_id: str, reservation_id: str):
+    create_reservation = duet.sync(create_reservation_async)
+
+    async def cancel_reservation_async(
+        self, project_id: str, processor_id: str, reservation_id: str
+    ):
         """Cancels a quantum reservation.
 
         This action is only valid if the associated [QuantumProcessor]
@@ -752,9 +874,13 @@ class EngineClient:
         """
         name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
         request = quantum.CancelQuantumReservationRequest(name=name)
-        return self._make_request(self.grpc_client.cancel_quantum_reservation, request)
+        return await self._make_request_async(self.grpc_client.cancel_quantum_reservation, request)
 
-    def delete_reservation(self, project_id: str, processor_id: str, reservation_id: str):
+    cancel_reservation = duet.sync(cancel_reservation_async)
+
+    async def delete_reservation_async(
+        self, project_id: str, processor_id: str, reservation_id: str
+    ):
         """Deletes a quantum reservation.
 
         This action is only valid if the associated [QuantumProcessor]
@@ -771,9 +897,11 @@ class EngineClient:
         """
         name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
         request = quantum.DeleteQuantumReservationRequest(name=name)
-        return self._make_request(self.grpc_client.delete_quantum_reservation, request)
+        return await self._make_request_async(self.grpc_client.delete_quantum_reservation, request)
 
-    def get_reservation(
+    delete_reservation = duet.sync(delete_reservation_async)
+
+    async def get_reservation_async(
         self, project_id: str, processor_id: str, reservation_id: str
     ) -> Optional[quantum.QuantumReservation]:
         """Gets a quantum reservation from the engine.
@@ -789,13 +917,15 @@ class EngineClient:
         try:
             name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
             request = quantum.GetQuantumReservationRequest(name=name)
-            return self._make_request(self.grpc_client.get_quantum_reservation, request)
+            return await self._make_request_async(self.grpc_client.get_quantum_reservation, request)
         except EngineException as err:
             if isinstance(err.__cause__, NotFound):
                 return None
             raise
 
-    def list_reservations(
+    get_reservation = duet.sync(get_reservation_async)
+
+    async def list_reservations_async(
         self, project_id: str, processor_id: str, filter_str: str = ''
     ) -> List[quantum.QuantumReservation]:
         """Returns a list of quantum reservations.
@@ -819,10 +949,13 @@ class EngineClient:
         request = quantum.ListQuantumReservationsRequest(
             parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
         )
-        response = self._make_request(self.grpc_client.list_quantum_reservations, request)
-        return list(response)
+        return await self._make_list_request_async(
+            self.grpc_client.list_quantum_reservations, request
+        )
 
-    def update_reservation(
+    list_reservations = duet.sync(list_reservations_async)
+
+    async def update_reservation_async(
         self,
         project_id: str,
         processor_id: str,
@@ -870,9 +1003,11 @@ class EngineClient:
             quantum_reservation=reservation,
             update_mask=field_mask_pb2.FieldMask(paths=paths),
         )
-        return self._make_request(self.grpc_client.update_quantum_reservation, request)
+        return await self._make_request_async(self.grpc_client.update_quantum_reservation, request)
 
-    def list_time_slots(
+    update_reservation = duet.sync(update_reservation_async)
+
+    async def list_time_slots_async(
         self, project_id: str, processor_id: str, filter_str: str = ''
     ) -> List[quantum.QuantumTimeSlot]:
         """Returns a list of quantum time slots on a processor.
@@ -890,8 +1025,11 @@ class EngineClient:
         request = quantum.ListQuantumTimeSlotsRequest(
             parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
         )
-        response = self._make_request(self.grpc_client.list_quantum_time_slots, request)
-        return list(response)
+        return await self._make_list_request_async(
+            self.grpc_client.list_quantum_time_slots, request
+        )
+
+    list_time_slots = duet.sync(list_time_slots_async)
 
 
 def _project_name(project_id: str) -> str:

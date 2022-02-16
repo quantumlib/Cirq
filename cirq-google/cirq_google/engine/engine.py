@@ -29,6 +29,7 @@ import random
 import string
 from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
 
+import duet
 import google.auth
 from google.protobuf import any_pb2
 
@@ -209,7 +210,7 @@ class Engine(abstract_engine.AbstractEngine):
         return f'Engine(project_id={self.project_id!r})'
 
     @util.deprecated_gate_set_parameter
-    def run(
+    async def run_async(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
@@ -255,23 +256,25 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        return list(
-            self.run_sweep(
-                program=program,
-                program_id=program_id,
-                job_id=job_id,
-                params=[param_resolver],
-                repetitions=repetitions,
-                processor_ids=processor_ids,
-                program_description=program_description,
-                program_labels=program_labels,
-                job_description=job_description,
-                job_labels=job_labels,
-            )
-        )[0]
+        job = await self.run_sweep_async(
+            program=program,
+            program_id=program_id,
+            job_id=job_id,
+            params=[param_resolver],
+            repetitions=repetitions,
+            processor_ids=processor_ids,
+            program_description=program_description,
+            program_labels=program_labels,
+            job_description=job_description,
+            job_labels=job_labels,
+        )
+        results = await job.results_async()
+        return results[0]
+
+    run = duet.sync(run_async)
 
     @util.deprecated_gate_set_parameter
-    def run_sweep(
+    async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
@@ -321,10 +324,10 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        engine_program = self.create_program(
+        engine_program = await self.create_program_async(
             program, program_id, description=program_description, labels=program_labels
         )
-        return engine_program.run_sweep(
+        return await engine_program.run_sweep_async(
             job_id=job_id,
             params=params,
             repetitions=repetitions,
@@ -333,8 +336,10 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
+    run_sweep = duet.sync(run_sweep_async)
+
     @util.deprecated_gate_set_parameter
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
@@ -406,7 +411,7 @@ class Engine(abstract_engine.AbstractEngine):
         engine_program = self.create_batch_program(
             programs, program_id, description=program_description, labels=program_labels
         )
-        return engine_program.run_batch(
+        return await engine_program.run_batch_async(
             job_id=job_id,
             params_list=params_list,
             repetitions=repetitions,
@@ -414,6 +419,8 @@ class Engine(abstract_engine.AbstractEngine):
             description=job_description,
             labels=job_labels,
         )
+
+    run_batch = duet.sync(run_batch_async)
 
     @util.deprecated_gate_set_parameter
     def run_calibration(
@@ -494,7 +501,7 @@ class Engine(abstract_engine.AbstractEngine):
         )
 
     @util.deprecated_gate_set_parameter
-    def create_program(
+    async def create_program_async(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
@@ -525,7 +532,7 @@ class Engine(abstract_engine.AbstractEngine):
         if not program_id:
             program_id = _make_random_id('prog-')
 
-        new_program_id, new_program = self.context.client.create_program(
+        new_program_id, new_program = await self.context.client.create_program_async(
             self.project_id,
             program_id,
             code=self.context._serialize_program(program, gate_set),
@@ -537,8 +544,10 @@ class Engine(abstract_engine.AbstractEngine):
             self.project_id, new_program_id, self.context, new_program
         )
 
+    create_program = duet.sync(create_program_async)
+
     @util.deprecated_gate_set_parameter
-    def create_batch_program(
+    async def create_batch_program_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
@@ -575,7 +584,7 @@ class Engine(abstract_engine.AbstractEngine):
         for program in programs:
             gate_set.serialize(program, msg=batch.programs.add())
 
-        new_program_id, new_program = self.context.client.create_program(
+        new_program_id, new_program = await self.context.client.create_program_async(
             self.project_id,
             program_id,
             code=util.pack_any(batch),
@@ -587,8 +596,10 @@ class Engine(abstract_engine.AbstractEngine):
             self.project_id, new_program_id, self.context, new_program, result_type=ResultType.Batch
         )
 
+    create_batch_program = duet.sync(create_batch_program_async)
+
     @util.deprecated_gate_set_parameter
-    def create_calibration_program(
+    async def create_calibration_program_async(
         self,
         layers: List['cirq_google.CalibrationLayer'],
         program_id: Optional[str] = None,
@@ -633,7 +644,7 @@ class Engine(abstract_engine.AbstractEngine):
                 arg_to_proto(layer.args[arg], out=new_layer.args[arg])
             gate_set.serialize(layer.program, msg=new_layer.layer)
 
-        new_program_id, new_program = self.context.client.create_program(
+        new_program_id, new_program = await self.context.client.create_program_async(
             self.project_id,
             program_id,
             code=util.pack_any(calibration),
@@ -649,6 +660,8 @@ class Engine(abstract_engine.AbstractEngine):
             result_type=ResultType.Calibration,
         )
 
+    create_calibration_program = duet.sync(create_calibration_program_async)
+
     def get_program(self, program_id: str) -> engine_program.EngineProgram:
         """Returns an EngineProgram for an existing Quantum Engine program.
 
@@ -660,7 +673,7 @@ class Engine(abstract_engine.AbstractEngine):
         """
         return engine_program.EngineProgram(self.project_id, program_id, self.context)
 
-    def list_programs(
+    async def list_programs_async(
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
@@ -682,7 +695,7 @@ class Engine(abstract_engine.AbstractEngine):
         """
 
         client = self.context.client
-        response = client.list_programs(
+        response = await client.list_programs_async(
             self.project_id,
             created_before=created_before,
             created_after=created_after,
@@ -698,7 +711,9 @@ class Engine(abstract_engine.AbstractEngine):
             for p in response
         ]
 
-    def list_jobs(
+    list_programs = duet.sync(list_programs_async)
+
+    async def list_jobs_async(
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
@@ -731,7 +746,7 @@ class Engine(abstract_engine.AbstractEngine):
                  `quantum.ExecutionStatus.State` enum for accepted values.
         """
         client = self.context.client
-        response = client.list_jobs(
+        response = await client.list_jobs_async(
             self.project_id,
             None,
             created_before=created_before,
@@ -750,7 +765,9 @@ class Engine(abstract_engine.AbstractEngine):
             for j in response
         ]
 
-    def list_processors(self) -> List[engine_processor.EngineProcessor]:
+    list_jobs = duet.sync(list_jobs_async)
+
+    async def list_processors_async(self) -> List[engine_processor.EngineProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
         identify devices when scheduling jobs and gathering calibration metrics.
@@ -759,13 +776,15 @@ class Engine(abstract_engine.AbstractEngine):
             A list of EngineProcessors to access status, device and calibration
             information.
         """
-        response = self.context.client.list_processors(self.project_id)
+        response = await self.context.client.list_processors_async(self.project_id)
         return [
             engine_processor.EngineProcessor(
                 self.project_id, engine_client._ids_from_processor_name(p.name)[1], self.context, p
             )
             for p in response
         ]
+
+    list_processors = duet.sync(list_processors_async)
 
     def get_processor(self, processor_id: str) -> engine_processor.EngineProcessor:
         """Returns an EngineProcessor for a Quantum Engine processor.
