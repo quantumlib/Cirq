@@ -155,7 +155,7 @@ def _decompose_two_qubit(operation: cirq.Operation) -> cirq.OP_TREE:
         if type(op.gate) == cirq.CZPowGate
         else op,
     )
-    cirq.merge_single_qubit_gates_into_phased_x_z(temp)
+    temp = cirq.merge_single_qubit_gates_to_phased_x_and_z(temp)
     # A final pass breaks up PhasedXPow into Rz, Rx.
     yield cirq.map_operations_and_unroll(
         temp,
