@@ -730,7 +730,27 @@ class MultipleCliffordGate(raw_types.Gate, CommonCliffordGates):
 
     @classmethod
     def from_clifford_tableau(cls, tableau: qis.CliffordTableau) -> 'MultipleCliffordGate':
-        assert isinstance(tableau, qis.CliffordTableau)
+        """Create the MultipleCliffordGate instance from Clifford Tableau.
+
+        Args:
+            tableau: A CliffordTableau to define the effect of Clifford Gate applying on
+            the stabilizer state or Pauli group. The meaning of tableau here is
+                    To  X   Z    sign
+            from  X  [ X_x Z_x | r_x ]
+            from  Z  [ X_z Z_z | r_z ]
+            Each row in the Clifford tableau indicates how the transformation of original 
+            Pauli gates to the new gates after applying this Clifford Gate.
+
+        Returns:
+            A MultipleCliffordGate instance, which has the transformation defined by
+            the input tableau.
+
+        Raises:
+            ValueError: When input tableau is wrong type or the tableau does not
+            satisfy the symplectic property.
+        """
+        if not isinstance(tableau, qis.CliffordTableau):
+            raise ValueError('Input tableau has to be CliffordTableau.')
         if not tableau._validate():
             raise ValueError('It is not a valid Clifford tableau.')
         return MultipleCliffordGate(_clifford_tableau=tableau)
@@ -739,7 +759,21 @@ class MultipleCliffordGate(raw_types.Gate, CommonCliffordGates):
     def from_op_list(
         cls, operations: Sequence[raw_types.Operation], qubit_order: Sequence[raw_types.Qid]
     ) -> 'MultipleCliffordGate':
-        """Construct a new Clifford gates from several known operations."""
+        """Construct a new Clifford gates from several known operations.
+
+        Args:
+            operations: A list of cirq operations to construct the Clifford gate.
+                The combination order is the first element in the list applies the transformation
+                on the stabilizer state first.
+            qubit_order: Determines how qubits are ordered when decomposite the operations.
+
+        Returns:
+            A MultipleCliffordGate instance, which has the transformation on the stabilizer
+            state equivalent to the composition of operations.
+
+        Raises:
+            ValueError: When one or more operations do not have stabilizer effect.
+        """
         from cirq.sim import clifford
 
         for op in operations:
