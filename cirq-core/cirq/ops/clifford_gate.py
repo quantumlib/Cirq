@@ -738,7 +738,7 @@ class MultipleCliffordGate(raw_types.Gate, CommonCliffordGates):
                     To  X   Z    sign
             from  X  [ X_x Z_x | r_x ]
             from  Z  [ X_z Z_z | r_z ]
-            Each row in the Clifford tableau indicates how the transformation of original 
+            Each row in the Clifford tableau indicates how the transformation of original
             Pauli gates to the new gates after applying this Clifford Gate.
 
         Returns:
