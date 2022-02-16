@@ -12,23 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import inspect
+import warnings
 from collections import abc
 from typing import (
     Dict,
-    TYPE_CHECKING,
     Generic,
-    Sequence,
-    Optional,
     Iterator,
-    Any,
-    Tuple,
     List,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
     Union,
 )
 
 import numpy as np
 
-from cirq import ops, protocols
+from cirq import ops, protocols, value
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TActOnArgs,
@@ -50,7 +51,8 @@ class ActOnArgsContainer(
         args: Dict[Optional['cirq.Qid'], TActOnArgs],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
-        log_of_measurement_results: Dict[str, Any],
+        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Initializes the class.
 
@@ -63,11 +65,18 @@ class ActOnArgsContainer(
                 at the end.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            classical_data: The shared classical data container for this
+                simulation.
         """
         self.args = args
         self._qubits = tuple(qubits)
         self.split_untangled_states = split_untangled_states
-        self._log_of_measurement_results = log_of_measurement_results
+        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
+            _records={
+                value.MeasurementKey.parse_serialized(k): [tuple(v)]
+                for k, v in (log_of_measurement_results or {}).items()
+            }
+        )
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
@@ -118,33 +127,49 @@ class ActOnArgsContainer(
         protocols.act_on(action, op_args, act_on_qubits, allow_decompose=allow_decompose)
 
         # Decouple any measurements or resets
-        if self.split_untangled_states and isinstance(
-            gate, (ops.MeasurementGate, ops.ResetChannel)
+        if self.split_untangled_states and (
+            isinstance(gate, ops.ResetChannel)
+            or (isinstance(gate, ops.MeasurementGate) and not op_args.ignore_measurement_results)
         ):
             for q in qubits:
-                q_args, op_args = op_args.factor((q,), validate=False)
-                self.args[q] = q_args
+                if op_args.allows_factoring:
+                    q_args, op_args = op_args.factor((q,), validate=False)
+                    self.args[q] = q_args
 
             # (Backfill the args map with the new value)
             for q in op_args.qubits:
                 self.args[q] = op_args
         return True
 
-    def copy(self) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
-        logs = self.log_of_measurement_results.copy()
-        copies = {a: a.copy() for a in set(self.args.values())}
+    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
+        classical_data = self._classical_data.copy()
+        copies = {}
+        for act_on_args in set(self.args.values()):
+            if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
+                copies[act_on_args] = act_on_args.copy(deep_copy_buffers)
+            else:
+                warnings.warn(
+                    (
+                        'A new parameter deep_copy_buffers has been added to ActOnArgs.copy(). The '
+                        'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
+                    ),
+                    DeprecationWarning,
+                )
+                copies[act_on_args] = act_on_args.copy()
         for copy in copies.values():
-            copy._log_of_measurement_results = logs
+            copy._classical_data = classical_data
         args = {q: copies[a] for q, a in self.args.items()}
-        return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, logs)
+        return ActOnArgsContainer(
+            args, self.qubits, self.split_untangled_states, classical_data=classical_data
+        )
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._qubits
 
     @property
-    def log_of_measurement_results(self) -> Dict[str, Any]:
-        return self._log_of_measurement_results
+    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
+        return self._classical_data
 
     def sample(
         self,

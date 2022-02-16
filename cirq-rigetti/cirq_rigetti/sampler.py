@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional
+from typing import Optional, Sequence
 
 from pyquil import get_qc
 from pyquil.api import QuantumComputer
@@ -56,7 +56,7 @@ class RigettiQCSSampler(cirq.Sampler):
         program: cirq.AbstractCircuit,
         params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List[cirq.Result]:
+    ) -> Sequence[cirq.Result]:
         """This will evaluate results on the circuit for every set of parameters in `params`.
 
         Args:

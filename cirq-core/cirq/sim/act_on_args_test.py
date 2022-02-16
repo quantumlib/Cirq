@@ -37,6 +37,9 @@ class DummyArgs(cirq.ActOnArgs):
     ) -> bool:
         return True
 
+    def _on_copy(self, args):
+        return super()._on_copy(args)
+
 
 def test_measurements():
     args = DummyArgs()
@@ -89,3 +92,9 @@ def test_transpose_qubits():
         args.transpose_to_qubit_order((q0, q2))
     with pytest.raises(ValueError, match='Qubits do not match'):
         args.transpose_to_qubit_order((q0, q1, q1))
+
+
+def test_on_copy_has_no_param():
+    args = DummyArgs()
+    with cirq.testing.assert_deprecated('deep_copy_buffers', deadline='0.15'):
+        args.copy(False)

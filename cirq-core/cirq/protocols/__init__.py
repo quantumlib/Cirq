@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Methods and classes that define cirq's protocols."""
+"""Protocols (structural subtyping) supported in Cirq."""
 
 from cirq.protocols.act_on_protocol import (
     act_on,

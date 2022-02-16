@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import numpy as np
 import pytest
 import sympy
 from sympy.parsing import sympy_parser
@@ -255,6 +257,45 @@ def test_key_set(sim):
     result = sim.run(circuit)
     assert result.measurements['a'] == 1
     assert result.measurements['b'] == 1
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeated_measurement_unset(sim):
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-2)),
+        cirq.measure(q1, key='b'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-1)),
+        cirq.measure(q1, key='c'),
+    )
+    result = sim.run(circuit)
+    assert result.records['a'][0][0][0] == 0
+    assert result.records['a'][0][1][0] == 1
+    assert result.records['b'][0][0][0] == 0
+    assert result.records['c'][0][0][0] == 1
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeated_measurement_set(sim):
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-2)),
+        cirq.measure(q1, key='b'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-1)),
+        cirq.measure(q1, key='c'),
+    )
+    result = sim.run(circuit)
+    assert result.records['a'][0][0][0] == 1
+    assert result.records['a'][0][1][0] == 0
+    assert result.records['b'][0][0][0] == 1
+    assert result.records['c'][0][0][0] == 1
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
@@ -702,6 +743,40 @@ def test_sympy():
             assert result.measurements['m_result'][0][0] == (j > i)
 
 
+def test_sympy_qudits():
+    q0 = cirq.LineQid(0, 3)
+    q1 = cirq.LineQid(1, 5)
+    q_result = cirq.LineQubit(2)
+
+    class PlusGate(cirq.Gate):
+        def __init__(self, dimension, increment=1):
+            self.dimension = dimension
+            self.increment = increment % dimension
+
+        def _qid_shape_(self):
+            return (self.dimension,)
+
+        def _unitary_(self):
+            inc = (self.increment - 1) % self.dimension + 1
+            u = np.empty((self.dimension, self.dimension))
+            u[inc:] = np.eye(self.dimension)[:-inc]
+            u[:inc] = np.eye(self.dimension)[-inc:]
+            return u
+
+    for i in range(15):
+        digits = cirq.big_endian_int_to_digits(i, digit_count=2, base=(3, 5))
+        circuit = cirq.Circuit(
+            PlusGate(3, digits[0]).on(q0),
+            PlusGate(5, digits[1]).on(q1),
+            cirq.measure(q0, q1, key='m'),
+            cirq.X(q_result).with_classical_controls(sympy_parser.parse_expr('m % 4 <= 1')),
+            cirq.measure(q_result, key='m_result'),
+        )
+
+        result = cirq.Simulator().run(circuit)
+        assert result.measurements['m_result'][0][0] == (i % 4 <= 1)
+
+
 def test_sympy_path_prefix():
     q = cirq.LineQubit(0)
     op = cirq.X(q).with_classical_controls(sympy.Symbol('b'))
@@ -813,3 +888,20 @@ def test_sympy_scope_simulation():
         assert result.measurements['0:0:m_result'][0][0] == (
             bits[0] and bits[1] or bits[2] and bits[3]  # bits[4] irrelevant
         )
+
+
+def test_commutes():
+    q0, q1 = cirq.LineQubit.range(2)
+    assert cirq.commutes(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('b'))
+    assert cirq.commutes(cirq.X(q1).with_classical_controls('b'), cirq.measure(q0, key='a'))
+    assert cirq.commutes(
+        cirq.X(q0).with_classical_controls('a'), cirq.H(q1).with_classical_controls('a')
+    )
+    assert cirq.commutes(
+        cirq.X(q0).with_classical_controls('a'), cirq.X(q0).with_classical_controls('a')
+    )
+    assert not cirq.commutes(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
+    assert not cirq.commutes(cirq.X(q1).with_classical_controls('a'), cirq.measure(q0, key='a'))
+    assert not cirq.commutes(
+        cirq.X(q0).with_classical_controls('a'), cirq.H(q0).with_classical_controls('a')
+    )

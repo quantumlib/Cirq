@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits, optimizers
+from cirq import circuits, optimizers, transformers
 
 from cirq.contrib.paulistring.convert_to_pauli_string_phasors import ConvertToPauliStringPhasors
 
@@ -34,5 +34,4 @@ def converted_gate_set(
         keep_clifford=not no_clifford_gates,
         atol=atol,
     ).optimize_circuit(conv_circuit)
-    optimizers.DropEmptyMoments().optimize_circuit(conv_circuit)
-    return conv_circuit
+    return transformers.drop_empty_moments(conv_circuit)

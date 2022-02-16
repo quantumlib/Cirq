@@ -26,6 +26,7 @@ from cirq.experiments import (
 from cirq.experiments.cross_entropy_benchmarking import CrossEntropyPair, SpecklePurityPair
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_cross_entropy_benchmarking():
     # Check that the fidelities returned from a four-qubit XEB simulation are
     # close to 1 (deviations from 1 is expected due to finite number of

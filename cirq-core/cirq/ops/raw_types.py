@@ -572,13 +572,28 @@ class Operation(metaclass=abc.ABCMeta):
         if not isinstance(other, Operation):
             return NotImplemented
 
+        self_keys = protocols.measurement_key_objs(self)
+        other_keys = protocols.measurement_key_objs(other)
+        if (
+            not self_keys.isdisjoint(other_keys)
+            or not protocols.control_keys(self).isdisjoint(other_keys)
+            or not protocols.control_keys(other).isdisjoint(self_keys)
+        ):
+            return False
+
         if hasattr(other, 'qubits') and set(self.qubits).isdisjoint(other.qubits):
             return True
 
         from cirq import circuits
 
-        circuit12 = circuits.Circuit(self, other)
-        circuit21 = circuits.Circuit(other, self)
+        # Remove the classical controls to validate the quantum commutativity. This can be done
+        # because during execution, the two operations will either both be run, in which case they
+        # behave like the suboperations, so if the suboperations commute then these commute. Or
+        # one of them is cold in which case it behaves like the identity, which always commutes.
+        self_raw = self.without_classical_controls()
+        other_raw = other.without_classical_controls()
+        circuit12 = circuits.Circuit(self_raw, other_raw)
+        circuit21 = circuits.Circuit(other_raw, self_raw)
 
         # Don't create gigantic matrices.
         shape = protocols.qid_shape_protocol.qid_shape(circuit12)
@@ -740,7 +755,7 @@ class TaggedOperation(Operation):
         return protocols.has_unitary(self.sub_operation)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        return protocols.unitary(self.sub_operation, default=None)
+        return protocols.unitary(self.sub_operation, NotImplemented)
 
     def _commutes_(
         self, other: Any, *, atol: Union[int, float] = 1e-8
@@ -776,7 +791,7 @@ class TaggedOperation(Operation):
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
+    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
         sub = getattr(self.sub_operation, "_act_on_", None)
         if sub is not None:
             return sub(args)

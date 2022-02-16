@@ -26,8 +26,8 @@ from typing import (
     Type,
     FrozenSet,
 )
-
 import cirq
+from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.api import v2
 
@@ -108,7 +108,30 @@ class SerializableDevice(cirq.Device):
         """
         self.qubits = qubits
         self.gate_definitions = gate_definitions
+        self._metadata = cirq.GridDeviceMetadata(
+            qubit_pairs=[
+                (pair[0], pair[1])
+                for gate_defs in gate_definitions.values()
+                for gate_def in gate_defs
+                if gate_def.number_of_qubits == 2
+                for pair in gate_def.target_set
+                if len(pair) == 2 and pair[0] < pair[1]
+            ],
+            gateset=cirq.Gateset(
+                *[g for g in gate_definitions.keys() if isinstance(g, (cirq.Gate, type(cirq.Gate)))]
+            ),
+            gate_durations=None,
+        )
 
+    @property
+    def metadata(self) -> cirq.GridDeviceMetadata:
+        """Get metadata information for device."""
+        return self._metadata
+
+    @_compat.deprecated(
+        fix='Please use metadata.qubit_set if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
@@ -240,6 +263,10 @@ class SerializableDevice(cirq.Device):
 
         return super().__str__()
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='qubit coupling data can now be found in device.metadata if provided.',
+    )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
         """Returns a list of qubit edges on the device, defined by the gate
         definitions.
@@ -247,16 +274,17 @@ class SerializableDevice(cirq.Device):
         Returns:
             The list of qubit edges on the device.
         """
-        return frozenset(
-            [
-                cirq.SymmetricalQidPair(pair[0], pair[1])
-                for gate_defs in self.gate_definitions.values()
-                for gate_def in gate_defs
-                if gate_def.number_of_qubits == 2
-                for pair in gate_def.target_set
-                if len(pair) == 2 and pair[0] < pair[1]
-            ]
-        )
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
+            return frozenset(
+                [
+                    cirq.SymmetricalQidPair(pair[0], pair[1])
+                    for gate_defs in self.gate_definitions.values()
+                    for gate_def in gate_defs
+                    if gate_def.number_of_qubits == 2
+                    for pair in gate_def.target_set
+                    if len(pair) == 2 and pair[0] < pair[1]
+                ]
+            )
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Creates ASCII diagram for Jupyter, IPython, etc."""

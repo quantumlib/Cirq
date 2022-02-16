@@ -54,7 +54,7 @@ def main():
 
 
 def make_oracle(q0, q1, secret_function):
-    """ Gates implementing the secret function f(x)."""
+    """Gates implementing the secret function f(x)."""
 
     # coverage: ignore
     if secret_function[0]:

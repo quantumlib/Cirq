@@ -1,42 +1,53 @@
-[{
-  "cirq_type": "PauliMeasurementGate",
-  "observable": [
-    {
-      "cirq_type": "_PauliX",
-      "exponent": 1.0,
-      "global_shift": 0.0
+[
+  {
+    "cirq_type": "PauliMeasurementGate",
+    "observable": {
+      "cirq_type": "DensePauliString",
+      "pauli_mask": [
+        1,
+        2,
+        3
+      ],
+      "coefficient": {
+        "cirq_type": "complex",
+        "real": 1.0,
+        "imag": 0.0
+      }
     },
-    {
-      "cirq_type": "_PauliY",
-      "exponent": 1.0,
-      "global_shift": 0.0
+    "key": "key"
+  },
+  {
+    "cirq_type": "PauliMeasurementGate",
+    "observable": {
+      "cirq_type": "DensePauliString",
+      "pauli_mask": [
+        1,
+        2,
+        3
+      ],
+      "coefficient": {
+        "cirq_type": "complex",
+        "real": 1.0,
+        "imag": 0.0
+      }
     },
-    {
-      "cirq_type": "_PauliZ",
-      "exponent": 1.0,
-      "global_shift": 0.0
-    }
-  ],
-  "key": "key"
-},
-{
-  "cirq_type": "PauliMeasurementGate",
-  "observable": [
-    {
-      "cirq_type": "_PauliX",
-      "exponent": 1.0,
-      "global_shift": 0.0
+    "key": "p:q:key"
+  },
+  {
+    "cirq_type": "PauliMeasurementGate",
+    "observable": {
+      "cirq_type": "DensePauliString",
+      "pauli_mask": [
+        1,
+        2,
+        3
+      ],
+      "coefficient": {
+        "cirq_type": "complex",
+        "real": -1.0,
+        "imag": 0.0
+      }
     },
-    {
-      "cirq_type": "_PauliY",
-      "exponent": 1.0,
-      "global_shift": 0.0
-    },
-    {
-      "cirq_type": "_PauliZ",
-      "exponent": 1.0,
-      "global_shift": 0.0
-    }
-  ],
-  "key": "p:q:key"
-}]
+    "key": "key"
+  }
+]

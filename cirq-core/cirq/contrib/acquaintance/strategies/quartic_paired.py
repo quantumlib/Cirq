@@ -15,7 +15,6 @@
 from typing import cast, Iterable, List, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import circuits, ops
-from cirq.contrib.acquaintance.devices import UnconstrainedAcquaintanceDevice
 from cirq.contrib.acquaintance.gates import acquaint, SwapNetworkGate
 from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 
@@ -34,7 +33,7 @@ def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence['cirq.Qid']]) -> L
     if set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,)):
         raise ValueError('set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,))')
     n_pairs = len(qubit_pairs)
-    qubits = []  # type: List['cirq.Qid']
+    qubits: List['cirq.Qid'] = []
     for i in range(0, 2 * (n_pairs // 2), 2):
         qubits += [
             qubit_pairs[i][0],
@@ -61,9 +60,11 @@ def quartic_paired_acquaintance_strategy(
     qubits = qubit_pairs_to_qubit_order(qubit_pairs)
     n_qubits = len(qubits)
     swap_network = SwapNetworkGate((1,) * n_qubits, 2)(*qubits)
-    strategy = circuits.Circuit(swap_network, device=UnconstrainedAcquaintanceDevice)
+    strategy = circuits.Circuit(swap_network)
     expose_acquaintance_gates(strategy)
     for i in reversed(range(0, n_qubits, 2)):
-        moment = ops.Moment([acquaint(*qubits[j : j + 4]) for j in range(i % 4, n_qubits - 3, 4)])
+        moment = circuits.Moment(
+            [acquaint(*qubits[j : j + 4]) for j in range(i % 4, n_qubits - 3, 4)]
+        )
         strategy.insert(2 * i, moment)
     return strategy, qubits

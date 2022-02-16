@@ -46,6 +46,7 @@ def test_init():
 
     # Mixed types.
     assert cirq.DensePauliString([1, 'X', cirq.X]) == cirq.DensePauliString('XXX')
+    assert list(cirq.DensePauliString('XXX')) == [cirq.X, cirq.X, cirq.X]
     with pytest.raises(TypeError, match='Expected a cirq.PAULI_GATE_LIKE'):
         _ = cirq.DensePauliString([object()])
 

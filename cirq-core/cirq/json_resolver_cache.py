@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Methods for resolving JSON types during serialization."""
 
 import functools
 from typing import Dict, TYPE_CHECKING
@@ -64,6 +65,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'Circuit': cirq.Circuit,
         'CircuitOperation': cirq.CircuitOperation,
         'ClassicallyControlledOperation': cirq.ClassicallyControlledOperation,
+        'ClassicalDataDictionaryStore': cirq.ClassicalDataDictionaryStore,
         'CliffordState': cirq.CliffordState,
         'CliffordTableau': cirq.CliffordTableau,
         'CNotPowGate': cirq.CNotPowGate,
@@ -77,6 +79,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CZPowGate': cirq.CZPowGate,
         'DensePauliString': cirq.DensePauliString,
         'DepolarizingChannel': cirq.DepolarizingChannel,
+        'DeviceMetadata': cirq.DeviceMetadata,
         'Duration': cirq.Duration,
         'FrozenCircuit': cirq.FrozenCircuit,
         'FSimGate': cirq.FSimGate,
@@ -86,6 +89,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
         'GlobalPhaseGate': cirq.GlobalPhaseGate,
         'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
+        'GridDeviceMetadata': cirq.GridDeviceMetadata,
         'GridInteractionLayer': GridInteractionLayer,
         'GridParallelXEBMetadata': GridParallelXEBMetadata,
         'GridQid': cirq.GridQid,
@@ -104,6 +108,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'MixedUnitaryChannel': cirq.MixedUnitaryChannel,
         'MeasurementKey': cirq.MeasurementKey,
         'MeasurementGate': cirq.MeasurementGate,
+        'MeasurementType': cirq.MeasurementType,
         '_MeasurementSpec': cirq.work._MeasurementSpec,
         'Moment': cirq.Moment,
         'MutableDensePauliString': cirq.MutableDensePauliString,
@@ -138,9 +143,11 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_QubitAsQid': raw_types._QubitAsQid,
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'RandomGateChannel': cirq.RandomGateChannel,
+        'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
-        'Result': cirq.Result,
+        'Result': cirq.ResultDict,  # Keep support for Cirq < 0.14.
+        'ResultDict': cirq.ResultDict,
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,
         'Rz': cirq.Rz,
@@ -154,7 +161,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
-        'TrialResult': cirq.Result,  # keep support for Cirq < 0.11.
+        'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.
+        'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,
