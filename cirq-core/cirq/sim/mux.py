@@ -25,6 +25,7 @@ from cirq import circuits, protocols, study, devices, ops, value
 from cirq._doc import document
 from cirq.sim import sparse_simulator, density_matrix_simulator
 from cirq.sim.clifford import clifford_simulator
+from cirq.transformers import measurement_transformers
 
 if TYPE_CHECKING:
     import cirq
@@ -281,9 +282,10 @@ def final_density_matrix(
             dtype=dtype,
             noise=noise,
             seed=seed,
-            ignore_measurement_results=(ignore_measurement_results),
         ).simulate(
-            program=circuit_like,
+            program=measurement_transformers.dephase_measurements(circuit_like)
+            if ignore_measurement_results
+            else circuit_like,
             initial_state=initial_state,
             qubit_order=qubit_order,
             param_resolver=param_resolver,
