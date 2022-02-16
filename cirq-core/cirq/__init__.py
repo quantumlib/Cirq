@@ -701,8 +701,7 @@ from cirq import (
     contrib,
 )
 
-# deprecate cirq.ops.
-and related attributes
+# deprecate cirq.ops and related attributes
 
 from cirq import _compat
 

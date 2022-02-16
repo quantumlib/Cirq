@@ -32,6 +32,7 @@ from cirq._doc import document
 from cirq.ops import (
     common_gates,
     gate_features,
+    identity,
     named_qubit,
     raw_types,
     pauli_gates,
@@ -480,7 +481,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         """Returns a SingleQubitCliffordGate such that the circuits
             --output--self-- and --self--gate--
         are equivalent up to global phase."""
-        return self.merged_with(after).merged_with(self ** -1)
+        return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
         x = self.transform(pauli_gates.X)
@@ -593,6 +594,12 @@ SQRT_EXP_MAP = {
 
 class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
+
+    @property
+    def I(cls):
+        if getattr(cls, '_I', None) is None:
+            cls._I = cls._generate_clifford_from_known_gate(1, identity.I)
+        return cls._I
 
     @property
     def X(cls):
@@ -828,7 +835,7 @@ class MultipleCliffordGate(raw_types.Gate, CommonCliffordGates):
             axes = args.get_axes(qubits)
             # This padding is important and cannot be omitted.
             padded_tableau = _pad_tableau(self._clifford_tableau, len(args.qubits), axes)
-            args.tableau = args.tableau.then(padded_tableau)
+            args._state = args.tableau.then(padded_tableau)
             return True
 
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
