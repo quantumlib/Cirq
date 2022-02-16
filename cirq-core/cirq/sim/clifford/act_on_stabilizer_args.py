@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Dict, Generic, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 
@@ -38,7 +38,7 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
         self,
         state: TStabilizerState,
         prng: Optional[np.random.RandomState] = None,
-        log_of_measurement_results: Optional[Dict[str, Any]] = None,
+        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):

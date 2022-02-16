@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import cast
 import numpy as np
 import pytest
 
@@ -323,10 +324,13 @@ def test_act_on_state_vector():
         dtype=np.complex64,
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_clifford_tableau():
@@ -361,10 +365,13 @@ def test_act_on_clifford_tableau():
         log_of_measurement_results={},
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_stabilizer_ch_form():
@@ -399,10 +406,13 @@ def test_act_on_stabilizer_ch_form():
         initial_state=10,
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_qutrit():

@@ -37,7 +37,6 @@ from typing import (
     Generic,
     Iterator,
     List,
-    Optional,
     Sequence,
     Set,
     Tuple,
@@ -102,18 +101,16 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
-        _verify_unique_measurement_keys(program)
-
         for param_resolver in study.to_resolvers(params):
-            measurements = {}
+            records = {}
             if repetitions == 0:
                 for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    measurements[protocols.measurement_key_name(op)] = np.empty([0, 1])
+                    records[protocols.measurement_key_name(op)] = np.empty([0, 1, 1])
             else:
-                measurements = self._run(
+                records = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
                 )
-            yield study.ResultDict(params=param_resolver, measurements=measurements)
+            yield study.ResultDict(params=param_resolver, records=records)
 
     @abc.abstractmethod
     def _run(
@@ -132,10 +129,11 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
         Returns:
             A dictionary from measurement gate key to measurement
-            results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
-            and the second to the actual boolean measurement results (ordered
-            by the qubits being measured.)
+            results. Measurement results are stored in a 3-dimensional
+            numpy array, the first dimension corresponding to the repetition.
+            the second to the instance of that key in the circuit, and the
+            third to the actual boolean measurement results (ordered by the
+            qubits being measured.)
         """
         raise NotImplementedError()
 
@@ -763,8 +761,9 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             results, ordered by the qubits that the measurement operates on.
     """
 
-    def __init__(self, measurements: Optional[Dict[str, List[int]]] = None) -> None:
-        self.measurements = measurements or collections.defaultdict(list)
+    def __init__(self, sim_state: 'cirq.OperationTarget') -> None:
+        self.measurements = sim_state.log_of_measurement_results
+        self._classical_data = sim_state.classical_data
 
     @abc.abstractmethod
     def _simulator_state(self) -> TSimulatorState:
@@ -808,6 +807,8 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         measurement_ops: List['cirq.GateOperation'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        *,
+        _allow_repeated=False,
     ) -> Dict[str, np.ndarray]:
         """Samples from the system at this point in the computation.
 
@@ -824,6 +825,8 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
                 `MeasurementGate` instances to be sampled form.
             repetitions: The number of samples to take.
             seed: A seed for the pseudorandom number generator.
+            _allow_repeated: If True, adds extra dimension to the result,
+                corresponding to the number of times a key is repeated.
 
         Returns: A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
@@ -838,15 +841,17 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         """
 
         # Sanity checks.
-        seen_measurement_keys: Set[str] = set()
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError(f'{op.gate} was not a MeasurementGate')
-            key = protocols.measurement_key_name(gate)
-            if key in seen_measurement_keys:
-                raise ValueError(f'Duplicate MeasurementGate with key {key}')
-            seen_measurement_keys.add(key)
+        result = collections.Counter(
+            key for op in measurement_ops for key in protocols.measurement_key_names(op)
+        )
+        if result and not _allow_repeated:
+            duplicates = [k for k, v in result.most_common() if v > 1]
+            if duplicates:
+                raise ValueError(f"Measurement key {','.join(duplicates)} repeated")
 
         # Find measured qubits, ensuring a consistent ordering.
         measured_qubits = []
@@ -861,19 +866,28 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         indexed_sample = self.sample(measured_qubits, repetitions, seed=seed)
 
         # Extract results for each measurement.
-        results: Dict[str, np.ndarray] = {}
+        results: Dict[str, Any] = {}
         qubits_to_index = {q: i for i, q in enumerate(measured_qubits)}
         for op in measurement_ops:
             gate = cast(ops.MeasurementGate, op.gate)
+            key = gate.key
             out = np.zeros(shape=(repetitions, len(op.qubits)), dtype=np.int8)
             inv_mask = gate.full_invert_mask()
             for i, q in enumerate(op.qubits):
                 out[:, i] = indexed_sample[:, qubits_to_index[q]]
                 if inv_mask[i]:
                     out[:, i] ^= out[:, i] < 2
-            results[gate.key] = out
-
-        return results
+            if _allow_repeated:
+                if key not in results:
+                    results[key] = []
+                results[key].append(out)
+            else:
+                results[gate.key] = out
+        return (
+            results
+            if not _allow_repeated
+            else {k: np.array(v).swapaxes(0, 1) for k, v in results.items()}
+        )
 
 
 @value.value_equality(unhashable=True)
@@ -984,18 +998,6 @@ def _qubit_map_to_shape(qubit_map: Dict['cirq.Qid', int]) -> Tuple[int, ...]:
     if -1 in qid_shape:
         raise ValueError(f'Invalid qubit_map. Duplicate qubit index. Map is <{qubit_map!r}>.')
     return tuple(qid_shape)
-
-
-def _verify_unique_measurement_keys(circuit: 'cirq.AbstractCircuit'):
-    result = collections.Counter(
-        key
-        for op in ops.flatten_op_tree(iter(circuit))
-        for key in protocols.measurement_key_names(op)
-    )
-    if result:
-        duplicates = [k for k, v in result.most_common() if v > 1]
-        if duplicates:
-            raise ValueError(f"Measurement key {','.join(duplicates)} repeated")
 
 
 def check_all_resolved(circuit):

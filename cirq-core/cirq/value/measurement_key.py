@@ -130,10 +130,7 @@ class MeasurementKey:
         path: Tuple[str, ...],
         bindable_keys: FrozenSet['MeasurementKey'],
     ):
-        new_key = self.replace(path=path + self.path)
-        if new_key in bindable_keys:
-            raise ValueError(f'Conflicting measurement keys found: {new_key}')
-        return new_key
+        return self.replace(path=path + self.path)
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         if self.name not in key_map:

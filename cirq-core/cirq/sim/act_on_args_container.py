@@ -72,8 +72,8 @@ class ActOnArgsContainer(
         self._qubits = tuple(qubits)
         self.split_untangled_states = split_untangled_states
         self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
-            _measurements={
-                value.MeasurementKey.parse_serialized(k): tuple(v)
+            _records={
+                value.MeasurementKey.parse_serialized(k): [tuple(v)]
                 for k, v in (log_of_measurement_results or {}).items()
             }
         )
