@@ -18,13 +18,13 @@ from typing import Optional, Callable, List, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, linalg, protocols, circuits
-from cirq.transformers.analytical_decompositions import single_qubit_decompositions
+from cirq import ops, linalg, protocols, circuits, _compat, transformers
 
 if TYPE_CHECKING:
     import cirq
 
 
+@_compat.deprecated_class(deadline='v1.0', fix='Use cirq.merge_k_qubit_unitaries instead.')
 class MergeSingleQubitGates(circuits.PointOptimizer):
     """Optimizes runs of adjacent unitary 1-qubit operations."""
 
@@ -101,6 +101,9 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
         )
 
 
+@_compat.deprecated(
+    deadline='v1.0', fix='Use cirq.merge_single_qubit_gates_to_phased_x_and_z instead.'
+)
 def merge_single_qubit_gates_into_phased_x_z(circuit: circuits.Circuit, atol: float = 1e-8) -> None:
     """Canonicalizes runs of single-qubit rotations in a circuit.
 
@@ -113,14 +116,12 @@ def merge_single_qubit_gates_into_phased_x_z(circuit: circuits.Circuit, atol: fl
         atol: Absolute tolerance to angle error. Larger values allow more
             negligible gates to be dropped, smaller values increase accuracy.
     """
-
-    def synth(qubit: 'cirq.Qid', matrix: np.ndarray) -> List[ops.Operation]:
-        out_gates = single_qubit_decompositions.single_qubit_matrix_to_phased_x_z(matrix, atol)
-        return [gate(qubit) for gate in out_gates]
-
-    MergeSingleQubitGates(synthesizer=synth).optimize_circuit(circuit)
+    circuit._moments = [
+        *transformers.merge_single_qubit_gates_to_phased_x_and_z(circuit, atol=atol)
+    ]
 
 
+@_compat.deprecated(deadline='v1.0', fix='Use cirq.merge_single_qubit_gates_to_phxz instead.')
 def merge_single_qubit_gates_into_phxz(
     circuit: circuits.Circuit,
     atol: float = 1e-8,
@@ -135,9 +136,4 @@ def merge_single_qubit_gates_into_phxz(
         atol: Absolute tolerance to angle error. Larger values allow more
             negligible gates to be dropped, smaller values increase accuracy.
     """
-
-    def synth(qubit: 'cirq.Qid', matrix: np.ndarray) -> List[ops.Operation]:
-        gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(matrix, atol)
-        return [gate(qubit)] if gate else []
-
-    MergeSingleQubitGates(synthesizer=synth).optimize_circuit(circuit)
+    circuit._moments = [*transformers.merge_single_qubit_gates_to_phxz(circuit, atol=atol)]
