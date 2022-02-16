@@ -650,7 +650,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
     @classmethod
     def _generate_clifford_from_known_gate(
         cls, num_qubits: int, gate: raw_types.Gate
-    ) -> 'CliffordGate':
+    ) -> 'MultipleCliffordGate':
         from cirq import LineQubit, sim
 
         qubits = LineQubit.range(num_qubits)
@@ -660,7 +660,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
         )
 
         protocols.act_on(gate, args, qubits, allow_decompose=False)
-        return CliffordGate.from_clifford_tableau(args.tableau)
+        return MultipleCliffordGate.from_clifford_tableau(args.tableau)
 
 
 def _pad_tableau(
@@ -688,7 +688,7 @@ def _pad_tableau(
 
 
 @value.value_equality
-class CliffordGate(raw_types.Gate, CommonCliffordGates):
+class MultipleCliffordGate(raw_types.Gate, CommonCliffordGates):
     """Clifford rotation for N-qubit."""
 
     def __init__(
@@ -722,16 +722,16 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         return self._clifford_tableau
 
     @classmethod
-    def from_clifford_tableau(cls, tableau: qis.CliffordTableau) -> 'CliffordGate':
+    def from_clifford_tableau(cls, tableau: qis.CliffordTableau) -> 'MultipleCliffordGate':
         assert isinstance(tableau, qis.CliffordTableau)
         if not tableau._validate():
             raise ValueError('It is not a valid Clifford tableau.')
-        return CliffordGate(_clifford_tableau=tableau)
+        return MultipleCliffordGate(_clifford_tableau=tableau)
 
     @classmethod
     def from_op_list(
         cls, operations: Sequence[raw_types.Operation], qubit_order: Sequence[raw_types.Qid]
-    ) -> 'CliffordGate':
+    ) -> 'MultipleCliffordGate':
         """Construct a new Clifford gates from several known operations."""
         from cirq.sim import clifford
 
@@ -753,7 +753,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         for op in operations:
             protocols.act_on(op, args, allow_decompose=True)
 
-        return CliffordGate.from_clifford_tableau(args.tableau)
+        return MultipleCliffordGate.from_clifford_tableau(args.tableau)
 
     @classmethod
     def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
@@ -779,19 +779,19 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # By definition, Clifford Gate should always return True.
         return True
 
-    def __pow__(self, exponent) -> 'CliffordGate':
+    def __pow__(self, exponent) -> 'MultipleCliffordGate':
         if exponent == -1:
-            return CliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
+            return MultipleCliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
         if exponent > 0 and int(exponent) == exponent:
             base_tableau = self.clifford_tableau.copy()
             for _ in range(int(exponent) - 1):
                 base_tableau = base_tableau.then(self.clifford_tableau)
-            return CliffordGate.from_clifford_tableau(base_tableau)
+            return MultipleCliffordGate.from_clifford_tableau(base_tableau)
         if exponent < 0 and int(exponent) == exponent:
             base_tableau = self.clifford_tableau.copy()
             for _ in range(int(-exponent) - 1):
                 base_tableau = base_tableau.then(self.clifford_tableau)
-            return CliffordGate.from_clifford_tableau(base_tableau.inverse())
+            return MultipleCliffordGate.from_clifford_tableau(base_tableau.inverse())
 
         return NotImplemented
 
