@@ -90,6 +90,10 @@ class CircuitOperation(ops.Operation):
             targets for unbound `ClassicallyControlledOperation` keys. This
             field is not intended to be set or changed manually, and should be
             empty in circuits that aren't in the middle of decomposition.
+        use_repetition_ids: When True, any measurement key in the subcircuit
+            will have its path prepended with the repetition id for each
+            repetition. When False, this will not happen and the measurement
+            key will be repeated.
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
