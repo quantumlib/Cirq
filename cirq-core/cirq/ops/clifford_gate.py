@@ -481,7 +481,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         """Returns a SingleQubitCliffordGate such that the circuits
             --output--self-- and --self--gate--
         are equivalent up to global phase."""
-        return self.merged_with(after).merged_with(self**-1)
+        return self.merged_with(after).merged_with(self ** -1)
 
     def __repr__(self) -> str:
         x = self.transform(pauli_gates.X)
@@ -688,9 +688,9 @@ def _pad_tableau(
     padded_tableau = qis.CliffordTableau(num_qubits_after_padding)
     v_index = np.concatenate((np.asarray(axes), num_qubits_after_padding + np.asarray(axes)))
 
-    padded_tableau.xs[np.ix_(v_index, axes)] = clifford_tableau.xs.copy()
-    padded_tableau.zs[np.ix_(v_index, axes)] = clifford_tableau.zs.copy()
-    padded_tableau.rs[v_index] = clifford_tableau.rs.copy()
+    padded_tableau.xs[np.ix_(v_index, axes)] = clifford_tableau.xs
+    padded_tableau.zs[np.ix_(v_index, axes)] = clifford_tableau.zs
+    padded_tableau.rs[v_index] = clifford_tableau.rs
     return padded_tableau
 
 
