@@ -29,6 +29,7 @@ import numpy as np
 
 from cirq import protocols, value, linalg, qis
 from cirq._doc import document
+from cirq._import import LazyLoader
 from cirq.ops import (
     common_gates,
     gate_features,
@@ -43,6 +44,11 @@ from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
+
+# Lazy imports to break circular dependencies.
+devices = LazyLoader("devices", globals(), "cirq.devices")
+sim = LazyLoader("sim", globals(), "cirq.sim")
+transformers = LazyLoader("transformers", globals(), cirq.transformers)
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 document(PauliTransform, """+X, -X, +Y, -Y, +Z, or -Z.""")
@@ -658,9 +664,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
     def _generate_clifford_from_known_gate(
         cls, num_qubits: int, gate: raw_types.Gate
     ) -> 'MultipleCliffordGate':
-        from cirq import LineQubit, sim
-
-        qubits = LineQubit.range(num_qubits)
+        qubits = devices.LineQubit.range(num_qubits)
         t = qis.CliffordTableau(num_qubits=num_qubits)
         args = sim.ActOnCliffordTableauArgs(
             tableau=t, qubits=qubits, prng=np.random.RandomState(), log_of_measurement_results={}
@@ -715,8 +719,6 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
         Raises:
             ValueError: When one or more operations do not have stabilizer effect.
         """
-        from cirq.sim import clifford
-
         for op in operations:
             if op.gate and op.gate._has_stabilizer_effect_():
                 continue
@@ -726,7 +728,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
             )
 
         base_tableau = qis.CliffordTableau(len(qubit_order))
-        args = clifford.ActOnCliffordTableauArgs(
+        args = sim.clifford.ActOnCliffordTableauArgs(
             tableau=base_tableau,
             qubits=qubit_order,
             prng=np.random.RandomState(0),  # unused
@@ -850,14 +852,11 @@ class MultipleCliffordGate(raw_types.Gate, CommonCliffordGates):
         return NotImplemented
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> List[raw_types.Operation]:
-        from cirq.transformers import analytical_decompositions
-
-        return analytical_decompositions.decompose_clifford_tableau_to_operations(
+        return transformers.analytical_decompositions.decompose_clifford_tableau_to_operations(
             list(qubits), self.clifford_tableau
         )
 
     def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
-        from cirq.sim import clifford
 
         # Note the computation complexity difference between _decompose_ and _act_on_.
         # Suppose this Gate has `m` qubits, args has `n` qubits, and the decomposition of
@@ -865,14 +864,14 @@ class MultipleCliffordGate(raw_types.Gate, CommonCliffordGates):
         #   1. Direct act_on is O(n^3) -- two matrices multiplication
         #   2. Decomposition is O(m^3)+O(k*n^2) -- Decomposition complexity + k * One/two-qubits Ops
         # So when m << n, the decomposition is more efficient.
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+        if isinstance(args, sim.clifford.ActOnCliffordTableauArgs):
             axes = args.get_axes(qubits)
             # This padding is important and cannot be omitted.
             padded_tableau = _pad_tableau(self._clifford_tableau, len(args.qubits), axes)
             args._state = args.tableau.then(padded_tableau)
             return True
 
-        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
+        if isinstance(args, sim.clifford.ActOnStabilizerCHFormArgs):
             # Do we know how to apply CliffordTableau on ActOnStabilizerCHFormArgs?
             # It should be unlike because CliffordTableau ignores the global phase but CHForm
             # is aimed to fix that.
