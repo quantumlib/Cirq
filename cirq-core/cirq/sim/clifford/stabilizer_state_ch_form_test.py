@@ -73,6 +73,6 @@ def test_run():
                 initial_state=state,
             )
             cirq.act_on(op, args)
-        measurements = {str(k): list(v) for k, v in classical_data.measurements.items()}
+        measurements = {str(k): list(v[-1]) for k, v in classical_data.records.items()}
         assert measurements['1'] == [1]
         assert measurements['0'] != measurements['2']
