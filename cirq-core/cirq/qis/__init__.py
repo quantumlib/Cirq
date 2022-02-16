@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tools and methods for quantum information science."""
+"""Tools and methods for primitives used in quantum information science."""
 
 from cirq.qis.channels import (
     choi_to_kraus,
@@ -25,7 +25,7 @@ from cirq.qis.channels import (
     superoperator_to_kraus,
 )
 
-from cirq.qis.clifford_tableau import CliffordTableau
+from cirq.qis.clifford_tableau import CliffordTableau, StabilizerState
 
 from cirq.qis.measures import (
     entanglement_fidelity,

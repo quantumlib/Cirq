@@ -31,19 +31,18 @@ import abc
 import collections
 from typing import (
     Any,
+    Callable,
+    cast,
     Dict,
+    Generic,
     Iterator,
     List,
     Sequence,
-    Tuple,
-    Union,
-    Optional,
-    TYPE_CHECKING,
     Set,
-    cast,
-    Callable,
+    Tuple,
+    TYPE_CHECKING,
     TypeVar,
-    Generic,
+    Union,
 )
 
 import numpy as np
@@ -73,7 +72,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> Sequence['cirq.Result']:
         return list(self.run_sweep_iter(program, params, repetitions))
 
     def run_sweep_iter(
@@ -102,18 +101,16 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
-        _verify_unique_measurement_keys(program)
-
         for param_resolver in study.to_resolvers(params):
-            measurements = {}
+            records = {}
             if repetitions == 0:
                 for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    measurements[protocols.measurement_key_name(op)] = np.empty([0, 1])
+                    records[protocols.measurement_key_name(op)] = np.empty([0, 1, 1])
             else:
-                measurements = self._run(
+                records = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
                 )
-            yield study.Result(params=param_resolver, measurements=measurements)
+            yield study.ResultDict(params=param_resolver, records=records)
 
     @abc.abstractmethod
     def _run(
@@ -132,10 +129,11 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
         Returns:
             A dictionary from measurement gate key to measurement
-            results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
-            and the second to the actual boolean measurement results (ordered
-            by the qubits being measured.)
+            results. Measurement results are stored in a 3-dimensional
+            numpy array, the first dimension corresponding to the repetition.
+            the second to the instance of that key in the circuit, and the
+            third to the actual boolean measurement results (ordered by the
+            qubits being measured.)
         """
         raise NotImplementedError()
 
@@ -234,6 +232,78 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             the circuit parameters and the inner dimension indexes bitstrings.
         """
         raise NotImplementedError()
+
+    def sample_from_amplitudes(
+        self,
+        circuit: 'cirq.AbstractCircuit',
+        param_resolver: 'cirq.ParamResolver',
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE',
+        repetitions: int = 1,
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    ) -> Dict[int, int]:
+        """Uses amplitude simulation to sample from the given circuit.
+
+        This implements the algorithm outlined by Bravyi, Gosset, and Liu in
+        https://arxiv.org/abs/2112.08499 to more efficiently calculate samples
+        given an amplitude-based simulator.
+
+        Simulators which also implement SimulatesSamples or SimulatesFullState
+        should prefer `run()` or `simulate()`, respectively, as this method
+        only accelerates sampling for amplitude-based simulators.
+
+        Args:
+            circuit: The circuit to simulate.
+            param_resolver: Parameters to run with the program.
+            seed: Random state to use as a seed. This must be provided
+                manually - if the simulator has its own seed, it will not be
+                used unless it is passed as this argument.
+            repetitions: The number of repetitions to simulate.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            A dict of bitstrings sampled from the final state of `circuit` to
+            the number of occurrences of that bitstring.
+
+        Raises:
+            ValueError: if 'circuit' has non-unitary elements, as differences
+                in behavior between sampling steps break this algorithm.
+        """
+        prng = value.parse_random_state(seed)
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        base_circuit = circuits.Circuit(ops.I(q) for q in qubits) + circuit.unfreeze()
+        qmap = {q: i for i, q in enumerate(qubits)}
+        current_samples = {(0,) * len(qubits): repetitions}
+        solved_circuit = protocols.resolve_parameters(base_circuit, param_resolver)
+        if not protocols.has_unitary(solved_circuit):
+            raise ValueError("sample_from_amplitudes does not support non-unitary behavior.")
+        if protocols.is_measurement(solved_circuit):
+            raise ValueError("sample_from_amplitudes does not support intermediate measurement.")
+        for m_id, moment in enumerate(solved_circuit[1:]):
+            circuit_prefix = solved_circuit[: m_id + 1]
+            for t, op in enumerate(moment.operations):
+                new_samples: Dict[Tuple[int, ...], int] = collections.defaultdict(int)
+                qubit_indices = {qmap[q] for q in op.qubits}
+                subcircuit = circuit_prefix + circuits.Moment(moment.operations[: t + 1])
+                for current_sample, count in current_samples.items():
+                    sample_set = [current_sample]
+                    for idx in qubit_indices:
+                        sample_set = [
+                            target[:idx] + (result,) + target[idx + 1 :]
+                            for target in sample_set
+                            for result in [0, 1]
+                        ]
+                    bitstrings = [int(''.join(map(str, sample)), base=2) for sample in sample_set]
+                    amps = self.compute_amplitudes(subcircuit, bitstrings, qubit_order=qubit_order)
+                    weights = np.abs(np.square(np.array(amps))).astype(np.float64)
+                    weights /= np.linalg.norm(weights, 1)
+                    subsample = prng.choice(len(sample_set), p=weights, size=count)
+                    for sample_index in subsample:
+                        new_samples[sample_set[sample_index]] += 1
+                current_samples = new_samples
+
+        return {int(''.join(map(str, k)), base=2): v for k, v in current_samples.items()}
 
 
 class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
@@ -545,7 +615,7 @@ class SimulatesIntermediateState(
             all_step_results = self.simulate_moment_steps(
                 program, param_resolver, qubit_order, state
             )
-            measurements = {}  # type: Dict[str, np.ndarray]
+            measurements: Dict[str, np.ndarray] = {}
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=np.uint8)
@@ -691,8 +761,9 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             results, ordered by the qubits that the measurement operates on.
     """
 
-    def __init__(self, measurements: Optional[Dict[str, List[int]]] = None) -> None:
-        self.measurements = measurements or collections.defaultdict(list)
+    def __init__(self, sim_state: 'cirq.OperationTarget') -> None:
+        self.measurements = sim_state.log_of_measurement_results
+        self._classical_data = sim_state.classical_data
 
     @abc.abstractmethod
     def _simulator_state(self) -> TSimulatorState:
@@ -736,6 +807,8 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         measurement_ops: List['cirq.GateOperation'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        *,
+        _allow_repeated=False,
     ) -> Dict[str, np.ndarray]:
         """Samples from the system at this point in the computation.
 
@@ -752,6 +825,8 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
                 `MeasurementGate` instances to be sampled form.
             repetitions: The number of samples to take.
             seed: A seed for the pseudorandom number generator.
+            _allow_repeated: If True, adds extra dimension to the result,
+                corresponding to the number of times a key is repeated.
 
         Returns: A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
@@ -766,15 +841,17 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         """
 
         # Sanity checks.
-        seen_measurement_keys: Set[str] = set()
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError(f'{op.gate} was not a MeasurementGate')
-            key = protocols.measurement_key_name(gate)
-            if key in seen_measurement_keys:
-                raise ValueError(f'Duplicate MeasurementGate with key {key}')
-            seen_measurement_keys.add(key)
+        result = collections.Counter(
+            key for op in measurement_ops for key in protocols.measurement_key_names(op)
+        )
+        if result and not _allow_repeated:
+            duplicates = [k for k, v in result.most_common() if v > 1]
+            if duplicates:
+                raise ValueError(f"Measurement key {','.join(duplicates)} repeated")
 
         # Find measured qubits, ensuring a consistent ordering.
         measured_qubits = []
@@ -789,19 +866,28 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         indexed_sample = self.sample(measured_qubits, repetitions, seed=seed)
 
         # Extract results for each measurement.
-        results: Dict[str, np.ndarray] = {}
+        results: Dict[str, Any] = {}
         qubits_to_index = {q: i for i, q in enumerate(measured_qubits)}
         for op in measurement_ops:
             gate = cast(ops.MeasurementGate, op.gate)
+            key = gate.key
             out = np.zeros(shape=(repetitions, len(op.qubits)), dtype=np.int8)
             inv_mask = gate.full_invert_mask()
             for i, q in enumerate(op.qubits):
                 out[:, i] = indexed_sample[:, qubits_to_index[q]]
                 if inv_mask[i]:
                     out[:, i] ^= out[:, i] < 2
-            results[gate.key] = out
-
-        return results
+            if _allow_repeated:
+                if key not in results:
+                    results[key] = []
+                results[key].append(out)
+            else:
+                results[gate.key] = out
+        return (
+            results
+            if not _allow_repeated
+            else {k: np.array(v).swapaxes(0, 1) for k, v in results.items()}
+        )
 
 
 @value.value_equality(unhashable=True)
@@ -914,18 +1000,6 @@ def _qubit_map_to_shape(qubit_map: Dict['cirq.Qid', int]) -> Tuple[int, ...]:
     return tuple(qid_shape)
 
 
-def _verify_unique_measurement_keys(circuit: 'cirq.AbstractCircuit'):
-    result = collections.Counter(
-        key
-        for op in ops.flatten_op_tree(iter(circuit))
-        for key in protocols.measurement_key_names(op)
-    )
-    if result:
-        duplicates = [k for k, v in result.most_common() if v > 1]
-        if duplicates:
-            raise ValueError(f"Measurement key {','.join(duplicates)} repeated")
-
-
 def check_all_resolved(circuit):
     """Raises if the circuit contains unresolved symbols."""
     if protocols.is_parameterized(circuit):
@@ -964,7 +1038,7 @@ def split_into_matching_protocol_then_general(
             else:
                 general_part.append(op)
         if matching_part:
-            matching_prefix.append(ops.Moment(matching_part))
+            matching_prefix.append(circuits.Moment(matching_part))
         if general_part:
-            general_suffix.append(ops.Moment(general_part))
+            general_suffix.append(circuits.Moment(general_part))
     return matching_prefix, general_suffix

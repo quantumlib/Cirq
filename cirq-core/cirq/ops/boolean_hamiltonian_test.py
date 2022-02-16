@@ -128,9 +128,9 @@ def test_gray_code_sorting(n_bits, expected_hs):
         hs = hs_template.copy()
         random.shuffle(hs)
 
-        sorted_hs = sorted(list(hs), key=functools.cmp_to_key(bh._gray_code_comparator))
+        sorted_hs = sorted(hs, key=functools.cmp_to_key(bh._gray_code_comparator))
 
-        np.testing.assert_array_equal(sorted_hs, expected_hs)
+        assert sorted_hs == expected_hs
 
 
 @pytest.mark.parametrize(

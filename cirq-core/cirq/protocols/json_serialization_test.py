@@ -24,6 +24,7 @@ import warnings
 from typing import ClassVar, Dict, List, Optional, Tuple, Type
 from unittest import mock
 
+import networkx as nx
 import numpy as np
 import pandas as pd
 import pytest
@@ -537,11 +538,14 @@ def _list_public_classes_for_tested_modules():
     # to remove DeprecationWarning noise during test collection
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        return [
-            (mod_spec, o, n)
-            for mod_spec in MODULE_TEST_SPECS
-            for (o, n) in mod_spec.find_classes_that_should_serialize()
-        ]
+        return sorted(
+            (
+                (mod_spec, n, o)
+                for mod_spec in MODULE_TEST_SPECS
+                for (n, o) in mod_spec.find_classes_that_should_serialize()
+            ),
+            key=lambda mno: (str(mno[0]), mno[1]),
+        )
 
 
 @pytest.mark.parametrize(
@@ -723,13 +727,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         if deprecation is not None and deprecation.old_name in content:
             ctx_managers.append(deprecation.deprecation_assertion)
 
-    imports = {
-        'cirq': cirq,
-        'pd': pd,
-        'sympy': sympy,
-        'np': np,
-        'datetime': datetime,
-    }
+    imports = {'cirq': cirq, 'pd': pd, 'sympy': sympy, 'np': np, 'datetime': datetime, 'nx': nx}
 
     for m in TESTED_MODULES.keys():
         try:

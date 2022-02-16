@@ -60,12 +60,20 @@ def test_create_from_proto():
     engine = factory.create_noiseless_virtual_engine_from_proto('sycamore', device_spec)
     _test_processor(engine.get_processor('sycamore'))
 
+    processor = factory.create_noiseless_virtual_processor_from_proto('sycamore', device_spec)
+    _test_processor(processor)
+
 
 def test_create_from_template():
     engine = factory.create_noiseless_virtual_engine_from_templates(
         'sycamore', 'weber_12_10_2021_device_spec.proto.txt'
     )
     _test_processor(engine.get_processor('sycamore'))
+
+    processor = factory.create_noiseless_virtual_processor_from_template(
+        'sycamore', 'weber_12_10_2021_device_spec.proto.txt'
+    )
+    _test_processor(processor)
 
 
 def test_default_creation():

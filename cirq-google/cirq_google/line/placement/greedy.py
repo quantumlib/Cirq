@@ -50,7 +50,7 @@ class GreedySequenceSearch:
         self._c = device.qubits
         self._c_adj = chip_as_adjacency_list(device)
         self._start = start
-        self._sequence = None  # type: Optional[List[GridQubit]]
+        self._sequence: Optional[List[GridQubit]] = None
 
     def get_or_search(self) -> List[GridQubit]:
         """Starts the search or gives previously calculated sequence.
@@ -115,7 +115,7 @@ class GreedySequenceSearch:
         """
         used = set(current)
         seq = []
-        n = start  # type: Optional[GridQubit]
+        n: Optional[GridQubit] = start
         while n is not None:
             # Append qubit n to the sequence and mark it is as visited.
             seq.append(n)
@@ -172,8 +172,8 @@ class GreedySequenceSearch:
             return path
 
         other = {p: q, q: p}
-        parents = {p: dict(), q: dict()}  # type: Dict[GridQubit, Dict[GridQubit, GridQubit]]
-        visited = {p: set(), q: set()}  # type: Dict[GridQubit, Set[GridQubit]]
+        parents: Dict[GridQubit, Dict[GridQubit, GridQubit]] = {p: {}, q: {}}
+        visited: Dict[GridQubit, Set[GridQubit]] = {p: set(), q: set()}
 
         queue = collections.deque([(p, p), (q, q)])
 
@@ -228,7 +228,7 @@ class _PickLargestArea(GreedySequenceSearch):
     """
 
     def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:
-        analyzed = set()  # type: Set[GridQubit]
+        analyzed: Set[GridQubit] = set()
         best = None
         best_size = None
         for m in self._c_adj[qubit]:
@@ -265,7 +265,7 @@ class _PickLargestArea(GreedySequenceSearch):
                 if m not in used and m not in visited:
                     collect(m, visited)
 
-        visited = set()  # type: Set[GridQubit]
+        visited: Set[GridQubit] = set()
         collect(start, visited)
         return visited
 
@@ -304,9 +304,9 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         if not device.qubits:
             return GridQubitLineTuple()
 
-        start = min(device.qubits)  # type: GridQubit
-        sequences = []  # type: List[LineSequence]
-        greedy_search = {
+        start: GridQubit = min(device.qubits)
+        sequences: List[LineSequence] = []
+        greedy_search: Dict[str, List[GreedySequenceSearch]] = {
             'minimal_connectivity': [
                 _PickFewestNeighbors(device, start),
             ],
@@ -317,7 +317,7 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
                 _PickFewestNeighbors(device, start),
                 _PickLargestArea(device, start),
             ],
-        }  # type: Dict[str, List[GreedySequenceSearch]]
+        }
 
         algos = greedy_search.get(self.algorithm)
         if algos is None:

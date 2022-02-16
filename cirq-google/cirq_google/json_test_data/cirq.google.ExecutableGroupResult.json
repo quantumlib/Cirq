@@ -1,0 +1,130 @@
+{
+  "cirq_type": "cirq.google.ExecutableGroupResult",
+  "runtime_configuration": {
+    "cirq_type": "cirq.google.QuantumRuntimeConfiguration",
+    "processor_record": {
+      "cirq_type": "cirq.google.SimulatedProcessorRecord",
+      "processor_id": "rainbow",
+      "noise_strength": 0
+    },
+    "run_id": "unit-test",
+    "random_seed": null,
+    "qubit_placer": {
+      "cirq_type": "cirq.google.NaiveQubitPlacer"
+    }
+  },
+  "shared_runtime_info": {
+    "cirq_type": "cirq.google.SharedRuntimeInfo",
+    "run_id": "my run"
+  },
+  "executable_results": [
+    {
+      "cirq_type": "cirq.google.ExecutableResult",
+      "spec": {
+        "cirq_type": "cirq.google.KeyValueExecutableSpec",
+        "executable_family": "cirq_google.algo_benchmarks.example",
+        "key_value_pairs": [
+          [
+            "name",
+            "test-spec-0"
+          ]
+        ]
+      },
+      "runtime_info": {
+        "cirq_type": "cirq.google.RuntimeInfo",
+        "execution_index": 0,
+        "qubit_placement": null
+      },
+      "raw_data": {
+        "cirq_type": "ResultDict",
+        "params": {
+          "cirq_type": "ParamResolver",
+          "param_dict": []
+        },
+        "measurements": {
+          "z": {
+            "packed_digits": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "binary": true,
+            "dtype": "float64",
+            "shape": [
+              1000,
+              4
+            ]
+          }
+        }
+      }
+    },
+    {
+      "cirq_type": "cirq.google.ExecutableResult",
+      "spec": {
+        "cirq_type": "cirq.google.KeyValueExecutableSpec",
+        "executable_family": "cirq_google.algo_benchmarks.example",
+        "key_value_pairs": [
+          [
+            "name",
+            "test-spec-1"
+          ]
+        ]
+      },
+      "runtime_info": {
+        "cirq_type": "cirq.google.RuntimeInfo",
+        "execution_index": 1,
+        "qubit_placement": null
+      },
+      "raw_data": {
+        "cirq_type": "ResultDict",
+        "params": {
+          "cirq_type": "ParamResolver",
+          "param_dict": []
+        },
+        "measurements": {
+          "z": {
+            "packed_digits": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "binary": true,
+            "dtype": "float64",
+            "shape": [
+              1000,
+              4
+            ]
+          }
+        }
+      }
+    },
+    {
+      "cirq_type": "cirq.google.ExecutableResult",
+      "spec": {
+        "cirq_type": "cirq.google.KeyValueExecutableSpec",
+        "executable_family": "cirq_google.algo_benchmarks.example",
+        "key_value_pairs": [
+          [
+            "name",
+            "test-spec-2"
+          ]
+        ]
+      },
+      "runtime_info": {
+        "cirq_type": "cirq.google.RuntimeInfo",
+        "execution_index": 2,
+        "qubit_placement": null
+      },
+      "raw_data": {
+        "cirq_type": "ResultDict",
+        "params": {
+          "cirq_type": "ParamResolver",
+          "param_dict": []
+        },
+        "measurements": {
+          "z": {
+            "packed_digits": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "binary": true,
+            "dtype": "float64",
+            "shape": [
+              1000,
+              4
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

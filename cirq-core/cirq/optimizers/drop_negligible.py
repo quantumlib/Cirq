@@ -18,11 +18,13 @@ from typing import List, Tuple, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.circuits import circuit as _circuit
+from cirq._compat import deprecated_class
 
 if TYPE_CHECKING:
     from cirq import ops
 
 
+@deprecated_class(deadline='v1.0', fix='Use cirq.drop_negligible_operations instead.')
 class DropNegligible:
     """An optimization pass that removes operations with tiny effects."""
 

@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional
 
-import pytest, sympy
+import pytest
+import sympy
 
 import cirq
 from cirq.circuits.circuit_operation import _full_join_string_lists
@@ -262,7 +264,7 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
             _ = op_base.repeat(initial_repetitions)
         initial_repetitions = abs(initial_repetitions)
 
-    op_with_reps = None  # type: cirq.CircuitOperation
+    op_with_reps: Optional[cirq.CircuitOperation] = None
     rep_ids = []
     if use_default_ids_for_initial_rep:
         op_with_reps = op_base.repeat(initial_repetitions)
@@ -832,7 +834,7 @@ def test_mapped_circuit_keeps_keys_under_parent_path():
     assert cirq.measurement_key_names(op2.mapped_circuit()) == {'X:A', 'X:B', 'X:C', 'X:D'}
 
 
-def test_keys_conflict_no_repetitions():
+def test_mapped_circuit_allows_repeated_keys():
     q = cirq.LineQubit(0)
     op1 = cirq.CircuitOperation(
         cirq.FrozenCircuit(
@@ -840,16 +842,20 @@ def test_keys_conflict_no_repetitions():
         )
     )
     op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
-    with pytest.raises(ValueError, match='Conflicting measurement keys found: A'):
-        _ = op2.mapped_circuit(deep=True)
-
-
-def test_keys_conflict_locally():
-    q = cirq.LineQubit(0)
+    circuit = op2.mapped_circuit(deep=True)
+    cirq.testing.assert_has_diagram(
+        circuit,
+        "0: ───M('A')───M('A')───",
+        use_unicode_characters=True,
+    )
     op1 = cirq.measure(q, key='A')
     op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
-    with pytest.raises(ValueError, match='Conflicting measurement keys found: A'):
-        _ = op2.mapped_circuit()
+    circuit = op2.mapped_circuit()
+    cirq.testing.assert_has_diagram(
+        circuit,
+        "0: ───M('A')───M('A')───",
+        use_unicode_characters=True,
+    )
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?

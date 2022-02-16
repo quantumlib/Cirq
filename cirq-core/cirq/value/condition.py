@@ -14,13 +14,13 @@
 
 import abc
 import dataclasses
-from typing import Dict, Mapping, Sequence, Tuple, TYPE_CHECKING, FrozenSet
+from typing import Dict, Tuple, TYPE_CHECKING, FrozenSet
 
 import sympy
 
 from cirq._compat import proper_repr
 from cirq.protocols import json_serialization, measurement_key_protocol as mkp
-from cirq.value import digits, measurement_key
+from cirq.value import measurement_key
 
 if TYPE_CHECKING:
     import cirq
@@ -39,7 +39,10 @@ class Condition(abc.ABC):
         """Replaces the control keys."""
 
     @abc.abstractmethod
-    def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
+    def resolve(
+        self,
+        classical_data: 'cirq.ClassicalDataStoreReader',
+    ) -> bool:
         """Resolves the condition based on the measurements."""
 
     @property
@@ -84,6 +87,7 @@ class KeyCondition(Condition):
     """
 
     key: 'cirq.MeasurementKey'
+    index: int = -1
 
     @property
     def keys(self):
@@ -93,16 +97,20 @@ class KeyCondition(Condition):
         return KeyCondition(replacement) if self.key == current else self
 
     def __str__(self):
-        return str(self.key)
+        return str(self.key) if self.index == -1 else f'{self.key}[{self.index}]'
 
     def __repr__(self):
+        if self.index != -1:
+            return f'cirq.KeyCondition({self.key!r}, {self.index})'
         return f'cirq.KeyCondition({self.key!r})'
 
-    def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
-        key = str(self.key)
-        if key not in measurements:
-            raise ValueError(f'Measurement key {key} missing when testing classical control')
-        return any(measurements[key])
+    def resolve(
+        self,
+        classical_data: 'cirq.ClassicalDataStoreReader',
+    ) -> bool:
+        if self.key not in classical_data.keys():
+            raise ValueError(f'Measurement key {self.key} missing when testing classical control')
+        return classical_data.get_int(self.key, self.index) != 0
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
@@ -113,6 +121,8 @@ class KeyCondition(Condition):
 
     @property
     def qasm(self):
+        if self.index != -1:
+            raise NotImplementedError('Only most recent measurement at key can be used for QASM.')
         return f'm_{self.key}!=0'
 
 
@@ -143,15 +153,15 @@ class SympyCondition(Condition):
     def __repr__(self):
         return f'cirq.SympyCondition({proper_repr(self.expr)})'
 
-    def resolve(self, measurements: Mapping[str, Sequence[int]]) -> bool:
-        missing = [str(k) for k in self.keys if str(k) not in measurements]
+    def resolve(
+        self,
+        classical_data: 'cirq.ClassicalDataStoreReader',
+    ) -> bool:
+        missing = [str(k) for k in self.keys if k not in classical_data.keys()]
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
 
-        def value(k):
-            return digits.big_endian_bits_to_int(measurements[str(k)])
-
-        replacements = {str(k): value(k) for k in self.keys}
+        replacements = {str(k): classical_data.get_int(k) for k in self.keys}
         return bool(self.expr.subs(replacements))
 
     def _json_dict_(self):
