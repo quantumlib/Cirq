@@ -698,6 +698,9 @@ def test_clifford_gate_from_tableau():
         t.zs = np.array([1, 1]).reshape(2, 1)  # This violates the sympletic property.
         cirq.MultipleCliffordGate.from_clifford_tableau(t)
 
+    with pytest.raises(ValueError, match="Input argument has to be a CliffordTableau instance."):
+        cirq.MultipleCliffordGate.from_clifford_tableau(1)
+
 
 def test_multi_clifford_decompose_by_unitary():
     # Construct a random clifford gate:

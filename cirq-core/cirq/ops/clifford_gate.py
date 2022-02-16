@@ -669,6 +669,84 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
         protocols.act_on(gate, args, qubits, allow_decompose=False)
         return MultipleCliffordGate.from_clifford_tableau(args.tableau)
 
+    @classmethod
+    def from_clifford_tableau(cls, tableau: qis.CliffordTableau) -> 'MultipleCliffordGate':
+        """Create the MultipleCliffordGate instance from Clifford Tableau.
+
+        Args:
+            tableau: A CliffordTableau to define the effect of Clifford Gate applying on
+            the stabilizer state or Pauli group. The meaning of tableau here is
+                    To  X   Z    sign
+            from  X  [ X_x Z_x | r_x ]
+            from  Z  [ X_z Z_z | r_z ]
+            Each row in the Clifford tableau indicates how the transformation of original
+            Pauli gates to the new gates after applying this Clifford Gate.
+
+        Returns:
+            A MultipleCliffordGate instance, which has the transformation defined by
+            the input tableau.
+
+        Raises:
+            ValueError: When input tableau is wrong type or the tableau does not
+            satisfy the symplectic property.
+        """
+        if not isinstance(tableau, qis.CliffordTableau):
+            raise ValueError('Input argument has to be a CliffordTableau instance.')
+        if not tableau._validate():
+            raise ValueError('It is not a valid Clifford tableau.')
+        return MultipleCliffordGate(_clifford_tableau=tableau)
+
+    @classmethod
+    def from_op_list(
+        cls, operations: Sequence[raw_types.Operation], qubit_order: Sequence[raw_types.Qid]
+    ) -> 'MultipleCliffordGate':
+        """Construct a new Clifford gates from several known operations.
+
+        Args:
+            operations: A list of cirq operations to construct the Clifford gate.
+                The combination order is the first element in the list applies the transformation
+                on the stabilizer state first.
+            qubit_order: Determines how qubits are ordered when decomposite the operations.
+
+        Returns:
+            A MultipleCliffordGate instance, which has the transformation on the stabilizer
+            state equivalent to the composition of operations.
+
+        Raises:
+            ValueError: When one or more operations do not have stabilizer effect.
+        """
+        from cirq.sim import clifford
+
+        for op in operations:
+            if op.gate and op.gate._has_stabilizer_effect_():
+                continue
+            raise ValueError(
+                "Clifford Gate can only be constructed from the "
+                "operations that has stabilizer effect."
+            )
+
+        base_tableau = qis.CliffordTableau(len(qubit_order))
+        args = clifford.ActOnCliffordTableauArgs(
+            tableau=base_tableau,
+            qubits=qubit_order,
+            prng=np.random.RandomState(0),  # unused
+            log_of_measurement_results={},  # unused
+        )
+        for op in operations:
+            protocols.act_on(op, args, allow_decompose=True)
+
+        return MultipleCliffordGate.from_clifford_tableau(args.tableau)
+
+    @classmethod
+    def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
+            n,
+            rs,
+            xs,
+            zs,
+        )
+        return cls(_clifford_tableau=_clifford_tableau)
+
 
 def _pad_tableau(
     clifford_tableau: qis.CliffordTableau, num_qubits_after_padding: int, axes: List[int]
@@ -727,84 +805,6 @@ class MultipleCliffordGate(raw_types.Gate, CommonCliffordGates):
     @property
     def clifford_tableau(self):
         return self._clifford_tableau
-
-    @classmethod
-    def from_clifford_tableau(cls, tableau: qis.CliffordTableau) -> 'MultipleCliffordGate':
-        """Create the MultipleCliffordGate instance from Clifford Tableau.
-
-        Args:
-            tableau: A CliffordTableau to define the effect of Clifford Gate applying on
-            the stabilizer state or Pauli group. The meaning of tableau here is
-                    To  X   Z    sign
-            from  X  [ X_x Z_x | r_x ]
-            from  Z  [ X_z Z_z | r_z ]
-            Each row in the Clifford tableau indicates how the transformation of original
-            Pauli gates to the new gates after applying this Clifford Gate.
-
-        Returns:
-            A MultipleCliffordGate instance, which has the transformation defined by
-            the input tableau.
-
-        Raises:
-            ValueError: When input tableau is wrong type or the tableau does not
-            satisfy the symplectic property.
-        """
-        if not isinstance(tableau, qis.CliffordTableau):
-            raise ValueError('Input tableau has to be CliffordTableau.')
-        if not tableau._validate():
-            raise ValueError('It is not a valid Clifford tableau.')
-        return MultipleCliffordGate(_clifford_tableau=tableau)
-
-    @classmethod
-    def from_op_list(
-        cls, operations: Sequence[raw_types.Operation], qubit_order: Sequence[raw_types.Qid]
-    ) -> 'MultipleCliffordGate':
-        """Construct a new Clifford gates from several known operations.
-
-        Args:
-            operations: A list of cirq operations to construct the Clifford gate.
-                The combination order is the first element in the list applies the transformation
-                on the stabilizer state first.
-            qubit_order: Determines how qubits are ordered when decomposite the operations.
-
-        Returns:
-            A MultipleCliffordGate instance, which has the transformation on the stabilizer
-            state equivalent to the composition of operations.
-
-        Raises:
-            ValueError: When one or more operations do not have stabilizer effect.
-        """
-        from cirq.sim import clifford
-
-        for op in operations:
-            if op.gate and op.gate._has_stabilizer_effect_():
-                continue
-            raise ValueError(
-                "Clifford Gate can only be constructed from the "
-                "operations that has stabilizer effect."
-            )
-
-        base_tableau = qis.CliffordTableau(len(qubit_order))
-        args = clifford.ActOnCliffordTableauArgs(
-            tableau=base_tableau,
-            qubits=qubit_order,
-            prng=np.random.RandomState(0),  # unused
-            log_of_measurement_results={},  # unused
-        )
-        for op in operations:
-            protocols.act_on(op, args, allow_decompose=True)
-
-        return MultipleCliffordGate.from_clifford_tableau(args.tableau)
-
-    @classmethod
-    def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
-        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-            n,
-            rs,
-            xs,
-            zs,
-        )
-        return cls(_clifford_tableau=_clifford_tableau)
 
     def _json_dict_(self) -> Dict[str, Any]:
         json_dict = self._clifford_tableau._json_dict_()
