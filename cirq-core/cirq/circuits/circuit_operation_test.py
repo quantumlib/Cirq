@@ -484,6 +484,20 @@ cirq.CircuitOperation(
     use_repetition_ids=False,
 )"""
     )
+    op7 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(x, key='a')), use_repetition_ids=False, do_while=cirq.KeyCondition(cirq.MeasurementKey('a')))
+    assert (
+        repr(op7)
+        == """\
+cirq.CircuitOperation(
+    circuit=cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.measure(cirq.LineQubit(0), key=cirq.MeasurementKey(name='a')),
+        ),
+    ]),
+    use_repetition_ids=False,
+    do_while=cirq.KeyCondition(cirq.MeasurementKey(name='a')),
+)"""
+    )
 
 
 def test_json_dict():
@@ -933,6 +947,7 @@ def test_repeat_until(sim):
     q = cirq.LineQubit(0)
     key = cirq.MeasurementKey('m')
     c = cirq.Circuit(
+        cirq.X(q),
         cirq.measure(q, key='m'),
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
@@ -940,21 +955,55 @@ def test_repeat_until(sim):
                 cirq.measure(q, key='m'),
             ),
             use_repetition_ids=False,
-            repeat_until=cirq.KeyCondition(key),
+            do_while=cirq.KeyCondition(key),
         ),
     )
     result = sim.run(c)
-    assert result.records['m'][0][-1] == (1,)
+    assert result.records['m'][0][-1] == (0,)
     for i in range(len(result.records['m'][0]) - 1):
-        assert result.records['m'][0][i] == (0,)
+        assert result.records['m'][0][i] == (1,)
+
+
+@pytest.mark.parametrize_diagram()
+def test_repeat_until():
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    c = cirq.Circuit(
+        cirq.X(q),
+        cirq.measure(q, key='m'),
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(q) ** 0.2,
+                cirq.measure(q, key='m'),
+            ),
+            use_repetition_ids=False,
+            do_while=cirq.KeyCondition(key),
+        ),
+    )
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+0: ───X───M───[ 0: ───X^0.2───M('m')─── ](flat, while=m)───
+          ║   ║
+m: ═══════@═══╩════════════════════════════════════════════
+""",
+        use_unicode_characters=True,
+    )
 
 
 def test_repeat_until_error():
-    with pytest.raises(ValueError, match='Cannot use repetition ids with repeat_until'):
+    q = cirq.LineQubit(0)
+    with pytest.raises(ValueError, match='Cannot use repetitions with do_while'):
         cirq.CircuitOperation(
             cirq.FrozenCircuit(),
             use_repetition_ids=True,
-            repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+            do_while=cirq.KeyCondition(cirq.MeasurementKey('a')),
+        )
+    with pytest.raises(ValueError, match='Infinite loop'):
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q, key='m')),
+            use_repetition_ids=False,
+            do_while=cirq.KeyCondition(cirq.MeasurementKey('a')),
         )
 
 
