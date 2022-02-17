@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 # Lazy imports to break circular dependencies.
 devices = LazyLoader("devices", globals(), "cirq.devices")
 sim = LazyLoader("sim", globals(), "cirq.sim")
-transformers = LazyLoader("transformers", globals(), cirq.transformers)
+transformers = LazyLoader("transformers", globals(), "cirq.transformers")
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 document(PauliTransform, """+X, -X, +Y, -Y, +Z, or -Z.""")
