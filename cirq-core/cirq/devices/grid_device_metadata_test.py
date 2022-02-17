@@ -23,7 +23,7 @@ def test_griddevice_metadata():
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     isolated_qubits = [cirq.GridQubit(9, 9), cirq.GridQubit(10, 10)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ)
-    metadata = cirq.GridDeviceMetadata(qubit_pairs, gateset, isolated_qubits=isolated_qubits)
+    metadata = cirq.GridDeviceMetadata(qubit_pairs, gateset, all_qubits=qubits + isolated_qubits)
     expected_pairings = frozenset(
         {
             (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
@@ -62,10 +62,10 @@ def test_griddevice_metadata_bad_durations():
 def test_griddevice_metadata_bad_isolated():
     qubits = cirq.GridQubit.rect(2, 3)
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
-    isolated_qubits = [cirq.GridQubit(0, 0)]
+    fewer_qubits = [cirq.GridQubit(0, 0)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ)
-    with pytest.raises(ValueError, match='0, 0'):
-        _ = cirq.GridDeviceMetadata(qubit_pairs, gateset, isolated_qubits=isolated_qubits)
+    with pytest.raises(ValueError, match='node_set'):
+        _ = cirq.GridDeviceMetadata(qubit_pairs, gateset, all_qubits=fewer_qubits)
 
 
 def test_griddevice_self_loop():
@@ -88,7 +88,7 @@ def test_griddevice_json_load():
     }
     isolated_qubits = [cirq.GridQubit(9, 9), cirq.GridQubit(10, 10)]
     metadata = cirq.GridDeviceMetadata(
-        qubit_pairs, gateset, gate_durations=duration, isolated_qubits=isolated_qubits
+        qubit_pairs, gateset, gate_durations=duration, all_qubits=qubits + isolated_qubits
     )
     rep_str = cirq.to_json(metadata)
     assert metadata == cirq.read_json(json_text=rep_str)
@@ -115,7 +115,7 @@ def test_griddevice_metadata_equality():
     metadata4 = cirq.GridDeviceMetadata(qubit_pairs, gateset, gate_durations=duration2)
     metadata5 = cirq.GridDeviceMetadata(reversed(qubit_pairs), gateset, gate_durations=duration)
     metadata6 = cirq.GridDeviceMetadata(
-        qubit_pairs, gateset, gate_durations=duration, isolated_qubits=isolated_qubits
+        qubit_pairs, gateset, gate_durations=duration, all_qubits=qubits + isolated_qubits
     )
 
     eq = cirq.testing.EqualsTester()
@@ -139,6 +139,6 @@ def test_repr():
     }
     isolated_qubits = [cirq.GridQubit(9, 9)]
     metadata = cirq.GridDeviceMetadata(
-        qubit_pairs, gateset, gate_durations=duration, isolated_qubits=isolated_qubits
+        qubit_pairs, gateset, gate_durations=duration, all_qubits=qubits + isolated_qubits
     )
     cirq.testing.assert_equivalent_repr(metadata)

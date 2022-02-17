@@ -39,7 +39,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         qubit_pairs: Iterable[Tuple['cirq.Qid', 'cirq.Qid']],
         gateset: 'cirq.Gateset',
         gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
-        isolated_qubits: Optional[Iterable['cirq.Qid']] = None,
+        all_qubits: Optional[Iterable['cirq.Qid']] = None,
     ):
         """Create a GridDeviceMetadata object.
 
@@ -57,12 +57,16 @@ class GridDeviceMetadata(device.DeviceMetadata):
                 instances mapping to `cirq.Duration` instances for
                 gate timing metadata information. If provided,
                 must match all entries in gateset.
-            isolated_qubits: Optional qubits to include on the grid
-                that have no connections found in qubit_pairs.
+            all_qubits: Optional iterable specifying all qubits
+                found on the device. If None, all_qubits will
+                be inferred from the entries in qubit_pairs.
 
         Raises:
             ValueError: if the union of GateFamily keys in gate_durations
                 is not identical to set of gate families in gateset.
+            ValueError: If qubit_pairs contains a self loop.
+            ValueError: if all_qubits is provided and is not a superset
+                of all the qubits found in qubit_pairs.
         """
         sorted_pairs = sorted(list(qubit_pairs))
         for a, b in sorted_pairs:
@@ -78,27 +82,26 @@ class GridDeviceMetadata(device.DeviceMetadata):
             if (b, a) not in edge_set:
                 edge_set.add((a, b))
 
-        if isolated_qubits is None:
-            isolated_qubits = frozenset({})
+        if all_qubits is None:
+            all_qubits = node_set
 
-        for q in isolated_qubits:
-            if q in node_set:
+        all_qubits = frozenset(all_qubits)
+        for q in node_set:
+            if q not in all_qubits:
                 raise ValueError(
-                    f"Entry for {q} found in isolated_qubits and "
-                    " qubit_pairs. An isolated qubit may have "
-                    "no connections to other qubits."
+                    f"Qubit {q} found in node_set and not in"
+                    " all_qubits. all_qubits must contain at least"
+                    " all the qubits found in all_qubits."
                 )
 
-        self._isolated_qubits = frozenset(isolated_qubits)
-
         connectivity = nx.Graph()
-        all_qubits = node_set | self._isolated_qubits
         connectivity.add_nodes_from(sorted(all_qubits))
         connectivity.add_edges_from(sorted(edge_set), directed=False)
         super().__init__(all_qubits, connectivity)
 
         self._qubit_pairs = frozenset(edge_set)
         self._gateset = gateset
+        self._isolated_qubits = all_qubits.difference(node_set)
 
         if gate_durations is not None:
             working_gatefamilies = frozenset(gate_durations.keys())
@@ -142,14 +145,14 @@ class GridDeviceMetadata(device.DeviceMetadata):
             tuple(sorted(self._qubit_pairs)),
             self._gateset,
             tuple(duration_equality),
-            tuple(sorted(self._isolated_qubits)),
+            tuple(sorted(self.qubit_set)),
         )
 
     def __repr__(self) -> str:
         return (
             f'cirq.GridDeviceMetadata({repr(self._qubit_pairs)},'
             f' {repr(self._gateset)}, {repr(self._gate_durations)},'
-            f' {repr(self._isolated_qubits)})'
+            f' {repr(self.qubit_set)})'
         )
 
     def _json_dict_(self):
@@ -161,9 +164,9 @@ class GridDeviceMetadata(device.DeviceMetadata):
             'qubit_pairs': sorted(list(self._qubit_pairs)),
             'gateset': self._gateset,
             'gate_durations': duration_payload,
-            'isolated_qubits': sorted(list(self._isolated_qubits)),
+            'all_qubits': sorted(list(self.qubit_set)),
         }
 
     @classmethod
-    def _from_json_dict_(cls, qubit_pairs, gateset, gate_durations, isolated_qubits, **kwargs):
-        return cls(qubit_pairs, gateset, dict(gate_durations), isolated_qubits)
+    def _from_json_dict_(cls, qubit_pairs, gateset, gate_durations, all_qubits, **kwargs):
+        return cls(qubit_pairs, gateset, dict(gate_durations), all_qubits)

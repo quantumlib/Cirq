@@ -156,7 +156,37 @@
       }
     ]
   ],
-  "isolated_qubits": [
+  "all_qubits": [
+    {
+      "cirq_type": "GridQubit",
+      "row": 0,
+      "col": 0
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 0,
+      "col": 1
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 0,
+      "col": 2
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 1,
+      "col": 0
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 1,
+      "col": 1
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 1,
+      "col": 2
+    },
     {
       "cirq_type": "GridQubit",
       "row": 9,
