@@ -39,7 +39,6 @@ def _get_xmon_optimizers(
     return [
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
         cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=False).optimize_circuit,
-        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
     ]
 
 
@@ -52,17 +51,13 @@ def _get_xmon_optimizers_part_cz(
     return [
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
         cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=True).optimize_circuit,
-        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
     ]
 
 
 def _get_sycamore_optimizers(
     tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
 ) -> List[Callable[[cirq.Circuit], None]]:
-    return [
-        ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit,
-        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-    ]
+    return [ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit]
 
 
 def _get_sqrt_iswap_optimizers(
@@ -71,10 +66,7 @@ def _get_sqrt_iswap_optimizers(
     if tabulation is not None:
         # coverage: ignore
         raise ValueError("Gate tabulation not supported for sqrt_iswap")
-    return [
-        ConvertToSqrtIswapGates().optimize_circuit,
-        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-    ]
+    return [ConvertToSqrtIswapGates().optimize_circuit]
 
 
 _OPTIMIZER_TYPES = {
@@ -154,7 +146,7 @@ def optimized_for_sycamore(
     opts = _OPTIMIZER_TYPES[optimizer_type](tolerance=tolerance, tabulation=tabulation)
     for optimizer in opts:
         optimizer(copy)
-
+    copy = cirq.merge_single_qubit_gates_to_phxz(copy, atol=tolerance)
     copy = cirq.eject_phased_paulis(copy, atol=tolerance)
     copy = cirq.eject_z(copy, atol=tolerance)
     copy = cirq.drop_negligible_operations(copy, atol=tolerance)
