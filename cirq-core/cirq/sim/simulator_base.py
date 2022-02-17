@@ -20,17 +20,17 @@ import inspect
 import warnings
 from typing import (
     Any,
+    cast,
     Dict,
     Iterator,
-    List,
-    Tuple,
-    TYPE_CHECKING,
-    cast,
     Generic,
-    Type,
-    Sequence,
+    List,
     Optional,
+    Sequence,
+    Tuple,
+    Type,
     TypeVar,
+    TYPE_CHECKING,
 )
 
 import numpy as np
@@ -264,9 +264,11 @@ class SimulatorBase(
                 pass
             assert step_result is not None
             measurement_ops = [cast(ops.GateOperation, op) for op in general_ops]
-            return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
+            return step_result.sample_measurement_ops(
+                measurement_ops, repetitions, seed=self._prng, _allow_repeated=True
+            )
 
-        measurements: Dict[str, List[np.ndarray]] = {}
+        records: Dict['cirq.MeasurementKey', List[np.ndarray]] = {}
         for i in range(repetitions):
             if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
                 all_step_results = self._core_iterator(
@@ -289,11 +291,15 @@ class SimulatorBase(
                 )
             for step_result in all_step_results:
                 pass
-            for k, v in step_result.measurements.items():
-                if k not in measurements:
-                    measurements[k] = []
-                measurements[k].append(np.array(v, dtype=np.uint8))
-        return {k: np.array(v) for k, v in measurements.items()}
+            for k, r in step_result._classical_data.records.items():
+                if k not in records:
+                    records[k] = []
+                records[k].append(r)
+            for k, cr in step_result._classical_data.channel_records.items():
+                if k not in records:
+                    records[k] = []
+                records[k].append([cr])
+        return {str(k): np.array(v, dtype=np.uint8) for k, v in records.items()}
 
     def simulate_sweep_iter(
         self,
@@ -397,7 +403,7 @@ class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulator
         """
         self._sim_state = sim_state
         self._merged_sim_state_cache: Optional[TActOnArgs] = None
-        super().__init__(sim_state.log_of_measurement_results)
+        super().__init__(sim_state)
         qubits = sim_state.qubits
         self._qubits = qubits
         self._qubit_mapping = {q: i for i, q in enumerate(qubits)}

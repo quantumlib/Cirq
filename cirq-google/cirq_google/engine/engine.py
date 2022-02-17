@@ -25,28 +25,29 @@ API is (as of June 22, 2018) restricted to invitation only.
 
 import datetime
 import enum
-import os
 import random
 import string
 from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
 
+import google.auth
 from google.protobuf import any_pb2
 
 import cirq
 from cirq._compat import deprecated
 from cirq_google.api import v2
-from cirq_google.engine import engine_client, abstract_engine, abstract_program
-from cirq_google.engine.client import quantum
-from cirq_google.engine.result_type import ResultType
-from cirq_google.serialization import SerializableGateSet, Serializer
-from cirq_google.serialization.arg_func_langs import arg_to_proto
 from cirq_google.engine import (
+    abstract_engine,
+    abstract_program,
     engine_client,
-    engine_program,
     engine_job,
     engine_processor,
+    engine_program,
     engine_sampler,
 )
+from cirq_google.engine.client import quantum
+from cirq_google.engine.result_type import ResultType
+from cirq_google.serialization import CIRCUIT_SERIALIZER, SerializableGateSet, Serializer
+from cirq_google.serialization.arg_func_langs import arg_to_proto
 
 if TYPE_CHECKING:
     import cirq_google
@@ -85,6 +86,7 @@ class EngineContext:
         verbose: Optional[bool] = None,
         client: 'Optional[engine_client.EngineClient]' = None,
         timeout: Optional[int] = None,
+        serializer: Serializer = CIRCUIT_SERIALIZER,
     ) -> None:
         """Context and client for using Quantum Engine.
 
@@ -99,6 +101,7 @@ class EngineContext:
                 created.
             timeout: Timeout for polling for results, in seconds.  Default is
                 to never timeout.
+            serializer: Used to serialize circuits when running jobs.
 
         Raises:
             ValueError: If either `service_args` and `verbose` were supplied
@@ -110,6 +113,7 @@ class EngineContext:
         self.proto_version = proto_version or ProtoVersion.V2
         if self.proto_version == ProtoVersion.V1:
             raise ValueError('ProtoVersion V1 no longer supported')
+        self.serializer = serializer
 
         if not client:
             client = engine_client.EngineClient(service_args=service_args, verbose=verbose)
@@ -195,7 +199,7 @@ class Engine(abstract_engine.AbstractEngine):
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
         processor_ids: Sequence[str] = ('xmonsim',),
-        gate_set: Optional[Serializer] = None,
+        gate_set: Serializer = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -233,8 +237,6 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        if not gate_set:
-            raise ValueError('No gate set provided')
         return list(
             self.run_sweep(
                 program=program,
@@ -301,8 +303,6 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        if not gate_set:
-            raise ValueError('No gate set provided')
         engine_program = self.create_program(
             program, program_id, gate_set, program_description, program_labels
         )
@@ -502,7 +502,7 @@ class Engine(abstract_engine.AbstractEngine):
             ValueError: If no gate set is provided.
         """
         if not gate_set:
-            raise ValueError('No gate set provided')
+            gate_set = self.context.serializer
 
         if not program_id:
             program_id = _make_random_id('prog-')
@@ -548,7 +548,7 @@ class Engine(abstract_engine.AbstractEngine):
             ValueError: If no gate set is provided.
         """
         if not gate_set:
-            raise ValueError('Gate set must be specified.')
+            gate_set = self.context.serializer
         if not program_id:
             program_id = _make_random_id('prog-')
 
@@ -601,7 +601,7 @@ class Engine(abstract_engine.AbstractEngine):
             ValueError: If not gate set is given.
         """
         if not gate_set:
-            raise ValueError('Gate set must be specified.')
+            gate_set = self.context.serializer
         if not program_id:
             program_id = _make_random_id('calibration-')
 
@@ -784,7 +784,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     @deprecated(deadline="v1.0", fix="Use get_sampler instead.")
     def sampler(
-        self, processor_id: Union[str, List[str]], gate_set: Serializer
+        self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
     ) -> engine_sampler.QuantumEngineSampler:
         """Returns a sampler backed by the engine.
 
@@ -802,7 +802,7 @@ class Engine(abstract_engine.AbstractEngine):
         return self.get_sampler(processor_id, gate_set)
 
     def get_sampler(
-        self, processor_id: Union[str, List[str]], gate_set: Serializer
+        self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
     ) -> engine_sampler.QuantumEngineSampler:
         """Returns a sampler backed by the engine.
 
@@ -834,7 +834,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
 
     Args:
         project_id: If set overrides the project id obtained from the
-            environment variable `GOOGLE_CLOUD_PROJECT`.
+            google.auth.default().
 
     Returns:
         The Engine instance.
@@ -843,13 +843,17 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
         OSError: If the environment variable GOOGLE_CLOUD_PROJECT is not set. This is actually
             an `EnvironmentError`, which by definition is an `OsError`.
     """
-    env_project_id = 'GOOGLE_CLOUD_PROJECT'
+    service_args = {}
     if not project_id:
-        project_id = os.environ.get(env_project_id)
+        credentials, project_id = google.auth.default()
+        service_args['credentials'] = credentials
     if not project_id:
-        raise EnvironmentError(f'Environment variable {env_project_id} is not set.')
+        raise EnvironmentError(
+            'Unable to determine project id. Please set environment variable GOOGLE_CLOUD_PROJECT '
+            'or configure default project with `gcloud set project <project_id>`.'
+        )
 
-    return Engine(project_id=project_id)
+    return Engine(project_id=project_id, service_args=service_args)
 
 
 def get_engine_device(

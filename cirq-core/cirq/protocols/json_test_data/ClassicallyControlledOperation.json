@@ -7,7 +7,8 @@
         "cirq_type": "MeasurementKey",
         "name": "a",
         "path": []
-      }
+      },
+      "index": -1
     },
     {
       "cirq_type": "KeyCondition",
@@ -15,7 +16,8 @@
         "cirq_type": "MeasurementKey",
         "name": "b",
         "path": []
-      }
+      },
+      "index": -1
     }
   ],
   "sub_operation": {
