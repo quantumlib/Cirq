@@ -243,7 +243,9 @@ jobs:
       - name: Install requirements
         run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
-        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
+        run: |
+          source dev_tools/pypath
+          check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
