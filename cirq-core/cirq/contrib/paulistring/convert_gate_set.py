@@ -28,7 +28,7 @@ def converted_gate_set(
     """
     conv_circuit = circuits.Circuit(circuit)
     optimizers.ConvertToCzAndSingleGates().optimize_circuit(conv_circuit)
-    optimizers.MergeSingleQubitGates().optimize_circuit(conv_circuit)
+    conv_circuit = transformers.merge_k_qubit_unitaries(conv_circuit, k=1)
     ConvertToPauliStringPhasors(
         ignore_failures=True,
         keep_clifford=not no_clifford_gates,
