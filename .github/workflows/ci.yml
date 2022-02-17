@@ -158,9 +158,13 @@ jobs:
       - name: Force old pip (3.6 only)
         if: matrix.python-version == '3.6'
         run: pip install pip==20.2
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
         run: |
-          pip install -r dev_tools/requirements/dev.env.txt
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
@@ -208,8 +212,12 @@ jobs:
         with:
           python-version: '3.8'
           architecture: 'x64'
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/dev.env.txt
+        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
@@ -228,10 +236,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/no-contrib.env.txt
+        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
-        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
+        run: |
+          source dev_tools/pypath
+          check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
@@ -245,8 +259,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/no-contrib.env.txt
+        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
         run: check/pytest --ignore=cirq-core/cirq/contrib
   notebooks-stable:
