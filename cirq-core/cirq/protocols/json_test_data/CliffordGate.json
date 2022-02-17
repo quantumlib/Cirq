@@ -1,5 +1,5 @@
 {
-  "cirq_type": "MultipleCliffordGate",
+  "cirq_type": "CliffordGate",
   "n": 2,
   "rs": [
     false,

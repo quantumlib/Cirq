@@ -417,8 +417,8 @@ def test_commutes_notimplemented_type():
     assert cirq.commutes(cirq.SingleQubitCliffordGate.X, 'X', default='default') == 'default'
 
     with pytest.raises(TypeError):
-        cirq.commutes(cirq.MultipleCliffordGate.X, 'X')
-    assert cirq.commutes(cirq.MultipleCliffordGate.X, 'X', default='default') == 'default'
+        cirq.commutes(cirq.CliffordGate.X, 'X')
+    assert cirq.commutes(cirq.CliffordGate.X, 'X', default='default') == 'default'
 
 
 @pytest.mark.parametrize(
@@ -594,15 +594,15 @@ def test_from_xz_to_clifford_tableau():
 @pytest.mark.parametrize(
     'clifford_gate,standard_gate',
     [
-        (cirq.MultipleCliffordGate.I, cirq.I),
-        (cirq.MultipleCliffordGate.X, cirq.X),
-        (cirq.MultipleCliffordGate.Y, cirq.Y),
-        (cirq.MultipleCliffordGate.Z, cirq.Z),
-        (cirq.MultipleCliffordGate.H, cirq.H),
-        (cirq.MultipleCliffordGate.S, cirq.S),
-        (cirq.MultipleCliffordGate.CNOT, cirq.CNOT),
-        (cirq.MultipleCliffordGate.CZ, cirq.CZ),
-        (cirq.MultipleCliffordGate.SWAP, cirq.SWAP),
+        (cirq.CliffordGate.I, cirq.I),
+        (cirq.CliffordGate.X, cirq.X),
+        (cirq.CliffordGate.Y, cirq.Y),
+        (cirq.CliffordGate.Z, cirq.Z),
+        (cirq.CliffordGate.H, cirq.H),
+        (cirq.CliffordGate.S, cirq.S),
+        (cirq.CliffordGate.CNOT, cirq.CNOT),
+        (cirq.CliffordGate.CZ, cirq.CZ),
+        (cirq.CliffordGate.SWAP, cirq.SWAP),
     ],
 )
 def test_common_clifford_gate(clifford_gate, standard_gate):
@@ -613,25 +613,25 @@ def test_common_clifford_gate(clifford_gate, standard_gate):
 
 
 def test_multi_qubit_clifford_pow():
-    assert cirq.MultipleCliffordGate.X ** -1 == cirq.MultipleCliffordGate.X
-    assert cirq.MultipleCliffordGate.H ** -1 == cirq.MultipleCliffordGate.H
-    assert cirq.MultipleCliffordGate.S ** 2 == cirq.MultipleCliffordGate.Z
-    assert cirq.MultipleCliffordGate.S ** -1 == cirq.MultipleCliffordGate.S ** 3
-    assert cirq.MultipleCliffordGate.S ** -3 == cirq.MultipleCliffordGate.S
-    assert cirq.MultipleCliffordGate.CNOT ** 3 == cirq.MultipleCliffordGate.CNOT
-    assert cirq.MultipleCliffordGate.CNOT ** -3 == cirq.MultipleCliffordGate.CNOT
+    assert cirq.CliffordGate.X ** -1 == cirq.CliffordGate.X
+    assert cirq.CliffordGate.H ** -1 == cirq.CliffordGate.H
+    assert cirq.CliffordGate.S ** 2 == cirq.CliffordGate.Z
+    assert cirq.CliffordGate.S ** -1 == cirq.CliffordGate.S ** 3
+    assert cirq.CliffordGate.S ** -3 == cirq.CliffordGate.S
+    assert cirq.CliffordGate.CNOT ** 3 == cirq.CliffordGate.CNOT
+    assert cirq.CliffordGate.CNOT ** -3 == cirq.CliffordGate.CNOT
     with pytest.raises(TypeError):
-        _ = cirq.MultipleCliffordGate.Z ** 0.25
+        _ = cirq.CliffordGate.Z ** 0.25
 
 
 def test_stabilizer_effec():
-    assert cirq.has_stabilizer_effect(cirq.MultipleCliffordGate.X)
-    assert cirq.has_stabilizer_effect(cirq.MultipleCliffordGate.H)
-    assert cirq.has_stabilizer_effect(cirq.MultipleCliffordGate.S)
-    assert cirq.has_stabilizer_effect(cirq.MultipleCliffordGate.CNOT)
-    assert cirq.has_stabilizer_effect(cirq.MultipleCliffordGate.CZ)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.X)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.H)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.S)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.CNOT)
+    assert cirq.has_stabilizer_effect(cirq.CliffordGate.CZ)
     qubits = cirq.LineQubit.range(2)
-    gate = cirq.MultipleCliffordGate.from_op_list(
+    gate = cirq.CliffordGate.from_op_list(
         [cirq.H(qubits[1]), cirq.CZ(*qubits), cirq.H(qubits[1])], qubits
     )
     assert cirq.has_stabilizer_effect(gate)
@@ -641,65 +641,65 @@ def test_clifford_gate_from_op_list():
     # Since from_op_list() ==> _act_on_() ==> tableau.then() and then() has already covered
     # lots of random circuit cases, here we just test a few well-known relationships.
     qubit = cirq.NamedQubit('test')
-    gate = cirq.MultipleCliffordGate.from_op_list([cirq.X(qubit), cirq.Z(qubit)], [qubit])
-    assert gate == cirq.MultipleCliffordGate.Y  # The tableau ignores the global phase
+    gate = cirq.CliffordGate.from_op_list([cirq.X(qubit), cirq.Z(qubit)], [qubit])
+    assert gate == cirq.CliffordGate.Y  # The tableau ignores the global phase
 
-    gate = cirq.MultipleCliffordGate.from_op_list([cirq.Z(qubit), cirq.X(qubit)], [qubit])
-    assert gate == cirq.MultipleCliffordGate.Y  # The tableau ignores the global phase
+    gate = cirq.CliffordGate.from_op_list([cirq.Z(qubit), cirq.X(qubit)], [qubit])
+    assert gate == cirq.CliffordGate.Y  # The tableau ignores the global phase
 
-    gate = cirq.MultipleCliffordGate.from_op_list([cirq.X(qubit), cirq.Y(qubit)], [qubit])
-    assert gate == cirq.MultipleCliffordGate.Z  # The tableau ignores the global phase
+    gate = cirq.CliffordGate.from_op_list([cirq.X(qubit), cirq.Y(qubit)], [qubit])
+    assert gate == cirq.CliffordGate.Z  # The tableau ignores the global phase
 
-    gate = cirq.MultipleCliffordGate.from_op_list([cirq.Z(qubit), cirq.X(qubit)], [qubit])
-    assert gate == cirq.MultipleCliffordGate.Y  # The tableau ignores the global phase
+    gate = cirq.CliffordGate.from_op_list([cirq.Z(qubit), cirq.X(qubit)], [qubit])
+    assert gate == cirq.CliffordGate.Y  # The tableau ignores the global phase
 
     # Two qubits gates
     qubits = cirq.LineQubit.range(2)
-    gate = cirq.MultipleCliffordGate.from_op_list(
+    gate = cirq.CliffordGate.from_op_list(
         [cirq.H(qubits[1]), cirq.CZ(*qubits), cirq.H(qubits[1])], qubits
     )
-    assert gate == cirq.MultipleCliffordGate.CNOT
+    assert gate == cirq.CliffordGate.CNOT
 
-    gate = cirq.MultipleCliffordGate.from_op_list(
+    gate = cirq.CliffordGate.from_op_list(
         [cirq.H(qubits[1]), cirq.CNOT(*qubits), cirq.H(qubits[1])], qubits
     )
-    assert gate == cirq.MultipleCliffordGate.CZ
+    assert gate == cirq.CliffordGate.CZ
 
     # Note the order of qubits matters
-    gate = cirq.MultipleCliffordGate.from_op_list(
+    gate = cirq.CliffordGate.from_op_list(
         [cirq.H(qubits[0]), cirq.CZ(qubits[1], qubits[0]), cirq.H(qubits[0])], qubits
     )
-    assert gate != cirq.MultipleCliffordGate.CNOT
+    assert gate != cirq.CliffordGate.CNOT
     # But if we reverse the qubit_order, they will equal again.
-    gate = cirq.MultipleCliffordGate.from_op_list(
+    gate = cirq.CliffordGate.from_op_list(
         [cirq.H(qubits[0]), cirq.CZ(qubits[1], qubits[0]), cirq.H(qubits[0])], qubits[::-1]
     )
-    assert gate == cirq.MultipleCliffordGate.CNOT
+    assert gate == cirq.CliffordGate.CNOT
 
     with pytest.raises(
         ValueError, match="only be constructed from the operations that has stabilizer effect"
     ):
-        cirq.MultipleCliffordGate.from_op_list([cirq.T(qubit)], [qubit])
+        cirq.CliffordGate.from_op_list([cirq.T(qubit)], [qubit])
 
 
 def test_clifford_gate_from_tableau():
-    t = cirq.MultipleCliffordGate.X.clifford_tableau
-    assert cirq.MultipleCliffordGate.from_clifford_tableau(t) == cirq.MultipleCliffordGate.X
+    t = cirq.CliffordGate.X.clifford_tableau
+    assert cirq.CliffordGate.from_clifford_tableau(t) == cirq.CliffordGate.X
 
-    t = cirq.MultipleCliffordGate.H.clifford_tableau
-    assert cirq.MultipleCliffordGate.from_clifford_tableau(t) == cirq.MultipleCliffordGate.H
+    t = cirq.CliffordGate.H.clifford_tableau
+    assert cirq.CliffordGate.from_clifford_tableau(t) == cirq.CliffordGate.H
 
-    t = cirq.MultipleCliffordGate.CNOT.clifford_tableau
-    assert cirq.MultipleCliffordGate.from_clifford_tableau(t) == cirq.MultipleCliffordGate.CNOT
+    t = cirq.CliffordGate.CNOT.clifford_tableau
+    assert cirq.CliffordGate.from_clifford_tableau(t) == cirq.CliffordGate.CNOT
 
     with pytest.raises(ValueError):
         t = cirq.CliffordTableau(num_qubits=1)
         t.xs = np.array([1, 1]).reshape(2, 1)
         t.zs = np.array([1, 1]).reshape(2, 1)  # This violates the sympletic property.
-        cirq.MultipleCliffordGate.from_clifford_tableau(t)
+        cirq.CliffordGate.from_clifford_tableau(t)
 
     with pytest.raises(ValueError, match="Input argument has to be a CliffordTableau instance."):
-        cirq.MultipleCliffordGate.from_clifford_tableau(1)
+        cirq.CliffordGate.from_clifford_tableau(1)
 
 
 def test_multi_clifford_decompose_by_unitary():
@@ -714,7 +714,7 @@ def test_multi_clifford_decompose_by_unitary():
             g = prng.randint(len(gate_candidate))
             indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
             ops.append(gate_candidate[g].on(*[qubits[i] for i in indices]))
-        gate = cirq.MultipleCliffordGate.from_op_list(ops, qubits)
+        gate = cirq.CliffordGate.from_op_list(ops, qubits)
         decomposed_ops = cirq.decompose(gate.on(*qubits))
         circ = cirq.Circuit(decomposed_ops)
         circ.append(cirq.I.on_each(qubits))  # make sure the dimension aligned.
@@ -748,12 +748,12 @@ def test_pad_tableau():
     padded_tableau = cirq.ops.clifford_gate._pad_tableau(
         tableau, num_qubits_after_padding=1, axes=[0]
     )
-    assert padded_tableau == cirq.MultipleCliffordGate.X.clifford_tableau
+    assert padded_tableau == cirq.CliffordGate.X.clifford_tableau
 
     # Tableau for H
     # [0 1 0]
     # [1 0 0]
-    tableau = cirq.MultipleCliffordGate.H.clifford_tableau
+    tableau = cirq.CliffordGate.H.clifford_tableau
     padded_tableau = cirq.ops.clifford_gate._pad_tableau(
         tableau, num_qubits_after_padding=2, axes=[0]
     )
@@ -770,7 +770,7 @@ def test_pad_tableau():
     )
     np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
     # The tableau of H again but pad for another ax
-    tableau = cirq.MultipleCliffordGate.H.clifford_tableau
+    tableau = cirq.CliffordGate.H.clifford_tableau
     padded_tableau = cirq.ops.clifford_gate._pad_tableau(
         tableau, num_qubits_after_padding=2, axes=[1]
     )
@@ -805,25 +805,25 @@ def test_clifford_gate_act_on_small_case():
         log_of_measurement_results={},
     )
     cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
-    cirq.act_on(cirq.MultipleCliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
 
     cirq.act_on(cirq.CNOT, expected_args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
     cirq.act_on(
-        cirq.MultipleCliffordGate.CNOT, args, qubits=[qubits[0], qubits[1]], allow_decompose=False
+        cirq.CliffordGate.CNOT, args, qubits=[qubits[0], qubits[1]], allow_decompose=False
     )
     assert args.tableau == expected_args.tableau
 
     cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
-    cirq.act_on(cirq.MultipleCliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
 
     cirq.act_on(cirq.S, expected_args, qubits=[qubits[0]], allow_decompose=False)
-    cirq.act_on(cirq.MultipleCliffordGate.S, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.S, args, qubits=[qubits[0]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
 
     cirq.act_on(cirq.X, expected_args, qubits=[qubits[2]], allow_decompose=False)
-    cirq.act_on(cirq.MultipleCliffordGate.X, args, qubits=[qubits[2]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.X, args, qubits=[qubits[2]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
 
 
@@ -849,7 +849,7 @@ def test_clifford_gate_act_on_large_case():
                 gate_candidate[g], args1, qubits=[qubits[i] for i in indices], allow_decompose=False
             )
             ops.append(gate_candidate[g].on(*[qubits[i] for i in indices]))
-        compiled_gate = cirq.MultipleCliffordGate.from_op_list(ops, qubits)
+        compiled_gate = cirq.CliffordGate.from_op_list(ops, qubits)
         cirq.act_on(compiled_gate, args2, qubits)
 
         assert args1.tableau == args2.tableau
@@ -865,10 +865,10 @@ def test_clifford_gate_act_on_ch_form():
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(cirq.MultipleCliffordGate.X, args, qubits=cirq.LineQubit.range(1))
+    cirq.act_on(cirq.CliffordGate.X, args, qubits=cirq.LineQubit.range(1))
     np.testing.assert_allclose(args.state.state_vector(), np.array([0, 0, 0, 1]))
 
 
 def test_clifford_gate_act_on_fail():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.MultipleCliffordGate.X, DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.CliffordGate.X, DummyActOnArgs(), qubits=())

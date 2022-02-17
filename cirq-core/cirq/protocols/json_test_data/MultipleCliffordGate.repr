@@ -1,1 +1,0 @@
-cirq.MultipleCliffordGate(_clifford_tableau=cirq.CliffordTableau(num_qubits=2))
