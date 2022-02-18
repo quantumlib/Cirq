@@ -41,6 +41,10 @@ from cirq.transformers.heuristic_decompositions import (
     two_qubit_gate_product_tabulation,
 )
 
+from cirq.transformers.target_gatesets import (
+    CompilationTargetGateset,
+)
+
 from cirq.transformers.align import align_left, align_right
 
 from cirq.transformers.stratify import stratified_circuit
@@ -48,6 +52,8 @@ from cirq.transformers.stratify import stratified_circuit
 from cirq.transformers.expand_composite import expand_composite
 
 from cirq.transformers.eject_phased_paulis import eject_phased_paulis
+
+from cirq.transformers.optimize_for_target_gateset import optimize_for_target_gateset
 
 from cirq.transformers.drop_empty_moments import drop_empty_moments
 

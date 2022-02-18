@@ -355,6 +355,7 @@ from cirq.optimizers import (
 from cirq.transformers import (
     align_left,
     align_right,
+    CompilationTargetGateset,
     compute_cphase_exponents_for_fsim_decomposition,
     decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
@@ -380,6 +381,7 @@ from cirq.transformers import (
     merge_single_qubit_gates_to_phased_x_and_z,
     merge_single_qubit_gates_to_phxz,
     merge_single_qubit_moments_to_phxz,
+    optimize_for_target_gateset,
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
     single_qubit_matrix_to_gates,
