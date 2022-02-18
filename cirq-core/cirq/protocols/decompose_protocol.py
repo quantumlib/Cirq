@@ -180,7 +180,11 @@ def decompose(
             that doesn't satisfy the given `keep` predicate.
     """
 
-    if on_stuck_raise is not _value_error_describing_bad_operation and keep is None:
+    if (
+        on_stuck_raise is not _value_error_describing_bad_operation
+        and on_stuck_raise is not None
+        and keep is None
+    ):
         raise ValueError(
             "Must specify 'keep' if specifying 'on_stuck_raise', because it's "
             "not possible to get stuck if you don't have a criteria on what's "
