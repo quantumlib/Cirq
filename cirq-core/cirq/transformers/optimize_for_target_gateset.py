@@ -61,7 +61,7 @@ def _decompose_operations_to_target_gateset(
         An equivalent circuit containing gates accepted by `gateset`.
 
     Raises:
-        TypeError: If any input operation fails to convert and `ignore_failures` is False.
+        ValueError: If any input operation fails to convert and `ignore_failures` is False.
     """
 
     def map_func(op: 'cirq.Operation', moment_index: int):
@@ -100,13 +100,13 @@ def optimize_for_target_gateset(
         context: `cirq.TransformerContext` storing common configurable options for transformers.
         gateset: Target gateset, which should be an instance of `cirq.CompilationTargetGateset`.
         ignore_failures: If set, operations that fail to convert are left unchanged. If not set,
-            conversion failures raise a TypeError.
+            conversion failures raise a ValueError.
 
     Returns:
         An equivalent circuit containing gates accepted by `gateset`.
 
     Raises:
-        TypeError: If any input operation fails to convert and `ignore_failures` is False.
+        ValueError: If any input operation fails to convert and `ignore_failures` is False.
     """
     if gateset is None:
         return _decompose_operations_to_target_gateset(
