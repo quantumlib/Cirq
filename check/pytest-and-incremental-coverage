@@ -81,7 +81,7 @@ if [ "$ANALYZE_COV" == "1" ]; then
     cover_result=$?
 
     # Clean up generated coverage files.
-    find . | grep "\.py,cover$" | xargs rm -f
+    git clean --force --quiet -x -- "*.py,cover"
 
     # Report result.
     if [ "${pytest_result}" -ne "0" ] || [ "${cover_result}" -ne "0" ]; then
