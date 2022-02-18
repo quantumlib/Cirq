@@ -14,6 +14,7 @@
 
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
+from cirq.transformers.optimize_for_target_gateset import _decompose_operations_to_target_gateset
 import pytest
 
 
@@ -21,12 +22,10 @@ def test_decompose_operations_raises_on_stuck():
     c_orig = cirq.Circuit(cirq.X(cirq.NamedQubit("q")).with_tags("ignore"))
     gateset = cirq.Gateset(cirq.Y)
     with pytest.raises(ValueError, match="Unable to convert"):
-        _ = cirq.decompose_operations_to_target_gateset(
-            c_orig, gateset=gateset, ignore_failures=False
-        )
+        _ = _decompose_operations_to_target_gateset(c_orig, gateset=gateset, ignore_failures=False)
 
     # Gates marked with a no-compile tag are completely ignored.
-    c_new = cirq.decompose_operations_to_target_gateset(
+    c_new = _decompose_operations_to_target_gateset(
         c_orig,
         context=cirq.TransformerContext(tags_to_ignore=("ignore",)),
         gateset=gateset,
@@ -59,7 +58,7 @@ def test_decompose_operations_to_target_gateset_default():
 m: ═════════════════════════════@═══^═══════════════''',
     )
     context = cirq.TransformerContext(tags_to_ignore=("ignore",))
-    c_new = cirq.decompose_operations_to_target_gateset(c_orig, context=context)
+    c_new = _decompose_operations_to_target_gateset(c_orig, context=context)
     cirq.testing.assert_has_diagram(
         c_new,
         '''
@@ -92,7 +91,7 @@ def test_decompose_operations_to_target_gateset():
         else NotImplemented
     )
     context = cirq.TransformerContext(tags_to_ignore=("ignore",))
-    c_new = cirq.decompose_operations_to_target_gateset(
+    c_new = _decompose_operations_to_target_gateset(
         c_orig, gateset=gateset, decomposer=decomposer, context=context
     )
     cirq.testing.assert_has_diagram(
@@ -106,7 +105,7 @@ m: ═════════════════════════�
     )
 
     with pytest.raises(ValueError, match="Unable to convert"):
-        _ = cirq.decompose_operations_to_target_gateset(
+        _ = _decompose_operations_to_target_gateset(
             c_orig, gateset=gateset, decomposer=decomposer, context=context, ignore_failures=False
         )
 
@@ -125,7 +124,7 @@ class MatrixGateTargetGateset(cirq.CompilationTargetGateset):
         return cirq.MatrixGate(cirq.unitary(op), name="M").on(*op.qubits)
 
 
-def test_convert_to_target_gateset_default():
+def test_optimize_for_target_gateset_default():
     q = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
         cirq.T(q[0]),
@@ -134,7 +133,7 @@ def test_convert_to_target_gateset_default():
         cirq.SWAP(*q).with_tags("ignore"),
     )
     context = cirq.TransformerContext(tags_to_ignore=("ignore",))
-    c_new = cirq.convert_to_target_gateset(c_orig, context=context)
+    c_new = cirq.optimize_for_target_gateset(c_orig, context=context)
     cirq.testing.assert_has_diagram(
         c_new,
         '''
@@ -146,7 +145,7 @@ def test_convert_to_target_gateset_default():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c_orig, c_new, atol=1e-6)
 
 
-def test_convert_to_target_gateset():
+def test_optimize_for_target_gateset():
     q = cirq.LineQubit.range(4)
     c_orig = cirq.Circuit(
         cirq.QuantumFourierTransformGate(4).on(*q),
@@ -174,7 +173,7 @@ m: ═══════════════════════@══�
     )
     gateset = MatrixGateTargetGateset()
     context = cirq.TransformerContext(tags_to_ignore=("ignore",))
-    c_new = cirq.convert_to_target_gateset(c_orig, gateset=gateset, context=context)
+    c_new = cirq.optimize_for_target_gateset(c_orig, gateset=gateset, context=context)
     cirq.testing.assert_has_diagram(
         c_new,
         '''
@@ -194,6 +193,6 @@ m: ═════════════════════════�
 
     with pytest.raises(ValueError, match="Unable to convert"):
         # Raises an error due to CCO and Measurement gate, which are not part of the gateset.
-        _ = cirq.convert_to_target_gateset(
+        _ = cirq.optimize_for_target_gateset(
             c_orig, gateset=gateset, context=context, ignore_failures=False
         )

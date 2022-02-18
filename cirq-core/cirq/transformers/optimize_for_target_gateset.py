@@ -31,13 +31,13 @@ def _create_on_stuck_raise_error(gateset: 'cirq.Gateset'):
 
 
 @transformer_api.transformer
-def decompose_operations_to_target_gateset(
+def _decompose_operations_to_target_gateset(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
     gateset: Optional['cirq.Gateset'] = None,
     decomposer: Callable[['cirq.Operation', int], dp.DecomposeResult] = lambda *_: NotImplemented,
-    ignore_failures=True,
+    ignore_failures: bool = True,
 ) -> 'cirq.Circuit':
     """Decomposes every operation to `gateset` using `cirq.decompose` and `decomposer`.
 
@@ -82,7 +82,7 @@ def decompose_operations_to_target_gateset(
 
 
 @transformer_api.transformer
-def convert_to_target_gateset(
+def optimize_for_target_gateset(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
@@ -109,14 +109,14 @@ def convert_to_target_gateset(
         TypeError: If any input operation fails to convert and `ignore_failures` is False.
     """
     if gateset is None:
-        return decompose_operations_to_target_gateset(
+        return _decompose_operations_to_target_gateset(
             circuit, context=context, ignore_failures=ignore_failures
         )
 
     for transformer in gateset.preprocess_transformers:
         circuit = transformer(circuit, context=context)
 
-    circuit = decompose_operations_to_target_gateset(
+    circuit = _decompose_operations_to_target_gateset(
         circuit,
         context=context,
         gateset=gateset,

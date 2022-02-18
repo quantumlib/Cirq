@@ -53,10 +53,7 @@ from cirq.transformers.expand_composite import expand_composite
 
 from cirq.transformers.eject_phased_paulis import eject_phased_paulis
 
-from cirq.transformers.convert_to_target_gateset import (
-    convert_to_target_gateset,
-    decompose_operations_to_target_gateset,
-)
+from cirq.transformers.optimize_for_target_gateset import optimize_for_target_gateset
 
 from cirq.transformers.drop_empty_moments import drop_empty_moments
 
