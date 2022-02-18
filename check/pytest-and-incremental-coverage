@@ -72,7 +72,9 @@ check/pytest --actually-quiet \
 pytest_result=$?
 
 
-if [ "$ANALYZE_COV" == "1" ]; then
+# assume succesful cover_result in case coverage is not run
+cover_result=0
+if (( $ANALYZE_COV )); then
     # Convert to .py,cover files.
     coverage annotate
 
@@ -82,15 +84,10 @@ if [ "$ANALYZE_COV" == "1" ]; then
 
     # Clean up generated coverage files.
     git clean --force --quiet -x -- "*.py,cover"
-
-    # Report result.
-    if [ "${pytest_result}" -ne "0" ] || [ "${cover_result}" -ne "0" ]; then
-      exit 1
-    fi
-    exit 0
-else
-    if [ "${pytest_result}" -ne "0" ]; then
-      exit 1
-    fi
-    exit 0
 fi
+
+# Report result.
+if (( ${pytest_result} || ${cover_result} )); then
+    exit 1
+fi
+exit 0
