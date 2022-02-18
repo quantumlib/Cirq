@@ -39,6 +39,9 @@ def test_compilation_target_gateset():
     assert cirq.X(q[0]) not in gateset
     assert cirq.CNOT(*q) in gateset
     assert cirq.measure(*q) not in gateset
+    circuit_op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CZ(*q), cirq.CNOT(*q), cirq.CZ(*q)))
+    assert circuit_op in gateset
+    assert circuit_op.with_tags(gateset._intermediate_result_tag) not in gateset
 
     assert gateset.num_qubits == 2
     assert gateset.decompose_to_target_gateset(cirq.X(q[0]), 1) is NotImplemented

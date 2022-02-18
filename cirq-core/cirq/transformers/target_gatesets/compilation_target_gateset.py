@@ -68,6 +68,25 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
             - `None` or `NotImplemented` if does not know how to decompose `op`.
         """
 
+    def _validate_operation(self, op: 'cirq.Operation') -> bool:
+        """Validates whether the given `cirq.Operation` is contained in this Gateset.
+
+        Overrides the method on the base gateset class to ensure that operations which created
+        as intermediate compilation results are not accepted.
+        For example, if a preprocessing `merge_k_qubit_unitaries` transformer merges connected
+        component of 2q unitaries, it should not be accepted in the gateset so that so we can
+        use `decompose_to_target_gateset` to determine how to expand this component.
+
+        Args:
+            op: The `cirq.Operation` instance to check containment for.
+
+        Returns:
+            Whether the given operation is contained in the gateset.
+        """
+        if self._intermediate_result_tag in op.tags:
+            return False
+        return super()._validate_operation(op)
+
     @property
     def _intermediate_result_tag(self) -> Hashable:
         """A tag used to identify intermediate compilation results."""
