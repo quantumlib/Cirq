@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: skip-file
-
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
 import pytest
@@ -37,6 +35,7 @@ def test_decompose_operations_raises_on_stuck():
     cirq.testing.assert_same_circuits(c_orig, c_new)
 
 
+# pylint: disable=line-too-long
 def test_decompose_operations_to_target_gateset_default():
     q = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(

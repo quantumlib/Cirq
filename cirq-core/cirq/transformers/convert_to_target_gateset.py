@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Transformers to rewrite a circuit using gates from a given target gateset."""
+
 from typing import Optional, Callable, TYPE_CHECKING
 
-from cirq import protocols
+from cirq.protocols import decompose_protocol as dp
 from cirq.transformers import transformer_api, transformer_primitives
-from cirq.protocols.decompose_protocol import DecomposeResult
 
 if TYPE_CHECKING:
     import cirq
@@ -35,7 +36,7 @@ def decompose_operations_to_target_gateset(
     *,
     context: Optional['cirq.TransformerContext'] = None,
     gateset: Optional['cirq.Gateset'] = None,
-    decomposer: Callable[['cirq.Operation', int], DecomposeResult] = lambda *_: NotImplemented,
+    decomposer: Callable[['cirq.Operation', int], dp.DecomposeResult] = lambda *_: NotImplemented,
     ignore_failures=True,
 ) -> 'cirq.Circuit':
     """Decomposes every operation to `gateset` using `cirq.decompose` and `decomposer`.
@@ -64,7 +65,7 @@ def decompose_operations_to_target_gateset(
     """
 
     def map_func(op: 'cirq.Operation', moment_index: int):
-        return protocols.decompose(
+        return dp.decompose(
             op,
             intercepting_decomposer=lambda o: decomposer(o, moment_index),
             keep=gateset.validate if gateset else None,
