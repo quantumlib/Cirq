@@ -55,7 +55,7 @@ def _decompose_operations_to_target_gateset(
             - An equivalent `cirq.OP_TREE` implementing `op` using gates from `gateset`.
             - `None` or `NotImplemented` if does not know how to decompose a given `op`.
         ignore_failures: If set, operations that fail to convert are left unchanged. If not set,
-            conversion failures raise a TypeError.
+            conversion failures raise a ValueError.
 
     Returns:
         An equivalent circuit containing gates accepted by `gateset`.
