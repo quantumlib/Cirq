@@ -14,10 +14,13 @@
 
 from typing import Optional
 
-from cirq import circuits, ops, protocols
+from cirq import circuits, ops, protocols, _compat
 from cirq.transformers.analytical_decompositions import two_qubit_to_cz
 
 
+@_compat.deprecated_class(
+    deadline='v1.0', fix='Use cirq.optimize_for_target_gateset and cirq.CZTargetGateset instead.'
+)
 class ConvertToCzAndSingleGates(circuits.PointOptimizer):
     """Attempts to convert strange multi-qubit gates into CZ and single qubit
     gates.

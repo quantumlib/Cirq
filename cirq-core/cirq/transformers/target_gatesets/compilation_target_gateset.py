@@ -17,7 +17,7 @@
 from typing import Optional, List, Hashable, TYPE_CHECKING
 import abc
 
-from cirq import ops, protocols, _import
+from cirq import circuits, ops, protocols, _import
 from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers import (
     merge_k_qubit_gates,
@@ -115,3 +115,95 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
             drop_negligible.drop_negligible_operations,
             drop_empty_moments.drop_empty_moments,
         ]
+
+
+class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
+    """Abstract base class to create two-qubit target gatesets.
+
+    This base class can be used to create two-qubit compilation target gatesets. It automatically
+    implements the logic to
+
+        1. Expand composite gates acting on > 2 qubits using
+        2. Merge connected components of 1 and 2 qubit unitaries into tagged circuit operations.
+        3. Use `_decompose_single_qubit_operation` and `_decompose_two_qubit_operation` to figure
+        out how to rewrite the merged connected components using gates from this gateset.
+        4. Replace connected components with inefficient implementations (higher number of 2q
+        interactions) with more efficient rewrites to minimize total number of 2q interactions.
+        5. Apply cleanup transformations to preserve moment structure (eg: alternating layers of
+        single/two qubit gates) and minimize circuit depth (eg: drop negligible operations and
+        empty moments)
+
+    Derived classes should simply implement the `_decompose_two_qubit_operation` method and provide
+    analytical decomposition of any 2q unitary using gates from the target gateset.
+    """
+
+    @property
+    def num_qubits(self) -> int:
+        return 2
+
+    def decompose_to_target_gateset(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
+        if not 1 <= protocols.num_qubits(op) <= 2:
+            return self._decompose_multi_qubit_operation(op, moment_idx)
+        if protocols.num_qubits(op) == 1:
+            return self._decompose_single_qubit_operation(op, moment_idx)
+        op_untagged = op.untagged
+        old_optree = (
+            [*op_untagged.circuit]
+            if isinstance(op_untagged, circuits.CircuitOperation)
+            and self._intermediate_result_tag in op.tags
+            else [op]
+        )
+        old_2q_gate_count = len([o for o in ops.flatten_to_ops(old_optree) if len(o.qubits) == 2])
+        new_optree = self._decompose_two_qubit_operation(op, moment_idx)
+        if new_optree is NotImplemented or new_optree is None:
+            return new_optree
+        new_2q_gate_count = len([o for o in ops.flatten_to_ops(new_optree) if len(o.qubits) == 2])
+        switch_to_new = (
+            any(op not in self for op in ops.flatten_to_ops(old_optree))
+            or new_2q_gate_count < old_2q_gate_count
+        )
+        return new_optree if switch_to_new else old_optree
+
+    def _decompose_single_qubit_operation(
+        self, op: 'cirq.Operation', moment_idx: int
+    ) -> 'cirq.OP_TREE':
+        """Decomposes (connected component of) 1-qubit unitaries using gates from this gateset.
+
+        By default, rewrites every operation using a single `cirq.PhasedXZGate`.
+
+        Args:
+            op: A single-qubit unitary operation (by default, a circuit operation a wrapping
+                connected component of single qubit operations).
+            moment_idx: Index of the moment in which operation `op` occurs.
+
+        Returns:
+            A `cirq.OP_TREE` implementing `cirq.MatrixGate(cirq.unitary(op)).on(*op.qubits)` using
+            gates from this gateset.
+        """
+        return (
+            ops.PhasedXZGate.from_matrix(protocols.unitary(op)).on(op.qubits[0])
+            if protocols.has_unitary(op)
+            else NotImplemented
+        )
+
+    def _decompose_multi_qubit_operation(
+        self, op: 'cirq.Operation', moment_idx: int
+    ) -> 'cirq.OP_TREE':
+        """Callable hook to specify custom decompositions for multi-qubit operations."""
+        return NotImplemented
+
+    @abc.abstractmethod
+    def _decompose_two_qubit_operation(
+        self, op: 'cirq.Operation', moment_idx: int
+    ) -> 'cirq.OP_TREE':
+        """Decomposes (connected component of) 2-qubit unitaries using gates from this gateset.
+
+        Args:
+            op: A two-qubit unitary operation (by default, a circuit operation a wrapping a
+                connected component of 1 & 2 qubit operations).
+            moment_idx: Index of the moment in which operation `op` occurs.
+
+        Returns:
+            A `cirq.OP_TREE` implementing `cirq.MatrixGate(cirq.unitary(op)).on(*op.qubits)` using
+            gates from this gateset.
+        """
