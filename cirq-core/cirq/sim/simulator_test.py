@@ -83,20 +83,46 @@ def test_run_simulator_run():
 @mock.patch.multiple(cirq.SimulatesSamples, __abstractmethods__=set(), _run=mock.Mock())
 def test_run_simulator_sweeps():
     simulator = cirq.SimulatesSamples()
-    expected_measurements = {'a': np.array([[[1]]])}
-    simulator._run.return_value = expected_measurements
+    expected_records = {'a': np.array([[[1]]])}
+    simulator._run.return_value = expected_records
     circuit = mock.Mock(cirq.Circuit)
     circuit.__iter__ = mock.Mock(return_value=iter([]))
     param_resolvers = [mock.Mock(cirq.ParamResolver), mock.Mock(cirq.ParamResolver)]
     for resolver in param_resolvers:
         resolver.param_dict = {}
     expected_results = [
-        cirq.ResultDict(records=expected_measurements, params=param_resolvers[0]),
-        cirq.ResultDict(records=expected_measurements, params=param_resolvers[1]),
+        cirq.ResultDict(records=expected_records, params=param_resolvers[0]),
+        cirq.ResultDict(records=expected_records, params=param_resolvers[1]),
     ]
     assert expected_results == simulator.run_sweep(
         program=circuit, repetitions=10, params=param_resolvers
     )
+    simulator._run.assert_called_with(circuit=circuit, repetitions=10, param_resolver=mock.ANY)
+    assert simulator._run.call_count == 2
+
+
+@mock.patch.multiple(cirq.SimulatesSamples, __abstractmethods__=set(), _run=mock.Mock())
+def test_run_simulator_sweeps_with_deprecated_run():
+    simulator = cirq.SimulatesSamples()
+    expected_measurements = {'a': np.array([[1]])}
+    simulator._run.return_value = expected_measurements
+    circuit = mock.Mock(cirq.Circuit)
+    circuit.__iter__ = mock.Mock(return_value=iter([]))
+    param_resolvers = [mock.Mock(cirq.ParamResolver), mock.Mock(cirq.ParamResolver)]
+    for resolver in param_resolvers:
+        resolver.param_dict = {}
+    expected_records = {'a': np.array([[[1]]])}
+    expected_results = [
+        cirq.ResultDict(records=expected_records, params=param_resolvers[0]),
+        cirq.ResultDict(records=expected_records, params=param_resolvers[1]),
+    ]
+    with cirq.testing.assert_deprecated(
+        'values in the output of simulator._run must be 3D',
+        deadline='v0.15',
+    ):
+        assert expected_results == simulator.run_sweep(
+            program=circuit, repetitions=10, params=param_resolvers
+        )
     simulator._run.assert_called_with(circuit=circuit, repetitions=10, param_resolver=mock.ANY)
     assert simulator._run.call_count == 2
 
