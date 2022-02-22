@@ -203,6 +203,7 @@ from cirq.ops import (
     CCNOT,
     CCNotPowGate,
     ClassicallyControlledOperation,
+    CliffordGate,
     CNOT,
     CNotPowGate,
     ControlledGate,
@@ -708,7 +709,7 @@ from cirq import (
     contrib,
 )
 
-# deprecate cirq.ops.moment and related attributes
+# deprecate cirq.ops and related attributes
 
 from cirq import _compat
 
