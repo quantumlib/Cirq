@@ -182,6 +182,7 @@ def test_decompose_on_stuck_raise():
         _ = cirq.decompose(NoMethod(), keep=lambda _: False)
     # Unless there's no operations to be unhappy about.
     assert cirq.decompose([], keep=lambda _: False) == []
+    assert cirq.decompose([], on_stuck_raise=None) == []
     # Or you say you're fine.
     assert cirq.decompose(no_method, keep=lambda _: False, on_stuck_raise=None) == [no_method]
     assert cirq.decompose(no_method, keep=lambda _: False, on_stuck_raise=lambda _: None) == [
@@ -198,8 +199,6 @@ def test_decompose_on_stuck_raise():
         )
 
     # There's a nice warning if you specify `on_stuck_raise` but not `keep`.
-    with pytest.raises(ValueError, match='on_stuck_raise'):
-        assert cirq.decompose([], on_stuck_raise=None)
     with pytest.raises(ValueError, match='on_stuck_raise'):
         assert cirq.decompose([], on_stuck_raise=TypeError('x'))
 
