@@ -60,7 +60,7 @@ if TYPE_CHECKING:
     import cirq
 
 # Lazy imports to break circular dependencies.
-linear_combinations = LazyLoader("devices", globals(), "cirq.ops.linear_combinations")
+linear_combinations = LazyLoader("linear_combinations", globals(), "cirq.ops.linear_combinations")
 
 TDefault = TypeVar('TDefault')
 TKey = TypeVar('TKey', bound=raw_types.Qid)
