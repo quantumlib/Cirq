@@ -693,7 +693,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         """Override behavior of numpy's exp method."""
         if ufunc == np.exp and len(inputs) == 1 and inputs[0] is self:
-            return math.e ** self
+            return math.e**self
         return NotImplemented
 
     def __pow__(self, power):
@@ -701,7 +701,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return self
         if power == -1:
             return PauliString(
-                qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient ** -1
+                qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient**-1
             )
         if isinstance(power, (int, float)):
             r, i = cmath.polar(self.coefficient)
@@ -1237,6 +1237,7 @@ class MutablePauliString(Generic[TKey]):
         Returns:
             self on success, NotImplemented given an unknown type of value.
         """
+        from cirq.ops.linear_combinations import PauliSum
 
         if isinstance(other, (Mapping, PauliString, MutablePauliString)):
             if isinstance(other, (PauliString, MutablePauliString)):
@@ -1252,7 +1253,11 @@ class MutablePauliString(Generic[TKey]):
             other.gate, identity.IdentityGate
         ):
             pass
-        elif isinstance(other, Iterable) and not isinstance(other, str):
+        elif (
+            isinstance(other, Iterable)
+            and not isinstance(other, str)
+            and not isinstance(other, PauliSum)
+        ):
             if sign == +1:
                 other = reversed(list(other))
             for item in other:
@@ -1265,6 +1270,7 @@ class MutablePauliString(Generic[TKey]):
 
     def _imul_helper_checkpoint(self, other: 'cirq.PAULI_STRING_LIKE', sign: int):
         """Like `_imul_helper` but guarantees no-op on error."""
+
         if not isinstance(other, (numbers.Number, PauliString, MutablePauliString)):
             other = MutablePauliString()._imul_helper(other, sign)
             if other is NotImplemented:
