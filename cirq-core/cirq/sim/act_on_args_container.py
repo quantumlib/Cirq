@@ -94,7 +94,7 @@ class ActOnArgsContainer(
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
     def args(self, args):
-        self._args = args  # coverage: ignore
+        self._args = args
 
     @split_untangled_states.setter  # type: ignore
     @deprecated(
@@ -102,7 +102,7 @@ class ActOnArgsContainer(
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
     def split_untangled_states(self, split_untangled_states):
-        self._split_untangled_states = split_untangled_states  # coverage: ignore
+        self._split_untangled_states = split_untangled_states
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:

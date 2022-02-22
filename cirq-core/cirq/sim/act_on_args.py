@@ -99,7 +99,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
     def prng(self, prng):
-        self._prng = prng  # coverage: ignore
+        self._prng = prng
 
     @qubit_map.setter  # type: ignore
     @deprecated(
@@ -107,7 +107,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
     def qubit_map(self, qubit_map):
-        self._qubit_map = qubit_map  # coverage: ignore
+        self._qubit_map = qubit_map
 
     def _set_qubits(self, qubits: Sequence['cirq.Qid']):
         self._qubits = tuple(qubits)
