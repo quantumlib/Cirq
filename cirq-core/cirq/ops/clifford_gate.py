@@ -12,18 +12,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, Dict, NamedTuple, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import (
+    Any,
+    cast,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 
 from cirq import protocols, value, linalg, qis
 from cirq._doc import document
-from cirq.ops import common_gates, gate_features, named_qubit, pauli_gates, phased_x_z_gate
+from cirq._import import LazyLoader
+from cirq.ops import (
+    common_gates,
+    gate_features,
+    identity,
+    named_qubit,
+    raw_types,
+    pauli_gates,
+    phased_x_z_gate,
+)
 from cirq.ops.pauli_gates import Pauli
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
+
+# Lazy imports to break circular dependencies.
+devices = LazyLoader("devices", globals(), "cirq.devices")
+sim = LazyLoader("sim", globals(), "cirq.sim")
+transformers = LazyLoader("transformers", globals(), "cirq.transformers")
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 document(PauliTransform, """+X, -X, +Y, -Y, +Z, or -Z.""")
@@ -571,3 +596,285 @@ SQRT_EXP_MAP = {
         SingleQubitCliffordGate.Z: SingleQubitCliffordGate.Z_nsqrt,
     },
 }
+
+
+class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
+    """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
+
+    @property
+    def I(cls):
+        if getattr(cls, '_I', None) is None:
+            cls._I = cls._generate_clifford_from_known_gate(1, identity.I)
+        return cls._I
+
+    @property
+    def X(cls):
+        if getattr(cls, '_X', None) is None:
+            cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.X)
+        return cls._Z
+
+    @property
+    def Y(cls):
+        if getattr(cls, '_X', None) is None:
+            cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.Y)
+        return cls._Z
+
+    @property
+    def Z(cls):
+        if getattr(cls, '_X', None) is None:
+            cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.Z)
+        return cls._Z
+
+    @property
+    def H(cls):
+        if getattr(cls, '_H', None) is None:
+            cls._H = cls._generate_clifford_from_known_gate(1, common_gates.H)
+        return cls._H
+
+    @property
+    def S(cls):
+        if getattr(cls, '_S', None) is None:
+            cls._S = cls._generate_clifford_from_known_gate(1, common_gates.S)
+        return cls._S
+
+    @property
+    def CNOT(cls):
+        if getattr(cls, '_CNOT', None) is None:
+            cls._CNOT = cls._generate_clifford_from_known_gate(2, common_gates.CNOT)
+        return cls._CNOT
+
+    @property
+    def CZ(cls):
+        if getattr(cls, '_CZ', None) is None:
+            cls._CZ = cls._generate_clifford_from_known_gate(2, common_gates.CZ)
+        return cls._CZ
+
+    @property
+    def SWAP(cls):
+        if getattr(cls, '_SWAP', None) is None:
+            cls._SWAP = cls._generate_clifford_from_known_gate(2, common_gates.SWAP)
+        return cls._SWAP
+
+
+class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
+
+    # We need to use the lazy initialization of these common gates since they need to use
+    # cirq.sim, which can not be imported when
+    @classmethod
+    def _generate_clifford_from_known_gate(
+        cls, num_qubits: int, gate: raw_types.Gate
+    ) -> 'CliffordGate':
+        qubits = devices.LineQubit.range(num_qubits)
+        t = qis.CliffordTableau(num_qubits=num_qubits)
+        args = sim.ActOnCliffordTableauArgs(
+            tableau=t, qubits=qubits, prng=np.random.RandomState(), log_of_measurement_results={}
+        )
+
+        protocols.act_on(gate, args, qubits, allow_decompose=False)
+        return CliffordGate.from_clifford_tableau(args.tableau)
+
+    @classmethod
+    def from_clifford_tableau(cls, tableau: qis.CliffordTableau) -> 'CliffordGate':
+        """Create the CliffordGate instance from Clifford Tableau.
+
+        Args:
+            tableau: A CliffordTableau to define the effect of Clifford Gate applying on
+            the stabilizer state or Pauli group. The meaning of tableau here is
+                    To  X   Z    sign
+            from  X  [ X_x Z_x | r_x ]
+            from  Z  [ X_z Z_z | r_z ]
+            Each row in the Clifford tableau indicates how the transformation of original
+            Pauli gates to the new gates after applying this Clifford Gate.
+
+        Returns:
+            A CliffordGate instance, which has the transformation defined by
+            the input tableau.
+
+        Raises:
+            ValueError: When input tableau is wrong type or the tableau does not
+            satisfy the symplectic property.
+        """
+        if not isinstance(tableau, qis.CliffordTableau):
+            raise ValueError('Input argument has to be a CliffordTableau instance.')
+        if not tableau._validate():
+            raise ValueError('It is not a valid Clifford tableau.')
+        return CliffordGate(_clifford_tableau=tableau)
+
+    @classmethod
+    def from_op_list(
+        cls, operations: Sequence[raw_types.Operation], qubit_order: Sequence[raw_types.Qid]
+    ) -> 'CliffordGate':
+        """Construct a new Clifford gates from several known operations.
+
+        Args:
+            operations: A list of cirq operations to construct the Clifford gate.
+                The combination order is the first element in the list applies the transformation
+                on the stabilizer state first.
+            qubit_order: Determines how qubits are ordered when decomposite the operations.
+
+        Returns:
+            A CliffordGate instance, which has the transformation on the stabilizer
+            state equivalent to the composition of operations.
+
+        Raises:
+            ValueError: When one or more operations do not have stabilizer effect.
+        """
+        for op in operations:
+            if op.gate and op.gate._has_stabilizer_effect_():
+                continue
+            raise ValueError(
+                "Clifford Gate can only be constructed from the "
+                "operations that has stabilizer effect."
+            )
+
+        base_tableau = qis.CliffordTableau(len(qubit_order))
+        args = sim.clifford.ActOnCliffordTableauArgs(
+            tableau=base_tableau,
+            qubits=qubit_order,
+            prng=np.random.RandomState(0),  # unused
+            log_of_measurement_results={},  # unused
+        )
+        for op in operations:
+            protocols.act_on(op, args, allow_decompose=True)
+
+        return CliffordGate.from_clifford_tableau(args.tableau)
+
+    @classmethod
+    def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
+            n,
+            rs,
+            xs,
+            zs,
+        )
+        return cls(_clifford_tableau=_clifford_tableau)
+
+
+def _pad_tableau(
+    clifford_tableau: qis.CliffordTableau, num_qubits_after_padding: int, axes: List[int]
+) -> qis.CliffordTableau:
+    """Roughly, this function copies self.tabluea into the "identity" matrix."""
+    # Sanity check
+    if len(set(axes)) != clifford_tableau.n:
+        raise ValueError(
+            "Input axes of padding should match with the number of qubits in the input tableau."
+        )
+    if clifford_tableau.n > num_qubits_after_padding:
+        raise ValueError(
+            "The number of qubits in the input tableau should not be larger than "
+            "num_qubits_after_padding."
+        )
+
+    padded_tableau = qis.CliffordTableau(num_qubits_after_padding)
+    v_index = np.concatenate((np.asarray(axes), num_qubits_after_padding + np.asarray(axes)))
+
+    padded_tableau.xs[np.ix_(v_index, axes)] = clifford_tableau.xs
+    padded_tableau.zs[np.ix_(v_index, axes)] = clifford_tableau.zs
+    padded_tableau.rs[v_index] = clifford_tableau.rs
+    return padded_tableau
+
+
+@value.value_equality
+class CliffordGate(raw_types.Gate, CommonCliffordGates):
+    """Clifford rotation for N-qubit."""
+
+    def __init__(
+        self,
+        *,
+        _clifford_tableau: qis.CliffordTableau,
+    ) -> None:
+        # We use the Clifford tableau to represent a Clifford gate.
+        # It is crucial to note that the meaning of tableau here is different
+        # from the one used to represent a Clifford state (Of course, they are related).
+        # A) We have to use the full 2n * (2n + 1) matrix
+        # B) The meaning of tableau here is
+        #                 X   Z    sign
+        #     from  X  [ X_x Z_x | r_x ]
+        #     from  Z  [ X_z Z_z | r_z ]
+        # Each row in the Clifford tableau means the transformation of original Pauli gates.
+        # For example, take a 2 * (2+1) tableau as example:
+        #         X       Z     r
+        #  XI  [ 1  0 | 1  0  | 0 ]
+        #  IX  [ 0  0 | 1  1  | 0 ]
+        #  ZI  [ 0  0 | 1  0  | 1 ]
+        #  IZ  [ 1  0 | 1  1  | 0 ]
+        # Take the third row as example: this means the ZI gate after the this gate,
+        # more precisely the conjugate transformation of ZI by this gate, becomes -ZI.
+        # (Note the real clifford tableau has to satify the Symplectic property.
+        # here is just for illustration)
+        self._clifford_tableau = _clifford_tableau.copy()
+
+    @property
+    def clifford_tableau(self):
+        return self._clifford_tableau
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        json_dict = self._clifford_tableau._json_dict_()
+        return json_dict
+
+    def _value_equality_values_(self):
+        return self.clifford_tableau
+
+    def _num_qubits_(self):
+        return self.clifford_tableau.n
+
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        # By definition, Clifford Gate should always return True.
+        return True
+
+    def __pow__(self, exponent) -> 'CliffordGate':
+        if exponent == -1:
+            return CliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
+        if exponent > 0 and int(exponent) == exponent:
+            base_tableau = self.clifford_tableau.copy()
+            for _ in range(int(exponent) - 1):
+                base_tableau = base_tableau.then(self.clifford_tableau)
+            return CliffordGate.from_clifford_tableau(base_tableau)
+        if exponent < 0 and int(exponent) == exponent:
+            base_tableau = self.clifford_tableau.copy()
+            for _ in range(int(-exponent) - 1):
+                base_tableau = base_tableau.then(self.clifford_tableau)
+            return CliffordGate.from_clifford_tableau(base_tableau.inverse())
+
+        return NotImplemented
+
+    def __repr__(self) -> str:
+        return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
+
+    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+        # Note even if we assume two gates define the tabluea based on the same qubit order,
+        # the following approach cannot judge it:
+        # self.clifford_tableau.then(other.clifford_tableau) == other.clifford_tableau.then(
+        #     self.clifford_tableau
+        # )
+        # For example: X.then(Z) and Z.then(X) both return same tableau
+        # it is because Clifford tableau ignores the global phase information.
+        return NotImplemented
+
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> List[raw_types.Operation]:
+        return transformers.analytical_decompositions.decompose_clifford_tableau_to_operations(
+            list(qubits), self.clifford_tableau
+        )
+
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
+
+        # Note the computation complexity difference between _decompose_ and _act_on_.
+        # Suppose this Gate has `m` qubits, args has `n` qubits, and the decomposition of
+        # this operation into `k` operations:
+        #   1. Direct act_on is O(n^3) -- two matrices multiplication
+        #   2. Decomposition is O(m^3)+O(k*n^2) -- Decomposition complexity + k * One/two-qubits Ops
+        # So when m << n, the decomposition is more efficient.
+        if isinstance(args, sim.clifford.ActOnCliffordTableauArgs):
+            axes = args.get_axes(qubits)
+            # This padding is important and cannot be omitted.
+            padded_tableau = _pad_tableau(self._clifford_tableau, len(args.qubits), axes)
+            args._state = args.tableau.then(padded_tableau)
+            return True
+
+        if isinstance(args, sim.clifford.ActOnStabilizerCHFormArgs):
+            # Do we know how to apply CliffordTableau on ActOnStabilizerCHFormArgs?
+            # It should be unlike because CliffordTableau ignores the global phase but CHForm
+            # is aimed to fix that.
+            return NotImplemented
+
+        return NotImplemented
