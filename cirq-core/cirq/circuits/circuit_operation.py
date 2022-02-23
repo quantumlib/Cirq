@@ -158,7 +158,7 @@ class CircuitOperation(ops.Operation):
         if self.repeat_until:
             if self.use_repetition_ids or self.repetitions != 1:
                 raise ValueError('Cannot use repetitions with repeat_until')
-            if protocols.measurement_key_objs(self.mapped_single_loop()).isdisjoint(
+            if protocols.measurement_key_objs(self._mapped_single_loop()).isdisjoint(
                 self.repeat_until.keys
             ):
                 raise ValueError('Infinite loop: condition is not modified in subcircuit.')
@@ -253,7 +253,7 @@ class CircuitOperation(ops.Operation):
             )
         }
 
-    def mapped_single_loop(self, repetition_id: Optional[str] = None) -> 'cirq.Circuit':
+    def _mapped_single_loop(self, repetition_id: Optional[str] = None) -> 'cirq.Circuit':
         if self._cached_mapped_single_loop is None:
             circuit = self.circuit.unfreeze()
             if self.qubit_map:
@@ -289,13 +289,13 @@ class CircuitOperation(ops.Operation):
         """
         if self.repetition_ids:
             if not self.use_repetition_ids or not protocols.is_measurement(self.circuit):
-                circuit = self.mapped_single_loop() * abs(self.repetitions)
+                circuit = self._mapped_single_loop() * abs(self.repetitions)
             else:
                 circuit = circuits.Circuit(
-                    self.mapped_single_loop(rep) for rep in self.repetition_ids
+                    self._mapped_single_loop(rep) for rep in self.repetition_ids
                 )
         else:
-            circuit = self.mapped_single_loop()
+            circuit = self._mapped_single_loop()
         if deep:
             circuit = circuit.map_operations(
                 lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
@@ -311,7 +311,7 @@ class CircuitOperation(ops.Operation):
 
     def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
         if self.repeat_until:
-            circuit = self.mapped_single_loop()
+            circuit = self._mapped_single_loop()
             while True:
                 for op in circuit.all_operations():
                     protocols.act_on(op, args)
