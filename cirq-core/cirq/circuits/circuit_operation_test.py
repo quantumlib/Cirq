@@ -900,7 +900,7 @@ def test_mapped_circuit_allows_repeated_keys():
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_simulate_flattened_subcircuit_both_levels(sim):
+def test_simulate_no_repetition_ids_both_levels(sim):
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'))
     middle = cirq.Circuit(
@@ -915,7 +915,7 @@ def test_simulate_flattened_subcircuit_both_levels(sim):
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_simulate_flattened_subcircuit_outer(sim):
+def test_simulate_no_repetition_ids_outer(sim):
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'))
     middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
@@ -929,7 +929,7 @@ def test_simulate_flattened_subcircuit_outer(sim):
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_simulate_flattened_subcircuit_inner(sim):
+def test_simulate_no_repetition_ids_inner(sim):
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'))
     middle = cirq.Circuit(
@@ -964,8 +964,7 @@ def test_repeat_until(sim):
         assert result.records['m'][0][i] == (1,)
 
 
-@pytest.mark.parametrize_diagram()
-def test_repeat_until():
+def test_repeat_until_diagram():
     q = cirq.LineQubit(0)
     key = cirq.MeasurementKey('m')
     c = cirq.Circuit(
@@ -983,9 +982,9 @@ def test_repeat_until():
     cirq.testing.assert_has_diagram(
         c,
         """
-0: ───X───M───[ 0: ───X^0.2───M('m')─── ](flat, while=m)───
+0: ───X───M───[ 0: ───X^0.2───M('m')─── ](no_rep_ids, while=m)───
           ║   ║
-m: ═══════@═══╩════════════════════════════════════════════
+m: ═══════@═══╩══════════════════════════════════════════════════
 """,
         use_unicode_characters=True,
     )

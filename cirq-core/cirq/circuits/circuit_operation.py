@@ -372,7 +372,7 @@ class CircuitOperation(ops.Operation):
             # Only add loops if we haven't added repetition_ids.
             args.append(f'loops={self.repetitions}')
         if not self.use_repetition_ids:
-            args.append('flat')
+            args.append('no_rep_ids')
         if self.do_while:
             args.append(f'while={self.do_while}')
         if not args:

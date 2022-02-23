@@ -34,6 +34,7 @@ if TYPE_CHECKING:
 class Device(metaclass=abc.ABCMeta):
     """Hardware constraints for validating circuits."""
 
+    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> Optional[AbstractSet['cirq.Qid']]:
         """Returns a set or frozenset of qubits on the device, if possible.
 
@@ -77,7 +78,7 @@ class Device(metaclass=abc.ABCMeta):
             `cirq.UnconstrainedDevice` has this property), then `None` is
             returned.
         """
-        with _compat.block_overlapping_deprecation('device\\.metadata'):
+        with _compat.block_overlapping_deprecation('(device\\.metadata|qubit_set)'):
             qs = self.qubit_set()
             if qs is None:
                 return None

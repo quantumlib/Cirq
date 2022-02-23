@@ -504,9 +504,9 @@ def test_scope_flatten_both():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [       [ 0: ───M───X─── ]                   ]
-0: ───[ 0: ───[       ║   ║    ]────────────────── ]──────────────────
-      [       [ a: ═══@═══^═══ ](loops=2, flat)    ](loops=2, flat)
+      [       [ 0: ───M───X─── ]                         ]
+0: ───[ 0: ───[       ║   ║    ]──────────────────────── ]────────────────────────
+      [       [ a: ═══@═══^═══ ](loops=2, no_rep_ids)    ](loops=2, no_rep_ids)
 """,
         use_unicode_characters=True,
     )
@@ -541,9 +541,9 @@ def test_scope_flatten_inner():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [       [ 0: ───M───X─── ]                   ]
-0: ───[ 0: ───[       ║   ║    ]────────────────── ]────────────
-      [       [ a: ═══@═══^═══ ](loops=2, flat)    ](loops=2)
+      [       [ 0: ───M───X─── ]                         ]
+0: ───[ 0: ───[       ║   ║    ]──────────────────────── ]────────────
+      [       [ a: ═══@═══^═══ ](loops=2, no_rep_ids)    ](loops=2)
 """,
         use_unicode_characters=True,
     )
@@ -581,8 +581,8 @@ def test_scope_flatten_outer():
         cirq.Circuit(outer_subcircuit),
         """
       [       [ 0: ───M───X─── ]             ]
-0: ───[ 0: ───[       ║   ║    ]──────────── ]──────────────────
-      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2, flat)
+0: ───[ 0: ───[       ║   ║    ]──────────── ]────────────────────────
+      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2, no_rep_ids)
 """,
         use_unicode_characters=True,
     )

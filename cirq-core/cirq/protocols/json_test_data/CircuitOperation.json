@@ -292,6 +292,7 @@
           ]
         },
         "parent_path": [],
+<<<<<<< HEAD
         "repetition_ids": null
       },
       {
@@ -319,6 +320,10 @@
           },
           "index": -1
         }
+=======
+        "repetition_ids": null,
+        "use_repetition_ids": false
+>>>>>>> master
       }
     ]
   ]
