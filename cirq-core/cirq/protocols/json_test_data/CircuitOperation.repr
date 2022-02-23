@@ -28,10 +28,12 @@ cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
 repetitions=-2,
 parent_path=('outer', 'inner'),
 repetition_ids=['a', 'b'],
-qubit_map={cirq.LineQubit(0): cirq.LineQubit(1)}),
+qubit_map={cirq.LineQubit(0): cirq.LineQubit(1)},
+use_repetition_ids=True),
 cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     cirq.Moment(
         (cirq.X**sympy.Symbol('theta')).on(cirq.LineQubit(0)),
     ),
 ]),
-param_resolver={sympy.Symbol('theta'): 1.5})]
+param_resolver={sympy.Symbol('theta'): 1.5},
+use_repetition_ids=False)]

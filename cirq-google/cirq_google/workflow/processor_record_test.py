@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 from unittest import mock
 
 import pytest
@@ -80,13 +79,7 @@ valid_targets: [{
 def test_engine_backend(get_processor, _):
     _set_get_processor_return(get_processor)
 
-    with mock.patch.dict(
-        os.environ,
-        {
-            'GOOGLE_CLOUD_PROJECT': 'project!',
-        },
-        clear=True,
-    ):
+    with mock.patch('google.auth.default', lambda: (None, 'project!')):
         proc_rec = cg.EngineProcessorRecord('rainbow')
         assert proc_rec.processor_id == 'rainbow'
         assert isinstance(proc_rec.get_processor(), cg.engine.AbstractProcessor)
@@ -99,13 +92,7 @@ def test_engine_backend(get_processor, _):
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_simulated_backend(get_processor, _):
     _set_get_processor_return(get_processor)
-    with mock.patch.dict(
-        os.environ,
-        {
-            'GOOGLE_CLOUD_PROJECT': 'project',
-        },
-        clear=True,
-    ):
+    with mock.patch('google.auth.default', lambda: (None, 'project!')):
         proc_rec = cg.SimulatedProcessorRecord('rainbow')
         assert isinstance(proc_rec.get_processor(), cg.engine.AbstractProcessor)
         assert isinstance(proc_rec.get_sampler(), cirq.Sampler)

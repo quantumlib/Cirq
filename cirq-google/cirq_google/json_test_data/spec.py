@@ -28,6 +28,7 @@ TestSpec = ModuleJsonTestSpec(
         'CircuitOpDeserializer',
         'CircuitOpSerializer',
         'CircuitSerializer',
+        'CIRCUIT_SERIALIZER',
         'CircuitWithCalibration',
         'ConvertToSqrtIswapGates',
         'ConvertToSycamoreGates',

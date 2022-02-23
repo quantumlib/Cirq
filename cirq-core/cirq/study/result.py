@@ -111,6 +111,17 @@ class Result(abc.ABC):
 
     @property
     @abc.abstractmethod
+    def records(self) -> Mapping[str, np.ndarray]:
+        """A mapping from measurement key to measurement records.
+
+        The value for each key is a 3-D array of booleans, with the first index
+        running over circuit repetitions, the second index running over instances
+        of the measurement key in the circuit, and the third index running over
+        the qubits for the corresponding measurements.
+        """
+
+    @property
+    @abc.abstractmethod
     def data(self) -> pd.DataFrame:
         """Measurements converted to a pandas dataframe.
 
@@ -315,7 +326,8 @@ class ResultDict(Result):
         self,
         *,  # Forces keyword args.
         params: resolver.ParamResolver,
-        measurements: Mapping[str, np.ndarray],
+        measurements: Optional[Mapping[str, np.ndarray]] = None,
+        records: Optional[Mapping[str, np.ndarray]] = None,
     ) -> None:
         """Inits Result.
 
@@ -326,9 +338,20 @@ class ResultDict(Result):
                 with the first index running over the repetitions, and the
                 second index running over the qubits for the corresponding
                 measurements.
+            records: A dictionary from measurement gate key to measurement
+                results. The value for each key is a 3D array of booleans,
+                with the first index running over the repetitions, the second
+                index running over "instances" of that key in the circuit, and
+                the last index running over the qubits for the corresponding
+                measurements.
         """
+        if measurements is None and records is None:
+            # For backwards compatibility, allow constructing with None.
+            measurements = {}
+            records = {}
         self._params = params
         self._measurements = measurements
+        self._records = records
         self._data: Optional[pd.DataFrame] = None
 
     @property
@@ -337,12 +360,42 @@ class ResultDict(Result):
 
     @property
     def measurements(self) -> Mapping[str, np.ndarray]:
+        if self._measurements is None:
+            assert self._records is not None
+            self._measurements = {}
+            for key, data in self._records.items():
+                reps, instances, qubits = data.shape
+                if instances != 1:
+                    raise ValueError('Cannot extract 2D measurements for repeated keys')
+                self._measurements[key] = data.reshape((reps, qubits))
         return self._measurements
+
+    @property
+    def records(self) -> Mapping[str, np.ndarray]:
+        if self._records is None:
+            assert self._measurements is not None
+            self._records = {
+                key: data[:, np.newaxis, :] for key, data in self._measurements.items()
+            }
+        return self._records
+
+    @property
+    def repetitions(self) -> int:
+        if self._records is not None:
+            if not self._records:
+                return 0
+            # Get the length quickly from one of the keyed results.
+            return len(next(iter(self._records.values())))
+        else:
+            if not self._measurements:
+                return 0
+            # Get the length quickly from one of the keyed results.
+            return len(next(iter(self._measurements.values())))
 
     @property
     def data(self) -> pd.DataFrame:
         if self._data is None:
-            self._data = self.dataframe_from_measurements(self._measurements)
+            self._data = self.dataframe_from_measurements(self.measurements)
         return self._data
 
     def __repr__(self) -> str:
@@ -404,7 +457,7 @@ def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool
     if pack_bits == 'force':
         return _pack_bits(digits), True
     if pack_bits not in ['auto', 'never']:
-        raise ValueError("Please set `pack_bits` to 'auto', " "'force', or 'never'.")
+        raise ValueError("Please set `pack_bits` to 'auto', 'force', or 'never'.")
         # Do error checking here, otherwise the following logic will work
         # for both "auto" and "never".
 
