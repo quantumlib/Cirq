@@ -886,7 +886,7 @@ def test_mapped_circuit_allows_repeated_keys():
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_simulate_flattened_subcircuit_both_levels(sim):
+def test_simulate_no_repetition_ids_both_levels(sim):
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'))
     middle = cirq.Circuit(
@@ -901,7 +901,7 @@ def test_simulate_flattened_subcircuit_both_levels(sim):
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_simulate_flattened_subcircuit_outer(sim):
+def test_simulate_no_repetition_ids_outer(sim):
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'))
     middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
@@ -915,7 +915,7 @@ def test_simulate_flattened_subcircuit_outer(sim):
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_simulate_flattened_subcircuit_inner(sim):
+def test_simulate_no_repetition_ids_inner(sim):
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'))
     middle = cirq.Circuit(
