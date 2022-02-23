@@ -484,7 +484,11 @@ cirq.CircuitOperation(
     use_repetition_ids=False,
 )"""
     )
-    op7 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(x, key='a')), use_repetition_ids=False, do_while=cirq.KeyCondition(cirq.MeasurementKey('a')))
+    op7 = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.measure(x, key='a')),
+        use_repetition_ids=False,
+        do_while=cirq.KeyCondition(cirq.MeasurementKey('a')),
+    )
     assert (
         repr(op7)
         == """\
