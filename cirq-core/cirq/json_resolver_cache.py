@@ -66,6 +66,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CircuitOperation': cirq.CircuitOperation,
         'ClassicallyControlledOperation': cirq.ClassicallyControlledOperation,
         'ClassicalDataDictionaryStore': cirq.ClassicalDataDictionaryStore,
+        'CliffordGate': cirq.CliffordGate,
         'CliffordState': cirq.CliffordState,
         'CliffordTableau': cirq.CliffordTableau,
         'CNotPowGate': cirq.CNotPowGate,

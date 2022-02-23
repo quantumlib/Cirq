@@ -359,7 +359,7 @@ def merge_k_qubit_unitaries_to_circuit_op(
 
     def can_merge(ops1: Sequence['cirq.Operation'], ops2: Sequence['cirq.Operation']) -> bool:
         return all(
-            protocols.has_unitary(op) and protocols.num_qubits(op) <= k
+            protocols.num_qubits(op) <= k and protocols.has_unitary(op)
             for op_list in [ops1, ops2]
             for op in op_list
         )
@@ -392,7 +392,7 @@ def merge_moments(
     merged_moments: List[circuits.Moment] = [circuit[0]]
     for current_moment in circuit[1:]:
         merged_moment = merge_func(merged_moments[-1], current_moment)
-        if not merged_moment:
+        if merged_moment is None:
             merged_moments.append(current_moment)
         else:
             merged_moments[-1] = merged_moment

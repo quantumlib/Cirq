@@ -219,6 +219,8 @@ def test_constructor_flexibility():
         _ = cirq.PauliString('test')
     with pytest.raises(TypeError, match='S is not a Pauli'):
         _ = cirq.PauliString(qubit_pauli_map={a: cirq.S})
+    with pytest.raises(TypeError, match="cirq.PAULI_STRING_LIKE"):
+        _ = cirq.PauliString(cirq.Z(a) + cirq.Z(b))
 
     assert cirq.PauliString(cirq.X(a)) == cirq.PauliString(qubit_pauli_map={a: cirq.X})
     assert cirq.PauliString([cirq.X(a)]) == cirq.PauliString(qubit_pauli_map={a: cirq.X})

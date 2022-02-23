@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
+"""Gatesets which can act as compilation targets in Cirq."""
 
-
-def test_repr():
-    cirq.testing.assert_equivalent_repr(cirq.UNCONSTRAINED_DEVICE)
-
-
-def test_infinitely_fast():
-    assert cirq.UNCONSTRAINED_DEVICE.duration_of(cirq.X(cirq.NamedQubit('a'))) == cirq.Duration(
-        picos=0
-    )
-
-
-def test_qubit_set_deprecated():
-    with cirq.testing.assert_deprecated('None', deadline='v0.15'):
-        assert cirq.UNCONSTRAINED_DEVICE.qubit_set() is None
+from cirq.transformers.target_gatesets.compilation_target_gateset import CompilationTargetGateset

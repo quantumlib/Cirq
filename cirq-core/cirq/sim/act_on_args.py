@@ -17,21 +17,23 @@ import copy
 import inspect
 from typing import (
     Any,
+    cast,
     Dict,
+    Iterator,
     List,
+    Mapping,
+    Optional,
+    Sequence,
     TypeVar,
     TYPE_CHECKING,
-    Sequence,
     Tuple,
-    cast,
-    Optional,
-    Iterator,
 )
 import warnings
 
 import numpy as np
 
 from cirq import ops, protocols, value
+from cirq._compat import deprecated
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -74,7 +76,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         if qubits is None:
             qubits = ()
         self._set_qubits(qubits)
-        self.prng = prng
+        self._prng = prng
         self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
             _records={
                 value.MeasurementKey.parse_serialized(k): [tuple(v)]
@@ -83,9 +85,33 @@ class ActOnArgs(OperationTarget[TSelf]):
         )
         self._ignore_measurement_results = ignore_measurement_results
 
+    @property
+    def prng(self) -> np.random.RandomState:
+        return self._prng
+
+    @property
+    def qubit_map(self) -> Mapping['cirq.Qid', int]:
+        return self._qubit_map
+
+    @prng.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def prng(self, prng):
+        self._prng = prng
+
+    @qubit_map.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def qubit_map(self, qubit_map):
+        self._qubit_map = qubit_map
+
     def _set_qubits(self, qubits: Sequence['cirq.Qid']):
         self._qubits = tuple(qubits)
-        self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
+        self._qubit_map = {q: i for i, q in enumerate(self.qubits)}
 
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Measures the qubits and records to `log_of_measurement_results`.
@@ -281,8 +307,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         i2 = self.qubits.index(q2)
         qubits = list(args.qubits)
         qubits[i1], qubits[i2] = qubits[i2], qubits[i1]
-        args._qubits = tuple(qubits)
-        args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        args._set_qubits(qubits)
         return args
 
     def rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
@@ -309,8 +334,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         i1 = self.qubits.index(q1)
         qubits = list(args.qubits)
         qubits[i1] = q2
-        args._qubits = tuple(qubits)
-        args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        args._set_qubits(qubits)
         return args
 
     def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:

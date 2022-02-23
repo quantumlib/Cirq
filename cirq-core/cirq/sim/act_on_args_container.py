@@ -20,6 +20,7 @@ from typing import (
     Generic,
     Iterator,
     List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -30,6 +31,7 @@ from typing import (
 import numpy as np
 
 from cirq import ops, protocols, value
+from cirq._compat import deprecated
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TActOnArgs,
@@ -68,15 +70,39 @@ class ActOnArgsContainer(
             classical_data: The shared classical data container for this
                 simulation.
         """
-        self.args = args
+        self._args = args
         self._qubits = tuple(qubits)
-        self.split_untangled_states = split_untangled_states
+        self._split_untangled_states = split_untangled_states
         self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
             _records={
                 value.MeasurementKey.parse_serialized(k): [tuple(v)]
                 for k, v in (log_of_measurement_results or {}).items()
             }
         )
+
+    @property
+    def args(self) -> Mapping[Optional['cirq.Qid'], TActOnArgs]:
+        return self._args
+
+    @property
+    def split_untangled_states(self) -> bool:
+        return self._split_untangled_states
+
+    @args.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def args(self, args):
+        self._args = args
+
+    @split_untangled_states.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def split_untangled_states(self, split_untangled_states):
+        self._split_untangled_states = split_untangled_states
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
@@ -104,8 +130,8 @@ class ActOnArgsContainer(
             if args0 is args1:
                 args0.swap(q0, q1, inplace=True)
             else:
-                self.args[q0] = args1.rename(q1, q0, inplace=True)
-                self.args[q1] = args0.rename(q0, q1, inplace=True)
+                self._args[q0] = args1.rename(q1, q0, inplace=True)
+                self._args[q1] = args0.rename(q0, q1, inplace=True)
             return True
 
         # Go through the op's qubits and join any disparate ActOnArgs states
@@ -120,7 +146,7 @@ class ActOnArgsContainer(
 
         # (Backfill the args map with the new value)
         for q in op_args.qubits:
-            self.args[q] = op_args
+            self._args[q] = op_args
 
         # Act on the args with the operation
         act_on_qubits = qubits if isinstance(action, ops.Gate) else None
@@ -134,11 +160,11 @@ class ActOnArgsContainer(
             for q in qubits:
                 if op_args.allows_factoring:
                     q_args, op_args = op_args.factor((q,), validate=False)
-                    self.args[q] = q_args
+                    self._args[q] = q_args
 
             # (Backfill the args map with the new value)
             for q in op_args.qubits:
-                self.args[q] = op_args
+                self._args[q] = op_args
         return True
 
     def copy(self, deep_copy_buffers: bool = True) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
