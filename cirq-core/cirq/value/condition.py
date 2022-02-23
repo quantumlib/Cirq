@@ -87,6 +87,7 @@ class KeyCondition(Condition):
     """
 
     key: 'cirq.MeasurementKey'
+    index: int = -1
 
     @property
     def keys(self):
@@ -96,9 +97,11 @@ class KeyCondition(Condition):
         return KeyCondition(replacement) if self.key == current else self
 
     def __str__(self):
-        return str(self.key)
+        return str(self.key) if self.index == -1 else f'{self.key}[{self.index}]'
 
     def __repr__(self):
+        if self.index != -1:
+            return f'cirq.KeyCondition({self.key!r}, {self.index})'
         return f'cirq.KeyCondition({self.key!r})'
 
     def resolve(
@@ -107,7 +110,7 @@ class KeyCondition(Condition):
     ) -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
-        return classical_data.get_int(self.key) != 0
+        return classical_data.get_int(self.key, self.index) != 0
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
@@ -118,6 +121,8 @@ class KeyCondition(Condition):
 
     @property
     def qasm(self):
+        if self.index != -1:
+            raise NotImplementedError('Only most recent measurement at key can be used for QASM.')
         return f'm_{self.key}!=0'
 
 

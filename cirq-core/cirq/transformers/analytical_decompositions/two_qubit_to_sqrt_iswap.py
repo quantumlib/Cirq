@@ -24,8 +24,9 @@ from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, linalg, protocols
+from cirq import circuits, ops, linalg, protocols
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
+from cirq.transformers.merge_single_qubit_gates import merge_single_qubit_gates_to_phxz
 
 if TYPE_CHECKING:
     import cirq
@@ -40,6 +41,7 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     use_sqrt_iswap_inv: bool = False,
     atol: float = 1e-8,
     check_preconditions: bool = True,
+    clean_operations: bool = False,
 ) -> Sequence['cirq.Operation']:
     """Decomposes a two-qubit operation into ZPow/XPow/YPow/sqrt-iSWAP gates.
 
@@ -69,6 +71,8 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
             construction.
         check_preconditions: If set, verifies that the input corresponds to a
             4x4 unitary before decomposing.
+        clean_operations: Merges runs of single qubit gates to a single `cirq.PhasedXZGate` in
+            the resulting operations list.
 
     Returns:
         A list of operations implementing the matrix including at most three
@@ -92,7 +96,11 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     operations = _kak_decomposition_to_sqrt_iswap_operations(
         q0, q1, kak, required_sqrt_iswap_count, use_sqrt_iswap_inv, atol=atol
     )
-    return operations
+    return (
+        [*merge_single_qubit_gates_to_phxz(circuits.Circuit(operations)).all_operations()]
+        if clean_operations
+        else operations
+    )
 
 
 def _kak_decomposition_to_sqrt_iswap_operations(

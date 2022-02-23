@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, List
+from typing import List
 
 import pytest
 import sympy
@@ -26,14 +26,8 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
     opt.optimize_circuit(actual)
 
     # Ignore differences that would be caught by follow-up optimizations.
-    followup_optimizations: List[Callable[[cirq.Circuit], None]] = [
-        cirq.merge_single_qubit_gates_into_phased_x_z,
-    ]
-    for post in followup_optimizations:
-        post(actual)
-        post(expected)
-
     followup_transformers: List[cirq.TRANSFORMER] = [
+        cirq.merge_single_qubit_gates_to_phased_x_and_z,
         cirq.eject_phased_paulis,
         cirq.eject_z,
         cirq.drop_negligible_operations,

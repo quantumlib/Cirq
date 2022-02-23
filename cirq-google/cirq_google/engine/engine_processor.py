@@ -27,7 +27,7 @@ from cirq_google.engine import (
     calibration_layer,
     engine_sampler,
 )
-from cirq_google.serialization import circuit_serializer, serializable_gate_set, serializer
+from cirq_google.serialization import serializable_gate_set, serializer
 from cirq_google.serialization import gate_sets as gs
 
 if TYPE_CHECKING:
@@ -113,7 +113,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_sampler.QuantumEngineSampler(
             engine=self.engine(),
             processor_id=self.processor_id,
-            gate_set=gate_set or circuit_serializer.CIRCUIT_SERIALIZER,
+            gate_set=gate_set,
         )
 
     def run_batch(

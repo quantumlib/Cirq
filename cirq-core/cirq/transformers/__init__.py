@@ -41,11 +41,19 @@ from cirq.transformers.heuristic_decompositions import (
     two_qubit_gate_product_tabulation,
 )
 
+from cirq.transformers.target_gatesets import (
+    CompilationTargetGateset,
+)
+
 from cirq.transformers.align import align_left, align_right
+
+from cirq.transformers.stratify import stratified_circuit
 
 from cirq.transformers.expand_composite import expand_composite
 
 from cirq.transformers.eject_phased_paulis import eject_phased_paulis
+
+from cirq.transformers.optimize_for_target_gateset import optimize_for_target_gateset
 
 from cirq.transformers.drop_empty_moments import drop_empty_moments
 
@@ -56,6 +64,14 @@ from cirq.transformers.eject_z import eject_z
 from cirq.transformers.measurement_transformers import (
     defer_measurements,
     dephase_measurements,
+)
+
+from cirq.transformers.merge_k_qubit_gates import merge_k_qubit_unitaries
+
+from cirq.transformers.merge_single_qubit_gates import (
+    merge_single_qubit_gates_to_phased_x_and_z,
+    merge_single_qubit_gates_to_phxz,
+    merge_single_qubit_moments_to_phxz,
 )
 
 from cirq.transformers.synchronize_terminal_measurements import synchronize_terminal_measurements
@@ -72,8 +88,11 @@ from cirq.transformers.transformer_primitives import (
     map_moments,
     map_operations,
     map_operations_and_unroll,
+    merge_k_qubit_unitaries_to_circuit_op,
     merge_moments,
     merge_operations,
+    merge_operations_to_circuit_op,
+    toggle_tags,
     unroll_circuit_op,
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,

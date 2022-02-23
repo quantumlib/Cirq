@@ -109,6 +109,7 @@ from cirq_google.optimizers import (
 
 from cirq_google.serialization import (
     arg_from_proto,
+    CIRCUIT_SERIALIZER,
     CircuitSerializer,
     CircuitOpDeserializer,
     DeserializingArg,
@@ -142,6 +143,10 @@ from cirq_google.workflow import (
     CouldNotPlaceError,
     NaiveQubitPlacer,
     RandomDevicePlacer,
+    ProcessorRecord,
+    EngineProcessorRecord,
+    SimulatedProcessorRecord,
+    SimulatedProcessorWithLocalDeviceRecord,
 )
 
 from cirq_google import experimental

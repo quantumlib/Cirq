@@ -203,6 +203,7 @@ from cirq.ops import (
     CCNOT,
     CCNotPowGate,
     ClassicallyControlledOperation,
+    CliffordGate,
     CNOT,
     CNotPowGate,
     ControlledGate,
@@ -349,13 +350,13 @@ from cirq.optimizers import (
     MergeInteractions,
     MergeInteractionsToSqrtIswap,
     MergeSingleQubitGates,
-    stratified_circuit,
     SynchronizeTerminalMeasurements,
 )
 
 from cirq.transformers import (
     align_left,
     align_right,
+    CompilationTargetGateset,
     compute_cphase_exponents_for_fsim_decomposition,
     decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
@@ -373,8 +374,15 @@ from cirq.transformers import (
     map_moments,
     map_operations,
     map_operations_and_unroll,
+    merge_k_qubit_unitaries,
+    merge_k_qubit_unitaries_to_circuit_op,
     merge_moments,
     merge_operations,
+    merge_operations_to_circuit_op,
+    merge_single_qubit_gates_to_phased_x_and_z,
+    merge_single_qubit_gates_to_phxz,
+    merge_single_qubit_moments_to_phxz,
+    optimize_for_target_gateset,
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
     single_qubit_matrix_to_gates,
@@ -382,6 +390,7 @@ from cirq.transformers import (
     single_qubit_matrix_to_phased_x_z,
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
+    stratified_circuit,
     synchronize_terminal_measurements,
     TRANSFORMER,
     TransformerContext,
@@ -394,6 +403,7 @@ from cirq.transformers import (
     two_qubit_gate_product_tabulation,
     TwoQubitGateTabulation,
     TwoQubitGateTabulationResult,
+    toggle_tags,
     unroll_circuit_op,
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,
@@ -697,7 +707,7 @@ from cirq import (
     contrib,
 )
 
-# deprecate cirq.ops.moment and related attributes
+# deprecate cirq.ops and related attributes
 
 from cirq import _compat
 
