@@ -35,7 +35,8 @@ cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
         (cirq.X**sympy.Symbol('theta')).on(cirq.LineQubit(0)),
     ),
 ]),
-param_resolver={sympy.Symbol('theta'): 1.5}),
+param_resolver={sympy.Symbol('theta'): 1.5},
+use_repetition_ids=False),
 cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     cirq.Moment(
         cirq.H(cirq.LineQubit(0)),
