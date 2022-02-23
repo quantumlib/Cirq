@@ -292,7 +292,6 @@
           ]
         },
         "parent_path": [],
-<<<<<<< HEAD
         "repetition_ids": null
       },
       {
@@ -311,7 +310,7 @@
         "parent_path": [],
         "repetition_ids": null,
         "use_repetition_ids": false,
-        "do_while": {
+        "repeat_until": {
           "cirq_type": "KeyCondition",
           "key": {
             "cirq_type": "MeasurementKey",
@@ -320,10 +319,6 @@
           },
           "index": -1
         }
-=======
-        "repetition_ids": null,
-        "use_repetition_ids": false
->>>>>>> master
       }
     ]
   ]

@@ -95,7 +95,7 @@ class CircuitOperation(ops.Operation):
             will have its path prepended with the repetition id for each
             repetition. When False, this will not happen and the measurement
             key will be repeated.
-        do_while: A condition that will be tested prior to each iteration of
+        repeat_until: A condition that will be tested after each iteration of
             the circuit.
     """
 
@@ -119,7 +119,7 @@ class CircuitOperation(ops.Operation):
     parent_path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
     extern_keys: FrozenSet['cirq.MeasurementKey'] = dataclasses.field(default_factory=frozenset)
     use_repetition_ids: bool = True
-    do_while: Optional['cirq.Condition'] = dataclasses.field(default=None)
+    repeat_until: Optional['cirq.Condition'] = dataclasses.field(default=None)
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -155,11 +155,11 @@ class CircuitOperation(ops.Operation):
             if q_new.dimension != q.dimension:
                 raise ValueError(f'Qid dimension conflict.\nFrom qid: {q}\nTo qid: {q_new}')
 
-        if self.do_while:
+        if self.repeat_until:
             if self.use_repetition_ids or self.repetitions != 1:
-                raise ValueError('Cannot use repetitions with do_while')
+                raise ValueError('Cannot use repetitions with repeat_until')
             if protocols.measurement_key_objs(self.mapped_single_loop()).isdisjoint(
-                self.do_while.keys
+                self.repeat_until.keys
             ):
                 raise ValueError('Infinite loop: condition is not modified in subcircuit.')
 
@@ -189,7 +189,7 @@ class CircuitOperation(ops.Operation):
             and self.repetition_ids == other.repetition_ids
             and self.parent_path == other.parent_path
             and self.use_repetition_ids == other.use_repetition_ids
-            and self.do_while == other.do_while
+            and self.repeat_until == other.repeat_until
         )
 
     # Methods for getting post-mapping properties of the contained circuit.
@@ -239,8 +239,8 @@ class CircuitOperation(ops.Operation):
                 if not protocols.control_keys(self.circuit)
                 else protocols.control_keys(self.mapped_circuit())
             )
-            if self.do_while is not None:
-                keys |= frozenset(self.do_while.keys)
+            if self.repeat_until is not None:
+                keys |= frozenset(self.repeat_until.keys)
             object.__setattr__(self, '_cached_control_keys', keys)
         return self._cached_control_keys  # type: ignore
 
@@ -310,11 +310,13 @@ class CircuitOperation(ops.Operation):
         return self.mapped_circuit(deep=False).all_operations()
 
     def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
-        if self.do_while:
+        if self.repeat_until:
             circuit = self.mapped_single_loop()
-            while self.do_while.resolve(args.classical_data):
+            while True:
                 for op in circuit.all_operations():
                     protocols.act_on(op, args)
+                if self.repeat_until.resolve(args.classical_data):
+                    break
         else:
             for op in self._decompose_():
                 protocols.act_on(op, args)
@@ -339,8 +341,8 @@ class CircuitOperation(ops.Operation):
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
         if not self.use_repetition_ids:
             args += 'use_repetition_ids=False,\n'
-        if self.do_while:
-            args += f'do_while={self.do_while!r},\n'
+        if self.repeat_until:
+            args += f'repeat_until={self.repeat_until!r},\n'
         indented_args = args.replace('\n', '\n    ')
         return f'cirq.CircuitOperation({indented_args[:-4]})'
 
@@ -373,8 +375,8 @@ class CircuitOperation(ops.Operation):
             args.append(f'loops={self.repetitions}')
         if not self.use_repetition_ids:
             args.append('no_rep_ids')
-        if self.do_while:
-            args.append(f'while={self.do_while}')
+        if self.repeat_until:
+            args.append(f'until={self.repeat_until}')
         if not args:
             return circuit_msg
         return f'{circuit_msg}({", ".join(args)})'
@@ -413,8 +415,8 @@ class CircuitOperation(ops.Operation):
         }
         if not self.use_repetition_ids:
             resp['use_repetition_ids'] = False
-        if self.do_while:
-            resp['do_while'] = self.do_while
+        if self.repeat_until:
+            resp['repeat_until'] = self.repeat_until
         return resp
 
     @classmethod
@@ -428,11 +430,11 @@ class CircuitOperation(ops.Operation):
         repetition_ids,
         parent_path=(),
         use_repetition_ids=True,
-        do_while=None,
+        repeat_until=None,
         **kwargs,
     ):
         return (
-            cls(circuit, use_repetition_ids=use_repetition_ids, do_while=do_while)
+            cls(circuit, use_repetition_ids=use_repetition_ids, repeat_until=repeat_until)
             .with_qubit_mapping(dict(qubit_map))
             .with_measurement_key_mapping(measurement_key_map)
             .with_params(param_resolver)

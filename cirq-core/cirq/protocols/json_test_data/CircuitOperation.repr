@@ -35,7 +35,6 @@ cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
         (cirq.X**sympy.Symbol('theta')).on(cirq.LineQubit(0)),
     ),
 ]),
-<<<<<<< HEAD
 param_resolver={sympy.Symbol('theta'): 1.5}),
 cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     cirq.Moment(
@@ -50,9 +49,5 @@ cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     ),
 ]),
 use_repetition_ids=False,
-do_while=cirq.KeyCondition(key=cirq.MeasurementKey('0,1,2,3,4')),
+repeat_until=cirq.KeyCondition(key=cirq.MeasurementKey('0,1,2,3,4')),
 )]
-=======
-param_resolver={sympy.Symbol('theta'): 1.5},
-use_repetition_ids=False)]
->>>>>>> master
