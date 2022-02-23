@@ -29,7 +29,6 @@ def test_result_init():
 
 
 def test_default_repetitions():
-
     class MyResult(cirq.Result):
         def __init__(self, records):
             self._records = records
