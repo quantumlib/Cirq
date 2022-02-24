@@ -86,6 +86,7 @@ def test_engine_backend(get_processor, _):
         assert isinstance(proc_rec.get_sampler(), cirq.Sampler)
         assert isinstance(proc_rec.get_device(), cirq.Device)
     cirq.testing.assert_equivalent_repr(proc_rec, global_vals={'cirq_google': cg})
+    assert str(proc_rec) == 'rainbow'
 
 
 @mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
@@ -124,7 +125,7 @@ def test_simulated_backend_descriptive_name():
     assert isinstance(p.get_sampler(), cirq.Simulator)
 
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=1e-3)
-    assert str(p) == 'rainbow-p=1.000e-03'
+    assert str(p) == 'rainbow-depol(1.000e-03)'
     assert isinstance(p.get_sampler(), cirq.DensityMatrixSimulator)
 
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=float('inf'))
