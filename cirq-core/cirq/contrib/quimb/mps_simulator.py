@@ -566,9 +566,7 @@ class _MPSQuantumState:
 
         for _ in range(repetitions):
             measurements.append(
-                self._measure(
-                    axes, value.parse_random_state(seed), collapse_state_vector=False
-                )
+                self._measure(axes, value.parse_random_state(seed), collapse_state_vector=False)
             )
 
         return np.array(measurements, dtype=int)
@@ -688,6 +686,10 @@ class MPSState(ActOnArgs):
     def estimation_stats(self):
         """Returns some statistics about the memory usage and quality of the approximation."""
         return self._state.estimation_stats()
+
+    @property
+    def M(self):
+        return self._state._M
 
     def perform_measurement(
         self, qubits: Sequence['cirq.Qid'], prng: np.random.RandomState, collapse_state_vector=True
