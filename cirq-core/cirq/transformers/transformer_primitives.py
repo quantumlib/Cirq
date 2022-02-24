@@ -392,7 +392,7 @@ def merge_moments(
     merged_moments: List[circuits.Moment] = [circuit[0]]
     for current_moment in circuit[1:]:
         merged_moment = merge_func(merged_moments[-1], current_moment)
-        if not merged_moment:
+        if merged_moment is None:
             merged_moments.append(current_moment)
         else:
             merged_moments[-1] = merged_moment
