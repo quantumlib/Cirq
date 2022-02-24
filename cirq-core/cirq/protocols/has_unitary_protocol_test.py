@@ -31,6 +31,10 @@ def test_fail_fast_measure():
     m = cirq.measure(q)
     assert not cirq.has_unitary(m)
 
+    c = cirq.Circuit()
+    c += cirq.measure(q)
+    assert not cirq.has_unitary(m)
+
 
 def test_via_unitary():
     class No1:
