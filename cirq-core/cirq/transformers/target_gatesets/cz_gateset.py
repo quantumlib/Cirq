@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""CZ + single rotations target gateset."""
+"""Target gateset used for compiling circuits to CZ + 1-q rotations + measurement gates."""
 
-from typing import TYPE_CHECKING
+from typing import Any, Dict, TYPE_CHECKING
 
 from cirq import ops, protocols
 from cirq.transformers.analytical_decompositions import two_qubit_to_cz
@@ -54,3 +54,19 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
             allow_partial_czs=self.allow_partial_czs,
             atol=self.atol,
         )
+
+    def __repr__(self) -> str:
+        return f'cirq.CZTargetGateset(atol={self.atol}, allow_partial_czs={self.allow_partial_czs})'
+
+    def _value_equality_values_(self) -> Any:
+        return self.atol, self.allow_partial_czs
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'atol': self.atol,
+            'allow_partial_czs': self.allow_partial_czs,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, atol, allow_partial_czs, **kwargs):
+        return cls(atol=atol, allow_partial_czs=allow_partial_czs)

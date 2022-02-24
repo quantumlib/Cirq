@@ -32,7 +32,6 @@ TestSpec = ModuleJsonTestSpec(
         'CircuitSampleJob',
         'CliffordSimulatorStepResult',
         'CliffordTrialResult',
-        'CZTargetGateset',
         'DensityMatrixSimulator',
         'DensityMatrixSimulatorState',
         'DensityMatrixStepResult',

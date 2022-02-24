@@ -19,7 +19,13 @@ from cirq.contrib.paulistring.pauli_string_optimize import pauli_string_optimize
 from cirq.contrib.paulistring.clifford_optimize import clifford_optimized_circuit
 
 
-class CZTargetGatesetWithPostCleanup(transformers.CZTargetGateset):
+class _CZTargetGateSet(transformers.CZTargetGateset):
+    """Private implementation of `cirq.CZTargetGateset` used for optimized_circuit method below.
+
+    The implementation extends `cirq.CZTargetGateset` by modifying decomposed operations using
+    `post_clean_up` before putting them back in the circuit.
+    """
+
     def __init__(
         self,
         post_clean_up: Callable[[ops.OP_TREE], ops.OP_TREE] = lambda op_tree: op_tree,
@@ -36,7 +42,7 @@ def optimized_circuit(
     circuit: circuits.Circuit, atol: float = 1e-8, repeat: int = 10, merge_interactions: bool = True
 ) -> circuits.Circuit:
     circuit = circuits.Circuit(circuit)  # Make a copy
-    gateset = CZTargetGatesetWithPostCleanup(post_clean_up=_optimized_ops)
+    gateset = _CZTargetGateSet(post_clean_up=_optimized_ops)
     for _ in range(repeat):
         start_len = len(circuit)
         start_cz_count = _cz_count(circuit)

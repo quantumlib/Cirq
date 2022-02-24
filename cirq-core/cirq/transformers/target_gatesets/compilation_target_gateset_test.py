@@ -60,7 +60,7 @@ class DummyCXTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     def __init__(self):
         super().__init__(cirq.AnyUnitaryGateFamily(1), cirq.CNOT)
 
-    def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+    def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
         if not cirq.has_unitary(op):
             return NotImplemented
 
@@ -74,7 +74,7 @@ class DummyCXTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             cirq.Z.on_each(q0, q1),
         ]
 
-    def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+    def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
         if not cirq.has_unitary(op):
             return NotImplemented
         assert self._intermediate_result_tag in op.tags
