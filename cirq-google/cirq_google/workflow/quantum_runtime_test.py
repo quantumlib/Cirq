@@ -41,6 +41,8 @@ def test_shared_runtime_info():
 
 def test_runtime_info():
     rtinfo = cg.RuntimeInfo(execution_index=5)
+    with cg.workflow.TimeIntoRuntimeInfo(rtinfo, 'test'):
+        pass
     cg_assert_equivalent_repr(rtinfo)
 
 
@@ -159,3 +161,7 @@ def test_execute(tmpdir, run_id_in):
     assert returned_exegroup_result == exegroup_result
     assert manual_exegroup_result == exegroup_result
     assert helper_loaded_result == exegroup_result
+
+    exe_result = returned_exegroup_result.executable_results[0]
+    assert 'placement' in exe_result.runtime_info.timings
+    assert 'run' in exe_result.runtime_info.timings

@@ -36,7 +36,8 @@
           "col": 6
         }
       ]
-    ]
+    ],
+    "timings": []
   },
   "raw_data": {
     "cirq_type": "ResultDict",

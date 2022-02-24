@@ -30,6 +30,7 @@ from cirq_google.workflow.quantum_executable import (
     QuantumExecutableGroup,
 )
 from cirq_google.workflow.qubit_placement import QubitPlacer, NaiveQubitPlacer
+from cirq_google.workflow.timing import TimeIntoRuntimeInfo
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -80,10 +81,12 @@ class RuntimeInfo:
             `cg.QuantumExecutable` was executed.
         qubit_placement: If a QubitPlacer was used, a record of the mapping
             from problem-qubits to device-qubits.
+        timings: A dictionary of the duration of various steps in the workflow.
     """
 
     execution_index: int
     qubit_placement: Optional[Dict[Any, cirq.Qid]] = None
+    timings: Dict[str, float] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -93,6 +96,7 @@ class RuntimeInfo:
         d = dataclass_json_dict(self)
         if d['qubit_placement']:
             d['qubit_placement'] = list(d['qubit_placement'].items())
+        d['timings'] = list(d['timings'].items())
         return d
 
     @classmethod
@@ -100,6 +104,8 @@ class RuntimeInfo:
         kwargs.pop('cirq_type')
         if kwargs.get('qubit_placement', None):
             kwargs['qubit_placement'] = {_try_tuple(k): v for k, v in kwargs['qubit_placement']}
+        if 'timings' in kwargs:
+            kwargs['timings'] = {k: v for k, v in kwargs['timings']}
         return cls(**kwargs)
 
     def __repr__(self) -> str:
@@ -261,12 +267,17 @@ def execute(
 
         circuit = exe.circuit
         if exe.problem_topology is not None:
-            circuit, mapping = rt_config.qubit_placer.place_circuit(
-                circuit, problem_topology=exe.problem_topology, shared_rt_info=shared_rt_info, rs=rs
-            )
-            runtime_info.qubit_placement = mapping
+            with TimeIntoRuntimeInfo(runtime_info, 'placement'):
+                circuit, mapping = rt_config.qubit_placer.place_circuit(
+                    circuit,
+                    problem_topology=exe.problem_topology,
+                    shared_rt_info=shared_rt_info,
+                    rs=rs,
+                )
+                runtime_info.qubit_placement = mapping
 
-        sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
+        with TimeIntoRuntimeInfo(runtime_info, 'run'):
+            sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
 
         exe_result = ExecutableResult(
             spec=exe.spec,
