@@ -389,8 +389,10 @@ class ActOnStateVectorArgs(ActOnArgs):
 
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.
+
         Typically, the new state vector should be `args.available_buffer` where
         `args` is this `cirq.ActOnStateVectorArgs` instance.
+
         Args:
             new_target_tensor: The new system state. Must have the same shape
                 and dtype as the old system state.
