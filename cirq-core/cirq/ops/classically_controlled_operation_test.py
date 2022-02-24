@@ -482,6 +482,123 @@ def test_scope_local():
     assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
 
 
+def test_scope_flatten_both():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        cirq.X(q).with_classical_controls('a'),
+    )
+    middle = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
+    )
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=False
+    )
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
+    ]
+    assert internal_control_keys == ['a', 'a', 'a', 'a']
+    assert not cirq.control_keys(outer_subcircuit)
+    assert not cirq.control_keys(circuit)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      [       [ 0: ───M───X─── ]                         ]
+0: ───[ 0: ───[       ║   ║    ]──────────────────────── ]────────────────────────
+      [       [ a: ═══@═══^═══ ](loops=2, no_rep_ids)    ](loops=2, no_rep_ids)
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───M───X───M───X───M───X───M───X───
+      ║   ║   ║   ║   ║   ║   ║   ║
+a: ═══@═══^═══@═══^═══@═══^═══@═══^═══
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_scope_flatten_inner():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        cirq.X(q).with_classical_controls('a'),
+    )
+    middle = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
+    )
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
+    ]
+    assert internal_control_keys == ['0:a', '0:a', '1:a', '1:a']
+    assert not cirq.control_keys(outer_subcircuit)
+    assert not cirq.control_keys(circuit)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      [       [ 0: ───M───X─── ]                         ]
+0: ───[ 0: ───[       ║   ║    ]──────────────────────── ]────────────
+      [       [ a: ═══@═══^═══ ](loops=2, no_rep_ids)    ](loops=2)
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ─────M───X───M───X───M───X───M───X───
+        ║   ║   ║   ║   ║   ║   ║   ║
+0:a: ═══@═══^═══@═══^═══╬═══╬═══╬═══╬═══
+                        ║   ║   ║   ║
+1:a: ═══════════════════@═══^═══@═══^═══
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_scope_flatten_outer():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        cirq.X(q).with_classical_controls('a'),
+    )
+    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=False
+    )
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
+    ]
+    assert internal_control_keys == ['0:a', '1:a', '0:a', '1:a']
+    assert not cirq.control_keys(outer_subcircuit)
+    assert not cirq.control_keys(circuit)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      [       [ 0: ───M───X─── ]             ]
+0: ───[ 0: ───[       ║   ║    ]──────────── ]────────────────────────
+      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2, no_rep_ids)
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ─────M───X───M───X───M───X───M───X───
+        ║   ║   ║   ║   ║   ║   ║   ║
+0:a: ═══@═══^═══╬═══╬═══@═══^═══╬═══╬═══
+                ║   ║           ║   ║
+1:a: ═══════════@═══^═══════════@═══^═══
+""",
+        use_unicode_characters=True,
+    )
+
+
 def test_scope_extern():
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(
