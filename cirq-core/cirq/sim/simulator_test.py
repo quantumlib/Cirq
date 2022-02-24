@@ -468,10 +468,8 @@ def test_monte_carlo_on_unknown_channel():
 
 
 def test_iter_definitions():
-    final_step_result = mock.Mock(cirq.StepResult)
-    final_step_result._simulator_state.return_value = []
     dummy_trial_result = SimulationTrialResult(
-        params={}, measurements={}, final_step_result=final_step_result
+        params={}, measurements={}, final_step_result=FakeStepResult(final_state=[])
     )
 
     class FakeNonIterSimulatorImpl(
