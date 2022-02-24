@@ -193,6 +193,7 @@ class _BufferedStateVector:
         Args:
             action: The value with a mixture to apply.
             axes: The axes on which to apply the mixture.
+            prng: The pseudo random number generator to use.
         Returns:
             The mixture index if the operation succeeded, otherwise None.
         """
@@ -214,6 +215,7 @@ class _BufferedStateVector:
         Args:
             action: The value with a channel to apply.
             axes: The axes on which to apply the channel.
+            prng: The pseudo random number generator to use.
         Returns:
             The kraus index if the operation succeeded, otherwise None.
         """
@@ -397,7 +399,8 @@ class ActOnStateVectorArgs(ActOnArgs):
             new_target_tensor: The new system state. Must have the same shape
                 and dtype as the old system state.
         """
-        self._state._swap_target_tensor_for(new_target_tensor)
+        # TODO: deprecate this function, it is unused and should not have been made public.
+        self._state._swap_target_tensor_for(new_target_tensor)  # coverage: ignore
 
     def subspace_index(
         self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
@@ -536,10 +539,6 @@ class ActOnStateVectorArgs(ActOnArgs):
     @property
     def available_buffer(self):
         return self._state._buffer
-
-    @property
-    def qid_shape(self):
-        return self._state._qid_shape
 
 
 def _strat_act_on_state_vector_from_apply_unitary(
