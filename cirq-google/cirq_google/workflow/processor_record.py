@@ -70,7 +70,7 @@ class EngineProcessorRecord(ProcessorRecord):
     def __repr__(self):
         return dataclass_repr(self, namespace='cirq_google')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.processor_id
 
     @classmethod
