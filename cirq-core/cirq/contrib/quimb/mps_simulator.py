@@ -219,8 +219,8 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 
 
 @value.value_equality
-class _MPSState:
-    """A state of the MPS simulation."""
+class _MPSQuantumState:
+    """Quantum state of the MPS simulation."""
 
     def __init__(
         self,
@@ -231,23 +231,23 @@ class _MPSState:
         estimated_gate_error_list: List[float],
         simulation_options: MPSOptions = MPSOptions(),
     ):
-        """Creates and MPSState
+        """Creates an MPSQuantumState
 
         Args:
-            simulation_options: Numerical options for the simulation.
+            qid_shape: Dimensions of the qubits represented.
             grouping: How to group qubits together, if None all are individual.
-            initial_state: An integer representing the initial state.
-
-        Raises:
-            ValueError: If the grouping does not cover the qubits.
+            M: The tensor list for maintaining the MPS state.
+            format_i: A string for formatting the group labels.
+            estimated_gate_error_list: The error estimations.
+            simulation_options: Numerical options for the simulation.
         """
         self._qid_shape = qid_shape
-        self.grouping = grouping
-        self.M = M
-        self.format_i = format_i
-        self.format_mu = 'mu_{}_{}'
-        self.simulation_options = simulation_options
-        self.estimated_gate_error_list = estimated_gate_error_list
+        self._grouping = grouping
+        self._M = M
+        self._format_i = format_i
+        self._format_mu = 'mu_{}_{}'
+        self._simulation_options = simulation_options
+        self._estimated_gate_error_list = estimated_gate_error_list
 
     @classmethod
     def create(
@@ -258,6 +258,17 @@ class _MPSState:
         initial_state: int = 0,
         simulation_options: MPSOptions = MPSOptions(),
     ):
+        """Creates an MPSQuantumState
+
+        Args:
+            qid_shape: Dimensions of the qubits represented.
+            grouping: How to group qubits together, if None all are individual.
+            initial_state: The initial computational basis state.
+            simulation_options: Numerical options for the simulation.
+
+        Raises:
+            ValueError: If the grouping does not cover the qubits.
+        """
         M = []
         for _ in range(max(grouping.values()) + 1):
             M.append(qtn.Tensor())
@@ -270,6 +281,10 @@ class _MPSState:
         max_num_digits = len(f'{max(grouping.values())}')
         format_i = f'i_{{:0{max_num_digits}}}'
 
+        # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
+        # mapping of e.g. qubit to string-index and do all "logic" on the qubits themselves and
+        # only translate to string-indices when calling a quimb API.
+
         # TODO(tonybruguier): Refactor out so that the code below can also be used by
         # circuit_to_tensors in cirq.contrib.quimb.state_vector.
 
@@ -281,7 +296,7 @@ class _MPSState:
             n = grouping[axis]
             M[n] @= qtn.Tensor(x, inds=(format_i.format(axis),))
             initial_state = initial_state // d
-        return _MPSState(
+        return _MPSQuantumState(
             qid_shape=qid_shape,
             grouping=grouping,
             M=M,
@@ -292,7 +307,7 @@ class _MPSState:
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
-        return self.format_i.format(i)
+        return self._format_i.format(i)
 
     def mu_str(self, i: int, j: int) -> str:
         # Returns the index name for the pair of the i'th and j'th qids. Note
@@ -300,22 +315,29 @@ class _MPSState:
         # string.
         smallest = min(i, j)
         largest = max(i, j)
-        return self.format_mu.format(smallest, largest)
+        return self._format_mu.format(smallest, largest)
 
     def __str__(self) -> str:
-        return str(qtn.TensorNetwork(self.M))
+        return str(qtn.TensorNetwork(self._M))
 
     def _value_equality_values_(self) -> Any:
-        return self._qid_shape, self.M, self.simulation_options, self.grouping
+        return self._qid_shape, self._M, self._simulation_options, self._grouping
 
-    def copy(self, deep_copy_buffers: bool = True) -> '_MPSState':
-        return _MPSState(
-            simulation_options=self.simulation_options,
-            grouping=self.grouping,
+    def copy(self, deep_copy_buffers: bool = True) -> '_MPSQuantumState':
+        """Copies the object.
+
+        Args:
+            deep_copy_buffers: True by default, False to reuse the existing buffers.
+        Returns:
+            A copy of the object.
+        """
+        return _MPSQuantumState(
+            simulation_options=self._simulation_options,
+            grouping=self._grouping,
             qid_shape=self._qid_shape,
-            M=[x.copy() for x in self.M],
-            estimated_gate_error_list=self.estimated_gate_error_list.copy(),
-            format_i=self.format_i,
+            M=[x.copy() for x in self._M],
+            estimated_gate_error_list=self._estimated_gate_error_list.copy(),
+            format_i=self._format_i,
         )
 
     def state_vector(self) -> np.ndarray:
@@ -324,7 +346,7 @@ class _MPSState:
         Returns:
             A vector that contains the full state.
         """
-        tensor_network = qtn.TensorNetwork(self.M)
+        tensor_network = qtn.TensorNetwork(self._M)
         state_vector = tensor_network.contract(inplace=False)
 
         # Here, we rely on the formatting of the indices, and the fact that we have enough
@@ -349,7 +371,7 @@ class _MPSState:
 
         conj_pfx = "conj_"
 
-        tensor_network = qtn.TensorNetwork(self.M)
+        tensor_network = qtn.TensorNetwork(self._M)
 
         # Rename the internal indices to avoid collisions. Also rename the qubit
         # indices that are kept. We do not rename the qubit indices that are
@@ -395,34 +417,34 @@ class _MPSState:
         # TODO(tonybruguier): Explore using the Quimb's tensor network natively.
 
         if len(axes) == 1:
-            n = self.grouping[axes[0]]
+            n = self._grouping[axes[0]]
 
-            self.M[n] = (U @ self.M[n]).reindex({new_inds[0]: old_inds[0]})
+            self._M[n] = (U @ self._M[n]).reindex({new_inds[0]: old_inds[0]})
         elif len(axes) == 2:
-            n, p = [self.grouping[axis] for axis in axes]
+            n, p = [self._grouping[axis] for axis in axes]
 
             if n == p:
-                self.M[n] = (U @ self.M[n]).reindex(
+                self._M[n] = (U @ self._M[n]).reindex(
                     {new_inds[0]: old_inds[0], new_inds[1]: old_inds[1]}
                 )
             else:
                 # This is the index on which we do the contraction. We need to add it iff it's
                 # the first time that we do the joining for that specific pair.
                 mu_ind = self.mu_str(n, p)
-                if mu_ind not in self.M[n].inds:
-                    self.M[n].new_ind(mu_ind)
-                if mu_ind not in self.M[p].inds:
-                    self.M[p].new_ind(mu_ind)
+                if mu_ind not in self._M[n].inds:
+                    self._M[n].new_ind(mu_ind)
+                if mu_ind not in self._M[p].inds:
+                    self._M[p].new_ind(mu_ind)
 
-                T = U @ self.M[n] @ self.M[p]
+                T = U @ self._M[n] @ self._M[p]
 
-                left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_inds[0],)
+                left_inds = tuple(set(T.inds) & set(self._M[n].inds)) + (new_inds[0],)
                 X, Y = T.split(
                     left_inds,
-                    method=self.simulation_options.method,
-                    max_bond=self.simulation_options.max_bond,
-                    cutoff=self.simulation_options.cutoff,
-                    cutoff_mode=self.simulation_options.cutoff_mode,
+                    method=self._simulation_options.method,
+                    max_bond=self._simulation_options.max_bond,
+                    cutoff=self._simulation_options.cutoff,
+                    cutoff_mode=self._simulation_options.cutoff_mode,
                     get='tensors',
                     absorb='both',
                     bond_ind=mu_ind,
@@ -437,11 +459,11 @@ class _MPSState:
                 # The renormalization would then have to be done manually.
                 #
                 # However, for now, e_n are just the estimated value.
-                e_n = self.simulation_options.cutoff
-                self.estimated_gate_error_list.append(e_n)
+                e_n = self._simulation_options.cutoff
+                self._estimated_gate_error_list.append(e_n)
 
-                self.M[n] = X.reindex({new_inds[0]: old_inds[0]})
-                self.M[p] = Y.reindex({new_inds[1]: old_inds[1]})
+                self._M[n] = X.reindex({new_inds[0]: old_inds[0]})
+                self._M[p] = Y.reindex({new_inds[1]: old_inds[1]})
         else:
             # NOTE(tonybruguier): There could be a way to handle higher orders. I think this could
             # involve HOSVDs:
@@ -455,14 +477,14 @@ class _MPSState:
     def estimation_stats(self):
         """Returns some statistics about the memory usage and quality of the approximation."""
 
-        num_coefs_used = sum([Mi.data.size for Mi in self.M])
-        memory_bytes = sum([Mi.data.nbytes for Mi in self.M])
+        num_coefs_used = sum([Mi.data.size for Mi in self._M])
+        memory_bytes = sum([Mi.data.nbytes for Mi in self._M])
 
         # The computation below is done for numerical stability, instead of directly using the
         # formula:
         # estimated_fidelity = \prod_i (1 - estimated_gate_error_list_i)
         estimated_fidelity = 1.0 + np.expm1(
-            sum(np.log1p(-x) for x in self.estimated_gate_error_list)
+            sum(np.log1p(-x) for x in self._estimated_gate_error_list)
         )
         estimated_fidelity = round(estimated_fidelity, ndigits=3)
 
@@ -472,21 +494,9 @@ class _MPSState:
             "estimated_fidelity": estimated_fidelity,
         }
 
-    def perform_measurement(
+    def _measure(
         self, axes: Sequence[int], prng: np.random.RandomState, collapse_state_vector=True
     ) -> List[int]:
-        """Performs a measurement over one or more qubits.
-
-        Args:
-            axes: The sequence of axes to measure, in that order.
-            prng: A random number generator, used to simulate measurements.
-            collapse_state_vector: A Boolean specifying whether we should mutate
-                the state after the measurement.
-
-        Raises:
-            ValueError: If the probabilities for the measurements differ too much from one for the
-                tolerance specified in simulation options.
-        """
         results: List[int] = []
 
         if collapse_state_vector:
@@ -502,7 +512,7 @@ class _MPSState:
 
             # Because the computation is approximate, the probabilities do not
             # necessarily add up to 1.0, and thus we re-normalize them.
-            if abs(sum_probs - 1.0) > self.simulation_options.sum_prob_atol:
+            if abs(sum_probs - 1.0) > self._simulation_options.sum_prob_atol:
                 raise ValueError(f'Sum of probabilities exceeds tolerance: {sum_probs}')
             norm_probs = [x / sum_probs for x in probs]
 
@@ -517,11 +527,24 @@ class _MPSState:
 
             collapser = qtn.Tensor(collapser, inds=(new_n, old_n))
 
-            state.M[axis] = (collapser @ state.M[axis]).reindex({new_n: old_n})
+            state._M[axis] = (collapser @ state._M[axis]).reindex({new_n: old_n})
 
             results.append(result)
 
         return results
+
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
+        """Measures the MPS.
+
+        Args:
+            axes: The axes to measure.
+            seed: The random number seed to use.
+        Returns:
+            The measurements in axis order.
+        """
+        return self._measure(axes, seed)
 
     def sample(
         self,
@@ -529,12 +552,21 @@ class _MPSState:
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
+        """Samples the MPS.
+
+        Args:
+            axes: The axes to sample.
+            repetitions: The number of samples to make.
+            seed: The random number seed to use.
+        Returns:
+            The samples in order.
+        """
 
         measurements: List[List[int]] = []
 
         for _ in range(repetitions):
             measurements.append(
-                self.perform_measurement(
+                self._measure(
                     axes, value.parse_random_state(seed), collapse_state_vector=False
                 )
             )
@@ -583,7 +615,7 @@ class MPSState(ActOnArgs):
         final_grouping = self.qubit_map if grouping is None else grouping
         if final_grouping.keys() != self.qubit_map.keys():
             raise ValueError('Grouping must cover exactly the qubits.')
-        self._state = _MPSState.create(
+        self._state = _MPSQuantumState.create(
             initial_state=initial_state,
             qid_shape=tuple(q.dimension for q in qubits),
             simulation_options=simulation_options,
@@ -672,11 +704,11 @@ class MPSState(ActOnArgs):
             ValueError: If the probabilities for the measurements differ too much from one for the
                 tolerance specified in simulation options.
         """
-        return self._state.perform_measurement(self.get_axes(qubits), prng, collapse_state_vector)
+        return self._state._measure(self.get_axes(qubits), prng, collapse_state_vector)
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
-        return self.perform_measurement(qubits, self.prng)
+        return self._state.measure(self.get_axes(qubits), self.prng)
 
     def sample(
         self,
