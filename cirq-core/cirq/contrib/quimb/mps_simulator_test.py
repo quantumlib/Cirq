@@ -539,7 +539,7 @@ def test_state_copy():
 
     state_Ms = []
     for step in sim.simulate_moment_steps(circuit):
-        state_Ms.append(step.state.M)
+        state_Ms.append(step.state._state.M)
     for x, y in itertools.combinations(state_Ms, 2):
         assert len(x) == len(y)
         for i in range(len(x)):

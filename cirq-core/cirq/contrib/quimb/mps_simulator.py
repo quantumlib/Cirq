@@ -290,12 +290,15 @@ class _MPSState:
     def _value_equality_values_(self) -> Any:
         return self._qid_shape, self.M, self.simulation_options, self.grouping
 
-    def _on_copy(self, target: '_MPSState', deep_copy_buffers: bool = True):
-        target.simulation_options = self.simulation_options
-        target.grouping = self.grouping
-        target.M = [x.copy() for x in self.M]
-        target.estimated_gate_error_list = self.estimated_gate_error_list
-        target._qid_shape = self._qid_shape
+    def copy(self, deep_copy_buffers: bool = True) -> '_MPSState':
+        copy = _MPSState(
+            simulation_options = self.simulation_options,
+            grouping = self.grouping,
+            qid_shape = self._qid_shape,
+        )
+        copy.M = [x.copy() for x in self.M]
+        copy.estimated_gate_error_list = self.estimated_gate_error_list
+        return copy
 
     def state_vector(self) -> np.ndarray:
         """Returns the full state vector.
@@ -324,7 +327,7 @@ class _MPSState:
             An array that contains the partial trace.
         """
 
-        contracted_inds = set(range(len(self._qid_shape))) - keep_axes
+        contracted_inds = set(map(self.i_str, set(range(len(self._qid_shape))) - keep_axes))
 
         conj_pfx = "conj_"
 
@@ -577,7 +580,7 @@ class MPSState(ActOnArgs):
         # Returns the index name for the pair of the i'th and j'th qids. Note
         # that by convention, the lower index is always the first in the output
         # string.
-        return self._state.mu_str(i)
+        return self._state.mu_str(i, j)
 
     def __str__(self) -> str:
         return str(self._state)
@@ -586,7 +589,7 @@ class MPSState(ActOnArgs):
         return self.qubits, self._state
 
     def _on_copy(self, target: 'MPSState', deep_copy_buffers: bool = True):
-        self._state._on_copy(target._state, deep_copy_buffers)
+        target._state = self._state.copy(deep_copy_buffers)
 
     def state_vector(self) -> np.ndarray:
         """Returns the full state vector.
