@@ -482,7 +482,7 @@ class ActOnStateVectorArgs(ActOnArgs):
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Delegates the call to measure the state vector."""
-        return self._state.measure(axes=self.get_axes(qubits), seed=self.prng)
+        return self._state.measure(self.get_axes(qubits), self.prng)
 
     def _on_copy(self, target: 'cirq.ActOnStateVectorArgs', deep_copy_buffers: bool = True):
         target._state = self._state.copy(deep_copy_buffers)
@@ -518,7 +518,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        return self._state.sample(axes=self.get_axes(qubits), repetitions=repetitions, seed=seed)
+        return self._state.sample(self.get_axes(qubits), repetitions, seed)
 
     def __repr__(self) -> str:
         return (
