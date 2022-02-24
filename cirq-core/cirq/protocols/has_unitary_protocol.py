@@ -23,6 +23,8 @@ from typing_extensions import Protocol
 
 from cirq import qis
 from cirq._doc import doc_private
+from cirq.ops.gate_operation import GateOperation
+from cirq.ops.measurement_gate import MeasurementGate
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import ApplyUnitaryArgs
 from cirq.protocols.decompose_protocol import (
@@ -55,7 +57,13 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
     Determines whether `val` has a unitary effect by attempting the following
     strategies:
 
-    1. Try to use `val.has_unitary()`.
+    1. Try to see if there is a measurement.
+        Case a) There is not a measurement.
+            Inconclusive.
+        Case b) There is a measurement.
+            Not unitary.
+
+    2. Try to use `val.has_unitary()`.
         Case a) Method not present or returns `NotImplemented`.
             Inconclusive.
         Case b) Method returns `True`.
@@ -63,7 +71,7 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
         Case c) Method returns `False`.
             Not unitary.
 
-    2. Try to use `val._decompose_()`.
+    3. Try to use `val._decompose_()`.
         Case a) Method not present or returns `NotImplemented` or `None`.
             Inconclusive.
         Case b) Method returns an OP_TREE containing only unitary operations.
@@ -71,7 +79,7 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
         Case c) Method returns an OP_TREE containing non-unitary operations.
             Not Unitary.
 
-    3. Try to use `val._apply_unitary_(args)`.
+    4. Try to use `val._apply_unitary_(args)`.
         Case a) Method not present or returns `NotImplemented`.
             Inconclusive.
         Case b) Method returns a numpy array.
@@ -79,7 +87,7 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
         Case c) Method returns `None`.
             Not unitary.
 
-    4. Try to use `val._unitary_()`.
+    5. Try to use `val._unitary_()`.
         Case a) Method not present or returns `NotImplemented`.
             Continue to next strategy.
         Case b) Method returns a numpy array.
@@ -98,6 +106,7 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
         Whether or not `val` has a unitary effect.
     """
     strats = [
+        _strat_has_measurement,
         _strat_has_unitary_from_has_unitary,
         _strat_has_unitary_from_decompose,
         _strat_has_unitary_from_apply_unitary,
@@ -112,6 +121,12 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
 
     # If you can't tell that it's unitary, it's not unitary.
     return False
+
+
+def _strat_has_measurement(val: Any) -> Optional[bool]:
+    if isinstance(val, GateOperation) and isinstance(val.gate, MeasurementGate):
+        return False
+    return None
 
 
 def _strat_has_unitary_from_has_unitary(val: Any) -> Optional[bool]:

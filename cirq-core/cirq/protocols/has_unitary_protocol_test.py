@@ -26,6 +26,12 @@ def test_inconclusive():
     assert not cirq.has_unitary(No())
 
 
+def test_fail_fast_measure():
+    q = cirq.NamedQubit('q0')
+    m = cirq.measure(q)
+    assert not cirq.has_unitary(m)
+
+
 def test_via_unitary():
     class No1:
         def _unitary_(self):
