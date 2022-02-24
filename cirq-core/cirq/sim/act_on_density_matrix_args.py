@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence, Type, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
 
 import numpy as np
 
@@ -60,15 +60,12 @@ class _BufferedDensityMatrix:
         dtype: Optional['DTypeLike'] = None,
         buffer: Optional[List[np.ndarray]] = None,
     ):
-        """Initializes the object with the inputs.
-
-        This initializer creates the buffer if necessary.
+        """Creates a buffered density matrix with the requested state.
 
         Args:
-            initial_state: The density matrix, must be correctly formatted. The data is not
-                checked for validity here due to performance concerns.
+            initial_state: The initial state for the simulation in the computational basis.
             qid_shape: The shape of the density matrix, if the initial state is provided as an int.
-            dtype: The dtype of the density matrix, if the initial state is provided as an int.
+            dtype: The desired dtype of the density matrix.
             buffer: Optional, must be length 3 and same shape as the density matrix. If not
                 provided, a buffer will be created automatically.
         Raises:
@@ -87,6 +84,7 @@ class _BufferedDensityMatrix:
                 density_matrix = initial_state
             if np.may_share_memory(density_matrix, initial_state):
                 density_matrix = density_matrix.copy()
+        density_matrix = density_matrix.astype(dtype, copy=False)
         return cls(density_matrix, buffer)
 
     def copy(self, deep_copy_buffers: bool = True) -> '_BufferedDensityMatrix':
@@ -97,14 +95,9 @@ class _BufferedDensityMatrix:
         Returns:
             A copy of the object.
         """
-        density_matrix = self._density_matrix.copy()
-        if deep_copy_buffers:
-            buffer = [b.copy() for b in self._buffer]
-        else:
-            buffer = self._buffer
         return _BufferedDensityMatrix(
-            density_matrix=density_matrix,
-            buffer=buffer,
+            density_matrix=self._density_matrix.copy(),
+            buffer=[b.copy() for b in self._buffer] if deep_copy_buffers else self._buffer,
         )
 
     def kron(self, other: '_BufferedDensityMatrix') -> '_BufferedDensityMatrix':
