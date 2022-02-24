@@ -59,6 +59,11 @@ def test_measure_init(num_qubits):
         cirq.MeasurementGate()
 
 
+def test_measurement_has_unitary_returns_false():
+    gate = cirq.MeasurementGate(1, 'a')
+    assert not cirq.has_unitary(gate)
+
+
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
 def test_has_stabilizer_effect(num_qubits):
     assert cirq.has_stabilizer_effect(cirq.MeasurementGate(num_qubits, 'a'))
