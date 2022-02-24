@@ -23,8 +23,6 @@ from typing_extensions import Protocol
 
 from cirq import qis
 from cirq._doc import doc_private
-from cirq.ops.gate_operation import GateOperation
-from cirq.ops.measurement_gate import MeasurementGate
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import ApplyUnitaryArgs
 from cirq.protocols.decompose_protocol import (
