@@ -580,14 +580,14 @@ class MPSState(ActOnArgs):
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-        grouping = self.qubit_map if grouping is None else grouping
-        if grouping.keys() != self.qubit_map.keys():
+        final_grouping = self.qubit_map if grouping is None else grouping
+        if final_grouping.keys() != self.qubit_map.keys():
             raise ValueError('Grouping must cover exactly the qubits.')
         self._state = _MPSState.create(
             initial_state=initial_state,
             qid_shape=tuple(q.dimension for q in qubits),
             simulation_options=simulation_options,
-            grouping={self.qubit_map[k]: v for k, v in grouping.items()},
+            grouping={self.qubit_map[k]: v for k, v in final_grouping.items()},
         )
 
     def i_str(self, i: int) -> str:
