@@ -70,6 +70,9 @@ class EngineProcessorRecord(ProcessorRecord):
     def __repr__(self):
         return dataclass_repr(self, namespace='cirq_google')
 
+    def __str__(self) -> str:
+        return self.processor_id
+
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
@@ -143,7 +146,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
         elif self.noise_strength == float('inf'):
             suffix = 'zeros'
         else:
-            suffix = f'p={self.noise_strength:.3e}'
+            suffix = f'depol({self.noise_strength:.3e})'
         return f'{self.processor_id}-{suffix}'
 
     def __repr__(self) -> str:
