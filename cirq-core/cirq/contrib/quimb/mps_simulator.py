@@ -226,7 +226,9 @@ class _MPSState:
         self,
         qid_shape: Tuple[int, ...],
         grouping: Dict[int, int],
-        initial_state: int = 0,
+        M: List[qtn.Tensor],
+        format_i: str,
+        estimated_gate_error_list: List[float],
         simulation_options: MPSOptions = MPSOptions(),
     ):
         """Creates and MPSState
@@ -241,9 +243,24 @@ class _MPSState:
         """
         self._qid_shape = qid_shape
         self.grouping = grouping
-        self.M = []
-        for _ in range(max(self.grouping.values()) + 1):
-            self.M.append(qtn.Tensor())
+        self.M = M
+        self.format_i = format_i
+        self.format_mu = 'mu_{}_{}'
+        self.simulation_options = simulation_options
+        self.estimated_gate_error_list = estimated_gate_error_list
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        qid_shape: Tuple[int, ...],
+        grouping: Dict[int, int],
+        initial_state: int = 0,
+        simulation_options: MPSOptions = MPSOptions(),
+    ):
+        M = []
+        for _ in range(max(grouping.values()) + 1):
+            M.append(qtn.Tensor())
 
         # The order of the qubits matters, because the state |01> is different from |10>. Since
         # Quimb uses strings to name tensor indices, we want to be able to sort them too. If we are
@@ -251,26 +268,27 @@ class _MPSState:
         # we want write the string '003' which comes before '100' in lexicographic order. The code
         # below is just simple string formatting.
         max_num_digits = len(f'{max(grouping.values())}')
-        self.format_i = f'i_{{:0{max_num_digits}}}'
-        self.format_mu = 'mu_{}_{}'
-
-        # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
-        # mapping of e.g. qubit to string-index and do all "logic" on the qubits themselves and
-        # only translate to string-indices when calling a quimb API.
+        format_i = f'i_{{:0{max_num_digits}}}'
 
         # TODO(tonybruguier): Refactor out so that the code below can also be used by
         # circuit_to_tensors in cirq.contrib.quimb.state_vector.
 
         for axis in reversed(range(len(qid_shape))):
-            d = self._qid_shape[axis]
+            d = qid_shape[axis]
             x = np.zeros(d)
             x[initial_state % d] = 1.0
 
-            n = self.grouping[axis]
-            self.M[n] @= qtn.Tensor(x, inds=(self.i_str(axis),))
+            n = grouping[axis]
+            M[n] @= qtn.Tensor(x, inds=(format_i.format(axis),))
             initial_state = initial_state // d
-        self.simulation_options = simulation_options
-        self.estimated_gate_error_list: List[float] = []
+        return _MPSState(
+            qid_shape=qid_shape,
+            grouping=grouping,
+            M=M,
+            format_i=format_i,
+            estimated_gate_error_list=[],
+            simulation_options=simulation_options,
+        )
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
@@ -291,14 +309,14 @@ class _MPSState:
         return self._qid_shape, self.M, self.simulation_options, self.grouping
 
     def copy(self, deep_copy_buffers: bool = True) -> '_MPSState':
-        copy = _MPSState(
-            simulation_options = self.simulation_options,
-            grouping = self.grouping,
-            qid_shape = self._qid_shape,
+        return _MPSState(
+            simulation_options=self.simulation_options,
+            grouping=self.grouping,
+            qid_shape=self._qid_shape,
+            M=[x.copy() for x in self.M],
+            estimated_gate_error_list=self.estimated_gate_error_list.copy(),
+            format_i=self.format_i,
         )
-        copy.M = [x.copy() for x in self.M]
-        copy.estimated_gate_error_list = self.estimated_gate_error_list
-        return copy
 
     def state_vector(self) -> np.ndarray:
         """Returns the full state vector.
@@ -353,7 +371,7 @@ class _MPSState:
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_op(self, op: 'cirq.Gate', axes: Sequence[int], prng: np.random.RandomState):
+    def apply_op(self, op: Any, axes: Sequence[int], prng: np.random.RandomState):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -565,11 +583,11 @@ class MPSState(ActOnArgs):
         grouping = self.qubit_map if grouping is None else grouping
         if grouping.keys() != self.qubit_map.keys():
             raise ValueError('Grouping must cover exactly the qubits.')
-        self._state = _MPSState(
+        self._state = _MPSState.create(
             initial_state=initial_state,
             qid_shape=tuple(q.dimension for q in qubits),
             simulation_options=simulation_options,
-            grouping={self.qubit_map[k]: v for k, v in grouping.items()}
+            grouping={self.qubit_map[k]: v for k, v in grouping.items()},
         )
 
     def i_str(self, i: int) -> str:
@@ -624,7 +642,7 @@ class MPSState(ActOnArgs):
             The operation that mutates the object. Note that currently, only 1-
             and 2- qubit operations are currently supported.
         """
-        return self._state.apply_op(op.gate, self.get_axes(op.qubits), prng)
+        return self._state.apply_op(op, self.get_axes(op.qubits), prng)
 
     def _act_on_fallback_(
         self,
