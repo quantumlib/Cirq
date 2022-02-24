@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Optional, Tuple, TYPE_CHECKING, Type, Union, Dict, List, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
 
 import numpy as np
 
@@ -260,6 +260,49 @@ class _BufferedStateVector:
         self._swap_target_tensor_for(self._buffer)
         return index
 
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
+        """Measures the state vector.
+
+        Args:
+            axes: The axes to measure.
+            seed: The random number seed to use.
+        Returns:
+            The measurements in order.
+        """
+        bits, _ = sim.measure_state_vector(
+            self._state_vector,
+            axes,
+            out=self._state_vector,
+            qid_shape=self._qid_shape,
+            seed=seed,
+        )
+        return bits
+
+    def sample(
+        self,
+        axes: Sequence[int],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        """Samples the state vector.
+
+        Args:
+            axes: The axes to sample.
+            repetitions: The number of samples to make.
+            seed: The random number seed to use.
+        Returns:
+            The samples in order.
+        """
+        return sim.sample_state_vector(
+            self._state_vector,
+            axes,
+            qid_shape=self._qid_shape,
+            repetitions=repetitions,
+            seed=seed,
+        )
+
     def _swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.
 
@@ -372,14 +415,7 @@ class ActOnStateVectorArgs(ActOnArgs):
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Delegates the call to measure the state vector."""
-        bits, _ = sim.measure_state_vector(
-            self.target_tensor,
-            self.get_axes(qubits),
-            out=self.target_tensor,
-            qid_shape=self.target_tensor.shape,
-            seed=self.prng,
-        )
-        return bits
+        return self._state.measure(axes=self.get_axes(qubits), seed=self.prng)
 
     def _on_copy(self, target: 'cirq.ActOnStateVectorArgs', deep_copy_buffers: bool = True):
         target._state = self._state.copy(deep_copy_buffers)
@@ -415,14 +451,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        indices = [self.qubit_map[q] for q in qubits]
-        return sim.sample_state_vector(
-            self.target_tensor,
-            indices,
-            qid_shape=tuple(q.dimension for q in self.qubits),
-            repetitions=repetitions,
-            seed=seed,
-        )
+        return self._state.sample(axes=self.get_axes(qubits), repetitions=repetitions, seed=seed)
 
     def __repr__(self) -> str:
         return (
