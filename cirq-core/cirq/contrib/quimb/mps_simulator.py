@@ -25,6 +25,7 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, protocols, qis, value
+from cirq._compat import deprecated
 from cirq.sim import simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -662,6 +663,7 @@ class MPSState(ActOnArgs):
         """An alias for the state vector."""
         return self._state.to_numpy()
 
+    @deprecated(deadline="v0.15", fix="Use cirq.act_on(op, mps_state)")
     def apply_op(self, op: 'cirq.Operation', prng: np.random.RandomState):
         """Applies a unitary operation, mutating the object to represent the new state.
 
@@ -688,6 +690,7 @@ class MPSState(ActOnArgs):
     def M(self):
         return self._state._M
 
+    @deprecated(deadline="v0.15", fix="Use cirq.act_on(measurement, mps_state)")
     def perform_measurement(
         self, qubits: Sequence['cirq.Qid'], prng: np.random.RandomState, collapse_state_vector=True
     ) -> List[int]:
