@@ -1004,8 +1004,6 @@ def test_repeat_until_diagram():
         c,
         """
 0: ───[ 0: ───X^0.2───M('m')─── ](no_rep_ids, until=m)───
-      ║
-m: ═══╩══════════════════════════════════════════════════
 """,
         use_unicode_characters=True,
     )
