@@ -70,6 +70,7 @@ class ActOnArgs(OperationTarget[TSelf]):
                 simulators that can represent mixed states.
             classical_data: The shared classical data container for this
                 simulation.
+            state: The underlying quantum state of the simulation.
         """
         if prng is None:
             prng = cast(np.random.RandomState, np.random)

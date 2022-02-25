@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
-from cirq import _compat, value
+from cirq import _compat
 from cirq.sim.clifford import stabilizer_state_ch_form
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
