@@ -36,6 +36,7 @@ from typing import (
 import numpy as np
 
 from cirq import ops, protocols, study, value, devices
+from cirq._compat import deprecated_parameter
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
@@ -92,6 +93,12 @@ class SimulatorBase(
     `_core_iterator` and `_run` methods.
     """
 
+    @deprecated_parameter(
+        deadline='v0.15',
+        fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
+        parameter_desc='ignore_measurement_results',
+        match=lambda _, kwargs: 'ignore_measurement_results' in kwargs,
+    )
     def __init__(
         self,
         *,
