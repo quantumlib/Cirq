@@ -6,7 +6,9 @@ import numpy as np
 import sympy
 
 from cirq import value, ops, protocols, linalg
+from cirq._compat import cached_property
 from cirq.ops import gate_features
+from cirq.study import SymbolFunc
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -183,14 +185,26 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             | protocols.parameter_names(self._axis_phase_exponent)
         )
 
+    @cached_property
+    def _x_exponent_compiled(self) -> Union[numbers.Real, SymbolFunc]:
+        return SymbolFunc.compile_expr(self._x_exponent)
+
+    @cached_property
+    def _z_exponent_compiled(self) -> Union[numbers.Real, SymbolFunc]:
+        return SymbolFunc.compile_expr(self._z_exponent)
+
+    @cached_property
+    def _axis_phase_exponent_compiled(self) -> Union[numbers.Real, SymbolFunc]:
+        return SymbolFunc.compile_expr(self._axis_phase_exponent)
+
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.PhasedXZGate':
         """See `cirq.SupportsParameterization`."""
         return PhasedXZGate(
-            z_exponent=resolver.value_of(self._z_exponent, recursive),
-            x_exponent=resolver.value_of(self._x_exponent, recursive),
-            axis_phase_exponent=resolver.value_of(self._axis_phase_exponent, recursive),
+            z_exponent=resolver.value_of(self._z_exponent_compiled, recursive),
+            x_exponent=resolver.value_of(self._x_exponent_compiled, recursive),
+            axis_phase_exponent=resolver.value_of(self._axis_phase_exponent_compiled, recursive),
         )
 
     def _phase_by_(self, phase_turns, qubit_index) -> 'cirq.PhasedXZGate':
