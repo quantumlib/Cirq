@@ -44,6 +44,12 @@ def test_fail_fast_measure(measurement_gate):
     assert not cirq.has_unitary(circuit)
 
 
+def test_fail_fast_measure_large_memory():
+    num_qubits = 100
+    measurement_op = cirq.MeasurementGate(num_qubits, 'a').on(*cirq.LineQubit.range(num_qubits))
+    assert not cirq.has_unitary(measurement_op)
+
+
 def test_via_unitary():
     class No1:
         def _unitary_(self):
