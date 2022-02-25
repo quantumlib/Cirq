@@ -14,7 +14,6 @@
 
 import abc
 from dataclasses import dataclass, field
-import functools
 from typing import Dict, TYPE_CHECKING, List, Set
 
 from cirq import ops, devices
