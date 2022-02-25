@@ -43,6 +43,8 @@ from cirq.transformers.heuristic_decompositions import (
 
 from cirq.transformers.target_gatesets import (
     CompilationTargetGateset,
+    CZTargetGateset,
+    TwoQubitCompilationTargetGateset,
 )
 
 from cirq.transformers.align import align_left, align_right
