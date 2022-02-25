@@ -946,15 +946,36 @@ def test_simulate_no_repetition_ids_inner(sim):
     assert result.records['1:a'].shape == (1, 2, 1)
 
 
-@pytest.mark.parametrize('sim', [cirq.Simulator(), cirq.DensityMatrixSimulator()])
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
 def test_repeat_until(sim):
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    c = cirq.Circuit(
+        cirq.X(q),
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(q),
+                cirq.measure(q, key=key),
+            ),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        ),
+    )
+    measurements = sim.run(c).records['m'][0]
+    assert len(measurements) == 2
+    assert measurements[0] == (0,)
+    assert measurements[1] == (1,)
+
+
+@pytest.mark.parametrize('sim', [cirq.Simulator(), cirq.DensityMatrixSimulator()])
+def test_post_selection(sim):
     q = cirq.LineQubit(0)
     key = cirq.MeasurementKey('m')
     c = cirq.Circuit(
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
                 cirq.X(q) ** 0.2,
-                cirq.measure(q, key='m'),
+                cirq.measure(q, key=key),
             ),
             use_repetition_ids=False,
             repeat_until=cirq.KeyCondition(key),
@@ -973,7 +994,7 @@ def test_repeat_until_diagram():
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
                 cirq.X(q) ** 0.2,
-                cirq.measure(q, key='m'),
+                cirq.measure(q, key=key),
             ),
             use_repetition_ids=False,
             repeat_until=cirq.KeyCondition(key),

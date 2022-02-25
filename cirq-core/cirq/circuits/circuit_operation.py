@@ -96,7 +96,11 @@ class CircuitOperation(ops.Operation):
             repetition. When False, this will not happen and the measurement
             key will be repeated.
         repeat_until: A condition that will be tested after each iteration of
-            the circuit.
+            the subcircuit. The subcircuit will repeat until condition returns
+            True, but will always run at least once, and the measurement key
+            need not be defined prior to the subcircuit (but must be defined in
+            a measurement within the subcircuit). This field is incompatible
+            with repetitions or repetition_ids.
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
@@ -239,8 +243,6 @@ class CircuitOperation(ops.Operation):
                 if not protocols.control_keys(self.circuit)
                 else protocols.control_keys(self.mapped_circuit())
             )
-            if self.repeat_until is not None:
-                keys |= frozenset(self.repeat_until.keys)
             object.__setattr__(self, '_cached_control_keys', keys)
         return self._cached_control_keys  # type: ignore
 
