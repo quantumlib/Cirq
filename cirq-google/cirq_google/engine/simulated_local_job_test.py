@@ -83,7 +83,11 @@ def test_run_batch(simulation_type):
         sweeps=[cirq.Points(key='t', points=[1, 0]), cirq.Points(key='x', points=[0, 1])],
     )
     if simulation_type == LocalSimulationType.ASYNCHRONOUS:
-        assert job.execution_status() == quantum.enums.ExecutionStatus.State.RUNNING
+        # Note: The simulation could have finished already
+        assert (
+            job.execution_status() == quantum.enums.ExecutionStatus.State.RUNNING
+            or job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+        )
     else:
         assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
     results = job.batched_results()
