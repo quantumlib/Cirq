@@ -34,7 +34,7 @@ import sympy.printing.repr
 try:
     from functools import cached_property  # pylint: disable=unused-import
 except ImportError:
-    from backports.cached_property import cached_property
+    from backports.cached_property import cached_property  # type: ignore[no-redef]
 
 
 def proper_repr(value: Any) -> str:
