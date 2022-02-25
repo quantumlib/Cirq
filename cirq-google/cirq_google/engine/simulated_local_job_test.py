@@ -169,7 +169,7 @@ def test_run_async():
         processor_id='test1',
         parent_program=program,
         repetitions=100,
-        sweeps=[],
+        sweeps=[{}],
         simulation_type=LocalSimulationType.ASYNCHRONOUS,
     )
     assert job.execution_status() == quantum.enums.ExecutionStatus.State.RUNNING
