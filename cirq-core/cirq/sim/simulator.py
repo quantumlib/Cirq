@@ -44,6 +44,7 @@ from typing import (
     TypeVar,
     Union,
 )
+import warnings
 
 import numpy as np
 
@@ -110,6 +111,20 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 records = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
                 )
+                flat_records = False
+                for k, v in records.items():
+                    if v.ndim == 2:
+                        flat_records = True
+                        records[k] = v.reshape((v.shape[0], 1, v.shape[1]))
+                if flat_records:
+                    warnings.warn(
+                        (
+                            'Starting in Cirq v0.15, values in the output of simulator._run must '
+                            'be 3D instead of 2D, with a new dimension between the existing two '
+                            'to capture "instances" of a key.'
+                        ),
+                        DeprecationWarning,
+                    )
             yield study.ResultDict(params=param_resolver, records=records)
 
     @abc.abstractmethod

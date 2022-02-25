@@ -241,6 +241,12 @@ def test_engine():
     assert processor.engine().project_id == 'a'
 
 
+def test_engine_repr():
+    processor = cg.EngineProcessor('the-project-id', 'the-processor-id', EngineContext())
+    assert 'the-project-id' in repr(processor)
+    assert 'the-processor-id' in repr(processor)
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_health(get_processor):
     get_processor.return_value = qtypes.QuantumProcessor(health=qtypes.QuantumProcessor.Health.OK)
