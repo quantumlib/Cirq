@@ -305,7 +305,7 @@ class CliffordTableau(StabilizerState):
     def __copy__(self) -> 'CliffordTableau':
         return self.copy()
 
-    def copy(self, **kwargs) -> 'CliffordTableau':
+    def copy(self, deep_copy_buffers: bool = True) -> 'CliffordTableau':
         state = CliffordTableau(self.n)
         state.rs = self.rs.copy()
         state.xs = self.xs.copy()

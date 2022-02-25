@@ -313,6 +313,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             ignore_measurement_results=ignore_measurement_results,
             classical_data=classical_data,
         )
+        self._state: _BufferedDensityMatrix = state
 
     def _act_on_fallback_(
         self,

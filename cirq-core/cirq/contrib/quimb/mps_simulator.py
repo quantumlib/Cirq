@@ -323,7 +323,7 @@ class _MPSQuantumState(qis.QuantumStateRepresentation):
     def _value_equality_values_(self) -> Any:
         return self._qid_shape, self._M, self._simulation_options, self._grouping
 
-    def copy(self, **kwargs) -> '_MPSQuantumState':
+    def copy(self, deep_copy_buffers: bool = True) -> '_MPSQuantumState':
         """Copies the object.
         Returns:
             A copy of the object.
@@ -618,6 +618,7 @@ class MPSState(ActOnArgs):
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
+        self._state: _MPSQuantumState = state
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.

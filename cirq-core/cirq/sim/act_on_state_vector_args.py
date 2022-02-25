@@ -401,6 +401,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
+        self._state: _BufferedStateVector = state
 
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.

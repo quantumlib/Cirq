@@ -145,7 +145,9 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Delegates the call to measure the density matrix."""
-        return self._state.measure(self.get_axes(qubits), self.prng)
+        if self._state is not None:
+            return self._state.measure(self.get_axes(qubits), self.prng)
+        raise NotImplementedError()
 
     def sample(
         self,
@@ -153,7 +155,9 @@ class ActOnArgs(OperationTarget[TSelf]):
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        return self._state.sample(self.get_axes(qubits), repetitions, seed)
+        if self._state is not None:
+            return self._state.sample(self.get_axes(qubits), repetitions, seed)
+        raise NotImplementedError()
 
     def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
         """Creates a copy of the object.
