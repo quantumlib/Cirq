@@ -378,6 +378,7 @@ class ActOnArgs(OperationTarget[TSelf]):
     def can_represent_mixed_states(self) -> bool:
         return self._state.can_represent_mixed_states if self._state is not None else False
 
+
 def strat_act_on_from_apply_decompose(
     val: Any,
     args: 'cirq.ActOnArgs',

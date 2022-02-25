@@ -239,6 +239,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
     def can_represent_mixed_states(self) -> bool:
         return True
 
+
 class ActOnDensityMatrixArgs(ActOnArgs):
     """State and context for an operation acting on a density matrix.
 
