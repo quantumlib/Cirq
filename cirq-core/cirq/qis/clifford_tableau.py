@@ -37,6 +37,36 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
             A copied instance.
         """
 
+    @abc.abstractmethod
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
+        """Measures the state.
+
+        Args:
+            axes: The axes to measure.
+            seed: The random number seed to use.
+        Returns:
+            The measurements in order.
+        """
+
+    @abc.abstractmethod
+    def sample(
+        self,
+        axes: Sequence[int],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        """Samples the state.
+
+        Args:
+            axes: The axes to sample.
+            repetitions: The number of samples to make.
+            seed: The random number seed to use.
+        Returns:
+            The samples in order.
+        """
+
     def kron(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""
         raise NotImplementedError()
@@ -631,3 +661,16 @@ class CliffordTableau(StabilizerState):
 
     def apply_global_phase(self, coefficient: linear_dict.Scalar):
         pass
+
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
+        return [self._measure(axis, seed) for axis in axes]
+
+    def sample(
+        self,
+        axes: Sequence[int],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        raise NotImplementedError()

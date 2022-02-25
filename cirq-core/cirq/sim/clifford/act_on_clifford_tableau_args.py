@@ -62,16 +62,3 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTabl
     @property
     def tableau(self) -> 'cirq.CliffordTableau':
         return self.state
-
-    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Returns the measurement from the tableau."""
-        return [self.state._measure(self.qubit_map[q], self.prng) for q in qubits]
-
-    def sample(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        # Unnecessary for now but can be added later if there is a use case.
-        raise NotImplementedError()

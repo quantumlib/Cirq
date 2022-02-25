@@ -340,14 +340,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             "SupportsMixture or SupportsKraus or is a measurement: {!r}".format(action)
         )
 
-    @property
-    def allows_factoring(self):
-        return True
-
-    @property
-    def can_represent_mixed_states(self) -> bool:
-        return True
-
     def __repr__(self) -> str:
         return (
             'cirq.ActOnDensityMatrixArgs('

@@ -83,10 +83,6 @@ class ActOnStabilizerCHFormArgs(
             classical_data=classical_data,
         )
 
-    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Returns the measurement from the stabilizer state form."""
-        return [self.state._measure(self.qubit_map[q], self.prng) for q in qubits]
-
     def _on_kronecker_product(
         self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
     ):
@@ -97,20 +93,6 @@ class ActOnStabilizerCHFormArgs(
     ):
         axes = [self.qubit_map[q] for q in qubits]
         target._state = self.state.reindex(axes)
-
-    def sample(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        prng = value.parse_random_state(seed)
-        axes = self.get_axes(qubits)
-        measurements = []
-        for _ in range(repetitions):
-            state = self.state.copy()
-            measurements.append([state._measure(i, prng) for i in axes])
-        return np.array(measurements, dtype=bool)
 
     @property
     def supports_kron(self) -> bool:

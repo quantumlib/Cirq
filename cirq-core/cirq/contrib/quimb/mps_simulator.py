@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKIN
 import numpy as np
 import quimb.tensor as qtn
 
-from cirq import devices, protocols, value
+from cirq import devices, protocols, qis, value
 from cirq.sim import simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -219,7 +219,7 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 
 
 @value.value_equality
-class _MPSQuantumState:
+class _MPSQuantumState(qis.QuantumStateRepresentation):
     """Quantum state of the MPS simulation."""
 
     def __init__(
