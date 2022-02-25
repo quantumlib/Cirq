@@ -99,35 +99,48 @@ def test_qpu_result_bad_measurement_key():
 
 def test_qpu_result_to_cirq_result():
     result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [0, 1]})
-    assert result.to_cirq_result() == cirq.Result(
-        params=cirq.ParamResolver({}), measurements={'x': [[0, 0], [0, 1], [0, 1]]}
+    assert result.to_cirq_result() == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'x': np.array([[0, 0], [0, 1], [0, 1]])}
     )
     params = cirq.ParamResolver({'a': 0.1})
-    assert result.to_cirq_result(params) == cirq.Result(
-        params=params, measurements={'x': [[0, 0], [0, 1], [0, 1]]}
+    assert result.to_cirq_result(params) == cirq.ResultDict(
+        params=params, measurements={'x': np.array([[0, 0], [0, 1], [0, 1]])}
     )
     result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [0]})
-    assert result.to_cirq_result() == cirq.Result(
-        params=cirq.ParamResolver({}), measurements={'x': [[0], [0], [0]]}
+    assert result.to_cirq_result() == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'x': np.array([[0], [0], [0]])}
     )
     result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [1]})
-    assert result.to_cirq_result() == cirq.Result(
-        params=cirq.ParamResolver({}), measurements={'x': [[0], [1], [1]]}
+    assert result.to_cirq_result() == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'x': np.array([[0], [1], [1]])}
     )
     # cirq.Result only compares pandas data frame, so possible to have supplied an list of
     # list instead of a numpy multidimensional array. Check this here.
     assert type(result.to_cirq_result().measurements['x']) == np.ndarray
+    # Results bitstreams need to be consistent betwween measurement keys
+    # Ordering is by bitvector, so 0b01 0b01 0b10 should be the ordering for all measurement dicts.
+    result = ionq.QPUResult(
+        {0b10: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [0, 1], 'y': [0], 'z': [1]}
+    )
+    assert result.to_cirq_result() == cirq.ResultDict(
+        params=cirq.ParamResolver({}),
+        measurements={
+            'x': np.array([[0, 1], [0, 1], [1, 0]]),
+            'y': np.array([[0], [0], [1]]),
+            'z': np.array([[1], [1], [0]]),
+        },
+    )
 
 
 def test_qpu_result_to_cirq_result_multiple_keys():
     result = ionq.QPUResult(
         {0b000: 2, 0b101: 3}, num_qubits=3, measurement_dict={'x': [1], 'y': [2, 0]}
     )
-    assert result.to_cirq_result() == cirq.Result(
+    assert result.to_cirq_result() == cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
-            'x': [[0], [0], [0], [0], [0]],
-            'y': [[0, 0], [0, 0], [1, 1], [1, 1], [1, 1]],
+            'x': np.array([[0], [0], [0], [0], [0]]),
+            'y': np.array([[0, 0], [0, 0], [1, 1], [1, 1], [1, 1]]),
         },
     )
 
@@ -136,6 +149,12 @@ def test_qpu_result_to_cirq_result_no_keys():
     result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={})
     with pytest.raises(ValueError, match='cirq results'):
         _ = result.to_cirq_result()
+
+
+def test_ordered_results_invalid_key():
+    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [1]})
+    with pytest.raises(ValueError, match='is not a key for'):
+        _ = result.ordered_results('y')
 
 
 def test_simulator_result_fields():
@@ -257,31 +276,31 @@ def test_simulator_result_to_cirq_result():
     result = ionq.SimulatorResult(
         {0b00: 0.25, 0b01: 0.75}, num_qubits=2, measurement_dict={'x': [0, 1]}, repetitions=3
     )
-    assert result.to_cirq_result(seed=2) == cirq.Result(
-        params=cirq.ParamResolver({}), measurements={'x': [[0, 1], [0, 0], [0, 1]]}
+    assert result.to_cirq_result(seed=2) == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'x': np.array([[0, 1], [0, 0], [0, 1]])}
     )
-    assert result.to_cirq_result(seed=3) == cirq.Result(
-        params=cirq.ParamResolver({}), measurements={'x': [[0, 1], [0, 1], [0, 1]]}
+    assert result.to_cirq_result(seed=3) == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'x': np.array([[0, 1], [0, 1], [0, 1]])}
     )
     params = cirq.ParamResolver({'a': 0.1})
-    assert result.to_cirq_result(seed=3, params=params) == cirq.Result(
-        params=params, measurements={'x': [[0, 1], [0, 1], [0, 1]]}
+    assert result.to_cirq_result(seed=3, params=params) == cirq.ResultDict(
+        params=params, measurements={'x': np.array([[0, 1], [0, 1], [0, 1]])}
     )
-    assert result.to_cirq_result(seed=2, override_repetitions=2) == cirq.Result(
-        params=cirq.ParamResolver({}), measurements={'x': [[0, 1], [0, 0]]}
+    assert result.to_cirq_result(seed=2, override_repetitions=2) == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'x': np.array([[0, 1], [0, 0]])}
     )
 
     result = ionq.SimulatorResult(
         {0b00: 0.25, 0b01: 0.75}, num_qubits=2, measurement_dict={'x': [0]}, repetitions=3
     )
-    assert result.to_cirq_result(seed=2) == cirq.Result(
-        params=cirq.ParamResolver({}), measurements={'x': [[0], [0], [0]]}
+    assert result.to_cirq_result(seed=2) == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'x': np.array([[0], [0], [0]])}
     )
     result = ionq.SimulatorResult(
         {0b00: 0.25, 0b01: 0.75}, num_qubits=2, measurement_dict={'x': [1]}, repetitions=3
     )
-    assert result.to_cirq_result(seed=2) == cirq.Result(
-        params=cirq.ParamResolver({}), measurements={'x': [[1], [0], [1]]}
+    assert result.to_cirq_result(seed=2) == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'x': np.array([[1], [0], [1]])}
     )
     # cirq.Result only compares pandas data frame, so possible to have supplied an list of
     # list instead of a numpy multidimensional array. Check this here.
@@ -295,9 +314,9 @@ def test_simulator_result_to_cirq_result_multiple_keys():
         measurement_dict={'x': [1], 'y': [2, 0]},
         repetitions=3,
     )
-    assert result.to_cirq_result(seed=2) == cirq.Result(
+    assert result.to_cirq_result(seed=2) == cirq.ResultDict(
         params=cirq.ParamResolver({}),
-        measurements={'x': [[1], [0], [1]], 'y': [[1, 0], [0, 0], [1, 0]]},
+        measurements={'x': np.array([[1], [0], [1]]), 'y': np.array([[1, 0], [0, 0], [1, 0]])},
     )
 
 

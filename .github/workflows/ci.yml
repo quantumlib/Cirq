@@ -86,7 +86,7 @@ jobs:
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
-        run: check/pytest-changed-files
+        run: check/pytest-changed-files -n auto
   lint:
     name: Lint check
     runs-on: ubuntu-20.04
@@ -158,13 +158,17 @@ jobs:
       - name: Force old pip (3.6 only)
         if: matrix.python-version == '3.6'
         run: pip install pip==20.2
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
         run: |
-          pip install -r dev_tools/requirements/dev.env.txt
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   build_docs:
@@ -208,12 +212,16 @@ jobs:
         with:
           python-version: '3.8'
           architecture: 'x64'
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/dev.env.txt
+        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
-        run: check/pytest-and-incremental-coverage --actually-quiet
+        run: check/pytest-and-incremental-coverage -n auto
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
@@ -228,10 +236,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/no-contrib.env.txt
+        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
-        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
+        run: |
+          source dev_tools/pypath
+          check/pytest -n auto --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
@@ -245,10 +259,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/no-contrib.env.txt
+        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest --ignore=cirq-core/cirq/contrib
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     env:
@@ -314,7 +332,7 @@ jobs:
       - name: Install npm
         run: check/npm ci
       - name: Lint
-        run: check/ts-lint 
+        run: check/ts-lint
   ts-test:
     name: Typescript tests
     runs-on: ubuntu-20.04
@@ -325,7 +343,7 @@ jobs:
       - name: Install npm dependencies
         run: check/npm ci
       - name: Unit tests
-        run: check/ts-test 
+        run: check/ts-test
       - name: End to end tests
         run: check/ts-test-e2e
   ts-coverage:

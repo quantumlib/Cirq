@@ -14,38 +14,41 @@
 
 from typing import Iterable
 
-from cirq.devices import GridQubit
+import cirq
 from cirq_google.line.placement.chip import chip_as_adjacency_list, above, below, right_of, left_of
-from cirq_google import XmonDevice
-from cirq.value import Duration
 
 
 def test_neighbours():
-    qubit = GridQubit(0, 0)
-    assert above(qubit) == GridQubit(0, -1)
-    assert below(qubit) == GridQubit(0, 1)
-    assert right_of(qubit) == GridQubit(1, 0)
-    assert left_of(qubit) == GridQubit(-1, 0)
+    qubit = cirq.GridQubit(0, 0)
+    assert above(qubit) == cirq.GridQubit(0, -1)
+    assert below(qubit) == cirq.GridQubit(0, 1)
+    assert right_of(qubit) == cirq.GridQubit(1, 0)
+    assert left_of(qubit) == cirq.GridQubit(-1, 0)
 
 
 def test_qubit_not_mutated():
-    qubit = GridQubit(0, 0)
+    qubit = cirq.GridQubit(0, 0)
 
     above(qubit)
-    assert qubit == GridQubit(0, 0)
+    assert qubit == cirq.GridQubit(0, 0)
 
     below(qubit)
-    assert qubit == GridQubit(0, 0)
+    assert qubit == cirq.GridQubit(0, 0)
 
     right_of(qubit)
-    assert qubit == GridQubit(0, 0)
+    assert qubit == cirq.GridQubit(0, 0)
 
     left_of(qubit)
-    assert qubit == GridQubit(0, 0)
+    assert qubit == cirq.GridQubit(0, 0)
 
 
-def _create_device(qubits: Iterable[GridQubit]) -> XmonDevice:
-    return XmonDevice(Duration(nanos=0), Duration(nanos=0), Duration(nanos=0), qubits)
+class TestDevice(cirq.Device):
+    def __init__(self, qubits):
+        self.qubits = qubits
+
+
+def _create_device(qubits: Iterable[cirq.GridQubit]):
+    return TestDevice(qubits)
 
 
 def test_empty():
@@ -53,26 +56,26 @@ def test_empty():
 
 
 def test_single_qubit():
-    q00 = GridQubit(0, 0)
+    q00 = cirq.GridQubit(0, 0)
     assert chip_as_adjacency_list(_create_device([q00])) == {q00: []}
 
 
 def test_two_close_qubits():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
     assert chip_as_adjacency_list(_create_device([q00, q01])) == {q00: [q01], q01: [q00]}
 
 
 def test_two_qubits_apart():
-    q00 = GridQubit(0, 0)
-    q11 = GridQubit(1, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q11 = cirq.GridQubit(1, 1)
     assert chip_as_adjacency_list(_create_device([q00, q11])) == {q00: [], q11: []}
 
 
 def test_three_qubits_in_row():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
     assert chip_as_adjacency_list(_create_device([q00, q01, q02])) == {
         q00: [q01],
         q01: [q00, q02],
@@ -81,10 +84,10 @@ def test_three_qubits_in_row():
 
 
 def test_square_of_four():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q10 = GridQubit(1, 0)
-    q11 = GridQubit(1, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q10 = cirq.GridQubit(1, 0)
+    q11 = cirq.GridQubit(1, 1)
     assert chip_as_adjacency_list(_create_device([q00, q01, q10, q11])) == {
         q00: [q01, q10],
         q01: [q00, q11],

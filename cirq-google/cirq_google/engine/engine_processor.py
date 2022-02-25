@@ -27,7 +27,8 @@ from cirq_google.engine import (
     calibration_layer,
     engine_sampler,
 )
-from cirq_google.serialization import circuit_serializer, serializable_gate_set, serializer
+from cirq_google.serialization import serializable_gate_set, serializer
+from cirq_google.serialization import gate_sets as gs
 
 if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
@@ -84,6 +85,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self.context = context
         self._processor = _processor
 
+    def __repr__(self) -> str:
+        return (
+            f'<EngineProcessor: processor_id={self.processor_id!r}, '
+            f'project_id={self.project_id!r}>'
+        )
+
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object.
 
@@ -95,13 +102,14 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_sampler(
-        self, gate_set: Optional[serializer.Serializer]
+        self,
+        gate_set: Optional[serializer.Serializer] = None,
     ) -> engine_sampler.QuantumEngineSampler:
         """Returns a sampler backed by the engine.
 
         Args:
             gate_set: A `Serializer` that determines how to serialize circuits
-            when requesting samples.
+            when requesting samples. If not specified, uses proto v2.5 serialization.
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
@@ -111,7 +119,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_sampler.QuantumEngineSampler(
             engine=self.engine(),
             processor_id=self.processor_id,
-            gate_set=gate_set or circuit_serializer.CIRCUIT_SERIALIZER,
+            gate_set=gate_set,
         )
 
     def run_batch(
@@ -335,7 +343,10 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
-    def get_device(self, gate_sets: Iterable[serializer.Serializer]) -> cirq.Device:
+    def get_device(
+        self,
+        gate_sets: Iterable[serializer.Serializer] = (),
+    ) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
@@ -345,6 +356,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         spec = self.get_device_specification()
         if not spec:
             raise ValueError('Processor does not have a device specification')
+        if not gate_sets:
+            # Default is to use all named gatesets in the device spec
+            gate_sets = []
+            for valid_gate_set in spec.valid_gate_sets:
+                if valid_gate_set.name in gs.NAMED_GATESETS:
+                    gate_sets.append(gs.NAMED_GATESETS[valid_gate_set.name])
         if not all(isinstance(gs, serializable_gate_set.SerializableGateSet) for gs in gate_sets):
             raise ValueError('All gate_sets must be SerializableGateSet currently.')
         return serializable_device.SerializableDevice.from_proto(

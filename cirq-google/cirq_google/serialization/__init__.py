@@ -21,6 +21,7 @@ from cirq_google.serialization.arg_func_langs import (
 
 from cirq_google.serialization.circuit_serializer import (
     CircuitSerializer,
+    CIRCUIT_SERIALIZER,
 )
 
 from cirq_google.serialization.gate_sets import (

@@ -13,11 +13,11 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
+from typing import Any, Optional, Tuple, TYPE_CHECKING, Type, Union, Dict, List, Sequence
 
 import numpy as np
 
-from cirq import linalg, protocols, sim
+from cirq import _compat, linalg, protocols, qis, sim
 from cirq._compat import proper_repr
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
@@ -37,13 +37,22 @@ class ActOnStateVectorArgs(ActOnArgs):
         then pass `available_buffer` into `swap_target_tensor_for`.
     """
 
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
+        fix='Use initial_state instead and specify all the arguments with keywords.',
+        parameter_desc='target_tensor and positional arguments',
+        match=lambda args, kwargs: 'target_tensor' in kwargs or len(args) != 1,
+    )
     def __init__(
         self,
-        target_tensor: np.ndarray,
-        available_buffer: np.ndarray,
-        prng: np.random.RandomState = None,
-        log_of_measurement_results: Dict[str, Any] = None,
-        qubits: Sequence['cirq.Qid'] = None,
+        target_tensor: Optional[np.ndarray] = None,
+        available_buffer: Optional[np.ndarray] = None,
+        prng: Optional[np.random.RandomState] = None,
+        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
+        dtype: Type[np.number] = np.complex64,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits ActOnStateVectorArgs.
 
@@ -63,9 +72,30 @@ class ActOnStateVectorArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            initial_state: The initial state for the simulation in the
+                computational basis.
+            dtype: The `numpy.dtype` of the inferred state vector. One of
+                `numpy.complex64` or `numpy.complex128`. Only used when
+                `target_tenson` is None.
+            classical_data: The shared classical data container for this
+                simulation.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
+        if target_tensor is None:
+            qid_shape = protocols.qid_shape(self.qubits)
+            state = qis.to_valid_state_vector(
+                initial_state, len(self.qubits), qid_shape=qid_shape, dtype=dtype
+            )
+            target_tensor = np.reshape(state, qid_shape)
         self.target_tensor = target_tensor
+
+        if available_buffer is None:
+            available_buffer = np.empty_like(target_tensor)
         self.available_buffer = available_buffer
 
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
@@ -174,9 +204,12 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return bits
 
-    def _on_copy(self, target: 'cirq.ActOnStateVectorArgs'):
+    def _on_copy(self, target: 'cirq.ActOnStateVectorArgs', deep_copy_buffers: bool = True):
         target.target_tensor = self.target_tensor.copy()
-        target.available_buffer = self.available_buffer.copy()
+        if deep_copy_buffers:
+            target.available_buffer = self.available_buffer.copy()
+        else:
+            target.available_buffer = self.available_buffer
 
     def _on_kronecker_product(
         self, other: 'cirq.ActOnStateVectorArgs', target: 'cirq.ActOnStateVectorArgs'
@@ -203,6 +236,10 @@ class ActOnStateVectorArgs(ActOnArgs):
         extracted.available_buffer = np.empty_like(extracted_tensor)
         remainder.target_tensor = remainder_tensor
         remainder.available_buffer = np.empty_like(remainder_tensor)
+
+    @property
+    def allows_factoring(self):
+        return True
 
     def _on_transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStateVectorArgs'
@@ -275,7 +312,7 @@ def _strat_act_on_state_vector_from_mixture(
     args.swap_target_tensor_for(args.available_buffer)
     if protocols.is_measurement(action):
         key = protocols.measurement_key_name(action)
-        args.log_of_measurement_results[key] = [index]
+        args._classical_data.record_channel_measurement(key, index)
     return True
 
 
@@ -324,5 +361,5 @@ def _strat_act_on_state_vector_from_channel(
     args.swap_target_tensor_for(args.available_buffer)
     if protocols.is_measurement(action):
         key = protocols.measurement_key_name(action)
-        args.log_of_measurement_results[key] = [index]
+        args._classical_data.record_channel_measurement(key, index)
     return True

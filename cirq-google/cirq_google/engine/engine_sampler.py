@@ -33,7 +33,7 @@ class QuantumEngineSampler(cirq.Sampler):
         *,
         engine: 'cirq_google.Engine',
         processor_id: Union[str, List[str]],
-        gate_set: 'cirq_google.serialization.Serializer',
+        gate_set: Optional['cirq_google.serialization.Serializer'] = None,
     ):
         """Inits QuantumEngineSampler.
 
@@ -53,7 +53,7 @@ class QuantumEngineSampler(cirq.Sampler):
         program: Union[cirq.AbstractCircuit, 'cirq_google.EngineProgram'],
         params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List[cirq.Result]:
+    ) -> Sequence[cirq.Result]:
         if isinstance(program, engine.EngineProgram):
             job = program.run_sweep(
                 params=params, repetitions=repetitions, processor_ids=self._processor_ids
@@ -70,10 +70,10 @@ class QuantumEngineSampler(cirq.Sampler):
 
     def run_batch(
         self,
-        programs: Sequence['cirq.AbstractCircuit'],
+        programs: Sequence[cirq.AbstractCircuit],
         params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: Union[int, List[int]] = 1,
-    ) -> List[List[cirq.Result]]:
+    ) -> Sequence[Sequence[cirq.Result]]:
         """Runs the supplied circuits.
 
         In order to gain a speedup from using this method instead of other run

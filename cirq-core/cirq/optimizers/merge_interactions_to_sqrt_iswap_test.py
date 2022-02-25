@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, List
+from typing import List
 
 import pytest
 
@@ -37,16 +37,16 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
     opt.optimize_circuit(actual)
 
     # Ignore differences that would be caught by follow-up optimizations.
-    followup_optimizations: List[Callable[[cirq.Circuit], None]] = [
-        cirq.merge_single_qubit_gates_into_phased_x_z,
-        cirq.EjectPhasedPaulis().optimize_circuit,
-        cirq.EjectZ().optimize_circuit,
-        cirq.DropNegligible().optimize_circuit,
-        cirq.DropEmptyMoments().optimize_circuit,
+    followup_transformers: List[cirq.TRANSFORMER] = [
+        cirq.merge_single_qubit_gates_to_phased_x_and_z,
+        cirq.eject_phased_paulis,
+        cirq.eject_z,
+        cirq.drop_negligible_operations,
+        cirq.drop_empty_moments,
     ]
-    for post in followup_optimizations:
-        post(actual)
-        post(expected)
+    for transform in followup_transformers:
+        actual = transform(actual).unfreeze(copy=False)
+        expected = transform(expected).unfreeze(copy=False)
 
     assert actual == expected, f'ACTUAL {actual} : EXPECTED {expected}'
 

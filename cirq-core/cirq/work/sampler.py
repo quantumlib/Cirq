@@ -14,11 +14,12 @@
 """Abstract base class for things sampling quantum circuits."""
 
 import abc
-from typing import List, Optional, TYPE_CHECKING, Union, Dict, FrozenSet, Tuple
-from typing import Sequence
+import collections
+from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import pandas as pd
-from cirq import study, ops
+
+from cirq import ops, protocols, study
 from cirq.work.observable_measurement import (
     measure_observables,
     RepetitionsStoppingCriteria,
@@ -148,7 +149,7 @@ class Sampler(metaclass=abc.ABCMeta):
         program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> Sequence['cirq.Result']:
         """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -187,7 +188,7 @@ class Sampler(metaclass=abc.ABCMeta):
         program: 'cirq.AbstractCircuit',
         params: 'cirq.Sweepable',
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> Sequence['cirq.Result']:
         """Asynchronously sweeps and samples from the given Circuit.
 
         By default, this method invokes `run_sweep` synchronously and simply
@@ -211,7 +212,7 @@ class Sampler(metaclass=abc.ABCMeta):
         programs: Sequence['cirq.AbstractCircuit'],
         params_list: Optional[List['cirq.Sweepable']] = None,
         repetitions: Union[int, List[int]] = 1,
-    ) -> List[List['cirq.Result']]:
+    ) -> Sequence[Sequence['cirq.Result']]:
         """Runs the supplied circuits.
 
         Each circuit provided in `programs` will pair with the optional
@@ -277,7 +278,7 @@ class Sampler(metaclass=abc.ABCMeta):
         num_samples: int,
         params: 'cirq.Sweepable' = None,
         permit_terminal_measurements: bool = False,
-    ) -> List[List[float]]:
+    ) -> Sequence[Sequence[float]]:
         """Calculates estimated expectation values from samples of a circuit.
 
         Please see also `cirq.work.measure_observables` for more control over how to measure
@@ -365,3 +366,34 @@ class Sampler(metaclass=abc.ABCMeta):
             nested_results[param_i][psum_i] += res.mean
 
         return nested_results
+
+    @staticmethod
+    def _get_measurement_shapes(
+        circuit: 'cirq.AbstractCircuit',
+    ) -> Dict[str, Tuple[int, Tuple[int, ...]]]:
+        """Gets the shapes of measurements in the given circuit.
+
+        Returns:
+            A mapping from measurement key name to a tuple of (num_instances, qid_shape),
+            where num_instances is the number of times that key appears in the circuit and
+            qid_shape is the shape of measured qubits for the key, as determined by the
+            `cirq.qid_shape` protocol.
+
+        Raises:
+            ValueError: if the qid_shape of different instances of the same measurement
+            key disagree.
+        """
+        qid_shapes: Dict[str, Tuple[int, ...]] = {}
+        num_instances: Dict[str, int] = collections.Counter()
+        for op in circuit.all_operations():
+            key = protocols.measurement_key_name(op, default=None)
+            if key is not None:
+                qid_shape = protocols.qid_shape(op)
+                prev_qid_shape = qid_shapes.setdefault(key, qid_shape)
+                if qid_shape != prev_qid_shape:
+                    raise ValueError(
+                        "Different qid shapes for repeated measurement: "
+                        f"key={key!r}, prev_qid_shape={prev_qid_shape}, qid_shape={qid_shape}"
+                    )
+                num_instances[key] += 1
+        return {k: (num_instances[k], qid_shape) for k, qid_shape in qid_shapes.items()}

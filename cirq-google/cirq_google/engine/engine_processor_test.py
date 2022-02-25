@@ -24,6 +24,7 @@ from google.protobuf.text_format import Merge
 from google.protobuf.timestamp_pb2 import Timestamp
 import cirq
 import cirq_google as cg
+import cirq_google.devices.known_devices as known_devices
 from cirq_google.api import v2
 from cirq_google.engine.engine import EngineContext
 from cirq_google.engine.client.quantum_v1alpha1 import enums as qenums
@@ -240,6 +241,12 @@ def test_engine():
     assert processor.engine().project_id == 'a'
 
 
+def test_engine_repr():
+    processor = cg.EngineProcessor('the-project-id', 'the-processor-id', EngineContext())
+    assert 'the-project-id' in repr(processor)
+    assert 'the-processor-id' in repr(processor)
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_health(get_processor):
     get_processor.return_value = qtypes.QuantumProcessor(health=qtypes.QuantumProcessor.Health.OK)
@@ -332,6 +339,24 @@ def test_get_device():
         device.validate_operation(cirq.Y(cirq.GridQubit(0, 0)))
     with pytest.raises(ValueError, match='must be SerializableGateSet'):
         processor.get_device(gate_sets=[cg.serialization.circuit_serializer.CIRCUIT_SERIALIZER])
+
+
+def test_default_gate_sets():
+    # Sycamore should have valid gate sets with default
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=qtypes.QuantumProcessor(device_spec=_to_any(known_devices.SYCAMORE_PROTO)),
+    )
+    device = processor.get_device()
+    device.validate_operation(cirq.X(cirq.GridQubit(5, 4)))
+    # Test that a device with no standard gatesets doesn't blow up
+    processor = cg.EngineProcessor(
+        'a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC)
+    )
+    device = processor.get_device()
+    assert device.qubits == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)]
 
 
 def test_get_missing_device():

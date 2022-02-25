@@ -94,7 +94,7 @@ def _measurement_subspaces(
 
 
 def assert_circuits_with_terminal_measurements_are_equivalent(
-    actual: circuits.AbstractCircuit, reference: circuits.AbstractCircuit, atol: float
+    actual: circuits.AbstractCircuit, reference: circuits.AbstractCircuit, atol: float = 1.0e-8
 ) -> None:
     """Determines if two circuits have equivalent effects.
 
@@ -222,7 +222,7 @@ def _first_differing_moment_index(
 
 
 def assert_has_diagram(
-    actual: Union[circuits.AbstractCircuit, ops.Moment], desired: str, **kwargs
+    actual: Union[circuits.AbstractCircuit, circuits.Moment], desired: str, **kwargs
 ) -> None:
     """Determines if a given circuit has the desired text diagram.
 

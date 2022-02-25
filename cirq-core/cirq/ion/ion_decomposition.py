@@ -23,7 +23,7 @@ from typing import Iterable, List, Optional, cast, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, linalg, protocols, optimizers, circuits
+from cirq import ops, linalg, protocols, circuits, transformers
 from cirq.ion import ms
 
 if TYPE_CHECKING:
@@ -52,9 +52,9 @@ def two_qubit_matrix_to_ion_operations(
 
 def _cleanup_operations(operations: List[ops.Operation]):
     circuit = circuits.Circuit(operations)
-    optimizers.merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(circuit)
-    optimizers.eject_phased_paulis.EjectPhasedPaulis().optimize_circuit(circuit)
-    optimizers.eject_z.EjectZ().optimize_circuit(circuit)
+    circuit = transformers.merge_single_qubit_gates_to_phased_x_and_z(circuit)
+    circuit = transformers.eject_phased_paulis(circuit)
+    circuit = transformers.eject_z(circuit)
     circuit = circuits.Circuit(circuit.all_operations(), strategy=circuits.InsertStrategy.EARLIEST)
     return list(circuit.all_operations())
 
@@ -83,7 +83,7 @@ def _kak_decomposition_to_operations(
 
 
 def _do_single_on(u: np.ndarray, q: 'cirq.Qid', atol: float = 1e-8):
-    for gate in optimizers.single_qubit_matrix_to_gates(u, atol):
+    for gate in transformers.single_qubit_matrix_to_gates(u, atol):
         yield gate(q)
 
 

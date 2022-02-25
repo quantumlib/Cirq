@@ -14,6 +14,8 @@
 
 """Classes for working with Google's Quantum Engine API."""
 
+import sys
+from cirq import _compat
 from cirq_google import api
 
 from cirq_google._version import (
@@ -107,6 +109,7 @@ from cirq_google.optimizers import (
 
 from cirq_google.serialization import (
     arg_from_proto,
+    CIRCUIT_SERIALIZER,
     CircuitSerializer,
     CircuitOpDeserializer,
     DeserializingArg,
@@ -137,7 +140,13 @@ from cirq_google.workflow import (
     QuantumRuntimeConfiguration,
     execute,
     QubitPlacer,
+    CouldNotPlaceError,
     NaiveQubitPlacer,
+    RandomDevicePlacer,
+    ProcessorRecord,
+    EngineProcessorRecord,
+    SimulatedProcessorRecord,
+    SimulatedProcessorWithLocalDeviceRecord,
 )
 
 from cirq_google import experimental
@@ -148,3 +157,11 @@ from cirq.protocols.json_serialization import _register_resolver
 from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)
+
+_compat.deprecate_attributes(
+    __name__,
+    {
+        'Bristlecone': ('v0.15', 'Bristlecone will no longer be supported.'),
+        'Foxtail': ('v0.15', 'Foxtail will no longer be supported.'),
+    },
+)

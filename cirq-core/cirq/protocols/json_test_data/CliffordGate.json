@@ -1,0 +1,38 @@
+{
+  "cirq_type": "CliffordGate",
+  "n": 2,
+  "rs": [
+    false,
+    false,
+    false,
+    false
+  ],
+  "xs": [
+    [
+      true, false
+    ],
+    [
+      false, true
+    ],
+    [
+      false, false
+    ],
+    [
+      false, false
+    ]
+  ],
+  "zs": [
+    [
+      false, false
+    ],
+    [
+      false, false
+    ],
+    [
+      true, false
+    ],
+    [
+      false, true
+    ]
+  ]
+}

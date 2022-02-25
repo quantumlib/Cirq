@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     import cirq_google
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
-    import cirq_google.engine.abstract_program as abstract_program
     import cirq_google.serialization.serializer as serializer
 
 
@@ -237,7 +236,10 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_sampler(self, gate_set: Optional['serializer.Serializer']) -> cirq.Sampler:
+    def get_sampler(
+        self,
+        gate_set: Optional['serializer.Serializer'] = None,
+    ) -> cirq.Sampler:
         """Returns a sampler backed by the processor.
 
         Args:
@@ -279,7 +281,10 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_device(self, gate_sets: Iterable['serializer.Serializer']) -> cirq.Device:
+    def get_device(
+        self,
+        gate_sets: Iterable['serializer.Serializer'] = (),
+    ) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
