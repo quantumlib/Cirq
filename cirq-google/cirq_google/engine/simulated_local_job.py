@@ -114,27 +114,18 @@ class SimulatedLocalJob(AbstractLocalJob):
         Returns: a List of results from the sweep's execution.
         """
         reps, sweeps = self.get_repetitions_and_sweeps()
+        sweeps = [{}] if len(sweeps) == 0 else sweeps
         parent = self.program()
-        batch_size = parent.batch_size()
         try:
             self._state = quantum.enums.ExecutionStatus.State.RUNNING
-            if batch_size == 1:
-                program = parent.get_circuit()
-                results = self._sampler.run_sweep(
-                    program=program, params=sweeps[0] if sweeps else None, repetitions=reps
-                )
-                self._state = quantum.enums.ExecutionStatus.State.SUCCESS
-                return [results]
-            else:
-                programs = [parent.get_circuit(n) for n in range(batch_size)]
-                batch_results = self._sampler.run_batch(
-                    programs=programs,
-                    params_list=cast(List[cirq.Sweepable], sweeps),
-                    repetitions=reps,
-                )
-                self._state = quantum.enums.ExecutionStatus.State.SUCCESS
-                return batch_results
-
+            programs = [parent.get_circuit(n) for n in range(parent.batch_size())]
+            batch_results = self._sampler.run_batch(
+                programs=programs,
+                params_list=cast(List[cirq.Sweepable], sweeps),
+                repetitions=reps,
+            )
+            self._state = quantum.enums.ExecutionStatus.State.SUCCESS
+            return batch_results
         except Exception as e:
             self._failure_code = '500'
             self._failure_message = str(e)

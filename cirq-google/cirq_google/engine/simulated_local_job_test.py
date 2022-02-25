@@ -36,7 +36,11 @@ class ParentProgram(AbstractLocalProgram):
 def test_run():
     program = ParentProgram([cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m'))], None)
     job = SimulatedLocalJob(
-        job_id='test_job', processor_id='test1', parent_program=program, repetitions=100, sweeps=[]
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=100,
+        sweeps=[{}],
     )
     assert job.id() == 'test_job'
     assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
@@ -120,7 +124,7 @@ def test_unsupported_types():
         processor_id='test1',
         parent_program=program,
         repetitions=100,
-        sweeps=[],
+        sweeps=[{}],
         simulation_type=LocalSimulationType.ASYNCHRONOUS_WITH_DELAY,
     )
     with pytest.raises(ValueError, match='Unsupported simulation type'):
