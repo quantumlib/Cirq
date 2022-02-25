@@ -170,8 +170,8 @@ def test_depol_memoization():
     # Verify that depolarizing error is memoized.
     q0 = cirq.LineQubit(0)
     props = TestNoiseProperties(**default_props([q0], []))
-    depol_error_a = props._depolarizing_error
-    depol_error_b = props._depolarizing_error
+    depol_error_a = props._get_depolarizing_error()
+    depol_error_b = props._get_depolarizing_error()
     assert depol_error_a == depol_error_b
     assert depol_error_a is depol_error_b
 
@@ -188,7 +188,7 @@ def test_depol_validation():
         validate=False,
     )
     with pytest.raises(ValueError, match='takes 1 qubit'):
-        _ = z_2q_props._depolarizing_error
+        _ = z_2q_props._get_depolarizing_error()
 
     # Create unvalidated properties with an unsupported gate.
     toffoli_props = TestNoiseProperties(
@@ -200,7 +200,7 @@ def test_depol_validation():
         validate=False,
     )
     with pytest.raises(ValueError, match='not in the supported gate list'):
-        _ = toffoli_props._depolarizing_error
+        _ = toffoli_props._get_depolarizing_error()
 
     # Create unvalidated properties with too many qubits on a CZ gate.
     cz_3q_props = TestNoiseProperties(
@@ -212,7 +212,7 @@ def test_depol_validation():
         validate=False,
     )
     with pytest.raises(ValueError, match='takes 2 qubit'):
-        _ = cz_3q_props._depolarizing_error
+        _ = cz_3q_props._get_depolarizing_error()
 
     # If t1_ns is missing, values are filled in as needed.
 
