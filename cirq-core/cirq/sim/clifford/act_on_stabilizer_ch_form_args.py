@@ -87,9 +87,6 @@ class ActOnStabilizerCHFormArgs(
         """Returns the measurement from the stabilizer state form."""
         return [self.state._measure(self.qubit_map[q], self.prng) for q in qubits]
 
-    def _on_copy(self, target: 'ActOnStabilizerCHFormArgs', deep_copy_buffers: bool = True):
-        target._state = self.state.copy()
-
     def _on_kronecker_product(
         self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
     ):
@@ -114,3 +111,11 @@ class ActOnStabilizerCHFormArgs(
             state = self.state.copy()
             measurements.append([state._measure(i, prng) for i in axes])
         return np.array(measurements, dtype=bool)
+
+    @property
+    def supports_kron(self) -> bool:
+        return True
+
+    @property
+    def supports_reindex(self) -> bool:
+        return True

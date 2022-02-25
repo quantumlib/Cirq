@@ -67,9 +67,6 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTabl
         """Returns the measurement from the tableau."""
         return [self.state._measure(self.qubit_map[q], self.prng) for q in qubits]
 
-    def _on_copy(self, target: 'ActOnCliffordTableauArgs', deep_copy_buffers: bool = True):
-        target._state = self.state.copy()
-
     def sample(
         self,
         qubits: Sequence['cirq.Qid'],

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
-import abc
 import copy
 import inspect
+import warnings
 from typing import (
     Any,
     cast,
@@ -28,7 +28,6 @@ from typing import (
     TYPE_CHECKING,
     Tuple,
 )
-import warnings
 
 import numpy as np
 
@@ -53,6 +52,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         ignore_measurement_results: bool = False,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        state: Optional['cirq.QuantumStateRepresentation'] = None,
     ):
         """Inits ActOnArgs.
 
@@ -84,6 +84,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             }
         )
         self._ignore_measurement_results = ignore_measurement_results
+        self._state = state
 
     @property
     def prng(self) -> np.random.RandomState:
@@ -142,10 +143,17 @@ class ActOnArgs(OperationTarget[TSelf]):
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]
 
-    @abc.abstractmethod
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Child classes that perform measurements should implement this with
-        the implementation."""
+        """Delegates the call to measure the density matrix."""
+        return self._state.measure(self.get_axes(qubits), self.prng)
+
+    def sample(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        return self._state.sample(self.get_axes(qubits), repetitions, seed)
 
     def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
         """Creates a copy of the object.
@@ -159,6 +167,10 @@ class ActOnArgs(OperationTarget[TSelf]):
             A copied instance.
         """
         args = copy.copy(self)
+        args._classical_data = self._classical_data.copy()
+        if self._state is not None:
+            args._state = self._state.copy(deep_copy_buffers=deep_copy_buffers)
+            return args
         if 'deep_copy_buffers' in inspect.signature(self._on_copy).parameters:
             self._on_copy(args, deep_copy_buffers)
         else:
@@ -170,7 +182,6 @@ class ActOnArgs(OperationTarget[TSelf]):
                 DeprecationWarning,
             )
             self._on_copy(args)
-        args._classical_data = self._classical_data.copy()
         return args
 
     def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
@@ -184,7 +195,10 @@ class ActOnArgs(OperationTarget[TSelf]):
     def kronecker_product(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
-        self._on_kronecker_product(other, args)
+        if self._state is not None and other._state is not None:
+            args._state = self._state.kron(other._state)
+        else:
+            self._on_kronecker_product(other, args)
         args._set_qubits(self.qubits + other.qubits)
         return args
 
@@ -219,7 +233,12 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
-        self._on_factor(qubits, extracted, remainder, validate, atol)
+        if self._state is not None:
+            e, r = self._state.factor(self.get_axes(qubits), validate=validate, atol=atol)
+            extracted._state = e
+            remainder._state = r
+        else:
+            self._on_factor(qubits, extracted, remainder, validate, atol)
         extracted._set_qubits(qubits)
         remainder._set_qubits([q for q in self.qubits if q not in qubits])
         return extracted, remainder
@@ -227,7 +246,7 @@ class ActOnArgs(OperationTarget[TSelf]):
     @property
     def allows_factoring(self):
         """Subclasses that allow factorization should override this."""
-        return False
+        return self._state.supports_factor if self._state is not None else False
 
     def _on_factor(
         self: TSelf,
@@ -259,7 +278,10 @@ class ActOnArgs(OperationTarget[TSelf]):
         if len(self.qubits) != len(qubits) or set(qubits) != set(self.qubits):
             raise ValueError(f'Qubits do not match. Existing: {self.qubits}, provided: {qubits}')
         args = self if inplace else copy.copy(self)
-        self._on_transpose_to_qubit_order(qubits, args)
+        if self._state is not None:
+            args._state = self._state.reindex(self.get_axes(qubits))
+        else:
+            self._on_transpose_to_qubit_order(qubits, args)
         args._set_qubits(qubits)
         return args
 
@@ -350,8 +372,7 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     @property
     def can_represent_mixed_states(self) -> bool:
-        return False
-
+        return self._state.can_represent_mixed_states if self._state is not None else False
 
 def strat_act_on_from_apply_decompose(
     val: Any,

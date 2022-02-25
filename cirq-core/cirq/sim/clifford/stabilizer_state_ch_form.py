@@ -80,7 +80,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     def _value_equality_values_(self) -> Any:
         return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.s, self.omega)
 
-    def copy(self) -> 'cirq.StabilizerStateChForm':
+    def copy(self, **kwargs) -> 'cirq.StabilizerStateChForm':
         copy = StabilizerStateChForm(self.n)
 
         copy.G = self.G.copy()

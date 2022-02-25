@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, Sequence, Tuple, TYPE_CHECKING, TypeVar
 import numpy as np
 
 from cirq import protocols
@@ -22,8 +22,61 @@ from cirq.value import big_endian_int_to_digits, linear_dict
 if TYPE_CHECKING:
     import cirq
 
+TSelf = TypeVar('TSelf', bound='QuantumStateRepresentation')
 
-class StabilizerState(metaclass=abc.ABCMeta):
+
+class QuantumStateRepresentation(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
+        """Creates a copy of the object.
+        Args:
+            deep_copy_buffers: If True, buffers will also be deep-copied.
+            Otherwise the copy will share a reference to the original object's
+            buffers.
+        Returns:
+            A copied instance.
+        """
+
+    def kron(self: TSelf, other: TSelf) -> TSelf:
+        """Joins two state spaces together."""
+        raise NotImplementedError()
+
+    def factor(self: TSelf, axes: Sequence[int], *, validate=True, atol=1e-07) -> Tuple[TSelf, TSelf]:
+        """Splits two state spaces after a measurement or reset."""
+        raise NotImplementedError()
+
+    def reindex(self: TSelf, axes: Sequence[int]) -> TSelf:
+        """Physically reindexes the state by the new basis.
+        Args:
+            axes: The desired axis order.
+        Returns:
+            The state with qubit order transposed and underlying representation
+            updated.
+        """
+        raise NotImplementedError()
+
+    @property
+    def supports_kron(self) -> bool:
+        """Subclasses that allow kronning should override this."""
+        return False
+
+    @property
+    def supports_factor(self) -> bool:
+        """Subclasses that allow factorization should override this."""
+        return False
+
+    @property
+    def supports_reindex(self) -> bool:
+        """Subclasses that allow reindexing should override this."""
+        return False
+
+    @property
+    def can_represent_mixed_states(self) -> bool:
+        """Subclasses that can represent mixed states should override this."""
+        return False
+
+
+class StabilizerState(QuantumStateRepresentation, metaclass=abc.ABCMeta):
     """Interface for quantum stabilizer state representations.
 
     This interface is used for CliffordTableau and StabilizerChForm quantum
@@ -222,7 +275,7 @@ class CliffordTableau(StabilizerState):
     def __copy__(self) -> 'CliffordTableau':
         return self.copy()
 
-    def copy(self) -> 'CliffordTableau':
+    def copy(self, **kwargs) -> 'CliffordTableau':
         state = CliffordTableau(self.n)
         state.rs = self.rs.copy()
         state.xs = self.xs.copy()
