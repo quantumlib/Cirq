@@ -78,6 +78,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CSwapGate': cirq.CSwapGate,
         'CXPowGate': cirq.CXPowGate,
         'CZPowGate': cirq.CZPowGate,
+        'CZTargetGateset': cirq.CZTargetGateset,
         'DensePauliString': cirq.DensePauliString,
         'DepolarizingChannel': cirq.DepolarizingChannel,
         'DeviceMetadata': cirq.DeviceMetadata,

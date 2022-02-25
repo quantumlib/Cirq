@@ -83,6 +83,9 @@ class PauliMeasurementGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return (2,) * len(self._observable)
 
+    def _has_unitary_(self) -> bool:
+        return False
+
     def with_key(self, key: Union[str, 'cirq.MeasurementKey']) -> 'PauliMeasurementGate':
         """Creates a pauli measurement gate with a new key but otherwise identical."""
         if key == self.key:
