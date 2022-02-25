@@ -390,19 +390,6 @@ class StabilizerStateChForm(qis.StabilizerState):
     ) -> List[int]:
         return [self._measure(axis, seed) for axis in axes]
 
-    def sample(
-        self,
-        axes: Sequence[int],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        prng = value.parse_random_state(seed)
-        measurements = []
-        for _ in range(repetitions):
-            state = self.copy()
-            measurements.append(state.measure(axes, prng))
-        return np.array(measurements, dtype=bool)
-
 
 def _phase(exponent, global_shift):
     return np.exp(1j * np.pi * global_shift * exponent)

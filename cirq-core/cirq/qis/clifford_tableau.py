@@ -16,7 +16,7 @@ import abc
 from typing import Any, Dict, List, Sequence, Tuple, TYPE_CHECKING, TypeVar
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.value import big_endian_int_to_digits, linear_dict
 
 if TYPE_CHECKING:
@@ -50,14 +50,13 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
             The measurements in order.
         """
 
-    @abc.abstractmethod
     def sample(
         self,
         axes: Sequence[int],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        """Samples the state.
+        """Samples the state. Subclasses can override with more performant method.
 
         Args:
             axes: The axes to sample.
@@ -66,6 +65,12 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         Returns:
             The samples in order.
         """
+        prng = value.parse_random_state(seed)
+        measurements = []
+        for _ in range(repetitions):
+            state = self.copy()
+            measurements.append(state.measure(axes, prng))
+        return np.array(measurements, dtype=bool)
 
     def kron(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""
@@ -668,11 +673,3 @@ class CliffordTableau(StabilizerState):
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
     ) -> List[int]:
         return [self._measure(axis, seed) for axis in axes]
-
-    def sample(
-        self,
-        axes: Sequence[int],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        raise NotImplementedError()
