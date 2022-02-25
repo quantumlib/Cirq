@@ -1,0 +1,12 @@
+[
+  {
+    "cirq_type": "CZTargetGateset",
+    "atol": 1e-06,
+    "allow_partial_czs": false
+  },
+  {
+    "cirq_type": "CZTargetGateset",
+    "atol": 1e-08,
+    "allow_partial_czs": true
+  }
+]

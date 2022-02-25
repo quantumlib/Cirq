@@ -28,9 +28,40 @@ def test_result_init():
     assert cirq.ResultDict(params=cirq.ParamResolver({}), measurements={}).repetitions == 0
 
 
+def test_default_repetitions():
+    class MyResult(cirq.Result):
+        def __init__(self, records):
+            self._records = records
+
+        @property
+        def params(self):
+            raise NotImplementedError()
+
+        @property
+        def measurements(self):
+            raise NotImplementedError()
+
+        @property
+        def records(self):
+            return self._records
+
+        @property
+        def data(self):
+            raise NotImplementedError()
+
+    assert MyResult({}).repetitions == 0
+    assert MyResult({'a': np.zeros((5, 2, 3))}).repetitions == 5
+
+
 def test_repr():
     v = cirq.ResultDict(
         params=cirq.ParamResolver({'a': 2}), measurements={'xy': np.array([[1, 0], [0, 1]])}
+    )
+    cirq.testing.assert_equivalent_repr(v)
+
+    v = cirq.ResultDict(
+        params=cirq.ParamResolver({'a': 2}),
+        records={'xy': np.array([[[0, 0], [0, 1]], [[1, 0], [1, 1]]])},
     )
     cirq.testing.assert_equivalent_repr(v)
 
@@ -227,10 +258,11 @@ def test_multi_measurement_histogram():
     )
 
 
-def test_trial_result_equality():
+def test_result_equality():
     et = cirq.testing.EqualsTester()
     et.add_equality_group(
-        cirq.ResultDict(params=cirq.ParamResolver({}), measurements={'a': np.array([[0]] * 5)})
+        cirq.ResultDict(params=cirq.ParamResolver({}), measurements={'a': np.array([[0]] * 5)}),
+        cirq.ResultDict(params=cirq.ParamResolver({}), records={'a': np.array([[[0]]] * 5)}),
     )
     et.add_equality_group(
         cirq.ResultDict(params=cirq.ParamResolver({}), measurements={'a': np.array([[0]] * 6)})
@@ -238,9 +270,12 @@ def test_trial_result_equality():
     et.add_equality_group(
         cirq.ResultDict(params=cirq.ParamResolver({}), measurements={'a': np.array([[1]] * 5)})
     )
+    et.add_equality_group(
+        cirq.ResultDict(params=cirq.ParamResolver({}), records={'a': np.array([[[0], [1]]] * 5)})
+    )
 
 
-def test_trial_result_addition_valid():
+def test_result_addition_valid():
     a = cirq.ResultDict(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
@@ -260,8 +295,32 @@ def test_trial_result_addition_valid():
     np.testing.assert_array_equal(c.measurements['q0'], np.array([[0, 1], [1, 0], [0, 1], [0, 1]]))
     np.testing.assert_array_equal(c.measurements['q1'], np.array([[0], [0], [1], [0]]))
 
+    # Add results with repeated measurements.
+    a = cirq.ResultDict(
+        params=cirq.ParamResolver({'ax': 1}),
+        records={
+            'q0': np.array([[[0, 1]], [[1, 0]], [[0, 1]]], dtype=bool),
+            'q1': np.array([[[0], [0]], [[0], [1]], [[1], [0]]], dtype=bool),
+        },
+    )
+    b = cirq.ResultDict(
+        params=cirq.ParamResolver({'ax': 1}),
+        records={
+            'q0': np.array([[[0, 1]]], dtype=bool),
+            'q1': np.array([[[1], [1]]], dtype=bool),
+        },
+    )
 
-def test_trial_result_addition_invalid():
+    c = a + b
+    np.testing.assert_array_equal(
+        c.records['q0'], np.array([[[0, 1]], [[1, 0]], [[0, 1]], [[0, 1]]])
+    )
+    np.testing.assert_array_equal(
+        c.records['q1'], np.array([[[0], [0]], [[0], [1]], [[1], [0]], [[1], [1]]])
+    )
+
+
+def test_result_addition_invalid():
     a = cirq.ResultDict(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
@@ -290,13 +349,22 @@ def test_trial_result_addition_invalid():
             'q1': np.array([[0, 1], [0, 1], [1, 1]], dtype=bool),
         },
     )
+    e = cirq.ResultDict(
+        params=cirq.ParamResolver({'ax': 1}),
+        records={
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
+            'q1': np.array([[[0], [0]], [[0], [1]], [[1], [0]]], dtype=bool),
+        },
+    )
 
-    with pytest.raises(ValueError, match='same parameters'):
+    with pytest.raises(ValueError, match='different parameters'):
         _ = a + b
-    with pytest.raises(ValueError, match='same measurement keys'):
+    with pytest.raises(ValueError, match='different measurement shapes'):
         _ = a + c
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='different measurement shapes'):
         _ = a + d
+    with pytest.raises(ValueError, match='different measurement shapes'):
+        _ = a + e
     with pytest.raises(TypeError):
         _ = a + 'junk'
 
@@ -344,13 +412,21 @@ def test_text_diagram_jupyter():
     assert p.text_pretty == 'ResultDict(...)'
 
 
-def test_json_bit_packing_and_dtype():
-    prng = np.random.RandomState(1234)
-    bits = prng.randint(2, size=(256, 256)).astype(np.uint8)
-    digits = prng.randint(256, size=(256, 256)).astype(np.uint8)
+@pytest.mark.parametrize('use_records', [False, True])
+def test_json_bit_packing_and_dtype(use_records: bool) -> None:
+    shape = (256, 3, 256) if use_records else (256, 256)
 
-    bits_result = cirq.ResultDict(params=cirq.ParamResolver({}), measurements={'m': bits})
-    digits_result = cirq.ResultDict(params=cirq.ParamResolver({}), measurements={'m': digits})
+    prng = np.random.RandomState(1234)
+    bits = prng.randint(2, size=shape).astype(np.uint8)
+    digits = prng.randint(256, size=shape).astype(np.uint8)
+
+    params = cirq.ParamResolver({})
+    if use_records:
+        bits_result = cirq.ResultDict(params=params, records={'m': bits})
+        digits_result = cirq.ResultDict(params=params, records={'m': digits})
+    else:
+        bits_result = cirq.ResultDict(params=params, measurements={'m': bits})
+        digits_result = cirq.ResultDict(params=params, measurements={'m': digits})
 
     bits_json = cirq.to_json(bits_result)
     digits_json = cirq.to_json(digits_result)
@@ -358,8 +434,12 @@ def test_json_bit_packing_and_dtype():
     loaded_bits_result = cirq.read_json(json_text=bits_json)
     loaded_digits_result = cirq.read_json(json_text=digits_json)
 
-    assert loaded_bits_result.measurements['m'].dtype == np.uint8
-    assert loaded_digits_result.measurements['m'].dtype == np.uint8
+    if use_records:
+        assert loaded_bits_result.records['m'].dtype == np.uint8
+        assert loaded_digits_result.records['m'].dtype == np.uint8
+    else:
+        assert loaded_bits_result.measurements['m'].dtype == np.uint8
+        assert loaded_digits_result.measurements['m'].dtype == np.uint8
     np.testing.assert_allclose(len(bits_json), len(digits_json) / 8, rtol=0.02)
 
 
@@ -381,4 +461,42 @@ def test_json_bit_packing_force():
     # two calls are equivalent.
     assert _pack_digits(2 * np.ones(10, dtype=int), pack_bits='force') == _pack_digits(
         np.ones(10), pack_bits='auto'
+    )
+
+
+def test_json_unpack_compat():
+    """Test reading old json with serialized measurements array."""
+    old_json = """
+        {
+            "cirq_type": "ResultDict",
+            "params": {
+                "cirq_type": "ParamResolver",
+                "param_dict": []
+            },
+            "measurements": {
+                "m": {
+                    "packed_digits": "d32a",
+                    "binary": true,
+                    "dtype": "bool",
+                    "shape": [
+                        3,
+                        5
+                    ]
+                }
+            }
+        }
+    """
+    result = cirq.read_json(json_text=old_json)
+    assert result == cirq.ResultDict(
+        params=cirq.ParamResolver({}),
+        measurements={
+            'm': np.array(
+                [
+                    [True, True, False, True, False],
+                    [False, True, True, False, False],
+                    [True, False, True, False, True],
+                ],
+                dtype=bool,
+            )
+        },
     )
