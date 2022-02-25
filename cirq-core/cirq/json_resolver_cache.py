@@ -160,7 +160,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SqrtIswapTargetGateset': cirq.SqrtIswapTargetGateset,
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,
-        'SuperconductingQubitsNoiseProperties': cirq.SuperconductingQubitsNoiseProperties,
         'SwapPowGate': cirq.SwapPowGate,
         'SymmetricalQidPair': cirq.SymmetricalQidPair,
         'SympyCondition': cirq.SympyCondition,

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Set, Tuple
 import numpy as np
 import cirq
 import pytest
@@ -22,8 +22,6 @@ from cirq.devices.noise_properties import (
 )
 from cirq.devices.superconducting_qubits_noise_properties import (
     SuperconductingQubitsNoiseProperties,
-    SINGLE_QUBIT_GATES,
-    TWO_QUBIT_GATES,
 )
 from cirq.devices.noise_utils import (
     OpIdentifier,
@@ -44,70 +42,80 @@ DEFAULT_GATE_NS: Dict[type, float] = {
 }
 
 
-# These properties are for testing purposes only - they are not representative
-# of device behavior for any existing hardware.
-def sample_noise_properties(
-    system_qubits: List[cirq.Qid], qubit_pairs: List[Tuple[cirq.Qid, cirq.Qid]]
-) -> SuperconductingQubitsNoiseProperties:
-    return SuperconductingQubitsNoiseProperties(
-        gate_times_ns=DEFAULT_GATE_NS,
-        t1_ns={q: 1e5 for q in system_qubits},
-        tphi_ns={q: 2e5 for q in system_qubits},
-        ro_fidelities={q: [0.001, 0.01] for q in system_qubits},
-        gate_pauli_errors={
-            **{OpIdentifier(g, q): 0.001 for g in SINGLE_QUBIT_GATES for q in system_qubits},
-            **{OpIdentifier(g, q0, q1): 0.01 for g in TWO_QUBIT_GATES for q0, q1 in qubit_pairs},
+def default_props(system_qubits: List[cirq.Qid], qubit_pairs: List[Tuple[cirq.Qid, cirq.Qid]]):
+    return {
+        'gate_times_ns': DEFAULT_GATE_NS,
+        't1_ns': {q: 1e5 for q in system_qubits},
+        'tphi_ns': {q: 2e5 for q in system_qubits},
+        'readout_errors': {q: [0.001, 0.01] for q in system_qubits},
+        'gate_pauli_errors': {
+            **{
+                OpIdentifier(g, q): 0.001
+                for g in TestNoiseProperties.single_qubit_gates()
+                for q in system_qubits
+            },
+            **{
+                OpIdentifier(g, q0, q1): 0.01
+                for g in TestNoiseProperties.two_qubit_gates()
+                for q0, q1 in qubit_pairs
+            },
         },
-    )
+    }
 
 
-def test_str():
-    q0 = cirq.LineQubit(0)
-    props = sample_noise_properties([q0], [])
-    assert str(props) == 'SuperconductingQubitsNoiseProperties'
+class TestNoiseProperties(SuperconductingQubitsNoiseProperties):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+    @classmethod
+    def single_qubit_gates(cls) -> Set[type]:
+        return {
+            cirq.ZPowGate,
+            cirq.PhasedXZGate,
+            cirq.MeasurementGate,
+            cirq.ResetChannel,
+        }
 
-def test_repr_evaluation():
-    q0 = cirq.LineQubit(0)
-    props = sample_noise_properties([q0], [])
-    props_from_repr = eval(repr(props))
-    assert props_from_repr == props
+    @classmethod
+    def symmetric_two_qubit_gates(cls) -> Set[type]:
+        return {
+            cirq.FSimGate,
+            cirq.PhasedFSimGate,
+            cirq.ISwapPowGate,
+            cirq.CZPowGate,
+        }
 
-
-def test_json_serialization():
-    q0 = cirq.LineQubit(0)
-    props = sample_noise_properties([q0], [])
-    props_json = cirq.to_json(props)
-    props_from_json = cirq.read_json(json_text=props_json)
-    assert props_from_json == props
+    @classmethod
+    def asymmetric_two_qubit_gates(cls) -> Set[type]:
+        return set()
 
 
 def test_init_validation():
     q0, q1, q2 = cirq.LineQubit.range(3)
     with pytest.raises(ValueError, match='Keys specified for T1 and Tphi are not identical.'):
-        _ = SuperconductingQubitsNoiseProperties(
+        _ = TestNoiseProperties(
             gate_times_ns=DEFAULT_GATE_NS,
             t1_ns={},
             tphi_ns={q0: 1},
-            ro_fidelities={q0: [0.1, 0.2]},
+            readout_errors={q0: [0.1, 0.2]},
             gate_pauli_errors={},
         )
 
     with pytest.raises(ValueError, match='Symmetric errors can only apply to 2-qubit gates.'):
-        _ = SuperconductingQubitsNoiseProperties(
+        _ = TestNoiseProperties(
             gate_times_ns=DEFAULT_GATE_NS,
             t1_ns={q0: 1},
             tphi_ns={q0: 1},
-            ro_fidelities={q0: [0.1, 0.2]},
+            readout_errors={q0: [0.1, 0.2]},
             gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
         )
 
     with pytest.raises(ValueError, match='does not appear in the symmetric or asymmetric'):
-        _ = SuperconductingQubitsNoiseProperties(
+        _ = TestNoiseProperties(
             gate_times_ns=DEFAULT_GATE_NS,
             t1_ns={q0: 1},
             tphi_ns={q0: 1},
-            ro_fidelities={q0: [0.1, 0.2]},
+            readout_errors={q0: [0.1, 0.2]},
             gate_pauli_errors={
                 OpIdentifier(cirq.CNOT, q0, q1): 0.1,
                 OpIdentifier(cirq.CNOT, q1, q0): 0.1,
@@ -115,20 +123,20 @@ def test_init_validation():
         )
 
     with pytest.raises(ValueError, match='has errors but its symmetric id'):
-        _ = SuperconductingQubitsNoiseProperties(
+        _ = TestNoiseProperties(
             gate_times_ns=DEFAULT_GATE_NS,
             t1_ns={q0: 1},
             tphi_ns={q0: 1},
-            ro_fidelities={q0: [0.1, 0.2]},
+            readout_errors={q0: [0.1, 0.2]},
             gate_pauli_errors={OpIdentifier(cirq.CZPowGate, q0, q1): 0.1},
         )
 
     # Single-qubit gates are ignored in symmetric-gate validation.
-    _ = SuperconductingQubitsNoiseProperties(
+    _ = TestNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q0: 1},
         tphi_ns={q0: 1},
-        ro_fidelities={q0: [0.1, 0.2]},
+        readout_errors={q0: [0.1, 0.2]},
         gate_pauli_errors={
             OpIdentifier(cirq.ZPowGate, q0): 0.1,
             OpIdentifier(cirq.CZPowGate, q0, q1): 0.1,
@@ -137,11 +145,11 @@ def test_init_validation():
     )
 
     # All errors are ignored if validation is disabled.
-    _ = SuperconductingQubitsNoiseProperties(
+    _ = TestNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={},
         tphi_ns={q0: 1},
-        ro_fidelities={q0: [0.1, 0.2]},
+        readout_errors={q0: [0.1, 0.2]},
         gate_pauli_errors={
             OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1,
             OpIdentifier(cirq.CNOT, q0, q1): 0.1,
@@ -152,7 +160,7 @@ def test_init_validation():
 
 def test_qubits():
     q0 = cirq.LineQubit(0)
-    props = sample_noise_properties([q0], [])
+    props = TestNoiseProperties(**default_props([q0], []))
     assert props.qubits == [q0]
     # Confirm memoization behavior.
     assert props.qubits == [q0]
@@ -161,9 +169,9 @@ def test_qubits():
 def test_depol_memoization():
     # Verify that depolarizing error is memoized.
     q0 = cirq.LineQubit(0)
-    props = sample_noise_properties([q0], [])
-    depol_error_a = props.get_depolarizing_error()
-    depol_error_b = props.get_depolarizing_error()
+    props = TestNoiseProperties(**default_props([q0], []))
+    depol_error_a = props._depolarizing_error
+    depol_error_b = props._depolarizing_error
     assert depol_error_a == depol_error_b
     assert depol_error_a is depol_error_b
 
@@ -171,64 +179,52 @@ def test_depol_memoization():
 def test_depol_validation():
     q0, q1, q2 = cirq.LineQubit.range(3)
     # Create unvalidated properties with too many qubits on a Z gate.
-    z_2q_props = SuperconductingQubitsNoiseProperties(
+    z_2q_props = TestNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q0: 1},
         tphi_ns={q0: 1},
-        ro_fidelities={q0: [0.1, 0.2]},
+        readout_errors={q0: [0.1, 0.2]},
         gate_pauli_errors={OpIdentifier(cirq.ZPowGate, q0, q1): 0.1},
         validate=False,
     )
-    with pytest.raises(ValueError, match='only takes one qubit'):
-        _ = z_2q_props.get_depolarizing_error()
+    with pytest.raises(ValueError, match='takes 1 qubit'):
+        _ = z_2q_props._depolarizing_error
 
     # Create unvalidated properties with an unsupported gate.
-    toffoli_props = SuperconductingQubitsNoiseProperties(
+    toffoli_props = TestNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q0: 1},
         tphi_ns={q0: 1},
-        ro_fidelities={q0: [0.1, 0.2]},
+        readout_errors={q0: [0.1, 0.2]},
         gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
         validate=False,
     )
     with pytest.raises(ValueError, match='not in the supported gate list'):
-        _ = toffoli_props.get_depolarizing_error()
+        _ = toffoli_props._depolarizing_error
 
     # Create unvalidated properties with too many qubits on a CZ gate.
-    cz_3q_props = SuperconductingQubitsNoiseProperties(
+    cz_3q_props = TestNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q0: 1},
         tphi_ns={q0: 1},
-        ro_fidelities={q0: [0.1, 0.2]},
+        readout_errors={q0: [0.1, 0.2]},
         gate_pauli_errors={OpIdentifier(cirq.CZPowGate, q0, q1, q2): 0.1},
         validate=False,
     )
-    with pytest.raises(ValueError, match='takes two qubits'):
-        _ = cz_3q_props.get_depolarizing_error()
+    with pytest.raises(ValueError, match='takes 2 qubit'):
+        _ = cz_3q_props._depolarizing_error
 
     # If t1_ns is missing, values are filled in as needed.
 
 
 def test_build_noise_model_validation():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    # Create unvalidated properties with mismatched T1 and Tphi qubits.
-    t1_tphi_props = SuperconductingQubitsNoiseProperties(
-        gate_times_ns=DEFAULT_GATE_NS,
-        t1_ns={},
-        tphi_ns={q0: 1},
-        ro_fidelities={q0: [0.1, 0.2]},
-        gate_pauli_errors={},
-        validate=False,
-    )
-    with pytest.raises(ValueError, match='but Tphi has qubits'):
-        _ = t1_tphi_props.build_noise_models()
-
     # Create unvalidated properties with unsupported gates.
-    toffoli_props = SuperconductingQubitsNoiseProperties(
+    toffoli_props = TestNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q0: 1},
         tphi_ns={q0: 1},
-        ro_fidelities={q0: [0.1, 0.2]},
+        readout_errors={q0: [0.1, 0.2]},
         gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
         validate=False,
     )
@@ -247,7 +243,7 @@ def test_build_noise_model_validation():
 )
 def test_single_qubit_gates(op):
     q0 = cirq.LineQubit(0)
-    props = sample_noise_properties([q0], [])
+    props = TestNoiseProperties(**default_props([q0], []))
     model = NoiseModelFromNoiseProperties(props)
     circuit = cirq.Circuit(op)
     noisy_circuit = circuit.with_noise(model)
@@ -286,7 +282,7 @@ def test_single_qubit_gates(op):
 )
 def test_two_qubit_gates(op):
     q0, q1 = cirq.LineQubit.range(2)
-    props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
+    props = TestNoiseProperties(**default_props([q0, q1], [(q0, q1), (q1, q0)]))
     model = NoiseModelFromNoiseProperties(props)
     circuit = cirq.Circuit(op)
     noisy_circuit = circuit.with_noise(model)
@@ -323,18 +319,20 @@ def test_two_qubit_gates(op):
 def test_measure_gates():
     q00, q01, q10, q11 = cirq.GridQubit.rect(2, 2)
     qubits = [q00, q01, q10, q11]
-    props = sample_noise_properties(
-        qubits,
-        [
-            (q00, q01),
-            (q01, q00),
-            (q10, q11),
-            (q11, q10),
-            (q00, q10),
-            (q10, q00),
-            (q01, q11),
-            (q11, q01),
-        ],
+    props = TestNoiseProperties(
+        **default_props(
+            qubits,
+            [
+                (q00, q01),
+                (q01, q00),
+                (q10, q11),
+                (q11, q10),
+                (q00, q10),
+                (q10, q00),
+                (q01, q11),
+                (q11, q01),
+            ],
+        )
     )
     model = NoiseModelFromNoiseProperties(props)
     op = cirq.measure(*qubits, key='m')
@@ -358,7 +356,7 @@ def test_measure_gates():
 
 def test_wait_gates():
     q0 = cirq.LineQubit(0)
-    props = sample_noise_properties([q0], [])
+    props = TestNoiseProperties(**default_props([q0], []))
     model = NoiseModelFromNoiseProperties(props)
     op = cirq.wait(q0, nanos=100)
     circuit = cirq.Circuit(op)

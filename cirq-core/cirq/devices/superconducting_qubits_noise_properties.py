@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 from dataclasses import dataclass, field
+import functools
 from typing import Dict, TYPE_CHECKING, List, Set
 
-from cirq import ops, protocols, devices
+from cirq import ops, devices
 from cirq.devices.noise_utils import (
     OpIdentifier,
     decoherence_pauli_error,
@@ -24,25 +26,10 @@ from cirq.devices.noise_utils import (
 if TYPE_CHECKING:
     import cirq
 
-SINGLE_QUBIT_GATES: Set[type] = {
-    ops.ZPowGate,
-    ops.PhasedXZGate,
-    ops.MeasurementGate,
-    ops.ResetChannel,
-}
-SYMMETRIC_TWO_QUBIT_GATES: Set[type] = {
-    ops.FSimGate,
-    ops.PhasedFSimGate,
-    ops.ISwapPowGate,
-    ops.CZPowGate,
-}
-ASYMMETRIC_TWO_QUBIT_GATES: Set[type] = set()
-TWO_QUBIT_GATES = SYMMETRIC_TWO_QUBIT_GATES | ASYMMETRIC_TWO_QUBIT_GATES
-
 
 # TODO: missing per-device defaults
 @dataclass
-class SuperconductingQubitsNoiseProperties(devices.NoiseProperties):
+class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
     """Noise-defining properties for a quantum device.
 
     Args:
@@ -50,24 +37,24 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties):
             quantum hardware.
         t1_ns: Dict[cirq.Qid, float] of qubits to their T_1 time, in ns.
         tphi_ns: Dict[cirq.Qid, float] of qubits to their T_phi time, in ns.
-        ro_fidelities: Dict[cirq.Qid, np.ndarray] of qubits to their readout
-            fidelity matrix.
+        readout_errors: Dict[cirq.Qid, np.ndarray] of qubits to their readout
+            errors in matrix form: [P(read |1> from |0>), P(read |0> from |1>)].
         gate_pauli_errors: dict of OpIdentifiers (a gate and the qubits it
             targets) to the Pauli error for that operation. Keys in this dict
             must have defined qubits.
-        validate: If True, performs validation on input arguments. Defaults
-            to True.
+        validate: If True, verifies that t1 and tphi qubits sets match, and
+            that all symmetric two-qubit gates have errors which are
+            symmetric over the qubits they affect. Defaults to True.
     """
 
     gate_times_ns: Dict[type, float]
     t1_ns: Dict['cirq.Qid', float]
     tphi_ns: Dict['cirq.Qid', float]
-    ro_fidelities: Dict['cirq.Qid', List[float]]
+    readout_errors: Dict['cirq.Qid', List[float]]
     gate_pauli_errors: Dict[OpIdentifier, float]
 
     validate: bool = True
     _qubits: List['cirq.Qid'] = field(init=False, default_factory=list)
-    _depolarizing_error: Dict[OpIdentifier, float] = field(init=False, default_factory=dict)
 
     def __post_init__(self):
         if not self.validate:
@@ -92,20 +79,19 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties):
                         f'Found gate {op_id.gate_type} with {len(op_id.qubits)} qubits. '
                         'Symmetric errors can only apply to 2-qubit gates.'
                     )
-            elif op_id.gate_type not in self.two_qubit_gates():
-                raise ValueError(
-                    f'Found gate {op_id.gate_type} which does not appear in the '
-                    'symmetric or asymmetric gate sets.'
-                )
-            else:
-                # TODO: this assumes op is symmetric.
-                # If asymmetric gates are added, we will need to update it.
+            elif op_id.gate_type in self.symmetric_two_qubit_gates():
                 op_id_swapped = OpIdentifier(op_id.gate_type, *op_id.qubits[::-1])
                 if op_id_swapped not in gate_error_dict:
                     raise ValueError(
                         f'Operation {op_id} of field {field_name} has errors '
                         f'but its symmetric id {op_id_swapped} does not.'
                     )
+            elif op_id.gate_type not in self.asymmetric_two_qubit_gates():
+                # Asymmetric gates do not require validation.
+                raise ValueError(
+                    f'Found gate {op_id.gate_type} which does not appear in the '
+                    'symmetric or asymmetric gate sets.'
+                )
 
     @property
     def qubits(self) -> List['cirq.Qid']:
@@ -114,72 +100,58 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties):
             self._qubits = sorted(self.t1_ns)
         return self._qubits
 
-    @classmethod
+    @abc.abstractclassmethod
     def single_qubit_gates(cls) -> Set[type]:
-        return SINGLE_QUBIT_GATES
+        """Returns the set of single-qubit gates this class supports."""
+
+    @abc.abstractclassmethod
+    def symmetric_two_qubit_gates(cls) -> Set[type]:
+        """Returns the set of symmetric two-qubit gates this class supports."""
+
+    @abc.abstractclassmethod
+    def asymmetric_two_qubit_gates(cls) -> Set[type]:
+        """Returns the set of asymmetric two-qubit gates this class supports."""
 
     @classmethod
     def two_qubit_gates(cls) -> Set[type]:
-        return TWO_QUBIT_GATES
+        """Returns the set of all two-qubit gates this class supports."""
+        return cls.symmetric_two_qubit_gates() | cls.asymmetric_two_qubit_gates()
 
     @classmethod
     def expected_gates(cls) -> Set[type]:
+        """Returns the set of all gates this class supports."""
         return cls.single_qubit_gates() | cls.two_qubit_gates()
 
-    def get_depolarizing_error(self) -> Dict[OpIdentifier, float]:
-        """Returns the portion of Pauli error from depolarization.
+    def _get_pauli_error(self, p_error: float, op_id: OpIdentifier):
+        time_ns = float(self.gate_times_ns[op_id.gate_type])
+        for q in op_id.qubits:
+            p_error -= decoherence_pauli_error(self.t1_ns[q], self.tphi_ns[q], time_ns)
+        return p_error
 
-        The result of this method is memoized.
-        """
-        if self._depolarizing_error:
-            return self._depolarizing_error
-
+    @functools.cached_property
+    def _depolarizing_error(self) -> Dict[OpIdentifier, float]:
+        """Returns the portion of Pauli error from depolarization."""
         depol_errors = {}
         for op_id, p_error in self.gate_pauli_errors.items():
             gate_type = op_id.gate_type
-            if gate_type in self.single_qubit_gates():
-                if issubclass(gate_type, ops.MeasurementGate):
-                    # Non-measurement error can be ignored on measurement gates.
-                    continue
-                if len(op_id.qubits) != 1:
-                    raise ValueError(
-                        f'Gate {gate_type} only takes one qubit, but {op_id.qubits} were given.'
-                    )
-                time_ns = float(self.gate_times_ns[gate_type])
-                q0 = op_id.qubits[0]
-                # Subtract decoherence error.
-                if q0 in self.t1_ns:
-                    p_error -= decoherence_pauli_error(self.t1_ns[q0], self.tphi_ns[q0], time_ns)
-
-            else:
-                # This must be a 2-qubit gate.
-                if gate_type not in self.two_qubit_gates():
-                    raise ValueError(f'Gate {gate_type} is not in the supported gate list.')
-                if len(op_id.qubits) != 2:
-                    raise ValueError(
-                        f'Gate {gate_type} takes two qubits, but {op_id.qubits} were given.'
-                    )
-                time_ns = float(self.gate_times_ns[gate_type])
-                # Subtract decoherence error.
-                q0, q1 = op_id.qubits
-                if q0 in self.t1_ns:
-                    p_error -= decoherence_pauli_error(self.t1_ns[q0], self.tphi_ns[q0], time_ns)
-                if q1 in self.t1_ns:
-                    p_error -= decoherence_pauli_error(self.t1_ns[q1], self.tphi_ns[q1], time_ns)
-
-            depol_errors[op_id] = p_error
-        # memoization is OK
-        self._depolarizing_error = depol_errors
-        return self._depolarizing_error
+            if gate_type not in self.expected_gates():
+                raise ValueError(f'Gate {gate_type} is not in the supported gate list.')
+            if issubclass(gate_type, ops.MeasurementGate):
+                # Non-measurement error can be ignored on measurement gates.
+                continue
+            expected_qubits = 1 if gate_type in self.single_qubit_gates() else 2
+            if len(op_id.qubits) != expected_qubits:
+                raise ValueError(
+                    f'Gate {gate_type} takes {expected_qubits} qubit(s), '
+                    f'but {op_id.qubits} were given.'
+                )
+            depol_errors[op_id] = self._get_pauli_error(p_error, op_id)
+        return depol_errors
 
     def build_noise_models(self) -> List['cirq.NoiseModel']:
         noise_models: List['cirq.NoiseModel'] = []
 
-        if set(self.t1_ns) != set(self.tphi_ns):
-            raise ValueError(
-                f'T1 data has qubits {set(self.t1_ns)}, but Tphi has qubits {set(self.tphi_ns)}.'
-            )
-        if self.t1_ns:  # level 1 sophistication
+        if self.t1_ns:
             noise_models.append(
                 devices.ThermalNoiseModel(
                     set(self.t1_ns.keys()),
@@ -196,7 +168,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties):
                 f'\nGates: {gate_types}\nSupported: {self.expected_gates()}'
             )
 
-        depolarizing_error = self.get_depolarizing_error()
+        depolarizing_error = self._depolarizing_error
         added_pauli_errors = {
             op_id: ops.depolarize(p_error, len(op_id.qubits)).on(*op_id.qubits)
             for op_id, p_error in depolarizing_error.items()
@@ -207,10 +179,10 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties):
         noise_models.append(devices.InsertionNoiseModel(ops_added=added_pauli_errors))
 
         # This adds per-qubit measurement error BEFORE measurement on those qubits.
-        if self.ro_fidelities:
+        if self.readout_errors:
             added_measure_errors: Dict[OpIdentifier, 'cirq.Operation'] = {}
-            for qubit in self.ro_fidelities:
-                p_00, p_11 = self.ro_fidelities[qubit]
+            for qubit in self.readout_errors:
+                p_00, p_11 = self.readout_errors[qubit]
                 p = p_11 / (p_00 + p_11)
                 gamma = p_11 / p
                 added_measure_errors[
@@ -222,48 +194,3 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties):
             )
 
         return noise_models
-
-    def __str__(self) -> str:
-        return 'SuperconductingQubitsNoiseProperties'
-
-    def __repr__(self) -> str:
-        args = []
-        gate_times_repr = ', '.join(
-            f'{key.__module__}.{key.__qualname__}: {val}' for key, val in self.gate_times_ns.items()
-        )
-        args.append(f'    gate_times_ns={{{gate_times_repr}}}')
-        args.append(f'    t1_ns={self.t1_ns!r}')
-        args.append(f'    tphi_ns={self.tphi_ns!r}')
-        args.append(f'    ro_fidelities={self.ro_fidelities!r}')
-        args.append(f'    gate_pauli_errors={self.gate_pauli_errors!r}')
-        args_str = ',\n'.join(args)
-        return f'cirq.SuperconductingQubitsNoiseProperties(\n{args_str}\n)'
-
-    def _json_dict_(self):
-        storage_gate_times = {
-            protocols.json_cirq_type(key): val for key, val in self.gate_times_ns.items()
-        }
-        return {
-            # JSON requires mappings to have keys of basic types.
-            # Pairs must be sorted to ensure consistent serialization.
-            'gate_times_ns': sorted(storage_gate_times.items(), key=str),
-            't1_ns': sorted(self.t1_ns.items()),
-            'tphi_ns': sorted(self.tphi_ns.items()),
-            'ro_fidelities': sorted(self.ro_fidelities.items()),
-            'gate_pauli_errors': sorted(self.gate_pauli_errors.items(), key=str),
-            'validate': self.validate,
-        }
-
-    @classmethod
-    def _from_json_dict_(
-        cls, gate_times_ns, t1_ns, tphi_ns, ro_fidelities, gate_pauli_errors, validate, **kwargs
-    ):
-        gate_type_times = {protocols.cirq_type_from_json(gate): val for gate, val in gate_times_ns}
-        return SuperconductingQubitsNoiseProperties(
-            gate_times_ns=gate_type_times,
-            t1_ns=dict(t1_ns),
-            tphi_ns=dict(tphi_ns),
-            ro_fidelities=dict(ro_fidelities),
-            gate_pauli_errors=dict(gate_pauli_errors),
-            validate=validate,
-        )
