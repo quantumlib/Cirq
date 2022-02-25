@@ -38,7 +38,6 @@ def _get_xmon_optimizers(
 
     return [
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
-        cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=False).optimize_circuit,
     ]
 
 
@@ -50,7 +49,6 @@ def _get_xmon_optimizers_part_cz(
         raise ValueError("Gate tabulation not supported for xmon")
     return [
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
-        cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=True).optimize_circuit,
     ]
 
 
@@ -146,6 +144,13 @@ def optimized_for_sycamore(
     opts = _OPTIMIZER_TYPES[optimizer_type](tolerance=tolerance, tabulation=tabulation)
     for optimizer in opts:
         optimizer(copy)
+    if optimizer_type.startswith('xmon'):
+        copy = cirq.optimize_for_target_gateset(
+            circuit,
+            gateset=cirq.CZTargetGateset(
+                atol=tolerance, allow_partial_czs=optimizer_type.endswith('partial_cz')
+            ),
+        )
     copy = cirq.merge_single_qubit_gates_to_phxz(copy, atol=tolerance)
     copy = cirq.eject_phased_paulis(copy, atol=tolerance)
     copy = cirq.eject_z(copy, atol=tolerance)
