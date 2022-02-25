@@ -86,7 +86,7 @@ jobs:
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
-        run: check/pytest-changed-files
+        run: check/pytest-changed-files -n auto
   lint:
     name: Lint check
     runs-on: ubuntu-20.04
@@ -168,7 +168,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   build_docs:
@@ -221,7 +221,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
-        run: check/pytest-and-incremental-coverage --actually-quiet
+        run: check/pytest-and-incremental-coverage -n auto
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
@@ -245,7 +245,7 @@ jobs:
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
-          check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
+          check/pytest -n auto --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
@@ -266,7 +266,7 @@ jobs:
       - name: Install requirements
         run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest --ignore=cirq-core/cirq/contrib
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     env:
