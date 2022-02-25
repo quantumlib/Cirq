@@ -4,7 +4,7 @@
 # Finds changed uncovered lines.
 #
 # Usage:
-#     check/pytest-and-incremental-coverage [BASE_REVISION]
+#     check/pytest-and-incremental-coverage [BASE_REVISION] [PYTEST_ARGS]
 #
 # You can specify a base git revision to compare against (i.e. to use when
 # determining whether or not a line is considered to have "changed"). To make
@@ -26,13 +26,30 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
+PYTEST_ARGS=()
+ANALYZE_COV=1
+BASEREV=""
+
+if [[ "$1" == [^-]* ]]; then
+    BASEREV="$1"
+    shift
+fi
+
+for arg in "$@"; do
+    if [[ "${arg}" == "--no-analyze" ]]; then
+        ANALYZE_COV=0
+    else
+        PYTEST_ARGS+=("${arg}")
+    fi
+done
+
 # Figure out which revision to compare against.
-if [ ! -z "$1" ] && [[ $1 != -* ]]; then
-    if [ "$(git cat-file -t $1 2> /dev/null)" != "commit" ]; then
-        echo -e "\033[31mNo revision '$1'.\033[0m" >&2
+if [ -n "${BASEREV}" ]; then
+    if [ "$(git cat-file -t "${BASEREV}" 2> /dev/null)" != "commit" ]; then
+        echo -e "\033[31mNo revision '${BASEREV}'.\033[0m" >&2
         exit 1
     fi
-    rev=$1
+    rev="${BASEREV}"
 elif [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
     rev=upstream/master
 elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
@@ -57,19 +74,27 @@ source dev_tools/pypath
 check/pytest --actually-quiet \
              --rigetti-integration \
              --cov \
-             --cov-report=annotate \
-             --cov-config=dev_tools/conf/.coveragerc
+             --cov-config=dev_tools/conf/.coveragerc \
+             "${PYTEST_ARGS[@]}"
 pytest_result=$?
 
-# Analyze coverage files.
-python dev_tools/check_incremental_coverage_annotations.py "${rev}"
-cover_result=$?
 
-# Clean up generated coverage files.
-find . | grep "\.py,cover$" | xargs rm -f
+# assume succesful cover_result in case coverage is not run
+cover_result=0
+if (( $ANALYZE_COV )); then
+    # Convert to .py,cover files.
+    coverage annotate
+
+    # Analyze coverage files.
+    python dev_tools/check_incremental_coverage_annotations.py "${rev}"
+    cover_result=$?
+
+    # Clean up generated coverage files.
+    git clean --force --quiet -x -- "*.py,cover"
+fi
 
 # Report result.
-if [ "${pytest_result}" -ne "0" ] || [ "${cover_result}" -ne "0" ]; then
-  exit 1
+if (( ${pytest_result} || ${cover_result} )); then
+    exit 1
 fi
 exit 0
