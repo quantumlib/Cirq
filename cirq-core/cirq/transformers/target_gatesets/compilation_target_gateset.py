@@ -183,7 +183,8 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
     ) -> DecomposeResult:
         """Decomposes (connected component of) 1-qubit operations using gates from this gateset.
 
-        By default, rewrites every operation using a single `cirq.PhasedXZGate`.
+        By default, rewrites every operation `op` using a single `cirq.PhasedXZGate` if `op`
+        is not contained in self or if `op` is a newly merged connected component of operations.
 
         Args:
             op: A single-qubit operation (can be a tagged `cirq.CircuitOperation` wrapping
@@ -197,6 +198,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
         return (
             ops.PhasedXZGate.from_matrix(protocols.unitary(op)).on(op.qubits[0])
             if protocols.has_unitary(op)
+            and (op not in self or self._intermediate_result_tag in op.tags)
             else NotImplemented
         )
 

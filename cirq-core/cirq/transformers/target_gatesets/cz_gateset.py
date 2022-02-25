@@ -38,7 +38,11 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
         super().__init__(
             ops.CZPowGate if allow_partial_czs else ops.CZ,
             ops.MeasurementGate,
-            ops.AnyUnitaryGateFamily(1),
+            ops.XPowGate,
+            ops.YPowGate,
+            ops.ZPowGate,
+            ops.PhasedXPowGate,
+            ops.PhasedXZGate,
             name='CZPowTargetGateset' if allow_partial_czs else 'CZTargetGateset',
         )
         self.atol = atol
