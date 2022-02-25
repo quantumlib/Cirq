@@ -290,13 +290,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             ValueError: The dimension of `target_tensor` is not divisible by 2
                 and `qid_shape` is not provided.
         """
-        super().__init__(
-            prng=prng,
-            qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
-            ignore_measurement_results=ignore_measurement_results,
-            classical_data=classical_data,
-        )
         if ignore_measurement_results:
             super().__init__(
                 prng=prng,
