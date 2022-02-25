@@ -83,17 +83,6 @@ class ActOnStabilizerCHFormArgs(
             classical_data=classical_data,
         )
 
-    def _on_kronecker_product(
-        self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
-    ):
-        target._state = self.state.kron(other.state)
-
-    def _on_transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStabilizerCHFormArgs'
-    ):
-        axes = [self.qubit_map[q] for q in qubits]
-        target._state = self.state.reindex(axes)
-
     @property
     def supports_kron(self) -> bool:
         return True

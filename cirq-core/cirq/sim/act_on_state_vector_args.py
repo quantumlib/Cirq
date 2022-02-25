@@ -497,10 +497,6 @@ class ActOnStateVectorArgs(ActOnArgs):
             "SupportsMixture or is a measurement: {!r}".format(action)
         )
 
-    @property
-    def allows_factoring(self):
-        return True
-
     def __repr__(self) -> str:
         return (
             'cirq.ActOnStateVectorArgs('
