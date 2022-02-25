@@ -86,6 +86,7 @@ TestSpec = ModuleJsonTestSpec(
         'ActOnArgsContainer',
         'ActOnCliffordTableauArgs',
         'ActOnDensityMatrixArgs',
+        'ActOnStabilizerArgs',
         'ActOnStabilizerCHFormArgs',
         'ActOnStateVectorArgs',
         'ApplyChannelArgs',
