@@ -84,6 +84,9 @@ class MeasurementGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
+    def _has_unitary_(self) -> bool:
+        return False
+
     def with_key(self, key: Union[str, 'cirq.MeasurementKey']) -> 'MeasurementGate':
         """Creates a measurement gate with a new key but otherwise identical."""
         if key == self.key:

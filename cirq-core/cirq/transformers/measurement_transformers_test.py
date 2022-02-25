@@ -39,18 +39,19 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
 
 def assert_equivalent_to_dephased(circuit: cirq.Circuit):
     qubits = list(circuit.all_qubits())
-    sim = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
-    num_qubits = len(qubits)
-    backwards = list(circuit.all_operations())[::-1]
-    for j in range(num_qubits):
-        backwards.append(cirq.H(qubits[j]) ** np.random.rand())
-    modified = cirq.Circuit(backwards[::-1])
-    for j in range(num_qubits):
-        modified.append(cirq.H(qubits[j]) ** np.random.rand())
-    dephased = cirq.dephase_measurements(modified)
-    result = sim.simulate(modified)
-    result1 = sim.simulate(dephased)
-    np.testing.assert_almost_equal(result.final_density_matrix, result1.final_density_matrix)
+    with cirq.testing.assert_deprecated('ignore_measurement_results', deadline='v0.15', count=14):
+        sim = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
+        num_qubits = len(qubits)
+        backwards = list(circuit.all_operations())[::-1]
+        for j in range(num_qubits):
+            backwards.append(cirq.H(qubits[j]) ** np.random.rand())
+        modified = cirq.Circuit(backwards[::-1])
+        for j in range(num_qubits):
+            modified.append(cirq.H(qubits[j]) ** np.random.rand())
+        dephased = cirq.dephase_measurements(modified)
+        result = sim.simulate(modified)
+        result1 = sim.simulate(dephased)
+        np.testing.assert_almost_equal(result.final_density_matrix, result1.final_density_matrix)
 
 
 def test_basic():
