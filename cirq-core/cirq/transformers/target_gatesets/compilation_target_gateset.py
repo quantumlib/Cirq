@@ -162,6 +162,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
         new_optree = self._decompose_two_qubit_operation(op, moment_idx)
         if new_optree is NotImplemented or new_optree is None:
             return new_optree
+        new_optree = [*ops.flatten_to_ops_or_moments(new_optree)]
         op_untagged = op.untagged
         old_optree = (
             [*op_untagged.circuit]
