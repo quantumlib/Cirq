@@ -250,7 +250,7 @@ def test_with_params():
 
 def test_recursive_params():
     q = cirq.LineQubit(0)
-    a, b = sympy.symbols('a b')
+    a, a2, b, b2 = sympy.symbols('a a2 b b2')
     circuitop = cirq.CircuitOperation(
         cirq.FrozenCircuit(
             cirq.X(q) ** a,
@@ -260,7 +260,7 @@ def test_recursive_params():
         param_resolver=cirq.ParamResolver({a: b, b: a}),
     )
     # Recursive, so a->a2->0 and b->b2->1.
-    outer_params = {'a': 'a2', 'a2': 0, 'b': 'b2', 'b2': 1}
+    outer_params = {a: a2, a2: 0, b: b2, b2: 1}
     resolved = cirq.resolve_parameters(circuitop, outer_params)
     # Combined, a->b->b2->1, and b->a->a2->0.
     assert resolved.param_resolver.param_dict == {a: 1, b: 0}
@@ -268,10 +268,10 @@ def test_recursive_params():
     # Non-recursive, so a->a2 and b->b2.
     resolved = cirq.resolve_parameters(circuitop, outer_params, recursive=False)
     # Combined, a->b->b2, and b->a->a2.
-    assert resolved.param_resolver.param_dict == {a: 'b2', b: 'a2'}
+    assert resolved.param_resolver.param_dict == {a: b2, b: a2}
 
     with pytest.raises(RecursionError):
-        cirq.resolve_parameters(circuitop, {a: 'c', 'c': a})
+        cirq.resolve_parameters(circuitop, {a: a2, a2: a})
 
     # Non-recursive, so a->b and b->a.
     resolved = cirq.resolve_parameters(circuitop, {a: b, b: a}, recursive=False)
