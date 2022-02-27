@@ -601,8 +601,8 @@ class CircuitOperation(ops.Operation):
             param_values: A map or ParamResolver able to convert old param
                 values to new param values. This map will be composed with any
                 existing ParamResolver via single-step resolution.
-        recursive: if True, resolves parameter values recursively over the
-            resolver; otherwise performs a single resolution step.
+            recursive: if True, resolves parameter values recursively over the
+                resolver; otherwise performs a single resolution step.
 
         Returns:
             A copy of this operation with its ParamResolver updated as specified
