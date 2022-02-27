@@ -103,7 +103,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         if not job_id:
             job_id = engine_base._make_random_id('job-')
         sweeps = cirq.to_sweeps(params or cirq.ParamResolver({}))
-        run_context = self._serialize_run_context(sweeps, repetitions)
+        run_context = self.context.serialize_run_context(sweeps, repetitions)
 
         created_job_id, job = self.context.client.create_job(
             project_id=self.project_id,
@@ -304,27 +304,6 @@ class EngineProgram(abstract_program.AbstractProgram):
                 labels=labels,
             )
         )[0]
-
-    def _serialize_run_context(
-        self,
-        sweeps: List[cirq.Sweep],
-        repetitions: int,
-    ) -> qtypes.any_pb2.Any:
-        import cirq_google.engine.engine as engine_base
-
-        context = qtypes.any_pb2.Any()
-        proto_version = self.context.proto_version
-        if proto_version == engine_base.ProtoVersion.V2:
-            run_context = v2.run_context_pb2.RunContext()
-            for sweep in sweeps:
-                sweep_proto = run_context.parameter_sweeps.add()
-                sweep_proto.repetitions = repetitions
-                v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
-
-            context.Pack(run_context)
-        else:
-            raise ValueError(f'invalid run context proto version: {proto_version}')
-        return context
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object.
