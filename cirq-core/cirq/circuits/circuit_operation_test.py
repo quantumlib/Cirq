@@ -266,6 +266,12 @@ def test_recursive_params():
     # Combined, a->b->b2->1, and b->a->a2->0.
     assert resolved.param_resolver.param_dict == {a: 1, b: 0}
 
+    # Non-recursive, so a->a2 and b->b2.
+    resolved = cirq.resolve_parameters(circuitop, outer_params, recursive=False)
+
+    # Combined, a->b->b2, and b->a->a2.
+    assert resolved.param_resolver.param_dict == {a: 'b2', b: 'a2'}
+
     with pytest.raises(RecursionError):
         cirq.resolve_parameters(circuitop, {a: 'c', 'c': a})
 
