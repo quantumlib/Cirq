@@ -43,6 +43,7 @@ from cirq_google.engine import (
     engine_processor,
     engine_program,
     engine_sampler,
+    util,
 )
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
@@ -126,7 +127,7 @@ class EngineContext:
     def _value_equality_values_(self):
         return self.proto_version, self.client
 
-    def serialize_program(
+    def _serialize_program(
         self, program: cirq.AbstractCircuit, serializer: Optional[Serializer] = None
     ) -> any_pb2.Any:
         if not isinstance(program, cirq.AbstractCircuit):
@@ -134,19 +135,17 @@ class EngineContext:
         if serializer is None:
             serializer = self.serializer
         if self.proto_version != ProtoVersion.V2:
-            raise ValueError(f'invalid program proto version: {self.context.proto_version}')
-        program = serializer.serialize(program)
-        return _pack_any(program)
+            raise ValueError(f'invalid program proto version: {self.proto_version}')
+        return util.pack_any(serializer.serialize(program))
 
-    def serialize_run_context(self, sweeps: List[cirq.Sweep], repetitions: int) -> any_pb2.Any:
+    def _serialize_run_context(
+        self,
+        sweeps: 'cirq.Sweepable',
+        repetitions: int,
+    ) -> any_pb2.Any:
         if self.proto_version != ProtoVersion.V2:
             raise ValueError(f'invalid run context proto version: {self.proto_version}')
-        run_context = v2.run_context_pb2.RunContext()
-        for sweep in sweeps:
-            sweep_proto = run_context.parameter_sweeps.add()
-            sweep_proto.repetitions = repetitions
-            v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
-        return _pack_any(run_context)
+        return util.pack_any(v2.run_context_to_proto(sweeps, repetitions))
 
 
 class Engine(abstract_engine.AbstractEngine):
@@ -529,7 +528,7 @@ class Engine(abstract_engine.AbstractEngine):
         new_program_id, new_program = self.context.client.create_program(
             self.project_id,
             program_id,
-            code=self.context.serialize_program(program, gate_set),
+            code=self.context._serialize_program(program, gate_set),
             description=description,
             labels=labels,
         )
@@ -578,7 +577,7 @@ class Engine(abstract_engine.AbstractEngine):
         new_program_id, new_program = self.context.client.create_program(
             self.project_id,
             program_id,
-            code=_pack_any(batch),
+            code=util.pack_any(batch),
             description=description,
             labels=labels,
         )
@@ -635,7 +634,7 @@ class Engine(abstract_engine.AbstractEngine):
         new_program_id, new_program = self.context.client.create_program(
             self.project_id,
             program_id,
-            code=_pack_any(calibration),
+            code=util.pack_any(calibration),
             description=description,
             labels=labels,
         )
@@ -880,13 +879,3 @@ def get_engine_calibration(
     May return None if no calibration metrics exist for the device.
     """
     return get_engine(project_id).get_processor(processor_id).get_current_calibration()
-
-
-def _pack_any(message: 'google.protobuf.Message') -> any_pb2.Any:
-    """Packs a message into an Any proto.
-
-    Returns the packed Any proto.
-    """
-    packed = any_pb2.Any()
-    packed.Pack(message)
-    return packed
