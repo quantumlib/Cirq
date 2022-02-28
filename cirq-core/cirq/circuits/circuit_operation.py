@@ -291,7 +291,7 @@ class CircuitOperation(ops.Operation):
         """
         circuit = (
             circuits.Circuit(self._mapped_single_loop(rep) for rep in self.repetition_ids)
-            if self.repetition_ids
+            if self.repetition_ids is not None
             and self.use_repetition_ids
             and protocols.is_measurement(self.circuit)
             else self._mapped_single_loop() * abs(self.repetitions)
