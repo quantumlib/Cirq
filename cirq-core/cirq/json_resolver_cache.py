@@ -156,6 +156,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SingleQubitCliffordGate': cirq.SingleQubitCliffordGate,
         'SingleQubitPauliStringGateOperation': cirq.SingleQubitPauliStringGateOperation,
         'SingleQubitReadoutCalibrationResult': cirq.experiments.SingleQubitReadoutCalibrationResult,
+        'SqrtIswapTargetGateset': cirq.SqrtIswapTargetGateset,
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,
         'SwapPowGate': cirq.SwapPowGate,
