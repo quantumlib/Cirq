@@ -105,7 +105,7 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
 
 
 def run_context_to_proto(
-        sweepable: cirq.Sweepable, repetitions: int, *, out: Optional[run_context_pb2.RunContext] = None
+    sweepable: cirq.Sweepable, repetitions: int, *, out: Optional[run_context_pb2.RunContext] = None
 ) -> run_context_pb2.RunContext:
     """Populates a RunContext protobuf message.
 
@@ -128,9 +128,9 @@ def run_context_to_proto(
 
 
 def batch_run_context_to_proto(
-        sweepables_and_reps: Iterable[Tuple[cirq.Sweepable, int]],
-        *,
-        out: Optional[batch_pb2.BatchRunContext] = None,
+    sweepables_and_reps: Iterable[Tuple[cirq.Sweepable, int]],
+    *,
+    out: Optional[batch_pb2.BatchRunContext] = None,
 ) -> batch_pb2.BatchRunContext:
     """Populates a BatchRunContext protobuf message.
 
