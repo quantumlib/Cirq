@@ -39,12 +39,14 @@ class GridDeviceMetadata(device.DeviceMetadata):
         qubit_pairs: Iterable[Tuple['cirq.Qid', 'cirq.Qid']],
         gateset: 'cirq.Gateset',
         gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
+        all_qubits: Optional[Iterable['cirq.Qid']] = None,
     ):
         """Create a GridDeviceMetadata object.
 
         Create a GridDevice which has a well defined set of couplable
         qubit pairs that have the same two qubit gates available in
-        both coupling directions.
+        both coupling directions. Gate times (if provided) are expected
+        to be uniform across all qubits on the device.
 
         Args:
             qubit_pairs: Iterable of pairs of `cirq.Qid`s representing
@@ -55,25 +57,51 @@ class GridDeviceMetadata(device.DeviceMetadata):
                 instances mapping to `cirq.Duration` instances for
                 gate timing metadata information. If provided,
                 must match all entries in gateset.
+            all_qubits: Optional iterable specifying all qubits
+                found on the device. If None, all_qubits will
+                be inferred from the entries in qubit_pairs.
 
         Raises:
             ValueError: if the union of GateFamily keys in gate_durations
                 is not identical to set of gate families in gateset.
+            ValueError: If qubit_pairs contains a self loop.
+            ValueError: if all_qubits is provided and is not a superset
+                of all the qubits found in qubit_pairs.
         """
-        qubit_pairs = list(qubit_pairs)
-        flat_pairs = [q for pair in qubit_pairs for q in pair]
-        # Keep lexigraphically smaller tuples for undirected edges.
-        sorted_pairs = sorted(qubit_pairs)
-        pair_set = set()
+        sorted_pairs = sorted(list(qubit_pairs))
         for a, b in sorted_pairs:
-            if (b, a) not in pair_set:
-                pair_set.add((a, b))
+            if a == b:
+                raise ValueError(f"Self loop encountered in qubit {a}")
+
+        # Keep lexigraphically smaller tuples for undirected edges.
+        edge_set = set()
+        node_set = set()
+        for a, b in sorted_pairs:
+            node_set.add(a)
+            node_set.add(b)
+            if (b, a) not in edge_set:
+                edge_set.add((a, b))
+
+        if all_qubits is None:
+            all_qubits = node_set
+
+        all_qubits = frozenset(all_qubits)
+        for q in node_set:
+            if q not in all_qubits:
+                raise ValueError(
+                    f"Qubit {q} found in node_set and not in"
+                    " all_qubits. all_qubits must contain at least"
+                    " all the qubits found in all_qubits."
+                )
 
         connectivity = nx.Graph()
-        connectivity.add_edges_from(sorted(pair_set), directed=False)
-        super().__init__(flat_pairs, connectivity)
-        self._qubit_pairs = frozenset(pair_set)
+        connectivity.add_nodes_from(sorted(all_qubits))
+        connectivity.add_edges_from(sorted(edge_set), directed=False)
+        super().__init__(all_qubits, connectivity)
+
+        self._qubit_pairs = frozenset(edge_set)
         self._gateset = gateset
+        self._isolated_qubits = all_qubits.difference(node_set)
 
         if gate_durations is not None:
             working_gatefamilies = frozenset(gate_durations.keys())
@@ -94,6 +122,11 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._qubit_pairs
 
     @property
+    def isolated_qubits(self) -> FrozenSet['cirq.Qid']:
+        """Returns the set of all isolated qubits on the device (if appliable)."""
+        return self._isolated_qubits
+
+    @property
     def gateset(self) -> 'cirq.Gateset':
         """Returns the `cirq.Gateset` of supported gates on this device."""
         return self._gateset
@@ -112,12 +145,14 @@ class GridDeviceMetadata(device.DeviceMetadata):
             tuple(sorted(self._qubit_pairs)),
             self._gateset,
             tuple(duration_equality),
+            tuple(sorted(self.qubit_set)),
         )
 
     def __repr__(self) -> str:
         return (
             f'cirq.GridDeviceMetadata({repr(self._qubit_pairs)},'
-            f' {repr(self._gateset)}, {repr(self._gate_durations)})'
+            f' {repr(self._gateset)}, {repr(self._gate_durations)},'
+            f' {repr(self.qubit_set)})'
         )
 
     def _json_dict_(self):
@@ -129,8 +164,9 @@ class GridDeviceMetadata(device.DeviceMetadata):
             'qubit_pairs': sorted(list(self._qubit_pairs)),
             'gateset': self._gateset,
             'gate_durations': duration_payload,
+            'all_qubits': sorted(list(self.qubit_set)),
         }
 
     @classmethod
-    def _from_json_dict_(cls, qubit_pairs, gateset, gate_durations, **kwargs):
-        return cls(qubit_pairs, gateset, dict(gate_durations))
+    def _from_json_dict_(cls, qubit_pairs, gateset, gate_durations, all_qubits, **kwargs):
+        return cls(qubit_pairs, gateset, dict(gate_durations), all_qubits)

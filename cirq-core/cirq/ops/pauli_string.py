@@ -42,6 +42,7 @@ import numpy as np
 
 from cirq import value, protocols, linalg, qis
 from cirq._doc import document
+from cirq._import import LazyLoader
 from cirq.ops import (
     clifford_gate,
     common_gates,
@@ -57,6 +58,9 @@ from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
+
+# Lazy imports to break circular dependencies.
+linear_combinations = LazyLoader("linear_combinations", globals(), "cirq.ops.linear_combinations")
 
 TDefault = TypeVar('TDefault')
 TKey = TypeVar('TKey', bound=raw_types.Qid)
@@ -289,17 +293,13 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return NotImplemented
 
     def __add__(self, other):
-        from cirq.ops.linear_combinations import PauliSum
-
-        return PauliSum.from_pauli_strings(self).__add__(other)
+        return linear_combinations.PauliSum.from_pauli_strings(self).__add__(other)
 
     def __radd__(self, other):
         return self.__add__(other)
 
     def __sub__(self, other):
-        from cirq.ops.linear_combinations import PauliSum
-
-        return PauliSum.from_pauli_strings(self).__sub__(other)
+        return linear_combinations.PauliSum.from_pauli_strings(self).__sub__(other)
 
     def __rsub__(self, other):
         return -self.__sub__(other)
@@ -1237,7 +1237,6 @@ class MutablePauliString(Generic[TKey]):
         Returns:
             self on success, NotImplemented given an unknown type of value.
         """
-
         if isinstance(other, (Mapping, PauliString, MutablePauliString)):
             if isinstance(other, (PauliString, MutablePauliString)):
                 self.coefficient *= other.coefficient
@@ -1252,7 +1251,11 @@ class MutablePauliString(Generic[TKey]):
             other.gate, identity.IdentityGate
         ):
             pass
-        elif isinstance(other, Iterable) and not isinstance(other, str):
+        elif (
+            isinstance(other, Iterable)
+            and not isinstance(other, str)
+            and not isinstance(other, linear_combinations.PauliSum)
+        ):
             if sign == +1:
                 other = reversed(list(other))
             for item in other:
@@ -1265,6 +1268,7 @@ class MutablePauliString(Generic[TKey]):
 
     def _imul_helper_checkpoint(self, other: 'cirq.PAULI_STRING_LIKE', sign: int):
         """Like `_imul_helper` but guarantees no-op on error."""
+
         if not isinstance(other, (numbers.Number, PauliString, MutablePauliString)):
             other = MutablePauliString()._imul_helper(other, sign)
             if other is NotImplemented:

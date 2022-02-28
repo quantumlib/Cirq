@@ -19,6 +19,7 @@ from cirq.ops.arithmetic_operation import (
 )
 
 from cirq.ops.clifford_gate import (
+    CliffordGate,
     PauliTransform,
     SingleQubitCliffordGate,
 )

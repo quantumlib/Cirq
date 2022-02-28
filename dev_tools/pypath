@@ -28,7 +28,7 @@ fi
 
 _PYPATH_PREFIX="${_PYPATH_BASE_DIR}$(
     cd "${_PYPATH_BASE_DIR}" &&
-        env PYTHONPATH=. python3 dev_tools/modules.py list --mode folder |
+        env PYTHONPATH=. python dev_tools/modules.py list --mode folder |
         xargs printf ":${_PYPATH_BASE_DIR}/%s"
 )"
 

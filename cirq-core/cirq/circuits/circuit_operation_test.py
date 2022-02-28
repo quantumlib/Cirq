@@ -20,6 +20,13 @@ import cirq
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
 
+ALL_SIMULATORS = (
+    cirq.Simulator(),
+    cirq.DensityMatrixSimulator(),
+    cirq.CliffordSimulator(),
+)
+
+
 def test_properties():
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
@@ -457,6 +464,26 @@ cirq.CircuitOperation(
     ]),
 )"""
     )
+    op6 = cirq.CircuitOperation(fc5, use_repetition_ids=False)
+    assert (
+        repr(op6)
+        == """\
+cirq.CircuitOperation(
+    circuit=cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.X(cirq.LineQubit(0)),
+            cirq.CircuitOperation(
+                circuit=cirq.FrozenCircuit([
+                    cirq.Moment(
+                        cirq.X(cirq.LineQubit(1)),
+                    ),
+                ]),
+            ),
+        ),
+    ]),
+    use_repetition_ids=False,
+)"""
+    )
 
 
 def test_json_dict():
@@ -856,6 +883,49 @@ def test_mapped_circuit_allows_repeated_keys():
         "0: ───M('A')───M('A')───",
         use_unicode_characters=True,
     )
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_simulate_no_repetition_ids_both_levels(sim):
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(cirq.measure(q, key='a'))
+    middle = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
+    )
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=False
+    )
+    circuit = cirq.Circuit(outer_subcircuit)
+    result = sim.run(circuit)
+    assert result.records['a'].shape == (1, 4, 1)
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_simulate_no_repetition_ids_outer(sim):
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(cirq.measure(q, key='a'))
+    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=False
+    )
+    circuit = cirq.Circuit(outer_subcircuit)
+    result = sim.run(circuit)
+    assert result.records['0:a'].shape == (1, 2, 1)
+    assert result.records['1:a'].shape == (1, 2, 1)
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_simulate_no_repetition_ids_inner(sim):
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(cirq.measure(q, key='a'))
+    middle = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
+    )
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = cirq.Circuit(outer_subcircuit)
+    result = sim.run(circuit)
+    assert result.records['0:a'].shape == (1, 2, 1)
+    assert result.records['1:a'].shape == (1, 2, 1)
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?

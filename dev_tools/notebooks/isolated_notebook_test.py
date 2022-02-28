@@ -54,6 +54,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/tutorials/google/xeb_calibration_example.ipynb',
     'docs/named_topologies.ipynb',
     # New Transformers.
+    'docs/tutorials/basics.ipynb',
     'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
     'cirq-core/cirq/contrib/quimb/Cirq-to-Tensor-Networks.ipynb',
 ]

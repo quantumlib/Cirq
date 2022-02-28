@@ -155,5 +155,47 @@
         "picos": 1
       }
     ]
+  ],
+  "all_qubits": [
+    {
+      "cirq_type": "GridQubit",
+      "row": 0,
+      "col": 0
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 0,
+      "col": 1
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 0,
+      "col": 2
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 1,
+      "col": 0
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 1,
+      "col": 1
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 1,
+      "col": 2
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 9,
+      "col": 9
+    },
+    {
+      "cirq_type": "GridQubit",
+      "row": 10,
+      "col": 10
+    }
   ]
 }

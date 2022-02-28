@@ -47,6 +47,11 @@ def test_init(observable, key):
     assert cirq.qid_shape(g) == (2,) * len(observable)
 
 
+def test_measurement_has_unitary_returns_false():
+    gate = cirq.PauliMeasurementGate([cirq.X], 'a')
+    assert not cirq.has_unitary(gate)
+
+
 def test_measurement_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(

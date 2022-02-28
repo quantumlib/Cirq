@@ -85,6 +85,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self.context = context
         self._processor = _processor
 
+    def __repr__(self) -> str:
+        return (
+            f'<EngineProcessor: processor_id={self.processor_id!r}, '
+            f'project_id={self.project_id!r}>'
+        )
+
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object.
 
