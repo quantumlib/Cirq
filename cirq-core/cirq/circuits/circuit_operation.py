@@ -596,6 +596,10 @@ class CircuitOperation(ops.Operation):
     ) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with an updated ParamResolver.
 
+        Any existing parameter mappings will have their values updated given
+        the provided mapping, and any new parameters will be added to the
+        ParamResolver.
+
         Note that any resulting parameter mappings with no corresponding
         parameter in the base circuit will be omitted.
 
@@ -603,8 +607,11 @@ class CircuitOperation(ops.Operation):
             param_values: A map or ParamResolver able to convert old param
                 values to new param values. This map will be composed with any
                 existing ParamResolver via single-step resolution.
-            recursive: if True, resolves parameter values recursively over the
-                resolver; otherwise performs a single resolution step.
+            recursive: If True, resolves parameter values recursively over the
+                resolver; otherwise performs a single resolution step. This
+                behavior applies only to the passed-in mapping, for the current
+                application. Existing parameters are never resolved recursively
+                because a->b and b->a needs to be a valid mapping.
 
         Returns:
             A copy of this operation with its ParamResolver updated as specified
