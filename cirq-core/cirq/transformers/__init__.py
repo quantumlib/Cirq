@@ -22,6 +22,7 @@ from cirq.transformers.analytical_decompositions import (
     decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates,
     is_negligible_turn,
+    parameterized_2q_op_to_sqrt_iswap_operations,
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
     single_qubit_matrix_to_gates,
@@ -44,6 +45,7 @@ from cirq.transformers.heuristic_decompositions import (
 from cirq.transformers.target_gatesets import (
     CompilationTargetGateset,
     CZTargetGateset,
+    SqrtIswapTargetGateset,
     TwoQubitCompilationTargetGateset,
 )
 
