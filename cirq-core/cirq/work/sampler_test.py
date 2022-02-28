@@ -25,6 +25,28 @@ import cirq
 
 
 @duet.sync
+async def test_run_async():
+    sim = cirq.Simulator()
+    result = await sim.run_async(
+        cirq.Circuit(cirq.measure(cirq.GridQubit(0, 0), key='m')), repetitions=10
+    )
+    np.testing.assert_equal(result.records['m'], np.zeros((10, 1, 1)))
+
+
+@duet.sync
+async def test_run_sweep_async():
+    sim = cirq.Simulator()
+    results = await sim.run_sweep_async(
+        cirq.Circuit(cirq.measure(cirq.GridQubit(0, 0), key='m')),
+        cirq.Linspace('foo', 0, 1, 10),
+        repetitions=10,
+    )
+    assert len(results) == 10
+    for result in results:
+        np.testing.assert_equal(result.records['m'], np.zeros((10, 1, 1)))
+
+
+@duet.sync
 async def test_sampler_async_fail():
     class FailingSampler(cirq.Sampler):
         def run_sweep(self, program, params, repetitions: int = 1):
