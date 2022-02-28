@@ -313,17 +313,18 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
 
 @pytest.mark.parametrize('add_measurements', [True, False])
 @pytest.mark.parametrize('use_repetition_ids', [True, False])
-def test_repeat_zero_times(add_measurements, use_repetition_ids):
+@pytest.mark.parametrize('initial_reps', [0, 1, 2, 3])
+def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
     q = cirq.LineQubit(0)
     subcircuit = cirq.Circuit(cirq.X(q))
     if add_measurements:
         subcircuit.append(cirq.measure(q))
 
     op = cirq.CircuitOperation(
-        subcircuit.freeze(), repetitions=3, use_repetition_ids=use_repetition_ids
+        subcircuit.freeze(), repetitions=initial_reps, use_repetition_ids=use_repetition_ids
     )
     result = cirq.Simulator().simulate(cirq.Circuit(op))
-    assert np.allclose(result.state_vector(), [0, 1])
+    assert np.allclose(result.state_vector(), [0, 1] if initial_reps % 2 else [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op ** 0))
     assert np.allclose(result.state_vector(), [1, 0])
 
