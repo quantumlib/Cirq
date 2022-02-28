@@ -22,9 +22,8 @@ References:
 [4] Efficient Quantum Circuits for Diagonal Unitaries Without Ancillas by Jonathan Welch, Daniel
     Greenbaum, Sarah Mostame, and Alán Aspuru-Guzik, https://arxiv.org/abs/1306.3991
 """
-import itertools
 import functools
-
+import itertools
 from typing import Any, Dict, Generator, List, Sequence, Tuple
 
 import sympy.parsing.sympy_parser as sympy_parser
@@ -32,7 +31,7 @@ import sympy.parsing.sympy_parser as sympy_parser
 import cirq
 from cirq import value
 from cirq._compat import deprecated_class
-from cirq.ops import gate_operation, raw_types
+from cirq.ops import raw_types
 from cirq.ops.linear_combinations import PauliSum, PauliString
 
 
@@ -165,13 +164,10 @@ class BooleanHamiltonianGate(raw_types.Gate):
         self._boolean_strs: Sequence[str] = boolean_strs
         self._theta: float = theta
 
-    def _qid_shape_(self):
+    def _qid_shape_(self) -> Tuple[int, ...]:
         return (2,) * len(self._parameter_names)
 
-    def on(self, *qubits) -> 'cirq.Operation':
-        return gate_operation.GateOperation(self, qubits)
-
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self._parameter_names, self._boolean_strs, self._theta
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -183,7 +179,9 @@ class BooleanHamiltonianGate(raw_types.Gate):
         }
 
     @classmethod
-    def _from_json_dict_(cls, parameter_names, boolean_strs, theta, **kwargs):
+    def _from_json_dict_(
+        cls, parameter_names, boolean_strs, theta, **kwargs
+    ) -> 'cirq.BooleanHamiltonianGate':
         return cls(parameter_names, boolean_strs, theta)
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
@@ -196,10 +194,10 @@ class BooleanHamiltonianGate(raw_types.Gate):
 
         return _get_gates_from_hamiltonians(hamiltonian_polynomial_list, qubit_map, self._theta)
 
-    def _has_unitary_(self):
+    def _has_unitary_(self) -> bool:
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f'cirq.BooleanHamiltonianGate('
             f'parameter_names={self._parameter_names!r}, '
