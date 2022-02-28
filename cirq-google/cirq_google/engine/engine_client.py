@@ -922,19 +922,13 @@ def _processor_name_from_ids(project_id: str, processor_id: str) -> str:
 def _calibration_name_from_ids(
     project_id: str, processor_id: str, calibration_time_seconds: int
 ) -> str:
-    return 'projects/%s/processors/%s/calibrations/%d' % (
-        project_id,
-        processor_id,
-        calibration_time_seconds,
+    return (
+        f'projects/{project_id}/processors/{processor_id}/calibrations/{calibration_time_seconds}'
     )
 
 
 def _reservation_name_from_ids(project_id: str, processor_id: str, reservation_id: str) -> str:
-    return 'projects/%s/processors/%s/reservations/%s' % (
-        project_id,
-        processor_id,
-        reservation_id,
-    )
+    return f'projects/{project_id}/processors/{processor_id}/reservations/{reservation_id}'
 
 
 def _ids_from_program_name(program_name: str) -> Tuple[str, str]:

@@ -176,10 +176,10 @@ class Result(abc.ABC):
 
     @property
     def repetitions(self) -> int:
-        if not self.measurements:
+        if not self.records:
             return 0
         # Get the length quickly from one of the keyed results.
-        return len(next(iter(self.measurements.values())))
+        return len(next(iter(self.records.values())))
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
@@ -289,25 +289,29 @@ class Result(abc.ABC):
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Result):
             return NotImplemented
-        return self.data.equals(other.data) and self.params == other.params
-
-    def _measurement_shape(self) -> Tuple['cirq.ParamResolver', Dict[str, Tuple[int, ...]]]:
-        return self.params, {k: v.shape[1] for k, v in self.measurements.items()}
+        return (
+            self.records.keys() == other.records.keys()
+            and all(np.array_equal(self.records[k], other.records[k]) for k in self.records)
+            and self.params == other.params
+        )
 
     def __add__(self, other: 'cirq.Result') -> 'cirq.Result':
         if not isinstance(other, Result):
             return NotImplemented
-        if self._measurement_shape() != other._measurement_shape():
+        if self.params != other.params:
             raise ValueError(
-                'Results do not have the same parameters or do not have the '
-                'same measurement keys.'
+                f'Cannot add results with different parameters: {self.params} != {other.params}'
             )
-        all_measurements: Dict[str, np.ndarray] = {}
-        for key in other.measurements:
-            all_measurements[key] = np.append(
-                self.measurements[key], other.measurements[key], axis=0
+        shape = {k: v.shape[1:] for k, v in self.records.items()}
+        other_shape = {k: v.shape[1:] for k, v in other.records.items()}
+        if shape != other_shape:
+            raise ValueError(
+                f'Cannot add results with different measurement shapes: {shape} != {other_shape}'
             )
-        return ResultDict(params=self.params, measurements=all_measurements)
+        all_records: Dict[str, np.ndarray] = {}
+        for key in other.records:
+            all_records[key] = np.append(self.records[key], other.records[key], axis=0)
+        return ResultDict(params=self.params, records=all_records)
 
 
 class ResultDict(Result):
@@ -325,7 +329,7 @@ class ResultDict(Result):
     def __init__(
         self,
         *,  # Forces keyword args.
-        params: resolver.ParamResolver,
+        params: Optional[resolver.ParamResolver] = None,
         measurements: Optional[Mapping[str, np.ndarray]] = None,
         records: Optional[Mapping[str, np.ndarray]] = None,
     ) -> None:
@@ -345,6 +349,8 @@ class ResultDict(Result):
                 the last index running over the qubits for the corresponding
                 measurements.
         """
+        if params is None:
+            params = resolver.ParamResolver({})
         if measurements is None and records is None:
             # For backwards compatibility, allow constructing with None.
             measurements = {}
@@ -399,10 +405,10 @@ class ResultDict(Result):
         return self._data
 
     def __repr__(self) -> str:
-        measurement_dict_repr = (
-            '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.measurements.items()) + '}'
+        record_dict_repr = (
+            '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.records.items()) + '}'
         )
-        return f'cirq.ResultDict(params={self.params!r}, measurements={measurement_dict_repr})'
+        return f'cirq.ResultDict(params={self.params!r}, records={record_dict_repr})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
@@ -416,10 +422,10 @@ class ResultDict(Result):
         return _keyed_repeated_bitstrings(self.measurements)
 
     def _json_dict_(self):
-        packed_measurements = {}
-        for key, digits in self.measurements.items():
+        packed_records = {}
+        for key, digits in self.records.items():
             packed_digits, binary = _pack_digits(digits)
-            packed_measurements[key] = {
+            packed_records[key] = {
                 'packed_digits': packed_digits,
                 'binary': binary,
                 'dtype': digits.dtype.name,
@@ -427,14 +433,21 @@ class ResultDict(Result):
             }
         return {
             'params': self.params,
-            'measurements': packed_measurements,
+            'records': packed_records,
         }
 
     @classmethod
-    def _from_json_dict_(cls, params, measurements, **kwargs):
+    def _from_json_dict_(cls, params, **kwargs):
+        if 'measurements' in kwargs:
+            measurements = kwargs['measurements']
+            return cls(
+                params=params,
+                measurements={key: _unpack_digits(**val) for key, val in measurements.items()},
+            )
+        records = kwargs['records']
         return cls(
             params=params,
-            measurements={key: _unpack_digits(**val) for key, val in measurements.items()},
+            records={key: _unpack_digits(**val) for key, val in records.items()},
         )
 
 

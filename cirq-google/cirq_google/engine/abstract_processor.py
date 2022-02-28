@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     import cirq_google
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
-    import cirq_google.engine.abstract_program as abstract_program
     import cirq_google.serialization.serializer as serializer
 
 

@@ -1,0 +1,4 @@
+[
+    cirq.CZTargetGateset(atol=1e-06, allow_partial_czs=False),
+    cirq.CZTargetGateset(atol=1e-08, allow_partial_czs=True),
+]

@@ -46,7 +46,7 @@ REPETITION_ID_SEPARATOR = '-'
 
 
 def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
-    if abs(repetitions) > 1:
+    if abs(repetitions) != 1:
         return [str(i) for i in range(abs(repetitions))]
     return None
 
@@ -288,6 +288,8 @@ class CircuitOperation(ops.Operation):
             qubit mapping, parameterization, etc.) applied to it. This behaves
             like `cirq.decompose(self)`, but preserving moment structure.
         """
+        if self.repetitions == 0:
+            return circuits.Circuit()
         circuit = (
             circuits.Circuit(self._mapped_single_loop(rep) for rep in self.repetition_ids)
             if self.repetition_ids is not None
