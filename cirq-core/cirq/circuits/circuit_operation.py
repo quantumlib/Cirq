@@ -272,10 +272,9 @@ class CircuitOperation(ops.Operation):
         circuit = cast(circuits.Circuit, self._cached_mapped_single_loop)
         if repetition_id:
             circuit = protocols.with_rescoped_keys(circuit, (repetition_id,))
-        circuit = protocols.with_rescoped_keys(
+        return protocols.with_rescoped_keys(
             circuit, self.parent_path, bindable_keys=self.extern_keys
         )
-        return circuit
 
     def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
         """Applies all maps to the contained circuit and returns the result.
