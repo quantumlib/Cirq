@@ -247,6 +247,8 @@ class CircuitOperation(ops.Operation):
             qubit mapping, parameterization, etc.) applied to it. This behaves
             like `cirq.decompose(self)`, but preserving moment structure.
         """
+        if self.repetitions == 0:
+            return circuits.Circuit()
         circuit = self.circuit.unfreeze()
         if self.qubit_map:
             circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
