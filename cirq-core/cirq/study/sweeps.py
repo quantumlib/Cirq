@@ -70,7 +70,7 @@ class Sweep(metaclass=abc.ABCMeta):
     """
 
     def __mul__(self, other: 'Sweep') -> 'Sweep':
-        factors = []  # type: List[Sweep]
+        factors: List[Sweep] = []
         if isinstance(self, Product):
             factors.extend(self.factors)
         else:
@@ -84,7 +84,7 @@ class Sweep(metaclass=abc.ABCMeta):
         return Product(*factors)
 
     def __add__(self, other: 'Sweep') -> 'Sweep':
-        sweeps = []  # type: List[Sweep]
+        sweeps: List[Sweep] = []
         if isinstance(self, Zip):
             sweeps.extend(self.sweeps)
         else:

@@ -36,7 +36,11 @@ class ParentProgram(AbstractLocalProgram):
 def test_run():
     program = ParentProgram([cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m'))], None)
     job = SimulatedLocalJob(
-        job_id='test_job', processor_id='test1', parent_program=program, repetitions=100, sweeps=[]
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=100,
+        sweeps=[{}],
     )
     assert job.id() == 'test_job'
     assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
@@ -63,7 +67,10 @@ def test_run_sweep():
     assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
 
 
-def test_run_batch():
+@pytest.mark.parametrize(
+    'simulation_type', [LocalSimulationType.SYNCHRONOUS, LocalSimulationType.ASYNCHRONOUS]
+)
+def test_run_batch(simulation_type):
     program = ParentProgram(
         [
             cirq.Circuit(cirq.X(Q) ** sympy.Symbol('t'), cirq.measure(Q, key='m')),
@@ -75,16 +82,30 @@ def test_run_batch():
         job_id='test_job',
         processor_id='test1',
         parent_program=program,
+        simulation_type=simulation_type,
         repetitions=100,
         sweeps=[cirq.Points(key='t', points=[1, 0]), cirq.Points(key='x', points=[0, 1])],
     )
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
+    if simulation_type == LocalSimulationType.ASYNCHRONOUS:
+        # Note: The simulation could have finished already
+        assert (
+            job.execution_status() == quantum.enums.ExecutionStatus.State.RUNNING
+            or job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+        )
+    else:
+        assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
     results = job.batched_results()
     assert np.all(results[0][0].measurements['m'] == 1)
     assert np.all(results[0][1].measurements['m'] == 0)
     assert np.all(results[1][0].measurements['m2'] == 0)
     assert np.all(results[1][1].measurements['m2'] == 1)
     assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+    # Using flattened results
+    results = job.results()
+    assert np.all(results[0].measurements['m'] == 1)
+    assert np.all(results[1].measurements['m'] == 0)
+    assert np.all(results[2].measurements['m2'] == 0)
+    assert np.all(results[3].measurements['m2'] == 1)
 
 
 def test_cancel():
@@ -103,8 +124,8 @@ def test_unsupported_types():
         processor_id='test1',
         parent_program=program,
         repetitions=100,
-        sweeps=[],
-        simulation_type=LocalSimulationType.ASYNCHRONOUS,
+        sweeps=[{}],
+        simulation_type=LocalSimulationType.ASYNCHRONOUS_WITH_DELAY,
     )
     with pytest.raises(ValueError, match='Unsupported simulation type'):
         job.results()
@@ -136,6 +157,24 @@ def test_failure():
         code, message = job.failure()
         assert code == '500'
         assert 'Circuit contains ops whose symbols were not specified' in message
+
+
+def test_run_async():
+    qubits = cirq.LineQubit.range(20)
+    c = cirq.testing.random_circuit(qubits, n_moments=20, op_density=1.0)
+    c.append(cirq.measure(*qubits))
+    program = ParentProgram([c], None)
+    job = SimulatedLocalJob(
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=100,
+        sweeps=[{}],
+        simulation_type=LocalSimulationType.ASYNCHRONOUS,
+    )
+    assert job.execution_status() == quantum.enums.ExecutionStatus.State.RUNNING
+    _ = job.results()
+    assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
 
 
 def test_run_calibration_unsupported():

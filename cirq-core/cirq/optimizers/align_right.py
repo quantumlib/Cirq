@@ -16,8 +16,10 @@
 
 from cirq import circuits
 from cirq.circuits.insert_strategy import InsertStrategy
+from cirq._compat import deprecated_class
 
 
+@deprecated_class(deadline='v1.0', fix='Use cirq.align_right(circuit, context) instead')
 class AlignRight:
     """Aligns gates to the right of the circuit."""
 

@@ -62,12 +62,6 @@ imports.
 """
 
 
-def _act_with_gates(args, qubits, *gates: 'cirq.SupportsActOnQubits') -> None:
-    """Act on the given args with the given gates in order."""
-    for gate in gates:
-        assert gate._act_on_(args, qubits)
-
-
 def _pi(rads):
     return sympy.pi if protocols.is_parameterized(rads) else np.pi
 
@@ -107,35 +101,6 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if p != 1:
             args.available_buffer *= p
         return args.available_buffer
-
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq.sim import clifford
-
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            tableau = args.tableau
-            q = args.qubit_map[qubits[0]]
-            effective_exponent = self._exponent % 2
-            if effective_exponent == 0.5:
-                tableau.xs[:, q] ^= tableau.zs[:, q]
-                tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
-            elif effective_exponent == 1:
-                tableau.rs[:] ^= tableau.zs[:, q]
-            elif effective_exponent == 1.5:
-                tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
-                tableau.xs[:, q] ^= tableau.zs[:, q]
-            return True
-
-        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            _act_with_gates(args, qubits, H, ZPowGate(exponent=self._exponent), H)
-            # Adjust the global phase based on the global_shift parameter.
-            args.state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-            return True
-
-        return NotImplemented
 
     def in_su2(self) -> 'Rx':
         """Returns an equal-up-global-phase gate from the group SU2."""
@@ -362,51 +327,6 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq.sim import clifford
-
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            tableau = args.tableau
-            q = args.qubit_map[qubits[0]]
-            effective_exponent = self._exponent % 2
-            if effective_exponent == 0.5:
-                tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
-                (tableau.xs[:, q], tableau.zs[:, q]) = (
-                    tableau.zs[:, q].copy(),
-                    tableau.xs[:, q].copy(),
-                )
-            elif effective_exponent == 1:
-                tableau.rs[:] ^= tableau.xs[:, q] ^ tableau.zs[:, q]
-            elif effective_exponent == 1.5:
-                tableau.rs[:] ^= ~(tableau.xs[:, q]) & tableau.zs[:, q]
-                (tableau.xs[:, q], tableau.zs[:, q]) = (
-                    tableau.zs[:, q].copy(),
-                    tableau.xs[:, q].copy(),
-                )
-            return True
-
-        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            effective_exponent = self._exponent % 2
-            state = args.state
-            Z = ZPowGate()
-            if effective_exponent == 0.5:
-                _act_with_gates(args, qubits, Z, H)
-                state.omega *= (1 + 1j) / (2 ** 0.5)
-            elif effective_exponent == 1:
-                _act_with_gates(args, qubits, Z, H, Z, H)
-                state.omega *= 1j
-            elif effective_exponent == 1.5:
-                _act_with_gates(args, qubits, H, Z)
-                state.omega *= (1 - 1j) / (2 ** 0.5)
-            # Adjust the global phase based on the global_shift parameter.
-            args.state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-            return True
-        return NotImplemented
-
     def in_su2(self) -> 'Ry':
         """Returns an equal-up-global-phase gate from the group SU2."""
         return Ry(rads=self._exponent * _pi(self._exponent))
@@ -579,42 +499,6 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
-
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq.sim import clifford
-
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            tableau = args.tableau
-            q = args.qubit_map[qubits[0]]
-            effective_exponent = self._exponent % 2
-            if effective_exponent == 0.5:
-                tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
-                tableau.zs[:, q] ^= tableau.xs[:, q]
-            elif effective_exponent == 1:
-                tableau.rs[:] ^= tableau.xs[:, q]
-            elif effective_exponent == 1.5:
-                tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
-                tableau.zs[:, q] ^= tableau.xs[:, q]
-            return True
-
-        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            q = args.qubit_map[qubits[0]]
-            effective_exponent = self._exponent % 2
-            state = args.state
-            for _ in range(int(effective_exponent * 2)):
-                # Prescription for S left multiplication.
-                # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-                state.M[q, :] ^= state.G[q, :]
-                state.gamma[q] = (state.gamma[q] - 1) % 4
-            # Adjust the global phase based on the global_shift parameter.
-            args.state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-            return True
-
-        return NotImplemented
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -899,49 +783,6 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq.sim import clifford
-
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            tableau = args.tableau
-            q = args.qubit_map[qubits[0]]
-            if self._exponent % 2 == 1:
-                (tableau.xs[:, q], tableau.zs[:, q]) = (
-                    tableau.zs[:, q].copy(),
-                    tableau.xs[:, q].copy(),
-                )
-                tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
-            return True
-
-        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            q = args.qubit_map[qubits[0]]
-            state = args.state
-            if self._exponent % 2 == 1:
-                # Prescription for H left multiplication
-                # Reference: https://arxiv.org/abs/1808.00128
-                # Equations 48, 49 and Proposition 4
-                t = state.s ^ (state.G[q, :] & state.v)
-                u = state.s ^ (state.F[q, :] & (~state.v)) ^ (state.M[q, :] & state.v)
-
-                alpha = sum(state.G[q, :] & (~state.v) & state.s) % 2
-                beta = sum(state.M[q, :] & (~state.v) & state.s)
-                beta += sum(state.F[q, :] & state.v & state.M[q, :])
-                beta += sum(state.F[q, :] & state.v & state.s)
-                beta %= 2
-
-                delta = (state.gamma[q] + 2 * (alpha + beta)) % 4
-
-                state.update_sum(t, u, delta=delta, alpha=alpha)
-            # Adjust the global phase based on the global_shift parameter.
-            args.state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-            return True
-
-        return NotImplemented
-
     def _decompose_(self, qubits):
         q = qubits[0]
 
@@ -1062,52 +903,6 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
-
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq.sim import clifford
-
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            tableau = args.tableau
-            q1 = args.qubit_map[qubits[0]]
-            q2 = args.qubit_map[qubits[1]]
-            if self._exponent % 2 == 1:
-                (tableau.xs[:, q2], tableau.zs[:, q2]) = (
-                    tableau.zs[:, q2].copy(),
-                    tableau.xs[:, q2].copy(),
-                )
-                tableau.rs[:] ^= tableau.xs[:, q2] & tableau.zs[:, q2]
-                tableau.rs[:] ^= (
-                    tableau.xs[:, q1]
-                    & tableau.zs[:, q2]
-                    & (~(tableau.xs[:, q2] ^ tableau.zs[:, q1]))
-                )
-                tableau.xs[:, q2] ^= tableau.xs[:, q1]
-                tableau.zs[:, q1] ^= tableau.zs[:, q2]
-                (tableau.xs[:, q2], tableau.zs[:, q2]) = (
-                    tableau.zs[:, q2].copy(),
-                    tableau.xs[:, q2].copy(),
-                )
-                tableau.rs[:] ^= tableau.xs[:, q2] & tableau.zs[:, q2]
-            return True
-
-        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            q1 = args.qubit_map[qubits[0]]
-            q2 = args.qubit_map[qubits[1]]
-            state = args.state
-            if self._exponent % 2 == 1:
-                # Prescription for CZ left multiplication.
-                # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-                state.M[q1, :] ^= state.G[q2, :]
-                state.M[q2, :] ^= state.G[q1, :]
-            # Adjust the global phase based on the global_shift parameter.
-            args.state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-            return True
-
-        return NotImplemented
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -1290,48 +1085,6 @@ class CXPowGate(eigen_gate.EigenGate):
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
-
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq.sim import clifford
-
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            tableau = args.tableau
-            q1 = args.qubit_map[qubits[0]]
-            q2 = args.qubit_map[qubits[1]]
-            if self._exponent % 2 == 1:
-                tableau.rs[:] ^= (
-                    tableau.xs[:, q1]
-                    & tableau.zs[:, q2]
-                    & (~(tableau.xs[:, q2] ^ tableau.zs[:, q1]))
-                )
-                tableau.xs[:, q2] ^= tableau.xs[:, q1]
-                tableau.zs[:, q1] ^= tableau.zs[:, q2]
-            return True
-
-        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if not protocols.has_stabilizer_effect(self):
-                return NotImplemented
-            q1 = args.qubit_map[qubits[0]]
-            q2 = args.qubit_map[qubits[1]]
-            state = args.state
-            if self._exponent % 2 == 1:
-                # Prescription for CX left multiplication.
-                # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
-                state.gamma[q1] = (
-                    state.gamma[q1]
-                    + state.gamma[q2]
-                    + 2 * (sum(state.M[q1, :] & state.F[q2, :]) % 2)
-                ) % 4
-                state.G[q2, :] ^= state.G[q1, :]
-                state.F[q1, :] ^= state.F[q2, :]
-                state.M[q1, :] ^= state.M[q2, :]
-            # Adjust the global phase based on the global_shift parameter.
-            args.state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
-            return True
-
-        return NotImplemented
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):

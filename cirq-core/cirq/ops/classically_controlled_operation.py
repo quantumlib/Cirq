@@ -148,7 +148,6 @@ class ClassicallyControlledOperation(raw_types.Operation):
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
         if sub_info is None:
             return NotImplemented  # coverage: ignore
-
         control_count = len({k for c in self._conditions for k in c.keys})
         wire_symbols = sub_info.wire_symbols + ('^',) * control_count
         if any(not isinstance(c, value.KeyCondition) for c in self._conditions):
@@ -171,13 +170,12 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'conditions': self._conditions,
             'sub_operation': self._sub_operation,
         }
 
-    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
-        if all(c.resolve(args.log_of_measurement_results) for c in self._conditions):
+    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
+        if all(c.resolve(args.classical_data) for c in self._conditions):
             protocols.act_on(self._sub_operation, args)
         return True
 

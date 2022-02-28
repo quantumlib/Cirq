@@ -75,7 +75,7 @@ def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None
     The returned value need not actually be present in the input observables.
     Coefficients from input observables will be dropped.
     """
-    qubit_pauli_map = dict()  # type: Dict[ops.Qid, ops.Pauli]
+    qubit_pauli_map: Dict[ops.Qid, ops.Pauli] = {}
     for observable in observables:
         for qubit, pauli in observable.items():
             if qubit in qubit_pauli_map:
@@ -99,7 +99,7 @@ def _max_weight_state(states: Iterable[value.ProductState]) -> Union[None, value
     "+X(0) * -Z(1)". Asking for the max weight state of something like
     [+X(0), +Z(0)] will return None.
     """
-    qubit_state_map = dict()  # type: Dict[ops.Qid, _NamedOneQubitState]
+    qubit_state_map: Dict[ops.Qid, _NamedOneQubitState] = {}
     for state in states:
         for qubit, named_state in state:
             if qubit in qubit_state_map:

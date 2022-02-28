@@ -17,7 +17,7 @@
 Filename is a reference to multiplexing.
 """
 
-from typing import List, Optional, Type, Union, cast, TYPE_CHECKING
+from typing import cast, List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -25,6 +25,7 @@ from cirq import circuits, protocols, study, devices, ops, value
 from cirq._doc import document
 from cirq.sim import sparse_simulator, density_matrix_simulator
 from cirq.sim.clifford import clifford_simulator
+from cirq.transformers import measurement_transformers
 
 if TYPE_CHECKING:
     import cirq
@@ -169,7 +170,7 @@ def sample_sweep(
     repetitions: int = 1,
     dtype: Type[np.number] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> List['cirq.Result']:
+) -> Sequence['cirq.Result']:
     """Runs the supplied Circuit, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
@@ -192,7 +193,7 @@ def sample_sweep(
     """
     prng = value.parse_random_state(seed)
 
-    trial_results = []  # type: List[study.Result]
+    trial_results: List[study.Result] = []
     for param_resolver in study.to_resolvers(params):
         measurements = sample(
             program,
@@ -281,9 +282,10 @@ def final_density_matrix(
             dtype=dtype,
             noise=noise,
             seed=seed,
-            ignore_measurement_results=(ignore_measurement_results),
         ).simulate(
-            program=circuit_like,
+            program=measurement_transformers.dephase_measurements(circuit_like)
+            if ignore_measurement_results
+            else circuit_like,
             initial_state=initial_state,
             qubit_order=qubit_order,
             param_resolver=param_resolver,

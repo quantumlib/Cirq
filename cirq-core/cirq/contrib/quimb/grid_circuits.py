@@ -137,10 +137,9 @@ def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit):
     n_op = sum(1 for _ in circuit_sand.all_operations())
     while True:
         MergeNQubitGates(n_qubits=1).optimize_circuit(circuit_sand)
-        cirq.DropNegligible(tolerance=1e-6).optimize_circuit(circuit_sand)
+        circuit_sand = cirq.drop_negligible_operations(circuit_sand, atol=1e-6)
         MergeNQubitGates(n_qubits=2).optimize_circuit(circuit_sand)
-        cirq.DropNegligible(tolerance=1e-6)
-        cirq.DropEmptyMoments().optimize_circuit(circuit_sand)
+        circuit_sand = cirq.drop_empty_moments(circuit_sand)
         new_n_op = sum(1 for _ in circuit_sand.all_operations())
 
         if new_n_op < n_op:

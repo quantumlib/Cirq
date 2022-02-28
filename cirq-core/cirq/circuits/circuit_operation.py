@@ -45,7 +45,7 @@ REPETITION_ID_SEPARATOR = '-'
 
 
 def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
-    if abs(repetitions) > 1:
+    if abs(repetitions) != 1:
         return [str(i) for i in range(abs(repetitions))]
     return None
 
@@ -90,10 +90,17 @@ class CircuitOperation(ops.Operation):
             targets for unbound `ClassicallyControlledOperation` keys. This
             field is not intended to be set or changed manually, and should be
             empty in circuits that aren't in the middle of decomposition.
+        use_repetition_ids: When True, any measurement key in the subcircuit
+            will have its path prepended with the repetition id for each
+            repetition. When False, this will not happen and the measurement
+            key will be repeated.
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
     _cached_measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = dataclasses.field(
+        default=None, init=False
+    )
+    _cached_control_keys: Optional[AbstractSet['cirq.MeasurementKey']] = dataclasses.field(
         default=None, init=False
     )
 
@@ -105,6 +112,7 @@ class CircuitOperation(ops.Operation):
     repetition_ids: Optional[List[str]] = dataclasses.field(default=None)
     parent_path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
     extern_keys: FrozenSet['cirq.MeasurementKey'] = dataclasses.field(default_factory=frozenset)
+    use_repetition_ids: bool = True
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -165,6 +173,7 @@ class CircuitOperation(ops.Operation):
             and self.repetitions == other.repetitions
             and self.repetition_ids == other.repetition_ids
             and self.parent_path == other.parent_path
+            and self.use_repetition_ids == other.use_repetition_ids
         )
 
     # Methods for getting post-mapping properties of the contained circuit.
@@ -187,7 +196,7 @@ class CircuitOperation(ops.Operation):
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._cached_measurement_key_objs is None:
             circuit_keys = protocols.measurement_key_objs(self.circuit)
-            if self.repetition_ids is not None:
+            if self.repetition_ids is not None and self.use_repetition_ids:
                 circuit_keys = {
                     key.with_key_path_prefix(repetition_id)
                     for repetition_id in self.repetition_ids
@@ -208,9 +217,14 @@ class CircuitOperation(ops.Operation):
         return {str(key) for key in self._measurement_key_objs_()}
 
     def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
-        if not protocols.control_keys(self.circuit):
-            return frozenset()
-        return protocols.control_keys(self.mapped_circuit())
+        if self._cached_control_keys is None:
+            keys = (
+                frozenset()
+                if not protocols.control_keys(self.circuit)
+                else protocols.control_keys(self.mapped_circuit())
+            )
+            object.__setattr__(self, '_cached_control_keys', keys)
+        return self._cached_control_keys  # type: ignore
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return {
@@ -233,6 +247,8 @@ class CircuitOperation(ops.Operation):
             qubit mapping, parameterization, etc.) applied to it. This behaves
             like `cirq.decompose(self)`, but preserving moment structure.
         """
+        if self.repetitions == 0:
+            return circuits.Circuit()
         circuit = self.circuit.unfreeze()
         if self.qubit_map:
             circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
@@ -242,8 +258,8 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         if self.param_resolver:
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
-        if self.repetition_ids:
-            if not protocols.is_measurement(circuit):
+        if self.repetition_ids is not None:
+            if not self.use_repetition_ids or not protocols.is_measurement(circuit):
                 circuit = circuit * abs(self.repetitions)
             else:
                 circuit = circuits.Circuit(
@@ -265,7 +281,7 @@ class CircuitOperation(ops.Operation):
     def _decompose_(self) -> Iterator['cirq.Operation']:
         return self.mapped_circuit(deep=False).all_operations()
 
-    def _act_on_(self, args: 'cirq.ActOnArgs') -> bool:
+    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
         for op in self._decompose_():
             protocols.act_on(op, args)
         return True
@@ -287,6 +303,8 @@ class CircuitOperation(ops.Operation):
         if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
+        if not self.use_repetition_ids:
+            args += 'use_repetition_ids=False,\n'
         indented_args = args.replace('\n', '\n    ')
         return f'cirq.CircuitOperation({indented_args[:-4]})'
 
@@ -317,6 +335,8 @@ class CircuitOperation(ops.Operation):
         elif self.repetitions != 1:
             # Only add loops if we haven't added repetition_ids.
             args.append(f'loops={self.repetitions}')
+        if not self.use_repetition_ids:
+            args.append('no_rep_ids')
         if not args:
             return circuit_msg
         return f'{circuit_msg}({", ".join(args)})'
@@ -335,13 +355,14 @@ class CircuitOperation(ops.Operation):
                         self.param_resolver,
                         self.parent_path,
                         tuple([] if self.repetition_ids is None else self.repetition_ids),
+                        self.use_repetition_ids,
                     )
                 ),
             )
         return self._hash
 
     def _json_dict_(self):
-        return {
+        resp = {
             'circuit': self.circuit,
             'repetitions': self.repetitions,
             # JSON requires mappings to have keys of basic types.
@@ -352,6 +373,9 @@ class CircuitOperation(ops.Operation):
             'repetition_ids': self.repetition_ids,
             'parent_path': self.parent_path,
         }
+        if not self.use_repetition_ids:
+            resp['use_repetition_ids'] = False
+        return resp
 
     @classmethod
     def _from_json_dict_(
@@ -363,10 +387,11 @@ class CircuitOperation(ops.Operation):
         param_resolver,
         repetition_ids,
         parent_path=(),
+        use_repetition_ids=True,
         **kwargs,
     ):
         return (
-            cls(circuit)
+            cls(circuit, use_repetition_ids=use_repetition_ids)
             .with_qubit_mapping(dict(qubit_map))
             .with_measurement_key_mapping(measurement_key_map)
             .with_params(param_resolver)

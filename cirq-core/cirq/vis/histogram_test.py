@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 from cirq.vis import integrated_histogram
 
 
+@pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize('data', [range(10), {f'key_{i}': i for i in range(10)}])
 def test_integrated_histogram(data):
     ax = integrated_histogram(
@@ -39,6 +40,7 @@ def test_integrated_histogram(data):
         assert line.get_color() == 'r'
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_multiple_plots():
     _, ax = plt.subplots(1, 1)
     n = 53

@@ -14,7 +14,7 @@
 
 from typing import Any, Dict, TYPE_CHECKING
 
-from cirq import value, protocols
+from cirq import _compat, value, protocols
 from cirq._doc import document
 from cirq.devices import device
 
@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 class _UnconstrainedDevice(device.Device):
     """A device that allows everything, infinitely fast."""
 
+    @_compat.deprecated(fix='qubit_set on UnconstrainedDevice is always None.', deadline='v0.15')
     def qubit_set(self) -> None:
         return None
 

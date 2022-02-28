@@ -292,7 +292,8 @@
           ]
         },
         "parent_path": [],
-        "repetition_ids": null
+        "repetition_ids": null,
+        "use_repetition_ids": false
       }
     ]
   ]

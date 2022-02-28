@@ -14,34 +14,27 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Union
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
-from cirq.ops import common_gates
-from cirq.ops import pauli_gates
-from cirq.ops.clifford_gate import SingleQubitCliffordGate
-from cirq.protocols import has_unitary, num_qubits, unitary
-from cirq.sim.act_on_args import ActOnArgs
-from cirq.type_workarounds import NotImplementedType
+from cirq.qis import clifford_tableau
+from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnCliffordTableauArgs(ActOnArgs):
-    """State and context for an operation acting on a clifford tableau.
-
-    To act on this object, directly edit the `tableau` property, which is
-    storing the density matrix of the quantum system with one axis per qubit.
-    """
+class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTableau]):
+    """State and context for an operation acting on a clifford tableau."""
 
     def __init__(
         self,
         tableau: 'cirq.CliffordTableau',
-        prng: np.random.RandomState,
-        log_of_measurement_results: Dict[str, Any],
-        qubits: Sequence['cirq.Qid'] = None,
+        prng: Optional[np.random.RandomState] = None,
+        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits ActOnCliffordTableauArgs.
 
@@ -55,35 +48,27 @@ class ActOnCliffordTableauArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            classical_data: The shared classical data container for this
+                simulation.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
-        self.tableau = tableau
+        super().__init__(
+            state=tableau,
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
 
-    def _act_on_fallback_(
-        self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
-    ) -> Union[bool, NotImplementedType]:
-        strats = []
-        if allow_decompose:
-            strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)
-        for strat in strats:
-            result = strat(action, self, qubits)
-            if result is False:
-                break  # coverage: ignore
-            if result is True:
-                return True
-            assert result is NotImplemented, str(result)
-
-        return NotImplemented
+    @property
+    def tableau(self) -> 'cirq.CliffordTableau':
+        return self.state
 
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Returns the measurement from the tableau."""
-        return [self.tableau._measure(self.qubit_map[q], self.prng) for q in qubits]
+        return [self.state._measure(self.qubit_map[q], self.prng) for q in qubits]
 
-    def _on_copy(self, target: 'ActOnCliffordTableauArgs'):
-        target.tableau = self.tableau.copy()
+    def _on_copy(self, target: 'ActOnCliffordTableauArgs', deep_copy_buffers: bool = True):
+        target._state = self.state.copy()
 
     def sample(
         self,
@@ -93,25 +78,3 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     ) -> np.ndarray:
         # Unnecessary for now but can be added later if there is a use case.
         raise NotImplementedError()
-
-
-def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
-    val: Any, args: 'cirq.ActOnCliffordTableauArgs', qubits: Sequence['cirq.Qid']
-) -> bool:
-    if num_qubits(val) == 1:
-        if not has_unitary(val):
-            return NotImplemented
-        u = unitary(val)
-        clifford_gate = SingleQubitCliffordGate.from_unitary(u)
-        if clifford_gate is not None:
-            for axis, quarter_turns in clifford_gate.decompose_rotation():
-                if axis == pauli_gates.X:
-                    common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
-                elif axis == pauli_gates.Y:
-                    common_gates.YPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
-                else:
-                    assert axis == pauli_gates.Z
-                    common_gates.ZPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
-            return True
-
-    return NotImplemented

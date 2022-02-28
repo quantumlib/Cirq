@@ -202,5 +202,5 @@ class AbstractLocalProgram(AbstractProgram):
         return self._circuits[0]
 
     def batch_size(self) -> int:
-        """Returns the number of programs in a batch program. """
+        """Returns the number of programs in a batch program."""
         return len(self._circuits)
