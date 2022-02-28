@@ -45,7 +45,7 @@ REPETITION_ID_SEPARATOR = '-'
 
 
 def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
-    if abs(repetitions) > 1:
+    if abs(repetitions) != 1:
         return [str(i) for i in range(abs(repetitions))]
     return None
 
@@ -256,7 +256,7 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         if self.param_resolver:
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
-        if self.repetition_ids:
+        if self.repetition_ids is not None:
             if not self.use_repetition_ids or not protocols.is_measurement(circuit):
                 circuit = circuit * abs(self.repetitions)
             else:
