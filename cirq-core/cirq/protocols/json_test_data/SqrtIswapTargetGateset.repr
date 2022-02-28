@@ -1,0 +1,7 @@
+[
+    cirq.SqrtIswapTargetGateset(
+        atol=1e-08, required_sqrt_iswap_count=None, use_sqrt_iswap_inv=False
+    ),
+    cirq.SqrtIswapTargetGateset(atol=1e-08, required_sqrt_iswap_count=1, use_sqrt_iswap_inv=False),
+    cirq.SqrtIswapTargetGateset(atol=1e-06, required_sqrt_iswap_count=2, use_sqrt_iswap_inv=True),
+]

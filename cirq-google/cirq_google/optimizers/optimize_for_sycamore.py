@@ -22,7 +22,6 @@ from cirq_google import ops as cg_ops
 from cirq_google.optimizers import (
     convert_to_xmon_gates,
     ConvertToSycamoreGates,
-    ConvertToSqrtIswapGates,
 )
 
 if TYPE_CHECKING:
@@ -58,20 +57,16 @@ def _get_sycamore_optimizers(
     return [ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit]
 
 
-def _get_sqrt_iswap_optimizers(
-    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
-) -> List[Callable[[cirq.Circuit], None]]:
-    if tabulation is not None:
-        # coverage: ignore
-        raise ValueError("Gate tabulation not supported for sqrt_iswap")
-    return [ConvertToSqrtIswapGates().optimize_circuit]
-
-
 _OPTIMIZER_TYPES = {
     'xmon': _get_xmon_optimizers,
     'xmon_partial_cz': _get_xmon_optimizers_part_cz,
-    'sqrt_iswap': _get_sqrt_iswap_optimizers,
     'sycamore': _get_sycamore_optimizers,
+}
+
+_TARGET_GATESETS = {
+    'sqrt_iswap': lambda atol, _: cirq.SqrtIswapTargetGateset(atol=atol),
+    'xmon': lambda atol, _: cirq.CZTargetGateset(atol=atol),
+    'xmon_partial_cz': lambda atol, _: cirq.CZTargetGateset(atol=atol, allow_partial_czs=True),
 }
 
 
@@ -131,7 +126,7 @@ def optimized_for_sycamore(
         ValueError: If the `optimizer_type` is not a supported type.
     """
     copy = circuit.copy()
-    if optimizer_type not in _OPTIMIZER_TYPES:
+    if optimizer_type not in _OPTIMIZER_TYPES and optimizer_type not in _TARGET_GATESETS:
         raise ValueError(
             f'{optimizer_type} is not an allowed type.  Allowed '
             f'types are: {_OPTIMIZER_TYPES.keys()}'
@@ -141,16 +136,15 @@ def optimized_for_sycamore(
     if tabulation_resolution is not None:
         tabulation = _gate_product_tabulation_cached(optimizer_type, tabulation_resolution)
 
-    opts = _OPTIMIZER_TYPES[optimizer_type](tolerance=tolerance, tabulation=tabulation)
-    for optimizer in opts:
-        optimizer(copy)
-    if optimizer_type.startswith('xmon'):
+    if optimizer_type in _TARGET_GATESETS:
         copy = cirq.optimize_for_target_gateset(
             circuit,
-            gateset=cirq.CZTargetGateset(
-                atol=tolerance, allow_partial_czs=optimizer_type.endswith('partial_cz')
-            ),
+            gateset=_TARGET_GATESETS[optimizer_type](tolerance, tabulation),
         )
+    if optimizer_type in _OPTIMIZER_TYPES:
+        opts = _OPTIMIZER_TYPES[optimizer_type](tolerance=tolerance, tabulation=tabulation)
+        for optimizer in opts:
+            optimizer(copy)
     copy = cirq.merge_single_qubit_gates_to_phxz(copy, atol=tolerance)
     copy = cirq.eject_phased_paulis(copy, atol=tolerance)
     copy = cirq.eject_z(copy, atol=tolerance)
