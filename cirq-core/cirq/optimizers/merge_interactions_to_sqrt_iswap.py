@@ -19,7 +19,7 @@ from typing import Callable, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops
+from cirq import ops, _compat
 from cirq.optimizers import merge_interactions
 from cirq.transformers.analytical_decompositions import two_qubit_to_sqrt_iswap
 
@@ -27,6 +27,10 @@ if TYPE_CHECKING:
     import cirq
 
 
+@_compat.deprecated_class(
+    deadline='v1.0',
+    fix='Use cirq.optimize_for_target_gateset and cirq.SqrtIswapTargetGateset instead.',
+)
 class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
     """Combines series of adjacent one- and two-qubit, non-parametrized gates
     operating on a pair of qubits and replaces each series with the minimum
