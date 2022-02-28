@@ -289,15 +289,13 @@ class CircuitOperation(ops.Operation):
             qubit mapping, parameterization, etc.) applied to it. This behaves
             like `cirq.decompose(self)`, but preserving moment structure.
         """
-        if self.repetition_ids:
-            if not self.use_repetition_ids or not protocols.is_measurement(self.circuit):
-                circuit = self._mapped_single_loop() * abs(self.repetitions)
-            else:
-                circuit = circuits.Circuit(
-                    self._mapped_single_loop(rep) for rep in self.repetition_ids
-                )
-        else:
-            circuit = self._mapped_single_loop()
+        circuit = (
+            circuits.Circuit(self._mapped_single_loop(rep) for rep in self.repetition_ids)
+            if self.repetition_ids
+            and self.use_repetition_ids
+            and protocols.is_measurement(self.circuit)
+            else self._mapped_single_loop() * abs(self.repetitions)
+        )
         if deep:
             circuit = circuit.map_operations(
                 lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
