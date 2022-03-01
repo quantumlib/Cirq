@@ -82,13 +82,13 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         """Inits FSimGate.
 
         Args:
-            theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
+            theta: Swap angle on the `|01⟩` `|10⟩` subspace, in radians.
                 Determined by the strength and duration of the XX+YY
                 interaction. Note: uses opposite sign convention to the
-                iSWAP gate. Maximum strength (full iswap) is at pi/2.
+                `cirq.ISWAP` gate. Maximum strength (full iswap) is at pi/2.
             phi: Controlled phase angle, in radians. Determines how much the
-                ``|11⟩`` state is phased. Note: uses opposite sign convention to
-                the CZPowGate. Maximum strength (full cz) is at pi.
+                `|11⟩` state is phased. Note: uses opposite sign convention to
+                the `cirq.CZPowGate`. Maximum strength (full cz) is at pi.
         """
         self.theta = _canonicalize(theta)
         self.phi = _canonicalize(phi)
@@ -214,9 +214,9 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
                        │
         1: ───Rz(α1)───FSim(θ, φ)───Rz(β1)───
 
-    where α0 and α1 are Rz angles to be applied before the core FSimGate,
-    β0 and β1 are Rz angles to be applied after FSimGate and θ and φ specify
-    the core FSimGate. Use the static factory function from_fsim_rz to
+    where α0 and α1 are Rz angles to be applied before the core `cirq.FSimGate`,
+    β0 and β1 are Rz angles to be applied after `cirq.FSimGate` and θ and φ specify
+    the core `cirq.FSimGate`. Use the static factory function from_fsim_rz to
     instantiate the gate using this parametrization.
 
     Note that the θ and φ parameters in the two parametrizations are the same.
@@ -258,7 +258,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         """Inits PhasedFSimGate.
 
         Args:
-            theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
+            theta: Swap angle on the `|01⟩` `|10⟩` subspace, in radians.
                 See class docstring above for details.
             zeta: One of the phase angles, in radians. See class
                 docstring above for details.
@@ -285,7 +285,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         """Creates PhasedFSimGate using an alternate parametrization.
 
         Args:
-            theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
+            theta: Swap angle on the `|01⟩` `|10⟩` subspace, in radians.
                 See class docstring above for details.
             phi: Controlled phase angle, in radians. See class docstring
                 above for details.
@@ -303,14 +303,14 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     @property
     def rz_angles_before(self) -> Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]]:
-        """Returns 2-tuple of phase angles applied to qubits before FSimGate."""
+        """Returns 2-tuple of phase angles applied to qubits before `cirq.FSimGate`."""
         b0 = (-self.gamma + self.zeta + self.chi) / 2.0
         b1 = (-self.gamma - self.zeta - self.chi) / 2.0
         return b0, b1
 
     @property
     def rz_angles_after(self) -> Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]]:
-        """Returns 2-tuple of phase angles applied to qubits after FSimGate."""
+        """Returns 2-tuple of phase angles applied to qubits after `cirq.FSimGate`."""
         a0 = (-self.gamma + self.zeta - self.chi) / 2.0
         a1 = (-self.gamma - self.zeta + self.chi) / 2.0
         return a0, a1
@@ -405,7 +405,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         return out
 
     def _decompose_(self, qubits) -> 'cirq.OP_TREE':
-        """Decomposes self into Z rotations and FSimGate.
+        """Decomposes self into Z rotations and `cirq.FSimGate`.
 
         Note that Z rotations returned by this method have unusual global phase
         in that one of their eigenvalues is 1. This ensures the decomposition

@@ -47,16 +47,16 @@ ObjectFactory = Union[Type, Callable[..., Any]]
 
 
 class JsonResolver(Protocol):
-    """Protocol for json resolver functions passed to read_json."""
+    """Protocol for json resolver functions passed to `cirq.read_json`."""
 
     def __call__(self, cirq_type: str) -> Optional[ObjectFactory]:
         ...
 
 
 def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> JsonResolver:
-    """A lazy JsonResolver based on a dict_factory.
+    """A lazy `JsonResolver` based on a `dict_factory`.
 
-    It only calls dict_factory when the first key is accessed.
+    It only calls `dict_factory` when the first key is accessed.
 
     Args:
         dict_factory: a callable that generates an instance of the
@@ -70,7 +70,7 @@ def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> Json
 
 
 DEFAULT_RESOLVERS: List[JsonResolver] = []
-"""A default list of 'JsonResolver' functions for use in read_json.
+"""A default list of `JsonResolver` functions for use in `cirq.read_json`.
 
 For more information about cirq_type resolution during deserialization
 please read the docstring for `cirq.read_json`.
@@ -92,16 +92,16 @@ prepended to this list:
 def _register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> None:
     """Register a resolver based on a dict factory for lazy initialization.
 
-    Cirq modules are the ones referred in cirq/__init__.py. If a Cirq module
+    Cirq modules are the ones referred in `cirq/__init__.py`. If a Cirq module
     wants to expose JSON serializable objects, it should register itself using
     this method to be supported by the protocol. See for example
-    cirq/__init__.py or cirq/google/__init__.py.
+    `cirq/__init__.py` or `cirq/google/__init__.py`.
 
-    As Cirq modules are imported by cirq/__init__.py, they are different from
+    As Cirq modules are imported by `cirq/__init__.py`, they are different from
     3rd party packages, and as such SHOULD NEVER rely on storing a
-    separate resolver based on DEAFULT_RESOLVERS because that will cause a
-    partial DEFAULT_RESOLVER to be used by that module. What it contains will
-    depend on where in cirq/__init__.py the module is imported first, as some
+    separate resolver based on `DEFAULT_RESOLVERS` because that will cause a
+    partial `DEFAULT_RESOLVER` to be used by that module. What it contains will
+    depend on where in `cirq/__init__.py` the module is imported first, as some
     modules might not had the chance to register themselves yet.
 
     Args:
@@ -114,11 +114,11 @@ def _register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> 
 class SupportsJSON(Protocol):
     """An object that can be turned into JSON dictionaries.
 
-    The magic method _json_dict_ must return a trivially json-serializable
-    type or other objects that support the SupportsJSON protocol.
+    The magic method `_json_dict_` must return a trivially json-serializable
+    type or other objects that support the `cirq.SupportsJSON `protocol.
 
     During deserialization, a class must be able to be resolved (see
-    the docstring for `read_json`) and must be able to be (re-)constructed
+    the docstring for `cirq.read_json`) and must be able to be (re-)constructed
     from the serialized parameters. If the type defines a classmethod
     `_from_json_dict_`, that will be called. Otherwise, the `cirq_type` key
     will be popped from the dictionary and used as kwargs to the type's
@@ -131,7 +131,7 @@ class SupportsJSON(Protocol):
 
 
 class HasJSONNamespace(Protocol):
-    """An object which prepends a namespace to its JSON cirq_type.
+    """An object which prepends a namespace to its JSON `cirq_type`.
 
     Classes which implement this method have the following cirq_type format:
 
@@ -167,10 +167,10 @@ def obj_to_dict_helper(
     """Construct a dictionary containing attributes from obj
 
     This is useful as a helper function in objects implementing the
-    SupportsJSON protocol, particularly in the _json_dict_ method.
+    `cirq.SupportsJSON` protocol, particularly in the `_json_dict_` method.
 
     In addition to keys and values specified by `attribute_names`, the
-    returned dictionary has an additional key "cirq_type" whose value
+    returned dictionary has an additional key `cirq_type` whose value
     is the string name of the type of `obj`.
 
     Args:
@@ -178,7 +178,7 @@ def obj_to_dict_helper(
         attribute_names: The names of attributes to serve as keys in the
             resultant dictionary. The values will be the attribute values.
         namespace: An optional prefix to the value associated with the
-            key "cirq_type". The namespace name will be joined with the
+            key `cirq_type`. The namespace name will be joined with the
             class name via a dot (.)
     """
     d = {}
@@ -203,8 +203,8 @@ def json_serializable_dataclass(
 ):
     """Create a dataclass that supports JSON serialization.
 
-    This function defers to the ordinary ``dataclass`` decorator but appends
-    the ``_json_dict_`` protocol method which automatically determines
+    This function defers to the ordinary `dataclass` decorator but appends
+    the `_json_dict_` protocol method which automatically determines
     the appropriate fields from the dataclass.
 
     Dataclasses are implemented with somewhat complex metaprogramming, and
@@ -217,7 +217,7 @@ def json_serializable_dataclass(
     Args:
         _cls: The class to add JSON serializatin to.
         namespace: An optional prefix to the value associated with the
-            key "cirq_type". The namespace name will be joined with the
+            key `cirq_type`. The namespace name will be joined with the
             class name via a dot (.)
         init: Forwarded to the `dataclass` constructor.
         repr: Forwarded to the `dataclass` constructor.
@@ -258,7 +258,7 @@ def json_serializable_dataclass(
     match=lambda args, kwargs: 'namespace' in kwargs,
 )
 def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
-    """Return a dictionary suitable for _json_dict_ from a dataclass.
+    """Return a dictionary suitable for `_json_dict_` from a dataclass.
 
     Dataclasses keep track of their relevant fields, so we can automatically generate these.
 
@@ -294,7 +294,7 @@ class CirqEncoder(json.JSONEncoder):
     """Extend json.JSONEncoder to support Cirq objects.
 
     This supports custom serialization. For details, see the documentation
-    for the SupportsJSON protocol.
+    for the `cirq.SupportsJSON` protocol.
 
     In addition to serializing objects that implement the SupportsJSON
     protocol, this encoder deals with common, basic types:
@@ -437,7 +437,7 @@ class SerializableByKey(SupportsJSON):
 
 
 class _SerializedKey(SupportsJSON):
-    """Internal object for holding a SerializableByKey key.
+    """Internal object for holding a `cirq.SerializableByKey` key.
 
     This is a private type used in contextual serialization. Its deserialization
     is context-dependent, and is not expected to match the original; in other
@@ -461,7 +461,7 @@ class _SerializedKey(SupportsJSON):
 
 
 class _SerializedContext(SupportsJSON):
-    """Internal object for a single SerializableByKey key-to-object mapping.
+    """Internal object for a single `cirq.SerializableByKey` key-to-object mapping.
 
     This is a private type used in contextual serialization. Its deserialization
     is context-dependent, and is not expected to match the original; in other
@@ -520,7 +520,7 @@ class _ContextualSerialization(SupportsJSON):
 
 
 def has_serializable_by_keys(obj: Any) -> bool:
-    """Returns true if obj contains one or more SerializableByKey objects."""
+    """Returns true if obj contains one or more `cirq.SerializableByKey` objects."""
     if isinstance(obj, SerializableByKey):
         return True
     json_dict = getattr(obj, '_json_dict_', lambda: None)()
@@ -543,10 +543,10 @@ def has_serializable_by_keys(obj: Any) -> bool:
 
 
 def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
-    """Returns all SerializableByKeys contained by obj.
+    """Returns all `cirq.SerializableByKeys` contained by obj.
 
     Objects are ordered such that nested objects appear before the object they
-    are nested inside. This is required to ensure SerializableByKeys are only
+    are nested inside. This is required to ensure `cirq.SerializableByKeys` are only
     fully defined once in serialization.
     """
     result = []
@@ -609,12 +609,12 @@ def factory_from_json(
 ) -> ObjectFactory:
     """Returns a factory for constructing objects of type `type_str`.
 
-    DEFAULT_RESOLVERS is updated dynamically as cirq submodules are imported.
+    `DEFAULT_RESOLVERS` is updated dynamically as cirq submodules are imported.
 
     Args:
         type_str: string representation of the type to deserialize.
         resolvers: list of JsonResolvers to use in type resolution. If this is
-            left blank, DEFAULT_RESOLVERS will be used.
+            left blank, `DEFAULT_RESOLVERS` will be used.
 
     Returns:
         An ObjectFactory that can be called to construct an object whose type
@@ -641,7 +641,7 @@ def cirq_type_from_json(type_str: str, resolvers: Optional[Sequence[JsonResolver
     Args:
         type_str: string representation of the type to deserialize.
         resolvers: list of JsonResolvers to use in type resolution. If this is
-            left blank, DEFAULT_RESOLVERS will be used.
+            left blank, `DEFAULT_RESOLVERS` will be used.
 
     Returns:
         The type object T for which json_cirq_type(T) matches `type_str`.
@@ -689,7 +689,7 @@ def to_json(
     """Write a JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
-    objects which implement the SupportsJSON protocol.
+    objects which implement the `cirq.SupportsJSON` protocol.
 
     Args:
         obj: An object which can be serialized to a JSON representation.
@@ -705,7 +705,7 @@ def to_json(
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
-            party classes, prefer adding the _json_dict_ magic method
+            party classes, prefer adding the `_json_dict_` magic method
             to your classes rather than overriding this default.
     """
     if has_serializable_by_keys(obj):
@@ -764,10 +764,10 @@ def read_json(
             `None`.
         resolvers: A list of functions that are called in order to turn
             the serialized `cirq_type` string into a constructable class.
-            By default, top-level cirq objects that implement the SupportsJSON
+            By default, top-level cirq objects that implement the `cirq.SupportsJSON`
             protocol are supported. You can extend the list of supported types
             by pre-pending custom resolvers. Each resolver should return `None`
-            to indicate that it cannot resolve the given cirq_type and that
+            to indicate that it cannot resolve the given `cirq_type` and that
             the next resolver should be tried.
 
     Raises:
