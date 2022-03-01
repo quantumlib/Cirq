@@ -20,7 +20,6 @@ import sympy
 import cirq
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
-
 ALL_SIMULATORS = (
     cirq.Simulator(),
     cirq.DensityMatrixSimulator(),
@@ -248,9 +247,40 @@ def test_with_params():
         == op_with_params
     )
 
-    # Recursive parameter resolution is rejected.
-    with pytest.raises(ValueError, match='Use "recursive=False"'):
-        _ = cirq.resolve_parameters(op_base, cirq.ParamResolver(param_dict))
+
+def test_recursive_params():
+    q = cirq.LineQubit(0)
+    a, a2, b, b2 = sympy.symbols('a a2 b b2')
+    circuitop = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.X(q) ** a,
+            cirq.Z(q) ** b,
+        ),
+        # Not recursive, a and b are swapped.
+        param_resolver=cirq.ParamResolver({a: b, b: a}),
+    )
+    # Recursive, so a->a2->0 and b->b2->1.
+    outer_params = {a: a2, a2: 0, b: b2, b2: 1}
+    resolved = cirq.resolve_parameters(circuitop, outer_params)
+    # Combined, a->b->b2->1, and b->a->a2->0.
+    assert resolved.param_resolver.param_dict == {a: 1, b: 0}
+
+    # Non-recursive, so a->a2 and b->b2.
+    resolved = cirq.resolve_parameters(circuitop, outer_params, recursive=False)
+    # Combined, a->b->b2, and b->a->a2.
+    assert resolved.param_resolver.param_dict == {a: b2, b: a2}
+
+    with pytest.raises(RecursionError):
+        cirq.resolve_parameters(circuitop, {a: a2, a2: a})
+
+    # Non-recursive, so a->b and b->a.
+    resolved = cirq.resolve_parameters(circuitop, {a: b, b: a}, recursive=False)
+    # Combined, a->b->a, and b->a->b.
+    assert resolved.param_resolver.param_dict == {}
+
+    # First example should behave like an X when simulated
+    result = cirq.Simulator().simulate(cirq.Circuit(circuitop), param_resolver=outer_params)
+    assert np.allclose(result.state_vector(), [0, 1])
 
 
 @pytest.mark.parametrize('add_measurements', [True, False])

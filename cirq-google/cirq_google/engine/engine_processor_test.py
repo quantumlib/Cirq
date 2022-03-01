@@ -26,15 +26,10 @@ import cirq
 import cirq_google as cg
 import cirq_google.devices.known_devices as known_devices
 from cirq_google.api import v2
+from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
 from cirq_google.engine.client.quantum_v1alpha1 import enums as qenums
 from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
-
-
-def _to_any(proto):
-    any_proto = qtypes.any_pb2.Any()
-    any_proto.Pack(proto)
-    return any_proto
 
 
 def _to_timestamp(json_string):
@@ -46,7 +41,7 @@ def _to_timestamp(json_string):
 _CALIBRATION = qtypes.QuantumCalibration(
     name='projects/a/processors/p/calibrations/1562715599',
     timestamp=_to_timestamp('2019-07-09T23:39:59Z'),
-    data=_to_any(
+    data=util.pack_any(
         v2.metrics_pb2.MetricsSnapshot(
             timestamp_ms=1562544000021,
             metrics=[
@@ -84,7 +79,7 @@ _CALIBRATION = qtypes.QuantumCalibration(
     ),
 )
 
-_DEVICE_SPEC = _to_any(
+_DEVICE_SPEC = util.pack_any(
     Merge(
         """
 valid_gate_sets: [{
@@ -198,12 +193,12 @@ _RESULTS2_V2 = v2.result_pb2.Result(
 )
 
 
-_BATCH_RESULTS_V2 = _to_any(
+_BATCH_RESULTS_V2 = util.pack_any(
     v2.batch_pb2.BatchResult(results=[_RESULTS_V2, _RESULTS2_V2]),
 )
 
 
-_CALIBRATION_RESULTS_V2 = _to_any(
+_CALIBRATION_RESULTS_V2 = util.pack_any(
     v2.calibration_pb2.FocusedCalibrationResult(
         results=[
             v2.calibration_pb2.CalibrationLayerResult(
@@ -347,7 +342,7 @@ def test_default_gate_sets():
         'a',
         'p',
         EngineContext(),
-        _processor=qtypes.QuantumProcessor(device_spec=_to_any(known_devices.SYCAMORE_PROTO)),
+        _processor=qtypes.QuantumProcessor(device_spec=util.pack_any(known_devices.SYCAMORE_PROTO)),
     )
     device = processor.get_device()
     device.validate_operation(cirq.X(cirq.GridQubit(5, 4)))
@@ -851,7 +846,7 @@ def test_run_sweep_params(client):
         ),
     )
     client().get_job.return_value = qtypes.QuantumJob(execution_status={'state': 'SUCCESS'})
-    client().get_job_results.return_value = qtypes.QuantumResult(result=_to_any(_RESULTS_V2))
+    client().get_job_results.return_value = qtypes.QuantumResult(result=util.pack_any(_RESULTS_V2))
 
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     job = processor.run_sweep(
@@ -967,7 +962,7 @@ def test_run_calibration(client):
         program_id='prog',
         job_id='job-id',
         processor_ids=['mysim'],
-        run_context=_to_any(v2.run_context_pb2.RunContext()),
+        run_context=util.pack_any(v2.run_context_pb2.RunContext()),
         description=None,
         labels={'calibration': ''},
     )
@@ -986,7 +981,7 @@ def test_sampler(client):
         ),
     )
     client().get_job.return_value = qtypes.QuantumJob(execution_status={'state': 'SUCCESS'})
-    client().get_job_results.return_value = qtypes.QuantumResult(result=_to_any(_RESULTS_V2))
+    client().get_job_results.return_value = qtypes.QuantumResult(result=util.pack_any(_RESULTS_V2))
     processor = cg.EngineProcessor('proj', 'mysim', EngineContext())
     sampler = processor.get_sampler(gate_set=cg.XMON)
     results = sampler.run_sweep(
