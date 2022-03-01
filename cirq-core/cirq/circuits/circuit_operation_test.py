@@ -533,6 +533,24 @@ cirq.CircuitOperation(
     use_repetition_ids=False,
 )"""
     )
+    op7 = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.measure(x, key='a')),
+        use_repetition_ids=False,
+        repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+    )
+    assert (
+        repr(op7)
+        == """\
+cirq.CircuitOperation(
+    circuit=cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.measure(cirq.LineQubit(0), key=cirq.MeasurementKey(name='a')),
+        ),
+    ]),
+    use_repetition_ids=False,
+    repeat_until=cirq.KeyCondition(cirq.MeasurementKey(name='a')),
+)"""
+    )
 
 
 def test_json_dict():
@@ -975,6 +993,109 @@ def test_simulate_no_repetition_ids_inner(sim):
     result = sim.run(circuit)
     assert result.records['0:a'].shape == (1, 2, 1)
     assert result.records['1:a'].shape == (1, 2, 1)
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeat_until(sim):
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    c = cirq.Circuit(
+        cirq.X(q),
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(q),
+                cirq.measure(q, key=key),
+            ),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        ),
+    )
+    measurements = sim.run(c).records['m'][0]
+    assert len(measurements) == 2
+    assert measurements[0] == (0,)
+    assert measurements[1] == (1,)
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeat_until_sympy(sim):
+    q1, q2 = cirq.LineQubit.range(2)
+    circuitop = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.X(q2),
+            cirq.measure(q2, key='b'),
+        ),
+        use_repetition_ids=False,
+        repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), sympy.Symbol('b'))),
+    )
+    c = cirq.Circuit(
+        cirq.measure(q1, key='a'),
+        circuitop,
+    )
+    # Validate commutation
+    assert len(c) == 2
+    assert cirq.control_keys(circuitop) == {cirq.MeasurementKey('a')}
+    measurements = sim.run(c).records['b'][0]
+    assert len(measurements) == 2
+    assert measurements[0] == (1,)
+    assert measurements[1] == (0,)
+
+
+@pytest.mark.parametrize('sim', [cirq.Simulator(), cirq.DensityMatrixSimulator()])
+def test_post_selection(sim):
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    c = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(q) ** 0.2,
+                cirq.measure(q, key=key),
+            ),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        ),
+    )
+    result = sim.run(c)
+    assert result.records['m'][0][-1] == (1,)
+    for i in range(len(result.records['m'][0]) - 1):
+        assert result.records['m'][0][i] == (0,)
+
+
+def test_repeat_until_diagram():
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    c = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(q) ** 0.2,
+                cirq.measure(q, key=key),
+            ),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        ),
+    )
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+0: ───[ 0: ───X^0.2───M('m')─── ](no_rep_ids, until=m)───
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_repeat_until_error():
+    q = cirq.LineQubit(0)
+    with pytest.raises(ValueError, match='Cannot use repetitions with repeat_until'):
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(),
+            use_repetition_ids=True,
+            repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+        )
+    with pytest.raises(ValueError, match='Infinite loop'):
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q, key='m')),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+        )
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?
