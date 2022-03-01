@@ -42,8 +42,23 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> 'cirq.Result':
         """Samples from the given Circuit.
 
-        By default, the `run_async` method invokes this method on another
-        thread. So this method is supposed to be thread safe.
+        Args:
+            program: The circuit to sample from.
+            param_resolver: Parameters to run with the program.
+            repetitions: The number of times to sample.
+
+        Returns:
+            Result for a run.
+        """
+        return self.run_sweep(program, param_resolver, repetitions)[0]
+
+    async def run_async(
+        self,
+        program: 'cirq.AbstractCircuit',
+        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+        repetitions: int = 1,
+    ) -> 'cirq.Result':
+        """Asynchronously samples from the given Circuit.
 
         Args:
             program: The circuit to sample from.
@@ -53,7 +68,8 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             Result for a run.
         """
-        return self.run_sweep(program, study.ParamResolver(param_resolver), repetitions)[0]
+        results = await self.run_sweep_async(program, param_resolver, repetitions)
+        return results[0]
 
     def sample(
         self,
@@ -152,8 +168,8 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> Sequence['cirq.Result']:
         """Samples from the given Circuit.
 
-        In contrast to run, this allows for sweeping over different parameter
-        values.
+        This allows for sweeping over different parameter values,
+        unlike the `run` method.
 
         Args:
             program: The circuit to sample from.
@@ -161,27 +177,8 @@ class Sampler(metaclass=abc.ABCMeta):
             repetitions: The number of times to sample.
 
         Returns:
-            Result list for this run; one for each possible parameter
-            resolver.
+            Result list for this run; one for each possible parameter resolver.
         """
-
-    async def run_async(
-        self, program: 'cirq.AbstractCircuit', *, repetitions: int
-    ) -> 'cirq.Result':
-        """Asynchronously samples from the given Circuit.
-
-        By default, this method invokes `run` synchronously and simply exposes
-        its result is an awaitable. Child classes that are capable of true
-        asynchronous sampling should override it to use other strategies.
-
-        Args:
-            program: The circuit to sample from.
-            repetitions: The number of times to sample.
-
-        Returns:
-            An awaitable Result.
-        """
-        return self.run(program, repetitions=repetitions)
 
     async def run_sweep_async(
         self,
@@ -189,7 +186,7 @@ class Sampler(metaclass=abc.ABCMeta):
         params: 'cirq.Sweepable',
         repetitions: int = 1,
     ) -> Sequence['cirq.Result']:
-        """Asynchronously sweeps and samples from the given Circuit.
+        """Asynchronously samples from the given Circuit.
 
         By default, this method invokes `run_sweep` synchronously and simply
         exposes its result is an awaitable. Child classes that are capable of
@@ -197,13 +194,11 @@ class Sampler(metaclass=abc.ABCMeta):
 
         Args:
             program: The circuit to sample from.
-            params: One or more mappings from parameter keys to parameter values
-                to use. For each parameter assignment, `repetitions` samples
-                will be taken.
+            params: Parameters to run with the program.
             repetitions: The number of times to sample.
 
         Returns:
-            An awaitable Result.
+            Result list for this run; one for each possible parameter resolver.
         """
         return self.run_sweep(program, params=params, repetitions=repetitions)
 

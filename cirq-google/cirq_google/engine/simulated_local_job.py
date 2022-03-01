@@ -24,6 +24,10 @@ from cirq_google.engine.abstract_local_job import AbstractLocalJob
 from cirq_google.engine.local_simulation_type import LocalSimulationType
 
 
+def _flatten_results(batch_results: Sequence[Sequence[cirq.Result]]):
+    return [result for batch in batch_results for result in batch]
+
+
 class SimulatedLocalJob(AbstractLocalJob):
     """A quantum job backed by a (local) sampler.
 
@@ -93,24 +97,13 @@ class SimulatedLocalJob(AbstractLocalJob):
         for each circuit in the batch.
         """
         if self._type == LocalSimulationType.SYNCHRONOUS:
-            reps, sweeps = self.get_repetitions_and_sweeps()
-            parent = self.program()
-            programs = [parent.get_circuit(n) for n in range(parent.batch_size())]
-            try:
-                self._state = quantum.enums.ExecutionStatus.State.SUCCESS
-                return self._sampler.run_batch(
-                    programs=programs,
-                    params_list=cast(List[cirq.Sweepable], sweeps),
-                    repetitions=reps,
-                )
-            except Exception as e:
-                self._failure_code = '500'
-                self._failure_message = str(e)
-                self._state = quantum.enums.ExecutionStatus.State.FAILURE
-                raise e
-        raise ValueError('Unsupported simulation type {self._type}')
+            return self._execute_results()
+        elif self._type == LocalSimulationType.ASYNCHRONOUS:
+            return self._future.result()
+        else:
+            raise ValueError('Unsupported simulation type {self._type}')
 
-    def _execute_results(self) -> Sequence[cirq.Result]:
+    def _execute_results(self) -> Sequence[Sequence[cirq.Result]]:
         """Executes the circuit and sweeps on the sampler.
 
         For synchronous execution, this is called when the results()
@@ -121,14 +114,18 @@ class SimulatedLocalJob(AbstractLocalJob):
         Returns: a List of results from the sweep's execution.
         """
         reps, sweeps = self.get_repetitions_and_sweeps()
-        program = self.program().get_circuit()
+        parent = self.program()
+        batch_size = parent.batch_size()
         try:
             self._state = quantum.enums.ExecutionStatus.State.RUNNING
-            results = self._sampler.run_sweep(
-                program=program, params=sweeps[0] if sweeps else None, repetitions=reps
+            programs = [parent.get_circuit(n) for n in range(batch_size)]
+            batch_results = self._sampler.run_batch(
+                programs=programs,
+                params_list=cast(List[cirq.Sweepable], sweeps),
+                repetitions=reps,
             )
             self._state = quantum.enums.ExecutionStatus.State.SUCCESS
-            return results
+            return batch_results
         except Exception as e:
             self._failure_code = '500'
             self._failure_message = str(e)
@@ -138,10 +135,9 @@ class SimulatedLocalJob(AbstractLocalJob):
     def results(self) -> Sequence[cirq.Result]:
         """Returns the job results, blocking until the job is complete."""
         if self._type == LocalSimulationType.SYNCHRONOUS:
-            return self._execute_results()
+            return _flatten_results(self._execute_results())
         elif self._type == LocalSimulationType.ASYNCHRONOUS:
-            return self._future.result()
-
+            return _flatten_results(self._future.result())
         else:
             raise ValueError('Unsupported simulation type {self._type}')
 
