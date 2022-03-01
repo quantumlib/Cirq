@@ -32,6 +32,7 @@ from typing import (
 
 import dataclasses
 import numpy as np
+import sympy
 
 from cirq import circuits, ops, protocols, value, study
 from cirq._compat import proper_repr
@@ -41,11 +42,12 @@ if TYPE_CHECKING:
 
 
 INT_TYPE = Union[int, np.integer]
+IntParam = Union[INT_TYPE, sympy.Symbol]
 REPETITION_ID_SEPARATOR = '-'
 
 
-def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
-    if abs(repetitions) != 1:
+def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
+    if isinstance(repetitions, (int, np.integer)) and abs(repetitions) != 1:
         return [str(i) for i in range(abs(repetitions))]
     return None
 
@@ -105,7 +107,7 @@ class CircuitOperation(ops.Operation):
     )
 
     circuit: 'cirq.FrozenCircuit'
-    repetitions: int = 1
+    repetitions: IntParam = 1
     qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = dataclasses.field(default_factory=dict)
     measurement_key_map: Dict[str, str] = dataclasses.field(default_factory=dict)
     param_resolver: study.ParamResolver = study.ParamResolver()
@@ -119,21 +121,24 @@ class CircuitOperation(ops.Operation):
             raise TypeError(f'Expected circuit of type FrozenCircuit, got: {type(self.circuit)!r}')
 
         # Ensure that the circuit is invertible if the repetitions are negative.
-        if self.repetitions < 0:
-            try:
-                protocols.inverse(self.circuit.unfreeze())
-            except TypeError:
-                raise ValueError('repetitions are negative but the circuit is not invertible')
+        if isinstance(self.repetitions, (int, np.integer)):
+            if self.repetitions < 0:
+                try:
+                    protocols.inverse(self.circuit.unfreeze())
+                except TypeError:
+                    raise ValueError('repetitions are negative but the circuit is not invertible')
 
-        # Initialize repetition_ids to default, if unspecified. Else, validate their length.
-        loop_size = abs(self.repetitions)
-        if not self.repetition_ids:
-            object.__setattr__(self, 'repetition_ids', self._default_repetition_ids())
-        elif len(self.repetition_ids) != loop_size:
-            raise ValueError(
-                f'Expected repetition_ids to be a list of length {loop_size}, '
-                f'got: {self.repetition_ids}'
-            )
+            # Initialize repetition_ids to default, if unspecified. Else, validate their length.
+            loop_size = abs(self.repetitions)
+            if not self.repetition_ids:
+                object.__setattr__(self, 'repetition_ids', self._default_repetition_ids())
+            elif len(self.repetition_ids) != loop_size:
+                raise ValueError(
+                    f'Expected repetition_ids to be a list of length {loop_size}, '
+                    f'got: {self.repetition_ids}'
+                )
+        elif not isinstance(self.repetitions, sympy.Basic):
+            raise TypeError('Only integer or sympy repetitions are allowed.')
 
         # Disallow mapping to keys containing the `MEASUREMENT_KEY_SEPARATOR`
         for mapped_key in self.measurement_key_map.values():
@@ -193,6 +198,11 @@ class CircuitOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return self.circuit._is_measurement_()
 
+    def _has_unitary_(self):
+        if self._parameter_names_():
+            return False
+        return NotImplemented
+
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._cached_measurement_key_objs is None:
             circuit_keys = protocols.measurement_key_objs(self.circuit)
@@ -227,7 +237,7 @@ class CircuitOperation(ops.Operation):
         return self._cached_control_keys  # type: ignore
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return {
+        return protocols.parameter_names(self.repetitions) | {
             name
             for symbol in protocols.parameter_symbols(self.circuit)
             for name in protocols.parameter_names(
@@ -403,7 +413,7 @@ class CircuitOperation(ops.Operation):
 
     def repeat(
         self,
-        repetitions: Optional[INT_TYPE] = None,
+        repetitions: Optional[IntParam] = None,
         repetition_ids: Optional[List[str]] = None,
     ) -> 'CircuitOperation':
         """Returns a copy of this operation repeated 'repetitions' times.
@@ -434,33 +444,31 @@ class CircuitOperation(ops.Operation):
                 raise ValueError('At least one of repetitions and repetition_ids must be set')
             repetitions = len(repetition_ids)
 
-        if not isinstance(repetitions, (int, np.integer)):
-            raise TypeError('Only integer repetitions are allowed.')
+        if isinstance(repetitions, (int, np.integer)):
+            if repetitions == 1 and repetition_ids is None:
+                # As CircuitOperation is immutable, this can safely return the original.
+                return self
 
-        repetitions = int(repetitions)
+            expected_repetition_id_length = abs(repetitions)
+            # The eventual number of repetitions of the returned CircuitOperation.
 
-        if repetitions == 1 and repetition_ids is None:
-            # As CircuitOperation is immutable, this can safely return the original.
-            return self
-
-        expected_repetition_id_length = abs(repetitions)
-        # The eventual number of repetitions of the returned CircuitOperation.
-        final_repetitions = self.repetitions * repetitions
-
-        if repetition_ids is None:
-            repetition_ids = default_repetition_ids(expected_repetition_id_length)
-        elif len(repetition_ids) != expected_repetition_id_length:
-            raise ValueError(
-                f'Expected repetition_ids={repetition_ids} length to be '
-                f'{expected_repetition_id_length}'
-            )
+            if repetition_ids is None:
+                repetition_ids = default_repetition_ids(expected_repetition_id_length)
+            elif len(repetition_ids) != expected_repetition_id_length:
+                raise ValueError(
+                    f'Expected repetition_ids={repetition_ids} length to be '
+                    f'{expected_repetition_id_length}'
+                )
+        else:
+            if repetition_ids is not None:
+                raise ValueError('Cannot use repetition ids with parameterized repetitions')
 
         # If `self.repetition_ids` is None, this will just return `repetition_ids`.
         repetition_ids = _full_join_string_lists(repetition_ids, self.repetition_ids)
-
+        final_repetitions = self.repetitions * repetitions
         return self.replace(repetitions=final_repetitions, repetition_ids=repetition_ids)
 
-    def __pow__(self, power: int) -> 'cirq.CircuitOperation':
+    def __pow__(self, power: IntParam) -> 'cirq.CircuitOperation':
         return self.repeat(power)
 
     def _with_key_path_(self, path: Tuple[str, ...]):
@@ -628,4 +636,5 @@ class CircuitOperation(ops.Operation):
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.CircuitOperation':
-        return self.with_params(resolver.param_dict, recursive)
+        resolved = self.with_params(resolver.param_dict, recursive)
+        return resolved.replace(repetitions=resolver.value_of(self.repetitions, recursive))

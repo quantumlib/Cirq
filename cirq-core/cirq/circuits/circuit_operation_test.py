@@ -337,7 +337,7 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
     ):
         _ = op_base.repeat()
 
-    with pytest.raises(TypeError, match='Only integer repetitions are allowed'):
+    with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
         _ = op_base.repeat(1.3)
 
 
@@ -357,6 +357,21 @@ def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
     assert np.allclose(result.state_vector(), [0, 1] if initial_reps % 2 else [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op ** 0))
     assert np.allclose(result.state_vector(), [1, 0])
+
+
+def test_parameterized_repeat():
+    q = cirq.LineQubit(0)
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q))) ** sympy.Symbol('a')
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 0})
+    assert np.allclose(result.state_vector(), [1, 0])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1})
+    assert np.allclose(result.state_vector(), [0, 1])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 2})
+    assert np.allclose(result.state_vector(), [1, 0])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': -1})
+    assert np.allclose(result.state_vector(), [0, 1])
+    with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
+        cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5})
 
 
 def test_qid_shape():

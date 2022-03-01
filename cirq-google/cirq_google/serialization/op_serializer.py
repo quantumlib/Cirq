@@ -341,8 +341,10 @@ class CircuitOpSerializer(OpSerializer):
         ):
             for rep_id in op.repetition_ids:
                 msg.repetition_specification.repetition_ids.ids.append(rep_id)
-        else:
+        elif isinstance(op.repetitions, int):
             msg.repetition_specification.repetition_count = op.repetitions
+        else:
+            raise ValueError(f'Cannot serialize repetitions of type {type(op.repetitions)}')
 
         for q1, q2 in op.qubit_map.items():
             entry = msg.qubit_map.entries.add()
