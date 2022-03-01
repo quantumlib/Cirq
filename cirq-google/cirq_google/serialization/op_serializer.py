@@ -341,8 +341,8 @@ class CircuitOpSerializer(OpSerializer):
         ):
             for rep_id in op.repetition_ids:
                 msg.repetition_specification.repetition_ids.ids.append(rep_id)
-        elif isinstance(op.repetitions, int):
-            msg.repetition_specification.repetition_count = op.repetitions
+        elif isinstance(op.repetitions, (int, np.integer)):
+            msg.repetition_specification.repetition_count = int(op.repetitions)
         else:
             raise ValueError(f'Cannot serialize repetitions of type {type(op.repetitions)}')
 
