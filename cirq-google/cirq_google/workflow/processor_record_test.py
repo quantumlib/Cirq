@@ -38,14 +38,10 @@ def _set_get_processor_return(get_processor):
     from google.protobuf.text_format import Merge
 
     from cirq_google.api import v2
+    from cirq_google.engine import util
     from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
 
-    def _to_any(proto):
-        any_proto = qtypes.any_pb2.Any()
-        any_proto.Pack(proto)
-        return any_proto
-
-    device_spec = _to_any(
+    device_spec = util.pack_any(
         Merge(
             """
 valid_gate_sets: [{
