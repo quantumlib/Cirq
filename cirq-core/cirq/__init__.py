@@ -196,6 +196,7 @@ from cirq.ops import (
     bit_flip,
     BitFlipChannel,
     BooleanHamiltonian,
+    BooleanHamiltonianGate,
     CCX,
     CCXPowGate,
     CCZ,
