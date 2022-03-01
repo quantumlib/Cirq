@@ -465,7 +465,7 @@ class CircuitOperation(ops.Operation):
 
         # If `self.repetition_ids` is None, this will just return `repetition_ids`.
         repetition_ids = _full_join_string_lists(repetition_ids, self.repetition_ids)
-        final_repetitions = self.repetitions * repetitions
+        final_repetitions = protocols.mul(self.repetitions, repetitions)
         return self.replace(repetitions=final_repetitions, repetition_ids=repetition_ids)
 
     def __pow__(self, power: IntParam) -> 'cirq.CircuitOperation':
@@ -509,8 +509,6 @@ class CircuitOperation(ops.Operation):
         Args:
             qubit_map: A mapping of old qubits to new qubits. This map will be
                 composed with any existing qubit mapping.
-            transform: A function mapping old qubits to new qubits. This
-                function will be composed with any existing qubit mapping.
 
         Returns:
             A copy of this operation targeting qubits as indicated by qubit_map.
