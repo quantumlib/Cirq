@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
 T = TypeVar('T')
 
+
 class SymbolFunc:
     """A "lambdified" symbolic expression that is faster for parameter resolution."""
 
