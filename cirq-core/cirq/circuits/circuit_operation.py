@@ -521,9 +521,6 @@ class CircuitOperation(ops.Operation):
                     f'Expected repetition_ids={repetition_ids} length to be '
                     f'{expected_repetition_id_length}'
                 )
-        else:
-            if repetition_ids is not None:
-                raise ValueError('Cannot use repetition ids with parameterized repetitions')
 
         # If `self.repetition_ids` is None, this will just return `repetition_ids`.
         repetition_ids = _full_join_string_lists(repetition_ids, self.repetition_ids)
