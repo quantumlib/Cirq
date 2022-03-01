@@ -449,11 +449,12 @@ def test_parameterized_repeat_side_effects():
         cirq.decompose(op)
 
     # Cannot use repetition ids
-    # TODO(daxfohl): Seems like this should also fail without the new symbol, but it doesn't.
     with pytest.raises(ValueError, match='repetition ids with parameterized repetitions'):
-        op.repeat(sympy.Symbol('c'), repetition_ids=['x', 'y'])
+        op.with_repetition_ids(['x', 'y'])
+    with pytest.raises(ValueError, match='repetition ids with parameterized repetitions'):
+        op.repeat(repetition_ids=['x', 'y'])
 
-    # TODO(daxfohl): The ones below here should work, but requires some changes to
+    # TODO(daxfohl): The next two should work, but requires some changes to
     # _measurement_key_names_ such that it does not depend on _measurement_key_objs_.
     with pytest.raises(
         ValueError, match='Cannot unroll circuit due to nondeterministic repetitions'
@@ -463,6 +464,24 @@ def test_parameterized_repeat_side_effects():
         ValueError, match='Cannot unroll circuit due to nondeterministic repetitions'
     ):
         cirq.with_measurement_key_mapping(op, {'m': 'm2'})
+
+    # Everything should work once resolved
+    op = cirq.resolve_parameters(op, {'a': 2})
+    assert set(map(str, cirq.measurement_key_objs(op))) == {'0:m', '1:m'}
+    assert op.mapped_circuit() == cirq.Circuit(
+        cirq.X(q).with_classical_controls('c'),
+        cirq.measure(q, key=cirq.MeasurementKey.parse_serialized('0:m')),
+        cirq.X(q).with_classical_controls('c'),
+        cirq.measure(q, key=cirq.MeasurementKey.parse_serialized('1:m')),
+    )
+    assert cirq.decompose(op) == cirq.decompose(
+        cirq.Circuit(
+            cirq.X(q).with_classical_controls('c'),
+            cirq.measure(q, key=cirq.MeasurementKey.parse_serialized('0:m')),
+            cirq.X(q).with_classical_controls('c'),
+            cirq.measure(q, key=cirq.MeasurementKey.parse_serialized('1:m')),
+        )
+    )
 
 
 def test_qid_shape():

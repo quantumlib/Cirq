@@ -154,7 +154,10 @@ class CircuitOperation(ops.Operation):
                     f'Expected repetition_ids to be a list of length {loop_size}, '
                     f'got: {self.repetition_ids}'
                 )
-        elif not isinstance(self.repetitions, sympy.Basic):
+        elif isinstance(self.repetitions, sympy.Basic):
+            if self.repetition_ids is not None:
+                raise ValueError('Cannot use repetition ids with parameterized repetitions')
+        else:
             raise TypeError('Only integer or sympy repetitions are allowed.')
 
         # Disallow mapping to keys containing the `MEASUREMENT_KEY_SEPARATOR`
