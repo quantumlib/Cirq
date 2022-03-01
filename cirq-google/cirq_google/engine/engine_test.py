@@ -25,8 +25,10 @@ import cirq
 import cirq_google
 import cirq_google as cg
 from cirq_google.api import v1, v2
-from cirq_google.engine.engine import EngineContext
+from cirq_google.engine import util
 from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
+from cirq_google.engine.engine import EngineContext
+
 
 _CIRCUIT = cirq.Circuit(
     cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
@@ -38,19 +40,13 @@ _CIRCUIT2 = cirq.FrozenCircuit(
 )
 
 
-def _to_any(proto):
-    any_proto = qtypes.any_pb2.Any()
-    any_proto.Pack(proto)
-    return any_proto
-
-
 def _to_timestamp(json_string):
     timestamp_proto = qtypes.timestamp_pb2.Timestamp()
     timestamp_proto.FromJsonString(json_string)
     return timestamp_proto
 
 
-_A_RESULT = _to_any(
+_A_RESULT = util.pack_any(
     Merge(
         """
 sweep_results: [{
@@ -77,7 +73,7 @@ sweep_results: [{
     )
 )
 
-_RESULTS = _to_any(
+_RESULTS = util.pack_any(
     Merge(
         """
 sweep_results: [{
@@ -112,7 +108,7 @@ sweep_results: [{
     )
 )
 
-_RESULTS_V2 = _to_any(
+_RESULTS_V2 = util.pack_any(
     Merge(
         """
 sweep_results: [{
@@ -156,7 +152,7 @@ sweep_results: [{
     )
 )
 
-_BATCH_RESULTS_V2 = _to_any(
+_BATCH_RESULTS_V2 = util.pack_any(
     Merge(
         """
 results: [{
@@ -240,7 +236,7 @@ results: [{
 )
 
 
-_CALIBRATION_RESULTS_V2 = _to_any(
+_CALIBRATION_RESULTS_V2 = util.pack_any(
     Merge(
         """
 results: [{
@@ -377,7 +373,7 @@ def test_run_circuit(client):
                 'priority': 50,
                 'processor_selector': {'processor_names': ['projects/project-id/processors/mysim']},
             },
-            run_context=_to_any(
+            run_context=util.pack_any(
                 v2.run_context_pb2.RunContext(
                     parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
                 )
@@ -724,7 +720,7 @@ def test_run_calibration(client):
         program_id='prog',
         job_id='job-id',
         processor_ids=['mysim'],
-        run_context=_to_any(v2.run_context_pb2.RunContext()),
+        run_context=util.pack_any(v2.run_context_pb2.RunContext()),
         description=None,
         labels={'calibration': ''},
     )
@@ -878,7 +874,7 @@ def test_get_engine(build):
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_get_engine_device(get_processor):
-    device_spec = _to_any(
+    device_spec = util.pack_any(
         Merge(
             """
 valid_gate_sets: [{
@@ -924,7 +920,7 @@ valid_targets: [{
 _CALIBRATION = qtypes.QuantumCalibration(
     name='projects/a/processors/p/calibrations/1562715599',
     timestamp=_to_timestamp('2019-07-09T23:39:59Z'),
-    data=_to_any(
+    data=util.pack_any(
         Merge(
             """
     timestamp_ms: 1562544000021,
