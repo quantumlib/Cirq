@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 
 INT_TYPE = Union[int, np.integer]
-IntParam = Union[INT_TYPE, sympy.Symbol]
+IntParam = Union[INT_TYPE, sympy.Basic]
 REPETITION_ID_SEPARATOR = '-'
 
 
@@ -75,7 +75,10 @@ class CircuitOperation(ops.Operation):
 
     Args:
         circuit: The FrozenCircuit wrapped by this operation.
-        repetitions: How many times the circuit should be repeated.
+        repetitions: How many times the circuit should be repeated. This can be
+            integer, or a sympy expression. If sympy, the expression must
+            resolve to an integer, or float within 0.001 of integer, at
+            runtime.
         qubit_map: Remappings for qubits in the circuit.
         measurement_key_map: Remappings for measurement keys in the circuit.
             The keys and values should be unindexed (i.e. without repetition_ids).
@@ -132,6 +135,9 @@ class CircuitOperation(ops.Operation):
             raise TypeError(f'Expected circuit of type FrozenCircuit, got: {type(self.circuit)!r}')
 
         # Ensure that the circuit is invertible if the repetitions are negative.
+        if isinstance(self.repetitions, float):
+            if abs(self.repetitions - round(self.repetitions)) < 0.001:
+                object.__setattr__(self, 'repetitions', round(self.repetitions))
         if isinstance(self.repetitions, (int, np.integer)):
             if self.repetitions < 0:
                 try:
@@ -223,15 +229,23 @@ class CircuitOperation(ops.Operation):
             return False
         return NotImplemented
 
+    def _ensure_deterministic_loop_count(self):
+        if self.use_repetition_ids and (
+            self.repeat_until or isinstance(self.repetitions, sympy.Basic)
+        ):
+            raise ValueError(f'Cannot unroll circuit due to nondeterministic repetitions')
+
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._cached_measurement_key_objs is None:
             circuit_keys = protocols.measurement_key_objs(self.circuit)
-            if self.repetition_ids is not None and self.use_repetition_ids:
-                circuit_keys = {
-                    key.with_key_path_prefix(repetition_id)
-                    for repetition_id in self.repetition_ids
-                    for key in circuit_keys
-                }
+            if circuit_keys and self.use_repetition_ids:
+                self._ensure_deterministic_loop_count()
+                if self.repetition_ids is not None:
+                    circuit_keys = {
+                        key.with_key_path_prefix(repetition_id)
+                        for repetition_id in self.repetition_ids
+                        for key in circuit_keys
+                    }
             circuit_keys = {key.with_key_path_prefix(*self.parent_path) for key in circuit_keys}
             object.__setattr__(
                 self,
@@ -251,7 +265,7 @@ class CircuitOperation(ops.Operation):
             keys = (
                 frozenset()
                 if not protocols.control_keys(self.circuit)
-                else protocols.control_keys(self.mapped_circuit())
+                else protocols.control_keys(self._mapped_single_loop())
             )
             if self.repeat_until is not None:
                 keys |= frozenset(self.repeat_until.keys) - self._measurement_key_objs_()
@@ -272,7 +286,7 @@ class CircuitOperation(ops.Operation):
             circuit = self.circuit.unfreeze()
             if self.qubit_map:
                 circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
-            if self.repetitions < 0:
+            if isinstance(self.repetitions, (int, np.int)) and self.repetitions < 0:
                 circuit = circuit ** -1
             if self.measurement_key_map:
                 circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
@@ -300,6 +314,7 @@ class CircuitOperation(ops.Operation):
             qubit mapping, parameterization, etc.) applied to it. This behaves
             like `cirq.decompose(self)`, but preserving moment structure.
         """
+        self._ensure_deterministic_loop_count()
         if self.repetitions == 0:
             return circuits.Circuit()
         circuit = (
@@ -653,7 +668,8 @@ class CircuitOperation(ops.Operation):
         ParamResolver.
 
         Note that any resulting parameter mappings with no corresponding
-        parameter in the base circuit will be omitted.
+        parameter in the base circuit will be omitted. These parameters do not
+        apply to the `repetitions` field if that is parameterized.
 
         Args:
             param_values: A map or ParamResolver able to convert old param
