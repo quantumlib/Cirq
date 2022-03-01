@@ -228,14 +228,12 @@ class CircuitOperation(ops.Operation):
         return self.circuit._is_measurement_()
 
     def _has_unitary_(self):
-        if self._parameter_names_():
+        if self._parameter_names_() or self.repeat_until:
             return False
         return NotImplemented
 
     def _ensure_deterministic_loop_count(self):
-        if self.use_repetition_ids and (
-            self.repeat_until or isinstance(self.repetitions, sympy.Basic)
-        ):
+        if self.repeat_until or isinstance(self.repetitions, sympy.Basic):
             raise ValueError(f'Cannot unroll circuit due to nondeterministic repetitions')
 
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
