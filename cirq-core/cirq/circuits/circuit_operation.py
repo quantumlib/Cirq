@@ -45,7 +45,7 @@ REPETITION_ID_SEPARATOR = '-'
 
 
 def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
-    if abs(repetitions) > 1:
+    if abs(repetitions) != 1:
         return [str(i) for i in range(abs(repetitions))]
     return None
 
@@ -247,6 +247,8 @@ class CircuitOperation(ops.Operation):
             qubit mapping, parameterization, etc.) applied to it. This behaves
             like `cirq.decompose(self)`, but preserving moment structure.
         """
+        if self.repetitions == 0:
+            return circuits.Circuit()
         circuit = self.circuit.unfreeze()
         if self.qubit_map:
             circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
@@ -256,7 +258,7 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         if self.param_resolver:
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
-        if self.repetition_ids:
+        if self.repetition_ids is not None:
             if not self.use_repetition_ids or not protocols.is_measurement(circuit):
                 circuit = circuit * abs(self.repetitions)
             else:
@@ -590,9 +592,13 @@ class CircuitOperation(ops.Operation):
         return self.with_measurement_key_mapping(key_map)
 
     def with_params(
-        self, param_values: 'cirq.ParamResolverOrSimilarType'
+        self, param_values: 'cirq.ParamResolverOrSimilarType', recursive: bool = False
     ) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with an updated ParamResolver.
+
+        Any existing parameter mappings will have their values updated given
+        the provided mapping, and any new parameters will be added to the
+        ParamResolver.
 
         Note that any resulting parameter mappings with no corresponding
         parameter in the base circuit will be omitted.
@@ -601,6 +607,11 @@ class CircuitOperation(ops.Operation):
             param_values: A map or ParamResolver able to convert old param
                 values to new param values. This map will be composed with any
                 existing ParamResolver via single-step resolution.
+            recursive: If True, resolves parameter values recursively over the
+                resolver; otherwise performs a single resolution step. This
+                behavior applies only to the passed-in mapping, for the current
+                application. Existing parameters are never resolved recursively
+                because a->b and b->a needs to be a valid mapping.
 
         Returns:
             A copy of this operation with its ParamResolver updated as specified
@@ -609,18 +620,12 @@ class CircuitOperation(ops.Operation):
         new_params = {}
         for k in protocols.parameter_symbols(self.circuit):
             v = self.param_resolver.value_of(k, recursive=False)
-            v = protocols.resolve_parameters(v, param_values, recursive=False)
+            v = protocols.resolve_parameters(v, param_values, recursive=recursive)
             if v != k:
                 new_params[k] = v
         return self.replace(param_resolver=new_params)
 
-    # TODO: handle recursive parameter resolution gracefully
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.CircuitOperation':
-        if recursive:
-            raise ValueError(
-                'Recursive resolution of CircuitOperation parameters is prohibited. '
-                'Use "recursive=False" to prevent this error.'
-            )
-        return self.with_params(resolver.param_dict)
+        return self.with_params(resolver.param_dict, recursive)

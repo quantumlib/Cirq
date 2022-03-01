@@ -26,6 +26,10 @@ if TYPE_CHECKING:
     import cirq
 
 
+@_compat.deprecated_class(
+    deadline='v1.0',
+    fix='Use cirq.optimize_for_target_gateset and cirq.CompilationTargetGateset instead.',
+)
 class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
     """Combines series of adjacent one- and two-qubit, non-parametrized gates
     operating on a pair of qubits."""
