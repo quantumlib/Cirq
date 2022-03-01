@@ -986,6 +986,30 @@ def test_repeat_until(sim):
     assert measurements[1] == (1,)
 
 
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeat_until_sympy(sim):
+    q1, q2 = cirq.LineQubit.range(2)
+    circuitop = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.X(q2),
+            cirq.measure(q2, key='b'),
+        ),
+        use_repetition_ids=False,
+        repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), sympy.Symbol('b'))),
+    )
+    c = cirq.Circuit(
+        cirq.measure(q1, key='a'),
+        circuitop,
+    )
+    # Validate commutation
+    assert len(c) == 2
+    assert cirq.control_keys(circuitop) == {cirq.MeasurementKey('a')}
+    measurements = sim.run(c).records['b'][0]
+    assert len(measurements) == 2
+    assert measurements[0] == (1,)
+    assert measurements[1] == (0,)
+
+
 @pytest.mark.parametrize('sim', [cirq.Simulator(), cirq.DensityMatrixSimulator()])
 def test_post_selection(sim):
     q = cirq.LineQubit(0)

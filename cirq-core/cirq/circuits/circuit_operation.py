@@ -243,6 +243,8 @@ class CircuitOperation(ops.Operation):
                 if not protocols.control_keys(self.circuit)
                 else protocols.control_keys(self.mapped_circuit())
             )
+            if self.repeat_until is not None:
+                keys |= frozenset(self.repeat_until.keys) - self._measurement_key_objs_()
             object.__setattr__(self, '_cached_control_keys', keys)
         return self._cached_control_keys  # type: ignore
 
