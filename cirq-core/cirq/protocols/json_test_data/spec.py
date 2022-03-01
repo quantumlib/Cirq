@@ -160,6 +160,7 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsQasmWithArgsAndQubits',
         'SupportsTraceDistanceBound',
         'SupportsUnitary',
+        'SymbolFunc',
         # mypy types:
         'CIRCUIT_LIKE',
         'DURATION_LIKE',
