@@ -234,7 +234,7 @@ class CircuitOperation(ops.Operation):
 
     def _ensure_deterministic_loop_count(self):
         if self.repeat_until or isinstance(self.repetitions, sympy.Basic):
-            raise ValueError(f'Cannot unroll circuit due to nondeterministic repetitions')
+            raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
 
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
         if self._cached_measurement_key_objs is None:

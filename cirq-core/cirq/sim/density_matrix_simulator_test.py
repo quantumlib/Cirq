@@ -534,7 +534,7 @@ def test_simulate_ignore_measurements(split: bool):
 def test_simulate_ignore_measurements_subcircuits(split: bool):
     q0 = cirq.LineQubit(0)
     with cirq.testing.assert_deprecated(
-        'ignore_measurement_results', deadline='v0.15', count=6 if split else 4
+        'ignore_measurement_results', deadline='v0.15', count=7 if split else 5
     ):
         simulator = cirq.DensityMatrixSimulator(
             split_untangled_states=split, ignore_measurement_results=True
