@@ -400,6 +400,8 @@ def test_parameterized_repeat():
         cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5, 'b': 1})
     with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
         cirq.Simulator().simulate(cirq.Circuit(op))
+    with pytest.raises(ValueError, match='repetition ids with parameterized repetitions'):
+        op.repeat(sympy.Symbol('c'), repetition_ids=['x', 'y'])
 
 
 def test_qid_shape():

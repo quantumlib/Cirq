@@ -470,6 +470,11 @@ def test_circuit_op_to_proto_errors():
     with pytest.raises(ValueError, match='Encountered a circuit not in the constants table'):
         serializer.to_proto(to_serialize, constants=constants, raw_constants=bad_raw_constants)
 
+    with pytest.raises(ValueError, match='Cannot serialize repetitions of type'):
+        serializer.to_proto(
+            to_serialize ** sympy.Symbol('a'), constants=constants, raw_constants=raw_constants
+        )
+
 
 @pytest.mark.parametrize('repetitions', [1, 5, ['a', 'b', 'c']])
 def test_circuit_op_to_proto(repetitions):
