@@ -236,9 +236,6 @@ class CircuitOperation(ops.Operation):
             return False
         return NotImplemented
 
-    def _is_parameterized_(self) -> bool:
-        return bool(self._parameter_names_())
-
     def _ensure_deterministic_loop_count(self):
         if self.repeat_until or isinstance(self.repetitions, sympy.Basic):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
@@ -280,21 +277,28 @@ class CircuitOperation(ops.Operation):
             object.__setattr__(self, '_cached_control_keys', keys)
         return self._cached_control_keys  # type: ignore
 
+    def _is_parameterized_(self) -> bool:
+        return any(self._parameter_names_generator())
+
     def _parameter_names_(self) -> AbstractSet[str]:
-        return protocols.parameter_names(self.repetitions) | {
-            name
-            for symbol in protocols.parameter_symbols(self.circuit)
+        return frozenset(self._parameter_names_generator())
+
+    def _parameter_names_generator(self) -> Iterator[str]:
+        rep_name = protocols.parameter_names(self.repetitions)
+        if rep_name:
+            yield from rep_name
+        for symbol in protocols.parameter_symbols(self.circuit):
             for name in protocols.parameter_names(
                 protocols.resolve_parameters(symbol, self.param_resolver, recursive=False)
-            )
-        }
+            ):
+                yield name
 
     def _mapped_single_loop(self, repetition_id: Optional[str] = None) -> 'cirq.Circuit':
         if self._cached_mapped_single_loop is None:
             circuit = self.circuit.unfreeze()
             if self.qubit_map:
                 circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
-            if isinstance(self.repetitions, (int, np.int)) and self.repetitions < 0:
+            if isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0:
                 circuit = circuit ** -1
             if self.measurement_key_map:
                 circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
