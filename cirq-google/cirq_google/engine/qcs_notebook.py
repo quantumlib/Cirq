@@ -90,8 +90,18 @@ def get_qcs_objects_for_notebook(
         print("Not running in a colab kernel. Will use Application Default Credentials.")
 
     # Attempt to connect to the Quantum Engine API, and use a simulator if unable to connect.
+    sampler: Union[PhasedFSimEngineSimulator, QuantumEngineSampler]
     try:
-        processor = get_engine(project_id).get_processor(processor_id)
+        engine = get_engine(project_id)
+        if processor_id is None:
+            processors = engine.list_processors()
+            if not processors:
+                raise ValueError("No processors available.")
+            processor = processors[0]
+            print(f"Available processors: {[p.processor_id for p in processors]}")
+            print(f"Using processor: {processor.processor_id}")
+        else:
+            processor = engine.get_processor(processor_id)
         device = processor.get_device()
         sampler = processor.get_sampler()
         signed_in = True
