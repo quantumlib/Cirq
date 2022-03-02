@@ -136,7 +136,7 @@ class CircuitOperation(ops.Operation):
 
         # Ensure that the circuit is invertible if the repetitions are negative.
         if isinstance(self.repetitions, float):
-            if abs(self.repetitions - round(self.repetitions)) < 0.001:
+            if math.isclose(self.repetitions, round(self.repetitions)):
                 object.__setattr__(self, 'repetitions', round(self.repetitions))
         if isinstance(self.repetitions, (int, np.integer)):
             if self.repetitions < 0:
