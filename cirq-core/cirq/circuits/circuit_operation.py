@@ -284,9 +284,7 @@ class CircuitOperation(ops.Operation):
         return frozenset(self._parameter_names_generator())
 
     def _parameter_names_generator(self) -> Iterator[str]:
-        rep_name = protocols.parameter_names(self.repetitions)
-        if rep_name:
-            yield from rep_name
+        yield from protocols.parameter_names(self.repetitions)
         for symbol in protocols.parameter_symbols(self.circuit):
             for name in protocols.parameter_names(
                 protocols.resolve_parameters(symbol, self.param_resolver, recursive=False)
