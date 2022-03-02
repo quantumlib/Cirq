@@ -38,6 +38,9 @@ class QCSObjectsForNotebook:
         return isinstance(self.sampler, PhasedFSimEngineSimulator)
 
 
+# Disable missing-raises-doc lint check, since pylint gets confused
+# by exceptions that are raised and caught within this function.
+# pylint: disable=missing-raises-doc
 def get_qcs_objects_for_notebook(
     project_id: Optional[str] = None, processor_id: Optional[str] = None
 ) -> QCSObjectsForNotebook:
@@ -116,3 +119,5 @@ def get_qcs_objects_for_notebook(
         signed_in = False
 
     return QCSObjectsForNotebook(device=device, sampler=sampler, signed_in=signed_in)
+
+# pylint: enable=missing-raises-doc
