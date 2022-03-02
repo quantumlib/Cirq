@@ -22,7 +22,7 @@ equal to each other. It will also check that a==b implies hash(a)==hash(b).
 
 import collections
 
-from typing import Any, Callable, Union, Tuple, List
+from typing import Any, Callable, List, Tuple, Union
 
 import itertools
 
@@ -136,10 +136,10 @@ class EqualsTester:
 class _ClassUnknownToSubjects:
     """Equality methods should be able to deal with the unexpected."""
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, _ClassUnknownToSubjects)
 
-    def __ne__(self, other):
+    def __ne__(self, other: object):
         return not self == other
 
     def __hash__(self):
@@ -152,10 +152,10 @@ class _TestsForNotImplemented:
     This class is equal to a specific instance or delegates by returning NotImplemented.
     """
 
-    def __init__(self, other: Any) -> None:
+    def __init__(self, other: object) -> None:
         self.other = other
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return True if other is self.other else NotImplemented
 
 
