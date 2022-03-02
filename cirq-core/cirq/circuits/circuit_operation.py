@@ -17,6 +17,8 @@ A CircuitOperation is an Operation object that wraps a FrozenCircuit. When
 applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
+import dataclasses
+import math
 from typing import (
     AbstractSet,
     Callable,
@@ -31,7 +33,6 @@ from typing import (
     Union,
 )
 
-import dataclasses
 import numpy as np
 import sympy
 
@@ -42,13 +43,14 @@ if TYPE_CHECKING:
     import cirq
 
 
+INT_CLASSES = (int, np.integer)
 INT_TYPE = Union[int, np.integer]
 IntParam = Union[INT_TYPE, sympy.Basic]
 REPETITION_ID_SEPARATOR = '-'
 
 
 def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
-    if isinstance(repetitions, (int, np.integer)) and abs(repetitions) != 1:
+    if isinstance(repetitions, INT_CLASSES) and abs(repetitions) != 1:
         return [str(i) for i in range(abs(repetitions))]
     return None
 
@@ -138,7 +140,7 @@ class CircuitOperation(ops.Operation):
         if isinstance(self.repetitions, float):
             if math.isclose(self.repetitions, round(self.repetitions)):
                 object.__setattr__(self, 'repetitions', round(self.repetitions))
-        if isinstance(self.repetitions, (int, np.integer)):
+        if isinstance(self.repetitions, INT_CLASSES):
             if self.repetitions < 0:
                 try:
                     protocols.inverse(self.circuit.unfreeze())
@@ -227,10 +229,15 @@ class CircuitOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return self.circuit._is_measurement_()
 
-    def _has_unitary_(self):
-        if self._parameter_names_() or self.repeat_until:
+    def _has_unitary_(self) -> bool:
+        # Return false if parameterized for early exit of has_unitary protocol.
+        # Otherwise return NotImplemented instructing the protocol to try alternate strategies
+        if self._is_parameterized_() or self.repeat_until:
             return False
         return NotImplemented
+
+    def _is_parameterized_(self) -> bool:
+        return bool(self._parameter_names_())
 
     def _ensure_deterministic_loop_count(self):
         if self.repeat_until or isinstance(self.repetitions, sympy.Basic):
@@ -506,7 +513,7 @@ class CircuitOperation(ops.Operation):
                 raise ValueError('At least one of repetitions and repetition_ids must be set')
             repetitions = len(repetition_ids)
 
-        if isinstance(repetitions, (int, np.integer)):
+        if isinstance(repetitions, INT_CLASSES):
             if repetitions == 1 and repetition_ids is None:
                 # As CircuitOperation is immutable, this can safely return the original.
                 return self
