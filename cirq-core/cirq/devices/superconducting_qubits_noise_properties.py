@@ -16,7 +16,7 @@ import abc
 from dataclasses import dataclass, field
 from typing import Dict, TYPE_CHECKING, List, Set
 
-from cirq import ops, devices
+from cirq import _compat, ops, devices
 from cirq.devices.noise_utils import (
     OpIdentifier,
     decoherence_pauli_error,
@@ -56,7 +56,6 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
 
     validate: bool = True
     _qubits: List['cirq.Qid'] = field(init=False, default_factory=list)
-    _depolarizing_error: Dict[OpIdentifier, float] = field(init=False, default_factory=dict)
 
     def __post_init__(self):
         if not self.validate:
@@ -133,13 +132,9 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
             p_error -= decoherence_pauli_error(self.t1_ns[q], self.tphi_ns[q], time_ns)
         return p_error
 
-    def _get_depolarizing_error(self) -> Dict[OpIdentifier, float]:
-        """Returns the portion of Pauli error from depolarization.
-
-        The result of this method is memoized."""
-        if self._depolarizing_error:
-            return self._depolarizing_error
-
+    @_compat.cached_property
+    def _depolarizing_error(self) -> Dict[OpIdentifier, float]:
+        """Returns the portion of Pauli error from depolarization."""
         depol_errors = {}
         for op_id, p_error in self.gate_pauli_errors.items():
             gate_type = op_id.gate_type
@@ -155,9 +150,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
                     f'but {op_id.qubits} were given.'
                 )
             depol_errors[op_id] = self._get_pauli_error(p_error, op_id)
-        # memoization is OK
-        self._depolarizing_error = depol_errors
-        return self._depolarizing_error
+        return depol_errors
 
     def build_noise_models(self) -> List['cirq.NoiseModel']:
         noise_models: List['cirq.NoiseModel'] = []
@@ -179,7 +172,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
                 f'\nGates: {gate_types}\nSupported: {self.expected_gates()}'
             )
 
-        depolarizing_error = self._get_depolarizing_error()
+        depolarizing_error = self._depolarizing_error
         added_pauli_errors = {
             op_id: ops.depolarize(p_error, len(op_id.qubits)).on(*op_id.qubits)
             for op_id, p_error in depolarizing_error.items()
