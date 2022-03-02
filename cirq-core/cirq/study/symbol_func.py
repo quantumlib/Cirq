@@ -41,7 +41,9 @@ class SymbolFunc:
         self.expr = expr
         self.param_set = protocols.parameter_names(expr)
         self.params = sorted(self.param_set)
-        self.func = sympy.lambdify(self.params, expr)
+        func_args = [f'_{i}' for i in range(len(self.params))]
+        self.func_expr = expr.subs({param: arg for param, arg in zip(self.params, func_args)})
+        self.func = sympy.lambdify(func_args, self.func_expr)
 
     def __repr__(self) -> str:
         return f'cirq.SymbolFunc({_compat.proper_repr(self.expr)})'

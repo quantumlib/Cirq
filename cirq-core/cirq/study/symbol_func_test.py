@@ -27,6 +27,14 @@ def test_compile_expr():
     assert compiled.expr == expr
 
 
+def test_symbol_func_internal_symbols():
+    expr = sympy.Symbol('weird symbol') * sympy.Symbol('weird, also!') + 1
+    compiled = cirq.SymbolFunc(expr)
+    assert compiled.expr == expr
+    assert compiled.func_expr == sympy.Symbol('_0') * sympy.Symbol('_1') + 1
+    assert cirq.resolve_parameters(compiled, {'weird symbol': 3, 'weird, also!': 5}) == 16
+
+
 def test_symbol_func_repr():
     assert repr(cirq.SymbolFunc(sympy.Symbol('a'))) == "cirq.SymbolFunc(sympy.Symbol('a'))"
 
