@@ -139,7 +139,7 @@ class _ClassUnknownToSubjects:
     def __eq__(self, other: object) -> bool:
         return isinstance(other, _ClassUnknownToSubjects)
 
-    def __ne__(self, other: object):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
     def __hash__(self):
