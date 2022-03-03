@@ -275,8 +275,8 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         ...     def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> TSelfGate:
         ...         return Add(*new_registers)
         ...
-        ...     def apply(self, target_value: int, input_value: int) -> Union[int, Iterable[int]]:
-        ...         return target_value + input_value
+        ...     def apply(self, *register_values: int) -> Union[int, Iterable[int]]:
+        ...         return sum(register_values)
         >>> cirq.unitary(
         ...     Add(target_register=[2, 2],
         ...         input_register=1).on(*cirq.LineQubit.range(2))
