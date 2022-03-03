@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Target gateset used for compiling circuits to Sycamore + 1-q rotations + measurement gates."""
+
 import itertools
 from typing import List, Optional, Sequence
 
