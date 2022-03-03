@@ -261,17 +261,21 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
     ```
 
         >>> class Add(cirq.ArithmeticGate):
-        ...     def __init__(self, target_register, input_register):
+        ...     def __init__(
+        ...         self,
+        ...         target_register: [int, Sequence[int]],
+        ...         input_register: Union[int, Sequence[int]],
+        ...     ):
         ...         self.target_register = target_register
         ...         self.input_register = input_register
         ...
-        ...     def registers(self):
+        ...     def registers(self) -> Sequence[Union[int, Sequence[int]]]:
         ...         return self.target_register, self.input_register
         ...
-        ...     def with_registers(self, *new_registers):
+        ...     def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> TSelfGate:
         ...         return Add(*new_registers)
         ...
-        ...     def apply(self, target_value, input_value):
+        ...     def apply(self, target_value: int, input_value: int) -> Union[int, Iterable[int]]:
         ...         return target_value + input_value
         >>> cirq.unitary(
         ...     Add(target_register=[2, 2],
