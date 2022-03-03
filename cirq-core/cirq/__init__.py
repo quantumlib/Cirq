@@ -357,6 +357,7 @@ from cirq.optimizers import (
 from cirq.transformers import (
     align_left,
     align_right,
+    ApproximateTwoQubitTargetGateset,
     CompilationTargetGateset,
     CZTargetGateset,
     compute_cphase_exponents_for_fsim_decomposition,

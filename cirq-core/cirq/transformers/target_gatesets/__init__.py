@@ -14,6 +14,10 @@
 
 """Gatesets which can act as compilation targets in Cirq."""
 
+from cirq.transformers.target_gatesets.approximate_two_qubit_gateset import (
+    ApproximateTwoQubitTargetGateset,
+)
+
 from cirq.transformers.target_gatesets.compilation_target_gateset import (
     CompilationTargetGateset,
     TwoQubitCompilationTargetGateset,
