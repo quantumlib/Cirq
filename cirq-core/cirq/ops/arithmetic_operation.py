@@ -15,13 +15,12 @@
 
 import abc
 import itertools
-from typing import Union, Iterable, List, Sequence, cast, TypeVar, TYPE_CHECKING
+from typing import Union, Iterable, List, Sequence, cast, Tuple, TypeVar, TYPE_CHECKING
 
 import numpy as np
 
 from cirq._compat import deprecated_class
 from cirq.ops.raw_types import Operation, Gate
-from cirq.ops.gate_operation import GateOperation
 
 if TYPE_CHECKING:
     import cirq
@@ -254,7 +253,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
     methods.
 
     This class handles the details of ensuring that the scaling of implementing
-    the operation is O(2^n) instead of O(4^n) where n is the number of qubits
+    the gate is O(2^n) instead of O(4^n) where n is the number of qubits
     being acted on, by implementing an `_apply_unitary_` function in terms of
     the registers and the apply function of the child class.
 
@@ -304,39 +303,38 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def registers(self) -> Sequence[Union[int, Sequence[int]]]:
-        """The data acted upon by the arithmetic operation.
+        """The data acted upon by the arithmetic gate.
 
         Each register in the list can either be a classical constant (an `int`),
         or else a list of qubit/qudit dimensions. Registers that are set to a
-        classical constant must not be mutated by the arithmetic operation
+        classical constant must not be mutated by the arithmetic gate
         (their value must remain fixed when passed to `apply`).
 
         Registers are big endian. The first qubit is the most significant, the
         last qubit is the 1s qubit, the before last qubit is the 2s qubit, etc.
 
         Returns:
-            A list of constants and qubit groups that the operation will act
-            upon.
+            A list of constants and qubit groups that the gate will act upon.
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def with_registers(self: TSelfGate, *new_registers: Union[int, Sequence[int]]) -> TSelfGate:
-        """Returns the same operation targeting different registers.
+        """Returns the same fate targeting different registers.
 
         Args:
             new_registers: The new values that should be returned by the
                 `registers` method.
 
         Returns:
-            An instance of the same kind of operation, but acting on different
+            An instance of the same kind of gate, but acting on different
             registers.
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def apply(self, *register_values: int) -> Union[int, Iterable[int]]:
-        """Returns the result of the operation operating on classical values.
+        """Returns the result of the gate operating on classical values.
 
         For example, an addition takes two values (the target and the source),
         adds the source into the target, then returns the target and source
@@ -351,14 +349,14 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
             values are also permitted. For example, for a 3 qubit register the
             value -2 becomes -2 % 2**3 = 6.
         2. When the value of the last `k` registers is not changed by the
-            operation, the `apply` method is permitted to omit these values
+            gate, the `apply` method is permitted to omit these values
             from the result. That is to say, when the length of the output is
             less than the length of the input, it is padded up to the intended
             length by copying from the same position in the input.
         3. When only the first register's value changes, the `apply` method is
             permitted to return an `int` instead of a sequence of ints.
 
-        The `apply` method *must* be reversible. Otherwise the operation will
+        The `apply` method *must* be reversible. Otherwise the gate will
         not be unitary, and incorrect behavior will result.
 
         Examples:
@@ -371,7 +369,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
             ```
 
             The same adder, with less boilerplate due to the details being
-            handled by the `ArithmeticOperation` class:
+            handled by the `ArithmeticGate` class:
 
             ```
             def apply(self, target, offset):
@@ -380,7 +378,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def _qid_shape_(self):
+    def _qid_shape_(self) -> Tuple[int, ...]:
         shape = []
         for r in self.registers():
             if isinstance(r, Sequence):
@@ -388,14 +386,11 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
                     shape.append(i)
         return tuple(shape)
 
-    def on(self, *qubits) -> 'cirq.Operation':
-        return GateOperation(self, qubits)
-
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         registers = self.registers()
         input_ranges: List[Sequence[int]] = []
-        shape = []
-        overflow_sizes = []
+        shape: List[int] = []
+        overflow_sizes: List[int] = []
         for register in registers:
             if isinstance(register, int):
                 input_ranges.append([register])
@@ -470,7 +465,7 @@ def _describe_bad_arithmetic_changed_const(
         drawer.write(3, i + 1, str(outputs[i]))
     return (
         "A register cannot be set to an int (a classical constant) unless its "
-        "value is not affected by the operation.\n"
+        "value is not affected by the gate.\n"
         "\nExample case where a constant changed:\n"
         + drawer.render(horizontal_spacing=1, vertical_spacing=0)
     )
