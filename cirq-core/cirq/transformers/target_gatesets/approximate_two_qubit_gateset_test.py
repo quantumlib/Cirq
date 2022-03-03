@@ -25,6 +25,13 @@ def test_instantiate():
     assert cirq.H in gset
     assert np.all(gset.tabulation.base_gate == cirq.unitary(cirq.CZ))
 
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.CNOT(a, b))
+    c = cirq.optimize_for_target_gateset(c, gateset=gset)
+    assert (
+        len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 1
+    ), 'It should take 1 CZ gates to decompose a CX gate'
+
 
 def test_bad_instantiate():
     with pytest.raises(ValueError, match="1"):
@@ -32,26 +39,17 @@ def test_bad_instantiate():
 
 
 def test_correctness():
-    t = 0.1
-    v = 0.11
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
+        cirq.H(a),
         cirq.H(b),
+        cirq.SWAP(a, b) ** 0.5,
+        cirq.Y(a) ** 0.456,
+        cirq.Y(b) ** 0.123,
         cirq.CNOT(a, b),
-        cirq.H(b),
-        cirq.CNOT(a, b),
+        cirq.X(a) ** 0.123,
+        cirq.Y(b) ** 0.9,
         cirq.CNOT(b, a),
-        cirq.H(a),
-        cirq.CNOT(a, b),
-        cirq.Z(a) ** t,
-        cirq.Z(b) ** -t,
-        cirq.CNOT(a, b),
-        cirq.H(a),
-        cirq.Z(b) ** v,
-        cirq.CNOT(a, b),
-        cirq.Z(a) ** -v,
-        cirq.Z(b) ** -v,
-        cirq.X(a),
     )
     c_new = cirq.optimize_for_target_gateset(
         circuit, gateset=cirq.ApproximateTwoQubitTargetGateset(cirq.CZ, random_state=123)

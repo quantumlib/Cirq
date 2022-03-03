@@ -44,6 +44,8 @@ class ApproximateTwoQubitTargetGateset(compilation_target_gateset.TwoQubitCompil
 
         This gateset builds a `cirq.GateTabulation` (kak decomposition)
         around the provided base_gate to do fidelity limited decompositions.
+        Note that gates with symbols are not supported and will not be
+        decomposed by this transformer.
 
         Args:
             base_gate: `cirq.Gate` to use as two qubit entangler
