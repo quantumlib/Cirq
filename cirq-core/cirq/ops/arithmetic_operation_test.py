@@ -111,10 +111,10 @@ def test_arithmetic_operation_apply_unitary():
         add2from3 = Add(cirq.LineQubit.range(2), cirq.LineQubit.range(3))
         np.testing.assert_allclose(cirq.unitary(add2from3), adder_matrix(4, 8), atol=1e-8)
 
-        with pytest.raises(ValueError, match='affected by the operation'):
+        with pytest.raises(ValueError, match='affected by the gate'):
             _ = cirq.unitary(Add(1, cirq.LineQubit.range(2)))
 
-        with pytest.raises(ValueError, match='affected by the operation'):
+        with pytest.raises(ValueError, match='affected by the gate'):
             _ = cirq.unitary(Add(1, 1))
 
         np.testing.assert_allclose(cirq.unitary(Add(1, 0)), np.eye(1))
@@ -165,16 +165,16 @@ def test_arithmetic_gate_apply_unitary():
         cirq.unitary(add2from3.on(*qubits[5])), adder_matrix(4, 8), atol=1e-8
     )
 
-    with pytest.raises(ValueError, match='affected by the operation'):
+    with pytest.raises(ValueError, match='affected by the gate'):
         _ = cirq.unitary(Add(1, [2, 2]))
 
-    with pytest.raises(ValueError, match='affected by the operation'):
+    with pytest.raises(ValueError, match='affected by the gate'):
         _ = cirq.unitary(Add(1, [2, 2]).on(*qubits[2]))
 
-    with pytest.raises(ValueError, match='affected by the operation'):
+    with pytest.raises(ValueError, match='affected by the gate'):
         _ = cirq.unitary(Add(1, 1))
 
-    with pytest.raises(ValueError, match='affected by the operation'):
+    with pytest.raises(ValueError, match='affected by the gate'):
         _ = cirq.unitary(Add(1, 1).on())
 
     np.testing.assert_allclose(cirq.unitary(Add(1, 0)), np.eye(1))
