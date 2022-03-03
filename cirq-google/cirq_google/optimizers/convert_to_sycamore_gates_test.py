@@ -2,8 +2,6 @@
 import pytest
 import numpy as np
 
-import scipy.linalg
-
 import cirq
 import cirq_google
 import cirq_google.optimizers.convert_to_sycamore_gates as cgoc
@@ -112,7 +110,7 @@ def test_unsupported_gate():
 
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(UnknownGate()(q0, q1))
-    with pytest.raises(ValueError, match='Unrecognized gate: '):
+    with pytest.raises(TypeError, match='gate with a known unitary'):
         cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
 
 
@@ -124,7 +122,7 @@ def test_nested_unsupported_gate():
     q1 = cirq.LineQubit(1)
     subcircuit = cirq.FrozenCircuit(UnknownGate()(q0, q1))
     circuit = cirq.Circuit(cirq.CircuitOperation(subcircuit))
-    with pytest.raises(ValueError, match='Unrecognized gate: '):
+    with pytest.raises(TypeError, match='gate with a known unitary'):
         cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
 
 
@@ -134,8 +132,11 @@ def test_unsupported_phased_iswap():
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     circuit = cirq.Circuit(cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=0.33)(q0, q1))
-    with pytest.raises(ValueError, match='phase_exponent of .25 OR an exponent of 1'):
-        cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
+    converted_circuit = circuit.copy()
+    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        circuit, converted_circuit, atol=1e-8
+    )
 
 
 def test_non_gate_operation():
@@ -184,28 +185,6 @@ def test_unitary_decomp():
         [term.on(q) for term in cirq.single_qubit_matrix_to_gates(random_unitary)]
     )
     assert np.isclose(abs(np.trace(cirq.unitary(circuit).conj().T @ random_unitary)), 2.0)
-
-
-def test_zztheta():
-    zz = np.kron(cirq.unitary(cirq.Z), cirq.unitary(cirq.Z))
-    qubits = cirq.LineQubit.range(2)
-    for theta in np.linspace(0, 2 * np.pi, 10):
-        expected_unitary = scipy.linalg.expm(-1j * theta * zz)
-        circuit = cirq.Circuit(cgoc.rzz(theta, qubits[0], qubits[1]))
-        actual_unitary = cirq.unitary(circuit)
-        cirq.testing.assert_allclose_up_to_global_phase(actual_unitary, expected_unitary, atol=1e-7)
-
-
-def test_zztheta_zzpow():
-    qubits = cirq.LineQubit.range(2)
-    for theta in np.linspace(0, 2 * np.pi, 10):
-        syc_circuit = cirq.Circuit(cgoc.rzz(theta, qubits[0], qubits[1]))
-        cirq_circuit = cirq.Circuit(
-            [cirq.ZZPowGate(exponent=2 * theta / np.pi, global_shift=-0.5).on(*qubits)]
-        )
-        cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.unitary(cirq_circuit), cirq.unitary(syc_circuit), atol=1e-7
-        )
 
 
 def test_zztheta_qaoa_like():
