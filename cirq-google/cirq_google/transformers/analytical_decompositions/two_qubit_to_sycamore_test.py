@@ -23,6 +23,7 @@ EXPECTED_TARGET_GATESET = cirq.Gateset(cirq.AnyUnitaryGateFamily(1), cg.SYC)
 
 def assert_implements(circuit: cirq.Circuit, target_op: cirq.Operation):
     assert all(op in EXPECTED_TARGET_GATESET for op in circuit.all_operations())
+    assert sum(1 for _ in circuit.findall_operations(lambda e: len(e.qubits) > 2)) <= 6
     circuit.append(cirq.I.on_each(*target_op.qubits))
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(circuit), cirq.unitary(target_op), atol=1e-7
@@ -68,6 +69,7 @@ def test_known_two_qubit_op_decomposition(op, theta_range):
         cirq.FSimGate(0.25, 0.85).on(*q),
         cirq.XX(*q),
         cirq.YY(*q),
+        *[cirq.testing.random_unitary(4, random_state=1234) for _ in range(10)],
     ],
 )
 def test_unknown_two_qubit_op_decomposition(op):

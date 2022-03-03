@@ -19,18 +19,9 @@ from typing import Iterator, List, Optional
 import itertools
 import math
 import numpy as np
-import scipy.linalg
 
 import cirq
 from cirq_google import ops
-
-UNITARY_ZZ = np.kron(cirq.unitary(cirq.Z), cirq.unitary(cirq.Z))
-PAULI_OPS = [
-    np.eye(2),
-    cirq.unitary(cirq.X),
-    cirq.unitary(cirq.Y),
-    cirq.unitary(cirq.Z),
-]
 
 
 def _decompose_arbitrary_into_syc_tabulation(
@@ -63,7 +54,7 @@ def two_qubit_matrix_to_sycamore_operations(
     atol: float = 1e-8,
     clean_operations: bool = True,
 ) -> cirq.OP_TREE:
-    """Decomposes a two-qubit unitary operation into `cirq_google.SYC` + single qubit rotations.
+    """Decomposes a two-qubit unitary matrix into `cirq_google.SYC` + single qubit rotations.
 
     The analytical decomposition first Synthesizes the given operation using `cirq.CZPowGate` +
     single qubit rotations and then decomposes each `cirq.CZPowGate` into `cirq_google.SYC` +
@@ -126,7 +117,7 @@ def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> Optional[cirq.OP_T
     q0, q1 = op.qubits
 
     if isinstance(op.untagged, cirq.CircuitOperation):
-        flattened_gates = [o.gate for o in cirq.decompose_once(op)]
+        flattened_gates = [o.gate for o in cirq.decompose_once(op.untagged)]
         if len(flattened_gates) != 2:
             return None
         for g1, g2 in itertools.permutations(flattened_gates):
@@ -429,10 +420,10 @@ def _rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
     """
     phi = -np.pi / 24
     c_phi = np.cos(2 * phi)
-    target_unitary = scipy.linalg.expm(-1j * theta * UNITARY_ZZ)
+    target_unitary = cirq.unitary(cirq.ZZPowGate(exponent=2 * theta / np.pi, global_shift=-0.5))
     c2 = abs(np.sin(theta) if abs(np.cos(theta)) > c_phi else np.cos(theta)) / c_phi
 
-    # Prepare program that has same Schmidt coefficients as exp(1j theta ZZ)
+    # Prepare program that has same Schmidt coefficients as exp(-1j theta ZZ)
     program = cirq.Circuit(ops.SYC(q0, q1), cirq.rx(2 * np.arccos(c2)).on(q1), ops.SYC(q0, q1))
 
     yield _create_corrected_circuit(target_unitary, program, q0, q1)
