@@ -35,6 +35,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
     @_compat.deprecated_parameter(
         deadline='v0.15',
+        fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
+        parameter_desc='ignore_measurement_results',
+        match=lambda args, kwargs: 'ignore_measurement_results' in kwargs or len(args) > 7,
+    )
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
         fix='Use initial_state instead and specify all the arguments with keywords.',
         parameter_desc='target_tensor and positional arguments',
         match=lambda args, kwargs: 'target_tensor' in kwargs or len(args) != 1,
@@ -86,13 +92,21 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             ValueError: The dimension of `target_tensor` is not divisible by 2
                 and `qid_shape` is not provided.
         """
-        super().__init__(
-            prng=prng,
-            qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
-            ignore_measurement_results=ignore_measurement_results,
-            classical_data=classical_data,
-        )
+        if ignore_measurement_results:
+            super().__init__(
+                prng=prng,
+                qubits=qubits,
+                log_of_measurement_results=log_of_measurement_results,
+                ignore_measurement_results=ignore_measurement_results,
+                classical_data=classical_data,
+            )
+        else:
+            super().__init__(
+                prng=prng,
+                qubits=qubits,
+                log_of_measurement_results=log_of_measurement_results,
+                classical_data=classical_data,
+            )
         if target_tensor is None:
             qubits_qid_shape = protocols.qid_shape(self.qubits)
             initial_matrix = qis.to_valid_density_matrix(

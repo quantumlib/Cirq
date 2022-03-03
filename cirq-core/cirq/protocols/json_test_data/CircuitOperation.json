@@ -294,6 +294,32 @@
         "parent_path": [],
         "repetition_ids": null,
         "use_repetition_ids": false
+      },
+      {
+        "cirq_type": "CircuitOperation",
+        "circuit": {
+          "cirq_type": "_SerializedKey",
+          "key": 1
+        },
+        "repetitions": 1,
+        "qubit_map": [],
+        "measurement_key_map": {},
+        "param_resolver": {
+          "cirq_type": "ParamResolver",
+          "param_dict": []
+        },
+        "parent_path": [],
+        "repetition_ids": null,
+        "use_repetition_ids": false,
+        "repeat_until": {
+          "cirq_type": "KeyCondition",
+          "key": {
+            "cirq_type": "MeasurementKey",
+            "name": "0,1,2,3,4",
+            "path": []
+          },
+          "index": -1
+        }
       }
     ]
   ]

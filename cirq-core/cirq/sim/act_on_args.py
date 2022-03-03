@@ -33,7 +33,7 @@ import warnings
 import numpy as np
 
 from cirq import ops, protocols, value
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_parameter
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -46,6 +46,12 @@ if TYPE_CHECKING:
 class ActOnArgs(OperationTarget[TSelf]):
     """State and context for an operation acting on a state tensor."""
 
+    @deprecated_parameter(
+        deadline='v0.15',
+        fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
+        parameter_desc='ignore_measurement_results',
+        match=lambda args, kwargs: 'ignore_measurement_results' in kwargs or len(args) > 4,
+    )
     def __init__(
         self,
         prng: Optional[np.random.RandomState] = None,
