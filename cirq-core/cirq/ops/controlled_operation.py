@@ -93,11 +93,17 @@ class ControlledOperation(raw_types.Operation):
         )
 
     def _decompose_(self):
+        result = protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
+        if result is not NotImplemented:
+            return result
+
         result = protocols.decompose_once(self.sub_operation, NotImplemented)
         if result is NotImplemented:
             return NotImplemented
 
-        return [ControlledOperation(self.controls, op, self.control_values) for op in result]
+        return [
+            op.controlled_by(*self.controls, control_values=self.control_values) for op in result
+        ]
 
     def _value_equality_values_(self):
         return (frozenset(zip(self.controls, self.control_values)), self.sub_operation)

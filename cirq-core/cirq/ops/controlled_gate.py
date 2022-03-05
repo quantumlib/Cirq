@@ -12,14 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Any, cast, Collection, Dict, Optional, Sequence, Tuple, Union
+from typing import (
+    AbstractSet,
+    Any,
+    cast,
+    Collection,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    TYPE_CHECKING,
+)
 
 import numpy as np
 
-import cirq
-from cirq import protocols, value
-from cirq.ops import raw_types, controlled_operation as cop
+from cirq import protocols, value, _import
+from cirq.ops import raw_types, controlled_operation as cop, matrix_gates
 from cirq.type_workarounds import NotImplementedType
+
+if TYPE_CHECKING:
+    import cirq
+
+controlled_gate_decomposition = _import.LazyLoader(
+    'controlled_gate_decomposition', globals(), 'cirq.transformers.analytical_decompositions'
+)
+common_gates = _import.LazyLoader('common_gates', globals(), 'cirq.ops')
+line_qubit = _import.LazyLoader('line_qubit', globals(), 'cirq.devices')
 
 
 @value.value_equality
@@ -100,17 +120,50 @@ class ControlledGate(raw_types.Gate):
         return len(self.control_qid_shape)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
-        return self.control_qid_shape + cirq.qid_shape(self.sub_gate)
+        return self.control_qid_shape + protocols.qid_shape(self.sub_gate)
 
     def _decompose_(self, qubits):
+        if (
+            protocols.has_unitary(self.sub_gate)
+            and protocols.num_qubits(self.sub_gate) == 1
+            and self._qid_shape_() == (2,) * len(self._qid_shape_())
+        ):
+            control_qubits = list(qubits[: self.num_controls()])
+            invert_ops: List['cirq.Operation'] = []
+            for cvals, cqbit in zip(self.control_values, qubits[: self.num_controls()]):
+                if set(cvals) == {0}:
+                    invert_ops.append(common_gates.X(cqbit))
+                elif set(cvals) == {0, 1}:
+                    control_qubits.remove(cqbit)
+            decomposed_ops = controlled_gate_decomposition.decompose_multi_controlled_rotation(
+                protocols.unitary(self.sub_gate), control_qubits, qubits[-1]
+            )
+            return invert_ops + decomposed_ops + invert_ops
+
+        if isinstance(self.sub_gate, common_gates.CZPowGate):
+            z_sub_gate = common_gates.ZPowGate(
+                exponent=self.sub_gate.exponent, global_shift=self.sub_gate.global_shift
+            )
+            controlled_z = ControlledGate(
+                sub_gate=z_sub_gate,
+                num_controls=self.num_controls() + 1,
+                control_values=self.control_values + (1,),
+                control_qid_shape=self.control_qid_shape + (2,),
+            )
+            return protocols.decompose_once_with_qubits(controlled_z, qubits, NotImplemented)
+
+        if isinstance(self.sub_gate, matrix_gates.MatrixGate):
+            # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
+            # local phase in the controlled variant and hence cannot be ignored.
+            return NotImplemented
+
         result = protocols.decompose_once_with_qubits(
             self.sub_gate, qubits[self.num_controls() :], NotImplemented
         )
-
         if result is NotImplemented:
             return NotImplemented
 
-        decomposed = []
+        decomposed: List['cirq.Operation'] = []
         for op in result:
             decomposed.append(
                 cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)
@@ -135,7 +188,7 @@ class ControlledGate(raw_types.Gate):
         )
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
-        qubits = cirq.LineQid.for_gate(self)
+        qubits = line_qubit.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls() :])
         c_op = cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)
         return protocols.apply_unitary(c_op, args, default=NotImplemented)
@@ -144,7 +197,7 @@ class ControlledGate(raw_types.Gate):
         return protocols.has_unitary(self.sub_gate)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        qubits = cirq.LineQid.for_gate(self)
+        qubits = line_qubit.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls() :])
         c_op = cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)
 
@@ -154,7 +207,7 @@ class ControlledGate(raw_types.Gate):
         return protocols.has_mixture(self.sub_gate)
 
     def _mixture_(self) -> Union[np.ndarray, NotImplementedType]:
-        qubits = cirq.LineQid.for_gate(self)
+        qubits = line_qubit.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls() :])
         c_op = cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)
         return protocols.mixture(c_op, default=NotImplemented)

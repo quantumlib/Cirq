@@ -33,6 +33,7 @@ from cirq.testing.consistent_controlled_gate_op import (
 )
 
 from cirq.testing.consistent_decomposition import (
+    assert_decompose_ends_at_default_gateset,
     assert_decompose_is_consistent_with_unitary,
 )
 

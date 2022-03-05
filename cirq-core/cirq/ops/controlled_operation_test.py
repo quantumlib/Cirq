@@ -47,12 +47,12 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
-        result[zero] = args.target_tensor[zero] * 2 + args.target_tensor[one] * 3
-        result[one] = args.target_tensor[zero] * 5 + args.target_tensor[one] * 7
+        result[zero] = (args.target_tensor[zero] + args.target_tensor[one]) * np.sqrt(0.5)
+        result[one] = (args.target_tensor[zero] - args.target_tensor[one]) * np.sqrt(0.5)
         return result
 
     def _unitary_(self):
-        return np.array([[2, 3], [5, 7]])
+        return np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 
     def __eq__(self, other):
         return isinstance(other, type(self))
@@ -323,7 +323,26 @@ def test_controlled_operation_is_consistent(gate: cirq.GateOperation):
 
     cb3 = cb.with_dimension(3)
     cgate = cirq.ControlledOperation([cb3], gate, control_values=[(0, 2)])
-    cirq.testing.assert_implements_consistent_protocols(cgate)
+    cirq.testing.assert_implements_consistent_protocols(
+        cgate, ignore_decompose_to_default_gateset=True
+    )
+
+
+def test_controlled_circuit_operation_has_consistent_decomposition():
+    op = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.XXPowGate(exponent=0.25, global_shift=-0.5).on(*cirq.LineQubit.range(2))
+        )
+    )
+    cb = cirq.NamedQubit('ctr')
+    cop = cirq.ControlledOperation([cb], op)
+    cirq.testing.assert_implements_consistent_protocols(cop, exponents=(-1, 1, 2))
+
+    cop = cirq.ControlledOperation([cb], op, control_values=[0])
+    cirq.testing.assert_implements_consistent_protocols(cop, exponents=(-1, 1, 2))
+
+    cop = cirq.ControlledOperation([cb], op, control_values=[(0, 1)])
+    cirq.testing.assert_implements_consistent_protocols(cop, exponents=(-1, 1, 2))
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])

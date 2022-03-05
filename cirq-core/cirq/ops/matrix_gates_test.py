@@ -279,13 +279,19 @@ def test_str_executes():
 def test_one_qubit_consistent():
     u = cirq.testing.random_unitary(2)
     g = cirq.MatrixGate(u)
-    cirq.testing.assert_implements_consistent_protocols(g)
+    cirq.testing.assert_implements_consistent_protocols(g, ignoring_global_phase=True)
 
 
 def test_two_qubit_consistent():
     u = cirq.testing.random_unitary(4)
     g = cirq.MatrixGate(u)
-    cirq.testing.assert_implements_consistent_protocols(g)
+    cirq.testing.assert_implements_consistent_protocols(g, ignoring_global_phase=True)
+
+
+def test_three_qubit_consistent():
+    u = cirq.testing.random_unitary(8)
+    g = cirq.MatrixGate(u)
+    cirq.testing.assert_implements_consistent_protocols(g, ignoring_global_phase=True)
 
 
 def test_repr():
