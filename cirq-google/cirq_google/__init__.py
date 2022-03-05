@@ -95,6 +95,7 @@ from cirq_google.ops import (
     PhysicalZTag,
     SycamoreGate,
     SYC,
+    ZGateFamily,
 )
 
 from cirq_google.optimizers import (

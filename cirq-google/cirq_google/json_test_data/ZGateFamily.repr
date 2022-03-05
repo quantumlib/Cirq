@@ -1,0 +1,4 @@
+[
+    cirq_google.ZGateFamily(physical_z=False),
+    cirq_google.ZGateFamily(physical_z=True),
+]

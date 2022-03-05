@@ -28,3 +28,7 @@ from cirq_google.ops.sycamore_gate import (
     SycamoreGate,
     SYC,
 )
+
+from cirq_google.ops.z_gate_family import (
+    ZGateFamily,
+)
