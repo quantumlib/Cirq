@@ -10,12 +10,10 @@ import cirq_google as cig
 
 
 def _unitaries_allclose(circuit1, circuit2):
-    unitary1 = cirq.unitary(circuit1)
-    unitary2 = cirq.unitary(circuit2)
-    if unitary2.size == 1:
-        # Resize the unitary of empty circuits to be 4x4 for 2q gates
-        unitary2 = unitary2 * np.eye(unitary1.shape[0])
-    return cirq.allclose_up_to_global_phase(unitary1, unitary2)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        circuit1, circuit2, atol=1e-6
+    )
+    return True
 
 
 @pytest.mark.parametrize(
@@ -45,10 +43,25 @@ def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
     q1 = cirq.GridQubit(5, 4)
     original_circuit = cirq.Circuit(gate(q0, q1))
     converted_circuit = original_circuit.copy()
-    cgoc.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
+    converted_circuit_iswap_inv = cirq.optimize_for_target_gateset(
+        original_circuit, gateset=cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=True)
+    )
+    converted_circuit_iswap = cirq.optimize_for_target_gateset(
+        original_circuit, gateset=cirq.SqrtIswapTargetGateset()
+    )
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
     cig.SQRT_ISWAP_GATESET.serialize(converted_circuit)
+    cig.SQRT_ISWAP_GATESET.serialize(converted_circuit_iswap)
+    cig.SQRT_ISWAP_GATESET.serialize(converted_circuit_iswap_inv)
     assert len(converted_circuit) <= expected_length
+    assert (
+        len(converted_circuit_iswap) <= expected_length
+        or len(converted_circuit_iswap_inv) <= expected_length
+    )
     assert _unitaries_allclose(original_circuit, converted_circuit)
+    assert _unitaries_allclose(original_circuit, converted_circuit_iswap)
+    assert _unitaries_allclose(original_circuit, converted_circuit_iswap_inv)
 
 
 @pytest.mark.parametrize(
@@ -70,14 +83,33 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, expected_length: int):
     q1 = cirq.GridQubit(5, 4)
     original_circuit = cirq.Circuit(gate(q0, q1))
     converted_circuit = original_circuit.copy()
-    cgoc.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
+    converted_circuit_iswap_inv = cirq.optimize_for_target_gateset(
+        original_circuit, gateset=cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=True)
+    )
+    converted_circuit_iswap = cirq.optimize_for_target_gateset(
+        original_circuit, gateset=cirq.SqrtIswapTargetGateset()
+    )
     assert len(converted_circuit) <= expected_length
+    assert (
+        len(converted_circuit_iswap) <= expected_length
+        or len(converted_circuit_iswap_inv) <= expected_length
+    )
 
     # Check if unitaries are the same
     for val in np.linspace(0, 2 * np.pi, 12):
         assert _unitaries_allclose(
             cirq.resolve_parameters(original_circuit, {'t': val}),
             cirq.resolve_parameters(converted_circuit, {'t': val}),
+        )
+        assert _unitaries_allclose(
+            cirq.resolve_parameters(original_circuit, {'t': val}),
+            cirq.resolve_parameters(converted_circuit_iswap, {'t': val}),
+        )
+        assert _unitaries_allclose(
+            cirq.resolve_parameters(original_circuit, {'t': val}),
+            cirq.resolve_parameters(converted_circuit_iswap_inv, {'t': val}),
         )
 
 
@@ -102,11 +134,22 @@ def test_givens_rotation():
         program = cirq.Circuit(cirq.givens(theta).on(qubits[0], qubits[1]))
         unitary = cirq.unitary(program)
         test_program = program.copy()
-        cgoc.ConvertToSqrtIswapGates().optimize_circuit(test_program)
-        test_unitary = cirq.unitary(test_program)
-        np.testing.assert_allclose(
-            4, np.abs(np.trace(np.conjugate(np.transpose(test_unitary)) @ unitary))
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0'
+        ):
+            cgoc.ConvertToSqrtIswapGates().optimize_circuit(test_program)
+        converted_circuit_iswap_inv = cirq.optimize_for_target_gateset(
+            test_program, gateset=cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=True)
         )
+        converted_circuit_iswap = cirq.optimize_for_target_gateset(
+            test_program, gateset=cirq.SqrtIswapTargetGateset()
+        )
+        for circuit in [test_program, converted_circuit_iswap_inv, converted_circuit_iswap]:
+            circuit.append(cirq.IdentityGate(2).on(*qubits))
+            test_unitary = cirq.unitary(circuit)
+            np.testing.assert_allclose(
+                4, np.abs(np.trace(np.conjugate(np.transpose(test_unitary)) @ unitary))
+            )
 
 
 def test_three_qubit_gate():
@@ -119,4 +162,7 @@ def test_three_qubit_gate():
     circuit = cirq.Circuit(ThreeQubitGate()(q0, q1, q2))
 
     with pytest.raises(TypeError):
-        cgoc.ConvertToSqrtIswapGates().optimize_circuit(circuit)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0'
+        ):
+            cgoc.ConvertToSqrtIswapGates().optimize_circuit(circuit)

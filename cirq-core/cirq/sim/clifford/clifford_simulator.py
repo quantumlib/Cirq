@@ -77,7 +77,7 @@ class CliffordSimulator(
         self,
         initial_state: Union[int, 'cirq.ActOnStabilizerCHFormArgs'],
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: 'cirq.ClassicalDataStore',
     ) -> 'cirq.ActOnStabilizerCHFormArgs':
         """Creates the ActOnStabilizerChFormArgs for a circuit.
 
@@ -88,6 +88,8 @@ class CliffordSimulator(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             logs: A log of the results of measurement that is added to.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Returns:
             ActOnStabilizerChFormArgs for the circuit.
@@ -95,14 +97,11 @@ class CliffordSimulator(
         if isinstance(initial_state, clifford.ActOnStabilizerCHFormArgs):
             return initial_state
 
-        qubit_map = {q: i for i, q in enumerate(qubits)}
-
-        state = CliffordState(qubit_map, initial_state=initial_state)
         return clifford.ActOnStabilizerCHFormArgs(
-            state=state.ch_form,
             prng=self._prng,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
             qubits=qubits,
+            initial_state=initial_state,
         )
 
     def _create_step_result(
@@ -256,7 +255,9 @@ class CliffordState:
 
     def apply_unitary(self, op: 'cirq.Operation'):
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            self.ch_form, np.random.RandomState(), {}, self.qubit_map.keys()
+            prng=np.random.RandomState(),
+            qubits=self.qubit_map.keys(),
+            initial_state=self.ch_form,
         )
         try:
             act_on(op, ch_form_args)
@@ -284,7 +285,12 @@ class CliffordState:
         else:
             state = self.copy()
 
+        classical_data = value.ClassicalDataDictionaryStore()
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            state.ch_form, prng, measurements, self.qubit_map.keys()
+            prng=prng,
+            classical_data=classical_data,
+            qubits=self.qubit_map.keys(),
+            initial_state=state.ch_form,
         )
         act_on(op, ch_form_args)
+        measurements.update({str(k): list(v[-1]) for k, v in classical_data.records.items()})

@@ -25,10 +25,10 @@ class CountingActOnArgs(cirq.ActOnArgs):
     gate_count = 0
     measurement_count = 0
 
-    def __init__(self, state, qubits, logs):
+    def __init__(self, state, qubits, classical_data):
         super().__init__(
             qubits=qubits,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
         )
         self.state = state
 
@@ -39,7 +39,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
     def copy(self, deep_copy_buffers: bool = True) -> 'CountingActOnArgs':
         args = CountingActOnArgs(
             qubits=self.qubits,
-            logs=self.log_of_measurement_results.copy(),
+            classical_data=self.classical_data.copy(),
             state=self.state,
         )
         args.gate_count = self.gate_count
@@ -115,9 +115,9 @@ class CountingSimulator(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: cirq.ClassicalDataStore,
     ) -> CountingActOnArgs:
-        return CountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
+        return CountingActOnArgs(qubits=qubits, state=initial_state, classical_data=classical_data)
 
     def _create_simulator_trial_result(
         self,
@@ -145,9 +145,11 @@ class SplittableCountingSimulator(CountingSimulator):
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: cirq.ClassicalDataStore,
     ) -> CountingActOnArgs:
-        return SplittableCountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
+        return SplittableCountingActOnArgs(
+            qubits=qubits, state=initial_state, classical_data=classical_data
+        )
 
 
 q0, q1 = cirq.LineQubit.range(2)
@@ -270,9 +272,11 @@ def test_run_no_reuse_buffer_warning():
             self,
             initial_state: Any,
             qubits: Sequence['cirq.Qid'],
-            logs: Dict[str, Any],
+            classical_data: cirq.ClassicalDataStore,
         ) -> MockCountingActOnArgs:
-            return MockCountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
+            return MockCountingActOnArgs(
+                qubits=qubits, state=initial_state, classical_data=classical_data
+            )
 
         def _create_simulator_trial_result(
             self,

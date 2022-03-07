@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import cast
 import numpy as np
 import pytest
 
@@ -56,6 +57,11 @@ def test_measure_init(num_qubits):
         cirq.MeasurementGate(2, qid_shape=(1, 2), key=None)
     with pytest.raises(ValueError, match='Specify either'):
         cirq.MeasurementGate()
+
+
+def test_measurement_has_unitary_returns_false():
+    gate = cirq.MeasurementGate(1, 'a')
+    assert not cirq.has_unitary(gate)
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
@@ -289,41 +295,47 @@ def test_act_on_state_vector():
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=cirq.one_hot(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=cirq.one_hot(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
+        dtype=np.complex64,
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=cirq.one_hot(
-            index=(0, 1, 0, 0, 0), shape=(2, 2, 2, 2, 2), dtype=np.complex64
-        ),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=cirq.one_hot(
+            index=(0, 1, 0, 0, 0), shape=(2, 2, 2, 2, 2), dtype=np.complex64
+        ),
+        dtype=np.complex64,
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=cirq.one_hot(
-            index=(0, 1, 0, 1, 0), shape=(2, 2, 2, 2, 2), dtype=np.complex64
-        ),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=cirq.one_hot(
+            index=(0, 1, 0, 1, 0), shape=(2, 2, 2, 2, 2), dtype=np.complex64
+        ),
+        dtype=np.complex64,
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_clifford_tableau():
@@ -358,10 +370,13 @@ def test_act_on_clifford_tableau():
         log_of_measurement_results={},
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_stabilizer_ch_form():
@@ -371,35 +386,38 @@ def test_act_on_stabilizer_ch_form():
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=0),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=0,
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=8),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=8,
     )
 
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=10),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=10,
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_qutrit():
@@ -407,37 +425,40 @@ def test_act_on_qutrit():
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=cirq.one_hot(
-            index=(0, 2, 0, 2, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
-        ),
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=cirq.one_hot(
+            index=(0, 2, 0, 2, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
+        ),
+        dtype=np.complex64,
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [2, 2]}
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=cirq.one_hot(
-            index=(0, 1, 0, 2, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
-        ),
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=cirq.one_hot(
+            index=(0, 1, 0, 2, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
+        ),
+        dtype=np.complex64,
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [2, 1]}
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=cirq.one_hot(
-            index=(0, 2, 0, 1, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
-        ),
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
+        initial_state=cirq.one_hot(
+            index=(0, 2, 0, 1, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
+        ),
+        dtype=np.complex64,
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 2]}

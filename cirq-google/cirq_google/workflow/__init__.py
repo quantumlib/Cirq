@@ -26,3 +26,10 @@ from cirq_google.workflow.qubit_placement import (
     NaiveQubitPlacer,
     RandomDevicePlacer,
 )
+
+from cirq_google.workflow.processor_record import (
+    ProcessorRecord,
+    EngineProcessorRecord,
+    SimulatedProcessorRecord,
+    SimulatedProcessorWithLocalDeviceRecord,
+)

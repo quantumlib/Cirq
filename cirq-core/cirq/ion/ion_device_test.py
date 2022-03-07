@@ -65,6 +65,14 @@ def test_init():
         )
 
 
+def test_metadata():
+    d = ion_device(3)
+    assert d.metadata.qubit_set == frozenset(
+        {cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)}
+    )
+    assert len(d.metadata.nx_graph.edges()) == 3
+
+
 def test_init_timedelta():
     d = ion_device(3, use_timedelta=True)
     ms = 1000 * cirq.Duration(nanos=1)
@@ -81,14 +89,15 @@ def test_init_timedelta():
         _ = d.duration_of(cirq.SingleQubitGate().on(q0))
 
 
-def test_decomposition():
+def test_decomposition_deprecated():
     d = ion_device(3)
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
-    assert d.decompose_operation(cirq.H(q0)) == [
-        cirq.rx(np.pi * 1.0).on(cirq.LineQubit(0)),
-        cirq.ry(np.pi * -0.5).on(cirq.LineQubit(0)),
-    ]
+    with cirq.testing.assert_deprecated('ConvertToIonGates', deadline='v0.15'):
+        assert d.decompose_operation(cirq.H(q0)) == [
+            cirq.rx(np.pi * 1.0).on(cirq.LineQubit(0)),
+            cirq.ry(np.pi * -0.5).on(cirq.LineQubit(0)),
+        ]
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.CNOT(q0, q1)])
     ion_circuit = d.decompose_circuit(circuit)
@@ -208,8 +217,9 @@ def test_at():
     assert d.at(2) == cirq.LineQubit(2)
 
 
-def test_qubit_set():
-    assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))
+def test_qubit_set_deprecated():
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))
 
 
 def test_qid_pairs_deprecated():

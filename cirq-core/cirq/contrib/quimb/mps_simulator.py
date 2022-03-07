@@ -91,7 +91,7 @@ class MPSSimulator(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: 'cirq.ClassicalDataStore',
     ) -> 'MPSState':
         """Creates MPSState args for simulating the Circuit.
 
@@ -101,7 +101,8 @@ class MPSSimulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            logs: A mutable object that measurements are recorded into.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Returns:
             MPSState args for simulating the Circuit.
@@ -115,7 +116,7 @@ class MPSSimulator(
             simulation_options=self.simulation_options,
             grouping=self.grouping,
             initial_state=initial_state,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
         )
 
     def _create_step_result(
@@ -229,6 +230,7 @@ class MPSState(ActOnArgs):
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
         log_of_measurement_results: Dict[str, Any] = None,
+        classical_data: 'cirq.ClassicalDataStore' = None,
     ):
         """Creates and MPSState
 
@@ -242,11 +244,18 @@ class MPSState(ActOnArgs):
             initial_state: An integer representing the initial state.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Raises:
             ValueError: If the grouping does not cover the qubits.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
         qubit_map = self.qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():

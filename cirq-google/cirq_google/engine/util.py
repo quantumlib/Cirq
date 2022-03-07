@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,18 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from google.protobuf import any_pb2
+from google.protobuf.message import Message
 
 
-import abc
+def pack_any(message: Message) -> any_pb2.Any:
+    """Packs a message into an Any proto.
 
-import cirq.work
-
-
-class AbstractEngineProcessorShim(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def get_device(self) -> cirq.Device:
-        pass
-
-    @abc.abstractmethod
-    def get_sampler(self) -> cirq.Sampler:
-        pass
+    Returns the packed Any proto.
+    """
+    packed = any_pb2.Any()
+    packed.Pack(message)
+    return packed

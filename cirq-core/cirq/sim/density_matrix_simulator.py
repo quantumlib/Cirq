@@ -16,8 +16,8 @@ from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, L
 
 import numpy as np
 
-from cirq import ops, protocols, qis, study, value
-from cirq._compat import deprecated, proper_repr
+from cirq import ops, protocols, study, value
+from cirq._compat import deprecated, deprecated_parameter, proper_repr
 from cirq.sim import (
     simulator,
     act_on_density_matrix_args,
@@ -117,6 +117,12 @@ class DensityMatrixSimulator(
            # step_result.density_matrix()
     """
 
+    @deprecated_parameter(
+        deadline='v0.15',
+        fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
+        parameter_desc='ignore_measurement_results',
+        match=lambda _, kwargs: 'ignore_measurement_results' in kwargs,
+    )
     def __init__(
         self,
         *,
@@ -162,13 +168,21 @@ class DensityMatrixSimulator(
            when `ignore_measurement_results` has been set to True
            (for more see https://github.com/quantumlib/Cirq/issues/2777).
         """
-        super().__init__(
-            dtype=dtype,
-            noise=noise,
-            seed=seed,
-            ignore_measurement_results=ignore_measurement_results,
-            split_untangled_states=split_untangled_states,
-        )
+        if ignore_measurement_results:
+            super().__init__(
+                dtype=dtype,
+                noise=noise,
+                seed=seed,
+                ignore_measurement_results=ignore_measurement_results,
+                split_untangled_states=split_untangled_states,
+            )
+        else:
+            super().__init__(
+                dtype=dtype,
+                noise=noise,
+                seed=seed,
+                split_untangled_states=split_untangled_states,
+            )
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
@@ -176,7 +190,7 @@ class DensityMatrixSimulator(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: 'cirq.ClassicalDataStore',
     ) -> 'cirq.ActOnDensityMatrixArgs':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 
@@ -186,7 +200,8 @@ class DensityMatrixSimulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            logs: The log of measurement results that is added into.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Returns:
             ActOnDensityMatrixArgs for the circuit.
@@ -194,22 +209,21 @@ class DensityMatrixSimulator(
         if isinstance(initial_state, act_on_density_matrix_args.ActOnDensityMatrixArgs):
             return initial_state
 
-        qid_shape = protocols.qid_shape(qubits)
-        initial_matrix = qis.to_valid_density_matrix(
-            initial_state, len(qid_shape), qid_shape=qid_shape, dtype=self._dtype
-        )
-        if np.may_share_memory(initial_matrix, initial_state):
-            initial_matrix = initial_matrix.copy()
-
-        tensor = initial_matrix.reshape(qid_shape * 2)
+        if self._ignore_measurement_results:
+            return act_on_density_matrix_args.ActOnDensityMatrixArgs(
+                qubits=qubits,
+                prng=self._prng,
+                classical_data=classical_data,
+                ignore_measurement_results=self._ignore_measurement_results,
+                initial_state=initial_state,
+                dtype=self._dtype,
+            )
         return act_on_density_matrix_args.ActOnDensityMatrixArgs(
-            target_tensor=tensor,
-            available_buffer=[np.empty_like(tensor) for _ in range(3)],
             qubits=qubits,
-            qid_shape=qid_shape,
             prng=self._prng,
-            log_of_measurement_results=logs,
-            ignore_measurement_results=self._ignore_measurement_results,
+            classical_data=classical_data,
+            initial_state=initial_state,
+            dtype=self._dtype,
         )
 
     def _can_be_in_run_prefix(self, val: Any):

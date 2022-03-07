@@ -29,6 +29,10 @@ def _near_mod_2pi(e, t, atol=1e-8):
     return _near_mod_n(e, t, 2 * np.pi, atol=atol)
 
 
+@cirq._compat.deprecated_class(
+    deadline='v1.0',
+    fix='Use cirq.optimize_for_target_gateset and cirq.SqrtIswapTargetGateset instead.',
+)
 class ConvertToSqrtIswapGates(cirq.PointOptimizer):
     """Attempts to convert gates into ISWAP**-0.5 gates.
 

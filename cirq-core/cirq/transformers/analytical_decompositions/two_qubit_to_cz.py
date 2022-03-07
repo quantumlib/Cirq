@@ -23,11 +23,9 @@ from cirq.linalg.decompositions import num_cnots_required, extract_right_diag
 
 from cirq import ops, linalg, protocols, circuits
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
-from cirq.optimizers import (
-    eject_z,
-    eject_phased_paulis,
-    merge_single_qubit_gates,
-)
+from cirq.transformers.merge_single_qubit_gates import merge_single_qubit_gates_to_phased_x_and_z
+from cirq.transformers.eject_z import eject_z
+from cirq.transformers.eject_phased_paulis import eject_phased_paulis
 
 if TYPE_CHECKING:
     import cirq
@@ -163,9 +161,9 @@ def _xx_yy_zz_interaction_via_full_czs(
 
 def _cleanup_operations(operations: Sequence[ops.Operation]):
     circuit = circuits.Circuit(operations)
-    merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(circuit)
-    eject_phased_paulis.EjectPhasedPaulis().optimize_circuit(circuit)
-    eject_z.EjectZ().optimize_circuit(circuit)
+    circuit = merge_single_qubit_gates_to_phased_x_and_z(circuit)
+    circuit = eject_phased_paulis(circuit)
+    circuit = eject_z(circuit)
     circuit = circuits.Circuit(circuit.all_operations(), strategy=circuits.InsertStrategy.EARLIEST)
     return list(circuit.all_operations())
 

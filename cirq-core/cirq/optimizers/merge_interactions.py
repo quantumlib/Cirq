@@ -19,13 +19,17 @@ from typing import Callable, List, Optional, Sequence, Tuple, cast, TYPE_CHECKIN
 import abc
 import numpy as np
 
-from cirq import circuits, ops, protocols
+from cirq import circuits, ops, protocols, _compat
 from cirq.transformers.analytical_decompositions import two_qubit_to_cz
 
 if TYPE_CHECKING:
     import cirq
 
 
+@_compat.deprecated_class(
+    deadline='v1.0',
+    fix='Use cirq.optimize_for_target_gateset and cirq.CompilationTargetGateset instead.',
+)
 class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
     """Combines series of adjacent one- and two-qubit, non-parametrized gates
     operating on a pair of qubits."""
@@ -206,6 +210,9 @@ def _flip_kron_order(mat4x4: np.ndarray) -> np.ndarray:
     return result
 
 
+@_compat.deprecated_class(
+    deadline='v1.0', fix='Use cirq.optimize_for_target_gateset and cirq.CZTargetGateset instead.'
+)
 class MergeInteractions(MergeInteractionsAbc):
     """Combines series of adjacent one- and two-qubit, non-parametrized gates
     operating on a pair of qubits and replaces each series with the minimum
