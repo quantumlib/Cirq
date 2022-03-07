@@ -132,7 +132,7 @@ def test_init_validation():
         )
 
     # Single-qubit gates are ignored in symmetric-gate validation.
-    _ = TestNoiseProperties(
+    test_props = TestNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q0: 1},
         tphi_ns={q0: 1},
@@ -142,6 +142,9 @@ def test_init_validation():
             OpIdentifier(cirq.CZPowGate, q0, q1): 0.1,
             OpIdentifier(cirq.CZPowGate, q1, q0): 0.1,
         },
+    )
+    assert test_props.expected_gates() == (
+        TestNoiseProperties.single_qubit_gates() | TestNoiseProperties.symmetric_two_qubit_gates()
     )
 
     # All errors are ignored if validation is disabled.
@@ -190,18 +193,6 @@ def test_depol_validation():
     with pytest.raises(ValueError, match='takes 1 qubit'):
         _ = z_2q_props._depolarizing_error
 
-    # Create unvalidated properties with an unsupported gate.
-    toffoli_props = TestNoiseProperties(
-        gate_times_ns=DEFAULT_GATE_NS,
-        t1_ns={q0: 1},
-        tphi_ns={q0: 1},
-        readout_errors={q0: [0.1, 0.2]},
-        gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
-        validate=False,
-    )
-    with pytest.raises(ValueError, match='not in the supported gate list'):
-        _ = toffoli_props._depolarizing_error
-
     # Create unvalidated properties with too many qubits on a CZ gate.
     cz_3q_props = TestNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
@@ -214,22 +205,17 @@ def test_depol_validation():
     with pytest.raises(ValueError, match='takes 2 qubit'):
         _ = cz_3q_props._depolarizing_error
 
-    # If t1_ns is missing, values are filled in as needed.
-
-
-def test_build_noise_model_validation():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    # Create unvalidated properties with unsupported gates.
+    # Unsupported gates are only checked in constructor.
     toffoli_props = TestNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q0: 1},
         tphi_ns={q0: 1},
         readout_errors={q0: [0.1, 0.2]},
-        gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
+        gate_pauli_errors={OpIdentifier(cirq.CCXPowGate, q0, q1, q2): 0.1},
         validate=False,
     )
-    with pytest.raises(ValueError, match='Some gates are not in the supported set.'):
-        _ = toffoli_props.build_noise_models()
+    with pytest.raises(ValueError):
+        _ = toffoli_props._depolarizing_error
 
 
 @pytest.mark.parametrize(
