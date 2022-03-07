@@ -18,15 +18,16 @@ applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
 from typing import (
-    TYPE_CHECKING,
     AbstractSet,
     Callable,
+    cast,
     Dict,
     FrozenSet,
     Iterator,
     List,
     Optional,
     Tuple,
+    TYPE_CHECKING,
     Union,
 )
 
@@ -45,7 +46,7 @@ REPETITION_ID_SEPARATOR = '-'
 
 
 def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
-    if abs(repetitions) > 1:
+    if abs(repetitions) != 1:
         return [str(i) for i in range(abs(repetitions))]
     return None
 
@@ -94,6 +95,12 @@ class CircuitOperation(ops.Operation):
             will have its path prepended with the repetition id for each
             repetition. When False, this will not happen and the measurement
             key will be repeated.
+        repeat_until: A condition that will be tested after each iteration of
+            the subcircuit. The subcircuit will repeat until condition returns
+            True, but will always run at least once, and the measurement key
+            need not be defined prior to the subcircuit (but must be defined in
+            a measurement within the subcircuit). This field is incompatible
+            with repetitions or repetition_ids.
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
@@ -101,6 +108,9 @@ class CircuitOperation(ops.Operation):
         default=None, init=False
     )
     _cached_control_keys: Optional[AbstractSet['cirq.MeasurementKey']] = dataclasses.field(
+        default=None, init=False
+    )
+    _cached_mapped_single_loop: Optional['cirq.Circuit'] = dataclasses.field(
         default=None, init=False
     )
 
@@ -113,6 +123,7 @@ class CircuitOperation(ops.Operation):
     parent_path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
     extern_keys: FrozenSet['cirq.MeasurementKey'] = dataclasses.field(default_factory=frozenset)
     use_repetition_ids: bool = True
+    repeat_until: Optional['cirq.Condition'] = dataclasses.field(default=None)
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -148,6 +159,14 @@ class CircuitOperation(ops.Operation):
             if q_new.dimension != q.dimension:
                 raise ValueError(f'Qid dimension conflict.\nFrom qid: {q}\nTo qid: {q_new}')
 
+        if self.repeat_until:
+            if self.use_repetition_ids or self.repetitions != 1:
+                raise ValueError('Cannot use repetitions with repeat_until')
+            if protocols.measurement_key_objs(self._mapped_single_loop()).isdisjoint(
+                self.repeat_until.keys
+            ):
+                raise ValueError('Infinite loop: condition is not modified in subcircuit.')
+
         # Ensure that param_resolver is converted to an actual ParamResolver.
         object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
 
@@ -174,6 +193,7 @@ class CircuitOperation(ops.Operation):
             and self.repetition_ids == other.repetition_ids
             and self.parent_path == other.parent_path
             and self.use_repetition_ids == other.use_repetition_ids
+            and self.repeat_until == other.repeat_until
         )
 
     # Methods for getting post-mapping properties of the contained circuit.
@@ -223,6 +243,8 @@ class CircuitOperation(ops.Operation):
                 if not protocols.control_keys(self.circuit)
                 else protocols.control_keys(self.mapped_circuit())
             )
+            if self.repeat_until is not None:
+                keys |= frozenset(self.repeat_until.keys) - self._measurement_key_objs_()
             object.__setattr__(self, '_cached_control_keys', keys)
         return self._cached_control_keys  # type: ignore
 
@@ -234,6 +256,27 @@ class CircuitOperation(ops.Operation):
                 protocols.resolve_parameters(symbol, self.param_resolver, recursive=False)
             )
         }
+
+    def _mapped_single_loop(self, repetition_id: Optional[str] = None) -> 'cirq.Circuit':
+        if self._cached_mapped_single_loop is None:
+            circuit = self.circuit.unfreeze()
+            if self.qubit_map:
+                circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
+            if self.repetitions < 0:
+                circuit = circuit ** -1
+            if self.measurement_key_map:
+                circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
+            if self.param_resolver:
+                circuit = protocols.resolve_parameters(
+                    circuit, self.param_resolver, recursive=False
+                )
+            object.__setattr__(self, '_cached_mapped_single_loop', circuit)
+        circuit = cast(circuits.Circuit, self._cached_mapped_single_loop)
+        if repetition_id:
+            circuit = protocols.with_rescoped_keys(circuit, (repetition_id,))
+        return protocols.with_rescoped_keys(
+            circuit, self.parent_path, bindable_keys=self.extern_keys
+        )
 
     def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
         """Applies all maps to the contained circuit and returns the result.
@@ -247,24 +290,14 @@ class CircuitOperation(ops.Operation):
             qubit mapping, parameterization, etc.) applied to it. This behaves
             like `cirq.decompose(self)`, but preserving moment structure.
         """
-        circuit = self.circuit.unfreeze()
-        if self.qubit_map:
-            circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
-        if self.repetitions < 0:
-            circuit = circuit ** -1
-        if self.measurement_key_map:
-            circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
-        if self.param_resolver:
-            circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
-        if self.repetition_ids:
-            if not self.use_repetition_ids or not protocols.is_measurement(circuit):
-                circuit = circuit * abs(self.repetitions)
-            else:
-                circuit = circuits.Circuit(
-                    protocols.with_rescoped_keys(circuit, (rep,)) for rep in self.repetition_ids
-                )
-        circuit = protocols.with_rescoped_keys(
-            circuit, self.parent_path, bindable_keys=self.extern_keys
+        if self.repetitions == 0:
+            return circuits.Circuit()
+        circuit = (
+            circuits.Circuit(self._mapped_single_loop(rep) for rep in self.repetition_ids)
+            if self.repetition_ids is not None
+            and self.use_repetition_ids
+            and protocols.is_measurement(self.circuit)
+            else self._mapped_single_loop() * abs(self.repetitions)
         )
         if deep:
             circuit = circuit.map_operations(
@@ -280,8 +313,16 @@ class CircuitOperation(ops.Operation):
         return self.mapped_circuit(deep=False).all_operations()
 
     def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
-        for op in self._decompose_():
-            protocols.act_on(op, args)
+        if self.repeat_until:
+            circuit = self._mapped_single_loop()
+            while True:
+                for op in circuit.all_operations():
+                    protocols.act_on(op, args)
+                if self.repeat_until.resolve(args.classical_data):
+                    break
+        else:
+            for op in self._decompose_():
+                protocols.act_on(op, args)
         return True
 
     # Methods for string representation of the operation.
@@ -303,6 +344,8 @@ class CircuitOperation(ops.Operation):
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
         if not self.use_repetition_ids:
             args += 'use_repetition_ids=False,\n'
+        if self.repeat_until:
+            args += f'repeat_until={self.repeat_until!r},\n'
         indented_args = args.replace('\n', '\n    ')
         return f'cirq.CircuitOperation({indented_args[:-4]})'
 
@@ -335,6 +378,8 @@ class CircuitOperation(ops.Operation):
             args.append(f'loops={self.repetitions}')
         if not self.use_repetition_ids:
             args.append('no_rep_ids')
+        if self.repeat_until:
+            args.append(f'until={self.repeat_until}')
         if not args:
             return circuit_msg
         return f'{circuit_msg}({", ".join(args)})'
@@ -373,6 +418,8 @@ class CircuitOperation(ops.Operation):
         }
         if not self.use_repetition_ids:
             resp['use_repetition_ids'] = False
+        if self.repeat_until:
+            resp['repeat_until'] = self.repeat_until
         return resp
 
     @classmethod
@@ -386,10 +433,11 @@ class CircuitOperation(ops.Operation):
         repetition_ids,
         parent_path=(),
         use_repetition_ids=True,
+        repeat_until=None,
         **kwargs,
     ):
         return (
-            cls(circuit, use_repetition_ids=use_repetition_ids)
+            cls(circuit, use_repetition_ids=use_repetition_ids, repeat_until=repeat_until)
             .with_qubit_mapping(dict(qubit_map))
             .with_measurement_key_mapping(measurement_key_map)
             .with_params(param_resolver)
@@ -590,9 +638,13 @@ class CircuitOperation(ops.Operation):
         return self.with_measurement_key_mapping(key_map)
 
     def with_params(
-        self, param_values: 'cirq.ParamResolverOrSimilarType'
+        self, param_values: 'cirq.ParamResolverOrSimilarType', recursive: bool = False
     ) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with an updated ParamResolver.
+
+        Any existing parameter mappings will have their values updated given
+        the provided mapping, and any new parameters will be added to the
+        ParamResolver.
 
         Note that any resulting parameter mappings with no corresponding
         parameter in the base circuit will be omitted.
@@ -601,6 +653,11 @@ class CircuitOperation(ops.Operation):
             param_values: A map or ParamResolver able to convert old param
                 values to new param values. This map will be composed with any
                 existing ParamResolver via single-step resolution.
+            recursive: If True, resolves parameter values recursively over the
+                resolver; otherwise performs a single resolution step. This
+                behavior applies only to the passed-in mapping, for the current
+                application. Existing parameters are never resolved recursively
+                because a->b and b->a needs to be a valid mapping.
 
         Returns:
             A copy of this operation with its ParamResolver updated as specified
@@ -609,18 +666,12 @@ class CircuitOperation(ops.Operation):
         new_params = {}
         for k in protocols.parameter_symbols(self.circuit):
             v = self.param_resolver.value_of(k, recursive=False)
-            v = protocols.resolve_parameters(v, param_values, recursive=False)
+            v = protocols.resolve_parameters(v, param_values, recursive=recursive)
             if v != k:
                 new_params[k] = v
         return self.replace(param_resolver=new_params)
 
-    # TODO: handle recursive parameter resolution gracefully
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.CircuitOperation':
-        if recursive:
-            raise ValueError(
-                'Recursive resolution of CircuitOperation parameters is prohibited. '
-                'Use "recursive=False" to prevent this error.'
-            )
-        return self.with_params(resolver.param_dict)
+        return self.with_params(resolver.param_dict, recursive)
