@@ -13,6 +13,6 @@ numpy~=1.16
 pandas
 sortedcontainers~=2.0
 scipy
-sympy
+sympy==1.9
 typing_extensions
 tqdm
