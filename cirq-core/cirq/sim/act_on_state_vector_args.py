@@ -322,15 +322,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         self._state_vector = new_target_tensor
 
     @property
-    def supports_kron(self) -> bool:
-        return True
-
-    @property
     def supports_factor(self) -> bool:
-        return True
-
-    @property
-    def supports_reindex(self) -> bool:
         return True
 
 

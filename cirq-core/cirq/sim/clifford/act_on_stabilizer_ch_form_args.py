@@ -82,11 +82,3 @@ class ActOnStabilizerCHFormArgs(
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-
-    @property
-    def supports_kron(self) -> bool:
-        return True
-
-    @property
-    def supports_reindex(self) -> bool:
-        return True

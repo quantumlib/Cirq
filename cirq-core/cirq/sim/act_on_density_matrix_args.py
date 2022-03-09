@@ -224,15 +224,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         )
 
     @property
-    def supports_kron(self) -> bool:
-        return True
-
-    @property
     def supports_factor(self) -> bool:
-        return True
-
-    @property
-    def supports_reindex(self) -> bool:
         return True
 
     @property

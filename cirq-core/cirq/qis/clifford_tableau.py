@@ -93,18 +93,8 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @property
-    def supports_kron(self) -> bool:
-        """Subclasses that allow kronning should override this."""
-        return False
-
-    @property
     def supports_factor(self) -> bool:
         """Subclasses that allow factorization should override this."""
-        return False
-
-    @property
-    def supports_reindex(self) -> bool:
-        """Subclasses that allow reindexing should override this."""
         return False
 
     @property
