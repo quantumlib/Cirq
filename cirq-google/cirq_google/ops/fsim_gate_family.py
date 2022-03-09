@@ -38,6 +38,14 @@ T = TypeVar(
     cirq.CZPowGate,
     cirq.IdentityGate,
 )
+POSSIBLE_FSIM_GATE_TYPES = (
+    cirq.FSimGate,
+    cirq.PhasedFSimGate,
+    cirq.ISwapPowGate,
+    cirq.PhasedISwapPowGate,
+    cirq.CZPowGate,
+    cirq.IdentityGate,
+)
 
 
 def _exp(theta: Union[complex, sympy.Basic]):
