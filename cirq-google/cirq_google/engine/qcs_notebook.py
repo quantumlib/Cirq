@@ -43,7 +43,7 @@ class QCSObjectsForNotebook:
 # pylint: disable=missing-raises-doc
 def get_qcs_objects_for_notebook(
     project_id: Optional[str] = None, processor_id: Optional[str] = None
-) -> QCSObjectsForNotebook:
+) -> QCSObjectsForNotebook:  # pragma: nocover
     """Authenticates on Google Cloud, can return a Device and Simulator.
 
     Args:
