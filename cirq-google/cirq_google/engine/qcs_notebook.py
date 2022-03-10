@@ -120,4 +120,5 @@ def get_qcs_objects_for_notebook(
 
     return QCSObjectsForNotebook(device=device, sampler=sampler, signed_in=signed_in)
 
+
 # pylint: enable=missing-raises-doc
