@@ -106,6 +106,10 @@ from cirq_google.optimizers import (
     optimized_for_xmon,
 )
 
+from cirq_google.transformers import (
+    known_2q_op_to_sycamore_operations,
+    two_qubit_matrix_to_sycamore_operations,
+)
 
 from cirq_google.serialization import (
     arg_from_proto,
