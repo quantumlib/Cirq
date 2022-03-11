@@ -167,18 +167,18 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     @property
     def X(cls):
         if getattr(cls, '_X', None) is None:
-            cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.X)
-        return cls._Z
+            cls._X = cls._generate_clifford_from_known_gate(1, pauli_gates.X)
+        return cls._X
 
     @property
     def Y(cls):
-        if getattr(cls, '_X', None) is None:
-            cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.Y)
-        return cls._Z
+        if getattr(cls, '_Y', None) is None:
+            cls._Y = cls._generate_clifford_from_known_gate(1, pauli_gates.Y)
+        return cls._Y
 
     @property
     def Z(cls):
-        if getattr(cls, '_X', None) is None:
+        if getattr(cls, '_Z', None) is None:
             cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.Z)
         return cls._Z
 
@@ -273,33 +273,6 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
             )
             cls._Z_nsqrt = cls.from_clifford_tableau(_clifford_tableau)
         return cls._Z_nsqrt
-
-    # def _get_sqrt_map(cls):
-    #     _x, _y, _z = cls.X, cls.Y, cls.Z
-    #     _x_sqrt, _y_sqrt, _z_sqrt = cls.X_sqrt, cls.Y_sqrt, cls.Z_sqrt
-    #     _x_nsqrt, _y_nsqrt, _z_nsqrt = cls.X_nsqrt, cls.Y_nsqrt, cls.Z_nsqrt
-
-    #     return {
-    #         0.5: {
-    #             _x: _x_sqrt, _y: _y_sqrt, _z: _z_sqrt
-    #         },
-    #         -0.5: {
-    #             _x: _x_nsqrt, _y: _y_nsqrt, _z: _z_nsqrt
-    #         },
-    #     }
-    # return {
-    #     0.5: {
-    #         cls.X: cls.X_sqrt,
-    #         cls.Y: cls.Y_sqrt,
-    #         cls.Z: cls.Z_sqrt,
-    #     },
-    #     -0.5: {
-    #         cls.X: cls.X_nsqrt,
-    #         cls.Y: cls.Y_nsqrt,
-    #         cls.Z: cls.Z_nsqrt,
-    #     },
-    # }
-
 
 class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
