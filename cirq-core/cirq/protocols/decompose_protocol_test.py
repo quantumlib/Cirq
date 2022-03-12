@@ -306,7 +306,7 @@ def test_decompose_preserving_structure_forwards_args(decompose_mode):
     assert actual == expected
 
 
-def test_decompose_preserving_structure_forwards_args():
+def test_decompose_tagged_operation():
     op = cirq.TaggedOperation(
         cirq.CircuitOperation(
             circuit=cirq.FrozenCircuit(
