@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Dict, List
+from typing import Dict, Iterable, List, Optional, Tuple
 
 import cirq
+from cirq_google.api.v2 import batch_pb2
 from cirq_google.api.v2 import run_context_pb2
 
 
@@ -101,3 +102,49 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
 
     # coverage: ignore
     raise ValueError(f'sweep type not set: {msg}')
+
+
+def run_context_to_proto(
+    sweepable: cirq.Sweepable, repetitions: int, *, out: Optional[run_context_pb2.RunContext] = None
+) -> run_context_pb2.RunContext:
+    """Populates a RunContext protobuf message.
+
+    Args:
+        sweepable: The sweepable to include in the run context.
+        repetitions: The number of repetitions for the run context.
+        out: Optional message to be populated. If not given, a new message will
+            be created.
+
+    Returns:
+        Populated RunContext protobuf message.
+    """
+    if out is None:
+        out = run_context_pb2.RunContext()
+    for sweep in cirq.to_sweeps(sweepable):
+        sweep_proto = out.parameter_sweeps.add()
+        sweep_proto.repetitions = repetitions
+        sweep_to_proto(sweep, out=sweep_proto.sweep)
+    return out
+
+
+def batch_run_context_to_proto(
+    sweepables_and_reps: Iterable[Tuple[cirq.Sweepable, int]],
+    *,
+    out: Optional[batch_pb2.BatchRunContext] = None,
+) -> batch_pb2.BatchRunContext:
+    """Populates a BatchRunContext protobuf message.
+
+    Args:
+        sweepables_and_reps: Iterable over tuples of (sweepable, repetitions), one
+            for each run context in the batch.
+        out: Optional message to be populated. If not given, a new message will
+            be created.
+
+    Returns:
+        Populated BatchRunContext protobuf message.
+    """
+    if out is None:
+        out = batch_pb2.BatchRunContext()
+    for sweepable, reps in sweepables_and_reps:
+        run_context_to_proto(sweepable, reps, out=out.run_contexts.add())
+    return out

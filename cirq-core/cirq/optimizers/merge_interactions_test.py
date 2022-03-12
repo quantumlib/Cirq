@@ -22,7 +22,9 @@ import cirq
 
 def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
     actual = cirq.Circuit(before)
-    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
         opt = cirq.MergeInteractions()
     opt.optimize_circuit(actual)
 
@@ -46,7 +48,9 @@ def assert_optimization_not_broken(circuit):
     global phase and rounding error) as the unitary matrix of the optimized
     circuit."""
     u_before = circuit.unitary()
-    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
         cirq.MergeInteractions().optimize_circuit(circuit)
     u_after = circuit.unitary()
 
@@ -161,7 +165,9 @@ def test_optimizes_single_iswap():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.ISWAP(a, b))
     assert_optimization_not_broken(c)
-    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
         cirq.MergeInteractions().optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
@@ -170,7 +176,9 @@ def test_optimizes_tagged_partial_cz():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit((cirq.CZ ** 0.5)(a, b).with_tags('mytag'))
     assert_optimization_not_broken(c)
-    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
         cirq.MergeInteractions(allow_partial_czs=False).optimize_circuit(c)
     assert (
         len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
@@ -182,7 +190,9 @@ def test_not_decompose_czs():
         cirq.CZPowGate(exponent=1, global_shift=-0.5).on(*cirq.LineQubit.range(2))
     )
     circ_orig = circuit.copy()
-    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
         cirq.MergeInteractions(allow_partial_czs=False).optimize_circuit(circuit)
     assert circ_orig == circuit
 
@@ -200,7 +210,9 @@ def test_not_decompose_czs():
     ),
 )
 def test_decompose_partial_czs(circuit):
-    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
         optimizer = cirq.MergeInteractions(allow_partial_czs=False)
     optimizer.optimize_circuit(circuit)
 
@@ -219,7 +231,9 @@ def test_not_decompose_partial_czs():
     circuit = cirq.Circuit(
         cirq.CZPowGate(exponent=0.1, global_shift=-0.5)(*cirq.LineQubit.range(2)),
     )
-    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
         optimizer = cirq.MergeInteractions(allow_partial_czs=True)
     optimizer.optimize_circuit(circuit)
 
@@ -253,7 +267,9 @@ def test_post_clean_up():
         yield operations
         yield Marker()(a, b)
 
-    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
         optimizer = cirq.MergeInteractions(allow_partial_czs=False, post_clean_up=clean_up)
     optimizer.optimize_circuit(circuit)
     circuit = cirq.drop_empty_moments(circuit)
