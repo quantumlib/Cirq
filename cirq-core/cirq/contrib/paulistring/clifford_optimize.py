@@ -92,14 +92,6 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
 
             qubit, pauli = next(iter(merge_op.pauli_string.items()))
             quarter_turns = round(merge_op.exponent_relative * 2)
-            if merge_op.pauli_string.coefficient not in [1, -1]:
-                # TODO: Add support for more general phases.
-                # Github issue: https://github.com/quantumlib/Cirq/issues/2962
-                # Legacy coverage ignore, we need test code that hits this.
-                # coverage: ignore
-                raise NotImplementedError(
-                    'Only +1/-1 pauli string coefficients currently supported'
-                )
             quarter_turns *= int(merge_op.pauli_string.coefficient.real)
             quarter_turns %= 4
             part_cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(pauli, quarter_turns)
