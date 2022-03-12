@@ -43,6 +43,7 @@ from cirq_google.engine import (
     engine_processor,
     engine_program,
     engine_sampler,
+    util,
 )
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
@@ -125,6 +126,26 @@ class EngineContext:
 
     def _value_equality_values_(self):
         return self.proto_version, self.client
+
+    def _serialize_program(
+        self, program: cirq.AbstractCircuit, serializer: Optional[Serializer] = None
+    ) -> any_pb2.Any:
+        if not isinstance(program, cirq.AbstractCircuit):
+            raise TypeError(f'Unrecognized program type: {type(program)}')
+        if serializer is None:
+            serializer = self.serializer
+        if self.proto_version != ProtoVersion.V2:
+            raise ValueError(f'invalid program proto version: {self.proto_version}')
+        return util.pack_any(serializer.serialize(program))
+
+    def _serialize_run_context(
+        self,
+        sweeps: 'cirq.Sweepable',
+        repetitions: int,
+    ) -> any_pb2.Any:
+        if self.proto_version != ProtoVersion.V2:
+            raise ValueError(f'invalid run context proto version: {self.proto_version}')
+        return util.pack_any(v2.run_context_to_proto(sweeps, repetitions))
 
 
 class Engine(abstract_engine.AbstractEngine):
@@ -501,16 +522,13 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        if not gate_set:
-            gate_set = self.context.serializer
-
         if not program_id:
             program_id = _make_random_id('prog-')
 
         new_program_id, new_program = self.context.client.create_program(
             self.project_id,
             program_id,
-            code=self._serialize_program(program, gate_set),
+            code=self.context._serialize_program(program, gate_set),
             description=description,
             labels=labels,
         )
@@ -559,7 +577,7 @@ class Engine(abstract_engine.AbstractEngine):
         new_program_id, new_program = self.context.client.create_program(
             self.project_id,
             program_id,
-            code=self._pack_any(batch),
+            code=util.pack_any(batch),
             description=description,
             labels=labels,
         )
@@ -616,7 +634,7 @@ class Engine(abstract_engine.AbstractEngine):
         new_program_id, new_program = self.context.client.create_program(
             self.project_id,
             program_id,
-            code=self._pack_any(calibration),
+            code=util.pack_any(calibration),
             description=description,
             labels=labels,
         )
@@ -628,27 +646,6 @@ class Engine(abstract_engine.AbstractEngine):
             new_program,
             result_type=ResultType.Calibration,
         )
-
-    def _serialize_program(
-        self, program: cirq.AbstractCircuit, gate_set: Serializer
-    ) -> any_pb2.Any:
-        if not isinstance(program, cirq.AbstractCircuit):
-            raise TypeError(f'Unrecognized program type: {type(program)}')
-
-        if self.context.proto_version == ProtoVersion.V2:
-            program = gate_set.serialize(program)
-            return self._pack_any(program)
-        else:
-            raise ValueError(f'invalid program proto version: {self.context.proto_version}')
-
-    def _pack_any(self, message: 'google.protobuf.Message') -> any_pb2.Any:
-        """Packs a message into an Any proto.
-
-        Returns the packed Any proto.
-        """
-        packed = any_pb2.Any()
-        packed.Pack(message)
-        return packed
 
     def get_program(self, program_id: str) -> engine_program.EngineProgram:
         """Returns an EngineProgram for an existing Quantum Engine program.

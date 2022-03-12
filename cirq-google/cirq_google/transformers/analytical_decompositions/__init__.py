@@ -12,13 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Gatesets which can act as compilation targets in Cirq."""
-
-from cirq.transformers.target_gatesets.compilation_target_gateset import (
-    CompilationTargetGateset,
-    TwoQubitCompilationTargetGateset,
+from cirq_google.transformers.analytical_decompositions.two_qubit_to_sycamore import (
+    known_2q_op_to_sycamore_operations,
+    two_qubit_matrix_to_sycamore_operations,
 )
-
-from cirq.transformers.target_gatesets.cz_gateset import CZTargetGateset
-
-from cirq.transformers.target_gatesets.sqrt_iswap_gateset import SqrtIswapTargetGateset

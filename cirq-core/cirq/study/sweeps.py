@@ -98,10 +98,10 @@ class Sweep(metaclass=abc.ABCMeta):
         return Zip(*sweeps)
 
     @abc.abstractmethod
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         pass
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
     @property
