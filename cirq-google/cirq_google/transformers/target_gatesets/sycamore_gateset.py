@@ -96,14 +96,11 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
 
         Args:
             atol: A limit on the amount of absolute error introduced by the decomposition.
-            tabulation: If set, a tabulation for the Sycamore gate to use for decomposing Matrix
-                gates. If unset, an analytic calculation is used for Matrix gates. To get a
-                `cirq.TwoQubitGateTabulation`, call the `cirq.two_qubit_gate_product_tabulation`
-                method with a base gate (in this case, usually `cirq_google.SYC`) and a maximum
-                infidelity.
-
-        Raises:
-            ValueError: If the tabulation is not a `cirq.TwoQubitGateTabulation`.
+            tabulation: If set, a tabulation for the Sycamore gate is used for decomposing Matrix
+                gates. If unset, an analytic calculation is used for Matrix gates. In both cases,
+                known decompositions for gates take priority over analytical / tabulation methods.
+                To get `cirq.TwoQubitGateTabulation`, call `cirq.two_qubit_gate_product_tabulation`
+                with a base gate (in this case, `cirq_google.SYC`) and a maximum infidelity.
         """
         super().__init__(
             ops.SYC,
@@ -115,8 +112,6 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             cirq.ZPowGate,
             name='SycamoreTargetGateset',
         )
-        if tabulation is not None and not isinstance(tabulation, cirq.TwoQubitGateTabulation):
-            raise ValueError("Provided tabulation must be of type cirq.TwoQubitGateTabulation")
         self.atol = atol
         self.tabulation = tabulation
 

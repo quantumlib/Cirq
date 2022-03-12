@@ -317,13 +317,6 @@ def test_convert_to_sycamore_tabulation():
     assert np.isclose(overlap, 4.0, 0.1)
 
 
-def test_sycamore_invalid_tabulation():
-    # An object other than a tabulation.
-    sycamore_tabulation = {}
-    with pytest.raises(ValueError):
-        cirq_google.SycamoreTargetGateset(tabulation=sycamore_tabulation)
-
-
 q = cirq.GridQubit.rect(1, 3)
 matrix_gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
 
