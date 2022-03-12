@@ -85,7 +85,7 @@ class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
         without decomposition."""
         return old_op in self.gateset
 
-    def _two_qubit_matrix_to_operations(
+    def _two_qubit_matrix_to_cz_operations(
         self,
         q0: 'cirq.Qid',
         q1: 'cirq.Qid',

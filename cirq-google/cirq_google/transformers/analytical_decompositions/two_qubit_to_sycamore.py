@@ -77,7 +77,7 @@ def two_qubit_matrix_to_sycamore_operations(
         single qubit rotations.
     """
     decomposed_ops: List[cirq.OP_TREE] = []
-    for op in cirq.two_qubit_matrix_to_operations(
+    for op in cirq.two_qubit_matrix_to_cz_operations(
         q0, q1, mat, allow_partial_czs=True, atol=atol, clean_operations=clean_operations
     ):
         if cirq.num_qubits(op) == 2:

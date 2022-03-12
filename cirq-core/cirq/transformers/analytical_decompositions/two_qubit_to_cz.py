@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def two_qubit_matrix_to_operations(
+def two_qubit_matrix_to_cz_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
     mat: np.ndarray,
@@ -61,7 +61,7 @@ def two_qubit_matrix_to_operations(
     return operations
 
 
-def two_qubit_matrix_to_diagonal_and_operations(
+def two_qubit_matrix_to_diagonal_and_cz_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
     mat: np.ndarray,
@@ -94,7 +94,7 @@ def two_qubit_matrix_to_diagonal_and_operations(
         right_diag = extract_right_diag(mat)
         two_cnot_unitary = mat @ right_diag
         # note that this implies that two_cnot_unitary @ d = mat
-        return right_diag.conj().T, two_qubit_matrix_to_operations(
+        return right_diag.conj().T, two_qubit_matrix_to_cz_operations(
             q0,
             q1,
             two_cnot_unitary,
@@ -103,7 +103,7 @@ def two_qubit_matrix_to_diagonal_and_operations(
             clean_operations=clean_operations,
         )
 
-    return np.eye(4), two_qubit_matrix_to_operations(
+    return np.eye(4), two_qubit_matrix_to_cz_operations(
         q0,
         q1,
         mat,
