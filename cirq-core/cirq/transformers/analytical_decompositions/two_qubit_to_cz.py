@@ -18,6 +18,7 @@ from typing import Iterable, List, Sequence, Tuple, Optional, cast, TYPE_CHECKIN
 
 import numpy as np
 
+from cirq import _compat
 from cirq.linalg import predicates
 from cirq.linalg.decompositions import num_cnots_required, extract_right_diag
 
@@ -29,6 +30,18 @@ from cirq.transformers.eject_phased_paulis import eject_phased_paulis
 
 if TYPE_CHECKING:
     import cirq
+
+
+@_compat.deprecated(fix='Please use two_qubit_matrix_to_cz_operations', deadline='v0.15')
+def two_qubit_matrix_to_operations(
+    q0: 'cirq.Qid',
+    q1: 'cirq.Qid',
+    mat: np.ndarray,
+    allow_partial_czs: bool,
+    atol: float = 1e-8,
+    clean_operations: bool = True,
+) -> List[ops.Operation]:
+    return two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs, atol, clean_operations)
 
 
 def two_qubit_matrix_to_cz_operations(
@@ -59,6 +72,22 @@ def two_qubit_matrix_to_cz_operations(
     if clean_operations:
         return _cleanup_operations(operations)
     return operations
+
+
+@_compat.deprecated(
+    fix='Please use two_qubit_matrix_to_diagonal_and_cz_operations', deadline='v0.15'
+)
+def two_qubit_matrix_to_diagonal_and_operations(
+    q0: 'cirq.Qid',
+    q1: 'cirq.Qid',
+    mat: np.ndarray,
+    allow_partial_czs: bool = False,
+    atol: float = 1e-8,
+    clean_operations: bool = True,
+) -> Tuple[np.ndarray, List['cirq.Operation']]:
+    return two_qubit_matrix_to_diagonal_and_cz_operations(
+        q0, q1, mat, allow_partial_czs, atol, clean_operations
+    )
 
 
 def two_qubit_matrix_to_diagonal_and_cz_operations(
