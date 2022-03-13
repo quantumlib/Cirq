@@ -17,7 +17,7 @@ from typing import List, Sequence, Tuple, cast, Dict, TYPE_CHECKING
 import numpy as np
 
 from cirq import value, protocols
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq.ops import gate_features, common_gates, eigen_gate, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
@@ -66,10 +66,58 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
                 equal to the tensor product of the two conditions.
         """
         super().__init__(exponent=exponent)
-        self.pauli0 = pauli0
-        self.invert0 = invert0
-        self.pauli1 = pauli1
-        self.invert1 = invert1
+        self._pauli0 = pauli0
+        self._invert0 = invert0
+        self._pauli1 = pauli1
+        self._invert1 = invert1
+
+    @property
+    def pauli0(self) -> 'cirq.Pauli':
+        return self._pauli0
+
+    @pauli0.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def pauli0(self, pauli0: 'cirq.Pauli'):
+        self._pauli0 = pauli0
+
+    @property
+    def invert0(self) -> bool:
+        return self._invert0
+
+    @invert0.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def invert0(self, invert0: bool):
+        self._invert0 = invert0
+
+    @property
+    def pauli1(self) -> 'cirq.Pauli':
+        return self._pauli1
+
+    @pauli1.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def pauli1(self, pauli1: 'cirq.Pauli'):
+        self._pauli1 = pauli1
+
+    @property
+    def invert1(self) -> bool:
+        return self._invert1
+
+    @invert1.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def invert1(self, invert1: bool):
+        self._invert1 = invert1
 
     def _num_qubits_(self) -> int:
         return 2
