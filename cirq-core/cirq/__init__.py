@@ -401,6 +401,8 @@ from cirq.transformers import (
     TransformerLogger,
     three_qubit_matrix_to_operations,
     transformer,
+    two_qubit_matrix_to_cz_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations,
     two_qubit_matrix_to_diagonal_and_operations,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
