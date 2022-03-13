@@ -48,7 +48,7 @@ class ConvertToXmonGates(cirq.PointOptimizer):
             gates = cirq.single_qubit_matrix_to_phased_x_z(mat)
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
-            return cirq.two_qubit_matrix_to_operations(
+            return cirq.two_qubit_matrix_to_cz_operations(
                 op.qubits[0], op.qubits[1], mat, allow_partial_czs=True, clean_operations=False
             )
 
