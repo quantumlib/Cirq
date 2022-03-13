@@ -53,6 +53,12 @@ class KeyValueExecutableSpec(ExecutableSpec):
     executable_family: str
     key_value_pairs: Tuple[Tuple[str, Any], ...] = ()
 
+    def to_dict(self) -> Tuple[Dict[str, Any], str]:
+        return (
+            {k: v for k, v in self.key_value_pairs},
+            self.executable_family,
+        )
+
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
