@@ -76,16 +76,8 @@ class CountingActOnArgs(cirq.ActOnArgs):
         return True
 
     @property
-    def allows_factoring(self):
-        return False
-
-    @property
     def state(self):
         return self._state.state
-
-    @state.setter
-    def state(self, state):
-        self._state.state = state
 
     @property
     def gate_count(self):
