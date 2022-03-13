@@ -30,7 +30,7 @@ import sympy
 
 import cirq
 from cirq import protocols, value
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq.ops import gate_features, raw_types
 
 
@@ -90,8 +90,32 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
                 ``|11⟩`` state is phased. Note: uses opposite sign convention to
                 the CZPowGate. Maximum strength (full cz) is at pi.
         """
-        self.theta = _canonicalize(theta)
-        self.phi = _canonicalize(phi)
+        self._theta = _canonicalize(theta)
+        self._phi = _canonicalize(phi)
+
+    @property
+    def theta(self) -> Union[float, sympy.Basic]:
+        return self._theta
+
+    @theta.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def theta(self, theta: Union[float, sympy.Basic]):
+        self._theta = theta
+
+    @property
+    def phi(self) -> Union[float, sympy.Basic]:
+        return self._phi
+
+    @phi.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def phi(self, phi: Union[float, sympy.Basic]):
+        self._phi = phi
 
     def _num_qubits_(self) -> int:
         return 2
@@ -269,11 +293,71 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
             phi: Controlled phase angle, in radians. See class docstring
                 above for details.
         """
-        self.theta = _canonicalize(theta)
-        self.zeta = _canonicalize(zeta)
-        self.chi = _canonicalize(chi)
-        self.gamma = _canonicalize(gamma)
-        self.phi = _canonicalize(phi)
+        self._theta = _canonicalize(theta)
+        self._zeta = _canonicalize(zeta)
+        self._chi = _canonicalize(chi)
+        self._gamma = _canonicalize(gamma)
+        self._phi = _canonicalize(phi)
+
+    @property
+    def theta(self) -> Union[float, sympy.Basic]:
+        return self._theta
+
+    @theta.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def theta(self, theta: Union[float, sympy.Basic]):
+        self._theta = theta
+
+    @property
+    def zeta(self) -> Union[float, sympy.Basic]:
+        return self._zeta
+
+    @zeta.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def zeta(self, zeta: Union[float, sympy.Basic]):
+        self._zeta = zeta
+
+    @property
+    def chi(self) -> Union[float, sympy.Basic]:
+        return self._chi
+
+    @chi.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def chi(self, chi: Union[float, sympy.Basic]):
+        self._chi = chi
+
+    @property
+    def gamma(self) -> Union[float, sympy.Basic]:
+        return self._gamma
+
+    @gamma.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def gamma(self, gamma: Union[float, sympy.Basic]):
+        self._gamma = gamma
+
+    @property
+    def phi(self) -> Union[float, sympy.Basic]:
+        return self._phi
+
+    @phi.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def phi(self, phi: Union[float, sympy.Basic]):
+        self._phi = phi
 
     @staticmethod
     def from_fsim_rz(
