@@ -23,7 +23,7 @@ applies more generally to fermions, thus the name of the gate.
 
 import cmath
 import math
-from typing import AbstractSet, Any, Dict, Optional, Tuple, Union
+from typing import AbstractSet, Any, Dict, Optional, Tuple
 
 import numpy as np
 import sympy
