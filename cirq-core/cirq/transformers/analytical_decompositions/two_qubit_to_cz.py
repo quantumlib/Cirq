@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@_compat.deprecated(fix='Please use two_qubit_matrix_to_cz_operations', deadline='v0.15')
+@_compat.deprecated(fix='Please use cirq.two_qubit_matrix_to_cz_operations', deadline='v0.15')
 def two_qubit_matrix_to_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
