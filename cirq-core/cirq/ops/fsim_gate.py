@@ -34,7 +34,7 @@ from cirq._compat import deprecated, proper_repr
 from cirq.ops import gate_features, raw_types
 
 
-def _canonicalize(value: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]:
+def _canonicalize(value: 'cirq.TParamVal') -> 'cirq.TParamVal':
     """Assumes value is 2π-periodic and shifts it into [-π, π)."""
     if protocols.is_parameterized(value):
         return value
@@ -42,12 +42,12 @@ def _canonicalize(value: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]
     return value - period * np.floor((value + np.pi) / period)
 
 
-def _zero_mod_pi(param: Union[float, sympy.Basic]) -> bool:
+def _zero_mod_pi(param: 'cirq.TParamVal') -> bool:
     """Returns True iff param, assumed to be in [-pi, pi), is 0 (mod pi)."""
     return param in (0.0, -np.pi, -sympy.pi)
 
 
-def _half_pi_mod_pi(param: Union[float, sympy.Basic]) -> bool:
+def _half_pi_mod_pi(param: 'cirq.TParamVal') -> bool:
     """Returns True iff param, assumed to be in [-pi, pi), is pi/2 (mod pi)."""
     return param in (-np.pi / 2, np.pi / 2, -sympy.pi / 2, sympy.pi / 2)
 
@@ -78,7 +78,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
     """
 
-    def __init__(self, theta: float, phi: float) -> None:
+    def __init__(self, theta: 'cirq.TParamVal', phi: 'cirq.TParamVal') -> None:
         """Inits FSimGate.
 
         Args:
@@ -94,7 +94,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         self._phi = _canonicalize(phi)
 
     @property
-    def theta(self) -> Union[float, sympy.Basic]:
+    def theta(self) -> 'cirq.TParamVal':
         return self._theta
 
     @theta.setter  # type: ignore
@@ -102,11 +102,11 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         deadline="v0.15",
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
-    def theta(self, theta: Union[float, sympy.Basic]):
+    def theta(self, theta: 'cirq.TParamVal'):
         self._theta = theta
 
     @property
-    def phi(self) -> Union[float, sympy.Basic]:
+    def phi(self) -> 'cirq.TParamVal':
         return self._phi
 
     @phi.setter  # type: ignore
@@ -114,7 +114,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         deadline="v0.15",
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
-    def phi(self, phi: Union[float, sympy.Basic]):
+    def phi(self, phi: 'cirq.TParamVal'):
         self._phi = phi
 
     def _num_qubits_(self) -> int:
@@ -273,11 +273,11 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def __init__(
         self,
-        theta: Union[float, sympy.Basic],
-        zeta: Union[float, sympy.Basic] = 0.0,
-        chi: Union[float, sympy.Basic] = 0.0,
-        gamma: Union[float, sympy.Basic] = 0.0,
-        phi: Union[float, sympy.Basic] = 0.0,
+        theta: 'cirq.TParamVal',
+        zeta: 'cirq.TParamVal' = 0.0,
+        chi: 'cirq.TParamVal' = 0.0,
+        gamma: 'cirq.TParamVal' = 0.0,
+        phi: 'cirq.TParamVal' = 0.0,
     ) -> None:
         """Inits PhasedFSimGate.
 
@@ -300,7 +300,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         self._phi = _canonicalize(phi)
 
     @property
-    def theta(self) -> Union[float, sympy.Basic]:
+    def theta(self) -> 'cirq.TParamVal':
         return self._theta
 
     @theta.setter  # type: ignore
@@ -308,11 +308,11 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         deadline="v0.15",
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
-    def theta(self, theta: Union[float, sympy.Basic]):
+    def theta(self, theta: 'cirq.TParamVal'):
         self._theta = theta
 
     @property
-    def zeta(self) -> Union[float, sympy.Basic]:
+    def zeta(self) -> 'cirq.TParamVal':
         return self._zeta
 
     @zeta.setter  # type: ignore
@@ -320,11 +320,11 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         deadline="v0.15",
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
-    def zeta(self, zeta: Union[float, sympy.Basic]):
+    def zeta(self, zeta: 'cirq.TParamVal'):
         self._zeta = zeta
 
     @property
-    def chi(self) -> Union[float, sympy.Basic]:
+    def chi(self) -> 'cirq.TParamVal':
         return self._chi
 
     @chi.setter  # type: ignore
@@ -332,11 +332,11 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         deadline="v0.15",
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
-    def chi(self, chi: Union[float, sympy.Basic]):
+    def chi(self, chi: 'cirq.TParamVal'):
         self._chi = chi
 
     @property
-    def gamma(self) -> Union[float, sympy.Basic]:
+    def gamma(self) -> 'cirq.TParamVal':
         return self._gamma
 
     @gamma.setter  # type: ignore
@@ -344,11 +344,11 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         deadline="v0.15",
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
-    def gamma(self, gamma: Union[float, sympy.Basic]):
+    def gamma(self, gamma: 'cirq.TParamVal'):
         self._gamma = gamma
 
     @property
-    def phi(self) -> Union[float, sympy.Basic]:
+    def phi(self) -> 'cirq.TParamVal':
         return self._phi
 
     @phi.setter  # type: ignore
@@ -356,15 +356,15 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         deadline="v0.15",
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
-    def phi(self, phi: Union[float, sympy.Basic]):
+    def phi(self, phi: 'cirq.TParamVal'):
         self._phi = phi
 
     @staticmethod
     def from_fsim_rz(
-        theta: Union[float, sympy.Basic],
-        phi: Union[float, sympy.Basic],
-        rz_angles_before: Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]],
-        rz_angles_after: Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]],
+        theta: 'cirq.TParamVal',
+        phi: 'cirq.TParamVal',
+        rz_angles_before: Tuple['cirq.TParamVal', 'cirq.TParamVal'],
+        rz_angles_after: Tuple['cirq.TParamVal', 'cirq.TParamVal'],
     ) -> 'PhasedFSimGate':
         """Creates PhasedFSimGate using an alternate parametrization.
 
@@ -386,14 +386,14 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         return PhasedFSimGate(theta, zeta, chi, gamma, phi)
 
     @property
-    def rz_angles_before(self) -> Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]]:
+    def rz_angles_before(self) -> Tuple['cirq.TParamVal', 'cirq.TParamVal']:
         """Returns 2-tuple of phase angles applied to qubits before FSimGate."""
         b0 = (-self.gamma + self.zeta + self.chi) / 2.0
         b1 = (-self.gamma - self.zeta - self.chi) / 2.0
         return b0, b1
 
     @property
-    def rz_angles_after(self) -> Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]]:
+    def rz_angles_after(self) -> Tuple['cirq.TParamVal', 'cirq.TParamVal']:
         """Returns 2-tuple of phase angles applied to qubits after FSimGate."""
         a0 = (-self.gamma + self.zeta - self.chi) / 2.0
         a1 = (-self.gamma - self.zeta + self.chi) / 2.0
@@ -497,7 +497,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         makes the top left element of the matrix equal to 1.
         """
 
-        def to_exponent(angle_rads: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]:
+        def to_exponent(angle_rads: 'cirq.TParamVal') -> 'cirq.TParamVal':
             """Divides angle_rads by symbolic or numerical pi."""
             pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
             return angle_rads / pi
