@@ -83,10 +83,9 @@ class PauliMeasurementGate(raw_types.Gate):
         fix="The mutators of this class are deprecated, instantiate a new object instead.",
     )
     def key(self, key: Union[str, 'cirq.MeasurementKey']):
-        if isinstance(key, value.MeasurementKey):
-            self._mkey = key
-        else:
-            self._mkey = value.MeasurementKey(name=key)
+        if isinstance(key, str):
+            key = value.MeasurementKey(name=key)
+        self._mkey = key
 
     @property
     def mkey(self) -> 'cirq.MeasurementKey':
