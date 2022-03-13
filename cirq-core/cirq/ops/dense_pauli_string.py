@@ -35,7 +35,7 @@ import numpy as np
 import sympy
 
 from cirq import protocols, linalg, value
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq.ops import raw_types, identity, pauli_gates, global_phase_op, pauli_string
 from cirq.type_workarounds import NotImplementedType
 
@@ -95,12 +95,37 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             ...                             coefficient=sympy.Symbol('t')))
             t*IXYZ
         """
-        self.pauli_mask = _as_pauli_mask(pauli_mask)
-        self.coefficient = (
+        self._pauli_mask = _as_pauli_mask(pauli_mask)
+        self._coefficient = (
             coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
         )
         if type(self) != MutableDensePauliString:
-            self.pauli_mask = np.copy(self.pauli_mask)
+            self._pauli_mask = np.copy(self.pauli_mask)
+            self._pauli_mask.flags.writeable = False
+
+    @property
+    def pauli_mask(self) -> np.ndarray:
+        return self._pauli_mask
+
+    @pauli_mask.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def pauli_mask(self, pauli_mask: np.ndarray):
+        self._pauli_mask = pauli_mask
+
+    @property
+    def coefficient(self) -> complex:
+        return self._coefficient
+
+    @coefficient.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def coefficient(self, coefficient: complex):
+        self._coefficient = coefficient
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli_mask', 'coefficient'])
@@ -432,8 +457,8 @@ class MutableDensePauliString(BaseDensePauliString):
                     f"other={repr(other)}"
                 )
             self_mask = self.pauli_mask[: len(other.pauli_mask)]
-            self.coefficient *= _vectorized_pauli_mul_phase(self_mask, other.pauli_mask)
-            self.coefficient *= other.coefficient
+            self._coefficient *= _vectorized_pauli_mul_phase(self_mask, other.pauli_mask)
+            self._coefficient *= other.coefficient
             self_mask ^= other.pauli_mask
             return self
 
@@ -441,13 +466,13 @@ class MutableDensePauliString(BaseDensePauliString):
             new_coef = protocols.mul(self.coefficient, other, default=None)
             if new_coef is None:
                 return NotImplemented
-            self.coefficient = new_coef if isinstance(new_coef, sympy.Basic) else complex(new_coef)
+            self._coefficient = new_coef if isinstance(new_coef, sympy.Basic) else complex(new_coef)
             return self
 
         split = _attempt_value_to_pauli_index(other)
         if split is not None:
             p, i = split
-            self.coefficient *= _vectorized_pauli_mul_phase(self.pauli_mask[i], p)
+            self._coefficient *= _vectorized_pauli_mul_phase(self.pauli_mask[i], p)
             self.pauli_mask[i] ^= p
             return self
 
