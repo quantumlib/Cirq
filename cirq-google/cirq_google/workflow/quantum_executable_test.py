@@ -187,3 +187,12 @@ def test_quantum_executable_group_serialization(tmpdir):
     cirq.to_json(eg, f'{tmpdir}/eg.json')
     eg_reconstructed = cirq.read_json(f'{tmpdir}/eg.json')
     assert eg == eg_reconstructed
+
+
+def test_equality():
+    d1 = dict.fromkeys(['a', 'b'])
+    d2 = dict.fromkeys(['b', 'a'])
+    assert d1 == d2
+    k1 = KeyValueExecutableSpec.from_dict(d1, executable_family='test')
+    k2 = KeyValueExecutableSpec.from_dict(d2, executable_family='test')
+    assert k1 == k2
