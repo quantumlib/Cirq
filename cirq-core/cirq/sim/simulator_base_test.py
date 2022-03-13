@@ -48,7 +48,7 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
         )
 
     def reindex(self: 'CountingState', axes: Sequence[int]) -> 'CountingState':
-        pass
+        return self.copy()
 
     def copy(self, deep_copy_buffers: bool = True) -> 'CountingState':
         return CountingState(
@@ -64,7 +64,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
             qubits=qubits,
             classical_data=classical_data,
         )
-        self._state = state_obj
+        self._state: CountingState = state_obj
 
     def _act_on_fallback_(
         self,
