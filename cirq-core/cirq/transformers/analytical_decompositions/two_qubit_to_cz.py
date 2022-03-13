@@ -41,6 +41,21 @@ def two_qubit_matrix_to_operations(
     atol: float = 1e-8,
     clean_operations: bool = True,
 ) -> List[ops.Operation]:
+    """Decomposes a two-qubit operation into Z/XY/CZ gates.
+
+    Args:
+        q0: The first qubit being operated on.
+        q1: The other qubit being operated on.
+        mat: Defines the operation to apply to the pair of qubits.
+        allow_partial_czs: Enables the use of Partial-CZ gates.
+        atol: A limit on the amount of absolute error introduced by the
+            construction.
+        clean_operations: Enables optimizing resulting operation list by
+            merging operations and ejecting phased Paulis and Z operations.
+
+    Returns:
+        A list of operations implementing the matrix.
+    """
     return two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs, atol, clean_operations)
 
 
@@ -85,6 +100,24 @@ def two_qubit_matrix_to_diagonal_and_operations(
     atol: float = 1e-8,
     clean_operations: bool = True,
 ) -> Tuple[np.ndarray, List['cirq.Operation']]:
+    """Decomposes a 2-qubit unitary to a diagonal and the remaining operations.
+
+    For a 2-qubit unitary V, return ops, a list of operations and
+    D diagonal unitary, so that:
+        V = cirq.Circuit(ops) @ D
+
+    Args:
+        q0: The first qubit being operated on.
+        q1: The other qubit being operated on.
+        mat: the input unitary
+        allow_partial_czs: Enables the use of Partial-CZ gates.
+        atol: A limit on the amount of absolute error introduced by the
+            construction.
+        clean_operations: Enables optimizing resulting operation list by
+            merging operations and ejecting phased Paulis and Z operations.
+    Returns:
+        tuple(ops,D): operations `ops`, and the diagonal `D`
+    """
     return two_qubit_matrix_to_diagonal_and_cz_operations(
         q0, q1, mat, allow_partial_czs, atol, clean_operations
     )
