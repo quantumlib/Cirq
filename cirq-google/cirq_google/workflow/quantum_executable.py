@@ -79,6 +79,12 @@ class KeyValueExecutableSpec(ExecutableSpec):
     def __repr__(self) -> str:
         return cirq._compat.dataclass_repr(self, namespace='cirq_google')
 
+    def __eq__(self, other):
+        # The conversion to a dict object is required so that the order of the keys doesn't matter.
+        return (self.executable_family == other.executable_family) and (
+            dict(self.key_value_pairs) == dict(other.key_value_pairs)
+        )
+
 
 @dataclass(frozen=True)
 class BitstringsMeasurement:
