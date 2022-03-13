@@ -15,6 +15,7 @@
 from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
+from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -50,7 +51,19 @@ class QubitPermutationGate(raw_types.Gate):
                 f"Invalid indices: {invalid_indices}"
             )
 
-        self.permutation = tuple(permutation)
+        self._permutation = tuple(permutation)
+
+    @property
+    def permutation(self) -> Tuple[int, ...]:
+        return self._permutation
+
+    @permutation.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def permutation(self, permutation: Tuple[int, ...]):
+        self._permutation = permutation
 
     def _value_equality_values_(self):
         return self.permutation
