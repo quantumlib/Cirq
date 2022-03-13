@@ -18,6 +18,7 @@ import numpy as np
 
 import cirq
 from cirq import protocols, value
+from cirq._compat import deprecated
 from cirq.ops import raw_types, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
 
@@ -73,10 +74,10 @@ class ControlledGate(raw_types.Gate):
             control_qid_shape = (2,) * num_controls
         if num_controls != len(control_qid_shape):
             raise ValueError('len(control_qid_shape) != num_controls')
-        self.control_qid_shape = tuple(control_qid_shape)
+        self._control_qid_shape = tuple(control_qid_shape)
 
         # Convert to sorted tuples
-        self.control_values = cast(
+        self._control_values = cast(
             Tuple[Tuple[int, ...], ...],
             tuple((val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values),
         )
@@ -90,11 +91,47 @@ class ControlledGate(raw_types.Gate):
 
         # Flatten nested ControlledGates.
         if isinstance(sub_gate, ControlledGate):
-            self.sub_gate = sub_gate.sub_gate  # type: ignore
-            self.control_values += sub_gate.control_values
-            self.control_qid_shape += sub_gate.control_qid_shape
+            self._sub_gate = sub_gate.sub_gate  # type: ignore
+            self._control_values += sub_gate.control_values
+            self._control_qid_shape += sub_gate.control_qid_shape
         else:
-            self.sub_gate = sub_gate
+            self._sub_gate = sub_gate
+
+    @property
+    def control_qid_shape(self) -> Tuple[int, ...]:
+        return self._control_qid_shape
+
+    @control_qid_shape.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def control_qid_shape(self, control_qid_shape: Tuple[int, ...]):
+        self._control_qid_shape = control_qid_shape
+
+    @property
+    def control_values(self) -> Tuple[Tuple[int, ...], ...]:
+        return self._control_values
+
+    @control_values.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def control_values(self, control_values: Tuple[Tuple[int, ...], ...]):
+        self._control_values = control_values
+
+    @property
+    def sub_gate(self) -> 'cirq.Gate':
+        return self._sub_gate
+
+    @sub_gate.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def sub_gate(self, sub_gate: 'cirq.Gate'):
+        self._sub_gate = sub_gate
 
     def num_controls(self) -> int:
         return len(self.control_qid_shape)
