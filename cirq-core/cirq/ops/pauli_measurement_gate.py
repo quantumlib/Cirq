@@ -15,6 +15,7 @@
 from typing import Any, Dict, FrozenSet, Iterable, Tuple, Sequence, TYPE_CHECKING, Union, cast
 
 from cirq import protocols, value
+from cirq._compat import deprecated
 from cirq.ops import (
     raw_types,
     measurement_gate,
@@ -68,17 +69,35 @@ class PauliMeasurementGate(raw_types.Gate):
             )
 
         self._observable = dps.DensePauliString(observable, coefficient=coefficient)
-        self.key = key  # type: ignore
+        self._mkey = (
+            key if isinstance(key, value.MeasurementKey) else value.MeasurementKey(name=key)
+        )
 
     @property
     def key(self) -> str:
         return str(self.mkey)
 
-    @key.setter
-    def key(self, key: Union[str, 'cirq.MeasurementKey']) -> None:
+    @key.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def key(self, key: Union[str, 'cirq.MeasurementKey']):
         if isinstance(key, str):
             key = value.MeasurementKey(name=key)
-        self.mkey = key
+        self._mkey = key
+
+    @property
+    def mkey(self) -> 'cirq.MeasurementKey':
+        return self._mkey
+
+    @mkey.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def mkey(self, mkey: 'cirq.MeasurementKey'):
+        self._mkey = mkey
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return (2,) * len(self._observable)

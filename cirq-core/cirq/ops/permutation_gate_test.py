@@ -98,3 +98,11 @@ def test_permutation_gate_maps(maps, permutation):
     permutationOp = cirq.QubitPermutationGate(permutation).on(*qs)
     circuit = cirq.Circuit(permutationOp)
     cirq.testing.assert_equivalent_computational_basis_map(maps, circuit)
+
+
+def test_setters_deprecated():
+    gate = cirq.QubitPermutationGate((1, 2, 0))
+    assert gate.permutation == (1, 2, 0)
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.permutation = (2, 1, 0)
+        assert gate.permutation == (2, 1, 0)
