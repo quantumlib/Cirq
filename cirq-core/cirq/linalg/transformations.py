@@ -365,27 +365,29 @@ def partial_trace_of_state_vector_as_mixture(
         `(2 ** n)` or a tensor with a shape of `(2,) * n`
     """
 
+    if state_vector.ndim == 1:
+        dims = int(np.log2(state_vector.size))
+        if 2 ** dims != state_vector.size:
+            raise ValueError(
+                f'State vector shape {state_vector.shape} cannot be factored by {keep_indices}.'
+            )
+        state_vector = state_vector.reshape((2,) * dims)
+        ret_shape: Tuple[int, ...] = (2 ** len(keep_indices),)
+    else:
+        ret_shape = tuple(state_vector.shape[i] for i in keep_indices)
+
     # Attempt to do efficient state factoring.
     try:
-        state = sub_state_vector(
-            state_vector, keep_indices, default=RaiseValueErrorIfNotProvided, atol=atol
-        )
-        return ((1.0, state),)
+        state = factor_state_vector(state_vector, keep_indices, atol=atol)
+        return ((1.0, state[0].reshape(ret_shape)),)
     except EntangledStateError:
         pass
 
     # Fall back to a (non-unique) mixture representation.
-    keep_dims = 1 << len(keep_indices)
-    ret_shape: Union[Tuple[int], Tuple[int, ...]]
-    if state_vector.shape == (state_vector.size,):
-        ret_shape = (keep_dims,)
-    elif all(e == 2 for e in state_vector.shape):
-        ret_shape = tuple(2 for _ in range(len(keep_indices)))
-
     rho = np.kron(np.conj(state_vector.reshape(-1, 1)).T, state_vector.reshape(-1, 1)).reshape(
-        (2, 2) * int(np.log2(state_vector.size))
+        state_vector.shape * 2
     )
-    keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
+    keep_rho = partial_trace(rho, keep_indices).reshape((np.prod(ret_shape),) * 2)
     eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(zip(eigvals, [vec.reshape(ret_shape) for vec in eigvecs.T]))
     return tuple([(float(p[0]), p[1]) for p in mixture if not protocols.approx_eq(p[0], 0.0)])
@@ -595,7 +597,7 @@ def factor_state_vector(
     if validate:
         t2 = state_vector_kronecker_product(extracted, remainder)
         if not predicates.allclose_up_to_global_phase(t2, t1, atol=atol):
-            raise ValueError('The tensor cannot be factored by the requested axes')
+            raise EntangledStateError('The tensor cannot be factored by the requested axes')
     return extracted, remainder
 
 
