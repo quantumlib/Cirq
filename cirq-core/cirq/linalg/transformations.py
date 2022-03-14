@@ -579,7 +579,9 @@ def factor_state_vector(
         same order as the original state vector.
 
     Raises:
-        ValueError: If the tensor cannot be factored along an axes.
+        EntangledStateError: If the tensor is already in entangled state, and
+            the validate flag is set.
+        ValueError: If the tensor factorization fails for any other reason.
     """
     n_axes = len(axes)
     t1 = np.moveaxis(t, axes, range(n_axes))
@@ -594,7 +596,7 @@ def factor_state_vector(
         t2 = state_vector_kronecker_product(extracted, remainder)
         if not predicates.allclose_up_to_global_phase(t2, t1, atol=atol):
             if not np.isclose(np.linalg.norm(t1), 1):
-                raise ValueError("Input state must be normalized.")
+                raise ValueError('Input state must be normalized.')
             raise EntangledStateError('The tensor cannot be factored by the requested axes')
     return extracted, remainder
 
