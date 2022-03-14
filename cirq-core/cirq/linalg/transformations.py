@@ -382,9 +382,7 @@ def partial_trace_of_state_vector_as_mixture(
         pass
 
     # Fall back to a (non-unique) mixture representation.
-    rho = np.kron(np.conj(state_vector.reshape(-1, 1)).T, state_vector.reshape(-1, 1)).reshape(
-        state_vector.shape * 2
-    )
+    rho = np.outer(state_vector, np.conj(state_vector)).reshape(state_vector.shape * 2)
     keep_rho = partial_trace(rho, keep_indices).reshape((np.prod(ret_shape),) * 2)
     eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(zip(eigvals, [vec.reshape(ret_shape) for vec in eigvecs.T]))
