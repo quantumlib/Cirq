@@ -595,6 +595,8 @@ def factor_state_vector(
     if validate:
         t2 = state_vector_kronecker_product(extracted, remainder)
         if not predicates.allclose_up_to_global_phase(t2, t1, atol=atol):
+            if not np.isclose(np.linalg.norm(t1), 1):
+                raise ValueError("Input state must be normalized.")
             raise EntangledStateError('The tensor cannot be factored by the requested axes')
     return extracted, remainder
 
