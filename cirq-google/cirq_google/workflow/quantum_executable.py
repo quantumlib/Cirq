@@ -55,7 +55,7 @@ class KeyValueExecutableSpec(ExecutableSpec):
 
     def to_dict(self) -> Tuple[Dict[str, Any], str]:
         return (
-            {k: v for k, v in self.key_value_pairs},
+            dict(self.key_value_pairs),
             self.executable_family,
         )
 
