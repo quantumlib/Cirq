@@ -53,7 +53,7 @@ class KeyValueExecutableSpec(ExecutableSpec):
     executable_family: str
     key_value_pairs: Tuple[Tuple[str, Any], ...] = ()
 
-    def to_dict(self) -> Tuple[Dict[str, Any], str]:
+    def to_dict(self) -> Dict[str, Any]:
         return dict(self.key_value_pairs)
 
     @classmethod
