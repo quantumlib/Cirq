@@ -81,12 +81,13 @@ class RuntimeInfo:
             `cg.QuantumExecutable` was executed.
         qubit_placement: If a QubitPlacer was used, a record of the mapping
             from problem-qubits to device-qubits.
-        timings: A dictionary of the duration of various steps in the workflow.
+        timings_s: A dictionary of the duration of various steps in the workflow,
+            measured in fractional seconds.
     """
 
     execution_index: int
     qubit_placement: Optional[Dict[Any, cirq.Qid]] = None
-    timings: Dict[str, float] = dataclasses.field(default_factory=dict)
+    timings_s: Dict[str, float] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -96,7 +97,7 @@ class RuntimeInfo:
         d = dataclass_json_dict(self)
         if d['qubit_placement']:
             d['qubit_placement'] = list(d['qubit_placement'].items())
-        d['timings'] = list(d['timings'].items())
+        d['timings_s'] = list(d['timings_s'].items())
         return d
 
     @classmethod
@@ -104,8 +105,8 @@ class RuntimeInfo:
         kwargs.pop('cirq_type')
         if kwargs.get('qubit_placement', None):
             kwargs['qubit_placement'] = {_try_tuple(k): v for k, v in kwargs['qubit_placement']}
-        if 'timings' in kwargs:
-            kwargs['timings'] = {k: v for k, v in kwargs['timings']}
+        if 'timings_s' in kwargs:
+            kwargs['timings_s'] = {k: v for k, v in kwargs['timings_s']}
         return cls(**kwargs)
 
     def __repr__(self) -> str:

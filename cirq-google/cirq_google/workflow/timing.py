@@ -24,6 +24,8 @@ if TYPE_CHECKING:
 class TimeIntoRuntimeInfo:
     """A context manager that appends timing information into a cg.RuntimeInfo.
 
+    Timings are reported in fractional seconds as reported by `time.monotonic()`.
+
     Args:
         runtime_info: The runtime information object whose `.timing` dictionary will be updated.
         name: A string key name to use in the dictionary.
@@ -35,10 +37,10 @@ class TimeIntoRuntimeInfo:
         self.start = None
 
     def __enter__(self):
-        self.start = time.time()
+        self.start = time.monotonic()
         return self
 
     def __exit__(self, *args):
-        end = time.time()
+        end = time.monotonic()
         interval = end - self.start
-        self.runtime_info.timings[self.name] = interval
+        self.runtime_info.timings_s[self.name] = interval
