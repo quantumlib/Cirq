@@ -376,8 +376,8 @@ def partial_trace_of_state_vector_as_mixture(
 
     # Attempt to do efficient state factoring.
     try:
-        state = factor_state_vector(state_vector, keep_indices, atol=atol)
-        return ((1.0, state[0].reshape(ret_shape)),)
+        state, _ = factor_state_vector(state_vector, keep_indices, atol=atol)
+        return ((1.0, state.reshape(ret_shape)),)
     except EntangledStateError:
         pass
 
