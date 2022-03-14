@@ -58,7 +58,7 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
         if len(op.qubits) == 2:
             mat = protocols.unitary(op, None)
             if mat is not None:
-                return two_qubit_to_cz.two_qubit_matrix_to_operations(
+                return two_qubit_to_cz.two_qubit_matrix_to_cz_operations(
                     op.qubits[0], op.qubits[1], mat, allow_partial_czs=self.allow_partial_czs
                 )
         return NotImplemented
