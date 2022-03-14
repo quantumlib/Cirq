@@ -54,10 +54,7 @@ class KeyValueExecutableSpec(ExecutableSpec):
     key_value_pairs: Tuple[Tuple[str, Any], ...] = ()
 
     def to_dict(self) -> Tuple[Dict[str, Any], str]:
-        return (
-            dict(self.key_value_pairs),
-            self.executable_family,
-        )
+        return dict(self.key_value_pairs)
 
     @classmethod
     def _json_namespace_(cls) -> str:

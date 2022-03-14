@@ -65,14 +65,14 @@ def test_kv_executable_spec():
 
 def test_dict_round_trip():
     input_dict = dict(name='test', idx=5)
-    input_executable_family = 'cirq_google.algo_benchmarks.example'
 
-    kv = KeyValueExecutableSpec.from_dict(input_dict, executable_family=input_executable_family)
+    kv = KeyValueExecutableSpec.from_dict(
+        input_dict, executable_family='cirq_google.algo_benchmarks.example'
+    )
 
-    actual_dict, actual_executable_family = kv.to_dict()
+    actual_dict = kv.to_dict()
 
     assert input_dict == actual_dict
-    assert input_executable_family == actual_executable_family
 
 
 def test_kv_repr():
