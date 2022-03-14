@@ -13,12 +13,12 @@
 # limitations under the License.
 from typing import Optional
 
+import numpy as np
 import pytest
 import sympy
 
 import cirq
 from cirq.circuits.circuit_operation import _full_join_string_lists
-
 
 ALL_SIMULATORS = (
     cirq.Simulator(),
@@ -247,9 +247,40 @@ def test_with_params():
         == op_with_params
     )
 
-    # Recursive parameter resolution is rejected.
-    with pytest.raises(ValueError, match='Use "recursive=False"'):
-        _ = cirq.resolve_parameters(op_base, cirq.ParamResolver(param_dict))
+
+def test_recursive_params():
+    q = cirq.LineQubit(0)
+    a, a2, b, b2 = sympy.symbols('a a2 b b2')
+    circuitop = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.X(q) ** a,
+            cirq.Z(q) ** b,
+        ),
+        # Not recursive, a and b are swapped.
+        param_resolver=cirq.ParamResolver({a: b, b: a}),
+    )
+    # Recursive, so a->a2->0 and b->b2->1.
+    outer_params = {a: a2, a2: 0, b: b2, b2: 1}
+    resolved = cirq.resolve_parameters(circuitop, outer_params)
+    # Combined, a->b->b2->1, and b->a->a2->0.
+    assert resolved.param_resolver.param_dict == {a: 1, b: 0}
+
+    # Non-recursive, so a->a2 and b->b2.
+    resolved = cirq.resolve_parameters(circuitop, outer_params, recursive=False)
+    # Combined, a->b->b2, and b->a->a2.
+    assert resolved.param_resolver.param_dict == {a: b2, b: a2}
+
+    with pytest.raises(RecursionError):
+        cirq.resolve_parameters(circuitop, {a: a2, a2: a})
+
+    # Non-recursive, so a->b and b->a.
+    resolved = cirq.resolve_parameters(circuitop, {a: b, b: a}, recursive=False)
+    # Combined, a->b->a, and b->a->b.
+    assert resolved.param_resolver.param_dict == {}
+
+    # First example should behave like an X when simulated
+    result = cirq.Simulator().simulate(cirq.Circuit(circuitop), param_resolver=outer_params)
+    assert np.allclose(result.state_vector(), [0, 1])
 
 
 @pytest.mark.parametrize('add_measurements', [True, False])
@@ -308,6 +339,24 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
 
     with pytest.raises(TypeError, match='Only integer repetitions are allowed'):
         _ = op_base.repeat(1.3)
+
+
+@pytest.mark.parametrize('add_measurements', [True, False])
+@pytest.mark.parametrize('use_repetition_ids', [True, False])
+@pytest.mark.parametrize('initial_reps', [0, 1, 2, 3])
+def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
+    q = cirq.LineQubit(0)
+    subcircuit = cirq.Circuit(cirq.X(q))
+    if add_measurements:
+        subcircuit.append(cirq.measure(q))
+
+    op = cirq.CircuitOperation(
+        subcircuit.freeze(), repetitions=initial_reps, use_repetition_ids=use_repetition_ids
+    )
+    result = cirq.Simulator().simulate(cirq.Circuit(op))
+    assert np.allclose(result.state_vector(), [0, 1] if initial_reps % 2 else [1, 0])
+    result = cirq.Simulator().simulate(cirq.Circuit(op ** 0))
+    assert np.allclose(result.state_vector(), [1, 0])
 
 
 def test_qid_shape():
@@ -482,6 +531,24 @@ cirq.CircuitOperation(
         ),
     ]),
     use_repetition_ids=False,
+)"""
+    )
+    op7 = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.measure(x, key='a')),
+        use_repetition_ids=False,
+        repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+    )
+    assert (
+        repr(op7)
+        == """\
+cirq.CircuitOperation(
+    circuit=cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.measure(cirq.LineQubit(0), key=cirq.MeasurementKey(name='a')),
+        ),
+    ]),
+    use_repetition_ids=False,
+    repeat_until=cirq.KeyCondition(cirq.MeasurementKey(name='a')),
 )"""
     )
 
@@ -926,6 +993,109 @@ def test_simulate_no_repetition_ids_inner(sim):
     result = sim.run(circuit)
     assert result.records['0:a'].shape == (1, 2, 1)
     assert result.records['1:a'].shape == (1, 2, 1)
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeat_until(sim):
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    c = cirq.Circuit(
+        cirq.X(q),
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(q),
+                cirq.measure(q, key=key),
+            ),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        ),
+    )
+    measurements = sim.run(c).records['m'][0]
+    assert len(measurements) == 2
+    assert measurements[0] == (0,)
+    assert measurements[1] == (1,)
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeat_until_sympy(sim):
+    q1, q2 = cirq.LineQubit.range(2)
+    circuitop = cirq.CircuitOperation(
+        cirq.FrozenCircuit(
+            cirq.X(q2),
+            cirq.measure(q2, key='b'),
+        ),
+        use_repetition_ids=False,
+        repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), sympy.Symbol('b'))),
+    )
+    c = cirq.Circuit(
+        cirq.measure(q1, key='a'),
+        circuitop,
+    )
+    # Validate commutation
+    assert len(c) == 2
+    assert cirq.control_keys(circuitop) == {cirq.MeasurementKey('a')}
+    measurements = sim.run(c).records['b'][0]
+    assert len(measurements) == 2
+    assert measurements[0] == (1,)
+    assert measurements[1] == (0,)
+
+
+@pytest.mark.parametrize('sim', [cirq.Simulator(), cirq.DensityMatrixSimulator()])
+def test_post_selection(sim):
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    c = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(q) ** 0.2,
+                cirq.measure(q, key=key),
+            ),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        ),
+    )
+    result = sim.run(c)
+    assert result.records['m'][0][-1] == (1,)
+    for i in range(len(result.records['m'][0]) - 1):
+        assert result.records['m'][0][i] == (0,)
+
+
+def test_repeat_until_diagram():
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    c = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(q) ** 0.2,
+                cirq.measure(q, key=key),
+            ),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        ),
+    )
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+0: ───[ 0: ───X^0.2───M('m')─── ](no_rep_ids, until=m)───
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_repeat_until_error():
+    q = cirq.LineQubit(0)
+    with pytest.raises(ValueError, match='Cannot use repetitions with repeat_until'):
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(),
+            use_repetition_ids=True,
+            repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+        )
+    with pytest.raises(ValueError, match='Infinite loop'):
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q, key='m')),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+        )
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?
