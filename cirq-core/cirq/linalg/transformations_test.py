@@ -492,8 +492,6 @@ def test_partial_trace_of_state_vector_as_mixture_invalid_input():
     with pytest.raises(ValueError, match='7'):
         cirq.partial_trace_of_state_vector_as_mixture(np.arange(7), [1, 2], atol=1e-8)
 
-    cirq.partial_trace_of_state_vector_as_mixture(np.arange(8), [1], atol=1e-8)
-
     state = np.arange(8) / np.linalg.norm(np.arange(8))
     with pytest.raises(ValueError, match='repeated axis'):
         cirq.partial_trace_of_state_vector_as_mixture(state, [1, 2, 2], atol=1e-8)
@@ -568,7 +566,7 @@ def test_partial_trace_of_state_vector_as_mixture_pure_result():
     )
 
 
-def test_partial_trace_of_state_vector_as_mixture_qudits():
+def test_partial_trace_of_state_vector_as_mixture_pure_result_qudits():
     a = cirq.testing.random_superposition(2)
     b = cirq.testing.random_superposition(3)
     c = cirq.testing.random_superposition(4)
