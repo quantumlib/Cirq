@@ -37,7 +37,7 @@
         }
       ]
     ],
-    "timings": []
+    "timings_s": []
   },
   "raw_data": {
     "cirq_type": "ResultDict",

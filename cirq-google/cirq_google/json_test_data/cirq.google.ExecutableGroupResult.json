@@ -34,7 +34,7 @@
         "cirq_type": "cirq.google.RuntimeInfo",
         "execution_index": 0,
         "qubit_placement": null,
-        "timings": []
+        "timings_s": []
       },
       "raw_data": {
         "cirq_type": "ResultDict",
@@ -72,7 +72,7 @@
         "cirq_type": "cirq.google.RuntimeInfo",
         "execution_index": 1,
         "qubit_placement": null,
-        "timings": []
+        "timings_s": []
       },
       "raw_data": {
         "cirq_type": "ResultDict",
@@ -110,7 +110,7 @@
         "cirq_type": "cirq.google.RuntimeInfo",
         "execution_index": 2,
         "qubit_placement": null,
-        "timings": []
+        "timings_s": []
       },
       "raw_data": {
         "cirq_type": "ResultDict",
