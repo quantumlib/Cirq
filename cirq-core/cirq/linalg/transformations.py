@@ -594,9 +594,7 @@ def factor_state_vector(
     remainder = remainder / np.sum(abs(remainder) ** 2) ** 0.5
     if validate:
         t2 = state_vector_kronecker_product(extracted, remainder)
-        axes2 = list(axes) + [i for i in range(t1.ndim) if i not in axes]
-        t3 = transpose_state_vector_to_axis_order(t2, axes2)
-        if not np.allclose(t3, t, atol=atol):
+        if not predicates.allclose_up_to_global_phase(t2, t1, atol=atol):
             raise ValueError('The tensor cannot be factored by the requested axes')
     return extracted, remainder
 
