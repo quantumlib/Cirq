@@ -274,6 +274,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
             cls._Z_nsqrt = cls.from_clifford_tableau(_clifford_tableau)
         return cls._Z_nsqrt
 
+
 class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
     # We need to use the lazy initialization of these common gates since they need to use
@@ -281,7 +282,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
     @classmethod
     def _generate_clifford_from_known_gate(
         cls, num_qubits: int, gate: raw_types.Gate
-    ) -> 'CliffordGate':
+    ) -> Union['SingleQubitCliffordGate', 'CliffordGate']:
         qubits = devices.LineQubit.range(num_qubits)
         t = qis.CliffordTableau(num_qubits=num_qubits)
         args = sim.ActOnCliffordTableauArgs(
@@ -468,7 +469,9 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             list(qubits), self.clifford_tableau
         )
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
+    def _act_on_(
+        self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']
+    ) -> Union[NotImplementedType, bool]:
 
         # Note the computation complexity difference between _decompose_ and _act_on_.
         # Suppose this Gate has `m` qubits, args has `n` qubits, and the decomposition of
