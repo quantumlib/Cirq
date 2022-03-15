@@ -340,10 +340,10 @@ def partial_trace_of_state_vector_as_mixture(
 ) -> Tuple[Tuple[float, np.ndarray], ...]:
     """Returns a mixture representing a state vector with only some qubits kept.
 
-    The input state vector must have shape `(2,) * n` or `(2 ** n)` where
-    `state_vector` is expressed over n qubits. States in the output mixture will
-    retain the same type of shape as the input state vector, either `(2 ** k)`
-    or `(2,) * k` where k is the number of qubits kept.
+    The input state vector can have any shape, but if it is one-dimensional it
+    will be interpreted as qubits, since that is the most common case, and fail
+    if the dimension is not size `2 ** n`. States in the output mixture will
+    retain the same type of shape as the input state vector.
 
     If the state vector cannot be factored into a pure state over `keep_indices`
     then eigendecomposition is used and the output mixture will not be unique.
@@ -361,8 +361,9 @@ def partial_trace_of_state_vector_as_mixture(
         partial trace.
 
     Raises:
-        ValueError: if the input `state_vector` is not an array of length
-        `(2 ** n)` or a tensor with a shape of `(2,) * n`
+        ValueError: If the input `state_vector` is one dimension, but that
+            dimension size is not a power of two.
+        IndexError: If any indexes are out of range.
     """
 
     if state_vector.ndim == 1:
@@ -434,8 +435,10 @@ def sub_state_vector(
         The state vector expressed over the desired subset of qubits.
 
     Raises:
-        ValueError: if the `state_vector` is not of the correct shape or the
-            indices are not a valid subset of the input `state_vector`'s indices
+        ValueError: If the `state_vector` is not of the correct shape or the
+            indices are not a valid subset of the input `state_vector`'s
+            indices.
+        IndexError: If any indexes are out of range.
         EntangledStateError: If the result of factoring is not a pure state and
             `default` is not provided.
 

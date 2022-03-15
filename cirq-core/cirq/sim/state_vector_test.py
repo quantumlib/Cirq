@@ -385,7 +385,7 @@ def test_factor_validation():
     cirq.linalg.transformations.factor_state_vector(t, [1])
     args.apply_operation(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
     t = args.create_merged_state().target_tensor
-    with pytest.raises(ValueError, match='factor'):
+    with pytest.raises(cirq.linalg.transformations.EntangledStateError):
         cirq.linalg.transformations.factor_state_vector(t, [0])
-    with pytest.raises(ValueError, match='factor'):
+    with pytest.raises(cirq.linalg.transformations.EntangledStateError):
         cirq.linalg.transformations.factor_state_vector(t, [1])
