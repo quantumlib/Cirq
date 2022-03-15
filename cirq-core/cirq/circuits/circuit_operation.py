@@ -160,7 +160,10 @@ class CircuitOperation(ops.Operation):
             if self.repetition_ids is not None:
                 raise ValueError('Cannot use repetition ids with parameterized repetitions')
         else:
-            raise TypeError('Only integer or sympy repetitions are allowed.')
+            raise TypeError(
+                f'Only integer or sympy repetitions are allowed.\n'
+                f'User provided: {self.repetitions}'
+            )
 
         # Disallow mapping to keys containing the `MEASUREMENT_KEY_SEPARATOR`
         for mapped_key in self.measurement_key_map.values():
@@ -521,7 +524,6 @@ class CircuitOperation(ops.Operation):
                 return self
 
             expected_repetition_id_length = abs(repetitions)
-            # The eventual number of repetitions of the returned CircuitOperation.
 
             if repetition_ids is None:
                 repetition_ids = default_repetition_ids(expected_repetition_id_length)
@@ -531,8 +533,10 @@ class CircuitOperation(ops.Operation):
                     f'{expected_repetition_id_length}'
                 )
 
-        # If `self.repetition_ids` is None, this will just return `repetition_ids`.
+        # If either self.repetition_ids or repetitions is None, it returns the other unchanged.
         repetition_ids = _full_join_string_lists(repetition_ids, self.repetition_ids)
+
+        # The eventual number of repetitions of the returned CircuitOperation.
         final_repetitions = protocols.mul(self.repetitions, repetitions)
         return self.replace(repetitions=final_repetitions, repetition_ids=repetition_ids)
 
