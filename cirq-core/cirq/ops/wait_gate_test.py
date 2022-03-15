@@ -87,3 +87,13 @@ def test_json():
 
 def test_str():
     assert str(cirq.WaitGate(cirq.Duration(nanos=5))) == 'WaitGate(5 ns)'
+
+
+def test_setters_deprecated():
+    duration = cirq.Duration(millis=1)
+    gate = cirq.WaitGate(duration)
+    assert gate.duration == duration
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        new_duration = cirq.Duration(millis=2)
+        gate.duration = new_duration
+        assert gate.duration == new_duration

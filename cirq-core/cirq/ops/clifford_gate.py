@@ -661,7 +661,7 @@ class SingleQubitCliffordGate(CliffordGate):
             to = z_to
         else:
             to = x_to * z_to  # Y = iXZ
-            to.coefficient *= 1j
+            to._coefficient *= 1j
         # pauli_mask returns a value between 0 and 4 for [I, X, Y, Z].
         to_gate = Pauli._XYZ[to.pauli_mask[0] - 1]
         return PauliTransform(to=to_gate, flip=bool(to.coefficient != 1.0))

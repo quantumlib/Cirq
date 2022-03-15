@@ -21,8 +21,8 @@ import cirq
 from cirq_google import ops as cg_ops
 from cirq_google.optimizers import (
     convert_to_xmon_gates,
-    ConvertToSycamoreGates,
 )
+from cirq_google.transformers.target_gatesets import sycamore_gateset
 
 if TYPE_CHECKING:
     import cirq_google
@@ -51,20 +51,16 @@ def _get_xmon_optimizers_part_cz(
     ]
 
 
-def _get_sycamore_optimizers(
-    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
-) -> List[Callable[[cirq.Circuit], None]]:
-    return [ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit]
-
-
 _OPTIMIZER_TYPES = {
     'xmon': _get_xmon_optimizers,
     'xmon_partial_cz': _get_xmon_optimizers_part_cz,
-    'sycamore': _get_sycamore_optimizers,
 }
 
 _TARGET_GATESETS = {
     'sqrt_iswap': lambda atol, _: cirq.SqrtIswapTargetGateset(atol=atol),
+    'sycamore': lambda atol, tabulation: sycamore_gateset.SycamoreTargetGateset(
+        atol=atol, tabulation=tabulation
+    ),
     'xmon': lambda atol, _: cirq.CZTargetGateset(atol=atol),
     'xmon_partial_cz': lambda atol, _: cirq.CZTargetGateset(atol=atol, allow_partial_czs=True),
 }
