@@ -337,8 +337,10 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
     ):
         _ = op_base.repeat()
 
-    with pytest.raises(TypeError, match='Only integer repetitions are allowed'):
+    with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
         _ = op_base.repeat(1.3)
+    assert op_base.repeat(3.00000000001).repetitions == 3
+    assert op_base.repeat(2.99999999999).repetitions == 3
 
 
 @pytest.mark.parametrize('add_measurements', [True, False])
@@ -357,6 +359,156 @@ def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
     assert np.allclose(result.state_vector(), [0, 1] if initial_reps % 2 else [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op ** 0))
     assert np.allclose(result.state_vector(), [1, 0])
+
+
+def test_parameterized_repeat():
+    q = cirq.LineQubit(0)
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q))) ** sympy.Symbol('a')
+    assert cirq.parameter_names(op) == {'a'}
+    assert not cirq.has_unitary(op)
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 0})
+    assert np.allclose(result.state_vector(), [1, 0])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1})
+    assert np.allclose(result.state_vector(), [0, 1])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 2})
+    assert np.allclose(result.state_vector(), [1, 0])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': -1})
+    assert np.allclose(result.state_vector(), [0, 1])
+    with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
+        cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5})
+    with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
+        cirq.Simulator().simulate(cirq.Circuit(op))
+    op = op ** -1
+    assert cirq.parameter_names(op) == {'a'}
+    assert not cirq.has_unitary(op)
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 0})
+    assert np.allclose(result.state_vector(), [1, 0])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1})
+    assert np.allclose(result.state_vector(), [0, 1])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 2})
+    assert np.allclose(result.state_vector(), [1, 0])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': -1})
+    assert np.allclose(result.state_vector(), [0, 1])
+    with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
+        cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5})
+    with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
+        cirq.Simulator().simulate(cirq.Circuit(op))
+    op = op ** sympy.Symbol('b')
+    assert cirq.parameter_names(op) == {'a', 'b'}
+    assert not cirq.has_unitary(op)
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1, 'b': 1})
+    assert np.allclose(result.state_vector(), [0, 1])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 2, 'b': 1})
+    assert np.allclose(result.state_vector(), [1, 0])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1, 'b': 2})
+    assert np.allclose(result.state_vector(), [1, 0])
+    with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
+        cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5, 'b': 1})
+    with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
+        cirq.Simulator().simulate(cirq.Circuit(op))
+    op = op ** 2.0
+    assert cirq.parameter_names(op) == {'a', 'b'}
+    assert not cirq.has_unitary(op)
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1, 'b': 1})
+    assert np.allclose(result.state_vector(), [1, 0])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5, 'b': 1})
+    assert np.allclose(result.state_vector(), [0, 1])
+    result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1, 'b': 1.5})
+    assert np.allclose(result.state_vector(), [0, 1])
+    with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
+        cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5, 'b': 1.5})
+    with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
+        cirq.Simulator().simulate(cirq.Circuit(op))
+
+
+def test_parameterized_repeat_side_effects():
+    q = cirq.LineQubit(0)
+    op = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.X(q).with_classical_controls('c'), cirq.measure(q, key='m')),
+        repetitions=sympy.Symbol('a'),
+    )
+
+    # Control keys can be calculated because they only "lift" if there's a matching
+    # measurement, in which case they're not returned here.
+    assert cirq.control_keys(op) == {cirq.MeasurementKey('c')}
+
+    # "local" params do not bind to the repetition param.
+    assert cirq.parameter_names(op.with_params({'a': 1})) == {'a'}
+
+    # Check errors that require unrolling the circuit.
+    with pytest.raises(
+        ValueError, match='Cannot unroll circuit due to nondeterministic repetitions'
+    ):
+        cirq.measurement_key_objs(op)
+    with pytest.raises(
+        ValueError, match='Cannot unroll circuit due to nondeterministic repetitions'
+    ):
+        cirq.measurement_key_names(op)
+    with pytest.raises(
+        ValueError, match='Cannot unroll circuit due to nondeterministic repetitions'
+    ):
+        op.mapped_circuit()
+    with pytest.raises(
+        ValueError, match='Cannot unroll circuit due to nondeterministic repetitions'
+    ):
+        cirq.decompose(op)
+
+    # Not compatible with repetition ids
+    with pytest.raises(ValueError, match='repetition ids with parameterized repetitions'):
+        op.with_repetition_ids(['x', 'y'])
+    with pytest.raises(ValueError, match='repetition ids with parameterized repetitions'):
+        op.repeat(repetition_ids=['x', 'y'])
+
+    # TODO(daxfohl): This should work, but likely requires a new protocol that returns *just* the
+    # name of the measurement keys. (measurement_key_names returns the full serialized string).
+    with pytest.raises(
+        ValueError, match='Cannot unroll circuit due to nondeterministic repetitions'
+    ):
+        cirq.with_measurement_key_mapping(op, {'m': 'm2'})
+
+    # Everything should work once resolved
+    op = cirq.resolve_parameters(op, {'a': 2})
+    assert set(map(str, cirq.measurement_key_objs(op))) == {'0:m', '1:m'}
+    assert op.mapped_circuit() == cirq.Circuit(
+        cirq.X(q).with_classical_controls('c'),
+        cirq.measure(q, key=cirq.MeasurementKey.parse_serialized('0:m')),
+        cirq.X(q).with_classical_controls('c'),
+        cirq.measure(q, key=cirq.MeasurementKey.parse_serialized('1:m')),
+    )
+    assert cirq.decompose(op) == cirq.decompose(
+        cirq.Circuit(
+            cirq.X(q).with_classical_controls('c'),
+            cirq.measure(q, key=cirq.MeasurementKey.parse_serialized('0:m')),
+            cirq.X(q).with_classical_controls('c'),
+            cirq.measure(q, key=cirq.MeasurementKey.parse_serialized('1:m')),
+        )
+    )
+
+
+def test_parameterized_repeat_side_effects_when_not_using_rep_ids():
+    q = cirq.LineQubit(0)
+    op = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.X(q).with_classical_controls('c'), cirq.measure(q, key='m')),
+        repetitions=sympy.Symbol('a'),
+        use_repetition_ids=False,
+    )
+    assert cirq.control_keys(op) == {cirq.MeasurementKey('c')}
+    assert cirq.parameter_names(op.with_params({'a': 1})) == {'a'}
+    assert set(map(str, cirq.measurement_key_objs(op))) == {'m'}
+    assert cirq.measurement_key_names(op) == {'m'}
+    assert cirq.measurement_key_names(cirq.with_measurement_key_mapping(op, {'m': 'm2'})) == {'m2'}
+    with pytest.raises(
+        ValueError, match='Cannot unroll circuit due to nondeterministic repetitions'
+    ):
+        op.mapped_circuit()
+    with pytest.raises(
+        ValueError, match='Cannot unroll circuit due to nondeterministic repetitions'
+    ):
+        cirq.decompose(op)
+    with pytest.raises(ValueError, match='repetition ids with parameterized repetitions'):
+        op.with_repetition_ids(['x', 'y'])
+    with pytest.raises(ValueError, match='repetition ids with parameterized repetitions'):
+        op.repeat(repetition_ids=['x', 'y'])
 
 
 def test_qid_shape():
