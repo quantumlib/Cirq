@@ -340,10 +340,10 @@ def partial_trace_of_state_vector_as_mixture(
 ) -> Tuple[Tuple[float, np.ndarray], ...]:
     """Returns a mixture representing a state vector with only some qubits kept.
 
-    The input state vector must have shape `(2,) * n` or `(2 ** n)` where
-    `state_vector` is expressed over n qubits. States in the output mixture will
-    retain the same type of shape as the input state vector, either `(2 ** k)`
-    or `(2,) * k` where k is the number of qubits kept.
+    The input state vector can have any shape, but if it is one-dimensional it
+    will be interpreted as qubits, since that is the most common case, and fail
+    if the dimension is not size `2 ** n`. States in the output mixture will
+    retain the same type of shape as the input state vector.
 
     If the state vector cannot be factored into a pure state over `keep_indices`
     then eigendecomposition is used and the output mixture will not be unique.
@@ -361,31 +361,30 @@ def partial_trace_of_state_vector_as_mixture(
         partial trace.
 
     Raises:
-        ValueError: if the input `state_vector` is not an array of length
-        `(2 ** n)` or a tensor with a shape of `(2,) * n`
+        ValueError: If the input `state_vector` is one dimension, but that
+            dimension size is not a power of two.
+        IndexError: If any indexes are out of range.
     """
+
+    if state_vector.ndim == 1:
+        dims = int(np.log2(state_vector.size))
+        if 2 ** dims != state_vector.size:
+            raise ValueError(f'Cannot infer underlying shape of {state_vector.shape}.')
+        state_vector = state_vector.reshape((2,) * dims)
+        ret_shape: Tuple[int, ...] = (2 ** len(keep_indices),)
+    else:
+        ret_shape = tuple(state_vector.shape[i] for i in keep_indices)
 
     # Attempt to do efficient state factoring.
     try:
-        state = sub_state_vector(
-            state_vector, keep_indices, default=RaiseValueErrorIfNotProvided, atol=atol
-        )
-        return ((1.0, state),)
+        state, _ = factor_state_vector(state_vector, keep_indices, atol=atol)
+        return ((1.0, state.reshape(ret_shape)),)
     except EntangledStateError:
         pass
 
     # Fall back to a (non-unique) mixture representation.
-    keep_dims = 1 << len(keep_indices)
-    ret_shape: Union[Tuple[int], Tuple[int, ...]]
-    if state_vector.shape == (state_vector.size,):
-        ret_shape = (keep_dims,)
-    elif all(e == 2 for e in state_vector.shape):
-        ret_shape = tuple(2 for _ in range(len(keep_indices)))
-
-    rho = np.kron(np.conj(state_vector.reshape(-1, 1)).T, state_vector.reshape(-1, 1)).reshape(
-        (2, 2) * int(np.log2(state_vector.size))
-    )
-    keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
+    rho = np.outer(state_vector, np.conj(state_vector)).reshape(state_vector.shape * 2)
+    keep_rho = partial_trace(rho, keep_indices).reshape((np.prod(ret_shape),) * 2)
     eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(zip(eigvals, [vec.reshape(ret_shape) for vec in eigvecs.T]))
     return tuple([(float(p[0]), p[1]) for p in mixture if not protocols.approx_eq(p[0], 0.0)])
@@ -436,8 +435,10 @@ def sub_state_vector(
         The state vector expressed over the desired subset of qubits.
 
     Raises:
-        ValueError: if the `state_vector` is not of the correct shape or the
-            indices are not a valid subset of the input `state_vector`'s indices
+        ValueError: If the `state_vector` is not of the correct shape or the
+            indices are not a valid subset of the input `state_vector`'s
+            indices.
+        IndexError: If any indexes are out of range.
         EntangledStateError: If the result of factoring is not a pure state and
             `default` is not provided.
 
@@ -581,7 +582,9 @@ def factor_state_vector(
         same order as the original state vector.
 
     Raises:
-        ValueError: If the tensor cannot be factored along an axes.
+        EntangledStateError: If the tensor is already in entangled state, and
+            the validate flag is set.
+        ValueError: If the tensor factorization fails for any other reason.
     """
     n_axes = len(axes)
     t1 = np.moveaxis(t, axes, range(n_axes))
@@ -595,7 +598,9 @@ def factor_state_vector(
     if validate:
         t2 = state_vector_kronecker_product(extracted, remainder)
         if not predicates.allclose_up_to_global_phase(t2, t1, atol=atol):
-            raise ValueError('The tensor cannot be factored by the requested axes')
+            if not np.isclose(np.linalg.norm(t1), 1):
+                raise ValueError('Input state must be normalized.')
+            raise EntangledStateError('The tensor cannot be factored by the requested axes')
     return extracted, remainder
 
 
