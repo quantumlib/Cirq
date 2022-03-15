@@ -16,7 +16,6 @@
 
 from typing import (
     Any,
-    Dict,
     Iterator,
     List,
     Type,
@@ -175,7 +174,7 @@ class Simulator(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: 'cirq.ClassicalDataStore',
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 
@@ -185,7 +184,8 @@ class Simulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            logs: Log of the measurement results.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Returns:
             ActOnStateVectorArgs for the circuit.
@@ -196,7 +196,7 @@ class Simulator(
         return act_on_state_vector_args.ActOnStateVectorArgs(
             qubits=qubits,
             prng=self._prng,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
             initial_state=initial_state,
             dtype=self._dtype,
         )

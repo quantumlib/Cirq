@@ -66,7 +66,19 @@ class IonQAPIDevice(cirq.Device):
         else:
             self.qubits = frozenset(qubits)
         self.atol = atol
+        self._metadata = cirq.DeviceMetadata(
+            self.qubits,
+            [(a, b) for a in self.qubits for b in self.qubits if a != b],
+        )
 
+    @property
+    def metadata(self) -> cirq.DeviceMetadata:
+        return self._metadata
+
+    @_compat.deprecated(
+        fix='Use metadata.qubit_set if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> AbstractSet['cirq.Qid']:
         return self.qubits
 
@@ -77,7 +89,7 @@ class IonQAPIDevice(cirq.Device):
             )
         if not self.is_api_gate(operation):
             raise ValueError(f'IonQAPIDevice has unsupported gate {operation.gate}.')
-        if not set(operation.qubits).intersection(self.qubit_set()):
+        if not set(operation.qubits).intersection(self.metadata.qubit_set):
             raise ValueError(f'Operation with qubits not on the device. Qubits: {operation.qubits}')
 
     def is_api_gate(self, operation: cirq.Operation) -> bool:
@@ -136,14 +148,14 @@ def _decompose_two_qubit(operation: cirq.Operation) -> cirq.OP_TREE:
     """Decomposes a two qubit unitary operation into ZPOW, XPOW, and CNOT."""
     mat = cirq.unitary(operation)
     q0, q1 = operation.qubits
-    naive = cirq.two_qubit_matrix_to_operations(q0, q1, mat, allow_partial_czs=False)
+    naive = cirq.two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs=False)
     temp = cirq.map_operations_and_unroll(
         cirq.Circuit(naive),
         lambda op, _: [cirq.H(op.qubits[1]), cirq.CNOT(*op.qubits), cirq.H(op.qubits[1])]
         if type(op.gate) == cirq.CZPowGate
         else op,
     )
-    cirq.merge_single_qubit_gates_into_phased_x_z(temp)
+    temp = cirq.merge_single_qubit_gates_to_phased_x_and_z(temp)
     # A final pass breaks up PhasedXPow into Rz, Rx.
     yield cirq.map_operations_and_unroll(
         temp,

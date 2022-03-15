@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import cast
 import numpy as np
 import pytest
 
@@ -56,6 +57,11 @@ def test_measure_init(num_qubits):
         cirq.MeasurementGate(2, qid_shape=(1, 2), key=None)
     with pytest.raises(ValueError, match='Specify either'):
         cirq.MeasurementGate()
+
+
+def test_measurement_has_unitary_returns_false():
+    gate = cirq.MeasurementGate(1, 'a')
+    assert not cirq.has_unitary(gate)
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
@@ -323,10 +329,13 @@ def test_act_on_state_vector():
         dtype=np.complex64,
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_clifford_tableau():
@@ -361,10 +370,13 @@ def test_act_on_clifford_tableau():
         log_of_measurement_results={},
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_stabilizer_ch_form():
@@ -399,10 +411,13 @@ def test_act_on_stabilizer_ch_form():
         initial_state=10,
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_qutrit():
@@ -447,3 +462,22 @@ def test_act_on_qutrit():
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 2]}
+
+
+def test_setters_deprecated():
+    gate = cirq.MeasurementGate(1, key='m', invert_mask=(False,))
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.key = 'n'
+    assert gate.key == 'n'
+    assert gate.mkey == cirq.MeasurementKey('n')
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.key = cirq.MeasurementKey('o')
+    assert gate.key == 'o'
+    assert gate.mkey == cirq.MeasurementKey('o')
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.mkey = cirq.MeasurementKey('p')
+    assert gate.key == 'p'
+    assert gate.mkey == cirq.MeasurementKey('p')
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.invert_mask = (True,)
+    assert gate.invert_mask == (True,)

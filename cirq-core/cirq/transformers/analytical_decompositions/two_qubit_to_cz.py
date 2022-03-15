@@ -18,22 +18,48 @@ from typing import Iterable, List, Sequence, Tuple, Optional, cast, TYPE_CHECKIN
 
 import numpy as np
 
+from cirq import _compat
 from cirq.linalg import predicates
 from cirq.linalg.decompositions import num_cnots_required, extract_right_diag
 
 from cirq import ops, linalg, protocols, circuits
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
-from cirq.optimizers import (
-    eject_z,
-    eject_phased_paulis,
-    merge_single_qubit_gates,
-)
+from cirq.transformers.merge_single_qubit_gates import merge_single_qubit_gates_to_phased_x_and_z
+from cirq.transformers.eject_z import eject_z
+from cirq.transformers.eject_phased_paulis import eject_phased_paulis
 
 if TYPE_CHECKING:
     import cirq
 
 
+@_compat.deprecated(fix='Please use cirq.two_qubit_matrix_to_cz_operations', deadline='v0.15')
 def two_qubit_matrix_to_operations(
+    q0: 'cirq.Qid',
+    q1: 'cirq.Qid',
+    mat: np.ndarray,
+    allow_partial_czs: bool,
+    atol: float = 1e-8,
+    clean_operations: bool = True,
+) -> List[ops.Operation]:
+    """Decomposes a two-qubit operation into Z/XY/CZ gates.
+
+    Args:
+        q0: The first qubit being operated on.
+        q1: The other qubit being operated on.
+        mat: Defines the operation to apply to the pair of qubits.
+        allow_partial_czs: Enables the use of Partial-CZ gates.
+        atol: A limit on the amount of absolute error introduced by the
+            construction.
+        clean_operations: Enables optimizing resulting operation list by
+            merging operations and ejecting phased Paulis and Z operations.
+
+    Returns:
+        A list of operations implementing the matrix.
+    """
+    return two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs, atol, clean_operations)
+
+
+def two_qubit_matrix_to_cz_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
     mat: np.ndarray,
@@ -63,7 +89,41 @@ def two_qubit_matrix_to_operations(
     return operations
 
 
+@_compat.deprecated(
+    fix='Please use cirq.two_qubit_matrix_to_diagonal_and_cz_operations', deadline='v0.15'
+)
 def two_qubit_matrix_to_diagonal_and_operations(
+    q0: 'cirq.Qid',
+    q1: 'cirq.Qid',
+    mat: np.ndarray,
+    allow_partial_czs: bool = False,
+    atol: float = 1e-8,
+    clean_operations: bool = True,
+) -> Tuple[np.ndarray, List['cirq.Operation']]:
+    """Decomposes a 2-qubit unitary to a diagonal and the remaining operations.
+
+    For a 2-qubit unitary V, return ops, a list of operations and
+    D diagonal unitary, so that:
+        V = cirq.Circuit(ops) @ D
+
+    Args:
+        q0: The first qubit being operated on.
+        q1: The other qubit being operated on.
+        mat: the input unitary
+        allow_partial_czs: Enables the use of Partial-CZ gates.
+        atol: A limit on the amount of absolute error introduced by the
+            construction.
+        clean_operations: Enables optimizing resulting operation list by
+            merging operations and ejecting phased Paulis and Z operations.
+    Returns:
+        tuple(ops,D): operations `ops`, and the diagonal `D`
+    """
+    return two_qubit_matrix_to_diagonal_and_cz_operations(
+        q0, q1, mat, allow_partial_czs, atol, clean_operations
+    )
+
+
+def two_qubit_matrix_to_diagonal_and_cz_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
     mat: np.ndarray,
@@ -96,7 +156,7 @@ def two_qubit_matrix_to_diagonal_and_operations(
         right_diag = extract_right_diag(mat)
         two_cnot_unitary = mat @ right_diag
         # note that this implies that two_cnot_unitary @ d = mat
-        return right_diag.conj().T, two_qubit_matrix_to_operations(
+        return right_diag.conj().T, two_qubit_matrix_to_cz_operations(
             q0,
             q1,
             two_cnot_unitary,
@@ -105,7 +165,7 @@ def two_qubit_matrix_to_diagonal_and_operations(
             clean_operations=clean_operations,
         )
 
-    return np.eye(4), two_qubit_matrix_to_operations(
+    return np.eye(4), two_qubit_matrix_to_cz_operations(
         q0,
         q1,
         mat,
@@ -163,9 +223,9 @@ def _xx_yy_zz_interaction_via_full_czs(
 
 def _cleanup_operations(operations: Sequence[ops.Operation]):
     circuit = circuits.Circuit(operations)
-    merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(circuit)
-    eject_phased_paulis.EjectPhasedPaulis().optimize_circuit(circuit)
-    eject_z.EjectZ().optimize_circuit(circuit)
+    circuit = merge_single_qubit_gates_to_phased_x_and_z(circuit)
+    circuit = eject_phased_paulis(circuit)
+    circuit = eject_z(circuit)
     circuit = circuits.Circuit(circuit.all_operations(), strategy=circuits.InsertStrategy.EARLIEST)
     return list(circuit.all_operations())
 

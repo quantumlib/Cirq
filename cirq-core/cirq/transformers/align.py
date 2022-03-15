@@ -47,7 +47,7 @@ def align_left(
             if isinstance(op, ops.TaggedOperation) and set(op.tags).intersection(
                 context.tags_to_ignore
             ):
-                ret.append([ops.Moment()] * (i + 1 - len(ret)))
+                ret.append([circuits.Moment()] * (i + 1 - len(ret)))
                 ret[i] = ret[i].with_operation(op)
             else:
                 ret.append(op)

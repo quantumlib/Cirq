@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Iterable, cast
+from typing import Iterable
 
 import cirq
 import networkx as nx
@@ -27,4 +27,6 @@ def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
 
 def _Device_dot_get_nx_graph(device: 'cirq.Device') -> nx.Graph:
     """Shim over future `cirq.Device` method to get a NetworkX graph."""
-    return _gridqubits_to_graph_device(cast(Iterable[cirq.GridQubit], device.qubit_set()))
+    if device.metadata is not None:
+        return device.metadata.nx_graph
+    raise ValueError('Supplied device must contain metadata.')

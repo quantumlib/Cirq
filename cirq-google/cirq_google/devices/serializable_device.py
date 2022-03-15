@@ -117,7 +117,7 @@ class SerializableDevice(cirq.Device):
                 for pair in gate_def.target_set
                 if len(pair) == 2 and pair[0] < pair[1]
             ],
-            supported_gates=cirq.Gateset(
+            gateset=cirq.Gateset(
                 *[g for g in gate_definitions.keys() if isinstance(g, (cirq.Gate, type(cirq.Gate)))]
             ),
             gate_durations=None,
@@ -128,6 +128,10 @@ class SerializableDevice(cirq.Device):
         """Get metadata information for device."""
         return self._metadata
 
+    @_compat.deprecated(
+        fix='Please use metadata.qubit_set if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 

@@ -101,7 +101,7 @@ python dev_tools/check_incremental_coverage_annotations.py "${rev}"
 cover_result=$?
 
 # Clean up generated coverage files.
-find . | grep "\.py,cover$" | xargs rm -f
+git clean --force --quiet -x -- "*.py,cover"
 
 # Report result.
 if [ "${pytest_result}" -ne "0" ] || [ "${cover_result}" -ne "0" ]; then

@@ -31,7 +31,7 @@ from cirq.testing.devices import ValidatingTestDevice
 
 class _Foxy(ValidatingTestDevice):
     def can_add_operation_into_moment(
-        self, operation: 'ops.Operation', moment: 'ops.Moment'
+        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
     ) -> bool:
         if not super().can_add_operation_into_moment(operation, moment):
             return False
@@ -1400,6 +1400,28 @@ def test_prev_moment_operating_on_distance(circuit_cls):
 
     with pytest.raises(ValueError, match='Negative max_distance'):
         c.prev_moment_operating_on([a], 6, max_distance=-1)
+
+
+def test_earliest_available_moment():
+    q = cirq.LineQubit.range(3)
+    c = cirq.Circuit(
+        cirq.Moment(cirq.measure(q[0], key="m")),
+        cirq.Moment(cirq.X(q[1]).with_classical_controls("m")),
+    )
+    assert c.earliest_available_moment(cirq.Y(q[0])) == 1
+    assert c.earliest_available_moment(cirq.Y(q[1])) == 2
+    assert c.earliest_available_moment(cirq.Y(q[2])) == 0
+    assert c.earliest_available_moment(cirq.Y(q[2]).with_classical_controls("m")) == 1
+    assert (
+        c.earliest_available_moment(cirq.Y(q[2]).with_classical_controls("m"), end_moment_index=1)
+        == 1
+    )
+
+    # Returns `end_moment_index` by default without verifying if an operation already exists there.
+    assert (
+        c.earliest_available_moment(cirq.Y(q[1]).with_classical_controls("m"), end_moment_index=1)
+        == 1
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
