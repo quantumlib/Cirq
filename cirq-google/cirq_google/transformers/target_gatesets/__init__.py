@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_google.transformers.analytical_decompositions import (
-    known_2q_op_to_sycamore_operations,
-    two_qubit_matrix_to_sycamore_operations,
-)
+"""`cirq.CompilationTargetGateset` implementations for cirq_google gatesets and devices."""
 
-from cirq_google.transformers.target_gatesets import SycamoreTargetGateset
+from cirq_google.transformers.target_gatesets.sycamore_gateset import SycamoreTargetGateset
