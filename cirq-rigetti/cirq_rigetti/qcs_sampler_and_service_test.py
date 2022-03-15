@@ -1,4 +1,5 @@
-from typing import Tuple, Any, List
+# pylint: disable=wrong-or-nonexistent-copyright-notice
+from typing import Any, List, Sequence, Tuple
 import cirq
 import pytest
 from pyquil import Program
@@ -24,7 +25,7 @@ class _ResultBuilder(Protocol):
         executor: executors.CircuitSweepExecutor = _default_executor,
         transformer: transformers.CircuitTransformer = transformers.default,
     ) -> Tuple[
-        List[cirq.Result],
+        Sequence[cirq.Result],
         QuantumComputer,
         List["np.ndarray[Any, np.dtype[np.float_]]"],
         List[cirq.ParamResolver],
@@ -40,7 +41,7 @@ def _build_service_results(
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
 ) -> Tuple[
-    List[cirq.Result],
+    Sequence[cirq.Result],
     QuantumComputer,
     List["np.ndarray[Any, np.dtype[np.float_]]"],
     List[cirq.ParamResolver],
@@ -79,7 +80,7 @@ def _build_sampler_results(
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
 ) -> Tuple[
-    List[cirq.Result],
+    Sequence[cirq.Result],
     QuantumComputer,
     List["np.ndarray[Any, np.dtype[np.float_]]"],
     cirq.Sweepable,

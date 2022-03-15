@@ -1,10 +1,10 @@
-# Copyright 2020 The Cirq developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ def group_settings_greedy(
         input list of settings. Each dictionary value is a list of
         settings compatible with `max_setting`.
     """
-    grouped_settings = {}  # type: Dict[InitObsSetting, List[InitObsSetting]]
+    grouped_settings: Dict[InitObsSetting, List[InitObsSetting]] = {}
     for setting in settings:
         for max_setting, simul_settings in grouped_settings.items():
             trial_grouped_settings = simul_settings + [setting]

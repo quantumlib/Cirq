@@ -12,14 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Visualization utilities."""
+"""Classes and methods for visualizing results, quantum states, and devices."""
 
 from cirq.vis.heatmap import Heatmap
+
 from cirq.vis.heatmap import TwoQubitInteractionHeatmap
 
 from cirq.vis.histogram import integrated_histogram
 
-from cirq.vis.state_histogram import get_state_histogram, plot_state_histogram
+from cirq.vis.state_histogram import (
+    get_state_histogram,
+    plot_state_histogram,
+)
+
 from cirq.vis.density_matrix import plot_density_matrix
 
 from cirq.vis.vis_utils import relative_luminance

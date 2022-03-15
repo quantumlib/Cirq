@@ -12,21 +12,46 @@
   },
   "runtime_info": {
     "cirq_type": "cirq.google.RuntimeInfo",
-    "execution_index": 5
+    "execution_index": 5,
+    "qubit_placement": [
+      [
+        [
+          0,
+          0
+        ],
+        {
+          "cirq_type": "GridQubit",
+          "row": 5,
+          "col": 5
+        }
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        {
+          "cirq_type": "GridQubit",
+          "row": 6,
+          "col": 6
+        }
+      ]
+    ]
   },
   "raw_data": {
-    "cirq_type": "Result",
+    "cirq_type": "ResultDict",
     "params": {
       "cirq_type": "ParamResolver",
       "param_dict": []
     },
-    "measurements": {
+    "records": {
       "z": {
         "packed_digits": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         "binary": true,
         "dtype": "float64",
         "shape": [
           1000,
+          1,
           4
         ]
       }

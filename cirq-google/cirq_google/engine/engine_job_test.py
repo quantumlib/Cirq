@@ -21,14 +21,9 @@ from google.protobuf.text_format import Merge
 import cirq
 import cirq_google as cg
 from cirq_google.api import v1, v2
+from cirq_google.engine import util
 from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
 from cirq_google.engine.engine import EngineContext
-
-
-def _to_any(proto):
-    any_proto = qtypes.any_pb2.Any()
-    any_proto.Pack(proto)
-    return any_proto
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -48,6 +43,17 @@ def test_program():
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
     assert job.program().project_id == 'a'
     assert job.program().program_id == 'b'
+
+
+def test_id():
+    job = cg.EngineJob(
+        'a',
+        'b',
+        'steve',
+        EngineContext(),
+        _job=qtypes.QuantumJob(create_time=qtypes.timestamp_pb2.Timestamp(seconds=1581515101)),
+    )
+    assert job.id() == 'steve'
 
 
 def test_create_time():
@@ -178,6 +184,7 @@ def test_status(get_job):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
     assert job.status() == 'RUNNING'
     get_job.assert_called_once()
+    assert job.execution_status() == qtypes.ExecutionStatus.State.RUNNING
 
 
 def test_failure():
@@ -218,7 +225,7 @@ def test_failure_with_no_error():
 def test_get_repetitions_and_sweeps(get_job):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
     get_job.return_value = qtypes.QuantumJob(
-        run_context=_to_any(
+        run_context=util.pack_any(
             v2.run_context_pb2.RunContext(
                 parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=10)]
             )
@@ -232,7 +239,7 @@ def test_get_repetitions_and_sweeps(get_job):
 def test_get_repetitions_and_sweeps_v1(get_job):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
     get_job.return_value = qtypes.QuantumJob(
-        run_context=_to_any(
+        run_context=util.pack_any(
             v1.program_pb2.RunContext(
                 parameter_sweeps=[v1.params_pb2.ParameterSweep(repetitions=10)]
             )
@@ -276,7 +283,7 @@ def test_get_calibration(get_calibration):
         )
     )
     calibration = qtypes.QuantumCalibration(
-        data=_to_any(
+        data=util.pack_any(
             Merge(
                 """
     timestamp_ms: 123000,
@@ -342,7 +349,7 @@ def test_delete(delete_job):
 
 
 RESULTS = qtypes.QuantumResult(
-    result=_to_any(
+    result=util.pack_any(
         Merge(
             """
 sweep_results: [{
@@ -389,7 +396,7 @@ sweep_results: [{
 
 
 BATCH_RESULTS = qtypes.QuantumResult(
-    result=_to_any(
+    result=util.pack_any(
         Merge(
             """
 results: [{
@@ -474,7 +481,7 @@ results: [{
 )
 
 CALIBRATION_RESULT = qtypes.QuantumResult(
-    result=_to_any(
+    result=util.pack_any(
         Merge(
             """
 results: [{
@@ -605,7 +612,7 @@ def test_calibration_defaults(get_job_results):
     )
     result = v2.calibration_pb2.FocusedCalibrationResult()
     result.results.add()
-    get_job_results.return_value = qtypes.QuantumResult(result=_to_any(result))
+    get_job_results.return_value = qtypes.QuantumResult(result=util.pack_any(result))
     job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
     data = job.calibration_results()
     get_job_results.assert_called_once_with('a', 'b', 'steve')

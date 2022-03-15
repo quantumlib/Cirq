@@ -53,7 +53,8 @@ import cirq.ops.boolean_hamiltonian as bh
         '(x2 | x1) ^ x0',
     ],
 )
-def test_circuit(boolean_str):
+@pytest.mark.parametrize('transform', [lambda op: op, lambda op: op.gate.on(*op.qubits)])
+def test_circuit(boolean_str, transform):
     boolean_expr = sympy_parser.parse_expr(boolean_str)
     var_names = cirq.parameter_names(boolean_expr)
     qubits = [cirq.NamedQubit(name) for name in var_names]
@@ -72,13 +73,14 @@ def test_circuit(boolean_str):
     circuit = cirq.Circuit()
     circuit.append(cirq.H.on_each(*qubits))
 
-    hamiltonian_gate = cirq.BooleanHamiltonian(
-        {q.name: q for q in qubits}, [boolean_str], 0.1 * math.pi
-    )
+    with cirq.testing.assert_deprecated('Use cirq.BooleanHamiltonianGate', deadline='v0.15'):
+        hamiltonian_gate = cirq.BooleanHamiltonian(
+            {q.name: q for q in qubits}, [boolean_str], 0.1 * math.pi
+        )
 
     assert hamiltonian_gate.num_qubits() == n
 
-    circuit.append(hamiltonian_gate)
+    circuit.append(transform(hamiltonian_gate))
 
     phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
@@ -89,18 +91,53 @@ def test_circuit(boolean_str):
 
 def test_with_custom_names():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
-    original_op = cirq.BooleanHamiltonian(
-        {'a': q0, 'b': q1},
+    with cirq.testing.assert_deprecated(
+        'Use cirq.BooleanHamiltonianGate', deadline='v0.15', count=3
+    ):
+        original_op = cirq.BooleanHamiltonian(
+            {'a': q0, 'b': q1},
+            ['a'],
+            0.1,
+        )
+        assert cirq.decompose(original_op) == [cirq.Rz(rads=-0.05).on(q0)]
+
+        renamed_op = original_op.with_qubits(q2, q3)
+        assert cirq.decompose(renamed_op) == [cirq.Rz(rads=-0.05).on(q2)]
+
+        with pytest.raises(ValueError, match='Length of replacement qubits must be the same'):
+            original_op.with_qubits(q2)
+
+        with pytest.raises(ValueError, match='All qubits must be 2-dimensional'):
+            original_op.with_qubits(q0, cirq.LineQid(1, 3))
+
+
+def test_gate_with_custom_names():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    gate = cirq.BooleanHamiltonianGate(
+        ['a', 'b'],
         ['a'],
         0.1,
     )
-    assert cirq.decompose(original_op) == [cirq.Rz(rads=-0.05).on(q0)]
+    assert cirq.decompose(gate.on(q0, q1)) == [cirq.Rz(rads=-0.05).on(q0)]
+    assert cirq.decompose_once_with_qubits(gate, (q0, q1)) == [cirq.Rz(rads=-0.05).on(q0)]
+    assert cirq.decompose(gate.on(q2, q3)) == [cirq.Rz(rads=-0.05).on(q2)]
+    assert cirq.decompose_once_with_qubits(gate, (q2, q3)) == [cirq.Rz(rads=-0.05).on(q2)]
 
-    renamed_op = original_op.with_qubits(q2, q3)
-    assert cirq.decompose(renamed_op) == [cirq.Rz(rads=-0.05).on(q2)]
+    with pytest.raises(ValueError, match='Wrong number of qubits'):
+        gate.on(q2)
+    with pytest.raises(ValueError, match='Wrong shape of qids'):
+        gate.on(q0, cirq.LineQid(1, 3))
 
-    with pytest.raises(ValueError, match='Length of replacement qubits must be the same'):
-        original_op.with_qubits(q2)
+
+def test_gate_consistent():
+    gate = cirq.BooleanHamiltonianGate(
+        ['a', 'b'],
+        ['a'],
+        0.1,
+    )
+    op = gate.on(*cirq.LineQubit.range(2))
+    cirq.testing.assert_implements_consistent_protocols(gate)
+    cirq.testing.assert_implements_consistent_protocols(op)
 
 
 @pytest.mark.parametrize(
@@ -128,9 +165,9 @@ def test_gray_code_sorting(n_bits, expected_hs):
         hs = hs_template.copy()
         random.shuffle(hs)
 
-        sorted_hs = sorted(list(hs), key=functools.cmp_to_key(bh._gray_code_comparator))
+        sorted_hs = sorted(hs, key=functools.cmp_to_key(bh._gray_code_comparator))
 
-        np.testing.assert_array_equal(sorted_hs, expected_hs)
+        assert sorted_hs == expected_hs
 
 
 @pytest.mark.parametrize(
@@ -155,7 +192,7 @@ def test_gray_code_comparison(seq_a, seq_b, expected):
         # Single CNOTs don't get simplified.
         ([(0, 1)], False, False, [(0, 1)]),
         ([(0, 1)], True, False, [(0, 1)]),
-        # Simplify away two CNOTs that are identical:
+        # Simplify away two CNOTs that are identical.
         ([(0, 1), (0, 1)], False, True, []),
         ([(0, 1), (0, 1)], True, True, []),
         # Also simplify away if there's another CNOT in between.
@@ -164,8 +201,11 @@ def test_gray_code_comparison(seq_a, seq_b, expected):
         # However, the in-between has to share the same target/control.
         ([(0, 1), (0, 2), (0, 1)], False, False, [(0, 1), (0, 2), (0, 1)]),
         ([(0, 1), (2, 1), (0, 1)], True, False, [(0, 1), (2, 1), (0, 1)]),
-        # Can simplify, but violates CNOT ordering assumption
+        # Can simplify, but violates CNOT ordering assumption.
         ([(0, 1), (2, 3), (0, 1)], False, False, [(0, 1), (2, 3), (0, 1)]),
+        # Simplify away CNOTs cascadingly.
+        ([(0, 1), (2, 3), (2, 3), (0, 1)], False, True, []),
+        ([(0, 1), (2, 1), (2, 3), (2, 3), (0, 1)], False, True, [(2, 1)]),
     ],
 )
 def test_simplify_commuting_cnots(

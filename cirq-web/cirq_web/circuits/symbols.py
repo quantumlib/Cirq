@@ -18,6 +18,7 @@ import abc
 import dataclasses
 from typing import Iterable, List, Optional
 import cirq
+from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs
 
 
 @dataclasses.dataclass
@@ -80,11 +81,15 @@ class DefaultResolver(SymbolResolver):
             operation: the cirq.Operation object to resolve
         """
         try:
-            wire_symbols = cirq.circuit_diagram_info(operation).wire_symbols
+            info = cirq.circuit_diagram_info(operation)
         except TypeError:
             return SymbolInfo.unknown_operation(cirq.num_qubits(operation))
 
-        symbol_info = SymbolInfo(list(wire_symbols), [])
+        wire_symbols = info.wire_symbols
+        symbol_exponent = info._wire_symbols_including_formatted_exponent(
+            CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+        )
+        symbol_info = SymbolInfo(list(symbol_exponent), [])
         for symbol in wire_symbols:
             symbol_info.colors.append(DefaultResolver._SYMBOL_COLORS.get(symbol, 'gray'))
 

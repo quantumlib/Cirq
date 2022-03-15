@@ -17,7 +17,7 @@ import itertools
 
 from typing import Iterable, Optional, FrozenSet, TYPE_CHECKING, Tuple, cast
 
-from cirq import devices, ops, value
+from cirq import _compat, devices, ops, value
 
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
 
@@ -120,8 +120,6 @@ class UndirectedGraphDevice(devices.Device):
         * duration_of does not check that operation is valid.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         device_graph: Optional[UndirectedHypergraph] = None,
@@ -136,6 +134,9 @@ class UndirectedGraphDevice(devices.Device):
             crosstalk_graph: An undirected hypergraph whose vertices are edges
                 of device_graph and whose edges give simultaneity constraints
                 thereon.
+
+        Raises:
+            TypeError: If the crosstalk graph is not a valid crosstalk graph.
         """
 
         if device_graph is None:
@@ -150,11 +151,11 @@ class UndirectedGraphDevice(devices.Device):
         self.device_graph = device_graph
         self.crosstalk_graph = crosstalk_graph
 
-    # pylint: enable=missing-raises-doc
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return cast(Tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
 
+    @_compat.deprecated(fix='Please use UndirectedGraphDevice.qubits', deadline='v0.15')
     def qubit_set(self) -> FrozenSet['cirq.Qid']:
         return frozenset(self.qubits)
 
@@ -162,14 +163,19 @@ class UndirectedGraphDevice(devices.Device):
     def edges(self):
         return tuple(sorted(self.device_graph.edges))
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='qubit coupling data can now be found in device.metadata.nx_graph if provided.',
+    )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
-        return frozenset(
-            [
-                devices.SymmetricalQidPair(*edge)  # type: ignore
-                for edge in self.device_graph.edges
-                if len(edge) == 2 and all(isinstance(q, ops.Qid) for q in edge)
-            ]
-        )
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
+            return frozenset(
+                [
+                    devices.SymmetricalQidPair(*edge)  # type: ignore
+                    for edge in self.device_graph.edges
+                    if len(edge) == 2 and all(isinstance(q, ops.Qid) for q in edge)
+                ]
+            )
 
     @property
     def labelled_edges(self):
@@ -206,7 +212,7 @@ class UndirectedGraphDevice(devices.Device):
             ):
                 validator(operation, *crosstalk_operations)
 
-    def validate_moment(self, moment: ops.Moment):
+    def validate_moment(self, moment: 'cirq.Moment'):
         super().validate_moment(moment)
         ops = moment.operations
         for i, op in enumerate(ops):

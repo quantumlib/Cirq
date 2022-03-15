@@ -107,8 +107,6 @@ def kron_with_controls(*factors: Union[np.ndarray, complex, float]) -> np.ndarra
     return product
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def dot(*values: 'ArrayLike') -> np.ndarray:
     """Computes the dot/matrix product of a sequence of values.
 
@@ -121,6 +119,9 @@ def dot(*values: 'ArrayLike') -> np.ndarray:
 
     Returns:
         The resulting value or matrix.
+
+    Raises:
+        ValueError: If the method is called without any arguments.
     """
     if len(values) == 0:
         raise ValueError("cirq.dot must be called with arguments")
@@ -135,7 +136,6 @@ def dot(*values: 'ArrayLike') -> np.ndarray:
     return result
 
 
-# pylint: enable=missing-raises-doc
 def _merge_dtypes(dtype1: 'DTypeLike', dtype2: 'DTypeLike') -> np.dtype:
     return (np.zeros(0, dtype1) + np.zeros(0, dtype2)).dtype
 

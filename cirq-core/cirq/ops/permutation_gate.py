@@ -15,6 +15,7 @@
 from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
+from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -25,15 +26,17 @@ if TYPE_CHECKING:
 class QubitPermutationGate(raw_types.Gate):
     """A qubit permutation gate specified by a permutation list."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(self, permutation: Sequence[int]):
-        """Inits QubitPermutationGate.
+        """Create a `cirq.QubitPermutationGate`.
 
         Args:
             permutation: A shuffled sequence of integers from 0 to
                 len(permutation) - 1. The entry at offset `i` is the result
                 of permuting `i`.
+
+        Raises:
+            ValueError: If the supplied permutation is not valid (empty, repeated indices, indices
+                out of range).
         """
         if not permutation:
             raise ValueError(f"Invalid permutation (empty): {permutation}")
@@ -44,14 +47,24 @@ class QubitPermutationGate(raw_types.Gate):
         invalid_indices = [x for x in permutation if not 0 <= x < len(permutation)]
         if len(invalid_indices) > 0:
             raise ValueError(
-                f"All indices have to satisfy "
-                f"0 <= i < {len(permutation)}. "
+                f"All indices have to satisfy 0 <= i < {len(permutation)}.\n"
                 f"Invalid indices: {invalid_indices}"
             )
 
-        self.permutation = tuple(permutation)
+        self._permutation = tuple(permutation)
 
-    # pylint: enable=missing-raises-doc
+    @property
+    def permutation(self) -> Tuple[int, ...]:
+        return self._permutation
+
+    @permutation.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def permutation(self, permutation: Tuple[int, ...]):
+        self._permutation = permutation
+
     def _value_equality_values_(self):
         return self.permutation
 

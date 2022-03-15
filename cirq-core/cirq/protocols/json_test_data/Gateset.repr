@@ -1,0 +1,17 @@
+[
+    cirq.Gateset(
+        cirq.ops.common_gates.YPowGate,
+        cirq.AnyUnitaryGateFamily(num_qubits=2),
+        cirq.X,
+        unroll_circuit_op=True,
+        accept_global_phase_op=True,
+    ),
+    cirq.Gateset(
+        cirq.X,
+        cirq.ops.common_gates.YPowGate,
+        cirq.AnyUnitaryGateFamily(num_qubits=2),
+        name="Custom Name",
+        unroll_circuit_op=False,
+        accept_global_phase_op=False,
+    ),
+]

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from typing import Any, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
-
-from cirq import circuits, value, devices, ops, protocols
+import networkx as nx
+from cirq import _compat, circuits, value, devices, ops, protocols
 from cirq.ion import convert_to_ion_gates
 
 if TYPE_CHECKING:
@@ -55,26 +55,54 @@ class IonDevice(devices.Device):
             twoq_gates_duration: The maximum duration of a two qubit operation.
             oneq_gates_duration: The maximum duration of a single qubit
             operation.
-            qubits: Qubits on the device, identified by their x, y location.
+            qubits: Qubits on the device, identified by their x location.
+
+        Raises:
+            TypeError: If not all the qubits supplied are `cirq.LineQubit`s.
         """
         self._measurement_duration = value.Duration(measurement_duration)
         self._twoq_gates_duration = value.Duration(twoq_gates_duration)
         self._oneq_gates_duration = value.Duration(oneq_gates_duration)
+        if not all(isinstance(qubit, devices.LineQubit) for qubit in qubits):
+            raise TypeError(
+                "All qubits were not of type cirq.LineQubit, instead were "
+                f"{set(type(qubit) for qubit in qubits)}"
+            )
         self.qubits = frozenset(qubits)
         self.gateset = get_ion_gateset()
 
+        graph = nx.Graph()
+        graph.add_edges_from([(a, b) for a in qubits for b in qubits if a != b], directed=False)
+        self._metadata = devices.DeviceMetadata(self.qubits, graph)
+
+    @property
+    def metadata(self) -> devices.DeviceMetadata:
+        return self._metadata
+
+    @_compat.deprecated(
+        fix='Use metadata.qubit_set if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='qubit coupling data can now be found in device.metadata if provided.',
+    )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
         """Qubits have all-to-all connectivity, so returns all pairs.
 
         Returns:
             All qubit pairs on the device.
         """
-        qs = self.qubits
-        return frozenset([devices.SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
+        with _compat.block_overlapping_deprecation('device\\.metadata'):
+            qs = self.qubits
+            return frozenset([devices.SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
+    @_compat.deprecated(
+        fix='Use cirq.ConvertToIonGates() instead to decompose operations.', deadline='v0.15'
+    )
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
         return convert_to_ion_gates.ConvertToIonGates().convert_one(operation)
 
@@ -142,6 +170,10 @@ class IonDevice(devices.Device):
                 diagram.grid_line(q.x, 0, q2.x, 0)
 
         return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
+
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("IonDevice(...)" if cycle else self.__str__())
 
     def _value_equality_values_(self) -> Any:
         return (

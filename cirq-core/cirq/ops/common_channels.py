@@ -22,6 +22,7 @@ import numpy as np
 from cirq import protocols, value
 from cirq.ops import raw_types, common_gates, pauli_gates, gate_features, identity
 
+
 if TYPE_CHECKING:
     import cirq
 
@@ -52,6 +53,10 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
         (including identity). The input $\rho$ is the density matrix before the
         depolarization.
+
+        Note: prior to Cirq v0.14, this class contained `num_qubits` as a property.
+        This violates the contract of `cirq.Gate` so it was removed.  One can
+        instead get the number of qubits by calling the method `num_qubits`.
 
         Args:
             p_x: The probability that a Pauli X and no other gate occurs.
@@ -179,11 +184,6 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return self._error_probabilities.get('Z', 0.0)
 
     @property
-    def num_qubits(self) -> int:
-        """The number of qubits"""
-        return self._num_qubits
-
-    @property
     def error_probabilities(self) -> Dict[str, float]:
         """A dictionary from Pauli gates to probability"""
         return self._error_probabilities
@@ -193,7 +193,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
         return (
-            self.num_qubits == other.num_qubits
+            self._num_qubits == other._num_qubits
             and np.isclose(self.p_i, other.p_i, atol=atol).item()
             and np.isclose(self.p_x, other.p_x, atol=atol).item()
             and np.isclose(self.p_y, other.p_y, atol=atol).item()
@@ -315,16 +315,6 @@ class DepolarizingChannel(raw_types.Gate):
         if self._n_qubits == 1:
             return f"depolarize(p={self._p})"
         return f"depolarize(p={self._p},n_qubits={self._n_qubits})"
-
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
-        from cirq.sim import clifford
-
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if args.prng.random() < self._p:
-                gate = args.prng.choice([pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
-                protocols.act_on(gate, args, qubits)
-            return True
-        return NotImplemented
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
         result: Tuple[str, ...]
@@ -504,12 +494,8 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         )
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDampingChannel:
-    r"""
-    Returns a GeneralizedAmplitudeDampingChannel with the given
-    probabilities gamma and p.
+    r"""Returns a GeneralizedAmplitudeDampingChannel with probabilities gamma and p.
 
     This channel evolves a density matrix via:
 
@@ -554,7 +540,6 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
     return GeneralizedAmplitudeDampingChannel(p, gamma)
 
 
-# pylint: enable=docstring-first-line-empty
 @value.value_equality
 class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through dissipation.
@@ -722,33 +707,33 @@ class ResetChannel(gate_features.SingleQubitGate):
     def _qid_shape_(self):
         return (self._dimension,)
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq import sim, ops
+    def _act_on_(self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']):
+        if len(qubits) != 1:
+            return NotImplemented
 
-        if isinstance(args, sim.ActOnStabilizerCHFormArgs):
-            axe = args.qubit_map[qubits[0]]
-            if args.state._measure(axe, args.prng):
-                ops.X._act_on_(args, qubits)
-            return True
+        class PlusGate(raw_types.Gate):
+            """A qudit gate that increments a qudit state mod its dimension."""
 
-        if isinstance(args, sim.ActOnStateVectorArgs):
-            # Do a silent measurement.
-            axes = args.get_axes(qubits)
-            measurements, _ = sim.measure_state_vector(
-                args.target_tensor,
-                axes,
-                out=args.target_tensor,
-                qid_shape=args.target_tensor.shape,
-            )
-            result = measurements[0]
+            def __init__(self, dimension, increment=1):
+                self.dimension = dimension
+                self.increment = increment % dimension
 
-            # Use measurement result to zero the qid.
-            if result:
-                zero = args.subspace_index(axes, 0)
-                other = args.subspace_index(axes, result)
-                args.target_tensor[zero] = args.target_tensor[other]
-                args.target_tensor[other] = 0
+            def _qid_shape_(self):
+                return (self.dimension,)
 
+            def _unitary_(self):
+                inc = (self.increment - 1) % self.dimension + 1
+                u = np.empty((self.dimension, self.dimension))
+                u[inc:] = np.eye(self.dimension)[:-inc]
+                u[:inc] = np.eye(self.dimension)[-inc:]
+                return u
+
+        from cirq.sim import act_on_args
+
+        if isinstance(args, act_on_args.ActOnArgs) and not args.can_represent_mixed_states:
+            result = args._perform_measurement(qubits)[0]
+            gate = PlusGate(self.dimension, self.dimension - result)
+            protocols.act_on(gate, args, qubits)
             return True
 
         return NotImplemented
@@ -1023,12 +1008,10 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
     return PhaseFlipChannel(p)
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseFlipChannel]:
-    r"""
-    Returns a PhaseFlipChannel that flips a qubit's phase with probability p
-    if p is None, return a guaranteed phase flip in the form of a Z operation.
+    r"""Returns a PhaseFlipChannel that flips a qubit's phase with probability p.
+
+    If `p` is None, return a guaranteed phase flip in the form of a Z operation.
 
     This channel evolves a density matrix via:
 
@@ -1064,7 +1047,6 @@ def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseF
     return _phase_flip(p)
 
 
-# pylint: enable=docstring-first-line-empty
 @value.value_equality
 class BitFlipChannel(gate_features.SingleQubitGate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
@@ -1140,12 +1122,8 @@ class BitFlipChannel(gate_features.SingleQubitGate):
         return np.isclose(self._p, other._p, atol=atol).item()
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def _bit_flip(p: float) -> BitFlipChannel:
-    r"""
-    Construct a BitFlipChannel that flips a qubit state
-    with probability of a flip given by p.
+    r"""Construct a BitFlipChannel that flips a qubit state with probability of a flip given by p.
 
     This channel evolves a density matrix via:
 
@@ -1178,12 +1156,10 @@ def _bit_flip(p: float) -> BitFlipChannel:
     return BitFlipChannel(p)
 
 
-# TODO(#3388) Add summary line to docstring.
 def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipChannel]:
-    r"""
-    Construct a BitFlipChannel that flips a qubit state
-    with probability of a flip given by p. If p is None, return
-    a guaranteed flip in the form of an X operation.
+    r"""Construct a BitFlipChannel that flips a qubit state with probability p.
+
+    If p is None, this returns a guaranteed flip in the form of an X operation.
 
     This channel evolves a density matrix via
 
@@ -1217,6 +1193,3 @@ def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipC
         return pauli_gates.X
 
     return _bit_flip(p)
-
-
-# pylint: enable=docstring-first-line-empty

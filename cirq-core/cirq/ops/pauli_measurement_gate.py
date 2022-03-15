@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Tuple, Sequence, TYPE_CHECKING, Union
-
+from typing import Any, Dict, FrozenSet, Iterable, Tuple, Sequence, TYPE_CHECKING, Union, cast
 
 from cirq import protocols, value
+from cirq._compat import deprecated
 from cirq.ops import (
     raw_types,
     measurement_gate,
     op_tree,
-    dense_pauli_string,
+    dense_pauli_string as dps,
     pauli_gates,
     pauli_string_phasor,
 )
@@ -39,15 +39,16 @@ class PauliMeasurementGate(raw_types.Gate):
 
     def __init__(
         self,
-        observable: Iterable['cirq.Pauli'],
-        key: Union[str, value.MeasurementKey] = '',
+        observable: Union['cirq.BaseDensePauliString', Iterable['cirq.Pauli']],
+        key: Union[str, 'cirq.MeasurementKey'] = '',
     ) -> None:
         """Inits PauliMeasurementGate.
 
         Args:
             observable: Pauli observable to measure. Any `Iterable[cirq.Pauli]`
-                is a valid Pauli observable, including `cirq.DensePauliString`
-                instances, which do not contain any identity gates.
+                is a valid Pauli observable (with a +1 coefficient by default).
+                If you wish to measure pauli observables with coefficient -1,
+                then pass a `cirq.DensePauliString` as observable.
             key: The string key of the measurement.
 
         Raises:
@@ -55,25 +56,56 @@ class PauliMeasurementGate(raw_types.Gate):
         """
         if not observable:
             raise ValueError(f'Pauli observable {observable} is empty.')
-        if not all(isinstance(p, pauli_gates.Pauli) for p in observable):
+        if not all(
+            isinstance(p, pauli_gates.Pauli) for p in cast(Iterable['cirq.Gate'], observable)
+        ):
             raise ValueError(f'Pauli observable {observable} must be Iterable[`cirq.Pauli`].')
-        self._observable = tuple(observable)
-        self.key = key  # type: ignore
+        coefficient = (
+            observable.coefficient if isinstance(observable, dps.BaseDensePauliString) else 1
+        )
+        if coefficient not in [+1, -1]:
+            raise ValueError(
+                f'`cirq.DensePauliString` observable {observable} must have coefficient +1/-1.'
+            )
+
+        self._observable = dps.DensePauliString(observable, coefficient=coefficient)
+        self._mkey = (
+            key if isinstance(key, value.MeasurementKey) else value.MeasurementKey(name=key)
+        )
 
     @property
     def key(self) -> str:
         return str(self.mkey)
 
-    @key.setter
-    def key(self, key: Union[str, value.MeasurementKey]) -> None:
+    @key.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def key(self, key: Union[str, 'cirq.MeasurementKey']):
         if isinstance(key, str):
             key = value.MeasurementKey(name=key)
-        self.mkey = key
+        self._mkey = key
+
+    @property
+    def mkey(self) -> 'cirq.MeasurementKey':
+        return self._mkey
+
+    @mkey.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def mkey(self, mkey: 'cirq.MeasurementKey'):
+        self._mkey = mkey
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return (2,) * len(self._observable)
 
-    def with_key(self, key: Union[str, value.MeasurementKey]) -> 'PauliMeasurementGate':
+    def _has_unitary_(self) -> bool:
+        return False
+
+    def with_key(self, key: Union[str, 'cirq.MeasurementKey']) -> 'PauliMeasurementGate':
         """Creates a pauli measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
@@ -82,12 +114,28 @@ class PauliMeasurementGate(raw_types.Gate):
     def _with_key_path_(self, path: Tuple[str, ...]) -> 'PauliMeasurementGate':
         return self.with_key(self.mkey._with_key_path_(path))
 
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> 'PauliMeasurementGate':
+        return self.with_key(self.mkey._with_key_path_prefix_(prefix))
+
+    def _with_rescoped_keys_(
+        self,
+        path: Tuple[str, ...],
+        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+    ) -> 'PauliMeasurementGate':
+        return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
+
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'PauliMeasurementGate':
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
-    def with_observable(self, observable: Iterable['cirq.Pauli']) -> 'PauliMeasurementGate':
+    def with_observable(
+        self, observable: Union['cirq.BaseDensePauliString', Iterable['cirq.Pauli']]
+    ) -> 'PauliMeasurementGate':
         """Creates a pauli measurement gate with the new observable and same key."""
-        if tuple(observable) == self._observable:
+        if (
+            observable
+            if isinstance(observable, dps.BaseDensePauliString)
+            else dps.DensePauliString(observable)
+        ) == self._observable:
             return self
         return PauliMeasurementGate(observable, key=self.key)
 
@@ -97,52 +145,61 @@ class PauliMeasurementGate(raw_types.Gate):
     def _measurement_key_name_(self) -> str:
         return self.key
 
-    def _measurement_key_obj_(self) -> value.MeasurementKey:
+    def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
         return self.mkey
 
     def observable(self) -> 'cirq.DensePauliString':
         """Pauli observable which should be measured by the gate."""
-        return dense_pauli_string.DensePauliString(self._observable)
+        return self._observable
 
     def _decompose_(
         self, qubits: Tuple['cirq.Qid', ...]
     ) -> 'protocols.decompose_protocol.DecomposeResult':
         any_qubit = qubits[0]
-        to_z_ops = op_tree.freeze_op_tree(self.observable().on(*qubits).to_z_basis_ops())
+        to_z_ops = op_tree.freeze_op_tree(self._observable.on(*qubits).to_z_basis_ops())
         xor_decomp = tuple(pauli_string_phasor.xor_nonlocal_decompose(qubits, any_qubit))
         yield to_z_ops
         yield xor_decomp
-        yield measurement_gate.MeasurementGate(1, self.mkey).on(any_qubit)
+        yield measurement_gate.MeasurementGate(
+            1, self.mkey, invert_mask=(self._observable.coefficient != 1,)
+        ).on(any_qubit)
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        symbols = [f'M({g})' for g in self._observable]
+        coefficient = '' if self._observable.coefficient == 1 else '-'
+        symbols = [
+            f'M({"" if i else coefficient}{self._observable[i]})'
+            for i in range(len(self._observable))
+        ]
 
         # Mention the measurement key.
+        label_map = args.label_map or {}
         if not args.known_qubits or self.key != _default_measurement_key(args.known_qubits):
-            symbols[0] += f"('{self.key}')"
+            if self.key not in label_map:
+                symbols[0] += f"('{self.key}')"
+        if self.key in label_map:
+            symbols += '@'
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
 
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
-        args = [repr(self.observable().on(*qubits))]
+        args = [repr(self._observable.on(*qubits))]
         if self.key != _default_measurement_key(qubits):
             args.append(f'key={self.mkey!r}')
         arg_list = ', '.join(args)
         return f'cirq.measure_single_paulistring({arg_list})'
 
     def __repr__(self) -> str:
-        return f'cirq.PauliMeasurementGate(' f'{self._observable!r}, ' f'{self.mkey!r})'
+        return f'cirq.PauliMeasurementGate({self._observable!r}, {self.mkey!r})'
 
     def _value_equality_values_(self) -> Any:
         return self.key, self._observable
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'observable': self._observable,
             'key': self.key,
         }

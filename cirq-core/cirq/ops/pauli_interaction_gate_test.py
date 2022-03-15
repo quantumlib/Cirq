@@ -126,3 +126,19 @@ q0: ───X───(-X)───X──────(-X)───X───Y�
 q1: ───X───X──────(-X)───(-X)───Y───@───Y───(-@)───(-Y)───
     """.strip()
     )
+
+
+def test_setters_deprecated():
+    gate = cirq.PauliInteractionGate(cirq.X, False, cirq.X, False)
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.pauli0 = cirq.Y
+    assert gate.pauli0 == cirq.Y
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.pauli1 = cirq.Y
+    assert gate.pauli1 == cirq.Y
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.invert0 = True
+    assert gate.invert0
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.invert1 = True
+    assert gate.invert1

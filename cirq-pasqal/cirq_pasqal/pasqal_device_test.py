@@ -36,13 +36,13 @@ def test_init():
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
 
-    assert d.qubit_set() == {q0, q1, q2}
+    assert d.metadata.qubit_set == {q0, q1, q2}
     assert d.qubit_list() == [q0, q1, q2]
     assert d.supported_qubit_type == (cirq.NamedQubit,)
 
     d = square_virtual_device(control_r=1.0, num_qubits=1)
 
-    assert d.qubit_set() == {TwoDQubit(0, 0)}
+    assert d.metadata.qubit_set == {TwoDQubit(0, 0)}
     assert d.qubit_list() == [TwoDQubit(0, 0)]
     assert d.control_radius == 1.0
     assert d.supported_qubit_type == (
@@ -77,18 +77,21 @@ def test_init_errors():
         square_virtual_device(control_r=11.0, num_qubits=2)
 
 
-def test_decompose_error():
+def test_decompose_error_deprecated():
     d = generic_device(2)
     op = (cirq.ops.CZ).on(*(d.qubit_list()))
-    assert d.decompose_operation(op) == [op]
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+        assert d.decompose_operation(op) == [op]
 
     op = op ** sympy.Symbol('exp')
     with pytest.raises(TypeError, match="Don't know how to work with "):
-        d.decompose_operation(op)
+        with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+            d.decompose_operation(op)
 
     # MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
-        d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=2, key='a'))
+        with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+            d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=2, key='a'))
     # It has to be made into one
     assert d.is_pasqal_device_op(
         cirq.ops.GateOperation(
@@ -118,28 +121,26 @@ def test_is_pasqal_device_op():
     op2 = (cirq.ops.H ** sympy.Symbol('exp')).on(d.qubit_list()[0])
     assert not d.is_pasqal_device_op(op2)
 
-    decomp = d.decompose_operation(op2)
-    for op_ in decomp:
-        assert d.is_pasqal_device_op(op_)
-
     d2 = square_virtual_device(control_r=1.1, num_qubits=3)
     assert d.is_pasqal_device_op(cirq.ops.X(TwoDQubit(0, 0)))
     assert not d2.is_pasqal_device_op(op1(TwoDQubit(0, 0), TwoDQubit(0, 1)))
 
 
-def test_decompose_operation():
+def test_decompose_operation_deprecated():
     d = generic_device(3)
-    for op in d.decompose_operation((cirq.CCZ ** 1.5).on(*(d.qubit_list()))):
-        d.validate_operation(op)
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+        for op in d.decompose_operation((cirq.CCZ ** 1.5).on(*(d.qubit_list()))):
+            d.validate_operation(op)
 
     p_qubits = [cirq.LineQubit(3), cirq.LineQubit(4)]
     d = PasqalVirtualDevice(1.0, p_qubits)
     op = (cirq.ops.CNOT).on(*(d.qubit_list())) ** 2
 
-    assert d.decompose_operation(op) == []
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+        assert d.decompose_operation(op) == []
 
 
-def test_pasqal_converter():
+def test_pasqal_converter_deprecated():
     q = cirq.NamedQubit.range(2, prefix='q')
     g = cirq.testing.TwoQubitGate()
 
@@ -159,12 +160,12 @@ def test_pasqal_converter():
     d = PasqalDevice(q)
 
     with pytest.raises(TypeError, match="Don't know how to work with"):
-        d.decompose_operation(op)
+        with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+            d.decompose_operation(op)
 
 
 def test_validate_operation_errors():
     d = generic_device(3)
-    circuit = cirq.Circuit(device=d)
 
     with pytest.raises(ValueError, match="Unsupported operation"):
         d.validate_operation(cirq.NamedQubit('q0'))
@@ -178,14 +179,38 @@ def test_validate_operation_errors():
     with pytest.raises(ValueError, match="is not part of the device."):
         d.validate_operation(cirq.X.on(cirq.NamedQubit('q6')))
 
-    with pytest.raises(
-        NotImplementedError, match="Measurements on Pasqal devices don't support invert_mask."
-    ):
-        circuit.append(cirq.measure(*d.qubits, invert_mask=(True, False, False)))
-
     d = square_virtual_device(control_r=1.0, num_qubits=3)
     with pytest.raises(ValueError, match="are too far away"):
         d.validate_operation(cirq.CZ.on(TwoDQubit(0, 0), TwoDQubit(2, 2)))
+
+
+def test_validate_operation_errors_deprecated():
+    d = generic_device(3)
+    circuit = cirq.Circuit()
+    circuit._device = d
+    with pytest.raises(
+        NotImplementedError, match="Measurements on Pasqal devices don't support invert_mask."
+    ):
+        with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
+            circuit.append(cirq.measure(*d.qubits, invert_mask=(True, False, False)))
+
+
+def test_qubit_set_deprecated():
+    d = generic_device(3)
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        _ = d.qubit_set()
+
+
+def test_metadata():
+    d = generic_device(3)
+    assert d.metadata.qubit_set == frozenset(
+        [
+            cirq.NamedQubit('q0'),
+            cirq.NamedQubit('q1'),
+            cirq.NamedQubit('q2'),
+        ]
+    )
+    assert len(d.metadata.nx_graph.edges()) == 3
 
 
 def test_validate_moment():
@@ -202,7 +227,7 @@ def test_validate_moment():
 
 def test_validate_circuit():
     d = generic_device(2)
-    circuit1 = cirq.Circuit(device=d)
+    circuit1 = cirq.Circuit()
     circuit1.append(cirq.X(cirq.NamedQubit('q1')))
     circuit1.append(cirq.measure(cirq.NamedQubit('q1')))
     d.validate_circuit(circuit1)
@@ -211,13 +236,14 @@ def test_validate_circuit():
         d.validate_circuit(circuit1)
 
 
-def test_can_add_operation_into_moment():
+def test_can_add_operation_into_moment_deprecated():
     d = square_virtual_device(control_r=1.0, num_qubits=2)
-    m1 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0))])
-    assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(0, 0)), m1)
-    assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(1, 1)), m1)
-    m2 = cirq.Moment([cirq.measure(*d.qubits[:-1])])
-    assert d.can_add_operation_into_moment(cirq.measure(TwoDQubit(1, 1)), m2)
+    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=3):
+        m1 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0))])
+        assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(0, 0)), m1)
+        assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(1, 1)), m1)
+        m2 = cirq.Moment([cirq.measure(*d.qubits[:-1])])
+        assert d.can_add_operation_into_moment(cirq.measure(TwoDQubit(1, 1)), m2)
 
 
 def test_minimal_distance():
@@ -271,17 +297,16 @@ def test_repr():
 def test_to_json():
     dev = PasqalDevice(qubits=[cirq.NamedQubit('q4')])
     d = dev._json_dict_()
-    assert d == {"cirq_type": "PasqalDevice", "qubits": [cirq.NamedQubit('q4')]}
+    assert d == {"qubits": [cirq.NamedQubit('q4')]}
     vdev = PasqalVirtualDevice(control_radius=2, qubits=[TwoDQubit(0, 0)])
     d = vdev._json_dict_()
     assert d == {
-        "cirq_type": "PasqalVirtualDevice",
         "control_radius": 2,
         "qubits": [cirq_pasqal.TwoDQubit(0, 0)],
     }
 
 
-def test_qid_pairs():
+def test_qid_pairs_deprecated():
     dev = PasqalVirtualDevice(
         1,
         qubits=[
@@ -292,14 +317,15 @@ def test_qid_pairs():
             ThreeDQubit(1, 1, 1),
         ],
     )
-    assert len(dev.qid_pairs()) == 5
-    dev1 = PasqalVirtualDevice(
-        5,
-        qubits=[
-            TwoDQubit(0, 0),
-            TwoDQubit(3, 2),
-            TwoDQubit(3, 4),
-            TwoDQubit(3, 6),
-        ],
-    )
-    assert len(dev1.qid_pairs()) == 5
+    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=2):
+        assert len(dev.qid_pairs()) == 5
+        dev1 = PasqalVirtualDevice(
+            5,
+            qubits=[
+                TwoDQubit(0, 0),
+                TwoDQubit(3, 2),
+                TwoDQubit(3, 4),
+                TwoDQubit(3, 6),
+            ],
+        )
+        assert len(dev1.qid_pairs()) == 5

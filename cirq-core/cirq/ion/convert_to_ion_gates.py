@@ -14,7 +14,7 @@
 
 import numpy as np
 
-from cirq import ops, protocols, optimizers, circuits
+from cirq import ops, protocols, circuits, transformers
 from cirq.ion import ms, two_qubit_matrix_to_ion_operations, ion_device
 
 
@@ -32,16 +32,17 @@ class ConvertToIonGates:
         self.ignore_failures = ignore_failures
         self.gateset = ion_device.get_ion_gateset()
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         """Convert a single (one- or two-qubit) operation into ion trap native gates.
 
         Args:
-            op: gate operation to be converted
+            op: The gate operation to be converted.
 
         Returns:
-            the desired operation implemented with ion trap gates
+            The desired operations implemented with ion trap gates.
+
+        Raises:
+            TypeError: If the operation cannot be converted.
         """
 
         # Known gate name
@@ -65,7 +66,7 @@ class ConvertToIonGates:
         # Known matrix
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
-            gates = optimizers.single_qubit_matrix_to_phased_x_z(mat)
+            gates = transformers.single_qubit_matrix_to_phased_x_z(mat)
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
             return two_qubit_matrix_to_ion_operations(op.qubits[0], op.qubits[1], mat)
@@ -80,12 +81,9 @@ class ConvertToIonGates:
             "or composite.".format(op.gate)
         )
 
-    # pylint: enable=missing-raises-doc
     def convert_circuit(self, circuit: circuits.Circuit) -> circuits.Circuit:
         new_circuit = circuits.Circuit()
         for moment in circuit:
             for op in moment.operations:
                 new_circuit.append(self.convert_one(op))
-        optimizers.merge_single_qubit_gates_into_phased_x_z(new_circuit)
-
-        return new_circuit
+        return transformers.merge_single_qubit_gates_to_phased_x_and_z(new_circuit)

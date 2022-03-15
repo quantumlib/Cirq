@@ -22,19 +22,18 @@ if TYPE_CHECKING:
     import cirq
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 @value.value_equality
 class CircularShiftGate(PermutationGate):
-    """Performs a cyclical permutation of the qubits to the left by a specified
-    amount.
-
-    Args:
-        shift: how many positions to circularly left shift the qubits.
-        swap_gate: the gate to use when decomposing.
-    """
+    """Performs a cyclical permutation of the qubits to the left by a specified amount."""
 
     def __init__(self, num_qubits: int, shift: int, swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
+        """Construct a circular shift gate.
+
+        Args:
+            num_qubits: The number of qubits to shift.
+            shift: The number of positions to circularly left shift the qubits.
+            swap_gate: The gate to use when decomposing.
+        """
         super(CircularShiftGate, self).__init__(num_qubits, swap_gate)
         self.shift = shift
 
@@ -75,6 +74,3 @@ class CircularShiftGate(PermutationGate):
         shift = self.shift % self.num_qubits()
         permuted_indices = itertools.chain(range(shift, self.num_qubits()), range(shift))
         return {s: i for i, s in enumerate(permuted_indices)}
-
-
-# pylint: enable=missing-param-doc

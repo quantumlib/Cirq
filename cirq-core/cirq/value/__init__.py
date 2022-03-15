@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Value conversion utilities and types for time and quantum states."""
+"""Value conversion utilities and classes for time and quantum states."""
 from cirq.value.abc_alt import (
     ABCMetaImplementAnyOneOf,
     alternative,
@@ -23,6 +23,19 @@ from cirq.value.angle import (
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
+)
+
+from cirq.value.classical_data import (
+    ClassicalDataDictionaryStore,
+    ClassicalDataStore,
+    ClassicalDataStoreReader,
+    MeasurementType,
+)
+
+from cirq.value.condition import (
+    Condition,
+    KeyCondition,
+    SympyCondition,
 )
 
 from cirq.value.digits import (

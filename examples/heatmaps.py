@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Example heatmaps from the cirq.vis.heatmap package."""
 
 import numpy as np
@@ -10,7 +11,7 @@ def single_qubit_heatmap():
     """Demo of cirq.Heatmap.
     Demonstrates how cirq.Heatmap can be used to generate a heatmap of the qubit fidelities.
     """
-    value_map = {(qubit,): np.random.random() for qubit in cirq_google.Bristlecone.qubits}
+    value_map = {(qubit,): np.random.random() for qubit in cirq_google.Sycamore.qubits}
 
     heatmap = cirq.Heatmap(value_map)
     # This is going to produce an image similar to examples/single_qubit_heatmap_example.png

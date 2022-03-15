@@ -43,6 +43,7 @@ def run(
         'python',
         'python3',
         'pylint',
+        'env',
         'pytest',
         'mypy',
         'black',
@@ -350,8 +351,11 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
     )
@@ -374,10 +378,13 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
-        'INTERCEPTED python '
-        'dev_tools/check_incremental_coverage_annotations.py master\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py master\n'
     )
     assert result.err == "Comparing against revision 'master'.\n"
 
@@ -390,10 +397,13 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
-        'INTERCEPTED python '
-        'dev_tools/check_incremental_coverage_annotations.py origin/master\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py origin/master\n'
     )
     assert result.err == "Comparing against revision 'origin/master'.\n"
 
@@ -406,10 +416,13 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
-        'INTERCEPTED python '
-        'dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
     )
     assert result.err == "Comparing against revision 'upstream/master'.\n"
 
@@ -422,10 +435,13 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
-        'INTERCEPTED python '
-        'dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
     )
     assert result.err == "Comparing against revision 'upstream/master'.\n"
 
@@ -450,10 +466,13 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
-        'INTERCEPTED python '
-        'dev_tools/check_incremental_coverage_annotations.py HEAD\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
     )
     assert result.err == "Comparing against revision 'HEAD'.\n"
 
@@ -466,10 +485,13 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
-        'INTERCEPTED python '
-        'dev_tools/check_incremental_coverage_annotations.py master\n'
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py master\n'
     )
     assert result.err == "Comparing against revision 'master'.\n"
 
@@ -489,10 +511,13 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out.startswith(
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov --cov-report=annotate '
+        '--actually-quiet --rigetti-integration --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
-        'INTERCEPTED python '
-        'dev_tools/check_incremental_coverage_annotations.py '
+        'The annotate command will be removed in a future version.\n'
+        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'No data to report.\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py '
     )
     assert result.err.startswith("Comparing against revision 'master' (merge base ")
 
@@ -612,7 +637,9 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         ).split()
     )
 
-    intercepted_prefix = 'INTERCEPTED pylint --rcfile=dev_tools/conf/.pylintrc '
+    intercepted_prefix = (
+        'INTERCEPTED env PYTHONPATH=dev_tools pylint --rcfile=dev_tools/conf/.pylintrc '
+    )
 
     result = run(
         script_file='check/pylint-changed-files',

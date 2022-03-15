@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Types for representing and methods for manipulating circuit operation trees.
+"""Gates (unitary and non-unitary), operations, base types, and gate sets.
 """
 
 from cirq.ops.arithmetic_operation import (
@@ -19,6 +19,7 @@ from cirq.ops.arithmetic_operation import (
 )
 
 from cirq.ops.clifford_gate import (
+    CliffordGate,
     PauliTransform,
     SingleQubitCliffordGate,
 )
@@ -31,6 +32,7 @@ from cirq.ops.dense_pauli_string import (
 
 from cirq.ops.boolean_hamiltonian import (
     BooleanHamiltonian,
+    BooleanHamiltonianGate,
 )
 
 from cirq.ops.common_channels import (
@@ -82,6 +84,10 @@ from cirq.ops.common_gate_families import (
     ParallelGateFamily,
 )
 
+from cirq.ops.classically_controlled_operation import (
+    ClassicallyControlledOperation,
+)
+
 from cirq.ops.controlled_gate import (
     ControlledGate,
 )
@@ -123,7 +129,9 @@ from cirq.ops.identity import (
 )
 
 from cirq.ops.global_phase_op import (
+    GlobalPhaseGate,
     GlobalPhaseOperation,
+    global_phase_operation,
 )
 
 from cirq.ops.kraus_channel import (
@@ -183,10 +191,6 @@ from cirq.ops.measurement_gate import (
     MeasurementGate,
 )
 
-from cirq.ops.moment import (
-    Moment,
-)
-
 from cirq.ops.named_qubit import (
     NamedQubit,
     NamedQid,
@@ -231,6 +235,7 @@ from cirq.ops.pauli_string import (
 
 from cirq.ops.pauli_string_phasor import (
     PauliStringPhasor,
+    PauliStringPhasorGate,
 )
 
 from cirq.ops.pauli_string_raw_types import (

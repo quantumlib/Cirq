@@ -1,10 +1,10 @@
-# Copyright 2020 The Cirq developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -159,8 +159,6 @@ def _setting_to_z_observable(setting: InitObsSetting):
     )
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 class BitstringAccumulator:
     """A mutable container of bitstrings and associated metadata populated
     during a `measure_observables` run.
@@ -189,6 +187,7 @@ class BitstringAccumulator:
             for the settings in `simul_settings`.
         qubit_to_index: A mapping from qubits to contiguous indices starting
             from zero. This allows us to store bitstrings as a 2d numpy array.
+        bitstrings: The bitstrings to record.
         chunksizes: This class accumulates bitstrings from potentially several
             "chunked" processor runs. Each chunk has a certain number of
             repetitions, recorded in this array. This theoretically
@@ -196,8 +195,7 @@ class BitstringAccumulator:
             arise. The total number of repetitions is the sum of this 1d array.
         timestamps: We record a timestamp for each request/chunk. This
             1d array will have the same length as `chunksizes`.
-        readout_calibration:
-            The result of `calibrate_readout_error`. When requesting
+        readout_calibration: The result of `calibrate_readout_error`. When requesting
             means and variances, if this is not `None`, we will use the
             calibrated value to correct the requested quantity. This is a
             `BitstringAccumulator` containing the results of measuring Z
@@ -318,7 +316,6 @@ class BitstringAccumulator:
             return _pack_digits(a, pack_bits='never')[0]
 
         return {
-            'cirq_type': self.__class__.__name__,
             'meas_spec': self.meas_spec,
             'simul_settings': self.simul_settings,
             'qubit_to_index': list(self.qubit_to_index.items()),
@@ -399,8 +396,6 @@ class BitstringAccumulator:
         s += '\n'.join('  ' + self.summary_string(setting) for setting in self._simul_settings)
         return s
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def covariance(self, *, atol=1e-8) -> np.ndarray:
         """Compute the covariance matrix for the estimators of all settings.
 
@@ -410,6 +405,9 @@ class BitstringAccumulator:
 
         Args:
             atol: The absolute tolerance for asserting coefficients are real.
+
+        Raises:
+            ValueError: If there are no measurements.
         """
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")
@@ -434,7 +432,6 @@ class BitstringAccumulator:
         cov = np.cov(all_obs_vals, ddof=1) / all_obs_vals.shape[1]
         return cov
 
-    # pylint: enable=missing-raises-doc
     def _validate_setting(self, setting: InitObsSetting, what: str):
         mws = _max_weight_state([self.max_setting.init_state, setting.init_state])
         mwo = _max_weight_observable([self.max_setting.observable, setting.observable])
@@ -444,8 +441,6 @@ class BitstringAccumulator:
                 f"with this BitstringAccumulator's meas_spec."
             )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def variance(self, setting: InitObsSetting, *, atol: float = 1e-8):
         """Compute the variance of the estimators of the given setting.
 
@@ -459,8 +454,11 @@ class BitstringAccumulator:
         for `np.var`.
 
         Args:
-            setting: The setting
+            setting: The initial state and observable.
             atol: The absolute tolerance for asserting coefficients are real.
+
+        Raises:
+            ValueError: If there were no measurements.
         """
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")
@@ -491,7 +489,6 @@ class BitstringAccumulator:
 
         return var
 
-    # pylint: enable=missing-raises-doc
     def stderr(self, setting: InitObsSetting, *, atol: float = 1e-8):
         """The standard error of the estimators for `setting`."""
         return np.sqrt(self.variance(setting, atol=atol))
@@ -520,12 +517,10 @@ class BitstringAccumulator:
         return mean
 
 
-# pylint: enable=missing-param-doc
 def flatten_grouped_results(
     grouped_results: List[BitstringAccumulator],
 ) -> List[ObservableMeasuredResult]:
-    """Flatten results from a collection of BitstringAccumulators into a list
-    of ObservableMeasuredResult.
+    """Flatten a collection of BitstringAccumulators into a list of ObservableMeasuredResult.
 
     Raw results are contained in BitstringAccumulator which contains
     structure related to how the observables were measured (i.e. their

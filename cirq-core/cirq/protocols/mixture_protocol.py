@@ -24,7 +24,7 @@ from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = ((0.0, []),)  # type: Sequence[Tuple[float, Any]]
+RaiseTypeErrorIfNotProvided: Sequence[Tuple[float, Any]] = ((0.0, []),)
 
 
 class SupportsMixture(Protocol):
@@ -60,8 +60,6 @@ class SupportsMixture(Protocol):
         """
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def mixture(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
 ) -> Sequence[Tuple[float, np.ndarray]]:
@@ -82,6 +80,10 @@ def mixture(
         An iterable of tuples of size 2. The first element of the tuple is a
         probability (between 0 and 1) and the second is the object that occurs
         with that probability in the mixture. The probabilities will sum to 1.0.
+
+    Raises:
+        TypeError: If `val` has no `_mixture_` or `_unitary_` mehod, or if it
+            does and this method returned `NotImplemented`.
     """
 
     mixture_getter = getattr(val, '_mixture_', None)
@@ -106,7 +108,6 @@ def mixture(
     )
 
 
-# pylint: enable=missing-raises-doc
 def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     """Returns whether the value has a mixture representation.
 
@@ -157,7 +158,7 @@ def validate_mixture(supports_mixture: SupportsMixture):
 
     total = 0.0
     for p, val in mixture_tuple:
-        validate_probability(p, '{}\'s probability'.format(str(val)))
+        validate_probability(p, f"{val}'s probability")
         total += p
     if not np.isclose(total, 1.0):
         raise ValueError('Sum of probabilities of a mixture was not 1.0')

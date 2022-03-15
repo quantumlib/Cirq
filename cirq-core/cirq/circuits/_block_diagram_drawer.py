@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import collections
 
@@ -157,10 +157,10 @@ class Block:
 class BlockDiagramDrawer:
     """Aligns text and curve data placed onto an abstract 2d grid of blocks."""
 
-    def __init__(self):
-        self._blocks = collections.defaultdict(Block)  # type: Dict[Tuple[int, int], Block]
-        self._min_widths = collections.defaultdict(lambda: 0)  # type: Dict[int, int]
-        self._min_heights = collections.defaultdict(lambda: 0)  # type: Dict[int, int]
+    def __init__(self) -> None:
+        self._blocks: Dict[Tuple[int, int], Block] = collections.defaultdict(Block)
+        self._min_widths: Dict[int, int] = collections.defaultdict(lambda: 0)
+        self._min_heights: Dict[int, int] = collections.defaultdict(lambda: 0)
 
         # Populate the origin.
         _ = self._blocks[(0, 0)]
@@ -253,10 +253,10 @@ class BlockDiagramDrawer:
         }
 
         # Paste together all of the rows of rendered block content.
-        out_lines = []  # type: List[str]
+        out_lines: List[str] = []
         for y in range(block_span_y):
             for by in range(heights[y]):
-                out_line_chunks = []  # type: List[str]
+                out_line_chunks: List[str] = []
                 for x in range(block_span_x):
                     out_line_chunks.extend(block_renders[x, y][by])
                 out_lines.append(''.join(out_line_chunks).rstrip())

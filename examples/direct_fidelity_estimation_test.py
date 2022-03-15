@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import numpy as np
 import pytest
 import cirq
@@ -107,7 +108,7 @@ def test_same_pauli_traces_clifford():
             def noisy_moment(self, moment, system_qubits):
                 return [
                     moment,
-                    cirq.ops.Moment(
+                    cirq.Moment(
                         [
                             self.qubit_noise_gate(q).with_tags(cirq.ops.VirtualTag())
                             for q in system_qubits[-1:]
