@@ -804,3 +804,39 @@ def test_phased_fsim_json_dict():
         'gamma': 0.78,
         'phi': 0.9,
     }
+
+
+def test_setters_deprecated():
+    gate = cirq.FSimGate(0.1, 0.1)
+    assert gate.theta == 0.1
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.theta = 0.2
+        assert gate.theta == 0.2
+    assert gate.phi == 0.1
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.phi = 0.2
+        assert gate.phi == 0.2
+
+
+def test_phased_setters_deprecated():
+    gate = cirq.PhasedFSimGate(0.1, 0.1, 0.1, 0.1, 0.1)
+    assert gate.theta == 0.1
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.theta = 0.2
+        assert gate.theta == 0.2
+    assert gate.zeta == 0.1
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.zeta = 0.2
+        assert gate.zeta == 0.2
+    assert gate.chi == 0.1
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.chi = 0.2
+        assert gate.chi == 0.2
+    assert gate.gamma == 0.1
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.gamma = 0.2
+        assert gate.gamma == 0.2
+    assert gate.phi == 0.1
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.phi = 0.2
+        assert gate.phi == 0.2

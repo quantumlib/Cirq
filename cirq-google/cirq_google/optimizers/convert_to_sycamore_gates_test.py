@@ -27,9 +27,11 @@ def test_convert_to_sycamore_gates_swap_zz():
     )
 
     compiled_circuit1 = circuit1.copy()
-    cgoc.ConvertToSycamoreGates()(compiled_circuit1)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSycamoreGates()(compiled_circuit1)
     compiled_circuit2 = circuit2.copy()
-    cgoc.ConvertToSycamoreGates()(compiled_circuit2)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSycamoreGates()(compiled_circuit2)
 
     cirq.testing.assert_same_circuits(compiled_circuit1, compiled_circuit2)
     assert (
@@ -45,7 +47,8 @@ def test_convert_to_sycamore_gates_fsim():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1))
     compiled_circuit = circuit.copy()
-    cgoc.ConvertToSycamoreGates()(compiled_circuit)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSycamoreGates()(compiled_circuit)
 
     cirq.testing.assert_same_circuits(circuit, compiled_circuit)
 
@@ -56,7 +59,8 @@ def test_single_qubit_gate():
     gate = cirq.MatrixGate(mat, qid_shape=(2,))
     circuit = cirq.Circuit(gate(q))
     converted_circuit = circuit.copy()
-    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
     ops = list(converted_circuit.all_operations())
     assert len(ops) == 1
     assert isinstance(ops[0].gate, cirq.PhasedXZGate)
@@ -70,7 +74,8 @@ def test_single_qubit_gate_phased_xz():
     gate = cirq.PhasedXZGate(axis_phase_exponent=0.2, x_exponent=0.3, z_exponent=0.4)
     circuit = cirq.Circuit(gate(q))
     converted_circuit = circuit.copy()
-    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
     ops = list(converted_circuit.all_operations())
     assert len(ops) == 1
     assert ops[0].gate == gate
@@ -80,10 +85,12 @@ def test_circuit_operation_inspection():
     q0, q1 = cirq.LineQubit.range(2)
     gate = cirq.PhasedXZGate(axis_phase_exponent=0.2, x_exponent=0.3, z_exponent=0.4)
     cop = cirq.CircuitOperation(cirq.FrozenCircuit(gate(q0)))
-    assert cgoc.ConvertToSycamoreGates()._is_native_sycamore_op(cop)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        assert cgoc.ConvertToSycamoreGates()._is_native_sycamore_op(cop)
 
     cop2 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.SWAP(q0, q1)))
-    assert not cgoc.ConvertToSycamoreGates()._is_native_sycamore_op(cop2)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        assert not cgoc.ConvertToSycamoreGates()._is_native_sycamore_op(cop2)
 
 
 def test_circuit_operation_conversion():
@@ -91,13 +98,15 @@ def test_circuit_operation_conversion():
     subcircuit = cirq.FrozenCircuit(cirq.X(q0), cirq.SWAP(q0, q1))
     circuit = cirq.Circuit(cirq.CircuitOperation(subcircuit))
     converted_circuit = circuit.copy()
-    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
     # Verify that the CircuitOperation was preserved.
     ops = list(converted_circuit.all_operations())
     assert isinstance(ops[0], cirq.CircuitOperation)
     # Verify that the contents of the CircuitOperation were optimized.
     reconverted_subcircuit = ops[0].circuit.unfreeze().copy()
-    cgoc.ConvertToSycamoreGates().optimize_circuit(reconverted_subcircuit)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(reconverted_subcircuit)
     assert ops[0].circuit == reconverted_subcircuit
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         circuit, converted_circuit, atol=1e-8
@@ -111,7 +120,10 @@ def test_unsupported_gate():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(UnknownGate()(q0, q1))
     with pytest.raises(TypeError, match='gate with a known unitary'):
-        cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0'
+        ):
+            cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
 
 
 def test_nested_unsupported_gate():
@@ -123,7 +135,10 @@ def test_nested_unsupported_gate():
     subcircuit = cirq.FrozenCircuit(UnknownGate()(q0, q1))
     circuit = cirq.Circuit(cirq.CircuitOperation(subcircuit))
     with pytest.raises(TypeError, match='gate with a known unitary'):
-        cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0'
+        ):
+            cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
 
 
 def test_unsupported_phased_iswap():
@@ -133,7 +148,8 @@ def test_unsupported_phased_iswap():
     q1 = cirq.LineQubit(1)
     circuit = cirq.Circuit(cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=0.33)(q0, q1))
     converted_circuit = circuit.copy()
-    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         circuit, converted_circuit, atol=1e-8
     )
@@ -155,7 +171,8 @@ def test_non_gate_operation():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(UnknownOperation([q0]))
     converted_circuit = circuit.copy()
-    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
     assert circuit == converted_circuit
 
 
@@ -168,7 +185,10 @@ def test_three_qubit_gate():
     q2 = cirq.LineQubit(2)
     circuit = cirq.Circuit(ThreeQubitGate()(q0, q1, q2))
     with pytest.raises(TypeError):
-        cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0'
+        ):
+            cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
 
 
 def random_single_qubit_unitary():
@@ -199,7 +219,10 @@ def test_zztheta_qaoa_like():
             ]
         )
         syc_circuit = cirq_circuit.copy()
-        cgoc.ConvertToSycamoreGates().optimize_circuit(syc_circuit)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0'
+        ):
+            cgoc.ConvertToSycamoreGates().optimize_circuit(syc_circuit)
 
         cirq.testing.assert_allclose_up_to_global_phase(
             cirq.unitary(cirq_circuit), cirq.unitary(syc_circuit), atol=1e-7
@@ -214,7 +237,8 @@ def test_zztheta_zzpow_unsorted_qubits():
         cirq.ZZPowGate(exponent=exponent, global_shift=-0.5).on(qubits[0], qubits[1]),
     )
     actual_circuit = expected_circuit.copy()
-    cgoc.ConvertToSycamoreGates().optimize_circuit(actual_circuit)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(actual_circuit)
 
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(expected_circuit), cirq.unitary(actual_circuit), atol=1e-7
@@ -231,7 +255,10 @@ def test_swap_zztheta():
         )
         expected_unitary = cirq.unitary(expected_circuit)
         actual_circuit = expected_circuit.copy()
-        cgoc.ConvertToSycamoreGates().optimize_circuit(actual_circuit)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0'
+        ):
+            cgoc.ConvertToSycamoreGates().optimize_circuit(actual_circuit)
         actual_unitary = cirq.unitary(actual_circuit)
         cirq.testing.assert_allclose_up_to_global_phase(actual_unitary, expected_unitary, atol=1e-7)
 
@@ -239,7 +266,8 @@ def test_swap_zztheta():
 def test_known_two_q_operations_to_sycamore_operations_cnot():
     a, b = cirq.LineQubit.range(2)
     op = cirq.CNOT(a, b)
-    decomposed = cirq.Circuit(cgoc.ConvertToSycamoreGates().convert(op))
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        decomposed = cirq.Circuit(cgoc.ConvertToSycamoreGates().convert(op))
 
     # Should be equivalent.
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -271,7 +299,8 @@ def test_known_two_q_operations_to_sycamore_operations_cnot():
 def test_convert_to_sycamore_equivalent_unitaries(gate):
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     operation = gate.on(qubits[0], qubits[1])
-    converted = cgoc.ConvertToSycamoreGates().convert(operation)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        converted = cgoc.ConvertToSycamoreGates().convert(operation)
     u1 = cirq.unitary(cirq.Circuit(converted))
     u2 = cirq.unitary(operation)
     cirq.testing.assert_allclose_up_to_global_phase(u1, u2, atol=1e-8)
@@ -284,7 +313,8 @@ def test_convert_to_sycamore_tabulation():
     )
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     operation = cirq.MatrixGate(cirq.unitary(cirq.CX), qid_shape=(2, 2)).on(qubits[0], qubits[1])
-    converted = cgoc.ConvertToSycamoreGates(sycamore_tabulation).convert(operation)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        converted = cgoc.ConvertToSycamoreGates(sycamore_tabulation).convert(operation)
     u1 = cirq.unitary(cirq.Circuit(converted))
     u2 = cirq.unitary(operation)
     overlap = abs(np.trace(u1.conj().T @ u2))
@@ -295,7 +325,10 @@ def test_sycamore_invalid_tabulation():
     # An object other than a tabulation.
     sycamore_tabulation = {}
     with pytest.raises(ValueError):
-        cgoc.ConvertToSycamoreGates(sycamore_tabulation)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0'
+        ):
+            cgoc.ConvertToSycamoreGates(sycamore_tabulation)
 
 
 q = cirq.GridQubit.rect(1, 3)
@@ -315,4 +348,7 @@ matrix_gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
 )
 def test_supported_operation(op, is_valid):
     c = cirq.Circuit(op)
-    assert (cirq_google.ConvertToSycamoreGates().optimization_at(c, 0, op) is not None) == is_valid
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        assert (
+            cirq_google.ConvertToSycamoreGates().optimization_at(c, 0, op) is not None
+        ) == is_valid

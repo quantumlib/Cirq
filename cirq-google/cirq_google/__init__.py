@@ -109,6 +109,7 @@ from cirq_google.optimizers import (
 from cirq_google.transformers import (
     known_2q_op_to_sycamore_operations,
     two_qubit_matrix_to_sycamore_operations,
+    SycamoreTargetGateset,
 )
 
 from cirq_google.serialization import (
