@@ -21,6 +21,10 @@ from cirq_google.ops import SycamoreGate
 from cirq_google.transformers.analytical_decompositions import two_qubit_to_sycamore
 
 
+@cirq._compat.deprecated_class(
+    deadline='v1.0',
+    fix='Use cirq.optimize_for_target_gateset and cirq_google.SycamoreTargetGateset instead.',
+)
 class ConvertToSycamoreGates(cirq.PointOptimizer):
     """Attempts to convert non-native gates into SycamoreGates.
 
