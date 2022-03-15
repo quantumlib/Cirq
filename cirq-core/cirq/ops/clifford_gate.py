@@ -724,7 +724,10 @@ class SingleQubitCliffordGate(CliffordGate):
     def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
         if exponent == 0.5 or exponent == -0.5:
             return self._get_sqrt_map()[exponent][self]
-        return super().__pow__(exponent)
+        ret_gate = super().__pow__(exponent)
+        if ret_gate is NotImplemented:
+            return NotImplemented
+        return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
 
     def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType]:
         if isinstance(other, SingleQubitCliffordGate):
