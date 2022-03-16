@@ -533,9 +533,7 @@ def test_simulate_ignore_measurements(split: bool):
 @pytest.mark.parametrize('split', [True, False])
 def test_simulate_ignore_measurements_subcircuits(split: bool):
     q0 = cirq.LineQubit(0)
-    with cirq.testing.assert_deprecated(
-        'ignore_measurement_results', deadline='v0.15', count=6 if split else 4
-    ):
+    with cirq.testing.assert_deprecated('ignore_measurement_results', deadline='v0.15', count=None):
         simulator = cirq.DensityMatrixSimulator(
             split_untangled_states=split, ignore_measurement_results=True
         )

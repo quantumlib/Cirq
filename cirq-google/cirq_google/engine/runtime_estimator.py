@@ -82,7 +82,12 @@ def _rep_time(width: int, depth: int, sweeps: int, reps: int) -> float:
     rep_rate = 24000 / (0.9 + width / 38) / (0.9 + depth / 5000)
     if sweeps > 1:
         rep_rate *= 0.72
-        rep_rate *= 1 - (width - 25) / 40
+
+        # Ensure rep rate never drops below zero.
+        if width < 55:
+            rep_rate *= 1 - (width - 25) / 40
+        else:
+            rep_rate *= 0.25
     return total_reps / rep_rate
 
 

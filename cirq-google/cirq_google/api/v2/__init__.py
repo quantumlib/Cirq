@@ -41,6 +41,8 @@ from cirq_google.api.v2.results import (
 )
 
 from cirq_google.api.v2.sweeps import (
+    batch_run_context_to_proto,
+    run_context_to_proto,
     sweep_from_proto,
     sweep_to_proto,
 )
