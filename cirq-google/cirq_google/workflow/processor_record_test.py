@@ -38,14 +38,10 @@ def _set_get_processor_return(get_processor):
     from google.protobuf.text_format import Merge
 
     from cirq_google.api import v2
+    from cirq_google.engine import util
     from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
 
-    def _to_any(proto):
-        any_proto = qtypes.any_pb2.Any()
-        any_proto.Pack(proto)
-        return any_proto
-
-    device_spec = _to_any(
+    device_spec = util.pack_any(
         Merge(
             """
 valid_gate_sets: [{
@@ -86,6 +82,7 @@ def test_engine_backend(get_processor, _):
         assert isinstance(proc_rec.get_sampler(), cirq.Sampler)
         assert isinstance(proc_rec.get_device(), cirq.Device)
     cirq.testing.assert_equivalent_repr(proc_rec, global_vals={'cirq_google': cg})
+    assert str(proc_rec) == 'rainbow'
 
 
 @mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
@@ -121,12 +118,18 @@ def test_simulated_backend_with_bad_local_device():
 def test_simulated_backend_descriptive_name():
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
     assert str(p) == 'rainbow-simulator'
-    assert isinstance(p.get_sampler(), cirq.Simulator)
+    assert isinstance(p.get_sampler(), cg.ValidatingSampler)
+    assert isinstance(p.get_sampler()._sampler, cirq.Simulator)
 
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=1e-3)
-    assert str(p) == 'rainbow-p=1.000e-03'
-    assert isinstance(p.get_sampler(), cirq.DensityMatrixSimulator)
+    assert str(p) == 'rainbow-depol(1.000e-03)'
+    assert isinstance(p.get_sampler()._sampler, cirq.DensityMatrixSimulator)
 
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=float('inf'))
     assert str(p) == 'rainbow-zeros'
-    assert isinstance(p.get_sampler(), cirq.ZerosSampler)
+    assert isinstance(p.get_sampler()._sampler, cirq.ZerosSampler)
+
+
+def test_sampler_equality():
+    p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
+    assert p.get_sampler().__class__ == p.get_processor().get_sampler().__class__

@@ -96,6 +96,7 @@ from cirq.devices import (
     NoiseModelFromNoiseProperties,
     NoiseProperties,
     OpIdentifier,
+    SuperconductingQubitsNoiseProperties,
     SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
     NamedTopology,
@@ -196,6 +197,7 @@ from cirq.ops import (
     bit_flip,
     BitFlipChannel,
     BooleanHamiltonian,
+    BooleanHamiltonianGate,
     CCX,
     CCXPowGate,
     CCZ,
@@ -203,6 +205,7 @@ from cirq.ops import (
     CCNOT,
     CCNotPowGate,
     ClassicallyControlledOperation,
+    CliffordGate,
     CNOT,
     CNotPowGate,
     ControlledGate,
@@ -355,6 +358,8 @@ from cirq.optimizers import (
 from cirq.transformers import (
     align_left,
     align_right,
+    CompilationTargetGateset,
+    CZTargetGateset,
     compute_cphase_exponents_for_fsim_decomposition,
     decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
@@ -380,8 +385,11 @@ from cirq.transformers import (
     merge_single_qubit_gates_to_phased_x_and_z,
     merge_single_qubit_gates_to_phxz,
     merge_single_qubit_moments_to_phxz,
+    optimize_for_target_gateset,
+    parameterized_2q_op_to_sqrt_iswap_operations,
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
+    SqrtIswapTargetGateset,
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
@@ -394,10 +402,13 @@ from cirq.transformers import (
     TransformerLogger,
     three_qubit_matrix_to_operations,
     transformer,
+    two_qubit_matrix_to_cz_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations,
     two_qubit_matrix_to_diagonal_and_operations,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
     two_qubit_gate_product_tabulation,
+    TwoQubitCompilationTargetGateset,
     TwoQubitGateTabulation,
     TwoQubitGateTabulationResult,
     toggle_tags,
@@ -704,7 +715,7 @@ from cirq import (
     contrib,
 )
 
-# deprecate cirq.ops.moment and related attributes
+# deprecate cirq.ops and related attributes
 
 from cirq import _compat
 

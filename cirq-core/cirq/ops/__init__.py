@@ -19,6 +19,7 @@ from cirq.ops.arithmetic_operation import (
 )
 
 from cirq.ops.clifford_gate import (
+    CliffordGate,
     PauliTransform,
     SingleQubitCliffordGate,
 )
@@ -31,6 +32,7 @@ from cirq.ops.dense_pauli_string import (
 
 from cirq.ops.boolean_hamiltonian import (
     BooleanHamiltonian,
+    BooleanHamiltonianGate,
 )
 
 from cirq.ops.common_channels import (

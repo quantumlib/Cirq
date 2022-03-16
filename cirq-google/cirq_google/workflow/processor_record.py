@@ -70,6 +70,9 @@ class EngineProcessorRecord(ProcessorRecord):
     def __repr__(self):
         return dataclass_repr(self, namespace='cirq_google')
 
+    def __str__(self) -> str:
+        return self.processor_id
+
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
@@ -98,19 +101,21 @@ class SimulatedProcessorRecord(ProcessorRecord):
         """Return a `cg.SimulatedLocalProcessor` for the specified processor_id."""
         return cg.engine.SimulatedLocalProcessor(
             processor_id=self.processor_id,
-            sampler=self.get_sampler(),
-            device=self.get_device(),
+            sampler=self._get_input_sampler(),
+            device=self._get_input_device(),
         )
 
-    def get_device(self) -> 'cirq.Device':
+    def _get_input_device(self) -> 'cirq.Device':
         """Return a `cg.SerializableDevice` for the specified processor_id.
 
         This method presumes the GOOGLE_CLOUD_PROJECT environment
         variable is set to establish a connection to the cloud service.
+
+        This function is used to initialize this class's `processor`.
         """
         return cg.get_engine_device(self.processor_id)
 
-    def get_sampler(
+    def _get_input_sampler(
         self,
     ) -> 'cirq.Sampler':
         """Return a local `cirq.Sampler` based on the `noise_strength` attribute.
@@ -119,6 +124,8 @@ class SimulatedProcessorRecord(ProcessorRecord):
         If it's set to `float('inf')` the simulator will be `cirq.ZerosSampler`.
         Otherwise, we return a density matrix simulator with a depolarizing model with
         `noise_strength` probability of noise.
+
+        This function is used to initialize this class's `processor`.
         """
         if self.noise_strength == 0:
             return cirq.Simulator()
@@ -143,7 +150,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
         elif self.noise_strength == float('inf'):
             suffix = 'zeros'
         else:
-            suffix = f'p={self.noise_strength:.3e}'
+            suffix = f'depol({self.noise_strength:.3e})'
         return f'{self.processor_id}-{suffix}'
 
     def __repr__(self) -> str:
@@ -162,7 +169,7 @@ class SimulatedProcessorWithLocalDeviceRecord(SimulatedProcessorRecord):
             a depolarizing model with this probability of noise.
     """
 
-    def get_device(self) -> 'cirq.Device':
+    def _get_input_device(self) -> 'cirq.Device':
         """Return a `cg.SerializableDevice` for the specified processor_id.
 
         Only 'rainbow' and 'weber' are recognized processor_ids and the device information
