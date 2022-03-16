@@ -13,7 +13,7 @@
 # limitations under the License.
 import abc
 from dataclasses import dataclass
-from typing import Optional, Sequence, Union, Tuple, List, Type, cast, TYPE_CHECKING, Any
+from typing import Optional, Sequence, Union, Tuple, List, Type, cast, TYPE_CHECKING, Any, Dict
 
 import itertools
 
@@ -176,6 +176,12 @@ class ControlValues(abc.ABC):
     @abc.abstractmethod
     def factory(val) -> 'ControlValues':
         """Builds a ControlValue from values."""
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            '_combinations': self._combinations,
+            '_nxt': self._nxt._json_dict_() if self._nxt else None,
+        }
 
 
 @ControlValues.register

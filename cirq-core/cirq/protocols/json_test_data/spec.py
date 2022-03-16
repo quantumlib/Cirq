@@ -178,6 +178,7 @@ TestSpec = ModuleJsonTestSpec(
         'StabilizerSampler',
         'Unique',
         'DEFAULT_RESOLVERS',
+        'ControlValuesBuilder',
     ],
     deprecated={},
     tested_elsewhere=[

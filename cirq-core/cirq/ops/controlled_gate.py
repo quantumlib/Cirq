@@ -79,7 +79,6 @@ class ControlledGate(raw_types.Gate):
             raise ValueError('len(control_qid_shape) != num_controls')
         self.control_qid_shape = tuple(control_qid_shape)
 
-        print('building from', control_values)
         self.control_values = cv.ControlValuesBuilder().append(control_values).build()
 
         # Verify control values not out of bounds

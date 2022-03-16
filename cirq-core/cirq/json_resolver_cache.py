@@ -108,6 +108,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'MeasurementGate': cirq.MeasurementGate,
         '_MeasurementSpec': cirq.work._MeasurementSpec,
         'Moment': cirq.Moment,
+        'SimpleControlValues': cirq.SimpleControlValues,
+        'ConstrainedValues': cirq.ConstrainedValues,
         '_XEigenState': cirq.value.product_state._XEigenState,  # type: ignore
         '_YEigenState': cirq.value.product_state._YEigenState,  # type: ignore
         '_ZEigenState': cirq.value.product_state._ZEigenState,  # type: ignore
