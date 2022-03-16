@@ -47,3 +47,20 @@ def assert_decompose_is_consistent_with_unitary(val: Any, ignoring_global_phase:
     else:
         # coverage: ignore
         np.testing.assert_allclose(actual, expected, atol=1e-8)
+
+
+def _known_gate_with_no_decomposition(val: Any):
+    """Checks whether `val` is a known gate with no default decomposition to default gateset."""
+    return False
+
+
+def assert_decompose_ends_at_default_gateset(val: Any):
+    """Asserts that cirq.decompose(val) ends at default cirq gateset or a known gate."""
+    if _known_gate_with_no_decomposition(val):
+        return  # coverage: ignore
+    args = () if isinstance(val, ops.Operation) else (tuple(devices.LineQid.for_gate(val)),)
+    dec_once = protocols.decompose_once(val, [val(*args[0]) if args else val], *args)
+    for op in [*ops.flatten_to_ops(protocols.decompose(d) for d in dec_once)]:
+        assert _known_gate_with_no_decomposition(op.gate) or (
+            op in protocols.decompose_protocol.DECOMPOSE_TARGET_GATESET
+        ), f'{val} decomposed to {op}, which is not part of default cirq target gateset.'
