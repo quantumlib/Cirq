@@ -49,7 +49,7 @@ def assert_decompose_is_consistent_with_unitary(val: Any, ignoring_global_phase:
         np.testing.assert_allclose(actual, expected, atol=1e-8)
 
 
-def _known_gate_with_no_decomposition(val: 'cirq.Gate'):
+def _known_gate_with_no_decomposition(val: Any):
     """Checks whether `val` is a known gate with no default decomposition to default gateset."""
     return False
 
