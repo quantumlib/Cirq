@@ -470,7 +470,6 @@ def test_two_qubit_diagonal_gate_quil_output():
     ]
     output = cirq.QuilOutput(operations, (q0, q1))
     program = pyquil.Program(str(output))
-    print(program.out())
     assert f"\n{program.out()}" == QUIL_DIAGONAL_DECOMPOSE_PROGRAM
 
 
