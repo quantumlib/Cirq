@@ -74,9 +74,6 @@ class GateDecomposeNotImplemented(cirq.SingleQubitGate):
 
 
 class ParameterizedGate(cirq.SingleQubitGate):
-    def _is_parameterized_(self):
-        return True
-
     def _num_qubits_(self):
         return 2
 

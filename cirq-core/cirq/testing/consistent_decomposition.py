@@ -57,7 +57,7 @@ def _known_gate_with_no_decomposition(val: Any):
 def assert_decompose_ends_at_default_gateset(val: Any):
     """Asserts that cirq.decompose(val) ends at default cirq gateset or a known gate."""
     if _known_gate_with_no_decomposition(val):
-        return
+        return  # coverage: ignore
     args = () if isinstance(val, ops.Operation) else (tuple(devices.LineQid.for_gate(val)),)
     dec_once = protocols.decompose_once(val, [val(*args[0]) if args else val], *args)
     for op in [*ops.flatten_to_ops(protocols.decompose(d) for d in dec_once)]:
