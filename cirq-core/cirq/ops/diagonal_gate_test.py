@@ -77,13 +77,24 @@ def test_decomposition_diagonal_exponent(n):
     np.testing.assert_allclose(decomposed_f, expected_f)
 
 
-def test_decomposition_with_parameterization():
-    diagonal_gate = cirq.DiagonalGate([2, 3, 5, sympy.Symbol('a')])
-    op = diagonal_gate(*cirq.LineQubit.range(2))
-
-    # We do not support the decomposition of parameterized case yet.
-    # So cirq.decompose should do nothing.
-    assert cirq.decompose(op) == [op]
+@pytest.mark.parametrize('n', [1, 2, 3, 4])
+def test_decomposition_with_parameterization(n):
+    angles = sympy.symbols([f'x_{i}' for i in range(2 ** n)])
+    exponent = sympy.Symbol('e')
+    diagonal_gate = cirq.DiagonalGate(angles) ** exponent
+    parameterized_op = diagonal_gate(*cirq.LineQubit.range(n))
+    decomposed_circuit = cirq.Circuit(cirq.decompose(parameterized_op))
+    for exponent_value in [-0.5, 0.5, 1]:
+        for i in range(len(_candidate_angles) - 2 ** n + 1):
+            resolver = {exponent: exponent_value}
+            resolver.update(
+                {angles[j]: x_j for j, x_j in enumerate(_candidate_angles[i : i + 2 ** n])}
+            )
+            resolved_op = cirq.resolve_parameters(parameterized_op, resolver)
+            resolved_circuit = cirq.resolve_parameters(decomposed_circuit, resolver)
+            cirq.testing.assert_allclose_up_to_global_phase(
+                cirq.unitary(resolved_op), cirq.unitary(resolved_circuit), atol=1e-8
+            )
 
 
 def test_diagram():

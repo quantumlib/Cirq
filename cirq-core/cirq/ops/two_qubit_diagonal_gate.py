@@ -23,7 +23,7 @@ import sympy
 
 from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import raw_types
+from cirq.ops import raw_types, common_gates
 
 if TYPE_CHECKING:
     import cirq
@@ -71,6 +71,16 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         if self._is_parameterized_():
             return None
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])
+
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+        x0, x1, x2, x3 = self._diag_angles_radians
+        q0, q1 = qubits
+        yield common_gates.ZPowGate(exponent=x2 / np.pi).on(q0)
+        yield common_gates.ZPowGate(exponent=x1 / np.pi).on(q1)
+        yield common_gates.CZPowGate(exponent=(x3 - (x1 + x2)) / np.pi).on(q0, q1)
+        yield common_gates.XPowGate().on_each(q0, q1)
+        yield common_gates.CZPowGate(exponent=x0 / np.pi).on(q0, q1)
+        yield common_gates.XPowGate().on_each(q0, q1)
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         if self._is_parameterized_():
