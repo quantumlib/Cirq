@@ -75,13 +75,23 @@ class QubitPermutationGate(raw_types.Gate):
         return True
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        qubit_ids = [*range(len(qubits))]
-        for i in range(len(qubits)):
-            q_i = qubit_ids.index(self._permutation.index(i))
-            for j in range(q_i, i, -1):
-                yield swap_gates.SWAP(qubits[j], qubits[j - 1])
-                qubit_ids[j], qubit_ids[j - 1] = qubit_ids[j - 1], qubit_ids[j]
-            assert self._permutation[qubit_ids[i]] == i
+        n = len(qubits)
+        qubit_ids = [*range(n)]
+        is_sorted = False
+
+        def _swap_if_out_of_order(idx: int) -> bool:
+            nonlocal is_sorted
+            if self._permutation[qubit_ids[idx]] > self._permutation[qubit_ids[idx + 1]]:
+                yield swap_gates.SWAP(qubits[idx], qubits[idx + 1])
+                qubit_ids[idx + 1], qubit_ids[idx] = qubit_ids[idx], qubit_ids[idx + 1]
+                is_sorted = False
+
+        while not is_sorted:
+            is_sorted = True
+            for i in range(0, n - 1, 2):
+                yield from _swap_if_out_of_order(i)
+            for i in range(1, n - 1, 2):
+                yield from _swap_if_out_of_order(i)
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         # Compute the permutation index list.
