@@ -185,11 +185,9 @@ class DiagonalGate(raw_types.Gate):
         # we add global phase.
         # Global phase is ignored for parameterized gates as `cirq.GlobalPhaseGate` expects a
         # scalar value.
-        decomposed_circ: List[Any] = (
-            [global_phase_op.global_phase_operation(np.exp(1j * hat_angles[0]))]
-            if not protocols.is_parameterized(hat_angles[0])
-            else []
-        )
+        decomposed_circ = [
+            global_phase_op.global_phase_operation(1j ** (2 * hat_angles[0] / np.pi))
+        ]
         for i, bit_flip in _gen_gray_code(n):
             decomposed_circ.extend(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))
         return decomposed_circ
