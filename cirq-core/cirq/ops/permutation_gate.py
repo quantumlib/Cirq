@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._compat import deprecated
@@ -79,7 +79,7 @@ class QubitPermutationGate(raw_types.Gate):
         qubit_ids = [*range(n)]
         is_sorted = False
 
-        def _swap_if_out_of_order(idx: int) -> bool:
+        def _swap_if_out_of_order(idx: int) -> Iterable['cirq.Operation']:
             nonlocal is_sorted
             if self._permutation[qubit_ids[idx]] > self._permutation[qubit_ids[idx + 1]]:
                 yield swap_gates.SWAP(qubits[idx], qubits[idx + 1])
