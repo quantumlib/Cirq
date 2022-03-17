@@ -303,14 +303,6 @@ def some_method(a: int, b: str) -> float:
     """
 ```
 
-The docs folder is used to automatically generate the documentation on our website at [quantumai.google/cirq](https://quantumai.google/cirq) from the `master` branch. You can also generate a local copy by running:
-
-```bash
-dev_tools/docs/build-rtd-docs.sh
-```
-
-The HTML output will go into the `dev_tools/rtd_docs/sphinx/_build` directory.
-
 ## Dependencies 
 
 ### Production dependencies 
