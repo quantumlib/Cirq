@@ -46,12 +46,12 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
-        result[zero] = args.target_tensor[zero] * 2 + args.target_tensor[one] * 3
-        result[one] = args.target_tensor[zero] * 5 + args.target_tensor[one] * 7
+        result[zero] = (args.target_tensor[zero] + args.target_tensor[one]) * np.sqrt(0.5)
+        result[one] = (args.target_tensor[zero] - args.target_tensor[one]) * np.sqrt(0.5)
         return result
 
     def _unitary_(self):
-        return np.array([[2, 3], [5, 7]])
+        return np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 
     def __eq__(self, other):
         return isinstance(other, type(self))
@@ -316,28 +316,42 @@ def test_unitary():
 
 
 @pytest.mark.parametrize(
-    'gate',
+    'gate, should_decompose_to_target',
     [
-        cirq.X,
-        cirq.X ** 0.5,
-        cirq.rx(np.pi),
-        cirq.rx(np.pi / 2),
-        cirq.Z,
-        cirq.H,
-        cirq.CNOT,
-        cirq.SWAP,
-        cirq.CCZ,
-        cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)),
-        GateUsingWorkspaceForApplyUnitary(),
-        GateAllocatingNewSpaceForResult(),
-        cirq.IdentityGate(qid_shape=(3, 4)),
+        (cirq.X, True),
+        (cirq.X ** 0.5, True),
+        (cirq.rx(np.pi), True),
+        (cirq.rx(np.pi / 2), True),
+        (cirq.Z, True),
+        (cirq.H, True),
+        (cirq.CNOT, True),
+        (cirq.SWAP, True),
+        (cirq.CCZ, True),
+        (cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)), True),
+        (GateUsingWorkspaceForApplyUnitary(), True),
+        (GateAllocatingNewSpaceForResult(), True),
+        (cirq.IdentityGate(qid_shape=(3, 4)), True),
+        (
+            cirq.ControlledGate(
+                cirq.XXPowGate(exponent=0.25, global_shift=-0.5),
+                num_controls=2,
+                control_values=(1, (1, 0)),
+            ),
+            True,
+        ),
         # Single qudit gate with dimension 4.
-        cirq.MatrixGate(np.kron(*(cirq.unitary(cirq.H),) * 2)),
+        (cirq.MatrixGate(np.kron(*(cirq.unitary(cirq.H),) * 2), qid_shape=(4,)), False),
+        (cirq.MatrixGate(cirq.testing.random_unitary(4, random_state=1234)), False),
+        (cirq.XX ** sympy.Symbol("s"), True),
+        (cirq.CZ ** sympy.Symbol("s"), True),
     ],
 )
-def test_controlled_gate_is_consistent(gate: cirq.Gate):
+def test_controlled_gate_is_consistent(gate: cirq.Gate, should_decompose_to_target):
     cgate = cirq.ControlledGate(gate)
     cirq.testing.assert_implements_consistent_protocols(cgate)
+    cirq.testing.assert_decompose_ends_at_default_gateset(
+        cgate, ignore_known_gates=not should_decompose_to_target
+    )
 
 
 def test_pow_inverse():
