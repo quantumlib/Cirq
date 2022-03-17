@@ -18,7 +18,7 @@ The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -66,7 +66,7 @@ def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
 class DiagonalGate(raw_types.Gate):
     """A gate given by a diagonal (2^n)\\times(2^n) matrix."""
 
-    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
+    def __init__(self, diag_angles_radians: Sequence['cirq.TParamVal']) -> None:
         r"""A n-qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and it's on diagonal
@@ -77,7 +77,7 @@ class DiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_N)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_N})$.
         """
-        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+        self._diag_angles_radians: Tuple['cirq.TParamVal', ...] = tuple(diag_angles_radians)
 
     def _num_qubits_(self):
         return int(np.log2(len(self._diag_angles_radians)))
@@ -144,7 +144,7 @@ class DiagonalGate(raw_types.Gate):
         return tuple(self._diag_angles_radians)
 
     def _decompose_for_basis(
-        self, index: int, bit_flip: int, theta: value.TParamVal, qubits: Sequence['cirq.Qid']
+        self, index: int, bit_flip: int, theta: 'cirq.TParamVal', qubits: Sequence['cirq.Qid']
     ) -> Iterator[Union['cirq.ZPowGate', 'cirq.CXPowGate']]:
         if index == 0:
             return []
