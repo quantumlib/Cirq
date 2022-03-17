@@ -76,7 +76,7 @@ class _XmonDeviceBase(cirq.Device):
         'Please use cirq.optimize_for_target_gateset() and cirq.CZTargetGateset.',
     )
     def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
-        if self.is_supported_gate(operation.gate):
+        if operation.gate is not None and self.is_supported_gate(operation.gate):
             return operation
         return [
             cirq.optimize_for_target_gateset(
