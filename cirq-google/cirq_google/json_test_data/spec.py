@@ -22,6 +22,7 @@ TestSpec = ModuleJsonTestSpec(
         'WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'XmonDevice',
         'XMON',
+        'SycamoreTargetGateset',
     ],
     should_not_be_serialized=[
         'AnnealSequenceSearchStrategy',

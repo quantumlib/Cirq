@@ -80,9 +80,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         assert len(qubits) == 1
         q = qubits[0]
         z = cirq.Z(q) ** self._phase_exponent
-        x = cirq.X(q) ** self._exponent
-        if protocols.is_parameterized(z):
-            return NotImplemented
+        x = cirq.XPowGate(exponent=self._exponent, global_shift=self.global_shift).on(q)
         return z ** -1, x, z
 
     @property
