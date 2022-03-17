@@ -30,7 +30,7 @@ import numpy as np
 
 from cirq import protocols, qis, value
 from cirq._compat import deprecated
-from cirq.ops import raw_types, gate_operation, controlled_gate
+from cirq.ops import raw_types, gate_operation, controlled_gate, matrix_gates
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -130,11 +130,22 @@ class ControlledOperation(raw_types.Operation):
         )
 
     def _decompose_(self):
+        result = protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
+        if result is not NotImplemented:
+            return result
+
+        if isinstance(self.sub_operation.gate, matrix_gates.MatrixGate):
+            # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
+            # local phase in the controlled variant and hence cannot be ignored.
+            return NotImplemented
+
         result = protocols.decompose_once(self.sub_operation, NotImplemented)
         if result is NotImplemented:
             return NotImplemented
 
-        return [ControlledOperation(self.controls, op, self.control_values) for op in result]
+        return [
+            op.controlled_by(*self.controls, control_values=self.control_values) for op in result
+        ]
 
     def _value_equality_values_(self):
         return (frozenset(zip(self.controls, self.control_values)), self.sub_operation)
