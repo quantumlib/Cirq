@@ -67,6 +67,7 @@ TDefault = TypeVar('TDefault')
 TKey = TypeVar('TKey', bound=raw_types.Qid)
 TKeyNew = TypeVar('TKeyNew', bound=raw_types.Qid)
 TKeyOther = TypeVar('TKeyOther', bound=raw_types.Qid)
+ComplexParam = Union[value.Scalar, sympy.Basic]
 
 # A value that can be unambiguously converted into a `cirq.PauliString`.
 
@@ -116,7 +117,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         self,
         *contents: 'cirq.PAULI_STRING_LIKE',
         qubit_pauli_map: Optional[Dict[TKey, 'cirq.Pauli']] = None,
-        coefficient: Union[sympy.Basic, int, float, complex] = 1,
+        coefficient: ComplexParam = 1,
     ):
         """Initializes a new PauliString.
 
@@ -163,7 +164,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                     raise TypeError(f'{v} is not a Pauli')
 
         self._qubit_pauli_map: Dict[TKey, 'cirq.Pauli'] = qubit_pauli_map or {}
-        self._coefficient = complex(coefficient) if coefficient is numbers.Number else coefficient
+        self._coefficient = coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
         if contents:
             m = self.mutable_copy().inplace_left_multiply_by(contents).frozen()
             self._qubit_pauli_map = m._qubit_pauli_map
@@ -354,7 +355,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             coefficient=self._coefficient,
         )
 
-    def with_coefficient(self, new_coefficient: Union[int, float, complex]) -> 'PauliString':
+    def with_coefficient(self, new_coefficient: ComplexParam) -> 'PauliString':
         return PauliString(qubit_pauli_map=dict(self._qubit_pauli_map), coefficient=new_coefficient)
 
     def values(self) -> ValuesView[pauli_gates.Pauli]:
@@ -1079,10 +1080,10 @@ class MutablePauliString(Generic[TKey]):
     def __init__(
         self,
         *contents: 'cirq.PAULI_STRING_LIKE',
-        coefficient: Union[sympy.Basic, int, float, complex] = 1,
+        coefficient: ComplexParam = 1,
         pauli_int_dict: Optional[Dict[TKey, int]] = None,
     ):
-        self.coefficient = complex(coefficient) if coefficient is numbers.Number else coefficient
+        self.coefficient = coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
         self.pauli_int_dict: Dict[TKey, int] = {} if pauli_int_dict is None else pauli_int_dict
         if contents:
             self.inplace_left_multiply_by(contents)

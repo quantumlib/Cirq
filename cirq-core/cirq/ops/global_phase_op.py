@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A no-qubit global phase operation."""
-import numbers
 from typing import AbstractSet, Any, Dict, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
