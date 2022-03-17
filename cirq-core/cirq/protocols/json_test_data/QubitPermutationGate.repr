@@ -1,0 +1,1 @@
+cirq.QubitPermutationGate([0, 5, 2, 1, 6, 3, 4])
