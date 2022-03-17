@@ -95,9 +95,6 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
         where p = T**self._exponent
         """
-        if protocols.is_parameterized(self):
-            return NotImplemented
-
         a, b, c = qubits
 
         # Hacky magic: avoid the non-adjacent edge.
