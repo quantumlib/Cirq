@@ -504,4 +504,4 @@ def _convert_to_circuit_with_drift(
         a, b = op.qubits
         return simulator.create_gate_with_drift(a, b, translated).on(a, b)
 
-    return cirq.map_operations(circuit, map_func)
+    return cirq.map_operations(circuit, map_func).unfreeze(copy=False)
