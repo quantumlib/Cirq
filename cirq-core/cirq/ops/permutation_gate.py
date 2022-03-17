@@ -96,3 +96,7 @@ class QubitPermutationGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=['permutation'])
+
+    @classmethod
+    def _from_json_dict_(cls, permutation: Sequence[int], **kwargs):
+        return cls(permutation)
