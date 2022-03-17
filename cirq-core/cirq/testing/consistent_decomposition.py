@@ -51,6 +51,8 @@ def assert_decompose_is_consistent_with_unitary(val: Any, ignoring_global_phase:
 
 def _known_gate_with_no_decomposition(val: Any):
     """Checks whether `val` is a known gate with no default decomposition to default gateset."""
+    if isinstance(val, ops.MatrixGate):
+        return protocols.qid_shape(val) not in [(2,), (2,) * 2, (2,) * 3]
     return False
 
 
