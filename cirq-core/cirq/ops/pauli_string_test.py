@@ -1968,9 +1968,9 @@ def test_parameterization():
     assert (1j * pst) ** 1 == 1j * pst
     assert (1j * pst) ** -1 == -1j * pst.with_coefficient(1.0 / t)
     with pytest.raises(ValueError, match='parameterized'):
-        pst ** 2
+        _ = pst ** 2
     with pytest.raises(ValueError, match='parameterized'):
-        1 ** pst
+        _ = 1 ** pst
     cirq.testing.assert_has_diagram(cirq.Circuit(pst), '0: ───PauliString((1.0*t)*X)───')
 
 
