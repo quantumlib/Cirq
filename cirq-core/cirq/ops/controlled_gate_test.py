@@ -39,6 +39,9 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
 
 
 class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
+    def __init__(self):
+        self._matrix = cirq.testing.random_unitary(2, random_state=4321)
+
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
         assert len(args.axes) == 1
         a = args.axes[0]
@@ -46,12 +49,18 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
-        result[zero] = (args.target_tensor[zero] + args.target_tensor[one]) * np.sqrt(0.5)
-        result[one] = (args.target_tensor[zero] - args.target_tensor[one]) * np.sqrt(0.5)
+        result[zero] = (
+            args.target_tensor[zero] * self._matrix[0][0]
+            + args.target_tensor[one] * self._matrix[0][1]
+        )
+        result[one] = (
+            args.target_tensor[zero] * self._matrix[1][0]
+            + args.target_tensor[one] * self._matrix[1][1]
+        )
         return result
 
     def _unitary_(self):
-        return np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
+        return self._matrix
 
     def __eq__(self, other):
         return isinstance(other, type(self))
