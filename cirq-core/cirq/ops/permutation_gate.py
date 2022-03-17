@@ -16,7 +16,7 @@ from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._compat import deprecated
-from cirq.ops import raw_types
+from cirq.ops import raw_types, swap_gates
 
 if TYPE_CHECKING:
     import cirq
@@ -73,6 +73,15 @@ class QubitPermutationGate(raw_types.Gate):
 
     def _has_unitary_(self):
         return True
+
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+        qubit_ids = [*range(len(qubits))]
+        for i in range(len(qubits)):
+            q_i = qubit_ids.index(self._permutation.index(i))
+            for j in range(q_i, i, -1):
+                yield swap_gates.SWAP(qubits[j], qubits[j - 1])
+                qubit_ids[j], qubit_ids[j - 1] = qubit_ids[j - 1], qubit_ids[j]
+            assert self._permutation[qubit_ids[i]] == i
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         # Compute the permutation index list.
