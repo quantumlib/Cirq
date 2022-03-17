@@ -26,6 +26,10 @@ if TYPE_CHECKING:
     import cirq
 
 
+@_compat.deprecated_class(
+    deadline='v1.0',
+    fix='Use cirq.optimize_for_target_gateset and cirq.CompilationTargetGateset instead.',
+)
 class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
     """Combines series of adjacent one- and two-qubit, non-parametrized gates
     operating on a pair of qubits."""
@@ -72,7 +76,7 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
             return None
 
         # Find a (possibly ideal) decomposition of the merged operations.
-        new_operations = self._two_qubit_matrix_to_operations(op.qubits[0], op.qubits[1], matrix)
+        new_operations = self._two_qubit_matrix_to_cz_operations(op.qubits[0], op.qubits[1], matrix)
         new_interaction_count = len(
             [new_op for new_op in new_operations if len(new_op.qubits) == 2]
         )
@@ -94,7 +98,7 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
         without decomposition."""
 
     @abc.abstractmethod
-    def _two_qubit_matrix_to_operations(
+    def _two_qubit_matrix_to_cz_operations(
         self,
         q0: 'cirq.Qid',
         q1: 'cirq.Qid',
@@ -243,7 +247,7 @@ class MergeInteractions(MergeInteractionsAbc):
         without decomposition."""
         return old_op in self.gateset
 
-    def _two_qubit_matrix_to_operations(
+    def _two_qubit_matrix_to_cz_operations(
         self,
         q0: 'cirq.Qid',
         q1: 'cirq.Qid',
@@ -260,6 +264,6 @@ class MergeInteractions(MergeInteractionsAbc):
         Returns:
             A list of operations implementing the matrix.
         """
-        return two_qubit_to_cz.two_qubit_matrix_to_operations(
+        return two_qubit_to_cz.two_qubit_matrix_to_cz_operations(
             q0, q1, mat, self.allow_partial_czs, self.tolerance, False
         )

@@ -19,36 +19,17 @@ import numpy as np
 
 import cirq
 from cirq_google import ops as cg_ops
-from cirq_google.optimizers import (
-    ConvertToSycamoreGates,
-    ConvertToSqrtIswapGates,
-)
+from cirq_google.transformers.target_gatesets import sycamore_gateset
 
 if TYPE_CHECKING:
     import cirq_google
 
 
-def _get_sycamore_optimizers(
-    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
-) -> List[Callable[[cirq.Circuit], None]]:
-    return [ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit]
-
-
-def _get_sqrt_iswap_optimizers(
-    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
-) -> List[Callable[[cirq.Circuit], None]]:
-    if tabulation is not None:
-        # coverage: ignore
-        raise ValueError("Gate tabulation not supported for sqrt_iswap")
-    return [ConvertToSqrtIswapGates().optimize_circuit]
-
-
-_OPTIMIZER_TYPES = {
-    'sqrt_iswap': _get_sqrt_iswap_optimizers,
-    'sycamore': _get_sycamore_optimizers,
-}
-
 _TARGET_GATESETS = {
+    'sqrt_iswap': lambda atol, _: cirq.SqrtIswapTargetGateset(atol=atol),
+    'sycamore': lambda atol, tabulation: sycamore_gateset.SycamoreTargetGateset(
+        atol=atol, tabulation=tabulation
+    ),
     'xmon': lambda atol, _: cirq.CZTargetGateset(atol=atol),
     'xmon_partial_cz': lambda atol, _: cirq.CZTargetGateset(atol=atol, allow_partial_czs=True),
 }
@@ -125,11 +106,6 @@ def optimized_for_sycamore(
             circuit,
             gateset=_TARGET_GATESETS[optimizer_type](tolerance, tabulation),
         )
-    if optimizer_type in _OPTIMIZER_TYPES:
-        opts = _OPTIMIZER_TYPES[optimizer_type](tolerance=tolerance, tabulation=tabulation)
-        for optimizer in opts:
-            optimizer(copy)
-
     copy = cirq.merge_single_qubit_gates_to_phxz(copy, atol=tolerance)
     copy = cirq.eject_phased_paulis(copy, atol=tolerance)
     copy = cirq.eject_z(copy, atol=tolerance)

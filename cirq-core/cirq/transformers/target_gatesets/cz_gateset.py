@@ -47,7 +47,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
     def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         if not protocols.has_unitary(op):
             return NotImplemented
-        return two_qubit_to_cz.two_qubit_matrix_to_operations(
+        return two_qubit_to_cz.two_qubit_matrix_to_cz_operations(
             op.qubits[0],
             op.qubits[1],
             protocols.unitary(op),

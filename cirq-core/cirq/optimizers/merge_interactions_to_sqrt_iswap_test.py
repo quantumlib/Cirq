@@ -33,8 +33,11 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
             ``MergeInteractionsToSqrtIswap`` constructor.
     """
     actual = before.copy()
-    opt = cirq.MergeInteractionsToSqrtIswap(**kwargs)
-    opt.optimize_circuit(actual)
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
+        opt = cirq.MergeInteractionsToSqrtIswap(**kwargs)
+        opt.optimize_circuit(actual)
 
     # Ignore differences that would be caught by follow-up optimizations.
     followup_transformers: List[cirq.TRANSFORMER] = [
@@ -57,7 +60,10 @@ def assert_optimization_not_broken(circuit: cirq.Circuit, **kwargs):
     circuit."""
     u_before = circuit.unitary(sorted(circuit.all_qubits()))
     c_sqrt_iswap = circuit.copy()
-    cirq.MergeInteractionsToSqrtIswap(**kwargs).optimize_circuit(c_sqrt_iswap)
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
+        cirq.MergeInteractionsToSqrtIswap(**kwargs).optimize_circuit(c_sqrt_iswap)
     u_after = c_sqrt_iswap.unitary(sorted(circuit.all_qubits()))
 
     # Not 1e-8 because of some unaccounted accumulated error in some of Cirq's linalg functions
@@ -65,7 +71,12 @@ def assert_optimization_not_broken(circuit: cirq.Circuit, **kwargs):
 
     # Also test optimization with SQRT_ISWAP_INV
     c_sqrt_iswap_inv = circuit.copy()
-    cirq.MergeInteractionsToSqrtIswap(use_sqrt_iswap_inv=True).optimize_circuit(c_sqrt_iswap_inv)
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
+        cirq.MergeInteractionsToSqrtIswap(use_sqrt_iswap_inv=True).optimize_circuit(
+            c_sqrt_iswap_inv
+        )
     u_after2 = c_sqrt_iswap_inv.unitary(sorted(circuit.all_qubits()))
 
     cirq.testing.assert_allclose_up_to_global_phase(u_before, u_after2, atol=1e-6)
@@ -230,7 +241,10 @@ def test_optimizes_single_iswap():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.ISWAP(a, b))
     assert_optimization_not_broken(c)
-    cirq.MergeInteractionsToSqrtIswap().optimize_circuit(c)
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
+        cirq.MergeInteractionsToSqrtIswap().optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
 
@@ -238,20 +252,29 @@ def test_optimizes_single_inv_sqrt_iswap():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))
     assert_optimization_not_broken(c)
-    cirq.MergeInteractionsToSqrtIswap().optimize_circuit(c)
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
+        cirq.MergeInteractionsToSqrtIswap().optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 1
 
 
 def test_init_raises():
     with pytest.raises(ValueError, match='must be 0, 1, 2, or 3'):
-        cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=4)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+        ):
+            cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=4)
 
 
 def test_optimizes_single_iswap_require0():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(a, b))  # Minimum 0 sqrt-iSWAP
     assert_optimization_not_broken(c, required_sqrt_iswap_count=0)
-    cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=0).optimize_circuit(c)
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
+        cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=0).optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 0
 
 
@@ -259,14 +282,20 @@ def test_optimizes_single_iswap_require0_raises():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CNOT(a, b))  # Minimum 2 sqrt-iSWAP
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 0 sqrt-iSWAP gates'):
-        cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=0).optimize_circuit(c)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+        ):
+            cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=0).optimize_circuit(c)
 
 
 def test_optimizes_single_iswap_require1():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))  # Minimum 1 sqrt-iSWAP
     assert_optimization_not_broken(c, required_sqrt_iswap_count=1)
-    cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=1).optimize_circuit(c)
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
+        cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=1).optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 1
 
 
@@ -274,14 +303,20 @@ def test_optimizes_single_iswap_require1_raises():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CNOT(a, b))  # Minimum 2 sqrt-iSWAP
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 1 sqrt-iSWAP gates'):
-        cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=1).optimize_circuit(c)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+        ):
+            cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=1).optimize_circuit(c)
 
 
 def test_optimizes_single_iswap_require2():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))  # Minimum 1 sqrt-iSWAP but 2 possible
     assert_optimization_not_broken(c, required_sqrt_iswap_count=2)
-    cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=2).optimize_circuit(c)
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
+        cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=2).optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
 
@@ -289,14 +324,20 @@ def test_optimizes_single_iswap_require2_raises():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SWAP(a, b))  # Minimum 3 sqrt-iSWAP
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 2 sqrt-iSWAP gates'):
-        cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=2).optimize_circuit(c)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+        ):
+            cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=2).optimize_circuit(c)
 
 
 def test_optimizes_single_iswap_require3():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.ISWAP(a, b))  # Minimum 2 sqrt-iSWAP but 3 possible
     assert_optimization_not_broken(c, required_sqrt_iswap_count=3)
-    cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=3).optimize_circuit(c)
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
+        cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=3).optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 3
 
 
@@ -304,5 +345,8 @@ def test_optimizes_single_inv_sqrt_iswap_require3():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))
     assert_optimization_not_broken(c, required_sqrt_iswap_count=3)
-    cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=3).optimize_circuit(c)
+    with cirq.testing.assert_deprecated(
+        "Use cirq.optimize_for_target_gateset", deadline='v1.0', count=2
+    ):
+        cirq.MergeInteractionsToSqrtIswap(required_sqrt_iswap_count=3).optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 3
