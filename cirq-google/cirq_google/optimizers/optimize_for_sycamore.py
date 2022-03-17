@@ -13,7 +13,7 @@
 # limitations under the License.
 """A combination of several optimizations targeting XmonDevice."""
 from functools import lru_cache
-from typing import Callable, cast, List, Optional, TYPE_CHECKING
+from typing import Callable, cast, Optional, TYPE_CHECKING
 
 import numpy as np
 
@@ -91,10 +91,10 @@ def optimized_for_sycamore(
         ValueError: If the `optimizer_type` is not a supported type.
     """
     copy = circuit.copy()
-    if optimizer_type not in _OPTIMIZER_TYPES and optimizer_type not in _TARGET_GATESETS:
+    if optimizer_type not in _TARGET_GATESETS:
         raise ValueError(
             f'{optimizer_type} is not an allowed type.  Allowed '
-            f'types are: {_OPTIMIZER_TYPES.keys()}'
+            f'types are: {_TARGET_GATESETS.keys()}'
         )
 
     tabulation: Optional[cirq.TwoQubitGateTabulation] = None

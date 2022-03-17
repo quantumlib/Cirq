@@ -51,6 +51,7 @@ class _XmonDeviceBase(cirq.Device):
                 cirq.XPowGate,
                 cirq.YPowGate,
                 cirq.PhasedXPowGate,
+                cirq.PhasedXZGate,
                 cirq.MeasurementGate,
                 cirq.ZPowGate,
             ),
@@ -75,8 +76,10 @@ class _XmonDeviceBase(cirq.Device):
         'Please use cirq.optimize_for_target_gateset() and cirq.CZTargetGateset.',
     )
     def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
+        if self.is_supported_gate(operation.gate):
+            return operation
         return [
-            *cirq.optimize_for_target_gateset(
+            cirq.optimize_for_target_gateset(
                 cirq.Circuit(operation), gateset=cirq.CZTargetGateset(allow_partial_czs=True)
             ).all_operations()
         ]
@@ -113,6 +116,7 @@ class _XmonDeviceBase(cirq.Device):
                 cirq.XPowGate,
                 cirq.YPowGate,
                 cirq.PhasedXPowGate,
+                cirq.PhasedXZGate,
                 cirq.MeasurementGate,
                 cirq.ZPowGate,
             ),
