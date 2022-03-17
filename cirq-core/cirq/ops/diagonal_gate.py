@@ -18,7 +18,7 @@ The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -185,7 +185,7 @@ class DiagonalGate(raw_types.Gate):
         # we add global phase.
         # Global phase is ignored for parameterized gates as `cirq.GlobalPhaseGate` expects a
         # scalar value.
-        decomposed_circ = [
+        decomposed_circ: List[Any] = [
             global_phase_op.global_phase_operation(1j ** (2 * hat_angles[0] / np.pi))
         ]
         for i, bit_flip in _gen_gray_code(n):
