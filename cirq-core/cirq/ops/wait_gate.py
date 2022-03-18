@@ -16,6 +16,7 @@ from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 import sympy
 
 from cirq import value, protocols
+from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -30,9 +31,6 @@ class WaitGate(raw_types.Gate):
     simulators and noise models may insert more error for longer waits.
     """
 
-    # TODO(#3388) Add documentation for Args.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(
         self,
         duration: 'cirq.DURATION_LIKE',
@@ -44,8 +42,16 @@ class WaitGate(raw_types.Gate):
         Args:
             duration: A constant or parameterized wait duration. This can be
                 an instance of `datetime.timedelta` or `cirq.Duration`.
+            num_qubits: The number of qubits the gate operates on. If None and `qid_shape` is None,
+                this defaults to one qubit.
+            qid_shape: Can be specified instead of `num_qubits` for the case that the gate should
+                act on qudits.
+
+        Raises:
+            ValueError: If the `qid_shape` provided is empty or `num_qubits` contradicts
+                `qid_shape`.
         """
-        self.duration = value.Duration(duration)
+        self._duration = value.Duration(duration)
         if not protocols.is_parameterized(self.duration) and self.duration < 0:
             raise ValueError('duration < 0')
         if qid_shape is None:
@@ -62,7 +68,18 @@ class WaitGate(raw_types.Gate):
             raise ValueError('len(qid_shape) != num_qubits')
         self._qid_shape = qid_shape
 
-    # pylint: enable=missing-param-doc,missing-raises-doc
+    @property
+    def duration(self) -> 'cirq.Duration':
+        return self._duration
+
+    @duration.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def duration(self, duration: 'cirq.Duration'):
+        self._duration = duration
+
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.duration)
 

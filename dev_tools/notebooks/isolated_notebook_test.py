@@ -24,6 +24,7 @@
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
 import os
+import re
 import subprocess
 import sys
 import warnings
@@ -43,7 +44,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     # get_qcs_objects_for_notebook
     'docs/tutorials/google/calibration_api.ipynb',
     'docs/tutorials/google/colab.ipynb',
-    'docs/tutorials/google/compare_to_calibration.ipynb',
+    'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
     'docs/tutorials/google/floquet_calibration_example.ipynb',
     'docs/tutorials/google/reservations.ipynb',
@@ -51,6 +52,11 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/tutorials/google/start.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
     'docs/tutorials/google/xeb_calibration_example.ipynb',
+    'docs/named_topologies.ipynb',
+    # New Transformers.
+    'docs/tutorials/basics.ipynb',
+    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
+    'cirq-core/cirq/contrib/quimb/Cirq-to-Tensor-Networks.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -73,7 +79,8 @@ SKIP_NOTEBOOKS = [
     "examples/*stabilizer_code*",
     # Until openfermion is upgraded, this version of Cirq throws an error
     "docs/tutorials/educators/chemistry.ipynb",
-] + NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
+    *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
+]
 
 # The Rigetti integration requires Python >= 3.7.
 if sys.version_info < (3, 7):
@@ -211,15 +218,15 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()
-        mandatory_lines = [
-            "!pip install --quiet cirq --pre",
-            "Note: this notebook relies on unreleased Cirq features. "
-            "If you want to try these features, make sure you install cirq via "
-            "`pip install cirq --pre`.",
+        mandatory_matches = [
+            r"!pip install --quiet cirq(-google)? --pre",
+            r"Note: this notebook relies on unreleased Cirq features\. "
+            r"If you want to try these features, make sure you install cirq(-google)? via "
+            r"`pip install cirq(-google)? --pre`\.",
         ]
 
-        for m in mandatory_lines:
-            assert m in content, (
+        for m in mandatory_matches:
+            assert re.search(m, content), (
                 f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
-                f"however it is missing the mandatory line:\n{m}"
+                f"however it contains no line matching:\n{m}"
             )

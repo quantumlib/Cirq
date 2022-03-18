@@ -36,6 +36,8 @@ def test_tilted_square_lattice(width, height):
     assert nx.is_connected(topo.graph)
     assert nx.algorithms.planarity.check_planarity(topo.graph)
 
+    cirq.testing.assert_equivalent_repr(topo)
+
 
 def test_bad_tilted_square_lattice():
     with pytest.raises(ValueError):
@@ -52,6 +54,11 @@ def test_tilted_square_methods():
 
     qubits = topo.nodes_as_gridqubits()
     assert all(isinstance(q, cirq.GridQubit) for q in qubits)
+
+    mapping = topo.nodes_to_gridqubits(offset=(3, 5))
+    assert all(
+        isinstance(q, cirq.GridQubit) and q >= cirq.GridQubit(0, 0) for q in mapping.values()
+    )
 
 
 def test_tilted_square_lattice_n_nodes():
@@ -76,6 +83,8 @@ def test_line_topology():
         _ = LineTopology(1)
     assert LineTopology(2).n_nodes == 2
     assert LineTopology(2).graph.number_of_nodes() == 2
+
+    cirq.testing.assert_equivalent_repr(topo)
 
 
 def test_line_topology_nodes_as_qubits():

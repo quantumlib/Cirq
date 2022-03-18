@@ -15,14 +15,14 @@
 from typing import Any, cast, Iterable, List, Optional, Set, TYPE_CHECKING, FrozenSet
 
 import cirq
-from cirq_google.optimizers import convert_to_xmon_gates
+from cirq import _compat
 
 if TYPE_CHECKING:
     import cirq
 
 
 @cirq.value_equality
-class XmonDevice(cirq.Device):
+class _XmonDeviceBase(cirq.Device):
     """A device with qubits placed in a grid. Neighboring qubits can interact."""
 
     def __init__(
@@ -44,12 +44,45 @@ class XmonDevice(cirq.Device):
         self._exp_w_duration = cirq.Duration(exp_w_duration)
         self._exp_z_duration = cirq.Duration(exp_11_duration)
         self.qubits = frozenset(qubits)
+        self._metadata = cirq.GridDeviceMetadata(
+            [(q0, q1) for q0 in self.qubits for q1 in self.qubits if q0.is_adjacent(q1)],
+            cirq.Gateset(
+                cirq.CZPowGate,
+                cirq.XPowGate,
+                cirq.YPowGate,
+                cirq.PhasedXPowGate,
+                cirq.PhasedXZGate,
+                cirq.MeasurementGate,
+                cirq.ZPowGate,
+            ),
+            None,
+        )
 
+    @property
+    def metadata(self) -> cirq.GridDeviceMetadata:
+        """Return the metadata for this device"""
+        return self._metadata
+
+    @_compat.deprecated(
+        fix='Use metadata.qubit_set if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> FrozenSet[cirq.GridQubit]:
         return self.qubits
 
+    @_compat.deprecated(
+        deadline='v0.15',
+        fix='XmonDevice.decompose_operation is deprecated. '
+        'Please use cirq.optimize_for_target_gateset() and cirq.CZTargetGateset.',
+    )
     def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
-        return convert_to_xmon_gates.ConvertToXmonGates().convert(operation)
+        if operation.gate is not None and self.is_supported_gate(operation.gate):
+            return operation
+        return [
+            cirq.optimize_for_target_gateset(
+                cirq.Circuit(operation), gateset=cirq.CZTargetGateset(allow_partial_czs=True)
+            ).all_operations()
+        ]
 
     def neighbors_of(self, qubit: cirq.GridQubit):
         """Returns the qubits that the given qubit can interact with."""
@@ -83,6 +116,7 @@ class XmonDevice(cirq.Device):
                 cirq.XPowGate,
                 cirq.YPowGate,
                 cirq.PhasedXPowGate,
+                cirq.PhasedXZGate,
                 cirq.MeasurementGate,
                 cirq.ZPowGate,
             ),
@@ -198,6 +232,9 @@ class XmonDevice(cirq.Device):
 
         return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
 
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        p.text("cirq_google.XmonDevice(...)" if cycle else self.__str__())
+
     def _value_equality_values_(self) -> Any:
         return (self._measurement_duration, self._exp_w_duration, self._exp_z_duration, self.qubits)
 
@@ -210,3 +247,9 @@ def _verify_unique_measurement_keys(operations: Iterable[cirq.Operation]):
             if key in seen:
                 raise ValueError(f'Measurement key {key} repeated')
             seen.add(key)
+
+
+@_compat.deprecated_class(deadline='v0.15', fix='XmonDevice will no longer be supported.')
+class XmonDevice(_XmonDeviceBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

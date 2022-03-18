@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@ import sympy
 
 import cirq
 from cirq import value, _compat
+from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 
@@ -42,7 +43,6 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'num_qubits': self._num_qubits,
             'without_reverse': self._without_reverse,
         }
@@ -94,11 +94,22 @@ class PhaseGradientGate(raw_types.Gate):
 
     def __init__(self, *, num_qubits: int, exponent: Union[float, sympy.Basic]):
         self._num_qubits = num_qubits
-        self.exponent = exponent
+        self._exponent = exponent
+
+    @property
+    def exponent(self) -> Union[float, sympy.Basic]:
+        return self._exponent
+
+    @exponent.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def exponent(self, exponent: Union[float, sympy.Basic]):
+        self._exponent = exponent
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'num_qubits': self._num_qubits,
             'exponent': self.exponent,
         }

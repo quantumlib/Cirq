@@ -16,9 +16,12 @@ import cirq
 
 
 def assert_optimizes(before, after, measure_only_moment=True):
-    opt = cirq.SynchronizeTerminalMeasurements(measure_only_moment)
-    opt(before)
-    assert before == after
+    with cirq.testing.assert_deprecated(
+        "Use cirq.synchronize_terminal_measurements", deadline='v1.0'
+    ):
+        opt = cirq.SynchronizeTerminalMeasurements(measure_only_moment)
+        opt(before)
+        assert before == after
 
 
 def test_no_move():

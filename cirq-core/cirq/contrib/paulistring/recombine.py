@@ -1,4 +1,4 @@
-# Copyright 2018 The ops Developers
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -104,6 +104,4 @@ def move_pauli_strings_into_circuit(
 
     assert not string_dag.nodes(), 'There was a cycle in the CircuitDag'
 
-    return circuits.Circuit(
-        output_ops, strategy=circuits.InsertStrategy.EARLIEST, device=circuit_right.device
-    )
+    return circuits.Circuit(output_ops, strategy=circuits.InsertStrategy.EARLIEST)

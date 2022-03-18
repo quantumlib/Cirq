@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, TYPE_CHECKING, Union, Optional, cast, Sequence, Tuple
+from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_google import engine
@@ -33,7 +33,7 @@ class QuantumEngineSampler(cirq.Sampler):
         *,
         engine: 'cirq_google.Engine',
         processor_id: Union[str, List[str]],
-        gate_set: 'cirq_google.serialization.Serializer',
+        gate_set: Optional['cirq_google.serialization.Serializer'] = None,
     ):
         """Inits QuantumEngineSampler.
 
@@ -53,14 +53,14 @@ class QuantumEngineSampler(cirq.Sampler):
         program: Union[cirq.AbstractCircuit, 'cirq_google.EngineProgram'],
         params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List[cirq.Result]:
+    ) -> Sequence[cirq.Result]:
         if isinstance(program, engine.EngineProgram):
             job = program.run_sweep(
                 params=params, repetitions=repetitions, processor_ids=self._processor_ids
             )
         else:
             job = self._engine.run_sweep(
-                program=cast(cirq.Circuit, program),
+                program=program,
                 params=params,
                 repetitions=repetitions,
                 processor_ids=self._processor_ids,
@@ -70,10 +70,10 @@ class QuantumEngineSampler(cirq.Sampler):
 
     def run_batch(
         self,
-        programs: Sequence['cirq.AbstractCircuit'],
+        programs: Sequence[cirq.AbstractCircuit],
         params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: Union[int, List[int]] = 1,
-    ) -> List[List[cirq.Result]]:
+    ) -> Sequence[Sequence[cirq.Result]]:
         """Runs the supplied circuits.
 
         In order to gain a speedup from using this method instead of other run
@@ -140,4 +140,4 @@ def get_engine_sampler(
             f"{sorted(gate_sets.NAMED_GATESETS.keys())}."
         )
     gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
-    return engine.get_engine(project_id).sampler(processor_id=processor_id, gate_set=gate_set)
+    return engine.get_engine(project_id).get_sampler(processor_id=processor_id, gate_set=gate_set)

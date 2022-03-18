@@ -27,6 +27,4 @@ def test_comparsion_key():
 
 
 def test_to_json():
-    assert cirq.testing.NoIdentifierQubit()._json_dict_() == {
-        'cirq_type': 'NoIdentifierQubit',
-    }
+    assert cirq.testing.NoIdentifierQubit()._json_dict_() == {}

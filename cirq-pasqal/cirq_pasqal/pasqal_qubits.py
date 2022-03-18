@@ -52,18 +52,16 @@ class ThreeDQubit(cirq.ops.Qid):
         """Returns a cube of ThreeDQubits.
 
         Args:
-            diameter: Length of a side of the square
-            x0: x-coordinate of the first qubit
+            diameter: Length of a side of the square.
+            x0: x-coordinate of the first qubit.
             y0: y-coordinate of the first qubit
-            z0: z-coordinate of the first qubit
+            z0: z-coordinate of the first qubit.
 
         Returns:
             A list of ThreeDQubits filling in a square grid
         """
         return ThreeDQubit.parallelep(diameter, diameter, diameter, x0=x0, y0=y0, z0=z0)
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     @staticmethod
     def parallelep(
         rows: int, cols: int, lays: int, x0: float = 0, y0: float = 0, z0: float = 0
@@ -71,11 +69,12 @@ class ThreeDQubit(cirq.ops.Qid):
         """Returns a parallelepiped of ThreeDQubits.
 
         Args:
-            rows: Number of rows in the rectangle
-            cols: Number of columns in the rectangle
-            x0: x-coordinate of the first qubit
-            y0: y-coordinate of the first qubit
-            z0: z-coordinate of the first qubit
+            rows: Number of rows in the parallelepiped.
+            cols: Number of columns in the parallelepiped.
+            lays: Number of layers in the parallelepiped.
+            x0: x-coordinate of the first qubit.
+            y0: y-coordinate of the first qubit.
+            z0: z-coordinate of the first qubit.
 
         Returns:
             A list of ThreeDQubits filling in a 3d grid
@@ -87,7 +86,6 @@ class ThreeDQubit(cirq.ops.Qid):
             for x in range(rows)
         ]
 
-    # pylint: enable=missing-param-doc
     def __repr__(self):
         return f'pasqal.ThreeDQubit({self.x}, {self.y}, {self.z})'
 
@@ -109,9 +107,9 @@ class TwoDQubit(ThreeDQubit):
         """Returns a square of TwoDQubit.
 
         Args:
-            diameter: Length of a side of the square
-            x0: x-coordinate of the first qubit
-            y0: y-coordinate of the first qubit
+            diameter: Length of a side of the square.
+            x0: x-coordinate of the first qubit.
+            y0: y-coordinate of the first qubit.
 
         Returns:
             A list of TwoDQubits filling in a square grid
@@ -123,10 +121,10 @@ class TwoDQubit(ThreeDQubit):
         """Returns a rectangle of TwoDQubit.
 
         Args:
-            rows: Number of rows in the rectangle
-            cols: Number of columns in the rectangle
-            x0: x-coordinate of the first qubit
-            y0: y-coordinate of the first qubit
+            rows: Number of rows in the rectangle.
+            cols: Number of columns in the rectangle.
+            x0: x-coordinate of the first qubit.
+            y0: y-coordinate of the first qubit.
 
         Returns:
             A list of TwoDQubits filling in a rectangular grid
@@ -138,9 +136,9 @@ class TwoDQubit(ThreeDQubit):
         """Returns a triangular lattice of TwoDQubits.
 
         Args:
-            l: Number of qubits along one direction
-            x0: x-coordinate of the first qubit
-            y0: y-coordinate of the first qubit
+            l: Number of qubits along one direction.
+            x0: x-coordinate of the first qubit.
+            y0: y-coordinate of the first qubit.
 
         Returns:
             A list of TwoDQubits filling in a triangular lattice.

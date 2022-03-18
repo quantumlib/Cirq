@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -214,11 +214,9 @@ def test_neg():
 
 def test_json_dict():
     assert cirq.LineQubit(5)._json_dict_() == {
-        'cirq_type': 'LineQubit',
         'x': 5,
     }
     assert cirq.LineQid(5, 3)._json_dict_() == {
-        'cirq_type': 'LineQid',
         'x': 5,
         'dimension': 3,
     }

@@ -97,6 +97,11 @@ See the previous section for instructions.
     ```bash
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
+    
+    This installs docker and docker-compose among other things. You may need to restart
+    docker or configure permissions, see 
+    [docker install instructions](https://docs.docker.com/engine/install/ubuntu/).
+    Note that docker is necessary only for cirq_rigetti.
 
     There are some extra steps if protocol buffers are changed; see the next section.
 
@@ -279,7 +284,7 @@ def some_method(a: int, b: str) -> float:
     Notice that this docstring is an r-string, since the latex has backslashes.
     We can also include example code:
 
-        print(cirq.google.Foxtail)
+        print(cirq_google.Foxtail)
 
     You can also do inline latex like $y = x^2$ and inline code like
     `cirq.unitary(cirq.X)`.
@@ -297,15 +302,6 @@ def some_method(a: int, b: str) -> float:
         ValueError: The value of `a` wasn't quite right.
     """
 ```
-
-Currently the docs folder serves two sites: the new site that is under construction and the current site that is deployed to readthedocs.io. 
-The new site is currently not available for preview just yet. For the current site, documentation is generated automatically by readthedocs when pushing to `master`, but you can also generate a local copy by running:
-
-```bash
-dev_tools/docs/build-rtd-docs.sh
-```
-
-The HTML output will go into the `dev_tools/rtd_docs/sphinx/_build` directory.
 
 ## Dependencies 
 
@@ -416,6 +412,6 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 
     ```bash
     python -m pip install cirq
-    python -c "import cirq; print(cirq.google.Foxtail)"
+    python -c "import cirq; print(cirq_google.Foxtail)"
     python -c "import cirq; print(cirq.__version__)"
     ```

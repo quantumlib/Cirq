@@ -25,9 +25,9 @@ from cirq.type_workarounds import NotImplementedType
 # Tuple[int, ...] to ensure the method has the correct type signature in that
 # case. It is checked for using `is`, so it won't have a false positive if the
 # user provides a different (0,) value.
-RaiseTypeErrorIfNotProvided = (0,)  # type: Any
+RaiseTypeErrorIfNotProvided: Any = (0,)
 # Equal integers outside the range [-5, 256] aren't identically equal with `is`.
-RaiseTypeErrorIfNotProvidedInt = -(2 ** 512)  # type: Any
+RaiseTypeErrorIfNotProvidedInt: Any = -(2 ** 512)
 
 TDefault = TypeVar('TDefault')
 

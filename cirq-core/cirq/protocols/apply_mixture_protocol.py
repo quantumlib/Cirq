@@ -35,7 +35,7 @@ from cirq.type_workarounds import NotImplementedType
 # that case. It is checked for using `is`, so it won't have a false positive if
 # the user provides a different np.array([]) value.
 
-RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
+RaiseTypeErrorIfNotProvided: np.ndarray = np.array([])
 
 TDefault = TypeVar('TDefault')
 
@@ -239,9 +239,8 @@ def apply_mixture(
     val, args, is_density_matrix = _validate_input(val, args)
 
     # Check if the specialized method is present. (STEP A)
-    func = getattr(val, '_apply_mixture_', None)
-    if func is not None:
-        result = func(args)
+    if hasattr(val, '_apply_mixture_'):
+        result = val._apply_mixture_(args)
         if result is not NotImplemented and result is not None:
 
             def err_str(buf_num_str):
@@ -268,7 +267,6 @@ def apply_mixture(
     # Don't know how to apply mixture. Fallback to specified default behavior.
     # (STEP D)
     if default is not RaiseTypeErrorIfNotProvided:
-        print('HERE!')
         return default
     raise TypeError(
         "object of type '{}' has no _apply_mixture_, _apply_unitary_, "

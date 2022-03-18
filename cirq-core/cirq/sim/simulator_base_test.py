@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import List, Dict, Any, Sequence, Tuple, Union
+from typing import Any, Dict, List, Sequence, Union
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -24,10 +25,10 @@ class CountingActOnArgs(cirq.ActOnArgs):
     gate_count = 0
     measurement_count = 0
 
-    def __init__(self, state, qubits, logs):
+    def __init__(self, state, qubits, classical_data):
         super().__init__(
             qubits=qubits,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
         )
         self.state = state
 
@@ -35,10 +36,10 @@ class CountingActOnArgs(cirq.ActOnArgs):
         self.measurement_count += 1
         return [self.gate_count]
 
-    def copy(self) -> 'CountingActOnArgs':
+    def copy(self, deep_copy_buffers: bool = True) -> 'CountingActOnArgs':
         args = CountingActOnArgs(
             qubits=self.qubits,
-            logs=self.log_of_measurement_results.copy(),
+            classical_data=self.classical_data.copy(),
             state=self.state,
         )
         args.gate_count = self.gate_count
@@ -69,6 +70,10 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         remainder.gate_count = 0
         remainder.measurement_count = 0
 
+    @property
+    def allows_factoring(self):
+        return True
+
     def _on_transpose_to_qubit_order(
         self, qubits: Sequence['cirq.Qid'], target: 'SplittableCountingActOnArgs'
     ):
@@ -91,7 +96,7 @@ class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArg
         return self._merged_sim_state
 
 
-class CountingTrialResult(cirq.SimulationTrialResult):
+class CountingTrialResult(cirq.SimulationTrialResultBase[CountingActOnArgs, CountingActOnArgs]):
     pass
 
 
@@ -110,9 +115,9 @@ class CountingSimulator(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: cirq.ClassicalDataStore,
     ) -> CountingActOnArgs:
-        return CountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
+        return CountingActOnArgs(qubits=qubits, state=initial_state, classical_data=classical_data)
 
     def _create_simulator_trial_result(
         self,
@@ -140,9 +145,11 @@ class SplittableCountingSimulator(CountingSimulator):
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: cirq.ClassicalDataStore,
     ) -> CountingActOnArgs:
-        return SplittableCountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
+        return SplittableCountingActOnArgs(
+            qubits=qubits, state=initial_state, classical_data=classical_data
+        )
 
 
 q0, q1 = cirq.LineQubit.range(2)
@@ -223,6 +230,73 @@ def test_run_non_unitary_circuit():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
     assert np.allclose(r.measurements['0'], [[1], [1]])
+
+
+def test_run_no_reuse_buffer_warning():
+    # coverage: ignore
+    class MockCountingActOnArgs(CountingActOnArgs):
+        def copy(self) -> 'MockCountingActOnArgs':  # type: ignore
+            return super().copy()  # type: ignore
+
+    # coverage: ignore
+    class MockCountingStepResult(cirq.StepResultBase[MockCountingActOnArgs, MockCountingActOnArgs]):
+        def sample(
+            self,
+            qubits: List[cirq.Qid],
+            repetitions: int = 1,
+            seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        ) -> np.ndarray:
+            measurements: List[List[int]] = []
+            for _ in range(repetitions):
+                measurements.append(self._merged_sim_state._perform_measurement(qubits))
+            return np.array(measurements, dtype=int)
+
+        def _simulator_state(self) -> MockCountingActOnArgs:
+            return self._merged_sim_state
+
+    class MockCountingTrialResult(
+        cirq.SimulationTrialResultBase[MockCountingActOnArgs, MockCountingActOnArgs]
+    ):
+        pass
+
+    # coverage: ignore
+    class MockCountingSimulator(
+        cirq.SimulatorBase[
+            MockCountingStepResult,
+            MockCountingTrialResult,
+            MockCountingActOnArgs,
+            MockCountingActOnArgs,
+        ]
+    ):
+        def _create_partial_act_on_args(
+            self,
+            initial_state: Any,
+            qubits: Sequence['cirq.Qid'],
+            classical_data: cirq.ClassicalDataStore,
+        ) -> MockCountingActOnArgs:
+            return MockCountingActOnArgs(
+                qubits=qubits, state=initial_state, classical_data=classical_data
+            )
+
+        def _create_simulator_trial_result(
+            self,
+            params: cirq.ParamResolver,
+            measurements: Dict[str, np.ndarray],
+            final_step_result: MockCountingStepResult,
+        ) -> MockCountingTrialResult:
+            return MockCountingTrialResult(
+                params, measurements, final_step_result=final_step_result
+            )
+
+        def _create_step_result(
+            self,
+            sim_state: cirq.OperationTarget[MockCountingActOnArgs],
+        ) -> MockCountingStepResult:
+            return MockCountingStepResult(sim_state)
+
+    sim = MockCountingSimulator()
+    with cirq.testing.assert_deprecated('deep_copy_buffers', deadline='0.15'):
+        sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)))
 
 
 def test_run_non_unitary_circuit_non_unitary_state():
@@ -356,3 +430,46 @@ def test_measurements_retained_in_step_results():
     assert next(iterator).measurements.keys() == {'a', 'b'}
     assert next(iterator).measurements.keys() == {'a', 'b', 'c'}
     assert not any(iterator)
+
+
+def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
+    q = cirq.LineQubit(0)
+
+    class TestOp(cirq.Operation):
+        def __init__(self, *, has_unitary: bool):
+            self.count = 0
+            self.has_unitary = has_unitary
+
+        def _act_on_(self, args):
+            self.count += 1
+            return True
+
+        def with_qubits(self, qubits):
+            pass
+
+        @property
+        def qubits(self):
+            return (q,)
+
+        def _has_unitary_(self):
+            return self.has_unitary
+
+    simulator = CountingSimulator()
+    params = [
+        cirq.ParamResolver({'a': 0}),
+        cirq.ParamResolver({'a': 1}),
+    ]
+
+    op1 = TestOp(has_unitary=True)
+    op2 = TestOp(has_unitary=True)
+    circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol('a'))(q), op2)
+    simulator.simulate_sweep(program=circuit, params=params)
+    assert op1.count == 1
+    assert op2.count == 2
+
+    op1 = TestOp(has_unitary=False)
+    op2 = TestOp(has_unitary=False)
+    circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol('a'))(q), op2)
+    simulator.simulate_sweep(program=circuit, params=params)
+    assert op1.count == 2
+    assert op2.count == 2

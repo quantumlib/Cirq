@@ -21,18 +21,13 @@ from google.protobuf.text_format import Merge
 import cirq
 import cirq_google as cg
 from cirq_google.api import v1, v2
+from cirq_google.engine import util
 from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
 from cirq_google.engine.engine import EngineContext
 from cirq_google.engine.result_type import ResultType
 
 
-def _to_any(proto):
-    any_proto = qtypes.any_pb2.Any()
-    any_proto.Pack(proto)
-    return any_proto
-
-
-_BATCH_PROGRAM_V2 = _to_any(
+_BATCH_PROGRAM_V2 = util.pack_any(
     Merge(
         """programs { language {
   gate_set: "xmon"
@@ -99,7 +94,7 @@ circuit {
     )
 )
 
-_PROGRAM_V2 = _to_any(
+_PROGRAM_V2 = util.pack_any(
     Merge(
         """language {
   gate_set: "xmon"
@@ -256,7 +251,7 @@ def test_run_delegation(create_job, get_results):
         ),
     )
     get_results.return_value = qtypes.QuantumResult(
-        result=_to_any(
+        result=util.pack_any(
             Merge(
                 """sweep_results: [{
         repetitions: 4,
@@ -290,7 +285,7 @@ def test_run_delegation(create_job, get_results):
         job_id='steve', repetitions=10, param_resolver=param_resolver, processor_ids=['mine']
     )
 
-    assert results == cirq.Result(
+    assert results == cirq.ResultDict(
         params=cirq.ParamResolver({'a': 1.0}),
         measurements={'q': np.array([[False], [True], [True], [False]], dtype=bool)},
     )
@@ -434,7 +429,7 @@ def test_remove_labels(remove_program_labels):
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
 def test_get_circuit_v1(get_program):
     program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program.return_value = qtypes.QuantumProgram(code=_to_any(v1.program_pb2.Program()))
+    get_program.return_value = qtypes.QuantumProgram(code=util.pack_any(v1.program_pb2.Program()))
 
     with pytest.raises(ValueError, match='v1 Program is not supported'):
         program.get_circuit()
@@ -507,7 +502,7 @@ def mock_grpc_client():
 def test_get_circuit_v2_unknown_gateset(get_program):
     program = cg.EngineProgram('a', 'b', EngineContext())
     get_program.return_value = qtypes.QuantumProgram(
-        code=_to_any(
+        code=util.pack_any(
             v2.program_pb2.Program(language=v2.program_pb2.Language(gate_set="BAD_GATESET"))
         )
     )
@@ -535,6 +530,13 @@ def test_delete(delete_program):
 
     program.delete(delete_jobs=True)
     delete_program.assert_called_with('a', 'b', delete_jobs=True)
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_job')
+def test_delete_jobs(delete_job):
+    program = cg.EngineProgram('a', 'b', EngineContext())
+    program.delete_job('c')
+    delete_job.assert_called_with('a', 'b', 'c')
 
 
 def test_str():

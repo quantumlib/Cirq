@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for cirq.Sampler."""
-from typing import List
+from typing import Sequence
 
 import pytest
 
@@ -22,6 +22,28 @@ import pandas as pd
 import sympy
 
 import cirq
+
+
+@duet.sync
+async def test_run_async():
+    sim = cirq.Simulator()
+    result = await sim.run_async(
+        cirq.Circuit(cirq.measure(cirq.GridQubit(0, 0), key='m')), repetitions=10
+    )
+    np.testing.assert_equal(result.records['m'], np.zeros((10, 1, 1)))
+
+
+@duet.sync
+async def test_run_sweep_async():
+    sim = cirq.Simulator()
+    results = await sim.run_sweep_async(
+        cirq.Circuit(cirq.measure(cirq.GridQubit(0, 0), key='m')),
+        cirq.Linspace('foo', 0, 1, 10),
+        repetitions=10,
+    )
+    assert len(results) == 10
+    for result in results:
+        np.testing.assert_equal(result.records['m'], np.zeros((10, 1, 1)))
 
 
 @duet.sync
@@ -225,12 +247,12 @@ def test_sampler_sample_expectation_values_calculation():
             program: 'cirq.AbstractCircuit',
             params: 'cirq.Sweepable',
             repetitions: int = 1,
-        ) -> List['cirq.Result']:
+        ) -> Sequence['cirq.Result']:
             results = np.zeros((repetitions, 1), dtype=bool)
             for idx in range(repetitions // 4):
                 results[idx][0] = 1
             return [
-                cirq.Result(params=pr, measurements={'z': results})
+                cirq.ResultDict(params=pr, measurements={'z': results})
                 for pr in cirq.study.to_resolvers(params)
             ]
 

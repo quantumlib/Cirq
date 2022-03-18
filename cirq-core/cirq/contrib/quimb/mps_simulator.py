@@ -24,8 +24,8 @@ from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Unio
 import numpy as np
 import quimb.tensor as qtn
 
-from cirq import devices, study, ops, protocols, value
-from cirq.sim import simulator, simulator_base
+from cirq import devices, ops, protocols, value
+from cirq.sim import simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
 if TYPE_CHECKING:
@@ -58,8 +58,6 @@ class MPSSimulator(
 ):
     """An efficient simulator for MPS circuits."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
@@ -74,6 +72,9 @@ class MPSSimulator(
             seed: The random seed to use for this simulator.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
+
+        Raises:
+            ValueError: If the noise model is not unitary or a mixture.
         """
         self.init = True
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
@@ -86,14 +87,11 @@ class MPSSimulator(
             seed=seed,
         )
 
-    # pylint: enable=missing-raises-doc
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def _create_partial_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: 'cirq.ClassicalDataStore',
     ) -> 'MPSState':
         """Creates MPSState args for simulating the Circuit.
 
@@ -103,6 +101,8 @@ class MPSSimulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Returns:
             MPSState args for simulating the Circuit.
@@ -116,10 +116,9 @@ class MPSSimulator(
             simulation_options=self.simulation_options,
             grouping=self.grouping,
             initial_state=initial_state,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
         )
 
-    # pylint: enable=missing-param-doc
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[MPSState]',
@@ -128,7 +127,7 @@ class MPSSimulator(
 
     def _create_simulator_trial_result(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_step_result: 'MPSSimulatorStepResult',
     ) -> 'MPSTrialResult':
@@ -148,12 +147,12 @@ class MPSSimulator(
         )
 
 
-class MPSTrialResult(simulator.SimulationTrialResult):
+class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState', 'MPSState']):
     """A single trial reult"""
 
     def __init__(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_step_result: 'MPSSimulatorStepResult',
     ) -> None:
@@ -169,6 +168,14 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         samples = super().__str__()
         final = self._final_simulator_state
         return f'measurements: {samples}\noutput state: {final}'
+
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('cirq.MPSTrialResult(...)')
+        else:
+            p.text(str(self))
 
 
 class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState']):
@@ -203,6 +210,10 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 
         return f'{measurements}{final}'
 
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.MPSSimulatorStepResult(...)" if cycle else self.__str__())
+
     def _simulator_state(self):
         return self.state
 
@@ -211,8 +222,6 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         qubits: Sequence['cirq.Qid'],
@@ -221,6 +230,7 @@ class MPSState(ActOnArgs):
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
         log_of_measurement_results: Dict[str, Any] = None,
+        classical_data: 'cirq.ClassicalDataStore' = None,
     ):
         """Creates and MPSState
 
@@ -234,8 +244,18 @@ class MPSState(ActOnArgs):
             initial_state: An integer representing the initial state.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
+            classical_data: The shared classical data container for this
+                simulation.
+
+        Raises:
+            ValueError: If the grouping does not cover the qubits.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
         qubit_map = self.qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():
@@ -272,7 +292,6 @@ class MPSState(ActOnArgs):
         self.simulation_options = simulation_options
         self.estimated_gate_error_list: List[float] = []
 
-    # pylint: enable=missing-raises-doc
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
         return self.format_i.format(i)
@@ -291,7 +310,7 @@ class MPSState(ActOnArgs):
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.M, self.simulation_options, self.grouping
 
-    def _on_copy(self, target: 'MPSState'):
+    def _on_copy(self, target: 'MPSState', deep_copy_buffers: bool = True):
         target.simulation_options = self.simulation_options
         target.grouping = self.grouping
         target.M = [x.copy() for x in self.M]
@@ -311,7 +330,7 @@ class MPSState(ActOnArgs):
         sorted_ind = tuple(sorted(state_vector.inds))
         return state_vector.fuse({'i': sorted_ind}).data
 
-    def partial_trace(self, keep_qubits: Set[ops.Qid]) -> np.ndarray:
+    def partial_trace(self, keep_qubits: Set['cirq.Qid']) -> np.ndarray:
         """Traces out all qubits except keep_qubits.
 
         Args:
@@ -464,10 +483,8 @@ class MPSState(ActOnArgs):
             "estimated_fidelity": estimated_fidelity,
         }
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def perform_measurement(
-        self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
+        self, qubits: Sequence['cirq.Qid'], prng: np.random.RandomState, collapse_state_vector=True
     ) -> List[int]:
         """Performs a measurement over one or more qubits.
 
@@ -476,6 +493,10 @@ class MPSState(ActOnArgs):
             prng: A random number generator, used to simulate measurements.
             collapse_state_vector: A Boolean specifying whether we should mutate
                 the state after the measurement.
+
+        Raises:
+            ValueError: If the probabilities for the measurements differ too much from one for the
+                tolerance specified in simulation options.
         """
         results: List[int] = []
 
@@ -515,14 +536,13 @@ class MPSState(ActOnArgs):
 
         return results
 
-    # pylint: enable=missing-raises-doc
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
         return self.perform_measurement(qubits, self.prng)
 
     def sample(
         self,
-        qubits: Sequence[ops.Qid],
+        qubits: Sequence['cirq.Qid'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:

@@ -2106,6 +2106,9 @@ class QuantumEngineServiceClient(object):
                 default_timeout=self._method_configs['QuantumRunStream'].timeout,
                 client_info=self._client_info,
             )
+            # Don't prefetch first result from stream, since this will cause deadlocks.
+            # See https://github.com/googleapis/python-api-core/pull/30
+            self.transport.quantum_run_stream._prefetch_first_result_ = False
 
         return self._inner_api_calls['quantum_run_stream'](
             requests, retry=retry, timeout=timeout, metadata=metadata

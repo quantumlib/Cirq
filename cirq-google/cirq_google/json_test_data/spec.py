@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 import pathlib
 
 import cirq_google
@@ -21,12 +22,14 @@ TestSpec = ModuleJsonTestSpec(
         'WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'XmonDevice',
         'XMON',
+        'SycamoreTargetGateset',
     ],
     should_not_be_serialized=[
         'AnnealSequenceSearchStrategy',
         'CircuitOpDeserializer',
         'CircuitOpSerializer',
         'CircuitSerializer',
+        'CIRCUIT_SERIALIZER',
         'CircuitWithCalibration',
         'ConvertToSqrtIswapGates',
         'ConvertToSycamoreGates',
@@ -36,7 +39,6 @@ TestSpec = ModuleJsonTestSpec(
         'EngineJob',
         'EngineProcessor',
         'EngineProgram',
-        'EngineTimeSlot',
         'FSimPhaseCorrections',
         'NAMED_GATESETS',
         'ProtoVersion',
@@ -49,6 +51,8 @@ TestSpec = ModuleJsonTestSpec(
         'SerializingArg',
         'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'QuantumEngineSampler',
+        'ValidatingSampler',
+        'CouldNotPlaceError',
         # Abstract:
         'ExecutableSpec',
     ],
@@ -64,16 +68,19 @@ TestSpec = ModuleJsonTestSpec(
             'QuantumRuntimeConfiguration',
             'RuntimeInfo',
             'SharedRuntimeInfo',
+            'ExecutableGroupResultFilesystemRecord',
+            'NaiveQubitPlacer',
+            'RandomDevicePlacer',
+            'EngineProcessorRecord',
+            'SimulatedProcessorRecord',
+            'SimulatedProcessorWithLocalDeviceRecord',
         ]
     },
-    tested_elsewhere=[
-        # Until `AbstractEngineProcessor` is implemented, we are using
-        # `AbstractEngineProcessorShim` and a mocked implementation for the `processor` argument
-        # in tests for `QuantumRuntimeConfiguration` (which is copied into `ExecutableGroupResult`).
-        # Therefore, we test json roundtrippability for these two classes in quantum_runtime_test.py
-        'cirq.google.QuantumRuntimeConfiguration',
-        'cirq.google.ExecutableGroupResult',
-    ],
     resolver_cache=_class_resolver_dictionary(),
-    deprecated={},
+    deprecated={
+        '_NamedConstantXmonDevice': 'v0.15',
+        'Bristlecone': 'v0.15',
+        'Foxtail': 'v0.15',
+        'GateTabulation': 'v0.16',
+    },
 )

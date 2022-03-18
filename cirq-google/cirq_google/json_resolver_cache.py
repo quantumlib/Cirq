@@ -33,6 +33,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SycamoreGate': cirq_google.SycamoreGate,
         'GateTabulation': cirq_google.GateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,
+        'FSimGateFamily': cirq_google.FSimGateFamily,
         'FloquetPhasedFSimCalibrationOptions': cirq_google.FloquetPhasedFSimCalibrationOptions,
         'FloquetPhasedFSimCalibrationRequest': cirq_google.FloquetPhasedFSimCalibrationRequest,
         'PhasedFSimCalibrationResult': cirq_google.PhasedFSimCalibrationResult,
@@ -49,5 +50,16 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.RuntimeInfo': cirq_google.RuntimeInfo,
         'cirq.google.ExecutableResult': cirq_google.ExecutableResult,
         'cirq.google.ExecutableGroupResult': cirq_google.ExecutableGroupResult,
+        # Pylint fights with the black formatter.
+        # pylint: disable=line-too-long
+        'cirq.google.ExecutableGroupResultFilesystemRecord': cirq_google.ExecutableGroupResultFilesystemRecord,
+        # pylint: enable=line-too-long
         'cirq.google.QuantumRuntimeConfiguration': cirq_google.QuantumRuntimeConfiguration,
+        'cirq.google.NaiveQubitPlacer': cirq_google.NaiveQubitPlacer,
+        'cirq.google.RandomDevicePlacer': cirq_google.RandomDevicePlacer,
+        'cirq.google.EngineProcessorRecord': cirq_google.EngineProcessorRecord,
+        'cirq.google.SimulatedProcessorRecord': cirq_google.SimulatedProcessorRecord,
+        # pylint: disable=line-too-long
+        'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,
+        # pylint: enable=line-too-long
     }

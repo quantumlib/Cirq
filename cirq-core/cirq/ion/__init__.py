@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types for representing and methods for manipulating ion trap operations.
-"""
+"""Trapped ion devices, gates, and compiling utilties."""
 
 from cirq.ion.ion_gates import (
     ms,

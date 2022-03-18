@@ -16,7 +16,7 @@ import itertools
 import collections
 from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
 from numpy import sqrt
-from cirq import devices, ops, circuits, value
+from cirq import _compat, devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import raw_types
 from cirq.value import Duration
@@ -116,12 +116,25 @@ class NeutralAtomDevice(devices.Device):
                 raise ValueError(f'Unsupported qubit type: {q!r}')
         self.qubits = frozenset(qubits)
 
+        self._metadata = devices.GridDeviceMetadata(
+            [(a, b) for a in self.qubits for b in self.qubits if a.is_adjacent(b)], self.gateset
+        )
+
+    @property
+    def metadata(self) -> devices.GridDeviceMetadata:
+        return self._metadata
+
+    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
         return self.qubits
 
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
+    @_compat.deprecated(
+        fix='Use cirq.ConvertToNeutralAtomGates() instead to decompose operations.',
+        deadline='v0.15',
+    )
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
         return convert_to_neutral_atom_gates.ConvertToNeutralAtomGates().convert(operation)
 
@@ -139,7 +152,7 @@ class NeutralAtomDevice(devices.Device):
                 gate
         """
         self.validate_operation(operation)
-        if isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
+        if isinstance(operation, ops.GateOperation):
             if isinstance(operation.gate, ops.MeasurementGate):
                 return self._measurement_duration
         return self._gate_duration
@@ -167,7 +180,7 @@ class NeutralAtomDevice(devices.Device):
         Raises:
             ValueError: If the operation is not valid
         """
-        if not isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
+        if not isinstance(operation, ops.GateOperation):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
         # All qubits the operation acts on must be on the device
@@ -190,7 +203,7 @@ class NeutralAtomDevice(devices.Device):
                     if self.distance(p, q) > self._control_radius:
                         raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
 
-    def validate_moment(self, moment: ops.Moment):
+    def validate_moment(self, moment: circuits.Moment):
         """Raises an error if the given moment is invalid on this device.
 
         Args:
@@ -219,7 +232,7 @@ class NeutralAtomDevice(devices.Device):
 
         categorized_ops: DefaultDict = collections.defaultdict(list)
         for op in moment.operations:
-            assert isinstance(op, (ops.GateOperation, ops.ParallelGateOperation))
+            assert isinstance(op, ops.GateOperation)
             for k, v in CATEGORIES.items():
                 assert isinstance(v, tuple)
                 gate = _subgate_if_parallel_gate(op.gate)
@@ -264,7 +277,9 @@ class NeutralAtomDevice(devices.Device):
             self._are_qubit_lists_too_close(a, b) for a, b in itertools.combinations(qubit_lists, 2)
         )
 
-    def can_add_operation_into_moment(self, operation: ops.Operation, moment: ops.Moment) -> bool:
+    def can_add_operation_into_moment(
+        self, operation: ops.Operation, moment: circuits.Moment
+    ) -> bool:
         """Determines if it's possible to add an operation into a moment.
 
         An operation can be added if the moment with the operation added is valid.
@@ -358,3 +373,7 @@ class NeutralAtomDevice(devices.Device):
                 diagram.grid_line(q.col, q.row, q2.col, q2.row)
 
         return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
+
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.NeutralAtomDevice(...)" if cycle else self.__str__())

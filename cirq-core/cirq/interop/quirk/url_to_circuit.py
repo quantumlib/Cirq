@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -365,7 +365,7 @@ def _init_ops(data: Dict[str, Any]) -> 'cirq.OP_TREE':
             init_ops.append(ops.rx(np.pi / 2).on(q))
         else:
             raise ValueError(f'Unrecognized init state: {state!r}')
-    return ops.Moment(init_ops)
+    return circuits.Moment(init_ops)
 
 
 def _parse_col_cells_with_height(

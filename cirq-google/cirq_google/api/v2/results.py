@@ -19,6 +19,7 @@ from typing import (
     Iterator,
     List,
     Optional,
+    Sequence,
     Set,
 )
 from collections import OrderedDict
@@ -53,13 +54,15 @@ class MeasureInfo:
     tags: List[Hashable]
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def find_measurements(program: cirq.AbstractCircuit) -> List[MeasureInfo]:
     """Find measurements in the given program (circuit).
 
     Returns:
         List of Measurement objects with named measurements in this program.
+
+    Raises:
+        NotImplementedError: If the program is of a type that is not recognized.
+        ValueError: If there is a duplicate measurement key.
     """
     measurements: List[MeasureInfo] = []
     keys: Set[str] = set()
@@ -78,7 +81,6 @@ def find_measurements(program: cirq.AbstractCircuit) -> List[MeasureInfo]:
     return measurements
 
 
-# pylint: enable=missing-raises-doc
 def _circuit_measurements(circuit: cirq.AbstractCircuit) -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
@@ -119,8 +121,6 @@ def unpack_bits(data: bytes, repetitions: int) -> np.ndarray:
     return bits[:repetitions]
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def results_to_proto(
     trial_sweeps: Iterable[Iterable[cirq.Result]],
     measurements: List[MeasureInfo],
@@ -134,6 +134,9 @@ def results_to_proto(
             each sweep.
         measurements: List of info about measurements in the program.
         out: Optional message to populate. If not given, create a new message.
+
+    Raises:
+        ValueError: If the number of repetitions in trial results were not all the same.
     """
     if out is None:
         out = result_pb2.Result()
@@ -143,7 +146,7 @@ def results_to_proto(
             if i == 0:
                 sweep_result.repetitions = trial_result.repetitions
             elif trial_result.repetitions != sweep_result.repetitions:
-                raise ValueError('different numbers of repetitions in one sweep')
+                raise ValueError('Different numbers of repetitions in one sweep.')
             pr = sweep_result.parameterized_results.add()
             pr.params.assignments.update(trial_result.params.param_dict)
             for m in measurements:
@@ -157,11 +160,10 @@ def results_to_proto(
     return out
 
 
-# pylint: enable=missing-raises-doc
 def results_from_proto(
     msg: result_pb2.Result,
     measurements: List[MeasureInfo] = None,
-) -> List[List[cirq.Result]]:
+) -> Sequence[Sequence[cirq.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
     Args:
@@ -181,12 +183,10 @@ def results_from_proto(
     ]
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def _trial_sweep_from_proto(
     msg: result_pb2.SweepResult,
     measure_map: Dict[str, MeasureInfo] = None,
-) -> List[cirq.Result]:
+) -> Sequence[cirq.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 
     Args:
@@ -198,6 +198,9 @@ def _trial_sweep_from_proto(
 
     Returns:
         A list containing a list of trial results for the sweep.
+
+    Raises:
+        ValueError: If a qubit already exists in the measurement results.
     """
 
     trial_sweep: List[cirq.Result] = []
@@ -208,7 +211,7 @@ def _trial_sweep_from_proto(
             for qmr in mr.qubit_measurement_results:
                 qubit = v2.grid_qubit_from_proto_id(qmr.qubit.id)
                 if qubit in qubit_results:
-                    raise ValueError(f'qubit already exists: {qubit}')
+                    raise ValueError(f'Qubit already exists: {qubit}.')
                 qubit_results[qubit] = unpack_bits(qmr.results, msg.repetitions)
             if measure_map:
                 ordered_results = [qubit_results[qubit] for qubit in measure_map[mr.key].qubits]
@@ -216,12 +219,9 @@ def _trial_sweep_from_proto(
                 ordered_results = list(qubit_results.values())
             m_data[mr.key] = np.array(ordered_results).transpose()
         trial_sweep.append(
-            cirq.Result.from_single_parameter_set(
+            cirq.ResultDict(
                 params=cirq.ParamResolver(dict(pr.params.assignments)),
                 measurements=m_data,
             )
         )
     return trial_sweep
-
-
-# pylint: enable=missing-raises-doc

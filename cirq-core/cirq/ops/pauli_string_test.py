@@ -219,6 +219,8 @@ def test_constructor_flexibility():
         _ = cirq.PauliString('test')
     with pytest.raises(TypeError, match='S is not a Pauli'):
         _ = cirq.PauliString(qubit_pauli_map={a: cirq.S})
+    with pytest.raises(TypeError, match="cirq.PAULI_STRING_LIKE"):
+        _ = cirq.PauliString(cirq.Z(a) + cirq.Z(b))
 
     assert cirq.PauliString(cirq.X(a)) == cirq.PauliString(qubit_pauli_map={a: cirq.X})
     assert cirq.PauliString([cirq.X(a)]) == cirq.PauliString(qubit_pauli_map={a: cirq.X})
@@ -856,7 +858,7 @@ def test_decompose():
     a, b = cirq.LineQubit.range(2)
     assert cirq.decompose_once(2 * cirq.X(a) * cirq.Z(b), default=None) is None
     assert cirq.decompose_once(1j * cirq.X(a) * cirq.Z(b)) == [
-        cirq.GlobalPhaseOperation(1j),
+        cirq.global_phase_operation(1j),
         cirq.X(a),
         cirq.Z(b),
     ]
@@ -1023,15 +1025,23 @@ def test_expectation_from_state_vector_qubit_map():
     z = cirq.PauliString({q0: cirq.Z})
     wf = np.array([0, 1, 0, 1, 0, 0, 0, 0], dtype=complex) / np.sqrt(2)
     for state in [wf, wf.reshape(2, 2, 2)]:
-        np.testing.assert_allclose(z.expectation_from_state_vector(state, {q0: 0, q1: 1, q2: 2}), 1)
-        np.testing.assert_allclose(z.expectation_from_state_vector(state, {q0: 0, q1: 2, q2: 1}), 1)
-        np.testing.assert_allclose(z.expectation_from_state_vector(state, {q0: 1, q1: 0, q2: 2}), 0)
-        np.testing.assert_allclose(z.expectation_from_state_vector(state, {q0: 1, q1: 2, q2: 0}), 0)
         np.testing.assert_allclose(
-            z.expectation_from_state_vector(state, {q0: 2, q1: 0, q2: 1}), -1
+            z.expectation_from_state_vector(state, {q0: 0, q1: 1, q2: 2}), 1, atol=1e-8
         )
         np.testing.assert_allclose(
-            z.expectation_from_state_vector(state, {q0: 2, q1: 1, q2: 0}), -1
+            z.expectation_from_state_vector(state, {q0: 0, q1: 2, q2: 1}), 1, atol=1e-8
+        )
+        np.testing.assert_allclose(
+            z.expectation_from_state_vector(state, {q0: 1, q1: 0, q2: 2}), 0, atol=1e-8
+        )
+        np.testing.assert_allclose(
+            z.expectation_from_state_vector(state, {q0: 1, q1: 2, q2: 0}), 0, atol=1e-9
+        )
+        np.testing.assert_allclose(
+            z.expectation_from_state_vector(state, {q0: 2, q1: 0, q2: 1}), -1, atol=1e-8
+        )
+        np.testing.assert_allclose(
+            z.expectation_from_state_vector(state, {q0: 2, q1: 1, q2: 0}), -1, atol=1e-8
         )
 
 
@@ -1056,13 +1066,13 @@ def test_pauli_string_expectation_from_state_vector_pure_state():
     x3 = cirq.PauliString({qubits[3]: cirq.X})
 
     for state in [wf, wf.reshape((2, 2, 2, 2))]:
-        np.testing.assert_allclose(z0z1.expectation_from_state_vector(state, q_map), -1)
-        np.testing.assert_allclose(z0z2.expectation_from_state_vector(state, q_map), 0)
-        np.testing.assert_allclose(z0z3.expectation_from_state_vector(state, q_map), 0)
-        np.testing.assert_allclose(z0x1.expectation_from_state_vector(state, q_map), 0)
-        np.testing.assert_allclose(z1x2.expectation_from_state_vector(state, q_map), -1)
-        np.testing.assert_allclose(x0z1.expectation_from_state_vector(state, q_map), 0)
-        np.testing.assert_allclose(x3.expectation_from_state_vector(state, q_map), -1)
+        np.testing.assert_allclose(z0z1.expectation_from_state_vector(state, q_map), -1, atol=1e-8)
+        np.testing.assert_allclose(z0z2.expectation_from_state_vector(state, q_map), 0, atol=1e-8)
+        np.testing.assert_allclose(z0z3.expectation_from_state_vector(state, q_map), 0, atol=1e-8)
+        np.testing.assert_allclose(z0x1.expectation_from_state_vector(state, q_map), 0, atol=1e-8)
+        np.testing.assert_allclose(z1x2.expectation_from_state_vector(state, q_map), -1, atol=1e-8)
+        np.testing.assert_allclose(x0z1.expectation_from_state_vector(state, q_map), 0, atol=1e-8)
+        np.testing.assert_allclose(x3.expectation_from_state_vector(state, q_map), -1, atol=1e-8)
 
 
 def test_pauli_string_expectation_from_state_vector_pure_state_with_coef():
@@ -1082,9 +1092,11 @@ def test_pauli_string_expectation_from_state_vector_pure_state_with_coef():
     z1x2 = -cirq.Z(qs[1]) * cirq.X(qs[2])
 
     for state in [wf, wf.reshape((2, 2, 2, 2))]:
-        np.testing.assert_allclose(z0z1.expectation_from_state_vector(state, q_map), -0.123)
-        np.testing.assert_allclose(z0z2.expectation_from_state_vector(state, q_map), 0)
-        np.testing.assert_allclose(z1x2.expectation_from_state_vector(state, q_map), 1)
+        np.testing.assert_allclose(
+            z0z1.expectation_from_state_vector(state, q_map), -0.123, atol=1e-8
+        )
+        np.testing.assert_allclose(z0z2.expectation_from_state_vector(state, q_map), 0, atol=1e-8)
+        np.testing.assert_allclose(z1x2.expectation_from_state_vector(state, q_map), 1, atol=1e-8)
 
 
 def test_expectation_from_density_matrix_invalid_input():
@@ -1385,15 +1397,15 @@ def test_conjugated_by_incorrectly_powered_cliffords():
 
 def test_conjugated_by_global_phase():
     a = cirq.LineQubit(0)
-    assert cirq.X(a).conjugated_by(cirq.GlobalPhaseOperation(1j)) == cirq.X(a)
-    assert cirq.Z(a).conjugated_by(cirq.GlobalPhaseOperation(np.exp(1.1j))) == cirq.Z(a)
+    assert cirq.X(a).conjugated_by(cirq.global_phase_operation(1j)) == cirq.X(a)
+    assert cirq.Z(a).conjugated_by(cirq.global_phase_operation(np.exp(1.1j))) == cirq.Z(a)
 
     class DecomposeGlobal(cirq.Gate):
         def num_qubits(self):
             return 1
 
         def _decompose_(self, qubits):
-            yield cirq.GlobalPhaseOperation(1j)
+            yield cirq.global_phase_operation(1j)
 
     assert cirq.X(a).conjugated_by(DecomposeGlobal().on(a)) == cirq.X(a)
 
@@ -1762,7 +1774,7 @@ def test_mutable_pauli_string_inplace_conjugate_by():
             return []
 
     # No-ops
-    p2 = p.inplace_after(cirq.GlobalPhaseOperation(1j))
+    p2 = p.inplace_after(cirq.global_phase_operation(1j))
     assert p2 is p and p == cirq.X(a)
     p2 = p.inplace_after(NoOp(a, b))
     assert p2 is p and p == cirq.X(a)

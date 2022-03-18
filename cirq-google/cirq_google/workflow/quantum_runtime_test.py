@@ -14,28 +14,14 @@
 import glob
 import re
 import uuid
-from dataclasses import dataclass
-from typing import List
+from typing import List, cast, Any
 
 import numpy as np
 import pytest
 
 import cirq
 import cirq_google as cg
-from cirq_google.workflow._abstract_engine_processor_shim import AbstractEngineProcessorShim
 from cirq_google.workflow.quantum_executable_test import _get_quantum_executables, _get_example_spec
-
-
-@dataclass
-class _MockEngineProcessor(AbstractEngineProcessorShim):
-    def get_device(self) -> cirq.Device:
-        return cg.Sycamore23
-
-    def get_sampler(self) -> cirq.Sampler:
-        return cirq.ZerosSampler()
-
-    def _json_dict_(self):
-        return cirq.obj_to_dict_helper(self, attribute_names=[], namespace='cirq.google.testing')
 
 
 def cg_assert_equivalent_repr(value):
@@ -44,7 +30,6 @@ def cg_assert_equivalent_repr(value):
         value,
         global_vals={
             'cirq_google': cg,
-            '_MockEngineProcessor': _MockEngineProcessor,
         },
     )
 
@@ -64,41 +49,35 @@ def test_executable_result():
     er = cg.ExecutableResult(
         spec=_get_example_spec(name='test-spec'),
         runtime_info=rtinfo,
-        raw_data=cirq.Result(params=cirq.ParamResolver(), measurements={'z': np.ones((1_000, 4))}),
+        raw_data=cirq.ResultDict(
+            params=cirq.ParamResolver(), measurements={'z': np.ones((1_000, 4))}
+        ),
     )
     cg_assert_equivalent_repr(er)
 
 
-def _cg_read_json_gzip(fn):
-    def _testing_resolver(cirq_type: str):
-        if cirq_type == 'cirq.google.testing._MockEngineProcessor':
-            return _MockEngineProcessor
-
-    return cirq.read_json_gzip(fn, resolvers=[_testing_resolver] + cirq.DEFAULT_RESOLVERS)
-
-
 def _assert_json_roundtrip(o, tmpdir):
     cirq.to_json_gzip(o, f'{tmpdir}/o.json')
-    o2 = _cg_read_json_gzip(f'{tmpdir}/o.json')
+    o2 = cirq.read_json_gzip(f'{tmpdir}/o.json')
     assert o == o2
 
 
 def test_quantum_runtime_configuration():
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor=_MockEngineProcessor(),
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
         run_id='unit-test',
     )
 
-    sampler = rt_config.processor.get_sampler()
-    result = sampler.run(cirq.Circuit(cirq.measure(cirq.LineQubit(0), key='z')))
+    sampler = rt_config.processor_record.get_sampler()
+    result = sampler.run(cirq.Circuit(cirq.measure(cirq.GridQubit(5, 3), key='z')))
     assert isinstance(result, cirq.Result)
 
-    assert isinstance(rt_config.processor.get_device(), cirq.Device)
+    assert isinstance(rt_config.processor_record.get_device(), cirq.Device)
 
 
 def test_quantum_runtime_configuration_serialization(tmpdir):
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor=_MockEngineProcessor(),
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
         run_id='unit-test',
     )
     cg_assert_equivalent_repr(rt_config)
@@ -108,7 +87,7 @@ def test_quantum_runtime_configuration_serialization(tmpdir):
 def test_executable_group_result(tmpdir):
     egr = cg.ExecutableGroupResult(
         runtime_configuration=cg.QuantumRuntimeConfiguration(
-            processor=_MockEngineProcessor(),
+            processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
             run_id='unit-test',
         ),
         shared_runtime_info=cg.SharedRuntimeInfo(run_id='my run'),
@@ -116,7 +95,7 @@ def test_executable_group_result(tmpdir):
             cg.ExecutableResult(
                 spec=_get_example_spec(name=f'test-spec-{i}'),
                 runtime_info=cg.RuntimeInfo(execution_index=i),
-                raw_data=cirq.Result(
+                raw_data=cirq.ResultDict(
                     params=cirq.ParamResolver(), measurements={'z': np.ones((1_000, 4))}
                 ),
             )
@@ -128,28 +107,55 @@ def test_executable_group_result(tmpdir):
     _assert_json_roundtrip(egr, tmpdir)
 
 
-@pytest.mark.parametrize('run_id', ['unit_test_runid', None])
-def test_execute(tmpdir, run_id):
-    rt_config = cg.QuantumRuntimeConfiguration(processor=_MockEngineProcessor(), run_id=run_id)
+def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
+    """Load `ExecutableGroupResult` "by hand" without using
+    `ExecutableGroupResultFilesystemRecord`."""
+    rt_config = cirq.read_json_gzip(f'{tmpdir}/{run_id}/QuantumRuntimeConfiguration.json.gz')
+    shared_rt_info = cirq.read_json_gzip(f'{tmpdir}/{run_id}/SharedRuntimeInfo.json.gz')
+    fns = glob.glob(f'{tmpdir}/{run_id}/ExecutableResult.*.json.gz')
+    fns = sorted(
+        fns,
+        key=lambda s: int(cast(Any, re.search(r'ExecutableResult\.(\d+)\.json\.gz$', s)).group(1)),
+    )
+    assert len(fns) == 3
+    exe_results: List[cg.ExecutableResult] = [cirq.read_json_gzip(fn) for fn in fns]
+    return cg.ExecutableGroupResult(
+        runtime_configuration=rt_config,
+        shared_runtime_info=shared_rt_info,
+        executable_results=exe_results,
+    )
+
+
+@pytest.mark.parametrize('run_id_in', ['unit_test_runid', None])
+def test_execute(tmpdir, run_id_in):
+    rt_config = cg.QuantumRuntimeConfiguration(
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
+        run_id=run_id_in,
+        qubit_placer=cg.NaiveQubitPlacer(),
+    )
     executable_group = cg.QuantumExecutableGroup(_get_quantum_executables())
     returned_exegroup_result = cg.execute(
         rt_config=rt_config, executable_group=executable_group, base_data_dir=tmpdir
     )
-    actual_run_id = returned_exegroup_result.shared_runtime_info.run_id
-    if run_id is not None:
-        assert run_id == actual_run_id
+    run_id = returned_exegroup_result.shared_runtime_info.run_id
+    if run_id_in is not None:
+        assert run_id_in == run_id
     else:
-        assert isinstance(uuid.UUID(actual_run_id), uuid.UUID)
-    fns = glob.glob(f'{tmpdir}/{actual_run_id}/ExecutableGroupResult.json.gz')
-    assert len(fns) == 1
-    exegroup_result: cg.ExecutableGroupResult = _cg_read_json_gzip(fns[0])
+        assert isinstance(uuid.UUID(run_id), uuid.UUID)
 
-    fns = glob.glob(f'{tmpdir}/{actual_run_id}/ExecutableResult.*.json.gz')
-    fns = sorted(
-        fns, key=lambda s: int(re.search(r'ExecutableResult\.(\d+)\.json\.gz$', s).group(1))
+    manual_exegroup_result = _load_result_by_hand(tmpdir, run_id)
+    egr_record: cg.ExecutableGroupResultFilesystemRecord = cirq.read_json_gzip(
+        f'{tmpdir}/{run_id}/ExecutableGroupResultFilesystemRecord.json.gz'
     )
-    assert len(fns) == 3
-    exe_results: List[cg.ExecutableResult] = [_cg_read_json_gzip(fn) for fn in fns]
+    exegroup_result: cg.ExecutableGroupResult = egr_record.load(base_data_dir=tmpdir)
+    helper_loaded_result = cg.ExecutableGroupResultFilesystemRecord.from_json(
+        run_id=run_id, base_data_dir=tmpdir
+    ).load(base_data_dir=tmpdir)
 
-    exegroup_result.executable_results = exe_results
+    # TODO(gh-4699): Don't null-out device once it's serializable.
+    assert isinstance(returned_exegroup_result.shared_runtime_info.device, cirq.Device)
+    returned_exegroup_result.shared_runtime_info.device = None
+
     assert returned_exegroup_result == exegroup_result
+    assert manual_exegroup_result == exegroup_result
+    assert helper_loaded_result == exegroup_result

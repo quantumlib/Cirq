@@ -63,18 +63,18 @@ def test_str(key_string):
 
 def test_repr():
     mkey = cirq.MeasurementKey('key_string')
-    assert repr(mkey) == f"cirq.MeasurementKey(name='key_string')"
+    assert repr(mkey) == "cirq.MeasurementKey(name='key_string')"
     assert eval(repr(mkey)) == mkey
     mkey = cirq.MeasurementKey.parse_serialized('nested:key')
-    assert repr(mkey) == f"cirq.MeasurementKey(path=('nested',), name='key')"
+    assert repr(mkey) == "cirq.MeasurementKey(path=('nested',), name='key')"
     assert eval(repr(mkey)) == mkey
 
 
 def test_json_dict():
     mkey = cirq.MeasurementKey('key')
-    assert mkey._json_dict_() == {'cirq_type': 'MeasurementKey', 'name': 'key', 'path': tuple()}
+    assert mkey._json_dict_() == {'name': 'key', 'path': tuple()}
     mkey = cirq.MeasurementKey.parse_serialized('nested:key')
-    assert mkey._json_dict_() == {'cirq_type': 'MeasurementKey', 'name': 'key', 'path': ('nested',)}
+    assert mkey._json_dict_() == {'name': 'key', 'path': ('nested',)}
 
 
 def test_with_key_path():
@@ -98,3 +98,22 @@ def test_with_measurement_key_mapping():
     mkey3 = cirq.with_measurement_key_mapping(mkey3, {'new_key': 'newer_key'})
     assert mkey3.name == 'newer_key'
     assert mkey3.path == ('a',)
+
+
+def test_compare():
+    assert cirq.MeasurementKey('a') < cirq.MeasurementKey('b')
+    assert cirq.MeasurementKey('a') <= cirq.MeasurementKey('b')
+    assert cirq.MeasurementKey('a') <= cirq.MeasurementKey('a')
+    assert cirq.MeasurementKey('b') > cirq.MeasurementKey('a')
+    assert cirq.MeasurementKey('b') >= cirq.MeasurementKey('a')
+    assert cirq.MeasurementKey('a') >= cirq.MeasurementKey('a')
+    assert not cirq.MeasurementKey('a') > cirq.MeasurementKey('b')
+    assert not cirq.MeasurementKey('a') >= cirq.MeasurementKey('b')
+    assert not cirq.MeasurementKey('b') < cirq.MeasurementKey('a')
+    assert not cirq.MeasurementKey('b') <= cirq.MeasurementKey('a')
+    assert cirq.MeasurementKey(path=(), name='b') < cirq.MeasurementKey(path=('0',), name='a')
+    assert cirq.MeasurementKey(path=('0',), name='n') < cirq.MeasurementKey(path=('1',), name='a')
+    with pytest.raises(TypeError):
+        _ = cirq.MeasurementKey('a') < 'b'
+    with pytest.raises(TypeError):
+        _ = cirq.MeasurementKey('a') <= 'b'

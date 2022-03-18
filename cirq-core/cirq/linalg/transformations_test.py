@@ -492,24 +492,17 @@ def test_partial_trace_of_state_vector_as_mixture_invalid_input():
     with pytest.raises(ValueError, match='7'):
         cirq.partial_trace_of_state_vector_as_mixture(np.arange(7), [1, 2], atol=1e-8)
 
-    bad_shape = np.arange(16).reshape((2, 4, 2))
-    with pytest.raises(ValueError, match='shaped'):
-        cirq.partial_trace_of_state_vector_as_mixture(bad_shape, [1], atol=1e-8)
-    bad_shape = np.arange(16).reshape((16, 1))
-    with pytest.raises(ValueError, match='shaped'):
-        cirq.partial_trace_of_state_vector_as_mixture(bad_shape, [1], atol=1e-8)
-
     with pytest.raises(ValueError, match='normalized'):
         cirq.partial_trace_of_state_vector_as_mixture(np.arange(8), [1], atol=1e-8)
 
     state = np.arange(8) / np.linalg.norm(np.arange(8))
-    with pytest.raises(ValueError, match='2, 2'):
+    with pytest.raises(ValueError, match='repeated axis'):
         cirq.partial_trace_of_state_vector_as_mixture(state, [1, 2, 2], atol=1e-8)
 
     state = np.array([1, 0, 0, 0]).reshape((2, 2))
-    with pytest.raises(ValueError, match='invalid'):
+    with pytest.raises(IndexError, match='out of range'):
         cirq.partial_trace_of_state_vector_as_mixture(state, [5], atol=1e-8)
-    with pytest.raises(ValueError, match='invalid'):
+    with pytest.raises(IndexError, match='out of range'):
         cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1, 2], atol=1e-8)
 
 
@@ -576,6 +569,38 @@ def test_partial_trace_of_state_vector_as_mixture_pure_result():
     )
 
 
+def test_partial_trace_of_state_vector_as_mixture_pure_result_qudits():
+    a = cirq.testing.random_superposition(2)
+    b = cirq.testing.random_superposition(3)
+    c = cirq.testing.random_superposition(4)
+    state = np.kron(np.kron(a, b), c).reshape((2, 3, 4))
+
+    assert mixtures_equal(
+        cirq.partial_trace_of_state_vector_as_mixture(state, [0], atol=1e-8),
+        ((1.0, a),),
+    )
+    assert mixtures_equal(
+        cirq.partial_trace_of_state_vector_as_mixture(state, [1], atol=1e-8),
+        ((1.0, b),),
+    )
+    assert mixtures_equal(
+        cirq.partial_trace_of_state_vector_as_mixture(state, [2], atol=1e-8),
+        ((1.0, c),),
+    )
+    assert mixtures_equal(
+        cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1], atol=1e-8),
+        ((1.0, np.kron(a, b).reshape((2, 3))),),
+    )
+    assert mixtures_equal(
+        cirq.partial_trace_of_state_vector_as_mixture(state, [0, 2], atol=1e-8),
+        ((1.0, np.kron(a, c).reshape((2, 4))),),
+    )
+    assert mixtures_equal(
+        cirq.partial_trace_of_state_vector_as_mixture(state, [1, 2], atol=1e-8),
+        ((1.0, np.kron(b, c).reshape((3, 4))),),
+    )
+
+
 def test_partial_trace_of_state_vector_as_mixture_mixed_result():
     state = np.array([1, 0, 0, 1]) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
@@ -604,8 +629,35 @@ def test_partial_trace_of_state_vector_as_mixture_mixed_result():
         assert mixtures_equal(mixture, truth)
 
 
+def test_partial_trace_of_state_vector_as_mixture_mixed_result_qudits():
+    state = np.array([[1, 0, 0], [0, 0, 0], [0, 0, 1]]) / np.sqrt(2)
+    truth = ((0.5, np.array([1, 0, 0])), (0.5, np.array([0, 0, 1])))
+    for q1 in [0, 1]:
+        mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1], atol=1e-8)
+        assert mixtures_equal(mixture, truth)
+
+
 def test_to_special():
     u = cirq.testing.random_unitary(4)
     su = cirq.to_special(u)
     assert not cirq.is_special_unitary(u)
     assert cirq.is_special_unitary(su)
+
+
+def test_default_tolerance():
+    a, b = cirq.LineQubit.range(2)
+    final_state_vector = (
+        cirq.Simulator()
+        .simulate(
+            cirq.Circuit(
+                cirq.H(a),
+                cirq.H(b),
+                cirq.CZ(a, b),
+                cirq.measure(a),
+            )
+        )
+        .final_state_vector.reshape((2, 2))
+    )
+    # Here, we do NOT specify the default tolerance. It is merely to check that the default value
+    # is reasonable.
+    cirq.sub_state_vector(final_state_vector, [0])

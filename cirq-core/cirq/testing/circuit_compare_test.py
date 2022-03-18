@@ -44,7 +44,7 @@ def test_sensitive_to_measurement_but_not_measured_phase():
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            cirq.Circuit([cirq.Moment([cirq.measure(q)])]), cirq.Circuit(), atol=1e-8
+            cirq.Circuit([cirq.Moment([cirq.measure(q)])]), cirq.Circuit()
         )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
@@ -55,7 +55,6 @@ def test_sensitive_to_measurement_but_not_measured_phase():
                 cirq.Moment([cirq.measure(q)]),
             ]
         ),
-        atol=1e-8,
     )
 
     a, b = cirq.LineQubit.range(2)
@@ -68,7 +67,6 @@ def test_sensitive_to_measurement_but_not_measured_phase():
                 cirq.Moment([cirq.measure(a, b)]),
             ]
         ),
-        atol=1e-8,
     )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
@@ -79,7 +77,6 @@ def test_sensitive_to_measurement_but_not_measured_phase():
                 cirq.Moment([cirq.measure(a)]),
             ]
         ),
-        atol=1e-8,
     )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
@@ -90,7 +87,6 @@ def test_sensitive_to_measurement_but_not_measured_phase():
                 cirq.Moment([cirq.measure(a, b)]),
             ]
         ),
-        atol=1e-8,
     )
 
     with pytest.raises(AssertionError):
@@ -102,7 +98,6 @@ def test_sensitive_to_measurement_but_not_measured_phase():
                     cirq.Moment([cirq.measure(a)]),
                 ]
             ),
-            atol=1e-8,
         )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
@@ -113,7 +108,6 @@ def test_sensitive_to_measurement_but_not_measured_phase():
                 cirq.Moment([cirq.measure(a, b)]),
             ]
         ),
-        atol=1e-8,
     )
 
 
@@ -129,7 +123,6 @@ def test_sensitive_to_measurement_toggle():
                     cirq.Moment([cirq.measure(q)]),
                 ]
             ),
-            atol=1e-8,
         )
 
     with pytest.raises(AssertionError):
@@ -140,7 +133,6 @@ def test_sensitive_to_measurement_toggle():
                     cirq.Moment([cirq.measure(q, invert_mask=(True,))]),
                 ]
             ),
-            atol=1e-8,
         )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
@@ -151,7 +143,6 @@ def test_sensitive_to_measurement_toggle():
                 cirq.Moment([cirq.measure(q, invert_mask=(True,))]),
             ]
         ),
-        atol=1e-8,
     )
 
 
@@ -162,13 +153,11 @@ def test_measuring_qubits():
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             cirq.Circuit([cirq.Moment([cirq.measure(a)])]),
             cirq.Circuit([cirq.Moment([cirq.measure(b)])]),
-            atol=1e-8,
         )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         cirq.Circuit([cirq.Moment([cirq.measure(a, b, invert_mask=(True,))])]),
         cirq.Circuit([cirq.Moment([cirq.measure(b, a, invert_mask=(False, True))])]),
-        atol=1e-8,
     )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
@@ -179,7 +168,6 @@ def test_measuring_qubits():
             ]
         ),
         cirq.Circuit([cirq.Moment([cirq.measure(a, b)])]),
-        atol=1e-8,
     )
 
 
@@ -192,11 +180,11 @@ def test_random_same_matrix(circuit):
         cirq.MatrixGate(circuit.unitary(qubits_that_should_be_present=[a, b])).on(a, b)
     )
 
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuit, same, atol=1e-8)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuit, same)
 
     circuit.append(cirq.measure(a))
     same.append(cirq.measure(a))
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuit, same, atol=1e-8)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuit, same)
 
 
 def test_correct_qubit_ordering():
@@ -204,14 +192,12 @@ def test_correct_qubit_ordering():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.measure(b)),
         cirq.Circuit(cirq.Z(a), cirq.measure(b)),
-        atol=1e-8,
     )
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.measure(b)),
             cirq.Circuit(cirq.Z(b), cirq.measure(b)),
-            atol=1e-8,
         )
 
 
@@ -228,7 +214,6 @@ def test_known_old_failure():
             cirq.Z(b) ** 0.1,
             cirq.measure(a, b),
         ),
-        atol=1e-8,
     )
 
 

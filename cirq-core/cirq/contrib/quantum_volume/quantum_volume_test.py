@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Tests for the Quantum Volume utilities."""
 
 from unittest.mock import Mock, MagicMock
@@ -69,7 +70,7 @@ def test_sample_heavy_set():
 
     sampler = Mock(spec=cirq.Simulator)
     # Construct a result that returns "1", "2", "3", "0"
-    result = cirq.Result.from_single_parameter_set(
+    result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={'mock': np.array([[0, 1], [1, 0], [1, 1], [0, 0]])},
     )
@@ -93,7 +94,7 @@ def test_sample_heavy_set_with_parity():
     # bitstring "10" is valid and heavy. The second "01" is valid and not
     # heavy. The third and fourth bitstrings "11" and "00" are not valid and
     # dropped.
-    result = cirq.Result.from_single_parameter_set(
+    result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
             '0': np.array([[1], [0]]),

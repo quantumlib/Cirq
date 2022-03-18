@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
+from typing import Sequence
 import pytest
 
 import numpy as np
@@ -48,16 +48,16 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
         program: 'cirq.AbstractCircuit',
         params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List[cirq.Result]:
+    ) -> Sequence[cirq.Result]:
         results = self.simulator.run_sweep(program, params, repetitions)
         for result in results:
             for bits in result.measurements.values():
-                with np.nditer(bits, op_flags=['readwrite']) as it:
-                    for x in it:
-                        if x == 0 and self.prng.uniform() < self.p0:
-                            x[...] = 1
-                        elif self.prng.uniform() < self.p1:
-                            x[...] = 0
+                rand_num = self.prng.uniform(size=bits.shape)
+                should_flip = np.logical_or(
+                    np.logical_and(bits == 0, rand_num < self.p0),
+                    np.logical_and(bits == 1, rand_num < self.p1),
+                )
+                bits[should_flip] ^= 1
         return results
 
 
