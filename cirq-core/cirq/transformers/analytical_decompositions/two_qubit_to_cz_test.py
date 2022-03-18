@@ -121,26 +121,6 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01)
     assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect, atol=atol)
 
 
-def test_two_qubit_matrix_to_operations_deprecated():
-    q0 = cirq.NamedQubit('q0')
-    q1 = cirq.NamedQubit('q1')
-    effect = np.array(
-        [
-            [0, 0, 0, 1],
-            [0, 0, 1, 0],
-            [0, 1, 0, 0],
-            [1, 0, 0, 0j],
-        ]
-    )
-
-    with cirq.testing.assert_deprecated('two_qubit_matrix_to_cz_operations', deadline='v0.15'):
-        _ = cirq.two_qubit_matrix_to_operations(q0, q1, effect, True)
-    with cirq.testing.assert_deprecated(
-        'two_qubit_matrix_to_diagonal_and_cz_operations', deadline='v0.15'
-    ):
-        _ = cirq.two_qubit_matrix_to_diagonal_and_operations(q0, q1, effect, True)
-
-
 @pytest.mark.parametrize(
     'max_partial_cz_depth,max_full_cz_depth,effect',
     [
