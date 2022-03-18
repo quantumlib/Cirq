@@ -796,13 +796,11 @@ def test_clifford_gate_act_on_small_case():
         tableau=cirq.CliffordTableau(num_qubits=5),
         qubits=qubits,
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     expected_args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=5),
         qubits=qubits,
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
     cirq.act_on(cirq.CliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
@@ -833,12 +831,8 @@ def test_clifford_gate_act_on_large_case():
         t1 = cirq.CliffordTableau(num_qubits=n)
         t2 = cirq.CliffordTableau(num_qubits=n)
         qubits = cirq.LineQubit.range(n)
-        args1 = cirq.ActOnCliffordTableauArgs(
-            tableau=t1, qubits=qubits, prng=prng, log_of_measurement_results={}
-        )
-        args2 = cirq.ActOnCliffordTableauArgs(
-            tableau=t2, qubits=qubits, prng=prng, log_of_measurement_results={}
-        )
+        args1 = cirq.ActOnCliffordTableauArgs(tableau=t1, qubits=qubits, prng=prng)
+        args2 = cirq.ActOnCliffordTableauArgs(tableau=t2, qubits=qubits, prng=prng)
         ops = []
         for _ in range(num_ops):
             g = prng.randint(len(gate_candidate))
@@ -861,7 +855,6 @@ def test_clifford_gate_act_on_ch_form():
         initial_state=cirq.StabilizerStateChForm(num_qubits=2, initial_state=1),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     cirq.act_on(cirq.CliffordGate.X, args, qubits=cirq.LineQubit.range(1))
     np.testing.assert_allclose(args.state.state_vector(), np.array([0, 0, 0, 1]))

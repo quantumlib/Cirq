@@ -92,7 +92,6 @@ def test_decomposed_fallback():
         available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),
         dtype=np.complex64,
     )
@@ -111,7 +110,6 @@ def test_cannot_act():
         available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),
         dtype=np.complex64,
     )
@@ -139,7 +137,6 @@ def test_act_using_probabilistic_single_qubit_channel():
         available_buffer=np.empty_like(initial_state),
         qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
-        log_of_measurement_results={},
         initial_state=np.copy(initial_state),
         dtype=initial_state.dtype,
     )
@@ -159,7 +156,6 @@ def test_act_using_probabilistic_single_qubit_channel():
         available_buffer=np.empty_like(initial_state),
         qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
-        log_of_measurement_results={},
         initial_state=np.copy(initial_state),
         dtype=initial_state.dtype,
     )
@@ -197,7 +193,6 @@ def test_act_using_adaptive_two_qubit_channel():
             available_buffer=np.empty_like(state),
             qubits=cirq.LineQubit.range(4),
             prng=mock_prng,
-            log_of_measurement_results={},
             initial_state=np.copy(state),
             dtype=state.dtype,
         )
@@ -260,7 +255,6 @@ def test_probability_comes_up_short_results_in_fallback():
         available_buffer=np.empty(2, dtype=np.complex64),
         qubits=cirq.LineQubit.range(1),
         prng=mock_prng,
-        log_of_measurement_results={},
         initial_state=np.array([1, 0], dtype=np.complex64),
         dtype=np.complex64,
     )

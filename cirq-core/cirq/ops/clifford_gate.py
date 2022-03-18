@@ -666,9 +666,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
     ) -> 'CliffordGate':
         qubits = devices.LineQubit.range(num_qubits)
         t = qis.CliffordTableau(num_qubits=num_qubits)
-        args = sim.ActOnCliffordTableauArgs(
-            tableau=t, qubits=qubits, prng=np.random.RandomState(), log_of_measurement_results={}
-        )
+        args = sim.ActOnCliffordTableauArgs(tableau=t, qubits=qubits)
 
         protocols.act_on(gate, args, qubits, allow_decompose=False)
         return CliffordGate.from_clifford_tableau(args.tableau)
@@ -732,7 +730,6 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
             tableau=base_tableau,
             qubits=qubit_order,
             prng=np.random.RandomState(0),  # unused
-            log_of_measurement_results={},  # unused
         )
         for op in operations:
             protocols.act_on(op, args, allow_decompose=True)
