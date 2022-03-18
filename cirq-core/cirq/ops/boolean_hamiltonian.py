@@ -30,7 +30,6 @@ import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 from cirq import value
-from cirq._compat import deprecated_class
 from cirq.ops import raw_types
 from cirq.ops.linear_combinations import PauliSum, PauliString
 
