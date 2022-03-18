@@ -395,6 +395,10 @@ class ActOnStateVectorArgs(ActOnArgs):
             buffer=available_buffer,
         )
 
+    @_compat.deprecated(
+        deadline='v0.16',
+        fix='None, this function was unintentionally made public.',
+    )
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.
 
@@ -405,9 +409,12 @@ class ActOnStateVectorArgs(ActOnArgs):
             new_target_tensor: The new system state. Must have the same shape
                 and dtype as the old system state.
         """
-        # TODO: deprecate this function, it is unused and should not have been made public.
-        self._state._swap_target_tensor_for(new_target_tensor)  # coverage: ignore
+        self._state._swap_target_tensor_for(new_target_tensor)
 
+    @_compat.deprecated(
+        deadline='v0.16',
+        fix='None, this function was unintentionally made public.',
+    )
     def subspace_index(
         self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
     ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:

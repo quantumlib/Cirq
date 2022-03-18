@@ -567,9 +567,7 @@ class _MPSHandler:
         prng = value.parse_random_state(seed)
 
         for _ in range(repetitions):
-            measurements.append(
-                self._measure(axes, prng, collapse_state_vector=False)
-            )
+            measurements.append(self._measure(axes, prng, collapse_state_vector=False))
 
         return np.array(measurements, dtype=int)
 
