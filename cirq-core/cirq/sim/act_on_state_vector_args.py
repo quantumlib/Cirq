@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
 
 import numpy as np
 
@@ -467,13 +467,13 @@ class ActOnStateVectorArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
-        strats = [
+        strats: List[Callable[[Any, Any, Sequence['cirq.Qid']], bool]] = [
             _strat_act_on_state_vector_from_apply_unitary,
             _strat_act_on_state_vector_from_mixture,
             _strat_act_on_state_vector_from_channel,
         ]
         if allow_decompose:
-            strats.append(strat_act_on_from_apply_decompose)  # type: ignore
+            strats.append(strat_act_on_from_apply_decompose)
 
         # Try each strategy, stopping if one works.
         for strat in strats:
