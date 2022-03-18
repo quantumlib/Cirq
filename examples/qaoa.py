@@ -147,7 +147,7 @@ def qaoa_max_cut_unitary(
 def qaoa_max_cut_circuit(
     qubits, betas, gammas, graph, use_boolean_hamiltonian_gate
 ):  # Nodes should be integers
-    circuit = cirq.Circuit(
+    return cirq.Circuit(
         # Prepare uniform superposition
         cirq.H.on_each(*qubits),
         # Apply QAOA unitary
@@ -155,8 +155,6 @@ def qaoa_max_cut_circuit(
         # Measure
         cirq.measure(*qubits, key='m'),
     )
-    cirq.DropNegligible().optimize_circuit(circuit)
-    return circuit
 
 
 def cut_values(bitstrings, graph):
