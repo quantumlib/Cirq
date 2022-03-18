@@ -58,7 +58,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
         'BitFlipChannel': cirq.BitFlipChannel,
         'BitstringAccumulator': cirq.work.BitstringAccumulator,
-        'BooleanHamiltonian': cirq.BooleanHamiltonian,
         'BooleanHamiltonianGate': cirq.BooleanHamiltonianGate,
         'CCNotPowGate': cirq.CCNotPowGate,
         'CCXPowGate': cirq.CCXPowGate,
