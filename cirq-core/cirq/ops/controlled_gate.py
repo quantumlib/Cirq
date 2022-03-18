@@ -36,6 +36,10 @@ from cirq.type_workarounds import NotImplementedType
 if TYPE_CHECKING:
     import cirq
 
+controlled_gate_decomposition = _import.LazyLoader(
+    'controlled_gate_decomposition', globals(), 'cirq.transformers.analytical_decompositions'
+)
+common_gates = _import.LazyLoader('common_gates', globals(), 'cirq.ops')
 line_qubit = _import.LazyLoader('line_qubit', globals(), 'cirq.devices')
 
 
@@ -156,6 +160,40 @@ class ControlledGate(raw_types.Gate):
         return self.control_qid_shape + protocols.qid_shape(self.sub_gate)
 
     def _decompose_(self, qubits):
+        if (
+            protocols.has_unitary(self.sub_gate)
+            and protocols.num_qubits(self.sub_gate) == 1
+            and self._qid_shape_() == (2,) * len(self._qid_shape_())
+        ):
+            control_qubits = list(qubits[: self.num_controls()])
+            invert_ops: List['cirq.Operation'] = []
+            for cvals, cqbit in zip(self.control_values, qubits[: self.num_controls()]):
+                if set(cvals) == {0}:
+                    invert_ops.append(common_gates.X(cqbit))
+                elif set(cvals) == {0, 1}:
+                    control_qubits.remove(cqbit)
+            decomposed_ops = controlled_gate_decomposition.decompose_multi_controlled_rotation(
+                protocols.unitary(self.sub_gate), control_qubits, qubits[-1]
+            )
+            return invert_ops + decomposed_ops + invert_ops
+
+        if isinstance(self.sub_gate, common_gates.CZPowGate):
+            z_sub_gate = common_gates.ZPowGate(
+                exponent=self.sub_gate.exponent, global_shift=self.sub_gate.global_shift
+            )
+            kwargs = {
+                'num_controls': self.num_controls() + 1,
+                'control_values': self.control_values + (1,),
+                'control_qid_shape': self.control_qid_shape + (2,),
+            }
+            controlled_z = (
+                z_sub_gate.controlled(**kwargs)
+                if protocols.is_parameterized(self)
+                else ControlledGate(z_sub_gate, **kwargs)
+            )
+            if self != controlled_z:
+                return protocols.decompose_once_with_qubits(controlled_z, qubits, NotImplemented)
+
         if isinstance(self.sub_gate, matrix_gates.MatrixGate):
             # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
             # local phase in the controlled variant and hence cannot be ignored.
@@ -170,7 +208,7 @@ class ControlledGate(raw_types.Gate):
         decomposed: List['cirq.Operation'] = []
         for op in result:
             decomposed.append(
-                cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)
+                op.controlled_by(*qubits[: self.num_controls()], control_values=self.control_values)
             )
         return decomposed
 
