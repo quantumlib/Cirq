@@ -134,9 +134,8 @@ def qaoa_max_cut_unitary(
     if use_boolean_hamiltonian_gate:
         booleans = [f"x{i} ^ x{j}" for i, j in sorted(graph.edges)]
         param_names = [f"x{i}" for i in range(len(qubits))]
-        qubit_map = {param_name: qubit for param_name, qubit in zip(param_names, qubits)}
         for beta, gamma in zip(betas, gammas):
-            yield cirq.BooleanHamiltonian(qubit_map, booleans, 2.0 * gamma)
+            yield cirq.BooleanHamiltonianGate(param_names, booleans, 2.0 * gamma).on(*qubits)
             yield cirq.rx(2 * beta).on_each(*qubits)
     else:
         for beta, gamma in zip(betas, gammas):
