@@ -93,7 +93,8 @@ def test_example_heatmaps():
 
 
 def test_example_runs_qaoa():
-    examples.qaoa.main(repetitions=10, maxiter=5)
+    examples.qaoa.main(repetitions=10, maxiter=5, use_boolean_hamiltonian_gate=False)
+    examples.qaoa.main(repetitions=10, maxiter=5, use_boolean_hamiltonian_gate=True)
 
 
 def test_example_runs_quantum_teleportation():
