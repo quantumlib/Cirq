@@ -35,6 +35,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
     @_compat.deprecated_parameter(
         deadline='v0.15',
+        fix='Use classical_data.',
+        parameter_desc='log_of_measurement_results and positional arguments',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 5,
+    )
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
         fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
         parameter_desc='ignore_measurement_results',
         match=lambda args, kwargs: 'ignore_measurement_results' in kwargs or len(args) > 7,

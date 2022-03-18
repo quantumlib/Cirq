@@ -550,7 +550,9 @@ def test_state_act_on_args_initializer():
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
-        log_of_measurement_results={'test': [4]},
+        classical_data=cirq.ClassicalDataDictionaryStore(
+            _records={cirq.MeasurementKey('test'): [(4,)]}
+        ),
     )
     assert s.qubits == (cirq.LineQubit(0),)
     assert s.log_of_measurement_results == {'test': [4]}
@@ -560,7 +562,6 @@ def test_act_on_gate():
     args = ccq.mps_simulator.MPSState(
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(0),
-        log_of_measurement_results={},
     )
 
     cirq.act_on(cirq.X, args, [cirq.LineQubit(1)])
