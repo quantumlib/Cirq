@@ -73,7 +73,6 @@ def test_decomposed_fallback():
     args = cirq.ActOnDensityMatrixArgs(
         qubits=cirq.LineQubit.range(1),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=0,
         dtype=np.complex64,
     )
@@ -91,7 +90,6 @@ def test_cannot_act():
     args = cirq.ActOnDensityMatrixArgs(
         qubits=cirq.LineQubit.range(1),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=0,
         dtype=np.complex64,
     )
