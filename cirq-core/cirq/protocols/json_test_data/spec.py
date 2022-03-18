@@ -59,7 +59,6 @@ TestSpec = ModuleJsonTestSpec(
         'QasmOutput',
         'QuantumState',
         'QubitOrder',
-        'QubitPermutationGate',
         'QuilFormatter',
         'QuilOutput',
         'SimulationTrialResult',

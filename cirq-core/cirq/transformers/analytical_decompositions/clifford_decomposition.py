@@ -114,9 +114,7 @@ def decompose_clifford_tableau_to_operations(
 
     t: qis.CliffordTableau = clifford_tableau.copy()
     operations: List[ops.Operation] = []
-    args = sim.ActOnCliffordTableauArgs(
-        tableau=t, qubits=qubits, prng=np.random.RandomState(), log_of_measurement_results={}
-    )
+    args = sim.ActOnCliffordTableauArgs(tableau=t, qubits=qubits, prng=np.random.RandomState())
 
     _X_with_ops = functools.partial(_X, args=args, operations=operations, qubits=qubits)
     _Z_with_ops = functools.partial(_Z, args=args, operations=operations, qubits=qubits)

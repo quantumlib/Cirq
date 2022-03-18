@@ -63,7 +63,6 @@ class StabilizerSampler(sampler.Sampler):
                 CliffordTableau(num_qubits=len(qubits)),
                 qubits=list(qubits),
                 prng=self._prng,
-                log_of_measurement_results={},
             )
             for op in circuit.all_operations():
                 protocols.act_on(op, state)

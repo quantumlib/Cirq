@@ -63,6 +63,18 @@ def test_kv_executable_spec():
         hash(KeyValueExecutableSpec(executable_family='', key_value_pairs=[('name', 'test')]))
 
 
+def test_dict_round_trip():
+    input_dict = dict(name='test', idx=5)
+
+    kv = KeyValueExecutableSpec.from_dict(
+        input_dict, executable_family='cirq_google.algo_benchmarks.example'
+    )
+
+    actual_dict = kv.to_dict()
+
+    assert input_dict == actual_dict
+
+
 def test_kv_repr():
     kv = _get_example_spec()
     cirq.testing.assert_equivalent_repr(kv, global_vals={'cirq_google': cirq_google})
@@ -187,3 +199,30 @@ def test_quantum_executable_group_serialization(tmpdir):
     cirq.to_json(eg, f'{tmpdir}/eg.json')
     eg_reconstructed = cirq.read_json(f'{tmpdir}/eg.json')
     assert eg == eg_reconstructed
+
+
+def test_equality():
+    k1 = KeyValueExecutableSpec(
+        executable_family='test',
+        key_value_pairs=(
+            ('a', 1),
+            ('b', 2),
+        ),
+    )
+    k2 = KeyValueExecutableSpec(
+        executable_family='test',
+        key_value_pairs=(
+            ('b', 2),
+            ('a', 1),
+        ),
+    )
+    assert k1 == k2
+
+
+def test_equality_from_dictionaries():
+    d1 = {'a': 1, 'b': 2}
+    d2 = {'b': 2, 'a': 1}
+    assert d1 == d2
+    k1 = KeyValueExecutableSpec.from_dict(d1, executable_family='test')
+    k2 = KeyValueExecutableSpec.from_dict(d2, executable_family='test')
+    assert k1 == k2

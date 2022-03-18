@@ -16,7 +16,6 @@ from typing import Any, cast, Iterable, List, Optional, Set, TYPE_CHECKING, Froz
 
 import cirq
 from cirq import _compat
-from cirq_google.optimizers import convert_to_xmon_gates
 
 if TYPE_CHECKING:
     import cirq
@@ -52,6 +51,7 @@ class _XmonDeviceBase(cirq.Device):
                 cirq.XPowGate,
                 cirq.YPowGate,
                 cirq.PhasedXPowGate,
+                cirq.PhasedXZGate,
                 cirq.MeasurementGate,
                 cirq.ZPowGate,
             ),
@@ -72,10 +72,17 @@ class _XmonDeviceBase(cirq.Device):
 
     @_compat.deprecated(
         deadline='v0.15',
-        fix='XmonDevice.decompose_operation is deperecated. Please use ConvertToXmonGates().',
+        fix='XmonDevice.decompose_operation is deprecated. '
+        'Please use cirq.optimize_for_target_gateset() and cirq.CZTargetGateset.',
     )
     def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
-        return convert_to_xmon_gates.ConvertToXmonGates().convert(operation)
+        if operation.gate is not None and self.is_supported_gate(operation.gate):
+            return operation
+        return [
+            cirq.optimize_for_target_gateset(
+                cirq.Circuit(operation), gateset=cirq.CZTargetGateset(allow_partial_czs=True)
+            ).all_operations()
+        ]
 
     def neighbors_of(self, qubit: cirq.GridQubit):
         """Returns the qubits that the given qubit can interact with."""
@@ -109,6 +116,7 @@ class _XmonDeviceBase(cirq.Device):
                 cirq.XPowGate,
                 cirq.YPowGate,
                 cirq.PhasedXPowGate,
+                cirq.PhasedXZGate,
                 cirq.MeasurementGate,
                 cirq.ZPowGate,
             ),
