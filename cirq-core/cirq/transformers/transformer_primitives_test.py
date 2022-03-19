@@ -117,6 +117,7 @@ def test_map_operations_does_not_insert_too_many_moments():
     )
 
 
+# pylint: disable=line-too-long
 def test_map_operations_deep_subcircuits():
     q = cirq.LineQubit.range(5)
     c_orig = cirq.Circuit(
@@ -127,9 +128,14 @@ def test_map_operations_deep_subcircuits():
     c_orig_with_circuit_ops = cirq.Circuit(
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
-                [cirq.CircuitOperation(cirq.FrozenCircuit(op)) for op in c_orig.all_operations()]
+                [
+                    cirq.CircuitOperation(cirq.FrozenCircuit(op)).repeat(2).with_tags("internal")
+                    for op in c_orig.all_operations()
+                ]
             )
         )
+        .repeat(6)
+        .with_tags("external")
     )
 
     def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
@@ -139,22 +145,72 @@ def test_map_operations_deep_subcircuits():
             cirq.Z.on_each(*op.qubits),
         ] if op.gate == cirq.CX else op
 
-    c_mapped = cirq.map_operations(c_orig_with_circuit_ops, map_func, deep=True)
-    c_mapped = cirq.unroll_circuit_op(c_mapped, deep=True, tags_to_check=None)
     cirq.testing.assert_has_diagram(
-        c_mapped,
+        c_orig_with_circuit_ops,
         '''
-0: ───Z───@───Z───────────────
-          │
-1: ───Z───X───Z───────────────
-
-2: ───Z───X───Z───────────────
-          │
-3: ───Z───@───Z───Z───@───Z───
-                      │
-4: ───────────────Z───X───Z───
+      [       [ 0: ───@─── ]                                                               ]
+      [ 0: ───[       │    ]────────────────────────────────────────────────────────────── ]
+      [       [ 1: ───X─── ](loops=2)['internal']                                          ]
+      [       │                                                                            ]
+      [ 1: ───#2────────────────────────────────────────────────────────────────────────── ]
+      [                                                                                    ]
+      [       [ 2: ───X─── ]                                                               ]
+0: ───[ 2: ───[       │    ]────────────────────────────────────────────────────────────── ]────────────────────────
+      [       [ 3: ───@─── ](loops=2)['internal']                                          ]
+      [       │                                                                            ]
+      [       │                                     [ 3: ───@─── ]                         ]
+      [ 3: ───#2────────────────────────────────────[       │    ]──────────────────────── ]
+      [                                             [ 4: ───X─── ](loops=2)['internal']    ]
+      [                                             │                                      ]
+      [ 4: ─────────────────────────────────────────#2──────────────────────────────────── ](loops=6)['external']
+      │
+1: ───#2────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+2: ───#3────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+3: ───#4────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+4: ───#5────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ''',
     )
+
+    c_mapped = cirq.map_operations(c_orig_with_circuit_ops, map_func, deep=True)
+    for unroller in [
+        cirq.unroll_circuit_op,
+        cirq.unroll_circuit_op_greedy_earliest,
+        cirq.unroll_circuit_op_greedy_frontier,
+    ]:
+        cirq.testing.assert_has_diagram(
+            unroller(c_mapped, deep=True),
+            '''
+      [       [ 0: ───Z───@───Z─── ]                                                                       ]
+      [ 0: ───[           │        ]────────────────────────────────────────────────────────────────────── ]
+      [       [ 1: ───Z───X───Z─── ](loops=2)['internal']                                                  ]
+      [       │                                                                                            ]
+      [ 1: ───#2────────────────────────────────────────────────────────────────────────────────────────── ]
+      [                                                                                                    ]
+      [       [ 2: ───Z───X───Z─── ]                                                                       ]
+0: ───[ 2: ───[           │        ]────────────────────────────────────────────────────────────────────── ]────────────────────────
+      [       [ 3: ───Z───@───Z─── ](loops=2)['internal']                                                  ]
+      [       │                                                                                            ]
+      [       │                                             [ 3: ───Z───@───Z─── ]                         ]
+      [ 3: ───#2────────────────────────────────────────────[           │        ]──────────────────────── ]
+      [                                                     [ 4: ───Z───X───Z─── ](loops=2)['internal']    ]
+      [                                                     │                                              ]
+      [ 4: ─────────────────────────────────────────────────#2──────────────────────────────────────────── ](loops=6)['external']
+      │
+1: ───#2────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+2: ───#3────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+3: ───#4────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+4: ───#5────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+''',
+        )
+
+
+# pylint: enable=line-too-long
 
 
 def test_map_operations_respects_tags_to_ignore():
@@ -204,13 +260,29 @@ def test_unroll_circuit_op_and_variants():
         [cirq.Moment(cirq.CircuitOperation(cirq.FrozenCircuit(m))) for m in mapped_circuit[:-1]],
         mapped_circuit[-1],
     )
+    cirq.testing.assert_has_diagram(
+        mapped_circuit_deep,
+        '''
+0: ───[ 0: ───X─── ]────────────────────────────────────────────────────────────X───
+
+1: ────────────────────[ 1: ───[ 1: ───Z───Z─── ]['<mapped_circuit_op>']─── ]───────
+''',
+    )
     for unroller in [
         cirq.unroll_circuit_op_greedy_earliest,
         cirq.unroll_circuit_op_greedy_frontier,
         cirq.unroll_circuit_op,
     ]:
         cirq.testing.assert_same_circuits(
-            unroller(mapped_circuit), unroller(mapped_circuit_deep, tags_to_check=None, deep=True)
+            unroller(mapped_circuit), unroller(mapped_circuit_deep, deep=True, tags_to_check=None)
+        )
+        cirq.testing.assert_has_diagram(
+            unroller(mapped_circuit_deep, deep=True),
+            '''
+0: ───[ 0: ───X─── ]────────────────────────X───
+
+1: ────────────────────[ 1: ───Z───Z─── ]───────
+            ''',
         )
 
     cirq.testing.assert_has_diagram(
@@ -237,6 +309,16 @@ def test_unroll_circuit_op_and_variants():
 1: ───────Z───Z───
 ''',
     )
+
+
+def test_unroll_circuit_op_greedy_frontier_doesnt_touch_same_op_twice():
+    q = cirq.NamedQubit("q")
+    nested_ops = [cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q)))] * 5
+    nested_circuit_op = cirq.CircuitOperation(cirq.FrozenCircuit(nested_ops))
+    c = cirq.Circuit(nested_circuit_op, nested_circuit_op, nested_circuit_op)
+    c_expected = cirq.Circuit(nested_ops, nested_ops, nested_ops)
+    c_unrolled = cirq.unroll_circuit_op_greedy_frontier(c, tags_to_check=None)
+    cirq.testing.assert_same_circuits(c_unrolled, c_expected)
 
 
 def test_unroll_circuit_op_deep():
