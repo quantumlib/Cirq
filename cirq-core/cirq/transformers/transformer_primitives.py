@@ -519,9 +519,6 @@ def unroll_circuit_op_greedy_frontier(
     idx = 0
     while idx < len(unrolled_circuit):
         for op in unrolled_circuit[idx].operations:
-            # for idx, op in circuit.findall_operations(
-            #     lambda o: isinstance(o.untagged, circuits.CircuitOperation)
-            # ):
             # Don't touch stuff inserted by unrolling previous circuit ops.
             if not isinstance(op.untagged, circuits.CircuitOperation):
                 continue
