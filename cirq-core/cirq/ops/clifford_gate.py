@@ -286,7 +286,9 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
         qubits = devices.LineQubit.range(num_qubits)
         t = qis.CliffordTableau(num_qubits=num_qubits)
         args = sim.ActOnCliffordTableauArgs(
-            tableau=t, qubits=qubits, prng=np.random.RandomState(), log_of_measurement_results={}
+            tableau=t,
+            qubits=qubits,
+            prng=np.random.RandomState(),
         )
 
         protocols.act_on(gate, args, qubits, allow_decompose=False)
@@ -353,7 +355,6 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
             tableau=base_tableau,
             qubits=qubit_order,
             prng=np.random.RandomState(0),  # unused
-            log_of_measurement_results={},  # unused
         )
         for op in operations:
             protocols.act_on(op, args, allow_decompose=True)
@@ -385,6 +386,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
                 cls.Z: cls.Z_nsqrt,
             },
         }
+
 
 @value.value_equality
 class CliffordGate(raw_types.Gate, CommonCliffordGates):
@@ -463,7 +465,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # it is because Clifford tableau ignores the global phase information.
         return NotImplemented
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> List[raw_types.Operation]:
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         return transformers.analytical_decompositions.decompose_clifford_tableau_to_operations(
             list(qubits), self.clifford_tableau
         )
@@ -730,7 +732,7 @@ class SingleQubitCliffordGate(CliffordGate):
             return NotImplemented
         return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
 
-    # Single Clifford Gate decomposition can be more efficient than the general Tableau decomposition.
+    # Single Clifford Gate decomposition is more efficient than the general Tableau decomposition.
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         (qubit,) = qubits
         if self == SingleQubitCliffordGate.H:
