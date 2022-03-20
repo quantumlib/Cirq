@@ -225,26 +225,6 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._X_sqrt
 
     @property
-    def Y_sqrt(cls):
-        if getattr(cls, '_Y_sqrt', None) is None:
-            # Transformation: X -> -Z,  Z -> X
-            _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-                n=1, rs=[1, 0], xs=[[0], [1]], zs=[[1], [0]]
-            )
-            cls._Y_sqrt = cls.from_clifford_tableau(_clifford_tableau)
-        return cls._Y_sqrt
-
-    @property
-    def Z_sqrt(cls):
-        if getattr(cls, '_Z_sqrt', None) is None:
-            # Transformation: X -> Y, Z -> Z
-            _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-                n=1, rs=[0, 0], xs=[[1], [0]], zs=[[1], [1]]
-            )
-            cls._Z_sqrt = cls.from_clifford_tableau(_clifford_tableau)
-        return cls._Z_sqrt
-
-    @property
     def X_nsqrt(cls):
         if getattr(cls, '_X_nsqrt', None) is None:
             # Transformation: X->X, Z->Y
@@ -255,6 +235,16 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._X_nsqrt
 
     @property
+    def Y_sqrt(cls):
+        if getattr(cls, '_Y_sqrt', None) is None:
+            # Transformation: X -> -Z,  Z -> X
+            _clifford_tableau = qis.CliffordTableau._from_json_dict_(
+                n=1, rs=[1, 0], xs=[[0], [1]], zs=[[1], [0]]
+            )
+            cls._Y_sqrt = cls.from_clifford_tableau(_clifford_tableau)
+        return cls._Y_sqrt
+
+    @property
     def Y_nsqrt(cls):
         if getattr(cls, '_Y_nsqrt', None) is None:
             # Transformation: X -> Z, Z -> -X
@@ -263,6 +253,16 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
             )
             cls._Y_nsqrt = cls.from_clifford_tableau(_clifford_tableau)
         return cls._Y_nsqrt
+
+    @property
+    def Z_sqrt(cls):
+        if getattr(cls, '_Z_sqrt', None) is None:
+            # Transformation: X -> Y, Z -> Z
+            _clifford_tableau = qis.CliffordTableau._from_json_dict_(
+                n=1, rs=[0, 0], xs=[[1], [0]], zs=[[1], [1]]
+            )
+            cls._Z_sqrt = cls.from_clifford_tableau(_clifford_tableau)
+        return cls._Z_sqrt
 
     @property
     def Z_nsqrt(cls):
@@ -722,12 +722,22 @@ class SingleQubitCliffordGate(CliffordGate):
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
     def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
-        if exponent == 0.5 or exponent == -0.5:
-            return self._get_sqrt_map()[exponent][self]
+        if self._get_sqrt_map().get(exponent, None):
+            ret_gate = self._get_sqrt_map()[exponent].get(self, None)
+            if ret_gate:
+                return ret_gate
         ret_gate = super().__pow__(exponent)
         if ret_gate is NotImplemented:
             return NotImplemented
         return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
+
+    # Single Clifford Gate decomposition can be more efficient than the general Tableau decomposition.
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+        (qubit,) = qubits
+        if self == SingleQubitCliffordGate.H:
+            return (common_gates.H(qubit),)
+        rotations = self.decompose_rotation()
+        return tuple(r.on(qubit) ** (qt / 2) for r, qt in rotations)
 
     def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType]:
         if isinstance(other, SingleQubitCliffordGate):
