@@ -386,7 +386,6 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
             },
         }
 
-
 @value.value_equality
 class CliffordGate(raw_types.Gate, CommonCliffordGates):
     """Clifford rotation for N-qubit."""

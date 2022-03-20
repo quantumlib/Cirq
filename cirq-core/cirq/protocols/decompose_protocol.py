@@ -47,6 +47,15 @@ RaiseTypeErrorIfNotProvided: Any = ([],)
 DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
 OpDecomposer = Callable[['cirq.Operation'], DecomposeResult]
 
+DECOMPOSE_TARGET_GATESET = ops.Gateset(
+    ops.XPowGate,
+    ops.YPowGate,
+    ops.ZPowGate,
+    ops.CZPowGate,
+    ops.MeasurementGate,
+    ops.GlobalPhaseGate,
+)
+
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
     return ValueError(f"Operation doesn't satisfy the given `keep` but can't be decomposed: {op!r}")
