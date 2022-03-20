@@ -725,10 +725,12 @@ class SingleQubitCliffordGate(CliffordGate):
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
     def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
+        # First to check if we can get the sqrt and negative sqrt Clifford.
         if self._get_sqrt_map().get(exponent, None):
-            ret_gate = self._get_sqrt_map()[exponent].get(self, None)
-            if ret_gate:
-                return ret_gate
+            pow_gate = self._get_sqrt_map()[exponent].get(self, None)
+            if pow_gate:
+                return pow_gate
+        # If not, we try the Clifford Tableau based method.
         ret_gate = super().__pow__(exponent)
         if ret_gate is NotImplemented:
             return NotImplemented
