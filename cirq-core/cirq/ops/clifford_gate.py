@@ -372,7 +372,9 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
         return cls(_clifford_tableau=_clifford_tableau)
 
     @classmethod
-    def _get_sqrt_map(cls) -> Dict[float, Dict['CliffordGate', 'CliffordGate']]:
+    def _get_sqrt_map(
+        cls,
+    ) -> Dict[float, Dict['SingleQubitCliffordGate', 'SingleQubitCliffordGate']]:
         """Returns a map containing two keys 0.5 and -0.5 for the sqrt mapping of Pauli gates."""
         return {
             0.5: {
