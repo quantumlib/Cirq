@@ -34,6 +34,22 @@ def test_consistent_protocols(gate):
     cirq.testing.assert_implements_consistent_protocols(gate)
 
 
+def test_parameterized_decompose():
+    angles = sympy.symbols('x0, x1, x2, x3')
+    parameterized_op = cirq.TwoQubitDiagonalGate(angles).on(*cirq.LineQubit.range(2))
+    decomposed_circuit = cirq.Circuit(cirq.decompose(parameterized_op))
+    for resolver in (
+        cirq.Linspace('x0', -2, 2, 6)
+        * cirq.Linspace('x1', -2, 2, 6)
+        * cirq.Linspace('x2', -2, 2, 6)
+        * cirq.Linspace('x3', -2, 2, 6)
+    ):
+        np.testing.assert_allclose(
+            cirq.unitary(cirq.resolve_parameters(parameterized_op, resolver)),
+            cirq.unitary(cirq.resolve_parameters(decomposed_circuit, resolver)),
+        )
+
+
 def test_unitary():
     diagonal_angles = [2, 3, 5, 7]
     assert cirq.has_unitary(cirq.TwoQubitDiagonalGate(diagonal_angles))

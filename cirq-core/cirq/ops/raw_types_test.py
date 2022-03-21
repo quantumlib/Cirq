@@ -932,3 +932,14 @@ def test_on_each_iterable_qid():
             raise NotImplementedError()
 
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
+
+
+def test_setters_deprecated():
+    q = cirq.LineQubit(0)
+    subop = cirq.X(q)
+    op = cirq.TaggedOperation(subop, 'tag')
+    assert op.sub_operation == subop
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        new_subop = cirq.Y(q)
+        op.sub_operation = new_subop
+        assert op.sub_operation == new_subop

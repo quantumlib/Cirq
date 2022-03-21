@@ -309,7 +309,6 @@ def test_x_act_on_tableau():
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
 
     cirq.act_on(cirq.X ** 0.5, args, [cirq.LineQubit(1)], allow_decompose=False)
@@ -359,7 +358,6 @@ def test_y_act_on_tableau():
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
 
     cirq.act_on(cirq.Y ** 0.5, args, [cirq.LineQubit(1)], allow_decompose=False)
@@ -400,7 +398,6 @@ def test_z_h_act_on_tableau():
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
 
     cirq.act_on(cirq.H, args, [cirq.LineQubit(1)], allow_decompose=False)
@@ -451,7 +448,6 @@ def test_cx_act_on_tableau():
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
 
     cirq.act_on(cirq.CX, args, cirq.LineQubit.range(2), allow_decompose=False)
@@ -496,7 +492,6 @@ def test_cz_act_on_tableau():
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
 
     cirq.act_on(cirq.CZ, args, cirq.LineQubit.range(2), allow_decompose=False)
@@ -537,13 +532,11 @@ def test_cz_act_on_equivalent_to_h_cx_h_tableau():
         tableau=cirq.CliffordTableau(num_qubits=2),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     args2 = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=2),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     cirq.act_on(cirq.S, args=args1, qubits=[cirq.LineQubit(1)], allow_decompose=False)
     cirq.act_on(cirq.S, args=args2, qubits=[cirq.LineQubit(1)], allow_decompose=False)
@@ -605,7 +598,6 @@ def test_act_on_ch_form(input_gate_sequence, outcome):
     args = cirq.ActOnStabilizerCHFormArgs(
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=original_state.copy(),
     )
 

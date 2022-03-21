@@ -16,7 +16,7 @@ import logging
 import os
 from typing import Iterator, Optional
 
-ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+from cirq._compat import ALLOW_DEPRECATION_IN_TEST
 
 
 @contextlib.contextmanager
