@@ -25,6 +25,7 @@ def test_consistent_protocols():
         gate,
         setup_code='import cirq\nimport numpy as np\nimport sympy\nimport cirq_google',
         qubit_count=2,
+        ignore_decompose_to_default_gateset=True,
     )
     assert gate.num_qubits() == 2
 
