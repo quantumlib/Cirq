@@ -21,5 +21,5 @@ def test_timing():
     with cg.workflow.TimeIntoRuntimeInfo(rt, 'test_proc'):
         time.sleep(0.1)
 
-    assert 'test_proc' in rt.timings
-    assert rt.timings['test_proc'] > 0.05
+    assert 'test_proc' in rt.timings_s
+    assert rt.timings_s['test_proc'] > 0.05

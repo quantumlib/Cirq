@@ -163,5 +163,5 @@ def test_execute(tmpdir, run_id_in):
     assert helper_loaded_result == exegroup_result
 
     exe_result = returned_exegroup_result.executable_results[0]
-    assert 'placement' in exe_result.runtime_info.timings
-    assert 'run' in exe_result.runtime_info.timings
+    assert 'placement' in exe_result.runtime_info.timings_s
+    assert 'run' in exe_result.runtime_info.timings_s
