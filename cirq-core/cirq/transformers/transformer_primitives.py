@@ -87,7 +87,9 @@ def map_moments(
                 continue
             op_untagged = cast(circuits.CircuitOperation, op.untagged)
             mapped_op = op_untagged.replace(
-                circuit=map_moments(op_untagged.circuit, map_func, deep=deep)
+                circuit=map_moments(
+                    op_untagged.circuit, map_func, tags_to_ignore=tags_to_ignore, deep=deep
+                )
             ).with_tags(*op.tags)
             batch_replace.append((i, op, mapped_op))
         mutable_circuit = circuit.unfreeze(copy=True)
@@ -149,7 +151,10 @@ def map_operations(
         return circuit_op
 
     return map_moments(
-        circuit, lambda m, i: [circuits.Moment(apply_map(op, i) for op in m.operations)], deep=deep
+        circuit,
+        lambda m, i: [circuits.Moment(apply_map(op, i) for op in m.operations)],
+        deep=deep,
+        tags_to_ignore=tags_to_ignore,
     )
 
 
