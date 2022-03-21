@@ -59,7 +59,7 @@ class MockTransformerClassWithDefaults:
         return circuit[::-1]
 
 
-@cirq.transformer(add_support_for_deep=True)
+@cirq.transformer(add_deep_support=True)
 class MockTransformerClassSupportsDeep(MockTransformerClass):
     pass
 
@@ -82,10 +82,10 @@ def make_transformer_func_with_defaults() -> cirq.TRANSFORMER:
     return func
 
 
-def make_transformer_func(add_support_for_deep: bool = False) -> cirq.TRANSFORMER:
+def make_transformer_func(add_deep_support: bool = False) -> cirq.TRANSFORMER:
     my_mock = mock.Mock()
 
-    @cirq.transformer(add_support_for_deep=add_support_for_deep)
+    @cirq.transformer(add_deep_support=add_deep_support)
     def mock_tranformer_func(
         circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
     ) -> cirq.Circuit:
@@ -145,7 +145,7 @@ def test_transformer_decorator_with_defaults(transformer):
         (MockTransformerClass(), False),
         (make_transformer_func(), False),
         (MockTransformerClassSupportsDeep(), True),
-        (make_transformer_func(add_support_for_deep=True), True),
+        (make_transformer_func(add_deep_support=True), True),
     ],
 )
 def test_transformer_decorator_adds_support_for_deep(transformer, supports_deep):
