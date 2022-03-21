@@ -99,7 +99,7 @@ def assert_eigengate_implements_consistent_protocols(
     """Checks that an EigenGate subclass is internally consistent and has a
     good __repr__."""
     # pylint: disable=unused-variable
-    # __tracebackhide__ = True
+    __tracebackhide__ = True
     # pylint: enable=unused-variable
 
     for exponent in exponents:
@@ -151,7 +151,7 @@ def _assert_meets_standards_helper(
     local_vals: Optional[Dict[str, Any]],
     ignore_decompose_to_default_gateset: bool,
 ) -> None:
-    # __tracebackhide__ = True  # pylint: disable=unused-variable
+    __tracebackhide__ = True  # pylint: disable=unused-variable
 
     assert_consistent_resolve_parameters(val)
     assert_specifies_has_unitary_if_unitary(val)
