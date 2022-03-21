@@ -569,3 +569,17 @@ def test_act_on_gate():
         args.state_vector().reshape((2, 2, 2)),
         cirq.one_hot(index=(0, 1, 0), shape=(2, 2, 2), dtype=np.complex64),
     )
+
+
+def test_deprectated():
+    q0 = cirq.LineQubit(0)
+    prng = np.random.RandomState(0)
+    args = ccq.mps_simulator.MPSState(
+        qubits=cirq.LineQubit.range(3),
+        prng=prng,
+        log_of_measurement_results={},
+    )
+    with cirq.testing.assert_deprecated(deadline='0.15'):
+        args.perform_measurement([q0], prng)
+    with cirq.testing.assert_deprecated(deadline='0.15'):
+        args.apply_op(cirq.X(q0), prng)
