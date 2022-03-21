@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def eject_phased_paulis(
     circuit: 'cirq.AbstractCircuit',
     *,
@@ -66,6 +66,7 @@ def eject_phased_paulis(
 
         # Collect, phase, and merge Ws.
         w = _try_get_known_phased_pauli(op, no_symbolic=not eject_parameterized)
+        # print(f"DEBUG1 {_}: ", op, w, sep="\n")
         if w is not None:
             return (
                 _potential_cross_whole_w(op, atol, held_w_phases)
@@ -74,6 +75,7 @@ def eject_phased_paulis(
             )
 
         affected = [q for q in op.qubits if q in held_w_phases]
+        # print(f"DEBUG2 {_}: ", op, affected, sep="\n")
         if not affected:
             return op
 
