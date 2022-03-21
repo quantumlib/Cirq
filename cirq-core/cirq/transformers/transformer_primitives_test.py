@@ -399,6 +399,35 @@ def test_map_moments_drop_empty_moments():
     cirq.testing.assert_same_circuits(c_mapped, cirq.Circuit(c[0], c[0]))
 
 
+def test_map_moments_drop_empty_moments_deep():
+    op = cirq.X(cirq.NamedQubit("q"))
+    c_nested = cirq.FrozenCircuit(cirq.Moment(op), cirq.Moment(), cirq.Moment(op))
+    c_orig = cirq.Circuit(
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(6).with_tags("ignore"),
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(5).with_tags("preserve_tag"),
+    )
+    c_expected = cirq.Circuit(
+        [op, op],
+        cirq.CircuitOperation(c_nested).repeat(6).with_tags("ignore"),
+        [op, op],
+        cirq.CircuitOperation(cirq.FrozenCircuit([op, op])).repeat(5).with_tags("preserve_tag"),
+    )
+    c_mapped = cirq.map_moments(
+        c_orig, lambda m, i: [] if len(m) == 0 else [m], deep=True, tags_to_ignore=("ignore",)
+    )
+    cirq.testing.assert_same_circuits(c_mapped, c_expected)
+
+
+def _merge_z_moments_func(m1: cirq.Moment, m2: cirq.Moment) -> Optional[cirq.Moment]:
+    if any(op.gate != cirq.Z for m in [m1, m2] for op in m):
+        return None
+    return cirq.Moment(
+        cirq.Z(q) for q in (m1.qubits | m2.qubits) if m1.operates_on([q]) ^ m2.operates_on([q])
+    )
+
+
 def test_merge_moments():
     q = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(
@@ -419,21 +448,8 @@ def test_merge_moments():
 ''',
     )
 
-    def merge_func(m1: cirq.Moment, m2: cirq.Moment) -> Optional[cirq.Moment]:
-        def is_z_moment(m):
-            return all(op.gate == cirq.Z for op in m)
-
-        if not (is_z_moment(m1) and is_z_moment(m2)):
-            return None
-        qubits = m1.qubits | m2.qubits
-
-        def mul(op1, op2):
-            return (op1 or op2) if not (op1 and op2) else cirq.decompose_once(op1 * op2)
-
-        return cirq.Moment(mul(m1.operation_at(q), m2.operation_at(q)) for q in qubits)
-
     cirq.testing.assert_has_diagram(
-        cirq.merge_moments(c_orig, merge_func),
+        cirq.merge_moments(c_orig, _merge_z_moments_func),
         '''
 0: ───────@───────
           │
@@ -441,6 +457,35 @@ def test_merge_moments():
           │
 2: ───Z───X───Z───
 ''',
+    )
+
+
+def test_merge_moments_deep():
+    q = cirq.LineQubit.range(3)
+    c_z_moments = cirq.Circuit(
+        [cirq.Z.on_each(q[0], q[1]), cirq.Z.on_each(q[1], q[2]), cirq.Z.on_each(q[1], q[0])],
+        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
+    )
+    merged_z_moment = cirq.Moment(cirq.Z.on_each(*q[1:]))
+    c_nested_circuit = cirq.FrozenCircuit(c_z_moments, cirq.CCX(*q), c_z_moments)
+    c_merged_circuit = cirq.FrozenCircuit(merged_z_moment, cirq.CCX(*q), merged_z_moment)
+    c_orig = cirq.Circuit(
+        cirq.CircuitOperation(c_nested_circuit).repeat(5).with_tags("ignore"),
+        c_nested_circuit,
+        cirq.CircuitOperation(c_nested_circuit).repeat(6).with_tags("preserve_tag"),
+        c_nested_circuit,
+        cirq.CircuitOperation(c_nested_circuit).repeat(7),
+    )
+    c_expected = cirq.Circuit(
+        cirq.CircuitOperation(c_nested_circuit).repeat(5).with_tags("ignore"),
+        c_merged_circuit,
+        cirq.CircuitOperation(c_merged_circuit).repeat(6).with_tags("preserve_tag"),
+        c_merged_circuit,
+        cirq.CircuitOperation(c_merged_circuit).repeat(7),
+    )
+    cirq.testing.assert_same_circuits(
+        cirq.merge_moments(c_orig, _merge_z_moments_func, tags_to_ignore=("ignore",), deep=True),
+        c_expected,
     )
 
 
@@ -543,7 +588,45 @@ def test_merge_operations_merges_connected_component():
     )
 
 
+def test_merge_operations_deep():
+    q = cirq.LineQubit.range(2)
+    h_cz_y = [cirq.H(q[0]), cirq.CZ(*q), cirq.Y(q[1])]
+    m_cz_m = [cirq.Moment(), cirq.Moment(cirq.CZ(*q)), cirq.Moment()]
+    c_orig = cirq.Circuit(
+        h_cz_y,
+        cirq.Moment(cirq.X(q[0]).with_tags("ignore"), cirq.Y(q[1])),
+        cirq.CircuitOperation(cirq.FrozenCircuit(h_cz_y)).repeat(6).with_tags("ignore"),
+        [cirq.CNOT(*q), cirq.CNOT(*q)],
+        cirq.CircuitOperation(cirq.FrozenCircuit(h_cz_y)).repeat(4),
+        [cirq.CNOT(*q), cirq.CZ(*q), cirq.CNOT(*q)],
+        cirq.CircuitOperation(cirq.FrozenCircuit(h_cz_y)).repeat(5).with_tags("preserve_tag"),
+    )
+    c_expected = cirq.Circuit(
+        m_cz_m,
+        cirq.Moment(cirq.X(q[0]).with_tags("ignore")),
+        cirq.CircuitOperation(cirq.FrozenCircuit(h_cz_y)).repeat(6).with_tags("ignore"),
+        [cirq.CNOT(*q), cirq.CNOT(*q)],
+        cirq.CircuitOperation(cirq.FrozenCircuit(m_cz_m)).repeat(4),
+        [cirq.CZ(*q), cirq.Moment(), cirq.Moment()],
+        cirq.CircuitOperation(cirq.FrozenCircuit(m_cz_m)).repeat(5).with_tags("preserve_tag"),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+
+    def merge_func(op1, op2):
+        """Artificial example where a CZ will absorb any merge-able operation."""
+        for op in [op1, op2]:
+            if op.gate == cirq.CZ:
+                return op
+        return None
+
+    cirq.testing.assert_same_circuits(
+        cirq.merge_operations(c_orig, merge_func, tags_to_ignore=["ignore"], deep=True), c_expected
+    )
+
+
 # pylint: disable=line-too-long
+
+
 def test_merge_operations_to_circuit_op_merges_connected_component():
     c_orig = _create_circuit_to_merge()
     cirq.testing.assert_has_diagram(
