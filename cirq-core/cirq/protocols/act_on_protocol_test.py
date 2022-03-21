@@ -36,7 +36,7 @@ class DummyActOnArgs(cirq.ActOnArgs):
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
+        action: Any,
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ):
