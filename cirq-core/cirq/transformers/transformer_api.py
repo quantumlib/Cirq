@@ -22,6 +22,7 @@ import textwrap
 from typing import (
     cast,
     Any,
+    Callable,
     Tuple,
     Hashable,
     List,
@@ -30,6 +31,7 @@ from typing import (
     Type,
     TYPE_CHECKING,
     TypeVar,
+    Union,
 )
 from typing_extensions import Protocol
 
@@ -235,6 +237,16 @@ class TRANSFORMER(Protocol):
 
 _TRANSFORMER_T = TypeVar('_TRANSFORMER_T', bound=TRANSFORMER)
 _TRANSFORMER_CLS_T = TypeVar('_TRANSFORMER_CLS_T', bound=Type[TRANSFORMER])
+_TRANSFORMER_OR_CLS_T = TypeVar(
+    '_TRANSFORMER_OR_CLS_T', bound=Union[TRANSFORMER, Type[TRANSFORMER]]
+)
+
+
+@overload
+def transformer(
+    *, add_support_for_deep: bool = False
+) -> Callable[[_TRANSFORMER_OR_CLS_T], _TRANSFORMER_OR_CLS_T]:
+    pass
 
 
 @overload

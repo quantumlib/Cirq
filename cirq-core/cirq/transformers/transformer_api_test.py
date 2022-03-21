@@ -89,11 +89,9 @@ def make_transformer_func(add_support_for_deep: bool = False) -> cirq.TRANSFORME
     def mock_tranformer_func(
         circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
     ) -> cirq.Circuit:
-        print("CALLED:", circuit, context, sep="\n\n----------\n\n")
         my_mock(circuit, context)
         return circuit.unfreeze()
 
-    # mock_transformer = mock_tranformer_func(add_support_for_deep)
     mock_tranformer_func.mock = my_mock  # type: ignore
     return mock_tranformer_func
 
@@ -141,9 +139,6 @@ def test_transformer_decorator_with_defaults(transformer):
     transformer.mock.assert_called_with(circuit, context, 1e-2, CustomArg(12))
 
 
-# from unittest.mock import patch, call
-
-
 @pytest.mark.parametrize(
     'transformer, supports_deep',
     [
@@ -154,9 +149,9 @@ def test_transformer_decorator_with_defaults(transformer):
     ],
 )
 def test_transformer_decorator_adds_support_for_deep(transformer, supports_deep):
-    q1, q2 = cirq.LineQubit.range(2)
-    c_nested_x = cirq.FrozenCircuit(cirq.X(q1))
-    c_nested_y = cirq.FrozenCircuit(cirq.Y(q1))
+    q = cirq.NamedQubit("q")
+    c_nested_x = cirq.FrozenCircuit(cirq.X(q))
+    c_nested_y = cirq.FrozenCircuit(cirq.Y(q))
     c_nested_xy = cirq.FrozenCircuit(
         cirq.CircuitOperation(c_nested_x).repeat(5).with_tags("ignore"),
         cirq.CircuitOperation(c_nested_y).repeat(7).with_tags("preserve_tag"),
