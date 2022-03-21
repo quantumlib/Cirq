@@ -736,6 +736,14 @@ class SingleQubitCliffordGate(CliffordGate):
             return NotImplemented
         return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
 
+    def _act_on_(
+        self,
+        args: 'cirq.OperationTarget',  # pylint: disable=unused-argument
+        qubits: Sequence['cirq.Qid'],  # pylint: disable=unused-argument
+    ):
+        # TODO
+        return NotImplemented
+
     # Single Clifford Gate decomposition is more efficient than the general Tableau decomposition.
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         (qubit,) = qubits
