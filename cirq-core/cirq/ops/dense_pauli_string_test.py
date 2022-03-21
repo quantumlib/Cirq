@@ -376,9 +376,11 @@ def test_protocols():
     cirq.testing.assert_implements_consistent_protocols(-cirq.DensePauliString('Z'))
     cirq.testing.assert_implements_consistent_protocols(1j * cirq.DensePauliString('X'))
     cirq.testing.assert_implements_consistent_protocols(2 * cirq.DensePauliString('X'))
-    cirq.testing.assert_implements_consistent_protocols(t * cirq.DensePauliString('XYIZ'))
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.DensePauliString('XYIZ', coefficient=t + 2)
+        t * cirq.DensePauliString('XYIZ'), ignore_decompose_to_default_gateset=True
+    )
+    cirq.testing.assert_implements_consistent_protocols(
+        cirq.DensePauliString('XYIZ', coefficient=t + 2), ignore_decompose_to_default_gateset=True
     )
     cirq.testing.assert_implements_consistent_protocols(-cirq.DensePauliString('XYIZ'))
     cirq.testing.assert_implements_consistent_protocols(
