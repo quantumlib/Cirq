@@ -192,6 +192,7 @@ def test_identity_multiplication():
         (cirq.CCZ(*cirq.LineQubit.range(3)), 8),
         (cirq.CCX(*cirq.LineQubit.range(3)), 8),
         (cirq.CCZ(cirq.LineQubit(0), cirq.LineQubit(2), cirq.LineQubit(1)), 8),
+        (cirq.CCZ(cirq.LineQubit(0), cirq.LineQubit(2), cirq.LineQubit(1)) ** sympy.Symbol("s"), 8),
         (cirq.CSWAP(*cirq.LineQubit.range(3)), 9),
         (cirq.CSWAP(*reversed(cirq.LineQubit.range(3))), 9),
         (cirq.CSWAP(cirq.LineQubit(1), cirq.LineQubit(0), cirq.LineQubit(2)), 12),

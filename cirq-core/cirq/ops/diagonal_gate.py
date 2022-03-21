@@ -144,7 +144,7 @@ class DiagonalGate(raw_types.Gate):
         return tuple(self._diag_angles_radians)
 
     def _decompose_for_basis(
-        self, index: int, bit_flip: int, theta: float, qubits: Sequence['cirq.Qid']
+        self, index: int, bit_flip: int, theta: value.TParamVal, qubits: Sequence['cirq.Qid']
     ) -> Iterator[Union['cirq.ZPowGate', 'cirq.CXPowGate']]:
         if index == 0:
             return []
@@ -166,7 +166,7 @@ class DiagonalGate(raw_types.Gate):
                       │           │                       │                       │
         2: ───Rz(1)───@───────────@───────────────────────@───────────────────────@───────────
 
-        where the angles in Rz gates are corresponding to the fast-walsh-Hadamard transfrom
+        where the angles in Rz gates are corresponding to the fast-walsh-Hadamard transform
         of diagonal_angles in the Gray Code order.
 
         For n qubits decomposition looks similar but with 2^n-1 Rz gates and 2^n-2 CNOT gates.
@@ -176,9 +176,6 @@ class DiagonalGate(raw_types.Gate):
             ancillas." New Journal of Physics 16.3 (2014): 033040.
             https://iopscience.iop.org/article/10.1088/1367-2630/16/3/033040/meta
         """
-        if protocols.is_parameterized(self):
-            return NotImplemented
-
         n = self._num_qubits_()
         hat_angles = _fast_walsh_hadamard_transform(self._diag_angles_radians) / (2 ** n)
 
@@ -186,9 +183,13 @@ class DiagonalGate(raw_types.Gate):
         # decomposed gates. On its own it is not physically observable. However, if using this
         # diagonal gate for sub-system like controlled gate, it is no longer equivalent. Hence,
         # we add global phase.
-        decomposed_circ: List[Any] = [
-            global_phase_op.global_phase_operation(np.exp(1j * hat_angles[0]))
-        ]
+        # Global phase is ignored for parameterized gates as `cirq.GlobalPhaseGate` expects a
+        # scalar value.
+        decomposed_circ: List[Any] = (
+            [global_phase_op.global_phase_operation(np.exp(1j * hat_angles[0]))]
+            if not protocols.is_parameterized(hat_angles[0])
+            else []
+        )
         for i, bit_flip in _gen_gray_code(n):
             decomposed_circ.extend(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))
         return decomposed_circ

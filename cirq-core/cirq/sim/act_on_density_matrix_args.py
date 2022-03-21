@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
 
 import numpy as np
 
@@ -241,6 +241,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
     @_compat.deprecated_parameter(
         deadline='v0.15',
+        fix='Use classical_data.',
+        parameter_desc='log_of_measurement_results and positional arguments',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 5,
+    )
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
         fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
         parameter_desc='ignore_measurement_results',
         match=lambda args, kwargs: 'ignore_measurement_results' in kwargs or len(args) > 7,
@@ -329,11 +335,11 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
-        strats = [
+        strats: List[Callable[[Any, Any, Sequence['cirq.Qid']], bool]] = [
             _strat_apply_channel_to_state,
         ]
         if allow_decompose:
-            strats.append(strat_act_on_from_apply_decompose)  # type: ignore
+            strats.append(strat_act_on_from_apply_decompose)
 
         # Try each strategy, stopping if one works.
         for strat in strats:

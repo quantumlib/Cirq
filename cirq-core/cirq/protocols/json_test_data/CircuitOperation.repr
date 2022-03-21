@@ -36,4 +36,19 @@ cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     ),
 ]),
 param_resolver={sympy.Symbol('theta'): 1.5},
-use_repetition_ids=False)]
+use_repetition_ids=False),
+cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
+    cirq.Moment(
+        cirq.H(cirq.LineQubit(0)),
+        cirq.H(cirq.LineQubit(1)),
+        cirq.H(cirq.LineQubit(2)),
+        cirq.H(cirq.LineQubit(3)),
+        cirq.H(cirq.LineQubit(4)),
+    ),
+    cirq.Moment(
+        cirq.MeasurementGate(5, '0,1,2,3,4', ()).on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3), cirq.LineQubit(4)),
+    ),
+]),
+use_repetition_ids=False,
+repeat_until=cirq.KeyCondition(key=cirq.MeasurementKey('0,1,2,3,4')),
+)]

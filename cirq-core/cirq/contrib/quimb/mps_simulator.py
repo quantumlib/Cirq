@@ -220,7 +220,7 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 
 
 @value.value_equality
-class _MPSQuantumState(qis.QuantumStateRepresentation):
+class _MPSHandler(qis.QuantumStateRepresentation):
     """Quantum state of the MPS simulation."""
 
     def __init__(
@@ -297,7 +297,7 @@ class _MPSQuantumState(qis.QuantumStateRepresentation):
             n = grouping[axis]
             M[n] @= qtn.Tensor(x, inds=(format_i.format(axis),))
             initial_state = initial_state // d
-        return _MPSQuantumState(
+        return _MPSHandler(
             qid_shape=qid_shape,
             grouping=grouping,
             M=M,
@@ -324,12 +324,15 @@ class _MPSQuantumState(qis.QuantumStateRepresentation):
     def _value_equality_values_(self) -> Any:
         return self._qid_shape, self._M, self._simulation_options, self._grouping
 
-    def copy(self, deep_copy_buffers: bool = True) -> '_MPSQuantumState':
+    def copy(self, deep_copy_buffers: bool = True) -> '_MPSHandler':
         """Copies the object.
+
+        Args:
+            deep_copy_buffers: True by default, False to reuse the existing buffers.
         Returns:
             A copy of the object.
         """
-        return _MPSQuantumState(
+        return _MPSHandler(
             simulation_options=self._simulation_options,
             grouping=self._grouping,
             qid_shape=self._qid_shape,
@@ -353,7 +356,7 @@ class _MPSQuantumState(qis.QuantumStateRepresentation):
         return state_vector.fuse({'i': sorted_ind}).data
 
     def partial_trace(self, keep_axes: Set[int]) -> np.ndarray:
-        """Traces out all qubits except keep_qubits.
+        """Traces out all qubits except keep_axes.
 
         Args:
             keep_axes: The set of axes that are left after computing the
@@ -542,7 +545,7 @@ class _MPSQuantumState(qis.QuantumStateRepresentation):
         Returns:
             The measurements in axis order.
         """
-        return self._measure(axes, seed)
+        return self._measure(axes, value.parse_random_state(seed))
 
     def sample(
         self,
@@ -561,11 +564,10 @@ class _MPSQuantumState(qis.QuantumStateRepresentation):
         """
 
         measurements: List[List[int]] = []
+        prng = value.parse_random_state(seed)
 
         for _ in range(repetitions):
-            measurements.append(
-                self._measure(axes, value.parse_random_state(seed), collapse_state_vector=False)
-            )
+            measurements.append(self._measure(axes, prng, collapse_state_vector=False))
 
         return np.array(measurements, dtype=int)
 
@@ -606,7 +608,7 @@ class MPSState(ActOnArgs):
         final_grouping = qubit_map if grouping is None else grouping
         if final_grouping.keys() != qubit_map.keys():
             raise ValueError('Grouping must cover exactly the qubits.')
-        state = _MPSQuantumState.create(
+        state = _MPSHandler.create(
             initial_state=initial_state,
             qid_shape=tuple(q.dimension for q in qubits),
             simulation_options=simulation_options,
@@ -619,7 +621,7 @@ class MPSState(ActOnArgs):
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-        self._state: _MPSQuantumState = state
+        self._state: _MPSHandler = state
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.

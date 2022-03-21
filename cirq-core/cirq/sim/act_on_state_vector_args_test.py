@@ -95,7 +95,6 @@ def test_decomposed_fallback():
         available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),
         dtype=np.complex64,
     )
@@ -114,7 +113,6 @@ def test_cannot_act():
         available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64),
         dtype=np.complex64,
     )
@@ -142,7 +140,6 @@ def test_act_using_probabilistic_single_qubit_channel():
         available_buffer=np.empty_like(initial_state),
         qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
-        log_of_measurement_results={},
         initial_state=np.copy(initial_state),
         dtype=initial_state.dtype,
     )
@@ -162,7 +159,6 @@ def test_act_using_probabilistic_single_qubit_channel():
         available_buffer=np.empty_like(initial_state),
         qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
-        log_of_measurement_results={},
         initial_state=np.copy(initial_state),
         dtype=initial_state.dtype,
     )
@@ -200,7 +196,6 @@ def test_act_using_adaptive_two_qubit_channel():
             available_buffer=np.empty_like(state),
             qubits=cirq.LineQubit.range(4),
             prng=mock_prng,
-            log_of_measurement_results={},
             initial_state=np.copy(state),
             dtype=state.dtype,
         )
@@ -263,7 +258,6 @@ def test_probability_comes_up_short_results_in_fallback():
         available_buffer=np.empty(2, dtype=np.complex64),
         qubits=cirq.LineQubit.range(1),
         prng=mock_prng,
-        log_of_measurement_results={},
         initial_state=np.array([1, 0], dtype=np.complex64),
         dtype=np.complex64,
     )
@@ -342,3 +336,11 @@ def test_with_qubits():
 def test_qid_shape_error():
     with pytest.raises(ValueError, match="qid_shape must be provided"):
         cirq.sim.act_on_state_vector_args._BufferedStateVector.create(initial_state=0)
+
+
+def test_deprecated_methods():
+    args = cirq.ActOnStateVectorArgs(qubits=[cirq.LineQubit(0)])
+    with cirq.testing.assert_deprecated('unintentionally made public', deadline='v0.16'):
+        args.subspace_index([0], 0)
+    with cirq.testing.assert_deprecated('unintentionally made public', deadline='v0.16'):
+        args.swap_target_tensor_for(np.array([]))

@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
+from cirq._compat import deprecated_parameter
 from cirq.qis import clifford_tableau
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
@@ -28,6 +29,12 @@ if TYPE_CHECKING:
 class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTableau]):
     """State and context for an operation acting on a clifford tableau."""
 
+    @deprecated_parameter(
+        deadline='v0.15',
+        fix='Use classical_data.',
+        parameter_desc='log_of_measurement_results and positional arguments',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 3,
+    )
     def __init__(
         self,
         tableau: 'cirq.CliffordTableau',

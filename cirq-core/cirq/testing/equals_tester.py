@@ -22,7 +22,7 @@ equal to each other. It will also check that a==b implies hash(a)==hash(b).
 
 import collections
 
-from typing import Any, Callable
+from typing import Any, Callable, List, Tuple, Union
 
 import itertools
 
@@ -30,8 +30,10 @@ import itertools
 class EqualsTester:
     """Tests equality against user-provided disjoint equivalence groups."""
 
-    def __init__(self):
-        self._groups = [(_ClassUnknownToSubjects(),)]
+    def __init__(self) -> None:
+        self._groups: List[Tuple[Union[Any, _ClassUnknownToSubjects], ...]] = [
+            (_ClassUnknownToSubjects(),)
+        ]
 
     def _verify_equality_group(self, *group_items: Any):
         """Verifies that a group is an equivalence group.
@@ -134,10 +136,10 @@ class EqualsTester:
 class _ClassUnknownToSubjects:
     """Equality methods should be able to deal with the unexpected."""
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, _ClassUnknownToSubjects)
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
     def __hash__(self):
@@ -150,10 +152,10 @@ class _TestsForNotImplemented:
     This class is equal to a specific instance or delegates by returning NotImplemented.
     """
 
-    def __init__(self, other):
+    def __init__(self, other: object) -> None:
         self.other = other
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return True if other is self.other else NotImplemented
 
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
 
 import numpy as np
 
@@ -339,6 +339,12 @@ class ActOnStateVectorArgs(ActOnArgs):
 
     @_compat.deprecated_parameter(
         deadline='v0.15',
+        fix='Use classical_data.',
+        parameter_desc='log_of_measurement_results and positional arguments',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 4,
+    )
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
         fix='Use initial_state instead and specify all the arguments with keywords.',
         parameter_desc='target_tensor and positional arguments',
         match=lambda args, kwargs: 'target_tensor' in kwargs or len(args) != 1,
@@ -395,6 +401,10 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         self._state: _BufferedStateVector = state
 
+    @_compat.deprecated(
+        deadline='v0.16',
+        fix='None, this function was unintentionally made public.',
+    )
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.
 
@@ -405,9 +415,12 @@ class ActOnStateVectorArgs(ActOnArgs):
             new_target_tensor: The new system state. Must have the same shape
                 and dtype as the old system state.
         """
-        # TODO: deprecate this function, it is unused and should not have been made public.
-        self._state._swap_target_tensor_for(new_target_tensor)  # coverage: ignore
+        self._state._swap_target_tensor_for(new_target_tensor)
 
+    @_compat.deprecated(
+        deadline='v0.16',
+        fix='None, this function was unintentionally made public.',
+    )
     def subspace_index(
         self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
     ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
@@ -467,7 +480,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
-        strats = [
+        strats: List[Callable[[Any, Any, Sequence['cirq.Qid']], bool]] = [
             _strat_act_on_state_vector_from_apply_unitary,
             _strat_act_on_state_vector_from_mixture,
             _strat_act_on_state_vector_from_channel,
