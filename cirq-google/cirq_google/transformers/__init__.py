@@ -16,3 +16,5 @@ from cirq_google.transformers.analytical_decompositions import (
     known_2q_op_to_sycamore_operations,
     two_qubit_matrix_to_sycamore_operations,
 )
+
+from cirq_google.transformers.target_gatesets import SycamoreTargetGateset

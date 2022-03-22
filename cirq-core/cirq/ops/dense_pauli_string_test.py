@@ -376,9 +376,11 @@ def test_protocols():
     cirq.testing.assert_implements_consistent_protocols(-cirq.DensePauliString('Z'))
     cirq.testing.assert_implements_consistent_protocols(1j * cirq.DensePauliString('X'))
     cirq.testing.assert_implements_consistent_protocols(2 * cirq.DensePauliString('X'))
-    cirq.testing.assert_implements_consistent_protocols(t * cirq.DensePauliString('XYIZ'))
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.DensePauliString('XYIZ', coefficient=t + 2)
+        t * cirq.DensePauliString('XYIZ'), ignore_decompose_to_default_gateset=True
+    )
+    cirq.testing.assert_implements_consistent_protocols(
+        cirq.DensePauliString('XYIZ', coefficient=t + 2), ignore_decompose_to_default_gateset=True
     )
     cirq.testing.assert_implements_consistent_protocols(-cirq.DensePauliString('XYIZ'))
     cirq.testing.assert_implements_consistent_protocols(
@@ -658,3 +660,14 @@ def test_symbolic():
     assert p == cirq.MutableDensePauliString('XYZ', coefficient=t * r)
     p /= r
     assert p == cirq.MutableDensePauliString('XYZ', coefficient=t)
+
+
+def test_setters_deprecated():
+    gate = cirq.DensePauliString('X')
+    mask = np.array([0, 3, 1, 2], dtype=np.uint8)
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.pauli_mask = mask
+    assert gate.pauli_mask is mask
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.coefficient = -1
+    assert gate.coefficient == -1

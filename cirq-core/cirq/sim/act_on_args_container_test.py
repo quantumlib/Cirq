@@ -11,16 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Optional, Sequence, Union
 
 import cirq
 
 
 class EmptyActOnArgs(cirq.ActOnArgs):
-    def __init__(self, qubits, logs):
+    def __init__(self, qubits, classical_data):
         super().__init__(
             qubits=qubits,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
         )
 
     def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
@@ -30,7 +30,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
         """The deep_copy_buffers parameter is omitted to trigger a deprecation warning test."""
         return EmptyActOnArgs(
             qubits=self.qubits,
-            logs=self.log_of_measurement_results.copy(),
+            classical_data=self.classical_data.copy(),
         )
 
     def _act_on_fallback_(
@@ -70,7 +70,7 @@ def create_container(
     split_untangled_states=True,
 ) -> cirq.ActOnArgsContainer[EmptyActOnArgs]:
     args_map: Dict[Optional['cirq.Qid'], EmptyActOnArgs] = {}
-    log: Dict[str, Any] = {}
+    log = cirq.ClassicalDataDictionaryStore()
     if split_untangled_states:
         for q in reversed(qubits):
             args_map[q] = EmptyActOnArgs([q], log)
@@ -80,7 +80,7 @@ def create_container(
         for q in qubits:
             args_map[q] = args
         args_map[None] = args if not split_untangled_states else EmptyActOnArgs((), log)
-    return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states, log)
+    return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states, classical_data=log)
 
 
 def test_entanglement_causes_join():
