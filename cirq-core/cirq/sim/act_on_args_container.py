@@ -31,7 +31,7 @@ from typing import (
 import numpy as np
 
 from cirq import ops, protocols, value
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_parameter
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TActOnArgs,
@@ -48,6 +48,12 @@ class ActOnArgsContainer(
 ):
     """A container for a `Qid`-to-`ActOnArgs` dictionary."""
 
+    @deprecated_parameter(
+        deadline='v0.15',
+        fix='Use classical_data.',
+        parameter_desc='log_of_measurement_results and positional arguments',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 4,
+    )
     def __init__(
         self,
         args: Dict[Optional['cirq.Qid'], TActOnArgs],

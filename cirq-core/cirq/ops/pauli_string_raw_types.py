@@ -17,6 +17,7 @@ from typing import Any, Dict, Sequence, Tuple, TypeVar, TYPE_CHECKING
 import abc
 
 from cirq import protocols
+from cirq._compat import deprecated
 from cirq.ops import pauli_string as ps, raw_types
 
 if TYPE_CHECKING:
@@ -29,7 +30,19 @@ TSelf_PauliStringGateOperation = TypeVar(
 
 class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
     def __init__(self, pauli_string: ps.PauliString) -> None:
-        self.pauli_string = pauli_string
+        self._pauli_string = pauli_string
+
+    @property
+    def pauli_string(self) -> 'cirq.PauliString':
+        return self._pauli_string
+
+    @pauli_string.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def pauli_string(self, pauli_string: 'cirq.PauliString'):
+        self._pauli_string = pauli_string
 
     def validate_args(self, qubits: Sequence[raw_types.Qid]) -> None:
         if len(qubits) != len(self.pauli_string):

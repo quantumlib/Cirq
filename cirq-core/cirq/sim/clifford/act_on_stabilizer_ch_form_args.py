@@ -31,6 +31,12 @@ class ActOnStabilizerCHFormArgs(
 
     @_compat.deprecated_parameter(
         deadline='v0.15',
+        fix='Use classical_data.',
+        parameter_desc='log_of_measurement_results and positional arguments',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 3,
+    )
+    @_compat.deprecated_parameter(
+        deadline='v0.15',
         fix='Specify all the arguments with keywords, use initial_state instead of state.',
         parameter_desc='positional arguments',
         match=lambda args, kwargs: len(args) != 1 or 'state' in kwargs,
