@@ -26,10 +26,10 @@ import cirq
 import cirq.testing
 from cirq import circuits
 from cirq import ops
-from cirq.testing.devices import ValidatingFakeDevice
+from cirq.testing.devices import ValidatingTestDevice
 
 
-class _Foxy(ValidatingFakeDevice):
+class _Foxy(ValidatingTestDevice):
     def can_add_operation_into_moment(
         self, operation: 'cirq.Operation', moment: 'cirq.Moment'
     ) -> bool:
@@ -58,7 +58,7 @@ FOXY = _Foxy(
 )
 
 
-BCONE = ValidatingFakeDevice(
+BCONE = ValidatingTestDevice(
     allowed_qubit_types=(cirq.GridQubit,),
     allowed_gates=(ops.XPowGate,),
     qubits={
