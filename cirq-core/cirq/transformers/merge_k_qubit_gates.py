@@ -34,8 +34,6 @@ def _rewrite_merged_k_qubit_unitaries(
     deep = context.deep if context else False
 
     def map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
-        if not (protocols.num_qubits(op) <= k and protocols.has_unitary(op)):
-            return op
         op_untagged = op.untagged
         if (
             deep
@@ -51,6 +49,8 @@ def _rewrite_merged_k_qubit_unitaries(
                     merged_circuit_op_tag=merged_circuit_op_tag,
                 ).freeze()
             ).with_tags(*op.tags)
+        if not (protocols.num_qubits(op) <= k and protocols.has_unitary(op)):
+            return op
         if rewriter:
             return rewriter(
                 cast(circuits.CircuitOperation, op_untagged)
