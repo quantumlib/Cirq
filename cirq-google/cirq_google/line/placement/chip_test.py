@@ -42,13 +42,13 @@ def test_qubit_not_mutated():
     assert qubit == cirq.GridQubit(0, 0)
 
 
-class TestDevice(cirq.Device):
+class FakeDevice(cirq.Device):
     def __init__(self, qubits):
         self.qubits = qubits
 
 
 def _create_device(qubits: Iterable[cirq.GridQubit]):
-    return TestDevice(qubits)
+    return FakeDevice(qubits)
 
 
 def test_empty():
