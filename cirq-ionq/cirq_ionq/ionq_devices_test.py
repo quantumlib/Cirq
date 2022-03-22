@@ -48,85 +48,7 @@ VALID_GATES = (
 )
 
 
-@pytest.mark.parametrize('gate', VALID_GATES)
-def test_validate_operation_valid(gate):
-    qubits = cirq.LineQubit.range(gate.num_qubits())
-    device = ionq.IonQAPIDevice(qubits=qubits)
-    operation = gate(*qubits)
-    device.validate_operation(operation)
-
-
 INVALID_GATES = (cirq.CNOT**0.5, cirq.SWAP**0.5, cirq.CCX, cirq.CCZ, cirq.CZ)
-
-
-@pytest.mark.parametrize('gate', INVALID_GATES)
-def test_validate_operation_invalid(gate):
-    qubits = cirq.LineQubit.range(gate.num_qubits())
-    device = ionq.IonQAPIDevice(qubits=qubits)
-    operation = gate(*qubits)
-    with pytest.raises(ValueError, match='unsupported gate'):
-        device.validate_operation(operation)
-
-
-def test_metadata():
-    device = ionq.IonQAPIDevice(qubits=[cirq.LineQubit(0)])
-    assert device.metadata.qubit_set == {cirq.LineQubit(0)}
-
-
-def test_validate_operation_no_gate():
-    device = ionq.IonQAPIDevice(qubits=[])
-    with pytest.raises(ValueError, match='no gates'):
-        device.validate_operation(cirq.CircuitOperation(cirq.FrozenCircuit()))
-
-
-def test_validate_operation_qubit_not_on_device():
-    device = ionq.IonQAPIDevice(qubits=[cirq.LineQubit(0)])
-    with pytest.raises(ValueError, match='not on the device'):
-        device.validate_operation(cirq.H(cirq.LineQubit(1)))
-
-
-def test_validate_moment_valid():
-    moment = cirq.Moment()
-    q = 0
-    all_qubits = []
-    for gate in VALID_GATES:
-        qubits = cirq.LineQubit.range(q, q + gate.num_qubits())
-        all_qubits.extend(qubits)
-        moment += [gate(*qubits)]
-        q += gate.num_qubits()
-    device = ionq.IonQAPIDevice(len(all_qubits))
-    device.validate_moment(moment)
-
-
-@pytest.mark.parametrize('gate', INVALID_GATES)
-def test_validate_moment_invalid(gate):
-    qubits = cirq.LineQubit.range(gate.num_qubits())
-    moment = cirq.Moment([gate(*qubits)])
-    device = ionq.IonQAPIDevice(qubits=qubits)
-    with pytest.raises(ValueError, match='unsupported gate'):
-        device.validate_moment(moment)
-
-
-def test_validate_circuit_valid():
-    qubits = cirq.LineQubit.range(10)
-    device = ionq.IonQAPIDevice(qubits)
-    for _ in range(100):
-        circuit = cirq.testing.random_circuit(
-            qubits=qubits,
-            n_moments=3,
-            op_density=0.5,
-            gate_domain={gate: gate.num_qubits() for gate in VALID_GATES},
-        )
-        device.validate_circuit(circuit)
-
-
-@pytest.mark.parametrize('gate', VALID_GATES)
-def test_decompose_leaves_supported_alone_deprecated(gate):
-    qubits = cirq.LineQubit.range(gate.num_qubits())
-    device = ionq.IonQAPIDevice(qubits=qubits)
-    operation = gate(*qubits)
-    with cirq.testing.assert_deprecated('decompose_to_device', deadline='v0.15'):
-        assert device.decompose_operation(operation) == operation
 
 
 @pytest.mark.parametrize('gate', VALID_GATES)
@@ -136,21 +58,19 @@ def test_decompose_leaves_supported_alone(gate):
     assert ionq.decompose_to_device(operation) == operation
 
 
-VALID_DECOMPOSED_GATES = cirq.Gateset(cirq.XPowGate, cirq.ZPowGate, cirq.CNOT)
+VALID_DECOMPOSED_GATES = cirq.Gateset(cirq.XPowGate, cirq.ZPowGate, cirq.CNOT, cirq.MeasurementGate)
 
 
-def test_decompose_single_qubit_matrix_gate_deprecated():
+def test_decompose_single_qubit_matrix_gateset():
     q = cirq.LineQubit(0)
-    device = ionq.IonQAPIDevice(qubits=[q])
+    device = ionq.IonQCompilationTargetGateset()
     for _ in range(100):
         gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
         circuit = cirq.Circuit(gate(q))
-        with cirq.testing.assert_deprecated('decompose_to_device', deadline='v0.15'):
-            decomposed_circuit = cirq.Circuit(*device.decompose_operation(gate(q)))
+        decomposed_circuit = cirq.optimize_for_target_gateset(circuit, gateset=device)
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             circuit, decomposed_circuit, atol=1e-8
         )
-        assert VALID_DECOMPOSED_GATES.validate(decomposed_circuit)
 
 
 def test_decompose_single_qubit_matrix_gate():
@@ -165,14 +85,13 @@ def test_decompose_single_qubit_matrix_gate():
         assert VALID_DECOMPOSED_GATES.validate(decomposed_circuit)
 
 
-def test_decompose_two_qubit_matrix_gate_deprecated():
+def test_decompose_two_qubit_matrix_gateset():
     q0, q1 = cirq.LineQubit.range(2)
-    device = ionq.IonQAPIDevice(qubits=[q0, q1])
+    device = ionq.IonQCompilationTargetGateset()
     for _ in range(10):
         gate = cirq.MatrixGate(cirq.testing.random_unitary(4))
         circuit = cirq.Circuit(gate(q0, q1))
-        with cirq.testing.assert_deprecated('decompose_to_device', deadline='v0.15'):
-            decomposed_circuit = cirq.Circuit(*device.decompose_operation(gate(q0, q1)))
+        decomposed_circuit = cirq.optimize_for_target_gateset(circuit, gateset=device)
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             circuit, decomposed_circuit, atol=1e-8
         )
@@ -191,13 +110,16 @@ def test_decompose_two_qubit_matrix_gate():
         assert VALID_DECOMPOSED_GATES.validate(decomposed_circuit)
 
 
-def test_decompose_unsupported_gate_deprecated():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    device = ionq.IonQAPIDevice(qubits=[q0, q1, q2])
-    op = cirq.CCZ(q0, q1, q2)
-    with pytest.raises(ValueError, match='not supported'):
-        with cirq.testing.assert_deprecated('decompose_to_device', deadline='v0.15'):
-            _ = device.decompose_operation(op)
+def test_decompose_two_qubit_matrix_gate():
+    q0, q1 = cirq.LineQubit.range(2)
+    for _ in range(10):
+        gate = cirq.MatrixGate(cirq.testing.random_unitary(4))
+        circuit = cirq.Circuit(gate(q0, q1))
+        decomposed_circuit = cirq.Circuit(*ionq.decompose_to_device(gate(q0, q1)))
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            circuit, decomposed_circuit, atol=1e-8
+        )
+        assert VALID_DECOMPOSED_GATES.validate(decomposed_circuit)
 
 
 def test_decompose_unsupported_gate():
