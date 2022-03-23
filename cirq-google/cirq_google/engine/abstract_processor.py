@@ -27,7 +27,7 @@ import cirq
 
 from cirq_google.api import v2
 from cirq_google.engine import calibration
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 
 if TYPE_CHECKING:
     import cirq_google
@@ -344,7 +344,7 @@ class AbstractProcessor(abc.ABC):
         start_time: datetime.datetime,
         end_time: datetime.datetime,
         whitelisted_users: Optional[List[str]] = None,
-    ) -> quantum.types.QuantumReservation:
+    ) -> quantum.QuantumReservation:
         """Creates a reservation on this processor.
 
         Args:
@@ -360,7 +360,7 @@ class AbstractProcessor(abc.ABC):
         """Removes a reservation on this processor."""
 
     @abc.abstractmethod
-    def get_reservation(self, reservation_id: str) -> quantum.types.QuantumReservation:
+    def get_reservation(self, reservation_id: str) -> Optional[quantum.QuantumReservation]:
         """Retrieve a reservation given its id."""
 
     @abc.abstractmethod
@@ -383,7 +383,7 @@ class AbstractProcessor(abc.ABC):
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta],
         to_time: Union[None, datetime.datetime, datetime.timedelta],
-    ) -> List[quantum.types.QuantumReservation]:
+    ) -> List[quantum.QuantumReservation]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -410,8 +410,8 @@ class AbstractProcessor(abc.ABC):
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-        time_slot_type: Optional[quantum.enums.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[quantum.enums.QuantumTimeSlot]:
+        time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
+    ) -> List[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.

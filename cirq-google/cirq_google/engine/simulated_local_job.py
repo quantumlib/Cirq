@@ -18,7 +18,7 @@ from typing import cast, List, Optional, Sequence, Tuple
 import concurrent.futures
 
 import cirq
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
 from cirq_google.engine.local_simulation_type import LocalSimulationType
@@ -57,7 +57,7 @@ class SimulatedLocalJob(AbstractLocalJob):
         super().__init__(*args, **kwargs)
         self._sampler = sampler or cirq.Simulator()
         self._simulation_type = simulation_type
-        self._state = quantum.enums.ExecutionStatus.State.READY
+        self._state = quantum.ExecutionStatus.State.READY
         self._type = simulation_type
         self._failure_code = ''
         self._failure_message = ''
@@ -72,9 +72,9 @@ class SimulatedLocalJob(AbstractLocalJob):
                 # close the thread pool once the future is complete.
                 self._thread.shutdown(wait=False)
 
-    def execution_status(self) -> quantum.enums.ExecutionStatus.State:
+    def execution_status(self) -> quantum.ExecutionStatus.State:
         """Return the execution status of the job."""
-        return self._state
+        return self._state  # type: ignore[return-value]
 
     def failure(self) -> Optional[Tuple[str, str]]:
         """Return failure code and message of the job if present."""
@@ -82,12 +82,12 @@ class SimulatedLocalJob(AbstractLocalJob):
 
     def cancel(self) -> None:
         """Cancel the job."""
-        self._state = quantum.enums.ExecutionStatus.State.CANCELLED
+        self._state = quantum.ExecutionStatus.State.CANCELLED
 
     def delete(self) -> None:
         """Deletes the job and result, if any."""
         self.program().delete_job(self.id())
-        self._state = quantum.enums.ExecutionStatus.State.STATE_UNSPECIFIED
+        self._state = quantum.ExecutionStatus.State.STATE_UNSPECIFIED
 
     def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
         """Returns the job results, blocking until the job is complete.
@@ -117,19 +117,19 @@ class SimulatedLocalJob(AbstractLocalJob):
         parent = self.program()
         batch_size = parent.batch_size()
         try:
-            self._state = quantum.enums.ExecutionStatus.State.RUNNING
+            self._state = quantum.ExecutionStatus.State.RUNNING
             programs = [parent.get_circuit(n) for n in range(batch_size)]
             batch_results = self._sampler.run_batch(
                 programs=programs,
                 params_list=cast(List[cirq.Sweepable], sweeps),
                 repetitions=reps,
             )
-            self._state = quantum.enums.ExecutionStatus.State.SUCCESS
+            self._state = quantum.ExecutionStatus.State.SUCCESS
             return batch_results
         except Exception as e:
             self._failure_code = '500'
             self._failure_message = str(e)
-            self._state = quantum.enums.ExecutionStatus.State.FAILURE
+            self._state = quantum.ExecutionStatus.State.FAILURE
             raise e
 
     def results(self) -> Sequence[cirq.Result]:

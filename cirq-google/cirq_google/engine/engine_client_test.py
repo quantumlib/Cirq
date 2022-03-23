@@ -16,12 +16,11 @@ import datetime
 from unittest import mock
 import pytest
 from google.api_core import exceptions
+from google.protobuf import any_pb2
 from google.protobuf.field_mask_pb2 import FieldMask
 from google.protobuf.timestamp_pb2 import Timestamp
 from cirq_google.engine.engine_client import EngineClient, EngineException
-from cirq_google.engine.client import quantum
-from cirq_google.engine.client.quantum_v1alpha1 import enums as qenums
-from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
+from cirq_google.cloud import quantum
 
 
 def setup_mock_(client_constructor):
@@ -34,49 +33,65 @@ def setup_mock_(client_constructor):
 def test_create_program(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumProgram(name='projects/proj/programs/prog')
+    result = quantum.QuantumProgram(name='projects/proj/programs/prog')
     grpc_client.create_quantum_program.return_value = result
 
-    code = qtypes.any_pb2.Any()
+    code = any_pb2.Any()
     labels = {'hello': 'world'}
     client = EngineClient()
+
     assert client.create_program('proj', 'prog', code, 'A program', labels) == ('prog', result)
-    assert grpc_client.create_quantum_program.call_args[0] == (
-        'projects/proj',
-        qtypes.QuantumProgram(
-            name='projects/proj/programs/prog', code=code, description='A program', labels=labels
-        ),
-        False,
+    grpc_client.create_quantum_program.assert_called_with(
+        quantum.CreateQuantumProgramRequest(
+            parent='projects/proj',
+            quantum_program=quantum.QuantumProgram(
+                name='projects/proj/programs/prog',
+                code=code,
+                description='A program',
+                labels=labels,
+            ),
+            overwrite_existing_source_code=False,
+        )
     )
 
     assert client.create_program('proj', 'prog', code, 'A program') == ('prog', result)
-    assert grpc_client.create_quantum_program.call_args[0] == (
-        'projects/proj',
-        qtypes.QuantumProgram(
-            name='projects/proj/programs/prog', code=code, description='A program'
-        ),
-        False,
+    grpc_client.create_quantum_program.assert_called_with(
+        quantum.CreateQuantumProgramRequest(
+            parent='projects/proj',
+            quantum_program=quantum.QuantumProgram(
+                name='projects/proj/programs/prog', code=code, description='A program'
+            ),
+            overwrite_existing_source_code=False,
+        )
     )
 
     assert client.create_program('proj', 'prog', code, labels=labels) == ('prog', result)
-    assert grpc_client.create_quantum_program.call_args[0] == (
-        'projects/proj',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog', code=code, labels=labels),
-        False,
+    grpc_client.create_quantum_program.assert_called_with(
+        quantum.CreateQuantumProgramRequest(
+            parent='projects/proj',
+            quantum_program=quantum.QuantumProgram(
+                name='projects/proj/programs/prog', code=code, labels=labels
+            ),
+            overwrite_existing_source_code=False,
+        )
     )
 
     assert client.create_program('proj', 'prog', code) == ('prog', result)
-    assert grpc_client.create_quantum_program.call_args[0] == (
-        'projects/proj',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog', code=code),
-        False,
+    grpc_client.create_quantum_program.assert_called_with(
+        quantum.CreateQuantumProgramRequest(
+            parent='projects/proj',
+            quantum_program=quantum.QuantumProgram(name='projects/proj/programs/prog', code=code),
+            overwrite_existing_source_code=False,
+        )
     )
 
     assert client.create_program('proj', program_id=None, code=code) == ('prog', result)
-    assert grpc_client.create_quantum_program.call_args[0] == (
-        'projects/proj',
-        qtypes.QuantumProgram(code=code),
-        False,
+    grpc_client.create_quantum_program.assert_called_with(
+        quantum.CreateQuantumProgramRequest(
+            parent='projects/proj',
+            quantum_program=quantum.QuantumProgram(code=code),
+            overwrite_existing_source_code=False,
+        )
     )
 
 
@@ -84,15 +99,19 @@ def test_create_program(client_constructor):
 def test_get_program(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumProgram(name='projects/proj/programs/prog')
+    result = quantum.QuantumProgram(name='projects/proj/programs/prog')
     grpc_client.get_quantum_program.return_value = result
 
     client = EngineClient()
     assert client.get_program('proj', 'prog', False) == result
-    assert grpc_client.get_quantum_program.call_args[0] == ('projects/proj/programs/prog', False)
+    grpc_client.get_quantum_program.assert_called_with(
+        quantum.GetQuantumProgramRequest(name='projects/proj/programs/prog', return_code=False)
+    )
 
     assert client.get_program('proj', 'prog', True) == result
-    assert grpc_client.get_quantum_program.call_args[0] == ('projects/proj/programs/prog', True)
+    grpc_client.get_quantum_program.assert_called_with(
+        quantum.GetQuantumProgramRequest(name='projects/proj/programs/prog', return_code=True)
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -100,17 +119,16 @@ def test_list_program(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
     results = [
-        qtypes.QuantumProgram(name='projects/proj/programs/prog1'),
-        qtypes.QuantumProgram(name='projects/proj/programs/prog2'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog1'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog2'),
     ]
     grpc_client.list_quantum_programs.return_value = results
 
     client = EngineClient()
     assert client.list_programs(project_id='proj') == results
-    assert grpc_client.list_quantum_programs.call_args[0] == ('projects/proj',)
-    assert grpc_client.list_quantum_programs.call_args[1] == {
-        'filter_': '',
-    }
+    grpc_client.list_quantum_programs.assert_called_with(
+        quantum.ListQuantumProgramsRequest(parent='projects/proj', filter='')
+    )
 
 
 # yapf: disable
@@ -168,9 +186,7 @@ def test_list_program_filters(client_constructor, expected_filter,
                          created_before=created_before,
                          created_after=created_after,
                          has_labels=labels)
-    assert grpc_client.list_quantum_programs.call_args[1] == {
-        'filter_': expected_filter,
-    }
+    assert grpc_client.list_quantum_programs.call_args.args[0].filter == expected_filter
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -184,68 +200,86 @@ def test_list_program_filters_invalid_type(client_constructor):
 def test_set_program_description(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumProgram(name='projects/proj/programs/prog')
+    result = quantum.QuantumProgram(name='projects/proj/programs/prog')
     grpc_client.update_quantum_program.return_value = result
 
     client = EngineClient()
     assert client.set_program_description('proj', 'prog', 'A program') == result
-    assert grpc_client.update_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              description='A program'),
-        qtypes.field_mask_pb2.FieldMask(paths=['description']))
+    grpc_client.update_quantum_program.assert_called_with(
+        quantum.UpdateQuantumProgramRequest(
+            name='projects/proj/programs/prog',
+            quantum_program=quantum.QuantumProgram(
+                name='projects/proj/programs/prog',
+                description='A program',
+            ),
+            update_mask=FieldMask(paths=['description']),
+        )
+    )
 
     assert client.set_program_description('proj', 'prog', '') == result
-    assert grpc_client.update_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog'),
-        qtypes.field_mask_pb2.FieldMask(paths=['description']))
+    grpc_client.update_quantum_program.assert_called_with(
+        quantum.UpdateQuantumProgramRequest(
+            name='projects/proj/programs/prog',
+            quantum_program=quantum.QuantumProgram(name='projects/proj/programs/prog'),
+            update_mask=FieldMask(paths=['description']),
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_set_program_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    grpc_client.get_quantum_program.return_value = qtypes.QuantumProgram(
+    grpc_client.get_quantum_program.return_value = quantum.QuantumProgram(
         labels={
             'color': 'red',
             'weather': 'sun',
             'run': '1'
         },
         label_fingerprint='hash')
-    result = qtypes.QuantumProgram(name='projects/proj/programs/prog')
+    result = quantum.QuantumProgram(name='projects/proj/programs/prog')
     grpc_client.update_quantum_program.return_value = result
 
     client = EngineClient()
     labels = {'hello': 'world', 'color': 'blue', 'run': '1'}
     assert client.set_program_labels('proj', 'prog', labels) == result
-    assert grpc_client.update_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              labels=labels,
-                              label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_program.assert_called_with(
+        quantum.UpdateQuantumProgramRequest(
+            name='projects/proj/programs/prog',
+            quantum_program=quantum.QuantumProgram(
+                name='projects/proj/programs/prog',
+                labels=labels,
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
     assert client.set_program_labels('proj', 'prog', {}) == result
-    assert grpc_client.update_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_program.assert_called_with(
+        quantum.UpdateQuantumProgramRequest(
+            name='projects/proj/programs/prog',
+            quantum_program=quantum.QuantumProgram(
+                name='projects/proj/programs/prog',
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_add_program_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    existing = qtypes.QuantumProgram(labels={
+    existing = quantum.QuantumProgram(labels={
         'color': 'red',
         'weather': 'sun',
         'run': '1'
     },
                                      label_fingerprint='hash')
     grpc_client.get_quantum_program.return_value = existing
-    result = qtypes.QuantumProgram(name='projects/proj/programs/prog')
+    result = quantum.QuantumProgram(name='projects/proj/programs/prog')
     grpc_client.update_quantum_program.return_value = result
 
     client = EngineClient()
@@ -255,47 +289,57 @@ def test_add_program_labels(client_constructor):
 
     assert client.add_program_labels('proj', 'prog',
                                      {'hello': 'world'}) == result
-    assert grpc_client.update_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              labels={
-                                  'color': 'red',
-                                  'weather': 'sun',
-                                  'run': '1',
-                                  'hello': 'world'
-                              },
-                              label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_program.assert_called_with(
+        quantum.UpdateQuantumProgramRequest(
+            name='projects/proj/programs/prog',
+            quantum_program=quantum.QuantumProgram(
+                name='projects/proj/programs/prog',
+                labels={
+                    'color': 'red',
+                    'weather': 'sun',
+                    'run': '1',
+                    'hello': 'world',
+                },
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
     assert client.add_program_labels('proj', 'prog', {
         'hello': 'world',
         'color': 'blue'
     }) == result
-    assert grpc_client.update_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              labels={
-                                  'color': 'blue',
-                                  'weather': 'sun',
-                                  'run': '1',
-                                  'hello': 'world'
-                              },
-                              label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_program.assert_called_with(
+        quantum.UpdateQuantumProgramRequest(
+            name='projects/proj/programs/prog',
+            quantum_program=quantum.QuantumProgram(
+                name='projects/proj/programs/prog',
+                labels={
+                    'color': 'blue',
+                    'weather': 'sun',
+                    'run': '1',
+                    'hello': 'world',
+                },
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_remove_program_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    existing = qtypes.QuantumProgram(labels={
+    existing = quantum.QuantumProgram(labels={
         'color': 'red',
         'weather': 'sun',
         'run': '1'
     },
                                      label_fingerprint='hash')
     grpc_client.get_quantum_program.return_value = existing
-    result = qtypes.QuantumProgram(name='projects/proj/programs/prog')
+    result = quantum.QuantumProgram(name='projects/proj/programs/prog')
     grpc_client.update_quantum_program.return_value = result
 
     client = EngineClient()
@@ -304,23 +348,33 @@ def test_remove_program_labels(client_constructor):
 
     assert client.remove_program_labels('proj', 'prog',
                                         ['hello', 'weather']) == result
-    assert grpc_client.update_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              labels={
-                                  'color': 'red',
-                                  'run': '1',
-                              },
-                              label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_program.assert_called_with(
+        quantum.UpdateQuantumProgramRequest(
+            name='projects/proj/programs/prog',
+            quantum_program=quantum.QuantumProgram(
+                name='projects/proj/programs/prog',
+                labels={
+                    'color': 'red',
+                    'run': '1',
+                },
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
     assert client.remove_program_labels('proj', 'prog',
                                         ['color', 'weather', 'run']) == result
-    assert grpc_client.update_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_program.assert_called_with(
+        quantum.UpdateQuantumProgramRequest(
+            name='projects/proj/programs/prog',
+            quantum_program=quantum.QuantumProgram(
+                name='projects/proj/programs/prog',
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -329,38 +383,51 @@ def test_delete_program(client_constructor):
 
     client = EngineClient()
     assert not client.delete_program('proj', 'prog')
-    assert grpc_client.delete_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog', False)
+    grpc_client.delete_quantum_program.assert_called_with(
+        quantum.DeleteQuantumProgramRequest(
+            name='projects/proj/programs/prog', delete_jobs=False
+        )
+    )
 
     assert not client.delete_program('proj', 'prog', delete_jobs=True)
-    assert grpc_client.delete_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog', True)
+    grpc_client.delete_quantum_program.assert_called_with(
+        quantum.DeleteQuantumProgramRequest(
+            name='projects/proj/programs/prog', delete_jobs=True
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_create_job(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
     grpc_client.create_quantum_job.return_value = result
 
-    run_context = qtypes.any_pb2.Any()
+    run_context = any_pb2.Any()
     labels = {'hello': 'world'}
     client = EngineClient()
     assert client.create_job('proj', 'prog', 'job0', ['processor0'],
                              run_context, 10, 'A job',
                              labels) == ('job0', result)
-    assert grpc_client.create_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumJob(
-            name='projects/proj/programs/prog/jobs/job0',
-            run_context=run_context,
-            scheduling_config=qtypes.SchedulingConfig(
-                priority=10,
-                processor_selector=qtypes.SchedulingConfig.ProcessorSelector(
-                    processor_names=['projects/proj/processors/processor0'])),
-            description='A job',
-            labels=labels), False)
+    grpc_client.create_quantum_job.assert_called_with(
+        quantum.CreateQuantumJobRequest(
+            parent='projects/proj/programs/prog',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                run_context=run_context,
+                scheduling_config=quantum.SchedulingConfig(
+                    priority=10,
+                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                        processor_names=['projects/proj/processors/processor0']
+                    ),
+                ),
+                description='A job',
+                labels=labels,
+            ),
+            overwrite_existing_run_context=False,
+        )
+    )
 
     assert client.create_job(
         'proj',
@@ -371,16 +438,22 @@ def test_create_job(client_constructor):
         10,
         'A job',
     ) == ('job0', result)
-    assert grpc_client.create_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumJob(
-            name='projects/proj/programs/prog/jobs/job0',
-            run_context=run_context,
-            scheduling_config=qtypes.SchedulingConfig(
-                priority=10,
-                processor_selector=qtypes.SchedulingConfig.ProcessorSelector(
-                    processor_names=['projects/proj/processors/processor0'])),
-            description='A job'), False)
+    grpc_client.create_quantum_job.assert_called_with(
+        quantum.CreateQuantumJobRequest(
+            parent='projects/proj/programs/prog',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                run_context=run_context,
+                scheduling_config=quantum.SchedulingConfig(
+                    priority=10,
+                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                        processor_names=['projects/proj/processors/processor0']
+                    ),
+                ),
+                description='A job',
+            ),
+            overwrite_existing_run_context=False)
+    )
 
     assert client.create_job('proj',
                              'prog',
@@ -388,29 +461,42 @@ def test_create_job(client_constructor):
                              run_context,
                              10,
                              labels=labels) == ('job0', result)
-    assert grpc_client.create_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumJob(
-            name='projects/proj/programs/prog/jobs/job0',
-            run_context=run_context,
-            scheduling_config=qtypes.SchedulingConfig(
-                priority=10,
-                processor_selector=qtypes.SchedulingConfig.ProcessorSelector(
-                    processor_names=['projects/proj/processors/processor0'])),
-            labels=labels), False)
+    grpc_client.create_quantum_job.assert_called_with(
+        quantum.CreateQuantumJobRequest(
+            parent='projects/proj/programs/prog',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                run_context=run_context,
+                scheduling_config=quantum.SchedulingConfig(
+                    priority=10,
+                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                        processor_names=['projects/proj/processors/processor0']
+                    ),
+                ),
+                labels=labels,
+            ),
+            overwrite_existing_run_context=False,
+        )
+    )
 
     assert client.create_job('proj', 'prog', 'job0', ['processor0'],
                              run_context, 10) == ('job0', result)
-    assert grpc_client.create_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumJob(
-            name='projects/proj/programs/prog/jobs/job0',
-            run_context=run_context,
-            scheduling_config=qtypes.SchedulingConfig(
-                priority=10,
-                processor_selector=qtypes.SchedulingConfig.ProcessorSelector(
-                    processor_names=['projects/proj/processors/processor0'])),
-        ), False)
+    grpc_client.create_quantum_job.assert_called_with(
+        quantum.CreateQuantumJobRequest(
+            parent='projects/proj/programs/prog',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                run_context=run_context,
+                scheduling_config=quantum.SchedulingConfig(
+                    priority=10,
+                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                        processor_names=['projects/proj/processors/processor0']
+                    ),
+                ),
+            ),
+            overwrite_existing_run_context=False,
+        )
+    )
 
     assert client.create_job('proj',
                              'prog',
@@ -418,15 +504,21 @@ def test_create_job(client_constructor):
                              processor_ids=['processor0'],
                              run_context=run_context,
                              priority=10) == ('job0', result)
-    assert grpc_client.create_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog',
-        qtypes.QuantumJob(
-            run_context=run_context,
-            scheduling_config=qtypes.SchedulingConfig(
-                priority=10,
-                processor_selector=qtypes.SchedulingConfig.ProcessorSelector(
-                    processor_names=['projects/proj/processors/processor0'])),
-        ), False)
+    grpc_client.create_quantum_job.assert_called_with(
+        quantum.CreateQuantumJobRequest(
+            parent='projects/proj/programs/prog',
+            quantum_job=quantum.QuantumJob(
+                run_context=run_context,
+                scheduling_config=quantum.SchedulingConfig(
+                    priority=10,
+                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                        processor_names=['projects/proj/processors/processor0']
+                    ),
+                ),
+            ),
+            overwrite_existing_run_context=False,
+        )
+    )
 
     with pytest.raises(ValueError, match='priority must be between 0 and 1000'):
         client.create_job('proj',
@@ -441,85 +533,112 @@ def test_create_job(client_constructor):
 def test_get_job(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
     grpc_client.get_quantum_job.return_value = result
 
     client = EngineClient()
     assert client.get_job('proj', 'prog', 'job0', False) == result
-    assert grpc_client.get_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0', False)
+    grpc_client.get_quantum_job.assert_called_with(
+        quantum.GetQuantumJobRequest(
+            name='projects/proj/programs/prog/jobs/job0',
+            return_run_context=False,
+        )
+    )
 
     assert client.get_job('proj', 'prog', 'job0', True) == result
-    assert grpc_client.get_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0', True)
+    grpc_client.get_quantum_job.assert_called_with(
+        quantum.GetQuantumJobRequest(
+            name='projects/proj/programs/prog/jobs/job0',
+            return_run_context=True,
+        )
+    )
+
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_set_job_description(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
     assert client.set_job_description('proj', 'prog', 'job0', 'A job') == result
-    assert grpc_client.update_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',
-        qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0',
-                          description='A job'),
-        qtypes.field_mask_pb2.FieldMask(paths=['description']))
+    grpc_client.update_quantum_job.assert_called_with(
+        quantum.UpdateQuantumJobRequest(
+            name='projects/proj/programs/prog/jobs/job0',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                description='A job',
+            ),
+            update_mask=FieldMask(paths=['description']),
+        )
+    )
 
     assert client.set_job_description('proj', 'prog', 'job0', '') == result
-    assert grpc_client.update_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',
-        qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0'),
-        qtypes.field_mask_pb2.FieldMask(paths=['description']))
+    grpc_client.update_quantum_job.assert_called_with(
+        quantum.UpdateQuantumJobRequest(
+            name='projects/proj/programs/prog/jobs/job0',
+            quantum_job=quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0'),
+            update_mask=FieldMask(paths=['description']),
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_set_job_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    grpc_client.get_quantum_job.return_value = qtypes.QuantumJob(
+    grpc_client.get_quantum_job.return_value = quantum.QuantumJob(
         labels={
             'color': 'red',
             'weather': 'sun',
             'run': '1'
         },
         label_fingerprint='hash')
-    result = qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
     labels = {'hello': 'world', 'color': 'blue', 'run': '1'}
     assert client.set_job_labels('proj', 'prog', 'job0', labels) == result
-    assert grpc_client.update_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',
-        qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0',
-                          labels=labels,
-                          label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_job.assert_called_with(
+        quantum.UpdateQuantumJobRequest(
+            name='projects/proj/programs/prog/jobs/job0',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                labels=labels,
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
     assert client.set_job_labels('proj', 'prog', 'job0', {}) == result
-    assert grpc_client.update_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',
-        qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0',
-                          label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_job.assert_called_with(
+        quantum.UpdateQuantumJobRequest(
+            name='projects/proj/programs/prog/jobs/job0',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_add_job_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    existing = qtypes.QuantumJob(labels={
+    existing = quantum.QuantumJob(labels={
         'color': 'red',
         'weather': 'sun',
         'run': '1'
     },
                                  label_fingerprint='hash')
     grpc_client.get_quantum_job.return_value = existing
-    result = qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
@@ -529,47 +648,57 @@ def test_add_job_labels(client_constructor):
 
     assert client.add_job_labels('proj', 'prog', 'job0',
                                  {'hello': 'world'}) == result
-    assert grpc_client.update_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',
-        qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0',
-                          labels={
-                              'color': 'red',
-                              'weather': 'sun',
-                              'run': '1',
-                              'hello': 'world'
-                          },
-                          label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_job.assert_called_with(
+        quantum.UpdateQuantumJobRequest(
+            name='projects/proj/programs/prog/jobs/job0',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                labels={
+                    'color': 'red',
+                    'weather': 'sun',
+                    'run': '1',
+                    'hello': 'world',
+                },
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
     assert client.add_job_labels('proj', 'prog', 'job0', {
         'hello': 'world',
         'color': 'blue'
     }) == result
-    assert grpc_client.update_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',
-        qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0',
-                          labels={
-                              'color': 'blue',
-                              'weather': 'sun',
-                              'run': '1',
-                              'hello': 'world'
-                          },
-                          label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_job.assert_called_with(
+        quantum.UpdateQuantumJobRequest(
+            name='projects/proj/programs/prog/jobs/job0',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                labels={
+                    'color': 'blue',
+                    'weather': 'sun',
+                    'run': '1',
+                    'hello': 'world',
+                },
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_remove_job_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    existing = qtypes.QuantumJob(labels={
+    existing = quantum.QuantumJob(labels={
         'color': 'red',
         'weather': 'sun',
         'run': '1'
     },
                                  label_fingerprint='hash')
     grpc_client.get_quantum_job.return_value = existing
-    result = qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
@@ -579,23 +708,30 @@ def test_remove_job_labels(client_constructor):
 
     assert client.remove_job_labels('proj', 'prog', 'job0',
                                     ['hello', 'weather']) == result
-    assert grpc_client.update_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',
-        qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0',
-                          labels={
-                              'color': 'red',
-                              'run': '1',
-                          },
-                          label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_job.assert_called_with(
+        quantum.UpdateQuantumJobRequest(
+            name='projects/proj/programs/prog/jobs/job0',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                labels={'color': 'red', 'run': '1'},
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels']),
+        )
+    )
 
     assert client.remove_job_labels('proj', 'prog', 'job0',
                                     ['color', 'weather', 'run']) == result
-    assert grpc_client.update_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',
-        qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0',
-                          label_fingerprint='hash'),
-        qtypes.field_mask_pb2.FieldMask(paths=['labels']))
+    grpc_client.update_quantum_job.assert_called_with(
+        quantum.UpdateQuantumJobRequest(
+            name='projects/proj/programs/prog/jobs/job0',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                label_fingerprint='hash',
+            ),
+            update_mask=FieldMask(paths=['labels'])
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -604,8 +740,9 @@ def test_delete_job(client_constructor):
 
     client = EngineClient()
     assert not client.delete_job('proj', 'prog', 'job0')
-    assert grpc_client.delete_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',)
+    grpc_client.delete_quantum_job.assert_called_with(
+        quantum.DeleteQuantumJobRequest(name='projects/proj/programs/prog/jobs/job0')
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -614,22 +751,24 @@ def test_cancel_job(client_constructor):
 
     client = EngineClient()
     assert not client.cancel_job('proj', 'prog', 'job0')
-    assert grpc_client.cancel_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',)
+    grpc_client.cancel_quantum_job.assert_called_with(
+        quantum.CancelQuantumJobRequest(name='projects/proj/programs/prog/jobs/job0')
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_job_results(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumResult(
+    result = quantum.QuantumResult(
         parent='projects/proj/programs/prog/jobs/job0')
     grpc_client.get_quantum_result.return_value = result
 
     client = EngineClient()
     assert client.get_job_results('proj', 'prog', 'job0') == result
-    assert grpc_client.get_quantum_result.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',)
+    grpc_client.get_quantum_result.assert_called_with(
+        quantum.GetQuantumResultRequest(parent='projects/proj/programs/prog/jobs/job0')
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -637,25 +776,21 @@ def test_list_jobs(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
     results = [
-        qtypes.QuantumJob(name='projects/proj/programs/prog1/jobs/job1'),
-        qtypes.QuantumJob(name='projects/proj/programs/prog1/jobs/job2')
+        quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job1'),
+        quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job2')
     ]
     grpc_client.list_quantum_jobs.return_value = results
 
     client = EngineClient()
     assert client.list_jobs(project_id='proj', program_id='prog1') == results
-    assert grpc_client.list_quantum_jobs.call_args[0] == (
-        'projects/proj/programs/prog1',)
-    assert grpc_client.list_quantum_jobs.call_args[1] == {
-        'filter_': '',
-    }
+    grpc_client.list_quantum_jobs.assert_called_with(
+        quantum.ListQuantumJobsRequest(parent='projects/proj/programs/prog1')
+    )
 
     assert client.list_jobs(project_id='proj') == results
-    assert grpc_client.list_quantum_jobs.call_args[0] == (
-        'projects/proj/programs/-',)
-    assert grpc_client.list_quantum_jobs.call_args[1] == {
-        'filter_': '',
-    }
+    grpc_client.list_quantum_jobs.assert_called_with(
+        quantum.ListQuantumJobsRequest(parent='projects/proj/programs/-')
+    )
 
 
 # yapf: disable
@@ -720,8 +855,8 @@ def test_list_jobs(client_constructor):
             None,
             None,
             None,
-            [quantum.enums.ExecutionStatus.State.FAILURE,
-             quantum.enums.ExecutionStatus.State.CANCELLED,],
+            [quantum.ExecutionStatus.State.FAILURE,
+             quantum.ExecutionStatus.State.CANCELLED,],
             None,
             None),
         ('create_time >= 2020-08-01 AND '
@@ -734,7 +869,7 @@ def test_list_jobs(client_constructor):
             'color': 'red',
             'shape': '*'
             },
-            [quantum.enums.ExecutionStatus.State.SUCCESS,],
+            [quantum.ExecutionStatus.State.SUCCESS,],
             None,
             None),
         ('(executed_processor_id = proc1)',
@@ -781,9 +916,7 @@ def test_list_jobs_filters(client_constructor, expected_filter, created_before,
                      execution_states=execution_states,
                      executed_processor_ids=executed_processor_ids,
                      scheduled_processor_ids=scheduled_processor_ids)
-    assert grpc_client.list_quantum_jobs.call_args[1] == {
-        'filter_': expected_filter,
-    }
+    assert grpc_client.list_quantum_jobs.call_args.args[0].filter == expected_filter
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -791,31 +924,32 @@ def test_list_processors(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
     results = [
-        qtypes.QuantumProcessor(name='projects/proj/processor/processor0'),
-        qtypes.QuantumProcessor(name='projects/proj/processor/processor1')
+        quantum.QuantumProcessor(name='projects/proj/processor/processor0'),
+        quantum.QuantumProcessor(name='projects/proj/processor/processor1')
     ]
     grpc_client.list_quantum_processors.return_value = results
 
     client = EngineClient()
     assert client.list_processors('proj') == results
-    assert grpc_client.list_quantum_processors.call_args[0] == (
-        'projects/proj',)
-    assert grpc_client.list_quantum_processors.call_args[1] == {
-        'filter_': '',
-    }
+    grpc_client.list_quantum_processors.assert_called_with(
+        quantum.ListQuantumProcessorsRequest(parent='projects/proj')
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_get_processor(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumProcessor(name='projects/proj/processors/processor0')
+    result = quantum.QuantumProcessor(name='projects/proj/processors/processor0')
     grpc_client.get_quantum_processor.return_value = result
 
     client = EngineClient()
     assert client.get_processor('proj', 'processor0') == result
-    assert grpc_client.get_quantum_processor.call_args[0] == (
-        'projects/proj/processors/processor0',)
+    grpc_client.get_quantum_processor.assert_called_with(
+        quantum.GetQuantumProcessorRequest(
+            name='projects/proj/processors/processor0'
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -823,45 +957,54 @@ def test_list_calibrations(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
     results = [
-        qtypes.QuantumCalibration(
+        quantum.QuantumCalibration(
             name='projects/proj/processor/processor0/calibrations/123456'),
-        qtypes.QuantumCalibration(
+        quantum.QuantumCalibration(
             name='projects/proj/processor/processor1/calibrations/224466')
     ]
     grpc_client.list_quantum_calibrations.return_value = results
 
     client = EngineClient()
     assert client.list_calibrations('proj', 'processor0') == results
-    assert grpc_client.list_quantum_calibrations.call_args[0] == (
-        'projects/proj/processors/processor0',)
+    grpc_client.list_quantum_calibrations.assert_called_with(
+        quantum.ListQuantumCalibrationsRequest(
+            parent='projects/proj/processors/processor0'
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_get_calibration(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumCalibration(
+    result = quantum.QuantumCalibration(
         name='projects/proj/processors/processor0/calibrations/123456')
     grpc_client.get_quantum_calibration.return_value = result
 
     client = EngineClient()
     assert client.get_calibration('proj', 'processor0', 123456) == result
-    assert grpc_client.get_quantum_calibration.call_args[0] == (
-        'projects/proj/processors/processor0/calibrations/123456',)
+    grpc_client.get_quantum_calibration.assert_called_with(
+        quantum.GetQuantumCalibrationRequest(
+            name='projects/proj/processors/processor0/calibrations/123456'
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_get_current_calibration(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumCalibration(
+    result = quantum.QuantumCalibration(
         name='projects/proj/processors/processor0/calibrations/123456')
     grpc_client.get_quantum_calibration.return_value = result
 
     client = EngineClient()
     assert client.get_current_calibration('proj', 'processor0') == result
-    assert grpc_client.get_quantum_calibration.call_args[0] == (
-        'projects/proj/processors/processor0/calibrations/current',)
+    grpc_client.get_quantum_calibration.assert_called_with(
+        quantum.GetQuantumCalibrationRequest(
+            name='projects/proj/processors/processor0/calibrations/current'
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -873,8 +1016,11 @@ def test_get_current_calibration_does_not_exist(client_constructor):
 
     client = EngineClient()
     assert client.get_current_calibration('proj', 'processor0') is None
-    assert grpc_client.get_quantum_calibration.call_args[0] == (
-        'projects/proj/processors/processor0/calibrations/current',)
+    grpc_client.get_quantum_calibration.assert_called_with(
+        quantum.GetQuantumCalibrationRequest(
+            name='projects/proj/processors/processor0/calibrations/current'
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -935,7 +1081,7 @@ def test_create_reservation(client_constructor):
     start = datetime.datetime.fromtimestamp(1000000000)
     end = datetime.datetime.fromtimestamp(1000003600)
     users = ['jeff@google.com']
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name='projects/proj/processors/processor0/reservations/papar-party-44',
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
@@ -947,20 +1093,21 @@ def test_create_reservation(client_constructor):
     assert client.create_reservation('proj', 'processor0', start, end,
                                      users) == result
     assert grpc_client.create_quantum_reservation.call_count == 1
-    kwargs = grpc_client.create_quantum_reservation.call_args[1]
     # The outgoing argument will not have the resource name
     result.name = ''
-    assert kwargs == {
-        'parent': 'projects/proj/processors/processor0',
-        'quantum_reservation': result
-    }
+    grpc_client.create_quantum_reservation.assert_called_with(
+        quantum.CreateQuantumReservationRequest(
+            parent='projects/proj/processors/processor0',
+            quantum_reservation=result,
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_cancel_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
     name = 'projects/proj/processors/processor0/reservations/papar-party-44'
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000002000),
@@ -971,17 +1118,16 @@ def test_cancel_reservation(client_constructor):
     client = EngineClient()
     assert (client.cancel_reservation('proj', 'processor0',
                                       'papar-party-44') == result)
-    kwargs = grpc_client.cancel_quantum_reservation.call_args[1]
-    assert kwargs == {
-        'name': name,
-    }
+    grpc_client.cancel_quantum_reservation.assert_called_with(
+        quantum.CancelQuantumReservationRequest(name=name)
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_delete_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
     name = 'projects/proj/processors/processor0/reservations/papar-party-44'
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000002000),
@@ -992,17 +1138,16 @@ def test_delete_reservation(client_constructor):
     client = EngineClient()
     assert (client.delete_reservation('proj', 'processor0',
                                       'papar-party-44') == result)
-    kwargs = grpc_client.delete_quantum_reservation.call_args[1]
-    assert kwargs == {
-        'name': name,
-    }
+    grpc_client.delete_quantum_reservation.assert_called_with(
+        quantum.DeleteQuantumReservationRequest(name=name)
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_get_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
     name = 'projects/proj/processors/processor0/reservations/papar-party-44'
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000002000),
@@ -1013,10 +1158,9 @@ def test_get_reservation(client_constructor):
     client = EngineClient()
     assert (client.get_reservation('proj', 'processor0',
                                    'papar-party-44') == result)
-    kwargs = grpc_client.get_quantum_reservation.call_args[1]
-    assert kwargs == {
-        'name': name,
-    }
+    grpc_client.get_quantum_reservation.assert_called_with(
+        quantum.GetQuantumReservationRequest(name=name)
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -1029,10 +1173,9 @@ def test_get_reservation_not_found(client_constructor):
     client = EngineClient()
     assert (client.get_reservation('proj', 'processor0',
                                    'papar-party-44') is None)
-    kwargs = grpc_client.get_quantum_reservation.call_args[1]
-    assert kwargs == {
-        'name': name,
-    }
+    grpc_client.get_quantum_reservation.assert_called_with(
+        quantum.GetQuantumReservationRequest(name=name)
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -1051,13 +1194,13 @@ def test_list_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
     name = 'projects/proj/processors/processor0/reservations/papar-party-44'
     results = [
-        qtypes.QuantumReservation(
+        quantum.QuantumReservation(
             name=name,
             start_time=Timestamp(seconds=1000000000),
             end_time=Timestamp(seconds=1000002000),
             whitelisted_users=['jeff@google.com'],
         ),
-        qtypes.QuantumReservation(
+        quantum.QuantumReservation(
             name=name,
             start_time=Timestamp(seconds=1200000000),
             end_time=Timestamp(seconds=1200002000),
@@ -1074,7 +1217,7 @@ def test_list_reservation(client_constructor):
 def test_update_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
     name = 'projects/proj/processors/processor0/reservations/papar-party-44'
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=1000001000),
         end_time=Timestamp(seconds=1000002000),
@@ -1091,22 +1234,19 @@ def test_update_reservation(client_constructor):
         end=datetime.datetime.fromtimestamp(1000002000),
         whitelisted_users=['jeff@google.com'],
     ) == result)
-    kwargs = grpc_client.update_quantum_reservation.call_args[1]
-    assert kwargs == {
-        'name':
-        name,
-        'quantum_reservation':
-        result,
-        'update_mask':
-        FieldMask(paths=['start_time', 'end_time', 'whitelisted_users'])
-    }
+    grpc_client.update_quantum_reservation.assert_called_with(
+        quantum.UpdateQuantumReservationRequest(
+    name=name,
+        quantum_reservation=result,
+        update_mask=FieldMask(paths=['start_time', 'end_time', 'whitelisted_users'])
+    ))
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_update_reservation_remove_all_users(client_constructor):
     grpc_client = setup_mock_(client_constructor)
     name = 'projects/proj/processors/processor0/reservations/papar-party-44'
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         whitelisted_users=[],
     )
@@ -1119,38 +1259,39 @@ def test_update_reservation_remove_all_users(client_constructor):
         'papar-party-44',
         whitelisted_users=[],
     ) == result)
-    kwargs = grpc_client.update_quantum_reservation.call_args[1]
-    assert kwargs == {
-        'name': name,
-        'quantum_reservation': result,
-        'update_mask': FieldMask(paths=['whitelisted_users'])
-    }
+    grpc_client.update_quantum_reservation.assert_called_with(
+        quantum.UpdateQuantumReservationRequest(
+            name=name,
+            quantum_reservation=result,
+            update_mask=FieldMask(paths=['whitelisted_users'])
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_list_time_slots(client_constructor):
     grpc_client = setup_mock_(client_constructor)
     results = [
-        qtypes.QuantumTimeSlot(
+        quantum.QuantumTimeSlot(
             processor_name='potofgold',
             start_time=Timestamp(seconds=1000020000),
             end_time=Timestamp(seconds=1000040000),
-            slot_type=qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
-            maintenance_config=qtypes.QuantumTimeSlot.MaintenanceConfig(
+            time_slot_type=quantum.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
+            maintenance_config=quantum.QuantumTimeSlot.MaintenanceConfig(
                 title='Testing',
                 description='Testing some new configuration.',
             ),
         ),
-        qtypes.QuantumTimeSlot(
+        quantum.QuantumTimeSlot(
             processor_name='potofgold',
             start_time=Timestamp(seconds=1000010000),
             end_time=Timestamp(seconds=1000020000),
-            slot_type=qenums.QuantumTimeSlot.TimeSlotType.RESERVATION,
-            reservation_config=qtypes.QuantumTimeSlot.ReservationConfig(
+            time_slot_type=quantum.QuantumTimeSlot.TimeSlotType.RESERVATION,
+            reservation_config=quantum.QuantumTimeSlot.ReservationConfig(
                 project_id='super_secret_quantum'),
         )
     ]
     grpc_client.list_quantum_time_slots.return_value = results
 
     client = EngineClient()
-    assert (client.list_time_slots('proj', 'processor0') == results)
+    assert client.list_time_slots('proj', 'processor0') == results

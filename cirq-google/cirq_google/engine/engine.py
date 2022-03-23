@@ -45,7 +45,7 @@ from cirq_google.engine import (
     engine_sampler,
     util,
 )
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.serialization import CIRCUIT_SERIALIZER, SerializableGateSet, Serializer
 from cirq_google.serialization.arg_func_langs import arg_to_proto
@@ -701,7 +701,7 @@ class Engine(abstract_engine.AbstractEngine):
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
     ):
         """Returns the list of jobs in the project.
 
@@ -726,7 +726,7 @@ class Engine(abstract_engine.AbstractEngine):
 
             execution_states: retrieve jobs that have an execution state  that
                  is contained in `execution_states`. See
-                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+                 `quantum.ExecutionStatus.State` enum for accepted values.
         """
         client = self.context.client
         response = client.list_jobs(
