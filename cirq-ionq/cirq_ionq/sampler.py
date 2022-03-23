@@ -91,7 +91,7 @@ class Sampler(cirq.Sampler):
         ]
         kwargs = {}
         if self._timeout_seconds is not None:
-            kwargs = { timeout_seconds: self._timeout_seconds }
+            kwargs = {timeout_seconds: self._timeout_seconds}
         job_results = [job.results(**kwargs) for job in jobs]
         cirq_results = []
         for result, params in zip(job_results, resolvers):
