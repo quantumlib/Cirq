@@ -158,7 +158,7 @@ def test_specialized_control(input_gate, specialized_output):
     )
     assert input_gate.controlled(control_qid_shape=(2,)).controlled(
         control_qid_shape=(3,)
-    ).controlled(control_qid_shape=(4,)) == specialized_output.controlled(
+    ).controlled(control_qid_shape=(4,)) != specialized_output.controlled(
         num_controls=2, control_qid_shape=(3, 4)
     )
 
@@ -175,7 +175,7 @@ def test_specialized_control(input_gate, specialized_output):
     )
     assert input_gate.controlled(control_qid_shape=(3,)).controlled(
         control_qid_shape=(2,)
-    ).controlled(control_qid_shape=(4,)) == cirq.ControlledGate(
+    ).controlled(control_qid_shape=(4,)) != cirq.ControlledGate(
         input_gate, num_controls=3, control_qid_shape=(3, 2, 4)
     )
 
