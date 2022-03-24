@@ -111,3 +111,8 @@ def test_with_qubits():
             np.array([[1, 0], [0, 0]], dtype=np.complex64),
         ),
     )
+
+
+def test_qid_shape_error():
+    with pytest.raises(ValueError, match="qid_shape must be provided"):
+        cirq.sim.act_on_density_matrix_args._BufferedDensityMatrix.create(initial_state=0)

@@ -21,9 +21,8 @@ import networkx
 import cirq
 
 
-class TestDevice(cirq.Device):
-    def __init__(self):
-        pass
+class FakeDevice(cirq.Device):
+    pass
 
 
 def test_wrapper_eq():
@@ -124,7 +123,7 @@ def test_from_ops_device_deprecated():
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
         q0 = cirq.LineQubit(0)
-        _ = cirq.CircuitDag.from_ops(cirq.X(q0), cirq.Y(q0), device=TestDevice())
+        _ = cirq.CircuitDag.from_ops(cirq.X(q0), cirq.Y(q0), device=FakeDevice())
 
 
 def test_from_circuit():
@@ -140,7 +139,7 @@ def test_from_circuit():
 def test_from_circuit_deprecated():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
-    circuit._device = TestDevice()
+    circuit._device = FakeDevice()
     with cirq.testing.assert_deprecated(
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
@@ -172,7 +171,7 @@ def test_to_circuit_device_deprecated():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
     dag = cirq.CircuitDag.from_circuit(circuit)
-    dag._device = TestDevice()
+    dag._device = FakeDevice()
 
     with cirq.testing.assert_deprecated(
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'

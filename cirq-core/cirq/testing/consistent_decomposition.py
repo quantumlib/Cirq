@@ -53,6 +53,8 @@ def _known_gate_with_no_decomposition(val: Any):
     """Checks whether `val` is a known gate with no default decomposition to default gateset."""
     if isinstance(val, ops.MatrixGate):
         return protocols.qid_shape(val) not in [(2,), (2,) * 2, (2,) * 3]
+    if isinstance(val, ops.BaseDensePauliString) and not protocols.has_unitary(val):
+        return True
     if isinstance(val, ops.ControlledGate):
         if protocols.is_parameterized(val):
             return True

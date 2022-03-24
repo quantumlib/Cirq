@@ -28,13 +28,13 @@ from cirq_google.line.placement.anneal import (
 from cirq_google.line.placement.chip import chip_as_adjacency_list
 
 
-class TestDevice(cirq.Device):
+class FakeDevice(cirq.Device):
     def __init__(self, qubits):
         self.qubits = qubits
 
 
 def _create_device(qubits: Iterable[cirq.GridQubit]):
-    return TestDevice(qubits)
+    return FakeDevice(qubits)
 
 
 @mock.patch('cirq_google.line.placement.optimization.anneal_minimize')

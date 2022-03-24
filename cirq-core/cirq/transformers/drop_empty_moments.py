@@ -34,4 +34,11 @@ def drop_empty_moments(
     Returns:
           Copy of the transformed input circuit.
     """
-    return transformer_primitives.map_moments(circuit.unfreeze(False), lambda m, _: m if m else [])
+    if context is None:
+        context = transformer_api.TransformerContext()
+    return transformer_primitives.map_moments(
+        circuit.unfreeze(False),
+        lambda m, _: m if m else [],
+        deep=context.deep,
+        tags_to_ignore=context.tags_to_ignore,
+    )

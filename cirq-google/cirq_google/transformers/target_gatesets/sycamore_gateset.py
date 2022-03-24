@@ -15,7 +15,7 @@
 """Target gateset used for compiling circuits to Sycamore + 1-q rotations + measurement gates."""
 
 import itertools
-from typing import List, Optional, Sequence
+from typing import cast, List, Optional, Sequence
 
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
@@ -33,6 +33,7 @@ def merge_swap_rzz_and_2q_unitaries(
     context: Optional['cirq.TransformerContext'] = None,
     merged_swap_rzz_tag: str = "_merged_swap_rzz",
     merged_2q_component_tag: str = "_merged_2q_unitaries",
+    intermediate_result_tag: Optional[str] = None,
 ) -> 'cirq.Circuit':
     """Merges 2-qubit connected components and adjacent `cirq.SWAP` and `cirq.ZZPowGate` gates.
 
@@ -50,6 +51,8 @@ def merge_swap_rzz_and_2q_unitaries(
             `cirq.SWAP` and `cirq.ZZPowGate`s.
         merged_2q_component_tag: Tag to apply on newly introduced circuit operations wrapping
             connected components of 1 and 2 qubit unitaries.
+        intermediate_result_tag: If specified, the tag is added to newly introduced both the newly
+            introduced circuit operations encapsulating swap_rzz or 2q connected component.
 
     Returns:
         Copy of the transformed input circuit.
@@ -71,19 +74,34 @@ def merge_swap_rzz_and_2q_unitaries(
         return False
 
     tags_to_ignore = context.tags_to_ignore if context else ()
+    deep = context.deep if context else False
     circuit = cirq.merge_operations_to_circuit_op(
         circuit,
         merge_func_swap_rzz,
         tags_to_ignore=tags_to_ignore,
         merged_circuit_op_tag=merged_swap_rzz_tag,
+        deep=deep,
     )
 
-    return cirq.merge_k_qubit_unitaries_to_circuit_op(
+    circuit = cirq.merge_k_qubit_unitaries_to_circuit_op(
         circuit,
         k=2,
-        tags_to_ignore=tags_to_ignore + (merged_swap_rzz_tag,),
+        tags_to_ignore=tuple(tags_to_ignore) + (merged_swap_rzz_tag,),
         merged_circuit_op_tag=merged_2q_component_tag,
-    ).unfreeze(copy=False)
+        deep=deep,
+    )
+
+    if intermediate_result_tag is not None:
+        merged_cop_tags = {merged_swap_rzz_tag, merged_2q_component_tag}
+        circuit = cirq.map_operations(
+            circuit,
+            map_func=lambda op, _: op
+            if merged_cop_tags.isdisjoint(op.tags)
+            else op.with_tags(cast(str, intermediate_result_tag)),
+            tags_to_ignore=tags_to_ignore,
+            deep=True,
+        )
+    return circuit.unfreeze(copy=False)
 
 
 class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
@@ -122,7 +140,10 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
                 cirq.expand_composite,
                 no_decomp=lambda op: cirq.num_qubits(op) <= self.num_qubits,
             ),
-            merge_swap_rzz_and_2q_unitaries,
+            _create_transformer_with_kwargs(
+                merge_swap_rzz_and_2q_unitaries,
+                intermediate_result_tag=self._intermediate_result_tag,
+            ),
         ]
 
     def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> DecomposeResult:
