@@ -73,7 +73,6 @@ def test_decomposed_fallback():
     args = cirq.ActOnDensityMatrixArgs(
         qubits=cirq.LineQubit.range(1),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=0,
         dtype=np.complex64,
     )
@@ -91,7 +90,6 @@ def test_cannot_act():
     args = cirq.ActOnDensityMatrixArgs(
         qubits=cirq.LineQubit.range(1),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=0,
         dtype=np.complex64,
     )
@@ -113,3 +111,8 @@ def test_with_qubits():
             np.array([[1, 0], [0, 0]], dtype=np.complex64),
         ),
     )
+
+
+def test_qid_shape_error():
+    with pytest.raises(ValueError, match="qid_shape must be provided"):
+        cirq.sim.act_on_density_matrix_args._BufferedDensityMatrix.create(initial_state=0)

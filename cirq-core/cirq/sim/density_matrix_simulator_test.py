@@ -1145,7 +1145,6 @@ def test_density_matrix_trial_result_repr():
         available_buffer=[],
         qid_shape=(2,),
         prng=np.random.RandomState(0),
-        log_of_measurement_results={},
         qubits=[q0],
         initial_state=np.ones((2, 2), dtype=dtype) * 0.5,
         dtype=dtype,
@@ -1170,7 +1169,7 @@ def test_density_matrix_trial_result_repr():
         "dtype=np.complex64))"
     )
     assert repr(trial_result) == expected_repr
-    with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15'):
+    with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15', count=2):
         assert eval(expected_repr) == trial_result
 
 
@@ -1264,7 +1263,6 @@ def test_density_matrix_trial_result_str():
         available_buffer=[],
         qid_shape=(2,),
         prng=np.random.RandomState(0),
-        log_of_measurement_results={},
         qubits=[q0],
         initial_state=np.ones((2, 2), dtype=dtype) * 0.5,
         dtype=dtype,
@@ -1291,7 +1289,6 @@ def test_density_matrix_trial_result_repr_pretty():
         available_buffer=[],
         qid_shape=(2,),
         prng=np.random.RandomState(0),
-        log_of_measurement_results={},
         qubits=[q0],
         initial_state=np.ones((2, 2), dtype=dtype) * 0.5,
         dtype=dtype,

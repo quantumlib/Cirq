@@ -372,7 +372,7 @@ def direct_fidelity_estimation(
     try:
         for gate in circuit.all_operations():
             tableau_args = clifford.ActOnCliffordTableauArgs(
-                clifford_tableau, np.random.RandomState(), {}, qubits
+                tableau=clifford_tableau, qubits=qubits
             )
             cirq.act_on(gate, tableau_args)
     except TypeError:

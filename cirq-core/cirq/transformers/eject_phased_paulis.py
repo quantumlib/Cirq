@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def eject_phased_paulis(
     circuit: 'cirq.AbstractCircuit',
     *,
