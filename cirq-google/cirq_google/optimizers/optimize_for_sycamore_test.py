@@ -19,7 +19,7 @@ import cirq
 import cirq_google as cg
 
 
-class TestDevice(cirq.Device):
+class FakeDevice(cirq.Device):
     def __init__(self):
         pass
 
@@ -132,7 +132,7 @@ def test_assert_new_device_deprecated():
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
         _ = cg.optimized_for_sycamore(
-            circuit0, optimizer_type='sqrt_iswap', new_device=TestDevice()
+            circuit0, optimizer_type='sqrt_iswap', new_device=FakeDevice()
         )
 
 

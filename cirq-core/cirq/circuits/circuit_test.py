@@ -208,7 +208,7 @@ def test_approx_eq(circuit_cls):
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_approx_eq_device_deprecated(circuit_cls):
-    class TestDevice(cirq.Device):
+    class FakeDevice(cirq.Device):
         def validate_operation(self, operation: cirq.Operation) -> None:
             pass
 
@@ -216,7 +216,7 @@ def test_approx_eq_device_deprecated(circuit_cls):
     with cirq.testing.assert_deprecated(
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
-        other_device = circuit_cls([cirq.Moment([cirq.X(a)])], device=TestDevice())
+        other_device = circuit_cls([cirq.Moment([cirq.X(a)])], device=FakeDevice())
     assert not cirq.approx_eq(
         circuit_cls([cirq.Moment([cirq.X(a)])]),
         other_device,
