@@ -181,7 +181,7 @@ class AbstractJob(abc.ABC):
         """
 
     def __iter__(self) -> Iterator[cirq.Result]:
-        return iter(self.results())
+        yield from self.results()
 
     # pylint: disable=function-redefined
     @overload
