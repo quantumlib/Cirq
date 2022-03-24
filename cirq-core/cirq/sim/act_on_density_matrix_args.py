@@ -239,12 +239,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     )
     @_compat.deprecated_parameter(
         deadline='v0.15',
-        fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
-        parameter_desc='ignore_measurement_results',
-        match=lambda args, kwargs: 'ignore_measurement_results' in kwargs or len(args) > 7,
-    )
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
         fix='Use initial_state instead and specify all the arguments with keywords.',
         parameter_desc='target_tensor and positional arguments',
         match=lambda args, kwargs: 'target_tensor' in kwargs or len(args) != 1,
@@ -257,7 +251,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
-        ignore_measurement_results: bool = False,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         dtype: Type[np.number] = np.complex64,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
@@ -280,10 +273,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            ignore_measurement_results: If True, then the simulation
-                will treat measurement as dephasing instead of collapsing
-                process. This is only applicable to simulators that can
-                model dephasing.
             initial_state: The initial state for the simulation in the
                 computational basis.
             dtype: The `numpy.dtype` of the inferred state vector. One of
@@ -296,21 +285,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             ValueError: The dimension of `target_tensor` is not divisible by 2
                 and `qid_shape` is not provided.
         """
-        if ignore_measurement_results:
-            super().__init__(
-                prng=prng,
-                qubits=qubits,
-                log_of_measurement_results=log_of_measurement_results,
-                ignore_measurement_results=ignore_measurement_results,
-                classical_data=classical_data,
-            )
-        else:
-            super().__init__(
-                prng=prng,
-                qubits=qubits,
-                log_of_measurement_results=log_of_measurement_results,
-                classical_data=classical_data,
-            )
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
         self._state = _BufferedDensityMatrix.create(
             initial_state=target_tensor if target_tensor is not None else initial_state,
             qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,

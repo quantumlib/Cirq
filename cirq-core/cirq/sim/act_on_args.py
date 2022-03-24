@@ -14,7 +14,6 @@
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
 import copy
-import inspect
 from typing import (
     Any,
     cast,
@@ -28,12 +27,11 @@ from typing import (
     TYPE_CHECKING,
     Tuple,
 )
-import warnings
 
 import numpy as np
 
-from cirq import ops, protocols, value
-from cirq._compat import deprecated, deprecated_parameter
+from cirq import protocols, value
+from cirq._compat import deprecated
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -46,18 +44,11 @@ if TYPE_CHECKING:
 class ActOnArgs(OperationTarget[TSelf]):
     """State and context for an operation acting on a state tensor."""
 
-    @deprecated_parameter(
-        deadline='v0.15',
-        fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
-        parameter_desc='ignore_measurement_results',
-        match=lambda args, kwargs: 'ignore_measurement_results' in kwargs or len(args) > 4,
-    )
     def __init__(
         self,
         prng: Optional[np.random.RandomState] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
-        ignore_measurement_results: bool = False,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits ActOnArgs.
@@ -70,10 +61,6 @@ class ActOnArgs(OperationTarget[TSelf]):
                 ordering of the computational basis states.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            ignore_measurement_results: If True, then the simulation
-                will treat measurement as dephasing instead of collapsing
-                process, and not log the result. This is only applicable to
-                simulators that can represent mixed states.
             classical_data: The shared classical data container for this
                 simulation.
         """
@@ -89,7 +76,6 @@ class ActOnArgs(OperationTarget[TSelf]):
                 for k, v in (log_of_measurement_results or {}).items()
             }
         )
-        self._ignore_measurement_results = ignore_measurement_results
 
     @property
     def prng(self) -> np.random.RandomState:
@@ -99,22 +85,6 @@ class ActOnArgs(OperationTarget[TSelf]):
     def qubit_map(self) -> Mapping['cirq.Qid', int]:
         return self._qubit_map
 
-    @prng.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def prng(self, prng):
-        self._prng = prng
-
-    @qubit_map.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def qubit_map(self, qubit_map):
-        self._qubit_map = qubit_map
-
     def _set_qubits(self, qubits: Sequence['cirq.Qid']):
         self._qubits = tuple(qubits)
         self._qubit_map = {q: i for i, q in enumerate(self.qubits)}
@@ -122,9 +92,7 @@ class ActOnArgs(OperationTarget[TSelf]):
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Measures the qubits and records to `log_of_measurement_results`.
 
-        Any bitmasks will be applied to the measurement record. If
-        `self._ignore_measurement_results` is set, it dephases instead of
-        measuring, and no measurement result will be logged.
+        Any bitmasks will be applied to the measurement record.
 
         Args:
             qubits: The qubits to measure.
@@ -136,9 +104,6 @@ class ActOnArgs(OperationTarget[TSelf]):
         Raises:
             ValueError: If a measurement key has already been logged to a key.
         """
-        if self.ignore_measurement_results:
-            self._act_on_fallback_(ops.phase_damp(1), qubits)
-            return
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
         self._classical_data.record_measurement(
@@ -165,17 +130,7 @@ class ActOnArgs(OperationTarget[TSelf]):
             A copied instance.
         """
         args = copy.copy(self)
-        if 'deep_copy_buffers' in inspect.signature(self._on_copy).parameters:
-            self._on_copy(args, deep_copy_buffers)
-        else:
-            warnings.warn(
-                (
-                    'A new parameter deep_copy_buffers has been added to ActOnArgs._on_copy(). '
-                    'The classes that inherit from ActOnArgs should support it before Cirq 0.15.'
-                ),
-                DeprecationWarning,
-            )
-            self._on_copy(args)
+        self._on_copy(args, deep_copy_buffers)
         args._classical_data = self._classical_data.copy()
         return args
 
@@ -278,8 +233,9 @@ class ActOnArgs(OperationTarget[TSelf]):
         return self._classical_data
 
     @property
+    @deprecated(deadline='v0.16', fix='Remove this call, it always returns False.')
     def ignore_measurement_results(self) -> bool:
-        return self._ignore_measurement_results
+        return False
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
