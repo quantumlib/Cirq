@@ -22,7 +22,7 @@ import cirq_google as cg
 from cirq_google.api import v2
 
 
-class TestDevice(cirq.Device):
+class FakeDevice(cirq.Device):
     def __init__(self):
         pass
 
@@ -680,7 +680,7 @@ def test_deserialize_schedule_not_supported():
         ),
     )
     with pytest.raises(ValueError, match='no longer supported'):
-        serializer.deserialize(proto, TestDevice())
+        serializer.deserialize(proto, FakeDevice())
 
 
 def test_deserialize_fsim_missing_parameters():

@@ -58,7 +58,7 @@ def find_terminal_measurements(
     return terminal_measurements
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def synchronize_terminal_measurements(
     circuit: 'cirq.AbstractCircuit',
     *,

@@ -43,6 +43,8 @@ def drop_negligible_operations(
     Returns:
           Copy of the transformed input circuit.
     """
+    if context is None:
+        context = transformer_api.TransformerContext()
 
     def map_func(op: 'cirq.Operation', _: int) -> 'cirq.OP_TREE':
         return (
@@ -50,5 +52,5 @@ def drop_negligible_operations(
         )
 
     return transformer_primitives.map_operations(
-        circuit, map_func, tags_to_ignore=context.tags_to_ignore if context else ()
+        circuit, map_func, tags_to_ignore=context.tags_to_ignore, deep=context.deep
     ).unfreeze(copy=False)

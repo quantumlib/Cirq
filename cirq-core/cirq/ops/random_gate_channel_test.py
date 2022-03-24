@@ -80,16 +80,20 @@ def test_eq():
 
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.RandomGateChannel(sub_gate=cirq.X, probability=1)
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=1),
+        ignore_decompose_to_default_gateset=True,
     )
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0)
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0),
+        ignore_decompose_to_default_gateset=True,
     )
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.RandomGateChannel(sub_gate=cirq.X, probability=sympy.Symbol('x') / 2)
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=sympy.Symbol('x') / 2),
+        ignore_decompose_to_default_gateset=True,
     )
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5)
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5),
+        ignore_decompose_to_default_gateset=True,
     )
 
 

@@ -75,7 +75,10 @@ def test_infer_target_tensor():
 
 
 def test_shallow_copy_buffers():
-    args = cirq.ActOnStateVectorArgs()
+    args = cirq.ActOnStateVectorArgs(
+        qubits=cirq.LineQubit.range(1),
+        initial_state=0,
+    )
     copy = args.copy(deep_copy_buffers=False)
     assert copy.available_buffer is args.available_buffer
 
@@ -328,3 +331,16 @@ def test_with_qubits():
             np.array([[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=np.complex64),
         ),
     )
+
+
+def test_qid_shape_error():
+    with pytest.raises(ValueError, match="qid_shape must be provided"):
+        cirq.sim.act_on_state_vector_args._BufferedStateVector.create(initial_state=0)
+
+
+def test_deprecated_methods():
+    args = cirq.ActOnStateVectorArgs(qubits=[cirq.LineQubit(0)])
+    with cirq.testing.assert_deprecated('unintentionally made public', deadline='v0.16'):
+        args.subspace_index([0], 0)
+    with cirq.testing.assert_deprecated('unintentionally made public', deadline='v0.16'):
+        args.swap_target_tensor_for(np.array([]))

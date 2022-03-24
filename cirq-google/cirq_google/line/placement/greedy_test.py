@@ -24,13 +24,13 @@ from cirq_google.line.placement.sequence import (
 )
 
 
-class TestDevice(cirq.Device):
+class FakeDevice(cirq.Device):
     def __init__(self, qubits):
         self.qubits = qubits
 
 
 def _create_device(qubits: Iterable[cirq.GridQubit]):
-    return TestDevice(qubits)
+    return FakeDevice(qubits)
 
 
 def test_greedy_sequence_search_fails_on_wrong_start_qubit():

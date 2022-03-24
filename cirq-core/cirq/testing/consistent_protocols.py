@@ -26,6 +26,7 @@ from cirq.testing.circuit_compare import (
 )
 from cirq.testing.consistent_decomposition import (
     assert_decompose_is_consistent_with_unitary,
+    assert_decompose_ends_at_default_gateset,
 )
 from cirq.testing.consistent_phase_by import (
     assert_phase_by_is_consistent_with_unitary,
@@ -55,6 +56,7 @@ def assert_implements_consistent_protocols(
     setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
     global_vals: Optional[Dict[str, Any]] = None,
     local_vals: Optional[Dict[str, Any]] = None,
+    ignore_decompose_to_default_gateset: bool = False,
 ) -> None:
     """Checks that a value is internally consistent and has a good __repr__."""
     global_vals = global_vals or {}
@@ -66,6 +68,7 @@ def assert_implements_consistent_protocols(
         setup_code=setup_code,
         global_vals=global_vals,
         local_vals=local_vals,
+        ignore_decompose_to_default_gateset=ignore_decompose_to_default_gateset,
     )
 
     for exponent in exponents:
@@ -77,6 +80,7 @@ def assert_implements_consistent_protocols(
                 setup_code=setup_code,
                 global_vals=global_vals,
                 local_vals=local_vals,
+                ignore_decompose_to_default_gateset=ignore_decompose_to_default_gateset,
             )
 
 
@@ -90,6 +94,7 @@ def assert_eigengate_implements_consistent_protocols(
     setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
     global_vals: Optional[Dict[str, Any]] = None,
     local_vals: Optional[Dict[str, Any]] = None,
+    ignore_decompose_to_default_gateset: bool = False,
 ) -> None:
     """Checks that an EigenGate subclass is internally consistent and has a
     good __repr__."""
@@ -105,6 +110,7 @@ def assert_eigengate_implements_consistent_protocols(
                 setup_code=setup_code,
                 global_vals=global_vals,
                 local_vals=local_vals,
+                ignore_decompose_to_default_gateset=ignore_decompose_to_default_gateset,
             )
 
 
@@ -143,6 +149,7 @@ def _assert_meets_standards_helper(
     setup_code: str,
     global_vals: Optional[Dict[str, Any]],
     local_vals: Optional[Dict[str, Any]],
+    ignore_decompose_to_default_gateset: bool,
 ) -> None:
     __tracebackhide__ = True  # pylint: disable=unused-variable
 
@@ -154,6 +161,8 @@ def _assert_meets_standards_helper(
     assert_qasm_is_consistent_with_unitary(val)
     assert_has_consistent_trace_distance_bound(val)
     assert_decompose_is_consistent_with_unitary(val, ignoring_global_phase=ignoring_global_phase)
+    if not ignore_decompose_to_default_gateset:
+        assert_decompose_ends_at_default_gateset(val)
     assert_phase_by_is_consistent_with_unitary(val)
     assert_pauli_expansion_is_consistent_with_unitary(val)
     assert_equivalent_repr(
