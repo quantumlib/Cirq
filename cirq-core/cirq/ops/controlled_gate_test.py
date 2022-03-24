@@ -242,6 +242,10 @@ def test_eq():
     eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[0, 1]),
     )
+    for group in eq._groups:
+        if isinstance(group[0], cirq.Gate):
+            for item in group:
+                np.testing.assert_allclose(cirq.unitary(item), cirq.unitary(group[0]))
 
 
 def test_control():
