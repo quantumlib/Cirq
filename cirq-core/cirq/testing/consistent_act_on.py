@@ -166,7 +166,7 @@ def _final_clifford_tableau(
     )
     for op in circuit.all_operations():
         try:
-            protocols.act_on(op, args, allow_decompose=False)
+            protocols.act_on(op, args, allow_decompose=True)
         except TypeError:
             return None
     return tableau

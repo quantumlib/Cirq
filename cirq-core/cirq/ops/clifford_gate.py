@@ -519,7 +519,9 @@ class SingleQubitCliffordGate(CliffordGate):
         if not tableau._validate():
             raise ValueError('Input tableau is not a valid Clifford tableau.')
         if tableau.n != 1:
-            raise ValueError('The number of input tableau is not 1.')
+            raise ValueError(
+                'The number of qubit of input tableau should be 1 for SingleQubitCliffordGate.'
+            )
         return SingleQubitCliffordGate(_clifford_tableau=tableau)
 
     @staticmethod
@@ -741,7 +743,7 @@ class SingleQubitCliffordGate(CliffordGate):
         args: 'cirq.OperationTarget',  # pylint: disable=unused-argument
         qubits: Sequence['cirq.Qid'],  # pylint: disable=unused-argument
     ):
-        # TODO
+        # TODO(PR number) will create a PR if we agree on adding this.
         return NotImplemented
 
     # Single Clifford Gate decomposition is more efficient than the general Tableau decomposition.
